@@ -45,17 +45,24 @@ class OmarHyperelasticityLoss(DemHyperelasticityLoss):
         j = det_f
         i1 = fxx * fxx + fxy * fxy + fyx * fyx + fyy * fyy
 
-        # 8-chain Arruda-Boyce series (5 terms): mu * sum_k alpha_k / N^(k-1) * (I1^k - 2^k).
-        # I1 here is the reduced 2D invariant (tr(C) = 2 at the undeformed state F=I,
-        # same convention as NeoHookean2D's tr_c and MooneyRivlin2D's i1/i2 above), so
-        # the reference term must be 2^k -- not 3^k, which is the 3D convention -- for
-        # the energy to vanish at zero strain, consistent with the other two materials.
+        # 8-chain Arruda-Boyce series (5 terms), applied to the *isochoric* invariant
+        # i1_bar = I1 / J. Using the raw I1 here (like NeoHookean2D's tr_c) is unstable
+        # under compression: I1 alone can drop below 2 (its value at F=I) with no lower
+        # bound, and the odd-order terms in the I1^k polynomial then make the energy
+        # decrease without bound as the material compresses -- confirmed numerically
+        # (e.g. -10% uniaxial strain already gives negative, still-decreasing energy).
+        # I1_bar = I1 / J is >= 2 for any J > 0 (2D AM-GM: fxx^2+fxy^2+fyx^2+fyy^2 >=
+        # 2*|fxx*fyy - fxy*fyx|), so (I1_bar^k - 2^k) >= 0 always and the deviatoric
+        # part only responds to shape change; the kappa_ab*(J-1)^2 term still handles
+        # volume change separately, same split NeoHookean2D/MooneyRivlin2D achieve via
+        # their -mu*ln(J) / -d*ln(J) terms.
+        i1_bar = i1 / j
         alpha = [1 / 2, 1 / 20, 11 / 1050, 19 / 7000, 519 / 673750]
-        strain_energy = jnp.zeros_like(i1)
-        i1_pow = i1
+        strain_energy = jnp.zeros_like(i1_bar)
+        i1_bar_pow = i1_bar
         for k, a in enumerate(alpha, start=1):
-            strain_energy = strain_energy + self.mu_ab * a / (self.N_ab ** (k - 1)) * (i1_pow - 2.0 ** k)
-            i1_pow = i1_pow * i1
+            strain_energy = strain_energy + self.mu_ab * a / (self.N_ab ** (k - 1)) * (i1_bar_pow - 2.0 ** k)
+            i1_bar_pow = i1_bar_pow * i1_bar
         strain_energy = strain_energy + self.kappa_ab / 2 * (j - 1) ** 2
         return jnp.where(jnp.any(jnp.isnan(strain_energy)), 1e9, strain_energy)
 

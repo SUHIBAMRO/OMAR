@@ -85,11 +85,15 @@ def strain_energy(material, u, beam):
         return c * (jac - 1) ** 2 - d * ufl.ln(jac) + c1 * (ic - 2) + c2 * (iic - 1)
 
     if material == 'arrudaboyce':
+        # isochoric invariant (see the matching note in omar/losses.py:ArrudaBoyce2D):
+        # using the raw ic is unstable under compression (energy decreases without
+        # bound), since ic alone has no lower bound but ic/jac >= 2 always (2D AM-GM).
         mu_ab, n_ab, kappa_ab = beam["param_mu_ab"], beam["param_N_ab"], beam["param_kappa_ab"]
+        ic_bar = ic / jac
         alpha = [1 / 2, 1 / 20, 11 / 1050, 19 / 7000, 519 / 673750]
         psi = 0.0
         for k, a in enumerate(alpha, start=1):
-            psi = psi + mu_ab * a / n_ab ** (k - 1) * (ic ** k - 2 ** k)
+            psi = psi + mu_ab * a / n_ab ** (k - 1) * (ic_bar ** k - 2 ** k)
         return psi + kappa_ab / 2 * (jac - 1) ** 2
 
     raise ValueError(f"Unknown material: {material}")
