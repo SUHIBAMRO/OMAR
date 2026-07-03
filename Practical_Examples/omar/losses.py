@@ -181,7 +181,7 @@ class B2Loss(OmarHyperelasticityLoss):
         theta_row = jnp.linspace(0, 1, self.num_y) * (jnp.pi / 2.0)
         theta_col = theta_row[None, :, None]
         u_r_inner = u_x_inner * jnp.cos(theta_col) + u_y_inner * jnp.sin(theta_col)
-        pressure = x_real[:, 0:1, 0, :]
+        pressure = x_real[:, :, 0, :]  # GRF pressure profile, varies with theta (rows)
         loss_bnd = jnp.sum(u_r_inner * pressure) * self.R_in * dtheta
 
         return jnp.where(jnp.isnan(jnp.min(stored_energy)), 1e6, loss_int - loss_bnd)

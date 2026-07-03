@@ -8,7 +8,7 @@ Expected .npz files (same 'traction' / 'disp2D' convention as the original
 Hyperelasticity_dataset):
     B1: traction [N, numPtsU]  -- GRF traction on the top edge (varies with x)
         disp2D   [N, numPtsV, numPtsU, 2]
-    B2: traction [N]           -- scalar internal pressure per sample
+    B2: traction [N, numPtsV]  -- GRF internal pressure (varies with theta)
         disp2D   [N, numPtsV, numPtsU, 2]  (in mapped (r, theta) coordinates)
 """
 import os
@@ -75,11 +75,12 @@ class B2Dataset(Dataset):
             print("NOT Found saved dataset at", model_data["path"])
             raise ValueError("Please run the FEM data generation script for B2 first.")
 
-        # fix dimensions: pressure is a scalar per sample, constant over the domain
-        pressure = traction.reshape(n, 1, 1, 1)
+        # fix dimensions: pressure varies with theta (rows), a GRF profile along
+        # the inner boundary, same convention as B1's traction varying along x
+        pressure = traction.reshape(n, n_v, 1, 1)
 
-        # repeat inputs across the full grid
-        pressure = np.tile(pressure, (1, n_v, n_u, 1))
+        # repeat inputs across the r-direction (columns)
+        pressure = np.tile(pressure, (1, 1, n_u, 1))
 
         self.x = pressure
         self.y = disp2d
