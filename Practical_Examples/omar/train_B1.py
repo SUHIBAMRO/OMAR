@@ -75,7 +75,7 @@ def run(model_data, seed=0):
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, collate_fn=collate_fn)
     model_evaluation(model, model_data, model_params, loss_fn, test_loader, normalizers)
 
-    return model, model_params, train_losses, test_losses
+    return {'params': model_params, 'train_losses': train_losses, 'test_losses': test_losses}
 
 
 if __name__ == "__main__":
