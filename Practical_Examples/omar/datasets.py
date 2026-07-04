@@ -11,6 +11,9 @@ Hyperelasticity_dataset):
     B2: traction [N, numPtsV]  -- GRF internal pressure (varies with theta)
         disp2D   [N, numPtsV, numPtsU, 2]  (in mapped (r, theta) coordinates)
 """
+import sys
+sys.path.insert(0, '/content/OMAR/Practical_Examples')
+
 import os
 
 import numpy as np

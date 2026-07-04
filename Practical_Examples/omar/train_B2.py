@@ -6,6 +6,9 @@ architecture, same training loop / optimizer (utils.fno_utils.train_fno,
 jax.example_libraries.optimizers.adam), same collate_fn / count_params /
 model_evaluation utilities -- nothing there is changed.
 """
+import sys
+sys.path.insert(0, '/content/OMAR/Practical_Examples')
+
 import time
 
 import jax
