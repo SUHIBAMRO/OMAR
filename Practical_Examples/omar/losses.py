@@ -21,6 +21,7 @@ import jax.numpy as jnp
 
 from utils.fno_2d import FNO2D
 from utils.fno_utils import DemHyperelasticityLoss
+from utils.processing import diff_x, diff_y
 
 
 # ======================================================================
@@ -163,6 +164,55 @@ class B2Loss(OmarHyperelasticityLoss):
         super().__init__(model, model_data, normalizers, d=d, p=p, size_average=size_average, reduction=reduction)
         self.R_in = model_data["beam"]["R_inner"]
         self.R_out = model_data["beam"]["R_outer"]
+
+    def grad_disp(self, y_out):
+        """
+        Overrides DemHyperelasticityLoss.grad_disp (used unchanged by B1).
+        That version returns d(field)/d(computational grid coordinate), which
+        equals the physical d(field)/dx, d(field)/dy only when the
+        computational domain *is* the physical domain (true for B1's flat
+        unit square, not for B2's polar mapping). For B2 this was silently
+        feeding derivatives w.r.t. (r, theta) into NeoHookean2D /
+        MooneyRivlin2D / ArrudaBoyce2D as if they were derivatives w.r.t.
+        (x, y) -- the deformation gradient F built from them didn't
+        correspond to the real physical strain, so the network converged to
+        a genuine equilibrium of the *wrong* energy functional (loss curves
+        looked fine; predictions didn't match FEM at all, worse than
+        predicting all zeros).
+
+        Fix: compute d/dr and d/dtheta from the computational-grid finite
+        differences (accounting for the [0, 1] -> [R_in, R_out] / [0, pi/2]
+        rescaling), then apply the standard polar-coordinate chain rule
+            d/dx = cos(theta) d/dr - (sin(theta)/r) d/dtheta
+            d/dy = sin(theta) d/dr + (cos(theta)/r) d/dtheta
+        to get the physical derivatives that NeoHookean2D / MooneyRivlin2D /
+        ArrudaBoyce2D actually need.
+        """
+        u = y_out[..., 0:1]
+        v = y_out[..., 1:2]
+
+        # d/d(u_param), d/d(v_param) on the [0, 1] x [0, 1] computational grid
+        dudr_param = diff_x(u, self.L)
+        dudtheta_param = diff_y(u, self.W)
+        dvdr_param = diff_x(v, self.L)
+        dvdtheta_param = diff_y(v, self.W)
+
+        # rescale to d/dr, d/dtheta (r_param -> r over [R_in, R_out], theta_param -> theta over [0, pi/2])
+        dudr = dudr_param / (self.R_out - self.R_in)
+        dudtheta = dudtheta_param / (jnp.pi / 2.0)
+        dvdr = dvdr_param / (self.R_out - self.R_in)
+        dvdtheta = dvdtheta_param / (jnp.pi / 2.0)
+
+        # theta varies by row, r varies by column (see FNO2d_B2.get_grid)
+        theta = jnp.linspace(0, jnp.pi / 2.0, self.num_y)[None, :, None, None]
+        r = (jnp.linspace(0, 1, self.num_x) * (self.R_out - self.R_in) + self.R_in)[None, None, :, None]
+        cos_t, sin_t = jnp.cos(theta), jnp.sin(theta)
+
+        dudx = cos_t * dudr - (sin_t / r) * dudtheta
+        dudy = sin_t * dudr + (cos_t / r) * dudtheta
+        dvdx = cos_t * dvdr - (sin_t / r) * dvdtheta
+        dvdy = sin_t * dvdr + (cos_t / r) * dvdtheta
+        return dudx, dudy, dvdx, dvdy
 
     def loss_fn(self, params, x, y):
         if self.model_data["normalized"]:
