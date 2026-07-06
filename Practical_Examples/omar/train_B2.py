@@ -5,6 +5,12 @@ Arruda-Boyce). Structured exactly like VINO_Hyperelasticity.py: same FNO
 architecture, same training loop / optimizer (utils.fno_utils.train_fno,
 jax.example_libraries.optimizers.adam), same collate_fn / count_params /
 model_evaluation utilities -- nothing there is changed.
+
+Uses B2VinoLoss (omar/losses.py): per-element Gauss quadrature instead of
+DemHyperelasticityLoss's whole-domain trapezoidal quadrature -- the paper's
+own exact closed-form element integration is not possible on B2's curved
+(polar) geometry (see B2VinoLoss's docstring for why), so Gauss quadrature
+is the mathematically honest adaptation for a curved domain.
 """
 import sys
 sys.path.insert(0, '/content/OMAR/Practical_Examples')
@@ -20,7 +26,7 @@ from torch.utils.data import DataLoader, random_split
 
 from omar.config import B2_NH, B2_MR, B2_AB
 from omar.datasets import B2Dataset
-from omar.losses import FNO2d_B2, B2Loss
+from omar.losses import FNO2d_B2, B2VinoLoss
 from utils.fno_utils import count_params, train_fno, model_evaluation, collate_fn
 
 jax.config.update("jax_enable_x64", True)
@@ -68,7 +74,7 @@ def run(model_data, seed=0):
     init_fun, update_fun, get_params = optimizers.adam(model_data["fno"]["learning_rate"])
     opt_state = init_fun(model_params)
 
-    loss_fn = B2Loss(model, model_data, normalizers, d=1, p=1, size_average=False)
+    loss_fn = B2VinoLoss(model, model_data, normalizers, d=1, p=1, size_average=False)
 
     print("Training (ADAM)...")
     t0 = time.time()

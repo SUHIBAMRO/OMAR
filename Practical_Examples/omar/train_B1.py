@@ -5,6 +5,12 @@ Arruda-Boyce). Structured exactly like VINO_Hyperelasticity.py: same FNO
 architecture, same training loop / optimizer (utils.fno_utils.train_fno,
 jax.example_libraries.optimizers.adam), same collate_fn / count_params /
 model_evaluation utilities -- nothing there is changed.
+
+Uses B1VinoLoss (omar/losses.py): the paper's actual exact per-element
+integration method (utils.fno_utils.VinoHyperelasticityLoss), not the DEM
+finite-difference/quadrature baseline. See B1VinoLoss's docstring for how
+the Neo-Hookean and Arruda-Boyce element formulas were derived and
+validated, and how they relate to the pre-existing Mooney-Rivlin one.
 """
 import sys
 sys.path.insert(0, '/content/OMAR/Practical_Examples')
@@ -21,7 +27,7 @@ from torch.utils.data import DataLoader, random_split
 
 from omar.config import B1_NH, B1_MR, B1_AB
 from omar.datasets import B1Dataset
-from omar.losses import FNO2d_B1, B1Loss
+from omar.losses import FNO2d_B1, B1VinoLoss
 from utils.fno_utils import count_params, train_fno, model_evaluation, collate_fn
 
 jax.config.update("jax_enable_x64", True)
@@ -69,7 +75,7 @@ def run(model_data, seed=0):
     init_fun, update_fun, get_params = optimizers.adam(model_data["fno"]["learning_rate"])
     opt_state = init_fun(model_params)
 
-    loss_fn = B1Loss(model, model_data, normalizers, d=1, p=1, size_average=False)
+    loss_fn = B1VinoLoss(model, model_data, normalizers, d=1, p=1, size_average=False)
 
     print("Training (ADAM)...")
     t0 = time.time()
