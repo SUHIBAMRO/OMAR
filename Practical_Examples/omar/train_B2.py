@@ -35,7 +35,13 @@ def run(model_data, seed=0):
     assert model_data["fno"]["mode2"] <= model_data["beam"]["numPtsV"] // 2 + 1
 
     dataset = B2Dataset(model_data)
-    train_dataset, test_dataset = random_split(dataset, [model_data["fno"]["n_train"], model_data["fno"]["n_test"]])
+    # explicit generator (not the global torch RNG) so the split is reproducible
+    # from (model_data, seed) alone -- needed to rebuild the same test set later
+    # for plotting, independent of call order or which other cases were skipped
+    # via checkpoint.
+    split_generator = torch.Generator().manual_seed(seed)
+    train_dataset, test_dataset = random_split(dataset, [model_data["fno"]["n_train"], model_data["fno"]["n_test"]],
+                                               generator=split_generator)
     normalizers = [dataset.normalizer_x, dataset.normalizer_y] if model_data["normalized"] else None
 
     train_loader = DataLoader(train_dataset, batch_size=model_data["fno"]["batch_size"],
