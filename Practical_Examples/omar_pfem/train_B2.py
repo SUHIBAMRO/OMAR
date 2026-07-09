@@ -1,27 +1,26 @@
 """
-Training script for the B1 benchmark (unit square, top-edge traction, fixed
-bottom edge) using the PFEM/Transolver pipeline -- adapted from PFEM-main's
-practical_problems/Hyper_beam/exp_hyper_PINO_transolver_quad.py (Yizheng
-Wang et al., "Pretrain finite element method", JMPS 2026).
+Training script for the B2 benchmark (quarter ring, R_in=1, R_out=2,
+internal pressure on the inner arc, symmetry BCs on the two straight
+edges) using the PFEM/Transolver pipeline -- mirrors train_B1.py's
+structure (Q4 isoparametric shape functions, 2x2-Gauss "explicit
+differentiation" energy computation, no-autodiff-for-spatial-derivatives,
+the total-potential-energy Pi = U - W loss, the Transolver
+architecture/training-loop), generalized where B2's geometry/BCs differ
+from B1's:
 
-Unchanged from the beam example: the Q4 isoparametric shape functions, the
-2x2-Gauss "explicit differentiation" energy computation (element strain
-gradients via shape-function derivatives contracted with the network's
-predicted nodal displacements, not autodiff), the total-potential-energy
-(Pi = U - W) loss with no other loss term, and the Transolver
-architecture/training-loop structure.
-
-Swapped for B1's geometry: the beam fixes the LEFT edge (x=0) and loads the
-RIGHT edge (x=Lx) with a y-varying traction (cantilever); B1 fixes the
-BOTTOM edge (y=0) and loads the TOP edge (y=Ly) with an x-varying traction.
-The hard-Dirichlet ramp and the boundary dataset fields (top_edges /
-bottom_nodes vs. right_edges / left_nodes) are updated accordingly.
-
-Extended beyond PFEM-main (which only implements Neo-Hookean): the strain
-energy density is now selected via --material {neo_hookean,mooney_rivlin,
-arruda_boyce}, dispatched through omar_pfem/materials_torch.py's registry
-so training always uses the same constitutive law as the FEM ground-truth
-dataset it is trained/evaluated against.
+  - Two symmetry Dirichlet constraints instead of one full fixation: at
+    theta=0 (the y=0 edge) u_y=0 and at theta=pi/2 (the x=0 edge) u_x=0.
+    Generalizes B1's single scalar ramp (xy[:,1]/Ly) into two independent
+    per-component ramps, each based on the OTHER coordinate's proportional
+    distance from its own zero edge: free_u = clamp(x/R_out, 0, 1) (zero
+    exactly on the x=0 edge, nonzero on the y=0 edge since x>=R_in>0
+    there) and free_v = clamp(y/R_out, 0, 1) (the mirror image).
+  - The loaded boundary is the inner arc (r=R_in) instead of a flat top
+    edge; the per-node force direction is each inner node's own radial
+    direction (cos theta, sin theta) instead of a fixed (0,1) (see
+    omar_pfem/data/convert_B2_quad.py).
+  - Material dispatch (Neo-Hookean / Mooney-Rivlin / Arruda-Boyce) via the
+    same omar_pfem/materials_torch.py registry as train_B1.py.
 """
 import os
 import re
@@ -38,12 +37,9 @@ from omar_pfem.materials_torch import get_material_fns
 
 
 def find_latest_checkpoint(out_dir):
-    """Epoch-level resume: a case at 10000 epochs / ntrain~800 can run for
-    hours, so a mid-case disconnect shouldn't discard all of it -- if a
-    prior run already wrote model_epoch{N}.pt files, pick up training from
-    the highest N instead of starting over. Optimizer momentum state is not
-    preserved (only model weights), a deliberate, acceptable simplification
-    given how infrequently save_every fires relative to total epochs."""
+    """Epoch-level resume -- see train_B1.py's find_latest_checkpoint for
+    the rationale (a case at 10000 epochs can run for hours, so a mid-case
+    disconnect shouldn't discard all of it)."""
     ckpts = glob.glob(os.path.join(out_dir, "model_epoch*.pt"))
     if not ckpts:
         return None, 0
@@ -68,7 +64,7 @@ def quad_to_tri(quad):
 
 
 # ============================================================
-# 2) Q4 shape functions on [-1,1]^2 -- unchanged from PFEM
+# 1) Q4 shape functions on [-1,1]^2 -- unchanged from PFEM/train_B1
 # ============================================================
 def shape_Q4_torch(xi, eta, device, dtype):
     N = 0.25 * torch.tensor([
@@ -88,14 +84,12 @@ def shape_Q4_torch(xi, eta, device, dtype):
 
 
 # ============================================================
-# 3) Hyperelastic energy on Q4 mesh (TL, 2x2 Gauss) -- unchanged from PFEM,
-#    generalized to dispatch across any material's energy density
+# 2) Hyperelastic energy on Q4 mesh (TL, 2x2 Gauss) -- geometry-agnostic,
+#    identical to train_B1.py's version (the isoparametric element routine
+#    only ever sees each element's own corner reference coordinates, curved
+#    ring or flat square makes no difference here)
 # ============================================================
 def compute_hyperelastic_energy_Q4(xy, quad, uv, param_nodes, energy_density_fn, dtype=torch.float32):
-    """param_nodes: tuple of per-node parameter tensors (length/meaning
-    depends on the material, e.g. (mu, lam) for Neo-Hookean or
-    (c, c1, c2, d) for Mooney-Rivlin), each averaged per-element the same
-    way and passed positionally to energy_density_fn(F, *params_e, dtype=)."""
     device = xy.device
     Q = quad.shape[0]
 
@@ -144,13 +138,13 @@ def compute_hyperelastic_energy_Q4(xy, quad, uv, param_nodes, energy_density_fn,
 
 
 # ============================================================
-# 4) Total potential energy Pi = U - W  (Q4 version, B1 geometry)
+# 3) Total potential energy Pi = U - W  (Q4 version, B2 ring geometry)
 # ============================================================
 def total_potential_energy_Q4_hyperelastic(
-    xy, quad, top_edges, bottom_nodes,
+    xy, quad, inner_edges, theta0_nodes, thetahalfpi_nodes,
     model, E_nodes, nu_nodes, node_forces,
     use_soft_dirichlet=True,
-    Ly=1.0,
+    R_out=2.0,
     mode="plane_strain",
     dtype=torch.float32,
     fun_dim=4,
@@ -178,14 +172,20 @@ def total_potential_energy_Q4_hyperelastic(
     if uv_raw.dim() == 3:
         uv_raw = uv_raw[0]
 
-    # ---- Dirichlet: bottom edge (y=0) fixed -- ramp grows with y instead of x
+    # ---- Symmetry Dirichlet: u_y=0 on theta=0 (y=0), u_x=0 on
+    # theta=pi/2 (x=0). Each ramp vanishes exactly on its own zero edge and
+    # is nonzero on the *other* symmetry edge (since x,y >= R_in > 0 there).
     if use_soft_dirichlet:
-        free = (xy[:, 1] / Ly).clamp(0.0, 1.0)
+        free_u = (xy[:, 0] / R_out).clamp(0.0, 1.0)
+        free_v = (xy[:, 1] / R_out).clamp(0.0, 1.0)
     else:
-        free = torch.ones(xy.shape[0], device=device, dtype=dtype)
-        if bottom_nodes.numel() > 0:
-            free[bottom_nodes] = 0.0
-    uv = uv_raw * free[:, None]
+        free_u = torch.ones(xy.shape[0], device=device, dtype=dtype)
+        free_v = torch.ones(xy.shape[0], device=device, dtype=dtype)
+        if thetahalfpi_nodes.numel() > 0:
+            free_u[thetahalfpi_nodes] = 0.0
+        if theta0_nodes.numel() > 0:
+            free_v[theta0_nodes] = 0.0
+    uv = torch.stack([uv_raw[:, 0] * free_u, uv_raw[:, 1] * free_v], dim=1)
 
     energy_density_fn, E_nu_to_params_fn = get_material_fns(material)
     if material == "neo_hookean":
@@ -195,14 +195,14 @@ def total_potential_energy_Q4_hyperelastic(
 
     U, Fg = compute_hyperelastic_energy_Q4(xy, quad, uv, param_nodes, energy_density_fn, dtype=dtype)
 
-    W = torch.sum(node_forces * uv) / len(top_edges)
+    W = torch.sum(node_forces * uv) / len(inner_edges)
 
     Pi = U - W
     return Pi, U.detach(), W.detach(), uv, Fg
 
 
 # ============================================================
-# 5) Visualization helpers (Q4)
+# 4) Visualization helpers (Q4)
 # ============================================================
 def plot_mesh_with_materials_and_forces_q4(samples, args, sid=0, tag="mesh_material_force_check"):
     os.makedirs(args.out_dir, exist_ok=True)
@@ -210,8 +210,9 @@ def plot_mesh_with_materials_and_forces_q4(samples, args, sid=0, tag="mesh_mater
     s = samples[sid]
     xy = s["xy"]
     quad = s["quad"]
-    bottom_nodes = s["bottom_nodes"]
-    top_edges = s["top_edges"]
+    theta0_nodes = s["theta0_nodes"]
+    thetahalfpi_nodes = s["thetahalfpi_nodes"]
+    inner_edges = s["inner_edges"]
     E_node = s.get("E_node", None)
     nu_node = s.get("nu_node", None)
     node_forces = s.get("node_forces", None)
@@ -219,9 +220,11 @@ def plot_mesh_with_materials_and_forces_q4(samples, args, sid=0, tag="mesh_mater
     x = xy[:, 0]
     y = xy[:, 1]
 
-    bottom_mask = np.zeros(x.shape[0], dtype=bool)
-    if bottom_nodes is not None and len(bottom_nodes) > 0:
-        bottom_mask[bottom_nodes] = True
+    sym_mask = np.zeros(x.shape[0], dtype=bool)
+    if theta0_nodes is not None and len(theta0_nodes) > 0:
+        sym_mask[theta0_nodes] = True
+    if thetahalfpi_nodes is not None and len(thetahalfpi_nodes) > 0:
+        sym_mask[thetahalfpi_nodes] = True
 
     tri = quad_to_tri(quad)
 
@@ -230,14 +233,14 @@ def plot_mesh_with_materials_and_forces_q4(samples, args, sid=0, tag="mesh_mater
     ax = axes[0, 0]
     ax.triplot(x, y, tri, linewidth=0.3, color='gray', alpha=0.5)
     ax.scatter(x, y, s=6, c="k", alpha=0.7)
-    if bottom_mask.any():
-        ax.scatter(x[bottom_mask], y[bottom_mask], s=18, c="lime", label="Fixed (y=0)")
-    if top_edges is not None and top_edges.shape[0] > 0:
-        for (i, j) in top_edges:
+    if sym_mask.any():
+        ax.scatter(x[sym_mask], y[sym_mask], s=18, c="lime", label="Symmetry BC")
+    if inner_edges is not None and inner_edges.shape[0] > 0:
+        for (i, j) in inner_edges:
             ax.plot([x[i], x[j]], [y[i], y[j]], "r-", linewidth=1.5)
-        ax.plot([], [], "r-", linewidth=1.5, label="Traction edges")
+        ax.plot([], [], "r-", linewidth=1.5, label="Pressure edges")
     ax.set_aspect("equal")
-    ax.set_title(f"Q4 Mesh - sid={sid}")
+    ax.set_title(f"Q4 Ring Mesh - sid={sid}")
     ax.set_xlabel("x"); ax.set_ylabel("y")
     ax.legend(loc="best")
 
@@ -290,7 +293,7 @@ def plot_mesh_with_materials_and_forces_q4(samples, args, sid=0, tag="mesh_mater
 
 
 # ============================================================
-# 6) Dataset loader (Q4 NPZ, B1 fields)
+# 5) Dataset loader (Q4 NPZ, B2 fields)
 # ============================================================
 def _as_dict(obj):
     if isinstance(obj, dict):
@@ -305,8 +308,9 @@ def _as_dict(obj):
 
 def load_fem_dataset_Q4_with_materials_and_random_force(path, ntrain, ntest):
     """
-    Expect NPZ fields (Q4, B1 geometry):
-      coord, quad, disp2D, top_edges, bottom_nodes, E_node, nu_node, boundary_info
+    Expect NPZ fields (Q4, B2 ring geometry):
+      coord, quad, disp2D, inner_edges, theta0_nodes, thetahalfpi_nodes,
+      E_node, nu_node, boundary_info
     boundary_info: dict with keys node_indices, force_vectors, coordinates
     """
     data = np.load(path, allow_pickle=True)
@@ -314,8 +318,9 @@ def load_fem_dataset_Q4_with_materials_and_random_force(path, ntrain, ntest):
     coords = data["coord"]
     quads = data["quad"]
     disp2Ds = data["disp2D"]
-    top_edges_list = data["top_edges"]
-    bottom_nodes_list = data["bottom_nodes"]
+    inner_edges_list = data["inner_edges"]
+    theta0_nodes_list = data["theta0_nodes"]
+    thetahalfpi_nodes_list = data["thetahalfpi_nodes"]
     E_nodes_list = data["E_node"]
     nu_nodes_list = data["nu_node"]
     boundary_info_list = data["boundary_info"]
@@ -339,8 +344,9 @@ def load_fem_dataset_Q4_with_materials_and_random_force(path, ntrain, ntest):
             "xy": coords[i].astype(np.float32),
             "quad": quads[i].astype(np.int64),
             "uv_exact": disp2Ds[i].astype(np.float32),
-            "top_edges": top_edges_list[i].astype(np.int64),
-            "bottom_nodes": bottom_nodes_list[i].astype(np.int64),
+            "inner_edges": inner_edges_list[i].astype(np.int64),
+            "theta0_nodes": theta0_nodes_list[i].astype(np.int64),
+            "thetahalfpi_nodes": thetahalfpi_nodes_list[i].astype(np.int64),
             "E_node": E_nodes_list[i].astype(np.float32),
             "nu_node": nu_nodes_list[i].astype(np.float32),
             "node_forces": node_forces,
@@ -372,7 +378,7 @@ def load_fem_dataset_Q4_with_materials_and_random_force(path, ntrain, ntest):
 
 
 # ============================================================
-# 7) Eval + Viz (Q4)
+# 6) Eval + Viz (Q4)
 # ============================================================
 @torch.no_grad()
 def evaluate_dataset_hyperelastic_Q4(samples, model, args, device, dtype):
@@ -384,18 +390,19 @@ def evaluate_dataset_hyperelastic_Q4(samples, model, args, device, dtype):
         s = samples[sid]
         xy = torch.tensor(s["xy"], device=device, dtype=dtype)
         quad = torch.tensor(s["quad"], device=device, dtype=torch.long)
-        top_edges = torch.tensor(s["top_edges"], device=device, dtype=torch.long)
-        bottom_nodes = torch.tensor(s["bottom_nodes"], device=device, dtype=torch.long)
+        inner_edges = torch.tensor(s["inner_edges"], device=device, dtype=torch.long)
+        theta0_nodes = torch.tensor(s["theta0_nodes"], device=device, dtype=torch.long)
+        thetahalfpi_nodes = torch.tensor(s["thetahalfpi_nodes"], device=device, dtype=torch.long)
         uv_exact = torch.tensor(s["uv_exact"], device=device, dtype=dtype)
         E_node = torch.tensor(s["E_node"], device=device, dtype=dtype)
         nu_node = torch.tensor(s["nu_node"], device=device, dtype=dtype)
         node_forces = torch.tensor(s["node_forces"], device=device, dtype=dtype)
 
         _, _, _, uv_pred, _ = total_potential_energy_Q4_hyperelastic(
-            xy, quad, top_edges, bottom_nodes,
+            xy, quad, inner_edges, theta0_nodes, thetahalfpi_nodes,
             model, E_node, nu_node, node_forces,
             use_soft_dirichlet=args.use_soft_dirichlet,
-            Ly=args.Ly,
+            R_out=args.R_out,
             mode=args.mode,
             dtype=dtype,
             fun_dim=args.fun_dim,
@@ -442,8 +449,9 @@ def dump_bad_case_q4(samples, sid, epoch, it, args, reason="nonfinite"):
         xy=s["xy"],
         quad=s["quad"],
         uv_exact=s.get("uv_exact", None),
-        top_edges=s.get("top_edges", None),
-        bottom_nodes=s.get("bottom_nodes", None),
+        inner_edges=s.get("inner_edges", None),
+        theta0_nodes=s.get("theta0_nodes", None),
+        thetahalfpi_nodes=s.get("thetahalfpi_nodes", None),
         E_node=s.get("E_node", None),
         nu_node=s.get("nu_node", None),
         node_forces=s.get("node_forces", None),
@@ -464,18 +472,19 @@ def visualize_one_hyperelastic_Q4(samples, model, args, device, dtype, sid=0, ta
     s = samples[sid]
     xy = torch.tensor(s["xy"], device=device, dtype=dtype)
     quad = torch.tensor(s["quad"], device=device, dtype=torch.long)
-    top_edges = torch.tensor(s["top_edges"], device=device, dtype=torch.long)
-    bottom_nodes = torch.tensor(s["bottom_nodes"], device=device, dtype=torch.long)
+    inner_edges = torch.tensor(s["inner_edges"], device=device, dtype=torch.long)
+    theta0_nodes = torch.tensor(s["theta0_nodes"], device=device, dtype=torch.long)
+    thetahalfpi_nodes = torch.tensor(s["thetahalfpi_nodes"], device=device, dtype=torch.long)
     uv_exact = torch.tensor(s["uv_exact"], device=device, dtype=dtype)
     E_node = torch.tensor(s["E_node"], device=device, dtype=dtype)
     nu_node = torch.tensor(s["nu_node"], device=device, dtype=dtype)
     node_forces = torch.tensor(s["node_forces"], device=device, dtype=dtype)
 
     Pi, U, W, uv_pred, Fg = total_potential_energy_Q4_hyperelastic(
-        xy, quad, top_edges, bottom_nodes,
+        xy, quad, inner_edges, theta0_nodes, thetahalfpi_nodes,
         model, E_node, nu_node, node_forces,
         use_soft_dirichlet=args.use_soft_dirichlet,
-        Ly=args.Ly,
+        R_out=args.R_out,
         mode=args.mode,
         dtype=dtype,
         fun_dim=args.fun_dim,
@@ -544,7 +553,7 @@ def visualize_one_hyperelastic_Q4(samples, model, args, device, dtype, sid=0, ta
 
 
 # ============================================================
-# 8) Train (Q4)
+# 7) Train (Q4)
 # ============================================================
 def train_hyperelastic_Q4(args):
     device = torch.device("cuda" if torch.cuda.is_available() and not args.cpu else "cpu")
@@ -635,17 +644,18 @@ def train_hyperelastic_Q4(args):
 
             xy = torch.tensor(s["xy"], device=device, dtype=dtype)
             quad = torch.tensor(s["quad"], device=device, dtype=torch.long)
-            top_edges = torch.tensor(s["top_edges"], device=device, dtype=torch.long)
-            bottom_nodes = torch.tensor(s["bottom_nodes"], device=device, dtype=torch.long)
+            inner_edges = torch.tensor(s["inner_edges"], device=device, dtype=torch.long)
+            theta0_nodes = torch.tensor(s["theta0_nodes"], device=device, dtype=torch.long)
+            thetahalfpi_nodes = torch.tensor(s["thetahalfpi_nodes"], device=device, dtype=torch.long)
             E_node = torch.tensor(s["E_node"], device=device, dtype=dtype)
             nu_node = torch.tensor(s["nu_node"], device=device, dtype=dtype)
             node_forces = torch.tensor(s["node_forces"], device=device, dtype=dtype)
 
             Pi, U, W, uv_pred, Fg = total_potential_energy_Q4_hyperelastic(
-                xy, quad, top_edges, bottom_nodes,
+                xy, quad, inner_edges, theta0_nodes, thetahalfpi_nodes,
                 model, E_node, nu_node, node_forces,
                 use_soft_dirichlet=args.use_soft_dirichlet,
-                Ly=args.Ly,
+                R_out=args.R_out,
                 mode=args.mode,
                 dtype=dtype,
                 fun_dim=args.fun_dim,
@@ -741,16 +751,16 @@ def train_hyperelastic_Q4(args):
 
 
 # ============================================================
-# 9) Main
+# 8) Main
 # ============================================================
 def main():
     parser = argparse.ArgumentParser(
-        "PFEM/Transolver on FEM Q4 meshes -- B1 (unit square, top-edge traction, fixed bottom)"
+        "PFEM/Transolver on FEM Q4 meshes -- B2 (quarter ring, internal pressure, symmetry BCs)"
     )
 
-    parser.add_argument("--path", type=str, default="./omar_pfem/data/training_data_B1_q4/hyperelastic_training_data_q4.npz")
-    parser.add_argument("--Lx", type=float, default=1.0)
-    parser.add_argument("--Ly", type=float, default=1.0)
+    parser.add_argument("--path", type=str, default="./omar_pfem/data/training_data_B2_q4/hyperelastic_training_data_q4.npz")
+    parser.add_argument("--R_in", type=float, default=1.0)
+    parser.add_argument("--R_out", type=float, default=2.0)
 
     parser.add_argument("--material", type=str, default="neo_hookean",
                          choices=["neo_hookean", "mooney_rivlin", "arruda_boyce"])
@@ -764,7 +774,7 @@ def main():
     parser.add_argument("--save_every", type=int, default=10)
     parser.add_argument("--seed", type=int, default=2025)
     parser.add_argument("--cpu", action="store_true")
-    parser.add_argument("--out_dir", type=str, default="./results_B1_transolver")
+    parser.add_argument("--out_dir", type=str, default="./results_B2_transolver")
     parser.add_argument("--weight_decay", type=float, default=0.0)
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--shuffle", type=int, default=0)

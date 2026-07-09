@@ -4,12 +4,14 @@ traction, fixed bottom edge), for the PFEM/Transolver pipeline.
 
 Adapted from PFEM-main's data/hyper/data_generate_beam.py (Yizheng Wang et
 al., "Pretrain finite element method", JMPS 2026) -- same Q4 mesh, same
-Total-Lagrangian Neo-Hookean Newton-Raphson solver, same GRF-based random
-material/traction sampling. Only the geometry/BC axis is swapped: the beam
-example fixes the LEFT edge (x=0) and loads the RIGHT edge (x=Lx) with a
-y-varying traction; B1 fixes the BOTTOM edge (y=0) and loads the TOP edge
-(y=Ly) with an x-varying traction. Everything else (shape functions,
-element routine, GRF generators, Newton solver structure) is unchanged.
+Total-Lagrangian Newton-Raphson solver structure, same GRF-based random
+material/traction sampling. Two changes from the original beam example:
+  - Geometry/BC axis swapped: the beam fixes the LEFT edge (x=0) and loads
+    the RIGHT edge (x=Lx) with a y-varying traction; B1 fixes the BOTTOM
+    edge (y=0) and loads the TOP edge (y=Ly) with an x-varying traction.
+  - Material selectable via --material (neo_hookean / mooney_rivlin /
+    arruda_boyce) through omar_pfem.data.materials's shared PK1/tangent
+    registry, instead of being hardcoded to Neo-Hookean.
 """
 import numpy as np
 from scipy.sparse import coo_matrix
@@ -18,26 +20,12 @@ from scipy.interpolate import RegularGridInterpolator
 import h5py
 import os
 import json
+from concurrent.futures import ProcessPoolExecutor, as_completed
+
+from omar_pfem.data.materials import get_material_fns
+from omar_pfem.data.fem_core import shape_Q4, element_K_and_fint_TL, apply_dirichlet
+from omar_pfem.data.grf import generate_gaussian_random_field_2d, generate_gaussian_random_field_1d
 import argparse
-
-
-# -------------------------
-# Q4 shape functions (xi,eta in [-1,1]) -- unchanged, generic
-# -------------------------
-def shape_Q4(xi, eta):
-    N = 0.25 * np.array([
-        (1 - xi) * (1 - eta),
-        (1 + xi) * (1 - eta),
-        (1 + xi) * (1 + eta),
-        (1 - xi) * (1 + eta)
-    ])
-    dN_dxi = 0.25 * np.array([
-        [-(1 - eta), -(1 - xi)],
-        [+(1 - eta), -(1 + xi)],
-        [+(1 + eta), +(1 + xi)],
-        [-(1 + eta), +(1 - xi)]
-    ])
-    return N, dN_dxi
 
 
 # -------------------------
@@ -59,93 +47,6 @@ def generate_grid_Q4(Lx, Ly, Nx, Ny):
             n4 = (j + 1) * Nx + i
             elements.append([n1, n2, n3, n4])
     return nodes, np.array(elements, dtype=int)
-
-
-# -------------------------
-# Neo-Hookean material model -- unchanged, generic
-# -------------------------
-def neo_hookean_PK1_and_tangent(F, mu, lam):
-    Finv = np.linalg.inv(F)
-    FinvT = Finv.T
-    J = np.linalg.det(F)
-    if J <= 0:
-        raise ValueError(f"Nonphysical J={J} (det(F) <= 0).")
-
-    lnJ = np.log(J)
-    P = mu * (F - FinvT) + lam * lnJ * FinvT
-
-    A = np.zeros((2, 2, 2, 2), dtype=float)
-    delta = np.eye(2)
-    for i in range(2):
-        for J_ in range(2):
-            for k in range(2):
-                for L in range(2):
-                    term1 = mu * delta[i, k] * delta[J_, L]
-                    term2 = (mu - lam * lnJ) * FinvT[i, L] * FinvT[k, J_]
-                    term3 = lam * FinvT[k, L] * FinvT[i, J_]
-                    A[i, J_, k, L] = term1 + term2 + term3
-    return P, A
-
-
-# -------------------------
-# Element routine (Q4, TL formulation) -- unchanged, generic
-# -------------------------
-def element_K_and_fint_TL(Xe, ue, mu, lam):
-    g = 1.0 / np.sqrt(3.0)
-    gauss = [(-g, -g), (g, -g), (g, g), (-g, g)]
-    w = 1.0
-
-    ke = np.zeros((8, 8), dtype=float)
-    fe = np.zeros(8, dtype=float)
-
-    xe = Xe + ue.reshape(4, 2)
-
-    for (xi, eta) in gauss:
-        N, dN_dxi = shape_Q4(xi, eta)
-
-        J0 = np.zeros((2, 2), dtype=float)
-        for a in range(4):
-            J0[0, 0] += Xe[a, 0] * dN_dxi[a, 0]
-            J0[1, 0] += Xe[a, 1] * dN_dxi[a, 0]
-            J0[0, 1] += Xe[a, 0] * dN_dxi[a, 1]
-            J0[1, 1] += Xe[a, 1] * dN_dxi[a, 1]
-
-        detJ0 = np.linalg.det(J0)
-        if detJ0 <= 0:
-            raise ValueError("Reference element has non-positive det(J0).")
-
-        invJ0 = np.linalg.inv(J0)
-        dN_dX = dN_dxi @ invJ0
-
-        F = np.zeros((2, 2), dtype=float)
-        for a in range(4):
-            F[0, 0] += xe[a, 0] * dN_dX[a, 0]
-            F[0, 1] += xe[a, 0] * dN_dX[a, 1]
-            F[1, 0] += xe[a, 1] * dN_dX[a, 0]
-            F[1, 1] += xe[a, 1] * dN_dX[a, 1]
-
-        P, A = neo_hookean_PK1_and_tangent(F, mu, lam)
-
-        for a in range(4):
-            gNa = dN_dX[a]
-            fi = P @ gNa
-            fe[2*a:2*a+2] += fi * (w * detJ0)
-
-        for a in range(4):
-            for b in range(4):
-                gNa = dN_dX[a]
-                gNb = dN_dX[b]
-                Kab = np.zeros((2, 2), dtype=float)
-                for i in range(2):
-                    for k in range(2):
-                        s = 0.0
-                        for J_ in range(2):
-                            for L in range(2):
-                                s += gNa[J_] * A[i, J_, k, L] * gNb[L]
-                        Kab[i, k] = s
-                ke[2*a:2*a+2, 2*b:2*b+2] += Kab * (w * detJ0)
-
-    return ke, fe
 
 
 # -------------------------
@@ -193,22 +94,13 @@ def assemble_traction_top_spatial(nodes, elements, Ly, ty_interp):
 
 
 # -------------------------
-# Apply Dirichlet BC -- unchanged, generic
-# -------------------------
-def apply_dirichlet(K, R, fixed_dofs):
-    fixed_dofs = np.array(sorted(set(fixed_dofs)), dtype=int)
-    all_dofs = np.arange(K.shape[0], dtype=int)
-    free = np.setdiff1d(all_dofs, fixed_dofs)
-    Kff = K[free][:, free]
-    Rf = R[free]
-    return free, Kff, Rf
-
-
-# -------------------------
 # Nonlinear solver, bottom fixed / top loaded
 # -------------------------
 def solve_hyperelastic_TL_spatial(nodes, elements, E_grid, nu_grid, ty_grid, Ly,
-                                  nsteps=10, newton_max=25, tol=1e-8):
+                                  nsteps=10, newton_max=25, tol=1e-8,
+                                  material="neo_hookean"):
+    PK1_and_tangent_fn, E_nu_to_params_fn = get_material_fns(material)
+
     n_nodes = nodes.shape[0]
     ndof = 2 * n_nodes
     u = np.zeros(ndof, dtype=float)
@@ -238,10 +130,9 @@ def solve_hyperelastic_TL_spatial(nodes, elements, E_grid, nu_grid, ty_grid, Ly,
                 E_val = E_grid(elem_center[None, :])[0]
                 nu_val = nu_grid(elem_center[None, :])[0]
 
-                mu = E_val / (2.0 * (1.0 + nu_val))
-                lam = E_val * nu_val / ((1.0 + nu_val) * (1.0 - 2.0 * nu_val))
+                mat_params = E_nu_to_params_fn(E_val, nu_val)
 
-                ke, fe_int = element_K_and_fint_TL(Xe, ue, mu, lam)
+                ke, fe_int = element_K_and_fint_TL(Xe, ue, mat_params, PK1_and_tangent_fn)
 
                 edofs = []
                 for a in e:
@@ -269,63 +160,6 @@ def solve_hyperelastic_TL_spatial(nodes, elements, E_grid, nu_grid, ty_grid, Ly,
                 print(f"[step {step}/{nsteps}] NOT converged, last ||R||={res_norm:.3e}")
 
     return u.reshape(n_nodes, 2)
-
-
-# -------------------------
-# GRF generators -- unchanged, generic
-# -------------------------
-def generate_gaussian_random_field_2d(Lx, Ly, Nx, Ny, mean, std, correlation_length, seed=None):
-    if seed is not None:
-        np.random.seed(seed)
-
-    x = np.linspace(0, Lx, Nx)
-    y = np.linspace(0, Ly, Ny)
-
-    kx = 2 * np.pi * np.fft.fftfreq(Nx, d=x[1]-x[0])
-    ky = 2 * np.pi * np.fft.fftfreq(Ny, d=y[1]-y[0])
-    KX, KY = np.meshgrid(kx, ky, indexing='ij')
-    K = np.sqrt(KX**2 + KY**2)
-
-    L = correlation_length
-    power_spectrum = (std**2 * L**2) / (np.pi * (1 + (K * L)**2)**(1.5))
-    power_spectrum[0, 0] = 0
-
-    phase = np.random.uniform(0, 2*np.pi, (Nx, Ny))
-    amplitudes = np.sqrt(power_spectrum) * np.exp(1j * phase)
-
-    amplitudes[0, 0] = 0
-    if Nx > 1:
-        amplitudes[Nx//2, 0] = np.real(amplitudes[Nx//2, 0])
-    if Ny > 1:
-        amplitudes[0, Ny//2] = np.real(amplitudes[0, Ny//2])
-    if Nx > 1 and Ny > 1:
-        amplitudes[Nx//2, Ny//2] = np.real(amplitudes[Nx//2, Ny//2])
-
-    for i in range(1, Nx//2):
-        for j in range(1, Ny//2):
-            amplitudes[Nx-i, Ny-j] = np.conj(amplitudes[i, j])
-
-    field = np.fft.ifft2(amplitudes).real
-    field_std = np.std(field)
-    field = (field / field_std) * std
-    field = mean + field
-
-    return field, x, y
-
-
-def generate_gaussian_random_field_1d(Lx, Nx, mean, std, correlation_length, seed=None):
-    if seed is not None:
-        np.random.seed(seed)
-
-    x = np.linspace(0, Lx, Nx)
-    x_mesh = np.meshgrid(x, x)
-    dist = np.abs(x_mesh[0] - x_mesh[1])
-    cov = std**2 * np.exp(-dist / correlation_length)
-
-    L = np.linalg.cholesky(cov + 1e-10 * np.eye(Nx))
-    field = mean + L @ np.random.randn(Nx)
-
-    return field, x
 
 
 # -------------------------
@@ -375,10 +209,51 @@ def generate_random_sample_spatial(Lx, Ly, Nx, Ny, seed=None):
 
 
 # -------------------------
+# Per-sample worker (module-level so it's picklable for multiprocessing --
+# each sample is fully independent given its own seed, so sample generation
+# parallelizes trivially across CPU cores)
+# -------------------------
+def _generate_one_sample(i, seed, nodes, elements, Lx, Ly, Nx, Ny, material, top_nodes):
+    try:
+        E_interp, nu_interp, ty_interp, E_field, nu_field, ty_field = generate_random_sample_spatial(
+            Lx, Ly, Nx, Ny, seed=seed
+        )
+
+        u = solve_hyperelastic_TL_spatial(
+            nodes, elements, E_interp, nu_interp, ty_interp, Ly,
+            nsteps=10, newton_max=30, tol=1e-7, material=material
+        )
+
+        mu_nodes = E_field / (2.0 * (1.0 + nu_field))
+        u_mag = np.sqrt(u[:, 0]**2 + u[:, 1]**2)
+        avg_strain_energy = 0.5 * np.mean(mu_nodes.ravel()) * np.mean(u_mag**2)
+
+        E_node_vals = E_interp(nodes)
+        nu_node_vals = nu_interp(nodes)
+
+        top_node_coords = nodes[top_nodes]
+        ty_top_vals = ty_interp(top_node_coords)
+
+        return i, True, dict(
+            E_field=E_field.astype(np.float32),
+            nu_field=nu_field.astype(np.float32),
+            ty_field=ty_field.astype(np.float32),
+            displacement=u.astype(np.float32),
+            E_node_vals=E_node_vals.astype(np.float32),
+            nu_node_vals=nu_node_vals.astype(np.float32),
+            ty_top_vals=ty_top_vals.astype(np.float32),
+            avg_strain_energy=np.float32(avg_strain_energy),
+            max_disp=float(np.max(u_mag)),
+        ), None
+    except Exception as e:
+        return i, False, None, str(e)
+
+
+# -------------------------
 # Generate dataset for physics-informed training
 # -------------------------
 def generate_dataset_for_physics(num_samples=100, output_dir="physics_training_data_B1", seed=None,
-                                 Lx=1.0, Ly=1.0, Nx=21, Ny=21):
+                                 Lx=1.0, Ly=1.0, Nx=21, Ny=21, material="neo_hookean", n_workers=1):
     os.makedirs(output_dir, exist_ok=True)
 
     nodes, elements = generate_grid_Q4(Lx, Ly, Nx, Ny)
@@ -427,53 +302,61 @@ def generate_dataset_for_physics(num_samples=100, output_dir="physics_training_d
         successful_samples = 0
         failed_samples = []
 
-        for i in range(num_samples):
-            print(f"Generating sample {i+1}/{num_samples}")
-            try:
-                E_interp, nu_interp, ty_interp, E_field, nu_field, ty_field = generate_random_sample_spatial(
-                    Lx, Ly, Nx, Ny, seed=seed*10000 + i
+        def _store_success(i, res):
+            E_fields[i] = res["E_field"]
+            nu_fields[i] = res["nu_field"]
+            ty_fields[i] = res["ty_field"]
+            displacements[i] = res["displacement"]
+            E_nodes[i] = res["E_node_vals"]
+            nu_nodes[i] = res["nu_node_vals"]
+            bottom_bc[i] = np.zeros((len(bottom_nodes), 2), dtype=np.float32)
+            top_traction[i] = res["ty_top_vals"]
+            strain_energy[i] = res["avg_strain_energy"]
+            print(f"  Sample {i+1}: max displacement={res['max_disp']:.3e}")
+
+        def _store_failure(i, err):
+            print(f"  Error in sample {i+1}: {err}")
+            failed_samples.append(i)
+            E_fields[i] = np.nan
+            nu_fields[i] = np.nan
+            ty_fields[i] = np.nan
+            displacements[i] = np.nan
+            E_nodes[i] = np.nan
+            nu_nodes[i] = np.nan
+            bottom_bc[i] = np.nan
+            top_traction[i] = np.nan
+            strain_energy[i] = np.nan
+
+        if n_workers is not None and n_workers > 1:
+            print(f"Generating {num_samples} samples using {n_workers} worker processes...")
+            with ProcessPoolExecutor(max_workers=n_workers) as ex:
+                futures = {
+                    ex.submit(_generate_one_sample, i, seed*10000 + i, nodes, elements,
+                              Lx, Ly, Nx, Ny, material, top_nodes): i
+                    for i in range(num_samples)
+                }
+                done_count = 0
+                for fut in as_completed(futures):
+                    i, ok, res, err = fut.result()
+                    done_count += 1
+                    if done_count % 10 == 0 or done_count == num_samples:
+                        print(f"Completed {done_count}/{num_samples} samples")
+                    if ok:
+                        _store_success(i, res)
+                        successful_samples += 1
+                    else:
+                        _store_failure(i, err)
+        else:
+            for i in range(num_samples):
+                print(f"Generating sample {i+1}/{num_samples}")
+                _, ok, res, err = _generate_one_sample(
+                    i, seed*10000 + i, nodes, elements, Lx, Ly, Nx, Ny, material, top_nodes
                 )
-
-                u = solve_hyperelastic_TL_spatial(
-                    nodes, elements, E_interp, nu_interp, ty_interp, Ly,
-                    nsteps=10, newton_max=30, tol=1e-7
-                )
-
-                mu_nodes = E_field / (2.0 * (1.0 + nu_field))
-                u_mag = np.sqrt(u[:, 0]**2 + u[:, 1]**2)
-                avg_strain_energy = 0.5 * np.mean(mu_nodes.ravel()) * np.mean(u_mag**2)
-
-                E_node_vals = E_interp(nodes)
-                nu_node_vals = nu_interp(nodes)
-
-                top_node_coords = nodes[top_nodes]
-                ty_top_vals = ty_interp(top_node_coords)
-
-                E_fields[i] = E_field.astype(np.float32)
-                nu_fields[i] = nu_field.astype(np.float32)
-                ty_fields[i] = ty_field.astype(np.float32)
-                displacements[i] = u.astype(np.float32)
-                E_nodes[i] = E_node_vals.astype(np.float32)
-                nu_nodes[i] = nu_node_vals.astype(np.float32)
-                bottom_bc[i] = np.zeros((len(bottom_nodes), 2), dtype=np.float32)
-                top_traction[i] = ty_top_vals.astype(np.float32)
-                strain_energy[i] = avg_strain_energy.astype(np.float32)
-
-                successful_samples += 1
-                print(f"  Sample {i+1}: max displacement={np.max(u_mag):.3e}")
-
-            except Exception as e:
-                print(f"  Error in sample {i+1}: {e}")
-                failed_samples.append(i)
-                E_fields[i] = np.nan
-                nu_fields[i] = np.nan
-                ty_fields[i] = np.nan
-                displacements[i] = np.nan
-                E_nodes[i] = np.nan
-                nu_nodes[i] = np.nan
-                bottom_bc[i] = np.nan
-                top_traction[i] = np.nan
-                strain_energy[i] = np.nan
+                if ok:
+                    _store_success(i, res)
+                    successful_samples += 1
+                else:
+                    _store_failure(i, err)
 
         f.attrs['num_samples'] = num_samples
         f.attrs['successful_samples'] = successful_samples
@@ -517,14 +400,21 @@ def main():
     parser.add_argument("--num_samples", type=int, default=50)
     parser.add_argument("--Nx", type=int, default=21)
     parser.add_argument("--Ny", type=int, default=21)
+    parser.add_argument("--material", type=str, default="neo_hookean",
+                        choices=["neo_hookean", "mooney_rivlin", "arruda_boyce"])
+    parser.add_argument("--out_dir", type=str, default=None,
+                        help="Override the default physics_training_data_B1_<material>_<num_index> dir name")
+    parser.add_argument("--n_workers", type=int, default=1,
+                        help="Parallel worker processes for sample generation (each sample is independent)")
     args = parser.parse_args()
 
-    print("Generating B1 dataset for physics-informed training...")
-    output_dir = "physics_training_data_B1_" + str(args.num_index)
+    print(f"Generating B1 dataset ({args.material}) for physics-informed training...")
+    output_dir = args.out_dir or f"physics_training_data_B1_{args.material}_{args.num_index}"
     generate_dataset_for_physics(
         num_samples=args.num_samples,
         output_dir=output_dir, seed=args.num_index,
-        Lx=1.0, Ly=1.0, Nx=args.Nx, Ny=args.Ny
+        Lx=1.0, Ly=1.0, Nx=args.Nx, Ny=args.Ny, material=args.material,
+        n_workers=args.n_workers
     )
     print(f"\nDataset saved to: {output_dir}")
 
