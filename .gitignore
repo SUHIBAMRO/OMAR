@@ -27,3 +27,5 @@
 core.32826
 *.pvd
 *.pkl
+*.h5
+__pycache__/
