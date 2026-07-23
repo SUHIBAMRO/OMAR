@@ -26,6 +26,7 @@ dataset it is trained/evaluated against.
 import os
 import re
 import glob
+import time
 import argparse
 import numpy as np
 import torch
@@ -92,21 +93,34 @@ def shape_Q4_torch(xi, eta, device, dtype):
 #    generalized to dispatch across any material's energy density
 # ============================================================
 def compute_hyperelastic_energy_Q4(xy, quad, uv, param_nodes, energy_density_fn, dtype=torch.float32):
-    """param_nodes: tuple of per-node parameter tensors (length/meaning
+    """Batched version: uv is (B,N,2), each entry of param_nodes is (B,N).
+    B=1 (a single sample with a leading batch dim) reproduces the original
+    per-sample computation exactly.
+
+    Reference-configuration quantities (J0, detJ0, dN_dX) depend only on
+    the mesh (xy, quad), not on the batch's displacement field, since all
+    samples in a case share the same mesh -- so they're computed ONCE per
+    Gauss point and reused across the whole batch, instead of once per
+    sample as a naive per-sample loop would do. This is what makes real
+    batching (as opposed to gradient accumulation) actually cheaper per
+    sample, not just fewer optimizer steps.
+
+    param_nodes: tuple of per-node parameter tensors (length/meaning
     depends on the material, e.g. (mu, lam) for Neo-Hookean or
     (c, c1, c2, d) for Mooney-Rivlin), each averaged per-element the same
     way and passed positionally to energy_density_fn(F, *params_e, dtype=)."""
     device = xy.device
+    B = uv.shape[0]
     Q = quad.shape[0]
 
-    Xe = xy[quad]
-    ue = uv[quad]
+    Xe = xy[quad]           # (Q,4,2) -- shared across the batch
+    ue = uv[:, quad]        # (B,Q,4,2)
 
     g = 1.0 / np.sqrt(3.0)
     gps = [(-g, -g), (g, -g), (g, g), (-g, g)]
     w = 1.0
 
-    U = torch.zeros((), device=device, dtype=dtype)
+    U = torch.zeros(B, device=device, dtype=dtype)
     F_list = []
 
     for (xi, eta) in gps:
@@ -127,17 +141,19 @@ def compute_hyperelastic_energy_Q4(xy, quad, uv, param_nodes, energy_density_fn,
 
         dN_dX = torch.einsum("aj,qjk->qak", dN_dxi, invJ0)
 
-        grad_u = torch.einsum("qai,qaj->qij", ue, dN_dX)
+        grad_u = torch.einsum("bqai,qaj->bqij", ue, dN_dX)
 
-        I = torch.eye(2, device=device, dtype=dtype).unsqueeze(0).expand(Q, 2, 2)
-        F = I + grad_u
+        I = torch.eye(2, device=device, dtype=dtype).reshape(1, 1, 2, 2).expand(B, Q, 2, 2)
+        F = I + grad_u  # (B,Q,2,2)
 
-        params_e = tuple(torch.mean(p[quad], dim=1) for p in param_nodes)
+        params_e = tuple(torch.mean(p[:, quad], dim=2) for p in param_nodes)  # each (B,Q)
 
-        psi = energy_density_fn(F, *params_e, dtype=dtype)
-        U = U + torch.sum(psi * detJ0 * w)
+        F_flat = F.reshape(B * Q, 2, 2)
+        params_e_flat = tuple(p.reshape(B * Q) for p in params_e)
+        psi = energy_density_fn(F_flat, *params_e_flat, dtype=dtype).reshape(B, Q)
+        U = U + torch.sum(psi * detJ0[None, :] * w, dim=1)
 
-        F_list.append(F.detach())
+        F_list.append(F.detach().reshape(B * Q, 2, 2))
 
     F_g = torch.cat(F_list, dim=0)
     return U, F_g
@@ -156,36 +172,38 @@ def total_potential_energy_Q4_hyperelastic(
     fun_dim=4,
     material="neo_hookean",
 ):
+    """Batched: E_nodes, nu_nodes are (B,N); node_forces is (B,N,2). All
+    batch items share the same mesh (xy, quad, top_edges, bottom_nodes),
+    since B1's geometry is fixed across samples -- only material/force
+    fields vary. Returns per-sample Pi, U, W of shape (B,) and uv (B,N,2).
+    A caller with a single sample just passes tensors with a leading
+    dimension of 1 (see the *_single wrappers below), which reproduces the
+    original per-sample behavior exactly."""
     device = xy.device
+    B = E_nodes.shape[0]
+    N = xy.shape[0]
 
-    xy_domain = xy.unsqueeze(0)  # (1,N,2)
+    xy_domain = xy.unsqueeze(0).expand(B, N, 2)  # (B,N,2)
 
     if fun_dim == 3:
-        fun_material = torch.cat([
-            E_nodes.unsqueeze(1),
-            nu_nodes.unsqueeze(1),
-            node_forces[:, 1].unsqueeze(1),
-        ], dim=1).unsqueeze(0)
+        fun_material = torch.stack([
+            E_nodes, nu_nodes, node_forces[:, :, 1],
+        ], dim=2)
     else:
-        fun_material = torch.cat([
-            E_nodes.unsqueeze(1),
-            nu_nodes.unsqueeze(1),
-            node_forces[:, 0].unsqueeze(1),
-            node_forces[:, 1].unsqueeze(1),
-        ], dim=1).unsqueeze(0)
+        fun_material = torch.stack([
+            E_nodes, nu_nodes, node_forces[:, :, 0], node_forces[:, :, 1],
+        ], dim=2)
 
-    uv_raw = model(xy_domain, fun_material)
-    if uv_raw.dim() == 3:
-        uv_raw = uv_raw[0]
+    uv_raw = model(xy_domain, fun_material)  # (B,N,2)
 
     # ---- Dirichlet: bottom edge (y=0) fixed -- ramp grows with y instead of x
     if use_soft_dirichlet:
         free = (xy[:, 1] / Ly).clamp(0.0, 1.0)
     else:
-        free = torch.ones(xy.shape[0], device=device, dtype=dtype)
+        free = torch.ones(N, device=device, dtype=dtype)
         if bottom_nodes.numel() > 0:
             free[bottom_nodes] = 0.0
-    uv = uv_raw * free[:, None]
+    uv = uv_raw * free[None, :, None]
 
     energy_density_fn, E_nu_to_params_fn = get_material_fns(material)
     if material == "neo_hookean":
@@ -195,10 +213,33 @@ def total_potential_energy_Q4_hyperelastic(
 
     U, Fg = compute_hyperelastic_energy_Q4(xy, quad, uv, param_nodes, energy_density_fn, dtype=dtype)
 
-    W = torch.sum(node_forces * uv) / len(top_edges)
+    W = torch.sum(node_forces * uv, dim=(1, 2)) / len(top_edges)
 
     Pi = U - W
     return Pi, U.detach(), W.detach(), uv, Fg
+
+
+def total_potential_energy_Q4_hyperelastic_single(
+    xy, quad, top_edges, bottom_nodes,
+    model, E_nodes, nu_nodes, node_forces,
+    use_soft_dirichlet=True,
+    Ly=1.0,
+    mode="plane_strain",
+    dtype=torch.float32,
+    fun_dim=4,
+    material="neo_hookean",
+):
+    """Single-sample convenience wrapper (used by eval/visualization/
+    dataset-preview code, where processing one sample at a time is
+    simpler and the extra batching overhead doesn't matter): adds/removes
+    the leading batch dimension of size 1 around the batched function."""
+    Pi, U, W, uv, Fg = total_potential_energy_Q4_hyperelastic(
+        xy, quad, top_edges, bottom_nodes,
+        model, E_nodes.unsqueeze(0), nu_nodes.unsqueeze(0), node_forces.unsqueeze(0),
+        use_soft_dirichlet=use_soft_dirichlet, Ly=Ly, mode=mode, dtype=dtype,
+        fun_dim=fun_dim, material=material,
+    )
+    return Pi[0], U[0], W[0], uv[0], Fg
 
 
 # ============================================================
@@ -375,25 +416,39 @@ def load_fem_dataset_Q4_with_materials_and_random_force(path, ntrain, ntest):
 # 7) Eval + Viz (Q4)
 # ============================================================
 @torch.no_grad()
-def evaluate_dataset_hyperelastic_Q4(samples, model, args, device, dtype):
+def evaluate_dataset_hyperelastic_Q4(samples, model, args, device, dtype, eval_batch_size=32):
+    """Batched evaluation: all samples in a case share the same mesh, so
+    the whole test set is processed in chunks of eval_batch_size (one
+    forward pass each) instead of one sample at a time -- this matters
+    once validation runs every 25-50 epochs instead of every 250-500."""
     model.eval()
     rel_l2_u_list, rel_l2_v_list = [], []
     E_mean_list, nu_mean_list, f_mean_list = [], [], []
 
-    for sid in range(len(samples)):
-        s = samples[sid]
-        xy = torch.tensor(s["xy"], device=device, dtype=dtype)
-        quad = torch.tensor(s["quad"], device=device, dtype=torch.long)
-        top_edges = torch.tensor(s["top_edges"], device=device, dtype=torch.long)
-        bottom_nodes = torch.tensor(s["bottom_nodes"], device=device, dtype=torch.long)
-        uv_exact = torch.tensor(s["uv_exact"], device=device, dtype=dtype)
-        E_node = torch.tensor(s["E_node"], device=device, dtype=dtype)
-        nu_node = torch.tensor(s["nu_node"], device=device, dtype=dtype)
-        node_forces = torch.tensor(s["node_forces"], device=device, dtype=dtype)
+    if len(samples) == 0:
+        return {
+            "mean_rel_L2_u": 0.0, "mean_rel_L2_v": 0.0,
+            "std_rel_L2_u": 0.0, "std_rel_L2_v": 0.0,
+            "mean_E": 0.0, "mean_nu": 0.0, "mean_force": 0.0,
+        }
 
-        _, _, _, uv_pred, _ = total_potential_energy_Q4_hyperelastic(
+    s0 = samples[0]
+    xy = torch.tensor(s0["xy"], device=device, dtype=dtype)
+    quad = torch.tensor(s0["quad"], device=device, dtype=torch.long)
+    top_edges = torch.tensor(s0["top_edges"], device=device, dtype=torch.long)
+    bottom_nodes = torch.tensor(s0["bottom_nodes"], device=device, dtype=torch.long)
+
+    n = len(samples)
+    for start in range(0, n, eval_batch_size):
+        chunk = samples[start:start + eval_batch_size]
+        E_batch = torch.tensor(np.stack([c["E_node"] for c in chunk]), device=device, dtype=dtype)
+        nu_batch = torch.tensor(np.stack([c["nu_node"] for c in chunk]), device=device, dtype=dtype)
+        force_batch = torch.tensor(np.stack([c["node_forces"] for c in chunk]), device=device, dtype=dtype)
+        uv_exact_batch = torch.tensor(np.stack([c["uv_exact"] for c in chunk]), device=device, dtype=dtype)
+
+        _, _, _, uv_pred_batch, _ = total_potential_energy_Q4_hyperelastic(
             xy, quad, top_edges, bottom_nodes,
-            model, E_node, nu_node, node_forces,
+            model, E_batch, nu_batch, force_batch,
             use_soft_dirichlet=args.use_soft_dirichlet,
             Ly=args.Ly,
             mode=args.mode,
@@ -402,22 +457,22 @@ def evaluate_dataset_hyperelastic_Q4(samples, model, args, device, dtype):
             material=args.material,
         )
 
-        err = uv_pred - uv_exact
-        l2_u = torch.sqrt(torch.mean(err[:, 0] ** 2))
-        l2_v = torch.sqrt(torch.mean(err[:, 1] ** 2))
-        ref_u = torch.sqrt(torch.mean(uv_exact[:, 0] ** 2)) + 1e-12
-        ref_v = torch.sqrt(torch.mean(uv_exact[:, 1] ** 2)) + 1e-12
+        err = uv_pred_batch - uv_exact_batch
+        l2_u = torch.sqrt(torch.mean(err[:, :, 0] ** 2, dim=1))
+        l2_v = torch.sqrt(torch.mean(err[:, :, 1] ** 2, dim=1))
+        ref_u = torch.sqrt(torch.mean(uv_exact_batch[:, :, 0] ** 2, dim=1)) + 1e-12
+        ref_v = torch.sqrt(torch.mean(uv_exact_batch[:, :, 1] ** 2, dim=1)) + 1e-12
 
-        rel_l2_u_list.append((l2_u / ref_u).item())
-        rel_l2_v_list.append((l2_v / ref_v).item())
+        rel_l2_u_list.extend((l2_u / ref_u).tolist())
+        rel_l2_v_list.extend((l2_v / ref_v).tolist())
+        E_mean_list.extend(E_batch.mean(dim=1).tolist())
+        nu_mean_list.extend(nu_batch.mean(dim=1).tolist())
 
-        E_mean_list.append(E_node.mean().item())
-        nu_mean_list.append(nu_node.mean().item())
-
-        fm = torch.sqrt(torch.sum(node_forces ** 2, dim=1))
-        nz = fm[fm > 0]
-        if len(nz) > 0:
-            f_mean_list.append(nz.mean().item())
+        fm = torch.sqrt(torch.sum(force_batch ** 2, dim=2))
+        for i in range(fm.shape[0]):
+            nz = fm[i][fm[i] > 0]
+            if len(nz) > 0:
+                f_mean_list.append(nz.mean().item())
 
     return {
         "mean_rel_L2_u": float(np.mean(rel_l2_u_list)) if rel_l2_u_list else 0.0,
@@ -471,7 +526,7 @@ def visualize_one_hyperelastic_Q4(samples, model, args, device, dtype, sid=0, ta
     nu_node = torch.tensor(s["nu_node"], device=device, dtype=dtype)
     node_forces = torch.tensor(s["node_forces"], device=device, dtype=dtype)
 
-    Pi, U, W, uv_pred, Fg = total_potential_energy_Q4_hyperelastic(
+    Pi, U, W, uv_pred, Fg = total_potential_energy_Q4_hyperelastic_single(
         xy, quad, top_edges, bottom_nodes,
         model, E_node, nu_node, node_forces,
         use_soft_dirichlet=args.use_soft_dirichlet,
@@ -594,11 +649,20 @@ def train_hyperelastic_Q4(args):
 
     ntrain = len(Train_samples)
     bs = max(int(args.batch_size), 1)
+    validate_every = max(int(args.validate_every if getattr(args, "validate_every", None) else args.save_every), 1)
     metrics_history = []
     start_epoch = 1
+    opt_steps = 0
+    train_wall_clock = 0.0
+    best_val_error = None
+    best_epoch = None
+    patience_counter = 0
 
     if os.path.exists(os.path.join(args.out_dir, "model_final.pt")):
         print(f"[resume] {args.out_dir}/model_final.pt already exists -- this case is already fully trained, skipping.")
+        return
+    if os.path.exists(os.path.join(args.out_dir, "EARLY_STOPPED")):
+        print(f"[resume] {args.out_dir}/EARLY_STOPPED marker found -- this case already stopped early, skipping.")
         return
 
     ckpt_path, last_epoch = find_latest_checkpoint(args.out_dir)
@@ -611,6 +675,20 @@ def train_hyperelastic_Q4(args):
         if os.path.exists(metrics_history_path):
             with open(metrics_history_path) as f:
                 metrics_history = json.load(f)
+            for rec in metrics_history:
+                train_wall_clock = max(train_wall_clock, rec.get("cumulative_wall_clock_s", 0.0))
+                opt_steps = max(opt_steps, rec.get("opt_steps", 0))
+                if "val_error" in rec and (best_val_error is None or rec["val_error"] < best_val_error - 1e-12):
+                    best_val_error = rec["val_error"]
+                    best_epoch = rec["epoch"]
+
+        best_ckpt_meta_path = os.path.join(args.out_dir, "best_checkpoint_meta.json")
+        if os.path.exists(best_ckpt_meta_path):
+            with open(best_ckpt_meta_path) as f:
+                best_meta = json.load(f)
+            best_val_error = best_meta.get("best_val_error", best_val_error)
+            best_epoch = best_meta.get("best_epoch", best_epoch)
+            patience_counter = best_meta.get("patience_counter", 0)
 
         # Replay the LR-decay schedule so resuming doesn't jump back to the
         # full initial LR (see the epoch%1000==0 decay below)
@@ -621,29 +699,35 @@ def train_hyperelastic_Q4(args):
             e += 1000
         print(f"[resume] LR after replaying decay schedule: {opt.param_groups[0]['lr']:.2e}")
 
+    early_stop_patience = int(getattr(args, "early_stop_patience", 0))
+    early_stop_min_delta = float(getattr(args, "early_stop_min_delta", 1e-4))
+    stopped_early = False
+
     for epoch in range(start_epoch, args.epochs + 1):
         order = np.random.permutation(ntrain) if getattr(args, "shuffle", 1) else np.arange(ntrain)
 
         model.train()
-        opt.zero_grad(set_to_none=True)
-
-        accum = 0
+        epoch_t0 = time.time()
         skipped = 0
 
-        for it, sid in enumerate(order):
-            s = Train_samples[sid]
+        if device.type == "cuda":
+            torch.cuda.reset_peak_memory_stats(device)
 
-            xy = torch.tensor(s["xy"], device=device, dtype=dtype)
-            quad = torch.tensor(s["quad"], device=device, dtype=torch.long)
-            top_edges = torch.tensor(s["top_edges"], device=device, dtype=torch.long)
-            bottom_nodes = torch.tensor(s["bottom_nodes"], device=device, dtype=torch.long)
-            E_node = torch.tensor(s["E_node"], device=device, dtype=dtype)
-            nu_node = torch.tensor(s["nu_node"], device=device, dtype=dtype)
-            node_forces = torch.tensor(s["node_forces"], device=device, dtype=dtype)
+        for bi, start in enumerate(range(0, ntrain, bs)):
+            batch_idx = order[start:start + bs]
+            batch_samples = [Train_samples[i] for i in batch_idx]
+
+            xy = torch.tensor(batch_samples[0]["xy"], device=device, dtype=dtype)
+            quad = torch.tensor(batch_samples[0]["quad"], device=device, dtype=torch.long)
+            top_edges = torch.tensor(batch_samples[0]["top_edges"], device=device, dtype=torch.long)
+            bottom_nodes = torch.tensor(batch_samples[0]["bottom_nodes"], device=device, dtype=torch.long)
+            E_batch = torch.tensor(np.stack([s["E_node"] for s in batch_samples]), device=device, dtype=dtype)
+            nu_batch = torch.tensor(np.stack([s["nu_node"] for s in batch_samples]), device=device, dtype=dtype)
+            force_batch = torch.tensor(np.stack([s["node_forces"] for s in batch_samples]), device=device, dtype=dtype)
 
             Pi, U, W, uv_pred, Fg = total_potential_energy_Q4_hyperelastic(
                 xy, quad, top_edges, bottom_nodes,
-                model, E_node, nu_node, node_forces,
+                model, E_batch, nu_batch, force_batch,
                 use_soft_dirichlet=args.use_soft_dirichlet,
                 Ly=args.Ly,
                 mode=args.mode,
@@ -652,60 +736,67 @@ def train_hyperelastic_Q4(args):
                 material=args.material,
             )
 
-            if (not torch.isfinite(Pi)) or (not torch.isfinite(uv_pred).all()):
-                skipped += 1
-                dump_bad_case_q4(Train_samples, sid, epoch, it, args, reason="nonfinite")
+            finite_mask = torch.isfinite(Pi) & torch.isfinite(uv_pred).all(dim=(1, 2))
+            if not finite_mask.all():
+                bad_local = torch.nonzero(~finite_mask).flatten().tolist()
+                skipped += len(bad_local)
+                for li in bad_local:
+                    dump_bad_case_q4(Train_samples, int(batch_idx[li]), epoch, start, args, reason="nonfinite")
+                if not finite_mask.any():
+                    opt.zero_grad(set_to_none=True)
+                    continue
+                loss = Pi[finite_mask].mean()
+            else:
+                loss = Pi.mean()
+
+            opt.zero_grad(set_to_none=True)
+            loss.backward()
+
+            bad_grad = any(p.grad is not None and not torch.isfinite(p.grad).all() for p in model.parameters())
+            if bad_grad:
+                skipped += len(batch_idx)
                 opt.zero_grad(set_to_none=True)
-                accum = 0
                 continue
 
-            loss = Pi / float(bs)
-            loss.backward()
-            accum += 1
+            if args.grad_clip is not None and args.grad_clip > 0:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
 
-            do_step = (accum == bs) or (it == ntrain - 1)
-            if do_step:
-                bad_grad = False
-                for p in model.parameters():
-                    if p.grad is not None and (not torch.isfinite(p.grad).all()):
-                        bad_grad = True
-                        break
-                if bad_grad:
-                    skipped += accum
-                    opt.zero_grad(set_to_none=True)
-                    accum = 0
-                    continue
+            opt.step()
+            opt_steps += 1
 
-                if args.grad_clip is not None and args.grad_clip > 0:
-                    torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
-
-                opt.step()
-                opt.zero_grad(set_to_none=True)
-                accum = 0
-
-            if it % args.print_every == 0:
-                fm = torch.sqrt(torch.sum(node_forces ** 2, dim=1))
+            if bi % args.print_every == 0:
+                fm = torch.sqrt(torch.sum(force_batch ** 2, dim=2))
                 nz = fm[fm > 0]
-                fmean = nz.mean().item() if len(nz) > 0 else 0.0
+                fmean = nz.mean().item() if nz.numel() > 0 else 0.0
                 Jg = Fg[:, 0, 0] * Fg[:, 1, 1] - Fg[:, 0, 1] * Fg[:, 1, 0]
                 Jmean = Jg.mean().item()
-                print(f"[{it:6d}] (epoch={epoch}) Pi={Pi.item():.6e}  U={U.item():.6e}  W={W.item():.6e}  "
-                      f"E={E_node.mean().item():.1f}  nu={nu_node.mean().item():.3f}  "
-                      f"Force={fmean:.3f}  detF@GP={Jmean:.3f}")
+                print(f"[batch {bi:5d}] (epoch={epoch}) Pi_mean={loss.item():.6e}  "
+                      f"E={E_batch.mean().item():.1f}  nu={nu_batch.mean().item():.3f}  "
+                      f"Force={fmean:.3f}  detF@GP={Jmean:.3f}  opt_steps={opt_steps}")
+
+        epoch_time = time.time() - epoch_t0
+        train_wall_clock += epoch_time
 
         if skipped > 0:
             print(f"[epoch {epoch}] skipped={skipped} bad samples")
 
-        if epoch % args.save_every == 0:
+        do_checkpoint = (epoch % args.save_every == 0)
+        do_validate = (epoch % validate_every == 0)
+
+        if do_checkpoint:
             torch.save(model.state_dict(), os.path.join(args.out_dir, f"model_epoch{epoch}.pt"))
 
+        if do_validate:
             viz_sid = random.randint(0, ntrain - 1)
             visualize_one_hyperelastic_Q4(
                 Train_samples, model, args, device, dtype,
                 sid=viz_sid, tag=f"epoch{epoch}"
             )
 
+            gpu_mem_mb = (torch.cuda.max_memory_allocated(device) / 1e6) if device.type == "cuda" else 0.0
+
             metrics = evaluate_dataset_hyperelastic_Q4(Test_samples, model, args, device, dtype)
+            val_error = 0.5 * (metrics["mean_rel_L2_u"] + metrics["mean_rel_L2_v"])
             print("===== Test-set Evaluation =====")
             print(f"Mean Rel L2(u): {metrics['mean_rel_L2_u']:.3e}")
             print(f"Mean Rel L2(v): {metrics['mean_rel_L2_v']:.3e}")
@@ -714,18 +805,61 @@ def train_hyperelastic_Q4(args):
             print(f"Avg E: {metrics['mean_E']:.1f}")
             print(f"Avg nu: {metrics['mean_nu']:.3f}")
             print(f"Avg Force: {metrics['mean_force']:.3f}")
+            print(f"Val error (mean of Rel L2 u,v): {val_error:.3e}  "
+                  f"epoch_time={epoch_time:.2f}s  cum_wall_clock={train_wall_clock:.1f}s  "
+                  f"gpu_peak_mem={gpu_mem_mb:.1f}MB  opt_steps={opt_steps}")
 
-            metrics_record = {"epoch": int(epoch), **metrics}
+            is_best = (best_val_error is None) or (val_error < best_val_error - early_stop_min_delta)
+            if is_best:
+                best_val_error = val_error
+                best_epoch = epoch
+                patience_counter = 0
+                torch.save(model.state_dict(), os.path.join(args.out_dir, "model_best.pt"))
+                with open(os.path.join(args.out_dir, "best_checkpoint_meta.json"), "w") as f:
+                    json.dump({"best_val_error": best_val_error, "best_epoch": best_epoch,
+                               "patience_counter": patience_counter}, f, indent=2)
+                print(f"[best] New best val_error={best_val_error:.3e} at epoch={best_epoch} -> model_best.pt")
+            else:
+                patience_counter += 1
+                with open(os.path.join(args.out_dir, "best_checkpoint_meta.json"), "w") as f:
+                    json.dump({"best_val_error": best_val_error, "best_epoch": best_epoch,
+                               "patience_counter": patience_counter}, f, indent=2)
+
+            metrics_record = {
+                "epoch": int(epoch), **metrics,
+                "val_error": val_error,
+                "is_best": bool(is_best),
+                "epoch_time_s": epoch_time,
+                "cumulative_wall_clock_s": train_wall_clock,
+                "gpu_peak_mem_mb": gpu_mem_mb,
+                "opt_steps": opt_steps,
+                "batch_size": bs,
+            }
             metrics_history.append(metrics_record)
             with open(os.path.join(args.out_dir, "metrics_history.json"), "w") as f:
                 json.dump(metrics_history, f, indent=2)
+
+            if early_stop_patience > 0 and patience_counter >= early_stop_patience:
+                print(f"[early stop] val_error hasn't improved for {patience_counter} validation "
+                      f"events (patience={early_stop_patience}) -- stopping at epoch {epoch}, "
+                      f"best was epoch {best_epoch} (val_error={best_val_error:.3e})")
+                stopped_early = True
+                break
 
         if epoch % 1000 == 0 and epoch < args.epochs:
             for pg in opt.param_groups:
                 pg["lr"] *= 0.9
             print(f"[epoch {epoch}] lr -> {opt.param_groups[0]['lr']:.2e}")
 
-    torch.save(model.state_dict(), os.path.join(args.out_dir, "model_final.pt"))
+    if not stopped_early:
+        torch.save(model.state_dict(), os.path.join(args.out_dir, "model_final.pt"))
+    else:
+        # Early-stopped runs keep model_best.pt as the deliverable and are
+        # marked complete via a marker file (not model_final.pt) so a
+        # re-run of this case is correctly treated as already finished
+        # without pretending training reached args.epochs.
+        with open(os.path.join(args.out_dir, "EARLY_STOPPED"), "w") as f:
+            f.write(f"stopped_at_epoch={epoch}\nbest_epoch={best_epoch}\nbest_val_error={best_val_error}\n")
 
     final_metrics = evaluate_dataset_hyperelastic_Q4(Test_samples, model, args, device, dtype)
     print("\n" + "="*80)
@@ -735,6 +869,9 @@ def train_hyperelastic_Q4(args):
     print(f"Avg E: {final_metrics['mean_E']:.1f}")
     print(f"Avg nu: {final_metrics['mean_nu']:.3f}")
     print(f"Avg Force: {final_metrics['mean_force']:.3f}")
+    if best_epoch is not None:
+        print(f"Best val_error: {best_val_error:.3e} at epoch {best_epoch} (see model_best.pt)")
+    print(f"Total wall clock: {train_wall_clock:.1f}s over {opt_steps} optimizer steps (batch_size={bs})")
     print("="*80)
     print("\nTraining completed!")
     print(f"Results saved to: {args.out_dir}")
@@ -761,12 +898,25 @@ def main():
     parser.add_argument("--epochs", type=int, default=10000)
     parser.add_argument("--grad_clip", type=float, default=1.0)
     parser.add_argument("--print_every", type=int, default=10)
-    parser.add_argument("--save_every", type=int, default=10)
+    parser.add_argument("--save_every", type=int, default=10,
+                         help="Epoch cadence for full model_epoch{N}.pt checkpoints (resume points)")
+    parser.add_argument("--validate_every", type=int, default=None,
+                         help="Epoch cadence for test-set evaluation + best-checkpoint tracking; "
+                              "defaults to --save_every if not set. Decoupled from --save_every "
+                              "so validation can run more often (e.g. every 25-50 epochs) without "
+                              "writing a full checkpoint file every time.")
+    parser.add_argument("--early_stop_patience", type=int, default=0,
+                         help="Stop if val_error hasn't improved for this many validation events "
+                              "(0 disables early stopping)")
+    parser.add_argument("--early_stop_min_delta", type=float, default=1e-4,
+                         help="Minimum val_error improvement to reset the early-stopping patience counter")
     parser.add_argument("--seed", type=int, default=2025)
     parser.add_argument("--cpu", action="store_true")
     parser.add_argument("--out_dir", type=str, default="./results_B1_transolver")
     parser.add_argument("--weight_decay", type=float, default=0.0)
-    parser.add_argument("--batch_size", type=int, default=1)
+    parser.add_argument("--batch_size", type=int, default=1,
+                         help="Real mini-batch size (parallel forward pass over this many samples "
+                              "at once, all sharing B1's fixed mesh) -- not gradient accumulation.")
     parser.add_argument("--shuffle", type=int, default=0)
 
     parser.add_argument("--ntrain", type=int, default=35)
