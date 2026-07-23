@@ -19,6 +19,19 @@ exactly (standard 2x2 linear-algebra identity, verified via eigenvalues:
 0.5*((l1+l2)^2 - (l1^2+l2^2)) = l1*l2 = det(C)) -- this is the same I2
 used in omar/losses.py's MooneyRivlin2D.
 """
+import os
+
+# This module runs inside ProcessPoolExecutor workers (data_generate_B1.py /
+# data_generate_B2.py, --n_workers N). Each worker imports it fresh and, at
+# import time, JIT-compiles _mr_P_and_A / _ab_P_and_A below. Without forcing
+# the CPU backend, JAX auto-detects and uses CUDA when available -- so on a
+# GPU-enabled Colab runtime, all N worker processes simultaneously try to
+# initialize their own CUDA/cuDNN context for what is pure-CPU scalar
+# autodiff (this solver is numpy/scipy Newton-Raphson, not JAX), starving
+# both each other and the PyTorch training process of GPU memory/handles.
+# Must be set before `import jax`.
+os.environ.setdefault("JAX_PLATFORMS", "cpu")
+
 import numpy as np
 import jax
 import jax.numpy as jnp
