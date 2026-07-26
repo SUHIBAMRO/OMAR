@@ -32,17 +32,32 @@ import shutil
 import argparse
 import subprocess
 import time
+import datetime
 
 
-def run_streaming(cmd, cwd=None):
+def run_streaming(cmd, cwd=None, log_path=None):
+    """Runs cmd, printing its stdout live. If log_path is given, every line
+    is also appended there (with a header/footer timestamp) so the raw
+    execution log survives even if the terminal/notebook output does not
+    (e.g. a Colab disconnect) -- log_path should point at a durable
+    (Google Drive-backed) location."""
     print(f"$ {' '.join(cmd)}")
+    log_f = open(log_path, "a") if log_path else None
+    if log_f:
+        log_f.write(f"\n===== {datetime.datetime.now().isoformat()} =====\n$ {' '.join(cmd)}\n")
+        log_f.flush()
     proc = subprocess.Popen(
         cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
         text=True, bufsize=1
     )
     for line in proc.stdout:
         print(line, end='')
+        if log_f:
+            log_f.write(line)
     proc.wait()
+    if log_f:
+        log_f.write(f"[exit code {proc.returncode}] {datetime.datetime.now().isoformat()}\n")
+        log_f.close()
     if proc.returncode != 0:
         raise RuntimeError(f"Command failed (exit {proc.returncode}): {' '.join(cmd)}")
 
@@ -172,6 +187,7 @@ def main():
     rows = []
     for bs in batch_sizes:
         run_dir = os.path.join(args.out_dir, f"bs{bs}")
+        os.makedirs(run_dir, exist_ok=True)
         print(f"\n----- Screening batch_size={bs} -----")
         t0 = time.time()
         run_streaming(build_train_cmd(args.geometry, common_args, [
@@ -181,7 +197,7 @@ def main():
             "--validate_every", str(args.validate_every),
             "--early_stop_patience", "0",
             "--out_dir", run_dir,
-        ]))
+        ]), log_path=os.path.join(run_dir, "run.log"))
         print(f"----- Done batch_size={bs} in {time.time()-t0:.0f}s wall (driver-side) -----")
         rows.append(summarize_run(run_dir, bs))
 
@@ -232,7 +248,7 @@ def main():
         "--early_stop_patience", str(args.continue_early_stop_patience),
         "--early_stop_min_delta", str(args.continue_early_stop_min_delta),
         "--out_dir", continue_dir,
-    ]))
+    ]), log_path=os.path.join(continue_dir, "run.log"))
 
     final_summary = summarize_run(continue_dir, winner_bs)
     print(f"\n{'='*80}\nFINAL: batch_size={winner_bs} reached epoch {final_summary['epochs_run']}, "
