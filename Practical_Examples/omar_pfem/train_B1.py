@@ -794,6 +794,7 @@ def train_hyperelastic_Q4(args):
             )
 
             gpu_mem_mb = (torch.cuda.max_memory_allocated(device) / 1e6) if device.type == "cuda" else 0.0
+            gpu_mem_reserved_mb = (torch.cuda.max_memory_reserved(device) / 1e6) if device.type == "cuda" else 0.0
 
             metrics = evaluate_dataset_hyperelastic_Q4(Test_samples, model, args, device, dtype)
             val_error = 0.5 * (metrics["mean_rel_L2_u"] + metrics["mean_rel_L2_v"])
@@ -807,7 +808,8 @@ def train_hyperelastic_Q4(args):
             print(f"Avg Force: {metrics['mean_force']:.3f}")
             print(f"Val error (mean of Rel L2 u,v): {val_error:.3e}  "
                   f"epoch_time={epoch_time:.2f}s  cum_wall_clock={train_wall_clock:.1f}s  "
-                  f"gpu_peak_mem={gpu_mem_mb:.1f}MB  opt_steps={opt_steps}")
+                  f"gpu_peak_mem_allocated={gpu_mem_mb:.1f}MB  gpu_peak_mem_reserved={gpu_mem_reserved_mb:.1f}MB  "
+                  f"opt_steps={opt_steps}")
 
             is_best = (best_val_error is None) or (val_error < best_val_error - early_stop_min_delta)
             if is_best:
@@ -832,6 +834,7 @@ def train_hyperelastic_Q4(args):
                 "epoch_time_s": epoch_time,
                 "cumulative_wall_clock_s": train_wall_clock,
                 "gpu_peak_mem_mb": gpu_mem_mb,
+                "gpu_peak_mem_reserved_mb": gpu_mem_reserved_mb,
                 "opt_steps": opt_steps,
                 "batch_size": bs,
             }

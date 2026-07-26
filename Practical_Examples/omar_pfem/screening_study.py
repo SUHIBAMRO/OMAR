@@ -60,13 +60,14 @@ def summarize_run(out_dir, batch_size):
     if not history:
         return {
             "batch_size": batch_size, "epochs_run": 0, "opt_steps": 0,
-            "wall_clock_s": 0.0, "gpu_peak_mem_mb": 0.0,
+            "wall_clock_s": 0.0, "gpu_peak_mem_mb": 0.0, "gpu_peak_mem_reserved_mb": 0.0,
             "final_val_error": None, "best_val_error": None, "best_epoch": None,
         }
 
     best_rec = min(history, key=lambda r: r["val_error"])
     final_rec = history[-1]
     peak_mem = max(r.get("gpu_peak_mem_mb", 0.0) for r in history)
+    peak_mem_reserved = max(r.get("gpu_peak_mem_reserved_mb", 0.0) for r in history)
 
     return {
         "batch_size": batch_size,
@@ -74,6 +75,7 @@ def summarize_run(out_dir, batch_size):
         "opt_steps": final_rec["opt_steps"],
         "wall_clock_s": final_rec["cumulative_wall_clock_s"],
         "gpu_peak_mem_mb": peak_mem,
+        "gpu_peak_mem_reserved_mb": peak_mem_reserved,
         "final_val_error": final_rec["val_error"],
         "best_val_error": best_rec["val_error"],
         "best_epoch": best_rec["epoch"],
@@ -92,7 +94,8 @@ def write_summary_table(rows, out_dir, winner_bs):
         json.dump(rows, f, indent=2)
 
     headers = ["batch_size", "epochs_run", "opt_steps", "wall_clock_s",
-               "gpu_peak_mem_mb", "final_val_error", "best_val_error", "best_epoch"]
+               "gpu_peak_mem_mb", "gpu_peak_mem_reserved_mb",
+               "final_val_error", "best_val_error", "best_epoch"]
     lines = []
     lines.append("| " + " | ".join(headers) + " |")
     lines.append("|" + "|".join(["---"] * len(headers)) + "|")
