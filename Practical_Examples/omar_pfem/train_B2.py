@@ -468,21 +468,25 @@ def load_fem_dataset_Q4_with_materials_and_random_force(path, ntrain, ntest):
     Train_samples = [build_sample(i) for i in range(ntrain)]
     Test_samples = [build_sample(ntrain + i) for i in range(ntest)]
 
-    print("\nMaterial statistics in training set:")
-    all_E = np.concatenate([s["E_node"] for s in Train_samples], axis=0)
-    all_nu = np.concatenate([s["nu_node"] for s in Train_samples], axis=0)
-    print(f"  E: mean={all_E.mean():.2f}, std={all_E.std():.2f}, min={all_E.min():.2f}, max={all_E.max():.2f}")
-    print(f"  nu: mean={all_nu.mean():.4f}, std={all_nu.std():.4f}, min={all_nu.min():.4f}, max={all_nu.max():.4f}")
+    # ntrain=0 is a legitimate call pattern for evaluation-only use (e.g.
+    # evaluate_ood.py) -- see train_B1.py's version of this function for
+    # the rationale.
+    if Train_samples:
+        print("\nMaterial statistics in training set:")
+        all_E = np.concatenate([s["E_node"] for s in Train_samples], axis=0)
+        all_nu = np.concatenate([s["nu_node"] for s in Train_samples], axis=0)
+        print(f"  E: mean={all_E.mean():.2f}, std={all_E.std():.2f}, min={all_E.min():.2f}, max={all_E.max():.2f}")
+        print(f"  nu: mean={all_nu.mean():.4f}, std={all_nu.std():.4f}, min={all_nu.min():.4f}, max={all_nu.max():.4f}")
 
-    print("\nForce statistics in training set:")
-    all_forces = np.concatenate([s["node_forces"] for s in Train_samples], axis=0)
-    fm = np.sqrt(all_forces[:, 0]**2 + all_forces[:, 1]**2)
-    nz = fm[fm > 0]
-    if len(nz) > 0:
-        print(f"  Force: mean={nz.mean():.3f}, std={nz.std():.3f}, min={nz.min():.3f}, max={nz.max():.3f}")
-        print(f"  Nodes with force: {len(nz)} / {len(fm)}")
-    else:
-        print("  No nonzero forces found.")
+        print("\nForce statistics in training set:")
+        all_forces = np.concatenate([s["node_forces"] for s in Train_samples], axis=0)
+        fm = np.sqrt(all_forces[:, 0]**2 + all_forces[:, 1]**2)
+        nz = fm[fm > 0]
+        if len(nz) > 0:
+            print(f"  Force: mean={nz.mean():.3f}, std={nz.std():.3f}, min={nz.min():.3f}, max={nz.max():.3f}")
+            print(f"  Nodes with force: {len(nz)} / {len(fm)}")
+        else:
+            print("  No nonzero forces found.")
 
     return Train_samples, Test_samples
 

@@ -214,7 +214,17 @@ def solve_hyperelastic_TL_ring(nodes, elements, E_grid, nu_grid, p_grid, R_in,
 # Generate one random sample: material fields (over theta,r) + inner-arc
 # pressure profile (varies with theta)
 # -------------------------
-def generate_random_sample_ring(R_in, R_out, Ntheta, Nr, theta_max=np.pi / 2, seed=None):
+def generate_random_sample_ring(
+    R_in, R_out, Ntheta, Nr, theta_max=np.pi / 2, seed=None,
+    E_mean=1000.0, E_std=200.0,
+    nu_mean=0.3, nu_std=0.05, nu_clip=(0.2, 0.4),
+    p_mean=5.0, p_std=2.0,
+):
+    """See data_generate_B1.py's generate_random_sample_spatial for the
+    rationale: the (E_mean, E_std, nu_mean, nu_std, nu_clip, p_mean, p_std)
+    defaults are B2's in-distribution values; an OOD dataset is generated
+    by calling this same function with different values (see main() below),
+    not separate sampling code."""
     if seed is not None:
         np.random.seed(seed)
 
@@ -222,7 +232,7 @@ def generate_random_sample_ring(R_in, R_out, Ntheta, Nr, theta_max=np.pi / 2, se
 
     E_field, th_fine, r_fine_shifted = generate_gaussian_random_field_2d(
         theta_max, dr, Ntheta, Nr,
-        mean=1000.0, std=200.0,
+        mean=E_mean, std=E_std,
         correlation_length=0.5 * theta_max,
         seed=seed
     )
@@ -230,14 +240,12 @@ def generate_random_sample_ring(R_in, R_out, Ntheta, Nr, theta_max=np.pi / 2, se
 
     nu_field_raw, _, _ = generate_gaussian_random_field_2d(
         theta_max, dr, Ntheta, Nr,
-        mean=0.3, std=0.05,
+        mean=nu_mean, std=nu_std,
         correlation_length=0.5 * theta_max,
         seed=seed + 1000 if seed is not None else None
     )
-    nu_field = np.clip(nu_field_raw, 0.2, 0.4)
+    nu_field = np.clip(nu_field_raw, nu_clip[0], nu_clip[1])
 
-    p_mean = 5.0
-    p_std = 2.0
     p_1d, th_p = generate_gaussian_random_field_1d(
         theta_max, Ntheta,
         mean=p_mean, std=p_std,
@@ -264,10 +272,11 @@ def generate_random_sample_ring(R_in, R_out, Ntheta, Nr, theta_max=np.pi / 2, se
 # Per-sample worker (module-level so it's picklable for multiprocessing --
 # each sample is fully independent given its own seed)
 # -------------------------
-def _generate_one_sample(i, seed, nodes, elements, R_in, R_out, Ntheta, Nr, material, inner_nodes):
+def _generate_one_sample(i, seed, nodes, elements, R_in, R_out, Ntheta, Nr, material, inner_nodes,
+                          dist_kwargs=None):
     try:
         E_interp, nu_interp, p_interp, E_field, nu_field, p_field = generate_random_sample_ring(
-            R_in, R_out, Ntheta, Nr, seed=seed
+            R_in, R_out, Ntheta, Nr, seed=seed, **(dist_kwargs or {})
         )
 
         u = solve_hyperelastic_TL_ring(
@@ -307,7 +316,8 @@ def _generate_one_sample(i, seed, nodes, elements, R_in, R_out, Ntheta, Nr, mate
 # Generate dataset for physics-informed training
 # -------------------------
 def generate_dataset_for_physics(num_samples=100, output_dir="physics_training_data_B2", seed=None,
-                                 R_in=1.0, R_out=2.0, Ntheta=21, Nr=21, material="neo_hookean", n_workers=1):
+                                 R_in=1.0, R_out=2.0, Ntheta=21, Nr=21, material="neo_hookean", n_workers=1,
+                                 dist_kwargs=None):
     os.makedirs(output_dir, exist_ok=True)
 
     nodes, elements = generate_grid_Q4_ring(R_in, R_out, Ntheta, Nr)
@@ -380,7 +390,7 @@ def generate_dataset_for_physics(num_samples=100, output_dir="physics_training_d
             with ProcessPoolExecutor(max_workers=n_workers) as ex:
                 futures = {
                     ex.submit(_generate_one_sample, i, seed*10000 + i, nodes, elements,
-                              R_in, R_out, Ntheta, Nr, material, inner_nodes): i
+                              R_in, R_out, Ntheta, Nr, material, inner_nodes, dist_kwargs): i
                     for i in range(num_samples)
                 }
                 done_count = 0
@@ -398,7 +408,8 @@ def generate_dataset_for_physics(num_samples=100, output_dir="physics_training_d
             for i in range(num_samples):
                 print(f"Generating sample {i+1}/{num_samples}")
                 _, ok, res, err = _generate_one_sample(
-                    i, seed*10000 + i, nodes, elements, R_in, R_out, Ntheta, Nr, material, inner_nodes
+                    i, seed*10000 + i, nodes, elements, R_in, R_out, Ntheta, Nr, material, inner_nodes,
+                    dist_kwargs
                 )
                 if ok:
                     _store_success(i, res)
@@ -454,14 +465,37 @@ def main():
                         help="Override the default physics_training_data_B2_<material>_<num_index> dir name")
     parser.add_argument("--n_workers", type=int, default=1,
                         help="Parallel worker processes for sample generation (each sample is independent)")
+    # Out-of-distribution (OOD) overrides -- see data_generate_B1.py's main()
+    # for the rationale; defaults are B2's in-distribution values.
+    parser.add_argument("--E_mean", type=float, default=1000.0)
+    parser.add_argument("--E_std", type=float, default=200.0)
+    parser.add_argument("--nu_mean", type=float, default=0.3)
+    parser.add_argument("--nu_std", type=float, default=0.05)
+    parser.add_argument("--nu_clip_min", type=float, default=0.2)
+    parser.add_argument("--nu_clip_max", type=float, default=0.4)
+    parser.add_argument("--p_mean", type=float, default=5.0)
+    parser.add_argument("--p_std", type=float, default=2.0)
     args = parser.parse_args()
 
     output_dir = args.out_dir or f"physics_training_data_B2_{args.material}_{args.num_index}"
 
+    dist_kwargs = dict(
+        E_mean=args.E_mean, E_std=args.E_std,
+        nu_mean=args.nu_mean, nu_std=args.nu_std,
+        nu_clip=(args.nu_clip_min, args.nu_clip_max),
+        p_mean=args.p_mean, p_std=args.p_std,
+    )
+    is_ood = dist_kwargs != dict(
+        E_mean=1000.0, E_std=200.0, nu_mean=0.3, nu_std=0.05,
+        nu_clip=(0.2, 0.4), p_mean=5.0, p_std=2.0,
+    )
+    print(f"Generating B2 dataset ({args.material}) for physics-informed training"
+          f"{' [OUT-OF-DISTRIBUTION: ' + str(dist_kwargs) + ']' if is_ood else ''}...")
+
     generate_dataset_for_physics(
         num_samples=args.num_samples, output_dir=output_dir, seed=args.num_index,
         R_in=args.R_in, R_out=args.R_out, Ntheta=args.Ntheta, Nr=args.Nr,
-        material=args.material, n_workers=args.n_workers
+        material=args.material, n_workers=args.n_workers, dist_kwargs=dist_kwargs,
     )
     print(f"\nDataset saved to: {output_dir}")
 
