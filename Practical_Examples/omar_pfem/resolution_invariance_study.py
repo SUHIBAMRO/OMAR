@@ -21,16 +21,22 @@ is that driver, swept over mesh resolution instead.
 Cost note: this is the single most expensive item among the advisor's
 requests -- generating a fresh ~1000-sample dataset and training a full
 run at EACH of ~10 resolutions is roughly 10x the cost of training one
-case. --epochs/--early_stop_patience here default to a REDUCED budget
-(not Table 2's full protocol) specifically to keep the total wall-clock
-cost of this study tractable; override them if the full protocol is
-wanted at every resolution and the compute budget allows it.
+case. --epochs/--early_stop_patience/--validate_every here default to
+the SAME full protocol used for the 6 main cases (see
+PFEM_Training_Colab.ipynb's CONTINUE_EPOCHS=2000, EARLY_STOP_PATIENCE=8,
+EARLY_STOP_MIN_DELTA=1e-4, VALIDATE_EVERY=25) rather than a reduced
+budget, so a resolution is never reported as "worse" merely because it
+was cut off before converging. The summary table records, per
+resolution, whether training actually triggered early stopping or ran
+all the way to the --epochs cap -- if a fine mesh hits the cap without
+early-stopping, its number should be treated as a lower bound, not a
+converged result, and --epochs should be raised for it.
 
 Usage:
   python -m omar_pfem.resolution_invariance_study \
       --geometry B1 --material neo_hookean \
-      --resolutions 9,13,17,21,25,29,33,37,41,45 \
-      --ntrain 800 --ntest 200 --epochs 500 --batch_size 8 \
+      --resolutions 13,17,21,25,29,33,37,41,45,49 \
+      --ntrain 800 --ntest 200 --epochs 2000 --batch_size 8 \
       --validate_every 25 --early_stop_patience 8 \
       --out_dir ./resolution_study_B1_neo_hookean
 """
@@ -51,8 +57,8 @@ def main():
     parser.add_argument("--geometry", type=str, required=True, choices=["B1", "B2"])
     parser.add_argument("--material", type=str, default="neo_hookean",
                          choices=["neo_hookean", "mooney_rivlin", "arruda_boyce"])
-    parser.add_argument("--resolutions", type=str, default="9,13,17,21,25,29,33,37,41,45",
-                         help="Comma-separated node-count-per-side values (~10, per the advisor's request); "
+    parser.add_argument("--resolutions", type=str, default="13,17,21,25,29,33,37,41,45,49",
+                         help="Comma-separated node-count-per-side values (10, per the advisor's request); "
                               "21 is this study's normal operator-learning mesh, included by default "
                               "so this study's own result appears as one point in the comparison")
     parser.add_argument("--ntrain", type=int, default=800)
@@ -62,9 +68,10 @@ def main():
     parser.add_argument("--batch_size", type=int, default=8,
                          help="Default 8 = this study's winning batch size from Table 2, "
                               "applied uniformly here too so resolution is the only thing varying")
-    parser.add_argument("--epochs", type=int, default=500,
-                         help="REDUCED from Table 2's 2000-epoch upper bound, to keep the total "
-                              "cost of ~10 full training runs tractable -- see module docstring")
+    parser.add_argument("--epochs", type=int, default=2000,
+                         help="Upper bound on epochs, matching the full protocol used for the 6 "
+                              "main cases (Table 2 / CONTINUE_EPOCHS in the Colab notebook) -- see "
+                              "module docstring for why a reduced budget is not used here")
     parser.add_argument("--validate_every", type=int, default=25)
     parser.add_argument("--early_stop_patience", type=int, default=8)
     parser.add_argument("--early_stop_min_delta", type=float, default=1e-4)
@@ -135,26 +142,33 @@ def main():
             print(f"[{name}] already fully trained, skipping.")
 
         history = read_metrics(run_dir)
+        early_stopped = os.path.exists(os.path.join(run_dir, "EARLY_STOPPED"))
         if history:
             best_rec = min(history, key=lambda r: r["val_error"])
             final_rec = history[-1]
+            hit_epoch_cap = (not early_stopped) and final_rec["epoch"] >= args.epochs
             rows.append({
                 "N": N, "n_nodes": final_rec.get("n_nodes"),
                 "best_val_error": best_rec["val_error"], "best_epoch": best_rec["epoch"],
                 "final_epoch": final_rec["epoch"],
                 "wall_clock_s": final_rec["cumulative_wall_clock_s"],
+                "early_stopped": early_stopped,
+                "hit_epoch_cap": hit_epoch_cap,
             })
         else:
             rows.append({"N": N, "best_val_error": None, "note": "no metrics_history.json produced"})
 
-    print("\n" + "=" * 100)
+    print("\n" + "=" * 110)
     print("RESOLUTION-INVARIANCE STUDY SUMMARY")
-    print("=" * 100)
-    print(f"{'N':>5s} {'best_val_error':>16s} {'best_epoch':>12s} {'final_epoch':>12s} {'wall_clock_s':>14s}")
+    print("=" * 110)
+    print(f"{'N':>5s} {'best_val_error':>16s} {'best_epoch':>12s} {'final_epoch':>12s} "
+          f"{'wall_clock_s':>14s} {'convergence':>16s}")
     for row in rows:
         if row.get("best_val_error") is not None:
+            convergence = "early-stopped" if row["early_stopped"] else (
+                "HIT EPOCH CAP" if row["hit_epoch_cap"] else "ran to plan")
             print(f"{row['N']:>5d} {row['best_val_error']:>16.4e} {row['best_epoch']:>12d} "
-                  f"{row['final_epoch']:>12d} {row['wall_clock_s']:>14.1f}")
+                  f"{row['final_epoch']:>12d} {row['wall_clock_s']:>14.1f} {convergence:>16s}")
         else:
             print(f"{row['N']:>5d} {'FAILED':>16s}")
     errs = [r["best_val_error"] for r in rows if r.get("best_val_error") is not None]
@@ -162,7 +176,12 @@ def main():
         print(f"\nbest_val_error range across {len(errs)} resolutions: "
               f"[{min(errs):.4e}, {max(errs):.4e}]  (spread = {(max(errs)-min(errs))/min(errs):.1%} "
               f"of the smallest value)")
-    print("=" * 100)
+    capped = [r["N"] for r in rows if r.get("hit_epoch_cap")]
+    if capped:
+        print(f"\nWARNING: resolution(s) N={capped} hit the --epochs cap ({args.epochs}) without "
+              f"early-stopping -- their best_val_error is a LOWER BOUND, not a converged result. "
+              f"Re-run with a higher --epochs for these before treating the comparison as final.")
+    print("=" * 110)
 
     summary_path = os.path.join(args.out_dir, "resolution_study_summary.json")
     with open(summary_path, "w") as f:
