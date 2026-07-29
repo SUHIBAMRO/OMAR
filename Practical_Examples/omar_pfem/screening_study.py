@@ -35,12 +35,20 @@ import time
 import datetime
 
 
-def run_streaming(cmd, cwd=None, log_path=None):
+def run_streaming(cmd, cwd=None, log_path=None, raise_on_error=True):
     """Runs cmd, printing its stdout live. If log_path is given, every line
     is also appended there (with a header/footer timestamp) so the raw
     execution log survives even if the terminal/notebook output does not
     (e.g. a Colab disconnect) -- log_path should point at a durable
-    (Google Drive-backed) location."""
+    (Google Drive-backed) location.
+
+    Returns (returncode, captured_output) always. If raise_on_error=True
+    (the default, preserving prior behavior), a non-zero exit also raises
+    RuntimeError; callers that need to survive an expected failure (e.g.
+    the batch-size screening sweep probing for the GPU's OOM boundary,
+    where a crash is an expected, informative outcome, not a bug) should
+    pass raise_on_error=False and inspect the returned exit code /
+    output themselves."""
     print(f"$ {' '.join(cmd)}")
     log_f = open(log_path, "a") if log_path else None
     if log_f:
@@ -50,16 +58,29 @@ def run_streaming(cmd, cwd=None, log_path=None):
         cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
         text=True, bufsize=1
     )
+    captured = []
     for line in proc.stdout:
         print(line, end='')
+        captured.append(line)
         if log_f:
             log_f.write(line)
     proc.wait()
     if log_f:
         log_f.write(f"[exit code {proc.returncode}] {datetime.datetime.now().isoformat()}\n")
         log_f.close()
-    if proc.returncode != 0:
+    output = "".join(captured)
+    if proc.returncode != 0 and raise_on_error:
         raise RuntimeError(f"Command failed (exit {proc.returncode}): {' '.join(cmd)}")
+    return proc.returncode, output
+
+
+def is_oom_error(output_text):
+    """Heuristic detection of a CUDA out-of-memory failure from a training
+    subprocess's captured stdout/stderr text, so the batch-size screening
+    sweep can distinguish 'this batch size doesn't fit on the GPU' (an
+    expected, informative stopping condition) from an actual bug."""
+    text = output_text.lower()
+    return ("out of memory" in text) or ("outofmemoryerror" in text) or ("cuda error: out of memory" in text)
 
 
 def read_metrics(out_dir):
@@ -70,12 +91,14 @@ def read_metrics(out_dir):
         return json.load(f)
 
 
-def summarize_run(out_dir, batch_size):
+def summarize_run(out_dir, batch_size, ntrain=800, status="OK"):
     history = read_metrics(out_dir)
     if not history:
         return {
-            "batch_size": batch_size, "epochs_run": 0, "opt_steps": 0,
+            "batch_size": batch_size, "status": status, "epochs_run": 0, "opt_steps": 0,
             "wall_clock_s": 0.0, "gpu_peak_mem_mb": 0.0, "gpu_peak_mem_reserved_mb": 0.0,
+            "gpu_peak_mem_device_mb": 0.0, "gpu_device_total_mb": 0.0,
+            "cost_per_sample_epoch_ms": None,
             "final_val_error": None, "best_val_error": None, "best_epoch": None,
         }
 
@@ -83,14 +106,24 @@ def summarize_run(out_dir, batch_size):
     final_rec = history[-1]
     peak_mem = max(r.get("gpu_peak_mem_mb", 0.0) for r in history)
     peak_mem_reserved = max(r.get("gpu_peak_mem_reserved_mb", 0.0) for r in history)
+    peak_mem_device = max(r.get("gpu_peak_mem_device_mb", 0.0) for r in history)
+    device_total = max(r.get("gpu_device_total_mb", 0.0) for r in history)
+
+    epochs_run = final_rec["epoch"]
+    wall_clock_s = final_rec["cumulative_wall_clock_s"]
+    cost_per_sample_epoch_ms = (1000.0 * wall_clock_s / (epochs_run * ntrain)) if epochs_run > 0 else None
 
     return {
         "batch_size": batch_size,
-        "epochs_run": final_rec["epoch"],
+        "status": status,
+        "epochs_run": epochs_run,
         "opt_steps": final_rec["opt_steps"],
-        "wall_clock_s": final_rec["cumulative_wall_clock_s"],
+        "wall_clock_s": wall_clock_s,
         "gpu_peak_mem_mb": peak_mem,
         "gpu_peak_mem_reserved_mb": peak_mem_reserved,
+        "gpu_peak_mem_device_mb": peak_mem_device,
+        "gpu_device_total_mb": device_total,
+        "cost_per_sample_epoch_ms": cost_per_sample_epoch_ms,
         "final_val_error": final_rec["val_error"],
         "best_val_error": best_rec["val_error"],
         "best_epoch": best_rec["epoch"],
@@ -108,8 +141,10 @@ def write_summary_table(rows, out_dir, winner_bs):
     with open(json_path, "w") as f:
         json.dump(rows, f, indent=2)
 
-    headers = ["batch_size", "epochs_run", "opt_steps", "wall_clock_s",
+    headers = ["batch_size", "status", "epochs_run", "opt_steps", "wall_clock_s",
                "gpu_peak_mem_mb", "gpu_peak_mem_reserved_mb",
+               "gpu_peak_mem_device_mb", "gpu_device_total_mb",
+               "cost_per_sample_epoch_ms",
                "final_val_error", "best_val_error", "best_epoch"]
     lines = []
     lines.append("| " + " | ".join(headers) + " |")
@@ -147,8 +182,13 @@ def main():
     parser.add_argument("--ntrain", type=int, default=800)
     parser.add_argument("--ntest", type=int, default=200)
 
-    parser.add_argument("--batch_sizes", type=str, default="4,8,16",
-                         help="Comma-separated batch sizes to screen")
+    parser.add_argument("--batch_sizes", type=str, default="4,8,16,32,64,128,256",
+                         help="Comma-separated batch sizes to screen, tried in the order given. "
+                              "Per the advisor's request, the sweep no longer stops at a fixed "
+                              "upper size: it is tried in ascending order and continues until "
+                              "either the GPU runs out of memory (detected from the training "
+                              "subprocess's own CUDA OOM error and reported as such, not treated "
+                              "as a crash) or the list is exhausted.")
     parser.add_argument("--screen_epochs", type=int, default=400)
     parser.add_argument("--validate_every", type=int, default=25)
 
@@ -190,19 +230,33 @@ def main():
         os.makedirs(run_dir, exist_ok=True)
         print(f"\n----- Screening batch_size={bs} -----")
         t0 = time.time()
-        run_streaming(build_train_cmd(args.geometry, common_args, [
+        returncode, output = run_streaming(build_train_cmd(args.geometry, common_args, [
             "--batch_size", str(bs),
             "--epochs", str(args.screen_epochs),
             "--save_every", str(args.screen_epochs),
             "--validate_every", str(args.validate_every),
             "--early_stop_patience", "0",
             "--out_dir", run_dir,
-        ]), log_path=os.path.join(run_dir, "run.log"))
+        ]), log_path=os.path.join(run_dir, "run.log"), raise_on_error=False)
         print(f"----- Done batch_size={bs} in {time.time()-t0:.0f}s wall (driver-side) -----")
-        rows.append(summarize_run(run_dir, bs))
 
-    # ---- Pick the winner: lowest best_val_error across the screened runs ----
-    scored = [r for r in rows if r["best_val_error"] is not None]
+        if returncode == 0:
+            rows.append(summarize_run(run_dir, bs, ntrain=args.ntrain, status="OK"))
+        elif is_oom_error(output):
+            print(f"----- batch_size={bs} ran out of GPU memory -- this is the natural stopping "
+                  f"point for the sweep (larger batch sizes would only need more memory), so the "
+                  f"remaining, larger batch sizes in {batch_sizes} are skipped. -----")
+            rows.append(summarize_run(run_dir, bs, ntrain=args.ntrain, status="OOM"))
+            break
+        else:
+            print(f"----- batch_size={bs} failed for a reason other than GPU memory "
+                  f"(exit code {returncode}) -- see {os.path.join(run_dir, 'run.log')}. "
+                  f"Recording it as FAILED and continuing to the next batch size, since "
+                  f"this is not evidence the larger sizes would also fail. -----")
+            rows.append(summarize_run(run_dir, bs, ntrain=args.ntrain, status="FAILED"))
+
+    # ---- Pick the winner: lowest best_val_error across the successfully screened runs ----
+    scored = [r for r in rows if r["status"] == "OK" and r["best_val_error"] is not None]
     if not scored:
         raise RuntimeError("No screening run produced any validation metrics -- check the logs above.")
     winner = min(scored, key=lambda r: r["best_val_error"])
@@ -250,7 +304,7 @@ def main():
         "--out_dir", continue_dir,
     ]), log_path=os.path.join(continue_dir, "run.log"))
 
-    final_summary = summarize_run(continue_dir, winner_bs)
+    final_summary = summarize_run(continue_dir, winner_bs, ntrain=args.ntrain)
     print(f"\n{'='*80}\nFINAL: batch_size={winner_bs} reached epoch {final_summary['epochs_run']}, "
           f"best_val_error={final_summary['best_val_error']:.4g} at epoch {final_summary['best_epoch']} "
           f"(wall_clock={final_summary['wall_clock_s']:.0f}s, opt_steps={final_summary['opt_steps']})\n"

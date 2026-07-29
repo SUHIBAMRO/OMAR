@@ -209,6 +209,87 @@ def total_potential_energy_Q4_hyperelastic(
     return Pi, U.detach(), W.detach(), uv, Fg
 
 
+@torch.no_grad()
+def predict_displacement_Q4_only(
+    xy, quad, inner_edges, theta0_nodes, thetahalfpi_nodes,
+    model, E_nodes, nu_nodes, node_forces,
+    use_soft_dirichlet=True,
+    R_out=2.0,
+    dtype=torch.float32,
+    fun_dim=4,
+):
+    """Deployment-time inference: the network forward pass plus the
+    symmetry ramps, with none of the Gauss-quadrature energy assembly of
+    total_potential_energy_Q4_hyperelastic -- see train_B1.py's version
+    for the full rationale. Used by benchmark_inference_latency_Q4."""
+    device = xy.device
+    B = E_nodes.shape[0]
+    N = xy.shape[0]
+    xy_domain = xy.unsqueeze(0).expand(B, N, 2)
+
+    if fun_dim == 3:
+        fun_material = torch.stack([E_nodes, nu_nodes, node_forces[:, :, 1]], dim=2)
+    else:
+        fun_material = torch.stack([E_nodes, nu_nodes, node_forces[:, :, 0], node_forces[:, :, 1]], dim=2)
+
+    uv_raw = model(xy_domain, fun_material)
+
+    if use_soft_dirichlet:
+        free_u = (xy[:, 0] / R_out).clamp(0.0, 1.0)
+        free_v = (xy[:, 1] / R_out).clamp(0.0, 1.0)
+    else:
+        free_u = torch.ones(N, device=device, dtype=dtype)
+        free_v = torch.ones(N, device=device, dtype=dtype)
+        if thetahalfpi_nodes.numel() > 0:
+            free_u[thetahalfpi_nodes] = 0.0
+        if theta0_nodes.numel() > 0:
+            free_v[theta0_nodes] = 0.0
+    return torch.stack([uv_raw[:, :, 0] * free_u[None, :], uv_raw[:, :, 1] * free_v[None, :]], dim=2)
+
+
+def benchmark_inference_latency_Q4(samples, model, args, device, dtype, n_repeats=200, n_warmup=20):
+    """Pure inference latency: one new sample at a time (batch_size=1),
+    forward pass only, no backward pass, no optimizer step, no energy
+    assembly -- see train_B1.py's version for the full rationale."""
+    model.eval()
+    s0 = samples[0]
+    xy = torch.tensor(s0["xy"], device=device, dtype=dtype)
+    quad = torch.tensor(s0["quad"], device=device, dtype=torch.long)
+    inner_edges = torch.tensor(s0["inner_edges"], device=device, dtype=torch.long)
+    theta0_nodes = torch.tensor(s0["theta0_nodes"], device=device, dtype=torch.long)
+    thetahalfpi_nodes = torch.tensor(s0["thetahalfpi_nodes"], device=device, dtype=torch.long)
+    E1 = torch.tensor(s0["E_node"], device=device, dtype=dtype).unsqueeze(0)
+    nu1 = torch.tensor(s0["nu_node"], device=device, dtype=dtype).unsqueeze(0)
+    f1 = torch.tensor(s0["node_forces"], device=device, dtype=dtype).unsqueeze(0)
+
+    def _one_call():
+        return predict_displacement_Q4_only(
+            xy, quad, inner_edges, theta0_nodes, thetahalfpi_nodes, model, E1, nu1, f1,
+            use_soft_dirichlet=args.use_soft_dirichlet, R_out=args.R_out,
+            dtype=dtype, fun_dim=args.fun_dim,
+        )
+
+    for _ in range(n_warmup):
+        _one_call()
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
+
+    t0 = time.time()
+    for _ in range(n_repeats):
+        _one_call()
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
+    elapsed_s = time.time() - t0
+
+    ms_per_sample = 1000.0 * elapsed_s / n_repeats
+    return {
+        "inference_ms_per_sample": ms_per_sample,
+        "inference_n_repeats": n_repeats,
+        "inference_batch_size": 1,
+        "inference_device": device.type,
+    }
+
+
 def total_potential_energy_Q4_hyperelastic_single(
     xy, quad, inner_edges, theta0_nodes, thetahalfpi_nodes,
     model, E_nodes, nu_nodes, node_forces,
@@ -699,12 +780,18 @@ def train_hyperelastic_Q4(args):
     early_stop_min_delta = float(getattr(args, "early_stop_min_delta", 1e-4))
     stopped_early = False
 
+    # See train_B1.py's version for the full rationale: mem_get_info()
+    # gives the whole-device (nvidia-smi-like) usage, distinct from
+    # PyTorch's own allocated/reserved bookkeeping below.
+    device_total_mb = (torch.cuda.mem_get_info(device)[1] / 1e6) if device.type == "cuda" else 0.0
+
     for epoch in range(start_epoch, args.epochs + 1):
         order = np.random.permutation(ntrain) if getattr(args, "shuffle", 1) else np.arange(ntrain)
 
         model.train()
         epoch_t0 = time.time()
         skipped = 0
+        epoch_peak_device_used_mb = 0.0
 
         if device.type == "cuda":
             torch.cuda.reset_peak_memory_stats(device)
@@ -761,6 +848,10 @@ def train_hyperelastic_Q4(args):
             opt.step()
             opt_steps += 1
 
+            if device.type == "cuda":
+                free_b, total_b = torch.cuda.mem_get_info(device)
+                epoch_peak_device_used_mb = max(epoch_peak_device_used_mb, (total_b - free_b) / 1e6)
+
             if bi % args.print_every == 0:
                 fm = torch.sqrt(torch.sum(force_batch ** 2, dim=2))
                 nz = fm[fm > 0]
@@ -792,6 +883,7 @@ def train_hyperelastic_Q4(args):
 
             gpu_mem_mb = (torch.cuda.max_memory_allocated(device) / 1e6) if device.type == "cuda" else 0.0
             gpu_mem_reserved_mb = (torch.cuda.max_memory_reserved(device) / 1e6) if device.type == "cuda" else 0.0
+            gpu_mem_device_mb = epoch_peak_device_used_mb
 
             metrics = evaluate_dataset_hyperelastic_Q4(Test_samples, model, args, device, dtype)
             val_error = 0.5 * (metrics["mean_rel_L2_u"] + metrics["mean_rel_L2_v"])
@@ -806,6 +898,7 @@ def train_hyperelastic_Q4(args):
             print(f"Val error (mean of Rel L2 u,v): {val_error:.3e}  "
                   f"epoch_time={epoch_time:.2f}s  cum_wall_clock={train_wall_clock:.1f}s  "
                   f"gpu_peak_mem_allocated={gpu_mem_mb:.1f}MB  gpu_peak_mem_reserved={gpu_mem_reserved_mb:.1f}MB  "
+                  f"gpu_peak_mem_device={gpu_mem_device_mb:.1f}MB/{device_total_mb:.1f}MB  "
                   f"opt_steps={opt_steps}")
 
             is_best = (best_val_error is None) or (val_error < best_val_error - early_stop_min_delta)
@@ -832,6 +925,8 @@ def train_hyperelastic_Q4(args):
                 "cumulative_wall_clock_s": train_wall_clock,
                 "gpu_peak_mem_mb": gpu_mem_mb,
                 "gpu_peak_mem_reserved_mb": gpu_mem_reserved_mb,
+                "gpu_peak_mem_device_mb": gpu_mem_device_mb,
+                "gpu_device_total_mb": device_total_mb,
                 "opt_steps": opt_steps,
                 "batch_size": bs,
             }
@@ -869,6 +964,14 @@ def train_hyperelastic_Q4(args):
         print(f"Best val_error: {best_val_error:.3e} at epoch {best_epoch} (see model_best.pt)")
     print(f"Total wall clock: {train_wall_clock:.1f}s over {opt_steps} optimizer steps (batch_size={bs})")
     print("="*80)
+
+    inference_stats = benchmark_inference_latency_Q4(Test_samples, model, args, device, dtype)
+    print(f"Inference latency (batch_size=1, forward pass only, no training): "
+          f"{inference_stats['inference_ms_per_sample']:.4f} ms/sample "
+          f"(averaged over {inference_stats['inference_n_repeats']} calls, {device.type})")
+    with open(os.path.join(args.out_dir, "inference_latency.json"), "w") as f:
+        json.dump(inference_stats, f, indent=2)
+
     print("\nTraining completed!")
     print(f"Results saved to: {args.out_dir}")
 
