@@ -22,6 +22,20 @@ amplitude (mean E=1000, std 200; mean load magnitude 5, std 2) so the
 convergence behavior seen here is representative of the typical training
 sample, not a different problem regime.
 
+Per resolution, three kinds of quantities are tracked and compared across
+mesh sizes (with add_relative_changes() computing each one's relative
+change vs. the previous, coarser resolution -- the standard h-refinement
+convergence metric):
+  - Displacement: max |u| over the whole domain, plus u/v at two fixed
+    off-symmetry query points (interpolated from each resolution's own
+    nodal solution onto the SAME physical points, not mesh nodes).
+  - Total strain energy U(u): via full 2x2 Gauss quadrature, reusing
+    gpu_fem_solver.py's own energy assembly (the exact one verified to
+    machine precision against this same CPU solver in
+    validate_gpu_fem_solver.py) -- a global scalar that can look converged
+    even where a pointwise displacement query has not, and vice versa, so
+    both are needed together.
+
 Usage:
   python -m omar_pfem.mesh_convergence --geometry B1 --material neo_hookean \
       --resolutions 6,11,16,21,26,31,41,51 --out_json convergence_B1.json
@@ -31,7 +45,31 @@ Usage:
 import argparse
 import json
 import numpy as np
+import torch
 from scipy.interpolate import LinearNDInterpolator
+
+from omar_pfem.gpu_fem_solver import (
+    precompute_element_params_B1, precompute_element_params_B2, _element_energy_Q4,
+)
+from omar_pfem.materials_torch import get_material_fns as get_material_fns_torch
+
+
+def _compute_strain_energy(nodes, elements, u, E_fn, nu_fn, material, precompute_fn):
+    """Total internal strain energy U(u) via full 2x2 Gauss quadrature,
+    reusing gpu_fem_solver.py's own energy assembly (the same one verified
+    to machine precision against the CPU reference solver in
+    validate_gpu_fem_solver.py) -- a displacement field that looks
+    converged pointwise but whose total strain energy is still drifting
+    between resolutions has NOT actually converged."""
+    elem_params_np = precompute_fn(nodes, elements, E_fn, nu_fn, material)
+    dtype = torch.float64
+    elem_params_t = tuple(torch.tensor(p, dtype=dtype) for p in elem_params_np)
+    xy_t = torch.tensor(nodes, dtype=dtype)
+    quad_t = torch.tensor(elements, dtype=torch.long)
+    uv_t = torch.tensor(u, dtype=dtype)
+    energy_density_fn, _ = get_material_fns_torch(material)
+    U = _element_energy_Q4(xy_t, quad_t, uv_t, elem_params_t, energy_density_fn, dtype)
+    return float(U.item())
 
 
 class AnalyticFieldB1:
@@ -97,9 +135,11 @@ def run_b1_convergence(resolutions, material):
         u_mag = np.sqrt(u[:, 0] ** 2 + u[:, 1] ** 2)
         interp_u = LinearNDInterpolator(nodes, u[:, 0])
         interp_v = LinearNDInterpolator(nodes, u[:, 1])
+        strain_energy = _compute_strain_energy(nodes, elements, u, E_fn, nu_fn, material,
+                                                 precompute_element_params_B1)
 
         row = {"N": N, "n_nodes": len(nodes), "n_elements": len(elements),
-               "max_disp_mag": float(u_mag.max())}
+               "max_disp_mag": float(u_mag.max()), "strain_energy": strain_energy}
         for name, (qx, qy) in query_points.items():
             row[f"u_{name}"] = float(interp_u(qx, qy))
             row[f"v_{name}"] = float(interp_v(qx, qy))
@@ -131,9 +171,11 @@ def run_b2_convergence(resolutions, material):
         u_mag = np.sqrt(u[:, 0] ** 2 + u[:, 1] ** 2)
         interp_u = LinearNDInterpolator(nodes, u[:, 0])
         interp_v = LinearNDInterpolator(nodes, u[:, 1])
+        strain_energy = _compute_strain_energy(nodes, elements, u, E_fn, nu_fn, material,
+                                                 precompute_element_params_B2)
 
         row = {"N": N, "n_nodes": len(nodes), "n_elements": len(elements),
-               "max_disp_mag": float(u_mag.max())}
+               "max_disp_mag": float(u_mag.max()), "strain_energy": strain_energy}
         for name, (theta, r) in query_points_polar.items():
             qx, qy = r * np.cos(theta), r * np.sin(theta)
             row[f"u_{name}"] = float(interp_u(qx, qy))
