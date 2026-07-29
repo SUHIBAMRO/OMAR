@@ -44,6 +44,7 @@ Usage:
 """
 import argparse
 import json
+import os
 import numpy as np
 import torch
 from scipy.interpolate import LinearNDInterpolator
@@ -108,7 +109,33 @@ class AnalyticFieldB2:
         raise ValueError(self.kind)
 
 
-def run_b1_convergence(resolutions, material):
+def _load_done_rows(out_json):
+    """Resume support: returns {N: row} for resolutions already computed
+    and saved in a previous (possibly interrupted) run of this script."""
+    if out_json and os.path.exists(out_json):
+        with open(out_json) as f:
+            saved = json.load(f)
+        return {r["N"]: {k: v for k, v in r.items() if k != "relative_change"}
+                for r in saved.get("rows", [])}
+    return {}
+
+
+def _save_progress(out_json, geometry, material, resolutions, done_rows):
+    """Writes whatever has been computed so far -- called after EVERY
+    resolution, not just at the end, so a Colab disconnect mid-run never
+    loses an already-completed (and often slow, for a fine mesh) FE
+    solve. relative_change is recomputed fresh each time from the raw
+    rows so it always reflects exactly what's saved, nothing stale."""
+    if not out_json:
+        return
+    ordered = [done_rows[N] for N in sorted(done_rows)]
+    ordered = add_relative_changes([dict(r) for r in ordered]) if ordered else ordered
+    with open(out_json, "w") as f:
+        json.dump({"geometry": geometry, "material": material,
+                    "resolutions": resolutions, "rows": ordered}, f, indent=2)
+
+
+def run_b1_convergence(resolutions, material, out_json=None):
     from omar_pfem.data.data_generate_B1 import generate_grid_Q4, solve_hyperelastic_TL_spatial
 
     Lx = Ly = 1.0
@@ -125,8 +152,11 @@ def run_b1_convergence(resolutions, material):
     # (dividing by a value that is itself just discretization noise).
     query_points = {"top_off_center": (0.7, 1.0), "mid_domain": (0.3, 0.6)}
 
-    rows = []
+    done_rows = _load_done_rows(out_json)
     for N in resolutions:
+        if N in done_rows:
+            print(f"[N={N}] already computed (resumed from {out_json}), skipping.")
+            continue
         nodes, elements = generate_grid_Q4(Lx, Ly, N, N)
         u = solve_hyperelastic_TL_spatial(
             nodes, elements, E_fn, nu_fn, ty_fn, Ly,
@@ -143,11 +173,12 @@ def run_b1_convergence(resolutions, material):
         for name, (qx, qy) in query_points.items():
             row[f"u_{name}"] = float(interp_u(qx, qy))
             row[f"v_{name}"] = float(interp_v(qx, qy))
-        rows.append(row)
-    return rows
+        done_rows[N] = row
+        _save_progress(out_json, "B1", material, resolutions, done_rows)
+    return [done_rows[N] for N in sorted(done_rows)]
 
 
-def run_b2_convergence(resolutions, material):
+def run_b2_convergence(resolutions, material, out_json=None):
     from omar_pfem.data.data_generate_B2 import generate_grid_Q4_ring, solve_hyperelastic_TL_ring
 
     R_in, R_out = 1.0, 2.0
@@ -161,8 +192,11 @@ def run_b2_convergence(resolutions, material):
     # line gives a numerically meaningless relative-change ratio.
     query_points_polar = {"inner_arc_off_sym": (np.pi / 3, R_in), "mid_domain": (np.pi / 3, 1.5)}
 
-    rows = []
+    done_rows = _load_done_rows(out_json)
     for N in resolutions:
+        if N in done_rows:
+            print(f"[N={N}] already computed (resumed from {out_json}), skipping.")
+            continue
         nodes, elements = generate_grid_Q4_ring(R_in, R_out, N, N)
         u = solve_hyperelastic_TL_ring(
             nodes, elements, E_fn, nu_fn, p_fn, R_in,
@@ -180,8 +214,9 @@ def run_b2_convergence(resolutions, material):
             qx, qy = r * np.cos(theta), r * np.sin(theta)
             row[f"u_{name}"] = float(interp_u(qx, qy))
             row[f"v_{name}"] = float(interp_v(qx, qy))
-        rows.append(row)
-    return rows
+        done_rows[N] = row
+        _save_progress(out_json, "B2", material, resolutions, done_rows)
+    return [done_rows[N] for N in sorted(done_rows)]
 
 
 def add_relative_changes(rows):
@@ -218,10 +253,14 @@ def main():
           "ensemble used elsewhere in this study -- see this script's module docstring "
           "for why that substitution is necessary for a valid h-refinement comparison.")
 
+    # out_json (if given) is saved incrementally, after EVERY resolution --
+    # not just once at the end -- so a disconnect mid-run never loses an
+    # already-completed FE solve; re-running this command resumes from
+    # whatever was last saved instead of starting over. See _save_progress.
     if args.geometry == "B1":
-        rows = run_b1_convergence(resolutions, args.material)
+        rows = run_b1_convergence(resolutions, args.material, out_json=args.out_json)
     else:
-        rows = run_b2_convergence(resolutions, args.material)
+        rows = run_b2_convergence(resolutions, args.material, out_json=args.out_json)
 
     rows = add_relative_changes(rows)
 
@@ -234,10 +273,7 @@ def main():
     print("=" * 100)
 
     if args.out_json:
-        with open(args.out_json, "w") as f:
-            json.dump({"geometry": args.geometry, "material": args.material,
-                       "resolutions": resolutions, "rows": rows}, f, indent=2)
-        print(f"Full report written to {args.out_json}")
+        print(f"Full report (saved incrementally throughout the run) is at {args.out_json}")
 
 
 if __name__ == "__main__":
