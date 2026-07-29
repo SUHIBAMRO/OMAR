@@ -12,18 +12,29 @@ unchanged, on two test sets side by side:
      --E_mean/--E_std/--ty_mean (B1) or --p_mean (B2) etc. overridden away
      from the in-distribution defaults (see those scripts' main()).
 
+IMPORTANT: --id_ntrain must match the --ntrain the checkpoint was actually
+trained with (e.g. 800). id_path is normally the case's FULL archived
+dataset (ntrain+ntest samples), and train_B1.py/train_B2.py's own loader
+takes samples[ntrain:ntrain+ntest] as its held-out test split -- so
+--id_ntrain tells this script where that same held-out slice starts.
+Leaving it at the default 0 while pointing id_path at the full archive
+would evaluate "in-distribution" performance on samples that were part of
+the TRAINING set, inflating both the in-distribution accuracy and the
+apparent OOD degradation factor.
+
 Usage (B1 example):
   python -m omar_pfem.evaluate_ood \
       --geometry B1 --material neo_hookean \
       --checkpoint /path/to/B1_neo_hookean/model_best.pt \
-      --id_path /path/to/B1_neo_hookean/in_distribution.npz \
+      --id_path /path/to/B1_neo_hookean/full_archived_dataset.npz --id_ntrain 800 \
       --ood_path /path/to/B1_neo_hookean_ood/ood.npz \
       --ntest 200 --out_json ood_report_B1_neo_hookean.json
 
 Both NPZ files must be in the same converted format the training scripts
 already consume (convert_B1_quad.py / convert_B2_quad.py output) -- the
 OOD one just comes from a differently-parameterized data_generate_B{1,2}.py
-run over the same mesh/material/geometry.
+run over the same mesh/material/geometry, generated with exactly --ntest
+samples (no train split), so its own --id_ntrain-equivalent is always 0.
 """
 import argparse
 import json
@@ -66,9 +77,17 @@ def main():
                          help="Out-of-distribution NPZ (converted output of a "
                               "data_generate_B{1,2}.py run with shifted E/nu/load parameters)")
     parser.add_argument("--ntest", type=int, default=200,
-                         help="Number of samples to evaluate from each of id_path/ood_path "
-                              "(uses the LAST ntest samples in each file as the test split, "
-                              "matching train_B1.py/train_B2.py's own ntrain/ntest convention)")
+                         help="Number of samples to evaluate from each of id_path/ood_path")
+    parser.add_argument("--id_ntrain", type=int, default=0,
+                         help="Number of samples to skip at the START of id_path before taking "
+                              "--ntest test samples. MUST match the --ntrain the checkpoint was "
+                              "actually trained with (e.g. 800), because train_B1.py/train_B2.py's "
+                              "loader takes samples[ntrain:ntrain+ntest] as the test split -- "
+                              "passing 0 here would silently evaluate 'in-distribution' performance "
+                              "on samples that were actually part of the TRAINING set, inflating "
+                              "the apparent in-distribution accuracy and the OOD degradation factor. "
+                              "Leave at 0 only if id_path is itself a test-only file (already just "
+                              "the held-out split, nothing to skip).")
 
     # Architecture -- must match the checkpoint's training run exactly (Table 1 defaults).
     parser.add_argument("--model", type=str, default="Transolver_Irregular_Mesh")
@@ -115,9 +134,10 @@ def main():
     model.eval()
     print(f"Loaded checkpoint: {args.checkpoint}")
 
-    _, id_test = load_fem_dataset_Q4_with_materials_and_random_force(args.id_path, 0, args.ntest)
+    _, id_test = load_fem_dataset_Q4_with_materials_and_random_force(args.id_path, args.id_ntrain, args.ntest)
     _, ood_test = load_fem_dataset_Q4_with_materials_and_random_force(args.ood_path, 0, args.ntest)
-    print(f"In-distribution test set: {len(id_test)} samples ({args.id_path})")
+    print(f"In-distribution test set: {len(id_test)} samples "
+          f"(samples [{args.id_ntrain}:{args.id_ntrain + args.ntest}] of {args.id_path})")
     print(f"Out-of-distribution test set: {len(ood_test)} samples ({args.ood_path})")
 
     id_metrics = evaluate_dataset_hyperelastic_Q4(id_test, model, args, device, dtype)
@@ -132,6 +152,7 @@ def main():
         "material": args.material,
         "checkpoint": args.checkpoint,
         "id_path": args.id_path,
+        "id_ntrain": args.id_ntrain,
         "ood_path": args.ood_path,
         "ntest": args.ntest,
         "in_distribution": {**id_metrics, "val_error": id_val_error},
