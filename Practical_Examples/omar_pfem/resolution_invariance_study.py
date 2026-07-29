@@ -43,6 +43,7 @@ Usage:
 import os
 import sys
 import json
+import shutil
 import argparse
 
 from omar_pfem.screening_study import run_streaming, read_metrics
@@ -79,6 +80,13 @@ def main():
 
     parser.add_argument("--data_dir", type=str, default="./resolution_study_data",
                          help="Scratch directory for per-resolution generated datasets")
+    parser.add_argument("--archive_dir", type=str, default=None,
+                         help="If set, each resolution's converted NPZ is copied here after "
+                              "generation (and restored from here instead of regenerated, if "
+                              "already present) -- point this at a Drive-backed location so a "
+                              "disconnect never forces regenerating an already-finished "
+                              "resolution's dataset. Mirrors the Colab notebook's own "
+                              "ensure_dataset()/DATASETS_ARCHIVE_DIR pattern for the 6 main cases.")
     parser.add_argument("--out_dir", type=str, default="./resolution_study")
     parser.add_argument("--cpu", action="store_true")
     args = parser.parse_args()
@@ -97,49 +105,66 @@ def main():
         name = case_name_for_resolution(args.geometry, args.material, N)
         print(f"\n{'='*80}\nRESOLUTION N={N}  ({name})\n{'='*80}")
 
-        h5_dir = os.path.join(args.data_dir, f"fem_{name}")
-        npz_dir = os.path.join(args.data_dir, f"npz_{name}")
-        npz_path = os.path.join(npz_dir, "hyperelastic_training_data_q4.npz")
         run_dir = os.path.join(args.out_dir, name)
         os.makedirs(run_dir, exist_ok=True)
 
-        if not os.path.exists(npz_path):
-            run_streaming([
-                sys.executable, "-u", "-m", gen_module,
-                "--num_index", "1", "--num_samples", str(args.ntrain + args.ntest),
-                mesh_flag_names[0], str(N), mesh_flag_names[1], str(N),
-                "--material", args.material, "--n_workers", str(args.n_workers),
-                "--out_dir", h5_dir,
-            ], log_path=os.path.join(run_dir, "data_generation.log"))
-            run_streaming([
-                sys.executable, "-u", "-m", conv_module,
-                "--h5_dir", h5_dir, "--out_dir", npz_dir,
-            ], log_path=os.path.join(run_dir, "npz_conversion.log"))
-        else:
-            print(f"[{name}] NPZ already exists at {npz_path}, skipping generation.")
-
-        train_cmd = [
-            sys.executable, "-u", "-m", train_module,
-            "--path", npz_path, "--material", args.material,
-            "--ntrain", str(args.ntrain), "--ntest", str(args.ntest),
-            "--lr", str(args.lr), "--print_every", "999999",
-            "--batch_size", str(args.batch_size),
-            "--epochs", str(args.epochs),
-            "--save_every", str(args.validate_every),
-            "--validate_every", str(args.validate_every),
-            "--early_stop_patience", str(args.early_stop_patience),
-            "--early_stop_min_delta", str(args.early_stop_min_delta),
-            "--out_dir", run_dir,
-        ]
-        if args.cpu:
-            train_cmd.append("--cpu")
-
+        # Checked FIRST, before touching the dataset at all: if this
+        # resolution already finished training, there is nothing left to
+        # do for it -- regenerating its (possibly large) dataset just to
+        # discover that and skip training would waste real CPU time on
+        # every resumed run after a disconnect wipes local scratch disk.
         already_done = os.path.exists(os.path.join(run_dir, "model_final.pt")) or \
             os.path.exists(os.path.join(run_dir, "EARLY_STOPPED"))
-        if not already_done:
-            run_streaming(train_cmd, log_path=os.path.join(run_dir, "training.log"))
+
+        if already_done:
+            print(f"[{name}] already fully trained (model_final.pt or EARLY_STOPPED found), "
+                  f"skipping dataset generation and training entirely.")
         else:
-            print(f"[{name}] already fully trained, skipping.")
+            h5_dir = os.path.join(args.data_dir, f"fem_{name}")
+            npz_dir = os.path.join(args.data_dir, f"npz_{name}")
+            npz_path = os.path.join(npz_dir, "hyperelastic_training_data_q4.npz")
+            archive_path = (os.path.join(args.archive_dir, name, "hyperelastic_training_data_q4.npz")
+                             if args.archive_dir else None)
+
+            if os.path.exists(npz_path):
+                print(f"[{name}] NPZ already exists locally at {npz_path}, skipping generation.")
+            elif archive_path and os.path.exists(archive_path):
+                print(f"[{name}] Restoring archived NPZ from {archive_path} -- no regeneration needed.")
+                os.makedirs(npz_dir, exist_ok=True)
+                shutil.copy2(archive_path, npz_path)
+            else:
+                run_streaming([
+                    sys.executable, "-u", "-m", gen_module,
+                    "--num_index", "1", "--num_samples", str(args.ntrain + args.ntest),
+                    mesh_flag_names[0], str(N), mesh_flag_names[1], str(N),
+                    "--material", args.material, "--n_workers", str(args.n_workers),
+                    "--out_dir", h5_dir,
+                ], log_path=os.path.join(run_dir, "data_generation.log"))
+                run_streaming([
+                    sys.executable, "-u", "-m", conv_module,
+                    "--h5_dir", h5_dir, "--out_dir", npz_dir,
+                ], log_path=os.path.join(run_dir, "npz_conversion.log"))
+                if archive_path:
+                    os.makedirs(os.path.dirname(archive_path), exist_ok=True)
+                    shutil.copy2(npz_path, archive_path)
+                    print(f"[{name}] Dataset archived to {archive_path}")
+
+            train_cmd = [
+                sys.executable, "-u", "-m", train_module,
+                "--path", npz_path, "--material", args.material,
+                "--ntrain", str(args.ntrain), "--ntest", str(args.ntest),
+                "--lr", str(args.lr), "--print_every", "999999",
+                "--batch_size", str(args.batch_size),
+                "--epochs", str(args.epochs),
+                "--save_every", str(args.validate_every),
+                "--validate_every", str(args.validate_every),
+                "--early_stop_patience", str(args.early_stop_patience),
+                "--early_stop_min_delta", str(args.early_stop_min_delta),
+                "--out_dir", run_dir,
+            ]
+            if args.cpu:
+                train_cmd.append("--cpu")
+            run_streaming(train_cmd, log_path=os.path.join(run_dir, "training.log"))
 
         history = read_metrics(run_dir)
         early_stopped = os.path.exists(os.path.join(run_dir, "EARLY_STOPPED"))
