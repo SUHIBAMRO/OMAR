@@ -170,24 +170,59 @@ def _make_energy_fn(xy, quad, n_nodes, material, dtype):
 
 
 def _newton_solve(energy_fn, free_dofs, elem_params_batch, fext_free_full,
-                   n_free, B, nsteps, newton_max, tol, device, dtype):
+                   n_free, B, nsteps, newton_max, tol, device, dtype, profile=None):
+    """profile: optional dict: if given, accumulates wall-clock timing broken
+    down into 'assembly' (residual + tangent/Hessian evaluation via
+    torch.func autodiff -- the GPU-native analogue of forming fint/K) and
+    'solve' (the dense torch.linalg.solve per Newton step) buckets, each
+    bracketed by torch.cuda.synchronize() when on GPU so CUDA's asynchronous
+    dispatch cannot leak into the wrong bucket or be missed entirely. See
+    fem_cost_breakdown.py."""
+    import time as _time
     residual_fn = grad(energy_fn, argnums=0)
     tangent_fn = hessian(energy_fn, argnums=0)
     batched_residual = vmap(residual_fn, in_dims=(0, 0, None))
     batched_tangent = vmap(tangent_fn, in_dims=(0, 0, None))
+
+    def _sync():
+        if device.type == "cuda":
+            torch.cuda.synchronize(device)
+
+    if profile is not None:
+        profile.setdefault("t_assembly_s", 0.0)   # residual + tangent (Hessian) autodiff evaluation
+        profile.setdefault("t_solve_s", 0.0)      # torch.linalg.solve (dense, per Newton step)
+        profile.setdefault("n_newton_iters_total", 0)
+        profile.setdefault("n_load_steps", nsteps)
+        profile.setdefault("newton_tol", tol)
+        profile.setdefault("newton_max", newton_max)
+        profile.setdefault("dtype", str(dtype))
+        profile.setdefault("linear_solver", "torch.linalg.solve (dense, per-sample batched via vmap)")
 
     u_free = torch.zeros(B, n_free, dtype=dtype, device=device)
     for step in range(1, nsteps + 1):
         alpha = step / nsteps
         fext_free = alpha * fext_free_full
         for it in range(1, newton_max + 1):
+            if profile is not None:
+                _sync(); t0 = _time.perf_counter()
             dU_du = batched_residual(u_free, elem_params_batch, free_dofs)
             R = dU_du - fext_free
             res_norm = torch.linalg.norm(R, dim=1)
-            if torch.all(res_norm < tol):
+            converged = torch.all(res_norm < tol)
+            if profile is not None:
+                _sync(); profile["t_assembly_s"] += _time.perf_counter() - t0
+                profile["n_newton_iters_total"] += 1
+            if converged:
                 break
+            if profile is not None:
+                _sync(); t0 = _time.perf_counter()
             K = batched_tangent(u_free, elem_params_batch, free_dofs)
+            if profile is not None:
+                _sync(); profile["t_assembly_s"] += _time.perf_counter() - t0
+                _sync(); t0 = _time.perf_counter()
             delta = torch.linalg.solve(K, -R.unsqueeze(-1)).squeeze(-1)
+            if profile is not None:
+                _sync(); profile["t_solve_s"] += _time.perf_counter() - t0
             u_free = u_free + delta
     return u_free
 
@@ -195,12 +230,13 @@ def _newton_solve(energy_fn, free_dofs, elem_params_batch, fext_free_full,
 def solve_batch_gpu_newton_B1(
     xy, quad, bottom_nodes, elem_params_batch, fext_full_batch,
     material="neo_hookean", nsteps=10, newton_max=30, tol=1e-7,
-    device=None, dtype=torch.float64,
+    device=None, dtype=torch.float64, profile=None,
 ):
     """Batched GPU Newton-Raphson solve for B1 (bottom edge fixed, both
     DOFs). elem_params_batch: tuple of (B, n_elements) tensors (per-sample
     precomputed material params, see precompute_element_params_B1).
-    fext_full_batch: (B, ndof). Returns (B, n_nodes, 2)."""
+    fext_full_batch: (B, ndof). Returns (B, n_nodes, 2). profile: optional
+    dict, see _newton_solve."""
     device = device or xy.device
     n_nodes = xy.shape[0]
     ndof = 2 * n_nodes
@@ -217,7 +253,7 @@ def solve_batch_gpu_newton_B1(
     fext_free_full = fext_full_batch[:, free_dofs]
 
     u_free = _newton_solve(energy_fn, free_dofs, elem_params_batch, fext_free_full,
-                            n_free, B, nsteps, newton_max, tol, device, dtype)
+                            n_free, B, nsteps, newton_max, tol, device, dtype, profile=profile)
 
     u_full = torch.zeros(B, ndof, dtype=dtype, device=device)
     u_full[:, free_dofs] = u_free
@@ -227,13 +263,14 @@ def solve_batch_gpu_newton_B1(
 def solve_batch_gpu_newton_B2(
     xy, quad, theta0_nodes, thetahalfpi_nodes, elem_params_batch, fext_full_batch,
     material="neo_hookean", nsteps=10, newton_max=30, tol=1e-7,
-    device=None, dtype=torch.float64,
+    device=None, dtype=torch.float64, profile=None,
 ):
     """Batched GPU Newton-Raphson solve for B2 (mixed-component symmetry
     BCs: u_y=0 at theta0_nodes, u_x=0 at thetahalfpi_nodes -- see
     data_generate_B2.solve_hyperelastic_TL_ring). elem_params_batch: tuple
     of (B, n_elements) tensors (see precompute_element_params_B2).
-    fext_full_batch: (B, ndof). Returns (B, n_nodes, 2)."""
+    fext_full_batch: (B, ndof). Returns (B, n_nodes, 2). profile: optional
+    dict, see _newton_solve."""
     device = device or xy.device
     n_nodes = xy.shape[0]
     ndof = 2 * n_nodes
@@ -250,7 +287,7 @@ def solve_batch_gpu_newton_B2(
     fext_free_full = fext_full_batch[:, free_dofs]
 
     u_free = _newton_solve(energy_fn, free_dofs, elem_params_batch, fext_free_full,
-                            n_free, B, nsteps, newton_max, tol, device, dtype)
+                            n_free, B, nsteps, newton_max, tol, device, dtype, profile=profile)
 
     u_full = torch.zeros(B, ndof, dtype=dtype, device=device)
     u_full[:, free_dofs] = u_free

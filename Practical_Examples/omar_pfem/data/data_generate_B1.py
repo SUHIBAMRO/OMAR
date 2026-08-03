@@ -98,7 +98,12 @@ def assemble_traction_top_spatial(nodes, elements, Ly, ty_interp):
 # -------------------------
 def solve_hyperelastic_TL_spatial(nodes, elements, E_grid, nu_grid, ty_grid, Ly,
                                   nsteps=10, newton_max=25, tol=1e-8,
-                                  material="neo_hookean"):
+                                  material="neo_hookean", profile=None):
+    """profile: optional dict: if given, accumulates wall-clock timing broken
+    down into 'assembly' (the per-element loop + sparse matrix formation +
+    Dirichlet elimination) and 'solve' (spsolve) buckets, plus iteration
+    bookkeeping, with no other change in behavior. See fem_cost_breakdown.py."""
+    import time as _time
     PK1_and_tangent_fn, E_nu_to_params_fn = get_material_fns(material)
 
     n_nodes = nodes.shape[0]
@@ -114,11 +119,23 @@ def solve_hyperelastic_TL_spatial(nodes, elements, E_grid, nu_grid, ty_grid, Ly,
 
     Fext_full = assemble_traction_top_spatial(nodes, elements, Ly, ty_grid)
 
+    if profile is not None:
+        profile.setdefault("t_assembly_s", 0.0)
+        profile.setdefault("t_solve_s", 0.0)
+        profile.setdefault("n_newton_iters_total", 0)
+        profile.setdefault("n_load_steps", nsteps)
+        profile.setdefault("newton_tol", tol)
+        profile.setdefault("newton_max", newton_max)
+        profile.setdefault("dtype", str(u.dtype))
+        profile.setdefault("linear_solver", "scipy.sparse.linalg.spsolve (direct, sparse LU)")
+
     for step in range(1, nsteps + 1):
         alpha = step / nsteps
         Fext = alpha * Fext_full
 
         for it in range(1, newton_max + 1):
+            t0 = _time.perf_counter() if profile is not None else None
+
             rows, cols, vals = [], [], []
             fint = np.zeros(ndof, dtype=float)
 
@@ -148,12 +165,20 @@ def solve_hyperelastic_TL_spatial(nodes, elements, E_grid, nu_grid, ty_grid, Ly,
             R = fint - Fext
 
             free, Kff, Rf = apply_dirichlet(K, R, fixed_dofs)
+
+            if profile is not None:
+                profile["t_assembly_s"] += _time.perf_counter() - t0
+                profile["n_newton_iters_total"] += 1
+
             res_norm = np.linalg.norm(Rf)
             if res_norm < tol:
                 print(f"[step {step}/{nsteps}] converged in {it-1} iters, ||R||={res_norm:.3e}")
                 break
 
+            t1 = _time.perf_counter() if profile is not None else None
             du_free = spsolve(Kff, -Rf)
+            if profile is not None:
+                profile["t_solve_s"] += _time.perf_counter() - t1
             u[free] += du_free
 
             if it == newton_max:
