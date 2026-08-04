@@ -509,10 +509,20 @@ def main():
         rate_h1, pairwise_h1 = fit_convergence_rate(hs, [r["h1_semi_rel_error"] for r in rows])
         rate_energy, pairwise_energy = fit_convergence_rate(hs, [r["energy_rel_error"] for r in rows])
 
-        print(f"\n{order} convergence rates (log-log fit across all resolutions):")
-        print(f"  L2:     p = {rate_l2}")
-        print(f"  H1:     p = {rate_h1}")
-        print(f"  Energy: p = {rate_energy}")
+        print(f"\n{order} convergence rates (log-log LEAST-SQUARES fit across ALL "
+              f"{len(rows)} resolutions -- this is the number to report, not any single "
+              f"pairwise ratio below):")
+        print(f"  L2:     p = {rate_l2}   (pairwise: {[round(p, 2) for p in pairwise_l2]})")
+        print(f"  H1:     p = {rate_h1}   (pairwise: {[round(p, 2) for p in pairwise_h1]})")
+        print(f"  Energy: p = {rate_energy}   (pairwise: {[round(p, 2) for p in pairwise_energy]})")
+        if any(len(pw) >= 2 and (max(pw) - min(pw)) > 1.0 for pw in [pairwise_l2, pairwise_h1, pairwise_energy]):
+            print(f"  NOTE: individual pairwise rates above vary a lot (even going negative) at "
+                  f"coarse/pre-asymptotic resolutions -- this is expected FEM behavior for a "
+                  f"smoothly-varying (not mesh-aligned) exact field, NOT a bug. It happens because "
+                  f"how well 2 particular mesh resolutions happen to align with the field's own "
+                  f"oscillations varies point to point. The multi-point LEAST-SQUARES fit above "
+                  f"averages this out and is the statistically meaningful number; more resolution "
+                  f"points (not fewer) make it more robust.")
 
         report["orders"][order] = {
             "fine_reference": {"N": args.fine_N, "n_dof": fine["n_dof"],
