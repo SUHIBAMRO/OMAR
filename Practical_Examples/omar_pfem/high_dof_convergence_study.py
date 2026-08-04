@@ -500,7 +500,12 @@ def main():
                 "energy_rel_error": float(energy_rel_err),
             }
             rows.append(row)
-            print(f"  N={N}: n_dof={row['n_dof']}, L2_rel={row['l2_rel_error']:.4e}, "
+            if row["cg_failures"] > 0:
+                print(f"  WARNING: {row['cg_failures']} CG failure(s) at N={N} -- the linear "
+                      f"solve did not hit cg_tol within cg_max_iter on at least one Newton "
+                      f"iteration, leaving extra, non-discretization error in this row's solution.")
+            print(f"  N={N}: n_dof={row['n_dof']}, newton_iters={row['newton_iters']}, "
+                  f"cg_iters={row['cg_iters']}, L2_rel={row['l2_rel_error']:.4e}, "
                   f"H1_rel={row['h1_semi_rel_error']:.4e}, energy_rel={row['energy_rel_error']:.4e}, "
                   f"wall_clock={row['wall_clock_s']:.1f}s")
 
