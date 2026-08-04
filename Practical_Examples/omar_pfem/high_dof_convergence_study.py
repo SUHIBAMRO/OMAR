@@ -12,19 +12,27 @@ identical physical problem is solved at every mesh size):
 
   - L2 norm:  ||e||_L2 = sqrt( integral_Omega |e|^2 dOmega ), e = u_h -
     u_ref, evaluated via Gauss quadrature on the COARSE mesh's own
-    elements; u_ref (known only at the fine reference mesh's nodes) is
-    evaluated at each coarse Gauss point via linear interpolation
-    (scipy.interpolate.LinearNDInterpolator) over the fine mesh's nodes.
+    elements; u_ref (known only at the fine reference mesh's own nodes) is
+    evaluated at each coarse Gauss point EXACTLY, via direct point location
+    into the fine mesh's own element (index arithmetic on its known
+    structured grid, no search) followed by that element's own shape
+    functions (see evaluate_fe_field_and_gradient) -- not a generic
+    re-triangulation/interpolation of its nodes.
   - H1 semi-norm: ||e||_H1 = sqrt( integral_Omega |grad(e)|^2 dOmega ).
     grad(u_h) at each coarse Gauss point comes directly from the coarse
     element's own shape-function gradients (exact for that element).
-    grad(u_ref) at the same points is obtained by CENTERED FINITE
-    DIFFERENCING of the same linear interpolator used for the L2 norm
-    (step size --fd_h) -- an approximation (interpolant gradients are only
-    piecewise-constant otherwise), stated explicitly here and in the
-    output, rather than a fully mesh-consistent FE gradient recovery on
-    the fine mesh (which would require point-location within specific
-    fine elements).
+    grad(u_ref) at the same points comes from the SAME point-located fine
+    element's own shape-function gradients (exact for a piecewise-
+    bilinear/biquadratic FE field) -- an earlier version of this module
+    instead finite-differenced a generic Delaunay-triangulation
+    interpolant of the fine mesh's nodes, which produced a gradient with a
+    fixed noise floor that did NOT shrink as the coarse mesh was refined
+    (a piecewise-linear interpolant's true gradient is only piecewise-
+    constant; finite-differencing across its triangle boundaries measures
+    interpolation artifacts, not the fine solution's own discretization
+    error) -- this showed up empirically as a near-zero or even negative
+    observed H1 convergence rate despite L2 and the energy norm both
+    converging correctly, which is what prompted this fix.
   - Energy norm: relative error in total strain energy,
     |U(u_h) - U(u_ref)| / |U(u_ref)|, both computed via the same Gauss-
     quadrature energy assembly (matrix_free_solver.element_energy_order_agnostic)
@@ -49,15 +57,47 @@ import time
 
 import numpy as np
 import torch
-from scipy.interpolate import LinearNDInterpolator
 
 from omar_pfem.mesh_convergence import AnalyticFieldB1, AnalyticFieldB2
 from omar_pfem.matrix_free_solver import (
     solve_matrix_free, element_energy_order_agnostic, precompute_shape_data, _gauss_2x2,
 )
-from omar_pfem.data.q9_element import generate_grid_Q9, gauss_3x3, shape_Q9
+from omar_pfem.data.q9_element import generate_grid_Q9, gauss_3x3, shape_Q9, _NODE_XI_ETA, _lagrange1d
 from omar_pfem.data.fem_core import shape_Q4
 from omar_pfem.materials_torch import get_material_fns as get_material_fns_torch
+
+
+def shape_Q4_batched(xi, eta):
+    """Vectorized shape_Q4: xi, eta are (Q,) arrays. Returns N (Q,4),
+    dN_dxi (Q,4,2) -- avoids a Python-level loop over Gauss/query points,
+    which otherwise dominates wall-clock time once thousands of points are
+    evaluated (every coarse-mesh Gauss point, times several Newton
+    corrections each, for the reference-field evaluation)."""
+    N = 0.25 * np.stack([(1 - xi) * (1 - eta), (1 + xi) * (1 - eta),
+                          (1 + xi) * (1 + eta), (1 - xi) * (1 + eta)], axis=-1)
+    z = np.zeros_like(xi)
+    dN_dxi = 0.25 * np.stack([
+        np.stack([-(1 - eta), -(1 - xi)], axis=-1),
+        np.stack([(1 - eta), -(1 + xi)], axis=-1),
+        np.stack([(1 + eta), (1 + xi)], axis=-1),
+        np.stack([-(1 + eta), (1 - xi)], axis=-1),
+    ], axis=1)
+    return N, dN_dxi
+
+
+def shape_Q9_batched(xi, eta):
+    """Vectorized shape_Q9 (see shape_Q4_batched's rationale). xi, eta:
+    (Q,) arrays. Returns N (Q,9), dN_dxi (Q,9,2)."""
+    Q = xi.shape[0]
+    N = np.zeros((Q, 9))
+    dN_dxi = np.zeros((Q, 9, 2))
+    for k, (nx, ny) in enumerate(_NODE_XI_ETA):
+        Lx, dLx = _lagrange1d(xi, nx)
+        Ly, dLy = _lagrange1d(eta, ny)
+        N[:, k] = Lx * Ly
+        dN_dxi[:, k, 0] = dLx * Ly
+        dN_dxi[:, k, 1] = Lx * dLy
+    return N, dN_dxi
 
 
 def _edge_quadrature(order):
@@ -163,13 +203,15 @@ def build_mesh_and_bcs(geometry, order, N, material, device, dtype):
             from omar_pfem.data.data_generate_B2 import generate_grid_Q4_ring
             nodes, elements = generate_grid_Q4_ring(R_in, R_out, N, N)
         else:
-            # Polar-mapped Q9 mesh: build the Q9 reference grid in (theta, r)
-            # then map to Cartesian, mirroring data_generate_B2.generate_grid_Q4_ring's
-            # own polar-to-Cartesian construction.
+            # Polar-mapped Q9 mesh: build the Q9 reference grid in (r, theta)
+            # -- r FAST, theta SLOW, matching generate_grid_Q4_ring's own
+            # convention exactly (see that function's docstring) so both
+            # orders share one element-traversal convention for the same
+            # geometry -- then map to Cartesian.
             theta_max = np.pi / 2
-            nodes_polar, elements = generate_grid_Q9(theta_max, R_out - R_in, N, N)
-            theta = nodes_polar[:, 0]
-            r = nodes_polar[:, 1] + R_in
+            nodes_polar, elements = generate_grid_Q9(R_out - R_in, theta_max, N, N)
+            r = nodes_polar[:, 0] + R_in
+            theta = nodes_polar[:, 1]
             nodes = np.stack([r * np.cos(theta), r * np.sin(theta)], axis=1)
         tolx = 1e-9
         theta0_nodes = np.where(np.abs(nodes[:, 1]) < tolx)[0]
@@ -214,7 +256,7 @@ def solve_one(geometry, order, N, material, device, dtype, cg_tol, newton_tol,
 
     return {
         "nodes": nodes, "elements": elements, "u": u_full.reshape(len(nodes), 2).cpu().numpy(),
-        "n_dof": ndof, "n_free_dof": len(free_dofs), "strain_energy": float(U.item()),
+        "N": N, "n_dof": ndof, "n_free_dof": len(free_dofs), "strain_energy": float(U.item()),
         "wall_clock_s": wall_s, "stats": stats,
     }
 
@@ -223,37 +265,135 @@ def gauss_points_and_weights_physical(nodes, elements, order):
     """Physical (x,y) coordinates, detJ, and weight of every Gauss point of
     every element in a mesh -- used both to integrate the L2/H1 errors and
     to evaluate u_h / grad(u_h) there via the coarse mesh's OWN shape
-    functions (exact, since these are that mesh's own quadrature points)."""
-    shape_fn = shape_Q4 if order == "Q4" else __import__(
-        "omar_pfem.data.q9_element", fromlist=["shape_Q9"]).shape_Q9
+    functions (exact, since these are that mesh's own quadrature points).
+    Vectorized over elements (each of the few Gauss points is the same
+    reference location for every element, so N/dN_dxi there are computed
+    ONCE and broadcast, not recomputed per element)."""
     gauss = _gauss_2x2() if order == "Q4" else gauss_3x3()
-    Xe_all = nodes[elements]  # (Q, n_local, 2)
+    shape_fn_batched = shape_Q4_batched if order == "Q4" else shape_Q9_batched
+    n_elements = len(elements)
+    Xe_all = nodes[elements]  # (n_elements, n_local, 2)
+
     pts, detJs, ws, Ns, dN_dXs, elem_idx = [], [], [], [], [], []
-    for qi in range(len(elements)):
-        Xe = Xe_all[qi]
-        for (xi, eta, w) in gauss:
-            N, dN_dxi = shape_fn(xi, eta)
-            J0 = dN_dxi.T @ Xe
-            detJ0 = np.linalg.det(J0)
-            invJ0 = np.linalg.inv(J0)
-            dN_dX = dN_dxi @ invJ0
-            phys = N @ Xe
-            pts.append(phys); detJs.append(detJ0); ws.append(w)
-            Ns.append(N); dN_dXs.append(dN_dX); elem_idx.append(qi)
-    return (np.array(pts), np.array(detJs), np.array(ws),
-            np.array(Ns), np.array(dN_dXs), np.array(elem_idx))
+    for (xi, eta, w) in gauss:
+        xi_arr = np.full(n_elements, xi)
+        eta_arr = np.full(n_elements, eta)
+        N, dN_dxi = shape_fn_batched(xi_arr, eta_arr)              # (n_elements, n_local), (n_elements, n_local, 2)
+        J0 = np.einsum("qai,qaj->qij", Xe_all, dN_dxi)             # (n_elements, 2, 2)
+        detJ0 = J0[:, 0, 0] * J0[:, 1, 1] - J0[:, 0, 1] * J0[:, 1, 0]
+        invJ0 = np.zeros_like(J0)
+        invJ0[:, 0, 0] = J0[:, 1, 1] / detJ0
+        invJ0[:, 1, 1] = J0[:, 0, 0] / detJ0
+        invJ0[:, 0, 1] = -J0[:, 0, 1] / detJ0
+        invJ0[:, 1, 0] = -J0[:, 1, 0] / detJ0
+        dN_dX = np.einsum("qaj,qjk->qak", dN_dxi, invJ0)           # (n_elements, n_local, 2)
+        phys = np.einsum("qa,qad->qd", N, Xe_all)                  # (n_elements, 2)
+
+        pts.append(phys); detJs.append(detJ0); ws.append(np.full(n_elements, w))
+        Ns.append(N); dN_dXs.append(dN_dX); elem_idx.append(np.arange(n_elements))
+
+    return (np.concatenate(pts), np.concatenate(detJs), np.concatenate(ws),
+            np.concatenate(Ns), np.concatenate(dN_dXs), np.concatenate(elem_idx))
 
 
-def compute_l2_h1_errors(coarse, fine, order, fd_h=1e-5):
+def _physical_to_normalized(pts, geometry, R_in=1.0, R_out=2.0, theta_max=np.pi / 2, Lx=1.0, Ly=1.0):
+    """Maps physical (x, y) points to the mesh generators' own [0,1]x[0,1]
+    structured reference coordinates: direct for B1 (Cartesian), via
+    (r, theta) for B2 -- r is the FAST index (x_norm), theta the SLOW index
+    (y_norm), matching generate_grid_Q4_ring's own convention (and, after
+    the fix above, generate_grid_Q9's B2 call)."""
+    if geometry == "B1":
+        return pts[:, 0] / Lx, pts[:, 1] / Ly
+    r = np.linalg.norm(pts, axis=1)
+    theta = np.arctan2(pts[:, 1], pts[:, 0])
+    return (r - R_in) / (R_out - R_in), theta / theta_max
+
+
+def evaluate_fe_field_and_gradient(query_pts, fine, order, geometry, **geom_kwargs):
+    """Exact FE evaluation of a fine structured mesh's own displacement
+    field AND its gradient at arbitrary physical query points, via direct
+    point location (index arithmetic on the known structured grid, no
+    search) into the fine mesh's own element, followed by that element's
+    own shape functions/gradients -- replacing an earlier version that
+    finite-differenced a generic Delaunay-triangulation interpolant, which
+    produced a gradient with a fixed noise floor that did not shrink as
+    the COARSE mesh was refined (a piecewise-linear interpolant's true
+    gradient is only piecewise-CONSTANT; finite-differencing across its
+    triangle boundaries injects error that is NOT the fine solution's own
+    discretization error). This version is both more correct (uses the
+    fine mesh's own, already-known shape functions exactly, not a
+    re-triangulation of its nodes) and faster (index arithmetic, not a
+    Delaunay build + per-point interpolator calls)."""
+    nodes_f, elements_f, u_f, N_fine = fine["nodes"], fine["elements"], fine["u"], fine["N"]
+    nx_elem = N_fine - 1
+    ny_elem = N_fine - 1
+
+    x_norm, y_norm = _physical_to_normalized(query_pts, geometry, **geom_kwargs)
+    x_norm = np.clip(x_norm, 0.0, 1.0)
+    y_norm = np.clip(y_norm, 0.0, 1.0)
+
+    ie = np.clip(np.floor(x_norm * nx_elem).astype(int), 0, nx_elem - 1)
+    je = np.clip(np.floor(y_norm * ny_elem).astype(int), 0, ny_elem - 1)
+    dx, dy = 1.0 / nx_elem, 1.0 / ny_elem
+    xi = 2.0 * (x_norm - ie * dx) / dx - 1.0
+    eta = 2.0 * (y_norm - je * dy) / dy - 1.0
+    xi = np.clip(xi, -1.0, 1.0)
+    eta = np.clip(eta, -1.0, 1.0)
+
+    # WHICH fine element contains the point is exact (cell boundaries are
+    # constant-r / constant-theta lines for B2, constant-x/y for B1, so
+    # locating (ie, je) from (x_norm, y_norm) alone is always correct).
+    # But (xi, eta) WITHIN that element is only a good INITIAL GUESS here,
+    # not exact for B2: linearly interpolating in (r, theta) is NOT the
+    # same map as the element's own isoparametric map N(xi,eta) @ Xe, which
+    # is bilinear/biquadratic in CARTESIAN (x, y) -- these two coincide
+    # exactly for B1 (whose mesh already IS linear in Cartesian coordinates)
+    # but not for B2's polar-mapped, curved-looking quadrilaterals. A few
+    # Newton corrections on the true isoparametric inverse map fix this
+    # for both geometries (and are a costless no-op for B1, where the
+    # initial guess already satisfies the map to machine precision).
+    elem_flat_idx = je * nx_elem + ie          # matches every mesh generator's own (je-outer, ie-inner) build order
+    elem_nodes = elements_f[elem_flat_idx]     # (Q, n_local)
+    Xe = nodes_f[elem_nodes]                   # (Q, n_local, 2): this element's OWN corner/edge/center physical coords
+    ue = u_f[elem_nodes]                       # (Q, n_local, 2): this element's OWN nodal displacements
+
+    shape_fn_batched = shape_Q4_batched if order == "Q4" else shape_Q9_batched
+
+    for _ in range(4):
+        N_all, dN_dxi_all = shape_fn_batched(xi, eta)
+        phys_guess = np.einsum("qa,qad->qd", N_all, Xe)
+        residual = phys_guess - query_pts                       # (Q, 2)
+        J0_newton = np.einsum("qai,qaj->qij", Xe, dN_dxi_all)    # d(phys)/d(xi,eta), (Q,2,2)
+        det = J0_newton[:, 0, 0] * J0_newton[:, 1, 1] - J0_newton[:, 0, 1] * J0_newton[:, 1, 0]
+        inv00, inv11 = J0_newton[:, 1, 1] / det, J0_newton[:, 0, 0] / det
+        inv01, inv10 = -J0_newton[:, 0, 1] / det, -J0_newton[:, 1, 0] / det
+        d_xi = inv00 * residual[:, 0] + inv01 * residual[:, 1]
+        d_eta = inv10 * residual[:, 0] + inv11 * residual[:, 1]
+        xi = np.clip(xi - d_xi, -1.0, 1.0)
+        eta = np.clip(eta - d_eta, -1.0, 1.0)
+
+    N_all, dN_dxi_all = shape_fn_batched(xi, eta)
+    u_at_pts = np.einsum("qa,qad->qd", N_all, ue)
+
+    J0 = np.einsum("qai,qaj->qij", Xe, dN_dxi_all)          # (Q,2,2)
+    detJ0 = J0[:, 0, 0] * J0[:, 1, 1] - J0[:, 0, 1] * J0[:, 1, 0]
+    invJ0 = np.zeros_like(J0)
+    invJ0[:, 0, 0] = J0[:, 1, 1] / detJ0
+    invJ0[:, 1, 1] = J0[:, 0, 0] / detJ0
+    invJ0[:, 0, 1] = -J0[:, 0, 1] / detJ0
+    invJ0[:, 1, 0] = -J0[:, 1, 0] / detJ0
+    dN_dX = np.einsum("qaj,qjk->qak", dN_dxi_all, invJ0)     # (Q, n_local, 2)
+    grad_u = np.einsum("qad,qak->qdk", ue, dN_dX)            # (Q,2,2) = du_d/dx_k
+
+    return u_at_pts, grad_u
+
+
+def compute_l2_h1_errors(coarse, fine, order, geometry, **geom_kwargs):
     nodes_c, elements_c, u_c = coarse["nodes"], coarse["elements"], coarse["u"]
-    nodes_f, u_f = fine["nodes"], fine["u"]
-
-    interp_u = LinearNDInterpolator(nodes_f, u_f[:, 0])
-    interp_v = LinearNDInterpolator(nodes_f, u_f[:, 1])
 
     pts, detJs, ws, Ns, dN_dXs, elem_idx = gauss_points_and_weights_physical(nodes_c, elements_c, order)
 
-    u_ref_at_gp = np.stack([interp_u(pts), interp_v(pts)], axis=1)
+    u_ref_at_gp, grad_u_ref = evaluate_fe_field_and_gradient(pts, fine, order, geometry, **geom_kwargs)
     # u_h at each Gauss point: N . u_c over that Gauss point's own element
     u_c_per_elem = u_c[elements_c]  # (n_elements, n_local, 2)
     u_h_at_gp = np.einsum("qa,qad->qd", Ns, u_c_per_elem[elem_idx])
@@ -264,12 +404,6 @@ def compute_l2_h1_errors(coarse, fine, order, fd_h=1e-5):
 
     grad_u_h = np.einsum("qad,qak->qdk", u_c_per_elem[elem_idx], dN_dXs)  # (Q, 2, 2) = du_i/dx_j
 
-    def fd_grad(interp, pts):
-        gx = (interp(pts + np.array([fd_h, 0])) - interp(pts - np.array([fd_h, 0]))) / (2 * fd_h)
-        gy = (interp(pts + np.array([0, fd_h])) - interp(pts - np.array([0, fd_h]))) / (2 * fd_h)
-        return np.stack([gx, gy], axis=1)
-
-    grad_u_ref = np.stack([fd_grad(interp_u, pts), fd_grad(interp_v, pts)], axis=1)  # (Q,2,2)
     grad_e = grad_u_h - grad_u_ref
     h1_sq_integrand = np.sum(grad_e ** 2, axis=(1, 2)) * detJs * ws
     h1_seminorm = np.sqrt(np.sum(h1_sq_integrand))
@@ -347,7 +481,9 @@ def main():
             coarse = solve_one(args.geometry, order, N, args.material, device, dtype,
                                 args.cg_tol, args.newton_tol, use_jacobi=not args.no_jacobi,
                                 cg_max_iter=args.cg_max_iter, verbose=False)
-            errs = compute_l2_h1_errors(coarse, fine, order)
+            geom_kwargs = ({"Lx": 1.0, "Ly": 1.0} if args.geometry == "B1"
+                            else {"R_in": 1.0, "R_out": 2.0, "theta_max": np.pi / 2})
+            errs = compute_l2_h1_errors(coarse, fine, order, args.geometry, **geom_kwargs)
             energy_rel_err = abs(coarse["strain_energy"] - fine["strain_energy"]) / (abs(fine["strain_energy"]) + 1e-30)
             row = {
                 "N": N, "n_dof": coarse["n_dof"], "wall_clock_s": coarse["wall_clock_s"],
