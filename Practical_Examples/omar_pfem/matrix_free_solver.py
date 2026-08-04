@@ -39,6 +39,7 @@ N (see validate_matrix_free_solver.py) before this is trusted for anything
 larger -- exactly the same discipline gpu_fem_solver.py's own
 validate_gpu_fem_solver.py already established for the batched GPU solver.
 """
+import os
 import time
 import numpy as np
 import torch
@@ -234,14 +235,23 @@ def conjugate_gradient(matvec, b, x0, tol, max_iter, precond_diag=None):
 def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
                        material="neo_hookean", order="Q4", nsteps=10, newton_max=30,
                        newton_tol=1e-7, cg_tol=1e-6, cg_max_iter=2000, use_jacobi=True,
-                       device=None, dtype=torch.float64, verbose=True):
+                       device=None, dtype=torch.float64, verbose=True, checkpoint_path=None):
     """Single-sample (no batch dimension) matrix-free Newton-CG solve.
     elem_params: tuple of (n_elements,) tensors. use_jacobi: recompute the
     exact diagonal of K at the start of every Newton iteration (see
     compute_jacobi_diagonal) and use it to precondition CG -- cheap
     relative to the CG iterations it is meant to reduce, since it only
     needs small per-element Hessians, never the global one. Returns
-    (u_free, stats)."""
+    (u_free, stats).
+
+    checkpoint_path: if given, save (u_free, stats, next step) to this file
+    after every completed load step, and resume from it if it already
+    exists -- a multi-hour solve at ~10M DOF has no other way to survive a
+    Colab disconnect or an accidental interrupt short of restarting from
+    load step 1. Checkpointing at load-step granularity (not mid-Newton or
+    mid-CG) keeps this simple; a step is at most a few minutes of work at
+    the scales this solver targets, so re-doing one lost step is cheap
+    relative to the whole solve."""
     device = device or xy.device
     n_nodes = xy.shape[0]
     ndof = 2 * n_nodes
@@ -250,8 +260,19 @@ def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
 
     u_free = torch.zeros(n_free, dtype=dtype, device=device)
     stats = {"newton_iters_total": 0, "cg_iters_total": 0, "cg_failures": 0, "load_steps": nsteps}
+    start_step = 1
 
-    for step in range(1, nsteps + 1):
+    if checkpoint_path is not None and os.path.exists(checkpoint_path):
+        ckpt = torch.load(checkpoint_path, map_location=device)
+        u_free = ckpt["u_free"].to(device=device, dtype=dtype)
+        stats = ckpt["stats"]
+        start_step = ckpt["next_step"]
+        print(f"  [checkpoint] resuming from {checkpoint_path}: load steps 1-{start_step - 1} "
+              f"already done, continuing from step {start_step}/{nsteps}")
+        if start_step > nsteps:
+            return u_free, stats
+
+    for step in range(start_step, nsteps + 1):
         alpha = step / nsteps
         fext_free = alpha * fext_free_full
         for it in range(1, newton_max + 1):
@@ -285,5 +306,11 @@ def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
         if verbose:
             print(f"  [step {step}/{nsteps}] converged, ||R||={res_norm:.3e} "
                   f"(cumulative CG iters so far: {stats['cg_iters_total']})")
+
+        if checkpoint_path is not None:
+            tmp_path = checkpoint_path + ".tmp"
+            torch.save({"u_free": u_free.cpu(), "stats": stats, "next_step": step + 1}, tmp_path)
+            os.replace(tmp_path, checkpoint_path)  # atomic -- never leaves a half-written checkpoint
+            print(f"  [checkpoint] saved after step {step}/{nsteps} -> {checkpoint_path}")
 
     return u_free, stats
