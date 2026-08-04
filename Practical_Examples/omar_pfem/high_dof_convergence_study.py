@@ -477,6 +477,12 @@ def main():
         for N in resolutions:
             if N >= args.fine_N:
                 continue
+            if args.fine_N / N < 3.0:
+                print(f"  WARNING: fine_N={args.fine_N} is only {args.fine_N / N:.1f}x N={N}. "
+                      f"The reference mesh's own discretization error is not negligible next to "
+                      f"this resolution's error, which will flatten (underestimate) the measured "
+                      f"convergence rate -- especially for H1 and for Q9. Use fine_N >= 4x this N "
+                      f"(or drop this N from --resolutions) for a trustworthy rate.")
             print(f"\nSolving N={N} ({order})...")
             coarse = solve_one(args.geometry, order, N, args.material, device, dtype,
                                 args.cg_tol, args.newton_tol, use_jacobi=not args.no_jacobi,
