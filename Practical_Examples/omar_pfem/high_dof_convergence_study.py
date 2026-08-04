@@ -184,7 +184,8 @@ def build_mesh_and_bcs(geometry, order, N, material, device, dtype):
     return nodes, elements, free_dofs, fext_full, elem_params
 
 
-def solve_one(geometry, order, N, material, device, dtype, cg_tol, newton_tol, verbose=False):
+def solve_one(geometry, order, N, material, device, dtype, cg_tol, newton_tol,
+              use_jacobi=True, cg_max_iter=2000, verbose=False):
     nodes, elements, free_dofs, fext_full, elem_params_np = build_mesh_and_bcs(
         geometry, order, N, material, device, dtype)
 
@@ -198,7 +199,8 @@ def solve_one(geometry, order, N, material, device, dtype, cg_tol, newton_tol, v
     u_free, stats = solve_matrix_free(
         xy_t, quad_t, free_dofs_t, elem_params_t, fext_free_t, n_free=len(free_dofs),
         material=material, order=order, nsteps=10, newton_max=30,
-        newton_tol=newton_tol, cg_tol=cg_tol, device=device, dtype=dtype, verbose=verbose)
+        newton_tol=newton_tol, cg_tol=cg_tol, cg_max_iter=cg_max_iter, use_jacobi=use_jacobi,
+        device=device, dtype=dtype, verbose=verbose)
     wall_s = time.time() - t0
 
     ndof = 2 * len(nodes)
@@ -309,6 +311,10 @@ def main():
     parser.add_argument("--orders", type=str, default="Q4,Q9")
     parser.add_argument("--cg_tol", type=float, default=1e-8)
     parser.add_argument("--newton_tol", type=float, default=1e-8)
+    parser.add_argument("--cg_max_iter", type=int, default=2000)
+    parser.add_argument("--no_jacobi", action="store_true",
+                         help="Disable the Jacobi preconditioner (plain CG) -- for comparing "
+                              "iteration counts/wall-clock with vs. without it on your own hardware")
     parser.add_argument("--cpu", action="store_true")
     parser.add_argument("--out_json", type=str, default=None)
     args = parser.parse_args()
@@ -325,7 +331,8 @@ def main():
         print(f"\n{'='*90}\nORDER = {order}\n{'='*90}")
         print(f"Solving common fine reference at N={args.fine_N}...")
         fine = solve_one(args.geometry, order, args.fine_N, args.material, device, dtype,
-                          args.cg_tol, args.newton_tol, verbose=False)
+                          args.cg_tol, args.newton_tol, use_jacobi=not args.no_jacobi,
+                          cg_max_iter=args.cg_max_iter, verbose=False)
         print(f"  Fine reference: n_dof={fine['n_dof']}, strain_energy={fine['strain_energy']:.6e}, "
               f"wall_clock={fine['wall_clock_s']:.1f}s, "
               f"Newton iters={fine['stats']['newton_iters_total']}, "
@@ -338,7 +345,8 @@ def main():
                 continue
             print(f"\nSolving N={N} ({order})...")
             coarse = solve_one(args.geometry, order, N, args.material, device, dtype,
-                                args.cg_tol, args.newton_tol, verbose=False)
+                                args.cg_tol, args.newton_tol, use_jacobi=not args.no_jacobi,
+                                cg_max_iter=args.cg_max_iter, verbose=False)
             errs = compute_l2_h1_errors(coarse, fine, order)
             energy_rel_err = abs(coarse["strain_energy"] - fine["strain_energy"]) / (abs(fine["strain_energy"]) + 1e-30)
             row = {
