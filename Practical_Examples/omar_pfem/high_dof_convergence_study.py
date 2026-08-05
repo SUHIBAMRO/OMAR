@@ -392,11 +392,35 @@ def evaluate_fe_field_and_gradient(query_pts, fine, order, geometry, **geom_kwar
 
 
 def compute_l2_h1_errors(coarse, fine, order, geometry, **geom_kwargs):
+    """Same-order convenience wrapper (coarse-vs-fine mesh convergence,
+    both solved with the same element order) around
+    compute_l2_h1_errors_cross_order."""
+    return compute_l2_h1_errors_cross_order(coarse, fine, order, order, geometry, **geom_kwargs)
+
+
+def compute_l2_h1_errors_cross_order(coarse, fine, coarse_order, fine_order, geometry, **geom_kwargs):
+    """L2/H1-seminorm absolute AND relative error between two ALREADY-SOLVED
+    fields, integrated over `coarse`'s own mesh (its Gauss points), with
+    `fine` evaluated there via exact FE point location -- coarse_order and
+    fine_order may differ, which is what lets this same function serve two
+    purposes with one implementation:
+      1. coarse_order == fine_order: the usual mesh-convergence comparison
+         (a coarse Q4 mesh against a much finer Q4 (or Q9) reference).
+      2. coarse_order != fine_order: comparing two DIFFERENT elements'
+         OWN fine-mesh solutions directly against each other (e.g. Q4's
+         fine reference vs Q9's fine reference) -- the advisor's explicit
+         request that "Q4 and Q9 results should be nearly identical for
+         such a refinement" (difference < 1e-5). No new FEM solve is
+         needed for this: both fields are already-computed, saved
+         solutions: this function is pure post-processing (point location
+         + quadrature), not another Newton-CG solve, so it is cheap
+         (seconds to low minutes even at ~10M DOF) regardless of which of
+         the two comparisons is being made."""
     nodes_c, elements_c, u_c = coarse["nodes"], coarse["elements"], coarse["u"]
 
-    pts, detJs, ws, Ns, dN_dXs, elem_idx = gauss_points_and_weights_physical(nodes_c, elements_c, order)
+    pts, detJs, ws, Ns, dN_dXs, elem_idx = gauss_points_and_weights_physical(nodes_c, elements_c, coarse_order)
 
-    u_ref_at_gp, grad_u_ref = evaluate_fe_field_and_gradient(pts, fine, order, geometry, **geom_kwargs)
+    u_ref_at_gp, grad_u_ref = evaluate_fe_field_and_gradient(pts, fine, fine_order, geometry, **geom_kwargs)
     # u_h at each Gauss point: N . u_c over that Gauss point's own element
     u_c_per_elem = u_c[elements_c]  # (n_elements, n_local, 2)
     u_h_at_gp = np.einsum("qa,qad->qd", Ns, u_c_per_elem[elem_idx])
