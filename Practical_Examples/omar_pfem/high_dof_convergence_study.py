@@ -59,9 +59,12 @@ import time
 import numpy as np
 import torch
 
+from torch.func import grad as torch_grad
+
 from omar_pfem.mesh_convergence import AnalyticFieldB1, AnalyticFieldB2
 from omar_pfem.matrix_free_solver import (
     solve_matrix_free, element_energy_order_agnostic, precompute_shape_data, _gauss_2x2,
+    _make_energy_fn, matrix_free_hvp,
 )
 from omar_pfem.data.q9_element import generate_grid_Q9, gauss_3x3, shape_Q9, _NODE_XI_ETA, _lagrange1d
 from omar_pfem.data.fem_core import shape_Q4
@@ -391,6 +394,64 @@ def evaluate_fe_field_and_gradient(query_pts, fine, order, geometry, **geom_kwar
     return u_at_pts, grad_u
 
 
+def compute_tangent_energy_error(coarse, fine, coarse_order, fine_order, geometry, material,
+                                  device, dtype, **geom_kwargs):
+    """Advisor-confirmed energy norm ('the tangent/incremental energy norm;
+    relative errors are enough'): ||e||_E = sqrt(e^T K(u_fine) e), the norm
+    induced by the FINE solution's own tangent stiffness K = Hessian of the
+    strain energy at u_fine -- NOT a difference of two scalar total-energy
+    values (that conflates a norm of the error field with a single number
+    that can cancel and hide error). Relative error divides by the same
+    operator's norm of u_fine itself: sqrt(u_fine^T K(u_fine) u_fine).
+
+    Reuses the exact matrix-free machinery the solver itself uses for CG
+    (matrix_free_hvp -- forward-over-reverse autodiff through the energy's
+    gradient) so K is never formed: this is a single Hessian-VECTOR
+    product, not an eigenproblem or a factorization, so it costs about the
+    same as one CG iteration -- seconds, not hours, even at ~10M DOF, and
+    needs no new FEM solve (both fields are already-solved, checkpointed
+    displacements)."""
+    nodes_f, elements_f, u_f, N_fine = fine["nodes"], fine["elements"], fine["u"], fine["N"]
+
+    # u_coarse evaluated at the FINE mesh's own node positions (coarse's own
+    # shape functions/point-location -- exact FE interpolation, matching how
+    # compute_l2_h1_errors_cross_order evaluates one solution at the other's
+    # points) so the error field e = u_coarse_interp - u_fine lives on the
+    # fine mesh's own DOF layout, where K(u_fine) is defined.
+    u_coarse_at_fine_nodes, _ = evaluate_fe_field_and_gradient(nodes_f, coarse, coarse_order,
+                                                                geometry, **geom_kwargs)
+    e_full = (u_coarse_at_fine_nodes - u_f).reshape(-1)
+
+    _, _, free_dofs_np, _, elem_params_np = build_mesh_and_bcs(
+        geometry, fine_order, N_fine, material, device, dtype)
+
+    xy_t = torch.tensor(nodes_f, dtype=dtype, device=device)
+    quad_t = torch.tensor(elements_f, dtype=torch.long, device=device)
+    free_dofs_t = torch.tensor(free_dofs_np, dtype=torch.long, device=device)
+    elem_params_t = tuple(torch.tensor(p, dtype=dtype, device=device) for p in elem_params_np)
+
+    n_nodes = nodes_f.shape[0]
+    energy_fn = _make_energy_fn(xy_t, quad_t, n_nodes, material, fine_order, dtype)
+    residual_fn = torch_grad(energy_fn, argnums=0)
+
+    u_ref_free = torch.tensor(u_f.reshape(-1)[free_dofs_np], dtype=dtype, device=device)
+    e_free = torch.tensor(e_full[free_dofs_np], dtype=dtype, device=device)
+
+    Ke = matrix_free_hvp(residual_fn, u_ref_free, e_free, elem_params_t, free_dofs_t)
+    Ku = matrix_free_hvp(residual_fn, u_ref_free, u_ref_free, elem_params_t, free_dofs_t)
+
+    # K is only guaranteed PSD near a stable equilibrium (true here for a
+    # smoothly, monotonically loaded hyperelastic solution away from any
+    # bifurcation) -- clamp to 0 to guard against tiny negative numerical
+    # noise from floating point rather than let sqrt produce NaN.
+    e_energy_sq = torch.clamp(torch.dot(e_free, Ke), min=0.0)
+    u_energy_sq = torch.clamp(torch.dot(u_ref_free, Ku), min=0.0)
+
+    abs_norm = float(torch.sqrt(e_energy_sq))
+    ref_norm = float(torch.sqrt(u_energy_sq)) + 1e-30
+    return {"tangent_energy_abs": abs_norm, "tangent_energy_rel": abs_norm / ref_norm}
+
+
 def compute_l2_h1_errors(coarse, fine, order, geometry, **geom_kwargs):
     """Same-order convenience wrapper (coarse-vs-fine mesh convergence,
     both solved with the same element order) around
@@ -535,8 +596,15 @@ def main():
             geom_kwargs = ({"Lx": 1.0, "Ly": 1.0} if args.geometry == "B1"
                             else {"R_in": 1.0, "R_out": 2.0, "theta_max": np.pi / 2})
             errs = compute_l2_h1_errors(coarse, fine, order, args.geometry, **geom_kwargs)
-            energy_abs_err = abs(coarse["strain_energy"] - fine["strain_energy"])
-            energy_rel_err = energy_abs_err / (abs(fine["strain_energy"]) + 1e-30)
+            # Advisor-confirmed definition: "the tangent/incremental energy norm;
+            # relative errors are enough" -- sqrt(e^T K(u_fine) e) via the same
+            # matrix-free Hessian-vector product the solver itself uses, NOT a
+            # difference of two scalar total-energy values (which was only ever
+            # a placeholder pending this confirmation).
+            energy_errs = compute_tangent_energy_error(coarse, fine, order, order, args.geometry,
+                                                         args.material, device, dtype, **geom_kwargs)
+            energy_abs_err = energy_errs["tangent_energy_abs"]
+            energy_rel_err = energy_errs["tangent_energy_rel"]
             row = {
                 "N": N, "n_dof": coarse["n_dof"], "wall_clock_s": coarse["wall_clock_s"],
                 "newton_iters": coarse["stats"]["newton_iters_total"],

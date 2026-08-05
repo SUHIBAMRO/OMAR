@@ -26,7 +26,9 @@ import json
 import numpy as np
 import torch
 
-from omar_pfem.high_dof_convergence_study import solve_one, compute_l2_h1_errors_cross_order
+from omar_pfem.high_dof_convergence_study import (
+    solve_one, compute_l2_h1_errors_cross_order, compute_tangent_energy_error,
+)
 
 
 def main():
@@ -71,8 +73,15 @@ def main():
     # Direction B: Q9 mesh as the integration domain, Q4 as the "reference" evaluated there.
     errs_b = compute_l2_h1_errors_cross_order(results["Q9"], results["Q4"], "Q9", "Q4",
                                                args.geometry, **geom_kwargs)
-    energy_abs = abs(results["Q4"]["strain_energy"] - results["Q9"]["strain_energy"])
-    energy_rel = energy_abs / (abs(results["Q9"]["strain_energy"]) + 1e-30)
+    # Advisor-confirmed energy norm: "the tangent/incremental energy norm;
+    # relative errors are enough" -- sqrt(e^T K e) via the fine solution's own
+    # tangent stiffness, evaluated once with each order's mesh as the K-operator
+    # (direction A: Q9's K; direction B: Q4's K) -- not the old scalar
+    # strain-energy difference, which was only ever a placeholder.
+    energy_a = compute_tangent_energy_error(results["Q4"], results["Q9"], "Q4", "Q9",
+                                             args.geometry, args.material, device, dtype, **geom_kwargs)
+    energy_b = compute_tangent_energy_error(results["Q9"], results["Q4"], "Q9", "Q4",
+                                             args.geometry, args.material, device, dtype, **geom_kwargs)
 
     def fmt(v):
         return f"{v:.3e}"
@@ -83,11 +92,13 @@ def main():
           f"{fmt(errs_b['l2_abs']):<18}{fmt(errs_b['l2_rel']):<18}")
     print(f"{'H1-seminorm':<28}{fmt(errs_a['h1_semi_abs']):<18}{fmt(errs_a['h1_semi_rel']):<18}"
           f"{fmt(errs_b['h1_semi_abs']):<18}{fmt(errs_b['h1_semi_rel']):<18}")
-    print(f"{'Strain-energy diff':<28}{fmt(energy_abs):<18}{fmt(energy_rel):<18}"
-          f"{'(symmetric)':<18}{'(symmetric)':<18}")
+    print(f"{'Tangent energy norm':<28}{fmt(energy_a['tangent_energy_abs']):<18}"
+          f"{fmt(energy_a['tangent_energy_rel']):<18}{fmt(energy_b['tangent_energy_abs']):<18}"
+          f"{fmt(energy_b['tangent_energy_rel']):<18}")
 
     threshold = 1e-5
-    worst_rel = max(errs_a['l2_rel'], errs_a['h1_semi_rel'], errs_b['l2_rel'], errs_b['h1_semi_rel'], energy_rel)
+    worst_rel = max(errs_a['l2_rel'], errs_a['h1_semi_rel'], errs_b['l2_rel'], errs_b['h1_semi_rel'],
+                     energy_a['tangent_energy_rel'], energy_b['tangent_energy_rel'])
     verdict = "PASS" if worst_rel < threshold else "FAIL"
     print(f"\nAdvisor's criterion (all relative norms < {threshold:.0e}): {verdict} "
           f"(worst observed relative difference = {worst_rel:.3e})")
@@ -98,7 +109,7 @@ def main():
                 "geometry": args.geometry, "material": args.material, "fine_N": args.fine_N,
                 "q4_n_dof": results["Q4"]["n_dof"], "q9_n_dof": results["Q9"]["n_dof"],
                 "q4_domain": errs_a, "q9_domain": errs_b,
-                "energy_abs": float(energy_abs), "energy_rel": float(energy_rel),
+                "energy_q4_domain": energy_a, "energy_q9_domain": energy_b,
                 "threshold": threshold, "verdict": verdict,
             }, f, indent=2)
         print(f"\nFull report written to {args.out_json}")
