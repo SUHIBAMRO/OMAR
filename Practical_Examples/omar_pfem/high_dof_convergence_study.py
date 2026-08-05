@@ -228,7 +228,8 @@ def build_mesh_and_bcs(geometry, order, N, material, device, dtype):
 
 
 def solve_one(geometry, order, N, material, device, dtype, cg_tol, newton_tol,
-              use_jacobi=True, cg_max_iter=2000, verbose=False, checkpoint_path=None):
+              use_jacobi=True, cg_max_iter=2000, verbose=False, checkpoint_path=None,
+              cg_progress_every=None):
     nodes, elements, free_dofs, fext_full, elem_params_np = build_mesh_and_bcs(
         geometry, order, N, material, device, dtype)
 
@@ -243,7 +244,8 @@ def solve_one(geometry, order, N, material, device, dtype, cg_tol, newton_tol,
         xy_t, quad_t, free_dofs_t, elem_params_t, fext_free_t, n_free=len(free_dofs),
         material=material, order=order, nsteps=10, newton_max=30,
         newton_tol=newton_tol, cg_tol=cg_tol, cg_max_iter=cg_max_iter, use_jacobi=use_jacobi,
-        device=device, dtype=dtype, verbose=verbose, checkpoint_path=checkpoint_path)
+        device=device, dtype=dtype, verbose=verbose, checkpoint_path=checkpoint_path,
+        cg_progress_every=cg_progress_every)
     wall_s = time.time() - t0
 
     ndof = 2 * len(nodes)
@@ -457,6 +459,12 @@ def main():
                               "order), resumed automatically if present. Point this at a Google Drive "
                               "path (e.g. /content/drive/MyDrive/pfem_ckpt) for a multi-hour run, since "
                               "/content alone does not survive a full Colab runtime reset.")
+    parser.add_argument("--cg_progress_every", type=int, default=None,
+                         help="Print a CG heartbeat line every this many iterations during the FINE "
+                              "reference solve (recommend ~200-1000 for a multi-hour/large-N run -- "
+                              "without it there is no visibility into a single CG call that can itself "
+                              "run for a long time at ~10M DOF). Off by default so small/fast test runs "
+                              "stay quiet.")
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() and not args.cpu else "cpu")
@@ -478,7 +486,8 @@ def main():
                      if args.checkpoint_dir else None)
         fine = solve_one(args.geometry, order, args.fine_N, args.material, device, dtype,
                           args.cg_tol, args.newton_tol, use_jacobi=not args.no_jacobi,
-                          cg_max_iter=args.cg_max_iter, verbose=False, checkpoint_path=ckpt_path)
+                          cg_max_iter=args.cg_max_iter, verbose=False, checkpoint_path=ckpt_path,
+                          cg_progress_every=args.cg_progress_every)
         print(f"  Fine reference: n_dof={fine['n_dof']}, strain_energy={fine['strain_energy']:.6e}, "
               f"wall_clock={fine['wall_clock_s']:.1f}s, "
               f"Newton iters={fine['stats']['newton_iters_total']}, "

@@ -197,7 +197,8 @@ def matrix_free_hvp(residual_fn, u, v, elem_params, free_dofs):
     return Hv
 
 
-def conjugate_gradient(matvec, b, x0, tol, max_iter, precond_diag=None):
+def conjugate_gradient(matvec, b, x0, tol, max_iter, precond_diag=None,
+                        progress_every=None, progress_prefix=""):
     """CG for symmetric (K = Hessian of a scalar energy) systems, with an
     optional Jacobi (diagonal) preconditioner: precond_diag, if given, is
     the diagonal of K (see compute_jacobi_diagonal) and M^-1 is simply
@@ -205,10 +206,19 @@ def conjugate_gradient(matvec, b, x0, tol, max_iter, precond_diag=None):
     but on the heterogeneous-material problems in this study it captures
     exactly the effect (large E in one region making that region's
     equations locally much stiffer) that otherwise drives up CG's
-    iteration count. Returns (x, n_iter, final_residual_norm, converged)."""
+    iteration count. Returns (x, n_iter, final_residual_norm, converged).
+
+    progress_every: if set, print a heartbeat line (iteration count,
+    current relative residual, elapsed time, iters/s) every this many
+    iterations -- unconditional on `verbose` in the caller, because at
+    ~10M DOF a single CG call can itself run for hours, and with no
+    heartbeat there is no way to tell 'still working' from 'stuck' from
+    the outside. Cheap: only a norm and a print every progress_every
+    iterations, not every iteration."""
     def apply_M_inv(v):
         return v if precond_diag is None else v / precond_diag
 
+    t_start = time.time()
     x = x0.clone()
     r = b - matvec(x)
     z = apply_M_inv(r)
@@ -223,6 +233,11 @@ def conjugate_gradient(matvec, b, x0, tol, max_iter, precond_diag=None):
         x = x + alpha * p
         r = r - alpha * Ap
         rel_res = torch.linalg.norm(r) / b_norm
+        if progress_every and it % progress_every == 0:
+            elapsed = time.time() - t_start
+            print(f"    {progress_prefix}[CG heartbeat] iter {it}/{max_iter}, "
+                  f"rel_res={float(rel_res):.3e} (target {tol:.1e}), "
+                  f"elapsed={elapsed:.0f}s, {it/max(elapsed, 1e-9):.1f} it/s")
         if rel_res < tol:
             return x, it, float(torch.linalg.norm(r)), True
         z = apply_M_inv(r)
@@ -235,7 +250,8 @@ def conjugate_gradient(matvec, b, x0, tol, max_iter, precond_diag=None):
 def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
                        material="neo_hookean", order="Q4", nsteps=10, newton_max=30,
                        newton_tol=1e-7, cg_tol=1e-6, cg_max_iter=2000, use_jacobi=True,
-                       device=None, dtype=torch.float64, verbose=True, checkpoint_path=None):
+                       device=None, dtype=torch.float64, verbose=True, checkpoint_path=None,
+                       cg_progress_every=None):
     """Single-sample (no batch dimension) matrix-free Newton-CG solve.
     elem_params: tuple of (n_elements,) tensors. use_jacobi: recompute the
     exact diagonal of K at the start of every Newton iteration (see
@@ -281,6 +297,10 @@ def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
             if res_norm < newton_tol:
                 break
             stats["newton_iters_total"] += 1
+            if cg_progress_every:
+                print(f"  [step {step}/{nsteps}] Newton iter {it}: ||R||={float(res_norm):.3e} "
+                      f"(target {newton_tol:.1e}) -- starting CG solve...")
+            t_cg = time.time()
 
             def matvec(v):
                 return matrix_free_hvp(residual_fn, u_free, v, elem_params, free_dofs)
@@ -292,16 +312,20 @@ def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
                                                         dtype, free_dofs)
 
             delta, cg_iters, cg_res, cg_converged = conjugate_gradient(
-                matvec, -R, torch.zeros_like(u_free), cg_tol, cg_max_iter, precond_diag=precond_diag)
+                matvec, -R, torch.zeros_like(u_free), cg_tol, cg_max_iter, precond_diag=precond_diag,
+                progress_every=cg_progress_every, progress_prefix=f"step {step}/{nsteps} newton {it}: ")
             stats["cg_iters_total"] += cg_iters
+            if cg_progress_every:
+                print(f"    CG done: {cg_iters} iters in {time.time() - t_cg:.0f}s, "
+                      f"converged={cg_converged}, final residual={cg_res:.3e}")
             if not cg_converged:
                 stats["cg_failures"] += 1
-                if verbose:
+                if verbose or cg_progress_every:
                     print(f"  [WARNING] CG did not converge at step {step}, Newton iter {it} "
                           f"(residual {cg_res:.3e} after {cg_iters} iters)")
             u_free = u_free + delta
 
-            if verbose and it == newton_max:
+            if (verbose or cg_progress_every) and it == newton_max:
                 print(f"  [step {step}/{nsteps}] Newton did NOT converge, ||R||={res_norm:.3e}")
         if verbose:
             print(f"  [step {step}/{nsteps}] converged, ||R||={res_norm:.3e} "
