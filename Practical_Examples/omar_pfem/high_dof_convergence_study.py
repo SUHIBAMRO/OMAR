@@ -535,14 +535,20 @@ def main():
             geom_kwargs = ({"Lx": 1.0, "Ly": 1.0} if args.geometry == "B1"
                             else {"R_in": 1.0, "R_out": 2.0, "theta_max": np.pi / 2})
             errs = compute_l2_h1_errors(coarse, fine, order, args.geometry, **geom_kwargs)
-            energy_rel_err = abs(coarse["strain_energy"] - fine["strain_energy"]) / (abs(fine["strain_energy"]) + 1e-30)
+            energy_abs_err = abs(coarse["strain_energy"] - fine["strain_energy"])
+            energy_rel_err = energy_abs_err / (abs(fine["strain_energy"]) + 1e-30)
             row = {
                 "N": N, "n_dof": coarse["n_dof"], "wall_clock_s": coarse["wall_clock_s"],
                 "newton_iters": coarse["stats"]["newton_iters_total"],
                 "cg_iters": coarse["stats"]["cg_iters_total"],
                 "cg_failures": coarse["stats"]["cg_failures"],
-                "l2_rel_error": errs["l2_rel"], "h1_semi_rel_error": errs["h1_semi_rel"],
-                "energy_rel_error": float(energy_rel_err),
+                # Both absolute and relative are reported for every norm -- the advisor's
+                # 1e-4 threshold and the report's table should be explicit about which one
+                # is meant, not force the reader to infer it (see the advisor's own note
+                # that every reported error needs an exact mathematical definition).
+                "l2_abs_error": errs["l2_abs"], "l2_rel_error": errs["l2_rel"],
+                "h1_semi_abs_error": errs["h1_semi_abs"], "h1_semi_rel_error": errs["h1_semi_rel"],
+                "energy_abs_error": float(energy_abs_err), "energy_rel_error": float(energy_rel_err),
             }
             rows.append(row)
             if row["cg_failures"] > 0:
@@ -550,8 +556,10 @@ def main():
                       f"solve did not hit cg_tol within cg_max_iter on at least one Newton "
                       f"iteration, leaving extra, non-discretization error in this row's solution.")
             print(f"  N={N}: n_dof={row['n_dof']}, newton_iters={row['newton_iters']}, "
-                  f"cg_iters={row['cg_iters']}, L2_rel={row['l2_rel_error']:.4e}, "
-                  f"H1_rel={row['h1_semi_rel_error']:.4e}, energy_rel={row['energy_rel_error']:.4e}, "
+                  f"cg_iters={row['cg_iters']}, "
+                  f"L2_abs={row['l2_abs_error']:.4e}, L2_rel={row['l2_rel_error']:.4e}, "
+                  f"H1_abs={row['h1_semi_abs_error']:.4e}, H1_rel={row['h1_semi_rel_error']:.4e}, "
+                  f"energy_abs={row['energy_abs_error']:.4e}, energy_rel={row['energy_rel_error']:.4e}, "
                   f"wall_clock={row['wall_clock_s']:.1f}s")
 
         hs = [1.0 / (N - 1) for N in resolutions if N < args.fine_N]
