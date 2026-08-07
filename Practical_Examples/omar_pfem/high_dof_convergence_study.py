@@ -563,6 +563,19 @@ def main():
     if args.checkpoint_dir:
         os.makedirs(args.checkpoint_dir, exist_ok=True)
 
+    # Never rely on the caller remembering --out_json: a multi-hour/day run whose
+    # only record is the terminal's stdout is one disconnect away from being lost.
+    # Auto-derive a path (preferring the durable checkpoint_dir, which is normally
+    # a Google Drive mount) whenever the caller didn't give one explicitly.
+    out_json_path = args.out_json
+    if out_json_path is None:
+        base_dir = args.checkpoint_dir if args.checkpoint_dir else "."
+        out_json_path = os.path.join(
+            base_dir, f"report_{args.geometry}_{args.material}_{'_'.join(orders)}.json")
+        print(f"[auto-save] --out_json not given -- results will be saved to {out_json_path} "
+              f"after each order finishes (and again at the end), so progress survives a "
+              f"disconnect instead of living only in this cell's output.")
+
     for order in orders:
         print(f"\n{'='*90}\nORDER = {order}\n{'='*90}")
         print(f"Solving common fine reference at N={args.fine_N}...")
@@ -662,10 +675,17 @@ def main():
             },
         }
 
-    if args.out_json:
-        with open(args.out_json, "w") as f:
+        # Write after EVERY order, not just once at the end -- if a run covers
+        # several orders (e.g. --orders Q4,Q9) and the runtime dies partway through
+        # the second one, the first order's already-finished results must not be
+        # lost just because the process never reached the final write.
+        with open(out_json_path, "w") as f:
             json.dump(report, f, indent=2)
-        print(f"\nFull report written to {args.out_json}")
+        print(f"  [saved] {order} results written to {out_json_path}")
+
+    with open(out_json_path, "w") as f:
+        json.dump(report, f, indent=2)
+    print(f"\nFull report written to {out_json_path}")
 
 
 if __name__ == "__main__":
