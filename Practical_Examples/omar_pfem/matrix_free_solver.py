@@ -138,16 +138,28 @@ def _local_element_energy(ue_flat, Xe, elem_param_tuple, energy_density_fn, shap
     return U
 
 
-def compute_jacobi_diagonal(xy, quad, uv_full, elem_params, material, order, dtype, free_dofs):
+def compute_jacobi_diagonal(xy, quad, uv_full, elem_params, material, order, dtype, free_dofs,
+                             chunk_size=200_000):
     """Global diagonal of the tangent stiffness at the CURRENT displacement
     uv_full, computed WITHOUT ever forming the global (or even any element's
     full local) matrix explicitly beyond its own small diagonal: each
     element's local Hessian (cheap: 8x8 for Q4, 18x18 for Q9) is computed
-    via vmap+hessian across all elements at once, its diagonal extracted,
-    and scatter-added into the global diagonal by connectivity. This is the
-    exact diagonal of K (sum of every element's own diagonal contribution
-    at each shared node), not an approximation -- the standard, cheap way
-    to build a Jacobi preconditioner for a matrix-free solver."""
+    via vmap+hessian, its diagonal extracted, and scatter-added into the
+    global diagonal by connectivity. This is the exact diagonal of K (sum of
+    every element's own diagonal contribution at each shared node), not an
+    approximation -- the standard, cheap way to build a Jacobi
+    preconditioner for a matrix-free solver.
+
+    chunk_size: the vmap batch is run over this many elements at a time
+    instead of all Q elements at once. Mathematically this changes nothing
+    (each chunk's local Hessians are independent of every other chunk's --
+    same exact diagonal, just accumulated in pieces), but it bounds peak
+    memory to O(chunk_size) instead of O(Q): at Q9's 18x18 local Hessian
+    (5.06x Q4's 8x8) and millions of elements, materializing every
+    element's local Hessian in one vmap call is what actually exhausted an
+    80GB A100 at ~40M DOF (fine_N=2236) -- the CG loop itself never forms
+    anything bigger than a handful of length-DOF vectors, so this one-shot
+    preconditioner setup was the sole memory bottleneck."""
     n_nodes = xy.shape[0]
     ndof = 2 * n_nodes
     energy_density_fn, _ = get_material_fns_torch(material)
@@ -155,17 +167,20 @@ def compute_jacobi_diagonal(xy, quad, uv_full, elem_params, material, order, dty
 
     Xe_all = xy[quad]                       # (Q, n_local, 2)
     ue_all = uv_full.reshape(n_nodes, 2)[quad].reshape(Xe_all.shape[0], -1)  # (Q, 2*n_local)
+    dof_idx = torch.stack([2 * quad, 2 * quad + 1], dim=-1).reshape(quad.shape[0], -1)  # (Q, 2*n_local)
 
     local_hess_fn = hessian(_local_element_energy, argnums=0)
     batched_hess = vmap(local_hess_fn, in_dims=(0, 0, 0, None, None, None))
-    H_local = batched_hess(ue_all, Xe_all, elem_params, energy_density_fn, shape_data, dtype)  # (Q, 2nl, 2nl)
-    diag_local = torch.diagonal(H_local, dim1=-2, dim2=-1)  # (Q, 2*n_local)
-
-    n_local = quad.shape[1]
-    dof_idx = torch.stack([2 * quad, 2 * quad + 1], dim=-1).reshape(quad.shape[0], -1)  # (Q, 2*n_local)
 
     global_diag = torch.zeros(ndof, device=xy.device, dtype=dtype)
-    global_diag.scatter_add_(0, dof_idx.reshape(-1), diag_local.reshape(-1))
+    n_elem = Xe_all.shape[0]
+    for start in range(0, n_elem, chunk_size):
+        end = min(start + chunk_size, n_elem)
+        elem_params_chunk = tuple(p[start:end] for p in elem_params)
+        H_local = batched_hess(ue_all[start:end], Xe_all[start:end], elem_params_chunk,
+                                energy_density_fn, shape_data, dtype)  # (chunk, 2nl, 2nl)
+        diag_local = torch.diagonal(H_local, dim1=-2, dim2=-1)  # (chunk, 2*n_local)
+        global_diag.scatter_add_(0, dof_idx[start:end].reshape(-1), diag_local.reshape(-1))
 
     diag_free = global_diag[free_dofs]
     # Guard against a (rare, near-singular) near-zero diagonal entry, which
