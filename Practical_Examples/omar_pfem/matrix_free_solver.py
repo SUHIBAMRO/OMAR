@@ -276,13 +276,20 @@ def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
     (u_free, stats).
 
     checkpoint_path: if given, save (u_free, stats, next step) to this file
-    after every completed load step, and resume from it if it already
-    exists -- a multi-hour solve at ~10M DOF has no other way to survive a
-    Colab disconnect or an accidental interrupt short of restarting from
-    load step 1. Checkpointing at load-step granularity (not mid-Newton or
-    mid-CG) keeps this simple; a step is at most a few minutes of work at
-    the scales this solver targets, so re-doing one lost step is cheap
-    relative to the whole solve."""
+    after every completed Newton iteration (not just every completed load
+    step), and resume from it if it already exists. At the scale this
+    solver now actually runs (Q9 at fine_N=2236, ~40M DOF), a SINGLE Newton
+    iteration's CG solve can itself take several hours -- a load step (2
+    Newton iterations) can exceed a Colab runtime's own maximum session
+    length, so checkpointing only at the load-step boundary (the original
+    design, written when a step really was a few minutes of work) could
+    lose an entire step's compute to one disconnect. Saving after each
+    Newton iteration bounds the loss to at most one in-progress CG solve --
+    still not free, but roughly half the worst case, and mid-step resume is
+    exact (not approximate): reloading u_free and re-entering this same
+    step's Newton loop reproduces precisely the trajectory an uninterrupted
+    run would have taken, since Newton-CG from a warm start is deterministic
+    given the same starting point."""
     device = device or xy.device
     n_nodes = xy.shape[0]
     ndof = 2 * n_nodes
@@ -339,6 +346,18 @@ def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
                     print(f"  [WARNING] CG did not converge at step {step}, Newton iter {it} "
                           f"(residual {cg_res:.3e} after {cg_iters} iters)")
             u_free = u_free + delta
+
+            if checkpoint_path is not None:
+                # Mid-step checkpoint: next_step=step (not step+1) means "this
+                # step isn't done yet, but resume here with this improved
+                # u_free" -- the existing resume path already re-enters the
+                # Newton loop for `step` unchanged, so no extra state (which
+                # Newton iteration we were on) needs to be tracked separately.
+                tmp_path = checkpoint_path + ".tmp"
+                torch.save({"u_free": u_free.cpu(), "stats": stats, "next_step": step}, tmp_path)
+                os.replace(tmp_path, checkpoint_path)
+                print(f"  [checkpoint] saved after step {step}/{nsteps} Newton iter {it} "
+                      f"(step not yet complete) -> {checkpoint_path}")
 
             if (verbose or cg_progress_every) and it == newton_max:
                 print(f"  [step {step}/{nsteps}] Newton did NOT converge, ||R||={res_norm:.3e}")
