@@ -307,7 +307,7 @@ def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
                        material="neo_hookean", order="Q4", nsteps=10, newton_max=30,
                        newton_tol=1e-7, cg_tol=1e-6, cg_max_iter=2000, use_jacobi=True,
                        device=None, dtype=torch.float64, verbose=True, checkpoint_path=None,
-                       cg_progress_every=None):
+                       cg_progress_every=None, cg_checkpoint_every=2000):
     """Single-sample (no batch dimension) matrix-free Newton-CG solve.
     elem_params: tuple of (n_elements,) tensors. use_jacobi: recompute the
     exact diagonal of K at the start of every Newton iteration (see
@@ -381,7 +381,7 @@ def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
             delta, cg_iters, cg_res, cg_converged = conjugate_gradient(
                 matvec, -R, torch.zeros_like(u_free), cg_tol, cg_max_iter, precond_diag=precond_diag,
                 progress_every=cg_progress_every, progress_prefix=f"step {step}/{nsteps} newton {it}: ",
-                checkpoint_path=cg_checkpoint_path)
+                checkpoint_path=cg_checkpoint_path, checkpoint_every=cg_checkpoint_every)
             stats["cg_iters_total"] += cg_iters
             if cg_progress_every:
                 print(f"    CG done: {cg_iters} iters in {time.time() - t_cg:.0f}s, "
