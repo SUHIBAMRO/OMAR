@@ -213,7 +213,8 @@ def matrix_free_hvp(residual_fn, u, v, elem_params, free_dofs):
 
 
 def conjugate_gradient(matvec, b, x0, tol, max_iter, precond_diag=None,
-                        progress_every=None, progress_prefix=""):
+                        progress_every=None, progress_prefix="",
+                        checkpoint_path=None, checkpoint_every=2000):
     """CG for symmetric (K = Hessian of a scalar energy) systems, with an
     optional Jacobi (diagonal) preconditioner: precond_diag, if given, is
     the diagonal of K (see compute_jacobi_diagonal) and M^-1 is simply
@@ -229,20 +230,56 @@ def conjugate_gradient(matvec, b, x0, tol, max_iter, precond_diag=None,
     ~10M DOF a single CG call can itself run for hours, and with no
     heartbeat there is no way to tell 'still working' from 'stuck' from
     the outside. Cheap: only a norm and a print every progress_every
-    iterations, not every iteration."""
+    iterations, not every iteration.
+
+    checkpoint_path: if given, save this call's own internal state (x, r,
+    p, rz_old, iteration count) to this file every checkpoint_every
+    iterations, and resume from it if it already exists. A single CG call
+    at Q9's ~40M DOF scale can run 10+ hours -- longer than
+    solve_matrix_free's own per-Newton-iteration checkpoint can protect
+    against by itself, since that only saves once an ENTIRE CG call has
+    finished. This bounds a mid-CG disconnect's loss to at most
+    checkpoint_every iterations instead of the whole call. b is NOT saved
+    -- the caller reconstructs it identically on resume (same u_free, same
+    load level), and CG is deterministic given the same (b, starting
+    state), so resuming reproduces the exact trajectory an uninterrupted
+    call would have taken. The file is deleted the moment this call
+    returns, converged or not -- a finished call's state is never
+    meaningful to resume into again."""
     def apply_M_inv(v):
         return v if precond_diag is None else v / precond_diag
 
+    def save_state(it):
+        tmp_path = checkpoint_path + ".tmp"
+        torch.save({"x": x.cpu(), "r": r.cpu(), "p": p.cpu(), "rz_old": rz_old, "it": it}, tmp_path)
+        os.replace(tmp_path, checkpoint_path)
+
+    def clear_state():
+        if checkpoint_path is not None and os.path.exists(checkpoint_path):
+            os.remove(checkpoint_path)
+
     t_start = time.time()
-    x = x0.clone()
-    r = b - matvec(x)
-    z = apply_M_inv(r)
-    p = z.clone()
-    rz_old = torch.dot(r, z)
     b_norm = torch.linalg.norm(b) + 1e-30
-    if torch.linalg.norm(r) / b_norm < tol:
-        return x, 0, float(torch.linalg.norm(r)), True
-    for it in range(1, max_iter + 1):
+    start_it = 0
+
+    if checkpoint_path is not None and os.path.exists(checkpoint_path):
+        state = torch.load(checkpoint_path, map_location=b.device)
+        x = state["x"].to(device=b.device, dtype=b.dtype)
+        r = state["r"].to(device=b.device, dtype=b.dtype)
+        p = state["p"].to(device=b.device, dtype=b.dtype)
+        rz_old = state["rz_old"]
+        start_it = state["it"]
+        print(f"    {progress_prefix}[CG checkpoint] resuming from iter {start_it}/{max_iter}")
+    else:
+        x = x0.clone()
+        r = b - matvec(x)
+        z = apply_M_inv(r)
+        p = z.clone()
+        rz_old = torch.dot(r, z)
+        if torch.linalg.norm(r) / b_norm < tol:
+            return x, 0, float(torch.linalg.norm(r)), True
+
+    for it in range(start_it + 1, max_iter + 1):
         Ap = matvec(p)
         alpha = rz_old / (torch.dot(p, Ap) + 1e-30)
         x = x + alpha * p
@@ -254,11 +291,15 @@ def conjugate_gradient(matvec, b, x0, tol, max_iter, precond_diag=None,
                   f"rel_res={float(rel_res):.3e} (target {tol:.1e}), "
                   f"elapsed={elapsed:.0f}s, {it/max(elapsed, 1e-9):.1f} it/s")
         if rel_res < tol:
+            clear_state()
             return x, it, float(torch.linalg.norm(r)), True
         z = apply_M_inv(r)
         rz_new = torch.dot(r, z)
         p = z + (rz_new / (rz_old + 1e-30)) * p
         rz_old = rz_new
+        if checkpoint_path is not None and checkpoint_every and it % checkpoint_every == 0:
+            save_state(it)
+    clear_state()
     return x, max_iter, float(torch.linalg.norm(r)), False
 
 
@@ -284,12 +325,15 @@ def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
     length, so checkpointing only at the load-step boundary (the original
     design, written when a step really was a few minutes of work) could
     lose an entire step's compute to one disconnect. Saving after each
-    Newton iteration bounds the loss to at most one in-progress CG solve --
-    still not free, but roughly half the worst case, and mid-step resume is
-    exact (not approximate): reloading u_free and re-entering this same
-    step's Newton loop reproduces precisely the trajectory an uninterrupted
-    run would have taken, since Newton-CG from a warm start is deterministic
-    given the same starting point."""
+    Newton iteration bounds the loss to at most one in-progress CG solve.
+    On top of that, each individual CG call ALSO checkpoints its own
+    internal state periodically (see conjugate_gradient's checkpoint_path),
+    since one call can itself run 10+ hours -- bounding a mid-CG disconnect
+    to at most checkpoint_every CG iterations, not the whole call. Every
+    level of resume here is exact (not approximate): reloading state and
+    re-entering at the same point reproduces precisely the trajectory an
+    uninterrupted run would have taken, since Newton-CG from a warm start
+    is deterministic given the same starting point."""
     device = device or xy.device
     n_nodes = xy.shape[0]
     ndof = 2 * n_nodes
@@ -333,9 +377,11 @@ def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
                 precond_diag = compute_jacobi_diagonal(xy, quad, u_full, elem_params, material, order,
                                                         dtype, free_dofs)
 
+            cg_checkpoint_path = f"{checkpoint_path}.cg_state" if checkpoint_path is not None else None
             delta, cg_iters, cg_res, cg_converged = conjugate_gradient(
                 matvec, -R, torch.zeros_like(u_free), cg_tol, cg_max_iter, precond_diag=precond_diag,
-                progress_every=cg_progress_every, progress_prefix=f"step {step}/{nsteps} newton {it}: ")
+                progress_every=cg_progress_every, progress_prefix=f"step {step}/{nsteps} newton {it}: ",
+                checkpoint_path=cg_checkpoint_path)
             stats["cg_iters_total"] += cg_iters
             if cg_progress_every:
                 print(f"    CG done: {cg_iters} iters in {time.time() - t_cg:.0f}s, "
