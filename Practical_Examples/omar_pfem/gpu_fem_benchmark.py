@@ -1,10 +1,23 @@
 """
 Timing benchmark for the GPU-native FEM solver (gpu_fem_solver.py), to
 produce the number the advisor asked for: a GPU-native FEM solve time per
-sample, comparable to the CPU reference's documented 8.0 s/sample (Section
-4 of the report). Run validate_gpu_fem_solver.py FIRST and confirm it
-reports PASS before trusting any number from this script -- a fast but
-wrong solver is not a useful comparison.
+sample. This script reports ONLY the GPU-side measurement -- for the
+matching CPU-side number (with the same full breakdown the advisor asked
+for: assembly/solution, iteration counts, FP64, tolerances, warm-up,
+synchronization), run fem_cost_breakdown.py for the SAME --geometry
+--material --N and read the CPU-vs-GPU comparison from its own output.
+An earlier version of this script computed a "speedup vs CPU" ratio
+against a hardcoded assumed CPU cost of 8.0 s/sample -- exactly the kind
+of unverified constant the advisor explicitly rejected ("The constant
+value of 8 seconds is not acceptable"). That comparison has been removed
+rather than patched with a different guessed number: the only trustworthy
+CPU cost is the one fem_cost_breakdown.py actually measures in the same
+run it measures the GPU cost, not a number carried over from a different
+script or an earlier report.
+
+Run validate_gpu_fem_solver.py FIRST and confirm it reports PASS before
+trusting any number from this script -- a fast but wrong solver is not a
+useful comparison.
 
 This benchmarks BATCHED solves (many samples' independent random material/
 load fields solved simultaneously in one Newton loop, exactly analogous to
@@ -121,16 +134,25 @@ def main():
 
     rows = []
     for bs in batch_sizes:
+        # Untimed warm-up (separate fresh batch, not one of the timed repeats) --
+        # first CUDA call in a process pays one-time kernel-compile/context costs
+        # that would otherwise leak into repeat 0's measurement, matching
+        # fem_cost_breakdown.py's own convention for the CPU-side comparison.
+        warmup_solve, _ = build_fn(args.N, bs, args.material, device, dtype, seed0=-1)
+        warmup_solve()
+        if device.type == "cuda":
+            torch.cuda.synchronize(device)
+
         times_s = []
         for r in range(args.n_repeats):
             solve, n_nodes = build_fn(args.N, bs, args.material, device, dtype, seed0=1000 * r + 1)
             if device.type == "cuda":
                 torch.cuda.synchronize(device)
-            t0 = time.time()
+            t0 = time.perf_counter()
             solve()
             if device.type == "cuda":
                 torch.cuda.synchronize(device)
-            times_s.append(time.time() - t0)
+            times_s.append(time.perf_counter() - t0)
         median_s = float(np.median(times_s))
         per_sample_ms = 1000.0 * median_s / bs
         rows.append({
@@ -144,9 +166,10 @@ def main():
     print("\n" + "=" * 80)
     print(f"GPU-native FEM solve cost per sample (device={device}):")
     for row in rows:
-        speedup_vs_cpu = 8000.0 / row["per_sample_ms"]  # CPU reference: 8.0 s/sample = 8000 ms/sample
-        print(f"  batch_size={row['batch_size']:>4d}: {row['per_sample_ms']:.3f} ms/sample "
-              f"({speedup_vs_cpu:.1f}x faster than the 8.0 s/sample CPU reference)")
+        print(f"  batch_size={row['batch_size']:>4d}: {row['per_sample_ms']:.3f} ms/sample")
+    print("For the CPU-vs-GPU speedup, compare this to fem_cost_breakdown.py's OWN "
+          "measured CPU time for the same --geometry --material --N -- not a hardcoded "
+          "assumption.")
     print("=" * 80)
 
     if args.out_json:

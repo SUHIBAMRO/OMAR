@@ -383,7 +383,17 @@ def cmd_eval(args):
     for N in test_resolutions:
         rel_l2_errors = []
         for i in range(args.n_eval_samples):
-            seed = 20_000_000 + 10_000 * N + i  # disjoint from every training/val seed range
+            # Same seed for every test resolution N (only offset by sample index i,
+            # kept disjoint from every training/val seed range) -- ParametricFieldB1/B2
+            # draws a continuous (E, nu, load) field from `seed` independent of mesh
+            # size, so this is what makes "resolution invariance" a meaningful claim:
+            # sample i is the SAME physical problem at every N, just discretized at a
+            # different mesh density, not a different random problem per resolution.
+            # (An earlier version folded N into the seed, which silently gave every
+            # resolution its own disjoint set of problems -- confounding any measured
+            # accuracy difference between resolutions with ordinary sample-to-sample
+            # variance instead of isolating the resolution's own effect.)
+            seed = 20_000_000 + i
             # Coarse sample at N (network's own input resolution) -- no FEM
             # solve needed here, only the mesh + material/load fields the
             # network actually consumes.
