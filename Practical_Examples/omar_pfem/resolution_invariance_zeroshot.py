@@ -236,18 +236,33 @@ def cmd_train(args):
     train_resolutions = [int(n) for n in args.train_resolutions.split(",") if n.strip()]
     build_fn = build_sample_b1 if args.geometry == "B1" else build_sample_b2
 
-    print(f"Generating training/validation samples at resolutions {train_resolutions} "
-          f"({args.n_train_per_res} train + {args.n_val_per_res} val each, real FEM solves)...")
-    train_samples, val_samples, mesh_tensors = {}, {}, {}
-    for N in train_resolutions:
-        t0 = time.time()
-        train_samples[N] = [build_fn(N, seed=10_000 * N + i, material=args.material)[0]
-                             for i in range(args.n_train_per_res)]
-        val_samples[N] = [build_fn(N, seed=10_000 * N + 500_000 + i, material=args.material)[0]
-                           for i in range(args.n_val_per_res)]
-        mesh_tensors[N] = mesh_tensors_of(args.geometry, train_samples[N][0], device, dtype)
-        print(f"  N={N}: {len(train_samples[N])} train + {len(val_samples[N])} val samples "
-              f"generated in {time.time()-t0:.1f}s")
+    # Cache generated samples so a disconnect/restart doesn't need to
+    # re-solve n_train_per_res+n_val_per_res FEM problems per resolution
+    # from scratch -- cheap for this study's meshes, but real, avoidable
+    # work, and removes any doubt about whether a re-solve reproduces the
+    # exact same samples.
+    samples_cache_path = os.path.join(args.out_dir, "samples_cache.pt")
+    if os.path.exists(samples_cache_path):
+        print(f"Loading cached train/val samples from {samples_cache_path} (skipping FEM regeneration)...")
+        cache = torch.load(samples_cache_path, weights_only=False)
+        train_samples, val_samples = cache["train_samples"], cache["val_samples"]
+    else:
+        print(f"Generating training/validation samples at resolutions {train_resolutions} "
+              f"({args.n_train_per_res} train + {args.n_val_per_res} val each, real FEM solves)...")
+        train_samples, val_samples = {}, {}
+        for N in train_resolutions:
+            t0 = time.time()
+            train_samples[N] = [build_fn(N, seed=10_000 * N + i, material=args.material)[0]
+                                 for i in range(args.n_train_per_res)]
+            val_samples[N] = [build_fn(N, seed=10_000 * N + 500_000 + i, material=args.material)[0]
+                               for i in range(args.n_val_per_res)]
+            print(f"  N={N}: {len(train_samples[N])} train + {len(val_samples[N])} val samples "
+                  f"generated in {time.time()-t0:.1f}s")
+        torch.save({"train_samples": train_samples, "val_samples": val_samples}, samples_cache_path)
+        print(f"Cached samples -> {samples_cache_path} (safe to resume from if this run is interrupted).")
+
+    mesh_tensors = {N: mesh_tensors_of(args.geometry, train_samples[N][0], device, dtype)
+                    for N in train_resolutions}
 
     model = build_model(args, device)
     opt = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
@@ -257,8 +272,29 @@ def cmd_train(args):
     best_combined_val, best_epoch, patience_counter = None, None, 0
     train_wall_clock = 0.0
     opt_steps = 0
+    start_epoch = 1
 
-    for epoch in range(1, args.epochs + 1):
+    # Resume from the last completed validation event in THIS out_dir, if
+    # one exists (e.g. after a Colab disconnect) -- reloads the optimizer
+    # state too (Adam's own momentum/variance buffers), not just the model
+    # weights, so training continues with the same effective trajectory
+    # instead of restarting Adam's statistics from zero.
+    resume_path = os.path.join(args.out_dir, "train_state_latest.pt")
+    if os.path.exists(resume_path):
+        state = torch.load(resume_path, map_location=device, weights_only=False)
+        model.load_state_dict(state["model_state_dict"])
+        opt.load_state_dict(state["optimizer_state_dict"])
+        start_epoch = state["epoch"] + 1
+        best_combined_val = state["best_combined_val"]
+        best_epoch = state["best_epoch"]
+        patience_counter = state["patience_counter"]
+        train_wall_clock = state["train_wall_clock"]
+        opt_steps = state["opt_steps"]
+        metrics_history = state["metrics_history"]
+        print(f"[resume] loaded {resume_path}: continuing from epoch {start_epoch}/{args.epochs} "
+              f"(best_combined_val={best_combined_val}, best_epoch={best_epoch})")
+
+    for epoch in range(start_epoch, args.epochs + 1):
         model.train()
         epoch_t0 = time.time()
 
@@ -319,6 +355,19 @@ def cmd_train(args):
             })
             with open(os.path.join(args.out_dir, "metrics_history.json"), "w") as f:
                 json.dump(metrics_history, f, indent=2)
+
+            # Full resume state, separate from model_best.pt: a disconnect
+            # right after a bad validation event should resume from HERE
+            # (the latest completed epoch), not silently roll back to
+            # whatever was best several validation events ago.
+            resume_tmp = os.path.join(args.out_dir, "train_state_latest.pt.tmp")
+            torch.save({
+                "model_state_dict": model.state_dict(), "optimizer_state_dict": opt.state_dict(),
+                "epoch": epoch, "best_combined_val": best_combined_val, "best_epoch": best_epoch,
+                "patience_counter": patience_counter, "train_wall_clock": train_wall_clock,
+                "opt_steps": opt_steps, "metrics_history": metrics_history,
+            }, resume_tmp)
+            os.replace(resume_tmp, os.path.join(args.out_dir, "train_state_latest.pt"))
 
             if args.early_stop_patience > 0 and patience_counter >= args.early_stop_patience:
                 print(f"[early stop] combined val_error hasn't improved for {patience_counter} "
