@@ -132,6 +132,23 @@ def main():
 
     all_rows = []  # one row per validation event, across every run
     run_summaries = []
+
+    events_path = os.path.join(args.out_dir, "fair_comparison_all_validation_events.json")
+    summaries_path = os.path.join(args.out_dir, "fair_comparison_run_summaries.json")
+
+    def _save_aggregate():
+        # This sweep is 18 separate train_B1/B2 subprocess runs (each already
+        # individually checkpointed/resumable on its own), but this combined
+        # JSON was previously only written once, after every run in the
+        # sweep finished -- an interruption partway through the sweep lost
+        # the aggregated view even though no individual run's training
+        # progress was lost. Write both files (atomically) after each run.
+        for path, data in ((events_path, all_rows), (summaries_path, run_summaries)):
+            tmp = path + ".tmp"
+            with open(tmp, "w") as f:
+                json.dump(data, f, indent=2)
+            os.replace(tmp, path)
+
     for p in plan:
         run_name = f"bs{p['batch_size']}_{p['lr_rule']}"
         run_dir = os.path.join(args.out_dir, run_name)
@@ -169,11 +186,7 @@ def main():
         print(f"----- {run_name}: status={status}, "
               f"best_val_error={best['val_error']:.4e} at opt_steps={best['opt_steps']}"
               if best else f"----- {run_name}: status={status}, no metrics produced -----")
-
-    with open(os.path.join(args.out_dir, "fair_comparison_all_validation_events.json"), "w") as f:
-        json.dump(all_rows, f, indent=2)
-    with open(os.path.join(args.out_dir, "fair_comparison_run_summaries.json"), "w") as f:
-        json.dump(run_summaries, f, indent=2)
+        _save_aggregate()
 
     print(f"\n{'='*100}\nFAIR BATCH-SIZE COMPARISON SUMMARY (equal optimizer-step budget "
           f"~{args.target_opt_steps} for every run)\n{'='*100}")
