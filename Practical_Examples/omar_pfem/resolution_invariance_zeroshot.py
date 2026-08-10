@@ -428,8 +428,35 @@ def cmd_eval(args):
     test_resolutions = [int(n) for n in args.test_resolutions.split(",") if n.strip()]
     build_fn = build_sample_b1 if args.geometry == "B1" else build_sample_b2
 
+    # Per-resolution checkpointing: each resolution's ~n_eval_samples FEM
+    # reference solves are expensive and this loop previously only wrote
+    # out_json once, after ALL resolutions finished -- an interruption
+    # partway through lost the entire eval run's progress even though the
+    # checkpoint being evaluated was untouched. Write out_json after every
+    # resolution, and skip resolutions already present in an existing
+    # out_json on resume.
     rows = []
+    done_Ns = set()
+    if args.out_json and os.path.exists(args.out_json):
+        with open(args.out_json) as f:
+            rows = json.load(f).get("rows", [])
+        done_Ns = {r["N"] for r in rows}
+        if done_Ns:
+            print(f"[resume] {args.out_json} already has N={sorted(done_Ns)} -- skipping those.")
+
+    def _save_report():
+        if not args.out_json:
+            return
+        tmp = args.out_json + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump({"geometry": args.geometry, "material": args.material,
+                       "checkpoint": args.checkpoint, "fine_N": args.fine_N,
+                       "test_resolutions": test_resolutions, "rows": rows}, f, indent=2)
+        os.replace(tmp, args.out_json)
+
     for N in test_resolutions:
+        if N in done_Ns:
+            continue
         rel_l2_errors = []
         for i in range(args.n_eval_samples):
             # Same seed for every test resolution N (only offset by sample index i,
@@ -476,6 +503,7 @@ def cmd_eval(args):
         print(f"N={N:>4d}: mean rel-L2 vs. N={args.fine_N} reference = "
               f"{row['mean_rel_L2_vs_fine_reference']:.4e} (+/- {row['std_rel_L2_vs_fine_reference']:.4e}, "
               f"{args.n_eval_samples} samples, NO retraining)")
+        _save_report()
 
     print("\n" + "=" * 90)
     print(f"ZERO-SHOT RESOLUTION-INVARIANCE EVAL (single checkpoint: {args.checkpoint})")
@@ -485,11 +513,7 @@ def cmd_eval(args):
         print(f"  N={row['N']:>4d}: {row['mean_rel_L2_vs_fine_reference']:.4e}")
 
     if args.out_json:
-        with open(args.out_json, "w") as f:
-            json.dump({"geometry": args.geometry, "material": args.material,
-                       "checkpoint": args.checkpoint, "fine_N": args.fine_N,
-                       "test_resolutions": test_resolutions, "rows": rows}, f, indent=2)
-        print(f"\nFull report written to {args.out_json}")
+        print(f"\nFull report written to {args.out_json} (saved incrementally after each resolution)")
 
 
 # ============================================================
