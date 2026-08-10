@@ -7,12 +7,22 @@ adapted for B2's curved geometry and mixed symmetry BCs:
     and TWO symmetry edges, each constraining only one displacement
     component (theta0_nodes: u_y=0: thetahalfpi_nodes: u_x=0).
   - B1's per-node boundary force is (0, ty_value) -- a fixed direction
-    times a raw traction value; B2's is p_value * (cos(theta), sin(theta))
-    -- the raw pressure value times each inner node's own exact radial
-    direction (available in closed form since inner nodes lie exactly on
-    r=R_in), following the same "raw nodal value, no further quadrature
-    weighting" convention already used (and validated) for B1's training
-    loss.
+    times a raw traction value, which is a valid approximation on B1's
+    FLAT loaded edge. B2's loaded edge is CURVED, so the corresponding
+    "raw pressure value x exact radial direction" approximation (no
+    edge-length/quadrature weighting) is NOT force-consistent with the
+    FEM solve that produced the ground-truth displacements --
+    data_generate_B2.py's own solver instead loads the inner arc via
+    assemble_traction_inner_curved (integral(N_a * p * normal) ds,
+    properly quadrature-weighted). check_boundary_force_consistency.py
+    confirmed the raw approximation is off from that consistent force by
+    a factor of ~4.4x in magnitude (direction agrees, cosine~0.9975) --
+    exactly the kind of boundary-localized, direction-specific,
+    load-magnitude-independent bias accuracy_diagnostics.py's error
+    breakdown found (radial >> circumferential, inner boundary > interior
+    > outer). So this now reads the FEM-consistent nodal force
+    data_generate_B2.py saves directly (inner_force_consistent) instead
+    of recomputing the inconsistent approximation.
 """
 import numpy as np
 import h5py
@@ -74,7 +84,15 @@ def convert_h5_to_training_format_q4(h5_path, mesh_info_path, output_path, num_s
         print(f"Inner boundary nodes: {len(inner_nodes_original)}")
         print(f"Inner boundary edges: {len(inner_edges)}")
 
-        inner_radial_dirs = nodes[inner_nodes_original] / R_in  # (cos theta, sin theta) per inner node
+        if "inner_force_consistent" not in f:
+            raise KeyError(
+                "This H5 dataset was generated before data_generate_B2.py started saving "
+                "'inner_force_consistent' (the FEM-consistent nodal force the ground-truth "
+                "displacements were actually solved with -- see this module's docstring and "
+                "check_boundary_force_consistency.py). Regenerate the dataset with the current "
+                "data_generate_B2.py before converting; the old raw-pressure approximation this "
+                "converter used to fall back to was confirmed off by ~4.4x in magnitude."
+            )
 
         coords_list, quads_list, disp2Ds_list = [], [], []
         inner_edges_list, theta0_nodes_list, thetahalfpi_nodes_list = [], [], []
@@ -87,9 +105,8 @@ def convert_h5_to_training_format_q4(h5_path, mesh_info_path, output_path, num_s
             E_node = f['E_nodes'][sample_idx]
             nu_node = f['nu_nodes'][sample_idx]
             displacement = f['displacements'][sample_idx]
-            inner_pressure = f['inner_pressure'][sample_idx]
 
-            boundary_forces = (inner_pressure[:, None] * inner_radial_dirs).astype(np.float32)
+            boundary_forces = f['inner_force_consistent'][sample_idx].astype(np.float32)
 
             boundary_info = {
                 'node_indices': inner_nodes_original.astype(np.int64),

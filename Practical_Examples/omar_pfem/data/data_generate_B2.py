@@ -60,9 +60,21 @@ from omar_pfem.data.grf import generate_gaussian_random_field_2d, generate_gauss
 # corner nodes. (theta-fast/r-slow gives the reversed, CW pair (theta_hat,
 # r_hat) and a negative det(J0) at every element.)
 # -------------------------
-def generate_grid_Q4_ring(R_in, R_out, Ntheta, Nr, theta_max=np.pi / 2):
+def generate_grid_Q4_ring(R_in, R_out, Ntheta, Nr, theta_max=np.pi / 2, r_grading=1.0):
+    """r_grading=1.0 (default) reproduces the original uniform radial
+    spacing. r_grading>1 clusters nodes toward R_in (the pressure-loaded
+    inner boundary) via a power-law reparametrization t -> t**r_grading of
+    the [0,1] radial parameter -- for r_grading>1, t**r_grading < t on
+    (0,1), so equal steps in t land closer together near t=0 (r=R_in) and
+    spread out approaching t=1 (r=R_out). Motivated by
+    accuracy_diagnostics.py's finding that B2's error concentrates
+    radially and at the inner boundary specifically: this is the cheapest
+    lever to test whether that error is (at least partly) a coarse-
+    discretization effect near the loaded curved edge, independent of the
+    inner_force_consistent fix above."""
     thetas = np.linspace(0.0, theta_max, Ntheta)
-    rs = np.linspace(R_in, R_out, Nr)
+    t = np.linspace(0.0, 1.0, Nr)
+    rs = R_in + (R_out - R_in) * (t ** r_grading)
     R, TH = np.meshgrid(rs, thetas, indexing="xy")
     X = R * np.cos(TH)
     Y = R * np.sin(TH)
@@ -322,6 +334,21 @@ def _generate_one_sample(i, seed, nodes, elements, R_in, R_out, Ntheta, Nr, mate
         inner_polar = node_polar[inner_nodes]
         p_inner_vals = p_interp(inner_polar)
 
+        # FEM-consistent nodal force at the inner boundary -- the SAME Fext
+        # solve_hyperelastic_TL_ring above actually loaded the structure
+        # with (assemble_traction_inner_curved: integral(N_a * p * normal) ds,
+        # edge-Jacobian/quadrature weighted). Persisted so downstream training
+        # (convert_B2_quad.py) can use the real force the ground-truth
+        # displacement field equilibrates against, instead of recomputing a
+        # cruder "raw pressure value x exact radial direction" approximation
+        # with no ds weighting -- see convert_B2_quad.py's docstring and
+        # check_boundary_force_consistency.py, which found that older
+        # approximation off by a factor of ~4.4x in magnitude (direction
+        # agrees to cosine~0.9975, so this is a magnitude/quadrature-weight
+        # bug, not a direction bug).
+        Fext_full = assemble_traction_inner_curved(nodes, elements, R_in, p_interp)
+        inner_force_consistent = Fext_full.reshape(-1, 2)[inner_nodes]
+
         return i, True, dict(
             E_field=E_field.astype(np.float32),
             nu_field=nu_field.astype(np.float32),
@@ -330,6 +357,7 @@ def _generate_one_sample(i, seed, nodes, elements, R_in, R_out, Ntheta, Nr, mate
             E_node_vals=E_node_vals.astype(np.float32),
             nu_node_vals=nu_node_vals.astype(np.float32),
             p_inner_vals=p_inner_vals.astype(np.float32),
+            inner_force_consistent=inner_force_consistent.astype(np.float32),
             avg_strain_energy=np.float32(avg_strain_energy),
             max_disp=float(np.max(u_mag)),
         ), None
@@ -342,15 +370,15 @@ def _generate_one_sample(i, seed, nodes, elements, R_in, R_out, Ntheta, Nr, mate
 # -------------------------
 def generate_dataset_for_physics(num_samples=100, output_dir="physics_training_data_B2", seed=None,
                                  R_in=1.0, R_out=2.0, Ntheta=21, Nr=21, material="neo_hookean", n_workers=1,
-                                 dist_kwargs=None):
+                                 dist_kwargs=None, r_grading=1.0):
     os.makedirs(output_dir, exist_ok=True)
 
-    nodes, elements = generate_grid_Q4_ring(R_in, R_out, Ntheta, Nr)
+    nodes, elements = generate_grid_Q4_ring(R_in, R_out, Ntheta, Nr, r_grading=r_grading)
     n_nodes = nodes.shape[0]
 
     mesh_info = {
         'nodes': nodes, 'elements': elements,
-        'R_in': R_in, 'R_out': R_out, 'Ntheta': Ntheta, 'Nr': Nr
+        'R_in': R_in, 'R_out': R_out, 'Ntheta': Ntheta, 'Nr': Nr, 'r_grading': r_grading
     }
     np.savez(os.path.join(output_dir, 'mesh_info.npz'), **mesh_info)
 
@@ -381,6 +409,10 @@ def generate_dataset_for_physics(num_samples=100, output_dir="physics_training_d
                                     dtype=np.float32, compression="gzip")
         inner_pressure = f.create_dataset("inner_pressure", (num_samples, len(inner_nodes)),
                                           dtype=np.float32, compression="gzip")
+        inner_force_consistent = f.create_dataset(
+            "inner_force_consistent", (num_samples, len(inner_nodes), 2),
+            dtype=np.float32, compression="gzip",
+        )
         strain_energy = f.create_dataset("strain_energy", (num_samples,),
                                          dtype=np.float32, compression="gzip")
 
@@ -395,6 +427,7 @@ def generate_dataset_for_physics(num_samples=100, output_dir="physics_training_d
             E_nodes[i] = res["E_node_vals"]
             nu_nodes[i] = res["nu_node_vals"]
             inner_pressure[i] = res["p_inner_vals"]
+            inner_force_consistent[i] = res["inner_force_consistent"]
             strain_energy[i] = res["avg_strain_energy"]
             print(f"  Sample {i+1}: max displacement={res['max_disp']:.3e}")
 
@@ -408,6 +441,7 @@ def generate_dataset_for_physics(num_samples=100, output_dir="physics_training_d
             E_nodes[i] = np.nan
             nu_nodes[i] = np.nan
             inner_pressure[i] = np.nan
+            inner_force_consistent[i] = np.nan
             strain_energy[i] = np.nan
 
         if n_workers is not None and n_workers > 1:
@@ -449,6 +483,7 @@ def generate_dataset_for_physics(num_samples=100, output_dir="physics_training_d
         f.attrs['R_out'] = R_out
         f.attrs['Ntheta'] = Ntheta
         f.attrs['Nr'] = Nr
+        f.attrs['r_grading'] = r_grading
         f.attrs['n_nodes'] = n_nodes
 
     print(f"\nDataset generated with {successful_samples} successful samples out of {num_samples}")
@@ -484,6 +519,11 @@ def main():
     parser.add_argument("--R_out", type=float, default=2.0)
     parser.add_argument("--Ntheta", type=int, default=21)
     parser.add_argument("--Nr", type=int, default=21)
+    parser.add_argument("--r_grading", type=float, default=1.0,
+                        help="Radial node-spacing grading exponent: 1.0 (default) is the "
+                             "original uniform spacing; >1.0 clusters nodes toward R_in (the "
+                             "pressure-loaded inner boundary) -- see generate_grid_Q4_ring's "
+                             "docstring for the rationale.")
     parser.add_argument("--material", type=str, default="neo_hookean",
                         choices=["neo_hookean", "mooney_rivlin", "arruda_boyce"])
     parser.add_argument("--out_dir", type=str, default=None,
@@ -521,6 +561,7 @@ def main():
         num_samples=args.num_samples, output_dir=output_dir, seed=args.num_index,
         R_in=args.R_in, R_out=args.R_out, Ntheta=args.Ntheta, Nr=args.Nr,
         material=args.material, n_workers=args.n_workers, dist_kwargs=dist_kwargs,
+        r_grading=args.r_grading,
     )
     print(f"\nDataset saved to: {output_dir}")
 
