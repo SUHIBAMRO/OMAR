@@ -165,6 +165,13 @@ def solve_hyperelastic_TL_ring(nodes, elements, E_grid, nu_grid, p_grid, R_in,
 
     Fext_full = assemble_traction_inner_curved(nodes, elements, R_in, p_grid)
 
+    def _material_fn(X_gp):
+        r_gp = np.linalg.norm(X_gp)
+        theta_gp = np.arctan2(X_gp[1], X_gp[0])
+        E_val = E_grid(np.array([[theta_gp, r_gp]]))[0]
+        nu_val = nu_grid(np.array([[theta_gp, r_gp]]))[0]
+        return E_nu_to_params_fn(E_val, nu_val)
+
     if profile is not None:
         profile.setdefault("t_assembly_s", 0.0)
         profile.setdefault("t_solve_s", 0.0)
@@ -189,15 +196,8 @@ def solve_hyperelastic_TL_ring(nodes, elements, E_grid, nu_grid, p_grid, R_in,
                 Xe = nodes[e]
                 ue = u.reshape(n_nodes, 2)[e].reshape(-1)
 
-                elem_center = np.mean(Xe, axis=0)
-                r_c = np.linalg.norm(elem_center)
-                theta_c = np.arctan2(elem_center[1], elem_center[0])
-                E_val = E_grid(np.array([[theta_c, r_c]]))[0]
-                nu_val = nu_grid(np.array([[theta_c, r_c]]))[0]
-
-                mat_params = E_nu_to_params_fn(E_val, nu_val)
-
-                ke, fe_int = element_K_and_fint_TL(Xe, ue, mat_params, PK1_and_tangent_fn)
+                ke, fe_int = element_K_and_fint_TL(
+                    Xe, ue, None, PK1_and_tangent_fn, material_fn=_material_fn)
 
                 edofs = []
                 for a in e:

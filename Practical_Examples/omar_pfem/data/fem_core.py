@@ -31,7 +31,16 @@ def shape_Q4(xi, eta):
     return N, dN_dxi
 
 
-def element_K_and_fint_TL(Xe, ue, mat_params, PK1_and_tangent_fn):
+def element_K_and_fint_TL(Xe, ue, mat_params, PK1_and_tangent_fn, material_fn=None):
+    """material_fn: optional callable(X_gp) -> mat_params tuple, evaluated at
+    each Gauss point's own physical (reference-configuration) location X_gp
+    (shape (2,), via N @ Xe). When given, this replaces the single
+    element-wide `mat_params` value. `mat_params` alone is a piecewise-
+    constant-per-element approximation of the (generally spatially-varying)
+    material field; on a curved mesh where an element can span a real change
+    in the field, sampling once per element (typically at the centroid) is a
+    genuine discretization error distinct from mesh refinement -- material_fn
+    resolves it by sampling at each of the 4 Gauss points instead of once."""
     g = 1.0 / np.sqrt(3.0)
     gauss = [(-g, -g), (g, -g), (g, g), (-g, g)]
     w = 1.0
@@ -43,6 +52,7 @@ def element_K_and_fint_TL(Xe, ue, mat_params, PK1_and_tangent_fn):
 
     for (xi, eta) in gauss:
         N, dN_dxi = shape_Q4(xi, eta)
+        gp_mat_params = material_fn(N @ Xe) if material_fn is not None else mat_params
 
         J0 = np.zeros((2, 2), dtype=float)
         for a in range(4):
@@ -65,7 +75,7 @@ def element_K_and_fint_TL(Xe, ue, mat_params, PK1_and_tangent_fn):
             F[1, 0] += xe[a, 1] * dN_dX[a, 0]
             F[1, 1] += xe[a, 1] * dN_dX[a, 1]
 
-        P, A = PK1_and_tangent_fn(F, *mat_params)
+        P, A = PK1_and_tangent_fn(F, *gp_mat_params)
 
         for a in range(4):
             gNa = dN_dX[a]
