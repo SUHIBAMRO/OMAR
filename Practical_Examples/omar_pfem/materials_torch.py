@@ -35,6 +35,14 @@ def arruda_boyce_energy_density_vectorized(F, mu_ab, N_ab, kappa_ab, dtype=torch
     J = torch.clamp(J, min=1e-8)
     I1 = torch.sum(F ** 2, dim=(1, 2))
     I1_bar = I1 / J
+    # The 5-term 8-chain series is only a valid approximation below the
+    # chain-locking limit I1_bar = 3*N_ab; it has no physical meaning past
+    # that point and, being 5th-order in I1_bar, its value and gradient
+    # overflow float32 well before that for the wild, untrained-network F
+    # seen early in training (neo-Hookean/Mooney-Rivlin stay at most
+    # quadratic in I1 and don't hit this). Clamp to the model's own valid
+    # domain instead of letting it diverge.
+    I1_bar = torch.clamp(I1_bar, max=3.0 * N_ab - 1e-3)
     alpha = [1 / 2, 1 / 20, 11 / 1050, 19 / 7000, 519 / 673750]
     psi = torch.zeros_like(I1_bar)
     i1_bar_pow = I1_bar
