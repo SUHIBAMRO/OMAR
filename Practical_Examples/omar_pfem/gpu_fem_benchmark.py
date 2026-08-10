@@ -138,7 +138,7 @@ def main():
         # first CUDA call in a process pays one-time kernel-compile/context costs
         # that would otherwise leak into repeat 0's measurement, matching
         # fem_cost_breakdown.py's own convention for the CPU-side comparison.
-        warmup_solve, _ = build_fn(args.N, bs, args.material, device, dtype, seed0=-1)
+        warmup_solve, _ = build_fn(args.N, bs, args.material, device, dtype, seed0=999_000)
         warmup_solve()
         if device.type == "cuda":
             torch.cuda.synchronize(device)
