@@ -203,7 +203,18 @@ def total_potential_energy_Q4_hyperelastic(
 
     U, Fg = compute_hyperelastic_energy_Q4(xy, quad, uv, param_nodes, energy_density_fn, dtype=dtype)
 
-    W = torch.sum(node_forces * uv, dim=(1, 2)) / len(inner_edges)
+    # No /len(inner_edges) here: node_forces is now the FEM-consistent
+    # nodal force (see data_generate_B2.py's assemble_traction_inner_curved
+    # and convert_B2_quad.py) -- the exact same Fext the ground-truth
+    # solve used directly, unaveraged. Dividing by the edge count was a
+    # holdover from train_B1.py that happened to compensate for the OLD,
+    # unweighted "raw pressure x direction" B2 force being inflated by
+    # ~edge-count-many x; with the consistent force it instead shrinks W
+    # to near-zero relative to U, collapsing training toward the
+    # near-undeformed (U-minimizing) solution -- see
+    # check_boundary_force_consistency.py and the force_fixed ablation's
+    # ~3x error regression vs OLD_BASELINE_pre_fix.
+    W = torch.sum(node_forces * uv, dim=(1, 2))
 
     Pi = U - W
     return Pi, U.detach(), W.detach(), uv, Fg
