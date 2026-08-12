@@ -844,9 +844,22 @@ def train_hyperelastic_Q4(args):
                 if not finite_mask.any():
                     opt.zero_grad(set_to_none=True)
                     continue
-                loss = Pi[finite_mask].mean()
+                Pi_for_loss = Pi[finite_mask]
             else:
-                loss = Pi.mean()
+                Pi_for_loss = Pi
+
+            if args.loss_force_norm:
+                # See --loss_force_norm's help string: a fixed (uv-independent),
+                # per-sample positive constant, so dividing leaves the true
+                # minimizer unchanged and only rescales the optimizer's
+                # gradient magnitude back toward what this recipe's LR/
+                # grad_clip were tuned for.
+                force_scale = torch.sqrt(torch.sum(force_batch ** 2, dim=2)).mean(dim=1).clamp_min(1e-8)
+                if not finite_mask.all():
+                    force_scale = force_scale[finite_mask]
+                loss = (Pi_for_loss / force_scale).mean()
+            else:
+                loss = Pi_for_loss.mean()
 
             opt.zero_grad(set_to_none=True)
             loss.backward()
@@ -873,7 +886,8 @@ def train_hyperelastic_Q4(args):
                 fmean = nz.mean().item() if nz.numel() > 0 else 0.0
                 Jg = Fg[:, 0, 0] * Fg[:, 1, 1] - Fg[:, 0, 1] * Fg[:, 1, 0]
                 Jmean = Jg.mean().item()
-                print(f"[batch {bi:5d}] (epoch={epoch}) Pi_mean={loss.item():.6e}  "
+                loss_label = "Loss(Pi/force_scale)" if args.loss_force_norm else "Pi_mean"
+                print(f"[batch {bi:5d}] (epoch={epoch}) {loss_label}={loss.item():.6e}  "
                       f"E={E_batch.mean().item():.1f}  nu={nu_batch.mean().item():.3f}  "
                       f"Force={fmean:.3f}  detF@GP={Jmean:.3f}  opt_steps={opt_steps}")
 
@@ -1011,6 +1025,20 @@ def main():
     parser.add_argument("--lr", type=float, default=2e-3)
     parser.add_argument("--epochs", type=int, default=10000)
     parser.add_argument("--grad_clip", type=float, default=1.0)
+    parser.add_argument("--loss_force_norm", type=int, default=1,
+                         help="Divide the Pi=U-W loss (backward pass only -- logged/visualized U, W, "
+                              "Pi stay physical/unscaled) by each sample's own mean boundary-force "
+                              "magnitude. With the FEM-consistent inner_force_consistent (see "
+                              "data_generate_B2.py), |W| at equilibrium is legitimately much smaller "
+                              "than the old, uncorrected 'raw pressure x direction' approximation this "
+                              "recipe's LR was originally tuned against, and dU/duv vanishes at uv=0 to "
+                              "leading order -- so W's gradient is the only signal pulling the network "
+                              "off the trivial all-zero solution, and a smaller force weakens exactly "
+                              "that signal. This normalizes the OPTIMIZATION objective's scale only "
+                              "(dividing U-W by a fixed, uv-independent positive per-sample constant "
+                              "leaves the true argmin unchanged: argmin_u c*f(u) == argmin_u f(u)) -- it "
+                              "does not change the physics being fit. 1=on (default), 0=off (previous "
+                              "behavior, for A/B comparison).")
     parser.add_argument("--print_every", type=int, default=10)
     parser.add_argument("--save_every", type=int, default=10,
                          help="Epoch cadence for full model_epoch{N}.pt checkpoints (resume points)")
