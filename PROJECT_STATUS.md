@@ -83,6 +83,10 @@ gradient conditioning.
   `TRIAL_DONE.json` / `search_summary.json` in that folder for status.
 - **B2 × Arruda-Boyce**: 🟡 in progress. Same tool,
   `--material arruda_boyce`, `--out_dir .../pfem_run/B2_accuracy_search_arruda_boyce`.
+  Trial 1 (`lossnorm`, the same recipe that worked for Neo-Hookean) finished:
+  **9.81% — missed the <9.00% target narrowly**. Search auto-escalated to
+  trial 2 (`lossnorm_lr5e3`, lr=0.005), now regenerating its own 1000-sample
+  dataset from scratch (each trial does, even when r_grading is unchanged).
 - Once both finish: propagate the corrected numbers through report **Tables
   5, 7, and 11** (currently still showing the old, uncorrected ~31–32%
   numbers for these two B2 cases) — flagged as a pending NOTE in §9.1 of
