@@ -5,7 +5,7 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-15
+Last updated: 2026-08-15 (Mooney-Rivlin resolved)
 
 Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v16**), kept in the
 scratchpad, delivered to the user via SendUserFile after each update — not
@@ -77,10 +77,11 @@ gradient conditioning.
 
 - **B2 × Neo-Hookean**: ✅ resolved. 9.11% (vs. 32.46% original, 94.08%
   force-fix-alone regression). Confirmed at full production scale on Colab.
-- **B2 × Mooney-Rivlin**: 🟡 in progress. Launched via
-  `b2_accuracy_search.py --material mooney_rivlin --target 0.09 --max_trials 3
-  --out_dir .../pfem_run/B2_accuracy_search_mooney_rivlin`. Check
-  `TRIAL_DONE.json` / `search_summary.json` in that folder for status.
+- **B2 × Mooney-Rivlin**: ✅ resolved. **7.28%** — reached on trial 1
+  (`lossnorm`, same recipe as Neo-Hookean), no escalation needed. Best of
+  all three B2 materials so far. Checkpoint:
+  `pfem_run/B2_accuracy_search_mooney_rivlin/lossnorm/train/model_best.pt`.
+  Full record: `pfem_run/B2_accuracy_search_mooney_rivlin/search_summary.json`.
 - **B2 × Arruda-Boyce**: 🟡 in progress. Same tool,
   `--material arruda_boyce`, `--out_dir .../pfem_run/B2_accuracy_search_arruda_boyce`.
   Trial 1 (`lossnorm`, the same recipe that worked for Neo-Hookean) finished:
