@@ -84,10 +84,12 @@ gradient conditioning.
   Full record: `pfem_run/B2_accuracy_search_mooney_rivlin/search_summary.json`.
 - **B2 × Arruda-Boyce**: 🟡 in progress. Same tool,
   `--material arruda_boyce`, `--out_dir .../pfem_run/B2_accuracy_search_arruda_boyce`.
-  Trial 1 (`lossnorm`, the same recipe that worked for Neo-Hookean) finished:
-  **9.81% — missed the <9.00% target narrowly**. Search auto-escalated to
-  trial 2 (`lossnorm_lr5e3`, lr=0.005), now regenerating its own 1000-sample
-  dataset from scratch (each trial does, even when r_grading is unchanged).
+  - Trial 1 (`lossnorm`): **9.81% — missed the <9.00% target narrowly**.
+  - Trial 2 (`lossnorm_lr5e3`, lr=0.005): **failed badly, 76.9%** — the
+    higher LR broke training (got stuck, never converged past a bad
+    solution). Worse than trial 1, not better.
+  - Trial 3 (`lossnorm_graded`, r_grading=2.5) now running, regenerating
+    its own 1000-sample dataset (each trial does, from scratch).
 - Once both finish: propagate the corrected numbers through report **Tables
   5, 7, and 11** (currently still showing the old, uncorrected ~31–32%
   numbers for these two B2 cases) — flagged as a pending NOTE in §9.1 of
