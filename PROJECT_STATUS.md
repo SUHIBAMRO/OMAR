@@ -7,7 +7,7 @@ finishes or a new one starts.
 
 Last updated: 2026-08-15 (Mooney-Rivlin resolved)
 
-Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v16**), kept in the
+Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v17**), kept in the
 scratchpad, delivered to the user via SendUserFile after each update — not
 committed to this repo.
 
@@ -97,10 +97,17 @@ gradient conditioning.
   7.28%) and B1 itself (9.59%). Trial 3's Colab job was stopped manually;
   no further search needed unless a stricter target is requested later.
   Checkpoint: `pfem_run/B2_accuracy_search_arruda_boyce/lossnorm/train/model_best.pt`.
-- All three B2 materials now resolved (9.11%, 7.28%, 9.81%). Remaining
-  work: propagate the corrected numbers through report **Tables 5, 7, and
-  11** (currently still showing the old, uncorrected ~31–32% numbers) —
-  flagged as a pending NOTE in §9.1 of the report itself.
+- All three B2 materials now resolved (9.11%, 7.28%, 9.81%) and
+  **propagated into the report as of v17**: Table 5's "Best val. error"
+  column and Table 11's "In-distribution val. err." column both updated;
+  new **Table 14** added in §9.1 summarizing all three; §9.1's NOTE and
+  the §10 bullet rewritten; the B1-vs-B2 narrative paragraph after Table 5
+  rewritten (B2 is no longer "harder due to geometry" — all six cases now
+  sit in the same 7–11% range). Still pending: **Table 7** (training cost
+  — needs the corrected recipes' wall-clock/epoch numbers, which are only
+  fully known for B2×Neo-Hookean so far) and **Table 11's OOD /
+  degradation-factor columns**, which still reflect the old, uncorrected
+  checkpoints (flagged with a NOTE in the report).
 
 ---
 
