@@ -22,7 +22,7 @@ Advisor: Prof. Timon Rabczuk (Bauhaus-Universität Weimar). Student: Omar Amro.
 | 1 | L2/H1/energy-norm error + convergence rate vs. a ~10M (or 1B) DOF reference; test Q4 vs. Q9; error ≤1e-4 in all norms | 🟡 **partial — see below** |
 | 2 | Exact CPU/GPU FEM cost breakdown (assembly/solve/IO, FLOPs, FP64, Newton/CG settings), GPU-native FEM comparison | ✅ done — §8.3–8.5, Tables 7–10 |
 | 3 | Batch-size comparison with equal optimizer steps (not equal epochs) | ✅ done — §8.2, Table 6 |
-| 4 | Exact mathematical definition of every reported error; investigate poor B2 accuracy | 🟡 **partial — see below** |
+| 4 | Exact mathematical definition of every reported error; investigate poor B2 accuracy | 🟡 **root cause + fix done for all 3 B2 materials; not yet propagated into report tables — see below** |
 | 5 | Resolution invariance = same trained model evaluated on unseen resolutions vs. a common fine reference (not 10 independently-trained networks) | ✅ done — §8.7 |
 
 Round-3 items not repeated in Round 4 (Omar's Aug-3 reply claimed these were
@@ -82,18 +82,25 @@ gradient conditioning.
   all three B2 materials so far. Checkpoint:
   `pfem_run/B2_accuracy_search_mooney_rivlin/lossnorm/train/model_best.pt`.
   Full record: `pfem_run/B2_accuracy_search_mooney_rivlin/search_summary.json`.
-- **B2 × Arruda-Boyce**: 🟡 in progress. Same tool,
-  `--material arruda_boyce`, `--out_dir .../pfem_run/B2_accuracy_search_arruda_boyce`.
-  - Trial 1 (`lossnorm`): **9.81% — missed the <9.00% target narrowly**.
-  - Trial 2 (`lossnorm_lr5e3`, lr=0.005): **failed badly, 76.9%** — the
-    higher LR broke training (got stuck, never converged past a bad
-    solution). Worse than trial 1, not better.
-  - Trial 3 (`lossnorm_graded`, r_grading=2.5) now running, regenerating
-    its own 1000-sample dataset (each trial does, from scratch).
-- Once both finish: propagate the corrected numbers through report **Tables
-  5, 7, and 11** (currently still showing the old, uncorrected ~31–32%
-  numbers for these two B2 cases) — flagged as a pending NOTE in §9.1 of
-  the report itself.
+- **B2 × Arruda-Boyce**: ✅ resolved (adopted). **9.81%** (trial 1, `lossnorm`
+  — the same recipe as Neo-Hookean/Mooney-Rivlin). This technically missed
+  the search tool's self-imposed <9.00% target (chosen to match B1's own
+  9.59%, not an explicit number from the advisor — Timon only asked to
+  "investigate the B2 accuracy gap," no numeric threshold), so the search
+  auto-escalated to further trials:
+  - Trial 2 (`lossnorm_lr5e3`, lr=0.005): failed badly, 76.9% (higher LR
+    broke training).
+  - Trial 3 (`lossnorm_graded`, r_grading=2.5): also trending badly
+    (~83%+ at epoch 71) before being manually stopped.
+  Decision (2026-08-15): adopt trial 1's 9.81% as final — it's close to
+  the target and consistent with the other two B2 materials (9.11%,
+  7.28%) and B1 itself (9.59%). Trial 3's Colab job was stopped manually;
+  no further search needed unless a stricter target is requested later.
+  Checkpoint: `pfem_run/B2_accuracy_search_arruda_boyce/lossnorm/train/model_best.pt`.
+- All three B2 materials now resolved (9.11%, 7.28%, 9.81%). Remaining
+  work: propagate the corrected numbers through report **Tables 5, 7, and
+  11** (currently still showing the old, uncorrected ~31–32% numbers) —
+  flagged as a pending NOTE in §9.1 of the report itself.
 
 ---
 
