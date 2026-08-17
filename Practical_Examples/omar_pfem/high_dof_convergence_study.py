@@ -540,16 +540,17 @@ def main():
     parser.add_argument("--cpu", action="store_true")
     parser.add_argument("--out_json", type=str, default=None)
     parser.add_argument("--checkpoint_dir", type=str, default=None,
-                         help="Directory to checkpoint the FINE reference solve into (one file per "
-                              "order), resumed automatically if present. Point this at a Google Drive "
-                              "path (e.g. /content/drive/MyDrive/pfem_ckpt) for a multi-hour run, since "
+                         help="Directory to checkpoint solves into (one file per order for the FINE "
+                              "reference, one file per order+N for each coarser test resolution), "
+                              "resumed automatically if present. Point this at a Google Drive path "
+                              "(e.g. /content/drive/MyDrive/pfem_ckpt) for a multi-hour run, since "
                               "/content alone does not survive a full Colab runtime reset.")
     parser.add_argument("--cg_progress_every", type=int, default=None,
-                         help="Print a CG heartbeat line every this many iterations during the FINE "
-                              "reference solve (recommend ~200-1000 for a multi-hour/large-N run -- "
-                              "without it there is no visibility into a single CG call that can itself "
-                              "run for a long time at ~10M DOF). Off by default so small/fast test runs "
-                              "stay quiet.")
+                         help="Print a CG heartbeat line every this many iterations, for the FINE "
+                              "reference solve AND every coarser test-resolution solve (recommend "
+                              "~200-1000 for a multi-hour/large-N run -- without it there is no "
+                              "visibility into a single CG call that can itself run for a long time at "
+                              "large N). Off by default so small/fast test runs stay quiet.")
     parser.add_argument("--cg_checkpoint_every", type=int, default=2000,
                          help="Save CG's own internal state to <checkpoint_dir>/..cg_state every this "
                               "many iterations (only takes effect when --checkpoint_dir is set), bounding "
@@ -611,9 +612,15 @@ def main():
                       f"convergence rate -- especially for H1 and for Q9. Use fine_N >= 4x this N "
                       f"(or drop this N from --resolutions) for a trustworthy rate.")
             print(f"\nSolving N={N} ({order})...")
+            coarse_ckpt_path = (os.path.join(args.checkpoint_dir,
+                                              f"coarse_{args.geometry}_{args.material}_{order}_N{N}.pt")
+                                 if args.checkpoint_dir else None)
             coarse = solve_one(args.geometry, order, N, args.material, device, dtype,
                                 args.cg_tol, args.newton_tol, use_jacobi=not args.no_jacobi,
-                                cg_max_iter=args.cg_max_iter, verbose=False)
+                                cg_max_iter=args.cg_max_iter, verbose=False,
+                                checkpoint_path=coarse_ckpt_path,
+                                cg_progress_every=args.cg_progress_every,
+                                cg_checkpoint_every=args.cg_checkpoint_every)
             geom_kwargs = ({"Lx": 1.0, "Ly": 1.0} if args.geometry == "B1"
                             else {"R_in": 1.0, "R_out": 2.0, "theta_max": np.pi / 2})
             errs = compute_l2_h1_errors(coarse, fine, order, args.geometry, **geom_kwargs)
