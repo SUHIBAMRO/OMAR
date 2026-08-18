@@ -7,7 +7,7 @@ finishes or a new one starts.
 
 Last updated: 2026-08-15 (Mooney-Rivlin resolved)
 
-Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v17**), kept in the
+Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v18**), kept in the
 scratchpad, delivered to the user via SendUserFile after each update — not
 committed to this repo.
 
@@ -43,10 +43,23 @@ addressed; not re-raised by Timon since):
   and is not achievable within this project's compute budget. Written into
   the report as new **§4.4** (v16). Source data:
   `Google Drive: pfem_ckpt/Q4_B1_neo_hookean_report.json`.
-  - A bounded, cheap follow-up (reuses the existing checkpointed reference,
-    ~11–13h) extending test points to N=1001, N=1401 was **launched but not
-    confirmed finished** — check
+  - Extended test points N=1001, N=1401 (vs. the same N=2236 reference)
+    **finished** and are now in the report (v18, Table 6a): L2 continues
+    to improve (down to 2.3e-6 at N=1401) but H1/energy are still above
+    the 1e-4 target and improving slowly (H1 rel=1.63e-3, energy
+    rel=7.82e-4 at N=1401). Combined 7-point least-squares fit: L2 p=1.58,
+    H1 p=0.73, energy p=0.87. Two caveats flagged in the report: (1) CG
+    hit its 2000-iter cap without reaching cg_tol on every Newton
+    iteration at both N=1001 and N=1401 (Newton itself still converged,
+    but adds some non-discretization error); (2) fine_N=2236 is only
+    1.6–2.2× these two N values (recommended 4×), so the fitted rate,
+    especially H1's, is likely a mild underestimate. Source:
     `Google Drive: pfem_run/Q4_B1_neo_hookean_report_extended.json`.
+  - Also fixed a real gap in `high_dof_convergence_study.py`: the
+    per-N coarse solve had no checkpointing or progress heartbeat (only
+    the fine reference did), so a multi-hour coarse solve was invisible
+    and would restart from zero on any interruption. Now wired through
+    the same `--checkpoint_dir`/`--cg_progress_every` flags.
 - **B1 × Neo-Hookean, Q9**: 🟡 **in progress**. The ~10M-DOF fine reference
   computation (10 load steps) is very slow — individual CG solves inside a
   single Newton iteration have taken ~10+ hours each. No error/rate numbers
