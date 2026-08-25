@@ -5,7 +5,43 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-25 (Point 1 closed for B1 in §4.4; Figures 8-10 (batch-size) and 11-16 (B2 diagnostics) embedded; Figure 1 regenerated with corrected B2 data — see notes below)
+Last updated: 2026-08-25 (Point 1 closed for B1 in §4.4; Figures 8-10 (batch-size) and 11-16 (B2 diagnostics) embedded; Figure 1 regenerated with corrected B2 data; CG-convergence audit of every B1 Q4/Q9 solve behind Point 1 done — see notes below)
+
+**CG-convergence audit of Point 1's B1 solves (2026-08-25):** User caught a
+`cg_failures` field with nonzero values while poking at an old, unfinished
+Drive file (`Q4_B1_neo_hookean_report_extended.json`, from 2026-08-18 — a
+separate, still-incomplete attempt to extend the convergence sweep to
+intermediate resolutions N=1001/1401 near the ~10M-DOF fine reference; both
+rows there are 100% CG-failed and unusable, but this file was NEVER used in
+the report). That raised a fair question about whether the numbers actually
+IN the report (the small-N sweep rates, and the B1 Q4-vs-Q9 FAIL verdict at
+the shared N=2236 fine references) might be similarly contaminated. Checked
+every checkpoint's own embedded `stats` dict directly (the authoritative
+source — `torch.load(path)['stats']`, not the summary JSONs, which don't
+always carry it) for B1/neo_hookean:
+
+| solve | N | cg_failures / newton_iters |
+|---|---|---|
+| Q4 fine reference | 2236 (~10M DOF) | 0 / 20 — clean |
+| Q9 fine reference | 2236 (~10M DOF) | **6 / 20 — 30% failed** |
+| Q4 coarse (small-N sweep) | 6, 11, 16, 21, 31, 41 | 0 / 20 at every N — clean |
+| Q9 coarse (small-N sweep) | 6, 11, 16, 21, 31, 41 | 0 / 20 at every N — clean |
+
+**Conclusion:** the small-N sweep convergence rates already in the report
+(§4.4) are fully clean — no correction needed there. The B1 Q4-vs-Q9 FAIL
+verdict against the advisor's 1e-5 criterion is very likely still correct
+qualitatively (the observed differences exceed the threshold by ~2 orders
+of magnitude, far more than a 30%-CG-failure margin could plausibly
+explain) — but the *exact* reported numbers for that specific comparison
+(H1-seminorm ~1.15e-3, energy ~9.61e-4) carry a known, unquantified error
+margin from Q9's non-converged fine solve and should not be treated as
+fully precise. Re-solving the Q9 fine reference at N=2236 cleanly (est.
+24-48h GPU time, needs a fresh run since the existing checkpoint is marked
+complete) would fix this exactly, but the user chose not to start that now
+— **left as-is, not started**, tracked under the existing open Point 1 item
+below (B1's ~10M-DOF Q9 reference specifically needs a clean re-solve
+before its exact FAIL numbers can be called fully precise; the qualitative
+FAIL conclusion itself is not in doubt).
 
 **Figure 1 regeneration (v24):** `image1.png` (`all_cases_loss_curves.png`) was
 stale — sourced from a file created 2026-07-27, weeks before the mid-August
