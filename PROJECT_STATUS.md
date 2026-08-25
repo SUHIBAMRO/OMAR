@@ -5,9 +5,9 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-25 (Table 7 propagated with real B2 Mooney-Rivlin/Arruda-Boyce training-cost data)
+Last updated: 2026-08-25 (Point 4 fully closed: Table 7 and Table 11 OOD both propagated with real corrected-checkpoint data)
 
-Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v19**), kept in the
+Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v20**), kept in the
 scratchpad, delivered to the user via SendUserFile after each update — not
 committed to this repo.
 
@@ -22,7 +22,7 @@ Advisor: Prof. Timon Rabczuk (Bauhaus-Universität Weimar). Student: Omar Amro.
 | 1 | L2/H1/energy-norm error + convergence rate vs. a ~10M (or 1B) DOF reference; test Q4 vs. Q9; error ≤1e-4 in all norms | 🟡 **partial — see below** |
 | 2 | Exact CPU/GPU FEM cost breakdown (assembly/solve/IO, FLOPs, FP64, Newton/CG settings), GPU-native FEM comparison | ✅ done — §8.3–8.5, Tables 7–10 |
 | 3 | Batch-size comparison with equal optimizer steps (not equal epochs) | ✅ done — §8.2, Table 6 |
-| 4 | Exact mathematical definition of every reported error; investigate poor B2 accuracy | 🟡 **root cause + fix done for all 3 B2 materials; not yet propagated into report tables — see below** |
+| 4 | Exact mathematical definition of every reported error; investigate poor B2 accuracy | ✅ done — root cause, fix, and full propagation into Tables 5, 7, 11 for all 3 B2 materials |
 | 5 | Resolution invariance = same trained model evaluated on unseen resolutions vs. a common fine reference (not 10 independently-trained networks) | ✅ done — §8.7 |
 
 Round-3 items not repeated in Round 4 (Omar's Aug-3 reply claimed these were
@@ -132,15 +132,31 @@ gradient conditioning.
     2,784–34,164 s; break-even 36–126→52–554 new samples; inference
     speed-up 5,545–12,594→5,545–12,575×). Added a NOTE under Table 7
     flagging that these two rows now reflect the corrected recipe.
-  - **Table 11's OOD / degradation-factor columns: still pending.**
-    Confirmed (exhaustive Drive search — all files modified 2026-08-13
-    through -18, every Colab notebook from that window opened and
-    checked, plus a targeted 'ood' keyword search) that no OOD evaluation
-    has been run on the 3 corrected checkpoints — the existing
-    `*_ood_report.json` files are all dated 2026-07-30, before the
-    2026-08-15 accuracy fix. This is a real gap, not a missing-propagation
-    issue: `evaluate_ood.py` needs to actually be run on the corrected
-    checkpoints on Colab before Table 11 can be updated.
+  - **Table 11's OOD / degradation-factor columns: done as of v20.**
+    Confirmed via exhaustive Drive search that no OOD evaluation had been
+    run on the 3 corrected checkpoints (existing `*_ood_report.json`
+    files were all dated 2026-07-30, before the 2026-08-15 fix). Ran the
+    3-step OOD pipeline (`data_generate_B2.py` → `convert_B2_quad.py` →
+    `evaluate_ood.py`) on Colab for all three corrected B2 checkpoints
+    (same OOD distribution shift as before: E_mean 1000→1500,
+    p_mean 5.0→9.0). Results (`B2_{material}_ood_report_corrected.json`
+    on Drive):
+    - Neo-Hookean: ID=9.11%, OOD=48.25%, degradation=5.30×
+    - Mooney-Rivlin: ID=7.28%, OOD=40.60%, degradation=5.58×
+    - Arruda-Boyce: ID=9.81%, OOD=38.68%, degradation=3.94×
+    Updated Table 11's three B2 rows, its NOTE (the old one flagged the
+    OOD columns as stale — now resolved), and two narrative
+    passages that had described the *old* B2 OOD numbers (an executive
+    summary bullet, and the §8.6 discussion paragraph after Table 11) —
+    both previously said B2 degrades "far less" than B1 (1.5–1.6×,
+    an artifact of pairing corrected in-distribution accuracy with a
+    stale pre-fix OOD run); now correctly say all six cases fall in a
+    comparable 3.94–5.58× band. Also added checkpoint/resume support to
+    `data_generate_B2.py`'s sample-generation loop (writes a
+    `generation_progress.json` manifest + flushes the HDF5 file after
+    every sample) since this OOD generation step has no such safety net
+    before — matches the project's established checkpoint-everything
+    convention.
 
 ---
 
