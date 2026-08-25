@@ -5,9 +5,9 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-25 (Point 4 fully closed: Table 7 and Table 11 OOD both propagated with real corrected-checkpoint data)
+Last updated: 2026-08-25 (Point 1 closed for B1: Q9 fine reference finished, Q4-vs-Q9 rate comparison and direct cross-order agreement check both propagated into §4.4)
 
-Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v20**), kept in the
+Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v21**), kept in the
 scratchpad, delivered to the user via SendUserFile after each update — not
 committed to this repo.
 
@@ -19,7 +19,7 @@ Advisor: Prof. Timon Rabczuk (Bauhaus-Universität Weimar). Student: Omar Amro.
 
 | # | Request (short) | Status |
 |---|---|---|
-| 1 | L2/H1/energy-norm error + convergence rate vs. a ~10M (or 1B) DOF reference; test Q4 vs. Q9; error ≤1e-4 in all norms | 🟡 **partial — see below** |
+| 1 | L2/H1/energy-norm error + convergence rate vs. a ~10M (or 1B) DOF reference; test Q4 vs. Q9; error ≤1e-4 in all norms | 🟡 **partial — B1 done, B2 still deferred; see below** |
 | 2 | Exact CPU/GPU FEM cost breakdown (assembly/solve/IO, FLOPs, FP64, Newton/CG settings), GPU-native FEM comparison | ✅ done — §8.3–8.5, Tables 7–10 |
 | 3 | Batch-size comparison with equal optimizer steps (not equal epochs) | ✅ done — §8.2, Table 6 |
 | 4 | Exact mathematical definition of every reported error; investigate poor B2 accuracy | ✅ done — root cause, fix, and full propagation into Tables 5, 7, 11 for all 3 B2 materials |
@@ -60,17 +60,27 @@ addressed; not re-raised by Timon since):
     the fine reference did), so a multi-hour coarse solve was invisible
     and would restart from zero on any interruption. Now wired through
     the same `--checkpoint_dir`/`--cg_progress_every` flags.
-- **B1 × Neo-Hookean, Q9**: 🟡 **in progress**. The ~10M-DOF fine reference
-  computation (10 load steps) is very slow — individual CG solves inside a
-  single Newton iteration have taken ~10+ hours each. No error/rate numbers
-  exist yet (the reference itself isn't done, so nothing downstream of it
-  can be computed). Checkpoint: `pfem_ckpt/fine_B1_neo_hookean_Q9_N2236.pt`
-  (+ `.cg_state`), resumable — just re-run the same
-  `high_dof_convergence_study.py` command and it picks up where it left off.
-  Consider re-targeting the reference to a DOF count matched to Q4's (~10M)
-  instead of Q4's *N* value (which gives Q9 ~4× more DOF for the same N,
-  since Q9 has 9 nodes/element vs. Q4's 4) — this was discussed but not
-  yet executed as of this writing.
+- **B1 × Neo-Hookean, Q9**: ✅ **done**. The ~40M-DOF fine reference (39,979,682
+  DOF at N=2236 — ~4× Q4's 9,999,392 at the same N, from Q9's extra
+  per-element edge/center nodes) finished after the multi-day CG effort
+  noted below. `high_dof_convergence_study.py --orders Q4,Q9 --resolutions
+  6,11,16,21,31,41 --fine_N 2236` then gave least-squares fitted convergence
+  rates of **L2 p=1.57, H1 p=0.76, energy p=0.75** for Q9 vs. **L2 p=1.39,
+  H1 p=0.72, energy p=0.71** for Q4 over the same six resolutions — Q9
+  converges faster in all three norms, as FE theory predicts for a
+  biquadratic vs. bilinear element. Written into the report §4.4 (v21).
+  - **Direct Q4-vs-Q9 fine-solution agreement check** (`compare_q4_q9.py`,
+    the advisor's explicit "difference smaller than 1e-5 in all norms"
+    request, comparing the two *already-solved* fine fields directly
+    against each other, no new solve): **FAIL**. L2 relative difference
+    ≈2.06e-6 (meets the 1e-5 target), but H1-seminorm ≈1.11e-3/1.15e-3 and
+    tangent-energy norm ≈9.61e-4/3.10e-4 (Q4-domain/Q9-domain) each miss it
+    by ~2 orders of magnitude (worst = 1.15e-3). Attributed to Q4's own
+    fine reference still carrying non-negligible discretization error
+    relative to Q9's richer mesh at the same N=2236, not to a solver bug.
+    Result file: `q4_vs_q9_B1_neo_hookean.json`. Also written into §4.4
+    (v21).
+  - Checkpoints used: `pfem_ckpt/fine_B1_neo_hookean_{Q4,Q9}_N2236.pt`.
 - **B2 (both Q4 and Q9)**: ❌ **not started at all**. Zero files/results
   exist for a ~10M-DOF-referenced B2 study. Explicitly deprioritized/deferred
   by the user on 2026-08-15 ("لاحقًا" — do later, not now).
