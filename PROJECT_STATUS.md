@@ -5,9 +5,9 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-25 (Point 1 closed for B1 in §4.4; also found and embedded Figures 8-10, which §8.2's text already referenced but whose images were never actually in the .docx)
+Last updated: 2026-08-25 (Point 1 closed for B1 in §4.4; Figures 8-10 (batch-size) and 11-16 (B2 diagnostics) embedded — see image-audit note below)
 
-Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v22**), kept in the
+Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v23**), kept in the
 scratchpad, delivered to the user via SendUserFile after each update — not
 committed to this repo.
 
@@ -35,18 +35,32 @@ section — nothing for 8–10). Found the real plots on Drive
 generated 2026-08-11, same run as `fair_comparison_run_summaries.json`
 behind Table 6) and embedded them as Figures 8–10 in v22.
 
-**Also found, not yet added — B2 accuracy diagnostic plots:** Drive has
-`error_vs_parameters.png` + `worst_sample_error_contour.png` pairs for
-several B2 accuracy-search trials, under `pfem_run/B2_accuracy_search*/**/diagnostics/`.
-None of this is referenced anywhere in the report (§9.1 discusses the root
-cause in prose only, no figures). Relevant ones if this gets added: the 3
-*adopted* `lossnorm` trials (Neo-Hookean — `B2_accuracy_search/lossnorm/`,
-Mooney-Rivlin — `B2_accuracy_search_mooney_rivlin/lossnorm/`, Arruda-Boyce
-— `B2_accuracy_search_arruda_boyce/lossnorm/`), plus optionally the original
-pre-fix diagnostic (`accuracy_diagnostics_B2_neo_hookean/`, 32.46% baseline)
-for a before/after contrast. Several other folders are from superseded/
-failed trials (`lossnorm_lr5e3`, `force_fixed`/`B2_force_fix_ablation`) and
-are not relevant. Waiting on user decision whether to add these to §9.1.
+**B2 accuracy diagnostic plots: done as of v23.** Full image audit done —
+user had me dump a complete Drive image listing (5034 PNG/JPG files
+total, via a Colab `os.walk` script since the Drive connector kept
+dropping in/out mid-session) to make sure nothing report-relevant was
+missed. After categorizing all 5034: the overwhelming majority are
+per-epoch training-visualization snapshots (`ux/uy/umag_combined_epoch*.png`,
+repeated across dozens of run folders) and repeated `mesh_materials_forces_
+{train,test}_sample0_sid0.png` sanity-check pairs — routine training
+monitoring, not report content. Also found and explicitly excluded: 5
+personal photos (`photo_*.jpg`, unrelated to the project, sitting in an
+unrelated Drive folder), 15 `timoshenko_check_sample*.png` validation
+images (no corresponding report section), and several superseded/failed
+B2 trial folders (`lossnorm_lr5e3`, `B2_force_fix_ablation`,
+`B2_neo_hookean_fixed`, `accuracy_diagnostics_B2_neo_hookean` pre-fix,
+`B2_lr_test_2e-4`, `B2_force_fix_pilot_check`) and old superseded studies
+(`resolution_study/`, `screening_B1_neo_hookean/`,
+`screening_extended_B1_neo_hookean/`, `memory_profile_reruns/`) — all
+replaced by later work already reflected in the report's tables.
+  The only genuinely new, report-relevant images: the 6 diagnostic plots
+  (`error_vs_parameters.png` + `worst_sample_error_contour.png`, 3
+  material pairs) from the 3 *adopted* `lossnorm` trials —
+  `pfem_run/B2_accuracy_search/lossnorm/diagnostics/` (Neo-Hookean, 9.11%),
+  `pfem_run/B2_accuracy_search_mooney_rivlin/lossnorm/diagnostics/`
+  (Mooney-Rivlin, 7.28%), `pfem_run/B2_accuracy_search_arruda_boyce/lossnorm/
+  diagnostics/` (Arruda-Boyce, 9.81%). Embedded as new Figures 11–16 right
+  after Table 14 in §9.1.
 
 Round-3 items not repeated in Round 4 (Omar's Aug-3 reply claimed these were
 addressed; not re-raised by Timon since):
