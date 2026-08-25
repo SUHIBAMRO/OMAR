@@ -5,9 +5,9 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-25 (Point 1 closed for B1: Q9 fine reference finished, Q4-vs-Q9 rate comparison and direct cross-order agreement check both propagated into §4.4)
+Last updated: 2026-08-25 (Point 1 closed for B1 in §4.4; also found and embedded Figures 8-10, which §8.2's text already referenced but whose images were never actually in the .docx)
 
-Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v21**), kept in the
+Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v22**), kept in the
 scratchpad, delivered to the user via SendUserFile after each update — not
 committed to this repo.
 
@@ -24,6 +24,29 @@ Advisor: Prof. Timon Rabczuk (Bauhaus-Universität Weimar). Student: Omar Amro.
 | 3 | Batch-size comparison with equal optimizer steps (not equal epochs) | ✅ done — §8.2, Table 6 |
 | 4 | Exact mathematical definition of every reported error; investigate poor B2 accuracy | ✅ done — root cause, fix, and full propagation into Tables 5, 7, 11 for all 3 B2 materials |
 | 5 | Resolution invariance = same trained model evaluated on unseen resolutions vs. a common fine reference (not 10 independently-trained networks) | ✅ done — §8.7 |
+
+**Point 3 note (2026-08-25):** §8.2's text already claimed "Figures 8–10 plot
+validation error against optimizer steps, processed samples, and wall-clock
+time" (Table 6's equal-optimizer-step batch-size sweep), but the actual
+images were never embedded in the .docx (confirmed: v20's `word/media/`
+only had image1–7.png, matching Figures 1–7 from the training-curves
+section — nothing for 8–10). Found the real plots on Drive
+(`fair_comparison_vs_{opt_steps,processed_samples,wall_clock_s}.png`,
+generated 2026-08-11, same run as `fair_comparison_run_summaries.json`
+behind Table 6) and embedded them as Figures 8–10 in v22.
+
+**Also found, not yet added — B2 accuracy diagnostic plots:** Drive has
+`error_vs_parameters.png` + `worst_sample_error_contour.png` pairs for
+several B2 accuracy-search trials, under `pfem_run/B2_accuracy_search*/**/diagnostics/`.
+None of this is referenced anywhere in the report (§9.1 discusses the root
+cause in prose only, no figures). Relevant ones if this gets added: the 3
+*adopted* `lossnorm` trials (Neo-Hookean — `B2_accuracy_search/lossnorm/`,
+Mooney-Rivlin — `B2_accuracy_search_mooney_rivlin/lossnorm/`, Arruda-Boyce
+— `B2_accuracy_search_arruda_boyce/lossnorm/`), plus optionally the original
+pre-fix diagnostic (`accuracy_diagnostics_B2_neo_hookean/`, 32.46% baseline)
+for a before/after contrast. Several other folders are from superseded/
+failed trials (`lossnorm_lr5e3`, `force_fixed`/`B2_force_fix_ablation`) and
+are not relevant. Waiting on user decision whether to add these to §9.1.
 
 Round-3 items not repeated in Round 4 (Omar's Aug-3 reply claimed these were
 addressed; not re-raised by Timon since):
