@@ -5,9 +5,24 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-25 (Point 1 closed for B1 in §4.4; Figures 8-10 (batch-size) and 11-16 (B2 diagnostics) embedded — see image-audit note below)
+Last updated: 2026-08-25 (Point 1 closed for B1 in §4.4; Figures 8-10 (batch-size) and 11-16 (B2 diagnostics) embedded; Figure 1 regenerated with corrected B2 data — see notes below)
 
-Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v23**), kept in the
+**Figure 1 regeneration (v24):** `image1.png` (`all_cases_loss_curves.png`) was
+stale — sourced from a file created 2026-07-27, weeks before the mid-August
+B2 accuracy fix, so it still showed B2's old ~32% training curve while the
+report's tables now show the corrected ~9-10% numbers. User confirmed
+("نعم حدث الصور من الصور الي في درايف") to regenerate it. Rebuilt by
+downloading all 6 `metrics_history.json` files from Drive (3 unchanged B1
+originals + 3 corrected B2 `lossnorm` runs — the same adopted runs behind
+Tables 5/7/11) and re-running the exact plotting logic from
+`PFEM_Training_Colab.ipynb` cell 20 (2×3 grid, `semilogy(epochs, val_error)`,
+same titles/dpi/figsize). New image is pixel-dimension-identical (2400×1350)
+to the old one, so only `word/media/image1.png`'s bytes were swapped —
+no XML/relationship changes needed for this one. Figures 2-7 were checked
+and do NOT need updating (their captions' epoch/sid values already match
+the corrected `lossnorm` folders).
+
+Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v24**), kept in the
 scratchpad, delivered to the user via SendUserFile after each update — not
 committed to this repo.
 
