@@ -5,9 +5,9 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-15 (Mooney-Rivlin resolved)
+Last updated: 2026-08-25 (Table 7 propagated with real B2 Mooney-Rivlin/Arruda-Boyce training-cost data)
 
-Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v18**), kept in the
+Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v19**), kept in the
 scratchpad, delivered to the user via SendUserFile after each update — not
 committed to this repo.
 
@@ -116,11 +116,31 @@ gradient conditioning.
   new **Table 14** added in §9.1 summarizing all three; §9.1's NOTE and
   the §10 bullet rewritten; the B1-vs-B2 narrative paragraph after Table 5
   rewritten (B2 is no longer "harder due to geometry" — all six cases now
-  sit in the same 7–11% range). Still pending: **Table 7** (training cost
-  — needs the corrected recipes' wall-clock/epoch numbers, which are only
-  fully known for B2×Neo-Hookean so far) and **Table 11's OOD /
-  degradation-factor columns**, which still reflect the old, uncorrected
-  checkpoints (flagged with a NOTE in the report).
+  sit in the same 7–11% range).
+  - **Table 7 (training cost): done as of v19.** Found the real
+    `train.log` files for the corrected (`lossnorm`) Mooney-Rivlin and
+    Arruda-Boyce runs on Drive (`pfem_run/B2_accuracy_search_{material}/lossnorm/train/train.log`)
+    — same production-scale recipe as Neo-Hookean, not a separate
+    confirmation run. Updated Table 7's two B2 rows: Mooney-Rivlin
+    (840,000 opt. steps, cost_epoch=38.85ms, cost_full=42.71s,
+    speed-up=1.44×, inference=4.908ms) and Arruda-Boyce (580,000 opt.
+    steps, cost_epoch=42.89ms, cost_full=31.06s, speed-up=1.94×,
+    inference=4.984ms). Native FEM cost columns unchanged (unaffected by
+    the loss-fix). Propagated the resulting range changes into §8.3's
+    narrative paragraph and the summary bullet (cost_full range
+    2.80–4.07→3.48–42.71 s/sample; total wall-clock 2,237–3,257→
+    2,784–34,164 s; break-even 36–126→52–554 new samples; inference
+    speed-up 5,545–12,594→5,545–12,575×). Added a NOTE under Table 7
+    flagging that these two rows now reflect the corrected recipe.
+  - **Table 11's OOD / degradation-factor columns: still pending.**
+    Confirmed (exhaustive Drive search — all files modified 2026-08-13
+    through -18, every Colab notebook from that window opened and
+    checked, plus a targeted 'ood' keyword search) that no OOD evaluation
+    has been run on the 3 corrected checkpoints — the existing
+    `*_ood_report.json` files are all dated 2026-07-30, before the
+    2026-08-15 accuracy fix. This is a real gap, not a missing-propagation
+    issue: `evaluate_ood.py` needs to actually be run on the corrected
+    checkpoints on Colab before Table 11 can be updated.
 
 ---
 
