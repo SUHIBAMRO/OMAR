@@ -373,28 +373,61 @@ def generate_dataset_for_physics(num_samples=100, output_dir="physics_training_d
                                  dist_kwargs=None, r_grading=1.0):
     os.makedirs(output_dir, exist_ok=True)
 
-    nodes, elements = generate_grid_Q4_ring(R_in, R_out, Ntheta, Nr, r_grading=r_grading)
-    n_nodes = nodes.shape[0]
+    h5_path = os.path.join(output_dir, 'hyperelastic_dataset_physics.h5')
+    manifest_path = os.path.join(output_dir, 'generation_progress.json')
 
-    mesh_info = {
-        'nodes': nodes, 'elements': elements,
-        'R_in': R_in, 'R_out': R_out, 'Ntheta': Ntheta, 'Nr': Nr, 'r_grading': r_grading
-    }
-    np.savez(os.path.join(output_dir, 'mesh_info.npz'), **mesh_info)
+    resuming = os.path.exists(h5_path) and os.path.exists(manifest_path)
+    if resuming:
+        with open(manifest_path) as mf:
+            manifest = json.load(mf)
+        if manifest.get('num_samples') != num_samples:
+            print(f"  [checkpoint] manifest num_samples mismatch ({manifest.get('num_samples')} != "
+                  f"{num_samples}); starting fresh")
+            resuming = False
 
-    tol = 1e-9
-    theta0_nodes = np.where(np.abs(nodes[:, 1]) < tol)[0]
-    thetahalfpi_nodes = np.where(np.abs(nodes[:, 0]) < tol)[0]
-    inner_nodes = np.where(np.abs(np.linalg.norm(nodes, axis=1) - R_in) < tol)[0]
-    outer_nodes = np.where(np.abs(np.linalg.norm(nodes, axis=1) - R_out) < tol)[0]
+    if resuming:
+        done_indices = set(manifest['done'])
+        failed_samples = list(manifest['failed'])
+        successful_samples = manifest['successful_samples']
+        mesh_npz = np.load(os.path.join(output_dir, 'mesh_info.npz'))
+        nodes, elements = mesh_npz['nodes'], mesh_npz['elements']
+        n_nodes = nodes.shape[0]
+        inner_nodes = np.load(os.path.join(output_dir, 'boundary_info.npz'))['inner_nodes']
+        print(f"  [checkpoint] resuming from {manifest_path}: {len(done_indices)}/{num_samples} "
+              f"samples already done, continuing")
+        f = h5py.File(h5_path, 'r+')
+        E_fields = f["E_fields"]
+        nu_fields = f["nu_fields"]
+        p_fields = f["p_fields"]
+        displacements = f["displacements"]
+        E_nodes = f["E_nodes"]
+        nu_nodes = f["nu_nodes"]
+        inner_pressure = f["inner_pressure"]
+        inner_force_consistent = f["inner_force_consistent"]
+        strain_energy = f["strain_energy"]
+    else:
+        nodes, elements = generate_grid_Q4_ring(R_in, R_out, Ntheta, Nr, r_grading=r_grading)
+        n_nodes = nodes.shape[0]
 
-    boundary_info = {
-        'theta0_nodes': theta0_nodes, 'thetahalfpi_nodes': thetahalfpi_nodes,
-        'inner_nodes': inner_nodes, 'outer_nodes': outer_nodes
-    }
-    np.savez(os.path.join(output_dir, 'boundary_info.npz'), **boundary_info)
+        mesh_info = {
+            'nodes': nodes, 'elements': elements,
+            'R_in': R_in, 'R_out': R_out, 'Ntheta': Ntheta, 'Nr': Nr, 'r_grading': r_grading
+        }
+        np.savez(os.path.join(output_dir, 'mesh_info.npz'), **mesh_info)
 
-    with h5py.File(os.path.join(output_dir, 'hyperelastic_dataset_physics.h5'), 'w') as f:
+        tol = 1e-9
+        theta0_nodes = np.where(np.abs(nodes[:, 1]) < tol)[0]
+        thetahalfpi_nodes = np.where(np.abs(nodes[:, 0]) < tol)[0]
+        inner_nodes = np.where(np.abs(np.linalg.norm(nodes, axis=1) - R_in) < tol)[0]
+        outer_nodes = np.where(np.abs(np.linalg.norm(nodes, axis=1) - R_out) < tol)[0]
+
+        boundary_info = {
+            'theta0_nodes': theta0_nodes, 'thetahalfpi_nodes': thetahalfpi_nodes,
+            'inner_nodes': inner_nodes, 'outer_nodes': outer_nodes
+        }
+        np.savez(os.path.join(output_dir, 'boundary_info.npz'), **boundary_info)
+
+        f = h5py.File(h5_path, 'w')
         E_fields = f.create_dataset("E_fields", (num_samples, Ntheta, Nr),
                                     dtype=np.float32, compression="gzip")
         nu_fields = f.create_dataset("nu_fields", (num_samples, Ntheta, Nr),
@@ -416,75 +449,97 @@ def generate_dataset_for_physics(num_samples=100, output_dir="physics_training_d
         strain_energy = f.create_dataset("strain_energy", (num_samples,),
                                          dtype=np.float32, compression="gzip")
 
-        successful_samples = 0
+        done_indices = set()
         failed_samples = []
+        successful_samples = 0
 
-        def _store_success(i, res):
-            E_fields[i] = res["E_field"]
-            nu_fields[i] = res["nu_field"]
-            p_fields[i] = res["p_field"]
-            displacements[i] = res["displacement"]
-            E_nodes[i] = res["E_node_vals"]
-            nu_nodes[i] = res["nu_node_vals"]
-            inner_pressure[i] = res["p_inner_vals"]
-            inner_force_consistent[i] = res["inner_force_consistent"]
-            strain_energy[i] = res["avg_strain_energy"]
-            print(f"  Sample {i+1}: max displacement={res['max_disp']:.3e}")
+    def _save_manifest():
+        with open(manifest_path, 'w') as mf:
+            json.dump({
+                'num_samples': num_samples,
+                'done': sorted(done_indices),
+                'failed': failed_samples,
+                'successful_samples': successful_samples,
+            }, mf)
 
-        def _store_failure(i, err):
-            print(f"  Error in sample {i+1}: {err}")
-            failed_samples.append(i)
-            E_fields[i] = np.nan
-            nu_fields[i] = np.nan
-            p_fields[i] = np.nan
-            displacements[i] = np.nan
-            E_nodes[i] = np.nan
-            nu_nodes[i] = np.nan
-            inner_pressure[i] = np.nan
-            inner_force_consistent[i] = np.nan
-            strain_energy[i] = np.nan
+    def _store_success(i, res):
+        E_fields[i] = res["E_field"]
+        nu_fields[i] = res["nu_field"]
+        p_fields[i] = res["p_field"]
+        displacements[i] = res["displacement"]
+        E_nodes[i] = res["E_node_vals"]
+        nu_nodes[i] = res["nu_node_vals"]
+        inner_pressure[i] = res["p_inner_vals"]
+        inner_force_consistent[i] = res["inner_force_consistent"]
+        strain_energy[i] = res["avg_strain_energy"]
+        print(f"  Sample {i+1}: max displacement={res['max_disp']:.3e}")
 
-        if n_workers is not None and n_workers > 1:
-            print(f"Generating {num_samples} samples using {n_workers} worker processes...")
-            with ProcessPoolExecutor(max_workers=n_workers) as ex:
-                futures = {
-                    ex.submit(_generate_one_sample, i, seed*10000 + i, nodes, elements,
-                              R_in, R_out, Ntheta, Nr, material, inner_nodes, dist_kwargs): i
-                    for i in range(num_samples)
-                }
-                done_count = 0
-                for fut in as_completed(futures):
-                    i, ok, res, err = fut.result()
-                    done_count += 1
-                    if done_count % 10 == 0 or done_count == num_samples:
-                        print(f"Completed {done_count}/{num_samples} samples")
-                    if ok:
-                        _store_success(i, res)
-                        successful_samples += 1
-                    else:
-                        _store_failure(i, err)
-        else:
-            for i in range(num_samples):
-                print(f"Generating sample {i+1}/{num_samples}")
-                _, ok, res, err = _generate_one_sample(
-                    i, seed*10000 + i, nodes, elements, R_in, R_out, Ntheta, Nr, material, inner_nodes,
-                    dist_kwargs
-                )
+    def _store_failure(i, err):
+        print(f"  Error in sample {i+1}: {err}")
+        failed_samples.append(i)
+        E_fields[i] = np.nan
+        nu_fields[i] = np.nan
+        p_fields[i] = np.nan
+        displacements[i] = np.nan
+        E_nodes[i] = np.nan
+        nu_nodes[i] = np.nan
+        inner_pressure[i] = np.nan
+        inner_force_consistent[i] = np.nan
+        strain_energy[i] = np.nan
+
+    def _mark_done(i):
+        done_indices.add(i)
+        f.flush()
+        _save_manifest()
+
+    remaining = [i for i in range(num_samples) if i not in done_indices]
+
+    if not remaining:
+        print(f"  [checkpoint] all {num_samples} samples already done, nothing left to generate")
+    elif n_workers is not None and n_workers > 1:
+        print(f"Generating {len(remaining)}/{num_samples} remaining samples using {n_workers} worker processes...")
+        with ProcessPoolExecutor(max_workers=n_workers) as ex:
+            futures = {
+                ex.submit(_generate_one_sample, i, seed*10000 + i, nodes, elements,
+                          R_in, R_out, Ntheta, Nr, material, inner_nodes, dist_kwargs): i
+                for i in remaining
+            }
+            done_count = num_samples - len(remaining)
+            for fut in as_completed(futures):
+                i, ok, res, err = fut.result()
+                done_count += 1
+                if done_count % 10 == 0 or done_count == num_samples:
+                    print(f"Completed {done_count}/{num_samples} samples")
                 if ok:
                     _store_success(i, res)
                     successful_samples += 1
                 else:
                     _store_failure(i, err)
+                _mark_done(i)
+    else:
+        for i in remaining:
+            print(f"Generating sample {i+1}/{num_samples}")
+            _, ok, res, err = _generate_one_sample(
+                i, seed*10000 + i, nodes, elements, R_in, R_out, Ntheta, Nr, material, inner_nodes,
+                dist_kwargs
+            )
+            if ok:
+                _store_success(i, res)
+                successful_samples += 1
+            else:
+                _store_failure(i, err)
+            _mark_done(i)
 
-        f.attrs['num_samples'] = num_samples
-        f.attrs['successful_samples'] = successful_samples
-        f.attrs['failed_samples'] = str(failed_samples)
-        f.attrs['R_in'] = R_in
-        f.attrs['R_out'] = R_out
-        f.attrs['Ntheta'] = Ntheta
-        f.attrs['Nr'] = Nr
-        f.attrs['r_grading'] = r_grading
-        f.attrs['n_nodes'] = n_nodes
+    f.attrs['num_samples'] = num_samples
+    f.attrs['successful_samples'] = successful_samples
+    f.attrs['failed_samples'] = str(failed_samples)
+    f.attrs['R_in'] = R_in
+    f.attrs['R_out'] = R_out
+    f.attrs['Ntheta'] = Ntheta
+    f.attrs['Nr'] = Nr
+    f.attrs['r_grading'] = r_grading
+    f.attrs['n_nodes'] = n_nodes
+    f.close()
 
     print(f"\nDataset generated with {successful_samples} successful samples out of {num_samples}")
 
