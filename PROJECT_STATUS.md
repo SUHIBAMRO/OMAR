@@ -5,7 +5,42 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-26 (full read-through audit of v24 found 6 real internal
+Last updated: 2026-08-26 (fixed a real 5x redundant-compute bug in
+`resolution_invariance_zeroshot.py`'s eval command, discovered while
+running the 3-notebook parallel plan for the 5 missing zero-shot cases —
+see "Zero-shot eval redundant-solve fix" below)
+
+**Zero-shot eval redundant-solve fix (2026-08-26):** While the 3-notebook
+plan to run the 5 remaining resolution-invariance-zeroshot cases
+(B1×mooney_rivlin/arruda_boyce, B2×neo_hookean/mooney_rivlin/arruda_boyce)
+was already running, the user pasted a live Colab log showing the `train`
+command's FEM data-generation step alone took 26,329s (~7.3h) just for
+N=21's 500 samples (400 train + 100 val) — far longer than the ~1.7h
+estimate quoted earlier, because that estimate came from `metrics_history`'s
+`cumulative_wall_clock_s`, which (confirmed directly in the code, the timer
+starts *after* the data-generation block) never included data-generation
+time at all. Investigating further (user asked "is train or eval the
+slower one?") found a genuine bug in `cmd_eval`: the common fine-mesh
+reference solve at N=`fine_N` (N=101 by default, 10,201 nodes — expensive)
+was being re-solved from scratch for every one of the 5 test resolutions,
+even though it is the exact same physical problem (same seed) each time —
+5x more expensive FEM solves than necessary. Fixed by caching each fine
+solve by sample seed (persisted to
+`fine_ref_cache_N{fine_N}.pt` next to `--out_json`, loaded on resume, same
+pattern as the train command's own `samples_cache.pt`), so all 5 test
+resolutions now share the same 20 fine-reference solves instead of doing
+20x5=100. This was caught and fixed *before* any of the 5 running cases
+reached their eval phase, so no wasted eval compute yet.
+  Revised time expectation (previous estimate of "~2-2.5h/case" was wrong —
+  it only counted the training loop, not data generation): total time per
+  case is now expected to be dominated by two FEM-heavy phases — train's
+  data generation (2 resolutions × 500 samples each, ~7.3h+ per resolution
+  observed for N=21) and eval's now-fixed fine-reference solves (20 total
+  instead of 100) — likely 10-20+ h/case depending on how N=33's generation
+  and N=101's solve cost compare to N=21's. Not yet re-measured end-to-end
+  post-fix; update this note once one of the 5 running cases finishes.
+
+Previous update: 2026-08-26 (full read-through audit of v24 found 6 real internal
 inconsistencies — stale numbers/text left over from earlier partial fixes — all
 6 corrected in **v25**; see "v24→v25 correctness audit" below)
 

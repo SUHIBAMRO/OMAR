@@ -454,6 +454,29 @@ def cmd_eval(args):
                        "test_resolutions": test_resolutions, "rows": rows}, f, indent=2)
         os.replace(tmp, args.out_json)
 
+    # The common fine-mesh reference (N=fine_N) is the SAME physical problem
+    # (same seed) regardless of which coarse test resolution it is being
+    # compared against -- it only needs to be solved once per sample index,
+    # not once per (resolution, sample) pair. Without this cache, the loop
+    # below re-solved the identical N=fine_N problem once per test
+    # resolution (5x redundant work for the default 5 test resolutions).
+    # Persisted to disk (like the train command's samples_cache.pt) so a
+    # Colab disconnect never re-solves a fine reference already computed for
+    # an earlier resolution in this same eval run.
+    cache_dir = os.path.dirname(args.out_json) if args.out_json else "."
+    fine_cache_path = os.path.join(cache_dir or ".", f"fine_ref_cache_N{args.fine_N}.pt")
+    fine_cache = {}
+    if os.path.exists(fine_cache_path):
+        fine_cache = torch.load(fine_cache_path, weights_only=False)
+        print(f"[fine-ref cache] loaded {len(fine_cache)} cached N={args.fine_N} solves from {fine_cache_path}")
+
+    def _get_fine_sample(seed):
+        if seed not in fine_cache:
+            fine_sample, _ = build_fn(args.fine_N, seed=seed, material=args.material, solve_fem=True)
+            fine_cache[seed] = {"xy": fine_sample["xy"], "uv_exact": fine_sample["uv_exact"]}
+            torch.save(fine_cache, fine_cache_path)
+        return fine_cache[seed]
+
     for N in test_resolutions:
         if N in done_Ns:
             continue
@@ -474,9 +497,9 @@ def cmd_eval(args):
             # solve needed here, only the mesh + material/load fields the
             # network actually consumes.
             coarse_sample, _ = build_fn(N, seed=seed, material=args.material, solve_fem=False)
-            # SAME seed, at the common fine reference resolution -- this
-            # DOES need a real (expensive) nonlinear FEM solve.
-            fine_sample, _ = build_fn(args.fine_N, seed=seed, material=args.material, solve_fem=True)
+            # SAME seed, at the common fine reference resolution -- cached
+            # across test resolutions (see _get_fine_sample above).
+            fine_sample = _get_fine_sample(seed)
 
             mesh_t = mesh_tensors_of(args.geometry, coarse_sample, device, dtype)
             E_b = torch.tensor(coarse_sample["E_node"][None], device=device, dtype=dtype)
