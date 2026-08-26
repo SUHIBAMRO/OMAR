@@ -43,9 +43,25 @@ def main():
                               "unless a checkpoint is missing or incomplete.")
     parser.add_argument("--cg_tol", type=float, default=1e-8)
     parser.add_argument("--newton_tol", type=float, default=1e-8)
-    parser.add_argument("--out_json", type=str, default=None)
+    # Defaults to saving next to the checkpoints rather than to None: this
+    # comparison is the advisor's headline Q4-vs-Q9 check and takes a
+    # multi-day solve to produce, but an earlier run was invoked WITHOUT
+    # --out_json, so its numbers survived only as Colab stdout and no result
+    # file was ever written to Drive. A result this expensive must never
+    # depend on remembering to pass a flag.
+    parser.add_argument("--out_json", type=str, default=None,
+                        help="Where to write the JSON report. If omitted, defaults to "
+                             "<checkpoint_dir>/q4_vs_q9_<geometry>_<material>_N<fine_N>.json. "
+                             "Pass 'none' to explicitly disable saving.")
     parser.add_argument("--cpu", action="store_true")
     args = parser.parse_args()
+
+    if args.out_json is None:
+        args.out_json = (f"{args.checkpoint_dir}/q4_vs_q9_"
+                         f"{args.geometry}_{args.material}_N{args.fine_N}.json")
+        print(f"[auto-save] --out_json not given; results will be written to {args.out_json}")
+    elif args.out_json.strip().lower() == "none":
+        args.out_json = None
 
     device = torch.device("cuda" if torch.cuda.is_available() and not args.cpu else "cpu")
     dtype = torch.float64
