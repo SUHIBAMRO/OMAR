@@ -5,8 +5,65 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-26 (re-confirmed the allocated/reserved/device-peak GPU-memory
-clarification from Timon's Round-3 feedback is fully done in §8.4 — see notes below)
+Last updated: 2026-08-26 (full read-through audit of v24 found 6 real internal
+inconsistencies — stale numbers/text left over from earlier partial fixes — all
+6 corrected in **v25**; see "v24→v25 correctness audit" below)
+
+**v24→v25 correctness audit (2026-08-26):** User asked for a full read-through
+of the whole report to check everything is correct and consistent, not just a
+targeted check. Read all ~510 paragraphs/21 tables end-to-end and cross-checked
+numbers against each other (not just against memory). Found and fixed 6 real
+issues, all now in **v25**:
+1. Abstract + Executive-Summary Table 1 row 7 still described the OLD,
+   deprecated resolution-invariance method (10 independent trainings) even
+   though §8.7/Table 12 already had the correct true zero-shot method and
+   numbers (5.2–6.7%). Rewrote both to match §8.7.
+2. **Table 5 (§8.1) and Table 7 (§8.3): B2 rows' Best-epoch/Final-epoch/
+   Wall-clock/opt-steps figures were still the pre-accuracy-fix numbers**,
+   while the accuracy numbers in the same rows were already the corrected
+   ones — a real, provable internal contradiction (Table 5 said B2×NH final
+   epoch 825 / 3257s, while §9.1's own text says 850 best-epoch / 32,244s for
+   the same run). Pulled the authoritative `metrics_history.json` for all 3
+   corrected B2 runs (`/tmp/fig1_data/B2_*.json`, the same files behind the
+   Figure 1 regeneration) and recomputed exactly: B2×NH best=850/final=1050/
+   wall=32,244s; B2×MR best=850/final=1050/wall=34,164s (already had this
+   wall-clock right, only epoch/cost_epoch were off); B2×AB best=525/
+   final=725/wall=24,847s (already correct, minor rounding refinement only).
+   Recomputed cost_epoch/cost_full/speed-up from these exact numbers — the
+   most consequential result: **B2×Neo-Hookean's corrected training recipe
+   now costs MORE per sample (40.3s) than one native FEM solve (25.9s)** —
+   speed-up flips from a stale 6.37× to the real 0.64×. This cascades into:
+   the six-case wall-clock total (16,794s→**99,770s**, 4h40m→**27h43m**), the
+   overall GPU-time total in §9.1 (8.2h→**31.2h**), and the break-even range
+   (52–554→**52–1,245** new samples, both in §8.3 and the executive summary).
+3. §10 Conclusion said "Table 11's OOD/degradation-factor columns remain
+   pending" — but Table 11's own note already says that was resolved.
+   Contradiction removed.
+4. **§10 Conclusion silently omitted the B2 Q4-vs-Q9 ~10M/40M-DOF study
+   (§4.4) from its "remaining items" list entirely**, even though §4.4 itself
+   says it's still in progress for B2 — someone reading only the conclusion
+   would think just 3 minor extensions remained. Added it as an explicit new
+   bullet, marked as the one genuinely unfinished measurement (not a
+   "scientifically motivated extension" like the other two).
+5. "≈1,700×" inference-speedup-vs-CPU-FEM figure (in the executive summary
+   and in §9.1) was a leftover from the old, already-replaced 8.0s/sample
+   FEM placeholder (8.0/0.0046≈1,739). Real figure per Table 7 is
+   **5,546–12,575×**. Fixed both occurrences.
+6. Executive summary claimed "CPU-to-GPU FEM speed-up: 21–23× at large batch
+   size" — contradicted Table 10's own data (71.7–171.5× at bs=128). Fixed
+   (also fixed a matching "roughly 22×" repeat of the same stale figure in
+   §9.1's discussion paragraph).
+
+All 6 fixes verified by direct read-back of the saved .docx (python-docx) —
+every changed cell/paragraph checked against its intended new text — and the
+file passed the docx skill's XSD validator against v24 as baseline. (Note:
+`soffice`/LibreOffice itself is currently broken in this sandbox — even the
+unmodified v24 fails to convert to PDF — so this pass could not do a visual
+PDF render; correctness was instead verified via python-docx content checks
+and XSD validation only. Worth a visual spot-check next time soffice works.)
+
+Report file: now **v25** (was v24), same handling as before — kept in the
+scratchpad, delivered to the user via SendUserFile, not committed to this repo.
 
 Previous update: 2026-08-25 (Point 1 closed for B1 in §4.4; Figures 8-10 (batch-size) and 11-16 (B2 diagnostics) embedded; Figure 1 regenerated with corrected B2 data; CG-convergence audit of every B1 Q4/Q9 solve behind Point 1 done — see notes below)
 
@@ -61,7 +118,7 @@ no XML/relationship changes needed for this one. Figures 2-7 were checked
 and do NOT need updating (their captions' epoch/sid values already match
 the corrected `lossnorm` folders).
 
-Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v24**), kept in the
+Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v25**), kept in the
 scratchpad, delivered to the user via SendUserFile after each update — not
 committed to this repo.
 
