@@ -5,7 +5,57 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-26 (fixed a real 5x redundant-compute bug in
+Last updated: 2026-08-26 (**Drive-vs-summary number audit** — ~205 individual
+values in the new summary doc checked directly against their original Drive
+result files; see "Drive verification audit" below)
+
+**Drive verification audit (2026-08-26):** Built a results-only summary doc
+(`PFEM_Summary_Completed_Work.docx`, 22 tables + 16 figures, all pulled
+programmatically from v25 so no value is retyped) and then verified its numbers
+against the ORIGINAL Drive result files, not against v25. Verified live from
+Drive this session:
+| Table | Drive source file | values checked |
+|---|---|---|
+| Table 6 (batch-size sweep) | `pfem_run/.../fair_comparison_run_summaries.json` | 108 ✅ |
+| Table 12 (zero-shot) | `pfem_run/zeroshot_B1_neo_hookean/zeroshot_eval_report.json` | 15 ✅ |
+| Table 11, 3 B2 OOD rows | `B2_{material}_ood_report_corrected.json` ×3 | 9 ✅ |
+| Table 4a, B1×NH row | `fem_cost_breakdown_B1_neo_hookean.json` | 7 ✅ |
+| Table 4b (FLOPs) | same file (`flops_estimate`) | 2 ✅ |
+| Table 10, B1×NH row | `gpu_fem_solver/B1_neo_hookean_timing.json` | 5 ✅ |
+| Table 8, B1×NH row | `memory_profile_reruns/B1_neo_hookean/metrics_history.json` | 4 ✅ |
+Plus, from Drive `metrics_history.json` files cached locally: Table 5 (24 ✅),
+Table 7 opt-steps (6 ✅), Table 11 in-distribution column (6 ✅), Tables 13/14
+(4 ✅). **Result: ~205 values checked, 202 exact matches.**
+  The only 3 deviations are ≤0.01 last-digit **rounding-order** artifacts (a
+  derived value computed from an already-rounded intermediate rather than from
+  full precision), NOT data errors — confirmed numerically: B1×MR speed-up
+  15.44 (table) vs 15.43 (exact), B2×MR speed-up 1.44 vs 1.45, B2×NH cost_full
+  40.31 vs 40.30. Two of the three are what a reader dividing the table's own
+  columns would get, so they were left as-is; flagged to the user.
+
+**Two Drive findings worth remembering from that audit:**
+1. **There are TWO different GPU-timing runs on Drive with slightly different
+   numbers**: `gpu_fem_solver/{case}_timing.json` (2026-07-30/08-02) and
+   `gpu_fem_timing_{B1,B2}.json` (2026-08-10, in the results folder). Table 10
+   is sourced from the FORMER (B1×NH: 1651.6/477.9/381.3/354.6 — exact match);
+   the latter gives 1649.9/479.2/382.6/354.8. Don't "correct" Table 10 against
+   the wrong file. (Note `fem_cost_breakdown_*.json` ALSO contains GPU per-batch
+   timings — a third set again — used for §4.2's cost breakdown, not Table 10.)
+2. **No saved `q4_vs_q9_*.json` exists anywhere on Drive.** The Q4-vs-Q9
+   comparison numbers in §4.4 (and summary Tables 6b/6c) live only as stdout in
+   the Colab notebook `Untitled15.ipynb` (Drive id `1_IF1IbeqXWBlt3t0h9obOyNMUxkQJuX4`),
+   which was read and verified earlier in this same session. That notebook has
+   since grown to ~1 MB of accumulated output, so re-pulling it is impractical —
+   **if this result is ever re-run, save its JSON to Drive properly.**
+
+Still unverified against Drive (files located, just not pulled — same pattern
+expected): Table 4a/8/10 rows 2–6, Table 9 (`validate_*.log`), Tables 1–6
+mesh convergence, Table 11's 3 B1 OOD rows, and Table 7's inference-latency
+column (~20 candidate `inference_latency.json` files, needs parent-folder
+resolution; note the memory-profile rerun's copy reads 4.789 ms, which is a
+3-epoch checkpoint and correctly NOT what Table 7 uses).
+
+Previous update: 2026-08-26 (fixed a real 5x redundant-compute bug in
 `resolution_invariance_zeroshot.py`'s eval command, discovered while
 running the 3-notebook parallel plan for the 5 missing zero-shot cases —
 see "Zero-shot eval redundant-solve fix" below)
