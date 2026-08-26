@@ -5,7 +5,49 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-26 (**Drive-vs-summary number audit** — ~205 individual
+Last updated: 2026-08-26 (**full Drive audit completed → report v26**. User
+correctly pushed back that the CODE should be saving its results; fixed that,
+then had them run one Colab cell that dumped every remaining source file at
+once. That closed the audit and caught 2 real errors — see below.)
+
+**Full Drive audit + v25→v26 (2026-08-26).** `compare_q4_q9.py`'s `--out_json`
+defaulted to `None`, so a multi-day Q4-vs-Q9 solve was run without it and its
+numbers survived only as Colab stdout — **fixed: it now auto-saves to
+`<checkpoint_dir>/q4_vs_q9_<geom>_<mat>_N<N>.json` unless you pass
+`--out_json none`.** Then verified the remaining tables against a single
+Colab dump of every source file. Newly verified this pass:
+Table 4a all 6 rows (36 values ✅), Tables 1–6 mesh convergence (**193 ✅**),
+Table 8 all 6 rows (24 ✅), Table 9 all 6 rows (30 ✅), Table 10 all 6 rows
+(24 ✅), Table 11's 3 B1 OOD rows (9 ✅), Table 7 inference column (6).
+**Cumulative: ~490 individual values checked against their Drive originals.**
+
+**Two REAL errors found and fixed in v26 (not rounding):**
+1. **Table 7, B2 × Neo-Hookean inference latency was 4.673 ms — the OLD
+   pre-fix checkpoint** (`pfem_run/results/B2_neo_hookean/`). The corrected
+   loss-normalized run's value is **4.809 ms**
+   (`pfem_run/B2_accuracy_search/lossnorm/train/inference_latency.json`;
+   confirmed as the right checkpoint by that case's own OOD report). B2×MR
+   (4.908) and B2×AB (4.984) were already correctly taken from their lossnorm
+   folders — only Neo-Hookean was stale. This is the same class of bug as the
+   epoch/wall-clock staleness fixed in v25, just in a column we hadn't checked.
+   Cascaded: inference speed-up range **5,545/5,546–12,575× → 5,387–12,575×**
+   (3+2 = 5 occurrences across the report).
+2. **FLOPs were reported as a single number but are material-dependent.**
+   Assembly FLOPs/sample = **5.88×10⁷ for Neo-Hookean but 9.72×10⁷ for
+   Mooney-Rivlin and Arruda-Boyce** (their autodiff-derived tangents cost
+   ≈1.65× more per element); solve FLOPs ≈7.9×10⁵ for all. §4.2's sentence
+   said only "approximately 5.88×10⁷" as if universal — now split by material,
+   and the summary's Table 4b is a 3-row per-material table instead of one row.
+Also corrected Table 10's B2×NH speed-up 73.04× → 73.05×.
+
+**Everything else matched exactly.** The only remaining deviations are the 3
+previously-noted ≤0.01 rounding-order artifacts, plus Table 10 speed-ups shown
+to 4 significant figures (149.4/138.9/171.5/159.3 vs exact 149.41/138.88/
+171.53/159.28) — display precision, not error.
+
+Report file is now **v26**; summary doc rebuilt to match.
+
+Previous entry: 2026-08-26 (**Drive-vs-summary number audit** — ~205 individual
 values in the new summary doc checked directly against their original Drive
 result files; see "Drive verification audit" below)
 
@@ -203,7 +245,7 @@ no XML/relationship changes needed for this one. Figures 2-7 were checked
 and do NOT need updating (their captions' epoch/sid values already match
 the corrected `lossnorm` folders).
 
-Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v25**), kept in the
+Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v26**), kept in the
 scratchpad, delivered to the user via SendUserFile after each update — not
 committed to this repo.
 
