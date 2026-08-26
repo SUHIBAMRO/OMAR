@@ -5,7 +5,10 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-25 (Point 1 closed for B1 in §4.4; Figures 8-10 (batch-size) and 11-16 (B2 diagnostics) embedded; Figure 1 regenerated with corrected B2 data; CG-convergence audit of every B1 Q4/Q9 solve behind Point 1 done — see notes below)
+Last updated: 2026-08-26 (re-confirmed the allocated/reserved/device-peak GPU-memory
+clarification from Timon's Round-3 feedback is fully done in §8.4 — see notes below)
+
+Previous update: 2026-08-25 (Point 1 closed for B1 in §4.4; Figures 8-10 (batch-size) and 11-16 (B2 diagnostics) embedded; Figure 1 regenerated with corrected B2 data; CG-convergence audit of every B1 Q4/Q9 solve behind Point 1 done — see notes below)
 
 **CG-convergence audit of Point 1's B1 solves (2026-08-25):** User caught a
 `cg_failures` field with nonzero values while poking at an old, unfinished
@@ -116,7 +119,13 @@ replaced by later work already reflected in the report's tables.
 Round-3 items not repeated in Round 4 (Omar's Aug-3 reply claimed these were
 addressed; not re-raised by Timon since):
 - OOD evaluation (different material/load ranges) — ✅ confirmed done, §8.6 / Table 11, all 6 cases.
-- Allocated-vs-reserved / peak GPU memory clarification — not re-verified this pass.
+- Allocated-vs-reserved / peak GPU memory clarification — ✅ **confirmed done, 2026-08-26**
+  (re-checked directly against v24's report text, not just memory): §8.4 reports all three
+  quantities for all 6 cases — `torch.cuda.max_memory_allocated()` (≈425 MB, identical
+  across cases), `torch.cuda.max_memory_reserved()` (≈680 MB), and device-level peak via
+  `torch.cuda.mem_get_info()` (≈1.2 GB, the nvidia-smi-equivalent figure), with explicit text
+  stating the first two are internal PyTorch-allocator statistics and do NOT match what
+  nvidia-smi/the driver would report, while the third does.
 
 ---
 
