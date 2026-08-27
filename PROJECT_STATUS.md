@@ -47,13 +47,49 @@ summary cannot settle a question about what was actually asked.
 | 8 | Test GPU-native FEM at **finer discretizations up to a few million DOFs**; and: *"Did you use Tensormesh or write the code yourself?"* | ⬜ answer known (below); timing sweep pending |
 | 9 | Use **MMS** as ground truth instead of a baseline FEM solution, to test the operator *"compared to FEM"* — i.e. **both** are scored against the manufactured truth, which is the only way FEM itself gets graded (today it *is* the reference, so it cannot be) | ⬜ largest item; blocked on the energy functional having no body-force term, which MMS requires |
 
-**Point 3 result (computed 2026-08-26).** Break-even against a *GPU* FEM
-baseline is dramatically worse than against CPU FEM, which is the honest and
-important finding here:
-| baseline | break-even range |
-|---|---|
-| CPU FEM (what the report currently uses) | 52 – 1,245 samples |
-| **GPU FEM @ bs=128 (Timon's point 3)** | **7,644 – 96,275 samples** |
+**Points 3 + 4 recomputed at MATCHED batch sizes (2026-08-27).** All inputs
+and their exact Drive paths are recorded in
+`Practical_Examples/omar_pfem/point3_inputs.json`; the calculation is
+`omar_pfem/break_even_analysis.py`. Recomputing the *unmatched* comparison
+from those inputs reproduces the figures already in the report (8,211 /
+7,850 / 7,644 / 92,131 / 96,222 / 66,490 vs the recorded 8,211 / 7,847 /
+7,644 / 92,165 / 96,275 / 66,523 — two exact, rest <0.06%), which is the
+check that nothing was assumed.
+
+Points 3 and 4 are one calculation. Doing 3 without 4 got it wrong: the
+report compares GPU FEM at bs=128, where a GPU solver amortises its kernel
+launches, against the Transolver at bs=1. Batching buys the network ~16x
+(4.58–4.83 ms/sample at bs=1 down to 0.291–0.292 at bs=128), so the
+comparison understated it by that factor.
+
+**The speed-up in the report is wrong by ~16x. The break-even is not.**
+| quantity | report (unmatched) | matched at bs=128 |
+|---|---|---|
+| speed-up vs GPU FEM | 73–80x | **1,215–1,297x** |
+| break-even | 7,644 – 96,275 | **7,554 – 95,038** |
+Break-even barely moves because FEM dominates the per-sample saving either
+way; shrinking a term already worth ~1% of it changes little. The two are
+easy to conflate — only the speed-up needs correcting.
+
+**Break-even is not one number; it depends on the assumed batch size**, and
+far more strongly than on anything else:
+| case | bs=1 | bs=8 | bs=32 | bs=128 |
+|---|---|---|---|---|
+| B1 NH | 1,745 | 6,021 | 7,543 | 8,112 |
+| B1 MR | 1,363 | 5,663 | 7,179 | 7,751 |
+| B1 AB | **1,133** | 5,441 | 6,956 | 7,554 |
+| B2 NH | 19,410 | 67,391 | 84,627 | 90,990 |
+| B2 MR | 17,033 | 69,404 | 87,884 | 95,038 |
+| B2 AB | 9,530 | 46,993 | 60,490 | 65,698 |
+Full span 1,133 – 95,038, a factor of 84. The bs=128 figure assumes 128
+problems are available to solve at once — but then FEM is batched too. In
+the realistic deployment case, problems arriving one at a time, break-even
+is **1,133 – 19,410**, not ~96,000. Quoting a break-even without naming the
+batch size it assumes is misleading, so the report must state it.
+
+Against the CPU baseline the report currently uses, break-even is 52 – 1,245
+samples; both baselines should be shown side by side rather than only the
+favourable one.
 GPU-to-GPU speed-up of the trained operator over the GPU FEM solver is
 73.3–79.7×. Per-case break-even vs GPU FEM: B1 NH 8,211 / B1 MR 7,847 /
 B1 AB 7,644 / B2 NH 92,165 / B2 MR 96,275 / B2 AB 66,523. **Not yet written

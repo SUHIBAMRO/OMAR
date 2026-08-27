@@ -1,0 +1,35 @@
+{
+  "_what": "Every input to the point-3 speed-up and break-even numbers, with the exact Drive file each came from. Recorded because these figures were previously computed inline and could not be re-derived later without hunting.",
+  "_verification": "Recomputing the UNMATCHED comparison from these inputs reproduces the figures already in the report: 8,211 / 7,850 / 7,644 / 92,131 / 96,222 / 66,490 against the recorded 8,211 / 7,847 / 7,644 / 92,165 / 96,275 / 66,523. Two are exact; the rest differ by <0.06%, from the report having used each train.log's own bs=1 inference latency rather than the later dedicated benchmark.",
+
+  "gpu_fem_per_sample_ms": {
+    "_source": "pfem_run/results/gpu_fem_solver/{case}_timing.json -- the per-case set Table 10 uses. A second, older set exists at pfem_run/gpu_fem_timing_{B1,B2}.json with slightly different numbers (1649.9 vs 1651.6 at bs=1); do not mix them.",
+    "B1_neo_hookean":   {"1": 1651.647, "8": 477.873, "32": 381.345, "128": 354.576},
+    "B1_mooney_rivlin": {"1": 2047.748, "8": 492.422, "32": 388.330, "128": 359.654},
+    "B1_arruda_boyce":  {"1": 2524.613, "8": 525.473, "32": 410.876, "128": 378.328},
+    "B2_neo_hookean":   {"1": 1665.871, "8": 479.049, "32": 381.350, "128": 354.661},
+    "B2_mooney_rivlin": {"1": 2010.518, "8": 492.843, "32": 389.075, "128": 359.769},
+    "B2_arruda_boyce":  {"1": 2612.071, "8": 529.332, "32": 411.094, "128": 378.490}
+  },
+
+  "transolver_per_sample_ms": {
+    "_source": "pfem_run/inference_latency_by_batch_{case}.json, produced by inference_latency_by_batch.py on an A100-SXM4-80GB",
+    "B1_neo_hookean":   {"1": 4.581594999990557, "8": 0.5733430625127767, "32": 0.336309624998421,   "128": 0.2918395039053223},
+    "B1_mooney_rivlin": {"1": 4.831800999909319, "8": 0.6065163750008651, "32": 0.336433062507524,   "128": 0.2919751796870429},
+    "B1_arruda_boyce":  {"1": 4.7530194999581,   "8": 0.598730062534969,  "32": 0.33646593750091824, "128": 0.2916688593757044},
+    "B2_neo_hookean":   {"1": 4.680230499843674, "8": 0.5850329999930182, "32": 0.33589717187254564, "128": 0.29136171093746555},
+    "B2_mooney_rivlin": {"1": 4.714212499720816, "8": 0.593760437510582,  "32": 0.33586170312815966, "128": 0.29134844531242265},
+    "B2_arruda_boyce":  {"1": 4.799339499868438, "8": 0.6021016874910856, "32": 0.33610515625071,    "128": 0.2918202500001854}
+  },
+
+  "training_wall_clock_s": {
+    "_what": "The 'Total wall clock' line from the log of the run that produced the checkpoint each benchmark actually loaded.",
+    "_caution": "B1 and B2 keep these in different places and under different names, and each geometry has a decoy. B1's live under results/{case}/, B2's under B2_accuracy_search*/lossnorm/. The stale results/B2_* logs (2237-3257 s) belong to the OLD pre-loss-fix B2 runs whose checkpoints are not the ones used; using them would understate B2's training cost roughly tenfold. That the six values span 2,785-34,164 s and the report independently records '2,784-34,164' is the check that the right files were picked.",
+    "B1_neo_hookean":   {"seconds": 2873.8,  "steps": 75000,  "batch_size": 8, "log": "results/B1_neo_hookean/run.log"},
+    "B1_mooney_rivlin": {"seconds": 2785.3,  "steps": 70000,  "batch_size": 8, "log": "results/B1_mooney_rivlin/logs/training.log"},
+    "B1_arruda_boyce":  {"seconds": 2855.6,  "steps": 67500,  "batch_size": 8, "log": "results/B1_arruda_boyce/logs/training.log"},
+    "B2_neo_hookean":   {"seconds": 32244.0, "steps": 840000, "batch_size": 1, "log": "B2_accuracy_search/lossnorm/train.log"},
+    "B2_mooney_rivlin": {"seconds": 34164.1, "steps": 840000, "batch_size": 1, "log": "B2_accuracy_search_mooney_rivlin/lossnorm/train.log"},
+    "B2_arruda_boyce":  {"seconds": 24846.8, "steps": 580000, "batch_size": 1, "log": "B2_accuracy_search_arruda_boyce/lossnorm/train.log"}
+  }
+}
