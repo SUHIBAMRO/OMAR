@@ -34,6 +34,7 @@ Usage:
       --batch_sizes 1,8,32,128 \
       --out_json .../inference_latency_by_batch_B1_neo_hookean.json
 """
+import os
 import json
 import time
 import argparse
@@ -43,6 +44,7 @@ import numpy as np
 import torch
 
 from omar_pfem.model_dict import get_model
+from omar_pfem.run_manifest import write_manifest
 
 
 def build_model(args, device):
@@ -55,6 +57,7 @@ def build_model(args, device):
 
 
 def main():
+    run_started_at = time.time()
     p = argparse.ArgumentParser("Transolver inference latency vs batch size")
     p.add_argument("--geometry", required=True, choices=["B1", "B2"])
     p.add_argument("--material", required=True,
@@ -165,6 +168,22 @@ def main():
     with open(args.out_json, "w") as f:
         json.dump(report, f, indent=2)
     print(f"\nWritten to {args.out_json}")
+
+    write_manifest(
+        os.path.dirname(os.path.abspath(args.out_json)) or ".",
+        kind="inference_latency_by_batch", args=args, started_at=run_started_at,
+        results={"geometry": args.geometry, "material": args.material,
+                 "device": device.type, "n_nodes": int(xy.shape[0]),
+                 "per_sample_ms_by_batch": {str(r["batch_size"]): r["per_sample_ms"]
+                                            for r in rows},
+                 "rows": rows},
+        outputs=[args.out_json],
+        notes=("Advisor request: benchmark Transolver at the SAME batch sizes the GPU-FEM "
+               "solver was benchmarked at, so the two are directly comparable. Timings are "
+               "medians over repeats, taken after untimed warm-up calls and with CUDA "
+               "synchronisation on both sides of the timed region; each batch is built "
+               "from DISTINCT test samples. The GPU/driver recorded in `environment` is "
+               "part of the result -- these numbers are not portable across machines."))
 
 
 if __name__ == "__main__":

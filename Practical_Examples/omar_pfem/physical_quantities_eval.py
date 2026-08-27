@@ -78,6 +78,8 @@ Usage:
       --checkpoint .../model_best.pt --data_path .../hyperelastic_training_data_q4.npz \
       --ntrain 800 --ntest 50 --out_json .../physical_quantities_B1_neo_hookean.json
 """
+import os
+import time
 import json
 import argparse
 import inspect
@@ -86,6 +88,7 @@ import numpy as np
 import torch
 
 from omar_pfem.model_dict import get_model
+from omar_pfem.run_manifest import write_manifest
 from omar_pfem.materials_torch import get_material_fns as get_material_fns_torch
 from omar_pfem.high_dof_convergence_study import (
     compute_l2_h1_errors_cross_order,
@@ -204,6 +207,7 @@ def summarize(per_sample):
 
 
 def main():
+    run_started_at = time.time()
     p = argparse.ArgumentParser(
         "Neural-operator error in H1 semi-norm, energy norm, stress and reactions")
     p.add_argument("--geometry", required=True, choices=["B1", "B2"])
@@ -356,6 +360,21 @@ def main():
     with open(args.out_json, "w") as f:
         json.dump(report, f, indent=2)
     print(f"Report written to {args.out_json}")
+
+    write_manifest(
+        os.path.dirname(os.path.abspath(args.out_json)) or ".",
+        kind="physical_quantities", args=args, started_at=run_started_at,
+        results={"geometry": args.geometry, "material": args.material,
+                 "checkpoint": args.checkpoint, "ntest": len(test),
+                 "metrics": report["metrics"]},
+        outputs=[args.out_json],
+        notes=("Advisor request: report the error in quantities beyond displacement L2 -- "
+               "H1 semi-norm, tangent (incremental) energy norm, PK1 stress components and "
+               "reaction forces -- on held-out samples. Stress is obtained by autodiff "
+               "(P = dW/dF) at the Gauss points, so it is exact for all three materials "
+               "rather than relying on a closed form only Neo-Hookean has. Reactions are "
+               "the assembled internal forces summed over the constrained nodes. Errors "
+               "are relative to the SAME-mesh FEM solution stored in the dataset."))
 
 
 if __name__ == "__main__":

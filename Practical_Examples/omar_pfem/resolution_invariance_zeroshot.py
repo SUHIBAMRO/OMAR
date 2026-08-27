@@ -65,6 +65,7 @@ import torch
 from scipy.interpolate import LinearNDInterpolator
 
 from omar_pfem.model_dict import get_model
+from omar_pfem.run_manifest import write_manifest
 from omar_pfem.data.parametric_field import ParametricFieldB1, ParametricFieldB2
 
 
@@ -278,6 +279,7 @@ def _generate_samples_resumable(build_fn, N, n_train, n_val, material, out_dir, 
 
 
 def cmd_train(args):
+    run_started_at = time.time()
     device = torch.device("cuda" if torch.cuda.is_available() and not args.cpu else "cpu")
     dtype = torch.float32
     os.makedirs(args.out_dir, exist_ok=True)
@@ -435,6 +437,24 @@ def cmd_train(args):
           f"Best combined val_error={best_combined_val:.4e} at epoch={best_epoch}. "
           f"Checkpoint: {args.out_dir}/model_best.pt")
 
+    write_manifest(
+        args.out_dir, kind="zeroshot_train", args=args, started_at=run_started_at,
+        results={"train_resolutions": train_resolutions,
+                 "best_combined_val_error": float(best_combined_val),
+                 "best_epoch": best_epoch,
+                 "final_epoch": metrics_history[-1]["epoch"] if metrics_history else None,
+                 "total_train_wall_clock_s": train_wall_clock,
+                 "opt_steps": opt_steps,
+                 "early_stopped": os.path.exists(os.path.join(args.out_dir, "EARLY_STOPPED"))},
+        outputs=[os.path.join(args.out_dir, f) for f in
+                 ("model_best.pt", "model_final.pt", "metrics_history.json")
+                 if os.path.exists(os.path.join(args.out_dir, f))],
+        notes=("Zero-shot resolution-invariance TRAINING stage: one model trained jointly on "
+               "the listed resolutions. Evaluation on unseen resolutions is a separate "
+               "`eval` run recorded in its own manifest entry. NOTE: total_train_wall_clock_s "
+               "counts the training loop ONLY -- FEM sample generation happens before the "
+               "timer starts and is typically the dominant cost."))
+
 
 # ============================================================
 # Zero-shot evaluation: SAME checkpoint, unseen resolutions, common fine reference
@@ -464,6 +484,7 @@ def interpolate_to_reference(coarse_nodes, coarse_field, fine_nodes):
 
 
 def cmd_eval(args):
+    run_started_at = time.time()
     device = torch.device("cuda" if torch.cuda.is_available() and not args.cpu else "cpu")
     dtype = torch.float32
 
@@ -584,6 +605,28 @@ def cmd_eval(args):
 
     if args.out_json:
         print(f"\nFull report written to {args.out_json} (saved incrementally after each resolution)")
+
+    manifest_dir = (os.path.dirname(os.path.abspath(args.out_json))
+                    if args.out_json else os.path.dirname(os.path.abspath(args.checkpoint)))
+    trained_on = getattr(args, "train_resolutions", None) or (
+        "see the zeroshot_train entry in the checkpoint directory's manifest")
+    write_manifest(
+        manifest_dir, kind="zeroshot_eval", args=args, started_at=run_started_at,
+        results={"checkpoint": args.checkpoint,
+                 "fine_reference_N": args.fine_N,
+                 "n_eval_samples": args.n_eval_samples,
+                 "test_resolutions": test_resolutions,
+                 "per_resolution": {str(r["N"]): r["mean_rel_L2_vs_fine_reference"]
+                                    for r in rows},
+                 "rows": rows},
+        outputs=[p for p in (args.out_json,) if p],
+        notes=("Zero-shot resolution-invariance EVALUATION stage: ONE already-trained "
+               "checkpoint evaluated with no retraining or fine-tuning at the listed "
+               f"resolutions, every one scored against a common N={args.fine_N} FEM "
+               "reference for the same (E, nu, load) field. Resolutions the checkpoint "
+               f"was actually trained on: {trained_on}. "
+               "The fine references are cached in fine_ref_cache_N*.pt and reused across "
+               "test resolutions, so only the first resolution pays for them."))
 
 
 # ============================================================
