@@ -322,7 +322,9 @@ def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
                        device=None, dtype=torch.float64, verbose=True, checkpoint_path=None,
                        cg_progress_every=None, cg_checkpoint_every=2000):
     """Single-sample (no batch dimension) matrix-free Newton-CG solve.
-    elem_params: tuple of (n_elements,) tensors. use_jacobi: recompute the
+    elem_params: tuple of (n_elements,) tensors, or (n_elements, n_gauss)
+    when the material is sampled per Gauss point as B2's reference solver
+    does -- see element_energy_order_agnostic. use_jacobi: recompute the
     exact diagonal of K at the start of every Newton iteration (see
     compute_jacobi_diagonal) and use it to precondition CG -- cheap
     relative to the CG iterations it is meant to reduce, since it only
