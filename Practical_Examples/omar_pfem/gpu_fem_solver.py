@@ -57,6 +57,9 @@ from torch.func import grad, hessian, vmap
 
 from omar_pfem.materials_torch import get_material_fns as get_material_fns_torch
 from omar_pfem.data.materials import get_material_fns as get_material_fns_numpy
+# the reference solver's own shape functions, so the Gauss-point locations
+# this module looks the material up at are the same points, not a re-derivation
+from omar_pfem.data.fem_core import shape_Q4
 from omar_pfem.train_B1 import shape_Q4_torch
 
 
@@ -86,26 +89,62 @@ def precompute_element_params_B1(nodes, elements, E_interp, nu_interp, material)
 
 
 def precompute_element_params_B2(nodes, elements, E_interp, nu_interp, material):
-    """Reproduces data_generate_B2.solve_hyperelastic_TL_ring's own
-    per-element (E, nu) evaluation exactly: the element's Cartesian
-    centroid is converted to polar (theta, r) BEFORE the lookup -- not the
-    average of the corners' own (theta, r), which is not the same point
-    under this curved coordinate map."""
+    """Reproduces data_generate_B2.solve_hyperelastic_TL_ring's own material
+    evaluation exactly: (E, nu) are looked up at EACH of the four Gauss
+    points' own physical locations (N @ Xe), converted to polar (theta, r)
+    before the lookup.
+
+    Not at the element centroid. B2's solver was changed to per-Gauss-point
+    sampling on 2026-08-10 (commit af7e67c) because its material field
+    varies over a curved domain and a single centroid sample misses changes
+    an element can span -- fem_core.element_K_and_fint_TL's docstring calls
+    that "a genuine discretization error distinct from mesh refinement".
+    This function was not updated to follow, so the two solvers quietly
+    stopped solving the same problem and validate_gpu_fem_solver.py went
+    from PASS to FAIL (4.81e-5 absolute, 1.15e-3 mean relative at N=11)
+    without anyone re-running it. Returns (n_elements, 4) arrays, one value
+    per element per Gauss point, in the same Gauss order fem_core uses.
+
+    B1 is deliberately left at the centroid: its own CPU solver samples
+    there too (data_generate_B1.solve_hyperelastic_TL_spatial), on a
+    rectangular mesh where the 2026-08-10 commit confirmed it makes no
+    difference. Matching the reference is the requirement, not uniformity
+    between the two geometries."""
     _, E_nu_to_params_fn = get_material_fns_numpy(material)
+    # Order-aware: high_dof_convergence_study.py calls this for Q9 meshes too,
+    # where an element has 9 nodes and the rule is 3x3, not 4 and 2x2. Picking
+    # the rule from the mesh keeps one function honest for both instead of
+    # silently mis-indexing a Q9 element with Q4 shape functions.
+    n_local = np.asarray(elements).shape[1]
+    if n_local == 4:
+        shape_fn = shape_Q4
+        g = 1.0 / np.sqrt(3.0)
+        gauss = [(-g, -g), (g, -g), (g, g), (-g, g)]
+    elif n_local == 9:
+        from omar_pfem.data.q9_element import shape_Q9, gauss_3x3
+        shape_fn = shape_Q9
+        gauss = [(xi, eta) for (xi, eta, _w) in gauss_3x3()]
+    else:
+        raise ValueError(f"unsupported element with {n_local} local nodes")
+    n_gp = len(gauss)
+
     param_lists = None
     for e in elements:
         Xe = nodes[e]
-        elem_center = Xe.mean(axis=0)
-        r_c = np.linalg.norm(elem_center)
-        theta_c = np.arctan2(elem_center[1], elem_center[0])
-        E_val = E_interp(np.array([[theta_c, r_c]]))[0]
-        nu_val = nu_interp(np.array([[theta_c, r_c]]))[0]
-        params = E_nu_to_params_fn(E_val, nu_val)
-        if param_lists is None:
-            param_lists = [[] for _ in params]
-        for i, p in enumerate(params):
-            param_lists[i].append(float(p))
-    return tuple(np.array(pl, dtype=np.float64) for pl in param_lists)
+        for (xi, eta) in gauss:
+            N, _ = shape_fn(xi, eta)
+            X_gp = N @ Xe
+            r_gp = np.linalg.norm(X_gp)
+            theta_gp = np.arctan2(X_gp[1], X_gp[0])
+            E_val = E_interp(np.array([[theta_gp, r_gp]]))[0]
+            nu_val = nu_interp(np.array([[theta_gp, r_gp]]))[0]
+            params = E_nu_to_params_fn(E_val, nu_val)
+            if param_lists is None:
+                param_lists = [[] for _ in params]
+            for i, pv in enumerate(params):
+                param_lists[i].append(float(pv))
+    n_el = len(elements)
+    return tuple(np.array(pl, dtype=np.float64).reshape(n_el, n_gp) for pl in param_lists)
 
 
 # ============================================================
@@ -114,9 +153,14 @@ def precompute_element_params_B2(nodes, elements, E_interp, nu_interp, material)
 
 def _element_energy_Q4(xy, quad, uv, elem_params, energy_density_fn, dtype):
     """Internal energy U(u) via full 2x2 Gauss quadrature, given
-    PRECOMPUTED, per-element material parameters (elem_params: tuple of
-    (n_elements,) tensors) -- see precompute_element_params_B1/B2. uv is
-    (n_nodes, 2) for a single sample (no batch dim; vmap adds it)."""
+    PRECOMPUTED material parameters -- see precompute_element_params_B1/B2.
+
+    Each entry of elem_params is either (n_elements,), one value used at all
+    four Gauss points, or (n_elements, 4), one value per Gauss point. Both
+    are needed: B1's reference solver samples at the element centroid and B2's
+    samples at each Gauss point, and this module's job is to match whichever
+    reference it is being compared against. uv is (n_nodes, 2) for a single
+    sample (no batch dim; vmap adds it)."""
     Xe = xy[quad]     # (Q,4,2)
     ue = uv[quad]     # (Q,4,2)
 
@@ -125,7 +169,7 @@ def _element_energy_Q4(xy, quad, uv, elem_params, energy_density_fn, dtype):
     w = 1.0
 
     U = torch.zeros((), device=xy.device, dtype=dtype)
-    for (xi, eta) in gps:
+    for g_idx, (xi, eta) in enumerate(gps):
         xi_t = torch.tensor(float(xi), device=xy.device, dtype=dtype)
         eta_t = torch.tensor(float(eta), device=xy.device, dtype=dtype)
         _, dN_dxi = shape_Q4_torch(xi_t, eta_t, xy.device, dtype)
@@ -146,7 +190,8 @@ def _element_energy_Q4(xy, quad, uv, elem_params, energy_density_fn, dtype):
         I = torch.eye(2, device=xy.device, dtype=dtype).reshape(1, 2, 2).expand(Xe.shape[0], 2, 2)
         F = I + grad_u  # (Q,2,2)
 
-        psi = energy_density_fn(F, *elem_params, dtype=dtype)  # (Q,)
+        gp_params = tuple(p[:, g_idx] if p.dim() == 2 else p for p in elem_params)
+        psi = energy_density_fn(F, *gp_params, dtype=dtype)  # (Q,)
         U = U + torch.sum(psi * detJ0 * w)
 
     return U

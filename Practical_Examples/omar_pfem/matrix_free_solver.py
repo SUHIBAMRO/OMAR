@@ -84,13 +84,22 @@ def element_energy_order_agnostic(xy, quad, uv, elem_params, energy_density_fn, 
     for Q9). Vectorized over all elements at once via the quad index
     tensor, exactly mirroring gpu_fem_solver._element_energy_Q4's
     approach, generalized from a hardcoded 4 local nodes to however many
-    quad.shape[1] actually is."""
+    quad.shape[1] actually is.
+
+    Each entry of elem_params is either (n_elements,), one value reused at
+    every Gauss point, or (n_elements, n_gauss), one value per Gauss point.
+    B2's reference solver samples the material per Gauss point, so its
+    parameters arrive in the second form; B1's samples at the centroid and
+    arrives in the first. The Gauss ordering here is the same list this
+    module's own _shape_fn_and_quadrature returns, which is verified equal
+    to gpu_fem_solver's and fem_core's, so column g belongs to Gauss point
+    g in all three."""
     Ns, dNs, ws = shape_data
     Xe = xy[quad]   # (Q, n_local, 2)
     ue = uv[quad]   # (Q, n_local, 2)
 
     U = torch.zeros((), device=xy.device, dtype=dtype)
-    for N, dN_dxi, w in zip(Ns, dNs, ws):
+    for g_idx, (N, dN_dxi, w) in enumerate(zip(Ns, dNs, ws)):
         J0 = torch.einsum("qai,aj->qij", Xe, dN_dxi)
         detJ0 = J0[:, 0, 0] * J0[:, 1, 1] - J0[:, 0, 1] * J0[:, 1, 0]
         detJ0 = torch.clamp(detJ0, min=1e-12)
@@ -107,7 +116,8 @@ def element_energy_order_agnostic(xy, quad, uv, elem_params, energy_density_fn, 
         I = torch.eye(2, device=xy.device, dtype=dtype).reshape(1, 2, 2).expand(Xe.shape[0], 2, 2)
         F = I + grad_u
 
-        psi = energy_density_fn(F, *elem_params, dtype=dtype)
+        gp_params = tuple(p[:, g_idx] if p.dim() == 2 else p for p in elem_params)
+        psi = energy_density_fn(F, *gp_params, dtype=dtype)
         U = U + torch.sum(psi * detJ0 * w)
     return U
 
@@ -121,7 +131,7 @@ def _local_element_energy(ue_flat, Xe, elem_param_tuple, energy_density_fn, shap
     ue = ue_flat.reshape(n_local, 2)
     Ns, dNs, ws = shape_data
     U = torch.zeros((), device=Xe.device, dtype=dtype)
-    for N, dN_dxi, w in zip(Ns, dNs, ws):
+    for g_idx, (N, dN_dxi, w) in enumerate(zip(Ns, dNs, ws)):
         J0 = torch.einsum("ai,aj->ij", Xe, dN_dxi)
         detJ0 = J0[0, 0] * J0[1, 1] - J0[0, 1] * J0[1, 0]
         detJ0 = torch.clamp(detJ0, min=1e-12)
@@ -132,7 +142,10 @@ def _local_element_energy(ue_flat, Xe, elem_param_tuple, energy_density_fn, shap
         F = torch.eye(2, device=Xe.device, dtype=dtype) + grad_u
         # energy_density_fn expects a leading batch dim (F[:, 0, 0]-style
         # indexing) -- add and remove a size-1 one, this is a single element.
-        params_1 = tuple(p.reshape(1) for p in elem_param_tuple)
+        # one element's params: either a scalar (centroid sampling) or one
+        # value per Gauss point, of which this iteration wants the g_idx'th
+        params_1 = tuple((p[g_idx] if p.dim() >= 1 and p.numel() > 1 else p).reshape(1)
+                         for p in elem_param_tuple)
         psi = energy_density_fn(F.unsqueeze(0), *params_1, dtype=dtype)[0]
         U = U + psi * detJ0 * w
     return U

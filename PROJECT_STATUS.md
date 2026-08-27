@@ -23,46 +23,60 @@ leftover from an earlier round and is not among Timon's round-5 requests.
 Left here so a future session does not find it in an old task list and
 revive it.
 
-## 🔴 OPEN: Table 9's three B2 rows are stale (found 2026-08-27)
+## FIXED: the two solvers disagreed on B2 (found and fixed 2026-08-27)
 
-`gpu_fem_solver.py` and the CPU reference no longer solve the same B2
-problem, so Table 9's B2 correctness claim does not hold today.
+`gpu_fem_solver.precompute_element_params_B2` sampled the material once at
+each element's centroid while `solve_hyperelastic_TL_ring` sampled it at
+every Gauss point, so the two were not solving the same B2 problem.
 
-| | CPU reference | gpu_fem_solver |
+Not a design choice and not something the advisor asked for — an oversight
+with a clear timeline. `gpu_fem_solver.py` and its validation script were
+written 2026-07-29 (ff46d33), when both sides sampled at the centroid and
+the validation genuinely passed. On 2026-08-10 (af7e67c) B2's CPU solver was
+upgraded to per-Gauss-point sampling, deliberately and with B1 checked and
+left alone, because "an element can span a genuine change in E/nu that a
+single centroid sample misses". `gpu_fem_solver.py` was last touched
+2026-08-03 and was never updated to follow, and nobody re-ran the
+validation. Table 9 kept reporting the July result.
+
+Evidence the table predates the change: it records `max|u_cpu| = 1.914e-2`
+for B2 x NH; today's reference gives `1.9103e-2`. B1's `2.150e-3` is
+unchanged.
+
+**Fix:** `precompute_element_params_B2` now samples per Gauss point, at the
+same `N @ Xe` locations and in the same Gauss order as the reference (the
+ordering was verified identical across fem_core, gpu_fem_solver and
+matrix_free_solver). It is also order-aware — Q4 gives (n_el, 4), Q9 gives
+(n_el, 9) with the 3x3 rule — since `high_dof_convergence_study.py` calls it
+for Q9 meshes too. Both energy functions in `gpu_fem_solver.py` and
+`matrix_free_solver.py` accept either (n_el,) or (n_el, n_gauss).
+`precompute_element_params_B1` is deliberately untouched: B1's own CPU
+solver samples at the centroid, so matching the reference means staying
+there.
+
+**Verified, all six cases at N=11:**
+| | before | after |
 |---|---|---|
-| B1 | element centroid | element centroid | match -> PASS |
-| B2 | **each Gauss point** | element centroid | mismatch -> FAIL |
+| B1 (all three materials) | 2.2–2.6e-16 PASS | unchanged, PASS |
+| B2 (all three materials) | 4.8e-5 abs, 1.15e-3 rel, **FAIL** | **2.7–4.7e-16, PASS** |
 
-`solve_hyperelastic_TL_ring` evaluates E and nu at every Gauss point via
-`_material_fn(N @ Xe)`; `precompute_element_params_B2` evaluates them once
-at the element centroid. `fem_core.py`'s own docstring calls centroid
-sampling "a genuine discretization error distinct from mesh refinement",
-so the CPU side is the better one and the GPU side is what needs fixing.
+The matrix-free solver was failing on B2 for the same reason and now also
+passes (3.45e-15 vs the CPU reference, against its 1e-4 threshold).
 
-Re-running the repo's own `validate_gpu_fem_solver.py` today:
-- B1 x neo_hookean: max abs diff 2.60e-16, **PASS** (Table 9 says 2.64e-16
-  — reproduces)
-- B2 x neo_hookean: max abs diff 4.81e-5, mean rel 1.15e-3, **FAIL**
-
-The change postdates Table 9: the table records `max|u_cpu| = 1.914e-2`
-for B2 x NH, the current solver gives `1.9103e-2` — the reference solution
-itself moved 0.2%. B1's `2.150e-3` is unchanged. So the B2 CPU solver was
-upgraded to per-Gauss-point material evaluation after Table 9 was produced
-and `precompute_element_params_B2` was never updated to follow.
-
-Scope:
-- Table 10's **timings** are unaffected — where the material is sampled
-  does not change how long a solve takes.
-- Table 9's three B2 rows must be regenerated after the fix.
-- **Point 8** (GPU FEM at millions of DOF) builds on this solver, so the
-  fix comes first.
-- **The zero-shot notebooks are NOT affected.** They call the CPU
-  reference directly and never touch gpu_fem_solver.py.
-
-Fix: make `precompute_element_params_B2` return per-Gauss-point parameters
-and let the batched energy function consume (B, n_elem, 4) instead of
-(B, n_elem). Then re-run the validation for all six cases and regenerate
-Table 9's B2 rows.
+### Consequences still to handle
+1. **Table 9's three B2 rows must be regenerated** — the fix changes them
+   from what is printed (they will now be ~e-16 rather than the stale
+   figures, which happen to look similar because the July run was genuinely
+   passing at the time).
+2. **Table 10's timings are unaffected** — where the material is sampled
+   does not change how long a solve takes.
+3. **The Q9 / high-DOF B2 numbers shift slightly.** Tables 13/14 and the
+   10M/40M-DOF references were produced with centroid sampling on B2 and
+   would move by roughly 0.1% if re-run. The Q4-vs-Q9 conclusion is a
+   two-order gap, far larger than that, so it stands — but the digits are
+   now stale. Decide whether to re-run.
+4. **The zero-shot notebooks are unaffected.** They call the CPU reference
+   directly and never touch either GPU solver.
 
 ## Advisor's Round-5 feedback (2026-08-26) — 9 requests
 
