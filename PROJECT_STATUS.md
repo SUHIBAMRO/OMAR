@@ -23,6 +23,22 @@ leftover from an earlier round and is not among Timon's round-5 requests.
 Left here so a future session does not find it in an old task list and
 revive it.
 
+**Point 2's inputs were NOT already in hand (corrected 2026-08-27).** An
+earlier note here said the Pareto only needed plotting. It does not. The
+report's existing FEM accuracy-vs-cost curve (Table 6a) scores a fixed
+analytic field against a ~10M-DOF reference, while the operator's error is
+measured on random GRF fields against a same-mesh FEM solution — different
+problems, different references, different hardware. Plotting them on shared
+axes would look convincing and mean nothing.
+
+`omar_pfem/pareto_analysis.py` measures both sides itself instead: same
+problem instances (the parametric fields, same seeds), same fine-mesh
+reference at `--fine_N`, same device, same batch size, with the operator
+evaluated at every resolution from one checkpoint since resolution
+invariance is the claim under test. It reuses the zero-shot eval's own
+`fine_ref_cache_N*.pt`, so pointing it at a finished zero-shot case costs
+nothing for the references. Smoke-tested end to end.
+
 ## CLOSED: the two solvers disagreed on B2 (found and fixed 2026-08-27)
 
 `gpu_fem_solver.precompute_element_params_B2` sampled the material once at
@@ -95,13 +111,13 @@ summary cannot settle a question about what was actually asked.
 | # | Request | Status |
 |---|---|---|
 | 1 | Complete zero-shot resolution tests for the other five cases | 🟡 **restarted as 5 separate resumable notebooks** (the 3-notebook run lost its progress twice — see below) |
-| 2 | Construct GPU-FEM vs Transolver accuracy/cost **Pareto** comparison | ⬜ have all inputs, needs the plot + analysis |
+| 2 | Construct GPU-FEM vs Transolver accuracy/cost **Pareto** comparison | 🟡 **`omar_pfem/pareto_analysis.py` written and smoke-tested**; needs one run per finished zero-shot case |
 | 3 | Recompute **break-even using GPU FEM** (not CPU) | ✅ **computed — see below** |
 | 4 | Benchmark Transolver and GPU FEM under **identical batch sizes** | ⬜ needs Transolver inference at bs=8/32/128 (currently bs=1 only) |
 | 5 | Error in **physically important quantities** beyond displacement: H1 semi-norm, energy, stress components, reaction forces, maxima (for the Transolver) | 🟡 **script written + verified, not yet run on real checkpoints** |
 | 6 | Investigate **OOD robustness** — the 4–5× degradation is "probably the biggest obstacle to a strong physics-informed operator claim" | ⬜ research, not just measurement |
 | 7 | Resolution invariance: train on 2, test on 5 **coarser AND finer**; the point being *"train on a very coarse grid and inference on a finer grid ... could provide computational savings"* — so **quantify the savings**, not just the flat error. Plus a **data-driven** comparison, its data *"from two different (fine enough) simulations"* (i.e. matched to the PI model's two training resolutions) | 🟡 7a covered by the per-case notebooks (7 resolutions, a superset of his 5); 7b pending |
-| 8 | Test GPU-native FEM at **finer discretizations up to a few million DOFs**; and: *"Did you use Tensormesh or write the code yourself?"* | ⬜ answer known (below); timing sweep pending |
+| 8 | Test GPU-native FEM at **finer discretizations up to a few million DOFs**; and: *"Did you use Tensormesh or write the code yourself?"* | 🟡 **the Tensormesh question is answered in the report** (§8.5 now states it was written from scratch in PyTorch, not Tensormesh or any FE library); the 0.5/1/2/4M timing sweep is ready to run now that the solver is validated |
 | 9 | Use **MMS** as ground truth instead of a baseline FEM solution, to test the operator *"compared to FEM"* — i.e. **both** are scored against the manufactured truth, which is the only way FEM itself gets graded (today it *is* the reference, so it cannot be) | ⬜ largest item; blocked on the energy functional having no body-force term, which MMS requires |
 
 **Table 10 verified correct (2026-08-27).** Two things were checked here.
