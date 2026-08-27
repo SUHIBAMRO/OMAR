@@ -58,6 +58,7 @@ import sys
 import json
 import time
 import random
+import hashlib
 import argparse
 
 import numpy as np
@@ -110,7 +111,8 @@ def build_sample_b1(N, seed, material, Lx=1.0, Ly=1.0, solve_fem=True):
 
 
 def build_sample_b2(N, seed, material, R_in=1.0, R_out=2.0, solve_fem=True):
-    from omar_pfem.data.data_generate_B2 import generate_grid_Q4_ring, solve_hyperelastic_TL_ring
+    from omar_pfem.data.data_generate_B2 import (
+        generate_grid_Q4_ring, solve_hyperelastic_TL_ring, assemble_traction_inner_curved)
 
     nodes, elements = generate_grid_Q4_ring(R_in, R_out, N, N)
     E_fn = ParametricFieldB2("E", seed)
@@ -137,12 +139,22 @@ def build_sample_b2(N, seed, material, R_in=1.0, R_out=2.0, solve_fem=True):
     E_node = E_fn(polar).astype(np.float32)
     nu_node = nu_fn(polar).astype(np.float32)
 
-    node_forces = np.zeros((len(nodes), 2), dtype=np.float32)
-    if len(inner_edges) > 0:
-        inner_nodes = np.unique(inner_edges[:, [0, 3]].reshape(-1))
-        p_vals = p_fn(polar[inner_nodes])
-        normals = nodes[inner_nodes] / np.linalg.norm(nodes[inner_nodes], axis=1, keepdims=True)
-        node_forces[inner_nodes] = (p_vals[:, None] * normals).astype(np.float32)
+    # The FEM-consistent nodal force, integral(N_a * p * n) ds, assembled by
+    # exactly the routine the ground-truth solve uses (solve_hyperelastic_TL_ring
+    # calls it internally), NOT a raw pointwise "pressure x normal" per node.
+    #
+    # This distinction is not cosmetic here. train_B2's energy functional takes
+    # W = sum(node_forces * uv) with no averaging, precisely because it expects
+    # the assembled force; feeding it the raw pointwise field inflates W by
+    # roughly the inner-edge count, which collapses training. Worse for THIS
+    # study specifically, the raw field's magnitude grows with the mesh (13.1x
+    # the correct total at N=21, 20.7x at N=33) while the assembled force is
+    # mesh-independent, as a physical load must be -- so each resolution was
+    # being trained on a different loading, which is fatal to a resolution-
+    # invariance experiment by construction. See data_generate_B2.py's
+    # assemble_traction_inner_curved and check_boundary_force_consistency.py.
+    node_forces = assemble_traction_inner_curved(
+        nodes, elements, R_in, p_fn).reshape(-1, 2).astype(np.float32)
 
     uv_exact = None
     if solve_fem:
@@ -525,14 +537,37 @@ def cmd_eval(args):
     # checkpoint being evaluated was untouched. Write out_json after every
     # resolution, and skip resolutions already present in an existing
     # out_json on resume.
+    # Resuming must never mix results from two different checkpoints. The
+    # rows already on disk were produced by whatever model_best.pt existed
+    # when that run happened; if training has since improved the checkpoint,
+    # those rows describe a model that no longer exists, and silently
+    # keeping them would produce a table whose rows come from different
+    # networks. Fingerprint the checkpoint and discard the cache when it
+    # does not match. (Without this the failure is invisible: a resumed eval
+    # returns in seconds and prints a full, plausible table.)
+    ckpt_fingerprint = hashlib.sha256(open(args.checkpoint, "rb").read()).hexdigest()
+    print(f"Checkpoint fingerprint: {ckpt_fingerprint[:16]}")
+
     rows = []
     done_Ns = set()
     if args.out_json and os.path.exists(args.out_json):
         with open(args.out_json) as f:
-            rows = json.load(f).get("rows", [])
-        done_Ns = {r["N"] for r in rows}
-        if done_Ns:
-            print(f"[resume] {args.out_json} already has N={sorted(done_Ns)} -- skipping those.")
+            prev = json.load(f)
+        prev_fp = prev.get("checkpoint_fingerprint")
+        if prev_fp == ckpt_fingerprint:
+            rows = prev.get("rows", [])
+            done_Ns = {r["N"] for r in rows}
+            if done_Ns:
+                print(f"[resume] {args.out_json} already has N={sorted(done_Ns)} "
+                      f"for this same checkpoint -- skipping those.")
+        elif prev_fp is None:
+            print(f"[stale] {args.out_json} was written before checkpoints were "
+                  f"fingerprinted, so its rows cannot be attributed to this "
+                  f"checkpoint -- re-evaluating every resolution.")
+        else:
+            print(f"[stale] {args.out_json} was produced by a DIFFERENT checkpoint "
+                  f"({prev_fp[:16]} != {ckpt_fingerprint[:16]}) -- discarding its "
+                  f"rows and re-evaluating every resolution.")
 
     def _save_report():
         if not args.out_json:
@@ -540,7 +575,9 @@ def cmd_eval(args):
         tmp = args.out_json + ".tmp"
         with open(tmp, "w") as f:
             json.dump({"geometry": args.geometry, "material": args.material,
-                       "checkpoint": args.checkpoint, "fine_N": args.fine_N,
+                       "checkpoint": args.checkpoint,
+                       "checkpoint_fingerprint": ckpt_fingerprint,
+                       "fine_N": args.fine_N,
                        "test_resolutions": test_resolutions, "rows": rows}, f, indent=2)
         os.replace(tmp, args.out_json)
 
@@ -635,6 +672,7 @@ def cmd_eval(args):
     write_manifest(
         manifest_dir, kind="zeroshot_eval", args=args, started_at=run_started_at,
         results={"checkpoint": args.checkpoint,
+                 "checkpoint_fingerprint": ckpt_fingerprint,
                  "fine_reference_N": args.fine_N,
                  "n_eval_samples": args.n_eval_samples,
                  "test_resolutions": test_resolutions,
