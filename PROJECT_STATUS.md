@@ -66,6 +66,30 @@ cost, which varies 25.4–61.7 s/sample across materials, while GPU cost barely
 moves (354.6–378.5 ms). Mooney-Rivlin and Arruda-Boyce cost 2.0–2.4x more on
 CPU than Neo-Hookean, so they show the larger speed-ups.
 
+**v27 -> v28 and the summary updated (2026-08-27).** The matched-batch
+comparison is now written into both documents, in section 8.5 of the report
+and section 5 of the summary. Build scripts are kept in
+`Practical_Examples/report_builders/` so the edit is reproducible rather
+than a one-off manual pass.
+
+What changed in the report:
+1. Section 8.5's closing paragraph claimed "a 73–80x GPU-to-GPU speed-up".
+   It now says that figure compares the FEM solver at bs=128 against the
+   operator at bs=1, and gives the matched figure of 1,215–1,297x.
+2. New subsection "Operator vs. GPU-native FEM at identical batch sizes"
+   with Tables 10a (operator latency by batch size), 10b (matched speed-up)
+   and 10c (break-even). Numbered 10a-c rather than renumbering Tables
+   11–14 and every cross-reference; the document already uses "Table 4a".
+3. States both baselines rather than only the favourable one, and states
+   two limitations: both sides measured at N=21 only, and B2's break-even
+   is an order of magnitude later because its corrected recipe cost an
+   order of magnitude more to train.
+
+Verification: all 72 values across the three new tables recomputed from
+`point3_inputs.json` and matched — one rounding slip caught this way (833.5
+written as 834). The summary's three tables were then compared cell by cell
+against the report's; 0 differences.
+
 **Points 3 + 4 recomputed at MATCHED batch sizes (2026-08-27).** All inputs
 and their exact Drive paths are recorded in
 `Practical_Examples/omar_pfem/point3_inputs.json`; the calculation is
