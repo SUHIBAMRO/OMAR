@@ -15,6 +15,14 @@ verified. See "Round 5" below.)
 
 ---
 
+## Dropped, do not restart
+
+**B2 mesh-convergence study (the second case of the old round's point 1).**
+Cancelled by the user on 2026-08-27: "خلص ملغي ما بدنا ياه". It was a
+leftover from an earlier round and is not among Timon's round-5 requests.
+Left here so a future session does not find it in an old task list and
+revive it.
+
 ## Advisor's Round-5 feedback (2026-08-26) — 9 requests
 
 Timon's framing: *"the results ... are very interesting. I think we can wrap
