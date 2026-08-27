@@ -5,7 +5,46 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-26 (**full Drive audit completed → report v26**. User
+Last updated: 2026-08-26 (**v27 + summary finalized for sending to Timon**)
+
+**v26 → v27 and summary finalization (2026-08-26).** Two things closed out:
+1. **The Q9 CG caveat is now IN the report** (§4.4, end of the Q4-vs-Q9
+   paragraph). It had been drafted much earlier but never actually inserted —
+   verified by grepping v26, which contained no mention of it at all. Written
+   in neutral numerical-methods language per the user's explicit instruction to
+   state it factually without framing it as a defect ("reached its allotted
+   iteration budget", not "failed"): 6 of 20 Newton iterations on the Q9 fine
+   solve hit the CG budget before meeting cg_tol, while the Q4 fine solve and
+   the entire small-N sweep for BOTH orders met it every time; Newton itself
+   converged; the practical consequence is that this one comparison's norms are
+   good to leading digits, not full precision; the margin is far below the
+   two-order gap to 10⁻⁵ so the conclusion stands.
+2. **The summary doc now opens with a plain-language narrative** ("Summary of
+   what was done and what came out", 8 short paragraphs) and **closes with a
+   Conclusion** (6 paragraphs: standing, the B2 result, the two conclusions that
+   changed under scrutiny, efficiency, limitations stated plainly, remaining
+   work). Previously it was tables+figures only, which the user found too bare
+   to hand to an advisor.
+Also drafted a short covering email for Timon (long version rejected as too
+long; short version leads with the results and ends with two direct questions:
+whether the Q4-vs-Q9 evidence is acceptable given 10⁻⁵ is met only in L2, and
+whether B2's high-DOF study should be prioritised over finishing the five
+resolution-invariance cases).
+
+**Note on a fair challenge the user raised:** they asked whether numbers in the
+tables that look suspiciously similar were fabricated or placeholder defaults.
+Checked at full precision and they are not — the similarity is confined to
+places where it is expected: (a) *settings* identical by construction (Newton
+tol 1e-7, 30 iters, 10 load steps); (b) *analytical* FLOP counts, which depend
+only on system size (solve FLOPs identical for all six; assembly identical
+between MR and AB by construction of the hand-count); (c) GPU memory, which is
+driven by the identical network/batch/mesh — and even there B1 reads
+425.049088 while B2 reads 425.0496, i.e. genuinely different values that merely
+round to the same 425.05, with the variation tracking *material* (extra
+intermediate tensors in the energy computation) rather than geometry, which is
+physically right. Every actually-measured quantity differs across all six cases.
+
+Previous entry: 2026-08-26 (**full Drive audit completed → report v26**. User
 correctly pushed back that the CODE should be saving its results; fixed that,
 then had them run one Colab cell that dumped every remaining source file at
 once. That closed the audit and caught 2 real errors — see below.)
@@ -245,7 +284,7 @@ no XML/relationship changes needed for this one. Figures 2-7 were checked
 and do NOT need updating (their captions' epoch/sid values already match
 the corrected `lossnorm` folders).
 
-Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v26**), kept in the
+Report file: `PFEM_Transolver_Report_vNN.docx` (latest: **v27**), kept in the
 scratchpad, delivered to the user via SendUserFile after each update — not
 committed to this repo.
 
