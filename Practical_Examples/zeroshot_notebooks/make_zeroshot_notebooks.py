@@ -34,6 +34,51 @@ def code(*lines):
             "outputs": [], "source": [l + "\n" for l in lines]}
 
 
+def repair_cells(geom):
+    """For B2 only: repair caches generated with the wrong nodal force.
+
+    B2's zero-shot samples were built with a raw pointwise "pressure x
+    normal" force instead of the FEM-consistent assembled traction, which
+    made the load 13-21x too large AND mesh-dependent, so each training
+    resolution saw a different loading. Anything trained on those samples
+    is invalid. The FEM ground truth in each sample is unaffected and is
+    the expensive part, so the cache is repaired rather than regenerated.
+    """
+    if geom != "B2":
+        return []
+    return [
+        md("## خلية 1ب — إصلاح القوة (لحالات B2 فقط)",
+           "",
+           "العينات القديمة انبنت بقوة عقدية غلط: قيمة الضغط مباشرة بدل",
+           "القوة المُجمَّعة الي بيستعملها حل FEM. النتيجة كانت حِمل أكبر",
+           "13–21×، **وبيتغيّر مع الشبكة** — يعني كل دقة كانت تتدرب على",
+           "حِمل مختلف، وهاد بيلغي تجربة ثبات الدقة من أساسها.",
+           "",
+           "الحل الصحيح جوّا كل عينة (`uv_exact`) سليم — هو الغالي، وهو",
+           "الي بناخده. فمنصلّح القوة بس، بثواني، بدل ما نعيد ساعات توليد.",
+           "",
+           "**وبنمسح ال-checkpoints القديمة**، لأنها اتدربت على الحِمل الغلط."),
+        code(
+            "import os, glob",
+            "",
+            "if glob.glob(f'{OUT}/samples_cache*.pt'):",
+            "    !python -m omar_pfem.repair_b2_sample_cache --out_dir \"{OUT}\"",
+            "else:",
+            "    print('ما في كاش عينات — بلّش من خلية 2 عادي، الكود الجديد بيولّد صح')",
+            "",
+            "# أي نموذج اتدرب على القوة الغلط لازم يروح، وإلا التدريب بيكمّل من",
+            "# حالة مسمومة. ملفات النتائج بتتصلح لحالها: التقييم صار يبصم",
+            "# ال-checkpoint وبيرفض صفوف من نموذج تاني.",
+            "for f in ('model_best.pt', 'model_final.pt', 'train_state_latest.pt',",
+            "          'metrics_history.json', 'EARLY_STOPPED'):",
+            "    path = os.path.join(OUT, f)",
+            "    if os.path.exists(path):",
+            "        os.remove(path); print('انمسح:', f)",
+            "print('\\nجاهز — كمّل على خلية 2')",
+        ),
+    ]
+
+
 def build(geom, mat):
     case = f"{geom}_{mat}"
     return {
@@ -111,6 +156,8 @@ def build(geom, mat):
                 "        cached = glob.glob(f'{d}/samples_cache*.pt')",
                 "        print(' ', d, '<-- فيه كاش عينات!' if cached else '')",
             ),
+
+            *repair_cells(geom),
 
             md("## خلية 2 — توليد بيانات FEM (الخطوة الغالية)",
                "",
