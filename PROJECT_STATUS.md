@@ -23,7 +23,7 @@ leftover from an earlier round and is not among Timon's round-5 requests.
 Left here so a future session does not find it in an old task list and
 revive it.
 
-## FIXED: the two solvers disagreed on B2 (found and fixed 2026-08-27)
+## CLOSED: the two solvers disagreed on B2 (found and fixed 2026-08-27)
 
 `gpu_fem_solver.precompute_element_params_B2` sampled the material once at
 each element's centroid while `solve_hyperelastic_TL_ring` sampled it at
@@ -63,18 +63,20 @@ there.
 The matrix-free solver was failing on B2 for the same reason and now also
 passes (3.45e-15 vs the CPU reference, against its 1e-4 threshold).
 
-### Consequences still to handle
-1. **Table 9's three B2 rows must be regenerated** — the fix changes them
-   from what is printed (they will now be ~e-16 rather than the stale
-   figures, which happen to look similar because the July run was genuinely
-   passing at the time).
+### Consequences, all settled
+1. **Table 9 regenerated** in both the report and the summary, from a fresh
+   run of `validate_gpu_fem_solver.py` at N=11 (the configuration the table
+   was originally produced at). All six rows PASS. The two documents'
+   copies were compared cell by cell and are identical. Note the summary
+   has *two* tables carrying a "Verdict" column — this one and the
+   Q4-vs-Q9 convergence table — so match on the case names, not the header.
 2. **Table 10's timings are unaffected** — where the material is sampled
    does not change how long a solve takes.
-3. **The Q9 / high-DOF B2 numbers shift slightly.** Tables 13/14 and the
-   10M/40M-DOF references were produced with centroid sampling on B2 and
-   would move by roughly 0.1% if re-run. The Q4-vs-Q9 conclusion is a
-   two-order gap, far larger than that, so it stands — but the digits are
-   now stale. Decide whether to re-run.
+3. **Q9 / high-DOF B2 numbers: left as they are, by the user's decision
+   (2026-08-27).** Tables 13/14 and the 10M/40M-DOF references were produced
+   with centroid sampling on B2 and would move by roughly 0.1% if re-run.
+   The Q4-vs-Q9 conclusion is a two-order gap, far larger than that, so it
+   stands. Not worth the compute now; revisit only if a reason appears.
 4. **The zero-shot notebooks are unaffected.** They call the CPU reference
    directly and never touch either GPU solver.
 
