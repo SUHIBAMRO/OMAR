@@ -5,7 +5,95 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-26 (**v27 + summary finalized for sending to Timon**)
+Last updated: 2026-08-26 (**Timon's ROUND-5 feedback arrived — 9 new requests.
+Started on them: point 3 computed, point 5's evaluation script written and
+verified. See "Round 5" below.**)
+
+---
+
+## Advisor's Round-5 feedback (2026-08-26) — 9 requests
+
+Timon's framing: *"the results ... are very interesting. I think we can wrap
+them up in a paper but I still have a few comments and requests."* So the work
+is now aimed at a publication.
+
+| # | Request | Status |
+|---|---|---|
+| 1 | Complete zero-shot resolution tests for the other five cases | 🟡 running in the 3 Colab notebooks |
+| 2 | Construct GPU-FEM vs Transolver accuracy/cost **Pareto** comparison | ⬜ have all inputs, needs the plot + analysis |
+| 3 | Recompute **break-even using GPU FEM** (not CPU) | ✅ **computed — see below** |
+| 4 | Benchmark Transolver and GPU FEM under **identical batch sizes** | ⬜ needs Transolver inference at bs=8/32/128 (currently bs=1 only) |
+| 5 | Error in **physically important quantities** beyond displacement: H1 semi-norm, energy, stress components, reaction forces, maxima (for the Transolver) | 🟡 **script written + verified, not yet run on real checkpoints** |
+| 6 | Investigate **OOD robustness** — the 4–5× degradation is "probably the biggest obstacle to a strong physics-informed operator claim" | ⬜ research, not just measurement |
+| 7 | Resolution invariance: train on 2, test on 5 **coarser AND finer**; plus a comparison against a **data-driven** version | ⬜ see the warning below |
+| 8 | Test GPU-native FEM at **finer discretizations up to a few million DOFs**; and: *"Did you use Tensormesh or write the code yourself?"* | ⬜ answer known (below); timing sweep pending |
+| 9 | Use **MMS** (method of manufactured solutions) as ground truth instead of a baseline FEM solution | ⬜ largest item; Timon himself called it "more time consuming" earlier |
+
+**Point 3 result (computed 2026-08-26).** Break-even against a *GPU* FEM
+baseline is dramatically worse than against CPU FEM, which is the honest and
+important finding here:
+| baseline | break-even range |
+|---|---|
+| CPU FEM (what the report currently uses) | 52 – 1,245 samples |
+| **GPU FEM @ bs=128 (Timon's point 3)** | **7,644 – 96,275 samples** |
+GPU-to-GPU speed-up of the trained operator over the GPU FEM solver is
+73.3–79.7×. Per-case break-even vs GPU FEM: B1 NH 8,211 / B1 MR 7,847 /
+B1 AB 7,644 / B2 NH 92,165 / B2 MR 96,275 / B2 AB 66,523. **Not yet written
+into the report.**
+
+**Point 8 — the answer to Timon's direct question:** the GPU FEM solver was
+**written from scratch in PyTorch, not Tensormesh or any FEM library**. It
+reuses the validated CPU solver's own force assembly and per-element material
+evaluation, and gets the tangent by autodiff (`torch.func.hessian` + `vmap`)
+rather than a hand-derived formula. See `gpu_fem_solver.py`'s docstring.
+**Important limitation for point 8's second half:** that solver uses a DENSE
+`torch.linalg.solve` per Newton step, which cannot reach millions of DOF (a
+dense 3M×3M matrix is ~72 TB). The repo already has `matrix_free_solver.py`
+— a matrix-free Newton-CG that never forms K and is what produced the
+10M/40M-DOF references — so point 8 is a *timing sweep of the matrix-free
+solver*, not new solver development.
+
+**⚠️ Point 7 — affects the currently-running jobs.** Timon wants test
+resolutions both **coarser and finer** than the training ones. The running
+config trains on N=21,33 and tests on N=25,29,37,41,49 — **nothing is coarser
+than 21**. Not a disaster: training (the expensive part) is unaffected, and
+eval is a separate, cheap, re-runnable command on the same checkpoint, so the
+fix is to re-run `eval` later with e.g. `--test_resolutions 13,17,25,29,41,49`.
+
+**Point 5 progress (2026-08-26): `physical_quantities_eval.py` written.**
+Computes, per held-out sample: displacement rel-L2 (for continuity with the
+existing reports), H1 semi-norm, tangent-energy norm, PK1 stress per component
++ Frobenius + peak, and reaction forces on the constrained boundary (resultant,
+nodal, max). Design notes:
+- H1 and energy norms **reuse** `compute_l2_h1_errors_cross_order` and
+  `compute_tangent_energy_error` from `high_dof_convergence_study.py`, so the
+  operator is scored with the *same* norms as the Q4-vs-Q9 FE study; a
+  prediction is just packaged into the same "solved field" dict shape.
+- PK1 = dW/dF by autodiff of `materials_torch`'s energy density, so one code
+  path covers all three materials (only Neo-Hookean has a closed-form PK1).
+- Internal force assembled from the same Gauss-point stresses; on the
+  constrained nodes external traction is zero in both benchmarks, so that IS
+  the reaction. B1 fixes both components on `bottom_nodes`; B2's two radial
+  edges are symmetry planes fixing one component each, handled separately.
+- **Verified, not assumed.** Three bugs were caught during writing by checking
+  the real signatures: `gauss_points_and_weights_physical` returns 6 values
+  (not 4, and it hands back `N`/`dN_dX`, which removed a hacky interpolation
+  workaround); `train_B2` uses the SAME symbol names as `train_B1` (the B2-
+  specific names I first guessed do not exist); and `compute_tangent_energy_error`
+  returns `tangent_energy_rel`, not `energy_rel`. Then smoke-tested: (a) u=0 →
+  PK1 and reactions exactly 0; (b) uniform stretch → PK1 constant across all
+  Gauss points and **matching a finite-difference of the energy density to
+  4e-8 relative** (independent check of the autodiff path); (c) pred==ref →
+  all errors exactly 0; (d) full end-to-end run on a toy checkpoint completes
+  and writes its JSON.
+- **Methodological caveat found while testing:** P12/P21 are near zero almost
+  everywhere in both benchmarks, so their *relative* errors are huge even when
+  absolute errors are negligible. Quote `P_rel_L2` (Frobenius) as the stress
+  number; use `*_max_abs_err` for the shear components. Documented in the file.
+
+---
+
+Previous entry: 2026-08-26 (**v27 + summary finalized for sending to Timon**)
 
 **v26 → v27 and summary finalization (2026-08-26).** Two things closed out:
 1. **The Q9 CG caveat is now IN the report** (§4.4, end of the Q4-vs-Q9
