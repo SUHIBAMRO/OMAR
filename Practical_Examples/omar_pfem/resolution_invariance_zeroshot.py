@@ -310,7 +310,29 @@ def cmd_train(args):
         torch.save({"train_samples": train_samples, "val_samples": val_samples}, samples_cache_path)
         print(f"Cached samples -> {samples_cache_path}")
 
-    mesh_tensors = {N: mesh_tensors_of(args.geometry, train_samples[N][0], device, dtype)
+    if args.stop_after_generation:
+        # Generation is the dominant cost (hours per resolution) while the
+        # training loop that follows is minutes. Separating them lets the
+        # slow half run and be confirmed finished on its own, so a failure
+        # in the fast half never puts the slow half at risk.
+        write_manifest(
+            args.out_dir, kind="zeroshot_generate", args=args, started_at=run_started_at,
+            results={"train_resolutions": train_resolutions,
+                     "n_train_per_res": args.n_train_per_res,
+                     "n_val_per_res": args.n_val_per_res,
+                     "n_train_generated": {str(N): len(train_samples[N]) for N in train_resolutions},
+                     "n_val_generated": {str(N): len(val_samples[N]) for N in train_resolutions}},
+            outputs=[samples_cache_path],
+            notes=("FEM data generation ONLY (--stop_after_generation); no training was run. "
+                   "duration_s covers however much generation THIS invocation did -- if an "
+                   "earlier interrupted run had already produced part of the samples, the "
+                   "remainder was resumed from samples_cache_N*.pt and the true total "
+                   "generation cost is the sum over every zeroshot_generate entry here."))
+        print("\n--stop_after_generation: sample generation finished; training NOT started.\n"
+              "Run the same command without that flag to train on this cached data.")
+        return
+
+    mesh_tensors ={N: mesh_tensors_of(args.geometry, train_samples[N][0], device, dtype)
                     for N in train_resolutions}
 
     model = build_model(args, device)
@@ -667,6 +689,11 @@ def main():
                           help="FEM samples generated between on-disk saves. Smaller = less "
                                "lost to an interrupted Colab session, at the cost of more "
                                "frequent (cheap) writes.")
+    p_train.add_argument("--stop_after_generation", action="store_true",
+                          help="Generate (or finish generating) the FEM samples, write the "
+                               "cache, and exit WITHOUT training. Lets the multi-hour data "
+                               "generation run as its own step, separate from the minutes-long "
+                               "training loop that consumes it.")
     p_train.add_argument("--batch_size", type=int, default=8)
     p_train.add_argument("--epochs", type=int, default=2000)
     p_train.add_argument("--validate_every", type=int, default=25)
