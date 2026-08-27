@@ -226,6 +226,57 @@ def evaluate_resolution(geometry, samples, mesh_tensors, model, args, device, dt
 # Training: interleaved batches across the training resolutions
 # ============================================================
 
+def _generate_samples_resumable(build_fn, N, n_train, n_val, material, out_dir, chunk=25):
+    """Generate one resolution's FEM samples with INCREMENTAL on-disk saving.
+
+    This replaces a version that generated every resolution into memory and
+    wrote a single combined `samples_cache.pt` only after the whole loop had
+    finished. That was silently catastrophic on Colab: generation measured
+    7.3 hours for N=21 alone, so a session that died anywhere before the very
+    end -- including hours into the SECOND resolution -- threw away every
+    sample and restarted from zero. Two real sessions were lost that way.
+
+    Here each resolution owns a `samples_cache_N{N}.pt`, rewritten every
+    `chunk` samples via a tmp-file + os.replace so an interruption mid-write
+    cannot corrupt it. A restart reloads whatever is complete and continues
+    from that index, so the worst case loses `chunk` samples (minutes), not
+    everything (hours).
+
+    Seeds are unchanged from the original implementation (10_000*N + i for
+    train, 10_000*N + 500_000 + i for val), so resumed or regenerated data is
+    bit-identical to what the already-finished B1 x Neo-Hookean run used --
+    this fix changes only WHEN samples are written, never WHICH samples."""
+    path = os.path.join(out_dir, f"samples_cache_N{N}.pt")
+    done = {"train": [], "val": []}
+    if os.path.exists(path):
+        try:
+            done = torch.load(path, weights_only=False)
+            print(f"  [resume] N={N}: found {len(done['train'])}/{n_train} train, "
+                  f"{len(done['val'])}/{n_val} val already generated")
+        except Exception as e:                      # corrupt/partial file: start over for this N only
+            print(f"  [resume] N={N}: cache unreadable ({e}); regenerating this resolution")
+            done = {"train": [], "val": []}
+
+    def _fill(key, total, seed_base):
+        while len(done[key]) < total:
+            i0, i1 = len(done[key]), min(len(done[key]) + chunk, total)
+            t0 = time.time()
+            for i in range(i0, i1):
+                done[key].append(build_fn(N, seed=seed_base + i, material=material)[0])
+            tmp = path + ".tmp"
+            torch.save(done, tmp)
+            os.replace(tmp, path)
+            rate = (time.time() - t0) / max(i1 - i0, 1)
+            remaining = (total - len(done[key])) * rate
+            print(f"  N={N} {key}: {len(done[key])}/{total} saved "
+                  f"({rate:.1f}s/sample, ~{remaining/60:.0f} min left for this split)",
+                  flush=True)
+
+    _fill("train", n_train, 10_000 * N)
+    _fill("val", n_val, 10_000 * N + 500_000)
+    return done["train"], done["val"]
+
+
 def cmd_train(args):
     device = torch.device("cuda" if torch.cuda.is_available() and not args.cpu else "cpu")
     dtype = torch.float32
@@ -251,15 +302,11 @@ def cmd_train(args):
               f"({args.n_train_per_res} train + {args.n_val_per_res} val each, real FEM solves)...")
         train_samples, val_samples = {}, {}
         for N in train_resolutions:
-            t0 = time.time()
-            train_samples[N] = [build_fn(N, seed=10_000 * N + i, material=args.material)[0]
-                                 for i in range(args.n_train_per_res)]
-            val_samples[N] = [build_fn(N, seed=10_000 * N + 500_000 + i, material=args.material)[0]
-                               for i in range(args.n_val_per_res)]
-            print(f"  N={N}: {len(train_samples[N])} train + {len(val_samples[N])} val samples "
-                  f"generated in {time.time()-t0:.1f}s")
+            train_samples[N], val_samples[N] = _generate_samples_resumable(
+                build_fn, N, args.n_train_per_res, args.n_val_per_res,
+                args.material, args.out_dir, chunk=args.gen_chunk)
         torch.save({"train_samples": train_samples, "val_samples": val_samples}, samples_cache_path)
-        print(f"Cached samples -> {samples_cache_path} (safe to resume from if this run is interrupted).")
+        print(f"Cached samples -> {samples_cache_path}")
 
     mesh_tensors = {N: mesh_tensors_of(args.geometry, train_samples[N][0], device, dtype)
                     for N in train_resolutions}
@@ -573,6 +620,10 @@ def main():
     p_train.add_argument("--train_resolutions", type=str, default="21,33")
     p_train.add_argument("--n_train_per_res", type=int, default=400)
     p_train.add_argument("--n_val_per_res", type=int, default=100)
+    p_train.add_argument("--gen_chunk", type=int, default=25,
+                          help="FEM samples generated between on-disk saves. Smaller = less "
+                               "lost to an interrupted Colab session, at the cost of more "
+                               "frequent (cheap) writes.")
     p_train.add_argument("--batch_size", type=int, default=8)
     p_train.add_argument("--epochs", type=int, default=2000)
     p_train.add_argument("--validate_every", type=int, default=25)
