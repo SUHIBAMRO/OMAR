@@ -19,7 +19,13 @@ verified. See "Round 5" below.)
 
 Timon's framing: *"the results ... are very interesting. I think we can wrap
 them up in a paper but I still have a few comments and requests."* So the work
-is now aimed at a publication.
+is now aimed at a publication. He closes with *"There are many directions we
+could pursue subsequently"* — this is a first round, so scope discipline
+matters more than completeness.
+
+**The email is stored verbatim at `advisor_feedback/2026-08-26_round5_timon.md`.**
+Read it there before acting on any point; the table below is a summary and a
+summary cannot settle a question about what was actually asked.
 
 | # | Request | Status |
 |---|---|---|
@@ -29,9 +35,9 @@ is now aimed at a publication.
 | 4 | Benchmark Transolver and GPU FEM under **identical batch sizes** | ⬜ needs Transolver inference at bs=8/32/128 (currently bs=1 only) |
 | 5 | Error in **physically important quantities** beyond displacement: H1 semi-norm, energy, stress components, reaction forces, maxima (for the Transolver) | 🟡 **script written + verified, not yet run on real checkpoints** |
 | 6 | Investigate **OOD robustness** — the 4–5× degradation is "probably the biggest obstacle to a strong physics-informed operator claim" | ⬜ research, not just measurement |
-| 7 | Resolution invariance: train on 2, test on 5 **coarser AND finer**; plus a comparison against a **data-driven** version | ⬜ see the warning below |
+| 7 | Resolution invariance: train on 2, test on 5 **coarser AND finer**; the point being *"train on a very coarse grid and inference on a finer grid ... could provide computational savings"* — so **quantify the savings**, not just the flat error. Plus a **data-driven** comparison, its data *"from two different (fine enough) simulations"* (i.e. matched to the PI model's two training resolutions) | 🟡 7a covered by the per-case notebooks (7 resolutions, a superset of his 5); 7b pending |
 | 8 | Test GPU-native FEM at **finer discretizations up to a few million DOFs**; and: *"Did you use Tensormesh or write the code yourself?"* | ⬜ answer known (below); timing sweep pending |
-| 9 | Use **MMS** (method of manufactured solutions) as ground truth instead of a baseline FEM solution | ⬜ largest item; Timon himself called it "more time consuming" earlier |
+| 9 | Use **MMS** as ground truth instead of a baseline FEM solution, to test the operator *"compared to FEM"* — i.e. **both** are scored against the manufactured truth, which is the only way FEM itself gets graded (today it *is* the reference, so it cannot be) | ⬜ largest item; blocked on the energy functional having no body-force term, which MMS requires |
 
 **Point 3 result (computed 2026-08-26).** Break-even against a *GPU* FEM
 baseline is dramatically worse than against CPU FEM, which is the honest and
