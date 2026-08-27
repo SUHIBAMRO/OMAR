@@ -5,13 +5,51 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-27 (**every run now writes a timestamped JSON manifest;
-the five remaining zero-shot cases split into one resumable notebook each.
-See "Run manifests + per-case notebooks" below.**)
+Last updated: 2026-08-27 (**everything not blocked on Timon is now built.
+See "State as of 2026-08-27" immediately below.**)
 
-Previous update: 2026-08-26 (Timon's ROUND-5 feedback arrived — 9 new requests.
-Started on them: point 3 computed, point 5's evaluation script written and
-verified. See "Round 5" below.)
+---
+
+## State as of 2026-08-27 — read this first
+
+### Running on Colab right now
+Three zero-shot notebooks, one per remaining B2 case, generating FEM data.
+At the last report B2×MR was at N=33 train 75/400, ~136 s/sample, so roughly
+16 h of generation remained for that case. B1×MR and B1×AB are also running
+and were never affected by the B2 force bug. Each notebook resumes from
+`samples_cache_N*.pt` on Drive if interrupted.
+
+A fourth notebook is running the point-8 scaling sweep.
+
+### Ready to run — scripts written, verified, committed
+| Point | Script | Notes |
+|---|---|---|
+| 2 Pareto | `omar_pfem/pareto_analysis.py` | one run per finished zero-shot case; minutes, reuses the cached fine references |
+| 6 OOD diagnosis | `omar_pfem/ood_diagnosis.py` | no new FEM solves at all |
+| 8 scaling | `omar_pfem/gpu_fem_scaling_sweep.py` | needs a free GPU runtime; hours |
+
+Ready-made Colab cells for each are in `zeroshot_notebooks/`. Every cell
+should be self-contained (mount Drive, clone or pull, pip install) — a cell
+that assumed `/content/OMAR` already existed failed with a bare `git` exit
+128 in a fresh notebook.
+
+### Done today
+- Points 4 and 5 finished for all six cases.
+- Point 3 recomputed at matched batch sizes and written into both documents
+  (report v28 + summary), with every value re-verified.
+- Point 8's Tensormesh question answered in the report.
+- The B2 zero-shot force bug found and fixed; caches repaired in place.
+- The GPU and matrix-free solvers fixed to match the CPU reference on B2;
+  Table 9 regenerated.
+
+### Blocked on Timon's reply — do not start
+Points 7b (data-driven comparison) and 9 (MMS). The email asking about
+scope was sent. Everything else has been done or is ready.
+
+### If Google Drive is connected in your session
+Results live under `MyDrive/pfem_run/`. Reading them directly saves the
+copy-paste round trips this project has been doing all along; the per-run
+`run_manifest.json` files record what produced each number.
 
 ---
 
