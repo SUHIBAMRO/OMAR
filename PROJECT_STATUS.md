@@ -23,6 +23,47 @@ leftover from an earlier round and is not among Timon's round-5 requests.
 Left here so a future session does not find it in an old task list and
 revive it.
 
+## 🔴 OPEN: Table 9's three B2 rows are stale (found 2026-08-27)
+
+`gpu_fem_solver.py` and the CPU reference no longer solve the same B2
+problem, so Table 9's B2 correctness claim does not hold today.
+
+| | CPU reference | gpu_fem_solver |
+|---|---|---|
+| B1 | element centroid | element centroid | match -> PASS |
+| B2 | **each Gauss point** | element centroid | mismatch -> FAIL |
+
+`solve_hyperelastic_TL_ring` evaluates E and nu at every Gauss point via
+`_material_fn(N @ Xe)`; `precompute_element_params_B2` evaluates them once
+at the element centroid. `fem_core.py`'s own docstring calls centroid
+sampling "a genuine discretization error distinct from mesh refinement",
+so the CPU side is the better one and the GPU side is what needs fixing.
+
+Re-running the repo's own `validate_gpu_fem_solver.py` today:
+- B1 x neo_hookean: max abs diff 2.60e-16, **PASS** (Table 9 says 2.64e-16
+  — reproduces)
+- B2 x neo_hookean: max abs diff 4.81e-5, mean rel 1.15e-3, **FAIL**
+
+The change postdates Table 9: the table records `max|u_cpu| = 1.914e-2`
+for B2 x NH, the current solver gives `1.9103e-2` — the reference solution
+itself moved 0.2%. B1's `2.150e-3` is unchanged. So the B2 CPU solver was
+upgraded to per-Gauss-point material evaluation after Table 9 was produced
+and `precompute_element_params_B2` was never updated to follow.
+
+Scope:
+- Table 10's **timings** are unaffected — where the material is sampled
+  does not change how long a solve takes.
+- Table 9's three B2 rows must be regenerated after the fix.
+- **Point 8** (GPU FEM at millions of DOF) builds on this solver, so the
+  fix comes first.
+- **The zero-shot notebooks are NOT affected.** They call the CPU
+  reference directly and never touch gpu_fem_solver.py.
+
+Fix: make `precompute_element_params_B2` return per-Gauss-point parameters
+and let the batched energy function consume (B, n_elem, 4) instead of
+(B, n_elem). Then re-run the validation for all six cases and regenerate
+Table 9's B2 rows.
+
 ## Advisor's Round-5 feedback (2026-08-26) — 9 requests
 
 Timon's framing: *"the results ... are very interesting. I think we can wrap
