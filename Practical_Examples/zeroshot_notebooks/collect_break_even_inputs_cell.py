@@ -16,7 +16,16 @@ import sys
 
 R = '/content/drive/MyDrive/pfem_run'
 WORK = '/content/OMAR/Practical_Examples'
+BRANCH = 'claude/claude-code-question-d307wp'
+
+# The clone may predate the scripts this cell calls, which fails as a bare
+# "No module named ...". Pull first so it cannot.
+subprocess.run(['git', '-C', '/content/OMAR', 'fetch', '--quiet', 'origin', BRANCH], check=True)
+subprocess.run(['git', '-C', '/content/OMAR', 'reset', '--hard', '--quiet',
+                f'origin/{BRANCH}'], check=True)
 os.chdir(WORK)
+print('code at:', subprocess.run(['git', '-C', '/content/OMAR', 'rev-parse', '--short', 'HEAD'],
+                                 capture_output=True, text=True).stdout.strip())
 
 print('=' * 74)
 print('1. ملفات توقيت GPU FEM')
@@ -63,9 +72,18 @@ for f in fem_files:
     try:
         d = json.load(open(f))
         c = f"{d.get('geometry')}_{d.get('material')}"
+        # Two GPU timing sets coexist on Drive with slightly different
+        # numbers. PROJECT_STATUS records that the report's Table 10 uses
+        # the per-case gpu_fem_solver/ files, so prefer those and say so,
+        # rather than letting glob order decide which one a result uses.
         if c in by_case_fem:
-            print(f"  [انتبه] أكثر من ملف توقيت لـ{c}: {by_case_fem[c]}  و  {f}")
-        by_case_fem[c] = f
+            keep = f if 'gpu_fem_solver' in f else by_case_fem[c]
+            drop = by_case_fem[c] if keep == f else f
+            print(f"  [مكرر] {c}: باخد {keep}")
+            print(f"  {'':9} وبتجاهل {drop}")
+            by_case_fem[c] = keep
+        else:
+            by_case_fem[c] = f
     except Exception:
         pass
 
@@ -85,22 +103,31 @@ print()
 print('=' * 74)
 print('4. زمن التدريب — من train.log (هاد الي ناقصنا)')
 print('=' * 74)
-logs = sorted(glob.glob(f'{R}/**/train.log', recursive=True))
-print(f'{len(logs)} ملف train.log\n')
+# B1 has no train.log at the path B2 uses, so search by CONTENT: any text
+# file carrying a "Total wall clock" line is a training log whatever it is
+# called. Without this the B1 break-even stays unknown.
+cands = set(glob.glob(f'{R}/**/train.log', recursive=True))
+for pat in ('*.log', '*.txt', '*.out', 'log*', '*history*'):
+    cands |= set(glob.glob(f'{R}/**/{pat}', recursive=True))
+logs = []
+for f in sorted(cands):
+    try:
+        if os.path.getsize(f) > 200_000_000:
+            continue
+        if 'Total wall clock' in open(f, errors='replace').read():
+            logs.append(f)
+    except Exception:
+        pass
+print(f'{len(logs)} ملف فيه سطر "Total wall clock"\n')
 for f in logs:
     print(f'----- {f} -----')
     try:
         lines = [l.rstrip() for l in open(f, errors='replace').read().split('\n') if l.strip()]
         # whatever line carries a total/elapsed figure is what we need; print
         # the candidates plus the tail, since the format is not known yet
-        hits = [l for l in lines
-                if any(k in l.lower() for k in
-                       ('total', 'elapsed', 'wall', 'duration', 'finished', 'time'))]
-        for l in hits[-6:]:
-            print('   [وقت؟]', l[:170])
-        print('   [آخر 4 أسطر]')
-        for l in lines[-4:]:
-            print('     ', l[:170])
+        for l in lines:
+            if 'Total wall clock' in l:
+                print('   >>>', l.strip()[:170])
     except Exception as e:
         print('   تعذّر:', e)
     print()
