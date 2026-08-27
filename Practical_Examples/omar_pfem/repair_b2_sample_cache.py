@@ -98,6 +98,39 @@ def repair_list(samples, seed_base, mesh, R_in, label, dry_run):
     return stats
 
 
+
+def _mesh_independence_check(resolutions, R_in, R_out):
+    """The actual proof the repair did what it claims.
+
+    The spread of corrected forces across the cache proves nothing on its
+    own, because every sample uses a different seed and therefore a
+    different pressure field -- and the cached samples cannot be compared
+    across resolutions either, since the seed itself is built from N
+    (10_000*N + i), so sample i at N=21 and at N=33 are different problems.
+
+    So assemble ONE fixed pressure field on every resolution present. A
+    correctly assembled traction is a physical load and must come out the
+    same on any mesh; the raw pointwise force this repair replaces grew
+    with the mesh, which is exactly what made the study invalid.
+    """
+    if len(resolutions) < 2:
+        return
+    p_fn = ParametricFieldB2("p", 12345)
+    totals = {}
+    for N in resolutions:
+        nodes, elements = generate_grid_Q4_ring(R_in, R_out, N, N)
+        totals[N] = float(np.abs(assemble_traction_inner_curved(
+            nodes, elements, R_in, p_fn)).sum())
+    lo, hi = min(totals.values()), max(totals.values())
+    spread = (hi - lo) / max(hi, 1e-12)
+    print("mesh-independence check, one fixed pressure field on each resolution:")
+    print("  " + ",  ".join(f"N={N}: {t:.4f}" for N, t in sorted(totals.items()))
+          + f"   (spread {spread * 100:.4f}%)")
+    print("  " + ("PASS -- the assembled load does not depend on the mesh"
+                  if spread < 1e-3 else
+                  "FAIL -- the load still varies with the mesh; do not train on this"))
+
+
 def main():
     p = argparse.ArgumentParser("Repair B2 zero-shot sample caches")
     p.add_argument("--out_dir", required=True,
@@ -117,9 +150,11 @@ def main():
 
     repaired = []
     ratios = []
+    resolutions = set()
 
     for path in per_res:
         N = int(os.path.basename(path).split("_N")[1].split(".pt")[0])
+        resolutions.add(N)
         print(f"\n{os.path.basename(path)}  (N={N})")
         cache = torch.load(path, weights_only=False)
         mesh = exact_mesh(N, args.R_in, args.R_out, cache["train"][0]["xy"])
@@ -134,6 +169,7 @@ def main():
         print(f"\n{os.path.basename(combined)}")
         cache = torch.load(combined, weights_only=False)
         for N in sorted(cache["train_samples"]):
+            resolutions.add(N)
             print(f"  N={N}")
             mesh = exact_mesh(N, args.R_in, args.R_out,
                               cache["train_samples"][N][0]["xy"])
@@ -150,11 +186,12 @@ def main():
     print("\n" + "=" * 68)
     print(f"{len(ratios)} samples processed"
           + ("  (DRY RUN -- nothing written)" if args.dry_run else ""))
-    print(f"corrected |f| total: min {min(news):.4f}, max {max(news):.4f}  "
-          f"-- these should be near-identical across resolutions, since the "
-          f"assembled load is a physical quantity and must not depend on the mesh")
+    print(f"corrected |f| total: {min(news):.4f} to {max(news):.4f} across samples. "
+          f"This spread is expected and is NOT a mesh effect -- each sample draws "
+          f"its own pressure field from its own seed, so the loads genuinely differ.")
     print(f"overstatement removed: {min(o / max(n, 1e-12) for o, n in ratios):.1f}x "
           f"to {max(o / max(n, 1e-12) for o, n in ratios):.1f}x")
+    _mesh_independence_check(sorted(resolutions), args.R_in, args.R_out)
     print("=" * 68)
 
     if not args.dry_run:
