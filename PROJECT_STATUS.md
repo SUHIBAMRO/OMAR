@@ -47,6 +47,38 @@ summary cannot settle a question about what was actually asked.
 | 8 | Test GPU-native FEM at **finer discretizations up to a few million DOFs**; and: *"Did you use Tensormesh or write the code yourself?"* | ⬜ answer known (below); timing sweep pending |
 | 9 | Use **MMS** as ground truth instead of a baseline FEM solution, to test the operator *"compared to FEM"* — i.e. **both** are scored against the manufactured truth, which is the only way FEM itself gets graded (today it *is* the reference, so it cannot be) | ⬜ largest item; blocked on the energy functional having no body-force term, which MMS requires |
 
+**Table 10's speed-up column is not reproducible (found 2026-08-27).** While
+verifying which GPU timing set v27 uses (it is `gpu_fem_solver/` — confirmed
+from the report itself: 7 decisive numbers match, 0 from the older set), the
+speed-up column turned out not to follow from the report's own data. Dividing
+Table 10's own bs=128 FEM times by Table 7's own inference latencies:
+
+| case | Table 10 says | from the report's own numbers |
+|---|---|---|
+| B1 NH | 71.72x | 77.3x |
+| B1 MR | **149.4x** | **76.6x** |
+| B1 AB | **138.9x** | **79.7x** |
+| B2 NH | 73.05x | 73.8x |
+| B2 MR | **171.5x** | **73.3x** |
+| B2 AB | **159.3x** | **75.9x** |
+
+Four of six rows are about double. For B1 MR's 149.4x to hold, inference would
+have to be 2.41 ms; Table 7 says 4.693 and the new benchmark measures 4.832.
+No measurement supports 2.1–2.7 ms. All six models share one architecture on
+one 441-node mesh and measure 4.58–4.83 ms at bs=1, so their speed-ups cannot
+differ twofold. The origin of the four values could not be reverse-engineered
+and should not be guessed at.
+
+The correct column is **73–80x** unmatched, or **1,215–1,297x** at matched
+batch sizes (the figure that should actually be quoted, see below). Either
+way four rows are wrong. This is a headline efficiency claim and the
+inconsistency is visible to any reader who divides the columns.
+
+Note an earlier session saw the 71.7–171.5x *range* and treated it as data —
+correcting a §8.2 claim to agree with it — rather than asking whether the
+range itself was possible. The lesson is to check a table against its own
+inputs, not only against other prose.
+
 **Points 3 + 4 recomputed at MATCHED batch sizes (2026-08-27).** All inputs
 and their exact Drive paths are recorded in
 `Practical_Examples/omar_pfem/point3_inputs.json`; the calculation is
