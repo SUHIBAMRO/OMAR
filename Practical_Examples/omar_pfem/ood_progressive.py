@@ -187,6 +187,13 @@ def main():
                    help="kept disjoint from training (0-), zero-shot "
                         "(20,000,000-) and Pareto (900,000-) seed ranges")
     p.add_argument("--out_json", default=None)
+    p.add_argument("--cache_dir", default=None,
+                   help="Directory for cached FEM reference solutions. The "
+                        "references do not depend on the checkpoint, so a "
+                        "second run comparing another model reuses them "
+                        "instead of re-solving (~1.5 h of CPU per sweep at "
+                        "N=21). Keyed on geometry, material, N, factor, shift "
+                        "and seed.")
     p.add_argument("--cpu", action="store_true")
     # model hyperparameters, the zero-shot study's own defaults
     p.add_argument("--model", default="Transolver_Irregular_Mesh")
@@ -219,16 +226,41 @@ def main():
     model = build_model(args, device)
     model.load_state_dict(torch.load(args.checkpoint, map_location=device))
     model.eval()
+
+    # If the checkpoint was trained on standardized inputs, evaluate it on
+    # standardized inputs. Getting this wrong does not raise -- it silently
+    # feeds the network a distribution it never saw and reports the resulting
+    # error as an OOD result -- so it is resolved from a file beside the
+    # checkpoint rather than from a flag anyone has to remember to pass.
+    from omar_pfem.train_B1 import install_input_norm_for_checkpoint
+    input_norm = install_input_norm_for_checkpoint(args.checkpoint)
+
     print(f"Checkpoint: {args.checkpoint}")
+    print(f"Input normalization: {'ON' if input_norm else 'off (raw channels)'}")
     print(f"Device: {device}, N={args.N}, {args.n_samples} samples per cell")
     print(f"Metric: per-component relative L2 (Tables 5/11's definition)\n")
 
     rows = []
     if os.path.exists(args.out_json):
         try:
-            rows = json.load(open(args.out_json)).get("rows", [])
+            prev = json.load(open(args.out_json))
+            rows = prev.get("rows", [])
+            # Resuming into a file written by a DIFFERENT model would merge
+            # rows from two experiments into one table. The baseline and the
+            # normalized run are exactly that pair, and their rows are
+            # indistinguishable once written, so check before appending.
+            for key, now in (("checkpoint", args.checkpoint),
+                             ("input_norm", input_norm)):
+                if key in prev and prev[key] != now and rows:
+                    raise SystemExit(
+                        f"{args.out_json} holds {len(rows)} rows measured with "
+                        f"{key}={prev[key]!r}, but this run has {key}={now!r}. "
+                        f"Appending would mix two experiments in one table. "
+                        f"Use a different --out_json.")
             if rows:
                 print(f"[resume] {len(rows)} cells already done\n")
+        except SystemExit:
+            raise
         except Exception:
             rows = []
     done = {(r["factor"], r["shift_sigma"]) for r in rows}
@@ -239,6 +271,7 @@ def main():
                "n_samples": args.n_samples, "seed_base": args.seed_base,
                "metric": "per-component relative L2, 0.5*(rms(e_u)/rms(u)+rms(e_v)/rms(v))",
                "train_distribution": TRAIN_DIST[args.geometry],
+               "input_norm": input_norm,
                "device": device.type, "rows": sorted(
                    rows, key=lambda r: (r["factor"], r["shift_sigma"]))}
         tmp = args.out_json + ".tmp"
@@ -247,11 +280,39 @@ def main():
         os.replace(tmp, args.out_json)
         return rep
 
+    # The FEM reference for a given (geometry, material, N, factor, k, seed)
+    # does not depend on the network at all, so comparing two checkpoints on
+    # this sweep re-solves exactly the same problems twice. At the study's own
+    # mesh that is ~25 s per sample (Table 4a), i.e. over an hour of CPU per
+    # full sweep, spent recomputing a byte-identical answer. The cache keys on
+    # everything the reference actually depends on, so a stale entry cannot be
+    # picked up by mistake.
+    def cached_build(N, seed, material, kw, factor, k):
+        if not args.cache_dir:
+            return build(N, seed, material, kw)
+        os.makedirs(args.cache_dir, exist_ok=True)
+        kwtag = "_".join(f"{kk}{vv:+.6g}" for kk, vv in sorted(kw.items())) or "none"
+        p = os.path.join(
+            args.cache_dir,
+            f"{args.geometry}_{material}_N{N}_{factor}_k{k:g}_{kwtag}_seed{seed}.npz")
+        if os.path.exists(p):
+            try:
+                with np.load(p, allow_pickle=False) as z:
+                    return {kk: z[kk] for kk in z.files}
+            except Exception:
+                os.remove(p)      # truncated by an interrupted write; rebuild
+        s = build(N, seed, material, kw)
+        tmp = p + ".tmp.npz"
+        np.savez(tmp, **{kk: v for kk, v in s.items()
+                         if isinstance(v, np.ndarray)})
+        os.replace(tmp, p)
+        return s
+
     def run_cell(factor, k):
         kw = field_kwargs(args.geometry, factor, k)
         errs = []
         for i in range(args.n_samples):
-            s = build(args.N, args.seed_base + i, args.material, kw)
+            s = cached_build(args.N, args.seed_base + i, args.material, kw, factor, k)
             mesh_t = mesh_tensors_of(args.geometry, s, device, dtype)
             E = torch.tensor(s["E_node"][None], device=device, dtype=dtype)
             nu = torch.tensor(s["nu_node"][None], device=device, dtype=dtype)

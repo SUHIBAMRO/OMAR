@@ -160,6 +160,131 @@ def compute_hyperelastic_energy_Q4(xy, quad, uv, param_nodes, energy_density_fn,
 
 
 # ============================================================
+# 3b) Input-channel normalization (advisor round-6, point 1)
+# ============================================================
+# Timon asked, once the OOD degradation was attributed to a factor, that a
+# "relatively straightforward mitigation, such as changing the training range
+# or normalization" be TESTED rather than only proposed. Section 8.6 named
+# normalizing the E channel as the cheapest candidate. This is that knob.
+#
+# Why it is a module-level global rather than an argument: the network's
+# inputs are assembled in exactly two places (the energy/training path and the
+# inference path, both below), but they are CALLED from many -- the zero-shot
+# study, the Pareto analysis, ood_progressive, the latency benchmark -- each
+# through its own wrapper. Threading a new argument through all of them is how
+# a train/eval mismatch gets created: one call site is missed, the model is
+# evaluated on inputs scaled differently from the ones it trained on, and the
+# resulting number looks like a research finding instead of a bug. A single
+# global that every path reads makes that mismatch impossible.
+#
+# The statistics are FIXED CONSTANTS measured once on the training set and
+# stored with the checkpoint. They are never recomputed per batch or per
+# sample. That distinction is the whole experiment: standardizing by the
+# batch's own statistics would silently re-center a shifted distribution back
+# onto the training one and report a fake immunity to distribution shift.
+_INPUT_NORM = None
+
+
+def set_input_norm(stats):
+    """Install (or clear, with None) the input normalization. `stats` is a
+    dict with 'mean' and 'std', each a list of `fun_dim` floats ordered as the
+    channels are stacked below: E, nu, [fx,] fy."""
+    global _INPUT_NORM
+    if stats is None:
+        _INPUT_NORM = None
+        return
+    mean, std = list(stats["mean"]), list(stats["std"])
+    assert len(mean) == len(std), "input-norm mean and std differ in length"
+    assert all(s > 0 for s in std), f"input-norm has a non-positive std: {std}"
+    _INPUT_NORM = {"mean": mean, "std": std}
+
+
+def get_input_norm():
+    return None if _INPUT_NORM is None else dict(_INPUT_NORM)
+
+
+def install_input_norm_for_checkpoint(ckpt_path, required=None):
+    """Install the normalization belonging to a checkpoint, by looking for
+    input_norm.json beside it. Every evaluation script that loads a checkpoint
+    should call this: a model trained on standardized inputs and evaluated on
+    raw ones produces plausible-looking garbage rather than an error.
+
+    `required=True` fails if no statistics are found, `required=False` fails if
+    some are, `None` accepts either. Returns the stats, or None."""
+    import json as _json
+    d = ckpt_path if os.path.isdir(ckpt_path) else os.path.dirname(ckpt_path)
+    p = os.path.join(d, "input_norm.json")
+    if os.path.exists(p):
+        with open(p) as f:
+            stats = _json.load(f)
+        if required is False:
+            raise RuntimeError(
+                f"{p} exists, so this checkpoint was trained on standardized "
+                f"inputs, but the caller asked for an unnormalized model")
+        set_input_norm(stats)
+        print(f"[input-norm] loaded {p}: mean={stats['mean']} std={stats['std']}")
+        return stats
+    if required is True:
+        raise FileNotFoundError(
+            f"no input_norm.json beside {ckpt_path}; this checkpoint was not "
+            f"trained with --normalize_inputs 1")
+    set_input_norm(None)
+    return None
+
+
+def _apply_input_norm(fun_material):
+    """Standardize each input channel by the stored training-set statistics.
+    A no-op when no statistics are installed, which is the default and is what
+    every result in the report to date was produced under."""
+    if _INPUT_NORM is None:
+        return fun_material
+    C = fun_material.shape[-1]
+    assert len(_INPUT_NORM["mean"]) == C, (
+        f"input norm has {len(_INPUT_NORM['mean'])} channels but the model is "
+        f"being fed {C}; the checkpoint's input_norm.json does not match "
+        f"--fun_dim")
+    mean = torch.tensor(_INPUT_NORM["mean"], device=fun_material.device,
+                        dtype=fun_material.dtype)
+    std = torch.tensor(_INPUT_NORM["std"], device=fun_material.device,
+                       dtype=fun_material.dtype)
+    return (fun_material - mean) / std
+
+
+def compute_input_norm(samples, fun_dim):
+    """Per-channel mean and std over every node of every training sample.
+
+    The force channels are computed over ALL nodes, loaded and unloaded alike,
+    because that is exactly what the network is fed: node_forces is zero on
+    every interior node, and those zeros are part of the input distribution.
+    Restricting the statistics to loaded nodes would standardize the input by
+    something the network never sees on its own."""
+    E = np.concatenate([s["E_node"].ravel() for s in samples])
+    nu = np.concatenate([s["nu_node"].ravel() for s in samples])
+    f = np.concatenate([s["node_forces"].reshape(-1, 2) for s in samples], axis=0)
+    cols = [E, nu, f[:, 1]] if fun_dim == 3 else [E, nu, f[:, 0], f[:, 1]]
+    names = ["E", "nu", "fy"] if fun_dim == 3 else ["E", "nu", "fx", "fy"]
+    mean = [float(c.mean()) for c in cols]
+    std = [float(c.std()) for c in cols]
+
+    # A constant channel cannot be standardized -- there is no scale to divide
+    # by. This is not hypothetical: on B1 the traction is purely vertical
+    # (data_generate_B1.assemble_traction_top_spatial builds t = [0, ty]), so
+    # with fun_dim=4 the fx channel is identically zero at every node of every
+    # sample, and the network is being fed a channel that carries no
+    # information at all. Such a channel is passed through untouched (mean 0,
+    # std 1) rather than raising: it is a property of the geometry, not an
+    # error, and zero is already a perfectly well-scaled input.
+    constant = []
+    for i, s in enumerate(std):
+        if s <= 1e-12 * max(1.0, abs(mean[i])):
+            constant.append(names[i])
+            mean[i], std[i] = 0.0, 1.0
+    return {"mean": mean, "std": std, "n_samples": len(samples),
+            "n_values_per_channel": int(len(E)), "fun_dim": int(fun_dim),
+            "channels": names, "constant_channels_passed_through": constant}
+
+
+# ============================================================
 # 4) Total potential energy Pi = U - W  (Q4 version, B1 geometry)
 # ============================================================
 def total_potential_energy_Q4_hyperelastic(
@@ -193,6 +318,7 @@ def total_potential_energy_Q4_hyperelastic(
         fun_material = torch.stack([
             E_nodes, nu_nodes, node_forces[:, :, 0], node_forces[:, :, 1],
         ], dim=2)
+    fun_material = _apply_input_norm(fun_material)
 
     uv_raw = model(xy_domain, fun_material)  # (B,N,2)
 
@@ -243,6 +369,7 @@ def predict_displacement_Q4_only(
         fun_material = torch.stack([E_nodes, nu_nodes, node_forces[:, :, 1]], dim=2)
     else:
         fun_material = torch.stack([E_nodes, nu_nodes, node_forces[:, :, 0], node_forces[:, :, 1]], dim=2)
+    fun_material = _apply_input_norm(fun_material)
 
     uv_raw = model(xy_domain, fun_material)
 
@@ -713,6 +840,43 @@ def train_hyperelastic_Q4(args):
               f"E_mean={s['E_node'].mean():.1f}, nu_mean={s['nu_node'].mean():.3f}, "
               f"Force_mean={fmean:.3f}, Force_nodes={len(nz)}")
 
+    # Input normalization, installed BEFORE the model is built or resumed so
+    # that every forward pass in this process -- training, validation, the
+    # final evaluation -- sees the same transform. The statistics come from
+    # the training split only; Test_samples are not touched.
+    os.makedirs(args.out_dir, exist_ok=True)
+    norm_path = os.path.join(args.out_dir, "input_norm.json")
+    if int(getattr(args, "normalize_inputs", 0)):
+        if os.path.exists(norm_path):
+            # A resumed run MUST reuse the statistics the earlier epochs were
+            # trained under. Recomputing them would be a silent train/train
+            # mismatch across the resume boundary.
+            with open(norm_path) as f:
+                norm_stats = json.load(f)
+            print(f"[input-norm] reusing {norm_path} from the earlier run")
+            fresh = compute_input_norm(Train_samples, args.fun_dim)
+            drift = max(abs(a - b) for a, b in zip(norm_stats["mean"], fresh["mean"]))
+            assert drift < 1e-6 * max(1.0, max(abs(m) for m in fresh["mean"])), (
+                f"input_norm.json disagrees with the current training set "
+                f"(max mean drift {drift:g}) -- the data or --ntrain changed "
+                f"under a resume; refusing to continue")
+        else:
+            norm_stats = compute_input_norm(Train_samples, args.fun_dim)
+            with open(norm_path, "w") as f:
+                json.dump(norm_stats, f, indent=1)
+            print(f"[input-norm] computed from {len(Train_samples)} training "
+                  f"samples and written to {norm_path}")
+        set_input_norm(norm_stats)
+        for c, m, s in zip(norm_stats["channels"], norm_stats["mean"], norm_stats["std"]):
+            print(f"[input-norm]   {c:>3}: mean={m:12.5f}  std={s:12.5f}")
+    else:
+        set_input_norm(None)
+        assert not os.path.exists(norm_path), (
+            f"{norm_path} exists but --normalize_inputs is 0. This out_dir "
+            f"holds a normalized run; training an unnormalized model into it "
+            f"would produce a checkpoint that eval silently mis-scales. Use a "
+            f"different --out_dir.")
+
     plot_mesh_with_materials_and_forces_q4(Train_samples, args, sid=0, tag="train_sample0")
     if len(Test_samples) > 0:
         plot_mesh_with_materials_and_forces_q4(Test_samples, args, sid=0, tag="test_sample0")
@@ -1077,6 +1241,14 @@ def main():
     parser.add_argument("--slice_num", type=int, default=128)
 
     parser.add_argument("--fun_dim", type=int, default=4)
+    parser.add_argument("--normalize_inputs", type=int, default=0,
+                        help="Standardize the network's input channels (E, nu, "
+                             "forces) by the TRAINING SET's own per-channel mean "
+                             "and std, saved to input_norm.json in --out_dir and "
+                             "reused verbatim at evaluation. Default 0 = raw "
+                             "channels, which is what every result in the report "
+                             "to date was produced with. This is the mitigation "
+                             "the advisor asked to be tested in round 6, point 1.")
 
     args = parser.parse_args()
     args.use_soft_dirichlet = bool(args.use_soft_dirichlet)
