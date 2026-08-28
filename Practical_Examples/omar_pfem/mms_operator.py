@@ -292,7 +292,15 @@ def main():
                 torch.save(model.state_dict(),
                            os.path.join(args.out_dir, "model_best.pt"))
                 flag = "  *"
-            print(f"epoch {epoch:>5}  Pi {tot / max(1, args.ntrain // args.batch_size):>12.5f}  "
+            # "trainPi" is the mean of Pi over the TRAINING FAMILY, whose
+            # members have genuinely different energies -- Pi scales with the
+            # amplitude alpha, which varies across the family. It is a
+            # training diagnostic only. Do NOT compare it against the single
+            # reference member's Pi from the FEM solve: that comparison is
+            # meaningless and will appear to show the network beating the
+            # variational minimum. The honest progress signal is L2.
+            print(f"epoch {epoch:>5}  trainPi(family mean) "
+                  f"{tot / max(1, args.ntrain // args.batch_size):>12.5f}  "
                   f"L2 {m['L2_rel']:.4e}  H1 {m['H1_semi_rel']:.4e}  "
                   f"stress {m['stress_rel_L2']:.4e}  energy {m['energy_rel']:.4e}{flag}",
                   flush=True)

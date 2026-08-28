@@ -154,11 +154,42 @@ error — at Q4 N=9 they are identical to 12 significant digits across cg_tol
 
 **Q9 wins decisively at equal DOF**: 4.0× lower L2 at 162 DOF, 8.2× at 578.
 
-**NOT done: the Transolver third of the comparison.** It cannot run on this
-problem as things stand — the energy functional has no body-force term and
-the input channels have no body-force field, so existing checkpoints are
-unusable here. That needs a new Π, two new input channels, and a training
-run. This is the same blocker the old line 442 recorded.
+**The operator third is BUILT** (`omar_pfem/mms_operator.py`) and needs a
+Colab run — `Round6_MMS_Operator.ipynb`, ~20–40 min on any GPU. Existing
+checkpoints could not be reused (no body-force term in Π, no body-force
+input channel, wrong Dirichlet set), so it is a new physics-informed model
+on the manufactured family: same architecture, same Adam recipe, scored by
+`mms_study`'s own error routine so all three numbers are comparable.
+
+**⚠️ The ceiling must be quoted with the result.** The operator minimizes the
+*same* discrete functional over the *same* Q4 space as the Q4 solver, and the
+minimizer of that functional **is** the Q4 solution. The operator therefore
+**cannot beat Q4 at the same mesh** — that is arithmetic, not a finding.
+Report the ratio **operator/Q4**: 1.0 means the network has fully solved the
+variational problem. A ratio below 1.0 is a bug, not a win, and the runner
+says so.
+
+The functional is proved correct by `test_mms_operator.py`, not assumed: at
+N=9 the Q4 solution lies in the operator's constrained space, the interpolant
+of u* does not beat it, 36 admissible perturbations all raise Π, the excess
+grows quadratically (ratio 4.000), and the deliberately wrong scaling —
+dividing W by `len(top_edges)`, which is what train_B1 does for its traction
+work and the natural mistake here — moves the minimum from scale 1.000 to
+0.125, exactly 1/8 for a load weakened 8×. The test can fail, which is what
+makes it worth running.
+
+Labels are free in MMS (u* is analytic) but are **not used in training**; the
+loss is the energy. They are only the scoring truth.
+
+**Do not compare the training Π against the FEM solve's Π.** The training log
+prints the mean of Π over the training *family*, whose members have genuinely
+different energies because Π scales with the amplitude α. The FEM number is
+one member (α=0.05, β=0.7). A short CPU run reached a family-mean Π of −8.99
+while that member's Q4 minimum is −7.999, which looks like the network
+beating the variational minimum and is nothing of the kind. The column is
+labelled `trainPi(family mean)` for this reason. **The honest progress signal
+is L2**, which on that run fell 1.71 → 0.204 over 300 epochs — converging, but
+far from a reportable number; the production run is N=17 for 2000 epochs.
 
 ### ⚠️ CG spins on the last Newton iteration — found 2026-08-28, NOT yet quantified
 
