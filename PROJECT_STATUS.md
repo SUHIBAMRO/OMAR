@@ -63,7 +63,7 @@ resume on re-run. All 12 repo notebooks pass `check_notebooks.py`.
 
 | Item | Blocker |
 |---|---|
-| **R5-9** MMS (Q4 + Q9 + Transolver vs one analytic solution) | Timon: *"this is the last thing to do"*. Deliberately deferred. His body-force-vs-homogeneous fork is still unresolved |
+| **R5-9** MMS — **FEM half STARTED** (`omar_pfem/mms_study.py`), operator half not | The fork is resolved: **body force**, reasoning in the module docstring and below. Q4/Q9 run and self-validate. The Transolver half still needs a body-force term in Π and a body-force input channel |
 | **R6** open-source the GPU-FEM + benchmark vs Tensormesh | Needs Omar's decision: separate repo? license? how much documentation? |
 | Send Timon the correction + the B1×NH Pareto result | Drafted in the reading of the round-6 email; not sent |
 
@@ -123,6 +123,67 @@ within 2% of B1 × NH. The ~2× is a **material** effect: Neo-Hookean has an
 analytic PK1 and tangent (`omar_pfem/data/materials.py`), while Mooney-Rivlin
 and Arruda-Boyce use `jax.jacfwd(jax.grad(...))`
 (`omar_pfem/data/material_models_jax.py`), costing 2.1–2.4× per Table 4a.
+
+### Point 9 (MMS) — the FEM half is DONE and self-validated (2026-08-28)
+
+`omar_pfem/mms_study.py`, results in `omar_pfem/point9_results/`.
+
+**The fork Timon left open is resolved as BODY FORCE.** A body-force-free
+exact solution on this domain is a homogeneous deformation, which Q4
+reproduces to machine precision — the study would measure round-off and
+distinguish nothing. This was decided here, not confirmed by him, and it is
+the first thing to raise if he wants the study shaped differently.
+
+u* = 0.05·(sin πx sin πy, 0.7 sin πx sin πy), which **vanishes on the whole
+boundary**, so homogeneous Dirichlet is exact and the shared solver needed no
+inhomogeneous-Dirichlet support. The body force b = −Div P is derived by
+nested autodiff and checked against a central finite difference (1.8e-10).
+
+**Every convergence rate came out at its theoretical value**, which is what
+validates the whole chain — a body force wrong by a sign or a factor would
+collapse them:
+
+| | L2 | H1 semi | stress | energy |
+|---|---|---|---|---|
+| Q4 | 1.98 (2) | 1.00 (1) | 1.00 (1) | 1.98 (2) |
+| Q9 | 3.02 (3) | 2.01 (2) | 1.98 (2) | 3.98 (4) |
+
+Also checked: the reported errors are **discretization** error, not algebraic
+error — at Q4 N=9 they are identical to 12 significant digits across cg_tol
+1e-6, 1e-8 and 1e-10.
+
+**Q9 wins decisively at equal DOF**: 4.0× lower L2 at 162 DOF, 8.2× at 578.
+
+**NOT done: the Transolver third of the comparison.** It cannot run on this
+problem as things stand — the energy functional has no body-force term and
+the input channels have no body-force field, so existing checkpoints are
+unusable here. That needs a new Π, two new input channels, and a training
+run. This is the same blocker the old line 442 recorded.
+
+### ⚠️ CG spins on the last Newton iteration — found 2026-08-28, NOT yet quantified
+
+`matrix_free_solver.conjugate_gradient` stops on `‖r‖/‖b‖ < cg_tol`, where
+`b` is the Newton right-hand side. On the **last Newton iteration of every
+load step** `b` is the already-converged residual, so the relative target is
+scaled by a number near zero and becomes unreachable in float64. CG then runs
+to `cg_max_iter` and reports "did not converge" at a residual of ~1e-15 —
+which is not a failure at all, it has simply been asked for the impossible.
+
+Found while building the MMS study, where it made an 18-DOF problem take
+minutes. Worked around there with a size-proportional cap (`2*n_free`).
+
+**What has NOT been checked: whether this inflated the point-8 sweep's
+timings.** That sweep ran `newton_tol=1e-7, cg_tol=1e-6, cg_max_iter=2000`
+with 10 load steps, so up to 20,000 CG iterations per solve could have been
+spent on unreachable targets. If so, Table 20's absolute times are pessimistic
+and the µs/DOF curve could shift. **Do not restate Table 20's timings as
+optimal until someone checks this.** The shape of the result (U-shape,
+DOF^1.54, memory) is not in question; the absolute wall-clock is.
+
+The real fix is a stopping test that also accepts a small absolute residual,
+e.g. `‖r‖ < max(cg_tol*‖b‖, eps_abs)`. Not applied: it changes a solver every
+committed result depends on, and it should be a deliberate, separately
+validated change rather than a side effect of the MMS work.
 
 ### ⚠️ Table 4b, and 74× vs 309× — read before touching §4.2 or §8.5
 
