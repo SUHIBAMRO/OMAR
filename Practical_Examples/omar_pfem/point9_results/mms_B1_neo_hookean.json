@@ -1,0 +1,185 @@
+{
+  "study": "method of manufactured solutions",
+  "geometry": "B1 (unit square)",
+  "material": "neo_hookean",
+  "manufactured_solution": "u* = 0.05*(sin(pi x)sin(pi y), 0.7*sin(pi x)sin(pi y)); vanishes on the boundary",
+  "alpha": 0.05,
+  "beta": 0.7,
+  "body_force": "b = -Div P(F*), by nested autodiff, checked against a central finite difference",
+  "boundary_conditions": "homogeneous Dirichlet on all four edges, exact for this u*",
+  "material_field": "uniform E=1000, nu=0.3, plane strain",
+  "dtype": "float64",
+  "device": "cpu",
+  "rows": [
+    {
+      "L2_rel": 0.05266056732454232,
+      "H1_semi_rel": 0.2251732616001419,
+      "stress_rel_L2": 0.22697011445911086,
+      "energy_rel": 0.04958577721188188,
+      "energy_fe": 7.606007015300013,
+      "energy_exact": 8.002833746518615,
+      "order": "Q4",
+      "N": 5,
+      "h": 0.25,
+      "n_nodes": 25,
+      "n_dof": 50,
+      "n_elements": 16,
+      "wall_clock_s": 6.2745301723480225,
+      "newton_iters": 15
+    },
+    {
+      "L2_rel": 0.013508997586996056,
+      "H1_semi_rel": 0.11317719277825478,
+      "stress_rel_L2": 0.11425881968822985,
+      "energy_rel": 0.012684290049738188,
+      "energy_fe": 7.901323464491804,
+      "energy_exact": 8.002833728726802,
+      "order": "Q4",
+      "N": 9,
+      "h": 0.125,
+      "n_nodes": 81,
+      "n_dof": 162,
+      "n_elements": 64,
+      "wall_clock_s": 13.217527151107788,
+      "newton_iters": 15
+    },
+    {
+      "L2_rel": 0.003403242531719611,
+      "H1_semi_rel": 0.05665857791748206,
+      "stress_rel_L2": 0.057243916278996373,
+      "energy_rel": 0.0031905210733262717,
+      "energy_fe": 7.977300519068973,
+      "energy_exact": 8.002833728726802,
+      "order": "Q4",
+      "N": 17,
+      "h": 0.0625,
+      "n_nodes": 289,
+      "n_dof": 578,
+      "n_elements": 256,
+      "wall_clock_s": 25.295295238494873,
+      "newton_iters": 15
+    },
+    {
+      "L2_rel": 0.0033725048073934335,
+      "H1_semi_rel": 0.023140103126531815,
+      "stress_rel_L2": 0.02354922833293056,
+      "energy_rel": 0.0005245606597317351,
+      "energy_fe": 7.998635756477398,
+      "energy_exact": 8.002833728217595,
+      "order": "Q9",
+      "N": 5,
+      "h": 0.25,
+      "n_nodes": 81,
+      "n_dof": 162,
+      "n_elements": 16,
+      "wall_clock_s": 30.153421640396118,
+      "newton_iters": 15
+    },
+    {
+      "L2_rel": 0.00041548659138185957,
+      "H1_semi_rel": 0.0057631907883060555,
+      "stress_rel_L2": 0.005956695097985329,
+      "energy_rel": 3.326819306341622e-05,
+      "energy_fe": 8.002567488909262,
+      "energy_exact": 8.002833728726804,
+      "order": "Q9",
+      "N": 9,
+      "h": 0.125,
+      "n_nodes": 289,
+      "n_dof": 578,
+      "n_elements": 64,
+      "wall_clock_s": 62.185659646987915,
+      "newton_iters": 15
+    },
+    {
+      "L2_rel": 5.1627561933071844e-05,
+      "H1_semi_rel": 0.001437993861718248,
+      "stress_rel_L2": 0.0014945746986818893,
+      "energy_rel": 2.0877328436019784e-06,
+      "energy_fe": 8.002817020947989,
+      "energy_exact": 8.002833728726806,
+      "order": "Q9",
+      "N": 17,
+      "h": 0.0625,
+      "n_nodes": 1089,
+      "n_dof": 2178,
+      "n_elements": 256,
+      "wall_clock_s": 136.0644953250885,
+      "newton_iters": 15
+    }
+  ],
+  "convergence_rates": {
+    "Q4": {
+      "L2": {
+        "rate": 1.9758705951840163,
+        "pairwise": [
+          1.9628024381404658,
+          1.9889387522275668
+        ],
+        "expected": 2
+      },
+      "H1_semi": {
+        "rate": 0.9953346133122682,
+        "pairwise": [
+          0.9924522647865145,
+          0.9982169618380214
+        ],
+        "expected": 1
+      },
+      "stress": {
+        "rate": 0.993654033489395,
+        "pairwise": [
+          0.9901968160699854,
+          0.9971112509088044
+        ],
+        "expected": 1
+      },
+      "energy": {
+        "rate": 1.9790312003476596,
+        "pairwise": [
+          1.9668835960098974,
+          1.991178804685421
+        ],
+        "expected": 2
+      }
+    },
+    "Q9": {
+      "L2": {
+        "rate": 3.014767609890129,
+        "pairwise": [
+          3.0209466756047054,
+          3.008588544175552
+        ],
+        "expected": 3
+      },
+      "H1_semi": {
+        "rate": 2.004132935721287,
+        "pairwise": [
+          2.00545560848099,
+          2.0028102629615825
+        ],
+        "expected": 2
+      },
+      "stress": {
+        "rate": 1.9889364381719126,
+        "pairwise": [
+          1.9830957663553983,
+          1.9947771099884255
+        ],
+        "expected": 2
+      },
+      "energy": {
+        "rate": 3.9865143473628835,
+        "pairwise": [
+          3.978894199852383,
+          3.9941344948733843
+        ],
+        "expected": 4
+      }
+    }
+  },
+  "rate_check": {
+    "Q4": "as expected",
+    "Q9": "as expected"
+  }
+}
