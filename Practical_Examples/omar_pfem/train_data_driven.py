@@ -15,10 +15,17 @@ and changes exactly one line -- the loss.
   physics-informed :  loss = mean over the batch of  Pi = U - W
   data-driven      :  loss = mean over the batch of  ||u_pred - u_fem|| / ||u_fem||
 
-Same architecture, same mesh, same 800/200 split, same optimizer, same
-learning-rate schedule, and -- the part that is easy to get wrong -- the
-same OPTIMIZER-STEP budget rather than the same number of epochs, which is
-the lesson Section 8.2 already had to learn once.
+Same architecture, same mesh, same 800/200 split, the same OPTIMIZER-STEP
+budget rather than the same number of epochs (the lesson Section 8.2 already
+had to learn once), and -- by default, and this had to be fixed once -- the
+same optimizer and learning-rate schedule: plain Adam at lr=2e-3 with
+weight_decay=0, decayed by 0.9 every 1000 epochs, exactly as train_B1/B2 do.
+
+The first version of this script used AdamW with OneCycleLR, which is very
+likely a better recipe and gave a better number. That made the experiment a
+comparison of optimizers wearing the clothes of a comparison of losses, so
+the default now matches; `--match_pi_optimizer 0` restores the other recipe
+for anyone who wants it, clearly labelled in the output JSON.
 
 The cost that does not appear in the training log
 -------------------------------------------------
@@ -140,8 +147,18 @@ def main():
     p.add_argument("--opt_steps", type=int, default=75_000,
                    help="matched to the physics-informed run's own step count "
                         "(Table 7), NOT to its epoch count")
-    p.add_argument("--lr", type=float, default=1e-3)
-    p.add_argument("--weight_decay", type=float, default=1e-5)
+    p.add_argument("--lr", type=float, default=2e-3,
+                   help="train_B1/B2's own default, so the optimizer matches")
+    p.add_argument("--weight_decay", type=float, default=0.0,
+                   help="train_B1/B2's own default (Adam, no decay)")
+    p.add_argument("--match_pi_optimizer", type=int, default=1,
+                   help="1 = Adam with the physics-informed run's own LR schedule "
+                        "(x0.9 every 1000 epochs). 0 = AdamW + OneCycleLR, which is "
+                        "a better recipe but makes the comparison about the recipe "
+                        "rather than the loss.")
+    p.add_argument("--steps_per_epoch", type=int, default=100,
+                   help="ntrain/batch_size, so 'epoch' means the same thing in both "
+                        "runs and the x0.9-every-1000-epochs decay lands identically")
     p.add_argument("--grad_clip", type=float, default=1.0)
     p.add_argument("--loss", default="rel_l2", choices=["rel_l2", "mse"])
     p.add_argument("--eval_every", type=int, default=2000, help="in optimizer steps")
@@ -191,9 +208,26 @@ def main():
     n_par = sum(q.numel() for q in model.parameters() if q.requires_grad)
     print(f"Model: {n_par:,} trainable parameters, loss = {args.loss}\n")
 
-    opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-    sched = torch.optim.lr_scheduler.OneCycleLR(
-        opt, max_lr=args.lr, total_steps=args.opt_steps, pct_start=0.1)
+    # The comparison is only about the training principle if everything else
+    # matches. train_B1/B2 use plain Adam at lr=2e-3 with weight_decay=0 and a
+    # hand-rolled decay -- multiply the LR by 0.9 every 1000 epochs -- and NOT
+    # AdamW with OneCycleLR. An earlier version of this script used the latter,
+    # which is very likely the better recipe but turns the experiment into a
+    # comparison of optimizers rather than of losses.
+    if args.match_pi_optimizer:
+        opt = torch.optim.Adam(model.parameters(), lr=args.lr,
+                               weight_decay=args.weight_decay)
+        sched = None
+        print(f"Optimizer: Adam lr={args.lr}, wd={args.weight_decay}, "
+              f"x0.9 every {1000 * args.steps_per_epoch:,} steps "
+              f"-- matched to train_{args.geometry}")
+    else:
+        opt = torch.optim.AdamW(model.parameters(), lr=args.lr,
+                                weight_decay=args.weight_decay)
+        sched = torch.optim.lr_scheduler.OneCycleLR(
+            opt, max_lr=args.lr, total_steps=args.opt_steps, pct_start=0.1)
+        print("Optimizer: AdamW + OneCycleLR -- NOT matched to the "
+              "physics-informed run; the comparison is then about the recipe")
 
     mesh_t = mesh_tensors(args.geometry, train[0], device, dtype)
     uv_all = torch.tensor(np.stack([s["uv_exact"] for s in train]), device=device, dtype=dtype)
@@ -225,7 +259,12 @@ def main():
             if args.grad_clip and args.grad_clip > 0:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
             opt.step()
-            sched.step()
+            if sched is not None:
+                sched.step()
+            elif step > 0 and step % (1000 * args.steps_per_epoch) == 0:
+                for pg in opt.param_groups:
+                    pg["lr"] *= 0.9
+                print(f"  step {step:,}: lr -> {opt.param_groups[0]['lr']:.2e}")
             step += 1
 
             if step % args.eval_every == 0 or step == args.opt_steps:
@@ -250,6 +289,9 @@ def main():
         "loss": args.loss, "path": args.path,
         "ntrain": len(train), "ntest": len(test),
         "batch_size": args.batch_size, "opt_steps": args.opt_steps,
+        "optimizer": ("Adam + x0.9/1000 epochs, matched to the physics-informed run"
+                      if args.match_pi_optimizer else "AdamW + OneCycleLR, NOT matched"),
+        "lr": args.lr, "weight_decay": args.weight_decay,
         "n_parameters": n_par,
         "best_val_rel_L2": best["val_rel_L2"], "best_step": best["step"],
         "train_wall_clock_s": wall,

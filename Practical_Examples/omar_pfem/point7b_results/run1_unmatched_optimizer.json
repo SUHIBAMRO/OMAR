@@ -1,0 +1,21 @@
+{
+ "geometry": "B1",
+ "material": "neo_hookean",
+ "status": "SUPERSEDED -- kept as the record of a run whose comparison was not clean",
+ "best_val_rel_L2": 0.0826,
+ "best_step": 75000,
+ "opt_steps": 75000,
+ "train_wall_clock_s": 1463.0,
+ "label_generation_cost_h": 5.65,
+ "loss": "rel_l2",
+ "optimizer": "AdamW lr=1e-3 wd=1e-5 + OneCycleLR",
+ "physics_informed_comparison": {
+  "best_val_rel_L2": 0.0959,
+  "train_wall_clock_s": 2873.8,
+  "optimizer": "Adam lr=2e-3 wd=0.0, x0.9 every 1000 epochs",
+  "source": "Tables 5 and 7"
+ },
+ "why_superseded": "the two runs did not share an optimizer. The physics-informed model uses plain Adam at lr=2e-3 with weight_decay=0 and a x0.9-every-1000-epochs decay; this run used AdamW at lr=1e-3 with weight_decay=1e-5 and OneCycleLR, which is very likely the better recipe. The 0.0826-vs-0.0959 gap therefore cannot be attributed to the training principle: the optimizer is confounded with the loss. train_data_driven.py now matches the physics-informed optimizer by default and the run must be repeated.",
+ "still_valid": "the label-generation cost, 5.65 h of CPU for 800 B1 x Neo-Hookean solves at Table 4a's measured rate, which the physics-informed model does not pay. That figure does not depend on the optimizer.",
+ "also_worth_noting": "the best step was 75,000 of 75,000 -- the last one. The run had not converged when the step budget ran out, so its number is a lower bound on what this recipe reaches, not its ceiling."
+}
