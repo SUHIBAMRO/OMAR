@@ -72,13 +72,26 @@ R = '/content/drive/MyDrive/pfem_run'
 OUT_DIR = f'{R}/point7b/pi_adamw_onecycle'
 os.makedirs(OUT_DIR, exist_ok=True)
 
-DATASET = f'{R}/datasets/B1_neo_hookean/hyperelastic_training_data_q4.npz'
-if not os.path.exists(DATASET):
-    alt = f'{R}/datasets_archive/B1_neo_hookean/hyperelastic_training_data_q4.npz'
-    assert os.path.exists(alt), (
-        f'training dataset not found at\n  {DATASET}\nnor\n  {alt}')
-    DATASET = alt
-print('dataset:', DATASET)
+# It must be the SAME .npz as the other three boxes of the 2x2, or this cell
+# measures a different dataset rather than the missing combination. The first
+# path is where the other three actually loaded from; the rest are older
+# layouts, and a recursive search is the last resort instead of a third guess.
+import glob
+NAME = 'hyperelastic_training_data_q4.npz'
+CANDIDATES = [f'{R}/results/datasets/B1_neo_hookean/{NAME}',
+              f'{R}/datasets/B1_neo_hookean/{NAME}',
+              f'{R}/datasets_archive/B1_neo_hookean/{NAME}']
+DATASET = next((p for p in CANDIDATES if os.path.exists(p)), None)
+if DATASET is None:
+    found = sorted(glob.glob(f'{R}/**/B1_neo_hookean/{NAME}', recursive=True))
+    assert found, ('training dataset not found. Tried:\n  '
+                   + '\n  '.join(CANDIDATES)
+                   + f'\nand a recursive search of {R}, which matched nothing.')
+    print('none of the expected paths exist; found by search:')
+    for p in found:
+        print('   ', p, f'({os.path.getsize(p) / 1e6:.1f} MB)')
+    DATASET = found[0]
+print('dataset:', DATASET, f'({os.path.getsize(DATASET) / 1e6:.1f} MB)')
 
 # The recipe is copied from the data-driven run's own settings, recorded in
 # point7b_results/comparison_B1_neo_hookean.json. It must match exactly, or

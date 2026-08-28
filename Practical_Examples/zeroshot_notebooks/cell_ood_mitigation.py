@@ -60,14 +60,31 @@ CACHE = f'{R}/ood_progressive/fem_cache'            # shared FEM references
 OUT = f'{R}/ood_progressive'
 os.makedirs(OUT, exist_ok=True)
 
-DATASET = f'{R}/datasets/B1_neo_hookean/hyperelastic_training_data_q4.npz'
-if not os.path.exists(DATASET):
-    alt = f'{R}/datasets_archive/B1_neo_hookean/hyperelastic_training_data_q4.npz'
-    assert os.path.exists(alt), (
-        f'training dataset not found at\n  {DATASET}\nnor\n  {alt}\n'
-        f'-- check the dataset path used by the main training notebook')
-    DATASET = alt
-print('dataset:', DATASET)
+# The dataset MUST be the same .npz the baseline B1 x Neo-Hookean model was
+# trained on, or stage 2 compares two models trained on different data and
+# attributes the difference to normalization. The first path below is the one
+# the point-7b runs actually loaded from ("Loaded 800 train / 200 test from
+# .../results/datasets/..."), so it is the known-good location; the rest are
+# older layouts. If none exists the cell SEARCHES Drive rather than guessing
+# a third time, and prints what it found so the choice is visible.
+import glob
+NAME = 'hyperelastic_training_data_q4.npz'
+CANDIDATES = [f'{R}/results/datasets/B1_neo_hookean/{NAME}',
+              f'{R}/datasets/B1_neo_hookean/{NAME}',
+              f'{R}/datasets_archive/B1_neo_hookean/{NAME}']
+DATASET = next((p for p in CANDIDATES if os.path.exists(p)), None)
+if DATASET is None:
+    found = sorted(glob.glob(f'{R}/**/B1_neo_hookean/{NAME}', recursive=True))
+    assert found, (
+        'training dataset not found. Tried:\n  ' + '\n  '.join(CANDIDATES) +
+        f'\nand a recursive search of {R} for */B1_neo_hookean/{NAME}, which '
+        'matched nothing.\nRun the main training notebook first, or set '
+        'DATASET by hand to the .npz the baseline model was trained on.')
+    print('none of the expected paths exist; found by search:')
+    for p in found:
+        print('   ', p, f'({os.path.getsize(p) / 1e6:.1f} MB)')
+    DATASET = found[0]
+print('dataset:', DATASET, f'({os.path.getsize(DATASET) / 1e6:.1f} MB)')
 
 # The protocol MUST match the original run exactly, or the comparison measures
 # the protocol instead of the normalization. These are Table 4's values, the
@@ -76,6 +93,23 @@ PROTOCOL = dict(ntrain='800', ntest='200', epochs='2000', batch_size='8',
                 validate_every='25', early_stop_patience='8',
                 early_stop_min_delta='1e-4')
 print('protocol:', PROTOCOL)
+
+# Pre-flight. Stage 2 needs the BASELINE checkpoint, and checking for it only
+# after stage 1 would throw away an hour of GPU training before saying so.
+# Everything stage 2 depends on that stage 1 does not produce is checked here,
+# before any training starts.
+_base = next((f'{BASE_DIR}/{n}' for n in ('model_best.pt', 'model_final.pt')
+              if os.path.exists(f'{BASE_DIR}/{n}')), None)
+assert _base is not None, (
+    f'baseline checkpoint not found in {BASE_DIR}\n'
+    'Stage 2 compares the normalized model against it, so there is no point '
+    'spending an hour on stage 1 without it. This is the same checkpoint '
+    'Round6_OOD_Progressive used; check that directory name first.')
+assert not os.path.exists(f'{BASE_DIR}/input_norm.json'), (
+    f'{BASE_DIR} contains an input_norm.json, so it is NOT the raw-input '
+    'model the comparison needs as its baseline.')
+print('baseline checkpoint:', _base,
+      f'({os.path.getsize(_base) / 1e6:.1f} MB)')
 
 # ---------------------------------------------------------------- stage 1
 if os.path.exists(f'{NORM_DIR}/model_final.pt') or os.path.exists(f'{NORM_DIR}/EARLY_STOPPED'):
@@ -106,12 +140,7 @@ print('input_norm.json:', json.load(open(f'{NORM_DIR}/input_norm.json')))
 # ---------------------------------------------------------------- stage 2
 # The baseline sweep is re-run too, with the cache, so both curves come from
 # the same code path on the same machine. It is cheap once the cache is warm.
-CKPT_BASE = f'{BASE_DIR}/model_best.pt'
-if not os.path.exists(CKPT_BASE):
-    CKPT_BASE = f'{BASE_DIR}/model_final.pt'
-assert os.path.exists(CKPT_BASE), f'baseline checkpoint not found in {BASE_DIR}'
-assert not os.path.exists(f'{BASE_DIR}/input_norm.json'), (
-    'the baseline directory has an input_norm.json -- it is not the raw-input model')
+CKPT_BASE = _base   # resolved and checked in the pre-flight above
 
 for tag, ckpt in (('baseline', CKPT_BASE), ('inputnorm', CKPT_NORM)):
     out_json = f'{OUT}/ood_progressive_B1_neo_hookean_{tag}.json'
