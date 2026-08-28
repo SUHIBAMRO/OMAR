@@ -11,9 +11,15 @@ Every number in the prose is derived from the committed result JSON or read
 back out of the source document, never typed in by hand, and the claims are
 asserted before they are written. Two errors in the first draft of this file
 were caught exactly that way: it quoted 3,215 us/DOF for N=501 where the
-table prints the run's own 3,219, and it attributed the CPU assembly-versus-
-solve split to a "Table 4b" that does not exist, at a factor of 74 where the
-real one is 309.
+table prints the run's own 3,219, and it cited "the report's Table 4b" for
+the CPU assembly-versus-solve split at a factor of 74.
+
+On that second one, precisely, because it is easy to get wrong again: the
+REPORT has no Table 4b (its FLOP figures sit in an unnumbered paragraph after
+Table 4a); the SUMMARY does, and it is a FLOPs table. 74x is the hand-counted
+FLOP ratio, 5.88e7 / 7.9e5. The measured wall-clock ratio, which is what a
+sentence about time needs, is 309x for B1 x Neo-Hookean from Table 4a. Both
+numbers are real; they are not interchangeable.
 """
 import copy
 import json

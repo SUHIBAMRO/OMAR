@@ -29,7 +29,7 @@ verified by re-reading the .docx and comparing cell by cell against the JSON.
 | Convergence vs ~10M-DOF reference, Q4 vs Q9 (B1 only) | §4.4, Table 6a |
 | Batch-size sweep, equal optimizer steps | §8.2, Table 6 |
 | GPU memory, three senses | §8.4, Table 8 |
-| Measured native FEM cost + training cost | §4.2, §8.3, Tables 4a/7 (there is no Table 4b — an earlier draft cited one) |
+| Measured native FEM cost + training cost | §4.2, §8.3, Tables 4a/7. **Table 4b is in the SUMMARY only, not the report** — see the numbering warning below |
 | GPU-native FEM solver + machine-precision validation | §8.5, Table 9 |
 | **R5-3** break-even vs GPU FEM | Table 10c |
 | **R6** break-even, CPU and GPU side by side | **Table 10d** |
@@ -113,9 +113,9 @@ four earlier ones are listed in the sections below; the two from v33 were:
   own **3,219** (`solve_s` is transcribed rounded, so dividing it by `n_dof`
   disagrees with the run's printed `us_per_dof` by up to 4 µs/DOF). **Quote
   the `us_per_dof` field, not a value re-derived from `solve_s`.**
-* the draft attributed the CPU assembly-versus-solve split to a **"Table 4b"
-  that does not exist in the report at all**, at a factor of **74** where
-  Table 4a gives **309×** for B1 × Neo-Hookean and 290–692× across the six.
+* the draft cited **"the report's Table 4b"** for the CPU assembly-versus-solve
+  split, at a factor of **74×**. See the numbering warning immediately below —
+  the citation was wrong and the quantity was the wrong kind.
 
 A third error was caught by hand while checking the same paragraph: the draft
 said the *B2 geometry* costs ~2× more to assemble. It does not — B2 × NH is
@@ -123,6 +123,28 @@ within 2% of B1 × NH. The ~2× is a **material** effect: Neo-Hookean has an
 analytic PK1 and tangent (`omar_pfem/data/materials.py`), while Mooney-Rivlin
 and Arruda-Boyce use `jax.jacfwd(jax.grad(...))`
 (`omar_pfem/data/material_models_jax.py`), costing 2.1–2.4× per Table 4a.
+
+### ⚠️ Table 4b, and 74× vs 309× — read before touching §4.2 or §8.5
+
+This trips up every session, so it is written out once, verified:
+
+* **The REPORT has no Table 4b.** Its FLOP figures live in a plain, unnumbered
+  paragraph directly after Table 4a.
+* **The SUMMARY has a Table 4b** — a 3-row per-material table of FLOPs per
+  sample (NH ≈5.88×10⁷ assembly / ≈7.9×10⁵ solve; MR and AB ≈9.72×10⁷ / same).
+* **74× is the FLOP ratio** (5.88×10⁷ ÷ 7.9×10⁵), hand-counted, not measured.
+* **309× is the measured wall-clock ratio** for B1 × Neo-Hookean from report
+  Table 4a (25.343 s assembly ÷ 0.082 s solve); 290–692× across the six.
+* So **74 is not a wrong number, it is a different quantity.** Never put it in
+  a sentence about time, and never attribute it to the report.
+  `advisor_feedback/2026-08-28_round6_timon.md` line 135 makes exactly this
+  mistake — it says "the report's Table 4b" — and that note is what the v33
+  draft copied from. The note is left as written because it is a record of
+  what was thought at the time; this block is the correction.
+* Loose end, not an error: the FLOP count implies the autodiff materials cost
+  ≈1.65× more per element, while Table 4a's measured assembly time says
+  2.1–2.4×. Both are stated on their own basis; the gap is unexplained in the
+  text and nobody has looked into it.
 
 ---
 
