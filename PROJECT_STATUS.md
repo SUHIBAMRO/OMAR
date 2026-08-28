@@ -5,8 +5,98 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-28 (**point 5 is now written into both documents —
-report v29 and the summary. See "Point 5 written in" below.**)
+Last updated: 2026-08-28. **Read the master table immediately below first;
+everything after it is detail.**
+
+---
+
+# MASTER TABLE — where every item stands
+
+Current artefacts: report **v31**, summary updated, branch
+`claude/claude-code-question-d307wp`.
+
+**Nothing measured is unwritten.** Every result that exists is committed as
+JSON under `omar_pfem/point2_results/` or `point5_results/` AND written into
+both documents. Verified by re-reading the .docx and comparing cell by cell.
+
+## ✅ Done and in the report
+
+| Item | Where |
+|---|---|
+| Mesh convergence, 6 cases, N=6→51 | §4.3, Tables 1–6 |
+| Convergence vs ~10M-DOF reference, Q4 vs Q9 (B1 only) | §4.4, Table 6a |
+| Batch-size sweep, equal optimizer steps | §8.2, Table 6 |
+| GPU memory, three senses | §8.4, Table 8 |
+| Measured native FEM cost + training cost | §4.2, §8.3, Tables 4a/4b/7 |
+| GPU-native FEM solver + machine-precision validation | §8.5, Table 9 |
+| **R5-3** break-even vs GPU FEM | Table 10c |
+| **R6** break-even, CPU and GPU side by side | **Table 10d** |
+| **R5-4** identical batch sizes | Tables 10a/10b |
+| **R5-5** physical quantities (H1, energy, stress, reactions) | §8.8, Tables 15–17 |
+| **R5-2** Pareto, B1 × Neo-Hookean | §8.7, Table 18 |
+| **R5-8a** "Tensormesh?" — written from scratch in PyTorch | §8.5 |
+| B2 accuracy regression: root cause + fix (32.46% → 9.11%) | §9.1 |
+| Exact definition of every reported error | §7.1 |
+| Zero-shot resolution invariance, B1 × Neo-Hookean | §8.7, Table 12 |
+
+## 🔵 Built, verified, NOT RUN — waiting on Omar's Colab
+
+| Item | Notebook | GPU? | Time |
+|---|---|---|---|
+| **R6-1** progressive OOD (material vs loading, 0→3σ) | `Round6_OOD_Progressive` | no | 1.5–4 h |
+| **R5-8b** GPU-FEM sweep 0.02→3.93M DOF + cost breakdown | `Round6_GPU_FEM_Sweep` | **yes** | hours |
+| **R5-7b** data-driven operator, B1 × Neo-Hookean | `Round6_Data_Driven` | preferred | < 48 min |
+
+All three: self-contained, save to Drive incrementally, resume on re-run.
+All 11 repo notebooks pass `check_notebooks.py`.
+
+## 🟡 Partial
+
+| Item | State |
+|---|---|
+| **R5-1 / R5-7a** zero-shot, 6 cases | 1 of 6 done. Five generating on Omar's Colab — **not visible from this session, ask him** |
+| **R5-2** Pareto, remaining 5 cases | Blocked on those five checkpoints. Script ready, ~1–6 h per case depending on the runtime |
+
+## ⬜ Not started
+
+| Item | Blocker |
+|---|---|
+| **R5-9** MMS (Q4 + Q9 + Transolver vs one analytic solution) | Timon: *"this is the last thing to do"*. Deliberately deferred. His body-force-vs-homogeneous fork is still unresolved |
+| **R6** open-source the GPU-FEM + benchmark vs Tensormesh | Needs Omar's decision: separate repo? license? how much documentation? |
+| Send Timon the correction + the B1×NH Pareto result | Drafted in the reading of the round-6 email; not sent |
+
+## 🚫 Cancelled by Omar
+
+B2 mesh-convergence study · Tables 13/14 left as they are
+
+---
+
+## The correction Timon needs
+
+He is working from "approximately 7,600–96,000 samples" for the GPU
+break-even, because that is what our email said. That range is the
+**batch-size-128 column of Table 10c alone** — the least favourable of four.
+The full range is **1,133–95,038**, and **1,133–19,410** at batch size 1,
+which is the deployment case. His lower bound is 6.7× too pessimistic, and he
+explicitly said the figure "clarifies where the neural operator is useful",
+so it is shaping his judgement of the work.
+
+## How to rebuild the documents
+
+Builders live in `Practical_Examples/report_builders/`, each reading the
+previous version, so the chain is v27 → v28 → v29 → v30 → v31:
+
+    make_v28.py       matched batch sizes (Tables 10a-c)
+    make_v29.py       physical quantities (Tables 15-17) + §10 qualification
+    make_v30.py       break-even side by side (Table 10d)
+    make_v31.py       Pareto (Table 18)
+    make_summary_v3.py / make_summary_v4.py   the parallel summary
+
+`point5_tables.py` and `pareto_table.py` build their tables from the
+committed JSONs and are imported by BOTH the report and summary builders, so
+the two documents cannot disagree. The builders assert their own cross-case
+claims before writing them — that mechanism has caught four false statements
+so far, listed in the sections below.
 
 ---
 
