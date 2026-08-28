@@ -82,6 +82,26 @@ Newton tol None, CG tol None, None load steps.
 A caveat about the shared solver, recorded in PROJECT_STATUS: its CG stops on `||r||/||b|| < cg_tol`, and on the last Newton iteration of each load step `b` is the already-converged residual, so the target becomes unreachable and CG runs to its iteration cap. Harmless here — Newton has already converged and the cap is set proportional to the problem size — but it inflates the wall-clock column.
 
 
+---
+
+
+## The operator third — a DEMONSTRATION run only, not a result
+
+`operator_demo_N9_undertrained.json`. **Do not quote these numbers in the report.** It is a 1,600-optimizer-step CPU run at N=9, kept only because it proves the pipeline end to end and because its ceiling check passed. For scale, the report's own physics-informed models were trained for 75,000 steps.
+
+| method | L2 | H1 semi | stress | energy |
+|---|---|---|---|---|
+| Q4 (same mesh) | 1.351e-02 | 1.132e-01 | 1.143e-01 | 1.268e-02 |
+| Q9 (same N) | 4.155e-04 | 5.763e-03 | 5.957e-03 | 3.327e-05 |
+| operator (undertrained) | 6.366e-02 | 1.525e-01 | 1.569e-01 | 8.877e-02 |
+
+**operator / Q4 in L2 = 4.71×.** Above 1.0, which is the required outcome: the operator minimizes the same functional over the same Q4 space, so the Q4 solution is the minimizer and a ratio below 1.0 would mean a bug, not a win.
+
+In the H1 semi-norm the ratio is 1.35×. That it is so much smaller than the L2 ratio is worth re-checking on a longer run — it is the opposite of the usual ordering, where L2 is the more forgiving norm.
+
+The error was **still falling at the last epoch** (see `history` in the JSON), so this ratio reflects the step budget, not the method. The reportable number needs `Round6_MMS_Operator.ipynb`: N=17, 2000 epochs, 20–40 min on any GPU.
+
+
 ## What is NOT here
 
 * **The Transolver.** The comparison Timon asked for is three-way; this is two-way. The operator cannot be run on this problem as things stand: its energy functional has no body-force term and its inputs have no body-force channel.

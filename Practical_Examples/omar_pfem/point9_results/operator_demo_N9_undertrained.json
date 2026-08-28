@@ -1,0 +1,208 @@
+{
+  "study": "MMS, physics-informed operator third",
+  "material": "neo_hookean",
+  "N": 9,
+  "n_dof": 162,
+  "family": {
+    "alpha_range": [
+      0.03,
+      0.07
+    ],
+    "beta_range": [
+      0.5,
+      1.0
+    ],
+    "ntrain": 32,
+    "ntest": 8
+  },
+  "training": {
+    "principle": "physics-informed, Pi = U - W, no labels",
+    "optimizer": "Adam lr=0.002 wd=0.0",
+    "epochs": 400,
+    "opt_steps": 1600,
+    "batch_size": 8,
+    "train_wall_clock_s": 284.8321795463562,
+    "label_cost": "zero: u* is analytic, and it is not used in training at all -- the loss is the energy"
+  },
+  "operator_mean_over_test_family": {
+    "L2_rel": 0.08794911779513973,
+    "H1_semi_rel": 0.18215778515476505,
+    "stress_rel_L2": 0.1830142661831658,
+    "energy_rel": 0.1125486198354308
+  },
+  "operator_best_epoch": 400,
+  "operator_on_the_reference_member": {
+    "L2_rel": 0.0636632690167793,
+    "H1_semi_rel": 0.15253291090668541,
+    "stress_rel_L2": 0.15691938646632503,
+    "energy_rel": 0.08876620464735129
+  },
+  "fem_reference_same_mesh": {
+    "Q4": {
+      "L2_rel": 0.013508997586996056,
+      "H1_semi_rel": 0.11317719277825478,
+      "stress_rel_L2": 0.11425881968822985,
+      "energy_rel": 0.012684290049738188,
+      "n_dof": 162,
+      "wall_clock_s": 11.93090033531189
+    },
+    "Q9": {
+      "L2_rel": 0.00041548659138185957,
+      "H1_semi_rel": 0.0057631907883060555,
+      "stress_rel_L2": 0.005956695097985329,
+      "energy_rel": 3.326819306341622e-05,
+      "n_dof": 578,
+      "wall_clock_s": 62.01124143600464
+    }
+  },
+  "ceiling": "The operator minimizes the SAME discrete functional over the SAME Q4 space as the Q4 solver, so the Q4 solution is the minimizer and the operator cannot beat it at this mesh. operator/Q4 is the quantity of interest: 1.0 would mean the network has fully solved the variational problem.",
+  "device": "cpu",
+  "dtype": "float32 (training), float64 (references)",
+  "history": [
+    {
+      "epoch": 25,
+      "opt_steps": 100,
+      "train_Pi": 57.06303405761719,
+      "L2_rel": 1.7139307886797894,
+      "H1_semi_rel": 1.8737067027057344,
+      "stress_rel_L2": 1.8763536879747065,
+      "energy_rel": 0.5328023690976156
+    },
+    {
+      "epoch": 50,
+      "opt_steps": 200,
+      "train_Pi": 8.163446068763733,
+      "L2_rel": 1.5573622027606147,
+      "H1_semi_rel": 2.003197971778148,
+      "stress_rel_L2": 2.152929505027595,
+      "energy_rel": 2.6488234800493773
+    },
+    {
+      "epoch": 75,
+      "opt_steps": 300,
+      "train_Pi": 40.89624297618866,
+      "L2_rel": 1.1118068569152508,
+      "H1_semi_rel": 2.039079778867696,
+      "stress_rel_L2": 2.8259376526717626,
+      "energy_rel": 6.827182071809574
+    },
+    {
+      "epoch": 100,
+      "opt_steps": 400,
+      "train_Pi": -2.323329418897629,
+      "L2_rel": 0.8519359170175664,
+      "H1_semi_rel": 0.9683728260162846,
+      "stress_rel_L2": 0.9155738002007651,
+      "energy_rel": 0.5104476618621243
+    },
+    {
+      "epoch": 125,
+      "opt_steps": 500,
+      "train_Pi": -0.3551608920097351,
+      "L2_rel": 0.9318859103767475,
+      "H1_semi_rel": 1.4902126215004943,
+      "stress_rel_L2": 1.8642453145919828,
+      "energy_rel": 3.160226217984974
+    },
+    {
+      "epoch": 150,
+      "opt_steps": 600,
+      "train_Pi": -1.0198297947645187,
+      "L2_rel": 1.0898210042967735,
+      "H1_semi_rel": 1.3802070476928954,
+      "stress_rel_L2": 1.3512980824563463,
+      "energy_rel": 0.4926761015266823
+    },
+    {
+      "epoch": 175,
+      "opt_steps": 700,
+      "train_Pi": -3.306166857481003,
+      "L2_rel": 0.337305134092901,
+      "H1_semi_rel": 0.6289568479973181,
+      "stress_rel_L2": 0.6605933276112874,
+      "energy_rel": 0.6460900581514111
+    },
+    {
+      "epoch": 200,
+      "opt_steps": 800,
+      "train_Pi": -7.8237316608428955,
+      "L2_rel": 0.42425409930050884,
+      "H1_semi_rel": 0.543941632406652,
+      "stress_rel_L2": 0.5313704481552287,
+      "energy_rel": 0.3431812666809342
+    },
+    {
+      "epoch": 225,
+      "opt_steps": 900,
+      "train_Pi": -4.654783487319946,
+      "L2_rel": 0.35237238173738256,
+      "H1_semi_rel": 0.6997935519187888,
+      "stress_rel_L2": 0.7419306127188277,
+      "energy_rel": 0.8358887554735153
+    },
+    {
+      "epoch": 250,
+      "opt_steps": 1000,
+      "train_Pi": -8.146412372589111,
+      "L2_rel": 0.24276496506274436,
+      "H1_semi_rel": 0.4369458633648189,
+      "stress_rel_L2": 0.4051830148529503,
+      "energy_rel": 0.1953330348606931
+    },
+    {
+      "epoch": 275,
+      "opt_steps": 1100,
+      "train_Pi": -8.521283745765686,
+      "L2_rel": 0.31883815446691943,
+      "H1_semi_rel": 0.5215535240964326,
+      "stress_rel_L2": 0.5626272900840588,
+      "energy_rel": 0.8230521181871862
+    },
+    {
+      "epoch": 300,
+      "opt_steps": 1200,
+      "train_Pi": -8.985020995140076,
+      "L2_rel": 0.20401520949563534,
+      "H1_semi_rel": 0.30654166122679205,
+      "stress_rel_L2": 0.2965236294741566,
+      "energy_rel": 0.21741978004352802
+    },
+    {
+      "epoch": 325,
+      "opt_steps": 1300,
+      "train_Pi": -9.141765356063843,
+      "L2_rel": 0.14806476875979319,
+      "H1_semi_rel": 0.2315456256192071,
+      "stress_rel_L2": 0.21829373695530052,
+      "energy_rel": 0.1526353148805499
+    },
+    {
+      "epoch": 350,
+      "opt_steps": 1400,
+      "train_Pi": -9.11653184890747,
+      "L2_rel": 0.12986811040462437,
+      "H1_semi_rel": 0.22972139037436062,
+      "stress_rel_L2": 0.22057824904243065,
+      "energy_rel": 0.16446937170935833
+    },
+    {
+      "epoch": 375,
+      "opt_steps": 1500,
+      "train_Pi": -9.066628456115723,
+      "L2_rel": 0.1170190495032788,
+      "H1_semi_rel": 0.22485757842656678,
+      "stress_rel_L2": 0.2169011327318091,
+      "energy_rel": 0.06703200721906868
+    },
+    {
+      "epoch": 400,
+      "opt_steps": 1600,
+      "train_Pi": -9.27700400352478,
+      "L2_rel": 0.08794911779513973,
+      "H1_semi_rel": 0.18215778515476505,
+      "stress_rel_L2": 0.1830142661831658,
+      "energy_rel": 0.1125486198354308
+    }
+  ],
+  "operator_over_Q4_L2": 4.712656776107682
+}
