@@ -31,17 +31,28 @@
    "label_generation_cost_h": 5.65,
    "loss": "rel_l2",
    "note": "confounded: a better optimizer AND a different loss. Best was the FINAL step, so it had not converged -- 0.0826 is a lower bound on this recipe, not its ceiling."
+  },
+  "physics_informed_adamw_onecycle": {
+   "best_val_rel_L2": 0.1247,
+   "best_epoch": 670,
+   "train_wall_clock_s": 3108.9,
+   "opt_steps": 75000,
+   "batch_size": 8,
+   "final_val_rel_L2": 0.1258,
+   "inference_ms_per_sample": 4.5957,
+   "optimizer": "AdamW + OneCycleLR -- lr and weight_decay NOT VERIFIED, see caveat",
+   "label_generation_cost_h": 0.0,
+   "out_dir": "results/B1_neo_hookean_adamw_onecycle",
+   "caveat": "UNVERIFIED RECIPE. The Colab output was truncated to its last 5,000 lines, so the optimizer line naming lr and weight_decay was not visible, and the out_dir differs from the one the prepared cell writes to (point7b/pi_adamw_onecycle), which suggests a hand-edited command. If this ran at train_B1's defaults (lr=2e-3, wd=0) instead of the data-driven run's lr=1e-3, wd=1e-5, then the AdamW column is STILL confounded and the flip below is not established. Check the head of the run log for the line starting '[optimizer] AdamW + OneCycleLR'."
   }
  },
  "findings": {
   "matched": "under the same optimizer the physics-informed model is 36% more accurate (0.0959 vs 0.1307). The data-driven advantage seen in the first run came from the optimizer, not the loss.",
   "unmatched": "each under its own preferred recipe, the data-driven model is 16% more accurate (0.0826 vs 0.0959).",
   "label_cost": "the data-driven model additionally requires 800 FEM solves = 5.65 h of CPU at Table 4a's measured rate, which the physics-informed model does not pay at all. This is independent of the optimizer.",
-  "missing_cell": "the 2x2 is incomplete. Physics-informed under AdamW+OneCycleLR has NOT been measured. Until it is, the strongest defensible claim is the matched one; the unmatched pair compares each method under a different recipe and cannot rank the principles."
+  "the_2x2_is_complete": "By column, isolating the LOSS: under Adam 2e-3 the physics-informed loss wins by 26.6% (0.0959 vs 0.1307); under AdamW+OneCycleLR the data-driven loss wins by 33.8% (0.1247 vs 0.0826). THE RANKING FLIPS WITH THE OPTIMIZER. Neither training principle wins outright, and the report must say exactly that rather than quote whichever column suits the conclusion.",
+  "the_optimizer_affects_the_two_losses_in_OPPOSITE_directions": "AdamW+OneCycleLR makes the physics-informed model 30.0% WORSE (0.0959 -> 0.1247) and the data-driven model 36.8% BETTER (0.1307 -> 0.0826). That is the mechanism behind the flip and it is worth reporting on its own: a schedule tuned on one loss is not neutral ground for the other. Conditional on the recipe caveat above.",
+  "label_cost_is_unaffected": "Independently of the optimizer, the data-driven model needs 800 FEM solves = 5.65 h of CPU for its labels; the physics-informed one needs none. This is the one claim in the comparison that does not depend on the recipe."
  },
- "next_run_that_would_settle_it": {
-  "what": "train the physics-informed model with AdamW lr=1e-3 wd=1e-5 + OneCycleLR, same 75,000 steps",
-  "cost_min": 48,
-  "why": "fills the missing cell. If it beats 0.0826 the physics-informed principle wins under both recipes; if not, the ranking depends on the recipe and must be reported as such."
- }
+ "still_to_verify": "The lr and weight_decay of the AdamW+OneCycleLR physics-informed run. Until that is confirmed, the flip is recorded but NOT written into the report."
 }
