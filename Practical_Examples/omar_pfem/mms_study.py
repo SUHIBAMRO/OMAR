@@ -128,11 +128,17 @@ def grad_u_exact(xy, alpha=DEFAULT_ALPHA, beta=DEFAULT_BETA):
 
 
 def _psi_and_P(F, mu, lam, material, dtype):
-    """psi(F) and P = dpsi/dF, batched over the leading dimension."""
+    """psi(F) and P = dpsi/dF, batched over the leading dimension.
+
+    torch.enable_grad() is not decoration: this builds its own little
+    autograd graph to get P, and callers legitimately evaluate errors inside
+    torch.no_grad() -- scoring a trained network is the obvious case. Without
+    it the differentiation silently has no graph to work with and raises."""
     energy_density_fn, _ = get_material_fns_torch(material)
-    F = F.detach().requires_grad_(True)
-    psi = energy_density_fn(F, mu, lam, dtype=dtype)
-    P, = torch.autograd.grad(psi.sum(), F, create_graph=False)
+    with torch.enable_grad():
+        F = F.detach().requires_grad_(True)
+        psi = energy_density_fn(F, mu, lam, dtype=dtype)
+        P, = torch.autograd.grad(psi.sum(), F, create_graph=False)
     return psi.detach(), P.detach()
 
 
