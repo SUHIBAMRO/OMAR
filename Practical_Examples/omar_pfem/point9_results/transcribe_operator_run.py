@@ -114,6 +114,15 @@ def main(path):
         assert abs(float(m.group(2)) / row["H1_semi_rel"] - 1) < 1e-4
     assert ref["Q4"]["n_dof"] == 578, ref["Q4"]["n_dof"]
 
+    # Which member of the family everything in the table is scored on. The
+    # run prints it in its own banner; check it against the manufactured
+    # solution string the FEM half recorded rather than trusting either.
+    m = re.search(r"alpha=([\d.]+), beta=([\d.]+)", raw)
+    assert m, "the run did not print the reference member"
+    alpha, beta = float(m.group(1)), float(m.group(2))
+    s = study["manufactured_solution"]
+    assert f"{alpha:g}*(" in s and f"{beta:g}*sin" in s, (alpha, beta, s)
+
     ratio = single["L2_rel"] / ref["Q4"]["L2_rel"]
     printed = float(re.search(r"operator / Q4 in L2: ([\d.]+)x", raw).group(1))
     assert abs(ratio - printed) < 0.005, (ratio, printed)
@@ -123,7 +132,8 @@ def main(path):
         "study": "MMS, physics-informed operator third",
         "material": "neo_hookean", "N": 17, "n_dof": 578,
         "family": {"alpha_range": [0.03, 0.07], "beta_range": [0.5, 1.0],
-                   "ntrain": 64, "ntest": 16},
+                   "ntrain": 64, "ntest": 16,
+                   "scored_member": {"alpha": alpha, "beta": beta}},
         "training": {
             "principle": "physics-informed, Pi = U - W, no labels",
             "optimizer": "Adam lr=0.002 wd=0.0",

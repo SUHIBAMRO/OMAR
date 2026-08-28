@@ -12,13 +12,14 @@ everything after it is detail.**
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v34**, summary updated through Table 23, branch
+Current artefacts: report **v35**, summary updated through Table 24, branch
 `claude/claude-code-question-d307wp`.
 
 **Nothing measured is unwritten.** Point 7b's 2×2 is complete and in §8.9;
-the MMS FEM half is in §8.11. Everything measured is committed as JSON under
-`omar_pfem/point{2,5,6,7b,8}_results/` AND written into both documents,
-verified by re-reading the .docx and comparing cell by cell against the JSON.
+point 9's MMS is complete and three-way in §8.11 (Tables 22–24). Everything
+measured is committed as JSON under `omar_pfem/point{2,5,6,7b,8,9}_results/`
+AND written into both documents, verified by re-reading the .docx and
+comparing cell by cell against the JSON.
 
 ## ✅ Done and in the report
 
@@ -41,14 +42,13 @@ verified by re-reading the .docx and comparing cell by cell against the JSON.
 | Zero-shot resolution invariance, B1 × Neo-Hookean | §8.7, Table 12 |
 | **R5-7b** physics-informed vs data-driven, the complete 2×2 | §8.9, **Table 21** |
 | **R5-9** MMS, Q4 and Q9 against an analytic solution | §8.11, **Tables 22–23** |
+| **R5-9** MMS, the operator third — the three-way is complete | §8.11, **Table 24** |
 | **R6-1** progressive OOD: material vs loading, 0→3σ | §8.6, **Table 19** |
 | **R5-8b** GPU-FEM scaling sweep, 0.02→3.93M DOF + cost breakdown | §8.5, **Table 20** |
 
 ## 🔵 Run, recorded, NOT yet in the report
 
-| Item | State |
-|---|---|
-| **R5-9** MMS, operator third | `mms_operator.py` built and its energy functional proved against FEM. Only an undertrained CPU demo has run (`point9_results/operator_demo_N9_undertrained.json`, operator/Q4 = 4.71× in L2, error still falling at the last epoch). The reportable number needs `Round6_MMS_Operator.ipynb`, ~20–40 min on any GPU |
+**Empty.** Everything that has been run is written into both documents.
 
 All round-6 notebooks are self-contained, save to Drive incrementally, and
 resume on re-run. All 12 repo notebooks pass `check_notebooks.py`.
@@ -64,7 +64,7 @@ resume on re-run. All 12 repo notebooks pass `check_notebooks.py`.
 
 | Item | Blocker |
 |---|---|
-| **R5-9** MMS — **FEM half STARTED** (`omar_pfem/mms_study.py`), operator half not | The fork is resolved: **body force**, reasoning in the module docstring and below. Q4/Q9 run and self-validate. The Transolver half still needs a body-force term in Π and a body-force input channel |
+| **R6-1b** does normalization mitigate the OOD degradation? | `Round6_OOD_Mitigation.ipynb` is built and verified but **not run** — ~1.5 h on any GPU |
 | **R6** open-source the GPU-FEM + benchmark vs Tensormesh | Needs Omar's decision: separate repo? license? how much documentation? |
 | Send Timon the correction + the B1×NH Pareto result | Drafted in the reading of the round-6 email; not sent |
 
@@ -125,7 +125,7 @@ analytic PK1 and tangent (`omar_pfem/data/materials.py`), while Mooney-Rivlin
 and Arruda-Boyce use `jax.jacfwd(jax.grad(...))`
 (`omar_pfem/data/material_models_jax.py`), costing 2.1–2.4× per Table 4a.
 
-### Point 9 (MMS) — the FEM half is DONE and self-validated (2026-08-28)
+### Point 9 (MMS) — COMPLETE, all three legs (2026-08-28)
 
 `omar_pfem/mms_study.py`, results in `omar_pfem/point9_results/`.
 
@@ -155,12 +155,54 @@ error — at Q4 N=9 they are identical to 12 significant digits across cg_tol
 
 **Q9 wins decisively at equal DOF**: 4.0× lower L2 at 162 DOF, 8.2× at 578.
 
-**The operator third is BUILT** (`omar_pfem/mms_operator.py`) and needs a
-Colab run — `Round6_MMS_Operator.ipynb`, ~20–40 min on any GPU. Existing
+**The operator third is MEASURED** — `mms_operator_B1_neo_hookean.json`,
+report Table 24. `Round6_MMS_Operator` on an A100: N=17 (578 DOF), 16,000
+optimizer steps, 8.2 min, a 64-member family, **no labels**. Existing
 checkpoints could not be reused (no body-force term in Π, no body-force
 input channel, wrong Dirichlet set), so it is a new physics-informed model
 on the manufactured family: same architecture, same Adam recipe, scored by
 `mms_study`'s own error routine so all three numbers are comparable.
+
+| method | L2 | H1 semi | stress | energy |
+|---|---|---|---|---|
+| Q4 (same mesh, 578 DOF) | 3.403e-03 | 5.666e-02 | 5.724e-02 | 3.191e-03 |
+| Q9 (same N, 2,178 DOF) | 5.163e-05 | 1.438e-03 | 1.495e-03 | 2.088e-06 |
+| operator (578 DOF) | 8.238e-03 | 5.831e-02 | 5.886e-02 | 9.914e-03 |
+
+**operator/Q4 = 2.42× in L2 — the ceiling holds.** The FEM rows are bit-for-bit
+Table 22's N=17 rows; `make_v35.py` asserts that, so the two tables cannot
+drift apart inside one document.
+
+**The finding is that the four norms disagree**: 1.03× in H1 and 1.03× in
+stress — effectively at the Q4 optimum — against 2.42× in L2 and 3.11× in
+energy. That **inverts the usual ordering**, where L2 is the forgiving norm.
+The loss is built from the deformation gradient, so strain and stress are
+what it constrains hardest and the displacement is pinned only through them.
+The same inversion appears in the independent N=9 CPU demo (1.35× vs 4.71×),
+so it is not an artefact of one run. Stated plainly in §8.11: for a
+physics-informed operator, an L2 displacement error overstates how wrong the
+mechanics are.
+
+What remains is **optimization** error, not discretization error: best
+held-out L2 went 1.429e-02 → 8.826e-03 over the second half of training, a
+further 38%, still falling slowly. Reported number is the best checkpoint
+(epoch 1900), not the last — single-epoch scores span a factor of 12 over the
+last twenty validations.
+
+⚠️ **Provenance**: the run wrote its JSON to Drive and only stdout came back.
+`point9_results/transcribe_operator_run.py` parses that stdout rather than
+anyone retyping it, and the JSON's `provenance` block records that operator
+values carry **printed** precision (4 s.f.) and which fields are **absent
+rather than guessed** (the FEM refs' wall clocks; the training wall clock in
+seconds — the cell printed 8.2 min only). The FEM references are taken at
+full precision from `mms_B1_neo_hookean.json` after checking the run's
+printed values agree.
+
+Still missing from point 9: the operator at **more than one mesh** (so it has
+no convergence rate of its own and is absent from Table 23 — that is a
+training run per refinement, not a solve per refinement), a **common cost
+axis** for GPU training against CPU Newton solves, and more than **one
+geometry, one material, one scored member** (α=0.05, β=0.7).
 
 **⚠️ The ceiling must be quoted with the result.** The operator minimizes the
 *same* discrete functional over the *same* Q4 space as the Q4 solver, and the
@@ -530,9 +572,9 @@ summary cannot settle a question about what was actually asked.
 | 4 | Benchmark Transolver and GPU FEM under **identical batch sizes** | ⬜ needs Transolver inference at bs=8/32/128 (currently bs=1 only) |
 | 5 | Error in **physically important quantities** beyond displacement: H1 semi-norm, energy, stress components, reaction forces, maxima (for the Transolver) | ✅ **done** — all six cases measured and written into report §8.8 (Tables 15–17) and summary §8; see "Point 5 written into both documents" at the top |
 | 6 | Investigate **OOD robustness** — the 4–5× degradation is "probably the biggest obstacle to a strong physics-informed operator claim" | ⬜ research, not just measurement |
-| 7 | Resolution invariance: train on 2, test on 5 **coarser AND finer**; the point being *"train on a very coarse grid and inference on a finer grid ... could provide computational savings"* — so **quantify the savings**, not just the flat error. Plus a **data-driven** comparison, its data *"from two different (fine enough) simulations"* (i.e. matched to the PI model's two training resolutions) | 🟡 7a covered by the per-case notebooks (7 resolutions, a superset of his 5); 7b pending |
-| 8 | Test GPU-native FEM at **finer discretizations up to a few million DOFs**; and: *"Did you use Tensormesh or write the code yourself?"* | 🟡 **the Tensormesh question is answered in the report** (§8.5 now states it was written from scratch in PyTorch, not Tensormesh or any FE library); the 0.5/1/2/4M timing sweep is written as `omar_pfem/gpu_fem_scaling_sweep.py` and needs a free GPU runtime |
-| 9 | Use **MMS** as ground truth instead of a baseline FEM solution, to test the operator *"compared to FEM"* — i.e. **both** are scored against the manufactured truth, which is the only way FEM itself gets graded (today it *is* the reference, so it cannot be) | ⬜ largest item; blocked on the energy functional having no body-force term, which MMS requires |
+| 7 | Resolution invariance: train on 2, test on 5 **coarser AND finer**; the point being *"train on a very coarse grid and inference on a finer grid ... could provide computational savings"* — so **quantify the savings**, not just the flat error. Plus a **data-driven** comparison, its data *"from two different (fine enough) simulations"* (i.e. matched to the PI model's two training resolutions) | 🟡 7a covered by the per-case notebooks (7 resolutions, a superset of his 5), 1 of 6 cases finished; **7b ✅ complete** — the 2×2 is §8.9, Table 21, and the ranking flips |
+| 8 | Test GPU-native FEM at **finer discretizations up to a few million DOFs**; and: *"Did you use Tensormesh or write the code yourself?"* | ✅ **both parts done** — §8.5 states the solver was written from scratch in PyTorch, not Tensormesh or any FE library; the sweep ran 0.02→3.93M DOF and is Table 20 |
+| 9 | Use **MMS** as ground truth instead of a baseline FEM solution, to test the operator *"compared to FEM"* — i.e. **both** are scored against the manufactured truth, which is the only way FEM itself gets graded (today it *is* the reference, so it cannot be) | ✅ **complete and three-way** — report §8.11, Tables 22–24. The body-force blocker was removed by writing a separate operator (`mms_operator.py`) with a body-force channel and a body-force term in Π |
 
 **Table 10 verified correct (2026-08-27).** Two things were checked here.
 

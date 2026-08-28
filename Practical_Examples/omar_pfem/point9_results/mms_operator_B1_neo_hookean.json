@@ -13,7 +13,11 @@
       1.0
     ],
     "ntrain": 64,
-    "ntest": 16
+    "ntest": 16,
+    "scored_member": {
+      "alpha": 0.05,
+      "beta": 0.7
+    }
   },
   "training": {
     "principle": "physics-informed, Pi = U - W, no labels",
