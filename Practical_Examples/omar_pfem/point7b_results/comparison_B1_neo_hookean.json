@@ -1,0 +1,47 @@
+{
+ "geometry": "B1",
+ "material": "neo_hookean",
+ "question": "advisor round-5 point 7b: physics-informed vs data-driven training principle",
+ "metric": "per-component relative L2 on the held-out set, Tables 5/11's definition",
+ "runs": {
+  "physics_informed": {
+   "best_val_rel_L2": 0.0959,
+   "train_wall_clock_s": 2873.8,
+   "optimizer": "Adam lr=2e-3 wd=0.0, x0.9 every 1000 epochs",
+   "opt_steps": 75000,
+   "label_generation_cost_h": 0.0,
+   "source": "Tables 5 and 7"
+  },
+  "data_driven_matched_optimizer": {
+   "best_val_rel_L2": 0.1307,
+   "best_step": 56000,
+   "train_wall_clock_s": 1458.3,
+   "optimizer": "Adam lr=2e-3 wd=0.0, matched to the PI run",
+   "opt_steps": 75000,
+   "label_generation_cost_h": 5.65,
+   "loss": "rel_l2",
+   "note": "the clean comparison: only the loss differs"
+  },
+  "data_driven_own_optimizer": {
+   "best_val_rel_L2": 0.0826,
+   "best_step": 75000,
+   "train_wall_clock_s": 1463.0,
+   "optimizer": "AdamW lr=1e-3 wd=1e-5 + OneCycleLR",
+   "opt_steps": 75000,
+   "label_generation_cost_h": 5.65,
+   "loss": "rel_l2",
+   "note": "confounded: a better optimizer AND a different loss. Best was the FINAL step, so it had not converged -- 0.0826 is a lower bound on this recipe, not its ceiling."
+  }
+ },
+ "findings": {
+  "matched": "under the same optimizer the physics-informed model is 36% more accurate (0.0959 vs 0.1307). The data-driven advantage seen in the first run came from the optimizer, not the loss.",
+  "unmatched": "each under its own preferred recipe, the data-driven model is 16% more accurate (0.0826 vs 0.0959).",
+  "label_cost": "the data-driven model additionally requires 800 FEM solves = 5.65 h of CPU at Table 4a's measured rate, which the physics-informed model does not pay at all. This is independent of the optimizer.",
+  "missing_cell": "the 2x2 is incomplete. Physics-informed under AdamW+OneCycleLR has NOT been measured. Until it is, the strongest defensible claim is the matched one; the unmatched pair compares each method under a different recipe and cannot rank the principles."
+ },
+ "next_run_that_would_settle_it": {
+  "what": "train the physics-informed model with AdamW lr=1e-3 wd=1e-5 + OneCycleLR, same 75,000 steps",
+  "cost_min": 48,
+  "why": "fills the missing cell. If it beats 0.0826 the physics-informed principle wins under both recipes; if not, the ranking depends on the recipe and must be reported as such."
+ }
+}
