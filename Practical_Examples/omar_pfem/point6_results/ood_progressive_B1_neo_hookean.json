@@ -1,0 +1,157 @@
+{
+ "geometry": "B1",
+ "material": "neo_hookean",
+ "N": 21,
+ "n_samples": 10,
+ "checkpoint": "/content/drive/MyDrive/pfem_run/results/B1_neo_hookean/model_best.pt",
+ "metric": "per-component relative L2, 0.5*(rms(e_u)/rms(u)+rms(e_v)/rms(v)) -- Tables 5/11's definition",
+ "train_distribution": {
+  "E_mean": 1000.0,
+  "E_std": 200.0,
+  "load_mean": -5.0,
+  "load_std": 2.0
+ },
+ "provenance": "transcribed from the Round6_Check_Results readout of the completed 19/19 run, 2026-08-28 14:28. The run's own JSON is at pfem_run/ood_progressive/ood_progressive_B1_neo_hookean.json on Drive.",
+ "rows": [
+  {
+   "factor": "baseline",
+   "shift_sigma": 0.0,
+   "mean_rel_L2": 0.0867,
+   "n_samples": 10
+  },
+  {
+   "factor": "both",
+   "shift_sigma": 0.5,
+   "mean_rel_L2": 0.1427,
+   "degradation_vs_baseline": 1.6459054209919262,
+   "n_samples": 10
+  },
+  {
+   "factor": "both",
+   "shift_sigma": 1.0,
+   "mean_rel_L2": 0.2066,
+   "degradation_vs_baseline": 2.3829296424452133,
+   "n_samples": 10
+  },
+  {
+   "factor": "both",
+   "shift_sigma": 1.5,
+   "mean_rel_L2": 0.2682,
+   "degradation_vs_baseline": 3.093425605536332,
+   "n_samples": 10
+  },
+  {
+   "factor": "both",
+   "shift_sigma": 2.0,
+   "mean_rel_L2": 0.3294,
+   "degradation_vs_baseline": 3.799307958477509,
+   "n_samples": 10
+  },
+  {
+   "factor": "both",
+   "shift_sigma": 2.5,
+   "mean_rel_L2": 0.3957,
+   "degradation_vs_baseline": 4.56401384083045,
+   "n_samples": 10
+  },
+  {
+   "factor": "both",
+   "shift_sigma": 3.0,
+   "mean_rel_L2": 0.4601,
+   "degradation_vs_baseline": 5.306805074971165,
+   "n_samples": 10
+  },
+  {
+   "factor": "loading",
+   "shift_sigma": 0.5,
+   "mean_rel_L2": 0.0869,
+   "degradation_vs_baseline": 1.0023068050749713,
+   "n_samples": 10
+  },
+  {
+   "factor": "loading",
+   "shift_sigma": 1.0,
+   "mean_rel_L2": 0.0888,
+   "degradation_vs_baseline": 1.0242214532871974,
+   "n_samples": 10
+  },
+  {
+   "factor": "loading",
+   "shift_sigma": 1.5,
+   "mean_rel_L2": 0.0897,
+   "degradation_vs_baseline": 1.0346020761245676,
+   "n_samples": 10
+  },
+  {
+   "factor": "loading",
+   "shift_sigma": 2.0,
+   "mean_rel_L2": 0.0871,
+   "degradation_vs_baseline": 1.0046136101499423,
+   "n_samples": 10
+  },
+  {
+   "factor": "loading",
+   "shift_sigma": 2.5,
+   "mean_rel_L2": 0.0862,
+   "degradation_vs_baseline": 0.994232987312572,
+   "n_samples": 10
+  },
+  {
+   "factor": "loading",
+   "shift_sigma": 3.0,
+   "mean_rel_L2": 0.0927,
+   "degradation_vs_baseline": 1.0692041522491351,
+   "n_samples": 10
+  },
+  {
+   "factor": "material",
+   "shift_sigma": 0.5,
+   "mean_rel_L2": 0.1409,
+   "degradation_vs_baseline": 1.6251441753171856,
+   "n_samples": 10
+  },
+  {
+   "factor": "material",
+   "shift_sigma": 1.0,
+   "mean_rel_L2": 0.2073,
+   "degradation_vs_baseline": 2.3910034602076125,
+   "n_samples": 10
+  },
+  {
+   "factor": "material",
+   "shift_sigma": 1.5,
+   "mean_rel_L2": 0.2763,
+   "degradation_vs_baseline": 3.186851211072664,
+   "n_samples": 10
+  },
+  {
+   "factor": "material",
+   "shift_sigma": 2.0,
+   "mean_rel_L2": 0.3486,
+   "degradation_vs_baseline": 4.02076124567474,
+   "n_samples": 10
+  },
+  {
+   "factor": "material",
+   "shift_sigma": 2.5,
+   "mean_rel_L2": 0.4265,
+   "degradation_vs_baseline": 4.919261822376009,
+   "n_samples": 10
+  },
+  {
+   "factor": "material",
+   "shift_sigma": 3.0,
+   "mean_rel_L2": 0.5112,
+   "degradation_vs_baseline": 5.896193771626297,
+   "n_samples": 10
+  }
+ ],
+ "findings": {
+  "loading_shift": "0.99x-1.07x across the entire 0-3 sigma sweep: no measurable degradation",
+  "material_shift": "1.63x at 0.5 sigma rising smoothly to 5.90x at 3 sigma",
+  "attribution": "the degradation Table 11 reports is entirely attributable to the material-stiffness shift; the loading shift contributes nothing",
+  "shape": "smooth and slightly accelerating (increments of 0.77, 0.80, 0.83, 0.90, 0.98 per half sigma) -- no threshold",
+  "cross_check": "Table 11 measured 4.11x for this case at roughly 2-2.5 sigma with both factors shifted; this curve gives 3.80x at k=2.0 and 4.56x at k=2.5, so the earlier single point sits exactly inside it",
+  "non_additivity": "'both' is up to 10% LESS degraded than material alone at k=3.0, so the two shifts partially cancel rather than compound"
+ }
+}

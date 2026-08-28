@@ -20,7 +20,11 @@ def show(title, pattern, summarize):
     print('=' * 70)
     print(title)
     print('=' * 70)
-    files = sorted(glob.glob(pattern, recursive=True))
+    # run_manifest.json is a LIST of run records, not a result dict, and
+    # lives in the same directories -- summarizing it raised
+    # "'list' object has no attribute 'get'". Skip it by name.
+    files = sorted(f for f in glob.glob(pattern, recursive=True)
+                   if os.path.basename(f) != 'run_manifest.json')
     if not files:
         print('  (nothing yet)\n')
         return
