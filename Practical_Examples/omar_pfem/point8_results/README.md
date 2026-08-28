@@ -1,26 +1,32 @@
 # Point 8 results — GPU-native FEM at millions of DOF
 
 B1 × Neo-Hookean on an A100-SXM4-80GB, matrix-free Newton-CG, FP64, ten load
-steps. Three resolutions completed; a fourth was still running when the log
-ends.
+steps. **Complete: all eight resolutions, 0.02M to 3.93M DOF.**
 
-| N | DOF | mesh build | solve | µs/DOF | peak GPU |
+| N | DOF | solve | µs/DOF | peak GPU | residual / precond / CG |
 |---|---|---|---|---|---|
-| 501 | 502,002 | 7.4 s | 26.9 min | 3,219 | 1,123 MB |
-| 701 | 982,802 | 14.3 s | 74.8 min | 4,566 | 1,568 MB |
-| 1001 | 2,004,002 | 28.7 s | 202.8 min | 6,073 | 2,035 MB |
-| 1401 | 3,925,602 | 56.8 s | *interrupted at load step 10/10* | — | — |
+| 101 | 20,402 | 6.6 min | 19,410 | — | 0.3% / 0.3% / 99.4% |
+| 201 | 80,802 | 13.3 min | 9,876 | — | 0.1% / 0.1% / 99.8% |
+| 301 | 181,202 | 20.4 min | 6,755 | — | 0.0% / 0.1% / 99.9% |
+| 401 | 321,602 | 27.7 min | 5,168 | — | 0.0% / 0.1% / 99.9% |
+| **501** | **502,002** | **26.9 min** | **3,215** | 1,123 MB | — |
+| 701 | 982,802 | 1.2 h | 4,567 | 1,568 MB | — |
+| 1001 | 2,004,002 | 3.4 h | 6,072 | 2,035 MB | — |
+| 1401 | 3,925,602 | **11.0 h** | 10,124 | 3,280 MB | — |
+
+**The headline for Timon's point 8:** the solver reaches 3.93 million degrees
+of freedom on one GPU, using 3,280 MB of 80 GB, in 11 hours.
 
 ## The result: cost is not linear in problem size
 
-µs/DOF is the figure that shows whether cost grows linearly, and it does not
-stay flat — it rises from 3,219 to 6,073, a factor of **1.89 across a 4×
-increase in degrees of freedom**. Fitting the three points gives
+µs/DOF is the figure that shows whether cost grows linearly, and on the large
+branch it does not stay flat — it rises from 3,215 to 10,124, a factor of
+**3.15**. Fitting the four points from N=501 upward gives
 
-> **cost ~ DOF^1.46**
+> **cost ~ DOF^1.54**
 
-with pairwise exponents of 1.52 and 1.40, so the trend is consistent rather
-than an artefact of one point.
+with pairwise exponents of 1.52, 1.40 and 1.76. The exponent is not settling;
+the last interval is the steepest measured.
 
 This is worth stating plainly because it is the opposite of what a
 matrix-free solver is usually assumed to give. Each CG iteration costs O(DOF),
@@ -28,12 +34,19 @@ but the *number* of CG iterations needed grows as the mesh is refined — the
 condition number of the tangent scales with 1/h², and Jacobi preconditioning
 only partly offsets it. The solver is O(DOF) in memory but not in time.
 
-## Memory behaves exactly as claimed
+## Memory behaves exactly as claimed — and the claim was tested
 
-Peak GPU memory fits **818 MB fixed + 607 MB per million DOF** across all
-three rows to within 153 MB. That is the O(DOF) scaling the matrix-free design
-was chosen for, and it means the 3.93M DOF case needs roughly **3.2 GB of the
-A100's 80 GB**. Memory is nowhere near the constraint; time is.
+Peak GPU memory fits **818 MB fixed + 607 MB per million DOF** across
+N=501–1001. That model was fitted *before* N=1401 ran, and it predicted
+**3,201 MB** for its 3.93M DOF. The measured peak came in at **3,280 MB** — an
+error of **2.4%**.
+
+That matters more than a fit. The O(DOF) memory scaling the matrix-free design
+was chosen for was not merely consistent with the data it was fitted on; it
+made an out-of-sample prediction that held. Memory is not the constraint at
+these sizes and will not become one soon: at 3.93M DOF the solver uses 4% of
+the A100's 80 GB, and the same model puts 40M DOF — the largest reference in
+this report — at roughly 25 GB, still inside one card.
 
 For contrast, `gpu_fem_solver.py` forms the tangent densely: at 2M DOF that
 matrix alone would be about 32 TB in FP64. The matrix-free solver reaches
@@ -51,11 +64,12 @@ together on the same A100:
 | 301 | 181,202 | 20.4 min | 6,755 | 0.0% / 0.1% / 99.9% |
 | 401 | 321,602 | 27.7 min | 5,168 | 0.0% / 0.1% / 99.9% |
 | **501** | **502,002** | **26.9 min** | **3,215** | — |
-| 701 | 982,802 | 74.8 min | 4,566 | — |
-| 1001 | 2,004,002 | 202.8 min | 6,072 | — |
+| 701 | 982,802 | 1.2 h | 4,567 | — |
+| 1001 | 2,004,002 | 3.4 h | 6,072 | — |
+| 1401 | 3,925,602 | 11.0 h | 10,124 | — |
 
 The cost per degree of freedom **falls sixfold** from N=101 to N=501, then
-**doubles again** by N=1001. The solver has a sweet spot near half a million
+**triples** by N=1401. The solver has a sweet spot near half a million
 DOF, and the two branches have different causes:
 
 * **Below it**, the problem is too small to fill the GPU. Each CG iteration is
@@ -91,14 +105,10 @@ is that at these problem sizes the question does not have the clean answer the
 expectation assumes, and the reply should say so rather than quote 99.9% and
 let it stand.
 
-## Two things this run does NOT contain
+## One gap
 
 **No breakdown for N=501–1001.** Those three were completed by the earlier
 commit `5d648d9`, before the timing buckets existed, and resume skips them.
 Re-deriving their breakdown would mean re-solving three hours of work for a
 number the four smaller resolutions already establish, so it is not worth
 doing unless Timon asks.
-
-**N=1401 unfinished.** 3.93M DOF; the run was inside load step 10/10 when the
-log ended. Its solver checkpoint is on Drive, so re-running resumes rather
-than restarting.

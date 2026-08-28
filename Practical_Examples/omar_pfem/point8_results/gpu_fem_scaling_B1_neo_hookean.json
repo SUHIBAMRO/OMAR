@@ -10,8 +10,8 @@
  "code_commit": "5d648d9 (N>=501) and the current branch (N<=401)",
  "provenance": "transcribed from the Colab stdout of the run that reached N=1401 on 2026-08-28. The run's own JSON is at pfem_run/gpu_fem_scaling_B1_neo_hookean.json on Drive.",
  "incomplete": {
-  "N1401": "3,925,602 DOF; the run was still inside load step 10/10 (Newton iteration 5) when the log ends. Its solver checkpoint is on Drive at pfem_run/gpu_fem_scaling_ckpt/solve_N1401.pt, so re-running resumes rather than restarting.",
-  "cost_breakdown": "present for N=101-401 from the second run; still absent for N=501-1001, which were completed by the earlier commit and are skipped on resume"
+  "cost_breakdown": "present for N=101-401 from the second run; still absent for N=501-1001, which were completed by the earlier commit and are skipped on resume",
+  "note": "the sweep is complete: all eight resolutions solved, 0.02M to 3.93M DOF"
  },
  "rows": [
   {
@@ -102,18 +102,33 @@
    "us_per_dof": 6072.65,
    "peak_gpu_mem_MB": 2035,
    "run": "first run, commit 5d648d9 (no breakdown)"
+  },
+  {
+   "N": 1401,
+   "n_nodes": 1962801,
+   "n_dof": 3925602,
+   "n_elements": 1960000,
+   "mesh_build_s": 56.8,
+   "solve_s": 39744.0,
+   "us_per_dof": 10124.77,
+   "peak_gpu_mem_MB": 3280,
+   "run": "first run, commit 5d648d9 (no breakdown)"
   }
  ],
  "derived": {
-  "cost_exponent_vs_dof": 1.46,
+  "cost_exponent_vs_dof": 1.54,
   "cost_exponent_pairwise": [
    1.52,
-   1.4
+   1.4,
+   1.76
   ],
-  "us_per_dof_growth": "3219 -> 6073, a factor of 1.89 across a 4x increase in DOF",
-  "memory_model_MB": "818 fixed + 607 per million DOF, fitting all three rows within 153 MB",
+  "us_per_dof_growth": "3,215 -> 10,124 across the large branch, a factor of 3.15",
+  "memory_model_MB": "818 fixed + 607 per million DOF, fitted on N=501-1001",
   "memory_verdict": "O(DOF) confirmed; the 3.93M DOF case would need about 3.2 GB of the A100's 80 GB, so memory is nowhere near the limit",
-  "us_per_dof_shape": "U-shaped. Falls 19,410 -> 3,215 us/DOF from N=101 to N=501, then rises to 6,072 at N=1001. Minimum near 0.5M DOF.",
-  "cost_breakdown": "residual 0.0-0.3%, preconditioner 0.1-0.3%, CG 99.4-99.9%. Read the caveat in the README before quoting this as 'assembly is minimal'."
+  "us_per_dof_shape": "U-shaped. Falls 19,410 -> 3,215 us/DOF from N=101 to N=501, then rises to 10,124 at N=1401. Minimum at 0.50M DOF.",
+  "cost_breakdown": "residual 0.0-0.3%, preconditioner 0.1-0.3%, CG 99.4-99.9%. Read the caveat in the README before quoting this as 'assembly is minimal'.",
+  "cost_exponent_note": "fitted on the large-DOF branch (N>=501) only; the small-N branch is overhead-dominated and has the opposite slope",
+  "memory_prediction_test": "the model was fitted before N=1401 ran and predicted 3,201 MB for its 3.93M DOF; the measured peak was 3,280 MB, an error of 2.4%. The O(DOF) memory claim is therefore not just consistent with the data, it was tested out of sample and held.",
+  "largest_case": "3,925,602 DOF solved in 11.0 hours using 3,280 MB of the A100's 80 GB"
  }
 }
