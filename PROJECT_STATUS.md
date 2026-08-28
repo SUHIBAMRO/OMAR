@@ -10,6 +10,54 @@ report v29 and the summary. See "Point 5 written in" below.**)
 
 ---
 
+## Point 2 (Pareto): first case measured, NOT yet in the report (2026-08-28)
+
+`pareto_analysis.py` finished for **B1 × Neo-Hookean** (1 h 54 m). Numbers and
+the full reading are in `omar_pfem/point2_results/`. The other five cases have
+not been run.
+
+Headline: the two methods never compete on accuracy — FEM at its coarsest
+(N=13, 3.1 s) is 0.608%, already 6.1× better than the operator at its best
+(3.69% at N=37). The front is two branches with nothing between them: under
+~3 s only the operator exists (1.6 ms, 3.7–6.8%), over ~3 s only FEM
+(0.06–0.6%). The operator's real argument is the trend, not a point: its cost
+is flat in mesh size (1.610–1.663 ms from 169 to 1,681 nodes) while FEM grows
+superlinearly, so the speed-up climbs 1,914× → 20,812× with resolution.
+
+**Not written into the report yet, deliberately** — one of six cases, and one
+open decision below.
+
+### A false claim in my own code, now fixed
+`pareto_analysis.py`'s `rel_l2` docstring claimed its numbers were "comparable
+to Table 12's". They are not, for two independent reasons:
+1. **Metric.** It uses the combined relative L2 `‖e‖/‖u‖` (Section 4.4's
+   convergence convention). Tables 5/11/12 use the per-component average
+   `0.5*(rms(e_u)/rms(u)+rms(e_v)/rms(v))`. On B1 the loaded component v
+   dominates, so the combined norm reads lower.
+2. **Seeds.** Pareto draws `900_000 + i`; the zero-shot eval draws
+   `20_000_000 + i`. Different physical problems entirely.
+
+Both push the same direction, so no conversion factor between the two tables
+can be quoted from this run. Docstring and seed line both carry the correction
+now. **The Pareto result itself is unaffected** — within the run, both sides
+use the same metric, samples and reference, which is all a Pareto plot needs.
+
+### Open decision for Omar
+Keep the combined-norm numbers (recommended — it is the right metric for a
+convergence comparison, and re-running buys a metric change, not a better
+measurement), or re-run with seed base `20_000_000` and the per-component
+metric so the operator column can sit next to Table 12. Re-running costs about
+**1 hour**, not the original 1 h 54 m, because those fine references are
+already cached.
+
+### One unexplained measurement
+The N=49 operator timing is 4.613 ms against 1.610–1.663 ms at every other
+resolution — a 2.8× jump for 1.43× the nodes. Median of 20 repeats after 5
+warm-ups, so not a stray sample, but also the last measurement in a two-hour
+run. Re-timing the operator alone at N=49 costs seconds. Recorded as measured.
+
+---
+
 ## Point 5 written into both documents (2026-08-28) — report v29
 
 Point 5 was measured for all six cases but had never reached the report.

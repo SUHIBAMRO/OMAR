@@ -55,8 +55,22 @@ from omar_pfem.resolution_invariance_zeroshot import (
 
 
 def rel_l2(pred_on_fine, ref):
-    """Relative L2 over the fine mesh's nodes, the metric the zero-shot
-    study reports, so the numbers here are comparable to Table 12's."""
+    """Combined relative L2 over the fine mesh's nodes: both displacement
+    components in a single vector norm.
+
+    This is deliberately NOT the metric of Tables 5, 11 and 12. Those report
+    the per-component average 0.5*(rms(e_u)/rms(u) + rms(e_v)/rms(v)), which
+    is the network-side convention used throughout the report; this is the
+    convergence-study convention of Section 4.4, and it is the right one here
+    because the FEM side of this plot is a convergence curve and both sides
+    must be scored identically for a Pareto comparison to mean anything.
+
+    Consequence: the operator errors this script produces cannot be laid
+    alongside Table 12's. On B1 the loaded component v dominates u, so the
+    combined norm is the smaller of the two measures. (An earlier version of
+    this docstring claimed the two were comparable. They are not, and the
+    seed base below is a second, independent reason.)
+    """
     num = np.linalg.norm(pred_on_fine - ref)
     den = np.linalg.norm(ref)
     return float(num / den)
@@ -129,6 +143,11 @@ def main():
             torch.save(fine_cache, cache_path)
         return fine_cache[seed]
 
+    # NOTE: a different seed base from the zero-shot eval, which uses
+    # 20_000_000 + i. These are therefore different physical problems, not the
+    # same ones scored differently -- a second reason the numbers here cannot
+    # be read against Table 12's. Changing this to 20_000_000 would also make
+    # the fine-reference cache hit instead of solving 20 fresh N=101 problems.
     seeds = [900_000 + i for i in range(args.n_samples)]
 
     rows = []
