@@ -46,8 +46,14 @@ def main():
     p.add_argument("--material", default="neo_hookean",
                    choices=["neo_hookean", "mooney_rivlin", "arruda_boyce"])
     p.add_argument("--order", default="Q4", choices=["Q4", "Q9"])
-    p.add_argument("--resolutions", default="501,701,1001,1401",
-                   help="Q4: DOF = 2*N^2, so these are ~0.5M, 1M, 2M, 4M")
+    p.add_argument("--resolutions", default="101,201,301,401,501,701,1001,1401",
+                   help="Q4: DOF = 2*N^2. The advisor's round-6 request added "
+                        "'smaller intermediate numbers' below the original "
+                        "0.5M-4M range, so this now starts at 0.02M and runs "
+                        "0.02, 0.08, 0.18, 0.32, 0.50, 0.98, 2.00, 3.93M DOF. "
+                        "The four small ones cost minutes between them and are "
+                        "what make the us/DOF trend a curve rather than four "
+                        "points at one end of it.")
     p.add_argument("--nsteps", type=int, default=10)
     p.add_argument("--newton_max", type=int, default=30)
     p.add_argument("--newton_tol", type=float, default=1e-7)
@@ -140,10 +146,25 @@ def main():
 
         rows.append(row)
         rows.sort(key=lambda r: r["N"])
+        # cost breakdown, the advisor's round-6 request -- see the note in
+        # matrix_free_solver.py on why CG time is not "solver time" cleanly
+        st = row["stats"]
+        if all(k in st for k in ("t_residual_s", "t_precond_s", "t_cg_s")):
+            acc = st["t_residual_s"] + st["t_precond_s"] + st["t_cg_s"]
+            row["cost_breakdown_pct"] = {
+                k.replace("t_", "").replace("_s", ""): 100.0 * st[k] / acc
+                for k in ("t_residual_s", "t_precond_s", "t_cg_s")} if acc > 0 else {}
+            row["accounted_frac_of_solve"] = acc / solve_s if solve_s > 0 else 0.0
+
         print(f"  solved in {solve_s / 60:.1f} min  "
               f"({row['us_per_dof']:.2f} us/DOF)"
               + (f"  peak {row['peak_gpu_mem_MB']:.0f} MB"
                  if "peak_gpu_mem_MB" in row else ""))
+        if row.get("cost_breakdown_pct"):
+            b = row["cost_breakdown_pct"]
+            print(f"    cost: residual {b['residual']:.1f}%  "
+                  f"preconditioner {b['precond']:.1f}%  CG {b['cg']:.1f}%  "
+                  f"({100 * row['accounted_frac_of_solve']:.1f}% of wall clock accounted)")
 
         report = {"geometry": args.geometry, "material": args.material,
                   "order": args.order, "device": device.type,

@@ -356,13 +356,41 @@ def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
     residual_fn = grad(energy_fn, argnums=0)
 
     u_free = torch.zeros(n_free, dtype=dtype, device=device)
-    stats = {"newton_iters_total": 0, "cg_iters_total": 0, "cg_failures": 0, "load_steps": nsteps}
+    stats = {"newton_iters_total": 0, "cg_iters_total": 0, "cg_failures": 0, "load_steps": nsteps,
+             # Cost breakdown, the advisor's round-6 request ("The key cost
+             # should be the solver while the assembly should be minimal").
+             # Three buckets, each bracketed by torch.cuda.synchronize so
+             # CUDA's asynchronous dispatch cannot leak between them:
+             #   t_residual_s   -- assembling the residual (fint - fext) once
+             #                     per Newton iteration
+             #   t_precond_s    -- building the Jacobi diagonal, an
+             #                     assembly-like pass over all elements
+             #   t_cg_s         -- the CG solve itself
+             # Note what this cannot separate, and say so rather than
+             # pretending otherwise: matrix-free CG never forms K, so every
+             # CG iteration is a Hessian-vector product, which IS an
+             # assembly-like operation over all elements. t_cg_s is therefore
+             # solver time that contains assembly work by construction. The
+             # clean assembly-versus-solve split a factorising solver admits
+             # does not exist here; gpu_fem_solver.py's profile dict has it
+             # because that solver forms K and calls torch.linalg.solve.
+             "t_residual_s": 0.0, "t_precond_s": 0.0, "t_cg_s": 0.0}
     start_step = 1
+
+    def _sync():
+        if device.type == "cuda":
+            torch.cuda.synchronize(device)
 
     if checkpoint_path is not None and os.path.exists(checkpoint_path):
         ckpt = torch.load(checkpoint_path, map_location=device)
         u_free = ckpt["u_free"].to(device=device, dtype=dtype)
         stats = ckpt["stats"]
+        # A checkpoint written before the cost buckets existed has none of
+        # them, and += on a missing key raises. Backfill at zero: the
+        # resumed run's breakdown then covers only the steps it actually
+        # ran, which is the honest reading of a partial timing anyway.
+        for _k in ("t_residual_s", "t_precond_s", "t_cg_s"):
+            stats.setdefault(_k, 0.0)
         start_step = ckpt["next_step"]
         print(f"  [checkpoint] resuming from {checkpoint_path}: load steps 1-{start_step - 1} "
               f"already done, continuing from step {start_step}/{nsteps}")
@@ -373,8 +401,10 @@ def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
         alpha = step / nsteps
         fext_free = alpha * fext_free_full
         for it in range(1, newton_max + 1):
+            _sync(); _t0 = time.time()
             R = residual_fn(u_free, elem_params, free_dofs) - fext_free
             res_norm = torch.linalg.norm(R)
+            _sync(); stats["t_residual_s"] += time.time() - _t0
             if res_norm < newton_tol:
                 break
             stats["newton_iters_total"] += 1
@@ -388,15 +418,19 @@ def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
 
             precond_diag = None
             if use_jacobi:
+                _sync(); _t0 = time.time()
                 u_full = torch.zeros(ndof, dtype=dtype, device=device).index_copy(0, free_dofs, u_free)
                 precond_diag = compute_jacobi_diagonal(xy, quad, u_full, elem_params, material, order,
                                                         dtype, free_dofs)
+                _sync(); stats["t_precond_s"] += time.time() - _t0
 
             cg_checkpoint_path = f"{checkpoint_path}.cg_state" if checkpoint_path is not None else None
+            _sync(); _t0 = time.time()
             delta, cg_iters, cg_res, cg_converged = conjugate_gradient(
                 matvec, -R, torch.zeros_like(u_free), cg_tol, cg_max_iter, precond_diag=precond_diag,
                 progress_every=cg_progress_every, progress_prefix=f"step {step}/{nsteps} newton {it}: ",
                 checkpoint_path=cg_checkpoint_path, checkpoint_every=cg_checkpoint_every)
+            _sync(); stats["t_cg_s"] += time.time() - _t0
             stats["cg_iters_total"] += cg_iters
             if cg_progress_every:
                 print(f"    CG done: {cg_iters} iters in {time.time() - t_cg:.0f}s, "
