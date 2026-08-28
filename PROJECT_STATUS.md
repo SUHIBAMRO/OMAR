@@ -5,12 +5,92 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-27 (**everything not blocked on Timon is now built.
-See "State as of 2026-08-27" immediately below.**)
+Last updated: 2026-08-28 (**point 5 is now written into both documents —
+report v29 and the summary. See "Point 5 written in" below.**)
 
 ---
 
-## State as of 2026-08-27 — read this first
+## Point 5 written into both documents (2026-08-28) — report v29
+
+Point 5 was measured for all six cases but had never reached the report.
+It is in now, as report **section 8.8, Tables 15/16/17**, and as **section 8**
+of the parallel summary, plus a qualifying paragraph in each document's
+conclusion. The old section 8.8 (training visualizations) became 8.9; nothing
+cross-references "8.8", so that was safe.
+
+Build scripts, all committed:
+- `report_builders/point5_tables.py` — builds the three tables from the JSONs.
+  **Both** document scripts import it, so the two documents cannot disagree;
+  last round they were typed twice and compared afterwards.
+- `report_builders/make_v29.py` — v28 → v29. Re-runnable.
+- `report_builders/make_summary_v3.py` — reads
+  `PFEM_Summary_Completed_Work.pre_v3.docx` and writes the live file, so
+  re-running replaces section 8 instead of appending a second one.
+
+The six result files are committed at
+`Practical_Examples/omar_pfem/point5_results/`, with a README recording their
+provenance and one incompleteness (below).
+
+### Verification
+- 216 table cells (108 per document) recomputed straight from the six JSONs by
+  a separate script and compared against the saved .docx. 0 mismatches.
+- The two documents' copies compared cell by cell against each other: 124
+  cells, 0 differences.
+- **Every cross-case sentence is asserted in `make_v29.py` before it is
+  written.** This caught three false claims in the first draft:
+  1. "the reaction resultant is as accurate as or more accurate than the
+     displacement" — false for B2 × Mooney-Rivlin (12.61% against 7.21%) and
+     for B2 × Neo-Hookean's θ=0 edge. It holds in **four of six** cases.
+  2. "the H1 semi-norm is the worst of the integral measures" — true on B1,
+     false on all three B2 cases, where the aggregate stress is the largest.
+  3. "the tangent-energy error sits between the two throughout" — false for
+     B2 × Mooney-Rivlin.
+  A fourth was a code bug: the peak-stress standard deviation was reading the
+  `mean` field, so the text said 20–48 percentage points when the real spread
+  is 24–39.
+
+### The headline numbers (means over 50 held-out samples, per cent)
+| | B1 | B2 |
+|---|---|---|
+| displacement (report's own definition) | 10.34–11.71 | 7.21–10.47 |
+| H1 semi-norm | 22.71–24.20 | 10.47–13.30 |
+| tangent energy | 13.78–17.02 | 11.37–11.99 |
+| aggregate PK1 stress (Frobenius) | 15.06–18.14 | 13.32–14.23 |
+| peak ‖P‖ | **19.87–47.53** | **5.38–5.99** |
+| reaction resultant | 4.66–8.41 | 6.26–12.61 |
+
+Two findings worth carrying forward: H1, tangent energy and aggregate stress
+exceed the displacement error in **all six** cases without exception, so a
+displacement figure quoted alone is a lower bound; and peak stress splits the
+benchmarks — best-in-section on B2, worst on B1, where the predicted peak
+exceeds the reference peak in all three materials. No cause was isolated for
+the B1 overshoot and none is claimed.
+
+### One gap, not filled in
+The Colab dump these JSONs came from printed the first 4,000 characters of
+each file. The three B1 files are shorter and complete; the three B2 files
+were cut part-way through their second symmetry edge's reaction block, so
+`reaction_max_{pred,ref,rel_err}_edge1` is missing for B2. Nothing was
+estimated to cover it: Table 17 uses only the resultant and nodal errors,
+which are present everywhere, and the largest-single-nodal-reaction figure is
+quoted for B1 only. Re-pulling those three files from Drive closes it and
+changes nothing already written.
+
+### Also found, NOT fixed
+The report's Section 10 contains a reference to a **"Table 14" that does not
+exist in the report**. The table itself exists only in the summary document
+(final adopted B2 error for all three materials). Left alone deliberately —
+the new tables are numbered 15/16/17 so that 14 is not silently absorbed. Ask
+Omar whether to insert the missing table or reword the reference.
+
+Also corrected: `physical_quantities_eval.py`'s comment about B2's symmetry
+constraints had u_x and u_y the wrong way round. The **code** was right and
+matches `train_B2` (`free_v[theta0_nodes]=0`, `free_u[thetahalfpi_nodes]=0`);
+only the prose was wrong, so no number changes.
+
+---
+
+## State as of 2026-08-27
 
 ### Running on Colab right now
 Three zero-shot notebooks, one per remaining B2 case, generating FEM data.
@@ -152,7 +232,7 @@ summary cannot settle a question about what was actually asked.
 | 2 | Construct GPU-FEM vs Transolver accuracy/cost **Pareto** comparison | 🟡 **`omar_pfem/pareto_analysis.py` written and smoke-tested**; needs one run per finished zero-shot case |
 | 3 | Recompute **break-even using GPU FEM** (not CPU) | ✅ **computed — see below** |
 | 4 | Benchmark Transolver and GPU FEM under **identical batch sizes** | ⬜ needs Transolver inference at bs=8/32/128 (currently bs=1 only) |
-| 5 | Error in **physically important quantities** beyond displacement: H1 semi-norm, energy, stress components, reaction forces, maxima (for the Transolver) | 🟡 **script written + verified, not yet run on real checkpoints** |
+| 5 | Error in **physically important quantities** beyond displacement: H1 semi-norm, energy, stress components, reaction forces, maxima (for the Transolver) | ✅ **done** — all six cases measured and written into report §8.8 (Tables 15–17) and summary §8; see "Point 5 written into both documents" at the top |
 | 6 | Investigate **OOD robustness** — the 4–5× degradation is "probably the biggest obstacle to a strong physics-informed operator claim" | ⬜ research, not just measurement |
 | 7 | Resolution invariance: train on 2, test on 5 **coarser AND finer**; the point being *"train on a very coarse grid and inference on a finer grid ... could provide computational savings"* — so **quantify the savings**, not just the flat error. Plus a **data-driven** comparison, its data *"from two different (fine enough) simulations"* (i.e. matched to the PI model's two training resolutions) | 🟡 7a covered by the per-case notebooks (7 resolutions, a superset of his 5); 7b pending |
 | 8 | Test GPU-native FEM at **finer discretizations up to a few million DOFs**; and: *"Did you use Tensormesh or write the code yourself?"* | 🟡 **the Tensormesh question is answered in the report** (§8.5 now states it was written from scratch in PyTorch, not Tensormesh or any FE library); the 0.5/1/2/4M timing sweep is written as `omar_pfem/gpu_fem_scaling_sweep.py` and needs a free GPU runtime |

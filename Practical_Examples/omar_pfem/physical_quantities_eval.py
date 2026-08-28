@@ -273,10 +273,12 @@ def main():
 
     # Geometry-specific boundary arguments and constrained DOFs. B1 fixes both
     # components on the bottom edge; B2's two radial edges are symmetry planes,
-    # so only the normal component is constrained on each (u_x on the theta=0
-    # edge, u_y on the theta=pi/2 edge), and the reaction is meaningful only
-    # there -- reporting a full vector magnitude would mix in the free
-    # tangential component, which carries no support force.
+    # so only the component normal to each plane is constrained -- u_y on the
+    # theta=0 edge (which lies along the x-axis) and u_x on the theta=pi/2 edge
+    # (along the y-axis), matching train_B2's own `free_v[theta0_nodes] = 0` /
+    # `free_u[thetahalfpi_nodes] = 0`. The reaction is meaningful only on that
+    # component: a full vector magnitude would mix in the free tangential
+    # component, which carries no support force.
     if args.geometry == "B1":
         bnd = (torch.tensor(s0["top_edges"], device=device, dtype=torch.long),
                torch.tensor(s0["bottom_nodes"], device=device, dtype=torch.long))
