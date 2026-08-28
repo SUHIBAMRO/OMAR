@@ -12,12 +12,11 @@ everything after it is detail.**
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v33**, summary updated through Table 20, branch
+Current artefacts: report **v34**, summary updated through Table 23, branch
 `claude/claude-code-question-d307wp`.
 
-**Nothing measured is unwritten, with one exception: point 7b** (data-driven
-vs physics-informed), whose 2×2 has an empty cell and is therefore not yet in
-the report. Everything else that has been measured is committed as JSON under
+**Nothing measured is unwritten.** Point 7b's 2×2 is complete and in §8.9;
+the MMS FEM half is in §8.11. Everything measured is committed as JSON under
 `omar_pfem/point{2,5,6,7b,8}_results/` AND written into both documents,
 verified by re-reading the .docx and comparing cell by cell against the JSON.
 
@@ -40,6 +39,8 @@ verified by re-reading the .docx and comparing cell by cell against the JSON.
 | B2 accuracy regression: root cause + fix (32.46% → 9.11%) | §9.1 |
 | Exact definition of every reported error | §7.1 |
 | Zero-shot resolution invariance, B1 × Neo-Hookean | §8.7, Table 12 |
+| **R5-7b** physics-informed vs data-driven, the complete 2×2 | §8.9, **Table 21** |
+| **R5-9** MMS, Q4 and Q9 against an analytic solution | §8.11, **Tables 22–23** |
 | **R6-1** progressive OOD: material vs loading, 0→3σ | §8.6, **Table 19** |
 | **R5-8b** GPU-FEM scaling sweep, 0.02→3.93M DOF + cost breakdown | §8.5, **Table 20** |
 
@@ -47,7 +48,7 @@ verified by re-reading the .docx and comparing cell by cell against the JSON.
 
 | Item | State |
 |---|---|
-| **R5-7b** data-driven vs physics-informed | Three of four cells measured (`point7b_results/`). PI 0.0959 · data-driven matched-optimizer 0.1307 · data-driven own recipe 0.0826. **The fourth cell — PI under AdamW+OneCycleLR — is unmeasured**, and until it exists the unmatched pair cannot rank the two training principles. Cell is ready, ~48 min on A100. Deliberately not written up half-finished |
+| **R5-9** MMS, operator third | `mms_operator.py` built and its energy functional proved against FEM. Only an undertrained CPU demo has run (`point9_results/operator_demo_N9_undertrained.json`, operator/Q4 = 4.71× in L2, error still falling at the last epoch). The reportable number needs `Round6_MMS_Operator.ipynb`, ~20–40 min on any GPU |
 
 All round-6 notebooks are self-contained, save to Drive incrementally, and
 resume on re-run. All 12 repo notebooks pass `check_notebooks.py`.
