@@ -1,0 +1,32 @@
+{
+  "geometry": "B1",
+  "material": "neo_hookean",
+  "order": "Q4",
+  "device": "cuda",
+  "gpu": "NVIDIA A100-SXM4-80GB",
+  "solver": "matrix-free Newton-CG",
+  "dtype": "float64",
+  "nsteps": 10,
+  "code_commit": "5d648d9",
+  "provenance": "transcribed from the Colab stdout of the run that reached N=1401 on 2026-08-28. The run's own JSON is at pfem_run/gpu_fem_scaling_B1_neo_hookean.json on Drive.",
+  "incomplete": {
+    "N1401": "3,925,602 DOF; the run was still inside load step 10/10 (Newton iteration 5) when the log ends. Its solver checkpoint is on Drive at pfem_run/gpu_fem_scaling_ckpt/solve_N1401.pt, so re-running resumes rather than restarting.",
+    "cost_breakdown": "NOT present. The cell reported 'code at: 5d648d9', which predates the assembly/preconditioner/CG timing buckets added in 5edc8b7, so this run carries no cost_breakdown_pct. Timon's round-6 request for a cost breakdown is therefore still open.",
+    "small_resolutions": "N=101,201,301,401 were not run: the same old commit still defaulted to starting at 501. They cost minutes between them and would give the us/DOF curve its lower half."
+  },
+  "rows": [
+    {"N": 501,  "n_nodes": 251001,  "n_dof": 502002,  "n_elements": 250000,
+     "mesh_build_s": 7.4,  "solve_s": 1614.0,  "us_per_dof": 3219.23, "peak_gpu_mem_MB": 1123},
+    {"N": 701,  "n_nodes": 491401,  "n_dof": 982802,  "n_elements": 490000,
+     "mesh_build_s": 14.3, "solve_s": 4488.0,  "us_per_dof": 4565.71, "peak_gpu_mem_MB": 1568},
+    {"N": 1001, "n_nodes": 1002001, "n_dof": 2004002, "n_elements": 1000000,
+     "mesh_build_s": 28.7, "solve_s": 12168.0, "us_per_dof": 6072.65, "peak_gpu_mem_MB": 2035}
+  ],
+  "derived": {
+    "cost_exponent_vs_dof": 1.46,
+    "cost_exponent_pairwise": [1.52, 1.40],
+    "us_per_dof_growth": "3219 -> 6073, a factor of 1.89 across a 4x increase in DOF",
+    "memory_model_MB": "818 fixed + 607 per million DOF, fitting all three rows within 153 MB",
+    "memory_verdict": "O(DOF) confirmed; the 3.93M DOF case would need about 3.2 GB of the A100's 80 GB, so memory is nowhere near the limit"
+  }
+}
