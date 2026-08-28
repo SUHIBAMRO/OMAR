@@ -2,7 +2,7 @@
 
 Timon's point 9, and his "this is the last thing to do". His design: *"compare Q4, Q9 and the physics-informed Transolver against exactly the same analytical solution in L2, H1 and energy norms and also examine stress errors"*.
 
-**This is the FEM half — Q4 and Q9. The operator half is not done**; it needs a body-force term in the energy functional and a body-force input channel, neither of which the trained checkpoints have. See `omar_pfem/mms_study.py` and PROJECT_STATUS.md.
+**All three legs are measured.** Q4 and Q9 are below; the physics-informed operator is at the bottom of this file. The operator needed a body-force term in the energy functional and a body-force input channel, neither of which the report's trained checkpoints have, so it is a separately trained model (`omar_pfem/mms_operator.py`) — not a Table 5 checkpoint.
 
 ## The manufactured solution
 
@@ -85,6 +85,30 @@ A caveat about the shared solver, recorded in PROJECT_STATUS: its CG stops on `|
 ---
 
 
+## The operator third — the three-way, complete (N=17)
+
+Before any of this was trained, `omar_pfem/test_mms_operator.py` established that the network is minimizing the same thing the FEM solver solves: Π(u_FEM) = -7.999050 is a true minimum of the operator's functional — the interpolated u\* does not beat it, all 36 admissible perturbations raise Π, and the excess grows quadratically (ratio 4.000, 4.0 expected). The meta-check: a W wrongly divided by 8 moves the minimum to scale 0.125, so those checks can fail.
+
+| method | L2 | H1 semi | stress | energy |
+|---|---|---|---|---|
+| Q4 (same mesh) | 3.403e-03 | 5.666e-02 | 5.724e-02 | 3.191e-03 |
+| Q9 (same N) | 5.163e-05 | 1.438e-03 | 1.495e-03 | 2.088e-06 |
+| operator | 8.238e-03 | 5.831e-02 | 5.886e-02 | 9.914e-03 |
+
+**operator / Q4 in L2 = 2.42×.** Above 1.0, which is the required outcome: the operator minimizes the same functional over the same Q4 space, so the Q4 solution is the minimizer and a ratio below 1.0 would mean a bug, not a win.
+
+The four ratios are **not** the same number: L2 2.42×, H1 semi 1.03×, stress 1.03×, energy 3.11×. 
+The gradient-based norms are the ones the operator has essentially closed — 1.03× in H1 and 1.03× in stress means it recovers the strain and stress fields about as well as the Q4 optimum it is chasing — while it is 2.42× behind in L2 and 3.11× in energy. That is the **opposite of the usual ordering**, where L2 is the forgiving norm and the derivative norms are the strict ones. The energy functional is what is being minimized, and it is built from the deformation gradient, so the quantities it sees directly are the ones that come out closest; the displacement itself is only pinned down through them, up to what the boundary mask fixes.
+
+
+**Is this the budget or the method?** Best test L2 was 1.429e-02 at the halfway point and 8.826e-03 at the end, an improvement of 38% over the second half of training — still falling, but slowly. The last twenty validations span 8.826e-03 to 1.055e-01, a factor of 12, so single-epoch scores are noisy and the reported number is the best checkpoint (epoch 1900), not the last one. A longer run would close some of the remaining L2 gap; nothing here shows how much.
+
+Training cost: 16,000 optimizer steps, 8.2 min on an NVIDIA A100-SXM4-80GB, and **no labels** — u\* is analytic but is never used in training, only in scoring.
+
+
+---
+
+
 ## The operator third — a DEMONSTRATION run only, not a result
 
 `operator_demo_N9_undertrained.json`. **Do not quote these numbers in the report.** It is a 1,600-optimizer-step CPU run at N=9, kept only because it proves the pipeline end to end and because its ceiling check passed. For scale, the report's own physics-informed models were trained for 75,000 steps.
@@ -97,14 +121,16 @@ A caveat about the shared solver, recorded in PROJECT_STATUS: its CG stops on `|
 
 **operator / Q4 in L2 = 4.71×.** Above 1.0, which is the required outcome: the operator minimizes the same functional over the same Q4 space, so the Q4 solution is the minimizer and a ratio below 1.0 would mean a bug, not a win.
 
-In the H1 semi-norm the ratio is 1.35×. That it is so much smaller than the L2 ratio is worth re-checking on a longer run — it is the opposite of the usual ordering, where L2 is the more forgiving norm.
+The four ratios are **not** the same number: L2 4.71×, H1 semi 1.35×, stress 1.37×, energy 7.00×. The same inversion the production run shows, on a different mesh and a different device — which is the reason it is read there as a property of the training principle rather than an artefact of one run.
 
 The error was **still falling at the last epoch** (see `history` in the JSON), so this ratio reflects the step budget, not the method. The reportable number needs `Round6_MMS_Operator.ipynb`: N=17, 2000 epochs, 20–40 min on any GPU.
 
 
 ## What is NOT here
 
-* **The Transolver.** The comparison Timon asked for is three-way; this is two-way. The operator cannot be run on this problem as things stand: its energy functional has no body-force term and its inputs have no body-force channel.
+* **The operator at more than one mesh.** It is trained and scored at N=17 only, so it has no convergence rate of its own — the two rate tables above are FEM only. Retraining at each N is the missing work, and it is a training run per mesh, not a solve.
+
+* **The operator's cost, on comparable terms.** Its 8.2 min of GPU training is not commensurable with a CPU FP64 Newton solve, and no attempt is made here to force them onto one axis.
 
 * **One material and one geometry**, and a single manufactured solution rather than the parametrised family Timon called the ideal. The family is parametrised in the code by (alpha, beta); only one member is run.
 

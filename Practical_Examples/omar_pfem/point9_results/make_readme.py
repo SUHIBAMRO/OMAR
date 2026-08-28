@@ -32,10 +32,20 @@ def build(path):
       f"*\"compare Q4, Q9 and the physics-informed Transolver against exactly "
       f"the same analytical solution in L2, H1 and energy norms and also "
       f"examine stress errors\"*.\n")
-    a("**This is the FEM half — Q4 and Q9. The operator half is not done**; it "
-      "needs a body-force term in the energy functional and a body-force input "
-      "channel, neither of which the trained checkpoints have. See "
-      "`omar_pfem/mms_study.py` and PROJECT_STATUS.md.\n")
+    ops = sorted(glob.glob(os.path.join(HERE, "*operator_*.json")))
+    prod = [p for p in ops if "demo" not in os.path.basename(p).lower()]
+    if prod:
+        a("**All three legs are measured.** Q4 and Q9 are below; the "
+          "physics-informed operator is at the bottom of this file. The "
+          "operator needed a body-force term in the energy functional and a "
+          "body-force input channel, neither of which the report's trained "
+          "checkpoints have, so it is a separately trained model "
+          "(`omar_pfem/mms_operator.py`) — not a Table 5 checkpoint.\n")
+    else:
+        a("**This is the FEM half — Q4 and Q9. The operator half is not done**; "
+          "it needs a body-force term in the energy functional and a body-force "
+          "input channel, neither of which the trained checkpoints have. See "
+          "`omar_pfem/mms_study.py` and PROJECT_STATUS.md.\n")
 
     a("## The manufactured solution\n")
     a(f"```\n{R['manufactured_solution']}\n```\n")
@@ -121,7 +131,7 @@ def build(path):
     # The operator third, if a run is present. Generated rather than
     # appended by hand: this script rewrites README.md from scratch, so
     # anything appended manually would be silently lost on the next run.
-    for p in sorted(glob.glob(os.path.join(HERE, "operator_*.json"))):
+    for p in ops:
         O = json.load(open(p))
         demo = "demo" in os.path.basename(p).lower()
         op = O["operator_on_the_reference_member"]
@@ -136,7 +146,20 @@ def build(path):
               f"passed. For scale, the report's own physics-informed models "
               f"were trained for 75,000 steps.\n")
         else:
-            a(f"\n## The operator third (N={O['N']})\n")
+            a(f"\n## The operator third — the three-way, complete (N={O['N']})\n")
+            fv = O.get("functional_verified")
+            if fv:
+                a(f"Before any of this was trained, `{fv['by'].split(',')[0]}` "
+                  f"established that the network is minimizing the same thing "
+                  f"the FEM solver solves: Π(u_FEM) = {fv['Pi_at_u_FEM']:.6f} "
+                  f"is a true minimum of the operator's functional — the "
+                  f"interpolated u\\* does not beat it, all 36 admissible "
+                  f"perturbations raise Π, and the excess grows quadratically "
+                  f"(ratio {fv['quadratic_excess_ratio']:.3f}, "
+                  f"{fv['expected_quadratic_excess_ratio']} expected). The "
+                  f"meta-check: a W wrongly divided by 8 moves the minimum to "
+                  f"scale {fv['best_scale_W_divided_by_8']}, so those checks "
+                  f"can fail.\n")
         a("| method | L2 | H1 semi | stress | energy |")
         a("|---|---|---|---|---|")
         for name, d in (("Q4 (same mesh)", ref["Q4"]), ("Q9 (same N)", ref["Q9"]),
@@ -151,22 +174,75 @@ def build(path):
           + "the operator minimizes the same functional over the same Q4 "
             "space, so the Q4 solution is the minimizer and a ratio below 1.0 "
             "would mean a bug, not a win.\n")
-        a(f"In the H1 semi-norm the ratio is {rh:.2f}×. That it is so much "
-          f"{'smaller' if rh < r else 'larger'} than the L2 ratio is worth "
-          f"re-checking on a longer run — it is the opposite of the usual "
-          f"ordering, where L2 is the more forgiving norm.\n")
+        rs = op["stress_rel_L2"] / ref["Q4"]["stress_rel_L2"]
+        re_ = op["energy_rel"] / ref["Q4"]["energy_rel"]
+        a(f"The four ratios are **not** the same number: L2 {r:.2f}×, "
+          f"H1 semi {rh:.2f}×, stress {rs:.2f}×, energy {re_:.2f}×. "
+          + ("The same inversion the production run shows, on a different "
+             "mesh and a different device — which is the reason it is read "
+             "there as a property of the training principle rather than an "
+             "artefact of one run.\n" if demo and rh < r else ""))
+        if demo:
+            pass
+        elif rh < r:
+            a(f"The gradient-based norms are the ones the operator has "
+              f"essentially closed — {rh:.2f}× in H1 and {rs:.2f}× in stress "
+              f"means it recovers the strain and stress fields about as well "
+              f"as the Q4 optimum it is chasing — while it is {r:.2f}× behind "
+              f"in L2 and {re_:.2f}× in energy. That is the **opposite of the "
+              f"usual ordering**, where L2 is the forgiving norm and the "
+              f"derivative norms are the strict ones. The energy functional is "
+              f"what is being minimized, and it is built from the deformation "
+              f"gradient, so the quantities it sees directly are the ones that "
+              f"come out closest; the displacement itself is only pinned down "
+              f"through them, up to what the boundary mask fixes.\n")
+        else:
+            a(f"The L2 ratio is the smallest of the four, the ordering one "
+              f"would expect.\n")
         if demo:
             a("The error was **still falling at the last epoch** (see "
               "`history` in the JSON), so this ratio reflects the step budget, "
               "not the method. The reportable number needs "
               "`Round6_MMS_Operator.ipynb`: N=17, 2000 epochs, 20–40 min on "
               "any GPU.\n")
+        else:
+            # Whether the budget or the method set this ratio is a question
+            # about the training curve, so answer it from the curve rather
+            # than by claiming convergence.
+            h = O["history"]
+            half = len(h) // 2
+            b_half = min(x["L2_rel"] for x in h[:half])
+            b_end = min(x["L2_rel"] for x in h)
+            tail = [x["L2_rel"] for x in h[-20:]]
+            a(f"\n**Is this the budget or the method?** Best test L2 was "
+              f"{b_half:.3e} at the halfway point and {b_end:.3e} at the end, "
+              f"an improvement of {(1 - b_end / b_half) * 100:.0f}% over the "
+              f"second half of training — still falling, but slowly. The last "
+              f"twenty validations span {min(tail):.3e} to {max(tail):.3e}, a "
+              f"factor of {max(tail) / min(tail):.0f}, so single-epoch scores "
+              f"are noisy and the reported number is the best checkpoint "
+              f"(epoch {O['operator_best_epoch']}), not the last one. A longer "
+              f"run would close some of the remaining L2 gap; nothing here "
+              f"shows how much.\n")
+            a(f"Training cost: {O['training']['opt_steps']:,} optimizer steps, "
+              f"{O['training']['train_wall_clock_min']} min on an "
+              f"{O.get('gpu', O['device'])}, and **no labels** — u\\* is "
+              f"analytic but is never used in training, only in scoring.\n")
 
     a("\n## What is NOT here\n")
-    a("* **The Transolver.** The comparison Timon asked for is three-way; this "
-      "is two-way. The operator cannot be run on this problem as things stand: "
-      "its energy functional has no body-force term and its inputs have no "
-      "body-force channel.\n")
+    if prod:
+        a("* **The operator at more than one mesh.** It is trained and scored "
+          "at N=17 only, so it has no convergence rate of its own — the two "
+          "rate tables above are FEM only. Retraining at each N is the missing "
+          "work, and it is a training run per mesh, not a solve.\n")
+        a("* **The operator's cost, on comparable terms.** Its 8.2 min of GPU "
+          "training is not commensurable with a CPU FP64 Newton solve, and no "
+          "attempt is made here to force them onto one axis.\n")
+    else:
+        a("* **The Transolver.** The comparison Timon asked for is three-way; "
+          "this is two-way. The operator cannot be run on this problem as "
+          "things stand: its energy functional has no body-force term and its "
+          "inputs have no body-force channel.\n")
     a("* **One material and one geometry**, and a single manufactured solution "
       "rather than the parametrised family Timon called the ideal. The family "
       "is parametrised in the code by (alpha, beta); only one member is run.\n")
