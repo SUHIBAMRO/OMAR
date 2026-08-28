@@ -10,19 +10,39 @@ report v29 and the summary. See "Point 5 written in" below.**)
 
 ---
 
-## Point 2 (Pareto): first case measured, NOT yet in the report (2026-08-28)
+## Point 2 (Pareto): first case measured TWICE, NOT yet in the report (2026-08-28)
 
-`pareto_analysis.py` finished for **B1 × Neo-Hookean** (1 h 54 m). Numbers and
-the full reading are in `omar_pfem/point2_results/`. The other five cases have
-not been run.
+`pareto_analysis.py` ran twice for **B1 × Neo-Hookean** — run3 (1 h 54 m) and
+run4 (6 h 24 m). run4 was the **same configuration on a slower Colab runtime**,
+not the seed/metric change described below, so that decision is still open.
+Numbers and the full reading are in `omar_pfem/point2_results/`. The other five
+cases have not been run.
 
 Headline: the two methods never compete on accuracy — FEM at its coarsest
-(N=13, 3.1 s) is 0.608%, already 6.1× better than the operator at its best
-(3.69% at N=37). The front is two branches with nothing between them: under
-~3 s only the operator exists (1.6 ms, 3.7–6.8%), over ~3 s only FEM
-(0.06–0.6%). The operator's real argument is the trend, not a point: its cost
-is flat in mesh size (1.610–1.663 ms from 169 to 1,681 nodes) while FEM grows
-superlinearly, so the speed-up climbs 1,914× → 20,812× with resolution.
+(N=13) is 0.608%, already 6.1× better than the operator at its best (3.69% at
+N=37). The front is two branches with nothing between them. The operator's real
+argument is the trend, not a point: its cost is flat in mesh size while FEM
+grows superlinearly, so the speed-up climbs by an order of magnitude across the
+sweep (1,630× → 17,895× on run4's numbers).
+
+### What running it twice bought
+* **Errors identical to every printed digit**, both sides, all nine
+  resolutions, across two runs on different hardware. The accuracy half is
+  fully reproducible.
+* **Wall-clock is not, and systematically so**: run4's FEM is 2.887–2.925×
+  slower at *every* resolution — a 1.3% spread, i.e. a different machine, not
+  noise. Absolute milliseconds describe the Colab instance, not the method.
+* **The ratio survives**: excluding N=49 the two runs' speed-ups agree within
+  17%, because both sides slowed together. Quote the speed-up, not the
+  milliseconds.
+* **run4's timings are the ones consistent with the report.** Table 10a gives
+  B1×NH at bs=1 as 4.582 ms; run4 at N=21 (the same 441-node mesh) gives
+  4.584 ms. run3 gives 1.610 ms — a third of it. Use run4.
+* **The N=49 anomaly did not reproduce.** run3's 4.613 ms outlier is 5.555 ms
+  in run4, inside that run's own 4.584–5.563 ms band. It was a property of that
+  run, not of N=49. Closed.
+* Residual: run4's own N=21 is 17% faster than its other eight with no pattern,
+  so assume ~20% jitter on any single bs=1 latency here.
 
 **Not written into the report yet, deliberately** — one of six cases, and one
 open decision below.
@@ -50,11 +70,8 @@ metric so the operator column can sit next to Table 12. Re-running costs about
 **1 hour**, not the original 1 h 54 m, because those fine references are
 already cached.
 
-### One unexplained measurement
-The N=49 operator timing is 4.613 ms against 1.610–1.663 ms at every other
-resolution — a 2.8× jump for 1.43× the nodes. Median of 20 repeats after 5
-warm-ups, so not a stray sample, but also the last measurement in a two-hour
-run. Re-timing the operator alone at N=49 costs seconds. Recorded as measured.
+Re-running is now known to cost 1 h 54 m on a fast runtime and 6 h 24 m on a
+slow one, so check what machine Colab hands out before starting.
 
 ---
 
