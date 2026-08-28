@@ -9,10 +9,10 @@ steps. **Complete: all eight resolutions, 0.02M to 3.93M DOF.**
 | 201 | 80,802 | 13.3 min | 9,876 | — | 0.1% / 0.1% / 99.8% |
 | 301 | 181,202 | 20.4 min | 6,755 | — | 0.0% / 0.1% / 99.9% |
 | 401 | 321,602 | 27.7 min | 5,168 | — | 0.0% / 0.1% / 99.9% |
-| **501** | **502,002** | **26.9 min** | **3,215** | 1,123 MB | — |
-| 701 | 982,802 | 1.2 h | 4,567 | 1,568 MB | — |
-| 1001 | 2,004,002 | 3.4 h | 6,072 | 2,035 MB | — |
-| 1401 | 3,925,602 | **11.0 h** | 10,124 | 3,280 MB | — |
+| **501** | **502,002** | **26.9 min** | **3,219** | 1,123 MB | — |
+| 701 | 982,802 | 1.2 h | 4,566 | 1,568 MB | — |
+| 1001 | 2,004,002 | 3.4 h | 6,073 | 2,035 MB | — |
+| 1401 | 3,925,602 | **11.0 h** | 10,125 | 3,280 MB | — |
 
 **The headline for Timon's point 8:** the solver reaches 3.93 million degrees
 of freedom on one GPU, using 3,280 MB of 80 GB, in 11 hours.
@@ -20,7 +20,7 @@ of freedom on one GPU, using 3,280 MB of 80 GB, in 11 hours.
 ## The result: cost is not linear in problem size
 
 µs/DOF is the figure that shows whether cost grows linearly, and on the large
-branch it does not stay flat — it rises from 3,215 to 10,124, a factor of
+branch it does not stay flat — it rises from 3,219 to 10,125, a factor of
 **3.15**. Fitting the four points from N=501 upward gives
 
 > **cost ~ DOF^1.54**
@@ -36,10 +36,18 @@ only partly offsets it. The solver is O(DOF) in memory but not in time.
 
 ## Memory behaves exactly as claimed — and the claim was tested
 
-Peak GPU memory fits **818 MB fixed + 607 MB per million DOF** across
-N=501–1001. That model was fitted *before* N=1401 ran, and it predicted
-**3,201 MB** for its 3.93M DOF. The measured peak came in at **3,280 MB** — an
-error of **2.4%**.
+Peak GPU memory is modelled by **818 MB fixed + 607 MB per million DOF**. That
+model was built *before* N=1401 ran, and it predicted **3,201 MB** for its
+3.93M DOF. The measured peak came in at **3,280 MB** — an error of **2.4%**.
+
+Be precise about what that line is, because it is easy to overstate: it is a
+**two-point line through N=501 and N=1001**, not a fit to all three points that
+had run. **N=701 sits 153 MB (9.8%) above it.** So peak memory is linear in
+problem size to about ten per cent, not better — unsurprising, since the
+quantity is a peak over an allocator's behaviour rather than a count of stored
+values. A least-squares line through all three gives 897 + 584 per million DOF
+and predicts N=1401 about equally well (2.8% vs 2.4%), so the out-of-sample
+result does not hinge on which of the two lines is used.
 
 That matters more than a fit. The O(DOF) memory scaling the matrix-free design
 was chosen for was not merely consistent with the data it was fitted on; it
@@ -63,10 +71,10 @@ together on the same A100:
 | 201 | 80,802 | 13.3 min | 9,876 | 0.1% / 0.1% / 99.8% |
 | 301 | 181,202 | 20.4 min | 6,755 | 0.0% / 0.1% / 99.9% |
 | 401 | 321,602 | 27.7 min | 5,168 | 0.0% / 0.1% / 99.9% |
-| **501** | **502,002** | **26.9 min** | **3,215** | — |
-| 701 | 982,802 | 1.2 h | 4,567 | — |
-| 1001 | 2,004,002 | 3.4 h | 6,072 | — |
-| 1401 | 3,925,602 | 11.0 h | 10,124 | — |
+| **501** | **502,002** | **26.9 min** | **3,219** | — |
+| 701 | 982,802 | 1.2 h | 4,566 | — |
+| 1001 | 2,004,002 | 3.4 h | 6,073 | — |
+| 1401 | 3,925,602 | 11.0 h | 10,125 | — |
 
 The cost per degree of freedom **falls sixfold** from N=101 to N=501, then
 **triples** by N=1401. The solver has a sweet spot near half a million
@@ -77,7 +85,7 @@ DOF, and the two branches have different causes:
   the time is overhead — the same effect Section 8.5 measures at batch size 1.
 * **Above it**, the CG iteration count grows with refinement: the tangent's
   condition number scales with 1/h² and Jacobi preconditioning only partly
-  offsets it. That is the DOF^1.46 branch.
+  offsets it. That is the DOF^1.54 branch.
 
 Reporting only the large end would have made this look like a solver that
 simply degrades. It does not; it has an operating range, and 0.5M DOF is the

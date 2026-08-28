@@ -122,13 +122,15 @@
    1.4,
    1.76
   ],
-  "us_per_dof_growth": "3,215 -> 10,124 across the large branch, a factor of 3.15",
-  "memory_model_MB": "818 fixed + 607 per million DOF, fitted on N=501-1001",
-  "memory_verdict": "O(DOF) confirmed; the 3.93M DOF case would need about 3.2 GB of the A100's 80 GB, so memory is nowhere near the limit",
-  "us_per_dof_shape": "U-shaped. Falls 19,410 -> 3,215 us/DOF from N=101 to N=501, then rises to 10,124 at N=1401. Minimum at 0.50M DOF.",
+  "us_per_dof_growth": "3,219 -> 10,125 across the large branch, a factor of 3.15",
+  "memory_model_MB": "818 fixed + 607 per million DOF. NOTE: this is a two-point line through N=501 and N=1001, not a fit to all three measured points -- N=701 sits 153 MB (9.8%) ABOVE it. Peak memory is linear to about 10%, not better, which is expected of a peak over allocator behaviour. A least-squares line through all three gives 897 + 584 per million DOF and predicts N=1401 about equally well (2.8% vs 2.4%).",
+  "memory_verdict": "O(DOF) confirmed; the 3.93M DOF case needed 3,280 MB of the A100's 80 GB, so memory is nowhere near the limit",
+  "us_per_dof_shape": "U-shaped. Falls 19,410 -> 3,219 us/DOF from N=101 to N=501, then rises to 10,125 at N=1401. Minimum at 0.50M DOF.",
+  "us_per_dof_note": "quote the per-row us_per_dof field, which is the run's own printed figure. Dividing the rounded solve_s by n_dof gives values up to 4 us/DOF different (largest discrepancy at N=501: 3,215 vs 3,219) because solve_s is transcribed rounded. The report's Table 20 uses the us_per_dof field.",
   "cost_breakdown": "residual 0.0-0.3%, preconditioner 0.1-0.3%, CG 99.4-99.9%. Read the caveat in the README before quoting this as 'assembly is minimal'.",
   "cost_exponent_note": "fitted on the large-DOF branch (N>=501) only; the small-N branch is overhead-dominated and has the opposite slope",
-  "memory_prediction_test": "the model was fitted before N=1401 ran and predicted 3,201 MB for its 3.93M DOF; the measured peak was 3,280 MB, an error of 2.4%. The O(DOF) memory claim is therefore not just consistent with the data, it was tested out of sample and held.",
+  "memory_prediction_test": "the model was built before N=1401 ran and predicted 3,201 MB for its 3.93M DOF; the measured peak was 3,280 MB, an error of 2.4%. The O(DOF) memory claim is therefore not just consistent with the data, it was tested out of sample on a case more than twice as large as anything it had seen, and held. Read this together with memory_model_MB: the line is anchored on two points and N=701 lies 10% off it.",
+  "extrapolation_caveat": "818 + 607 per million DOF puts the 40M-DOF reference of section 4.4 at roughly 25 GB. That is a projection ten times beyond the largest case measured here and has NOT been verified.",
   "largest_case": "3,925,602 DOF solved in 11.0 hours using 3,280 MB of the A100's 80 GB"
  }
 }

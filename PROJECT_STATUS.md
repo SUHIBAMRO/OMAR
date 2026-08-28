@@ -12,12 +12,14 @@ everything after it is detail.**
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v31**, summary updated, branch
+Current artefacts: report **v33**, summary updated through Table 20, branch
 `claude/claude-code-question-d307wp`.
 
-**Nothing measured is unwritten.** Every result that exists is committed as
-JSON under `omar_pfem/point2_results/` or `point5_results/` AND written into
-both documents. Verified by re-reading the .docx and comparing cell by cell.
+**Nothing measured is unwritten, with one exception: point 7b** (data-driven
+vs physics-informed), whose 2×2 has an empty cell and is therefore not yet in
+the report. Everything else that has been measured is committed as JSON under
+`omar_pfem/point{2,5,6,7b,8}_results/` AND written into both documents,
+verified by re-reading the .docx and comparing cell by cell against the JSON.
 
 ## ✅ Done and in the report
 
@@ -27,7 +29,7 @@ both documents. Verified by re-reading the .docx and comparing cell by cell.
 | Convergence vs ~10M-DOF reference, Q4 vs Q9 (B1 only) | §4.4, Table 6a |
 | Batch-size sweep, equal optimizer steps | §8.2, Table 6 |
 | GPU memory, three senses | §8.4, Table 8 |
-| Measured native FEM cost + training cost | §4.2, §8.3, Tables 4a/4b/7 |
+| Measured native FEM cost + training cost | §4.2, §8.3, Tables 4a/7 (there is no Table 4b — an earlier draft cited one) |
 | GPU-native FEM solver + machine-precision validation | §8.5, Table 9 |
 | **R5-3** break-even vs GPU FEM | Table 10c |
 | **R6** break-even, CPU and GPU side by side | **Table 10d** |
@@ -38,17 +40,17 @@ both documents. Verified by re-reading the .docx and comparing cell by cell.
 | B2 accuracy regression: root cause + fix (32.46% → 9.11%) | §9.1 |
 | Exact definition of every reported error | §7.1 |
 | Zero-shot resolution invariance, B1 × Neo-Hookean | §8.7, Table 12 |
+| **R6-1** progressive OOD: material vs loading, 0→3σ | §8.6, **Table 19** |
+| **R5-8b** GPU-FEM scaling sweep, 0.02→3.93M DOF + cost breakdown | §8.5, **Table 20** |
 
-## 🔵 Built, verified, NOT RUN — waiting on Omar's Colab
+## 🔵 Run, recorded, NOT yet in the report
 
-| Item | Notebook | GPU? | Time |
-|---|---|---|---|
-| **R6-1** progressive OOD (material vs loading, 0→3σ) | `Round6_OOD_Progressive` | no | 1.5–4 h |
-| **R5-8b** GPU-FEM sweep 0.02→3.93M DOF + cost breakdown | `Round6_GPU_FEM_Sweep` | **yes** | hours |
-| **R5-7b** data-driven operator, B1 × Neo-Hookean | `Round6_Data_Driven` | preferred | < 48 min |
+| Item | State |
+|---|---|
+| **R5-7b** data-driven vs physics-informed | Three of four cells measured (`point7b_results/`). PI 0.0959 · data-driven matched-optimizer 0.1307 · data-driven own recipe 0.0826. **The fourth cell — PI under AdamW+OneCycleLR — is unmeasured**, and until it exists the unmatched pair cannot rank the two training principles. Cell is ready, ~48 min on A100. Deliberately not written up half-finished |
 
-All three: self-contained, save to Drive incrementally, resume on re-run.
-All 11 repo notebooks pass `check_notebooks.py`.
+All round-6 notebooks are self-contained, save to Drive incrementally, and
+resume on re-run. All 12 repo notebooks pass `check_notebooks.py`.
 
 ## 🟡 Partial
 
@@ -84,19 +86,43 @@ so it is shaping his judgement of the work.
 ## How to rebuild the documents
 
 Builders live in `Practical_Examples/report_builders/`, each reading the
-previous version, so the chain is v27 → v28 → v29 → v30 → v31:
+previous version, so the chain is v27 → v28 → v29 → v30 → v31 → v32 → v33.
+**Run them from `/tmp`**, which is where the .docx files live:
 
     make_v28.py       matched batch sizes (Tables 10a-c)
     make_v29.py       physical quantities (Tables 15-17) + §10 qualification
     make_v30.py       break-even side by side (Table 10d)
     make_v31.py       Pareto (Table 18)
-    make_summary_v3.py / make_summary_v4.py   the parallel summary
+    make_v32.py       OOD attribution (Table 19)
+    make_v33.py       GPU-FEM scaling sweep (Table 20)
+    make_summary_v3.py … make_summary_v6.py   the parallel summary
+                       (each expects a PFEM_Summary_Completed_Work.pre_vN.docx
+                        copy of the current summary as its input)
 
 `point5_tables.py` and `pareto_table.py` build their tables from the
 committed JSONs and are imported by BOTH the report and summary builders, so
 the two documents cannot disagree. The builders assert their own cross-case
-claims before writing them — that mechanism has caught four false statements
-so far, listed in the sections below.
+claims before writing them, and `make_v33.py` additionally parses Table 4a
+back out of the source .docx so the numbers it quotes from the rest of the
+report are the report's own.
+
+**That mechanism has now caught six false statements plus one code bug.** The
+four earlier ones are listed in the sections below; the two from v33 were:
+
+* the draft quoted **3,215 µs/DOF** for N=501 where the table prints the run's
+  own **3,219** (`solve_s` is transcribed rounded, so dividing it by `n_dof`
+  disagrees with the run's printed `us_per_dof` by up to 4 µs/DOF). **Quote
+  the `us_per_dof` field, not a value re-derived from `solve_s`.**
+* the draft attributed the CPU assembly-versus-solve split to a **"Table 4b"
+  that does not exist in the report at all**, at a factor of **74** where
+  Table 4a gives **309×** for B1 × Neo-Hookean and 290–692× across the six.
+
+A third error was caught by hand while checking the same paragraph: the draft
+said the *B2 geometry* costs ~2× more to assemble. It does not — B2 × NH is
+within 2% of B1 × NH. The ~2× is a **material** effect: Neo-Hookean has an
+analytic PK1 and tangent (`omar_pfem/data/materials.py`), while Mooney-Rivlin
+and Arruda-Boyce use `jax.jacfwd(jax.grad(...))`
+(`omar_pfem/data/material_models_jax.py`), costing 2.1–2.4× per Table 4a.
 
 ---
 
@@ -495,6 +521,32 @@ dense 3M×3M matrix is ~72 TB). The repo already has `matrix_free_solver.py`
 — a matrix-free Newton-CG that never forms K and is what produced the
 10M/40M-DOF references — so point 8 is a *timing sweep of the matrix-free
 solver*, not new solver development.
+
+**Point 8 is now COMPLETE and written up (§8.5, Table 20).** Eight
+resolutions, 0.02M → 3.93M DOF, one A100, FP64. Headline: **3,925,602 DOF in
+11.0 h using 3,280 MB of 80 GB (~4%)**. Three findings worth keeping:
+
+1. **µs/DOF is U-shaped** — falls 6.0× from 19,410 (N=101) to 3,219 (N=501),
+   then rises 3.1× to 10,125 (N=1401). Two different causes: GPU
+   under-occupancy below the minimum, growing CG iteration count above it
+   (condition number ~1/h²). Large branch fits **DOF^1.54**, pairwise 1.52 /
+   1.40 / 1.76 — the last interval is the steepest, so the exponent has NOT
+   settled. **O(DOF) in memory, not in time.**
+2. **The memory model made an out-of-sample prediction that held** — built
+   before N=1401 ran, predicted 3,201 MB, measured 3,280 MB (2.4%). Caveat
+   recorded in both documents: it is a two-point line through N=501 and
+   N=1001, and N=701 sits 10% above it.
+3. **Cost breakdown: assembly 0.1–0.6%, CG 99.4–99.9%.** This *superficially*
+   confirms Timon's "the key cost should be the solver while the assembly
+   should be minimal" — and both documents say explicitly that it must not be
+   quoted that way. Matrix-free means every CG iteration IS a Hessian-vector
+   product, i.e. an assembly-like pass over all elements; the assembly did not
+   get cheap, it moved inside CG where this instrumentation cannot see it.
+
+Remaining gap, judged not worth the compute: **no breakdown for N=501–1001**,
+which were solved by commit `5d648d9` before the timing buckets existed and
+are skipped on resume. Re-deriving them costs ~3 h of GPU for a number the
+four smaller resolutions already establish.
 
 **⚠️ Point 7 — affects the currently-running jobs.** Timon wants test
 resolutions both **coarser and finer** than the training ones. The running
