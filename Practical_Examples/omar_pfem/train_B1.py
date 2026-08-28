@@ -732,7 +732,25 @@ def train_hyperelastic_Q4(args):
         unified_pos=args.unified_pos
     ).to(device)
 
-    opt = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    # Optimizer. The default is unchanged -- plain Adam, exactly what every
+    # result in the report was produced with -- so nothing that already exists
+    # moves. `--optimizer adamw_onecycle` exists only to fill the empty cell in
+    # the point-7b comparison: the data-driven model was measured under both
+    # recipes, the physics-informed one under only its own, and without this
+    # the two cannot be ranked independently of the optimizer.
+    if getattr(args, "optimizer", "adam") == "adamw_onecycle":
+        opt = torch.optim.AdamW(model.parameters(), lr=args.lr,
+                                weight_decay=args.weight_decay)
+        _total = int(getattr(args, "onecycle_total_steps", 0)) or (
+            args.epochs * max(1, len(Train_samples) // max(int(args.batch_size), 1)))
+        onecycle = torch.optim.lr_scheduler.OneCycleLR(
+            opt, max_lr=args.lr, total_steps=_total, pct_start=0.1)
+        print(f"[optimizer] AdamW + OneCycleLR over {_total:,} steps "
+              f"(max_lr={args.lr}, wd={args.weight_decay})")
+    else:
+        opt = torch.optim.Adam(model.parameters(), lr=args.lr,
+                               weight_decay=args.weight_decay)
+        onecycle = None
 
     ntrain = len(Train_samples)
     bs = max(int(args.batch_size), 1)
@@ -858,6 +876,8 @@ def train_hyperelastic_Q4(args):
                 torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
 
             opt.step()
+            if onecycle is not None and onecycle.last_epoch + 1 < onecycle.total_steps:
+                onecycle.step()
             opt_steps += 1
 
             if device.type == "cuda":
@@ -1029,6 +1049,13 @@ def main():
     parser.add_argument("--cpu", action="store_true")
     parser.add_argument("--out_dir", type=str, default="./results_B1_transolver")
     parser.add_argument("--weight_decay", type=float, default=0.0)
+    parser.add_argument("--optimizer", type=str, default="adam",
+                        choices=["adam", "adamw_onecycle"],
+                        help="adam is the default every reported result used. "
+                             "adamw_onecycle fills the point-7b 2x2's empty cell.")
+    parser.add_argument("--onecycle_total_steps", type=int, default=0,
+                        help="total steps for OneCycleLR; 0 derives it from "
+                             "epochs x steps-per-epoch")
     parser.add_argument("--batch_size", type=int, default=1,
                          help="Real mini-batch size (parallel forward pass over this many samples "
                               "at once, all sharing B1's fixed mesh) -- not gradient accumulation.")
