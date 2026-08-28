@@ -7,20 +7,38 @@
 # =====================================================================
 import os, subprocess, sys
 
+def run(cmd):
+    """Stream a child process's output into the notebook.
+
+    subprocess.run() writes to the OS-level stdout descriptor, which Colab
+    does not capture -- the child's output simply vanishes and a long run
+    looks identical to a hung one. Popen with a line loop, plus `python -u`
+    so the child does not buffer, puts it back.
+    """
+    print('$', ' '.join(str(c) for c in cmd), flush=True)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT, text=True, bufsize=1)
+    for line in p.stdout:
+        print(line, end='', flush=True)
+    p.wait()
+    if p.returncode != 0:
+        raise subprocess.CalledProcessError(p.returncode, cmd)
+
+
 from google.colab import drive
 drive.mount('/content/drive')
 
 REPO = '/content/OMAR'
 if not os.path.isdir(REPO):
-    subprocess.run(['git', 'clone', '-b', 'claude/claude-code-question-d307wp',
-                    'https://github.com/SUHIBAMRO/OMAR.git', REPO], check=True)
+    run(['git', 'clone', '-b', 'claude/claude-code-question-d307wp',
+                    'https://github.com/SUHIBAMRO/OMAR.git', REPO])
 else:
-    subprocess.run(['git', '-C', REPO, 'fetch', 'origin',
-                    'claude/claude-code-question-d307wp'], check=True)
-    subprocess.run(['git', '-C', REPO, 'checkout',
-                    'claude/claude-code-question-d307wp'], check=True)
-    subprocess.run(['git', '-C', REPO, 'reset', '--hard',
-                    'origin/claude/claude-code-question-d307wp'], check=True)
+    run(['git', '-C', REPO, 'fetch', 'origin',
+                    'claude/claude-code-question-d307wp'])
+    run(['git', '-C', REPO, 'checkout',
+                    'claude/claude-code-question-d307wp'])
+    run(['git', '-C', REPO, 'reset', '--hard',
+                    'origin/claude/claude-code-question-d307wp'])
 
 WORK = f'{REPO}/Practical_Examples'
 os.chdir(WORK)
@@ -44,8 +62,8 @@ print('checkpoint:', CKPT, f'({os.path.getsize(CKPT)/1e6:.1f} MB)')
 # 3 factors x 6 non-zero shifts + 1 shared baseline = 19 cells.
 # Each cell is n_samples CPU FEM solves at N=21, roughly 9-25 s each
 # depending on the runtime, so budget about 1.5-4 h for n_samples=10.
-subprocess.run([
-    sys.executable, '-m', 'omar_pfem.ood_progressive',
+run([
+    sys.executable, '-u', '-m', 'omar_pfem.ood_progressive',
     '--geometry', GEOMETRY, '--material', MATERIAL,
     '--checkpoint', CKPT,
     '--N', '21',
@@ -53,6 +71,6 @@ subprocess.run([
     '--factors', 'material,loading,both',
     '--n_samples', '10',
     '--out_json', f'{OUT}/ood_progressive_{GEOMETRY}_{MATERIAL}.json',
-], check=True)
+])
 
 print('\nDone. Result:', f'{OUT}/ood_progressive_{GEOMETRY}_{MATERIAL}.json')

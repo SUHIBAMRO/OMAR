@@ -18,6 +18,13 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 NOTEBOOKS = {
+    "Round6_Check_Results.ipynb": (
+        "cell_check_results.py",
+        ["# What is actually on Drive?\n",
+         "\n",
+         "Read-only. Shows which results exist and how far each got, so a run\n",
+         "that printed nothing can be told apart from one that did nothing.\n",
+         "Safe to run at any time, including while other notebooks are working.\n"]),
     "Round6_OOD_Progressive.ipynb": (
         "cell_ood_progressive.py",
         ["# Progressive OOD shift — Timon round 6, point 1\n",
