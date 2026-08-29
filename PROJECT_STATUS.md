@@ -57,7 +57,8 @@ resume on re-run. All 12 repo notebooks pass `check_notebooks.py`.
 
 | Item | State |
 |---|---|
-| **R5-1 / R5-7a** zero-shot, 6 cases | 1 of 6 done. Five generating on Omar's Colab — **not visible from this session, ask him** |
+| **R5-1 / R5-7a** zero-shot, 6 cases | **2 of 6 done.** B1×Mooney-Rivlin FINISHED 2026-08-28 (manifest: generate 2h58m, train 43m57s early-stopped at epoch 775 / best 575 / 77,500 steps / best combined val 0.08268, eval 7h48m49s). Its result is NOT yet pulled into the repo — needs `zeroshot_eval_report.json` from Drive. Four still running on Omar's Colab, **not visible from this session** |
+| ⚠️ **the two zero-shot protocols are not the same study** | Table 12 (B1×Neo-Hookean) trained at **N=21 only** and evaluated 5 resolutions, all FINER. The five new notebooks train at **N=21 and 33** and evaluate 7, including two COARSER (13, 17) — which is what round-5 item 7 actually asked for. So B1×MR cannot be added as another row of Table 12: material and protocol differ at once. Either B1×NH is re-run under the new protocol, or the new cases get their own table |
 | **R5-2** Pareto, remaining 5 cases | Blocked on those five checkpoints. Script ready, ~1–6 h per case depending on the runtime |
 
 ## ⬜ Not started
