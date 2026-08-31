@@ -4,28 +4,77 @@
   "checkpoint": "/content/drive/MyDrive/pfem_run/zeroshot_B1_mooney_rivlin/model_best.pt",
   "checkpoint_fingerprint": "0f363c182b52671bfb35e5db9632c297a56fa10b5d521e1b6ffdd7efffc557fc",
   "fine_N": 101,
-  "test_resolutions": [13, 17, 25, 29, 37, 41, 49],
+  "test_resolutions": [
+    13,
+    17,
+    25,
+    29,
+    37,
+    41,
+    49
+  ],
   "rows": [
-    {"N": 13, "n_eval_samples": 20, "mean_rel_L2_vs_fine_reference": 0.10642525217969193, "std_rel_L2_vs_fine_reference": 0.040393926549212505},
-    {"N": 17, "n_eval_samples": 20, "mean_rel_L2_vs_fine_reference": 0.08846675460084326, "std_rel_L2_vs_fine_reference": 0.03294190733511524},
-    {"N": 25, "n_eval_samples": 20, "mean_rel_L2_vs_fine_reference": 0.069066433666394, "std_rel_L2_vs_fine_reference": 0.022718667059276932},
-    {"N": 29, "n_eval_samples": 20, "mean_rel_L2_vs_fine_reference": 0.06278944178583773, "std_rel_L2_vs_fine_reference": 0.019407487421762445},
-    {"N": 37, "n_eval_samples": 20, "mean_rel_L2_vs_fine_reference": 0.05412227340612732, "std_rel_L2_vs_fine_reference": 0.016933248178185634},
-    {"N": 41, "n_eval_samples": 20, "mean_rel_L2_vs_fine_reference": 0.051526492757131316, "std_rel_L2_vs_fine_reference": 0.017170942385982525},
-    {"N": 49, "n_eval_samples": 20, "mean_rel_L2_vs_fine_reference": 0.050376113714820855, "std_rel_L2_vs_fine_reference": 0.018318237328395187}
+    {
+      "N": 13,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.10642525217969193,
+      "std_rel_L2_vs_fine_reference": 0.040393926549212505
+    },
+    {
+      "N": 17,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.08846675460084326,
+      "std_rel_L2_vs_fine_reference": 0.03294190733511524
+    },
+    {
+      "N": 25,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.069066433666394,
+      "std_rel_L2_vs_fine_reference": 0.022718667059276932
+    },
+    {
+      "N": 29,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.06278944178583773,
+      "std_rel_L2_vs_fine_reference": 0.019407487421762445
+    },
+    {
+      "N": 37,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.05412227340612732,
+      "std_rel_L2_vs_fine_reference": 0.016933248178185634
+    },
+    {
+      "N": 41,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.051526492757131316,
+      "std_rel_L2_vs_fine_reference": 0.017170942385982525
+    },
+    {
+      "N": 49,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.050376113714820855,
+      "std_rel_L2_vs_fine_reference": 0.018318237328395187
+    }
   ],
   "training": {
-    "train_resolutions": [21, 33],
+    "train_resolutions": [
+      21,
+      33
+    ],
     "n_train_per_res": 400,
     "n_val_per_res": 100,
     "best_combined_val_error": 0.08268473669886589,
     "best_epoch": 575,
     "final_epoch": 775,
-    "opt_steps": 77500,
     "early_stopped": true,
     "total_train_wall_clock_s": 2628.6661372184753,
     "optimizer": "Adam lr=0.002 wd=0.0, batch_size 8, grad_clip 1.0, seed 0",
-    "early_stopping": "patience 8, min_delta 1e-4, validate_every 25"
+    "early_stopping": "patience 8, min_delta 1e-4, validate_every 25",
+    "opt_steps_at_end": 77500,
+    "opt_steps_at_best": 57500,
+    "steps_per_epoch": 100,
+    "opt_steps_note": "the manifest's own opt_steps field is the TOTAL at the end of the run, not the count at the best checkpoint. Both are given here because the reported errors come from model_best.pt, i.e. from opt_steps_at_best. Same distinction as the R6-1b baseline (best at 55,000 of 75,000)."
   },
   "cost": {
     "fem_generation_s": 10681.428952932358,
