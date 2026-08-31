@@ -1001,6 +1001,46 @@ is the same configuration minus the defect, so it sets the honest baseline any
 re-test must beat. Only then is a second run (`--normalize_inputs 1
 --selection_metric both_components`, same ~3 h 36 m) worth the GPU.
 
+### 🟢🟢 B2 IS NOT BROKEN. IT WAS BEING STOPPED AT ITS FIRST VALIDATION EVENT (2026-08-31)
+
+From the Drive audit, `zeroshot_B2_neo_hookean_fixedsel/metrics_history.json`,
+the fixed-selection run **still in progress** at epoch 1200 of 4000:
+
+```
+24 validation events, epochs 50..1200
+best combined_val_error (per_component)  0.05978  at epoch 950
+best both_components                     0.0369   at epoch 950
+[selected on both_components]
+```
+
+**Against the same B2 case's previous best of 0.9986, and against B1 ×
+Neo-Hookean's 0.0657 on the identical per-component metric.** B2 is now at
+**0.0598** — the same league as B1, from a run that has not finished.
+
+**⚠️ I predicted this would not work, and I was wrong.** The estimate in this
+file and in the cell header — "not expected to rescue B2 … expect it to land
+near 0.68, an eighth of the gap" — was extrapolated from the single-resolution
+arms, and those arms *also* early-stopped on the inverted metric at epoch 450.
+Reasoning from runs that were themselves cut short by the defect under test
+was the error.
+
+**The cause of the entire B2 "failure" was ours, and it was one line.** Early
+stopping and `model_best.pt` selection used
+`0.5·(rms(e_u)/rms(u) + rms(e_v)/rms(v))`, which on B2's skewed component ratio
+*rises while the model improves*. Every B2 run stopped at its first validation
+event with patience exhausted, and every downstream diagnosis — the load, the
+ramp, the family, the batch size, the functional, joint training — was
+measuring models that had been trained for 25 to 50 epochs.
+
+**What this does to the report.** §8.7's B2 zero-shot row, §9.1's account, the
+`~0.87` eval figures and every sentence describing B2 as failing are now
+provisional. **Nothing about B2 goes into v38 until this run finishes and its
+zero-shot eval is in.** The B1 results are untouched and stand.
+
+**What is still to come from the run:** epochs 1200→4000 (or early stop at
+patience 15 on the metric that orders correctly), then the zero-shot eval at
+the seven unseen meshes against N=101, which is the number the report quotes.
+
 ### 📌 B2 BASELINE RE-SCORED ON BOTH METRICS, and it reproduces exactly (2026-08-31)
 
 Stage 1 of the retrain cell, on `5091b02`. The existing B2 × Neo-Hookean
