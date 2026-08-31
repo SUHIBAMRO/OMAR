@@ -163,34 +163,73 @@ def main():
     # model must never be merged with new ones, which would silently mix two
     # models in one table.
     fingerprint = hashlib.sha256(open(args.checkpoint, "rb").read()).hexdigest()
-    rows, done = [], set()
-    if os.path.exists(args.out_json):
+
+    # WHERE PARTIAL WORK LIVES. Finished resolutions are checkpointed to a
+    # SEPARATE progress file, and `args.out_json` is written only once every
+    # requested resolution is present. So the final file existing MEANS the
+    # sweep finished, and a caller that tests only `os.path.exists(out_json)`
+    # -- an older pasted Colab cell, which does not refresh when the repo
+    # does -- cannot read a half-finished sweep as a complete one and skip
+    # the rest in silence. The resume below still reads a partial
+    # `out_json` left by an earlier version, so nothing already on Drive is
+    # stranded.
+    progress_json = args.out_json + ".progress"
+
+    def _read_json(path):
         try:
-            prev = json.load(open(args.out_json))
+            return json.load(open(path))
         except Exception as e:
-            print(f"[resume] {args.out_json} is unreadable ({e.__class__.__name__});"
+            print(f"[resume] {path} is unreadable ({e.__class__.__name__});"
+                  f" ignoring it")
+            return None
+
+    prev, prev_path = None, None
+    for path in (progress_json, args.out_json):
+        if os.path.exists(path):
+            cand = _read_json(path)
+            if cand is not None:
+                prev, prev_path = cand, path
+                break
+
+    rows, done = [], set()
+    if prev is not None:
+        same = (prev.get("checkpoint_fingerprint") == fingerprint
+                and prev.get("n_samples") == args.n_samples
+                and prev.get("fine_N") == args.fine_N
+                and prev.get("material") == args.material
+                and prev.get("geometry") == args.geometry)
+        if same:
+            # Every previous row is kept, not just the requested ones: a run
+            # over a SUBSET of resolutions must not delete the rest of a
+            # finished sweep from the file it rewrites.
+            rows = list(prev.get("rows", []))
+            done = {r["N"] for r in rows} & set(resolutions)
+            print(f"[resume] {prev_path} holds N="
+                  f"{sorted(r['N'] for r in rows)} from the same checkpoint "
+                  f"and the same protocol")
+            if done:
+                print(f"[resume] skipping N={sorted(done)}")
+        elif prev.get("checkpoint_fingerprint") is None:
+            print(f"[resume] {prev_path} predates fingerprinting, so its rows "
+                  f"cannot be shown to belong to this checkpoint;"
                   f" starting fresh")
-            prev = None
-        if prev is not None:
-            same = (prev.get("checkpoint_fingerprint") == fingerprint
-                    and prev.get("n_samples") == args.n_samples
-                    and prev.get("fine_N") == args.fine_N
-                    and prev.get("material") == args.material
-                    and prev.get("geometry") == args.geometry)
-            if same:
-                rows = [r for r in prev.get("rows", []) if r["N"] in resolutions]
-                done = {r["N"] for r in rows}
-                if done:
-                    print(f"[resume] {args.out_json} already holds "
-                          f"N={sorted(done)} from the same checkpoint and the "
-                          f"same protocol -- skipping those")
-            elif prev.get("checkpoint_fingerprint") is None:
-                print(f"[resume] {args.out_json} predates fingerprinting, so "
-                      f"its rows cannot be shown to belong to this checkpoint;"
-                      f" starting fresh")
-            else:
-                print(f"[resume] {args.out_json} was produced by a DIFFERENT "
-                      f"checkpoint or protocol; starting fresh")
+        else:
+            print(f"[resume] {prev_path} was produced by a DIFFERENT "
+                  f"checkpoint or protocol; starting fresh")
+
+    def _write(path, rows):
+        rows.sort(key=lambda r: r["N"])
+        report = {"geometry": args.geometry, "material": args.material,
+                  "checkpoint": args.checkpoint,
+                  "checkpoint_fingerprint": fingerprint,
+                  "fine_N": args.fine_N,
+                  "n_samples": args.n_samples, "batch_size": args.batch_size,
+                  "device": device.type, "rows": rows}
+        tmp = path + ".tmp"
+        with open(tmp, "w") as fh:
+            json.dump(report, fh, indent=2)
+        os.replace(tmp, path)
+        return report
 
     for N in resolutions:
         if N in done:
@@ -254,17 +293,18 @@ def main():
         print(f"  N={N:>4}  FEM {row['fem_rel_L2']:.4e} @ {row['fem_ms_per_sample']:9.1f} ms"
               f"   |  operator {row['operator_rel_L2']:.4e} @ {op_ms:7.3f} ms")
 
-        rows.sort(key=lambda r: r["N"])
-        report = {"geometry": args.geometry, "material": args.material,
-                  "checkpoint": args.checkpoint,
-                  "checkpoint_fingerprint": fingerprint,
-                  "fine_N": args.fine_N,
-                  "n_samples": args.n_samples, "batch_size": args.batch_size,
-                  "device": device.type, "rows": rows}
-        tmp = args.out_json + ".tmp"
-        with open(tmp, "w") as fh:
-            json.dump(report, fh, indent=2)
-        os.replace(tmp, args.out_json)
+        _write(progress_json, rows)
+
+    # Every requested resolution is present now -- the loop either computed it
+    # or resumed it -- so the sweep is complete and the final file is written.
+    # This is also the only place `report` is built for the manifest, which
+    # keeps a fully resumed run (every resolution skipped, loop body never
+    # entered) from failing on an undefined name.
+    missing = [N for N in resolutions if N not in {r["N"] for r in rows}]
+    assert not missing, f"internal: finished the loop still missing N={missing}"
+    report = _write(args.out_json, rows)
+    if os.path.exists(progress_json):
+        os.remove(progress_json)
 
     print(f"\nWritten to {args.out_json}")
     write_manifest(

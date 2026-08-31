@@ -558,6 +558,18 @@ saved work.
 **Mooney-Rivlin was skipped and never opened for writing**, as intended: it is
 complete at 9/9 on Drive.
 
+**The stale-cell hazard is now closed from the repo side** (`omar_pfem/pareto_analysis.py`).
+Partial results go to `pareto_<case>.json.progress`, and the real
+`pareto_<case>.json` is written **only when every requested resolution is
+present**, then the progress file is deleted. So the final file existing now
+*means* the sweep finished, and even a cell that tests nothing but
+`os.path.exists(out_json)` reaches the right answer. A partial `out_json` left
+by the older code is still read and resumed, so nothing already on Drive is
+stranded. `omar_pfem/test_pareto_resume.py` stubs the physics and checks the
+file protocol end to end — killed run leaves no final JSON, restart resumes,
+subset re-run does not delete other rows, a changed checkpoint forces a fresh
+start. 11/11 pass.
+
 **⚠️ COLAB CELLS ARE PASTED COPIES AND GO STALE.** The restart's own output
 proves it: the notebook printed the *old* pre-flight text (`ALREADY DONE, will
 skip` / `expect roughly two hours`) even though `git log` in the same cell
