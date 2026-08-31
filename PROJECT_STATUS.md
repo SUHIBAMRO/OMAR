@@ -662,6 +662,53 @@ working correctly on data whose Π has its minimum near zero.
    to B1 explains nothing. The probe now runs **both arms** and prints them
    together.
 
+### ❌ The Dirichlet ramp is EXONERATED (2026-08-31) — six candidates closed
+
+It was the leading structural candidate and it is dead. The network's output
+is `mask × raw`, so to produce `uv_exact` it must emit `uv_exact/mask`.
+Representability was never the question — the probe's stand-in reconstructs
+`uv_exact` through the mask to machine precision on **both** geometries. What
+was measured is how large and how uneven that demanded raw field is:
+
+| | B1 (works) | B2 (fails) | ratio |
+|---|---|---|---|
+| rms(raw demanded) / rms(output) | 1.72× | 2.00× | **1.16×** |
+| peak/rms of the raw demanded | 2.44 | 2.46 | **1.01×** |
+
+B2 has **two** ramps vanishing on **different** edges where B1 has one, and it
+makes almost no difference to what the network is asked for — the unevenness is
+identical to 1%. Against a **15×** gap in final error and a **3×** gap in
+roughness, a 16% difference explains nothing.
+
+**Closed so far:** the load · `loss_force_norm` · batch size · the
+data-and-functional · input normalisation · the Dirichlet ramp.
+
+### 🎯 NEXT: does B2 train at ONE resolution? — the test that stops the guessing
+
+Five rounds of guessing between structural differences have closed five
+candidates and cost five runs. **Two differences remain** from the B2 model
+that *does* work — the 9.11% result `b2_accuracy_search.py` got from
+`train_B2.py` on the same geometry, architecture and energy:
+
+1. **the data family** — `data_generate_B2` draws (E, ν, p) from a **2-D GRF
+   in (θ, r)**; `ParametricFieldB2` uses **two Fourier harmonics in θ alone**,
+   so every field is constant along each radius;
+2. **joint training** — the 9.11% run trains at **one** resolution; the
+   zero-shot trainer trains at N=21 **and** N=33 together.
+
+**Training B2 at N=21 alone and at N=33 alone SEPARATES them** instead of
+guessing, and it is cheaper by orders of magnitude — half an hour against
+hours of FEM regeneration.
+
+| outcome | meaning |
+|---|---|
+| **both reach ~0.07** | joint training is the fault. Reportable on its own, since resolution invariance is the claim under test and **B1 does the same joint training successfully**. First thing to look at then: B2's per-node load scale differs **1.98×** between its two meshes against B1's 1.26× |
+| **both stay ~1.0** | joint training is not the fault; **the parametric family is all that is left**. Testing it means regenerating the cache from the GRF — **hours of FEM**, and needs a decision first: B2 zero-shot is one cell of one table and the report is honest without it |
+| **one of each** | a resolution-specific problem, narrower than either, and the failing mesh's cache is where to look |
+
+Single arms get 4,000 epochs against the joint run's 2,000, because one
+resolution is half the training set. Notebook: `Round6_B2_SingleResolution.ipynb`.
+
 ### 🎯 The B1 control arm ran, and it separates the two cleanly
 
 Same trainer, same architecture, same optimizer, same protocol. B1 reaches

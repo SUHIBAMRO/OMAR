@@ -337,7 +337,78 @@
    "why_it_is_now_the_leading_candidate": "it is one of the two structural differences between the arms that survived every measurement so far, and it is consistent with the single sharpest observation: the B2 prediction is ROUGH, carrying 3.00x the strain energy its amplitude warrants against B1's 1.01x. A field forced through a mask that vanishes on two different edges is exactly the kind of field that would be.",
    "how_to_test_it_without_training": "score the BEST POSSIBLE field the mask can represent: project uv_exact onto the space {mask * raw} and measure how much of it survives. If the representable part is already far from uv_exact the mask is the ceiling; if it reproduces uv_exact to machine precision the mask is innocent and the last candidate is the parametric family. NOTE: test_b2_zeroshot_model.py already shows the mask CAN reproduce uv_exact -- its stand-in assertion passes -- so this candidate may already be weakened, and that should be checked before spending a training run on it.",
    "the_other_remaining_candidate": "the parametric family. ParametricFieldB2 varies only with theta, never with r, so every field the network sees is constant along each radius. That is a much lower-dimensional family than B1's and it is not obvious it is a problem, but it is the last structural difference left.",
-   "verdict": "NOT STARTED"
+   "verdict": "EXONERATED. The raw field the mask demands is essentially the same on both geometries -- peak/rms 2.46 against 2.44, a ratio of 1.01, and rms(raw)/rms(output) 2.00 against 1.72, a ratio of 1.16. Against a 15x gap in final error and a 3x gap in roughness, a 16% difference in what the mask asks for explains nothing.",
+   "measured": {
+    "run": "the two-arm probe, 4 val samples at each of N=21 and N=33 on both geometries, CPU, commit f20a6ba, 2026-08-31",
+    "what_was_measured": "the network's output is mask * raw, so to produce uv_exact it must emit uv_exact/mask. Representability was never the question -- the probe's stand-in reconstructs uv_exact through the mask to machine precision on both geometries and would have failed loudly otherwise. What was measured is how large and how uneven that demanded raw field is.",
+    "rms_raw_over_rms_output": {
+     "B1": [
+      1.74,
+      1.66,
+      1.64,
+      1.72,
+      1.72,
+      1.75,
+      1.8,
+      1.72
+     ],
+     "B2": [
+      1.88,
+      2.14,
+      1.88,
+      2.18,
+      2.01,
+      2.0,
+      1.98,
+      1.91
+     ],
+     "means": {
+      "B1": 1.72,
+      "B2": 2.0,
+      "ratio": 1.16
+     }
+    },
+    "peak_over_rms": {
+     "B1": [
+      2.34,
+      2.62,
+      2.27,
+      2.37,
+      2.55,
+      2.53,
+      2.5,
+      2.36
+     ],
+     "B2": [
+      2.49,
+      2.26,
+      2.45,
+      1.79,
+      2.71,
+      2.63,
+      2.63,
+      2.76
+     ],
+     "means": {
+      "B1": 2.44,
+      "B2": 2.46,
+      "ratio": 1.01
+     }
+    },
+    "reading": "B2 has TWO ramps vanishing on DIFFERENT edges where B1 has one, and it makes almost no difference to what the network is asked for. The unevenness is identical to 1%."
+   }
+  },
+  {
+   "candidate": "joint two-resolution training, as against the single resolution the working 9.11% recipe uses",
+   "why_this_test_and_not_another_guess": "five rounds of guessing between structural differences have closed five candidates and cost five runs. Two differences remain from the B2 model that DOES work (9.11%, train_B2.py, same geometry, same architecture, same energy): the data family (a 2-D GRF in (theta, r) against ParametricFieldB2's two Fourier harmonics in theta alone) and joint training (one mesh against two). Training B2 at N=21 alone and at N=33 alone SEPARATES them instead of guessing between them, and it is the cheaper of the two to test by orders of magnitude -- half an hour against hours of FEM regeneration.",
+   "the_three_outcomes_and_what_each_means": {
+    "both_reach_0.07": "joint training is the fault. The data family is fine and the trainer is fine one mesh at a time. That is a reportable finding on its own, because resolution invariance is the property under test and B1 does exactly the same joint training successfully. The first thing to look at then is the per-node load scale, which differs 1.98x between B2's two meshes against B1's 1.26x.",
+    "both_stay_1.0": "joint training is not the fault and the parametric family is the last candidate standing. Testing it means regenerating the B2 cache from data_generate_B2's GRF -- HOURS of FEM -- and that should not start without a decision, since B2 zero-shot is one cell of one table and the report is honest without it.",
+    "one_of_each": "a resolution-specific problem, narrower than either candidate, and the failing mesh's cache is where to look."
+   },
+   "protocol_note": "the single arms get 4000 epochs against the joint run's 2000, because a single resolution is half the training set and half the steps per epoch. Starving an arm of optimizer work would make a failure uninterpretable.",
+   "verdict": "PENDING",
+   "driver": "Practical_Examples/zeroshot_notebooks/Round6_B2_SingleResolution.ipynb"
   }
  ],
  "what_is_safe_to_say_in_the_report": "the caches were repaired and the repair verified mesh-independent; all three cases were retrained under the B1 protocol with the force normalisation section 9.1 requires; the retrained models sit at a combined validation error of about 1.0, which is what predicting zero scores; the cause is under investigation and is not the optimiser settings tried so far.",
