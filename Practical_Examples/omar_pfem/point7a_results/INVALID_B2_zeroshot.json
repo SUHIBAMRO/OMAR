@@ -2,56 +2,95 @@
   "status": "INVALID -- DO NOT QUOTE, DO NOT PUT IN THE REPORT",
   "what": "The three B2 zero-shot eval reports on Drive were produced by models trained on a WRONG applied load. They are recorded here so that nobody finds those files later and mistakes them for results.",
   "discovered": "2026-08-29",
-
   "the_numbers_that_gave_it_away": {
     "unit": "mean relative L2 against the N=101 fine reference",
-    "B2_neo_hookean":  {"13": 8.094663934342435, "17": 8.175610678727443, "25": 8.17904719174103, "29": 8.144700382016069, "37": 8.078185208629032, "41": 8.049073272345165, "49": 7.995418876749559},
-    "B2_mooney_rivlin": {"13": 14.358398944181321, "17": 14.396219329176427, "25": 14.433451927318782, "29": 14.443895683930942, "37": 14.457827493700588, "41": 14.462736928296835, "49": 14.469903030023062},
-    "B2_arruda_boyce": {"13": 11.787704873947417, "17": 12.197720942053365, "25": 12.595399406559839, "29": 12.714359217512953, "37": 12.878739063240227, "41": 12.93767273861198, "49": 13.027603908773667},
+    "B2_neo_hookean": {
+      "13": 8.094663934342435,
+      "17": 8.175610678727443,
+      "25": 8.17904719174103,
+      "29": 8.144700382016069,
+      "37": 8.078185208629032,
+      "41": 8.049073272345165,
+      "49": 7.995418876749559
+    },
+    "B2_mooney_rivlin": {
+      "13": 14.358398944181321,
+      "17": 14.396219329176427,
+      "25": 14.433451927318782,
+      "29": 14.443895683930942,
+      "37": 14.457827493700588,
+      "41": 14.462736928296835,
+      "49": 14.469903030023062
+    },
+    "B2_arruda_boyce": {
+      "13": 11.787704873947417,
+      "17": 12.197720942053365,
+      "25": 12.595399406559839,
+      "29": 12.714359217512953,
+      "37": 12.878739063240227,
+      "41": 12.93767273861198,
+      "49": 13.027603908773667
+    },
     "reading": "these are RELATIVE errors of 800% to 1450%. For comparison the three valid B1 cases sit between 5.0% and 10.6%. A relative error above 1 means the prediction is further from the truth than predicting zero everywhere would be.",
     "second_tell": "each curve is nearly FLAT in N -- B2 x Mooney-Rivlin moves only from 14.358 to 14.470 across a four-fold refinement. A model whose error does not respond to the mesh at all is not solving the problem on that mesh."
   },
-
   "root_cause": {
     "what": "the applied load assembled into the cached samples was overstated, and the overstatement factor DEPENDED ON THE MESH",
-    "measured_overstatement": {"N21": "13.1x to 13.3x", "N33": "20.8x to 21.0x", "range_over_all_2000_samples": "1.0x to 21.3x"},
+    "measured_overstatement": {
+      "N21": "13.1x to 13.3x",
+      "N33": "20.8x to 21.0x",
+      "range_over_all_2000_samples": "1.0x to 21.3x"
+    },
     "why_this_is_the_worst_possible_bug_for_THIS_study": "the study trains jointly at N=21 and N=33 and then asks whether the operator transfers across resolution. With the loads at those two resolutions inflated by different factors (13.3x against 20.9x), the two training resolutions were posing loads inconsistent with each other by roughly 1.6x. The model was being fitted to two contradictory problems, and any resolution invariance measured from it would have been measuring the bug, not the method.",
     "note": "some cached entries were already at the correct value when the repair ran (printed as '1.0x too large'), so the caches were in a mixed state. The repair is idempotent -- an already-correct entry is left alone."
   },
-
   "repair": {
     "code_commit": "a45496b",
-    "cases_repaired": ["B2_mooney_rivlin", "B2_arruda_boyce"],
+    "cases_repaired": [
+      "B2_mooney_rivlin",
+      "B2_arruda_boyce"
+    ],
     "samples_processed_per_case": 2000,
-    "caches_touched": ["samples_cache_N21.pt", "samples_cache_N33.pt", "samples_cache.pt"],
+    "caches_touched": [
+      "samples_cache_N21.pt",
+      "samples_cache_N33.pt",
+      "samples_cache.pt"
+    ],
     "corrected_load_magnitude_range": "3.6325 to 16.3357 across samples -- this spread is expected and is NOT a mesh effect, since each sample draws its own pressure field from its own seed",
     "mesh_independence_check_after_repair": {
-      "one_fixed_pressure_field_assembled_on_each_resolution": {"N21": 11.1775, "N33": 11.1784},
+      "one_fixed_pressure_field_assembled_on_each_resolution": {
+        "N21": 11.1775,
+        "N33": 11.1784
+      },
       "spread_pct": 0.0075,
       "verdict": "PASS -- the assembled load no longer depends on the mesh. This is the check that matters: it is the property whose absence created the bug."
     },
-    "models_deleted": ["model_best.pt", "train_state_latest.pt", "metrics_history.json", "EARLY_STOPPED"],
+    "models_deleted": [
+      "model_best.pt",
+      "train_state_latest.pt",
+      "metrics_history.json",
+      "EARLY_STOPPED"
+    ],
     "deleted_because": "they were fitted to the wrong load; keeping them would leave a checkpoint on Drive that looks usable and is not"
   },
-
   "B2_neo_hookean_STATUS_UNKNOWN": {
-    "concern": "the repair output covers B2 x Mooney-Rivlin and B2 x Arruda-Boyce only. B2 x Neo-Hookean was not in either run, yet its eval report shows the same signature (error 8.09, flat in N).",
-    "required": "run the same repair-and-check on zeroshot_B2_neo_hookean before retraining it, and confirm the mesh-independence check passes there too. Do not assume it was fixed in an earlier pass just because PROJECT_STATUS once recorded a B2 force fix -- that note predates this evidence.",
-    "and": "its stale eval report is still on Drive and still shows 8.09. Until it is regenerated, that file is invalid too."
+    "RESOLVED_2026_08_29": "its cache is ALREADY CORRECT -- a dry run of the repair found an overstatement of 1.00x to 1.00x over all 1,000 samples, and the mesh-independence check passes (N=21 11.1775, N=33 11.1784, 0.0075% apart).",
+    "the_values_confirm_it_independently": "B2 x Neo-Hookean's stored loads match the other two cases' REPAIRED values exactly -- 15.7568 at N=21 train 1, 15.9056 at N=33 train 1, the same numbers the B2 x Mooney-Rivlin repair produced. That is expected: the applied load comes from the seed and the mesh, not from the material, so all three B2 cases must hold identical node_forces once correct. Three cases agreeing to four decimals is a stronger check than any single one passing.",
+    "so_the_8_09_error_has_a_DIFFERENT_cause": "the load bug is ruled out for this case. Nothing was written and no model was deleted.",
+    "the_remaining_hypothesis": "the cache was repaired at some earlier point -- PROJECT_STATUS carries an older note about a B2 force fix -- and the MODEL was never retrained afterwards. The model would then have been fitted to the bad load that the cache no longer holds, which produces exactly this signature: a large error, flat in N, on data that is now correct.",
+    "how_to_settle_it": "file modification times, the same technique that settled Table 12. If model_best.pt is OLDER than samples_cache.pt, the model predates the repair and only needs retraining. If it is NEWER, it was trained on the correct load and the 8.09 has a cause we have not identified, which must be found before spending hours on a retrain.",
+    "note_only_one_cache_file": "this directory holds samples_cache.pt alone (1,000 samples), where the other two B2 cases also had samples_cache_N21.pt and samples_cache_N33.pt (2,000 counted across all three files). Not in itself a problem -- the combined cache is what training reads -- but it is another sign this case was processed on a different occasion from the other two."
   },
-
   "what_is_needed_to_make_B2_valid": [
     "confirm or perform the load repair on B2 x Neo-Hookean",
     "retrain all three B2 cases on the repaired caches (the models were deleted)",
     "re-run the eval stage for all three",
     "only then are B2 rows admissible into the study"
   ],
-
   "what_this_does_NOT_affect": [
     "the three B1 zero-shot cases -- different geometry, different caches, and their errors (5.0%-10.6%) are in the range the rest of the report reports",
     "report Table 12, which is B1",
     "every other result in the report; this bug lives in the B2 zero-shot sample caches only"
   ],
-
   "provenance": "transcribed from the Colab stdout of the force-repair cell run on 2026-08-29 for B2 x Mooney-Rivlin and B2 x Arruda-Boyce, and from the six zeroshot_eval_report.json files listed the same day."
 }
