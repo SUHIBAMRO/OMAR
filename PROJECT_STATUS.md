@@ -915,7 +915,36 @@ not find an error.
 size. B1's is 3.34–4.17, a tight band. B2's per-sample mean is 1.90 against an
 aggregate 0.90, i.e. skewed, so the average reports its tail.
 
-**Still open, and cheap:** whether B1's runs *also* early-stopped on a metric
+**✅ ANSWERED — B1 DOES NOT INVERT** (run on `5bccf12`, endpoints recovered
+from each run's own `train_state_latest.pt`):
+
+| case | best → endpoint, per_component | best → endpoint, both_components |
+|---|---|---|
+| neo_hookean | 0.0657 → 0.2512 (up) | 0.0444 → **0.1761 (up)** |
+| mooney_rivlin | 0.0827 → 0.1316 (up) | 0.0594 → **0.0730 (up)** |
+| arruda_boyce | 0.0783 → 0.0926 (up) | 0.0462 → **0.0525 (up)** |
+
+Both metrics agree in all three cases: `model_best.pt` really is the better
+checkpoint, and B1 genuinely degrades after it (Neo-Hookean by 4×). **Early
+stopping did the right thing on B1 and the wrong thing on B2**, and the
+difference is the *stability* of the component ratio — 3.34–4.17 and tight on
+B1, skewed on B2 (per-sample mean 1.90 against 0.90 aggregate).
+
+**So the picture is now closed and consistent:**
+
+| | B1 | B2 |
+|---|---|---|
+| does the metric invert? | **no** | **yes** |
+| did early stopping keep the right model? | **yes** | no — first validation event |
+| reported numbers | **stand**, conservative by 1.36–1.71× | come from an inverted selection |
+
+**The one live consequence for v38:** the report's B2 zero-shot figure
+(0.9986) was selected by the inverted metric. Either it is re-derived from a
+run with `--selection_metric both_components`, or the report states the figure
+with the selection defect named. The first needs ~1 h 50 m of A100 per arm
+(from the measured 450 epochs in 12 m 8 s); the second costs nothing.
+
+~~Still open, and cheap:~~ whether B1's runs *also* early-stopped on a metric
 that had begun to invert. If so B1 is better than reported — an improvement to
 claim in v38, not an error to fix. The second half of
 `Round6_B1_Metric_Recheck.ipynb` now recovers each B1 run's endpoint from its
