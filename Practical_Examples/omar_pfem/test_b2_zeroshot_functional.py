@@ -100,14 +100,17 @@ def main():
                           else "cuda")
     dtype = torch.float32
     cache = torch.load(args.cache, weights_only=False, map_location="cpu")
-    # the cache is {resolution: {"train": [...], "val": [...]}} or a flat
-    # dict of lists; accept either rather than guessing
-    if "train" in cache:
-        buckets = {"(flat)": cache["train"]}
-    else:
-        buckets = {str(k): v["train"] for k, v in sorted(cache.items())
-                   if isinstance(v, dict) and "train" in v}
-    assert buckets, f"could not find training samples in {args.cache}"
+    # The layout is the one cmd_train writes and reads at line 338 of
+    # resolution_invariance_zeroshot.py:
+    #     {"train_samples": {N: [...]}, "val_samples": {N: [...]}}
+    # Read from that rather than sniffing, and say plainly what was found
+    # if it is something else.
+    assert isinstance(cache, dict) and "train_samples" in cache, (
+        f"{args.cache} does not hold the expected "
+        f'{{"train_samples": ..., "val_samples": ...}} layout. Top-level keys: '
+        f"{list(cache)[:10] if isinstance(cache, dict) else type(cache)}")
+    buckets = {str(N): v for N, v in sorted(cache["train_samples"].items())}
+    assert buckets, f"train_samples is empty in {args.cache}"
     print(f"cache: {args.cache}")
     print("resolutions:", ", ".join(f"{k} ({len(v)} train)"
                                     for k, v in buckets.items()))
