@@ -1,0 +1,43 @@
+{
+  "status": "NOT USABLE -- the three B2 zero-shot cases have been retrained on the repaired caches and still do not learn. No B2 zero-shot number is admissible.",
+  "why_this_file_exists": "INVALID_B2_zeroshot.json records why the ORIGINAL three B2 eval reports are invalid (a mesh-dependent load overstatement). It ends with 'retrain all three B2 cases on the repaired caches'. That was done. This file records the outcome, so that the next session does not re-derive it or assume the retrain fixed it.",
+  "what_was_run": {
+    "trainer": "omar_pfem.resolution_invariance_zeroshot train",
+    "protocol": "identical to the three B1 zero-shot cases -- geometry B2, train_resolutions 21,33, 400 train and 100 val per resolution, 2000 epochs, validate_every 25, batch_size 8",
+    "difference_from_the_first_attempt": "--loss_force_norm on. It was missing from this trainer entirely and was added first; report section 9.1 established that once B2's boundary force is FEM-consistent the loss must be divided by the per-sample force scale, and that correcting the force WITHOUT it took B2 from 32.46% to 94.08%.",
+    "driver": "Practical_Examples/zeroshot_notebooks/Round6_B2_Retrain.ipynb"
+  },
+  "result": {
+    "metric": "combined validation error, 0.5*(rms(e_u)/rms(u) + rms(e_v)/rms(v))",
+    "best_by_case": {
+      "neo_hookean": {"combined_val_error": 0.9986, "at_epoch": 25},
+      "mooney_rivlin": {"combined_val_error": 0.9752, "at_epoch": 25},
+      "arruda_boyce": {"combined_val_error": 1.0267, "at_epoch": 225}
+    },
+    "shape": "best at essentially the first validation and worse afterwards in all three; early stopping fired in all three",
+    "eval_errors": "0.87 to 0.89, flat in the mesh to the fourth decimal",
+    "for_comparison": "the three B1 cases under the same trainer and the same protocol reach 0.0658 to 0.0827 on the same metric, and 0.050 to 0.106 on the eval metric"
+  },
+  "why_1_point_0_is_the_number_to_notice": "the metric is 0.5*(rms(e_u)/rms(u) + rms(e_v)/rms(v)); substitute uv_pred = 0 and it is identically 1. A model sitting at 1.0 is predicting approximately nothing. That is not necessarily an optimiser failure: a network that minimises Pi goes wherever Pi's minimum is, so the question is whether Pi's minimum, built from this cache's node_forces, is anywhere near this cache's uv_exact.",
+  "candidates_tested": [
+    {
+      "candidate": "loss_force_norm missing from the zero-shot trainer",
+      "verdict": "NECESSARY BUT NOT SUFFICIENT -- it was added and the retrain above is with it on"
+    },
+    {
+      "candidate": "batch size. b2_accuracy_search.py's 'lossnorm' trial reached 9.11% on B2 x Neo-Hookean calling train_B2.py at its default batch size of ONE, while this trainer defaults to eight",
+      "test": "two arms on B2 x Neo-Hookean at MATCHED optimizer steps (22,400, a multiple of both arms' steps-per-epoch), early stopping off so both ran the full budget",
+      "result": {"batch_8": 0.9888, "batch_1": 0.9444},
+      "verdict": "NOT THE CAUSE -- 0.9444 against 0.9888 is noise on curves that swing between 0.94 and 1.45, and neither is anywhere near the 0.07 B1 reaches",
+      "driver": "Practical_Examples/zeroshot_notebooks/Round6_B2_BatchSize_Diagnostic.ipynb"
+    },
+    {
+      "candidate": "Pi's minimum is not at the true solution for this cache -- i.e. the data and the functional disagree, and the trainer is finding zero correctly",
+      "test": "omar_pfem/test_b2_zeroshot_functional.py -- Pi(s * uv_exact) scanned over s, no training needed",
+      "verdict": "PENDING",
+      "driver": "Practical_Examples/zeroshot_notebooks/Round6_B2_Functional_Check.ipynb"
+    }
+  ],
+  "what_is_safe_to_say_in_the_report": "the caches were repaired and the repair verified mesh-independent; all three cases were retrained under the B1 protocol with the force normalisation section 9.1 requires; the retrained models sit at a combined validation error of about 1.0, which is what predicting zero scores; the cause is under investigation and is not the optimiser settings tried so far.",
+  "provenance": "transcribed from the Colab stdout of Round6_B2_Retrain and Round6_B2_BatchSize_Diagnostic, pasted 2026-08-29 and 2026-08-30. The runs' own metrics_history.json files are on Drive under pfem_run/zeroshot_B2_*/ and pfem_run/b2_batchsize_diagnostic/."
+}

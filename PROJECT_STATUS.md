@@ -5,18 +5,19 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-28. **Read the master table immediately below first;
+Last updated: 2026-08-31. **Read the master table immediately below first;
 everything after it is detail.**
 
 ---
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v36**, summary mirrored, branch
+Current artefacts: report **v37**, summary mirrored (v10), branch
 `claude/claude-code-question-d307wp`.
 
 **Nothing measured is unwritten.** Point 7b's 2×2 is complete and in §8.9;
-point 9's MMS is complete and three-way in §8.11 (Tables 22–24). Everything
+point 9's MMS is complete, three-way, and now across three meshes in
+§8.11 (Tables 22–24b). Everything
 measured is committed as JSON under `omar_pfem/point{2,5,6,7b,8,9}_results/`
 AND written into both documents, verified by re-reading the .docx and
 comparing cell by cell against the JSON.
@@ -48,12 +49,14 @@ comparing cell by cell against the JSON.
 | **R5-1 / R5-7a** zero-shot, three B1 materials, 7 resolutions | §8.7, **Table 12 (revised)** |
 | **R5-8b** the CG counters and the corrected cost analysis | §8.5, **Table 20a** |
 | **R5-8b** GPU-FEM scaling sweep, 0.02→3.93M DOF + cost breakdown | §8.5, **Table 20** |
+| **R5-8b** CG allowed to converge — Table 20 understates by +28%/+18% | §8.5, **Table 20b** |
+| **R5-9** the MMS operator across three meshes — it does not converge | §8.11, **Tables 24a/24b** |
 
 ## 🔵 Run, recorded, NOT yet in the report
 
 | Item | State |
 |---|---|
-| **R5-1 / R5-7a** the three B2 zero-shot cases | Their results are INVALID (mesh-dependent load). Caches repaired for B2×MR and B2×AB; B2×NH unconfirmed; all three need retrain + re-eval. See below |
+| **R5-1 / R5-7a** the three B2 zero-shot cases | **UNRESOLVED.** The old results are INVALID (mesh-dependent load). Caches repaired and verified, all three retrained with `loss_force_norm` — and they still sit at ~1.0, which is what predicting zero scores. Batch size ruled out. `point7a_results/B2_zeroshot_retrain_status.json`. v37 §8.7 states this plainly and quotes no B2 number |
 
 All round-6 notebooks are self-contained, save to Drive incrementally, and
 resume on re-run. All 12 repo notebooks pass `check_notebooks.py`.
@@ -316,7 +319,8 @@ truncated run burned 67 Newton steps against the 20 a converged CG needs.
 
 Memory unaffected: 1,122 and 1,567 MB against 1,123 and 1,568.
 
-**Queued for the next report build**, together with §8.11's ceiling wording.
+**In the report as of v37**: §8.5, Table 20b, with N=1001/1401 labelled as
+predictions. Mirrored into the summary (v10).
 
 ### 🔬 The MMS operator has no convergence rate — and §8.11's ceiling was overstated
 
@@ -358,7 +362,9 @@ energy norm, and carries none of that protection (0.89 at N=9).
 
 **Fixed in the code already** so no future run repeats the false alarm:
 `mms_operator.py`'s runtime message and `point9_results/make_readme.py`.
-**Still to do: the report's §8.11 wording, in the next build.**
+**Done in v37**: §8.11's ceiling is restated as a statement about Π that
+transfers to the derivative norms empirically and not to L2, and Tables 24a
+and 24b carry the three-mesh rate. Mirrored into the summary (v10).
 
 ### ⛔ The three B2 zero-shot cases are INVALID (2026-08-29)
 
@@ -422,6 +428,54 @@ assembles its own consistent force internally, so it never saw the bad field.
 Where the cache is present the eval reduces to operator inference. The cell
 prints the cached count per case before running anything. **Nothing else in the report is affected** — the bug lives
 in the B2 zero-shot sample caches only, and Table 12 is B1.
+
+### ⛔ The B2 retrain did NOT fix it — the cases are still unusable
+
+`point7a_results/B2_zeroshot_retrain_status.json`, written 2026-08-31. This is
+the outcome of the "retrain all three" step the section above ends with.
+
+All three were retrained on the repaired caches, under the B1 protocol, with
+`--loss_force_norm` on (resolved from geometry B2 → 1).
+
+| case | best combined val error | at epoch |
+|---|---|---|
+| B2 × Neo-Hookean | **0.9986** | 25 |
+| B2 × Mooney-Rivlin | **0.9752** | 25 |
+| B2 × Arruda-Boyce | **1.0267** | 225 |
+
+Best at essentially the **first** validation and worse afterwards; early stop
+fired in all three. Eval errors 0.87–0.89, flat in the mesh to four decimals.
+The three B1 cases on the same trainer and protocol reach **0.0658–0.0827**.
+
+**1.0 is not a random bad number.** The metric is
+`0.5*(rms(e_u)/rms(u) + rms(e_v)/rms(v))`; substitute `uv_pred = 0` and it is
+identically 1. The models are predicting approximately nothing — and a network
+that minimizes Π goes wherever Π's minimum is, so this may be the optimizer
+working correctly on data whose Π has its minimum near zero.
+
+**Candidates, in the order they were tested:**
+
+1. **`loss_force_norm` missing** — necessary, **not sufficient**. Added; the
+   runs above are with it on.
+2. **Batch size** (the 9.11% recipe in `b2_accuracy_search.py` calls
+   `train_B2.py` at its default of 1; this trainer defaults to 8) — **ruled
+   out.** Two arms at matched optimizer steps (22,400, chosen as a multiple of
+   both arms' steps-per-epoch), early stopping off: **batch 8 → 0.9888, batch
+   1 → 0.9444.** Noise on curves that swing 0.94–1.45.
+3. **Π's minimum is not at `uv_exact` for this cache** — **PENDING.**
+   `omar_pfem/test_b2_zeroshot_functional.py` scans Π(s·uv_exact) over s and
+   needs no training. Notebook: `Round6_B2_Functional_Check.ipynb`. Its first
+   run failed on a wrong cache-layout guess; fixed in `a7b70b7` by reading the
+   layout the trainer actually writes (line 338: `{"train_samples": ...,
+   "val_samples": ...}`). **Re-run pending.**
+
+   Reading it: **minimum at s ≈ 1** → the functional and the data agree and the
+   fault is elsewhere. **Minimum near s = 0** → the work term is far too weak,
+   the trainer is finding zero correctly, and no optimizer setting will help.
+
+**In the report**: v37 §8.7's "Two limits" paragraph and §10's bullet both say
+this outright — data corrected, models retrained, still unusable, cause under
+investigation, no B2 zero-shot number quoted anywhere.
 
 ### ❗ Table 12's caption is WRONG — resolved 2026-08-29
 
