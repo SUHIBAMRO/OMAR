@@ -13,9 +13,27 @@
 #  COMPLETENESS against what it is supposed to hold, so a half-finished
 #  file is never mistaken for a finished one.
 #
-#  It writes nothing. Large tensor files are measured, not loaded -- a
-#  sample cache can be hundreds of MB and loading it would risk the
-#  runtime for no information.
+#  SCOPE, stated exactly, because "did it check everything?" deserves a
+#  precise answer rather than a reassuring one:
+#
+#    * PASS 1 reads everything under MyDrive/pfem_run in full -- every
+#      file listed, every JSON opened and parsed, every checkpoint under
+#      64 MB loaded and fingerprinted.
+#
+#    * Files ABOVE 64 MB are measured, not opened. Those are sample
+#      caches; loading one costs hundreds of MB of RAM and tells you
+#      nothing a size and a date do not.
+#
+#    * PASS 2 then sweeps the REST of MyDrive for anything that looks
+#      like a result -- .json, .pt, .docx, .csv, .npz -- so a run that
+#      wrote somewhere else is not invisible. It lists what it finds; it
+#      does not parse it, since those files are outside the project's
+#      conventions and guessing at their shape would be inventing.
+#
+#    * It does NOT check the report against these files. That is a
+#      separate job and a separate cell.
+#
+#  It writes nothing at all.
 #
 #  Read-only, a couple of minutes.
 # =====================================================================
@@ -227,6 +245,47 @@ for dirpath, dirnames, filenames in sorted(os.walk(R)):
                           f'best_select {obj.get("best_select_val")}')
             else:
                 print(f'      {type(obj).__name__}')
+
+# ---- PASS 2: anything result-shaped ANYWHERE ELSE on Drive ------------
+# pfem_run is where things are supposed to land. This is what catches a run
+# that landed somewhere else -- the case an audit scoped to one directory
+# cannot see, and therefore the case worth looking for.
+print('\n' + '=' * 78)
+print('RESULT-SHAPED FILES ELSEWHERE ON DRIVE (outside pfem_run)')
+print('=' * 78)
+MYDRIVE = '/content/drive/MyDrive'
+INTERESTING = ('.json', '.pt', '.pth', '.docx', '.csv', '.npz', '.npy')
+SKIP_DIRS = {'.shortcut-targets-by-id', '.Trash', '__pycache__', '.git',
+             '.ipynb_checkpoints'}
+elsewhere, scanned_dirs = [], 0
+for dirpath, dirnames, filenames in os.walk(MYDRIVE):
+    dirnames[:] = [d for d in dirnames
+                   if d not in SKIP_DIRS and not d.startswith('.')]
+    if os.path.abspath(dirpath).startswith(os.path.abspath(R)):
+        dirnames[:] = []
+        continue
+    scanned_dirs += 1
+    for fn in filenames:
+        if fn.lower().endswith(INTERESTING):
+            fp = os.path.join(dirpath, fn)
+            try:
+                elsewhere.append((os.path.relpath(fp, MYDRIVE),
+                                  os.path.getsize(fp), when(fp)))
+            except OSError:
+                pass
+
+if not elsewhere:
+    print(f'  none. {scanned_dirs} folders scanned outside pfem_run.')
+else:
+    print(f'  {len(elsewhere)} file(s) across {scanned_dirs} folders. These are '
+          f'listed, not parsed:\n')
+    for rp, sz, tm in sorted(elsewhere, key=lambda t: t[0])[:200]:
+        print(f'  {rp:<62} {human(sz):>9}  {tm}')
+    if len(elsewhere) > 200:
+        print(f'  ... and {len(elsewhere) - 200} more')
+    print('\n  Anything here that is a real result belongs under pfem_run, or')
+    print('  at least needs to be named so it is not lost. Say which ones')
+    print('  matter and they get read properly.')
 
 # ---- tie every result to the model that produced it -------------------
 print('\n' + '=' * 78)
