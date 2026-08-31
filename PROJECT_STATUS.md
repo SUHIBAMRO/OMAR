@@ -43,12 +43,16 @@ comparing cell by cell against the JSON.
 | **R5-7b** physics-informed vs data-driven, the complete 2×2 | §8.9, **Table 21** |
 | **R5-9** MMS, Q4 and Q9 against an analytic solution | §8.11, **Tables 22–23** |
 | **R5-9** MMS, the operator third — the three-way is complete | §8.11, **Table 24** |
+| **R6-1b** normalization tested as an OOD mitigation — **run, recorded, not yet in the report** | `point6_results/ood_mitigation_B1_neo_hookean.json` |
 | **R6-1** progressive OOD: material vs loading, 0→3σ | §8.6, **Table 19** |
 | **R5-8b** GPU-FEM scaling sweep, 0.02→3.93M DOF + cost breakdown | §8.5, **Table 20** |
 
 ## 🔵 Run, recorded, NOT yet in the report
 
-**Empty.** Everything that has been run is written into both documents.
+| Item | State |
+|---|---|
+| **R6-1b** normalization as an OOD mitigation | Run 2026-08-29, recorded in `point6_results/ood_mitigation_B1_neo_hookean.json`. **Not a clean win — do not write it up as one.** Details below |
+| **R5-1** B1×Mooney-Rivlin zero-shot | `point7a_results/`. Blocked on the protocol decision: it is not the same study as Table 12 |
 
 All round-6 notebooks are self-contained, save to Drive incrementally, and
 resume on re-run. All 12 repo notebooks pass `check_notebooks.py`.
@@ -65,7 +69,6 @@ resume on re-run. All 12 repo notebooks pass `check_notebooks.py`.
 
 | Item | Blocker |
 |---|---|
-| **R6-1b** does normalization mitigate the OOD degradation? | `Round6_OOD_Mitigation.ipynb` is built and verified but **not run** — ~1.5 h on any GPU |
 | **R6** open-source the GPU-FEM + benchmark vs Tensormesh | Needs Omar's decision: separate repo? license? how much documentation? |
 | Send Timon the correction + the B1×NH Pareto result | Drafted in the reading of the round-6 email; not sent |
 
@@ -234,6 +237,49 @@ beating the variational minimum and is nothing of the kind. The column is
 labelled `trainPi(family mean)` for this reason. **The honest progress signal
 is L2**, which on that run fell 1.71 → 0.204 over 300 epochs — converging, but
 far from a reportable number; the production run is N=17 for 2000 epochs.
+
+### R6-1b — normalization TESTED as an OOD mitigation (2026-08-29)
+
+`point6_results/ood_mitigation_B1_neo_hookean.json`. Timon asked for the
+mitigation Section 8.6 named to be tested. It was. **It is not a clean win,
+and the runner's own headline overstates it.**
+
+The cell printed *"Normalization materially reduces the degradation. Worth
+reporting as a fix."* That rule fires on ONE cell — material at k=3, where the
+degradation RATIO goes 5.90× → 3.85×. Three things cut against reading it that
+way:
+
+1. **In distribution it COSTS 6.7%** (0.0867 → 0.0925). That price is paid in
+   every cell.
+2. **On the absolute error it improved 5 of 18 cells and hurt 13.** Every cell
+   at k ≤ 1.5 is worse by 11–23%; every loading cell is worse by 14–37%. The 5
+   improvements are all at k ≥ 2.0 on material and both.
+3. **The ratio is flattered by a worse denominator.** Degradation divides by
+   each model's own in-distribution error, and the normalized model's is 6.7%
+   larger, so part of every ratio gain is the denominator.
+
+**And the one cell the headline rests on is the anomalous one.** Raw material
+is strictly increasing in k (0.1409 → 0.5112). Normalized peaks at k=2.5 and
+**falls** at k=3.0 (0.3973, 0.4030, **0.3565**). An error that stops growing as
+the shift grows is what a prediction collapsing toward something
+shift-independent looks like, not extrapolation.
+
+**Loading is the control and it confirms §8.6.** Both models are nearly flat
+under loading shift (raw 0.99–1.07×, normalized 1.07–1.38×). Normalization did
+not move WHERE the sensitivity lives.
+
+**Verdict for the report**: the mechanism in §8.6 stands — standardizing is an
+affine rescaling, so a shifted E is still outside the trained range. Report it
+as a tested-and-did-not-work mitigation, which is exactly what Timon asked for,
+and name the untested remaining candidate (predicting a scaled quantity such as
+u·E rather than u).
+
+**⚠️ Confound still open.** The normalized run RESUMED from epoch 225 of an
+earlier attempt and early-stopped at 1050 (best 850, 105,000 optimizer steps).
+The baseline checkpoint's own step count was not printed. Until it is known the
+two models are not confirmed equally trained, and part of the 6.7%
+in-distribution gap could be training length rather than normalization. Get it
+from `results/B1_neo_hookean/` on Drive before writing this into the report.
 
 ### ✅ RESOLVED 2026-08-29 — CG never converged in the point-8 sweep
 

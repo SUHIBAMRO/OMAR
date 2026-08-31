@@ -1,0 +1,51 @@
+{
+  "study": "Round-6 point 1b -- does input normalization mitigate the OOD degradation?",
+  "geometry": "B1", "material": "neo_hookean", "N": 21, "n_samples_per_cell": 10,
+  "metric": "per-component relative L2 (the Tables 5/11 definition)",
+  "question": "Timon: 'If this diagnosis suggests a relatively straightforward mitigation, such as changing the training range or normalization, it would be useful to test it.' Section 8.6 named normalizing the material channel. This TESTS it.",
+  "the_only_intended_difference": "--normalize_inputs 1; same dataset, same 800/200 split, same protocol (epochs 2000, batch 8, validate_every 25, early_stop_patience 8, min_delta 1e-4, Adam lr 2e-3)",
+  "input_norm": {
+    "channels": ["E", "nu", "fx", "fy"],
+    "mean": [1000.0000610351562, 0.29999181628227234, 0.0, -0.23742368817329407],
+    "std": [200.00001525878906, 0.04832660034298897, 1.0, 1.151639699935913],
+    "constant_channels_passed_through": ["fx"],
+    "n_samples": 800, "n_values_per_channel": 352800
+  },
+  "in_distribution": {"raw": 0.0867, "normalized": 0.0925, "change_pct": 6.689734717416379,
+    "note": "normalization COST 6.7% on the job the model was trained for. That price is paid in every cell below."},
+  "rows": [
+    {"factor": "material", "k": 0.5, "raw": 0.1409, "normalized": 0.1700},
+    {"factor": "material", "k": 1.0, "raw": 0.2073, "normalized": 0.2577},
+    {"factor": "material", "k": 1.5, "raw": 0.2763, "normalized": 0.3385},
+    {"factor": "material", "k": 2.0, "raw": 0.3486, "normalized": 0.3973},
+    {"factor": "material", "k": 2.5, "raw": 0.4265, "normalized": 0.4030},
+    {"factor": "material", "k": 3.0, "raw": 0.5112, "normalized": 0.3565},
+    {"factor": "loading", "k": 0.5, "raw": 0.0869, "normalized": 0.0992},
+    {"factor": "loading", "k": 1.0, "raw": 0.0888, "normalized": 0.1025},
+    {"factor": "loading", "k": 1.5, "raw": 0.0897, "normalized": 0.1043},
+    {"factor": "loading", "k": 2.0, "raw": 0.0871, "normalized": 0.1040},
+    {"factor": "loading", "k": 2.5, "raw": 0.0862, "normalized": 0.1015},
+    {"factor": "loading", "k": 3.0, "raw": 0.0927, "normalized": 0.1274},
+    {"factor": "both", "k": 0.5, "raw": 0.1427, "normalized": 0.1747},
+    {"factor": "both", "k": 1.0, "raw": 0.2066, "normalized": 0.2459},
+    {"factor": "both", "k": 1.5, "raw": 0.2682, "normalized": 0.2979},
+    {"factor": "both", "k": 2.0, "raw": 0.3294, "normalized": 0.3293},
+    {"factor": "both", "k": 2.5, "raw": 0.3957, "normalized": 0.3540},
+    {"factor": "both", "k": 3.0, "raw": 0.4601, "normalized": 0.4064}
+  ],
+  "reading": {
+    "the_cell_headline_overstates_it": "The runner printed 'Normalization materially reduces the degradation. Worth reporting as a fix.' Its rule fires on ONE cell -- material at k=3, where the DEGRADATION RATIO improves 5.90x -> 3.85x. On the absolute error the picture is the opposite for most of the grid.",
+    "absolute_error_scoreboard": "normalization improved 5 of 18 cells and hurt 13. Every cell at k <= 1.5 is worse, by 11-23%. Every loading cell is worse, by 14-37%. The 5 improvements are all at k >= 2.0 on material and both.",
+    "the_ratio_is_flattered_by_a_worse_denominator": "the degradation RATIO divides by each model's own in-distribution error, and the normalized model's is 6.7% larger. Part of every ratio improvement is that worse denominator, not a better numerator.",
+    "the_normalized_material_curve_turns_over": "raw material is strictly increasing in k: 0.1409 0.2073 0.2763 0.3486 0.4265 0.5112. Normalized peaks at k=2.5 and FALLS at k=3.0: 0.1700 0.2577 0.3385 0.3973 0.4030 0.3565. An error that stops growing as the shift grows is the signature of a prediction collapsing toward something shift-independent, not of a model that has learned to extrapolate. This is the single cell the headline rests on, and it is the one cell whose behaviour is anomalous.",
+    "loading_is_the_control_and_it_confirms_the_diagnosis": "Section 8.6 found the degradation enters ENTIRELY through the material channel. Both models reproduce that: loading shifts move the error hardly at all (raw 0.99x-1.07x, normalized 1.07x-1.38x). Normalization did not change WHERE the sensitivity lives; it only made the loading channel slightly worse too."
+  },
+  "verdict": "NOT a clean win, and it should not be reported as one. Normalization costs 6.7% in distribution, hurts 13 of 18 shifted cells outright, and its one striking ratio improvement sits on a non-monotonic curve. The mechanism named in Section 8.6 stands: standardizing is an affine rescaling, so a shifted E is still outside the range the network was trained on.",
+  "confound_still_open": "The baseline checkpoint's own training length was NOT recorded in this run's output, and the normalized run RESUMED from epoch 225 of an earlier attempt, early-stopping at 1050 with its best at 850 (105,000 optimizer steps). Until the baseline's step count is known, the two models are not confirmed to be equally trained, and part of the 6.7% in-distribution gap could be training length rather than normalization.",
+  "cost": {"stage1_train_s": 3997.3, "stage1_opt_steps": 105000, "stage1_best_epoch": 850,
+    "stage1_best_val_error": 0.1023, "stage1_early_stopped_at_epoch": 1050,
+    "stage2_baseline_s": 2045, "stage2_normalized_s": 143,
+    "note": "stage 2 normalized took 143 s against the baseline's 2045 s because the FEM references were already cached -- the cache worked as designed"},
+  "gpu": "NVIDIA A100-SXM4-80GB",
+  "provenance": "transcribed from the Colab stdout of Round6_OOD_Mitigation, pasted 2026-08-29. The two source JSONs on Drive are ood_progressive_B1_neo_hookean_{baseline,inputnorm}.json."
+}
