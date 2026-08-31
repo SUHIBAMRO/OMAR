@@ -5,7 +5,7 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-31. **Read the master table immediately below first;
+Last updated: 2026-08-31 (Drive audit). **Read the master table immediately below first;
 everything after it is detail.**
 
 ---
@@ -428,6 +428,60 @@ assembles its own consistent force internally, so it never saw the bad field.
 Where the cache is present the eval reduces to operator inference. The cell
 prints the cached count per case before running anything. **Nothing else in the report is affected** — the bug lives
 in the B2 zero-shot sample caches only, and Table 12 is B1.
+
+### ✅ Full Drive audit, 2026-08-31 — every reported number checked at source
+
+Prompted by a direct question about whether the results are right. The Google
+Drive at `MyDrive/pfem_run/` was read **directly**, not via pasted stdout, and
+every number the report and summary quote from a round-5/6 run was compared
+against the run's own JSON.
+
+**Verified identical, no discrepancy:**
+
+| what | where on Drive | result |
+|---|---|---|
+| Table 12 — 21 zero-shot values, 3 B1 cases | `zeroshot_B1_*/zeroshot_eval_*.json` | **all 21 match, and all 3 checkpoint fingerprints match** |
+| Table 20 / 20a — the four large rows | `gpu_fem_scaling_B1_neo_hookean.json` | solve times, Newton, CG, failures, peak memory all match |
+| MMS operator N=9 and N=33 | `mms/operator_rate/*.json` | every operator, Q4 and Q9 figure matches |
+| B2 retrain, best val error | `zeroshot_B2_*/metrics_history.json` | 0.9986 @25, 0.9752 @25, 1.0267 @225 — exact |
+| B2 batch-size arms | `b2_batchsize_diagnostic/bs{1,8}/` | bs8 0.98880 @1,800 steps, bs1 0.94436 @4,800; both ran to 22,400 |
+
+**Three discrepancies found and fixed:**
+
+1. **`gpu_fem_cg_converged` N=501 `solve_s` was 2064.0; the run wrote
+   2062.659.** The `us_per_dof` beside it (4108.87) was already correct, so the
+   two fields in our own file contradicted each other. Corrected. **No
+   conclusion moves** — +28% and +18% stand (2062.659/1616.061 = 1.276).
+2. **`ms_per_cg_iter` was solve-time ÷ CG iterations, not CG-time ÷ CG
+   iterations.** Both forms are now stored and named. The report quotes the
+   solve-time form and now says why: the point-8 sweep recorded no `t_cg_s` at
+   N=501/701, so that is the only like-for-like division, and CG is 99.8% of
+   the converged solve, which bounds the substitution.
+3. **`mms_operator.py` still wrote the too-strong ceiling into every result
+   JSON.** Only the runtime *print* had been corrected, in `262eb0b` at 02:16 —
+   **after** the N=9 (01:37) and N=33 (02:06) runs. Both JSONs on Drive
+   therefore carry "the operator cannot beat it at this mesh". The `"ceiling"`
+   field is now corrected in the code, with a `ceiling_note` saying those two
+   files predate the fix.
+
+**Also corrected in our own record:** `B2_zeroshot_retrain_status.json` said
+the B2 eval errors were "flat to the fourth decimal". They are not —
+Neo-Hookean moves in the third (0.87137 → 0.87270). The accurate figures are
+now stored: all 21 values, and the spread over the mesh is **0.153%, 0.072%,
+0.012%** against **85.7%, 111.3%, 79.1%** for the three B1 columns.
+
+**And the three B2 evals had in fact completed** (02:13 on 08-31) — we only
+had them as "0.87–0.89". The mesh-mean values are **0.8722, 0.8780, 0.8896**
+and they are now in the report and the summary.
+
+### 🔄 B1 × Mooney-Rivlin Pareto is RUNNING (as of 2026-08-31 10:46)
+
+`zeroshot_B1_mooney_rivlin/pareto_B1_mooney_rivlin.json` on Drive holds **3 of
+the 9 resolutions** Table 18 uses (N = 13, 17, 21), last written 10:46. Do not
+report it as finished. B1 × Arruda-Boyce has no Pareto file yet.
+
+Partial rows so far: FEM 0.624%/0.395%/0.280% at 20.4/36.4/56.9 s per sample;
+operator 8.87%/7.69%/6.81% at 5.70/5.51/5.52 ms.
 
 ### ⛔ The B2 retrain did NOT fix it — the cases are still unusable
 

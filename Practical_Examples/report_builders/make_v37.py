@@ -69,9 +69,19 @@ assert TRUNC[701]['stats']['newton_iters_total'] == 30
 assert CONV[701]['newton_iters_total'] == 20
 assert TRUNC[501]['stats']['newton_iters_total'] == CONV[501]['newton_iters_total'] == 20
 # the per-CG-iteration cost agrees between the truncated and converged runs
-MS_TRUNC = {N: TRUNC[N]['stats'].get('t_cg_s', TRUNC[N]['solve_s_in_source'])
+# The point-8 sweep recorded no t_cg_s at these two resolutions, so the only
+# like-for-like division is solve time over CG iterations on both sides. CG is
+# 99.8% of the converged solve, which bounds what that substitution can hide,
+# and the JSON stores both forms.
+MS_TRUNC = {N: TRUNC[N]['solve_s_in_source']
             / TRUNC[N]['stats']['cg_iters_total'] * 1e3 for N in CONV}
-MS_GAP = {N: abs(CONV[N]['ms_per_cg_iter'] / MS_TRUNC[N] - 1) * 100 for N in CONV}
+for N in CONV:
+    assert 't_cg_s' not in TRUNC[N]['stats'], (
+        f'N={N}: the truncated sweep now has a CG-time breakdown, so the '
+        f'comparison below should use it on both sides')
+    assert CONV[N]['cg_share_of_solve_pct'] > 99.5, CONV[N]
+MS_GAP = {N: abs(CONV[N]['ms_per_cg_iter_from_solve'] / MS_TRUNC[N] - 1) * 100
+          for N in CONV}
 assert max(MS_GAP.values()) < 3.0, (
     'the two runs no longer agree on the matvec cost', MS_GAP, MS_TRUNC)
 EXTRA = CG['EXTRAPOLATED_NOT_MEASURED']
@@ -152,6 +162,21 @@ BEST = RETRAIN['result']['best_by_case']
 assert all(abs(v['combined_val_error'] - 1.0) < 0.05 for v in BEST.values()), (
     'a B2 case has moved off 1.0, so section 8.7 must be rewritten around '
     'what it actually reaches', BEST)
+EV = RETRAIN['result']['eval_errors']
+B1SP = RETRAIN['result']['B1_spread_over_the_mesh_pct']
+# the eval numbers in that file were read off Drive; re-derive the two claims
+# made from them rather than trusting the stored summary
+for m, v in EV.items():
+    got = (max(v['mean_rel_L2_vs_fine_reference'])
+           / min(v['mean_rel_L2_vs_fine_reference']) - 1) * 100
+    assert abs(got - v['spread_over_the_mesh_pct']) < 1e-3, (m, got)
+    assert got < 0.2, (m, got)
+for m, sp in B1SP.items():
+    got = (lambda v: (max(v) / min(v) - 1) * 100)(
+        [r['mean_rel_L2_vs_fine_reference']
+         for r in json.load(open(os.path.join(
+             PF, 'point7a_results', f'zeroshot_B1_{m}.json')))['rows']])
+    assert abs(got - sp) < 0.05, (m, got, sp)
 OLD_B2 = {m: min(BAD['the_numbers_that_gave_it_away'][f'B2_{m}'].values())
           for m in ('neo_hookean', 'mooney_rivlin', 'arruda_boyce')}
 assert min(OLD_B2.values()) > 1.0, OLD_B2
@@ -298,8 +323,13 @@ els.append(para(
     f'Third, the cost of one matrix-free Hessian-vector product agrees between '
     f'the truncated and the converged run to '
     f'{MS_GAP[501]:.1f}% and {MS_GAP[701]:.1f}% '
-    f'({MS_TRUNC[501]:.1f} against {CONV[501]["ms_per_cg_iter"]:.1f} ms, and '
-    f'{MS_TRUNC[701]:.1f} against {CONV[701]["ms_per_cg_iter"]:.1f} ms) — two '
+    f'({MS_TRUNC[501]:.1f} against '
+    f'{CONV[501]["ms_per_cg_iter_from_solve"]:.1f} ms, and {MS_TRUNC[701]:.1f} '
+    f'against {CONV[701]["ms_per_cg_iter_from_solve"]:.1f} ms, dividing solve '
+    f'time by CG iterations on both sides because the sweep of Table 20a '
+    f'recorded no separate CG time at these two resolutions; CG is '
+    f'{min(CONV[N]["cg_share_of_solve_pct"] for N in CONV):.1f}% of the '
+    f'converged solve, which bounds what that substitution can hide) — two '
     f'independent runs measuring the same quantity, which is what the O(DOF) '
     f'claim of the preceding paragraph rests on. Peak memory is unchanged to '
     f'within one megabyte, as it should be.')._p)
@@ -523,7 +553,19 @@ replace_para('Two limits. The three B2 cases are not here', [
         'against 0.0658 to 0.0827 for the three B1 cases on the same metric '
         'and the same trainer. One is the value a prediction of zero scores on '
         'that metric, which is what those three figures say the models are '
-        'producing. The cause is under investigation; it is not the optimiser '
+        'producing, and evaluating them at the seven resolutions of Table 12 '
+        'says the same thing a second way: '
+        + ', '.join(
+            '%.4f' % (sum(EV[m]['mean_rel_L2_vs_fine_reference'])
+                      / len(EV[m]['mean_rel_L2_vs_fine_reference']))
+            for m in ('neo_hookean', 'mooney_rivlin', 'arruda_boyce'))
+        + ', each varying by under '
+        f'{max(EV[m]["spread_over_the_mesh_pct"] for m in EV):.1f}% across a '
+        'fourfold refinement, where the three B1 columns of that table move by '
+        + '%.0f%% to %.0f%%' % (min(B1SP.values()), max(B1SP.values()))
+        + '. An error that barely notices the mesh is the signature of a model '
+        'that is not solving the problem on it. The cause is under '
+        'investigation; it is not the optimiser '
         'settings tried so far, since a batch-size arm at matched optimiser '
         'steps moved it only from '
         f'{RETRAIN["candidates_tested"][1]["result"]["batch_8"]:.4f} to '

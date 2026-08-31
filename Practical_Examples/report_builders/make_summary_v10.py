@@ -53,6 +53,10 @@ assert L2R[0] < 1.0 < L2R[2], L2R
 assert all(RAT['H1_semi'][str(r['N'])] > 1.0 for r in MROWS), RAT['H1_semi']
 
 BEST = RETRAIN['result']['best_by_case']
+EV = RETRAIN['result']['eval_errors']
+B1SP = RETRAIN['result']['B1_spread_over_the_mesh_pct']
+for m, v in EV.items():
+    assert v['spread_over_the_mesh_pct'] < 0.2, (m, v)
 BS = RETRAIN['candidates_tested'][1]['result']
 MESH_OK = BAD['repair']['mesh_independence_check_after_repair']
 assert all(abs(v['combined_val_error'] - 1.0) < 0.05 for v in BEST.values())
@@ -131,9 +135,10 @@ after('What survives cleanly, and is the better result', [
         f's → {CONV[501]["solve_s"]:,.0f} s) and {DELTA[701]:.0f}% at N = 701 '
         f'({TRUNC[701]["solve_s_in_source"]:,.0f} s → '
         f'{CONV[701]["solve_s"]:,.0f} s). The per-CG-iteration cost agrees '
-        f'between the truncated and converged runs to within 1.3%, which is '
-        f'two independent measurements of the quantity the O(DOF) claim rests '
-        f'on. N = 1001 and 1401 were not re-run; the same model puts them at '
+        f'between the truncated and converged runs to '
+        f'{max(abs(CONV[N]["ms_per_cg_iter_from_solve"] / (TRUNC[N]["solve_s_in_source"] / TRUNC[N]["stats"]["cg_iters_total"] * 1e3) - 1) * 100 for N in CONV):.1f}%, '
+        f'which is two independent measurements of the quantity the O(DOF) '
+        f'claim rests on. N = 1001 and 1401 were not re-run; the same model puts them at '
         f'{EXTRA["N1001"]["change_pct"]:+.0f}% and '
         f'{EXTRA["N1401"]["change_pct"]:+.0f}%, and those two are predictions.'
     )._p])
@@ -229,7 +234,18 @@ replace('The three B2 cases are NOT here.', [
         + ', '.join(f'{BEST[m]["combined_val_error"]:.4f}' for m in
                     ('neo_hookean', 'mooney_rivlin', 'arruda_boyce'))
         + f' against 0.0658–0.0827 for the three B1 cases. One is what '
-        f'predicting zero scores on that metric. A batch-size arm at matched '
+        f'predicting zero scores on that metric. Evaluated at Table 12\'s '
+        f'seven resolutions they give '
+        + ', '.join(
+            '%.4f' % (sum(EV[m]['mean_rel_L2_vs_fine_reference'])
+                      / len(EV[m]['mean_rel_L2_vs_fine_reference']))
+            for m in ('neo_hookean', 'mooney_rivlin', 'arruda_boyce'))
+        + f', each varying by under '
+        f'{max(EV[m]["spread_over_the_mesh_pct"] for m in EV):.1f}% across a '
+        f'fourfold refinement where the B1 columns move by '
+        + '%.0f%%–%.0f%%' % (min(B1SP.values()), max(B1SP.values()))
+        + '. An error that barely notices the mesh is a model that is not '
+        'solving the problem on it. A batch-size arm at matched '
         f'optimiser steps moved it from {BS["batch_8"]:.4f} to '
         f'{BS["batch_1"]:.4f}, so it is not that either. The cause is under '
         f'investigation and no B2 zero-shot number is admissible until it is '

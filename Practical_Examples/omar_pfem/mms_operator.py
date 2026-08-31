@@ -350,10 +350,25 @@ def main():
         "fem_reference_same_mesh": ref,
         "ceiling": (
             "The operator minimizes the SAME discrete functional over the SAME "
-            "Q4 space as the Q4 solver, so the Q4 solution is the minimizer and "
-            "the operator cannot beat it at this mesh. operator/Q4 is the "
-            "quantity of interest: 1.0 would mean the network has fully solved "
-            "the variational problem."),
+            "Q4 space as the Q4 solver, so the Q4 solution is the minimizer of "
+            "Pi and nothing the operator produces attains a lower Pi. That is "
+            "a statement about Pi, and Pi is none of the four errors below. It "
+            "does NOT transfer to L2: a field that fails to minimize Pi can "
+            "still sit closer to u* in L2 than the minimizer does, because "
+            "Q4's discretization error is a systematic bias the network's own "
+            "error may partially cancel -- which is what the N=9 member of the "
+            "three-mesh sweep did, at 0.37x. It held empirically in the "
+            "derivative norms: operator/Q4 exceeded 1.0 in H1 semi and in "
+            "stress at all three meshes measured. operator/Q4 is the quantity "
+            "of interest: 1.0 would mean the network has fully solved the "
+            "variational problem."),
+        "ceiling_note": (
+            "corrected 2026-08-31. The N=9 and N=33 JSONs written on that day "
+            "carry the earlier text, which said flatly that 'the operator "
+            "cannot beat it at this mesh' -- true of Pi, false of L2, and the "
+            "N=9 run contradicted it. Those two files are not rewritten; the "
+            "correction lives here and in "
+            "point9_results/mms_operator_rate_B1_neo_hookean.json."),
         "device": device.type, "dtype": "float32 (training), float64 (references)",
         "history": history,
     }
