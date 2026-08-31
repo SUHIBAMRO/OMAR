@@ -538,10 +538,29 @@ sweep is almost entirely 20 CPU solves at each of nine meshes — the largest
 5.5 minutes each. **Expect B1×Arruda-Boyce to take comparably long**, since its
 assembly cost is in the same 2.1–2.4× band.
 
-### 🔄 B1 × Arruda-Boyce Pareto is RUNNING (started 2026-08-31)
+### 🔄 B1 × Arruda-Boyce Pareto is RUNNING
 
-Roughly one of nine resolutions in. **Many hours to go** — see the estimate
-correction above.
+As of the last output pasted: **N=13 finished (20 solves), N=17 under way** —
+about 7 minutes of the roughly 6.6 hours of pure CPU solve time. Expect **6.5
+to 14 hours** still to go; the lower figure is the arithmetic from
+Mooney-Rivlin's measured per-solve times, the upper is what its wall clock
+actually was.
+
+**⚠️ A resume gap was found while answering that question, and fixed.**
+`pareto_analysis.py` rewrites its JSON after **every resolution**, so a run
+that dies at N=37 leaves N=13…33 safely on disk. But the loop started from an
+empty `rows` list and re-ran **all** resolutions, overwriting what was there.
+On a sweep where N=49 alone is 1.8 h of CPU and the whole thing is 14 h, a
+Colab disconnect at hour ten cost everything.
+
+Now completed resolutions are read back and skipped, guarded by the
+**checkpoint fingerprint** plus `n_samples`, `fine_N`, `material` and
+`geometry` — rows from a different model or protocol are never merged into a
+new run, they force a fresh start with a printed reason. Rows are sorted by N
+before writing, so a resumed file is ordered like a fresh one.
+
+**The currently running job will not pick this up** — it is executing from a
+clone made before the fix. The fix protects the restart if it dies.
 
 ### ❌ Input normalization FALSIFIED as the B2 cause (2026-08-31)
 

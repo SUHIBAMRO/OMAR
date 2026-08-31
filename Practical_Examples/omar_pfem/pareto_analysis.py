@@ -42,6 +42,7 @@ Usage:
 """
 import os
 import json
+import hashlib
 import time
 import argparse
 
@@ -150,8 +151,50 @@ def main():
     # the fine-reference cache hit instead of solving 20 fresh N=101 problems.
     seeds = [900_000 + i for i in range(args.n_samples)]
 
-    rows = []
+    # ---- RESUME. The JSON is rewritten after every resolution, so a run
+    # that dies at N=37 leaves N=13..33 on disk -- but the loop below used to
+    # start from an empty `rows` and redo all of them, overwriting what was
+    # there. On this sweep that is expensive: the B1 x Mooney-Rivlin run took
+    # 14 h 31 m and N=49 alone is 1.8 h of CPU, so a Colab disconnect at hour
+    # ten cost everything. Completed resolutions are now read back and
+    # skipped.
+    #
+    # Guarded by the checkpoint fingerprint: rows produced by a DIFFERENT
+    # model must never be merged with new ones, which would silently mix two
+    # models in one table.
+    fingerprint = hashlib.sha256(open(args.checkpoint, "rb").read()).hexdigest()
+    rows, done = [], set()
+    if os.path.exists(args.out_json):
+        try:
+            prev = json.load(open(args.out_json))
+        except Exception as e:
+            print(f"[resume] {args.out_json} is unreadable ({e.__class__.__name__});"
+                  f" starting fresh")
+            prev = None
+        if prev is not None:
+            same = (prev.get("checkpoint_fingerprint") == fingerprint
+                    and prev.get("n_samples") == args.n_samples
+                    and prev.get("fine_N") == args.fine_N
+                    and prev.get("material") == args.material
+                    and prev.get("geometry") == args.geometry)
+            if same:
+                rows = [r for r in prev.get("rows", []) if r["N"] in resolutions]
+                done = {r["N"] for r in rows}
+                if done:
+                    print(f"[resume] {args.out_json} already holds "
+                          f"N={sorted(done)} from the same checkpoint and the "
+                          f"same protocol -- skipping those")
+            elif prev.get("checkpoint_fingerprint") is None:
+                print(f"[resume] {args.out_json} predates fingerprinting, so "
+                      f"its rows cannot be shown to belong to this checkpoint;"
+                      f" starting fresh")
+            else:
+                print(f"[resume] {args.out_json} was produced by a DIFFERENT "
+                      f"checkpoint or protocol; starting fresh")
+
     for N in resolutions:
+        if N in done:
+            continue
         fem_errs, op_errs, fem_times = [], [], []
         coarse0 = None
         for i, seed in enumerate(seeds):
@@ -211,8 +254,11 @@ def main():
         print(f"  N={N:>4}  FEM {row['fem_rel_L2']:.4e} @ {row['fem_ms_per_sample']:9.1f} ms"
               f"   |  operator {row['operator_rel_L2']:.4e} @ {op_ms:7.3f} ms")
 
+        rows.sort(key=lambda r: r["N"])
         report = {"geometry": args.geometry, "material": args.material,
-                  "checkpoint": args.checkpoint, "fine_N": args.fine_N,
+                  "checkpoint": args.checkpoint,
+                  "checkpoint_fingerprint": fingerprint,
+                  "fine_N": args.fine_N,
                   "n_samples": args.n_samples, "batch_size": args.batch_size,
                   "device": device.type, "rows": rows}
         tmp = args.out_json + ".tmp"
