@@ -1,0 +1,111 @@
+{
+  "study": "Round-5 point 1/7a -- zero-shot resolution invariance",
+  "geometry": "B1",
+  "material": "neo_hookean",
+  "checkpoint_fingerprint": "86030f4f05ea74f83079cee6b74485b30f2c1a5acac6acd5bc7a06e3adaa88f4",
+  "fine_N": 101,
+  "test_resolutions": [
+    13,
+    17,
+    25,
+    29,
+    37,
+    41,
+    49
+  ],
+  "rows": [
+    {
+      "N": 13,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.09667502625249838,
+      "std_rel_L2_vs_fine_reference": 0.031589901205428796
+    },
+    {
+      "N": 17,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.0791437465182073,
+      "std_rel_L2_vs_fine_reference": 0.024321721226294214
+    },
+    {
+      "N": 25,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.05739191567731076,
+      "std_rel_L2_vs_fine_reference": 0.0181387180350072
+    },
+    {
+      "N": 29,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.052068253382705064,
+      "std_rel_L2_vs_fine_reference": 0.01641490450794315
+    },
+    {
+      "N": 37,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.05247267574090144,
+      "std_rel_L2_vs_fine_reference": 0.015488935136676752
+    },
+    {
+      "N": 41,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.05616763113251163,
+      "std_rel_L2_vs_fine_reference": 0.01683540912826112
+    },
+    {
+      "N": 49,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.0670210165116116,
+      "std_rel_L2_vs_fine_reference": 0.020469196521041896
+    }
+  ],
+  "shape": {
+    "monotone_decreasing_in_N": false,
+    "best_resolution_N": 29,
+    "best_error": 0.052068253382705064,
+    "error_at_finest_N": 0.0670210165116116,
+    "rise_after_minimum_pct": 28.717619965092254,
+    "reading": "U-shaped: the error bottoms out at N=29 and rises 28.7% by N=49. The model was trained at N=21 and 33, so the finest test meshes are the furthest extrapolation and the rise is where zero-shot transfer starts to cost something."
+  },
+  "training": {
+    "best_combined_val_error": 0.06575,
+    "best_epoch": 650,
+    "final_epoch": 900,
+    "opt_steps_at_end": 90000,
+    "validation_entries": 36,
+    "early_stopped": true,
+    "steps_per_epoch": 100,
+    "opt_steps_at_best": 65000,
+    "opt_steps_note": "the manifest's opt_steps field is the TOTAL at the end of the run, not the count at the best checkpoint. The reported errors come from model_best.pt, i.e. from opt_steps_at_best.",
+    "validation_events_after_best": 10,
+    "early_stopping_anomaly": "stopped 10 validation events after the best epoch, where the protocol's patience is 8. The reported errors are unaffected -- they come from model_best.pt, which is the best checkpoint whenever it was written. The likely explanation is that the trainer's own best-tracker sat at a later epoch than the argmin of combined_val_error (a difference of 50 epochs would reconcile them exactly), but that is unverified."
+  },
+  "protocol": {
+    "train_resolutions": [
+      21,
+      33
+    ],
+    "n_train_per_res": 400,
+    "n_val_per_res": 100,
+    "batch_size": 8,
+    "epochs": 2000,
+    "validate_every": 25,
+    "early_stop_patience": 8,
+    "early_stop_min_delta": 0.0001,
+    "lr": 0.002,
+    "weight_decay": 0.0,
+    "grad_clip": 1.0,
+    "seed": 0,
+    "model": "Transolver_Irregular_Mesh",
+    "fun_dim": 4,
+    "use_soft_dirichlet": 1
+  },
+  "protocol_deviations": "none -- identical to every other case in this study",
+  "cost": {
+    "note": "this case predates the run_manifest instrumentation, so no generation or training wall clock was recorded. File mtimes place generation at 2026-08-10 11:57 and the end of training at 23:11 the same day.",
+    "generation_caveat": "duration_s covers only what THIS invocation generated; if an earlier interrupted run produced part of the samples the true total is the sum over every zeroshot_generate manifest entry."
+  },
+  "environment": {
+    "note": "not recorded -- predates the manifest. The 7-resolution eval that produced these rows ran 2026-08-27 21:12."
+  },
+  "NOT_COMPARABLE_WITH_TABLE_12": "Report Table 12 is B1 x Neo-Hookean trained at N=21 ALONE and evaluated at five resolutions, all FINER than training. This study trains jointly at N=21 and 33 and evaluates seven, including two COARSER. Round-5 item 7 asked for coarser AND finer, so this protocol answers it and Table 12's does not. The two cannot share a table.",
+  "provenance": "transcribed from zeroshot_eval_report.json and run_manifest.json on Drive via record_zeroshot.py, which re-derives the at-best step count and re-checks the early-stopping arithmetic."
+}

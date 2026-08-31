@@ -299,6 +299,114 @@ fix, not a data fix.
 joint-trained at 21 and 33. They share a protocol. The only difference left is
 that B1×NH's eval lists 5 resolutions where the other two list 7.
 
+### ✅ The B1 zero-shot table is COMPLETE — three cases, no compute needed
+
+`zeroshot_eval_coarse_and_fine.json` was opened and it is exactly what its name
+said: **the 7-resolution eval of B1×Neo-Hookean on the same joint
+checkpoint**, run 2026-08-27, with a fingerprint. It had been invisible only
+because every listing searched for `zeroshot_eval_report.json` by name.
+
+It reproduces Table 12: across the five shared resolutions the worst relative
+difference against the old file is **8.5e-07**, identical to six significant
+figures, so **the report's four-decimal values do not change**. It adds the two
+coarser meshes round-5 item 7 asked for.
+
+All three B1 cases, joint-trained at N=21 and 33, same 7 resolutions, mean
+relative L2 against the N=101 reference:
+
+| N | Neo-Hookean | Mooney-Rivlin | Arruda-Boyce |
+|---|---|---|---|
+| 13 | 0.0967 | 0.1064 | 0.1011 |
+| 17 | 0.0791 | 0.0885 | 0.0832 |
+| 25 | 0.0574 | 0.0691 | 0.0647 |
+| 29 | **0.0521** | 0.0628 | 0.0597 |
+| 37 | 0.0525 | 0.0541 | **0.0564** |
+| 41 | 0.0562 | 0.0515 | 0.0575 |
+| 49 | 0.0670 | **0.0504** | 0.0630 |
+
+**The finding**: training was at N=21 and 33. Two of the three bottom out near
+that range and then get **worse** on the finest meshes — Neo-Hookean bottoms at
+N=29 and rises **28.7%** by N=49; Arruda-Boyce bottoms at N=37 and rises
+**11.6%**. Mooney-Rivlin alone keeps improving to the finest mesh tested. So
+zero-shot transfer to much finer meshes is not free, it is material-dependent,
+and reporting it on one material would have concealed that. The two coarser
+meshes (13, 17) are uniformly the worst for all three, which is the
+unsurprising half.
+
+**One anomaly recorded, not smoothed**: B1×Neo-Hookean stopped 10 validation
+events after its best epoch where the protocol's patience is 8. Its reported
+errors are unaffected — they come from `model_best.pt`. The likely explanation
+is that the trainer's own best-tracker sat 50 epochs later than the argmin of
+`combined_val_error`, which would reconcile it exactly, but that is unverified.
+This case also predates the manifest instrumentation, so it has no recorded
+generation or training wall clock.
+
+**What this unblocks**: Table 12 can be REPLACED by the 7-resolution version on
+the same checkpoint — which fixes the wrong caption and adds the coarser meshes
+in one edit — and the Pareto can run for B1×MR and B1×AB now, without waiting
+on B2.
+
+### ⛔ The three B2 zero-shot cases are INVALID (2026-08-29)
+
+`point7a_results/INVALID_B2_zeroshot.json`. Their eval reports are still on
+Drive and must never be quoted.
+
+**Relative errors of 8.0 to 14.5** — that is 800% to 1450%, against 5.0–10.6%
+for the three valid B1 cases. A relative error above 1 means the prediction is
+further from the truth than predicting zero everywhere. Second tell: each curve
+is nearly **flat in N** (B2×MR moves 14.358 → 14.470 across a four-fold
+refinement), and a model whose error ignores the mesh is not solving the
+problem on that mesh.
+
+**Root cause, and why it is the worst possible bug for this particular study**:
+the assembled load was overstated by a factor that **depends on the mesh** —
+13.1–13.3× at N=21, 20.8–21.0× at N=33. The study trains jointly at N=21 and
+33 and then asks whether the operator transfers across resolution. With the two
+training resolutions carrying loads inconsistent with each other by ~1.6×, the
+model was fitted to two contradictory problems, and any "resolution invariance"
+measured from it would have been measuring the bug.
+
+**Repair** (commit `a45496b`, 2000 samples per case): applied to **B2×MR and
+B2×AB only**. The check that matters passed — one fixed pressure field
+assembled on each resolution now gives N=21 → 11.1775 and N=33 → 11.1784,
+**0.0075% apart**. The models trained on the bad load were deleted.
+
+**⚠️ B2×Neo-Hookean was NOT in the repair run**, yet its eval report shows the
+same signature (8.09, flat in N). Run the same repair-and-check on it before
+retraining, and do not assume an earlier B2 force fix covered it — that note
+predates this evidence.
+
+To make B2 admissible: confirm/repair B2×NH, retrain all three (models are
+gone), re-run eval. **Nothing else in the report is affected** — the bug lives
+in the B2 zero-shot sample caches only, and Table 12 is B1.
+
+### ❗ Table 12's caption is WRONG — resolved 2026-08-29
+
+`point7a_results/B1_neo_hookean_OPEN_QUESTION.json`. File modification times
+in `zeroshot_B1_neo_hookean/` order the events and settle it:
+
+| when | file |
+|---|---|
+| 2026-08-10 11:57 | `samples_cache.pt` |
+| 2026-08-10 13:09 | `model_best.pt` |
+| 2026-08-10 23:11 | `metrics_history.json` — the **joint** history (21 and 33) |
+| **2026-08-11 15:27** | **`zeroshot_eval_report.json` — Table 12's source** |
+| 2026-08-27 21:12 | `zeroshot_eval_coarse_and_fine.json` — see below |
+| 2026-08-28 05:00 | `pareto_B1_neo_hookean.json` — Table 18's source |
+
+The eval was run a **day after** the joint training, on the `model_best.pt`
+that joint training produced. There is no N=21-only model in the timeline.
+
+**So Table 12's caption must be corrected.** It says *"a single checkpoint
+(trained once at N=21), evaluated without retraining at five unseen
+resolutions"*. The training set was **N=21 and N=33**. Everything else in the
+caption is fine and **the five numbers are unaffected** — this is a caption
+fix, not a data fix.
+
+**And it settles the protocol question**: all three valid B1 cases are
+joint-trained at 21 and 33. They share a protocol. The only difference left is
+that B1×NH's eval lists 5 resolutions where the other two list 7.
+
 ### 🔎 A file nobody has opened: `zeroshot_eval_coarse_and_fine.json`
 
 Written 2026-08-27 21:12:02, ten seconds after the second `zeroshot_eval`
