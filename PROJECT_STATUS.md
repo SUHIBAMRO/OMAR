@@ -61,7 +61,7 @@ resume on re-run. All 12 repo notebooks pass `check_notebooks.py`.
 
 | Item | State |
 |---|---|
-| **R5-1 / R5-7a** zero-shot, 6 cases | **2 of 6 done.** B1×Mooney-Rivlin FINISHED 2026-08-28 (manifest: generate 2h58m, train 43m57s early-stopped at epoch 775 / best 575 / 77,500 steps / best combined val 0.08268, eval 7h48m49s). Its result is NOT yet pulled into the repo — needs `zeroshot_eval_report.json` from Drive. Four still running on Omar's Colab, **not visible from this session** |
+| **R5-1 / R5-7a** zero-shot, 6 cases | **3 of 6 valid** (B1×NH, B1×MR, B1×AB), all recorded in `point7a_results/`. **The three B2 cases are INVALID** — trained on a load overstated by a mesh-DEPENDENT factor (13.3× at N=21, 20.9× at N=33), giving relative errors of 8.0–14.5. Caches repaired for B2×MR and B2×AB on 2026-08-29 and the bad models deleted; B2×NH not yet confirmed. See `point7a_results/INVALID_B2_zeroshot.json` |
 | ⚠️ **the two zero-shot protocols are not the same study** | Table 12 (B1×Neo-Hookean) trained at **N=21 only** and evaluated 5 resolutions, all FINER. The five new notebooks train at **N=21 and 33** and evaluate 7, including two COARSER (13, 17) — which is what round-5 item 7 actually asked for. So B1×MR cannot be added as another row of Table 12: material and protocol differ at once. Either B1×NH is re-run under the new protocol, or the new cases get their own table |
 | **R5-2** Pareto, remaining 5 cases | Blocked on those five checkpoints. Script ready, ~1–6 h per case depending on the runtime |
 
@@ -237,6 +237,59 @@ beating the variational minimum and is nothing of the kind. The column is
 labelled `trainPi(family mean)` for this reason. **The honest progress signal
 is L2**, which on that run fell 1.71 → 0.204 over 300 epochs — converging, but
 far from a reportable number; the production run is N=17 for 2000 epochs.
+
+### ⛔ The three B2 zero-shot cases are INVALID (2026-08-29)
+
+`point7a_results/INVALID_B2_zeroshot.json`. Their eval reports are still on
+Drive and must never be quoted.
+
+**Relative errors of 8.0 to 14.5** — that is 800% to 1450%, against 5.0–10.6%
+for the three valid B1 cases. A relative error above 1 means the prediction is
+further from the truth than predicting zero everywhere. Second tell: each curve
+is nearly **flat in N** (B2×MR moves 14.358 → 14.470 across a four-fold
+refinement), and a model whose error ignores the mesh is not solving the
+problem on that mesh.
+
+**Root cause, and why it is the worst possible bug for this particular study**:
+the assembled load was overstated by a factor that **depends on the mesh** —
+13.1–13.3× at N=21, 20.8–21.0× at N=33. The study trains jointly at N=21 and
+33 and then asks whether the operator transfers across resolution. With the two
+training resolutions carrying loads inconsistent with each other by ~1.6×, the
+model was fitted to two contradictory problems, and any "resolution invariance"
+measured from it would have been measuring the bug.
+
+**Repair** (commit `a45496b`, 2000 samples per case): applied to **B2×MR and
+B2×AB only**. The check that matters passed — one fixed pressure field
+assembled on each resolution now gives N=21 → 11.1775 and N=33 → 11.1784,
+**0.0075% apart**. The models trained on the bad load were deleted.
+
+**⚠️ B2×Neo-Hookean was NOT in the repair run**, yet its eval report shows the
+same signature (8.09, flat in N). Run the same repair-and-check on it before
+retraining, and do not assume an earlier B2 force fix covered it — that note
+predates this evidence.
+
+To make B2 admissible: confirm/repair B2×NH, retrain all three (models are
+gone), re-run eval. **Nothing else in the report is affected** — the bug lives
+in the B2 zero-shot sample caches only, and Table 12 is B1.
+
+### ⚠️ Table 12's caption may be wrong — CHECK BEFORE THE NEXT REPORT BUILD
+
+Table 12 says the checkpoint was *"trained once at N=21"*. But
+`zeroshot_B1_neo_hookean/metrics_history.json` reports a `combined_val_error`
+(best 0.06575 at epoch 650 / 65,000 steps, ended 900), and that field is
+written by the JOINT trainer. Its eval report also lacks the
+`checkpoint_fingerprint` the other cases carry, and lists only 5 test
+resolutions where the others list 7.
+
+So either the caption is wrong about the training set, or that directory has
+been overwritten by a newer joint run since Table 12 was built. **Read
+`per_resolution_val_error` in the first entry of that file**: if it has keys
+"21" and "33", the model was trained jointly and the caption must be fixed; if
+only "21", the caption stands.
+
+This also decides the protocol question — if B1×NH is already joint-trained,
+the three B1 cases share a protocol and can form one table, and only the
+5-vs-7 resolution list separates them.
 
 ### R6-1b — normalization TESTED as an OOD mitigation (2026-08-29)
 
