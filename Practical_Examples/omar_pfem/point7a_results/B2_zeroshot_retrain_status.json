@@ -301,8 +301,43 @@
    "be_clear_what_this_is": "NOT the difference between the arms -- neither the B1 nor the B2 runs used any input normalisation; train_B1 has the hook and its own docstring says it is a no-op by default and that every reported result was produced with it off. This is a candidate REMEDY for a condition that is measurably much worse on B2.",
    "what_was_built": "--normalize_inputs was wired through the zero-shot trainer and train_B2's two forward paths, sharing train_B1's single implementation and single module-level state rather than copying it. Statistics are computed over the training samples of ALL resolutions, written to input_norm.json in the out_dir, reused on resume with a drift assertion, and loaded automatically from beside the checkpoint at eval time -- a model trained on standardized inputs and scored on raw ones gives plausible garbage rather than an error. Off by default; verified a no-op when off.",
    "what_would_falsify_it": "if the normalised run also lands near 1.0 the input scaling is not the obstacle, and the next candidates are the Dirichlet ramp (B2 has TWO ramps, x/R_out and y/R_out, vanishing on different edges, against B1's single y/Ly) and the parametric family.",
-   "verdict": "PENDING",
-   "driver": "Practical_Examples/zeroshot_notebooks/Round6_B2_InputNorm.ipynb"
+   "verdict": "FALSIFIED, exactly as the pre-registered criterion said it would be if wrong. --normalize_inputs 1 reached 0.9910 against the 0.9986 baseline -- a 0.8% move on a metric where B1 sits at 0.066. The input scaling is NOT the obstacle.",
+   "driver": "Practical_Examples/zeroshot_notebooks/Round6_B2_InputNorm.ipynb",
+   "measured": {
+    "run": "B2 x Neo-Hookean, same protocol as the 0.9986 baseline, one flag different. 13 m 20 s on an A100, commit d32f16d, 2026-08-31.",
+    "normalize_inputs_0": 0.9986,
+    "normalize_inputs_1": 0.991,
+    "best_at_epoch": 25,
+    "last_value": 1.1184,
+    "shape": "identical to the unnormalised run -- best at the FIRST validation and worse afterwards, early stop at epoch 225. Standardising the channels changed nothing about the failure mode.",
+    "the_statistics_that_were_installed": {
+     "E": {
+      "mean": 1005.7439,
+      "std": 201.74774
+     },
+     "nu": {
+      "mean": 0.30017,
+      "std": 0.04918
+     },
+     "fx": {
+      "mean": 0.00668,
+      "std": 0.04362
+     },
+     "fy": {
+      "mean": 0.00664,
+      "std": 0.04342
+     },
+     "note": "these do lift the force channels to unit variance, so the transform did what it was meant to do. It simply did not help."
+    },
+    "why_this_is_a_real_answer": "the falsification was written into the notebook before the run: 'if the normalised run also lands near 1.0 the input scaling is not the obstacle'. It landed near 1.0. That closes a candidate rather than leaving it open."
+   }
+  },
+  {
+   "candidate": "the Dirichlet ramp. B2 multiplies the network's raw output by TWO ramps -- x/R_out on u and y/R_out on v -- which vanish on DIFFERENT edges (the two symmetry radii). B1 multiplies both components by a single y/Ly that vanishes on one edge. The B2 arrangement forces the raw field to blow up like 1/x near the theta=90 edge and like 1/y near theta=0 for the masked result to stay finite and nonzero there, and those are different regions for the two components.",
+   "why_it_is_now_the_leading_candidate": "it is one of the two structural differences between the arms that survived every measurement so far, and it is consistent with the single sharpest observation: the B2 prediction is ROUGH, carrying 3.00x the strain energy its amplitude warrants against B1's 1.01x. A field forced through a mask that vanishes on two different edges is exactly the kind of field that would be.",
+   "how_to_test_it_without_training": "score the BEST POSSIBLE field the mask can represent: project uv_exact onto the space {mask * raw} and measure how much of it survives. If the representable part is already far from uv_exact the mask is the ceiling; if it reproduces uv_exact to machine precision the mask is innocent and the last candidate is the parametric family. NOTE: test_b2_zeroshot_model.py already shows the mask CAN reproduce uv_exact -- its stand-in assertion passes -- so this candidate may already be weakened, and that should be checked before spending a training run on it.",
+   "the_other_remaining_candidate": "the parametric family. ParametricFieldB2 varies only with theta, never with r, so every field the network sees is constant along each radius. That is a much lower-dimensional family than B1's and it is not obvious it is a problem, but it is the last structural difference left.",
+   "verdict": "NOT STARTED"
   }
  ],
  "what_is_safe_to_say_in_the_report": "the caches were repaired and the repair verified mesh-independent; all three cases were retrained under the B1 protocol with the force normalisation section 9.1 requires; the retrained models sit at a combined validation error of about 1.0, which is what predicting zero scores; the cause is under investigation and is not the optimiser settings tried so far.",

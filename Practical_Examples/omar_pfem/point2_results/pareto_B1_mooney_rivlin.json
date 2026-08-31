@@ -1,0 +1,109 @@
+{
+ "geometry": "B1",
+ "material": "mooney_rivlin",
+ "checkpoint": "pfem_run/zeroshot_B1_mooney_rivlin/model_best.pt",
+ "checkpoint_fingerprint": "0f363c182b52671bfb35e5db9632c297a56fa10b5d521e1b6ffdd7efffc557fc",
+ "fine_N": 101,
+ "batch_size": 1,
+ "n_samples": 20,
+ "solver_side": "the CPU reference solver, the cost of producing a new solution today; the GPU-native solver of section 8.5 is 71.7-171.5x faster and shifts the speed-up column down by about two orders of magnitude without touching accuracy",
+ "metric": "combined relative L2 over both displacement components, ||e||/||u||, every row scored against the SAME N=101 reference -- the convergence-study convention of section 4.4, not the per-component average of Tables 5, 11 and 12",
+ "rows": [
+  {
+   "N": 13,
+   "n_nodes": 169,
+   "fem_rel_L2": 0.0062442,
+   "fem_ms_per_sample": 20376.1,
+   "operator_rel_L2": 0.088714,
+   "operator_ms_per_sample": 5.701,
+   "speedup": 3574.1
+  },
+  {
+   "N": 17,
+   "n_nodes": 289,
+   "fem_rel_L2": 0.0039497,
+   "fem_ms_per_sample": 36380.6,
+   "operator_rel_L2": 0.076931,
+   "operator_ms_per_sample": 5.512,
+   "speedup": 6600.3
+  },
+  {
+   "N": 21,
+   "n_nodes": 441,
+   "fem_rel_L2": 0.0027971,
+   "fem_ms_per_sample": 56920.1,
+   "operator_rel_L2": 0.06807,
+   "operator_ms_per_sample": 5.521,
+   "speedup": 10309.7
+  },
+  {
+   "N": 25,
+   "n_nodes": 625,
+   "fem_rel_L2": 0.0021022,
+   "fem_ms_per_sample": 81737.3,
+   "operator_rel_L2": 0.060367,
+   "operator_ms_per_sample": 5.546,
+   "speedup": 14738.1
+  },
+  {
+   "N": 29,
+   "n_nodes": 841,
+   "fem_rel_L2": 0.0016217,
+   "fem_ms_per_sample": 111399.9,
+   "operator_rel_L2": 0.053522,
+   "operator_ms_per_sample": 5.517,
+   "speedup": 20192.1
+  },
+  {
+   "N": 33,
+   "n_nodes": 1089,
+   "fem_rel_L2": 0.0012889,
+   "fem_ms_per_sample": 145207.2,
+   "operator_rel_L2": 0.047728,
+   "operator_ms_per_sample": 5.576,
+   "speedup": 26041.5
+  },
+  {
+   "N": 37,
+   "n_nodes": 1369,
+   "fem_rel_L2": 0.0010522,
+   "fem_ms_per_sample": 183923.1,
+   "operator_rel_L2": 0.043017,
+   "operator_ms_per_sample": 5.588,
+   "speedup": 32913.9
+  },
+  {
+   "N": 41,
+   "n_nodes": 1681,
+   "fem_rel_L2": 0.00086766,
+   "fem_ms_per_sample": 227900.9,
+   "operator_rel_L2": 0.039549,
+   "operator_ms_per_sample": 5.586,
+   "speedup": 40798.6
+  },
+  {
+   "N": 49,
+   "n_nodes": 2401,
+   "fem_rel_L2": 0.00061569,
+   "fem_ms_per_sample": 327649.8,
+   "operator_rel_L2": 0.037154,
+   "operator_ms_per_sample": 5.814,
+   "speedup": 56355.3
+  }
+ ],
+ "shape": {
+  "operator_monotone_decreasing_in_N": true,
+  "operator_best": {
+   "N": 49,
+   "error": 0.037154
+  },
+  "note": "the operator error falls at every refinement, from 8.87% at N=13 to 3.72% at N=49, with no minimum inside the range. That is the same shape Table 12 found for this material and material only: B1 x Mooney-Rivlin is the one case of the three whose zero-shot error keeps improving to the finest mesh tested. B1 x Neo-Hookean in Table 18 instead bottoms out at N=37 (3.69%) and worsens after."
+ },
+ "reading": {
+  "the_two_methods_do_not_compete_on_accuracy": "the finite-element solver at its coarsest setting -- N=13, 169 nodes, 20.4 s -- reaches 0.624%, already 14.2x more accurate than the operator at its best (3.72% at N=49). There is no mesh in this sweep at which the operator matches even the cheapest finite-element solve, exactly as for B1 x Neo-Hookean.",
+  "the_case_rests_on_how_cost_scales": "operator inference is flat in mesh size -- 5.512 to 5.814 ms from 169 to 2,401 nodes, a fourteenfold increase in problem size for a 5% increase in cost -- while the finite-element solve grows superlinearly, so the speed-up climbs from 3,574x to 56,353x across the sweep.",
+  "against_Table_18": "B1 x Neo-Hookean spans 1,630x to 25,676x on the same nine meshes. Mooney-Rivlin's speed-ups are about 2.2x larger throughout because its CPU assembly costs 2.1-2.4x more (Table 4a, autodiff tangent) while the operator's forward pass is material-independent -- 5.5 ms here against 5.5 ms there, the same architecture on the same meshes."
+ },
+ "cost": "A100. The run manifest recorded 14 h 31 m for this case. The notebook cell predicted 'roughly two hours, possibly more', which was wrong by about sevenfold -- the estimate was carried over from the B1 x Neo-Hookean run without allowing for Mooney-Rivlin's 2.1-2.4x more expensive CPU assembly, and the sweep spends nearly all its time in 20 CPU solves at each of nine resolutions, the largest of which is 5.5 minutes each.",
+ "provenance": "transcribed from the Colab stdout of Round6_Pareto_B1 on 2026-08-31. The run's own JSON is at pfem_run/zeroshot_B1_mooney_rivlin/pareto_B1_mooney_rivlin.json on Drive."
+}

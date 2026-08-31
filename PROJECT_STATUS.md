@@ -474,14 +474,58 @@ now stored: all 21 values, and the spread over the mesh is **0.153%, 0.072%,
 had them as "0.87–0.89". The mesh-mean values are **0.8722, 0.8780, 0.8896**
 and they are now in the report and the summary.
 
-### 🔄 B1 × Mooney-Rivlin Pareto is RUNNING (as of 2026-08-31 10:46)
+### ✅ B1 × Mooney-Rivlin Pareto is DONE — all nine resolutions
 
-`zeroshot_B1_mooney_rivlin/pareto_B1_mooney_rivlin.json` on Drive holds **3 of
-the 9 resolutions** Table 18 uses (N = 13, 17, 21), last written 10:46. Do not
-report it as finished. B1 × Arruda-Boyce has no Pareto file yet.
+`point2_results/pareto_B1_mooney_rivlin.json`. Table 18's companion for the
+second material.
 
-Partial rows so far: FEM 0.624%/0.395%/0.280% at 20.4/36.4/56.9 s per sample;
-operator 8.87%/7.69%/6.81% at 5.70/5.51/5.52 ms.
+| N | FEM error | FEM cost | operator error | operator cost | speed-up |
+|---|---|---|---|---|---|
+| 13 | 0.624% | 20.4 s | 8.87% | 5.70 ms | 3,574× |
+| 21 | 0.280% | 56.9 s | 6.81% | 5.52 ms | 10,310× |
+| 33 | 0.129% | 145.2 s | 4.77% | 5.58 ms | 26,042× |
+| 49 | **0.062%** | 327.6 s | **3.72%** | 5.81 ms | **56,355×** |
+
+**The operator improves at every single refinement** — 8.87% → 3.72%, no
+minimum inside the range. That is the same shape Table 12 found for this
+material *and this material only*: MR is the one case of three whose zero-shot
+error keeps falling to the finest mesh. B1×NH instead bottoms at N=37 (3.69%)
+and worsens after. **Two independent studies, same conclusion about the same
+material.**
+
+Speed-ups are **~2.2× larger than B1×NH's** 1,630×–25,676× throughout, because
+MR's CPU assembly costs 2.1–2.4× more (Table 4a, autodiff tangent) while the
+operator's forward pass is material-independent — 5.5 ms here, 5.5 ms there.
+
+**⚠️ My cost estimate was wrong by ~7×.** The cell said "roughly two hours,
+possibly more"; the manifest recorded **14 h 31 m**. The estimate was carried
+over from B1×NH without allowing for MR's more expensive assembly, and the
+sweep is almost entirely 20 CPU solves at each of nine meshes — the largest
+5.5 minutes each. **Expect B1×Arruda-Boyce to take comparably long**, since its
+assembly cost is in the same 2.1–2.4× band.
+
+### 🔄 B1 × Arruda-Boyce Pareto is RUNNING (started 2026-08-31)
+
+Roughly one of nine resolutions in. **Many hours to go** — see the estimate
+correction above.
+
+### ❌ Input normalization FALSIFIED as the B2 cause (2026-08-31)
+
+`--normalize_inputs 1` reached **0.9910** against the **0.9986** baseline. A
+0.8% move on a metric where B1 sits at 0.066. Same failure shape: best at the
+FIRST validation, worse after, early stop at 225.
+
+The statistics installed were real (fx: mean 0.00668, std 0.04362 — the force
+channels *were* lifted to unit variance), so the transform did what it was
+meant to. It simply did not help.
+
+**This is a real answer, not a dead end**: the falsification was written into
+the notebook *before* the run. Two structural candidates remain — the Dirichlet
+ramp (B2 has **two** ramps vanishing on **different** edges) and the parametric
+family (ParametricFieldB2 varies with θ only, never with r). Note the ramp
+candidate may already be weakened: the probe's stand-in assertion shows the
+mask **can** reproduce `uv_exact` exactly, which should be checked before
+spending another training run on it.
 
 ### ⛔ The B2 retrain did NOT fix it — the cases are still unusable
 
