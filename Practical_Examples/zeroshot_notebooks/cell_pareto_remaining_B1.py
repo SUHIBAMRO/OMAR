@@ -82,36 +82,52 @@ for mat in CASES:
     # defeated the resolution-level resume added to pareto_analysis.py: a run
     # killed after N=13 leaves a one-row file, and "exists" would have read
     # that as finished and skipped the remaining eight resolutions in silence.
-    have = []
+    have, stamped = [], False
     if os.path.exists(out_json):
         try:
-            have = [r['N'] for r in json.load(open(out_json)).get('rows', [])]
+            prev = json.load(open(out_json))
+            have = [r['N'] for r in prev.get('rows', [])]
+            # Rows written before the resume fix carry no checkpoint
+            # fingerprint, so pareto_analysis.py cannot show they came from
+            # THIS model and deliberately starts fresh. A complete file is
+            # still skipped here and never touched; only a PARTIAL one is
+            # redone from the first resolution.
+            stamped = prev.get('checkpoint_fingerprint') is not None
         except Exception as e:
             print(f'[{mat}] {out_json} is unreadable ({e.__class__.__name__});'
                   f' treating as not started')
     missing = [N for N in RESOLUTIONS if N not in have]
     PLAN.append((mat, d, ckpt, out_json,
-                 os.path.getsize(ckpt) / 1e6, have, missing))
+                 os.path.getsize(ckpt) / 1e6, have, missing, stamped))
 
 print('\nplan:')
-for mat, d, ckpt, out_json, mb, have, missing in PLAN:
+for mat, d, ckpt, out_json, mb, have, missing, stamped in PLAN:
     if not missing:
         state = 'COMPLETE (%d/%d), will skip' % (len(have), len(RESOLUTIONS))
-    elif have:
+    elif have and stamped:
         state = 'PARTIAL %d/%d -- will resume at N=%s' % (
             len(have), len(RESOLUTIONS), missing[0])
+    elif have:
+        state = ('PARTIAL %d/%d, but written before fingerprinting -- those '
+                 'rows will be redone from N=%d' % (
+                     len(have), len(RESOLUTIONS), RESOLUTIONS[0]))
     else:
         state = 'to run (%d resolutions)' % len(RESOLUTIONS)
     print('  %-14s checkpoint %.1f MB   %s' % (mat, mb, state))
 
-for mat, d, ckpt, out_json, mb, have, missing in PLAN:
+for mat, d, ckpt, out_json, mb, have, missing, stamped in PLAN:
     if not missing:
         print(f'\n[{mat}] all {len(RESOLUTIONS)} resolutions present in '
               f'{out_json} -- skipping. Delete it to force a re-run.')
         continue
-    if have:
+    if have and stamped:
         print(f'\n[{mat}] resuming: N={sorted(have)} already done, '
               f'N={missing} still to do.')
+    elif have:
+        print(f'\n[{mat}] N={sorted(have)} is on disk but predates '
+              f'fingerprinting, so it cannot be shown to belong to this '
+              f'checkpoint and will be recomputed. From here on every '
+              f'resolution is stamped and a restart resumes.')
     print('\n' + '=' * 70)
     # The Mooney-Rivlin run measured 14 h 31 m, not the "roughly two hours"
     # an earlier version of this cell predicted. The estimate had been carried
