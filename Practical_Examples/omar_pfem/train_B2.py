@@ -35,6 +35,13 @@ import random
 
 from omar_pfem.model_dict import get_model
 from omar_pfem.materials_torch import get_material_fns
+# Input-channel standardization lives in train_B1 and is shared, not copied:
+# one implementation and one module-level state for both geometries. It is a
+# no-op unless set_input_norm() installs statistics, which nothing does by
+# default, so no result produced before this import is affected.
+from omar_pfem.train_B1 import (  # noqa: F401  (re-exported for callers)
+    _apply_input_norm, compute_input_norm, get_input_norm,
+    install_input_norm_for_checkpoint, set_input_norm)
 
 
 def find_latest_checkpoint(out_dir):
@@ -177,6 +184,12 @@ def total_potential_energy_Q4_hyperelastic(
         fun_material = torch.stack([
             E_nodes, nu_nodes, node_forces[:, :, 0], node_forces[:, :, 1],
         ], dim=2)
+    # Standardize the four channels if statistics are installed. This shares
+    # train_B1's single implementation and its single module-level state
+    # rather than keeping a second copy: set_input_norm() there governs both
+    # geometries, and it is a no-op unless something installs statistics, so
+    # every result produced before this line existed is unaffected.
+    fun_material = _apply_input_norm(fun_material)
 
     uv_raw = model(xy_domain, fun_material)  # (B,N,2)
 
@@ -242,6 +255,7 @@ def predict_displacement_Q4_only(
         fun_material = torch.stack([E_nodes, nu_nodes, node_forces[:, :, 1]], dim=2)
     else:
         fun_material = torch.stack([E_nodes, nu_nodes, node_forces[:, :, 0], node_forces[:, :, 1]], dim=2)
+    fun_material = _apply_input_norm(fun_material)
 
     uv_raw = model(xy_domain, fun_material)
 

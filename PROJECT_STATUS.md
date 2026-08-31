@@ -601,9 +601,83 @@ working correctly on data whose Π has its minimum near zero.
    to B1 explains nothing. The probe now runs **both arms** and prints them
    together.
 
-   Test: `omar_pfem/test_b2_zeroshot_model.py --geometry B1|B2`.
-   **No training, CPU, a couple of minutes.** Notebook:
-   `Round6_B2_Model_Probe.ipynb`.
+### 🎯 The B1 control arm ran, and it separates the two cleanly
+
+Same trainer, same architecture, same optimizer, same protocol. B1 reaches
+0.066; B2 sits at ~1.0. Both probed identically, 4 val samples at each of
+N=21 and N=33.
+
+| | **B1 (works)** | **B2 (fails)** |
+|---|---|---|
+| descent captured, Π(pred)/Π(uv_exact) | **99.8–100.8%**, mean 100% | **36.8–59.6%**, mean 47% |
+| relative L2 vs uv_exact | 0.030–0.058 | 0.449–0.954 |
+| correlation | **+0.997 to +0.9996**, every sample | +0.869 down to **−0.113**, erratic |
+| amplitude ratio | 0.977–1.019 | **0.233–0.606** |
+| prediction variability vs target's | 0.332/0.346, 0.157/0.159 — **matched** | 0.134/0.641, 0.100/0.310 — **a fifth to a third** |
+| **roughness** | **1.01×** (0.99–1.05) | **3.00×** (1.67–4.80) |
+| rms(f)/rms(E) in the input | 6.1e-04 – 8.2e-04 | **2.3e-05 – 7.2e-05** |
+
+**Roughness is the sharpest number**: `(U_pred/U_exact) / (amplitude ratio)²`.
+A field as smooth as the truth has strain energy scaling with amplitude
+squared, so this is 1 — and B1 lands on 1.01 across all eight samples. B2
+lands on **3.00**: its prediction carries three times the strain energy its
+size warrants. **It is rough, not merely small**, which is why rescaling
+cannot fix it — the Π(s·pred) scan puts the minimum at s = 1.0 on six of the
+eight.
+
+**And worth saying plainly: B2 has the BETTER-specified problem and the worse
+result.** Its W uses the assembled force with no fudge factor, so its training
+Π is *identical* to the FEM solver's — that is exactly why the functional test
+found W/U = 2.000 and the minimum exactly at s = 1. B1's W is a trapezoid sum
+over the raw pointwise traction divided by an edge count. **Any story in which
+B2 fails because its data or its energy is wrong is now closed.**
+
+**⚠️ A third fault in the probe, caught by the control.** It printed `sum(f)`
+for both geometries and asserted in its own text that the two meshes "must"
+agree — which on B1 came out as *"the TOTAL load agrees to 56.427% — it
+must"*, a sentence that contradicts itself. The quantity that must be
+mesh-invariant is the one each geometry's **own** work term uses, and they
+differ. B1's own invariant, `sum(f)/n_edges`, is 4.6556 vs 4.5516 — 2.3%
+apart, fine. The same confusion produced the *"that is impossible"* flag when
+Π(pred) came out **below** Π(uv_exact) on six B1 samples: where the trainer's
+Π and the solver's Π are not the same functional — as on B1 — `uv_exact` does
+not minimize the trainer's Π, and a 0.1–0.8% gap is just that quadrature
+difference. Both fixed.
+
+5. **The input channels are unnormalized** — **PENDING**, and it is the one
+   candidate the control singles out.
+
+   On B2 the two channels carrying the **load** sit **10–30× quieter** relative
+   to the one carrying **stiffness** than they do on B1, and are nonzero on
+   3–5% of nodes. And the controlled mesh comparison (one fixed seed rebuilt on
+   both meshes) shows B2's **per-node** load scale changing **1.98×** between
+   N=21 and N=33 while the **total** is constant to 0.001% — the same physical
+   loading presented to the network as two different numbers.
+
+   **⚠️ Be clear what this is.** Neither the B1 nor the B2 runs used any input
+   normalization — `train_B1` has the hook and its own docstring says it is a
+   no-op by default and that every reported result was produced with it off. So
+   **this is not the difference between the arms**; it is a candidate *remedy*
+   for a condition that is measurably much worse on B2. **It may not work.**
+
+   **Built**: `--normalize_inputs` wired through the zero-shot trainer and
+   train_B2's two forward paths, sharing train_B1's single implementation and
+   single module-level state rather than copying it. Statistics over the
+   training samples of all resolutions, written to `input_norm.json`, reused on
+   resume behind a drift assertion, and **loaded automatically from beside the
+   checkpoint at eval** — a model trained on standardized inputs and scored on
+   raw ones gives plausible garbage rather than an error. Off by default;
+   verified a no-op when off.
+
+   **What would falsify it**: if the normalized run also lands near 1.0, the
+   input scaling is not the obstacle, and the next candidates are the Dirichlet
+   ramp (B2 has **two** ramps, x/R_out and y/R_out, vanishing on different
+   edges, against B1's single y/Ly) and the parametric family itself.
+
+   Notebook: `Round6_B2_InputNorm.ipynb` — GPU, ~15 min, one arm.
+
+   Probe: `omar_pfem/test_b2_zeroshot_model.py --geometry B1|B2`.
+   **No training, CPU.** Notebook: `Round6_B2_Model_Probe.ipynb`.
 
 **In the report**: v37 §8.7's "Two limits" paragraph and §10's bullet both say
 this outright — data corrected, models retrained, still unusable, cause under

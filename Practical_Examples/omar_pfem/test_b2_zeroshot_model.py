@@ -12,9 +12,10 @@ three decimals. The cache and the functional are fine. What is left is the
 training path, and this looks at it with the checkpoint already on disk.
 Nothing is trained and nothing is written.
 
-The first version of this script had two design faults and this one fixes
-them; both are worth naming, because both would have produced a confident
-wrong reading.
+The first version of this script had three faults and this one fixes them.
+All three are worth naming, because each would have produced a confident
+wrong reading, and the third was caught only because the B1 control arm was
+added and the script then printed a sentence that contradicted itself.
 
   * It reported Pi(pred) with no Pi(uv_exact) for the SAME sample. The
     functional test's Pi values are on train_samples, this reads
@@ -30,6 +31,20 @@ wrong reading.
     different meshes. This builds ONE fixed seed at BOTH resolutions and
     compares that, which is the controlled version, and prints the
     mesh-independent load total beside the per-node scale.
+
+  * It applied a B2 check to B1. The quantity that must be mesh-invariant is
+    the one the geometry's own work term uses, and the two are different:
+    B1's W is sum(f*uv)/len(top_edges) over the RAW pointwise traction, while
+    B2's is sum(f*uv) over the ASSEMBLED force. Printing sum(f) for both and
+    asserting in the text that they "must" agree produced, on B1, the line
+    "the TOTAL load agrees to 56.427% -- it must". Each geometry's own
+    invariant is printed now. (B1's is 4.6556 against 4.5516, 2.3% apart.)
+    The same confusion sat behind the "that is impossible" flag on
+    Pi(pred) < Pi(uv_exact): where the trainer's Pi and the solver's Pi are
+    not the same functional, as on B1, uv_exact does not minimise the
+    trainer's Pi and a gap of order a per cent is just that quadrature
+    difference. On B2 they ARE the same functional, which is why its W/U at
+    uv_exact is 2.000 on every sample.
 
 What it measures, per geometry:
 
@@ -162,6 +177,8 @@ def main():
             rms_E=float(np.sqrt(np.mean(s["E_node"] ** 2))),
             nz=float((np.abs(fc).sum(axis=1) > 0).mean()),
             total=float(np.linalg.norm(fc.sum(axis=0))),
+            effective=float(np.linalg.norm(fc.sum(axis=0)))
+            / max(len(s.get("top_edges", s.get("inner_edges", []))), 1),
             n_nodes=fc.shape[0])
     print(f"\n{'N':>6}{'nodes':>8}{'rms(f)':>12}{'rms(f)/rms(E)':>16}"
           f"{'nodes with f':>14}{'|sum f| (total load)':>22}")
@@ -172,19 +189,38 @@ def main():
     Ns = sorted(ctrl)
     if len(Ns) >= 2:
         a, b = ctrl[Ns[0]], ctrl[Ns[-1]]
-        print(f"\n  the TOTAL load agrees to "
-              f"{abs(b['total'] / a['total'] - 1) * 100:.3f}% -- it must, and "
-              f"this is the check the load repair installed.")
+        # The quantity that must be mesh-invariant is the one the geometry's
+        # OWN work term uses, and the two geometries do not use the same one.
+        # An earlier version of this script printed sum(f) for both and
+        # asserted in its own text that they "must" agree -- which read as
+        # "the TOTAL load agrees to 56.427% -- it must" on B1, a sentence that
+        # contradicts itself. B1's W divides by the top-edge count and its
+        # node_forces are the raw pointwise traction, so sum(f)/n_edges is its
+        # invariant; B2's W does not divide and its node_forces are assembled,
+        # so sum(f) is.
+        if args.geometry == "B1":
+            key, label = "effective", "sum(f) / (number of loaded edges)"
+            note = ("B1's W is sum(f*uv)/len(top_edges) over the RAW pointwise "
+                    "traction, so this is the quantity its energy actually "
+                    "sees.")
+        else:
+            key, label = "total", "|sum f|, the total applied load"
+            note = ("B2's W is sum(f*uv) over the ASSEMBLED force, so the bare "
+                    "total is the quantity its energy sees. This is the check "
+                    "the load repair installed.")
+        gap = abs(b[key] / a[key] - 1) * 100
+        print(f"\n  {note}")
+        print(f"  {label}: {a[key]:.6f} at N={Ns[0]}, {b[key]:.6f} at "
+              f"N={Ns[-1]} -- {gap:.3f}% apart"
+              + ("  OK" if gap < 5 else "  <-- NOT mesh-invariant, look at it"))
         print(f"  the PER-NODE scale the network is fed changes by "
-              f"{a['rms_f'] / b['rms_f']:.2f}x between the two meshes, because "
-              f"an assembled")
-        print(f"  force spreads the same total over more nodes as the mesh "
-              f"refines. Same physical")
-        print(f"  loading, two different numbers in the input channel, and "
-              f"nothing normalises it.")
+              f"{a['rms_f'] / b['rms_f']:.2f}x between the two meshes: the same")
+        print(f"  physical loading, two different numbers in the input "
+              f"channel, and nothing")
+        print(f"  normalises it unless --normalize_inputs was on.")
 
     # ---- the per-sample work -------------------------------------------
-    collapse, energy_spread, descent = {}, {}, []
+    collapse, energy_spread, descent, roughness = {}, {}, [], []
     for N, samples in buckets.items():
         print("\n" + "=" * 74)
         print(f"resolution {N}")
@@ -240,13 +276,33 @@ def main():
                   f"   W/U {W_p / max(U_p, 1e-30):.2f}")
             print(f"    Pi(uv_exact) {pi_t: .6e}   U {U_t:.4e}  W {W_t:.4e}"
                   f"   W/U {W_t / max(U_t, 1e-30):.2f}")
+            # strain energy per unit amplitude. A prediction as smooth as the
+            # truth has U scaling with amplitude squared, so this ratio is 1.
+            # Above 1 means the field carries more strain than its size
+            # warrants -- it is rough, not merely small.
+            amp = rms(pred) / max(rms(tgt), 1e-30)
+            rough = (U_p / max(U_t, 1e-30)) / max(amp * amp, 1e-30)
             print(f"    Pi(0) = 0, so the model captured "
                   f"{frac * 100:5.1f}% of the available descent")
+            print(f"    roughness (U ratio)/(amplitude ratio)^2 = {rough:5.2f}"
+                  f"   -- 1.0 is as smooth as the truth")
+            roughness.append(rough)
             if pi_p < pi_t - 1e-9 * abs(pi_t):
-                print("    !! Pi(pred) is BELOW Pi(uv_exact). Over the same "
-                      "space that is impossible;")
-                print("       it would mean the two paths are not evaluating "
-                      "the same functional.")
+                over = (pi_t - pi_p) / abs(pi_t) * 100
+                print(f"    note: Pi(pred) is {over:.2f}% BELOW Pi(uv_exact). "
+                      f"That is not a contradiction where the")
+                print("       trainer's Pi and the FEM solver's Pi are not the "
+                       "same functional. On B1 they")
+                print("       are not: the trainer's W is a trapezoid sum over "
+                       "the raw pointwise traction,")
+                print("       divided by the edge count, while the solver "
+                       "integrates the traction exactly, so")
+                print("       uv_exact minimises the solver's Pi and not quite "
+                       "this one. A gap of order a")
+                print("       per cent is that quadrature difference. On B2 "
+                       "the two ARE the same functional")
+                print("       (assembled force, no division), which is why its "
+                       "W/U at uv_exact is 2.000.")
 
             # would rescaling the prediction help?
             scan = []
@@ -284,6 +340,9 @@ def main():
     if d:
         print(f"descent captured: {min(d) * 100:.0f}% to {max(d) * 100:.0f}% "
               f"of Pi(uv_exact), mean {sum(d) / len(d) * 100:.0f}%")
+    if roughness:
+        print(f"roughness: {min(roughness):.2f}x to {max(roughness):.2f}x, "
+              f"mean {sum(roughness) / len(roughness):.2f}x")
     if collapse:
         print(f"prediction variability: "
               + ", ".join(f"N={N} {v:.3f}" for N, v in collapse.items()))

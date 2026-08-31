@@ -153,7 +153,7 @@
    "the_specific_suspicion": "fun_material is (E, nu, f_x, f_y) fed RAW -- there is no normalisation anywhere in train_B2's energy function, which the zero-shot trainer re-exports unchanged. For B2 the load is an inner-edge traction, so f is exactly zero on every node off that boundary (about 95% of them at N=21), and the load repair made what remains 13-21x smaller. E is around 1000. If the two channels carrying the loading are orders of magnitude below the one carrying stiffness and nonzero on a twentieth of the nodes, the model may not see the load at all -- which would give an error flat in N, flat across materials, and stuck near 1.0. This is a suspicion and is not yet measured.",
    "a_second_difference_worth_naming": "the 9.11% recipe and this study are not on the same problem family. data_generate_B2.py draws (E, nu, p) from a 2-D Gaussian random field in (theta, r); the zero-shot study uses ParametricFieldB2, a two-harmonic Fourier series in theta ALONE, chosen because it is resolution-independent by construction and a gridded GRF is not. So '9.11% is reachable on B2' was never transferable evidence about this trainer. B1 uses the same kind of parametric field and trains fine, so this is not on its own an explanation either.",
    "test": "omar_pfem/test_b2_zeroshot_model.py -- prints the input channel scales as fed, what the trained model predicts (rms ratio and correlation), Pi at that prediction, and how much the prediction changes across samples on one mesh. No training.",
-   "verdict": "PARTLY MEASURED -- the model is not ignoring its input, but it responds about five times too weakly and emits a field of nearly fixed strain energy whatever it is shown. Not yet a cause.",
+   "verdict": "NOT THE CAUSE ON ITS OWN. The B1 control arm was run and it separates the two cleanly: B1 captures 100% of the available descent, B2 47%. B2 lands on a field that is ROUGH (3.00x the strain energy its amplitude warrants, against B1's 1.01x) and nearly the same for every sample. The model reads its input but responds a fifth to a third as much as it should.",
    "driver": "Practical_Examples/zeroshot_notebooks/Round6_B2_Model_Probe.ipynb",
    "first_probe_2026_08_31": {
     "run": "B2 x Neo-Hookean, 4 val samples at each of N=21 and N=33, CPU, commit c7f63c6",
@@ -233,7 +233,76 @@
     "it reported Pi(pred) with no Pi(uv_exact) for the SAME sample. The functional test's Pi values are on train_samples and the probe reads val_samples, which are different problems, so Pi(pred) could not be compared with anything. Fixed: both are now computed per sample and what is printed is the fraction of the available descent.",
     "it printed the channel scales at N=21 and N=33 side by side as though the difference were a mesh effect. It is not separable that way -- the cache uses seed_base = 10_000 * N, so those are different DRAWS as well as different meshes. Fixed: one fixed seed is rebuilt on both meshes, and the mesh-independent load total is printed beside the per-node scale."
    ],
-   "and_the_control_that_was_missing": "B1 reaches 0.066 on the same trainer, the same architecture and the same protocol. Any account of B2's failure that would apply equally to B1 explains nothing. The probe now runs both arms and prints them together."
+   "and_the_control_that_was_missing": "B1 reaches 0.066 on the same trainer, the same architecture and the same protocol. Any account of B2's failure that would apply equally to B1 explains nothing. The probe now runs both arms and prints them together.",
+   "B1_control_2026_08_31": {
+    "why_it_was_needed": "any account of B2's failure that applies equally to B1 explains nothing. B1 uses the same trainer, architecture, optimizer and protocol and reaches 0.066.",
+    "descent_captured": {
+     "B1": "99.8% to 100.8%, mean 100%",
+     "B2": "36.8% to 59.6%, mean 47%"
+    },
+    "relative_L2": {
+     "B1": "0.0303 to 0.0584",
+     "B2": "0.4486 to 0.9539"
+    },
+    "correlation_with_uv_exact": {
+     "B1": "+0.9970 to +0.9996, every sample",
+     "B2": "+0.8691 down to -0.1126, erratic"
+    },
+    "amplitude_ratio": {
+     "B1": "0.977 to 1.019",
+     "B2": "0.233 to 0.606"
+    },
+    "prediction_variability_against_target_variability": {
+     "B1": "0.332 vs 0.346 at N=21, 0.157 vs 0.159 at N=33 -- matched",
+     "B2": "0.134 vs 0.641 at N=21, 0.100 vs 0.310 at N=33 -- a fifth to a third of what it should be"
+    },
+    "THE_SHARPEST_DISCRIMINATOR": {
+     "quantity": "roughness = (U_pred/U_exact) / (rms_pred/rms_exact)^2",
+     "why": "a prediction as smooth as the truth has strain energy scaling with amplitude squared, so this ratio is 1. Above 1 means the field carries more strain than its size warrants.",
+     "B1": [
+      1.0,
+      1.05,
+      1.01,
+      1.0,
+      1.01,
+      1.01,
+      0.99,
+      1.0
+     ],
+     "B1_summary": "0.99x to 1.05x, mean 1.01x",
+     "B2": [
+      4.7,
+      2.09,
+      4.8,
+      1.67,
+      2.07,
+      2.55,
+      3.34,
+      2.73
+     ],
+     "B2_summary": "1.67x to 4.80x, mean 3.00x",
+     "reading": "B2's prediction is ROUGH, not merely small. That is why rescaling does not help -- the Pi(s*pred) scan puts the minimum at s = 1.0 on six of the eight samples."
+    },
+    "input_channel_scales_the_one_order_of_magnitude_difference": {
+     "rms_f_over_rms_E": {
+      "B1": "6.113e-04 (N=33) to 8.219e-04 (N=21)",
+      "B2": "2.255e-05 (N=33) to 7.248e-05 (N=21)"
+     },
+     "ratio_between_geometries": "10x to 30x quieter on B2",
+     "nodes_carrying_force": "4.8% at N=21 and 3.0% at N=33, both geometries",
+     "controlled_mesh_comparison": "one fixed seed rebuilt on both meshes. B2: total load 9.751911 at N=21 and 9.751974 at N=33 (0.001% apart, as the load repair guarantees) while the PER-NODE scale the network is fed changes 1.98x. Same physical loading, two different numbers in the input channel."
+    }
+   },
+   "a_third_fault_in_the_probe_found_by_the_control": "the script printed sum(f) for both geometries and asserted in its own text that the two meshes 'must' agree -- which on B1 came out as 'the TOTAL load agrees to 56.427% -- it must', a sentence contradicting itself. The quantity that must be mesh-invariant is the one each geometry's own work term uses, and they differ: B1's W is sum(f*uv)/len(top_edges) over the RAW pointwise traction, B2's is sum(f*uv) over the ASSEMBLED force. B1's own invariant, sum(f)/n_edges, is 4.6556 against 4.5516 -- 2.3% apart, fine. The same confusion produced the 'that is impossible' flag when Pi(pred) came out below Pi(uv_exact) on six B1 samples: where the trainer's Pi and the solver's Pi are not the same functional -- as on B1, a trapezoid sum against exact edge quadrature -- uv_exact does not minimise the trainer's Pi, and a gap of 0.1-0.8% is that quadrature difference. Both fixed.",
+   "and_a_thing_worth_stating_plainly": "B2 has the BETTER-specified problem and the worse result. Its W uses the assembled force with no fudge factor, so its training Pi is identical to the FEM solver's -- which is exactly why the functional test found W/U = 2.000 and the minimum exactly at s = 1. B1's W is a trapezoid approximation divided by an edge count. Any story in which B2 fails because its data or its energy is wrong is now closed."
+  },
+  {
+   "candidate": "the input channels are unnormalised, and on B2 the two carrying the load sit 10-30x quieter relative to stiffness than on B1, with a per-node scale that changes 1.98x between the two training meshes",
+   "be_clear_what_this_is": "NOT the difference between the arms -- neither the B1 nor the B2 runs used any input normalisation; train_B1 has the hook and its own docstring says it is a no-op by default and that every reported result was produced with it off. This is a candidate REMEDY for a condition that is measurably much worse on B2.",
+   "what_was_built": "--normalize_inputs was wired through the zero-shot trainer and train_B2's two forward paths, sharing train_B1's single implementation and single module-level state rather than copying it. Statistics are computed over the training samples of ALL resolutions, written to input_norm.json in the out_dir, reused on resume with a drift assertion, and loaded automatically from beside the checkpoint at eval time -- a model trained on standardized inputs and scored on raw ones gives plausible garbage rather than an error. Off by default; verified a no-op when off.",
+   "what_would_falsify_it": "if the normalised run also lands near 1.0 the input scaling is not the obstacle, and the next candidates are the Dirichlet ramp (B2 has TWO ramps, x/R_out and y/R_out, vanishing on different edges, against B1's single y/Ly) and the parametric family.",
+   "verdict": "PENDING",
+   "driver": "Practical_Examples/zeroshot_notebooks/Round6_B2_InputNorm.ipynb"
   }
  ],
  "what_is_safe_to_say_in_the_report": "the caches were repaired and the repair verified mesh-independent; all three cases were retrained under the B1 protocol with the force normalisation section 9.1 requires; the retrained models sit at a combined validation error of about 1.0, which is what predicting zero scores; the cause is under investigation and is not the optimiser settings tried so far.",

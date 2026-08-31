@@ -68,6 +68,11 @@ from scipy.interpolate import LinearNDInterpolator
 from omar_pfem.model_dict import get_model
 from omar_pfem.run_manifest import write_manifest
 from omar_pfem.data.parametric_field import ParametricFieldB1, ParametricFieldB2
+# One implementation and one module-level state, shared by both geometries;
+# train_B2 imports the same names. A no-op unless statistics are installed.
+from omar_pfem.train_B1 import (compute_input_norm,
+                                install_input_norm_for_checkpoint,
+                                set_input_norm)
 
 
 # ============================================================
@@ -338,6 +343,49 @@ def cmd_train(args):
         torch.save({"train_samples": train_samples, "val_samples": val_samples}, samples_cache_path)
         print(f"Cached samples -> {samples_cache_path}")
 
+    # Input-channel standardization. The four channels (E, nu, f_x, f_y) are
+    # fed RAW by default, and on B2 that means the two carrying the load sit
+    # four to five orders of magnitude below the one carrying stiffness
+    # (rms(f)/rms(E) = 7.2e-05 at N=21, 2.3e-05 at N=33, measured) and are
+    # nonzero on 3-5% of nodes. On B1, where the same trainer reaches 0.066,
+    # the same ratio is 6.1e-04 to 8.2e-04 -- ten to thirty times louder.
+    # Neither the B1 nor the B2 runs reported so far used this, so it is NOT
+    # the difference between them; it is a candidate remedy for a condition
+    # that is measurably worse on B2. Off by default, so nothing already
+    # produced changes.
+    norm_path = os.path.join(args.out_dir, "input_norm.json")
+    if int(getattr(args, "normalize_inputs", 0)):
+        flat = [s for N in sorted(train_samples) for s in train_samples[N]]
+        if os.path.exists(norm_path):
+            # a resumed run must reuse the statistics the earlier epochs saw,
+            # or the transform changes across the resume boundary in silence
+            with open(norm_path) as f:
+                norm_stats = json.load(f)
+            fresh = compute_input_norm(flat, args.fun_dim)
+            drift = max(abs(a - b) for a, b in zip(norm_stats["mean"],
+                                                  fresh["mean"]))
+            assert drift < 1e-6 * max(1.0, max(abs(m) for m in fresh["mean"])), (
+                f"input_norm.json disagrees with the current training set "
+                f"(max mean drift {drift:g}); refusing to continue")
+            print(f"[input-norm] reusing {norm_path} from the earlier run")
+        else:
+            norm_stats = compute_input_norm(flat, args.fun_dim)
+            with open(norm_path, "w") as f:
+                json.dump(norm_stats, f, indent=1)
+            print(f"[input-norm] computed over {len(flat)} training samples "
+                  f"from all resolutions and written to {norm_path}")
+        set_input_norm(norm_stats)
+        for c, m, sd in zip(norm_stats["channels"], norm_stats["mean"],
+                            norm_stats["std"]):
+            print(f"[input-norm]   {c:>3}: mean={m:12.5f}  std={sd:12.5f}")
+    else:
+        set_input_norm(None)
+        assert not os.path.exists(norm_path), (
+            f"{norm_path} exists, so this out_dir holds a run trained on "
+            f"standardized inputs, but --normalize_inputs is 0. Training an "
+            f"unnormalized model into it would leave a checkpoint and a "
+            f"transform that do not belong together.")
+
     if args.stop_after_generation:
         # Generation is the dominant cost (hours per resolution) while the
         # training loop that follows is minutes. Separating them lets the
@@ -561,6 +609,10 @@ def cmd_eval(args):
     dtype = torch.float32
 
     model = build_model(args, device)
+    # A model trained on standardized inputs and evaluated on raw ones
+    # produces plausible-looking garbage rather than an error, so the
+    # transform is loaded from beside the checkpoint before anything is run.
+    install_input_norm_for_checkpoint(args.checkpoint)
     model.load_state_dict(torch.load(args.checkpoint, map_location=device))
     model.eval()
     print(f"Loaded checkpoint: {args.checkpoint}")
@@ -792,6 +844,11 @@ def main():
              "no such option, so B1 stays at 0 and the three completed B1 "
              "zero-shot cases remain reproducible. Pass 0 or 1 to override.")
     p_train.add_argument("--seed", type=int, default=0)
+    p_train.add_argument("--normalize_inputs", type=int, default=0,
+                         help="standardize the (E, nu, f_x, f_y) channels by "
+                              "the training set's own per-channel mean and "
+                              "std. Off by default; every result reported so "
+                              "far was produced with it off.")
     p_train.add_argument("--out_dir", type=str, default="./zeroshot_study")
     p_train.set_defaults(func=cmd_train)
 
