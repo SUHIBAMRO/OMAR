@@ -64,7 +64,7 @@ resume on re-run. All 12 repo notebooks pass `check_notebooks.py`.
 |---|---|
 | **R5-1 / R5-7a** zero-shot, 6 cases | **3 of 6 valid** (B1×NH, B1×MR, B1×AB), all recorded in `point7a_results/`. **The three B2 cases are INVALID** — trained on a load overstated by a mesh-DEPENDENT factor (13.3× at N=21, 20.9× at N=33), giving relative errors of 8.0–14.5. Caches repaired for B2×MR and B2×AB on 2026-08-29 and the bad models deleted; B2×NH not yet confirmed. See `point7a_results/INVALID_B2_zeroshot.json` |
 | ⚠️ **the two zero-shot protocols are not the same study** | Table 12 (B1×Neo-Hookean) trained at **N=21 only** and evaluated 5 resolutions, all FINER. The five new notebooks train at **N=21 and 33** and evaluate 7, including two COARSER (13, 17) — which is what round-5 item 7 actually asked for. So B1×MR cannot be added as another row of Table 12: material and protocol differ at once. Either B1×NH is re-run under the new protocol, or the new cases get their own table |
-| **R5-2** Pareto, remaining 5 cases | Blocked on those five checkpoints. Script ready, ~1–6 h per case depending on the runtime |
+| **R5-2** Pareto, remaining cases | **B1×MR and B1×AB are unblocked now** — their checkpoints are valid; cell at `zeroshot_notebooks/cell_pareto_remaining_B1.py`, ~2 h per case (measured 1 h 54 m / 6 h 24 m on B1×NH). The three B2 cases stay blocked until their data is repaired and retrained |
 
 ## ⬜ Not started
 
@@ -855,7 +855,7 @@ A fourth notebook is running the point-8 scaling sweep.
 ### Ready to run — scripts written, verified, committed
 | Point | Script | Notes |
 |---|---|---|
-| 2 Pareto | `omar_pfem/pareto_analysis.py` | one run per finished zero-shot case; minutes, reuses the cached fine references |
+| 2 Pareto | `omar_pfem/pareto_analysis.py` | one run per finished zero-shot case. **NOT minutes** — the two B1×NH runs took 1 h 54 m and 6 h 24 m for the same configuration on different Colab runtimes. It draws its own seeds (900_000+i) so it cannot borrow the zero-shot study's fine references; it computes its own |
 | 6 OOD diagnosis | `omar_pfem/ood_diagnosis.py` | no new FEM solves at all |
 | 8 scaling | `omar_pfem/gpu_fem_scaling_sweep.py` | needs a free GPU runtime; hours |
 
