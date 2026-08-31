@@ -292,6 +292,22 @@ def _generate_samples_resumable(build_fn, N, n_train, n_val, material, out_dir, 
 
 def cmd_train(args):
     run_started_at = time.time()
+    # Resolve the loss scaling from the geometry, and SAY so. Leaving this to
+    # be remembered by whoever launches the run is what let a B2 retrain start
+    # without it; the knowledge belongs in the code, and printed, so the log of
+    # any future run records which recipe it actually used.
+    if args.loss_force_norm is None:
+        args.loss_force_norm = 1 if args.geometry == "B2" else 0
+        print(f"[loss_force_norm] not given; resolved to {args.loss_force_norm} "
+              f"from geometry {args.geometry}. B2 needs it (report section 9.1: "
+              f"correcting the force alone took B2 from 32.46% to 94.08%); B1 "
+              f"does not and train_B1.py has no such option.")
+    else:
+        print(f"[loss_force_norm] {args.loss_force_norm} (given explicitly)")
+    if args.geometry == "B2" and not args.loss_force_norm:
+        print("[loss_force_norm] WARNING: B2 with the scaling OFF is the "
+              "configuration that produced the 94.08% regression. Expect a "
+              "combined val error near 1.0 that does not come down.")
     device = torch.device("cuda" if torch.cuda.is_available() and not args.cpu else "cpu")
     dtype = torch.float32
     os.makedirs(args.out_dir, exist_ok=True)
@@ -401,7 +417,29 @@ def cmd_train(args):
 
             Pi, _, _, _, _ = loss_and_pred(args.geometry, mesh_tensors[N], model,
                                            E_batch, nu_batch, force_batch, args, dtype)
-            loss = Pi.mean()
+            if args.loss_force_norm:
+                # Ported from train_B2.py, where it is on by default and where
+                # section 9.1 of the report established it is REQUIRED once the
+                # boundary force is FEM-consistent. Correcting B2's force made
+                # accuracy worse on its own -- 32.46% to 94.08% -- because the
+                # smaller, correct force weakens the only gradient pulling the
+                # network off the all-zero solution: dU/duv vanishes at uv=0 to
+                # leading order, so W's gradient is that signal.
+                #
+                # Dividing Pi by a per-sample constant that does not depend on
+                # uv leaves the true minimizer untouched (argmin c*f == argmin f)
+                # and only restores the gradient scale the learning rate was
+                # tuned against. Physics unchanged; optimizer conditioning fixed.
+                #
+                # This trainer had no such option, so the first B2 zero-shot
+                # retrain on repaired data reproduced exactly that regression --
+                # combined val error 0.96 at epoch 25 and 1.13 at epoch 50,
+                # against 0.48 and 0.46 for the B1 cases.
+                force_scale = torch.sqrt(
+                    torch.sum(force_batch ** 2, dim=2)).mean(dim=1).clamp_min(1e-8)
+                loss = (Pi / force_scale).mean()
+            else:
+                loss = Pi.mean()
             if not torch.isfinite(loss):
                 continue
             opt.zero_grad(set_to_none=True)
@@ -740,6 +778,19 @@ def main():
     p_train.add_argument("--lr", type=float, default=2e-3)
     p_train.add_argument("--weight_decay", type=float, default=0.0)
     p_train.add_argument("--grad_clip", type=float, default=1.0)
+    p_train.add_argument(
+        "--loss_force_norm", type=int, default=None,
+        help="Divide the Pi=U-W loss by each sample's own mean boundary-force "
+             "magnitude, for the BACKWARD pass only. Default is resolved from "
+             "the geometry rather than fixed, because the two geometries "
+             "genuinely differ: B2 -> 1, B1 -> 0. Report section 9.1 "
+             "established that once B2's boundary force is FEM-consistent, "
+             "correcting it ALONE makes accuracy worse (32.46%% -> 94.08%%) "
+             "because the smaller correct force weakens the only gradient "
+             "pulling the network off uv=0; train_B2.py therefore defaults "
+             "this on. B1's force never had that defect and train_B1.py has "
+             "no such option, so B1 stays at 0 and the three completed B1 "
+             "zero-shot cases remain reproducible. Pass 0 or 1 to override.")
     p_train.add_argument("--seed", type=int, default=0)
     p_train.add_argument("--out_dir", type=str, default="./zeroshot_study")
     p_train.set_defaults(func=cmd_train)

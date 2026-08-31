@@ -239,6 +239,46 @@ labelled `trainPi(family mean)` for this reason. **The honest progress signal
 is L2**, which on that run fell 1.71 → 0.204 over 300 epochs — converging, but
 far from a reportable number; the production run is N=17 for 2000 epochs.
 
+### 🛑 The B2 zero-shot trainer was missing `loss_force_norm` — caught mid-run
+
+Found 2026-08-29 while the first B2 retrain was running, by checking §9.1
+before waiting for the result.
+
+**§9.1's documented root cause, in its own words**: *"Fixing the force alone
+made things worse (32.46% → 94.08%) because the smaller, correct force gives
+too weak a gradient signal in Π = U − W. Fix: normalize the training loss (not
+the physics) by each sample's own boundary-force scale (`--loss_force_norm 1`
+in `train_B2.py`)."*
+
+**That is exactly what we had just done**: repaired the force so it is 13–21×
+smaller and correct, then retrained — and
+`resolution_invariance_zeroshot.py` **had no `loss_force_norm` at all**, while
+`train_B2.py` has it and defaults it **on**.
+
+The run was already reproducing the known regression when it was stopped:
+
+| epoch | B2×NH retrain | B1×MR for comparison |
+|---|---|---|
+| 25 | **0.9587** | 0.4775 |
+| 50 | **1.1298** | 0.4563 |
+
+0.94–1.13 against the documented 94.08%. Same number.
+
+**Fix applied**: the option is ported from `train_B2.py`, and its default is
+**resolved from the geometry** rather than fixed — B2 → 1, B1 → 0 — and
+printed at the top of every run. B1 stays at 0 because its force never had the
+defect and `train_B1.py` has no such option, so the three completed B1
+zero-shot cases stay reproducible. A B2 run with the scaling off now prints a
+warning naming the 94.08% regression.
+
+Checked, not assumed: dividing Π by a per-sample constant independent of uv
+leaves the minimizer unchanged (`argmin c·f = argmin f`), verified numerically
+alongside the tensor shapes.
+
+**Why this nearly cost hours**: the knowledge lived in §9.1 and in
+`train_B2.py`'s default, and nowhere in the path a zero-shot B2 run takes. It
+now lives in the code that needs it.
+
 ### ⛔ The three B2 zero-shot cases are INVALID (2026-08-29)
 
 `point7a_results/INVALID_B2_zeroshot.json`. Their eval reports are still on
