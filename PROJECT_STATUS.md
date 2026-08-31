@@ -754,7 +754,66 @@ roughness, a 16% difference explains nothing.
 **Closed so far:** the load · `loss_force_norm` · batch size · the
 data-and-functional · input normalisation · the Dirichlet ramp.
 
-### 🎯 NEXT: does B2 train at ONE resolution? — the test that stops the guessing
+### ❌ JOINT TRAINING IS NOT THE FAULT — B2 fails at ONE resolution too (2026-08-31)
+
+Run on commit `25557d3`, A100, 12 m 8 s + 13 m 56 s. Same cache, same
+trainer, same everything; only the joint-training half removed.
+
+| arm | best | at epoch | last |
+|---|---|---|---|
+| **N=21 alone** | **0.9622** | 50 | 1.2255 |
+| **N=33 alone** | **1.0372** | 50 | 1.1538 |
+| N=21 and N=33 (joint, on Drive) | 0.9986 | — | — |
+| B1, all three materials | **0.0658–0.0827** | — | — |
+
+**Seven candidates are now closed** — the load, `loss_force_norm`, batch
+size, the data-and-functional, input normalisation, the Dirichlet ramp, and
+now joint training. The failure is fully present at a **single** resolution.
+
+**And the run printed something sharper than its own verdict.** In BOTH arms
+the best model is the **first validation event, epoch 50**, and all eight
+after it are worse — the same shape as the input-norm run (best at the first
+validation, early stop at 225) and every other B2 run on record:
+
+```
+N=21   0.9622(ep50) 1.3386 1.1442 1.1371 1.2015 1.2196 1.0999 1.1927 1.2255
+N=33   1.0372(ep50) 1.1350 1.1439 1.1256 1.1162 1.2351 1.1744 1.1600 1.1538
+```
+
+Both early-stopped at epoch 450 of the requested 4,000, so the doubled epoch
+budget never mattered — and the best checkpoint of each arm is 2,500 steps
+old. **Training does not stall on B2; it moves the model away from the FEM
+solution.** No closed candidate explains that: the load, the ramp and the
+family are properties of the *problem*, and none would make 20,000 further
+optimizer steps actively harmful.
+
+### 🎯 NEXT, and it is free: does training LOWER Π while raising the error?
+
+The objective is Π = U − W. `model_best.pt` (epoch 50) and `model_final.pt`
+(epoch 450) are both saved for both arms, and `test_b2_zeroshot_model.py`
+already prints Π(pred) beside Π(uv_exact) on the same sample. So this is the
+existing probe on four existing checkpoints — **CPU, minutes, no training**.
+Notebook: `Round6_B2_EnergyVsError.ipynb`.
+
+| outcome | meaning |
+|---|---|
+| **Π down, error up** | the optimizer is descending correctly toward a field with **less energy than the FEM solution**. The discretised Π on B2 does not have `uv_exact` as its minimiser over what this network can reach. Structural and reportable — and it makes regenerating the cache from the GRF the **wrong** next spend, because the data family cannot cause an objective that prefers a different field |
+| **Π up** | the optimizer is not minimising its own objective — an optimisation failure. Learning rate and the gradient through the two-ramp mask, both cheap to test |
+
+**Why the functional check does not already answer this.** It scanned
+Π(s·`uv_exact`) over a scalar `s` and found the minimum at s = 1.0 in 6/6
+with W/U = 1.9951–2.0021. That is a scan along **one ray**: it proves
+`uv_exact` is stationary under rescaling, and says nothing about whether some
+field off that ray has lower Π. This measurement looks off the ray, at the
+two fields training actually produced. The earlier entry's "the data is
+exonerated, everything left is in the training path" was right about where to
+look and overstated what a ray scan can settle.
+
+**The GRF regeneration is NOT the next step** on this evidence, whatever the
+single-resolution cell's own printed verdict said. It costs hours of FEM,
+and the measurement above can rule it out for minutes.
+
+### ~~NEXT: does B2 train at ONE resolution?~~ — ANSWERED ABOVE, kept for the reasoning
 
 Five rounds of guessing between structural differences have closed five
 candidates and cost five runs. **Two differences remain** from the B2 model
