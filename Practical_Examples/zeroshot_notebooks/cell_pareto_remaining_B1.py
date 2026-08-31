@@ -20,6 +20,7 @@
 #  GPU needed. Resumable: each case writes its own JSON, and re-running
 #  skips a case whose JSON is already there.
 # =====================================================================
+import json
 import os
 import subprocess
 import sys
@@ -28,6 +29,8 @@ REPO = '/content/OMAR'
 BRANCH = 'claude/claude-code-question-d307wp'
 R = '/content/drive/MyDrive/pfem_run'
 CASES = ['mooney_rivlin', 'arruda_boyce']
+# the same nine Table 18 uses, so the three cases are read on one axis
+RESOLUTIONS = [13, 17, 21, 25, 29, 33, 37, 41, 49]
 
 from google.colab import drive
 drive.mount('/content/drive')
@@ -74,34 +77,66 @@ for mat in CASES:
     assert os.path.exists(ckpt), (
         f'checkpoint missing: {ckpt}\nThis case has no trained model, so its '
         'Pareto cannot run.')
+    # A case counts as done only when its JSON holds EVERY resolution. An
+    # earlier version skipped on the file merely EXISTING, which would have
+    # defeated the resolution-level resume added to pareto_analysis.py: a run
+    # killed after N=13 leaves a one-row file, and "exists" would have read
+    # that as finished and skipped the remaining eight resolutions in silence.
+    have = []
+    if os.path.exists(out_json):
+        try:
+            have = [r['N'] for r in json.load(open(out_json)).get('rows', [])]
+        except Exception as e:
+            print(f'[{mat}] {out_json} is unreadable ({e.__class__.__name__});'
+                  f' treating as not started')
+    missing = [N for N in RESOLUTIONS if N not in have]
     PLAN.append((mat, d, ckpt, out_json,
-                 os.path.getsize(ckpt) / 1e6, os.path.exists(out_json)))
+                 os.path.getsize(ckpt) / 1e6, have, missing))
 
 print('\nplan:')
-for mat, d, ckpt, out_json, mb, done in PLAN:
-    print('  %-14s checkpoint %.1f MB   %s'
-          % (mat, mb, 'ALREADY DONE, will skip' if done else 'to run'))
+for mat, d, ckpt, out_json, mb, have, missing in PLAN:
+    if not missing:
+        state = 'COMPLETE (%d/%d), will skip' % (len(have), len(RESOLUTIONS))
+    elif have:
+        state = 'PARTIAL %d/%d -- will resume at N=%s' % (
+            len(have), len(RESOLUTIONS), missing[0])
+    else:
+        state = 'to run (%d resolutions)' % len(RESOLUTIONS)
+    print('  %-14s checkpoint %.1f MB   %s' % (mat, mb, state))
 
-for mat, d, ckpt, out_json, mb, done in PLAN:
-    if done:
-        print(f'\n[{mat}] {out_json} exists -- skipping. Delete it to force a '
-              f're-run.')
+for mat, d, ckpt, out_json, mb, have, missing in PLAN:
+    if not missing:
+        print(f'\n[{mat}] all {len(RESOLUTIONS)} resolutions present in '
+              f'{out_json} -- skipping. Delete it to force a re-run.')
         continue
+    if have:
+        print(f'\n[{mat}] resuming: N={sorted(have)} already done, '
+              f'N={missing} still to do.')
     print('\n' + '=' * 70)
-    print(f'[{mat}] starting -- expect roughly two hours, possibly more')
+    # The Mooney-Rivlin run measured 14 h 31 m, not the "roughly two hours"
+    # an earlier version of this cell predicted. The estimate had been carried
+    # over from B1 x Neo-Hookean without allowing for the 2.1-2.4x more
+    # expensive autodiff assembly of the other two materials (Table 4a). Pure
+    # CPU solve time is 6.6 h; the rest is Colab.
+    print(f'[{mat}] starting -- 6.6 h of CPU solve time at minimum, and the '
+          f'Mooney-Rivlin run took 14 h 31 m end to end')
+    print(f'  N=49 alone is 1.8 h of it. The JSON is written after EVERY')
+    print(f'  resolution and a restart now resumes, so a disconnect costs')
+    print(f'  only the resolution in flight.')
     print('=' * 70)
     run([sys.executable, '-u', '-m', 'omar_pfem.pareto_analysis',
          '--geometry', 'B1', '--material', mat,
          '--checkpoint', ckpt,
          # the same nine resolutions Table 18 uses, so the three cases are
          # read on one axis
-         '--resolutions', '13,17,21,25,29,33,37,41,49',
+         '--resolutions', ','.join(str(N) for N in RESOLUTIONS),
          '--fine_N', '101',
          '--n_samples', '20',
          '--batch_size', '1',
          '--out_dir', d,
          '--out_json', out_json])
-    print(f'\n[{mat}] wrote {out_json}')
+    n = len(json.load(open(out_json)).get('rows', []))
+    print(f'\n[{mat}] wrote {out_json} -- {n}/{len(RESOLUTIONS)} resolutions')
 
 print('\n' + '=' * 70)
 print('All requested cases finished. Send Claude the contents of each')
