@@ -165,9 +165,40 @@ print(f'             less if it plateaus. Resumable at every validation event.')
 # Cheap (no FEM: the coarse samples are built with solve_fem=False) and it
 # gives the before/after on ONE axis. Written into DST, never into SRC.
 old_eval = f'{DST}/zeroshot_eval_OLD_checkpoint.json'
-if os.path.exists(src_ckpt) and not os.path.exists(old_eval):
+WANT = [int(x) for x in TEST_RES.split(',')]
+
+
+def rows_present(path):
+    """Which resolutions a report file actually holds.
+
+    NOT `os.path.exists`. A run killed part-way leaves a file with some of
+    the resolutions in it, and treating the file's mere existence as "done"
+    would drop the rest in silence -- the same mistake that had to be fixed
+    in the Pareto cell. cmd_eval resumes per resolution and is fingerprint-
+    guarded, so re-running it on a partial file costs only what is missing.
+    """
+    if not os.path.exists(path):
+        return []
+    try:
+        return [r['N'] for r in json.load(open(path)).get('rows', [])]
+    except Exception as e:
+        print(f'  {path} is unreadable ({e.__class__.__name__}); '
+              f'treating as not started')
+        return []
+
+
+have_old = rows_present(old_eval)
+missing_old = [N for N in WANT if N not in have_old]
+if not os.path.exists(src_ckpt):
+    print(f'\n1/3  skipped: no checkpoint at {src_ckpt}')
+elif not missing_old:
+    print(f'\n1/3  already complete ({len(have_old)}/{len(WANT)} resolutions) '
+          f'-- {old_eval}')
+else:
     print('\n' + '=' * 78)
     print('1/3  the EXISTING B2 checkpoint, re-scored on both metrics')
+    if have_old:
+        print(f'     resuming: N={sorted(have_old)} done, N={missing_old} left')
     print('=' * 78)
     run([sys.executable, '-u', '-m',
          'omar_pfem.resolution_invariance_zeroshot', 'eval',
@@ -175,10 +206,6 @@ if os.path.exists(src_ckpt) and not os.path.exists(old_eval):
          '--checkpoint', src_ckpt,
          '--test_resolutions', TEST_RES, '--fine_N', FINE_N,
          '--n_eval_samples', N_EVAL, '--out_json', old_eval])
-elif os.path.exists(old_eval):
-    print(f'\n1/3  already done -- {old_eval}')
-else:
-    print(f'\n1/3  skipped: no checkpoint at {src_ckpt}')
 
 # ---- 2. train ---------------------------------------------------------
 print('\n' + '=' * 78)
@@ -227,7 +254,7 @@ for tag, path in (('old', old_eval), ('new', new_eval)):
 print(f"\n  {'N':>6}" + ''.join(f'{c:>18}' for c in
                                 ('old per_comp', 'new per_comp',
                                  'old both', 'new both')))
-for N in [int(x) for x in TEST_RES.split(',')]:
+for N in WANT:
     o, n = rows.get('old', {}).get(N), rows.get('new', {}).get(N)
 
     def f(row, key):
