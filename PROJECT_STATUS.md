@@ -235,30 +235,73 @@ labelled `trainPi(family mean)` for this reason. **The honest progress signal
 is L2**, which on that run fell 1.71 → 0.204 over 300 epochs — converging, but
 far from a reportable number; the production run is N=17 for 2000 epochs.
 
-### ⚠️ CG spins on the last Newton iteration — found 2026-08-28, NOT yet quantified
+### ✅ RESOLVED 2026-08-29 — CG never converged in the point-8 sweep
 
-`matrix_free_solver.conjugate_gradient` stops on `‖r‖/‖b‖ < cg_tol`, where
-`b` is the Newton right-hand side. On the **last Newton iteration of every
-load step** `b` is the already-converged residual, so the relative target is
-scaled by a number near zero and becomes unreachable in float64. CG then runs
-to `cg_max_iter` and reports "did not converge" at a residual of ~1e-15 —
-which is not a failure at all, it has simply been asked for the impossible.
+**The question is settled, and my earlier framing of it was wrong on two
+counts.** Both Drive JSONs were read on 2026-08-29 and their `stats` blocks
+are now committed into `point8_results/gpu_fem_scaling_B1_neo_hookean.json`.
 
-Found while building the MMS study, where it made an 18-DOF problem take
-minutes. Worked around there with a size-proportional cap (`2*n_free`).
+What the counters say:
 
-**What has NOT been checked: whether this inflated the point-8 sweep's
-timings.** That sweep ran `newton_tol=1e-7, cg_tol=1e-6, cg_max_iter=2000`
-with 10 load steps, so up to 20,000 CG iterations per solve could have been
-spent on unreachable targets. If so, Table 20's absolute times are pessimistic
-and the µs/DOF curve could shift. **Do not restate Table 20's timings as
-optimal until someone checks this.** The shape of the result (U-shape,
-DOF^1.54, memory) is not in question; the absolute wall-clock is.
+| N | Newton | CG iters | CG failures | CG per Newton | ms per CG iter |
+|---|---|---|---|---|---|
+| 101 | 20 | 10,084 | **0** | 504.2 | 38.8 |
+| 201 | 20 | 20,168 | **0** | 1,008.4 | 39.5 |
+| 301 | 20 | 30,240 | **0** | 1,512.0 | 40.4 |
+| 401 | 20 | 40,000 | 20 | 2,000.0 | 41.5 |
+| 501 | 20 | 40,000 | 20 | 2,000.0 | 40.4 |
+| 701 | 30 | 60,000 | 30 | 2,000.0 | 74.8 |
+| 1001 | 40 | 80,000 | 40 | 2,000.0 | 152.1 |
+| 1401 | 67 | 134,000 | 67 | 2,000.0 | 296.6 |
 
-The real fix is a stopping test that also accepts a small absolute residual,
-e.g. `‖r‖ < max(cg_tol*‖b‖, eps_abs)`. Not applied: it changes a solver every
-committed result depends on, and it should be a deliberate, separately
-validated change rather than a side effect of the MMS work.
+**Wrong count 1: this is not the last-Newton-iteration effect.** At N≥401,
+`cg_failures` EQUALS `newton_iters_total` — every CG solve hit the cap, not
+one per load step. `cg_iters/newton_iters` is exactly 2000.0, the
+`cg_max_iter` default.
+
+**Wrong count 2: it is not an unreachable target either.** The three
+converged rows fix the true requirement: **CG iterations per Newton solve =
+5.011 × N** (the three constants are 4.992, 5.017, 5.023 — 0.6% apart). That
+is the textbook rate: κ grows as 1/h², so CG needs O(1/h) = O(N) iterations.
+CG at N≥401 was simply not given enough iterations. It is a budget shortfall,
+not a broken stopping test.
+
+Fraction of the required CG work actually performed: **N=401 99.5%, N=501
+79.7%, N=701 56.9%, N=1001 39.9%, N=1401 28.5%.**
+
+**Accuracy is untouched.** Newton's test is ABSOLUTE (‖R‖ < 1e-7), checked
+before each step, and the counts stay far below `newton_max`=30 per load step.
+
+**Newton's count is the tell.** It is exactly 20 (2 per load step) for every
+row where CG did essentially all its work (N=101–501), and grows only as
+truncation deepens: 30, 40, 67. An inexact direction costs extra Newton steps.
+
+**⚠️ A sentence in report §8.5 is falsified by this.** It reads *"Above it,
+the number of CG iterations required grows with refinement, because the
+tangent's condition number scales with the inverse square of the element
+size."* The MECHANISM is right and is now measured (5.011 × N), but the
+measured CG count did NOT grow above N=401 — it was pinned at the cap. The
+sentence must be rewritten, not patched.
+
+**Also found: Table 20 is assembled from two runs, and N=501 is in both** —
+identical settings, identical iteration counts (20 Newton / 40,000 CG / 20
+failures), **13.0% apart in wall clock** (1,616.1 s vs 1,826.8 s). Table 20
+quotes the first. That is the run-to-run variation every single-run timing in
+the table silently carries.
+
+**Direction of the error in Table 20: not one-signed.** Truncating CG makes
+each Newton step cheaper than a converged one AND raises the Newton count.
+My earlier note claiming the timings are "pessimistic" was unfounded.
+
+**Still true and unaffected**: the memory model (2.4% out of sample — memory
+does not depend on CG count), the 3.93M-DOF headline, and the point that a
+matrix-free CG iteration contains assembly by construction.
+
+The stopping test should still also accept a small absolute residual,
+`‖r‖ < max(cg_tol*‖b‖, eps_abs)` — that is the real MMS bug, on tiny problems
+where the relative target genuinely is unreachable. Not applied: it changes a
+solver every committed result depends on, and it should be a deliberate,
+separately validated change.
 
 ### ⚠️ Table 4b, and 74× vs 309× — read before touching §4.2 or §8.5
 
