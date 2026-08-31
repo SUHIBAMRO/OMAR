@@ -556,10 +556,54 @@ working correctly on data whose Π has its minimum near zero.
    parametric field and trains fine, so this is not on its own an explanation
    either.
 
-   Test: `omar_pfem/test_b2_zeroshot_model.py` — input channel scales as fed,
-   what the trained model predicts (rms ratio and correlation), Π at that
-   prediction, and how much the prediction changes across samples on one mesh.
-   **No training, CPU, seconds.** Notebook: `Round6_B2_Model_Probe.ipynb`.
+   **First probe run 2026-08-31 (commit `c7f63c6`), 4 val samples at each of
+   N=21 and N=33.** What it settled:
+
+   * **The model is not predicting zero.** rms(pred) 2.51–3.34e-03 against
+     targets 4.15e-03–1.28e-02. The 1.0 error is not a dead model.
+   * **Its amplitude is 2.5–4× too small** — ratios 0.23, 0.30, 0.26, 0.61,
+     0.56, 0.42, 0.35, 0.27, mean **0.375**.
+   * **But rescaling would not fix it.** W/U at the prediction is 1.89–3.43,
+     i.e. ≈ 2, which *is* the stationarity condition under rescaling. The
+     model is not part-way down a ray with more to go — its **shape** is
+     wrong, not just its size. (And the two disagree: if pred were s·uv_exact
+     then W/U = 2/s implies s = 0.6–1.1, against the 0.23–0.61 measured. That
+     mismatch is itself proof the prediction is off the solution ray.)
+   * **U(pred) = 1.63–2.32e-02 on every sample and both meshes — a 1.42×
+     spread — while the targets span 3.09× and Π(uv_exact) spanned 10×.** The
+     model emits a field of nearly fixed strain energy whatever it is shown.
+     That is the collapse, measured in the most physical variable available.
+   * **It does read its input, about five times too weakly.** Prediction
+     variability 0.134 / 0.100 against target variability 0.641 / 0.310. So
+     "ignoring the fields" is ruled out; "responding far too weakly" replaces
+     it. Correlation is erratic across samples: +0.87, +0.78, +0.45, +0.33,
+     +0.16, +0.03, −0.02, −0.11.
+   * **The load channel is 4–5 orders below the stiffness channel** —
+     rms(f)/rms(E) = 7.2e-05 at N=21 and 2.3e-05 at N=33 — and nonzero on
+     4.8% and 3.0% of nodes.
+
+   **⚠️ Two faults in the probe itself, found by reading its own output, now
+   fixed.** Both would have produced a confident wrong reading:
+
+   1. It printed Π(pred) with **no Π(uv_exact) for the same sample**. The
+      functional test's Π values are on `train_samples`; the probe reads
+      `val_samples`, which are different problems. So Π(pred) could not be
+      compared with anything. Now both are computed per sample and what is
+      printed is the fraction of the available descent.
+   2. It put the channel scales at N=21 and N=33 side by side **as if the
+      difference were a mesh effect**. It is not separable that way: the cache
+      uses `seed_base = 10_000 * N`, so those are different **draws** as well
+      as different meshes. Now one fixed seed is rebuilt on both meshes, with
+      the mesh-independent load total printed beside the per-node scale.
+
+   **And the control that was missing**: B1 reaches 0.066 on the same trainer,
+   architecture and protocol. Any account of B2's failure that applies equally
+   to B1 explains nothing. The probe now runs **both arms** and prints them
+   together.
+
+   Test: `omar_pfem/test_b2_zeroshot_model.py --geometry B1|B2`.
+   **No training, CPU, a couple of minutes.** Notebook:
+   `Round6_B2_Model_Probe.ipynb`.
 
 **In the report**: v37 §8.7's "Two limits" paragraph and §10's bullet both say
 this outright — data corrected, models retrained, still unusable, cause under

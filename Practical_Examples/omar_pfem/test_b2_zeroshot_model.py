@@ -1,54 +1,78 @@
-"""What is the trained B2 zero-shot model actually doing, and what is it fed?
+"""What is the trained zero-shot model doing, and what is it fed?
 
-Where this stands. test_b2_zeroshot_functional.py settled the previous
-question: Pi's minimum sits at s = 1.000 on every sample checked, at both
-training resolutions, with |W|/U = 2.00 to three decimals. The data and the
-functional agree. So the failure is not a mis-scaled work term and not the
-cache -- it is in the training path, and this looks at that path with the
-checkpoint that is already on disk. No training.
+Runs on either geometry, because the point of it is the COMPARISON: B2 sits
+at a combined validation error of ~1.0 and B1, same trainer and same
+protocol, reaches 0.066. Any account of B2's failure that would apply
+equally to B1 is not an account of anything, so every number below is meant
+to be read in pairs.
 
-Four measurements, in the order they narrow things down.
+Where this stands. test_b2_zeroshot_functional.py established that Pi's
+minimum is at the FEM solution -- s = 1.000 on six samples, |W|/U = 2.00 to
+three decimals. The cache and the functional are fine. What is left is the
+training path, and this looks at it with the checkpoint already on disk.
+Nothing is trained and nothing is written.
 
-  1. THE INPUT CHANNELS. The network is fed fun_material = (E, nu, f_x, f_y)
-     RAW, with no normalization (train_B2.py, and the zero-shot trainer
-     re-exports that function unchanged). For B2 the force is an inner-edge
-     traction, so f is exactly zero on every node that is not on the inner
-     boundary -- about 5% of the mesh at N=21. E is around 1000. If the two
-     channels carrying the loading are orders of magnitude below the channel
-     carrying stiffness, and nonzero on a twentieth of the nodes, the model
-     may simply not see the load. This prints the scales rather than assuming
-     them.
+The first version of this script had two design faults and this one fixes
+them; both are worth naming, because both would have produced a confident
+wrong reading.
 
-  2. WHAT IT PREDICTS. rms(pred)/rms(uv_exact) and the correlation between
-     them. A combined error of 1.0 is what predicting zero scores, but it is
-     also roughly what predicting noise of the right size scores, and those
-     are different failures. This separates them.
+  * It reported Pi(pred) with no Pi(uv_exact) for the SAME sample. The
+    functional test's Pi values are on train_samples, this reads
+    val_samples, and the two sample sets are different problems -- so
+    "Pi(pred) = -2.7e-02" could not be compared with anything. Both are now
+    computed here, per sample, and the fraction of the available descent is
+    what gets printed.
 
-  3. WHERE IT SITS ON Pi. Pi(pred) against Pi(0) = 0 and Pi(uv_exact). The
-     trainer minimizes Pi. If Pi(pred) is essentially 0, the optimizer never
-     descended at all. If it is part of the way down, it descended and
-     stalled. Those point at different causes.
+  * It printed the input-channel scales at N=21 and N=33 side by side as
+    though the difference between them were a mesh effect. It is not
+    separable that way: the cache seeds each resolution differently
+    (seed_base = 10_000 * N), so those are different draws as well as
+    different meshes. This builds ONE fixed seed at BOTH resolutions and
+    compares that, which is the controlled version, and prints the
+    mesh-independent load total beside the per-node scale.
 
-  4. DOES IT USE ITS INPUT? The same mesh, several different samples. If the
-     outputs barely differ, the model has collapsed to a function of the
-     coordinates alone and is ignoring (E, nu, f) -- which would explain an
-     error that is flat in the mesh, flat in the material and flat in N, and
-     would point at the input channels of measurement 1.
+What it measures, per geometry:
+
+  1. THE INPUT CHANNELS as the model receives them -- fun_material is
+     (E, nu, f_x, f_y) fed RAW, with no normalization anywhere in this path.
+     Plus the controlled mesh comparison described above.
+  2. WHAT IT PREDICTS -- amplitude ratio, correlation, relative L2.
+  3. HOW FAR DOWN Pi IT GOT -- Pi(pred) against Pi(uv_exact) and Pi(0) = 0,
+     same sample, as a percentage of the available descent.
+  4. WHETHER RESCALING WOULD HELP -- W/U at the prediction, and a scan of
+     Pi(s * pred). W/U = 2 means the prediction is already stationary under
+     rescaling, so a stalled descent along a ray is NOT the explanation.
+  5. WHETHER IT USES ITS INPUT -- sample-to-sample variability of the
+     prediction against that of the target, and of the strain energy U,
+     which is the physical version of the same question.
 
 Usage:
-  python -m omar_pfem.test_b2_zeroshot_model \
+  python -m omar_pfem.test_b2_zeroshot_model --geometry B2 \
       --cache <samples_cache.pt> --checkpoint <model_best.pt>
 """
 import argparse
 import os
 
+import numpy as np
 import torch
 
-from omar_pfem.train_B2 import total_potential_energy_Q4_hyperelastic
+from omar_pfem.model_dict import get_model
+from omar_pfem.resolution_invariance_zeroshot import (
+    build_sample_b1, build_sample_b2, loss_and_pred, mesh_tensors_of)
+
+
+class Fixed(torch.nn.Module):
+    """Stands in for the network and returns a prescribed raw field."""
+
+    def __init__(self, raw):
+        super().__init__()
+        self.register_buffer("raw", raw)
+
+    def forward(self, xy_domain, fun_material):
+        return self.raw.to(xy_domain.dtype)
 
 
 def build_model(args, device):
-    from omar_pfem.model_dict import get_model
     return get_model(args).Model(
         space_dim=2, n_layers=args.n_layers, n_hidden=args.n_hidden,
         dropout=args.dropout, n_head=args.n_heads, Time_Input=False,
@@ -62,18 +86,28 @@ def rel(a, b):
                  / torch.sqrt(torch.mean(b ** 2)).clamp_min(1e-30))
 
 
+def rms(a):
+    return float(torch.sqrt(torch.mean(a ** 2)))
+
+
+def variability(stack):
+    S = torch.stack(stack)
+    return float(torch.sqrt(torch.mean((S - S.mean(dim=0)) ** 2))
+                 / torch.sqrt(torch.mean(S ** 2)).clamp_min(1e-30))
+
+
 def main():
     p = argparse.ArgumentParser()
+    p.add_argument("--geometry", default="B2", choices=["B1", "B2"])
     p.add_argument("--cache", required=True)
     p.add_argument("--checkpoint", required=True)
     p.add_argument("--material", default="neo_hookean")
     p.add_argument("--R_out", type=float, default=2.0)
+    p.add_argument("--Ly", type=float, default=1.0)
     p.add_argument("--mode", default="plane_strain")
     p.add_argument("--use_soft_dirichlet", type=int, default=1)
     p.add_argument("--n_samples", type=int, default=4)
     p.add_argument("--cpu", action="store_true")
-    # the architecture the trainer defaults to; these must match or the
-    # state dict will not load, which is itself the check
     p.add_argument("--model", default="Transolver_Irregular_Mesh")
     p.add_argument("--n_hidden", type=int, default=256)
     p.add_argument("--n_layers", type=int, default=4)
@@ -96,109 +130,167 @@ def main():
     model = build_model(args, device)
     model.load_state_dict(torch.load(args.checkpoint, map_location=device))
     model.eval()
+    print(f"geometry   : {args.geometry} x {args.material}")
     print(f"cache      : {args.cache}")
     print(f"checkpoint : {args.checkpoint}")
-    print(f"resolutions: " + ", ".join(f"{k} ({len(v)} val)"
-                                       for k, v in buckets.items()))
+    print("resolutions: " + ", ".join(f"{k} ({len(v)} val)"
+                                      for k, v in buckets.items()))
 
-    collapse = {}
+    def energy(sample, mesh, raw_or_model):
+        E = torch.tensor(sample["E_node"], device=device, dtype=dtype)[None]
+        nu = torch.tensor(sample["nu_node"], device=device, dtype=dtype)[None]
+        f = torch.tensor(sample["node_forces"], device=device, dtype=dtype)[None]
+        with torch.no_grad():
+            Pi, U, W, uv, _ = loss_and_pred(
+                args.geometry, mesh, raw_or_model, E, nu, f, args, dtype)
+        return float(Pi[0]), float(U[0]), float(W[0]), uv[0]
+
+    # ---- 1b. the controlled mesh comparison, one seed on both meshes -----
+    print("\n" + "=" * 74)
+    print("THE LOAD CHANNEL ACROSS THE TWO TRAINING MESHES, ONE FIXED SEED")
+    print("=" * 74)
+    print("The cache seeds each resolution differently, so its own samples")
+    print("cannot answer this. One seed is rebuilt on both meshes instead.")
+    build_fn = build_sample_b1 if args.geometry == "B1" else build_sample_b2
+    ctrl = {}
+    for N in buckets:
+        s, _ = build_fn(N, seed=777_000, material=args.material,
+                        solve_fem=False)
+        fc = s["node_forces"]
+        ctrl[N] = dict(
+            rms_f=float(np.sqrt(np.mean(fc ** 2))),
+            rms_E=float(np.sqrt(np.mean(s["E_node"] ** 2))),
+            nz=float((np.abs(fc).sum(axis=1) > 0).mean()),
+            total=float(np.linalg.norm(fc.sum(axis=0))),
+            n_nodes=fc.shape[0])
+    print(f"\n{'N':>6}{'nodes':>8}{'rms(f)':>12}{'rms(f)/rms(E)':>16}"
+          f"{'nodes with f':>14}{'|sum f| (total load)':>22}")
+    for N, c in ctrl.items():
+        print(f"{N:>6}{c['n_nodes']:>8}{c['rms_f']:>12.4e}"
+              f"{c['rms_f'] / c['rms_E']:>16.3e}"
+              f"{c['nz'] * 100:>13.1f}%{c['total']:>22.6f}")
+    Ns = sorted(ctrl)
+    if len(Ns) >= 2:
+        a, b = ctrl[Ns[0]], ctrl[Ns[-1]]
+        print(f"\n  the TOTAL load agrees to "
+              f"{abs(b['total'] / a['total'] - 1) * 100:.3f}% -- it must, and "
+              f"this is the check the load repair installed.")
+        print(f"  the PER-NODE scale the network is fed changes by "
+              f"{a['rms_f'] / b['rms_f']:.2f}x between the two meshes, because "
+              f"an assembled")
+        print(f"  force spreads the same total over more nodes as the mesh "
+              f"refines. Same physical")
+        print(f"  loading, two different numbers in the input channel, and "
+              f"nothing normalises it.")
+
+    # ---- the per-sample work -------------------------------------------
+    collapse, energy_spread, descent = {}, {}, []
     for N, samples in buckets.items():
         print("\n" + "=" * 74)
         print(f"resolution {N}")
         print("=" * 74)
-        xy = torch.tensor(samples[0]["xy"], device=device, dtype=dtype)
-        quad = torch.tensor(samples[0]["quad"], device=device, dtype=torch.long)
-        ie = torch.tensor(samples[0]["inner_edges"], device=device, dtype=torch.long)
-        t0 = torch.tensor(samples[0]["theta0_nodes"], device=device, dtype=torch.long)
-        th = torch.tensor(samples[0]["thetahalfpi_nodes"], device=device, dtype=torch.long)
-        preds, tgts = [], []
+        mesh = mesh_tensors_of(args.geometry, samples[0], device, dtype)
+        n_nodes = samples[0]["xy"].shape[0]
+
+        # the Dirichlet mask, discovered rather than reimplemented: feeding a
+        # raw field of ones returns the mask itself, whatever the geometry
+        ones = torch.ones(1, n_nodes, 2, device=device, dtype=dtype)
+        _, _, _, mask = energy(samples[0], mesh, Fixed(ones))
+
+        preds, tgts, Us = [], [], []
         for i in range(min(args.n_samples, len(samples))):
             s = samples[i]
-            E = torch.tensor(s["E_node"], device=device, dtype=dtype)[None]
-            nu = torch.tensor(s["nu_node"], device=device, dtype=dtype)[None]
-            f = torch.tensor(s["node_forces"], device=device, dtype=dtype)[None]
             tgt = torch.tensor(s["uv_exact"], device=device, dtype=dtype)
 
-            # ---- 1. the input channels, as the model receives them --------
             if i == 0:
-                nz = (f.abs().sum(dim=2) > 0).float().mean().item()
-                print("\n  the four input channels, exactly as fed "
-                      "(no normalization anywhere in this path):")
-                for name, ch in (("E    ", E[0]), ("nu   ", nu[0]),
-                                 ("f_x  ", f[0, :, 0]), ("f_y  ", f[0, :, 1])):
-                    print(f"    {name} rms {float(torch.sqrt(torch.mean(ch**2))):11.4e}"
-                          f"   min {float(ch.min()):11.4e}"
-                          f"   max {float(ch.max()):11.4e}")
-                print(f"    nodes carrying any force: {nz * 100:.1f}% "
-                      f"({int(nz * f.shape[1])} of {f.shape[1]})")
-                print(f"    rms(f)/rms(E) = "
-                      f"{float(torch.sqrt(torch.mean(f**2)) / torch.sqrt(torch.mean(E**2))):.3e}"
-                      f"  -- how loud the loading is beside the stiffness")
+                E = torch.tensor(s["E_node"], dtype=dtype)
+                f = torch.tensor(s["node_forces"], dtype=dtype)
+                nu = torch.tensor(s["nu_node"], dtype=dtype)
+                print("\n  the four channels of this sample, exactly as fed "
+                      "(nothing normalises them):")
+                for nm, ch in (("E   ", E), ("nu  ", nu),
+                               ("f_x ", f[:, 0]), ("f_y ", f[:, 1])):
+                    print(f"    {nm} rms {rms(ch):11.4e}   min "
+                          f"{float(ch.min()):11.4e}   max {float(ch.max()):11.4e}")
+                print(f"    rms(f)/rms(E) = {rms(f) / rms(E):.3e}")
 
-            with torch.no_grad():
-                Pi, U, W, uv, _ = total_potential_energy_Q4_hyperelastic(
-                    xy, quad, ie, t0, th, model, E, nu, f,
-                    use_soft_dirichlet=bool(args.use_soft_dirichlet),
-                    R_out=args.R_out, mode=args.mode, dtype=dtype,
-                    fun_dim=args.fun_dim, material=args.material)
-            pred = uv[0]
-            preds.append(pred)
-            tgts.append(tgt)
+            pi_p, U_p, W_p, pred = energy(s, mesh, model)
+            # Pi at the truth, SAME sample. The stand-in must reproduce it or
+            # nothing below means anything.
+            raw = torch.where(mask.abs() > 1e-12, tgt / mask.clamp_min(1e-12),
+                              torch.zeros_like(tgt))[None]
+            pi_t, U_t, W_t, back = energy(s, mesh, Fixed(raw))
+            err = float(torch.max(torch.abs(back - tgt)))
+            assert err < 1e-4 * max(rms(tgt), 1e-30), (
+                f"the stand-in does not reproduce uv_exact (max abs diff "
+                f"{err:.3e}); every Pi below is meaningless")
 
-            # ---- 2. what it predicts -------------------------------------
+            frac = pi_p / pi_t if pi_t < 0 else float("nan")
+            descent.append(frac)
             num = float(torch.sum((pred - pred.mean()) * (tgt - tgt.mean())))
             den = float(torch.sqrt(torch.sum((pred - pred.mean()) ** 2)
                                    * torch.sum((tgt - tgt.mean()) ** 2)))
-            corr = num / den if den > 1e-30 else float("nan")
-            r_pred = float(torch.sqrt(torch.mean(pred ** 2)))
-            r_tgt = float(torch.sqrt(torch.mean(tgt ** 2)))
             print(f"\n  sample {i}")
-            print(f"    rms(pred) {r_pred:.4e}   rms(uv_exact) {r_tgt:.4e}"
-                  f"   ratio {r_pred / max(r_tgt, 1e-30):8.4f}")
-            print(f"    relative L2 vs uv_exact {rel(pred, tgt):.4f}"
-                  f"   correlation {corr:+.4f}")
-            print(f"    (a prediction of exactly zero scores 1.0000 and "
-                  f"correlation nan)")
+            print(f"    rms(pred) {rms(pred):.4e}   rms(uv_exact) "
+                  f"{rms(tgt):.4e}   ratio {rms(pred) / max(rms(tgt), 1e-30):7.4f}")
+            print(f"    relative L2 {rel(pred, tgt):.4f}   correlation "
+                  f"{(num / den if den > 1e-30 else float('nan')):+.4f}"
+                  f"   (predicting zero scores 1.0000)")
+            print(f"    Pi(pred)     {pi_p: .6e}   U {U_p:.4e}  W {W_p:.4e}"
+                  f"   W/U {W_p / max(U_p, 1e-30):.2f}")
+            print(f"    Pi(uv_exact) {pi_t: .6e}   U {U_t:.4e}  W {W_t:.4e}"
+                  f"   W/U {W_t / max(U_t, 1e-30):.2f}")
+            print(f"    Pi(0) = 0, so the model captured "
+                  f"{frac * 100:5.1f}% of the available descent")
+            if pi_p < pi_t - 1e-9 * abs(pi_t):
+                print("    !! Pi(pred) is BELOW Pi(uv_exact). Over the same "
+                      "space that is impossible;")
+                print("       it would mean the two paths are not evaluating "
+                      "the same functional.")
 
-            # ---- 3. where it sits on Pi ----------------------------------
-            print(f"    Pi(pred) {float(Pi[0]): .6e}   "
-                  f"Pi(0) 0.000000e+00   "
-                  f"U {float(U[0]):.4e}  W {float(W[0]):.4e}")
+            # would rescaling the prediction help?
+            scan = []
+            for sc in (0.5, 0.8, 1.0, 1.5, 2.0, 3.0, 4.0):
+                rp = torch.where(mask.abs() > 1e-12,
+                                 pred * sc / mask.clamp_min(1e-12),
+                                 torch.zeros_like(pred))[None]
+                scan.append((sc, energy(s, mesh, Fixed(rp))[0]))
+            best = min(scan, key=lambda t: t[1])
+            print(f"    rescaling the prediction: Pi is lowest at s = "
+                  f"{best[0]} ({best[1]:.4e}); "
+                  + ("amplitude is not the problem"
+                     if abs(best[0] - 1.0) < 0.3 else
+                     "the amplitude alone is worth "
+                     f"{(best[1] / pi_p - 1) * 100:.0f}% more descent"))
 
-        # ---- 4. does the model use its input? ----------------------------
+            preds.append(pred)
+            tgts.append(tgt)
+            Us.append(torch.tensor(U_p))
+
         if len(preds) >= 2:
-            def variability(stack):
-                S = torch.stack(stack)
-                return float(torch.sqrt(torch.mean((S - S.mean(dim=0)) ** 2))
-                             / torch.sqrt(torch.mean(S ** 2)).clamp_min(1e-30))
             collapse[N] = variability(preds)
-            print(f"\n  across the {len(preds)} samples on this one mesh, "
-                  f"sample-to-sample variability,")
-            print(f"  measured as rms(deviation from the mean field) / "
-                  f"rms(the fields):")
-            print(f"    the model's predictions  {collapse[N]:.4f}")
-            print(f"    the FEM targets          {variability(tgts):.4f}")
-            print(f"  a model that reads its input should be near the second "
-                  f"number, not near zero.")
+            energy_spread[N] = (max(float(u) for u in Us)
+                                / max(min(float(u) for u in Us), 1e-30))
+            print(f"\n  across the {len(preds)} samples on this one mesh:")
+            print(f"    variability of the predictions  {collapse[N]:.4f}")
+            print(f"    variability of the targets      {variability(tgts):.4f}")
+            print(f"    spread of U(pred), max/min      {energy_spread[N]:.2f}x")
+            print(f"  a model that reads its input tracks the second number.")
 
     print("\n" + "=" * 74)
     print("VERDICT")
     print("=" * 74)
-    if collapse and max(collapse.values()) < 0.05:
-        print("The model gives essentially the SAME field whatever sample it is")
-        print("shown. It has collapsed to a function of the coordinates alone")
-        print("and is ignoring (E, nu, f). That is consistent with an error")
-        print("flat in the mesh, flat in N and flat across materials, and it")
-        print("points straight at the input channels printed above: read")
-        print("rms(f)/rms(E) and the percentage of nodes carrying any force.")
-    elif collapse:
-        print("The model does respond to its input -- the predictions differ")
-        print("across samples. So it is not ignoring the fields, and the")
-        print("failure is in how far the optimizer got, not in what the model")
-        print("can see. Compare Pi(pred) against Pi(uv_exact) from")
-        print("test_b2_zeroshot_functional.py: that says how much of the")
-        print("descent actually happened.")
-    print("\nSend this block over. Nothing was written and nothing trained.")
+    d = [x for x in descent if x == x]
+    if d:
+        print(f"descent captured: {min(d) * 100:.0f}% to {max(d) * 100:.0f}% "
+              f"of Pi(uv_exact), mean {sum(d) / len(d) * 100:.0f}%")
+    if collapse:
+        print(f"prediction variability: "
+              + ", ".join(f"N={N} {v:.3f}" for N, v in collapse.items()))
+    print("\nRead it against the other geometry. B1 reaches 0.066 on the same")
+    print("trainer, so whatever separates the two runs has to show up as a")
+    print("difference between these two printouts -- and anything that looks")
+    print("the same in both is not the cause.")
 
 
 if __name__ == "__main__":

@@ -153,8 +153,87 @@
    "the_specific_suspicion": "fun_material is (E, nu, f_x, f_y) fed RAW -- there is no normalisation anywhere in train_B2's energy function, which the zero-shot trainer re-exports unchanged. For B2 the load is an inner-edge traction, so f is exactly zero on every node off that boundary (about 95% of them at N=21), and the load repair made what remains 13-21x smaller. E is around 1000. If the two channels carrying the loading are orders of magnitude below the one carrying stiffness and nonzero on a twentieth of the nodes, the model may not see the load at all -- which would give an error flat in N, flat across materials, and stuck near 1.0. This is a suspicion and is not yet measured.",
    "a_second_difference_worth_naming": "the 9.11% recipe and this study are not on the same problem family. data_generate_B2.py draws (E, nu, p) from a 2-D Gaussian random field in (theta, r); the zero-shot study uses ParametricFieldB2, a two-harmonic Fourier series in theta ALONE, chosen because it is resolution-independent by construction and a gridded GRF is not. So '9.11% is reachable on B2' was never transferable evidence about this trainer. B1 uses the same kind of parametric field and trains fine, so this is not on its own an explanation either.",
    "test": "omar_pfem/test_b2_zeroshot_model.py -- prints the input channel scales as fed, what the trained model predicts (rms ratio and correlation), Pi at that prediction, and how much the prediction changes across samples on one mesh. No training.",
-   "verdict": "PENDING",
-   "driver": "Practical_Examples/zeroshot_notebooks/Round6_B2_Model_Probe.ipynb"
+   "verdict": "PARTLY MEASURED -- the model is not ignoring its input, but it responds about five times too weakly and emits a field of nearly fixed strain energy whatever it is shown. Not yet a cause.",
+   "driver": "Practical_Examples/zeroshot_notebooks/Round6_B2_Model_Probe.ipynb",
+   "first_probe_2026_08_31": {
+    "run": "B2 x Neo-Hookean, 4 val samples at each of N=21 and N=33, CPU, commit c7f63c6",
+    "not_predicting_zero": "rms(pred) 2.512e-03 to 3.344e-03 against targets 4.148e-03 to 1.280e-02. So the 1.0 error is not a dead model.",
+    "amplitude_is_2_5_to_4x_too_small": [
+     0.23,
+     0.3,
+     0.26,
+     0.61,
+     0.56,
+     0.42,
+     0.35,
+     0.27
+    ],
+    "mean_amplitude_ratio": 0.375,
+    "W_over_U_at_the_prediction": [
+     2.49,
+     3.43,
+     2.11,
+     1.97,
+     1.89,
+     2.13,
+     2.14,
+     3.23
+    ],
+    "and_that_is_the_important_one": "W/U = 2 is the stationarity condition under rescaling. The prediction already satisfies it to within a few tens of per cent, so the model is NOT part-way down a ray with more to go: rescaling its output would not recover the solution. Its shape is wrong, not merely its size. Note the tension with the amplitude ratio -- if the prediction were s*uv_exact, W/U = 2/s would imply s = 0.6 to 1.1, against the 0.23 to 0.61 measured, which is itself proof the prediction does not lie on the solution ray.",
+    "U_at_the_prediction_is_nearly_constant": {
+     "values": [
+      0.018266,
+      0.023192,
+      0.016286,
+      0.016943,
+      0.016576,
+      0.016911,
+      0.016496,
+      0.018228
+     ],
+     "spread": "1.42x across all eight samples and BOTH meshes",
+     "against": "the targets' rms spans 3.09x, and Pi(uv_exact) on the train samples spanned 10x",
+     "reading": "the model emits a field of nearly fixed strain energy whatever sample it is shown. That is the collapse, measured in the most physical variable available."
+    },
+    "it_does_read_its_input_but_too_weakly": {
+     "prediction_variability_N21": 0.1336,
+     "target_variability_N21": 0.6408,
+     "prediction_variability_N33": 0.0997,
+     "target_variability_N33": 0.3101,
+     "reading": "about a fifth to a third of the variation it should show. So 'ignoring the fields entirely' is ruled out, and 'responding far too weakly' is what replaces it."
+    },
+    "correlation_is_erratic": [
+     0.0289,
+     0.7773,
+     -0.1126,
+     0.8691,
+     0.4528,
+     0.1625,
+     -0.0162,
+     0.3254
+    ],
+    "input_channels_as_fed_N21": {
+     "E_rms": 920.31,
+     "nu_rms": 0.34279,
+     "f_x_rms": 0.081156,
+     "f_y_rms": 0.048085,
+     "rms_f_over_rms_E": 7.248e-05,
+     "nodes_carrying_force": "4.8% (21 of 441)"
+    },
+    "input_channels_as_fed_N33": {
+     "E_rms": 1066.8,
+     "nu_rms": 0.31802,
+     "f_x_rms": 0.026887,
+     "f_y_rms": 0.020838,
+     "rms_f_over_rms_E": 2.255e-05,
+     "nodes_carrying_force": "3.0% (33 of 1089)"
+    }
+   },
+   "two_faults_in_the_probe_itself": [
+    "it reported Pi(pred) with no Pi(uv_exact) for the SAME sample. The functional test's Pi values are on train_samples and the probe reads val_samples, which are different problems, so Pi(pred) could not be compared with anything. Fixed: both are now computed per sample and what is printed is the fraction of the available descent.",
+    "it printed the channel scales at N=21 and N=33 side by side as though the difference were a mesh effect. It is not separable that way -- the cache uses seed_base = 10_000 * N, so those are different DRAWS as well as different meshes. Fixed: one fixed seed is rebuilt on both meshes, and the mesh-independent load total is printed beside the per-node scale."
+   ],
+   "and_the_control_that_was_missing": "B1 reaches 0.066 on the same trainer, the same architecture and the same protocol. Any account of B2's failure that would apply equally to B1 explains nothing. The probe now runs both arms and prints them together."
   }
  ],
  "what_is_safe_to_say_in_the_report": "the caches were repaired and the repair verified mesh-independent; all three cases were retrained under the B1 protocol with the force normalisation section 9.1 requires; the retrained models sit at a combined validation error of about 1.0, which is what predicting zero scores; the cause is under investigation and is not the optimiser settings tried so far.",
