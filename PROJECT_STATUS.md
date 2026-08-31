@@ -938,6 +938,43 @@ B1, skewed on B2 (per-sample mean 1.90 against 0.90 aggregate).
 | did early stopping keep the right model? | **yes** | no — first validation event |
 | reported numbers | **stand**, conservative by 1.36–1.71× | come from an inverted selection |
 
+### ⚠️ THREE OF THE SEVEN CLOSED B2 CANDIDATES WERE CLOSED WITH THE FAULTY SELECTION
+
+This has to be said plainly before anyone treats the candidate list as
+settled. Every candidate judged by a *val number* was judged by the metric now
+known to rank B2's checkpoints backwards, on runs that early-stopped at their
+first validation event. The list splits cleanly:
+
+| candidate | how it was closed | still safe? |
+|---|---|---|
+| mesh-dependent load | physical: total load agrees to **0.001%** across meshes | ✅ safe — no metric involved |
+| data and functional | physical: Π's minimum at s=1.0 in 6/6, W/U = 1.9951–2.0021 | ✅ safe |
+| Dirichlet ramp | geometric: peak/rms 2.46 against B1's 2.44 | ✅ safe |
+| `loss_force_norm` | val number | ⚠️ judged by the faulty metric |
+| batch size | val number, 0.9888 vs 0.9444 at matched steps | ⚠️ judged by the faulty metric |
+| **input normalisation** | val number, **0.9910 vs 0.9986**, early stop at 225 | ⚠️ **judged by the faulty metric, and both runs stopped at their first validation** |
+| joint training | val number, 0.9622 / 1.0372 vs 0.9986 | ⚠️ judged by the faulty metric — though the probe later confirmed both arms really were poor |
+
+**The four ⚠️ comparisons are weak, not wrong.** Each compared two arms under
+the *same* metric, so the ordering may well hold; what they cannot support is
+any statement about where those configurations *converge*, because none of
+them was trained to convergence. "Input normalisation moves 0.9986 → 0.9910"
+is really "after ~50 epochs, with selection inverted, the two are close".
+
+**Input normalisation is the one worth re-testing**, and it is the most
+physically plausible remaining cause of the symptom that is actually measured:
+the model under-responds to its input (prediction variability 0.10–0.24
+against targets' 0.31–0.64). The load channels sit at `rms(f)/rms(E)` =
+2.3e-05 to 7.2e-05 and are exactly zero on 95–97% of nodes, so two of the four
+input channels carry the loading at 10⁻⁵ of the scale of the one carrying
+stiffness. That is a real candidate mechanism, and the run that was supposed
+to rule it out never converged.
+
+**Order of operations:** let the current fixed-selection run finish first. It
+is the same configuration minus the defect, so it sets the honest baseline any
+re-test must beat. Only then is a second run (`--normalize_inputs 1
+--selection_metric both_components`, same ~3 h 36 m) worth the GPU.
+
 ### 📌 B2 BASELINE RE-SCORED ON BOTH METRICS, and it reproduces exactly (2026-08-31)
 
 Stage 1 of the retrain cell, on `5091b02`. The existing B2 × Neo-Hookean
