@@ -1,0 +1,48 @@
+{
+  "question": "Report Table 12 says its checkpoint was 'trained once at N=21'. The model now sitting in zeroshot_B1_neo_hookean/ is trained JOINTLY at N=21 and 33. Which one produced Table 12?",
+  "opened": "2026-08-29",
+
+  "evidence": {
+    "metrics_history_json_is_from_a_JOINT_run": {
+      "first_entry": {"epoch": 25, "per_resolution_val_error": {"21": 0.5229564905166626, "33": 0.46466803550720215}, "combined_val_error": 0.4938122630119324, "opt_steps": 2500, "cumulative_wall_clock_s": 160.89009523391724},
+      "summary": "36 entries, best combined_val_error 0.06575 at epoch 650 (65,000 steps), ended epoch 900 (90,000 steps)",
+      "conclusion": "per_resolution_val_error carries BOTH 21 and 33, so this history is unambiguously the joint trainer's."
+    },
+    "zeroshot_eval_report_json_is_from_an OLDER format": {
+      "test_resolutions": [25, 29, 37, 41, 49],
+      "checkpoint_fingerprint": "ABSENT",
+      "contrast": "B1 x Mooney-Rivlin and B1 x Arruda-Boyce both list SEVEN resolutions (13, 17, 25, 29, 37, 41, 49) and both carry a checkpoint_fingerprint.",
+      "conclusion": "this eval report predates the fingerprint field and the 7-resolution list, i.e. it is older than the other two."
+    },
+    "it_is_the_source_of_Table_12": "PROJECT_STATUS records Table 12's source as this exact file with 15 values verified, and the five numbers match the report exactly (0.0574, 0.0521, 0.0525, 0.0562, 0.0670)."
+  },
+
+  "the_two_readings": {
+    "A_directory_was_retrained_after_the_eval": {
+      "story": "B1 x NH was originally trained at N=21 alone and evaluated -> that eval report is Table 12, and the caption is CORRECT. Later the case was retrained jointly at 21+33 as part of the six-case sweep, but its eval was never re-run, so metrics_history.json is new while the eval report is old.",
+      "supported_by": "the eval report being in the older format while the history is in the newer one -- two files of different vintage in one directory",
+      "implication_if_true": [
+        "Table 12 and its caption stand as written",
+        "model_best.pt in that directory is NO LONGER the model Table 12 describes -- anything re-run against it will not reproduce Table 12",
+        "a joint-trained B1 x NH model ALREADY EXISTS (best val 0.06575) and needs only its EVAL re-run on the 7 resolutions to join B1 x MR and B1 x AB under one protocol. No retraining, no FEM generation -- the cheapest of the three remaining pieces of work"
+      ]
+    },
+    "B_it_was_always_joint": {
+      "story": "the case was joint-trained from the start and the caption was simply wrong.",
+      "implication_if_true": [
+        "Table 12's caption must be corrected in the report",
+        "the three B1 cases already share a protocol and only the 5-vs-7 resolution list separates them"
+      ]
+    }
+  },
+
+  "the_check_that_settles_it": {
+    "what": "run_manifest.json in zeroshot_B1_neo_hookean/ records every stage with a timestamp and its argv.",
+    "look_for": "a zeroshot_train entry whose --train_resolutions is '21,33'. Compare its finished_at_utc against the zeroshot_eval entry's. If the joint TRAIN finished AFTER the EVAL, reading A holds. If the only train entry is joint and precedes the eval, reading B holds.",
+    "command": "import json; [print(e['kind'], e['finished_at_utc'], e['args'].get('train_resolutions')) for e in json.load(open('/content/drive/MyDrive/pfem_run/zeroshot_B1_neo_hookean/run_manifest.json'))]"
+  },
+
+  "why_this_matters_beyond_a_caption": "under reading A the remaining work for a uniform three-case B1 table is one eval run, not a retrain. Under reading B it is already done and only the report text is wrong. Either way it is cheap -- but the report currently makes a claim about how a model was trained, and that claim is either right or it is not.",
+
+  "provenance": "the metrics_history first entry and the training summary were printed from Drive on 2026-08-29; the eval report contents were listed the same day."
+}
