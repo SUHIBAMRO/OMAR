@@ -1,22 +1,35 @@
 {
   "question": "Report Table 12 says its checkpoint was 'trained once at N=21'. The model now sitting in zeroshot_B1_neo_hookean/ is trained JOINTLY at N=21 and 33. Which one produced Table 12?",
   "opened": "2026-08-29",
-
   "evidence": {
     "metrics_history_json_is_from_a_JOINT_run": {
-      "first_entry": {"epoch": 25, "per_resolution_val_error": {"21": 0.5229564905166626, "33": 0.46466803550720215}, "combined_val_error": 0.4938122630119324, "opt_steps": 2500, "cumulative_wall_clock_s": 160.89009523391724},
+      "first_entry": {
+        "epoch": 25,
+        "per_resolution_val_error": {
+          "21": 0.5229564905166626,
+          "33": 0.46466803550720215
+        },
+        "combined_val_error": 0.4938122630119324,
+        "opt_steps": 2500,
+        "cumulative_wall_clock_s": 160.89009523391724
+      },
       "summary": "36 entries, best combined_val_error 0.06575 at epoch 650 (65,000 steps), ended epoch 900 (90,000 steps)",
       "conclusion": "per_resolution_val_error carries BOTH 21 and 33, so this history is unambiguously the joint trainer's."
     },
     "zeroshot_eval_report_json_is_from_an OLDER format": {
-      "test_resolutions": [25, 29, 37, 41, 49],
+      "test_resolutions": [
+        25,
+        29,
+        37,
+        41,
+        49
+      ],
       "checkpoint_fingerprint": "ABSENT",
       "contrast": "B1 x Mooney-Rivlin and B1 x Arruda-Boyce both list SEVEN resolutions (13, 17, 25, 29, 37, 41, 49) and both carry a checkpoint_fingerprint.",
       "conclusion": "this eval report predates the fingerprint field and the 7-resolution list, i.e. it is older than the other two."
     },
     "it_is_the_source_of_Table_12": "PROJECT_STATUS records Table 12's source as this exact file with 15 values verified, and the five numbers match the report exactly (0.0574, 0.0521, 0.0525, 0.0562, 0.0670)."
   },
-
   "the_two_readings": {
     "A_directory_was_retrained_after_the_eval": {
       "story": "B1 x NH was originally trained at N=21 alone and evaluated -> that eval report is Table 12, and the caption is CORRECT. Later the case was retrained jointly at 21+33 as part of the six-case sweep, but its eval was never re-run, so metrics_history.json is new while the eval report is old.",
@@ -35,14 +48,40 @@
       ]
     }
   },
-
   "the_check_that_settles_it": {
-    "what": "run_manifest.json in zeroshot_B1_neo_hookean/ records every stage with a timestamp and its argv.",
-    "look_for": "a zeroshot_train entry whose --train_resolutions is '21,33'. Compare its finished_at_utc against the zeroshot_eval entry's. If the joint TRAIN finished AFTER the EVAL, reading A holds. If the only train entry is joint and precedes the eval, reading B holds.",
-    "command": "import json; [print(e['kind'], e['finished_at_utc'], e['args'].get('train_resolutions')) for e in json.load(open('/content/drive/MyDrive/pfem_run/zeroshot_B1_neo_hookean/run_manifest.json'))]"
+    "why_the_manifest_was_not_enough": "it has no train entry for this case.",
+    "what_settles_it_instead": "file modification times order the events directly, whatever the manifest recorded.",
+    "command": "import os, datetime; D='/content/drive/MyDrive/pfem_run/zeroshot_B1_neo_hookean/'; [print('%-32s %s' % (f, datetime.datetime.utcfromtimestamp(os.path.getmtime(D+f)))) for f in sorted(os.listdir(D)) if f.endswith(('.json','.pt'))]",
+    "how_to_read_it": "if metrics_history.json (the JOINT history) is NEWER than zeroshot_eval_report.json, the joint training came after the eval -> reading A: Table 12's caption stands and only an eval re-run is needed. If it is OLDER, the eval was run on the joint model -> reading B: the caption is wrong."
   },
-
   "why_this_matters_beyond_a_caption": "under reading A the remaining work for a uniform three-case B1 table is one eval run, not a retrain. Under reading B it is already done and only the report text is wrong. Either way it is cheap -- but the report currently makes a claim about how a model was trained, and that claim is either right or it is not.",
-
-  "provenance": "the metrics_history first entry and the training summary were printed from Drive on 2026-08-29; the eval report contents were listed the same day."
+  "provenance": "the metrics_history first entry and the training summary were printed from Drive on 2026-08-29; the eval report contents were listed the same day.",
+  "manifest_read_2026_08_29": {
+    "entries": [
+      {
+        "kind": "zeroshot_eval",
+        "finished_at_utc": "2026-08-27T15:36:20+00:00",
+        "train_resolutions": null
+      },
+      {
+        "kind": "zeroshot_eval",
+        "finished_at_utc": "2026-08-27T21:11:52+00:00",
+        "train_resolutions": null
+      },
+      {
+        "kind": "pareto_analysis",
+        "finished_at_utc": "2026-08-28T01:30:27+00:00",
+        "train_resolutions": null
+      },
+      {
+        "kind": "pareto_analysis",
+        "finished_at_utc": "2026-08-28T05:00:04+00:00",
+        "train_resolutions": null
+      }
+    ],
+    "what_it_does_NOT_contain": "no zeroshot_generate and no zeroshot_train entry at all.",
+    "what_that_means": "the training that produced this directory's joint metrics_history.json was never recorded, so it predates the run_manifest instrumentation. The manifest therefore cannot order train against eval by itself.",
+    "but_it_narrows_things": "B1 x Mooney-Rivlin and B1 x Arruda-Boyce BOTH have zeroshot_train entries dated 2026-08-28. If B1 x Neo-Hookean had been retrained jointly as part of that same six-case sweep, its train would have been recorded too. It is not. That points to the joint training being OLD -- older than the 2026-08-27 evals -- which is reading B, the caption being wrong. It is an inference from an absence, not a measurement, so it does not close the question.",
+    "new_fact_worth_keeping": "two pareto_analysis runs on 2026-08-28 (01:30 and 05:00) and two zeroshot_eval runs on 2026-08-27 (15:36 and 21:11). The Pareto for this case is confirmed to have run, twice, consistent with Table 18 being in the report."
+  }
 }
