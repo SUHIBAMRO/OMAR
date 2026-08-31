@@ -378,10 +378,24 @@ def main():
           f"{single['energy_rel']:>12.3e}")
     print(f"\noperator / Q4 in L2: {ratio:.2f}x")
     if ratio < 1.0:
-        print("  Below 1.0, which should be impossible if the operator were")
-        print("  exactly minimizing the same functional over the same space.")
-        print("  Do not report this as the operator beating FEM -- check the")
-        print("  mask, the quadrature and the energy term first.")
+        # This used to say "should be impossible" and send the reader off to
+        # check the mask, the quadrature and the energy term. That was wrong,
+        # and the N=9 run of the three-mesh sweep triggered the false alarm.
+        # The ceiling is a statement about Pi: Q4 minimizes Pi over the Q4
+        # space, so nothing in that space achieves a lower Pi. L2 error
+        # against u* is a DIFFERENT functional, and a non-minimizer of Pi may
+        # sit closer to u* in L2 than the minimizer does, because Q4's
+        # discretization error is a systematic bias the network's own error
+        # can partially cancel.
+        print("  Below 1.0 in L2. This is NOT a defect and nothing needs")
+        print("  checking. The ceiling constrains Pi, and Q4 minimizes Pi over")
+        print("  this space -- but L2 error against u* is a different")
+        print("  functional, so a field that does not minimize Pi can still")
+        print("  land closer to u* in L2 by partially cancelling Q4's own")
+        print("  discretization bias. Expect it on coarse meshes, where that")
+        print("  bias is largest.")
+        print("  The norms that DID stay above 1.0 at every mesh of the")
+        print("  three-mesh sweep are H1 semi and stress -- check those.")
     elif ratio < 2.0:
         print("  The network gets close to the Q4 optimum it is chasing.")
     else:

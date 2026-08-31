@@ -279,6 +279,48 @@ alongside the tensor shapes.
 `train_B2.py`'s default, and nowhere in the path a zero-shot B2 run takes. It
 now lives in the code that needs it.
 
+### 🔬 The MMS operator has no convergence rate — and §8.11's ceiling was overstated
+
+`point9_results/mms_operator_rate_B1_neo_hookean.json`, run 2026-08-29 on a T4.
+N=9 and N=33 trained under exactly the N=17 protocol, giving three points.
+
+| N | DOF | operator L2 | Q4 L2 | op/Q4 | operator H1 | Q4 H1 | op/Q4 |
+|---|---|---|---|---|---|---|---|
+| 9 | 162 | 5.035e-03 | 1.351e-02 | **0.37×** | 1.141e-01 | 1.132e-01 | 1.01× |
+| 17 | 578 | 8.238e-03 | 3.403e-03 | 2.42× | 5.831e-02 | 5.666e-02 | 1.03× |
+| 33 | 2,178 | 1.136e-02 | 8.525e-04 | **13.33×** | 3.850e-02 | 2.834e-02 | 1.36× |
+
+Fitted rates in h: **operator L2 −0.59**, Q4 L2 1.99; operator H1 0.78, Q4 H1
+1.00. **The Q4 control lands on Table 23's measured 1.98 and 1.00**, so this run
+is comparable to that table.
+
+**The operator does not converge.** Its L2 error gets *worse* with refinement.
+Its error is dominated by **optimization** error, not discretization error:
+refining reduces what limits Q4 and leaves the network where it was, while
+enlarging the problem it must optimize. The crossover is visible — at N=9 Q4's
+own error exceeds the network's and the operator is *ahead* in L2; by N=33 Q4
+is 13× better.
+
+**⚠️ And it corrects §8.11.** That section says *"a ratio below one would
+indicate a defect in the Dirichlet mask, the quadrature or the work term rather
+than an advance."* **Too strong.** The ceiling constrains **Π** — Q4 minimizes
+Π over the Q4 space, so nothing in it reaches a lower Π. But Π is none of the
+four reported error metrics. L2 against u\* is a different functional, and a
+non-minimizer of Π can sit closer to u\* in L2 by partially cancelling Q4's
+systematic discretization bias. That is what N=9 did, and the runner raised a
+false alarm about it.
+
+What *is* protected empirically: the derivative norms. op/Q4 in H1 semi is
+1.01, 1.03, 1.36 and in stress 1.01, 1.03, 1.33 — above one at every mesh. For
+a linear problem Galerkin optimality would guarantee that; this problem is
+nonlinear so it does not formally transfer, but it held throughout. The
+"energy" column is the relative error in a *scalar* strain energy, not the
+energy norm, and carries none of that protection (0.89 at N=9).
+
+**Fixed in the code already** so no future run repeats the false alarm:
+`mms_operator.py`'s runtime message and `point9_results/make_readme.py`.
+**Still to do: the report's §8.11 wording, in the next build.**
+
 ### ⛔ The three B2 zero-shot cases are INVALID (2026-08-29)
 
 `point7a_results/INVALID_B2_zeroshot.json`. Their eval reports are still on

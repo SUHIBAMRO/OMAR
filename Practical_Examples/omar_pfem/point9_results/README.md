@@ -95,7 +95,7 @@ Before any of this was trained, `omar_pfem/test_mms_operator.py` established tha
 | Q9 (same N) | 5.163e-05 | 1.438e-03 | 1.495e-03 | 2.088e-06 |
 | operator | 8.238e-03 | 5.831e-02 | 5.886e-02 | 9.914e-03 |
 
-**operator / Q4 in L2 = 2.42×.** Above 1.0, which is the required outcome: the operator minimizes the same functional over the same Q4 space, so the Q4 solution is the minimizer and a ratio below 1.0 would mean a bug, not a win.
+**operator / Q4 in L2 = 2.42×.** Above 1.0. The ceiling constrains Π, not L2: the Q4 solution minimizes Π over this space, so nothing in it reaches a lower Π, but L2 error against u\* is a different functional. A field that does not minimize Π can sit closer to u\* in L2 by partially cancelling Q4's own discretization bias, and the three-mesh sweep saw exactly that at N=9 (0.37×). The norms that stayed above 1.0 at every mesh are H1 semi and stress.
 
 The four ratios are **not** the same number: L2 2.42×, H1 semi 1.03×, stress 1.03×, energy 3.11×. 
 The gradient-based norms are the ones the operator has essentially closed — 1.03× in H1 and 1.03× in stress means it recovers the strain and stress fields about as well as the Q4 optimum it is chasing — while it is 2.42× behind in L2 and 3.11× in energy. That is the **opposite of the usual ordering**, where L2 is the forgiving norm and the derivative norms are the strict ones. The energy functional is what is being minimized, and it is built from the deformation gradient, so the quantities it sees directly are the ones that come out closest; the displacement itself is only pinned down through them, up to what the boundary mask fixes.
@@ -119,11 +119,44 @@ Training cost: 16,000 optimizer steps, 8.2 min on an NVIDIA A100-SXM4-80GB, and 
 | Q9 (same N) | 4.155e-04 | 5.763e-03 | 5.957e-03 | 3.327e-05 |
 | operator (undertrained) | 6.366e-02 | 1.525e-01 | 1.569e-01 | 8.877e-02 |
 
-**operator / Q4 in L2 = 4.71×.** Above 1.0, which is the required outcome: the operator minimizes the same functional over the same Q4 space, so the Q4 solution is the minimizer and a ratio below 1.0 would mean a bug, not a win.
+**operator / Q4 in L2 = 4.71×.** Above 1.0. The ceiling constrains Π, not L2: the Q4 solution minimizes Π over this space, so nothing in it reaches a lower Π, but L2 error against u\* is a different functional. A field that does not minimize Π can sit closer to u\* in L2 by partially cancelling Q4's own discretization bias, and the three-mesh sweep saw exactly that at N=9 (0.37×). The norms that stayed above 1.0 at every mesh are H1 semi and stress.
 
 The four ratios are **not** the same number: L2 4.71×, H1 semi 1.35×, stress 1.37×, energy 7.00×. The same inversion the production run shows, on a different mesh and a different device — which is the reason it is read there as a property of the training principle rather than an artefact of one run.
 
 The error was **still falling at the last epoch** (see `history` in the JSON), so this ratio reflects the step budget, not the method. The reportable number needs `Round6_MMS_Operator.ipynb`: N=17, 2000 epochs, 20–40 min on any GPU.
+
+
+---
+
+
+## Does the operator have a convergence rate of its own?
+
+Section 8.11 used to say it could not be asked, because the operator had been trained at one mesh. `mms_operator_rate_B1_neo_hookean.json` trains it at three under the identical protocol and asks.
+
+| N | DOF | operator L2 | Q4 L2 | op/Q4 | operator H1 | Q4 H1 | op/Q4 |
+|---|---|---|---|---|---|---|---|
+| 9 | 162 | 5.035e-03 | 1.351e-02 | **0.37×** | 1.141e-01 | 1.132e-01 | 1.01× |
+| 17 | 578 | 8.238e-03 | 3.403e-03 | **2.42×** | 5.831e-02 | 5.666e-02 | 1.03× |
+| 33 | 2,178 | 1.136e-02 | 8.525e-04 | **13.33×** | 3.850e-02 | 2.834e-02 | 1.36× |
+
+**Fitted rates in h**: operator L2 **-0.59**, Q4 L2 1.99; operator H1 0.78, Q4 H1 1.00. The Q4 figures are the control and they land on Table 23's measured 1.98 and 1.00, so the operator's can be quoted beside them.
+
+**the operator does not converge. Its L2 error gets WORSE with refinement -- 5.035e-03 at N=9, 8.238e-03 at N=17, 1.136e-02 at N=33 -- for a fitted rate of -0.59, while Q4 falls at 1.99. Its H1 error does improve, but at 0.78 against Q4's 1.00.**
+
+the operator's error is dominated by OPTIMIZATION error, not discretization error. Refining the mesh reduces the discretization error the Q4 solver is limited by, and leaves the network's own optimization error roughly where it was -- while making the problem it has to optimize larger. So the gap widens: 0.37x, 2.42x, 13.33x.
+
+at N=9 the discretization is coarse enough that Q4's own error (1.35e-02) exceeds the operator's optimization error, and the operator is actually AHEAD in L2. By N=33 Q4 is 13x better. Somewhere between the two the discretization stops being the limiting factor and the network becomes it.
+
+
+### The ceiling was stated too strongly, and this run showed it
+
+the ceiling is a statement about Pi. Q4 minimizes Pi over the Q4 space, so no field in that space -- the operator's included -- can achieve a lower Pi. But Pi is NOT any of the four error metrics reported. L2 error against u* is a different functional entirely, and nothing forbids a non-minimizer of Pi from sitting closer to u* in L2 than the minimizer does: Q4's discretization error is a systematic bias, and the operator's optimization error can partially cancel it.
+
+at N=9 the operator's L2 is 0.37x Q4's. The runner flagged it as 'should be impossible' and told the reader to check the mask, the quadrature and the energy term. It is not impossible, and there is nothing to check.
+
+the derivative-based norms. operator/Q4 in the H1 semi-norm is 1.01, 1.03, 1.36 -- above one at every mesh -- and in stress 1.01, 1.03, 1.33, likewise. For a LINEAR problem Galerkin optimality would guarantee this, since the Galerkin solution minimizes the energy norm of the error and H1 semi is equivalent to it. This problem is nonlinear so that guarantee does not formally transfer, but it held at all three meshes here.
+
+*'energy' in these tables is the relative error in the scalar internal strain energy, not the energy NORM of the error. It dips to 0.89 at N=9, which is a cancellation in a scalar and carries none of the protection the H1 column does.*
 
 
 ## What is NOT here

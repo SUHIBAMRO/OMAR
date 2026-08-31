@@ -32,7 +32,11 @@ def build(path):
       f"*\"compare Q4, Q9 and the physics-informed Transolver against exactly "
       f"the same analytical solution in L2, H1 and energy norms and also "
       f"examine stress errors\"*.\n")
-    ops = sorted(glob.glob(os.path.join(HERE, "*operator_*.json")))
+    # The three-mesh rate sweep has its own schema and its own section
+    # below; keep it out of the per-run listing.
+    ops = sorted(p for p in glob.glob(os.path.join(HERE, "*operator_*.json"))
+                 if "rate" not in os.path.basename(p).lower())
+    rate_files = sorted(glob.glob(os.path.join(HERE, "*operator_rate_*.json")))
     prod = [p for p in ops if "demo" not in os.path.basename(p).lower()]
     if prod:
         a("**All three legs are measured.** Q4 and Q9 are below; the "
@@ -169,11 +173,14 @@ def build(path):
         r = O["operator_over_Q4_L2"]
         rh = op["H1_semi_rel"] / ref["Q4"]["H1_semi_rel"]
         a(f"\n**operator / Q4 in L2 = {r:.2f}×.** "
-          + ("Above 1.0, which is the required outcome: "
-             if r > 1 else "**BELOW 1.0, which should be impossible** — ")
-          + "the operator minimizes the same functional over the same Q4 "
-            "space, so the Q4 solution is the minimizer and a ratio below 1.0 "
-            "would mean a bug, not a win.\n")
+          + ("Above 1.0. " if r > 1 else "Below 1.0 — and that is allowed. ")
+          + "The ceiling constrains Π, not L2: the Q4 solution minimizes Π "
+            "over this space, so nothing in it reaches a lower Π, but L2 "
+            "error against u\\* is a different functional. A field that does "
+            "not minimize Π can sit closer to u\\* in L2 by partially "
+            "cancelling Q4's own discretization bias, and the three-mesh "
+            "sweep saw exactly that at N=9 (0.37×). The norms that stayed "
+            "above 1.0 at every mesh are H1 semi and stress.\n")
         rs = op["stress_rel_L2"] / ref["Q4"]["stress_rel_L2"]
         re_ = op["energy_rel"] / ref["Q4"]["energy_rel"]
         a(f"The four ratios are **not** the same number: L2 {r:.2f}×, "
@@ -228,6 +235,37 @@ def build(path):
               f"{O['training']['train_wall_clock_min']} min on an "
               f"{O.get('gpu', O['device'])}, and **no labels** — u\\* is "
               f"analytic but is never used in training, only in scoring.\n")
+
+    for p in rate_files:
+        RT = json.load(open(p))
+        a("\n---\n")
+        a("\n## Does the operator have a convergence rate of its own?\n")
+        a("Section 8.11 used to say it could not be asked, because the operator "
+          "had been trained at one mesh. `" + os.path.basename(p) + "` trains it "
+          "at three under the identical protocol and asks.\n")
+        a("| N | DOF | operator L2 | Q4 L2 | op/Q4 | operator H1 | Q4 H1 | op/Q4 |")
+        a("|---|---|---|---|---|---|---|---|")
+        for r in RT["rows"]:
+            o, q = r["operator"], r["Q4"]
+            a(f"| {r['N']} | {r['n_dof']:,} | {o['L2']:.3e} | {q['L2']:.3e} | "
+              f"**{o['L2'] / q['L2']:.2f}×** | {o['H1_semi']:.3e} | "
+              f"{q['H1_semi']:.3e} | {o['H1_semi'] / q['H1_semi']:.2f}× |")
+        f = RT["fitted_rates_in_h"]
+        a(f"\n**Fitted rates in h**: operator L2 **{f['operator_L2']:.2f}**, Q4 L2 "
+          f"{f['Q4_L2']:.2f}; operator H1 {f['operator_H1_semi']:.2f}, Q4 H1 "
+          f"{f['Q4_H1_semi']:.2f}. The Q4 figures are the control and they land "
+          f"on Table 23's measured 1.98 and 1.00, so the operator's can be "
+          f"quoted beside them.\n")
+        h = RT["THE_HEADLINE"]
+        a(f"**{h['what']}**\n")
+        a(f"{h['why_that_makes_sense']}\n")
+        a(f"{h['the_crossover_is_visible']}\n")
+        c = RT["A_CORRECTION_TO_SECTION_8_11"]
+        a("\n### The ceiling was stated too strongly, and this run showed it\n")
+        a(f"{c['that_is_too_strong']}\n")
+        a(f"{c['and_that_is_exactly_what_happened']}\n")
+        a(f"{c['what_IS_protected']}\n")
+        a(f"*{c['note_on_the_energy_column']}*\n")
 
     a("\n## What is NOT here\n")
     if prod:

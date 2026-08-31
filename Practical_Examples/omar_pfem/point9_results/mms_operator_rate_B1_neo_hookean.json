@@ -1,0 +1,52 @@
+{
+  "study": "MMS operator across three meshes -- does it have a convergence rate of its own?",
+  "material": "neo_hookean",
+  "why": "Report section 8.11 stated this as a limitation of itself: the operator was trained and scored at one mesh, so it had no convergence rate and could not appear in Table 23. N=9 and N=33 were trained under exactly the N=17 protocol to give three points.",
+  "protocol": "identical at every mesh: 64-member manufactured family, 16 test, 2000 epochs, batch 8, Adam lr 2e-3, physics-informed (no labels). Scored on the same reference member alpha=0.05, beta=0.7.",
+
+  "rows": [
+    {"N": 9,  "n_dof": 162,  "operator": {"L2": 5.0351e-03, "H1_semi": 1.1414e-01, "stress": 1.154e-01, "energy": 1.133e-02},
+     "Q4": {"L2": 1.3509e-02, "H1_semi": 1.1318e-01, "stress": 1.143e-01, "energy": 1.268e-02},
+     "Q9": {"L2": 4.1549e-04, "H1_semi": 5.7632e-03}},
+    {"N": 17, "n_dof": 578,  "operator": {"L2": 8.2377e-03, "H1_semi": 5.8306e-02, "stress": 5.886e-02, "energy": 9.914e-03},
+     "Q4": {"L2": 3.4032e-03, "H1_semi": 5.6659e-02, "stress": 5.724e-02, "energy": 3.191e-03},
+     "Q9": {"L2": 5.1628e-05, "H1_semi": 1.4380e-03}},
+    {"N": 33, "n_dof": 2178, "operator": {"L2": 1.1362e-02, "H1_semi": 3.8498e-02, "stress": 3.799e-02, "energy": 5.289e-03},
+     "Q4": {"L2": 8.5254e-04, "H1_semi": 2.8338e-02, "stress": 2.864e-02, "energy": 7.989e-04},
+     "Q9": {"L2": 6.4423e-06, "H1_semi": 3.5928e-04}}
+  ],
+
+  "ratios_operator_over_Q4": {
+    "L2":     {"9": 0.37, "17": 2.42, "33": 13.33},
+    "H1_semi":{"9": 1.01, "17": 1.03, "33": 1.36},
+    "stress": {"9": 1.01, "17": 1.03, "33": 1.33},
+    "energy": {"9": 0.89, "17": 3.11, "33": 6.62}
+  },
+
+  "fitted_rates_in_h": {
+    "operator_L2": -0.59, "Q4_L2": 1.99,
+    "operator_H1_semi": 0.78, "Q4_H1_semi": 1.00,
+    "control": "the Q4 rates are the control and they land on Table 23's measured 1.98 and 1.00, so this run is comparable to that table and the operator rates can be quoted beside it."
+  },
+
+  "THE_HEADLINE": {
+    "what": "the operator does not converge. Its L2 error gets WORSE with refinement -- 5.035e-03 at N=9, 8.238e-03 at N=17, 1.136e-02 at N=33 -- for a fitted rate of -0.59, while Q4 falls at 1.99. Its H1 error does improve, but at 0.78 against Q4's 1.00.",
+    "why_that_makes_sense": "the operator's error is dominated by OPTIMIZATION error, not discretization error. Refining the mesh reduces the discretization error the Q4 solver is limited by, and leaves the network's own optimization error roughly where it was -- while making the problem it has to optimize larger. So the gap widens: 0.37x, 2.42x, 13.33x.",
+    "the_crossover_is_visible": "at N=9 the discretization is coarse enough that Q4's own error (1.35e-02) exceeds the operator's optimization error, and the operator is actually AHEAD in L2. By N=33 Q4 is 13x better. Somewhere between the two the discretization stops being the limiting factor and the network becomes it."
+  },
+
+  "A_CORRECTION_TO_SECTION_8_11": {
+    "what_the_report_says": "Report section 8.11, as written in v35/v36: 'The operator therefore cannot be more accurate than Q4 at this mesh, and a ratio below one would indicate a defect in the Dirichlet mask, the quadrature or the work term rather than an advance.'",
+    "that_is_too_strong": "the ceiling is a statement about Pi. Q4 minimizes Pi over the Q4 space, so no field in that space -- the operator's included -- can achieve a lower Pi. But Pi is NOT any of the four error metrics reported. L2 error against u* is a different functional entirely, and nothing forbids a non-minimizer of Pi from sitting closer to u* in L2 than the minimizer does: Q4's discretization error is a systematic bias, and the operator's optimization error can partially cancel it.",
+    "and_that_is_exactly_what_happened": "at N=9 the operator's L2 is 0.37x Q4's. The runner flagged it as 'should be impossible' and told the reader to check the mask, the quadrature and the energy term. It is not impossible, and there is nothing to check.",
+    "what_IS_protected": "the derivative-based norms. operator/Q4 in the H1 semi-norm is 1.01, 1.03, 1.36 -- above one at every mesh -- and in stress 1.01, 1.03, 1.33, likewise. For a LINEAR problem Galerkin optimality would guarantee this, since the Galerkin solution minimizes the energy norm of the error and H1 semi is equivalent to it. This problem is nonlinear so that guarantee does not formally transfer, but it held at all three meshes here.",
+    "note_on_the_energy_column": "'energy' in these tables is the relative error in the scalar internal strain energy, not the energy NORM of the error. It dips to 0.89 at N=9, which is a cancellation in a scalar and carries none of the protection the H1 column does.",
+    "required_edits": [
+      "section 8.11: restate the ceiling as a statement about Pi, note that it transfers to the derivative norms empirically and not to L2, and stop telling the reader that a sub-one L2 ratio is a defect",
+      "the same wording appears in mms_operator.py's runtime message and in point9_results/make_readme.py; both should be corrected so a future run does not repeat the false alarm"
+    ]
+  },
+
+  "cost": {"gpu": "Tesla T4", "note": "N=9 and N=33 trained in one session together with their Q4 and Q9 FEM references; the N=17 row is the earlier A100 production run."},
+  "provenance": "transcribed from the Colab stdout of Round6_MMS_Operator_Rate on 2026-08-29. test_mms_operator passed first, as in the N=17 run: Pi(u_FEM) = -7.999050349300, quadratic excess ratio 4.000, wrong-W minimum at 0.125."
+}
