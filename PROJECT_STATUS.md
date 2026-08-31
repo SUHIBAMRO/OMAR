@@ -271,20 +271,35 @@ mesh-independence check passes. Its stored loads equal the other two cases'
 they must, since the load comes from the seed and the mesh, not the material.
 Three cases agreeing is a stronger check than any one passing.
 
-**So the load bug is ruled out for this case, and the 8.09 has another cause.**
-The live hypothesis: the cache was repaired earlier and **the model was never
-retrained**, leaving it fitted to a load the cache no longer holds — which
-produces exactly this signature, a large error flat in N. Settle it with file
-mtimes, as Table 12 was settled: `model_best.pt` older than `samples_cache.pt`
-⇒ retrain and nothing more; newer ⇒ it was trained on correct data and the real
-cause must be found before spending hours on a retrain.
+**And the mtimes settled it — there is NO model in that directory at all.**
+The only files are `fine_ref_cache_N101.pt` (2026-08-27 02:53),
+`zeroshot_eval_report.json` (**19:47:50**), `run_manifest.json` (19:48:09) and
+`samples_cache.pt` (**19:48:14**). The eval report is stamped **24 seconds
+before** the cache was rewritten. So an earlier repair ran immediately after
+that eval, fixed the cache and deleted the model — `model_best.pt`,
+`train_state_latest.pt`, `metrics_history.json` and `EARLY_STOPPED` are exactly
+the set the old repair cell removes, and none of them is there.
+
+**No mystery remains.** The 8.09 was a model trained on the bad load, scored
+against freshly built correct references — the eval builds its samples fresh
+and never reads the cache — which is precisely the mismatch that gives a large
+error, flat in N. B2×NH needs the same treatment as the other two: retrain,
+then re-evaluate.
 
 Nothing was written and no model deleted — the diagnose-first cell
 (`cell_b2_neo_hookean_repair.py`) stopped, and had it deleted the models the
 way the older repair cell does, that evidence would be gone.
 
-To make B2 admissible: confirm/repair B2×NH, retrain all three (models are
-gone), re-run eval. **Nothing else in the report is affected** — the bug lives
+To make B2 admissible: retrain all three (all three models are gone), then
+re-run eval. Cell: `zeroshot_notebooks/cell_b2_retrain_and_eval.py`.
+
+**The eval is far cheaper than the B1 runs suggest.** Those took ~8 h each,
+almost all of it solving twenty N=101 references — and those references are
+cached per case in `fine_ref_cache_N101.pt` and are **unaffected by the load
+bug**: `_get_fine_sample` builds each fine sample fresh and the FEM solver
+assembles its own consistent force internally, so it never saw the bad field.
+Where the cache is present the eval reduces to operator inference. The cell
+prints the cached count per case before running anything. **Nothing else in the report is affected** — the bug lives
 in the B2 zero-shot sample caches only, and Table 12 is B1.
 
 ### ❗ Table 12's caption is WRONG — resolved 2026-08-29
