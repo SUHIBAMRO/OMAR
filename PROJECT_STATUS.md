@@ -516,16 +516,50 @@ working correctly on data whose Π has its minimum near zero.
    out.** Two arms at matched optimizer steps (22,400, chosen as a multiple of
    both arms' steps-per-epoch), early stopping off: **batch 8 → 0.9888, batch
    1 → 0.9444.** Noise on curves that swing 0.94–1.45.
-3. **Π's minimum is not at `uv_exact` for this cache** — **PENDING.**
-   `omar_pfem/test_b2_zeroshot_functional.py` scans Π(s·uv_exact) over s and
-   needs no training. Notebook: `Round6_B2_Functional_Check.ipynb`. Its first
-   run failed on a wrong cache-layout guess; fixed in `a7b70b7` by reading the
-   layout the trainer actually writes (line 338: `{"train_samples": ...,
-   "val_samples": ...}`). **Re-run pending.**
+3. **Π's minimum is not at `uv_exact` for this cache** — **RULED OUT, run
+   2026-08-31 on commit `e12791c`.** Π(s·uv_exact) scanned over s on 3 samples
+   at each training resolution: **the minimum landed at s = 1.0 in all 6**, no
+   exceptions, no spread. And |W|/U at `uv_exact` came out **1.9951, 1.9985,
+   2.0014, 1.9964, 2.0021, 1.9985** — a stationary point of Π = U − W has
+   W = 2U, so three decimals on six independent samples is a second,
+   independent confirmation.
 
-   Reading it: **minimum at s ≈ 1** → the functional and the data agree and the
-   fault is elsewhere. **Minimum near s = 0** → the work term is far too weak,
-   the trainer is finding zero correctly, and no optimizer setting will help.
+   **So the cache is fine, the work term is fine, and the functional really is
+   minimized by the FEM solution.** The data is exonerated. Everything left is
+   in the training path.
+
+   One detail worth carrying: the curve is flat near its minimum — Π(0.85) and
+   Π(1.15) are only ~2% of |Π| above Π(1.0). A 15% amplitude error costs almost
+   nothing in the objective. That does not explain a factor of ten, but it is
+   worth stating when reading how hard Π pushes on amplitude.
+
+4. **The training path itself** — **PENDING**, and it is what is left.
+
+   The specific suspicion: `fun_material` is `(E, nu, f_x, f_y)` fed **RAW** —
+   there is no normalization anywhere in `train_B2`'s energy function, which
+   the zero-shot trainer re-exports unchanged. For B2 the load is an
+   **inner-edge** traction, so `f` is exactly zero on every node off that
+   boundary — about **95%** of them at N=21 — and the load repair made what
+   remains **13–21× smaller**. `E` is around **1000**. If the two channels
+   carrying the loading sit orders of magnitude below the one carrying
+   stiffness and are nonzero on a twentieth of the nodes, the model may not see
+   the load at all — which would give an error flat in N, flat across
+   materials, and stuck near 1.0. **Suspicion, not yet measured.**
+
+   **And a difference that should have been named earlier**: the 9.11% recipe
+   and this study are **not on the same problem family**. `data_generate_B2.py`
+   draws (E, ν, p) from a **2-D Gaussian random field in (θ, r)**;
+   the zero-shot study uses `ParametricFieldB2`, a **two-harmonic Fourier
+   series in θ alone**, chosen because it is resolution-independent by
+   construction where a gridded GRF is not. So "9.11% is reachable on B2" was
+   never transferable evidence about this trainer. B1 uses the same kind of
+   parametric field and trains fine, so this is not on its own an explanation
+   either.
+
+   Test: `omar_pfem/test_b2_zeroshot_model.py` — input channel scales as fed,
+   what the trained model predicts (rms ratio and correlation), Π at that
+   prediction, and how much the prediction changes across samples on one mesh.
+   **No training, CPU, seconds.** Notebook: `Round6_B2_Model_Probe.ipynb`.
 
 **In the report**: v37 §8.7's "Two limits" paragraph and §10's bullet both say
 this outright — data corrected, models retrained, still unusable, cause under

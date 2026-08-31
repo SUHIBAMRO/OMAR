@@ -119,8 +119,42 @@
   {
    "candidate": "Pi's minimum is not at the true solution for this cache -- i.e. the data and the functional disagree, and the trainer is finding zero correctly",
    "test": "omar_pfem/test_b2_zeroshot_functional.py -- Pi(s * uv_exact) scanned over s, no training needed",
+   "verdict": "RULED OUT -- the data and the functional AGREE. Pi(s * uv_exact) was scanned over s on 3 samples at each of the two training resolutions and the minimum landed at s = 1.0 in all 6, with no exceptions and no spread.",
+   "driver": "Practical_Examples/zeroshot_notebooks/Round6_B2_Functional_Check.ipynb",
+   "measured": {
+    "minimum_of_Pi_along_the_solution_ray": "s = 1.0 in 6 of 6 samples",
+    "W_over_U_at_uv_exact": [
+     1.9951,
+     1.9985,
+     2.0014,
+     1.9964,
+     2.0021,
+     1.9985
+    ],
+    "why_that_number_matters": "for a stationary point of Pi = U - W in a problem whose stored energy is quadratic to leading order, W = 2U. Getting 2.00 to three decimals on six independent samples is a second, independent confirmation that uv_exact is the minimiser of this Pi and not merely close to it.",
+    "Pi_at_uv_exact_N21": [
+     -0.1255428,
+     -0.01254412,
+     -0.02247471
+    ],
+    "Pi_at_uv_exact_N33": [
+     -0.09697573,
+     -0.05207168,
+     -0.0242513
+    ],
+    "Pi_at_zero": 0.0,
+    "the_curve_is_flat_near_the_minimum": "Pi(0.85) and Pi(1.15) sit about 2% of |Pi| above Pi(1.0), so a 15% amplitude error costs almost nothing in the objective. That does not explain a factor of ten, but it is worth stating when reading how hard the objective pushes on amplitude.",
+    "run": "Colab, CPU, on commit e12791c, 2026-08-31"
+   }
+  },
+  {
+   "candidate": "the training path itself: the model's input channels, or its ability to descend at all",
+   "why_this_is_what_is_left": "the cache, the work term and the functional are now excluded by measurement, and the optimiser settings tried (force normalisation, batch size) are excluded by experiment. What remains is what the model is fed and what it does with it.",
+   "the_specific_suspicion": "fun_material is (E, nu, f_x, f_y) fed RAW -- there is no normalisation anywhere in train_B2's energy function, which the zero-shot trainer re-exports unchanged. For B2 the load is an inner-edge traction, so f is exactly zero on every node off that boundary (about 95% of them at N=21), and the load repair made what remains 13-21x smaller. E is around 1000. If the two channels carrying the loading are orders of magnitude below the one carrying stiffness and nonzero on a twentieth of the nodes, the model may not see the load at all -- which would give an error flat in N, flat across materials, and stuck near 1.0. This is a suspicion and is not yet measured.",
+   "a_second_difference_worth_naming": "the 9.11% recipe and this study are not on the same problem family. data_generate_B2.py draws (E, nu, p) from a 2-D Gaussian random field in (theta, r); the zero-shot study uses ParametricFieldB2, a two-harmonic Fourier series in theta ALONE, chosen because it is resolution-independent by construction and a gridded GRF is not. So '9.11% is reachable on B2' was never transferable evidence about this trainer. B1 uses the same kind of parametric field and trains fine, so this is not on its own an explanation either.",
+   "test": "omar_pfem/test_b2_zeroshot_model.py -- prints the input channel scales as fed, what the trained model predicts (rms ratio and correlation), Pi at that prediction, and how much the prediction changes across samples on one mesh. No training.",
    "verdict": "PENDING",
-   "driver": "Practical_Examples/zeroshot_notebooks/Round6_B2_Functional_Check.ipynb"
+   "driver": "Practical_Examples/zeroshot_notebooks/Round6_B2_Model_Probe.ipynb"
   }
  ],
  "what_is_safe_to_say_in_the_report": "the caches were repaired and the repair verified mesh-independent; all three cases were retrained under the B1 protocol with the force normalisation section 9.1 requires; the retrained models sit at a combined validation error of about 1.0, which is what predicting zero scores; the cause is under investigation and is not the optimiser settings tried so far.",
