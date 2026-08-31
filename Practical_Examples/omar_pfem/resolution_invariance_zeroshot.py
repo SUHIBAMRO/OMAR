@@ -783,7 +783,13 @@ def cmd_eval(args):
     for N in test_resolutions:
         if N in done_Ns:
             continue
-        rel_l2_errors = []
+        # BOTH METRICS, from here on. The reported number has always been the
+        # per-component average, and it stays first and unchanged so every
+        # existing table remains comparable. The both-components norm is
+        # recorded beside it because the per-component one was shown to rank
+        # B2's checkpoints backwards (all 100 val samples, both arms), and a
+        # reader of the B2 row needs to see the number that does not.
+        rel_l2_errors, comb_l2_errors = [], []
         for i in range(args.n_eval_samples):
             # Same seed for every test resolution N (only offset by sample index i,
             # kept disjoint from every training/val seed range) -- ParametricFieldB1/B2
@@ -821,22 +827,33 @@ def cmd_eval(args):
             ref_u = np.sqrt(np.mean(uv_exact_fine[:, 0] ** 2)) + 1e-12
             ref_v = np.sqrt(np.mean(uv_exact_fine[:, 1] ** 2)) + 1e-12
             rel_l2_errors.append(0.5 * (l2_u / ref_u + l2_v / ref_v))
+            comb_l2_errors.append(
+                np.sqrt(np.mean(err ** 2))
+                / max(np.sqrt(np.mean(uv_exact_fine ** 2)), 1e-30))
 
         row = {"N": N, "n_eval_samples": args.n_eval_samples,
                "mean_rel_L2_vs_fine_reference": float(np.mean(rel_l2_errors)),
-               "std_rel_L2_vs_fine_reference": float(np.std(rel_l2_errors))}
+               "std_rel_L2_vs_fine_reference": float(np.std(rel_l2_errors)),
+               "mean_combined_rel_L2_vs_fine_reference": float(np.mean(comb_l2_errors)),
+               "std_combined_rel_L2_vs_fine_reference": float(np.std(comb_l2_errors))}
         rows.append(row)
         print(f"N={N:>4d}: mean rel-L2 vs. N={args.fine_N} reference = "
               f"{row['mean_rel_L2_vs_fine_reference']:.4e} (+/- {row['std_rel_L2_vs_fine_reference']:.4e}, "
-              f"{args.n_eval_samples} samples, NO retraining)")
+              f"{args.n_eval_samples} samples, NO retraining)   "
+              f"both-components {row['mean_combined_rel_L2_vs_fine_reference']:.4e}")
         _save_report()
 
     print("\n" + "=" * 90)
     print(f"ZERO-SHOT RESOLUTION-INVARIANCE EVAL (single checkpoint: {args.checkpoint})")
     print(f"Common fine-mesh reference: N={args.fine_N}")
     print("=" * 90)
+    print(f"  {'N':>6}{'per_component':>16}{'both_components':>18}")
     for row in rows:
-        print(f"  N={row['N']:>4d}: {row['mean_rel_L2_vs_fine_reference']:.4e}")
+        # Rows resumed from a file written before both metrics were recorded
+        # carry only the first one; they are not silently filled in.
+        comb = row.get("mean_combined_rel_L2_vs_fine_reference")
+        print(f"  {row['N']:>6}{row['mean_rel_L2_vs_fine_reference']:>16.4e}"
+              + (f"{comb:>18.4e}" if comb is not None else f"{'not recorded':>18}"))
 
     if args.out_json:
         print(f"\nFull report written to {args.out_json} (saved incrementally after each resolution)")

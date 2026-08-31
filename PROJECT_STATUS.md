@@ -938,6 +938,46 @@ B1, skewed on B2 (per-sample mean 1.90 against 0.90 aggregate).
 | did early stopping keep the right model? | **yes** | no — first validation event |
 | reported numbers | **stand**, conservative by 1.36–1.71× | come from an inverted selection |
 
+### 🔄 B2 RETRAIN WITH FIXED SELECTION — decided, cell ready (2026-08-31)
+
+Omar chose to re-derive the number rather than caveat it. Cell:
+`zeroshot_notebooks/cell_b2_fixed_selection.py`, run through
+`Round6_RUN_THIS.ipynb`.
+
+**Configuration** — joint N=21+33, 400 train / 100 val per resolution, batch 8,
+4,000 epochs, `--early_stop_patience 15`, **`--selection_metric
+both_components`**, then a zero-shot eval at the seven unseen meshes
+(13,17,25,29,37,41,49) against N=101 with 20 samples. Output goes to a NEW
+directory `zeroshot_B2_neo_hookean_fixedsel`; the sample cache and the N=101
+fine-reference cache are **copied** in, so nothing is regenerated (the sample
+cache alone is 7+ hours of FEM) and the existing run is only read.
+
+**Cost** from the measured rate: the single-resolution arm did 450 epochs of
+400 samples in 12 m 8 s = 1.618 s/epoch, so two resolutions at 800 samples an
+epoch is ~3.24 s/epoch and 4,000 epochs is about **3 h 36 m** on an A100. Less
+if it plateaus. Resumable at every validation event.
+
+**⚠️ It is not expected to rescue B2** and the cell says so in its own header.
+B2's best both-components error is 0.68 against B1's 0.044; the selection
+defect cost it 0.77 → 0.69, an eighth of the gap. What it buys is being able
+to write *"B2 was trained to convergence under a selection criterion that
+orders checkpoints correctly, and this is where it lands"* instead of *"B2's
+number came from a run our own metric stopped early"*.
+
+**Verified before the cell was written, by running it** — a real
+two-resolution training run end to end on the new code; both metrics printed
+each validation event with the selected one named; `model_best.pt` tracking
+the both-components number while `combined_val_error` still records the
+per-component one at that checkpoint; resume from `train_state_latest.pt`
+continuing at the right epoch against the right stored best; **`model_final.pt`
+written on the early-stopped path**; `--selection_metric per_component`
+reproducing the old behaviour; and eval reporting both metrics per resolution.
+
+`cmd_eval` now records `mean_combined_rel_L2_vs_fine_reference` beside the
+existing per-component field, which is unchanged — so every existing table
+stays comparable and the new column can simply be added. Rows resumed from a
+pre-change file print `not recorded` rather than being filled in.
+
 **The one live consequence for v38:** the report's B2 zero-shot figure
 (0.9986) was selected by the inverted metric. Either it is re-derived from a
 run with `--selection_metric both_components`, or the report states the figure
