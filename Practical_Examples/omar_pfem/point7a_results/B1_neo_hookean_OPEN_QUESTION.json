@@ -1,5 +1,5 @@
 {
-  "question": "Report Table 12 says its checkpoint was 'trained once at N=21'. The model now sitting in zeroshot_B1_neo_hookean/ is trained JOINTLY at N=21 and 33. Which one produced Table 12?",
+  "question": "[RESOLVED 2026-08-29 -- see RESOLVED_2026_08_29] Report Table 12 says its checkpoint was 'trained once at N=21'. The model now sitting in zeroshot_B1_neo_hookean/ is trained JOINTLY at N=21 and 33. Which one produced Table 12?",
   "opened": "2026-08-29",
   "evidence": {
     "metrics_history_json_is_from_a_JOINT_run": {
@@ -48,12 +48,6 @@
       ]
     }
   },
-  "the_check_that_settles_it": {
-    "why_the_manifest_was_not_enough": "it has no train entry for this case.",
-    "what_settles_it_instead": "file modification times order the events directly, whatever the manifest recorded.",
-    "command": "import os, datetime; D='/content/drive/MyDrive/pfem_run/zeroshot_B1_neo_hookean/'; [print('%-32s %s' % (f, datetime.datetime.utcfromtimestamp(os.path.getmtime(D+f)))) for f in sorted(os.listdir(D)) if f.endswith(('.json','.pt'))]",
-    "how_to_read_it": "if metrics_history.json (the JOINT history) is NEWER than zeroshot_eval_report.json, the joint training came after the eval -> reading A: Table 12's caption stands and only an eval re-run is needed. If it is OLDER, the eval was run on the joint model -> reading B: the caption is wrong."
-  },
   "why_this_matters_beyond_a_caption": "under reading A the remaining work for a uniform three-case B1 table is one eval run, not a retrain. Under reading B it is already done and only the report text is wrong. Either way it is cheap -- but the report currently makes a claim about how a model was trained, and that claim is either right or it is not.",
   "provenance": "the metrics_history first entry and the training summary were printed from Drive on 2026-08-29; the eval report contents were listed the same day.",
   "manifest_read_2026_08_29": {
@@ -83,5 +77,62 @@
     "what_that_means": "the training that produced this directory's joint metrics_history.json was never recorded, so it predates the run_manifest instrumentation. The manifest therefore cannot order train against eval by itself.",
     "but_it_narrows_things": "B1 x Mooney-Rivlin and B1 x Arruda-Boyce BOTH have zeroshot_train entries dated 2026-08-28. If B1 x Neo-Hookean had been retrained jointly as part of that same six-case sweep, its train would have been recorded too. It is not. That points to the joint training being OLD -- older than the 2026-08-27 evals -- which is reading B, the caption being wrong. It is an inference from an absence, not a measurement, so it does not close the question.",
     "new_fact_worth_keeping": "two pareto_analysis runs on 2026-08-28 (01:30 and 05:00) and two zeroshot_eval runs on 2026-08-27 (15:36 and 21:11). The Pareto for this case is confirmed to have run, twice, consistent with Table 18 being in the report."
+  },
+  "RESOLVED_2026_08_29": {
+    "answer": "READING B. The eval that produced Table 12 was run on the JOINT model. Report Table 12's caption is WRONG where it says the checkpoint was 'trained once at N=21'.",
+    "the_timeline_that_settles_it": [
+      [
+        "2026-08-10 11:57:10",
+        "samples_cache.pt",
+        "FEM data generated"
+      ],
+      [
+        "2026-08-10 13:09:35",
+        "model_best.pt",
+        "best checkpoint written"
+      ],
+      [
+        "2026-08-10 23:11:06",
+        "metrics_history.json",
+        "the JOINT history -- per_resolution_val_error over 21 and 33 -- finished here"
+      ],
+      [
+        "2026-08-10 23:11:13",
+        "train_state_latest.pt",
+        "training ended"
+      ],
+      [
+        "2026-08-11 15:27:40",
+        "zeroshot_eval_report.json",
+        "TABLE 12'S SOURCE, written a day AFTER the joint training"
+      ],
+      [
+        "2026-08-27 21:12:02",
+        "zeroshot_eval_coarse_and_fine.json",
+        "a second eval -- see below"
+      ],
+      [
+        "2026-08-28 02:08:57",
+        "fine_ref_cache_N101.pt",
+        "fine references for the Pareto"
+      ],
+      [
+        "2026-08-28 05:00:15",
+        "pareto_B1_neo_hookean.json",
+        "Table 18's source"
+      ]
+    ],
+    "why_it_is_decisive": "the joint history and the checkpoint are both from 2026-08-10; the eval report is from 2026-08-11. The eval loaded model_best.pt from that same directory, and that file is older than the eval and younger than nothing else. There is no N=21-only model anywhere in the timeline.",
+    "what_must_change_in_the_report": "Table 12's caption currently reads 'a single checkpoint (trained once at N=21), evaluated without retraining at five unseen resolutions'. The training set was N=21 AND N=33. The rest of the caption -- evaluated without retraining, five unseen resolutions, common N=101 reference -- is unaffected, and the five numbers are unaffected. This is a caption correction, not a data correction.",
+    "and_it_settles_the_protocol_question": "all three valid B1 cases were trained jointly at N=21 and 33. They share a protocol. The only thing separating B1 x Neo-Hookean from the other two is its eval's 5-resolution list against their 7."
+  },
+  "NEW_FILE_NOT_SEEN_BEFORE": {
+    "file": "zeroshot_eval_coarse_and_fine.json",
+    "mtime": "2026-08-27 21:12:02",
+    "matches": "the second zeroshot_eval manifest entry, finished_at_utc 2026-08-27T21:11:52 -- ten seconds earlier, so this file is that run's output",
+    "why_it_was_invisible": "every listing so far, including Round6_Check_Results and the six-directory sweep, looked for zeroshot_eval_report.json by name. This file has a different name and was never opened.",
+    "what_it_probably_is": "'coarse_and_fine' is the vocabulary of round-5 item 7, which asked for testing on meshes COARSER AND FINER than training. If it holds the 7-resolution list (13, 17, 25, 29, 37, 41, 49) on the same joint checkpoint, then B1 x Neo-Hookean's new-protocol eval ALREADY EXISTS and the three-case B1 table needs no further compute at all.",
+    "this_is_a_guess_from_the_filename": "it has not been opened. Do not act on it until its contents are read.",
+    "command": "print(open('/content/drive/MyDrive/pfem_run/zeroshot_B1_neo_hookean/zeroshot_eval_coarse_and_fine.json').read())"
   }
 }

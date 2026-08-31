@@ -272,6 +272,83 @@ To make B2 admissible: confirm/repair B2×NH, retrain all three (models are
 gone), re-run eval. **Nothing else in the report is affected** — the bug lives
 in the B2 zero-shot sample caches only, and Table 12 is B1.
 
+### ❗ Table 12's caption is WRONG — resolved 2026-08-29
+
+`point7a_results/B1_neo_hookean_OPEN_QUESTION.json`. File modification times
+in `zeroshot_B1_neo_hookean/` order the events and settle it:
+
+| when | file |
+|---|---|
+| 2026-08-10 11:57 | `samples_cache.pt` |
+| 2026-08-10 13:09 | `model_best.pt` |
+| 2026-08-10 23:11 | `metrics_history.json` — the **joint** history (21 and 33) |
+| **2026-08-11 15:27** | **`zeroshot_eval_report.json` — Table 12's source** |
+| 2026-08-27 21:12 | `zeroshot_eval_coarse_and_fine.json` — see below |
+| 2026-08-28 05:00 | `pareto_B1_neo_hookean.json` — Table 18's source |
+
+The eval was run a **day after** the joint training, on the `model_best.pt`
+that joint training produced. There is no N=21-only model in the timeline.
+
+**So Table 12's caption must be corrected.** It says *"a single checkpoint
+(trained once at N=21), evaluated without retraining at five unseen
+resolutions"*. The training set was **N=21 and N=33**. Everything else in the
+caption is fine and **the five numbers are unaffected** — this is a caption
+fix, not a data fix.
+
+**And it settles the protocol question**: all three valid B1 cases are
+joint-trained at 21 and 33. They share a protocol. The only difference left is
+that B1×NH's eval lists 5 resolutions where the other two list 7.
+
+### 🔎 A file nobody has opened: `zeroshot_eval_coarse_and_fine.json`
+
+Written 2026-08-27 21:12:02, ten seconds after the second `zeroshot_eval`
+manifest entry — so it is that run's output. **Every listing so far, including
+`Round6_Check_Results` and the six-directory sweep, searched for
+`zeroshot_eval_report.json` by name and never saw this one.**
+
+"coarse and fine" is round-5 item 7's own vocabulary. **If** it holds the
+7-resolution list on the same joint checkpoint, B1×Neo-Hookean's
+new-protocol eval already exists and the three-case B1 table needs **no
+further compute at all**. That is a guess from a filename — open it first:
+
+```python
+print(open('/content/drive/MyDrive/pfem_run/zeroshot_B1_neo_hookean/zeroshot_eval_coarse_and_fine.json').read())
+```
+
+### ⛔ The three B2 zero-shot cases are INVALID (2026-08-29)
+
+`point7a_results/INVALID_B2_zeroshot.json`. Their eval reports are still on
+Drive and must never be quoted.
+
+**Relative errors of 8.0 to 14.5** — that is 800% to 1450%, against 5.0–10.6%
+for the three valid B1 cases. A relative error above 1 means the prediction is
+further from the truth than predicting zero everywhere. Second tell: each curve
+is nearly **flat in N** (B2×MR moves 14.358 → 14.470 across a four-fold
+refinement), and a model whose error ignores the mesh is not solving the
+problem on that mesh.
+
+**Root cause, and why it is the worst possible bug for this particular study**:
+the assembled load was overstated by a factor that **depends on the mesh** —
+13.1–13.3× at N=21, 20.8–21.0× at N=33. The study trains jointly at N=21 and
+33 and then asks whether the operator transfers across resolution. With the two
+training resolutions carrying loads inconsistent with each other by ~1.6×, the
+model was fitted to two contradictory problems, and any "resolution invariance"
+measured from it would have been measuring the bug.
+
+**Repair** (commit `a45496b`, 2000 samples per case): applied to **B2×MR and
+B2×AB only**. The check that matters passed — one fixed pressure field
+assembled on each resolution now gives N=21 → 11.1775 and N=33 → 11.1784,
+**0.0075% apart**. The models trained on the bad load were deleted.
+
+**⚠️ B2×Neo-Hookean was NOT in the repair run**, yet its eval report shows the
+same signature (8.09, flat in N). Run the same repair-and-check on it before
+retraining, and do not assume an earlier B2 force fix covered it — that note
+predates this evidence.
+
+To make B2 admissible: confirm/repair B2×NH, retrain all three (models are
+gone), re-run eval. **Nothing else in the report is affected** — the bug lives
+in the B2 zero-shot sample caches only, and Table 12 is B1.
+
 ### ⚠️ Table 12 vs the model now in its directory — ONE CHECK LEFT
 
 `point7a_results/B1_neo_hookean_OPEN_QUESTION.json`.
