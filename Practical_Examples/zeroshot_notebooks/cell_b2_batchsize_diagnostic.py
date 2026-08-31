@@ -88,8 +88,18 @@ assert os.path.exists(cache), f'no sample cache at {cache}'
 # 800 training samples over the two resolutions, so steps per epoch is
 # 800/batch. Choose the epoch count per arm to land on the same step count.
 N_TRAIN_TOTAL = 800
+BATCHES = (8, 1)
+# The step target has to be reachable EXACTLY by both arms, or "matched
+# steps" is a claim the run does not support. Steps per epoch is
+# N_TRAIN_TOTAL/batch, so the target must be a multiple of the largest of
+# those -- round down to it rather than hoping the division comes out
+# even. (It did not: 22,500 gives 22,500 at batch 8 and 22,400 at batch 1,
+# and the assertion below caught that.)
+_spes = [N_TRAIN_TOTAL // b for b in BATCHES]
+STEPS = (STEPS // max(_spes)) * max(_spes)
+print(f'step target rounded to {STEPS:,}, a multiple of {max(_spes)}')
 ARMS = []
-for bs in (8, 1):
+for bs in BATCHES:
     spe = N_TRAIN_TOTAL // bs
     epochs = STEPS // spe
     # validate often enough to see the curve, but not so often that
