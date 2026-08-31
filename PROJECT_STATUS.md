@@ -51,7 +51,7 @@ comparing cell by cell against the JSON.
 
 | Item | State |
 |---|---|
-| **R6-1b** normalization as an OOD mitigation | Run 2026-08-29, recorded in `point6_results/ood_mitigation_B1_neo_hookean.json`. **Not a clean win — do not write it up as one.** Details below |
+| **R6-1b** normalization as an OOD mitigation | Run 2026-08-29, recorded in `point6_results/ood_mitigation_B1_neo_hookean.json`. **Not a clean win — do not write it up as one.** Training-budget confound closed; details below. Ready to write into §8.6 |
 | **R5-1** B1×Mooney-Rivlin zero-shot | `point7a_results/`. Blocked on the protocol decision: it is not the same study as Table 12 |
 
 All round-6 notebooks are self-contained, save to Drive incrementally, and
@@ -274,12 +274,28 @@ as a tested-and-did-not-work mitigation, which is exactly what Timon asked for,
 and name the untested remaining candidate (predicting a scaled quantity such as
 u·E rather than u).
 
-**⚠️ Confound still open.** The normalized run RESUMED from epoch 225 of an
-earlier attempt and early-stopped at 1050 (best 850, 105,000 optimizer steps).
-The baseline checkpoint's own step count was not printed. Until it is known the
-two models are not confirmed equally trained, and part of the 6.7%
-in-distribution gap could be training length rather than normalization. Get it
-from `results/B1_neo_hookean/` on Drive before writing this into the report.
+**✅ The training-budget confound is closed, and it cuts against
+normalization.** Both `metrics_history.json` files were read on 2026-08-29:
+
+| | best val | at steps | ran to | stopped |
+|---|---|---|---|---|
+| baseline | **0.09587** (epoch 550) | 55,000 | 75,000 | early |
+| normalized | **0.1023** (epoch 850) | 85,000 | 105,000 | early |
+
+The protocol WAS identical — both stopped under the same rule (patience 8
+validation events, min_delta 1e-4; the normalized run stopped exactly 8 events
+after its best). Different lengths are that rule's OUTPUT, not a deviation.
+And the normalized model got **40% more optimizer steps** and found its best
+**55% later**, and is still 6.7% worse. Extra training did not rescue it.
+
+**Two independent metrics agree on the 6.7%**: the 200-sample training
+validation set gives +6.71% (0.09587 → 0.1023); the OOD script's own 10-sample
+in-distribution cell at N=21 gives +6.69% (0.0867 → 0.0925). Different sample
+sets, different code path, 0.02 percentage points apart.
+
+**Identity check**: the baseline's 0.09587 matches Table 21's
+physics_informed entry (0.0959 at 75,000 steps) to 3.3e-05 — it is the same
+checkpoint the 2×2 used.
 
 ### ✅ RESOLVED 2026-08-29 — CG never converged in the point-8 sweep
 
