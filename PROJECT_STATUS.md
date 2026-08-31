@@ -831,7 +831,61 @@ against another.
 Both still sit far from B1, which captures ~100% of the descent at roughness
 1.01×.
 
-### 🎯 NEXT, and it is free: does training LOWER Π while raising the error?
+### 🔴 THE ENERGY-VS-ERROR RUN LANDED, AND IT POINTS AT OUR OWN METRIC (2026-08-31)
+
+Ran on `657deb0`, CPU, four checkpoints. **Π fell in both arms:**
+
+| arm | Π(epoch 50) | Π(epoch 450) | descent | roughness |
+|---|---|---|---|---|
+| N=21 | −2.4788e−02 | **−4.3379e−02** | 44% → **76%** | 2.32× → **1.74×** |
+| N=33 | −3.2643e−02 | **−4.3995e−02** | 59% → **80%** | 2.04× → **1.73×** |
+
+So training works on its own objective, and the field gets **smoother** as
+well as lower in energy.
+
+**The cell's printed verdict — that Π must prefer some field other than the
+FEM solution — does not survive the per-sample numbers and is WITHDRAWN.**
+That branch was written assuming the error rose. On the samples the probe
+actually looked at, it **fell**, epoch 50 → epoch 450:
+
+```
+N=21 arm, on N=21   0.9763->0.9023  0.7287->0.4474  0.9969->0.9330  0.5877->0.0930
+N=33 arm, on N=33   0.4826->0.4832  0.6554->0.6250  0.7798->0.6734  0.7687->0.7175
+```
+
+Eight samples, better or level on all eight, one landing at **0.0930** —
+B1 territory. And every negative correlation at epoch 50 (−0.32, −0.41) is
+**positive** at epoch 450.
+
+**Meanwhile the trainer says epoch 450 is 1.27× worse.** The two numbers are
+different metrics:
+
+| | |
+|---|---|
+| **the trainer** (`evaluate_resolution`) | `0.5·( rms(e_u)/rms(u) + rms(e_v)/rms(v) )` |
+| **the probe** (`rel`) | `rms(e)/rms(uv_exact)`, both components at once |
+
+The trainer's divides each component by **its own** size, so a small
+component's ratio dominates the average however well the field as a whole is
+predicted. It is also the metric **early stopping used** — and every B2 run on
+record stops at its *first* validation event, which is exactly what a metric
+that rises as the model improves would produce.
+
+**🎯 NEXT — `Round6_Val_Metric_Check.ipynb`**, and it is the highest-value
+thing outstanding. Both metrics on **all 100** val samples of each
+resolution, for both checkpoints of both arms, with the per-component ratios
+and component sizes beside them. CPU, minutes.
+
+* **trainer up while combined down** → the metric ranks models backwards.
+  Then: (1) the report's B2 zero-shot numbers are this metric and need
+  re-reading; (2) **B1's numbers are the same metric and must be re-checked
+  the same way**; (3) only then is retraining B2 worth it.
+* **both up** → four samples were unrepresentative, the trainer is right, and
+  the energy-vs-error reading stands as printed.
+
+**Do not put the B2 zero-shot row into report v38 until this returns.**
+
+### ~~NEXT, and it is free: does training LOWER Π while raising the error?~~ — RAN, see above
 
 The objective is Π = U − W. `model_best.pt` (epoch 50) and `model_final.pt`
 (epoch 450) are both saved for both arms, and `test_b2_zeroshot_model.py`
