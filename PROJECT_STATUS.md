@@ -570,6 +570,17 @@ file protocol end to end — killed run leaves no final JSON, restart resumes,
 subset re-run does not delete other rows, a changed checkpoint forces a fresh
 start. 11/11 pass.
 
+**⚠️ COLAB CELLS ARE PASTED COPIES AND GO STALE — USE `Round6_RUN_THIS.ipynb`.**
+This has now cost three runs: the Pareto cell printed `ALREADY DONE, will skip`
+under a commit whose code says `COMPLETE (9/9)`; the single-resolution cell
+recommended hours of FEM a later commit had ruled out; and the B1 metric cell
+printed a verdict the checked-out commit had explicitly withdrawn. Each time
+the NEW commit hash printed directly above the OLD output.
+`zeroshot_notebooks/bootstrap_cell.py` (notebook: `Round6_RUN_THIS.ipynb`) has
+no logic of its own to go stale — it updates the repo, prints the commit, and
+`exec`s whichever `cell_*.py` you name as it exists on the branch right now.
+Every cell should be run through it.
+
 **⚠️ COLAB CELLS ARE PASTED COPIES AND GO STALE.** The restart's own output
 proves it: the notebook printed the *old* pre-flight text (`ALREADY DONE, will
 skip` / `expect roughly two hours`) even though `git log` in the same cell

@@ -15,9 +15,18 @@
 #  picked up by simply re-running it.
 #
 #  To switch tasks, change CELL below. The choices are the cell_*.py files
-#  in Practical_Examples/zeroshot_notebooks/.
+#  in Practical_Examples/zeroshot_notebooks/; a wrong name prints the whole
+#  list rather than a bare assertion.
+#
+#  THIS IS THE ONLY WAY THESE CELLS SHOULD BE RUN. It has now cost three
+#  runs: the Pareto cell printed "ALREADY DONE, will skip" under a commit
+#  that says "COMPLETE (9/9)", the single-resolution cell recommended
+#  hours of FEM that a later commit had already ruled out, and the B1
+#  metric cell printed a verdict that the checked-out commit had
+#  explicitly withdrawn -- each time with the NEW commit hash printed
+#  directly above the OLD output.
 # =====================================================================
-CELL = 'cell_ood_mitigation.py'
+CELL = 'cell_b1_metric_recheck.py'
 
 import os
 import subprocess
@@ -54,9 +63,11 @@ else:
 run(['git', '-C', REPO, 'log', '--oneline', '-1'])
 
 PATH = f'{REPO}/Practical_Examples/zeroshot_notebooks/{CELL}'
-assert os.path.exists(PATH), (
-    f'{CELL} not found at\n  {PATH}\n'
-    'Check the filename against the cell_*.py files in that directory.')
+if not os.path.exists(PATH):
+    here = f'{REPO}/Practical_Examples/zeroshot_notebooks'
+    have = sorted(f for f in os.listdir(here) if f.startswith('cell_'))
+    raise SystemExit(f'{CELL} not found at\n  {PATH}\n\navailable:\n  '
+                     + '\n  '.join(have))
 print(f'\n--- running {CELL} from the commit above ---\n', flush=True)
 
 # exec, not import: these files are top-level scripts with no __main__
