@@ -12,7 +12,7 @@ everything after it is detail.**
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v35**, summary updated through Table 24, branch
+Current artefacts: report **v36**, summary mirrored, branch
 `claude/claude-code-question-d307wp`.
 
 **Nothing measured is unwritten.** Point 7b's 2×2 is complete and in §8.9;
@@ -43,16 +43,17 @@ comparing cell by cell against the JSON.
 | **R5-7b** physics-informed vs data-driven, the complete 2×2 | §8.9, **Table 21** |
 | **R5-9** MMS, Q4 and Q9 against an analytic solution | §8.11, **Tables 22–23** |
 | **R5-9** MMS, the operator third — the three-way is complete | §8.11, **Table 24** |
-| **R6-1b** normalization tested as an OOD mitigation — **run, recorded, not yet in the report** | `point6_results/ood_mitigation_B1_neo_hookean.json` |
 | **R6-1** progressive OOD: material vs loading, 0→3σ | §8.6, **Table 19** |
+| **R6-1b** normalization tested as a mitigation — it does not work | §8.6, **Table 19a** |
+| **R5-1 / R5-7a** zero-shot, three B1 materials, 7 resolutions | §8.7, **Table 12 (revised)** |
+| **R5-8b** the CG counters and the corrected cost analysis | §8.5, **Table 20a** |
 | **R5-8b** GPU-FEM scaling sweep, 0.02→3.93M DOF + cost breakdown | §8.5, **Table 20** |
 
 ## 🔵 Run, recorded, NOT yet in the report
 
 | Item | State |
 |---|---|
-| **R6-1b** normalization as an OOD mitigation | Run 2026-08-29, recorded in `point6_results/ood_mitigation_B1_neo_hookean.json`. **Not a clean win — do not write it up as one.** Training-budget confound closed; details below. Ready to write into §8.6 |
-| **R5-1** B1×Mooney-Rivlin zero-shot | `point7a_results/`. Blocked on the protocol decision: it is not the same study as Table 12 |
+| **R5-1 / R5-7a** the three B2 zero-shot cases | Their results are INVALID (mesh-dependent load). Caches repaired for B2×MR and B2×AB; B2×NH unconfirmed; all three need retrain + re-eval. See below |
 
 All round-6 notebooks are self-contained, save to Drive incrementally, and
 resume on re-run. All 12 repo notebooks pass `check_notebooks.py`.
