@@ -868,7 +868,49 @@ per-component number is still printed and still stored as
 resume from a pre-flag state starts selection afresh rather than comparing two
 different metrics.
 
-**🎯 NEXT — `Round6_B1_Metric_Recheck.ipynb`, before the report is touched.**
+### ✅ B1 CHECKED — the report's numbers STAND, no table is restated (2026-08-31)
+
+Three B1 cases, their own reported checkpoints, all 100 val samples:
+
+| case | N | per_component | both_components | ratio | rms(v)/rms(u) |
+|---|---|---|---|---|---|
+| neo_hookean | 21 | 0.0772 | 0.0529 | 1.46 | 3.45 |
+| neo_hookean | 33 | 0.0543 | 0.0360 | 1.51 | 3.54 |
+| mooney_rivlin | 21 | 0.0984 | 0.0723 | 1.36 | 3.34 |
+| mooney_rivlin | 33 | 0.0670 | 0.0466 | 1.44 | 3.42 |
+| arruda_boyce | 21 | 0.0953 | 0.0565 | 1.69 | 4.06 |
+| arruda_boyce | 33 | 0.0613 | 0.0360 | 1.71 | 4.17 |
+
+**⚠️ The cell printed "B1 IS AFFECTED TOO ... the tables have to be restated".
+THAT VERDICT WAS WRONG and is withdrawn.** It tested a threshold I picked
+(1.15×) on the *offset* between the two metrics, when the B2 failure is an
+*inversion of ordering*. One checkpoint per case cannot test ordering at all.
+
+**What the numbers actually say.** `per_component` is 1.36–1.71× the
+both-components number, **in the same direction every time**. That is a level
+offset, and an expected one: `rms(v)/rms(u)` is 3.3–4.2 — the block is pulled
+vertically, `u` is the small component, and dividing each component by its own
+size lets the small one dominate. So **the reported B1 numbers are
+conservative**: the true both-components error is 0.036–0.072, lower than the
+0.054–0.098 reported.
+
+**Nothing published is wrong.** §7.1 defines every reported error exactly, and
+this file already recorded (in the `pareto_analysis` docstring correction) that
+Tables 5/11/12 use the per-component average while §4.4 uses the combined norm,
+"so the combined norm reads lower" on B1. This run measured that offset; it did
+not find an error.
+
+**Why B2 inverts and B1 does not** — the component ratio's *stability*, not its
+size. B1's is 3.34–4.17, a tight band. B2's per-sample mean is 1.90 against an
+aggregate 0.90, i.e. skewed, so the average reports its tail.
+
+**Still open, and cheap:** whether B1's runs *also* early-stopped on a metric
+that had begun to invert. If so B1 is better than reported — an improvement to
+claim in v38, not an error to fix. The second half of
+`Round6_B1_Metric_Recheck.ipynb` now recovers each B1 run's endpoint from its
+own `train_state_latest.pt` and scores both metrics on both endpoints.
+
+### ~~NEXT — `Round6_B1_Metric_Recheck.ipynb`, before the report is touched~~ — RAN, see above
 Every B1 number in the report (5.0–10.6% zero-shot, 0.0658–0.0827 on the
 training meshes) is the **same metric**.
 

@@ -132,23 +132,118 @@ for mat, d, cache, ckpt in PLAN:
 print()
 if gaps:
     lo, hi = min(gaps), max(gaps)
-    print(f'  the two metrics differ by {lo:.2f}x to {hi:.2f}x on B1')
-    print('  (on B2 they differ by 1.24x at epoch 50 and 1.79x at epoch 450,')
-    print('   and in OPPOSITE directions between the two checkpoints)')
+    print(f'  per_component is {lo:.2f}x to {hi:.2f}x the both-components')
+    print('  number on B1, in the SAME direction every time.')
     print()
-    if hi < 1.15:
-        print('B1 IS ESSENTIALLY UNAFFECTED. Its two displacement components')
-        print('are comparable in size, so normalising each by its own does')
-        print('almost nothing, and every reported B1 number stands as it is.')
-        print('That also explains the whole picture: the metric inverts on')
-        print('the annulus and not on the block, which is a fact about the')
-        print('geometry rather than about the training.')
-    else:
-        print('B1 IS AFFECTED TOO. The reported zero-shot numbers are in a')
-        print('metric that differs materially from the both-components one on')
-        print('this geometry as well, so the tables have to be restated in')
-        print('both metrics before v38. Do not edit the report until this is')
-        print('worked through -- the numbers, not just the wording, change.')
+    print('WHAT THIS IS, AND WHAT IT IS NOT. This is a LEVEL OFFSET, not the')
+    print('failure found on B2. B2\'s problem is that the metric ORDERS two')
+    print('checkpoints backwards, and ordering is what early stopping and')
+    print('model_best.pt depend on. One checkpoint per case cannot test')
+    print('ordering at all, so this run does not show B1 has that problem --')
+    print('and it does not show B1 is free of it either. It measures how far')
+    print('apart the two metrics sit, nothing more.')
+    print()
+    print('THE OFFSET IS EXPECTED AND ALREADY DOCUMENTED. rms(v)/rms(u) is')
+    print('3.3 to 4.2 on B1: the block is pulled vertically, u is the small')
+    print('component, and dividing each component by its own size lets the')
+    print('small one dominate the average. So per_component reads HIGHER --')
+    print('the reported B1 numbers are CONSERVATIVE, and the both-components')
+    print('error is lower than the report claims, not higher.')
+    print()
+    print('THE REPORT DOES NOT NEED RESTATING. Section 7.1 defines every')
+    print('reported error exactly, and PROJECT_STATUS already records that')
+    print('Tables 5/11/12 use the per-component average while Section 4.4\'s')
+    print('convergence work uses the combined norm, "so the combined norm')
+    print('reads lower" on B1. Nothing here contradicts a published number.')
+    print('An earlier version of this cell called that "B1 IS AFFECTED TOO"')
+    print('and demanded the tables be restated; that was wrong, and it was')
+    print('wrong because it tested a threshold on the offset instead of')
+    print('testing the ordering.')
+    print()
+    print('WHAT WOULD BE WORTH KNOWING, and it is cheap: whether B1\'s runs')
+    print('ALSO early-stopped on a metric that had started to invert. If')
+    print('they did, B1 is better than the report says -- an improvement to')
+    print('claim, not an error to fix. That needs B1\'s epoch-N endpoint')
+    print('weights, which train_state_latest.pt carries, and it is the arm')
+    print('below.')
 print('=' * 78)
-print('Nothing was trained and nothing on Drive was overwritten except the')
-print('val_metrics_*.json this run wrote.')
+
+# ---- did B1's own runs stop early on a metric that had inverted? -------
+# One checkpoint cannot answer the ordering question, so this recovers each
+# B1 run's ENDPOINT weights the same way the B2 arms' were recovered and
+# scores both metrics on both endpoints. If per_component rises while
+# both_components falls here too, B1's early stopping kept a worse model and
+# the reported B1 numbers are conservative twice over.
+import torch
+
+print('\n' + '=' * 78)
+print('B1: THE ENDPOINT OF EACH RUN, AGAINST ITS BEST CHECKPOINT')
+print('=' * 78)
+ENDS = []
+for mat, d, cache, ckpt in PLAN:
+    final, state = f'{d}/model_final.pt', f'{d}/train_state_latest.pt'
+    hist = f'{d}/metrics_history.json'
+    if not os.path.exists(final):
+        if not os.path.exists(state):
+            print(f'  {mat}: no model_final.pt and no train_state_latest.pt '
+                  f'-- endpoint unavailable')
+            continue
+        st = torch.load(state, map_location='cpu', weights_only=False)
+        if os.path.exists(hist):
+            last = json.load(open(hist))[-1]['epoch']
+            if st['epoch'] != last:
+                print(f"  {mat}: train_state_latest.pt is at epoch "
+                      f"{st['epoch']} but the last validation event was "
+                      f"{last} -- not the same run, skipping")
+                continue
+        torch.save(st['model_state_dict'], final)
+        print(f"  {mat}: recovered epoch {st['epoch']} -> model_final.pt")
+    else:
+        print(f'  {mat}: model_final.pt already present')
+    ENDS.append((mat, d, cache, final))
+
+for mat, d, cache, final in ENDS:
+    print('\n\n' + '#' * 78)
+    print(f'#  B1 x {mat}   model_final.pt')
+    print('#' * 78)
+    run([sys.executable, '-u', '-m', 'omar_pfem.compare_val_metrics',
+         '--geometry', 'B1', '--material', mat,
+         '--cache', cache, '--checkpoint', final,
+         '--out_json', f'{d}/val_metrics_model_final.json', '--cpu'])
+
+print('\n' + '=' * 78)
+print('B1: DOES ITS METRIC INVERT BETWEEN THE TWO ENDPOINTS?')
+print('=' * 78)
+inv = []
+for mat, d, cache, ckpt in PLAN:
+    a = f'{d}/val_metrics_model_best.json'
+    b = f'{d}/val_metrics_model_final.json'
+    if not (os.path.exists(a) and os.path.exists(b)):
+        continue
+    ja, jb = json.load(open(a)), json.load(open(b))
+    pa, pb = ja['mean_trainer_metric'], jb['mean_trainer_metric']
+    ca, cb = ja['mean_combined_rel_L2'], jb['mean_combined_rel_L2']
+    inv.append((pb > pa, cb < ca))
+    print(f"  {mat:<16} per_component {pa:.4f} -> {pb:.4f} "
+          f"({'UP' if pb > pa else 'DOWN'})   "
+          f"both_components {ca:.4f} -> {cb:.4f} "
+          f"({'DOWN' if cb < ca else 'UP'})")
+
+print()
+if inv and any(p and c for p, c in inv):
+    print('B1 INVERTS TOO on at least one case: its early stopping also kept')
+    print('the worse model. The reported B1 numbers are then conservative')
+    print('twice -- once for the metric offset, once for stopping early.')
+    print('That is an improvement to claim in v38, not an error to correct.')
+elif inv:
+    print('B1 DOES NOT INVERT. Its best checkpoint really is its best on')
+    print('both metrics, so early stopping did the right thing on B1 and the')
+    print('wrong thing on B2 -- and the difference between the geometries is')
+    print('the stability of the component ratio: 3.3-4.2 and tight on B1,')
+    print('skewed on B2 (per-sample mean 1.90 against 0.90 aggregate).')
+else:
+    print('No B1 case had both endpoints available, so this is unanswered.')
+print('=' * 78)
+print('Nothing was trained. On Drive this wrote val_metrics_*.json and, where')
+print('it was missing, model_final.pt recovered from the run\'s own resume')
+print('state -- no existing file was overwritten.')
