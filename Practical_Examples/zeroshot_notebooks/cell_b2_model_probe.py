@@ -39,6 +39,34 @@
 #    - it does respond to its input, but about five times too weakly
 #      (variability 0.13 and 0.10 against the targets' 0.64 and 0.31).
 #
+#  WHAT IS NEW IN THIS RUN. Input normalisation has since been TESTED and
+#  FALSIFIED -- 0.9910 against the 0.9986 baseline, a 0.8% move where B1
+#  sits at 0.066. So the input scaling is not the obstacle, and two
+#  structural candidates are left: the Dirichlet ramp and the parametric
+#  family. This run measures the first one.
+#
+#  THE RAMP, AND WHY IT IS NOT THE OBVIOUS TEST. The network's output is
+#  mask * raw. B2 uses TWO ramps -- x/R_out on u, y/R_out on v -- which
+#  vanish on DIFFERENT edges; B1 uses one y/Ly on both components. The
+#  tempting test is "can the mask represent uv_exact at all", and the
+#  answer is already yes: the probe's own stand-in assertion reconstructs
+#  uv_exact through the mask to machine precision on both geometries, and
+#  it would have failed loudly otherwise. So representability is NOT the
+#  question and a training run spent on that premise would be wasted.
+#
+#  The real question is how HARD a field the mask asks for. To output
+#  uv_exact the network must emit uv_exact/mask, and near an edge where
+#  the mask goes to zero that quotient grows. This run prints, per sample
+#  and for BOTH geometries:
+#
+#      rms(raw demanded) / rms(the output)   -- how much bigger
+#      peak/rms of the raw demanded          -- how uneven
+#
+#  If B2's numbers dwarf B1's, the ramp is a real obstacle and the fix is
+#  a mask that does not vanish linearly. If they are comparable, the ramp
+#  is exonerated and the last candidate is the parametric family
+#  (ParametricFieldB2 varies with theta only, never with r).
+#
 #  CPU, a couple of minutes for both arms, writes nothing, trains nothing.
 # =====================================================================
 import os

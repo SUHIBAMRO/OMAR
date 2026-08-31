@@ -220,7 +220,8 @@ def main():
         print(f"  normalises it unless --normalize_inputs was on.")
 
     # ---- the per-sample work -------------------------------------------
-    collapse, energy_spread, descent, roughness = {}, {}, [], []
+    collapse, energy_spread = {}, {}
+    descent, roughness, demand_stats = [], [], []
     for N, samples in buckets.items():
         print("\n" + "=" * 74)
         print(f"resolution {N}")
@@ -276,14 +277,33 @@ def main():
                   f"   W/U {W_p / max(U_p, 1e-30):.2f}")
             print(f"    Pi(uv_exact) {pi_t: .6e}   U {U_t:.4e}  W {W_t:.4e}"
                   f"   W/U {W_t / max(U_t, 1e-30):.2f}")
-            # strain energy per unit amplitude. A prediction as smooth as the
+            # strain energy per unit amplitude.  (see below for the mask) A prediction as smooth as the
             # truth has U scaling with amplitude squared, so this ratio is 1.
             # Above 1 means the field carries more strain than its size
             # warrants -- it is rough, not merely small.
             amp = rms(pred) / max(rms(tgt), 1e-30)
             rough = (U_p / max(U_t, 1e-30)) / max(amp * amp, 1e-30)
+            # THE RAW FIELD THE MASK DEMANDS. The network's output is
+            # mask * raw, so to produce uv_exact it must emit uv_exact/mask.
+            # Near an edge where the mask vanishes that quotient blows up, and
+            # B2 has TWO ramps vanishing on DIFFERENT edges against B1's one.
+            # The mask can represent uv_exact -- the assertion above proves it
+            # -- so this is not about representability; it is about how large
+            # and how uneven a field the network has to emit to get there.
+            live = mask.abs() > 1e-9
+            demand = torch.where(live, tgt / mask.clamp_min(1e-30),
+                                 torch.zeros_like(tgt))
+            dyn = (float(demand[live].abs().max())
+                   / max(rms(demand[live]), 1e-30))
+            raw_over_out = rms(demand[live]) / max(rms(tgt), 1e-30)
+            demand_stats.append((dyn, raw_over_out))
             print(f"    Pi(0) = 0, so the model captured "
                   f"{frac * 100:5.1f}% of the available descent")
+            print(f"    the raw field the mask demands for uv_exact: rms "
+                  f"{rms(demand[live]):.4e} against the output's "
+                  f"{rms(tgt):.4e} ({raw_over_out:5.2f}x),")
+            print(f"      peak/rms {dyn:7.2f}  -- how uneven a field the "
+                  f"network must emit to hit the target")
             print(f"    roughness (U ratio)/(amplitude ratio)^2 = {rough:5.2f}"
                   f"   -- 1.0 is as smooth as the truth")
             roughness.append(rough)
@@ -343,6 +363,17 @@ def main():
     if roughness:
         print(f"roughness: {min(roughness):.2f}x to {max(roughness):.2f}x, "
               f"mean {sum(roughness) / len(roughness):.2f}x")
+    if demand_stats:
+        dyns = [d for d, _ in demand_stats]
+        amps = [a for _, a in demand_stats]
+        print(f"the raw field the mask demands: {min(amps):.2f}x to "
+              f"{max(amps):.2f}x the output in rms, peak/rms {min(dyns):.1f} "
+              f"to {max(dyns):.1f}")
+        print("  Read this one across the two geometries. If B2's numbers are")
+        print("  far larger than B1's, the Dirichlet ramp is asking the")
+        print("  network for a much harder field and is a real obstacle. If")
+        print("  they are comparable, the ramp is exonerated and the last")
+        print("  candidate is the parametric family.")
     if collapse:
         print(f"prediction variability: "
               + ", ".join(f"N={N} {v:.3f}" for N, v in collapse.items()))

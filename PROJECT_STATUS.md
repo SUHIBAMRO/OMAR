@@ -76,9 +76,26 @@ resume on re-run. All 12 repo notebooks pass `check_notebooks.py`.
 | **R6** open-source the GPU-FEM + benchmark vs Tensormesh | Needs Omar's decision: separate repo? license? how much documentation? |
 | Send Timon the correction + the B1×NH Pareto result | Drafted in the reading of the round-6 email; not sent |
 
-## 🚫 Cancelled by Omar
+## 🚫 Cancelled by Omar — DO NOT PROPOSE THESE AGAIN
 
-B2 mesh-convergence study · Tables 13/14 left as they are
+**B2 mesh-convergence study** (the ~10M/40M-DOF Q4-vs-Q9 study of §4.4, for
+the B2 geometry) · Tables 13/14 left as they are.
+
+Cancelled 2026-08-27: *"خلص ملغي ما بدنا ياه"*. **It is not among Timon's
+requests** — a leftover from an earlier round.
+
+**⚠️ I proposed restarting it on 2026-08-31 and ranked it the top priority.**
+That was wrong; Omar caught it. I had read §10's "remaining items" list and
+§4.4's own "pending" note and had not opened this file, which exists precisely
+so that does not happen. **Read this section before ranking any priority.**
+
+**And two lines in the report still contradict this decision** and should be
+rewritten so a reader does not think the study is coming:
+* end of §4.4: *"NOTE — pending: this same ~10M-DOF-referenced convergence
+  study for the B2 geometry (both element orders) remains in progress"*
+* §10's remaining-items list carries the same item.
+
+Both should say the study is deliberately confined to B1.
 
 ---
 
