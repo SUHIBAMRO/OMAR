@@ -831,7 +831,62 @@ against another.
 Both still sit far from B1, which captures ~100% of the descent at roughness
 1.01×.
 
-### 🔴 THE ENERGY-VS-ERROR RUN LANDED, AND IT POINTS AT OUR OWN METRIC (2026-08-31)
+### ✅ CONFIRMED: the validation metric ranks B2's checkpoints backwards (2026-08-31)
+
+All 100 val samples of each resolution, both arms, commit `83469fe`:
+
+| arm | checkpoint | per_component | both_components |
+|---|---|---|---|
+| N=21 | epoch 50 | 0.9622 | 0.7743 |
+| N=21 | epoch 450 | **1.2255** ↑ | **0.6858** ↓ |
+| N=33 | epoch 50 | 1.0372 | 0.7043 |
+| N=33 | epoch 450 | **1.1538** ↑ | **0.6822** ↓ |
+
+The metric early stopping obeyed goes **up** while the error over both
+components goes **down**, in both arms, on the full set. Every B2 run stopped
+at its **first** validation event and kept the worse model.
+
+**The mechanism, from its own printout:** per-sample `rms(v)/rms(u)` averages
+**1.90** while the ratio of the *averaged* components is **0.90**. The
+distribution is skewed, so the average reports its tail — samples where one
+component is small and its relative error is therefore large, however well the
+field as a whole is predicted.
+
+**⚠️ WHAT THIS DOES NOT MEAN, and it matters more than the finding.** B2 is
+still bad: best both-components error **0.68** against B1's **0.066**. The
+metric cost B2 roughly 0.77 → 0.69 — **an eighth of the gap, not the gap.**
+B2 zero-shot failing is **not** a metric artefact, and the report's conclusion
+does not change. Anyone reading this later: do not turn this into "B2 works
+after all".
+
+**Fixed in `resolution_invariance_zeroshot.py`:** `evaluate_resolution` now
+returns both metrics; `--selection_metric` (default **`both_components`**)
+chooses which one drives `model_best.pt` and early stopping;
+`metrics_history.json` records both plus which one was in force. The
+per-component number is still printed and still stored as
+`combined_val_error`, because every reported figure is in those units. A
+resume from a pre-flag state starts selection afresh rather than comparing two
+different metrics.
+
+**🎯 NEXT — `Round6_B1_Metric_Recheck.ipynb`, before the report is touched.**
+Every B1 number in the report (5.0–10.6% zero-shot, 0.0658–0.0827 on the
+training meshes) is the **same metric**.
+
+* **B1's two metrics agree** → the reported numbers stand, and the metric
+  inverting on the annulus but not the block is itself a finding about the
+  geometry.
+* **B1's disagree too** → every zero-shot number is in a metric that does not
+  order models correctly, and the tables must be restated before v38.
+
+CPU, minutes, trains nothing.
+
+**Then, and only then:** retraining B2 with the fixed selection is worth
+considering. At epoch 450 of 4,000 it was still improving on every measure —
+Π falling, roughness falling, both-components error falling — so B2 has never
+been trained to convergence. From the measured rate (450 epochs in 12 m 8 s),
+4,000 epochs is about **1 h 50 m** per arm on an A100.
+
+### ~~THE ENERGY-VS-ERROR RUN LANDED~~ — the reasoning that got here (2026-08-31)
 
 Ran on `657deb0`, CPU, four checkpoints. **Π fell in both arms:**
 

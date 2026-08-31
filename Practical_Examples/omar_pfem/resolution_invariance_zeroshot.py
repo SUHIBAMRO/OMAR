@@ -221,9 +221,43 @@ def mesh_tensors_of(geometry, sample, device, dtype):
 
 
 @torch.no_grad()
-def evaluate_resolution(geometry, samples, mesh_tensors, model, args, device, dtype):
+def evaluate_resolution(geometry, samples, mesh_tensors, model, args, device, dtype,
+                        both=False):
+    """Validation error. Returns the per-component metric, or both metrics
+    when `both` is set.
+
+    TWO METRICS, AND WHY BOTH ARE HERE.
+
+        per_component   0.5 * ( rms(e_u)/rms(u) + rms(e_v)/rms(v) )
+        combined        rms(e) / rms(uv_exact)      both components at once
+
+    The per-component one divides each component by ITS OWN size, so a
+    sample where one displacement component happens to be small contributes
+    a large ratio however well the field as a whole is predicted. Measured
+    on the B2 validation set, the per-sample rms(v)/rms(u) averages 1.90
+    while the ratio of the averaged components is 0.90 -- the distribution
+    is skewed, and the samples in its tail are what the average reports.
+
+    That is not academic. On both B2 single-resolution arms, over all 100
+    val samples of each resolution, the two metrics rank the SAME two
+    checkpoints in OPPOSITE directions:
+
+        arm    per_component        combined
+        N=21   0.9622 -> 1.2255     0.7743 -> 0.6858
+        N=33   1.0372 -> 1.1538     0.7043 -> 0.6822
+
+    Early stopping and `model_best.pt` selection used the per-component
+    number, so every B2 run in this study stopped at its FIRST validation
+    event and kept the worse model while the model was still improving --
+    Pi falling, the field getting smoother, the combined error falling.
+
+    The per-component metric is still what every number in the report was
+    computed with, so it stays the reported one and stays first in the
+    return. What changed is that selection no longer depends on it: see
+    --selection_metric.
+    """
     if len(samples) == 0:
-        return None
+        return (None, None) if both else None
     model.eval()
     E_batch = torch.tensor(np.stack([s["E_node"] for s in samples]), device=device, dtype=dtype)
     nu_batch = torch.tensor(np.stack([s["nu_node"] for s in samples]), device=device, dtype=dtype)
@@ -237,7 +271,12 @@ def evaluate_resolution(geometry, samples, mesh_tensors, model, args, device, dt
     ref_u = torch.sqrt(torch.mean(uv_exact[:, :, 0] ** 2, dim=1)) + 1e-12
     ref_v = torch.sqrt(torch.mean(uv_exact[:, :, 1] ** 2, dim=1)) + 1e-12
     rel_l2 = 0.5 * ((l2_u / ref_u) + (l2_v / ref_v))
-    return float(rel_l2.mean().item())
+    per_component = float(rel_l2.mean().item())
+    if not both:
+        return per_component
+    combined = (torch.sqrt(torch.mean(err ** 2, dim=(1, 2)))
+                / torch.sqrt(torch.mean(uv_exact ** 2, dim=(1, 2))).clamp_min(1e-30))
+    return per_component, float(combined.mean().item())
 
 
 # ============================================================
@@ -416,7 +455,12 @@ def cmd_train(args):
 
     bs = max(int(args.batch_size), 1)
     metrics_history = []
-    best_combined_val, best_epoch, patience_counter = None, None, 0
+    # best_select_val drives selection and early stopping; best_combined_val
+    # is the per-component number AT that same checkpoint, kept because every
+    # reported figure is in those units. They are equal when
+    # --selection_metric per_component.
+    best_combined_val, best_select_val = None, None
+    best_epoch, patience_counter = None, 0
     train_wall_clock = 0.0
     opt_steps = 0
     start_epoch = 1
@@ -433,6 +477,16 @@ def cmd_train(args):
         opt.load_state_dict(state["optimizer_state_dict"])
         start_epoch = state["epoch"] + 1
         best_combined_val = state["best_combined_val"]
+        # Runs started before the selection metric existed have no
+        # best_select_val. Falling back to the per-component number would
+        # compare a both-components value against a per-component one and
+        # declare everything an improvement, so the resume starts selection
+        # afresh instead: the first validation event after the resume becomes
+        # the new reference, and model_best.pt can only be overwritten by
+        # something that beats it on the metric now in force.
+        best_select_val = state.get("best_select_val")
+        if best_select_val is None and args.selection_metric == "per_component":
+            best_select_val = best_combined_val
         best_epoch = state["best_epoch"]
         patience_counter = state["patience_counter"]
         train_wall_clock = state["train_wall_clock"]
@@ -501,25 +555,44 @@ def cmd_train(args):
         train_wall_clock += epoch_time
 
         if epoch % args.validate_every == 0:
-            per_res_val = {}
+            per_res_val, per_res_comb = {}, {}
             for N in train_resolutions:
-                per_res_val[N] = evaluate_resolution(args.geometry, val_samples[N], mesh_tensors[N],
-                                                      model, args, device, dtype)
+                per_res_val[N], per_res_comb[N] = evaluate_resolution(
+                    args.geometry, val_samples[N], mesh_tensors[N],
+                    model, args, device, dtype, both=True)
             combined_val = float(np.mean(list(per_res_val.values())))
+            bothcomp_val = float(np.mean(list(per_res_comb.values())))
+            # WHICH NUMBER DRIVES SELECTION. The per-component metric is what
+            # every reported number was computed with, so it is still printed
+            # and still stored as combined_val_error. But it ranks checkpoints
+            # backwards on B2 -- measured, both arms, all 100 val samples --
+            # so keeping model_best.pt on it kept the worse model and stopped
+            # every run at its first validation event. Selection now defaults
+            # to the both-components metric; --selection_metric per_component
+            # restores the old behaviour exactly.
+            select_val = (combined_val if args.selection_metric == "per_component"
+                          else bothcomp_val)
             print(f"[epoch {epoch}] per-resolution val_error={per_res_val}  "
-                  f"combined(mean)={combined_val:.4e}  opt_steps={opt_steps}  "
+                  f"combined(mean)={combined_val:.4e}  "
+                  f"both_components(mean)={bothcomp_val:.4e}  "
+                  f"[selecting on {args.selection_metric}]  opt_steps={opt_steps}  "
                   f"cum_wall_clock={train_wall_clock:.1f}s")
 
-            is_best = (best_combined_val is None) or (combined_val < best_combined_val - args.early_stop_min_delta)
+            is_best = (best_select_val is None) or (select_val < best_select_val - args.early_stop_min_delta)
             if is_best:
-                best_combined_val, best_epoch, patience_counter = combined_val, epoch, 0
+                best_select_val, best_epoch, patience_counter = select_val, epoch, 0
+                best_combined_val = combined_val
                 torch.save(model.state_dict(), os.path.join(args.out_dir, "model_best.pt"))
             else:
                 patience_counter += 1
 
             metrics_history.append({
                 "epoch": epoch, "per_resolution_val_error": per_res_val,
-                "combined_val_error": combined_val, "is_best": is_best,
+                "combined_val_error": combined_val,
+                "per_resolution_both_components": per_res_comb,
+                "both_components_val_error": bothcomp_val,
+                "selection_metric": args.selection_metric,
+                "is_best": is_best,
                 "opt_steps": opt_steps, "cumulative_wall_clock_s": train_wall_clock,
             })
             with open(os.path.join(args.out_dir, "metrics_history.json"), "w") as f:
@@ -532,16 +605,18 @@ def cmd_train(args):
             resume_tmp = os.path.join(args.out_dir, "train_state_latest.pt.tmp")
             torch.save({
                 "model_state_dict": model.state_dict(), "optimizer_state_dict": opt.state_dict(),
-                "epoch": epoch, "best_combined_val": best_combined_val, "best_epoch": best_epoch,
+                "epoch": epoch, "best_combined_val": best_combined_val,
+                "best_select_val": best_select_val, "best_epoch": best_epoch,
                 "patience_counter": patience_counter, "train_wall_clock": train_wall_clock,
                 "opt_steps": opt_steps, "metrics_history": metrics_history,
             }, resume_tmp)
             os.replace(resume_tmp, os.path.join(args.out_dir, "train_state_latest.pt"))
 
             if args.early_stop_patience > 0 and patience_counter >= args.early_stop_patience:
-                print(f"[early stop] combined val_error hasn't improved for {patience_counter} "
-                      f"validation events -- stopping at epoch {epoch}, best was epoch {best_epoch} "
-                      f"(combined_val_error={best_combined_val:.4e})")
+                print(f"[early stop] {args.selection_metric} val_error hasn't improved for "
+                      f"{patience_counter} validation events -- stopping at epoch {epoch}, "
+                      f"best was epoch {best_epoch} (selected {best_select_val:.4e}, "
+                      f"combined_val_error={best_combined_val:.4e})")
                 with open(os.path.join(args.out_dir, "EARLY_STOPPED"), "w") as f:
                     f.write(f"stopped_at_epoch={epoch}\nbest_epoch={best_epoch}\n"
                             f"best_combined_val_error={best_combined_val}\n")
@@ -837,6 +912,14 @@ def main():
     p_train.add_argument("--epochs", type=int, default=2000)
     p_train.add_argument("--validate_every", type=int, default=25)
     p_train.add_argument("--early_stop_patience", type=int, default=8)
+    # WHICH VALIDATION NUMBER SELECTS model_best.pt AND STOPS THE RUN.
+    # "per_component" is 0.5*(rms(e_u)/rms(u) + rms(e_v)/rms(v)) -- the metric
+    # every reported figure is in, and the one that ranked B2's checkpoints
+    # backwards on all 100 val samples of both arms. "both_components" is
+    # rms(e)/rms(uv_exact). Both are recorded either way; this only chooses
+    # which one selection and early stopping obey.
+    p_train.add_argument("--selection_metric", default="both_components",
+                         choices=["both_components", "per_component"])
     p_train.add_argument("--early_stop_min_delta", type=float, default=1e-4)
     p_train.add_argument("--lr", type=float, default=2e-3)
     p_train.add_argument("--weight_decay", type=float, default=0.0)
