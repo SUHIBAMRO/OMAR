@@ -10,6 +10,23 @@ everything after it is detail.**
 
 ---
 
+# ⛔ SETTLED — do not reopen, and do not list as "remaining work"
+
+**Read this before ranking any priority or answering "what is left?".** Twice
+now a session has read a *scientific caveat* in the report and reported it as
+*unfinished work*. The report hedges properly; that is not the same as a gap.
+This list is the authority.
+
+| item | status | why it looks open but is not |
+|---|---|---|
+| **B2 mesh-convergence at ~10M/40M DOF** (§4.4) | **CANCELLED by Omar 2026-08-27** — *"خلص ملغي ما بدنا ياه"* | §4.4 still ends with a "NOTE — pending" line and §10 still lists it. **Both are stale and should be rewritten.** It was never among Timon's requests |
+| **Data-driven vs physics-informed, other cases** (§8.9) | **COMPLETE** — point 7b, Table 21 | §8.9 closes with *"The comparison covers one case"*, which is a caveat, not a to-do. Timon's instruction was *"I'd start with one specific problem such as B1-Neo Hookean. **Based on the results, we can decide then.**"* One case was the instruction; extending is a decision that was never taken |
+
+**The rule:** a sentence in the report that names a limitation is the report
+being honest. Only this file says what is actually outstanding.
+
+---
+
 # MASTER TABLE — where every item stands
 
 Current artefacts: report **v37**, summary mirrored (v10), branch
