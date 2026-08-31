@@ -81,9 +81,62 @@ def main():
            "members": [{"alpha": a, "beta": b} for a, b in members],
            "rows": []}
 
+    # PER-MEMBER RESUME. This used to write args.out_json once, after every
+    # mesh had finished -- so a run killed anywhere before the end left
+    # NOTHING on disk and started again from the first member. On the real
+    # sweep that is expensive: N=33 alone is over an hour, and it runs last.
+    #
+    # Each member's four numbers are now appended to a progress file as soon
+    # as they are computed, and a restart skips whatever is already there.
+    # The progress file is keyed by the drawn members, so a run with a
+    # different seed or ntest cannot silently inherit another family's
+    # results. args.out_json is still written only when every mesh is
+    # complete, so its existence continues to mean "finished".
+    progress_path = (args.out_json + ".progress") if args.out_json else None
+    member_key = [[round(a, 12), round(b, 12)] for a, b in members]
+    done = {}
+    if progress_path and os.path.exists(progress_path):
+        try:
+            prev = json.load(open(progress_path))
+        except Exception as e:
+            print(f"[resume] {progress_path} is unreadable "
+                  f"({e.__class__.__name__}); starting fresh")
+            prev = None
+        if prev is not None:
+            if (prev.get("members") == member_key
+                    and prev.get("material") == args.material
+                    and prev.get("orders") == args.orders):
+                done = prev.get("done", {})
+                n = sum(len(v) for v in done.values())
+                print(f"\n[resume] {progress_path} holds {n} member-results "
+                      f"from the same family and protocol:")
+                for k in sorted(done, key=int):
+                    print(f"  N={k}: members {sorted(int(i) for i in done[k])}")
+            else:
+                print(f"\n[resume] {progress_path} was produced by a DIFFERENT "
+                      f"family or protocol; starting fresh")
+
+    def _save_progress():
+        if not progress_path:
+            return
+        tmp = progress_path + ".tmp"
+        with open(tmp, "w") as fh:
+            json.dump({"members": member_key, "material": args.material,
+                       "orders": args.orders, "done": done}, fh)
+        os.replace(tmp, progress_path)
+
     for N in Ns:
         per = {o: {k: [] for k in KEYS} for o in args.orders.split(",")}
+        slot = done.setdefault(str(N), {})
         for i, (a, b) in enumerate(members):
+            cached = slot.get(str(i))
+            if cached is not None:
+                for o in per:
+                    for k in KEYS:
+                        per[o][k].append(cached[o][k])
+                print(f"\n[N={N}] member {i + 1}/{len(members)}  "
+                      f"alpha={a:.5f} beta={b:.5f}  -- already done, skipped")
+                continue
             with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as t:
                 tmp = t.name
             cmd = [sys.executable, "-u", "-m", "omar_pfem.mms_study",
@@ -99,11 +152,15 @@ def main():
             with open(tmp) as f:
                 d = json.load(f)
             os.unlink(tmp)
+            this = {}
             for r in d["rows"]:
                 if r["N"] != N:
                     continue
                 for k in KEYS:
                     per[r["order"]][k].append(r[k])
+                this[r["order"]] = {k: r[k] for k in KEYS}
+            slot[str(i)] = this
+            _save_progress()
             got = {o: len(per[o]["L2_rel"]) for o in per}
             print("   " + "  ".join(f"{o} {v}/{i + 1}" for o, v in got.items()))
 
@@ -132,9 +189,14 @@ def main():
               + f"   (stdev, {o})")
 
     if args.out_json:
-        with open(args.out_json, "w") as f:
+        tmp = args.out_json + ".tmp"
+        with open(tmp, "w") as f:
             json.dump(out, f, indent=1)
+        os.replace(tmp, args.out_json)
         print(f"\nwrote {args.out_json}")
+        # Every mesh is in, so the partial record has nothing left to protect.
+        if progress_path and os.path.exists(progress_path):
+            os.remove(progress_path)
 
     print("\n" + "=" * 70)
     print("HOW TO READ IT")

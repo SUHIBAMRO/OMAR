@@ -938,6 +938,32 @@ B1, skewed on B2 (per-sample mean 1.90 against 0.90 aggregate).
 | did early stopping keep the right model? | **yes** | no — first validation event |
 | reported numbers | **stand**, conservative by 1.36–1.71× | come from an inverted selection |
 
+### 🧰 A full Drive audit, and a real save gap in the MMS family sweep (2026-08-31)
+
+**`zeroshot_notebooks/cell_drive_audit.py`** (notebook `Round6_Drive_Audit.ipynb`)
+walks the whole `pfem_run` tree rather than pattern-matching a list of
+expected filenames the way `cell_check_results.py` does. Every file with size
+and time; every JSON opened and summarised **by shape, not by name**; every
+checkpoint fingerprinted and every result file tied back to the checkpoint
+that produced it, with an orphaned fingerprint flagged; every study checked
+for completeness (Pareto 9, zero-shot eval 7, MMS family 3) so a partial file
+is never read as finished; leftover `.tmp`, `EARLY_STOPPED` and unreadable
+JSON all reported. Exercised against all 26 result files in the repo — it
+found one real shape it could not read (the operator-rate rows store
+`Q4: {L2: ...}` where the family sweep stores `Q4: {L2_rel: {mean: ...}}`),
+which is fixed, and then handled all 26 with no failures.
+
+**`mms_family_fem.py` had no save until the very end** — one `json.dump` after
+all three meshes. A run killed anywhere before that left **nothing** and
+restarted from the first member, and N=33 is over an hour and runs last. It
+now appends each member's four numbers to a `.progress` file as they are
+computed and skips whatever is already there on restart, keyed by the drawn
+members so another family's results cannot be inherited. `out_json` is still
+written only when every mesh is done, so its existence still means finished,
+and the progress file is deleted at that point. Verified by killing a run
+mid-sweep: no final JSON, progress held `{'5': [0, 1]}`, and the restart
+skipped exactly those two and finished.
+
 ### ⚠️ THREE OF THE SEVEN CLOSED B2 CANDIDATES WERE CLOSED WITH THE FAULTY SELECTION
 
 This has to be said plainly before anyone treats the candidate list as
