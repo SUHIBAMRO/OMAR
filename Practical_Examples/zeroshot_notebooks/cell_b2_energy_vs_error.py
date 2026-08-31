@@ -71,6 +71,19 @@
 #  launched on a guess. CPU, a few minutes, trains nothing, writes
 #  nothing.
 # =====================================================================
+#
+#  FIRST RUN, AND WHAT IT FOUND. Both arms printed
+#  "model_final.pt missing -- skipped", so the comparison could not be made.
+#  The cause is a real defect, now fixed: the trainer's save of
+#  model_final.pt hung off a for/else, which runs only when the loop
+#  finishes WITHOUT `break` -- and early stopping breaks. Every
+#  early-stopped run has been keeping model_best.pt alone.
+#
+#  Nothing was lost, though. train_state_latest.pt is written at EVERY
+#  validation event and carries model_state_dict, so the epoch-450 weights
+#  are on Drive already. This cell now digs them out and writes
+#  model_final.pt from them, which costs seconds and retrains nothing.
+#
 import json
 import os
 import re
@@ -134,6 +147,38 @@ for res in ARMS:
           f"val {last['combined_val_error']:.4f}   "
           f"({last['combined_val_error'] / best['combined_val_error']:.2f}x "
           f"worse)")
+
+# ---- recover the endpoint weights the trainer failed to save ----------
+# model_final.pt was missing on the first run of this cell (see the note at
+# the top). train_state_latest.pt holds the same weights, so it is unpacked
+# here rather than retraining anything. The epoch it carries is checked
+# against the last validation event, so a state file from some other run
+# cannot be passed off as this arm's endpoint.
+import torch
+
+print('\n' + '=' * 78)
+print('THE ENDPOINT WEIGHTS')
+print('=' * 78)
+for res in ARMS:
+    d = f'{WORKDIR}/N{res}'
+    final = f'{d}/model_final.pt'
+    state = f'{d}/train_state_latest.pt'
+    if os.path.exists(final):
+        print(f'  N={res}  model_final.pt is already there')
+        continue
+    if not os.path.exists(state):
+        print(f'  N={res}  NEITHER model_final.pt NOR train_state_latest.pt '
+              f'-- this arm cannot be compared')
+        continue
+    st = torch.load(state, map_location='cpu', weights_only=False)
+    last_epoch = curve[res][1]['epoch']
+    assert st['epoch'] == last_epoch, (
+        f"train_state_latest.pt is at epoch {st['epoch']} but the last "
+        f"validation event was epoch {last_epoch} -- these are not the same "
+        f"run, refusing to use it")
+    torch.save(st['model_state_dict'], final)
+    print(f"  N={res}  recovered epoch {st['epoch']} from "
+          f"train_state_latest.pt -> model_final.pt")
 
 # ---- the probe on both endpoints of both arms -------------------------
 PAT = re.compile(r'^\s*Pi\(pred\)\s+(-?[\d.eE+-]+)', re.M)

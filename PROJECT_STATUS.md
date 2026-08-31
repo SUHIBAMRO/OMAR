@@ -787,6 +787,50 @@ solution.** No closed candidate explains that: the load, the ramp and the
 family are properties of the *problem*, and none would make 20,000 further
 optimizer steps actively harmful.
 
+### 🐛 `model_final.pt` was never saved on an early-stopped run — FIXED (2026-08-31)
+
+The energy-vs-error probe ran and reported `model_final.pt missing` on both
+arms. Cause: the save hung off a **`for`/`else`**, and `else` runs only when
+the loop finishes **without `break`** — early stopping breaks. So **every
+early-stopped run in this study kept `model_best.pt` alone** and silently
+dropped the weights training actually ended on.
+
+Not cosmetic: `model_best.pt` is whichever validation event scored lowest, so
+on a run whose error *rises* with training — both B2 arms are best at their
+**first** validation — the two checkpoints are the only record of which way
+the objective moved, and one of them was being thrown away.
+
+**Nothing on Drive was lost.** `train_state_latest.pt` is written at every
+validation event and carries `model_state_dict`, so the epoch-450 weights are
+there; the cell now unpacks them (with an assert that the state's epoch equals
+the last validation event, so another run's state cannot be passed off as this
+arm's endpoint). Seconds, no retraining. The trainer now saves
+`model_final.pt` unconditionally after the loop.
+
+### 📊 What the first probe run DID establish, on the best checkpoints
+
+Both arms share one cache, so the two models were scored on **identical**
+samples — which makes them directly comparable in a way their reported val
+numbers are not (each arm's val error is measured on its own resolution's
+samples).
+
+| on the same samples | **N=21-trained** | **N=33-trained** |
+|---|---|---|
+| descent captured, mean | 44% | **59%** |
+| roughness, mean | 2.32× | **2.04×** |
+| correlation, N=21 block | −0.32, +0.81, −0.41, +0.81 | **+0.30, +0.65, +0.26, +0.91** |
+| amplitude ratio | 0.22–0.46 | **0.34–0.77** |
+
+**The N=33-trained model is better on every physical measure, including on
+N=21's own samples** — better descent, smoother field, and correlations that
+never go negative. Its reported val error (1.0372) is the *higher* of the two
+only because the two numbers are measured on different sample sets and are
+not comparable. Worth remembering before any of these val numbers is quoted
+against another.
+
+Both still sit far from B1, which captures ~100% of the descent at roughness
+1.01×.
+
 ### 🎯 NEXT, and it is free: does training LOWER Π while raising the error?
 
 The objective is Π = U − W. `model_best.pt` (epoch 50) and `model_final.pt`

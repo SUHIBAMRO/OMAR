@@ -550,8 +550,19 @@ def cmd_train(args):
         if epoch % 1000 == 0 and epoch < args.epochs:
             for pg in opt.param_groups:
                 pg["lr"] *= 0.9
-    else:
-        torch.save(model.state_dict(), os.path.join(args.out_dir, "model_final.pt"))
+
+    # The weights training ACTUALLY ended on, whether it ran to --epochs or
+    # stopped early. This used to hang off the for/else, so it was written
+    # only when the loop finished without `break` -- and every early-stopped
+    # run therefore kept only model_best.pt and silently lost its endpoint.
+    # That is not a cosmetic loss: model_best.pt is whichever validation event
+    # scored lowest, so on a run whose error RISES with training (both B2
+    # single-resolution arms are best at their FIRST validation) the two
+    # checkpoints are the only evidence of which way the objective moved, and
+    # one of them was being discarded. train_state_latest.pt does carry these
+    # same weights, so nothing already on Drive was lost -- it just had to be
+    # dug out of the resume state.
+    torch.save(model.state_dict(), os.path.join(args.out_dir, "model_final.pt"))
 
     print(f"\nTraining complete. Trained jointly on resolutions {train_resolutions}. "
           f"Best combined val_error={best_combined_val:.4e} at epoch={best_epoch}. "
