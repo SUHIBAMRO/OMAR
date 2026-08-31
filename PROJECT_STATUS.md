@@ -264,10 +264,24 @@ B2×AB only**. The check that matters passed — one fixed pressure field
 assembled on each resolution now gives N=21 → 11.1775 and N=33 → 11.1784,
 **0.0075% apart**. The models trained on the bad load were deleted.
 
-**⚠️ B2×Neo-Hookean was NOT in the repair run**, yet its eval report shows the
-same signature (8.09, flat in N). Run the same repair-and-check on it before
-retraining, and do not assume an earlier B2 force fix covered it — that note
-predates this evidence.
+**B2×Neo-Hookean: checked 2026-08-29 — its cache is ALREADY CORRECT.** The
+dry run found an overstatement of 1.00×–1.00× over all 1,000 samples and the
+mesh-independence check passes. Its stored loads equal the other two cases'
+*repaired* values to four decimals (15.7568 at N=21, 15.9056 at N=33) — which
+they must, since the load comes from the seed and the mesh, not the material.
+Three cases agreeing is a stronger check than any one passing.
+
+**So the load bug is ruled out for this case, and the 8.09 has another cause.**
+The live hypothesis: the cache was repaired earlier and **the model was never
+retrained**, leaving it fitted to a load the cache no longer holds — which
+produces exactly this signature, a large error flat in N. Settle it with file
+mtimes, as Table 12 was settled: `model_best.pt` older than `samples_cache.pt`
+⇒ retrain and nothing more; newer ⇒ it was trained on correct data and the real
+cause must be found before spending hours on a retrain.
+
+Nothing was written and no model deleted — the diagnose-first cell
+(`cell_b2_neo_hookean_repair.py`) stopped, and had it deleted the models the
+way the older repair cell does, that evidence would be gone.
 
 To make B2 admissible: confirm/repair B2×NH, retrain all three (models are
 gone), re-run eval. **Nothing else in the report is affected** — the bug lives
@@ -346,204 +360,6 @@ generation or training wall clock.
 the same checkpoint — which fixes the wrong caption and adds the coarser meshes
 in one edit — and the Pareto can run for B1×MR and B1×AB now, without waiting
 on B2.
-
-### ⛔ The three B2 zero-shot cases are INVALID (2026-08-29)
-
-`point7a_results/INVALID_B2_zeroshot.json`. Their eval reports are still on
-Drive and must never be quoted.
-
-**Relative errors of 8.0 to 14.5** — that is 800% to 1450%, against 5.0–10.6%
-for the three valid B1 cases. A relative error above 1 means the prediction is
-further from the truth than predicting zero everywhere. Second tell: each curve
-is nearly **flat in N** (B2×MR moves 14.358 → 14.470 across a four-fold
-refinement), and a model whose error ignores the mesh is not solving the
-problem on that mesh.
-
-**Root cause, and why it is the worst possible bug for this particular study**:
-the assembled load was overstated by a factor that **depends on the mesh** —
-13.1–13.3× at N=21, 20.8–21.0× at N=33. The study trains jointly at N=21 and
-33 and then asks whether the operator transfers across resolution. With the two
-training resolutions carrying loads inconsistent with each other by ~1.6×, the
-model was fitted to two contradictory problems, and any "resolution invariance"
-measured from it would have been measuring the bug.
-
-**Repair** (commit `a45496b`, 2000 samples per case): applied to **B2×MR and
-B2×AB only**. The check that matters passed — one fixed pressure field
-assembled on each resolution now gives N=21 → 11.1775 and N=33 → 11.1784,
-**0.0075% apart**. The models trained on the bad load were deleted.
-
-**⚠️ B2×Neo-Hookean was NOT in the repair run**, yet its eval report shows the
-same signature (8.09, flat in N). Run the same repair-and-check on it before
-retraining, and do not assume an earlier B2 force fix covered it — that note
-predates this evidence.
-
-To make B2 admissible: confirm/repair B2×NH, retrain all three (models are
-gone), re-run eval. **Nothing else in the report is affected** — the bug lives
-in the B2 zero-shot sample caches only, and Table 12 is B1.
-
-### ❗ Table 12's caption is WRONG — resolved 2026-08-29
-
-`point7a_results/B1_neo_hookean_OPEN_QUESTION.json`. File modification times
-in `zeroshot_B1_neo_hookean/` order the events and settle it:
-
-| when | file |
-|---|---|
-| 2026-08-10 11:57 | `samples_cache.pt` |
-| 2026-08-10 13:09 | `model_best.pt` |
-| 2026-08-10 23:11 | `metrics_history.json` — the **joint** history (21 and 33) |
-| **2026-08-11 15:27** | **`zeroshot_eval_report.json` — Table 12's source** |
-| 2026-08-27 21:12 | `zeroshot_eval_coarse_and_fine.json` — see below |
-| 2026-08-28 05:00 | `pareto_B1_neo_hookean.json` — Table 18's source |
-
-The eval was run a **day after** the joint training, on the `model_best.pt`
-that joint training produced. There is no N=21-only model in the timeline.
-
-**So Table 12's caption must be corrected.** It says *"a single checkpoint
-(trained once at N=21), evaluated without retraining at five unseen
-resolutions"*. The training set was **N=21 and N=33**. Everything else in the
-caption is fine and **the five numbers are unaffected** — this is a caption
-fix, not a data fix.
-
-**And it settles the protocol question**: all three valid B1 cases are
-joint-trained at 21 and 33. They share a protocol. The only difference left is
-that B1×NH's eval lists 5 resolutions where the other two list 7.
-
-### 🔎 A file nobody has opened: `zeroshot_eval_coarse_and_fine.json`
-
-Written 2026-08-27 21:12:02, ten seconds after the second `zeroshot_eval`
-manifest entry — so it is that run's output. **Every listing so far, including
-`Round6_Check_Results` and the six-directory sweep, searched for
-`zeroshot_eval_report.json` by name and never saw this one.**
-
-"coarse and fine" is round-5 item 7's own vocabulary. **If** it holds the
-7-resolution list on the same joint checkpoint, B1×Neo-Hookean's
-new-protocol eval already exists and the three-case B1 table needs **no
-further compute at all**. That is a guess from a filename — open it first:
-
-```python
-print(open('/content/drive/MyDrive/pfem_run/zeroshot_B1_neo_hookean/zeroshot_eval_coarse_and_fine.json').read())
-```
-
-### ⛔ The three B2 zero-shot cases are INVALID (2026-08-29)
-
-`point7a_results/INVALID_B2_zeroshot.json`. Their eval reports are still on
-Drive and must never be quoted.
-
-**Relative errors of 8.0 to 14.5** — that is 800% to 1450%, against 5.0–10.6%
-for the three valid B1 cases. A relative error above 1 means the prediction is
-further from the truth than predicting zero everywhere. Second tell: each curve
-is nearly **flat in N** (B2×MR moves 14.358 → 14.470 across a four-fold
-refinement), and a model whose error ignores the mesh is not solving the
-problem on that mesh.
-
-**Root cause, and why it is the worst possible bug for this particular study**:
-the assembled load was overstated by a factor that **depends on the mesh** —
-13.1–13.3× at N=21, 20.8–21.0× at N=33. The study trains jointly at N=21 and
-33 and then asks whether the operator transfers across resolution. With the two
-training resolutions carrying loads inconsistent with each other by ~1.6×, the
-model was fitted to two contradictory problems, and any "resolution invariance"
-measured from it would have been measuring the bug.
-
-**Repair** (commit `a45496b`, 2000 samples per case): applied to **B2×MR and
-B2×AB only**. The check that matters passed — one fixed pressure field
-assembled on each resolution now gives N=21 → 11.1775 and N=33 → 11.1784,
-**0.0075% apart**. The models trained on the bad load were deleted.
-
-**⚠️ B2×Neo-Hookean was NOT in the repair run**, yet its eval report shows the
-same signature (8.09, flat in N). Run the same repair-and-check on it before
-retraining, and do not assume an earlier B2 force fix covered it — that note
-predates this evidence.
-
-To make B2 admissible: confirm/repair B2×NH, retrain all three (models are
-gone), re-run eval. **Nothing else in the report is affected** — the bug lives
-in the B2 zero-shot sample caches only, and Table 12 is B1.
-
-### ⚠️ Table 12 vs the model now in its directory — ONE CHECK LEFT
-
-`point7a_results/B1_neo_hookean_OPEN_QUESTION.json`.
-
-**Settled**: the model now in `zeroshot_B1_neo_hookean/` is trained **jointly
-at N=21 and 33** — its history's first entry carries
-`per_resolution_val_error: {'21': 0.5230, '33': 0.4647}`, which only the joint
-trainer writes. Best combined val 0.06575 at epoch 650 (65,000 of 90,000
-steps), 36 entries.
-
-**Not settled**: whether that is the model Table 12 was built from. The two
-files in that directory are of different vintage — the history is the new
-joint format, but the eval report is the OLD one (5 resolutions, no
-`checkpoint_fingerprint`, where B1×MR and B1×AB both have 7 and a fingerprint).
-
-* **Reading A** — the case was N=21-only, evaluated (→ Table 12), and
-  retrained jointly later without re-running eval. Then **Table 12 and its
-  caption stand**, but `model_best.pt` there is no longer the model Table 12
-  describes — and a joint-trained B1×NH already exists needing only its
-  **eval** re-run to join the other two. That is the cheapest remaining task in
-  the whole study: no retrain, no FEM generation.
-* **Reading B** — it was always joint, and the caption is wrong and must be
-  corrected.
-
-**The check**, one line against `run_manifest.json` in that directory:
-
-```python
-import json
-[print(e['kind'], e['finished_at_utc'], e['args'].get('train_resolutions'))
- for e in json.load(open('/content/drive/MyDrive/pfem_run/zeroshot_B1_neo_hookean/run_manifest.json'))]
-```
-
-A joint `zeroshot_train` finishing AFTER the `zeroshot_eval` ⇒ reading A.
-
-### ⛔ The three B2 zero-shot cases are INVALID (2026-08-29)
-
-`point7a_results/INVALID_B2_zeroshot.json`. Their eval reports are still on
-Drive and must never be quoted.
-
-**Relative errors of 8.0 to 14.5** — that is 800% to 1450%, against 5.0–10.6%
-for the three valid B1 cases. A relative error above 1 means the prediction is
-further from the truth than predicting zero everywhere. Second tell: each curve
-is nearly **flat in N** (B2×MR moves 14.358 → 14.470 across a four-fold
-refinement), and a model whose error ignores the mesh is not solving the
-problem on that mesh.
-
-**Root cause, and why it is the worst possible bug for this particular study**:
-the assembled load was overstated by a factor that **depends on the mesh** —
-13.1–13.3× at N=21, 20.8–21.0× at N=33. The study trains jointly at N=21 and
-33 and then asks whether the operator transfers across resolution. With the two
-training resolutions carrying loads inconsistent with each other by ~1.6×, the
-model was fitted to two contradictory problems, and any "resolution invariance"
-measured from it would have been measuring the bug.
-
-**Repair** (commit `a45496b`, 2000 samples per case): applied to **B2×MR and
-B2×AB only**. The check that matters passed — one fixed pressure field
-assembled on each resolution now gives N=21 → 11.1775 and N=33 → 11.1784,
-**0.0075% apart**. The models trained on the bad load were deleted.
-
-**⚠️ B2×Neo-Hookean was NOT in the repair run**, yet its eval report shows the
-same signature (8.09, flat in N). Run the same repair-and-check on it before
-retraining, and do not assume an earlier B2 force fix covered it — that note
-predates this evidence.
-
-To make B2 admissible: confirm/repair B2×NH, retrain all three (models are
-gone), re-run eval. **Nothing else in the report is affected** — the bug lives
-in the B2 zero-shot sample caches only, and Table 12 is B1.
-
-### ⚠️ Table 12's caption may be wrong — CHECK BEFORE THE NEXT REPORT BUILD
-
-Table 12 says the checkpoint was *"trained once at N=21"*. But
-`zeroshot_B1_neo_hookean/metrics_history.json` reports a `combined_val_error`
-(best 0.06575 at epoch 650 / 65,000 steps, ended 900), and that field is
-written by the JOINT trainer. Its eval report also lacks the
-`checkpoint_fingerprint` the other cases carry, and lists only 5 test
-resolutions where the others list 7.
-
-So either the caption is wrong about the training set, or that directory has
-been overwritten by a newer joint run since Table 12 was built. **Read
-`per_resolution_val_error` in the first entry of that file**: if it has keys
-"21" and "33", the model was trained jointly and the caption must be fixed; if
-only "21", the caption stands.
-
-This also decides the protocol question — if B1×NH is already joint-trained,
-the three B1 cases share a protocol and can form one table, and only the
-5-vs-7 resolution list separates them.
 
 ### R6-1b — normalization TESTED as an OOD mitigation (2026-08-29)
 
