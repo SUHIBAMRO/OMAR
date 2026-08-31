@@ -279,6 +279,45 @@ alongside the tensor shapes.
 `train_B2.py`'s default, and nowhere in the path a zero-shot B2 run takes. It
 now lives in the code that needs it.
 
+### ✅ CG converged, and the prediction held to 0.4% — §8.5's model is verified
+
+`point8_results/gpu_fem_cg_converged_B1_neo_hookean.json`, 2 h 3 m on an A100.
+Identical settings to the point-8 sweep except `cg_max_iter` 2000 → 8000. **The
+prediction was printed before the run**, so it could not be fitted afterwards.
+
+| N | Newton | CG iters | failures | CG/Newton | predicted | error |
+|---|---|---|---|---|---|---|
+| 501 | 20 | 50,416 | **0** | 2,520.8 | 2,511 | **+0.4%** |
+| 701 | 20 | 70,562 | **0** | 3,528.1 | 3,513 | **+0.4%** |
+
+Four things confirmed at once:
+
+1. **The 5.011 × N law**, fitted on N=101–301, holds at N=701 — seven times the
+   largest mesh it was fitted on — to 0.4%.
+2. **CG converged everywhere.** First genuinely converged solves this solver
+   has produced at these sizes.
+3. **Newton fell 30 → 20 at N=701**, exactly the 2 per load step every
+   converged row showed. Predicted in advance: a truncated CG returns an
+   inexact direction and costs extra Newton steps.
+4. **Per-iteration cost matches the truncated runs** — 40.9 vs 40.4 ms and 74.9
+   vs 74.8 ms. Two independent runs agree on the matvec cost, which is what the
+   O(DOF) claim rests on.
+
+**❗ And the open direction is settled: Table 20 UNDERSTATES.** v36's §8.5 says
+the sign "is not one-signed … this study does not establish which effect is
+larger." It does now: **N=501 +28%** (1,616 → 2,064 s), **N=701 +18%** (4,487 →
+5,286 s). µs/DOF 3,219 → 4,109 and 4,566 → 5,379. The gap narrows with size
+because the extra CG work is increasingly paid for by the Newton steps it
+removes.
+
+**Not measured**, and to be labelled as predictions wherever used: N=1001
++25% (→ 15,261 s) and N=1401 +5% (→ 41,646 s). N=1401 gains little because its
+truncated run burned 67 Newton steps against the 20 a converged CG needs.
+
+Memory unaffected: 1,122 and 1,567 MB against 1,123 and 1,568.
+
+**Queued for the next report build**, together with §8.11's ceiling wording.
+
 ### 🔬 The MMS operator has no convergence rate — and §8.11's ceiling was overstated
 
 `point9_results/mms_operator_rate_B1_neo_hookean.json`, run 2026-08-29 on a T4.

@@ -1,0 +1,43 @@
+{
+  "study": "What does the GPU-FEM solve cost when CG is allowed to converge?",
+  "why": "Table 20's timings at N>=401 are the cost of a TRUNCATED solve: CG hit its 2000-iteration cap on every Newton step and never converged. Section 8.5 predicted the converged cost from two separately measured pieces. This tests that prediction instead of leaving it a model.",
+  "the_prediction_was_fixed_before_the_run": "the cell printed 'CG should converge in about 5.011 x N iterations per Newton solve' for both resolutions BEFORE launching, so it could not be adjusted afterwards to fit.",
+  "settings": "identical to the point-8 sweep in every respect except cg_max_iter, raised from 2000 to 8000. B1 x Neo-Hookean, Q4, 10 load steps, newton_max 30, newton_tol 1e-7, cg_tol 1e-6, FP64, A100-SXM4-80GB, checkpoint_dir set (as the original sweep also did, so the wall clocks are comparable).",
+
+  "rows": [
+    {"N": 501, "n_dof": 502002, "newton_iters_total": 20, "cg_iters_total": 50416,
+     "cg_failures": 0, "cg_per_newton": 2520.8, "predicted_cg_per_newton": 2511.0,
+     "prediction_error_pct": 0.39, "solve_s": 2064.0, "us_per_dof": 4108.87,
+     "peak_gpu_mem_MB": 1122, "ms_per_cg_iter": 40.94, "ns_per_iter_per_dof": 81.6},
+    {"N": 701, "n_dof": 982802, "newton_iters_total": 20, "cg_iters_total": 70562,
+     "cg_failures": 0, "cg_per_newton": 3528.1, "predicted_cg_per_newton": 3513.0,
+     "prediction_error_pct": 0.43, "solve_s": 5286.0, "us_per_dof": 5378.84,
+     "peak_gpu_mem_MB": 1567, "ms_per_cg_iter": 74.91, "ns_per_iter_per_dof": 76.2}
+  ],
+
+  "WHAT_IT_CONFIRMS": {
+    "1_the_O_N_CG_law": "CG converged in 2,520.8 and 3,528.1 iterations per Newton solve against the 2,511 and 3,513 predicted from the three converged rows of the original sweep -- 0.4% at both. The 5.011 x N law was fitted on N=101, 201 and 301 and holds at N=701, seven times the largest mesh it was fitted on.",
+    "2_CG_converged_everywhere": "cg_failures is 0 at both resolutions, so 8000 was a sufficient budget and these are genuinely converged solves -- the first this solver has produced at these sizes.",
+    "3_Newton_drops_when_CG_converges": "at N=701 the Newton count fell from 30 to 20, exactly the 2 per load step that every converged row of the original sweep showed. This was predicted in advance: a truncated CG returns an inexact direction and costs extra Newton steps. At N=501 it was already 20 and stayed 20.",
+    "4_the_per_iteration_cost_model": "cost per CG iteration is 40.9 ms at N=501 and 74.9 ms at N=701, against 40.4 and 74.8 in the truncated runs -- 1.3% and 0.2% apart. Two independent runs, one truncated and one converged, agree on the matvec cost, which is what the O(DOF) claim rests on."
+  },
+
+  "THE_DIRECTION_IS_NOW_SETTLED": {
+    "what_the_report_said": "section 8.5 in v36 says the direction of the error in Table 20 'is not one-signed: allowing CG to converge would add iterations to each Newton step while removing Newton steps, and this study does not establish which effect is larger.'",
+    "now_it_does": "Table 20 UNDERSTATES the converged cost at both measured sizes. N=501: 1,616 s -> 2,064 s, +28%. N=701: 4,487 s -> 5,286 s, +18%. In us/DOF: 3,219 -> 4,109 and 4,566 -> 5,379.",
+    "why_the_gap_narrows_with_size": "the added iterations and the removed Newton steps partly cancel, and how much depends on how badly the truncated run was over-iterating in Newton. At N=501 Newton was already minimal so there was nothing to recover and the full +28% shows; at N=701 dropping 30 Newton steps to 20 claws most of it back."
+  },
+
+  "EXTRAPOLATED_NOT_MEASURED": {
+    "caveat": "N=1001 and N=1401 were NOT re-run -- 4 h and 11.6 h respectively. These use the now twice-confirmed model (20 Newton steps x 5.011 x N CG iterations x the measured per-iteration cost) and are predictions, to be labelled as such wherever they appear.",
+    "N1001": {"truncated_s": 12169.6, "predicted_converged_s": 15261, "change_pct": 25.4,
+              "cg_iters": {"truncated": 80000, "predicted": 100320}},
+    "N1401": {"truncated_s": 39745.8, "predicted_converged_s": 41646, "change_pct": 4.8,
+              "cg_iters": {"truncated": 134000, "predicted": 140408},
+              "note": "only +5% because the truncated run burned 67 Newton steps against the 20 a converged CG needs, so almost all the extra CG work is paid for by the Newton steps it removes."}
+  },
+
+  "memory_unaffected": "peak 1,122 MB at N=501 and 1,567 MB at N=701, against 1,123 and 1,568 in the truncated runs. Memory does not depend on iteration count, as section 8.5 already states.",
+  "cost": "2 h 2 m 50 s total on an A100.",
+  "provenance": "transcribed from the Colab stdout of Round6_CG_Convergence_Check on 2026-08-29; the run's own JSON is at pfem_run/gpu_fem_cg_check/ on Drive."
+}
