@@ -98,17 +98,50 @@ for mat in CASES:
             n_fine = len(torch.load(fine, weights_only=False))
         except Exception as e:
             n_fine = f'unreadable ({e.__class__.__name__})'
+    # A model is only trustworthy here if it was trained AFTER loss_force_norm
+    # existed in this trainer. The first B2 retrain started without it and was
+    # reproducing the 94.08% regression of report section 9.1 (combined val
+    # error 0.96 at epoch 25, 1.13 at epoch 50) before it was stopped. There is
+    # no way to tell such a model apart from a good one by looking at the file,
+    # so this notebook writes a sentinel after a training run it launched
+    # itself, and treats anything without one as suspect.
+    sentinel = os.path.join(d, '.trained_with_loss_force_norm')
+    ok = os.path.exists(sentinel)
     PLAN.append(dict(mat=mat, d=d, ckpt=ckpt, out=out, n_fine=n_fine,
-                     trained=os.path.exists(ckpt), evaled=os.path.exists(out)))
+                     sentinel=sentinel,
+                     trained=os.path.exists(ckpt) and ok,
+                     evaled=os.path.exists(out) and ok))
     print(f'  {mat:<14} cache {os.path.getsize(cache) / 1e6:7.1f} MB   '
           f'model {"YES" if os.path.exists(ckpt) else "no "}   '
           f'eval {"YES" if os.path.exists(out) else "no "}   '
-          f'fine refs cached: {n_fine if n_fine is not None else "NONE"}')
+          f'fine refs cached: {n_fine if n_fine is not None else "NONE"}   '
+          f'{"trained WITH the fix" if ok else "no fix marker"}')
 
 print("""
 Reading the last column: 20 cached fine references means the eval stage
 is cheap. NONE means it must solve twenty N=101 problems first, which is
 where the eight hours went the first time.""")
+
+# Anything trained before loss_force_norm reached this trainer has to go.
+# Keeping it would let the next run "skip training, model already present"
+# and evaluate a model fitted with the wrong objective.
+print('\n' + '=' * 78)
+print('CLEARING MODELS TRAINED WITHOUT loss_force_norm')
+print('=' * 78)
+for p_ in PLAN:
+    if p_['trained']:
+        print(f'  {p_["mat"]:<14} has the fix marker -- kept')
+        continue
+    gone = []
+    for f in ('model_best.pt', 'model_final.pt', 'train_state_latest.pt',
+              'metrics_history.json', 'EARLY_STOPPED'):
+        q = os.path.join(p_['d'], f)
+        if os.path.exists(q):
+            os.remove(q)
+            gone.append(f)
+    print(f'  {p_["mat"]:<14} '
+          + (', '.join(gone) if gone else 'nothing to clear'))
+    p_['trained'] = False
 
 # The stale eval reports are renamed, not deleted -- they are evidence of
 # what the bad load did, and leaving them under their usual name is how
@@ -147,6 +180,11 @@ for p in PLAN:
          '--out_dir', p['d']])
     assert os.path.exists(p['ckpt']), (
         f'{p["mat"]}: training finished but produced no model_best.pt')
+    # Only now, with a model this notebook trained itself on the current
+    # code, is the marker written.
+    open(p['sentinel'], 'w').write(
+        'trained by cell_b2_retrain_and_eval.py with loss_force_norm '
+        'resolved from geometry B2 -> 1\n')
 
 # ---- stage 2: evaluate ----------------------------------------------
 for p in PLAN:
