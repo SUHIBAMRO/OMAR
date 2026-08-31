@@ -538,13 +538,36 @@ sweep is almost entirely 20 CPU solves at each of nine meshes — the largest
 5.5 minutes each. **Expect B1×Arruda-Boyce to take comparably long**, since its
 assembly cost is in the same 2.1–2.4× band.
 
-### 🔄 B1 × Arruda-Boyce Pareto is RUNNING
+### 🔄 B1 × Arruda-Boyce Pareto is RUNNING — restarted 2026-08-31 at `65d5a65`
 
-As of the last output pasted: **N=13 finished (20 solves), N=17 under way** —
-about 7 minutes of the roughly 6.6 hours of pure CPU solve time. Expect **6.5
-to 14 hours** still to go; the lower figure is the arithmetic from
-Mooney-Rivlin's measured per-solve times, the upper is what its wall clock
-actually was.
+**Restarted deliberately, with resume protection active.** The first attempt
+was killed at about 7 minutes (N=13 in flight) because it was executing from a
+clone that predated the resume fix below. The restart runs
+`omar_pfem.pareto_analysis` from `65d5a65`, so every completed resolution is
+now written **and stamped**, and a disconnect costs only the resolution in
+flight instead of the whole sweep. Expect **6.5 to 14 hours**; the lower
+figure is the arithmetic from Mooney-Rivlin's measured per-solve times, the
+upper is what its wall clock actually was.
+
+**Nothing was lost in the restart.** The new `pareto_analysis.py` prints a
+`[resume]` line whenever an output JSON exists, in every branch. The restart
+printed none, so `pareto_B1_arruda_boyce.json` did not exist — N=13's row had
+never reached disk. The cost of the restart was 7 minutes of compute and zero
+saved work.
+
+**Mooney-Rivlin was skipped and never opened for writing**, as intended: it is
+complete at 9/9 on Drive.
+
+**⚠️ COLAB CELLS ARE PASTED COPIES AND GO STALE.** The restart's own output
+proves it: the notebook printed the *old* pre-flight text (`ALREADY DONE, will
+skip` / `expect roughly two hours`) even though `git log` in the same cell
+showed `65d5a65` checked out. Only the **repo modules** the cell invokes are
+fresh; the cell body itself is whatever was pasted into the notebook. This was
+harmless here — the resume lives in `pareto_analysis.py`, which came from the
+repo — but the stale cell still skips a material on `os.path.exists(out_json)`
+alone, so **a future restart from that stale cell would read a partial file as
+finished and silently drop the remaining resolutions.** Re-paste the cell from
+`zeroshot_notebooks/cell_pareto_remaining_B1.py` before any restart.
 
 **⚠️ A resume gap was found while answering that question, and fixed.**
 `pareto_analysis.py` rewrites its JSON after **every resolution**, so a run
