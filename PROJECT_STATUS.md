@@ -938,6 +938,37 @@ B1, skewed on B2 (per-sample mean 1.90 against 0.90 aggregate).
 | did early stopping keep the right model? | **yes** | no — first validation event |
 | reported numbers | **stand**, conservative by 1.36–1.71× | come from an inverted selection |
 
+### 📌 B2 BASELINE RE-SCORED ON BOTH METRICS, and it reproduces exactly (2026-08-31)
+
+Stage 1 of the retrain cell, on `5091b02`. The existing B2 × Neo-Hookean
+checkpoint, the seven unseen meshes, 20 samples, N=101 reference:
+
+| N | per_component | both_components |
+|---|---|---|
+| 13 | 0.87137 | 0.72109 |
+| 17 | 0.87176 | 0.72133 |
+| 25 | 0.87222 | 0.72143 |
+| 29 | 0.87235 | 0.72144 |
+| 37 | 0.87254 | 0.72142 |
+| 41 | 0.87259 | 0.72141 |
+| 49 | 0.87270 | 0.72138 |
+
+**The per_component column reproduces the stored figures to all five digits**
+(0.87137 → 0.87270 is exactly what this file already recorded), so the eval is
+deterministic and this baseline is the report's own number, not a re-derivation
+of it. The both-components column is new: **0.721**, against B1's 0.050–0.106.
+
+**Two things worth carrying into v38.** First, B2's per-sample **standard
+deviation is 0.328** — a third of the mean. The figure is an average over
+wildly unequal samples, not a tight result. Second, the flatness across the
+mesh (0.153% spread) is **not** resolution invariance in the sense the study
+is claiming: it is the model emitting nearly the same field whatever mesh it
+is shown, which the probe already measured directly (U(pred) spread 1.15–1.66×
+against targets spanning 3×). B1's columns move by 85.7%, 111.3% and 79.1%
+across the same meshes *because* B1 tracks the problem. That contrast should
+be stated rather than left for a reader to misread as B2 being the more
+resolution-invariant of the two.
+
 ### 🔄 B2 RETRAIN WITH FIXED SELECTION — decided, cell ready (2026-08-31)
 
 Omar chose to re-derive the number rather than caveat it. Cell:
