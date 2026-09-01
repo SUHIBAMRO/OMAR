@@ -72,6 +72,53 @@ they are **not known to be converged either**. Re-running the three B1 cases
 with patience 15 would cost about 3 h each. Omar's call, and it should be made
 with the report deadline in view rather than on principle.
 
+### ✅ POINT 9's FAMILY HALF IS CLOSED — Q4 and Q9 scored on the 16 members (2026-09-01)
+
+`mms_family_fem_B1_neo_hookean.json`. Members drawn with the operator run's own
+call, `sample_family(16, 31_000_000 + 1)`, verified identical to what
+`mms_operator.py` draws, and (0.05, 0.7) is **not** among them — so the FEM and
+operator means are over the **same 16 problems** and this is a new measurement,
+not a re-dressing of Tables 22–24.
+
+**Family means, L2_rel:**
+
+| N | Q4 | Q9 | operator | operator/Q4 |
+|---|---|---|---|---|
+| 9 | 1.3515e-02 | 4.1550e-04 | 8.3792e-03 | **0.62×** |
+| 17 | 3.4049e-03 | 5.1628e-05 | 8.8261e-03 | **2.59×** |
+| 33 | 8.5298e-04 | 6.4423e-06 | 1.2358e-02 | **14.49×** |
+
+**The finding: the operator does not converge, and refining makes it
+relatively worse.** Over N=9→33 the family mean rates are Q4 **2.13**, Q9
+**3.21**, operator **−0.30** — its error *grows* 1.47× while Q4's falls 15.8×.
+That is the honest three-way statement Timon's point 9 was asking for, and it
+is now on a family rather than a single member.
+
+**⚠️ The 0.62× at N=9 is NOT a bug, and a previous session raised a false alarm
+about exactly this.** The ceiling argument constrains **Π**: the operator
+minimises the same discrete functional over the same Q4 space, so nothing it
+produces can have lower Π than the Q4 solution. **Π is not L2.** A field that
+does not minimise Π can sit closer to u\* in L2 by partly cancelling Q4's own
+discretisation bias, and that is what N=9 does. §8.11 already carries this
+correction; do not "fix" it.
+
+**Table 24 is vindicated at N=17**: its single-member 2.42× against the family's
+2.59×, so the published comparison was representative there. At **N=9** the
+single member was materially easier — operator 5.0351e-03 against the family's
+8.3792e-03, **66% worse on the family** — so any N=9 statement should quote the
+family. N=33 moves 9%.
+
+**Q4's spread across the family is negligible** — stdev/mean 0.002–0.003 in L2,
+0.000 in H1, 0.007 in stress. The FEM is essentially member-independent.
+
+**Still open, and small:** the operator's *spread* over the family is not
+recoverable — `mms_operator*.json` stores only `operator_mean_over_test_family`,
+no stdev. So "is the operator consistent across the family, or just consistent
+on average?" cannot be answered from what is on disk. Answering it means
+re-running the operator with per-member output (~8 min per mesh on an A100, the
+measured N=17 time). Worth doing only if the report wants to make a consistency
+claim.
+
 ### 🎯 NEXT
 
 1. **The other two B2 materials** — `Round6_B2_FixedSelection_All.ipynb`. Its
