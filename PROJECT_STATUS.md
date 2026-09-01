@@ -5,7 +5,7 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-08-31 (Drive audit). **Read the master table immediately below first;
+Last updated: 2026-09-01 (AB Pareto in flight; MMS family closed). **Read the master table immediately below first;
 everything after it is detail.**
 
 ---
@@ -126,7 +126,21 @@ claim.
 2. **Report v38** — §8.7's B2 row, §9.1's whole account, and every sentence
    describing B2 as failing. This is a substantial rewrite, and it turns the
    weakest part of the report into a finding.
-3. MMS family, AB Pareto — unchanged, still outstanding.
+3. **B1 × Arruda-Boyce Pareto** — RUNNING in Omar's session as of 2026-09-01,
+   past N=25. It is CPU-FEM-bound: 19.81 / 34.74 / 54.18 / 79.05 s per sample
+   at N=13/17/21/25 against the operator's 5.7 ms, 20 samples per resolution,
+   so ~62.6 min of solve is behind it. The 20 N=101 reference solves are done
+   and cached. **Remaining ~5.3 h of pure solve is EXTRAPOLATED, not measured**
+   — its four points are 0.95–0.97× Mooney-Rivlin's measured times at the same
+   N, so MR's remaining rows were scaled by 0.96. Read it as a floor: MR's own
+   pure-solve arithmetic was 6.62 h against a recorded 14 h 31 m wall clock.
+   ⚠️ It runs the module at `65d5a65`, which has fingerprinted resume but
+   predates the progress-file fix (`21d9eee`), so partial rows go straight into
+   `pareto_B1_arruda_boyce.json`. Nothing is lost if it dies, but restart it
+   through `Round6_RUN_THIS.ipynb` — a stale pasted cell would see that file
+   and skip the sweep as finished.
+4. The MMS family is **not** outstanding — see "POINT 9's FAMILY HALF IS
+   CLOSED" above. (This line previously said it was; that was stale.)
 
 ---
 
