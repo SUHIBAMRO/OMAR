@@ -213,10 +213,46 @@ for mat, src, dst, cache, fine, have in PLAN:
         continue
 
     os.makedirs(dst, exist_ok=True)
-    if not os.path.exists(f'{dst}/samples_cache.pt'):
-        print(f'\n[{mat}] copying the sample cache -> {dst} '
-              f'(nothing writes to {src})')
-        shutil.copy2(cache, f'{dst}/samples_cache.pt')
+
+    # COPY ALL THE SAMPLE CACHES, NOT JUST THE COMBINED ONE, AND VERIFY.
+    #
+    # An earlier version of this cell copied `samples_cache.pt` alone. On the
+    # first Mooney-Rivlin attempt the trainer then printed "Generating
+    # training/validation samples ... real FEM solves" and started re-solving
+    # from zero -- `os.path.exists` on the freshly copied 55 MB file returned
+    # False in the subprocess, and there was nothing else for it to fall back
+    # on. The trainer's own resume path looks for the PER-RESOLUTION caches
+    # `samples_cache_N{N}.pt`, which exist in the source directory and were
+    # simply never copied. Copying them makes that fallback work.
+    #
+    # The cost of not doing this is measured, not guessed: the generator's own
+    # docstring records 7.3 hours for N=21 alone, and N=33 is larger.
+    #
+    # Every copy is then checked by size against its source, because a copy
+    # that silently did not land is exactly the failure being fixed. The
+    # samples themselves are seeded deterministically (10_000*N + i), so a
+    # regeneration would be bit-identical -- the loss is hours, never
+    # correctness.
+    wanted = [('samples_cache.pt', cache)] + [
+        (f'samples_cache_N{N}.pt', f'{src}/samples_cache_N{N}.pt')
+        for N in (21, 33)]
+    for name, s in wanted:
+        d = f'{dst}/{name}'
+        if not os.path.exists(s):
+            print(f'[{mat}] {name}: not in {src} -- nothing to copy')
+            continue
+        if os.path.exists(d) and os.path.getsize(d) == os.path.getsize(s):
+            print(f'[{mat}] {name}: already present, {os.path.getsize(d)/1e6:.1f} MB')
+            continue
+        print(f'[{mat}] copying {name} ({os.path.getsize(s)/1e6:.1f} MB) '
+              f'-> {dst}  (nothing writes to {src})')
+        shutil.copy2(s, d)
+        got, want = os.path.getsize(d), os.path.getsize(s)
+        assert got == want, (
+            f'{d} is {got} bytes against the source\'s {want}. The copy did '
+            f'not land. Re-run this cell; do NOT let training start, because '
+            f'it would silently re-solve the FEM instead of reading this.')
+        print(f'[{mat}]   verified {got/1e6:.1f} MB')
     dst_fine = f'{dst}/fine_ref_cache_N{FINE_N}.pt'
     if not os.path.exists(dst_fine):
         if os.path.exists(fine):
