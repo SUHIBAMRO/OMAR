@@ -4,10 +4,10 @@
 #  WHY. Mooney-Rivlin and Arruda-Boyce were trained by the same trainer,
 #  with the same defect, and stopped the same way:
 #
-#      case              best epoch   stopped at   best val (old metric)
-#      neo_hookean            25          225            0.9986
-#      mooney_rivlin          25          225            0.9752
-#      arruda_boyce          225          425            1.0267
+#      case              best epoch   of budget   opt steps   best val
+#      neo_hookean            25         2000        2,500      0.9986
+#      mooney_rivlin          25         2000        2,500      0.9752
+#      arruda_boyce          225         2000       22,500      1.0267
 #
 #  Every one of them peaked at its FIRST or second validation event. That
 #  is not three materials failing; it is one early-stopping criterion
@@ -15,30 +15,47 @@
 #  `0.5*(rms(e_u)/rms(u) + rms(e_v)/rms(v))` RISES while the model
 #  improves, so patience ran out immediately.
 #
-#  Neo-Hookean has now been rerun with `--selection_metric
-#  both_components` and reached **0.0598** per_component at epoch 950,
-#  against its old 0.9986 and against B1 x Neo-Hookean's 0.0657 on the
-#  identical metric. These two are the same experiment on the other two
-#  materials.
+#  Neo-Hookean has since been rerun with `--selection_metric
+#  both_components`. It needed **275,000 optimiser steps** (epoch 2,750 of
+#  4,000, 3 h 18 m) to reach its best. Mooney-Rivlin was given 2,500 of
+#  those steps and Arruda-Boyce 22,500 -- 0.9% and 8%. They were not
+#  measured; they were stopped. This cell measures them.
+#
+#  THE NUMBERS ARE NOT TYPED IN HERE. Everything quoted below is read at
+#  run time from the committed JSONs -- `B2_zeroshot_fixedselection.json`
+#  for the Neo-Hookean rerun, `zeroshot_B1_*.json` for the B1 span -- so a
+#  stale pasted copy of this cell cannot print a number the repo has since
+#  corrected. A pasted cell body does NOT refresh when the repo does; that
+#  has misled this project three times. Run it through
+#  `Round6_RUN_THIS.ipynb`, which execs the current file from the clone.
 #
 #  ⚠️ RUN THIS ONLY AFTER THE NEO-HOOKEAN RUN HAS FINISHED and its
-#  zero-shot eval is in. If that one turns out not to hold up, these two
-#  are seven hours of GPU spent on a premise that did not survive. The
-#  cell checks for the finished Neo-Hookean eval and refuses to start
-#  without it, rather than trusting anyone to remember.
+#  zero-shot eval is in. The cell checks for that eval and refuses to
+#  start without it, rather than trusting anyone to remember.
 #
 #  COST, from the measured rate on this exact configuration: 3.387
 #  s/epoch for two resolutions at 800 samples an epoch, so 4,000 epochs
 #  is about **3 h 46 m per case** and both together about **7 h 32 m** on
 #  an A100 -- less where early stopping fires on the metric that now
-#  orders correctly. Resumable at every validation event; re-running this
-#  cell after a disconnect continues from the last one, and a case whose
-#  eval is already complete is skipped.
+#  orders correctly (Neo-Hookean stopped itself at 3,500). The eval that
+#  follows each is seconds, not hours: its twenty N=101 references are
+#  already cached per case, which is why both old evals produced all
+#  seven rows. Resumable at every validation event; re-running this cell
+#  after a disconnect continues from the last one, and a case whose eval
+#  is already complete is skipped.
 #
 #  NOTHING IS WRITTEN TO THE EXISTING RUNS. Each case gets a new
 #  directory and the two caches are COPIED in, so the sample cache (7+
 #  hours of FEM apiece) and the N=101 fine references are never
 #  regenerated.
+#
+#  WHAT THIS CELL CANNOT TELL YOU IN ADVANCE. Whether these two land near
+#  Neo-Hookean's numbers. One corrected case is one case. The defect is
+#  shared and documented, which is a reason to expect improvement and not
+#  a measurement of it -- and a prediction made here before the
+#  Neo-Hookean rerun ("expect ~0.68") was wrong by a factor of twenty,
+#  because it extrapolated from arms that had themselves been cut short
+#  by the defect under test. No target is printed below for that reason.
 # =====================================================================
 import json
 import os
@@ -55,8 +72,8 @@ EPOCHS = 4000
 TEST_RES = '13,17,25,29,37,41,49'
 FINE_N = '101'
 N_EVAL = '20'
-# what each case scored under the broken selection, for the before/after
-OLD_VAL = {'mooney_rivlin': 0.9752, 'arruda_boyce': 1.0267}
+# what each case scored under the broken selection, and at which epoch
+OLD = {'mooney_rivlin': (0.9752, 25), 'arruda_boyce': (1.0267, 225)}
 # the gate: Neo-Hookean's fixed-selection eval must exist and be complete
 GATE = f'{R}/zeroshot_B2_neo_hookean_fixedsel/zeroshot_eval.json'
 
@@ -93,6 +110,7 @@ assert torch.cuda.is_available(), 'no GPU -- Runtime -> Change runtime type'
 print('GPU:', torch.cuda.get_device_name(0))
 
 WANT = [int(x) for x in TEST_RES.split(',')]
+PF = f'{WORK}/omar_pfem'
 
 
 def rows_present(path):
@@ -105,6 +123,24 @@ def rows_present(path):
         print(f'  {path} is unreadable ({e.__class__.__name__})')
         return []
 
+
+# ---- what the repo says about the case that has already been fixed ----
+# Read, not typed. If these files are missing the cell still runs; it just
+# cannot print the context, and says so instead of inventing it.
+NH = None
+try:
+    NH = json.load(open(f'{PF}/point7a_results/B2_zeroshot_fixedselection.json'))
+except Exception as e:
+    print(f'[context] B2_zeroshot_fixedselection.json unreadable ({e.__class__.__name__})')
+B1_SPAN = None
+try:
+    vals = [r['mean_rel_L2_vs_fine_reference']
+            for m in ('neo_hookean', 'mooney_rivlin', 'arruda_boyce')
+            for r in json.load(
+                open(f'{PF}/point7a_results/zeroshot_B1_{m}.json'))['rows']]
+    B1_SPAN = (min(vals), max(vals))
+except Exception as e:
+    print(f'[context] the B1 zero-shot JSONs are unreadable ({e.__class__.__name__})')
 
 # ---- the gate ---------------------------------------------------------
 print('\n' + '=' * 78)
@@ -126,9 +162,30 @@ for r in g['rows']:
     c = r.get('mean_combined_rel_L2_vs_fine_reference')
     print(f"  {r['N']:>6}{r['mean_rel_L2_vs_fine_reference']:>16.4e}"
           + (f'{c:>18.4e}' if c is not None else f"{'-':>18}"))
-print('\n  Read that against B1: 0.050 to 0.106 per_component on these same')
-print('  seven meshes. If the Neo-Hookean row above is nowhere near it, stop')
-print('  and say so rather than spending the next seven hours.')
+
+if NH is not None:
+    tr = NH['training']
+    print(f'\n  Neo-Hookean, from the committed record:')
+    print(f'    validation  {tr["superseded_run_best_per_component_val_error"]}'
+          f' -> {tr["per_component_val_error_at_that_checkpoint"]:.4f}'
+          f' per_component, {tr["best_both_components_val_error"]:.4f} both')
+    print(f'    best at epoch {tr["best_epoch"]:,}'
+          f' ({tr["opt_steps_at_best"]:,} steps), stopped at'
+          f' {tr["final_epoch"]:,}')
+    # cross-check the committed record against the file on Drive, since the
+    # gate above is the live artefact and this is the transcription of it
+    rec = {r['N']: r['mean_rel_L2_vs_fine_reference'] for r in NH['rows']}
+    live = {r['N']: r['mean_rel_L2_vs_fine_reference'] for r in g['rows']}
+    bad = [N for N in rec if N in live and abs(rec[N] - live[N]) > 5e-5]
+    print(f'    the repo record and the file on Drive agree at all'
+          f' {len(rec)} meshes' if not bad else
+          f'    !! repo record and Drive DISAGREE at N={bad} -- read both'
+          f' before trusting either')
+if B1_SPAN is not None:
+    print(f'\n  B1 on these same seven meshes: {B1_SPAN[0]:.4f} to'
+          f' {B1_SPAN[1]:.4f} per_component (three materials).')
+print('\n  If the Neo-Hookean row above is nowhere near that, stop and say so')
+print('  rather than spending the next seven hours.')
 
 # ---- pre-flight on BOTH cases before starting either ------------------
 print('\n' + '=' * 78)
@@ -173,11 +230,13 @@ for mat, src, dst, cache, fine, have in PLAN:
                   f'measured cost for that here, so it is not estimated -- the '
                   f'eval prints its own progress and resumes per resolution.')
 
+    old_val, old_epoch = OLD[mat]
     print('\n' + '=' * 78)
     print(f'[{mat}] training, {EPOCHS} epochs, selecting on both_components')
-    print(f'  old best under the broken selection: {OLD_VAL[mat]}')
+    print(f'  under the broken selection this case peaked at epoch {old_epoch}'
+          f' with {old_val}')
     print(f'  about 3 h 46 m at the measured 3.387 s/epoch, less if it')
-    print(f'  plateaus. Resumable at every validation event.')
+    print(f'  early-stops. Resumable at every validation event.')
     print('=' * 78)
     run([sys.executable, '-u', '-m',
          'omar_pfem.resolution_invariance_zeroshot', 'train',
@@ -204,18 +263,23 @@ for mat, src, dst, cache, fine, have in PLAN:
 print('\n' + '=' * 78)
 print('ALL THREE B2 CASES, BROKEN SELECTION AGAINST FIXED')
 print('=' * 78)
-print(f"  {'case':<16}{'old val':>10}{'new val':>10}"
+print(f"  {'case':<16}{'old val':>10}{'old ep':>8}{'new val':>10}{'new ep':>8}"
       f"{'new eval per_comp':>20}{'new eval both':>16}")
-for mat, old in [('neo_hookean', 0.9986)] + list(OLD_VAL.items()):
+ALL = [('neo_hookean', 0.9986, 25)] + [(m,) + OLD[m] for m in CASES]
+for mat, old, old_ep in ALL:
     d = f'{R}/zeroshot_B2_{mat}_fixedsel'
     h, ev = f'{d}/metrics_history.json', f'{d}/zeroshot_eval.json'
-    new_val = '-'
+    new_val, new_ep = '-', '-'
     if os.path.exists(h):
-        hist = json.load(open(h))
-        key = ('both_components_val_error' if 'both_components_val_error'
-               in hist[0] else 'combined_val_error')
-        b = min(hist, key=lambda e: e[key])
-        new_val = f"{b['combined_val_error']:.4f}"
+        try:
+            hist = json.load(open(h))
+            key = ('both_components_val_error' if 'both_components_val_error'
+                   in hist[0] else 'combined_val_error')
+            b = min(hist, key=lambda e: e[key])
+            new_val = f"{b['combined_val_error']:.4f}"
+            new_ep = str(b.get('epoch', '-'))
+        except Exception as e:
+            new_val = f'({e.__class__.__name__})'
     pc = bc = '-'
     if os.path.exists(ev):
         rows = json.load(open(ev)).get('rows', [])
@@ -226,9 +290,18 @@ for mat, old in [('neo_hookean', 0.9986)] + list(OLD_VAL.items()):
             cs = [c for c in cs if c is not None]
             if cs:
                 bc = f'{min(cs):.4f}-{max(cs):.4f}'
-    print(f'  {mat:<16}{old:>10.4f}{new_val:>10}{pc:>20}{bc:>16}')
+    print(f'  {mat:<16}{old:>10.4f}{old_ep:>8}{new_val:>10}{new_ep:>8}'
+          f'{pc:>20}{bc:>16}')
 
-print('\n  B1, the same seven meshes: 0.050 to 0.106 per_component.')
-print('  B2 x Neo-Hookean under the broken selection: 0.871 to 0.873.')
+if B1_SPAN is not None:
+    print(f'\n  B1, the same seven meshes: {B1_SPAN[0]:.4f} to {B1_SPAN[1]:.4f}'
+          f' per_component.')
+print('  B2 x Neo-Hookean under the broken selection was flat at 0.871-0.873;'
+      ' that')
+print('  flatness was insensitivity, not invariance -- a model whose output')
+print('  barely responds to its input gives nearly the same error on every')
+print('  mesh. Read the SPREAD of each new row, not only its minimum.')
 print('=' * 78)
 print('Nothing was written to any existing run directory.')
+print('\nSend the whole block back. Report v38 quotes no B2 number for these')
+print('two materials, and section 10 names them as the only outstanding item.')
