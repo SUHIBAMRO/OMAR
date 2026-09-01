@@ -157,13 +157,45 @@ re-running the operator with per-member output (~8 min per mesh on an A100, the
 measured N=17 time). Worth doing only if the report wants to make a consistency
 claim.
 
+### ✅ REPORT v38 AND SUMMARY v11 ARE WRITTEN (2026-09-01)
+
+Builders committed: `report_builders/make_v38.py`, `make_summary_v11.py`. Both
+ran clean; the documents are at `/tmp/PFEM_Transolver_Report_v38.docx` and
+`/tmp/PFEM_Summary_Completed_Work.docx` (previous state preserved as
+`.pre_v11.docx`). Both read the same two JSONs, so they cannot disagree.
+
+**What changed in the report:**
+
+| where | from | to |
+|---|---|---|
+| §8.7 ¶"Two limits" | "do not reach a usable accuracy… the cause is under investigation" | seven paragraphs: the load repair, the metric defect, the rerun, **Table 12b** (all seven meshes, both conventions, before/after), and what it does *not* establish |
+| §8.11, after "Two qualifications" | — | **Table 24c** + four paragraphs: Q4/Q9/operator over the 16-member family |
+| §8.11 closing limitation | "every error … scored on the single member" | the family answers half; what remains is one geometry, one material |
+| ¶6 scope note | "point 7 covers B1 × Neo-Hookean only" | four of six; the two B2 materials are the only ones outstanding |
+| §4.4 "NOTE — pending" | promises a B2 ~10M-DOF study | says it is deliberately confined to B1 and not planned |
+| §10 first bullet | "Complete the B2 ~10M-DOF study… the item the advisor explicitly requested" | re-run the two B2 materials |
+| §10 last bullet | "the retrained models do not yet reach a usable accuracy" | four of six done, the other two are the bullet above |
+
+**⚠️ A claim removed for lack of evidence.** §10 said the B2 ~10M-DOF study was
+"the item the advisor explicitly requested". **Neither stored advisor email —
+`advisor_feedback/2026-08-26_round5_timon.md` nor `2026-08-28_round6_timon.md`
+— contains that request**, checked directly. Earlier rounds are not stored
+here, so this file's stronger claim ("never among Timon's requests") is **not
+verified for rounds 1–4**; v38 simply drops the attribution rather than
+asserting the opposite.
+
+**Both builders assert before they write.** v38 refuses to emit Table 24c
+unless the family sweep's Q4 control reproduces Table 23's measured 1.98/1.00,
+and refuses to emit Table 12b unless the rerun beats the superseded run on
+**both** metrics at **every** mesh. v38 also recomputes B1's span and spread
+from `zeroshot_B1_*.json` rather than quoting v37's prose.
+
 ### 🎯 NEXT
 
 1. **The other two B2 materials** — `Round6_B2_FixedSelection_All.ipynb`. Its
    gate is now **open** (`zeroshot_eval.json` exists, 7/7). ~7 h 32 m for both.
-2. **Report v38** — §8.7's B2 row, §9.1's whole account, and every sentence
-   describing B2 as failing. This is a substantial rewrite, and it turns the
-   weakest part of the report into a finding.
+   This is now the **only** thing standing between the report and a complete
+   six-case resolution-invariance study, and v38 says so in §10.
 3. **B1 × Arruda-Boyce Pareto** — RUNNING in Omar's session as of 2026-09-01,
    past N=25. It is CPU-FEM-bound: 19.81 / 34.74 / 54.18 / 79.05 s per sample
    at N=13/17/21/25 against the operator's 5.7 ms, 20 samples per resolution,
@@ -244,7 +276,7 @@ being honest. Only this file says what is actually outstanding.
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v37**, summary mirrored (v10), branch
+Current artefacts: report **v38**, summary mirrored (v11), branch
 `claude/claude-code-question-d307wp`.
 
 **Nothing measured is unwritten.** Point 7b's 2×2 is complete and in §8.9;
