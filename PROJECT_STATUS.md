@@ -186,8 +186,9 @@ and its spread across the family grow together. **L2 and energy are never
 close** — 0.26–0.55× already at N=9, far above Q4's 0.002–0.003 — the same
 two metrics Table 24d shows diverging outright in the mean.
 
-Not yet in the report or summary — v39/v12 predate this. Folding it in
-would be a small addition next to Table 24d, same section.
+**In the report as of v40**: §8.11, Table 24e, next to Table 24d. Mirrored
+into the summary (v13). Both builders assert the same mean-agreement check
+as `record_mms_operator_per_member.py` before writing.
 
 ### ✅ REPORT v39 AND SUMMARY v12 ARE WRITTEN (2026-09-01)
 
@@ -335,7 +336,7 @@ being honest. Only this file says what is actually outstanding.
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v39**, summary mirrored (v12), branch
+Current artefacts: report **v40**, summary mirrored (v13), branch
 `claude/claude-code-question-d307wp`.
 
 **Nothing measured is unwritten.** Point 7b's 2×2 is complete and in §8.9;
