@@ -15,6 +15,14 @@ everything after it is detail.**
 The fixed-selection run finished: **3 h 18 m 8 s**, early-stopped at epoch
 3500 of 4000, best at **epoch 2750** (275,000 steps).
 
+**📁 Now a data file, not just a table here:**
+`point7a_results/B2_zeroshot_fixedselection.json`, written by
+`record_b2_fixedselection.py`. It carries both eval columns for all seven
+meshes, the superseded columns beside them, the late validation curve at full
+precision, and a `provenance` field saying it is transcribed from Colab stdout
+while the run's own JSONs live on Drive. The builder asserts the rerun is
+better on **both** metrics at every mesh before it will write.
+
 | | old selection | **fixed selection** |
 |---|---|---|
 | val, per_component | 0.9986 | **0.0330** |
@@ -74,8 +82,14 @@ with the report deadline in view rather than on principle.
 
 ### ✅ POINT 9's FAMILY HALF IS CLOSED — Q4 and Q9 scored on the 16 members (2026-09-01)
 
-`mms_family_fem_B1_neo_hookean.json`. Members drawn with the operator run's own
-call, `sample_family(16, 31_000_000 + 1)`, verified identical to what
+**📁 Now in the repo:** `point9_results/mms_family_fem_B1_neo_hookean.json`,
+written by `record_mms_family.py` (the run's own JSON is on Drive at
+`pfem_run/mms/family/`). It records all 16 members by name, both rate
+estimators, the per-interval rates, and states in `provenance` that the
+operator columns come from the operator run and not from this sweep.
+
+Members drawn with the operator run's own call,
+`sample_family(16, 31_000_000 + 1)`, verified identical to what
 `mms_operator.py` draws, and (0.05, 0.7) is **not** among them — so the FEM and
 operator means are over the **same 16 problems** and this is a new measurement,
 not a re-dressing of Tables 22–24.
@@ -89,10 +103,34 @@ not a re-dressing of Tables 22–24.
 | 33 | 8.5298e-04 | 6.4423e-06 | 1.2358e-02 | **14.49×** |
 
 **The finding: the operator does not converge, and refining makes it
-relatively worse.** Over N=9→33 the family mean rates are Q4 **2.13**, Q9
-**3.21**, operator **−0.30** — its error *grows* 1.47× while Q4's falls 15.8×.
+relatively worse.** Over N=9→33 the family mean L2 rates are Q4 **1.99**, Q9
+**3.01**, operator **−0.28** — its error *grows* 1.47× while Q4's falls 15.8×.
 That is the honest three-way statement Timon's point 9 was asking for, and it
 is now on a family rather than a single member.
+
+**⚠️ Those rates were first written here as 2.13 / 3.21 / −0.30, computed with
+h ∼ 1/N. That is wrong.** h is L/(N−1) for N *nodes* per side, and only that
+convention reproduces **Table 23's measured Q4 rates, 1.98 in L2 and 1.00 in
+H1** — the sweep's own control — and the committed `fitted_rates_in_h` in
+`mms_operator_rate_B1_neo_hookean.json`. The corrected numbers are in
+`point9_results/mms_family_fem_B1_neo_hookean.json`, whose builder now
+*asserts* the Q4 control rather than trusting it. **Quote 1.99 / 3.01 / −0.28.**
+
+**And do not read the two whole-range estimators agreeing as evidence of a
+straight line.** N=9, 17, 33 are equally spaced in log h, so the least-squares
+slope reduces algebraically to the endpoint slope and the middle mesh cancels
+— they agree to the last digit for every method by construction. Per interval:
+
+| method | N=9→17 | N=17→33 |
+|---|---|---|
+| Q4 L2 | 1.989 | 1.997 |
+| Q9 L2 | 3.009 | 3.003 |
+| **operator L2** | **−0.075** | **−0.486** |
+
+Q4 and Q9 hold their textbook rates on both halves, which is what makes them a
+control. The operator is negative on **both** intervals and steepens — so what
+this sweep establishes is the **sign**, everywhere, not a single magnitude.
+The single-member run fitted −0.59 on the same quantity.
 
 **⚠️ The 0.62× at N=9 is NOT a bug, and a previous session raised a false alarm
 about exactly this.** The ceiling argument constrains **Π**: the operator
