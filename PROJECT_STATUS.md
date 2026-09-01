@@ -10,6 +10,37 @@ everything after it is detail.**
 
 ---
 
+# 🔴 SUPERSEDED — every B2 "failure" conclusion in this file is now provisional
+
+**Read this before quoting any B2 number or diagnosis from anywhere below.**
+
+On 2026-08-31 the cause of B2's apparent failure was found, and it was ours:
+early stopping and `model_best.pt` selection used the per-component metric
+`0.5·(rms(e_u)/rms(u) + rms(e_v)/rms(v))`, which on B2's skewed component ratio
+**rises while the model improves**. Every B2 run in this project stopped at its
+**first validation event**. With `--selection_metric both_components` the same
+case reached **0.0598** per_component at epoch 950 — against its old 0.9986,
+and against B1 × Neo-Hookean's 0.0657 on the identical metric.
+
+**So every diagnosis below that measured a B2 model was measuring a model
+trained for 25–50 epochs**, and none of it supports a claim about B2:
+
+| conclusion below | what it is worth now |
+|---|---|
+| "B2 zero-shot fails, ~0.87–0.89 eval, ~1.0 val" | **superseded** — that was the crippled run |
+| batch size / `loss_force_norm` / input normalisation ruled out | **void as evidence** — both arms were cut short |
+| joint training ruled out (single-resolution arms) | **void** — those arms early-stopped at 450 on the same metric |
+| "the model under-responds to its input", roughness 3.0×, correlation erratic | **describes a 25-epoch model**, not B2 |
+| the load repair, the Π/functional check, the Dirichlet ramp | ✅ **still valid** — physical and geometric measurements, no metric involved |
+| **every B1 result** | ✅ **untouched and valid** — B1's metric was checked and does not invert |
+
+**Nothing about B2 goes into the report until the fixed-selection run finishes
+and its zero-shot eval is in.** The other two B2 materials (Mooney-Rivlin,
+Arruda-Boyce) carry the identical defect and need the same rerun before any
+B2 row is quoted for them either.
+
+---
+
 # ⛔ SETTLED — do not reopen, and do not list as "remaining work"
 
 **Read this before ranking any priority or answering "what is left?".** Twice
