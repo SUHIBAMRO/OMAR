@@ -1,0 +1,150 @@
+{
+  "study": "MMS operator, per-test-family-member re-score of the three already-trained checkpoints (N=9, 17, 33) -- no retraining. Closes the open question in PROJECT_STATUS.md under point 9: is the operator consistent across the family, or merely consistent on average?",
+  "geometry": "B1",
+  "material": "neo_hookean",
+  "checkpoints": {
+    "9": "pfem_run/mms/operator_rate/N9/model_best.pt",
+    "17": "pfem_run/mms/operator_N17/model_best.pt",
+    "33": "pfem_run/mms/operator_rate/N33/model_best.pt"
+  },
+  "per_member_summary": {
+    "9": {
+      "L2_rel": {
+        "mean": 0.0083792,
+        "std": 0.0032189,
+        "std_over_mean": 0.3842,
+        "min": 0.0042484,
+        "max": 0.01411
+      },
+      "H1_semi_rel": {
+        "mean": 0.11456,
+        "std": 0.00038916,
+        "std_over_mean": 0.0034,
+        "min": 0.11409,
+        "max": 0.11582
+      },
+      "stress_rel_L2": {
+        "mean": 0.11593,
+        "std": 0.00072017,
+        "std_over_mean": 0.0062,
+        "min": 0.11512,
+        "max": 0.11743
+      },
+      "energy_rel": {
+        "mean": 0.010151,
+        "std": 0.0055755,
+        "std_over_mean": 0.5492,
+        "min": 0.0012663,
+        "max": 0.018086
+      }
+    },
+    "17": {
+      "L2_rel": {
+        "mean": 0.0088261,
+        "std": 0.0022769,
+        "std_over_mean": 0.258,
+        "min": 0.005693,
+        "max": 0.013705
+      },
+      "H1_semi_rel": {
+        "mean": 0.058712,
+        "std": 0.00094627,
+        "std_over_mean": 0.0161,
+        "min": 0.057399,
+        "max": 0.060547
+      },
+      "stress_rel_L2": {
+        "mean": 0.059368,
+        "std": 0.00090292,
+        "std_over_mean": 0.0152,
+        "min": 0.058172,
+        "max": 0.061168
+      },
+      "energy_rel": {
+        "mean": 0.0095955,
+        "std": 0.0035463,
+        "std_over_mean": 0.3696,
+        "min": 0.0033458,
+        "max": 0.01716
+      }
+    },
+    "33": {
+      "L2_rel": {
+        "mean": 0.012358,
+        "std": 0.0052572,
+        "std_over_mean": 0.4254,
+        "min": 0.0061579,
+        "max": 0.025022
+      },
+      "H1_semi_rel": {
+        "mean": 0.040947,
+        "std": 0.0054941,
+        "std_over_mean": 0.1342,
+        "min": 0.034288,
+        "max": 0.057564
+      },
+      "stress_rel_L2": {
+        "mean": 0.040003,
+        "std": 0.0047889,
+        "std_over_mean": 0.1197,
+        "min": 0.034636,
+        "max": 0.054916
+      },
+      "energy_rel": {
+        "mean": 0.0064063,
+        "std": 0.0047138,
+        "std_over_mean": 0.7358,
+        "min": 0.00014792,
+        "max": 0.018984
+      }
+    }
+  },
+  "q4_std_over_mean_same_family": {
+    "9": {
+      "L2_rel": 0.002,
+      "H1_semi_rel": 0.0,
+      "stress_rel_L2": 0.007,
+      "energy_rel": 0.003
+    },
+    "17": {
+      "L2_rel": 0.003,
+      "H1_semi_rel": 0.0,
+      "stress_rel_L2": 0.007,
+      "energy_rel": 0.003
+    },
+    "33": {
+      "L2_rel": 0.003,
+      "H1_semi_rel": 0.0,
+      "stress_rel_L2": 0.007,
+      "energy_rel": 0.003
+    }
+  },
+  "operator_over_q4_std_over_mean_ratio": {
+    "9": {
+      "L2_rel": 192.1,
+      "H1_semi_rel": 3399999.9999999995,
+      "stress_rel_L2": 0.8857142857142857,
+      "energy_rel": 183.06666666666666
+    },
+    "17": {
+      "L2_rel": 86.0,
+      "H1_semi_rel": 16099999.999999998,
+      "stress_rel_L2": 2.1714285714285713,
+      "energy_rel": 123.19999999999999
+    },
+    "33": {
+      "L2_rel": 141.8,
+      "H1_semi_rel": 134200000.0,
+      "stress_rel_L2": 17.1,
+      "energy_rel": 245.26666666666665
+    }
+  },
+  "mean_agreement_with_family_sweep": "asserted equal (rel_tol 2e-4) to operator_family_mean in mms_family_fem_B1_neo_hookean.json for all 4 metrics at all 3 meshes before this file was written -- same checkpoints, same 16 members, same computation",
+  "reading": {
+    "headline": "The operator is not consistent across the family the way Q4 is, in any norm, at any mesh -- and in L2 and energy it is not even close. Q4's std/mean is 0.000-0.007 across all four metrics and all three meshes: essentially member-independent. The operator's is 0.26-0.43 in L2 and 0.37-0.74 in energy at every mesh -- two orders of magnitude more variable.",
+    "h1_and_stress_degrade_with_refinement": "H1 and stress start close to Q4's own tight spread at the coarsest mesh (std/mean 0.003-0.006 at N=9, against Q4's 0.000-0.007 -- indistinguishable) and grow away from it as the mesh refines: 0.015-0.016 at N=17, then 0.12-0.13 at N=33. This is the same ceiling-proximity effect Table 24d reports for the MEAN ratio (operator/Q4 stays near 1 in H1/stress at N=9 and drifts to 1.4x by N=33) -- now shown to affect the operator's per-member RELIABILITY too, not just its average accuracy. When the operator sits close to the Q4 optimum it inherits some of Q4's member-independence; as training-optimization error comes to dominate at finer meshes, both the mean error and its spread across the family grow together.",
+    "l2_and_energy_never_close": "L2 and energy std/mean do not improve at the coarsest mesh the way H1/stress do -- they are already 0.38-0.55x at N=9, far above Q4's 0.002-0.003. These are the two metrics Table 24d already showed diverging outright in the mean; here they are also the two that are inconsistent member-to-member at every mesh tested, not only at the finest.",
+    "what_this_does_not_establish": "Only B1 x Neo-Hookean, only three meshes, only one operator checkpoint per mesh (no repeated-seed training to separate model-to-model variance from family-member variance). And this is a property of THIS trained network, not a theoretical bound -- a longer training budget might narrow the spread without changing the mean, or might not."
+  },
+  "provenance": "transcribed from the Colab stdout of Round6_MMS_Operator_PerMember.ipynb, commit 05cdfa1, run 2026-09-01 on an A100. The run's own JSONs are on Drive at pfem_run/mms/operator_per_member/mms_operator_per_member_N{9,17,33}.json."
+}

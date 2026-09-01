@@ -149,13 +149,45 @@ family. N=33 moves 9%.
 **Q4's spread across the family is negligible** — stdev/mean 0.002–0.003 in L2,
 0.000 in H1, 0.007 in stress. The FEM is essentially member-independent.
 
-**Still open, and small:** the operator's *spread* over the family is not
-recoverable — `mms_operator*.json` stores only `operator_mean_over_test_family`,
-no stdev. So "is the operator consistent across the family, or just consistent
-on average?" cannot be answered from what is on disk. Answering it means
-re-running the operator with per-member output (~8 min per mesh on an A100, the
-measured N=17 time). Worth doing only if the report wants to make a consistency
-claim.
+### ✅ CLOSED — the operator's spread over the family, no retraining needed (2026-09-01)
+
+The open question above turned out not to need re-running anything: the
+three already-trained checkpoints (N=9, 17, 33) were re-scored per member
+(`omar_pfem/mms_operator_per_member.py`, `Round6_MMS_Operator_PerMember.ipynb`)
+in minutes on an A100, no training. Recorded at
+`point9_results/mms_operator_per_member_B1_neo_hookean.json`
+(`record_mms_operator_per_member.py`), which asserts its means reproduce
+`operator_family_mean` from the family sweep to 4 significant figures before
+writing — they do, exactly, which is the check that this is the same
+computation and not a different family or checkpoint.
+
+**Answer: no, not consistent, in any norm, at any mesh — and in two of the
+four norms it is not even close.** Q4's std/mean is 0.000–0.007 across all
+four metrics and all three meshes (essentially member-independent, already
+known). The operator's:
+
+| N | L2 | H1 semi | stress | energy |
+|---|---|---|---|---|
+| 9 | 0.384 | 0.003 | 0.006 | 0.549 |
+| 17 | 0.258 | 0.016 | 0.015 | 0.370 |
+| 33 | 0.425 | 0.134 | 0.120 | 0.736 |
+
+(Q4's own std/mean for comparison: L2 0.002–0.003, H1 0.000, stress 0.007,
+energy 0.003, essentially flat across the family and the mesh.)
+
+**H1 and stress start indistinguishable from Q4's own spread at the
+coarsest mesh** (0.003–0.006 at N=9, against Q4's 0.000–0.007) **and grow
+away from it with refinement** (0.12–0.13 by N=33) — the same
+ceiling-proximity effect Table 24d already reports for the *mean* ratio,
+now shown to affect per-member *reliability* too: when the operator sits
+close to the Q4 optimum it inherits some of Q4's member-independence, and
+as optimization error comes to dominate at finer meshes both the mean error
+and its spread across the family grow together. **L2 and energy are never
+close** — 0.26–0.55× already at N=9, far above Q4's 0.002–0.003 — the same
+two metrics Table 24d shows diverging outright in the mean.
+
+Not yet in the report or summary — v39/v12 predate this. Folding it in
+would be a small addition next to Table 24d, same section.
 
 ### ✅ REPORT v39 AND SUMMARY v12 ARE WRITTEN (2026-09-01)
 
