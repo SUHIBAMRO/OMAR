@@ -26,7 +26,7 @@
 #  explicitly withdrawn -- each time with the NEW commit hash printed
 #  directly above the OLD output.
 # =====================================================================
-CELL = 'cell_b2_fixed_selection_all.py'
+CELL = 'cell_pareto_remaining_B1.py'
 
 import os
 import subprocess
