@@ -1,0 +1,357 @@
+{
+  "study": "manufactured solution, Q4 vs Q9 vs the operator, over the operator's own 16-member test family",
+  "geometry": "B1",
+  "material": "neo_hookean",
+  "Ns": [
+    9,
+    17,
+    33
+  ],
+  "orders": [
+    "Q4",
+    "Q9"
+  ],
+  "n_members": 16,
+  "family_seed": 31000000,
+  "family_draw": "sample_family(16, 31_000_000 + 1), verified identical to the call mms_operator.py makes, so the FEM and operator means are over the SAME 16 problems",
+  "members": [
+    {
+      "i": 0,
+      "alpha": 0.03753,
+      "beta": 0.72904
+    },
+    {
+      "i": 1,
+      "alpha": 0.06967,
+      "beta": 0.87733
+    },
+    {
+      "i": 2,
+      "alpha": 0.06467,
+      "beta": 0.79818
+    },
+    {
+      "i": 3,
+      "alpha": 0.04015,
+      "beta": 0.69988
+    },
+    {
+      "i": 4,
+      "alpha": 0.05775,
+      "beta": 0.68226
+    },
+    {
+      "i": 5,
+      "alpha": 0.05094,
+      "beta": 0.73271
+    },
+    {
+      "i": 6,
+      "alpha": 0.04126,
+      "beta": 0.68476
+    },
+    {
+      "i": 7,
+      "alpha": 0.03183,
+      "beta": 0.91898
+    },
+    {
+      "i": 8,
+      "alpha": 0.05471,
+      "beta": 0.58488
+    },
+    {
+      "i": 9,
+      "alpha": 0.05123,
+      "beta": 0.61582
+    },
+    {
+      "i": 10,
+      "alpha": 0.03387,
+      "beta": 0.79692
+    },
+    {
+      "i": 11,
+      "alpha": 0.0625,
+      "beta": 0.61767
+    },
+    {
+      "i": 12,
+      "alpha": 0.06051,
+      "beta": 0.96172
+    },
+    {
+      "i": 13,
+      "alpha": 0.0529,
+      "beta": 0.63325
+    },
+    {
+      "i": 14,
+      "alpha": 0.03382,
+      "beta": 0.61098
+    },
+    {
+      "i": 15,
+      "alpha": 0.05624,
+      "beta": 0.7789
+    }
+  ],
+  "single_member_of_tables_22_24": {
+    "alpha": 0.05,
+    "beta": 0.7,
+    "in_family": false
+  },
+  "rows": [
+    {
+      "N": 9,
+      "n_members": 16,
+      "Q4": {
+        "L2_rel": 0.013515,
+        "H1_semi_rel": 0.11318,
+        "stress_rel_L2": 0.11442,
+        "energy_rel": 0.012688
+      },
+      "Q9": {
+        "L2_rel": 0.0004155,
+        "H1_semi_rel": 0.0057632,
+        "stress_rel_L2": 0.0059812,
+        "energy_rel": 3.3314e-05
+      },
+      "operator_family_mean": {
+        "L2_rel": 0.0083792,
+        "H1_semi_rel": 0.11456,
+        "stress_rel_L2": 0.11593,
+        "energy_rel": 0.010151
+      },
+      "operator_single_member_as_published": {
+        "L2_rel": 0.0050351,
+        "H1_semi_rel": 0.11414,
+        "stress_rel_L2": 0.11535,
+        "energy_rel": 0.011331
+      },
+      "operator_over_Q4_on_the_family": {
+        "L2_rel": 0.62,
+        "H1_semi_rel": 1.0122,
+        "stress_rel_L2": 1.0132,
+        "energy_rel": 0.8
+      },
+      "Q4_spread_stdev_over_mean": {
+        "L2_rel": 0.002,
+        "H1_semi_rel": 0.0,
+        "stress_rel_L2": 0.007,
+        "energy_rel": 0.003
+      },
+      "Q9_stdev_absolute": {
+        "L2_rel": 5.5e-08,
+        "H1_semi_rel": 2.2e-07,
+        "stress_rel_L2": 0.00013,
+        "energy_rel": 2.7e-07
+      },
+      "operator_family_mean_over_single_member": {
+        "L2_rel": 1.6642,
+        "H1_semi_rel": 1.0037,
+        "stress_rel_L2": 1.005,
+        "energy_rel": 0.8959
+      }
+    },
+    {
+      "N": 17,
+      "n_members": 16,
+      "Q4": {
+        "L2_rel": 0.0034049,
+        "H1_semi_rel": 0.056659,
+        "stress_rel_L2": 0.057323,
+        "energy_rel": 0.0031914
+      },
+      "Q9": {
+        "L2_rel": 5.1628e-05,
+        "H1_semi_rel": 0.001438,
+        "stress_rel_L2": 0.0015008,
+        "energy_rel": 2.0902e-06
+      },
+      "operator_family_mean": {
+        "L2_rel": 0.0088261,
+        "H1_semi_rel": 0.058712,
+        "stress_rel_L2": 0.059368,
+        "energy_rel": 0.0095955
+      },
+      "operator_single_member_as_published": {
+        "L2_rel": 0.0082377,
+        "H1_semi_rel": 0.058306,
+        "stress_rel_L2": 0.058861,
+        "energy_rel": 0.0099141
+      },
+      "operator_over_Q4_on_the_family": {
+        "L2_rel": 2.5922,
+        "H1_semi_rel": 1.0362,
+        "stress_rel_L2": 1.0357,
+        "energy_rel": 3.0067
+      },
+      "Q4_spread_stdev_over_mean": {
+        "L2_rel": 0.003,
+        "H1_semi_rel": 0.0,
+        "stress_rel_L2": 0.007,
+        "energy_rel": 0.003
+      },
+      "Q9_stdev_absolute": {
+        "L2_rel": 1.8e-09,
+        "H1_semi_rel": 2.1e-08,
+        "stress_rel_L2": 3.3e-05,
+        "energy_rel": 1.5e-08
+      },
+      "operator_family_mean_over_single_member": {
+        "L2_rel": 1.0714,
+        "H1_semi_rel": 1.007,
+        "stress_rel_L2": 1.0086,
+        "energy_rel": 0.9679
+      }
+    },
+    {
+      "N": 33,
+      "n_members": 16,
+      "Q4": {
+        "L2_rel": 0.00085298,
+        "H1_semi_rel": 0.028338,
+        "stress_rel_L2": 0.028676,
+        "energy_rel": 0.00079909
+      },
+      "Q9": {
+        "L2_rel": 6.4423e-06,
+        "H1_semi_rel": 0.00035928,
+        "stress_rel_L2": 0.00037557,
+        "energy_rel": 1.3077e-07
+      },
+      "operator_family_mean": {
+        "L2_rel": 0.012358,
+        "H1_semi_rel": 0.040947,
+        "stress_rel_L2": 0.040003,
+        "energy_rel": 0.0064063
+      },
+      "operator_single_member_as_published": {
+        "L2_rel": 0.011362,
+        "H1_semi_rel": 0.038498,
+        "stress_rel_L2": 0.037993,
+        "energy_rel": 0.0052892
+      },
+      "operator_over_Q4_on_the_family": {
+        "L2_rel": 14.488,
+        "H1_semi_rel": 1.445,
+        "stress_rel_L2": 1.395,
+        "energy_rel": 8.017
+      },
+      "Q4_spread_stdev_over_mean": {
+        "L2_rel": 0.003,
+        "H1_semi_rel": 0.0,
+        "stress_rel_L2": 0.007,
+        "energy_rel": 0.003
+      },
+      "Q9_stdev_absolute": {
+        "L2_rel": 6e-11,
+        "H1_semi_rel": 1.6e-09,
+        "stress_rel_L2": 8.3e-06,
+        "energy_rel": 9.3e-10
+      },
+      "operator_family_mean_over_single_member": {
+        "L2_rel": 1.0877,
+        "H1_semi_rel": 1.0636,
+        "stress_rel_L2": 1.0529,
+        "energy_rel": 1.2112
+      }
+    }
+  ],
+  "observed_rates_N9_to_N33_two_point": {
+    "Q4": {
+      "L2_rel": 1.993,
+      "H1_semi_rel": 0.9989,
+      "stress_rel_L2": 0.9982,
+      "energy_rel": 1.9945
+    },
+    "Q9": {
+      "L2_rel": 3.0056,
+      "H1_semi_rel": 2.0018,
+      "stress_rel_L2": 1.9966,
+      "energy_rel": 3.9965
+    },
+    "operator": {
+      "L2_rel": -0.2803,
+      "H1_semi_rel": 0.7421,
+      "stress_rel_L2": 0.7675,
+      "energy_rel": 0.332
+    }
+  },
+  "fitted_rates_in_h": {
+    "Q4": {
+      "L2_rel": 1.993,
+      "H1_semi_rel": 0.9989,
+      "stress_rel_L2": 0.9982,
+      "energy_rel": 1.9945
+    },
+    "Q9": {
+      "L2_rel": 3.0056,
+      "H1_semi_rel": 2.0018,
+      "stress_rel_L2": 1.9966,
+      "energy_rel": 3.9965
+    },
+    "operator": {
+      "L2_rel": -0.2803,
+      "H1_semi_rel": 0.7421,
+      "stress_rel_L2": 0.7675,
+      "energy_rel": 0.332
+    }
+  },
+  "per_interval_rates": {
+    "Q4": {
+      "N9_to_N17": {
+        "L2_rel": 1.9889,
+        "H1_semi_rel": 0.9982,
+        "stress_rel_L2": 0.9972,
+        "energy_rel": 1.9912
+      },
+      "N17_to_N33": {
+        "L2_rel": 1.997,
+        "H1_semi_rel": 0.9996,
+        "stress_rel_L2": 0.9993,
+        "energy_rel": 1.9978
+      }
+    },
+    "Q9": {
+      "N9_to_N17": {
+        "L2_rel": 3.0086,
+        "H1_semi_rel": 2.0028,
+        "stress_rel_L2": 1.9947,
+        "energy_rel": 3.9944
+      },
+      "N17_to_N33": {
+        "L2_rel": 3.0025,
+        "H1_semi_rel": 2.0009,
+        "stress_rel_L2": 1.9986,
+        "energy_rel": 3.9985
+      }
+    },
+    "operator": {
+      "N9_to_N17": {
+        "L2_rel": -0.075,
+        "H1_semi_rel": 0.9644,
+        "stress_rel_L2": 0.9655,
+        "energy_rel": 0.0812
+      },
+      "N17_to_N33": {
+        "L2_rel": -0.4856,
+        "H1_semi_rel": 0.5199,
+        "stress_rel_L2": 0.5696,
+        "energy_rel": 0.5829
+      }
+    }
+  },
+  "rate_convention": "h = L/(N-1) for N nodes per side. The two-point rate uses the N=9 and N=33 endpoints; fitted_rates_in_h is the least-squares slope of log(err) on log(h) over all three meshes, the same estimator mms_operator_rate_B1_neo_hookean.json uses. THE CONTROL: Q4's L2 comes out at 1.993 (two-point) and 1.993 (fitted) against Table 23's measured 1.98, so this sweep is comparable to the published table. A 1/N convention would give 2.13 instead and would not reproduce Table 23.",
+  "reading": {
+    "headline": "the operator does not converge, and refining makes it relatively worse. Over N=9 to N=33 the family-mean L2 rates are Q4 1.993, Q9 3.0056, operator -0.2803 -- the operator's error GROWS by 1.47x while Q4's falls by 15.8x. operator/Q4 goes 0.62x, 2.59x, 14.49x.",
+    "the_single_rate_hides_the_shape": "the operator's L2 rate is -0.2803 on both estimators, but that agreement is an artefact: N=9, 17, 33 are equally spaced in log h, so the least-squares slope reduces to the endpoint slope and the middle mesh cancels. Per interval the rate is -0.075 from N=9 to 17 and -0.4856 from N=17 to 33 -- the error is nearly flat and then climbs, so a single fitted number understates the finer half. What this sweep establishes is the SIGN, on every interval, not a magnitude. The single-member run fitted -0.59 on the same quantity; that it is negative on a family as well as on one member is the point.",
+    "the_0_62x_at_N9_is_not_a_bug": "the ceiling argument constrains PI. The operator minimises the same discrete functional over the same Q4 space, so nothing it produces can have lower PI than the Q4 solution. PI IS NOT L2. A field that does not minimise PI can sit closer to u* in L2 by partly cancelling Q4's own discretisation bias, and that is what N=9 does. A previous session raised a false alarm about exactly this; 8.11 already carries the correction. Do not 'fix' it.",
+    "table_24_is_vindicated_at_N17": "its single-member 2.42x against the family's 2.59x, so the published comparison was representative there. At N=9 the single member was materially easier -- operator 5.0351e-03 against the family's 8.3792e-03, 66% worse on the family -- so any N=9 statement should quote the family. N=33 moves 9%.",
+    "the_FEM_is_member_independent": "Q4's spread across the family is 0.002-0.003 in L2, 0.000 in H1 and 0.007 in stress. The comparison is therefore not being carried by a lucky member on the FEM side.",
+    "what_is_still_open": "the OPERATOR's spread over the family is not recoverable. mms_operator*.json stores only operator_mean_over_test_family, no stdev, so 'is the operator consistent across the family, or only consistent on average?' cannot be answered from what is on disk. Answering it means re-running the operator with per-member output, about 8 minutes per mesh on an A100 at the measured N=17 time. Worth doing only if the report wants to make a consistency claim."
+  },
+  "cost": "CPU runtime. The three meshes were solved for both orders on all 16 members; the run writes each member's four numbers to <out_json>.progress as it goes and skips completed members on restart, so a disconnect costs one member and not the sweep.",
+  "provenance": "transcribed from the Colab stdout of Round6_MMS_Family (cell_mms_family.py) on 2026-09-01, run at commit f20a6ba. The run's own JSON is on Drive at pfem_run/mms/family/mms_family_fem_B1_neo_hookean.json. Every value carries the PRINTED precision (4-5 significant digits). The operator columns are NOT produced by this run: they are operator_mean_over_test_family from mms_operator_B1_neo_hookean*.json, and the single-member column is what Tables 22-24 publish. The ratios and the rates in this file are COMPUTED from the transcribed means, not transcribed."
+}

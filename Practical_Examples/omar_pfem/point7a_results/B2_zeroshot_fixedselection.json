@@ -1,0 +1,270 @@
+{
+  "geometry": "B2",
+  "material": "neo_hookean",
+  "study": "zero-shot resolution invariance, checkpoint selection corrected",
+  "checkpoint": "pfem_run/zeroshot_B2_neo_hookean_fixedsel/model_best.pt",
+  "checkpoint_fingerprint_prefix": "1afbcd250a2933e2",
+  "fine_N": 101,
+  "n_eval_samples": 20,
+  "train_resolutions": [
+    21,
+    33
+  ],
+  "test_resolutions": [
+    13,
+    17,
+    25,
+    29,
+    37,
+    41,
+    49
+  ],
+  "the_defect": {
+    "what": "early stopping and model_best.pt selection used per_component = 0.5*(rms(e_u)/rms(u) + rms(e_v)/rms(v)), which divides each component by its own size",
+    "why_it_inverts_on_B2": "the per-sample ratio rms(v)/rms(u) averages 1.90 while the ratio of the AVERAGED components is 0.90 -- a skewed distribution, so the mean of the per-sample ratios reports its tail. The quantity rises while the model improves.",
+    "consequence": "every B2 run in this project stopped at its first or second validation event (epochs 25, 25 and 225 for neo_hookean, mooney_rivlin and arruda_boyce), so every downstream B2 diagnosis was measuring a model trained for 25-50 epochs",
+    "fix": "--selection_metric both_components, i.e. rms(e)/rms(uv_exact), which does not invert; it is now the default in resolution_invariance_zeroshot.py",
+    "B1_is_unaffected": "B1's two metrics differ by a stable 1.36-1.71x offset and all three B1 cases agree, in both metrics, that model_best.pt is the better checkpoint. Every published B1 number stands."
+  },
+  "training": {
+    "epochs_requested": 4000,
+    "final_epoch": 3500,
+    "best_epoch": 2750,
+    "early_stopped": true,
+    "early_stop_patience": 15,
+    "validate_every": 50,
+    "selection_metric": "both_components",
+    "best_both_components_val_error": 0.02137,
+    "per_component_val_error_at_that_checkpoint": 0.033021,
+    "superseded_run_best_per_component_val_error": 0.9986,
+    "opt_steps_at_end": 350000,
+    "steps_per_epoch": 100,
+    "opt_steps_at_best": 275000,
+    "wall_clock_s": 11888,
+    "late_validation_curve": [
+      {
+        "epoch": 2700,
+        "per_resolution_per_component": {
+          "21": 0.08795422315597534,
+          "33": 0.06182359531521797
+        },
+        "per_component": 0.074889,
+        "both_components": 0.051398
+      },
+      {
+        "epoch": 2750,
+        "per_resolution_per_component": {
+          "21": 0.033085793256759644,
+          "33": 0.03295707330107689
+        },
+        "per_component": 0.033021,
+        "both_components": 0.02137
+      },
+      {
+        "epoch": 2800,
+        "per_resolution_per_component": {
+          "21": 0.09390207380056381,
+          "33": 0.06394565850496292
+        },
+        "per_component": 0.078924,
+        "both_components": 0.047616
+      },
+      {
+        "epoch": 2850,
+        "per_resolution_per_component": {
+          "21": 0.09261499345302582,
+          "33": 0.08719110488891602
+        },
+        "per_component": 0.089903,
+        "both_components": 0.059085
+      },
+      {
+        "epoch": 2900,
+        "per_resolution_per_component": {
+          "21": 0.05957557633519173,
+          "33": 0.048785608261823654
+        },
+        "per_component": 0.054181,
+        "both_components": 0.034731
+      },
+      {
+        "epoch": 2950,
+        "per_resolution_per_component": {
+          "21": 0.04854102060198784,
+          "33": 0.0545775480568409
+        },
+        "per_component": 0.051559,
+        "both_components": 0.034248
+      },
+      {
+        "epoch": 3000,
+        "per_resolution_per_component": {
+          "21": 0.03824955224990845,
+          "33": 0.03959283232688904
+        },
+        "per_component": 0.038921,
+        "both_components": 0.024701
+      },
+      {
+        "epoch": 3050,
+        "per_resolution_per_component": {
+          "21": 0.052507780492305756,
+          "33": 0.06338551640510559
+        },
+        "per_component": 0.057947,
+        "both_components": 0.035514
+      },
+      {
+        "epoch": 3100,
+        "per_resolution_per_component": {
+          "21": 0.13836173713207245,
+          "33": 0.14821457862854004
+        },
+        "per_component": 0.14329,
+        "both_components": 0.082517
+      },
+      {
+        "epoch": 3150,
+        "per_resolution_per_component": {
+          "21": 0.0678519457578659,
+          "33": 0.06598378717899323
+        },
+        "per_component": 0.066918,
+        "both_components": 0.039123
+      },
+      {
+        "epoch": 3200,
+        "per_resolution_per_component": {
+          "21": 0.08327015489339828,
+          "33": 0.10811640322208405
+        },
+        "per_component": 0.095693,
+        "both_components": 0.062912
+      },
+      {
+        "epoch": 3250,
+        "per_resolution_per_component": {
+          "21": 0.07963953912258148,
+          "33": 0.09635469317436218
+        },
+        "per_component": 0.087997,
+        "both_components": 0.06115
+      },
+      {
+        "epoch": 3300,
+        "per_resolution_per_component": {
+          "21": 0.03940986841917038,
+          "33": 0.0485902763903141
+        },
+        "per_component": 0.044,
+        "both_components": 0.025035
+      },
+      {
+        "epoch": 3350,
+        "per_resolution_per_component": {
+          "21": 0.05115897208452225,
+          "33": 0.04500778391957283
+        },
+        "per_component": 0.048083,
+        "both_components": 0.032137
+      },
+      {
+        "epoch": 3400,
+        "per_resolution_per_component": {
+          "21": 0.04710771515965462,
+          "33": 0.051361244171857834
+        },
+        "per_component": 0.049234,
+        "both_components": 0.030654
+      },
+      {
+        "epoch": 3450,
+        "per_resolution_per_component": {
+          "21": 0.056995704770088196,
+          "33": 0.0597023107111454
+        },
+        "per_component": 0.058349,
+        "both_components": 0.041949
+      },
+      {
+        "epoch": 3500,
+        "per_resolution_per_component": {
+          "21": 0.05001213774085045,
+          "33": 0.04654787480831146
+        },
+        "per_component": 0.04828,
+        "both_components": 0.032074
+      }
+    ]
+  },
+  "rows": [
+    {
+      "N": 13,
+      "mean_rel_L2_vs_fine_reference": 0.23142,
+      "std_rel_L2_vs_fine_reference": 0.050334,
+      "mean_combined_rel_L2_vs_fine_reference": 0.20462,
+      "superseded_mean_rel_L2_vs_fine_reference": 0.87137,
+      "superseded_mean_combined_rel_L2_vs_fine_reference": 0.72109
+    },
+    {
+      "N": 17,
+      "mean_rel_L2_vs_fine_reference": 0.11422,
+      "std_rel_L2_vs_fine_reference": 0.028221,
+      "mean_combined_rel_L2_vs_fine_reference": 0.10914,
+      "superseded_mean_rel_L2_vs_fine_reference": 0.87176,
+      "superseded_mean_combined_rel_L2_vs_fine_reference": 0.72133
+    },
+    {
+      "N": 25,
+      "mean_rel_L2_vs_fine_reference": 0.072015,
+      "std_rel_L2_vs_fine_reference": 0.037909,
+      "mean_combined_rel_L2_vs_fine_reference": 0.05954,
+      "superseded_mean_rel_L2_vs_fine_reference": 0.87222,
+      "superseded_mean_combined_rel_L2_vs_fine_reference": 0.72143
+    },
+    {
+      "N": 29,
+      "mean_rel_L2_vs_fine_reference": 0.071113,
+      "std_rel_L2_vs_fine_reference": 0.030029,
+      "mean_combined_rel_L2_vs_fine_reference": 0.065495,
+      "superseded_mean_rel_L2_vs_fine_reference": 0.87235,
+      "superseded_mean_combined_rel_L2_vs_fine_reference": 0.72144
+    },
+    {
+      "N": 37,
+      "mean_rel_L2_vs_fine_reference": 0.080817,
+      "std_rel_L2_vs_fine_reference": 0.015242,
+      "mean_combined_rel_L2_vs_fine_reference": 0.07377,
+      "superseded_mean_rel_L2_vs_fine_reference": 0.87254,
+      "superseded_mean_combined_rel_L2_vs_fine_reference": 0.72142
+    },
+    {
+      "N": 41,
+      "mean_rel_L2_vs_fine_reference": 0.15113,
+      "std_rel_L2_vs_fine_reference": 0.018423,
+      "mean_combined_rel_L2_vs_fine_reference": 0.14319,
+      "superseded_mean_rel_L2_vs_fine_reference": 0.87259,
+      "superseded_mean_combined_rel_L2_vs_fine_reference": 0.72141
+    },
+    {
+      "N": 49,
+      "mean_rel_L2_vs_fine_reference": 0.26912,
+      "std_rel_L2_vs_fine_reference": 0.032771,
+      "mean_combined_rel_L2_vs_fine_reference": 0.25963,
+      "superseded_mean_rel_L2_vs_fine_reference": 0.8727,
+      "superseded_mean_combined_rel_L2_vs_fine_reference": 0.72138
+    }
+  ],
+  "reading": {
+    "headline": "B2 x Neo-Hookean does not fail. Under a selection metric that orders its checkpoints correctly it goes from 0.9986 to 0.0330 validation per_component, and from a flat 0.8714-0.8727 zero-shot band to 0.0711-0.2691 over the same seven unseen meshes.",
+    "against_B1": "B1 spans 0.050-0.106 per_component on these same seven meshes. The rerun is comparable to B1 in the middle of the range -- 0.0711 to 0.0808 at N=25, 29 and 37 against B1's 0.052-0.067 -- and degrades at both ends, 0.2314 at N=13 and 0.2691 at N=49.",
+    "spread": {
+      "fixed_max_over_min": 3.784,
+      "note": "3.784x across the seven meshes, against B1's 2.1x. The old run's 0.153% spread was not resolution invariance; a model whose output barely responds to its input is flat everywhere. Insensitivity and invariance look identical in that column and are not the same property."
+    },
+    "what_this_does_NOT_establish": "the other two B2 materials. mooney_rivlin (old best 0.9752) and arruda_boyce (old best 1.0267) carry the identical defect and have not been rerun. No B2 row may be quoted for them.",
+    "why_the_ends_degrade_is_open": "not measured. N=13 and N=17 are coarser than either training mesh and N=41, 49 are far finer; both ends are extrapolation in mesh size. Which of the two effects dominates was not tested and is not asserted here."
+  },
+  "cost": "A100. Training 3 h 18 m 8 s to epoch 3500 (350,000 optimiser steps); the eval reused 20 cached N=101 solves and took 10 s. The sample cache and the fine-reference cache were COPIED from the superseded run's directory, so neither the 7+ hours of FEM behind the samples nor the N=101 references were regenerated, and nothing was written to that directory.",
+  "provenance": "transcribed from the Colab stdout of Round6_B2_FixedSelection (cell_b2_fixed_selection.py) on 2026-09-01. The run's own JSONs are on Drive at pfem_run/zeroshot_B2_neo_hookean_fixedsel/. Every value carries the PRINTED precision (4-5 significant digits) except the late validation curve, which the trainer prints at full float precision. The superseded columns were printed by the same cell from pfem_run/zeroshot_B2_neo_hookean/zeroshot_eval.json."
+}
