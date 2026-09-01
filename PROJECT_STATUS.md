@@ -10,7 +10,80 @@ everything after it is detail.**
 
 ---
 
-# 🔴 SUPERSEDED — every B2 "failure" conclusion in this file is now provisional
+# ✅ B2 WORKS. The "failure" was our own early-stopping metric (2026-09-01)
+
+The fixed-selection run finished: **3 h 18 m 8 s**, early-stopped at epoch
+3500 of 4000, best at **epoch 2750** (275,000 steps).
+
+| | old selection | **fixed selection** |
+|---|---|---|
+| val, per_component | 0.9986 | **0.0330** |
+| val, both_components | — | **0.0214** |
+
+**Zero-shot eval, the seven unseen meshes, N=101 reference, 20 samples:**
+
+| N | old per_comp | **new per_comp** | old both | **new both** |
+|---|---|---|---|---|
+| 13 | 0.87137 | **0.23142** | 0.72109 | 0.20462 |
+| 17 | 0.87176 | **0.11422** | 0.72133 | 0.10914 |
+| 25 | 0.87222 | **0.07202** | 0.72143 | 0.05954 |
+| 29 | 0.87235 | **0.07111** | 0.72144 | 0.06550 |
+| 37 | 0.87254 | **0.08082** | 0.72142 | 0.07377 |
+| 41 | 0.87259 | **0.15113** | 0.72141 | 0.14319 |
+| 49 | 0.87270 | **0.26912** | 0.72138 | 0.25963 |
+
+B1 on the same seven meshes: **0.050–0.106** per_component.
+
+**Read it honestly — this is not "B2 now equals B1".**
+
+* **In the mid-range B2 is comparable to B1**: 0.071–0.081 at N=25–37,
+  against B1's 0.052–0.067 there.
+* **B2 degrades at both ends**: 0.231 at N=13 and 0.269 at N=49, against
+  B1's 0.097 and 0.067. Training was at N=21 and N=33, so B2 falls off
+  moving away from the training meshes and B1 does not. **B2's spread across
+  the meshes is 3.8×; B1's is 2.1×.** That is the honest statement of its
+  resolution invariance: real, and weaker than B1's.
+* **And the old flatness is explained.** The previous B2 was 0.871–0.873,
+  identical to three decimals at every mesh. That was never invariance — it
+  was a model emitting nearly the same field whatever it was shown. The new
+  model's error *varies* with the mesh precisely because it now tracks the
+  problem.
+
+**The cause was one line of ours.** Early stopping and `model_best.pt`
+selection used `0.5·(rms(e_u)/rms(u) + rms(e_v)/rms(v))`, which on B2's skewed
+component ratio rises while the model improves. Every B2 run stopped at its
+first or second validation event — epochs 25, 25 and 225 — so every downstream
+diagnosis measured a model trained for 25–50 epochs. Not the physics, not the
+data, not the architecture.
+
+### ⚠️ OPEN, and it affects B1: is patience 8 too tight on a curve this noisy?
+
+B2's own history is the evidence. Its both_components error was **0.0369 at
+epoch 950**, then rose and fell repeatedly, and only reached **0.0214 at epoch
+2750** — 1,800 epochs later. On that curve a patience of 8 validation events
+would have stopped it in a local dip and called it converged.
+
+**The three B1 runs used patience 8 and stopped at epochs 900, 775 and 900.**
+Their endpoints were verified worse than their best on *both* metrics, so
+those stops were not the inversion failure — but "the next 8 events were
+worse" is not the same as "no better model exists 1,800 epochs later", and B2
+just demonstrated the difference. The B1 numbers are **not known to be wrong**;
+they are **not known to be converged either**. Re-running the three B1 cases
+with patience 15 would cost about 3 h each. Omar's call, and it should be made
+with the report deadline in view rather than on principle.
+
+### 🎯 NEXT
+
+1. **The other two B2 materials** — `Round6_B2_FixedSelection_All.ipynb`. Its
+   gate is now **open** (`zeroshot_eval.json` exists, 7/7). ~7 h 32 m for both.
+2. **Report v38** — §8.7's B2 row, §9.1's whole account, and every sentence
+   describing B2 as failing. This is a substantial rewrite, and it turns the
+   weakest part of the report into a finding.
+3. MMS family, AB Pareto — unchanged, still outstanding.
+
+---
+
+# 🔴 ~~SUPERSEDED — every B2 "failure" conclusion in this file is provisional~~ — RESOLVED ABOVE, the list below still says what is void
 
 **Read this before quoting any B2 number or diagnosis from anywhere below.**
 
