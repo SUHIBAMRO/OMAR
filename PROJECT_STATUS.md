@@ -157,12 +157,39 @@ re-running the operator with per-member output (~8 min per mesh on an A100, the
 measured N=17 time). Worth doing only if the report wants to make a consistency
 claim.
 
-### ✅ REPORT v38 AND SUMMARY v11 ARE WRITTEN (2026-09-01)
+### ✅ REPORT v39 AND SUMMARY v12 ARE WRITTEN (2026-09-01)
 
-Builders committed: `report_builders/make_v38.py`, `make_summary_v11.py`. Both
-ran clean; the documents are at `/tmp/PFEM_Transolver_Report_v38.docx` and
-`/tmp/PFEM_Summary_Completed_Work.docx` (previous state preserved as
-`.pre_v11.docx`). Both read the same two JSONs, so they cannot disagree.
+Builders committed: `report_builders/make_v38.py`, `make_summary_v11.py`,
+`make_v39.py`, `make_summary_v12.py`. All ran clean; the documents are at
+`/tmp/PFEM_Transolver_Report_v39.docx` and
+`/tmp/PFEM_Summary_Completed_Work.docx` (previous states preserved as
+`.pre_v11.docx`, `.pre_v12.docx`). All read the same JSONs, so they cannot
+disagree.
+
+**v39/v12 add Table 24d**: `mms_family_fem_B1_neo_hookean.json` (built
+2026-09-01, see "POINT 9's FAMILY HALF IS CLOSED" below) always carried H1
+semi-norm, stress and energy on the 16-member family alongside L2 — v38/v11
+only read the L2 field into Table 24c. Nothing new was measured; v39 reads
+the same file's other three fields. **The finding is not the same shape in
+every norm**: operator/Q4 at N=33 is 14.49× in L2 and 8.02× in energy, but
+only 1.45× in H1 semi-norm and 1.40× in stress — H1 and stress stay near the
+variational ceiling through the whole refinement (fitted rate +0.74 H1,
++0.77 stress, both still improving, against Q4's 1.00) while L2 diverges
+outright (fitted rate −0.28). Per-interval rates for H1/stress stay positive
+on both halves (+0.96/+0.97 then +0.52/+0.57), so the direction does not
+reverse — it just slows as Q4's own error falls faster. This is the same
+inversion Table 24a/24b already reported on the single member (H1 and stress
+protected near the ceiling, L2 not); Table 24d confirms it on 16 members
+rather than one.
+
+**A claim checked and found already correct, not missing**: the GPU-FEM
+break-even correction (1,133–95,038 against the GPU baseline, not the
+7,600–96,000 Timon is working from) has been in both documents' text and
+tables since `make_v28.py`/`make_v30.py` (report) and `make_summary_v4.py`
+(summary) — verified 2026-09-01 by reading the compiled .docx files directly,
+not the builder source. **What is still outstanding is sending it to Timon**,
+which is Omar's own action, not a document edit — see "The correction Timon
+needs" below.
 
 **What changed in the report:**
 
@@ -276,7 +303,7 @@ being honest. Only this file says what is actually outstanding.
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v38**, summary mirrored (v11), branch
+Current artefacts: report **v39**, summary mirrored (v12), branch
 `claude/claude-code-question-d307wp`.
 
 **Nothing measured is unwritten.** Point 7b's 2×2 is complete and in §8.9;
