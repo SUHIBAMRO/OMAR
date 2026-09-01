@@ -39,6 +39,18 @@ and its zero-shot eval is in.** The other two B2 materials (Mooney-Rivlin,
 Arruda-Boyce) carry the identical defect and need the same rerun before any
 B2 row is quoted for them either.
 
+**The rerun for those two is ready and gated:**
+`zeroshot_notebooks/cell_b2_fixed_selection_all.py`
+(`Round6_B2_FixedSelection_All.ipynb`). It **refuses to start** until
+`zeroshot_B2_neo_hookean_fixedsel/zeroshot_eval.json` holds all seven
+resolutions, and prints those numbers first — the two cases are ~7 h 32 m of
+A100 spent on the premise that the fix holds, so the premise is checked by the
+cell rather than remembered by a person. Per case: a new directory, both caches
+copied in, `--selection_metric both_components`, patience 15, 4,000 epochs
+(~3 h 46 m at the measured 3.387 s/epoch), then the zero-shot eval. Resumable
+at every validation event; a case whose eval is complete is skipped. The gate
+logic was exercised against partial, complete, unreadable and missing files.
+
 ---
 
 # ⛔ SETTLED — do not reopen, and do not list as "remaining work"
