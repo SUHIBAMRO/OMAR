@@ -607,7 +607,8 @@ resume on re-run. All 12 repo notebooks pass `check_notebooks.py`.
 
 | Item | Blocker |
 |---|---|
-| **R6** open-source the GPU-FEM + benchmark vs Tensormesh | Needs Omar's decision: separate repo? license? how much documentation? |
+| **R6** open-source the GPU-FEM code (`gpu_fem_solver.py`, `matrix_free_solver.py` + their `materials_torch.py`/`data/fem_core.py`/`data/q9_element.py`/`data/materials.py` dependencies — a self-contained set, checked 2026-09-02) | **Blocked on Omar, waiting on Timon.** Two answers needed before any repo/file work starts: (1) does this need formal sign-off from Timon or the university before a public release — Omar said yes, needs to confirm; (2) which license — MIT or Apache 2.0 suggested, Omar wants to ask Timon first. Do not create a public repo or push this code anywhere until both come back |
+| **R6** benchmark the GPU-FEM solver against Tensormesh, computational efficiency | Independent of the open-source decision above — can start separately whenever Omar wants. Not started; needs Tensormesh itself set up to run the same problems for comparison |
 | Send Timon the correction + the B1×NH Pareto result | Drafted in the reading of the round-6 email; not sent |
 
 ## 🚫 Cancelled by Omar — DO NOT PROPOSE THESE AGAIN
