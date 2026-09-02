@@ -11,20 +11,21 @@ master table immediately below first; everything after it is detail.**
 
 ---
 
-# First real Arruda-Boyce Pareto numbers (2 of 9 resolutions, in progress)
+# First real Arruda-Boyce Pareto numbers (6 of 9 resolutions, in progress)
 
-|  | N=13 | N=17 |
-|---|---|---|
-| Arruda-Boyce FEM ms/sample (measured) | 20,870.5 | 37,056.6 |
-| Neo-Hookean FEM ms/sample (Table 18c) | 10,108.5 | 18,024.7 |
-| ratio | **2.065×** | **2.056×** |
+|  | N=13 | N=17 | N=21 | N=25 | N=29 | N=33 |
+|---|---|---|---|---|---|---|
+| Arruda-Boyce FEM ms/sample (measured) | 20,870.5 | 37,056.6 | 57,877.5 | 83,374.8 | 113,473.4 | 148,153.5 |
+| Neo-Hookean FEM ms/sample (Table 18c) | 10,108.5 | 18,024.7 | 27,916.1 | 40,024.5 | 54,559.5 | 71,714.2 |
+| ratio | 2.065× | 2.056× | 2.073× | 2.083× | 2.080× | 2.066× |
 
-Confirms the material-cost factor B1's Table 4a predicted (2.1–2.4×,
-autodiff tangent vs analytic) — landing just under the low end, consistent
-enough to trust the projection for the remaining 7 resolutions. Not yet a
-recordable result (7/9 resolutions still outstanding); will be folded into
-the report once `pareto_B2_arruda_boyce.json` is complete, same as
-Neo-Hookean's was.
+Six points now, all within 2.056–2.083× — a tight, stable cluster around
+**2.07×**, confirming the material-cost factor B1's Table 4a predicted
+(2.1–2.4×) close enough to trust for the remaining 3 resolutions (37, 41,
+49). Projected remaining time from here, using this measured ratio against
+Neo-Hookean's own N=37/41/49 costs: **≈4h10m**. Not yet a recordable
+result (3/9 resolutions still outstanding); will be folded into the report
+once `pareto_B2_arruda_boyce.json` is complete, same as Neo-Hookean's was.
 
 ---
 
