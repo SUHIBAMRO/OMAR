@@ -5,9 +5,64 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-02 (Table 18c — B2 × Neo-Hookean Pareto — folded into
-report v43 / summary v16). **Read the master table immediately below first;
-everything after it is detail.**
+Last updated: 2026-09-02 (B2 x Mooney-Rivlin and B2 x Arruda-Boyce Pareto
+sweeps running in parallel, in two now-isolated notebooks — see below).
+**Read the master table immediately below first; everything after it is
+detail.**
+
+---
+
+# ⚠️ Found and fixed: a same-material race the earlier isolation missed (2026-09-02)
+
+`cell_pareto_B2_arruda_boyce_only.py` (built earlier) restricts itself to
+Arruda-Boyce so it can run alongside the general `cell_pareto_B2.py` without
+touching Neo-Hookean's or Mooney-Rivlin's files. That protected against the
+wrong risk this time: after a Colab credit cutoff, the GENERAL notebook was
+restarted fresh, and a fresh restart re-runs its PRE-FLIGHT check from
+scratch — this time seeing Arruda-Boyce's checkpoint already exists (it did
+not exist the first time this notebook was ever started, which is why the
+dedicated cell was built). So the restarted general notebook was on track
+to finish Mooney-Rivlin and then walk straight into Arruda-Boyce itself,
+writing `pareto_B2_arruda_boyce.json` **at the same time** as the dedicated
+notebook already running on it.
+
+**Why that is a real risk, checked directly against `pareto_analysis.py`:**
+each process reads the progress file once at its own start, keeps its own
+rows in memory, and does a full-file `os.replace` after every resolution
+(lines 176-232). Two processes on the same file do not corrupt values —
+same checkpoint, same deterministic FEM solve — but whichever one writes
+*last* can silently overwrite the file with FEWER resolutions than the
+other process had already saved, since it is writing from an older
+in-memory snapshot. No error, no warning; the only symptom is a row count
+lower than expected.
+
+**Fix, mirroring the Arruda-Boyce cell exactly:**
+`cell_pareto_B2_mooney_rivlin_only.py` / `Round6_Pareto_B2_MooneyRivlin_Only.ipynb`
+(commit `40ecfbd`) restricts `CASES` to `['mooney_rivlin']` only, so it
+finishes its own material and stops — it never reaches Arruda-Boyce. Omar
+switched to it mid-run; confirmed by its own plan output printing a single
+line (`mooney_rivlin ... to run`) with no mention of the other two
+materials, and it correctly resumed from N=41 (7/9 already on disk).
+
+**General lesson for next time:** "restricting `CASES` on cell A protects
+cell A's target material" is not the same claim as "cell A and cell B can
+never collide" — check what B does *after* its own material finishes, not
+just what A touches.
+
+## First real Arruda-Boyce Pareto numbers (2 of 9 resolutions, in progress)
+
+|  | N=13 | N=17 |
+|---|---|---|
+| Arruda-Boyce FEM ms/sample (measured) | 20,870.5 | 37,056.6 |
+| Neo-Hookean FEM ms/sample (Table 18c) | 10,108.5 | 18,024.7 |
+| ratio | **2.065×** | **2.056×** |
+
+Confirms the material-cost factor B1's Table 4a predicted (2.1–2.4×,
+autodiff tangent vs analytic) — landing just under the low end, consistent
+enough to trust the projection for the remaining 7 resolutions. Not yet a
+recordable result (7/9 resolutions still outstanding); will be folded into
+the report once `pareto_B2_arruda_boyce.json` is complete, same as
+Neo-Hookean's was.
 
 ---
 
