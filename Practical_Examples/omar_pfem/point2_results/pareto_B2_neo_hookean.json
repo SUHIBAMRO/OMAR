@@ -1,0 +1,115 @@
+{
+  "geometry": "B2",
+  "material": "neo_hookean",
+  "checkpoint": "pfem_run/zeroshot_B2_neo_hookean_fixedsel/model_best.pt",
+  "checkpoint_fingerprint": "1afbcd250a2933e201ac3cafc5ec51cdbad45e39703499a3508547a9ead40b21",
+  "fine_N": 101,
+  "batch_size": 1,
+  "n_samples": 20,
+  "train_resolutions": [
+    21,
+    33
+  ],
+  "solver_side": "the CPU reference solver, the cost of producing a new solution today; the GPU-native solver of section 8.5 is 71.7-171.5x faster and shifts the speed-up column down by about two orders of magnitude without touching accuracy",
+  "metric": "combined relative L2 over both displacement components, ||e||/||u||, every row scored against the SAME N=101 reference -- the convergence-study convention of section 4.4",
+  "rows": [
+    {
+      "N": 13,
+      "n_nodes": 169,
+      "fem_rel_L2": 0.019436165724500097,
+      "fem_ms_per_sample": 10108.463829000357,
+      "operator_rel_L2": 0.19858644450756793,
+      "operator_ms_per_sample": 5.814663500132156,
+      "speedup": 1738.4434763543259
+    },
+    {
+      "N": 17,
+      "n_nodes": 289,
+      "fem_rel_L2": 0.01120957031236559,
+      "fem_ms_per_sample": 18024.733190000006,
+      "operator_rel_L2": 0.10512962639262244,
+      "operator_ms_per_sample": 5.786646999695222,
+      "speedup": 3114.8838335826176
+    },
+    {
+      "N": 21,
+      "n_nodes": 441,
+      "fem_rel_L2": 0.00727896126910976,
+      "fem_ms_per_sample": 27916.097556998466,
+      "operator_rel_L2": 0.017859230263987506,
+      "operator_ms_per_sample": 6.192653998368769,
+      "speedup": 4507.937560269305
+    },
+    {
+      "N": 25,
+      "n_nodes": 625,
+      "fem_rel_L2": 0.00519442099718464,
+      "fem_ms_per_sample": 40024.49283900023,
+      "operator_rel_L2": 0.048375295048719416,
+      "operator_ms_per_sample": 5.714047500077868,
+      "speedup": 7004.57825008539
+    },
+    {
+      "N": 29,
+      "n_nodes": 841,
+      "fem_rel_L2": 0.003901066813714277,
+      "fem_ms_per_sample": 54559.490818000995,
+      "operator_rel_L2": 0.06777962732237545,
+      "operator_ms_per_sample": 5.80108650137845,
+      "speedup": 9405.046934748621
+    },
+    {
+      "N": 33,
+      "n_nodes": 1089,
+      "fem_rel_L2": 0.0030595788773517913,
+      "fem_ms_per_sample": 71714.15642650027,
+      "operator_rel_L2": 0.01863013705974454,
+      "operator_ms_per_sample": 5.875323997315718,
+      "speedup": 12205.99178177486
+    },
+    {
+      "N": 37,
+      "n_nodes": 1369,
+      "fem_rel_L2": 0.002478235967796337,
+      "fem_ms_per_sample": 90885.42874499944,
+      "operator_rel_L2": 0.06810450491313229,
+      "operator_ms_per_sample": 5.87725550030882,
+      "speedup": 15463.923380602371
+    },
+    {
+      "N": 41,
+      "n_nodes": 1681,
+      "fem_rel_L2": 0.002040399562636437,
+      "fem_ms_per_sample": 111848.18404900034,
+      "operator_rel_L2": 0.13225479899557527,
+      "operator_ms_per_sample": 5.98004349922121,
+      "speedup": 18703.573655202756
+    },
+    {
+      "N": 49,
+      "n_nodes": 2401,
+      "fem_rel_L2": 0.0015178359073748852,
+      "fem_ms_per_sample": 161601.54347700154,
+      "operator_rel_L2": 0.24045019626956768,
+      "operator_ms_per_sample": 5.899513998883776,
+      "speedup": 27392.34850660199
+    }
+  ],
+  "shape": {
+    "training_resolution_anchoring": {
+      "note": "the operator error has sharp LOCAL MINIMA exactly at N=21 and N=33, the two meshes this checkpoint was jointly trained on: 4.30x and 3.65x better than the mean of each point's immediate neighbours. B1 x Neo-Hookean's Pareto, scored from a checkpoint trained at N=21 only, shows NO such dip at N=21 (ratio 1.01x, effectively flat).",
+      "candidate_explanation_not_established": "joint training at two specific resolutions may leave two visible anchor points that single-resolution training does not -- stated as a candidate, not established. The two checkpoints being compared differ in geometry (B1 vs B2) AND training protocol (one vs two resolutions) at once, so this file cannot separate which difference causes the contrast.",
+      "anchor_ratios": {
+        "21": 4.297635429195373,
+        "33": 3.6468902992968912
+      },
+      "b1_neo_hookean_ratio_at_N21_for_comparison": 1.0125302994761123
+    }
+  },
+  "reading": {
+    "headline": "B2 x Neo-Hookean's operator/FEM Pareto is measured, speed-up 1,738x-27,392x. Unlike every B1 Pareto curve, this one is not smooth in N -- see training_resolution_anchoring.",
+    "cost_not_yet_established_for_B2": "PROJECT_STATUS.md and the cell's own header say B2's assembly cost has not been separately measured; B1's numbers were used as the closest guide before this run. This file's fem_ms_per_sample values are the first direct B2 measurement."
+  },
+  "cost": "A100, 25877s wall clock end to end (7h 11m 17s, run manifest). First of the three B2 materials to finish its Pareto sweep; Mooney-Rivlin started immediately after in the same session, Arruda-Boyce has not started.",
+  "provenance": "fetched directly from Google Drive (pfem_run/zeroshot_B2_neo_hookean_fixedsel/pareto_B2_neo_hookean.json, file id 1hjWfVmpXDmNdrTjrwk7E8QVecweNzTOc), not transcribed from Colab stdout."
+}

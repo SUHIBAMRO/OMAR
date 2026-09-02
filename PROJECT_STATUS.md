@@ -380,7 +380,35 @@ Arruda-Boyce all have complete 9-resolution Pareto sweeps. Not yet in the
 report (Table 18 currently covers Neo-Hookean and Mooney-Rivlin only — see
 report_builders for the next version to add).
 
+### ✅ B2 × Neo-Hookean Pareto is DONE — and it shows something B1's never did (2026-09-02)
+
+**📁** `point2_results/pareto_B2_neo_hookean.json`
+(`record_pareto_b2_neo_hookean.py`). Fetched directly from Drive (file id
+`1hjWfVmpXDmNdrTjrwk7E8QVecweNzTOc`). 9/9 resolutions, speed-up
+1,738×–27,392×. 7h11m wall clock.
+
+**Finding: the operator's error is not smooth in N.** It has sharp local
+minima exactly at N=21 and N=33 — the two meshes this checkpoint was
+**jointly trained on** — 4.30× and 3.65× lower than the mean of each
+point's immediate neighbours. **B1 × Neo-Hookean's Pareto, from a
+checkpoint trained at N=21 only, shows no such dip at N=21** (ratio 1.01×,
+flat). Candidate explanation, stated as a candidate and not established:
+joint training at two specific resolutions leaves two visible anchor
+points that single-resolution training does not. Cannot be disentangled
+from a possible B2-geometry effect, since the two compared checkpoints
+differ in both geometry and training protocol at once.
+
+**Mooney-Rivlin's B2 Pareto started immediately after, same session.
+Arruda-Boyce has not started.**
+
 ### 🎯 NEXT
+
+1. **B2×Mooney-Rivlin Pareto** — running now, started right after Neo-Hookean
+   finished (same Colab session).
+2. **B2×Arruda-Boyce Pareto** — not started yet; needs its own launch (or
+   the same session to reach it after Mooney-Rivlin).
+3. **Fold B2 Pareto into the report** once at least Mooney-Rivlin (and
+   ideally Arruda-Boyce) finish — same pattern as Table 18/18a/18b for B1.
 
 ### ✅ REPORT v42 AND SUMMARY v15 ARE WRITTEN (2026-09-01)
 
