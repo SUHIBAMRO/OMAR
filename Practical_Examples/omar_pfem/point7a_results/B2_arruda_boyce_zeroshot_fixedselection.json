@@ -1,0 +1,124 @@
+{
+  "geometry": "B2",
+  "material": "arruda_boyce",
+  "study": "zero-shot resolution invariance, checkpoint selection corrected (third and last of the three B2 materials -- point 7 is now complete across all six geometry x material cases)",
+  "checkpoint": "pfem_run/zeroshot_B2_arruda_boyce_fixedsel/model_best.pt",
+  "checkpoint_fingerprint_prefix": "3424f961455b635d",
+  "fine_N": 101,
+  "n_eval_samples": 20,
+  "train_resolutions": [
+    21,
+    33
+  ],
+  "test_resolutions": [
+    13,
+    17,
+    25,
+    29,
+    37,
+    41,
+    49
+  ],
+  "training": {
+    "selection_metric": "both_components",
+    "epochs_requested": 4000,
+    "best_epoch": 1450,
+    "stopped_epoch": 2200,
+    "best_combined_val_error": 0.058045,
+    "early_stopped": true,
+    "early_stop_patience": 15,
+    "validate_every": 50,
+    "patience_arithmetic": "stopped at best_epoch + patience*validate_every exactly (1450 + 15*50 = 2200) -- unlike Neo-Hookean and Mooney-Rivlin, which both ran the full 4000-epoch budget without triggering patience 15, this is direct evidence patience 15 can fire on a real (not just theoretical) B2 curve. Patience 8 would have stopped by epoch 1800, which is before the actual best at 1450 -- so on this specific curve, patience 8 would have missed the best checkpoint too.",
+    "superseded_broken_selection_peak_per_component": 1.0267,
+    "superseded_peak_epoch": 225,
+    "train_wall_clock_s": 8062,
+    "wall_clock_is_complete": true
+  },
+  "rows": [
+    {
+      "N": 13,
+      "mean_rel_L2_vs_fine_reference": 0.25652,
+      "mean_combined_rel_L2_vs_fine_reference": 0.24103
+    },
+    {
+      "N": 17,
+      "mean_rel_L2_vs_fine_reference": 0.10311,
+      "mean_combined_rel_L2_vs_fine_reference": 0.098816
+    },
+    {
+      "N": 25,
+      "mean_rel_L2_vs_fine_reference": 0.093951,
+      "mean_combined_rel_L2_vs_fine_reference": 0.081109
+    },
+    {
+      "N": 29,
+      "mean_rel_L2_vs_fine_reference": 0.096217,
+      "mean_combined_rel_L2_vs_fine_reference": 0.076813
+    },
+    {
+      "N": 37,
+      "mean_rel_L2_vs_fine_reference": 0.1383,
+      "mean_combined_rel_L2_vs_fine_reference": 0.12517
+    },
+    {
+      "N": 41,
+      "mean_rel_L2_vs_fine_reference": 0.21566,
+      "mean_combined_rel_L2_vs_fine_reference": 0.19867
+    },
+    {
+      "N": 49,
+      "mean_rel_L2_vs_fine_reference": 0.34018,
+      "mean_combined_rel_L2_vs_fine_reference": 0.31924
+    }
+  ],
+  "comparison": {
+    "B1_range_per_component_same_seven_meshes": [
+      0.050376113714820855,
+      0.10642525217969193
+    ],
+    "B2_neo_hookean_per_component_same_meshes": {
+      "13": 0.23142,
+      "17": 0.11422,
+      "25": 0.072015,
+      "29": 0.071113,
+      "37": 0.080817,
+      "41": 0.15113,
+      "49": 0.26912
+    },
+    "B2_mooney_rivlin_per_component_same_meshes": {
+      "13": 0.19462,
+      "17": 0.079047,
+      "25": 0.066098,
+      "29": 0.073031,
+      "37": 0.12197,
+      "41": 0.19973,
+      "49": 0.32457
+    },
+    "spread_max_over_min": {
+      "B2_arruda_boyce": 3.62082362082362,
+      "B2_neo_hookean": 3.7843994768888956,
+      "B2_mooney_rivlin": 4.910436019244153,
+      "B1_worst_case": 2.112613386220406
+    },
+    "worst_of_the_three_B2_materials_by_mesh": {
+      "13": "arruda_boyce",
+      "17": "neo_hookean",
+      "25": "arruda_boyce",
+      "29": "arruda_boyce",
+      "37": "arruda_boyce",
+      "41": "arruda_boyce",
+      "49": "arruda_boyce"
+    }
+  },
+  "reading": {
+    "headline": "B2 x Arruda-Boyce works too, 0.0940 to 0.3402 across seven unseen meshes -- all three B2 materials now confirmed. Point 7's six-case resolution-invariance study is complete.",
+    "arruda_boyce_is_the_weakest_B2_case": "Arruda-Boyce is the worst of the three B2 materials at 6/7 meshes -- its errors are higher than both Neo-Hookean's and Mooney-Rivlin's at almost every point tested, not just on average.",
+    "but_its_spread_is_narrower": "Despite the higher baseline error, Arruda-Boyce's spread across the seven meshes is 3.62x -- narrower than both Mooney-Rivlin's 4.91x and Neo-Hookean's 3.78x. Being the least accurate B2 material and having the most even error across resolutions are not the same property, and this case separates them.",
+    "the_early_stop_evidence": "This is the first B2 fixed-selection run where patience 15 actually fired rather than the run reaching the epoch cap. The stop lands exactly at best_epoch + patience*validate_every, confirming the mechanism works as designed. It does not, on its own, answer whether patience 8 (what the three B1 zero-shot runs used) is too tight -- this run used patience 15 throughout -- but it is one more noisy, long-plateau-then-recover curve added to the record.",
+    "all_three_B2_materials_exceed_B1's_worst_spread": "B1's worst-case spread across three materials is 2.11x. All three B2 materials exceed it: 3.78x, 4.91x, 3.62x. B2's resolution invariance is real for every material tried and weaker than B1's for every material tested."
+  },
+  "provenance": {
+    "source": "transcribed from the Colab stdout of cell_b2_fixed_selection_all.py, commit 1666be7, run on an A100, same session as the Mooney-Rivlin run this file follows",
+    "why_not_the_run_s_own_json": "the run wrote its JSON to Google Drive; only the console output was returned to this repository"
+  }
+}

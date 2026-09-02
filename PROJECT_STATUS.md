@@ -306,16 +306,56 @@ ever committed to git — **the .docx files are a single point of failure
 outside the repo.** Whoever holds the report/summary should keep the latest
 copies somewhere durable; this file cannot substitute for that.
 
+### ✅✅✅ POINT 7 IS COMPLETE — ALL SIX CASES, ZERO OUTSTANDING (2026-09-01)
+
+**Arruda-Boyce finished too**, same session, right after Mooney-Rivlin.
+**📁** `point7a_results/B2_arruda_boyce_zeroshot_fixedselection.json`
+(`record_b2_arruda_boyce_fixedselection.py`). This closes the item every
+report revision since v35 has named as "the only outstanding" one — there
+is no longer a B1/B2 × material combination without a valid zero-shot
+result.
+
+**This run's early stop actually fired** (the other two ran the full
+4000-epoch budget): best at epoch 1450, stopped at 2200 — exactly
+`best_epoch + patience(15) × validate_every(50)`. First direct confirmation
+that patience 15 works as designed on a real B2 curve, not just in theory.
+Note patience 8 would have stopped by epoch 1850 on the SAME run, before
+1450's best was even reached retrospectively knowable — one more data point
+for the still-open "is patience 8 too tight" question, though it does not
+settle it (this run used patience 15 throughout).
+
+**All three B2 materials, final numbers:**
+
+| material | old (broken) val @ epoch | new val @ epoch | zero-shot per_component |
+|---|---|---|---|
+| neo_hookean | 0.9986 @ 25 | 0.0330 @ 2750 | 0.0711–0.2691 |
+| mooney_rivlin | 0.9752 @ 25 | 0.0344 @ 3350 | 0.0661–0.3246 |
+| arruda_boyce | 1.0267 @ 225 | 0.0580 @ 1450 | 0.0940–0.3402 |
+
+B1 (all three materials, same seven meshes): 0.0504–0.1064.
+
+**Arruda-Boyce is the worst of the three B2 materials at 6/7 meshes** — the
+only exception is N=17, where it beats Neo-Hookean. Its baseline error is
+consistently higher than the other two's. **But its spread (3.62×) is
+narrower than both Mooney-Rivlin's (4.91×) and Neo-Hookean's (3.78×)** —
+being the least accurate B2 material and having the most even error across
+resolutions are two different properties, and this case is the one that
+separates them. **All three B2 materials exceed B1's worst-case spread
+(2.11×).** B2's resolution invariance is real for every material tried and
+weaker than B1's for every one.
+
+**No more B2 zero-shot cells to run.** `Round6_B2_FixedSelection_All.ipynb`
+has nothing left to do (both its GATE and its two targets are complete).
+
 ### 🎯 NEXT
 
-1. **Arruda-Boyce fixed-selection** — running now (`Round6_B2_FixedSelection_All.ipynb`,
-   commit `1666be7`+), epoch 200/4000 as of this update. **The only B2
-   material left**, and once it finishes and is recorded, all six cases
-   (point 7 / R5-1/R5-7a) are done.
-2. **B2 Pareto for Neo-Hookean and Mooney-Rivlin** — both checkpoints exist
-   now, so `cell_pareto_B2.py` (`Round6_Pareto_B2.ipynb`) will pick up
-   Mooney-Rivlin too on its next run instead of reporting "no checkpoint
-   yet". Arruda-Boyce's stays blocked until its training finishes.
+1. **B2 Pareto, all three materials** — every B2 checkpoint now exists, so
+   `cell_pareto_B2.py` (`Round6_Pareto_B2.ipynb`) will run for all three on
+   its next launch instead of reporting "no checkpoint yet" for two of them.
+2. **Fold the six-case completion into the report** — v40's §10 and the
+   scope-note paragraphs (¶6, §4.4) still describe "four of six" / "the two
+   B2 materials outstanding". These need rewriting now that it is six of
+   six, the same way v38 rewrote them from "three of six".
 3. **B1 × Arruda-Boyce Pareto** — RUNNING in Omar's session as of 2026-09-01,
    past N=25. It is CPU-FEM-bound: 19.81 / 34.74 / 54.18 / 79.05 s per sample
    at N=13/17/21/25 against the operator's 5.7 ms, 20 samples per resolution,
