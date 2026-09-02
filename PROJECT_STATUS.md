@@ -347,15 +347,22 @@ weaker than B1's for every one.
 **No more B2 zero-shot cells to run.** `Round6_B2_FixedSelection_All.ipynb`
 has nothing left to do (both its GATE and its two targets are complete).
 
+### ✅ REPORT v41 AND SUMMARY v14 ARE WRITTEN (2026-09-01)
+
+Builder: `report_builders/make_v41.py` / `make_summary_v14.py`. Adds Table
+12c (all three B2 materials side by side, mirroring Table 12's own layout),
+retexts the ¶6 scope note and both of §10's remaining-items bullets from
+"four of six" / "outstanding" to done, and replaces §8.7's stale "only
+Neo-Hookean has been re-run" paragraph with the crossover/spread/patience
+findings above. Built on the .docx Omar handed back after the container
+restart; verified against the source .docx before building (Table 24d
+presence) and all four edits verified landed correctly afterward.
+
 ### 🎯 NEXT
 
 1. **B2 Pareto, all three materials** — every B2 checkpoint now exists, so
    `cell_pareto_B2.py` (`Round6_Pareto_B2.ipynb`) will run for all three on
    its next launch instead of reporting "no checkpoint yet" for two of them.
-2. **Fold the six-case completion into the report** — v40's §10 and the
-   scope-note paragraphs (¶6, §4.4) still describe "four of six" / "the two
-   B2 materials outstanding". These need rewriting now that it is six of
-   six, the same way v38 rewrote them from "three of six".
 3. **B1 × Arruda-Boyce Pareto** — RUNNING in Omar's session as of 2026-09-01,
    past N=25. It is CPU-FEM-bound: 19.81 / 34.74 / 54.18 / 79.05 s per sample
    at N=13/17/21/25 against the operator's 5.7 ms, 20 samples per resolution,
@@ -436,7 +443,7 @@ being honest. Only this file says what is actually outstanding.
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v40**, summary mirrored (v13), branch
+Current artefacts: report **v41**, summary mirrored (v14), branch
 `claude/claude-code-question-d307wp`.
 
 **Nothing measured is unwritten.** Point 7b's 2×2 is complete and in §8.9;
