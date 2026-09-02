@@ -1,0 +1,109 @@
+{
+  "geometry": "B1",
+  "material": "arruda_boyce",
+  "checkpoint": "pfem_run/zeroshot_B1_arruda_boyce/model_best.pt",
+  "checkpoint_fingerprint": "bff6d7f2af589477c00720d2aec0c7870f5b1d61ec344be57d70b4c01b2792eb",
+  "fine_N": 101,
+  "batch_size": 1,
+  "n_samples": 20,
+  "solver_side": "the CPU reference solver, the cost of producing a new solution today; the GPU-native solver of section 8.5 is 71.7-171.5x faster and shifts the speed-up column down by about two orders of magnitude without touching accuracy",
+  "metric": "combined relative L2 over both displacement components, ||e||/||u||, every row scored against the SAME N=101 reference -- the convergence-study convention of section 4.4, not the per-component average of Tables 5, 11 and 12",
+  "rows": [
+    {
+      "N": 13,
+      "n_nodes": 169,
+      "fem_rel_L2": 0.004743942256311409,
+      "fem_ms_per_sample": 19810.790436495154,
+      "operator_rel_L2": 0.059626544559446736,
+      "operator_ms_per_sample": 5.738981002650689,
+      "speedup": 3451.9700321964915
+    },
+    {
+      "N": 17,
+      "n_nodes": 289,
+      "fem_rel_L2": 0.0029037681365570696,
+      "fem_ms_per_sample": 34741.10582900175,
+      "operator_rel_L2": 0.05303469496537065,
+      "operator_ms_per_sample": 5.712557001970708,
+      "speedup": 6081.533333849768
+    },
+    {
+      "N": 21,
+      "n_nodes": 441,
+      "fem_rel_L2": 0.002012941009657209,
+      "fem_ms_per_sample": 54178.1589184975,
+      "operator_rel_L2": 0.04749855096248155,
+      "operator_ms_per_sample": 5.763072498666588,
+      "speedup": 9400.91573219542
+    },
+    {
+      "N": 25,
+      "n_nodes": 625,
+      "fem_rel_L2": 0.001481752122112069,
+      "fem_ms_per_sample": 79048.4077295041,
+      "operator_rel_L2": 0.042517629902418766,
+      "operator_ms_per_sample": 6.034473000909202,
+      "speedup": 13099.471605489667
+    },
+    {
+      "N": 29,
+      "n_nodes": 841,
+      "fem_rel_L2": 0.0011297527147217266,
+      "fem_ms_per_sample": 104617.07368700013,
+      "operator_rel_L2": 0.03844309030755581,
+      "operator_ms_per_sample": 5.581877000167879,
+      "speedup": 18742.27498811846
+    },
+    {
+      "N": 33,
+      "n_nodes": 1089,
+      "fem_rel_L2": 0.0008891523245995429,
+      "fem_ms_per_sample": 136560.3936604998,
+      "operator_rel_L2": 0.03599713154614258,
+      "operator_ms_per_sample": 5.556230500133097,
+      "speedup": 24577.884891065725
+    },
+    {
+      "N": 37,
+      "n_nodes": 1369,
+      "fem_rel_L2": 0.000720817395245822,
+      "fem_ms_per_sample": 173292.76901400043,
+      "operator_rel_L2": 0.03531962684897363,
+      "operator_ms_per_sample": 5.068118000053801,
+      "speedup": 34192.725783448775
+    },
+    {
+      "N": 41,
+      "n_nodes": 1681,
+      "fem_rel_L2": 0.0005918747252323142,
+      "fem_ms_per_sample": 213884.34966000114,
+      "operator_rel_L2": 0.03641835821599402,
+      "operator_ms_per_sample": 5.562618000112707,
+      "speedup": 38450.30337435853
+    },
+    {
+      "N": 49,
+      "n_nodes": 2401,
+      "fem_rel_L2": 0.0004173146056831542,
+      "fem_ms_per_sample": 308059.24427349964,
+      "operator_rel_L2": 0.04274343674065294,
+      "operator_ms_per_sample": 5.628570001135813,
+      "speedup": 54731.35169525031
+    }
+  ],
+  "shape": {
+    "operator_monotone_decreasing_in_N": false,
+    "operator_best": {
+      "N": 37,
+      "error": 0.03531962684897363
+    },
+    "note": "the operator error falls from 0.0596 at N=13 to 0.0353 at N=37, then RISES to 0.0427 at N=49 -- a minimum inside the range, the same shape Table 18 shows for Neo-Hookean (which bottoms at N=37 too) and unlike Mooney-Rivlin, whose error falls monotonically all the way to N=49. Of the three B1 materials, Mooney-Rivlin is the exception, not the rule."
+  },
+  "reading": {
+    "the_two_methods_do_not_compete_on_accuracy": "the finite-element solver at its coarsest setting -- N=13, 169 nodes, 4.7 ms per sample -- reaches 0.4744%, already 7.4x more accurate than the operator at its best (3.5320% at N=37). There is no mesh in this sweep at which the operator matches even the cheapest finite-element solve, exactly as for the other two B1 materials.",
+    "against_the_other_two_B1_materials": "Arruda-Boyce's speed-up spans 3,452x to 54,731x, between Neo-Hookean's 1,630x-25,676x and Mooney-Rivlin's 3,574x-56,355x -- all three B1 materials sit in the same order-of-magnitude band, and all three grow with resolution because operator inference is flat in mesh size while the FEM solve is not.",
+    "all_three_B1_pareto_sweeps_are_now_complete": "Neo-Hookean, Mooney-Rivlin and Arruda-Boyce all have full 9-resolution Pareto sweeps. The B2 side (cell_pareto_B2.py) is separate and not yet complete for all three materials."
+  },
+  "cost": "A100. Restarted twice across this session -- once for a container restart that (harmlessly) re-verified N=13-25 were already on disk, once to resume from N=29 after the sweep was interrupted -- final wall clock for the N=29-49 segment was 5h12m30s. Nothing was lost or recomputed: the resume protocol in pareto_analysis.py reads completed resolutions back from the JSON and only computes what is missing.",
+  "provenance": "fetched directly from Google Drive (pfem_run/zeroshot_B1_arruda_boyce/pareto_B1_arruda_boyce.json, file id 10Jt2W0sCIHhoVG1Tb9NALMeEEhjaW3ua), not transcribed from Colab stdout -- every row above is the run's own recorded value."
+}

@@ -358,26 +358,35 @@ findings above. Built on the .docx Omar handed back after the container
 restart; verified against the source .docx before building (Table 24d
 presence) and all four edits verified landed correctly afterward.
 
+### ✅✅ B1 × Arruda-Boyce Pareto is DONE — all three B1 Pareto sweeps complete (2026-09-01)
+
+**📁** `point2_results/pareto_B1_arruda_boyce.json`
+(`record_pareto_b1_arruda_boyce.py`). Fetched **directly from Google Drive**
+(file id `10Jt2W0sCIHhoVG1Tb9NALMeEEhjaW3ua`), not transcribed from stdout —
+every row is the run's own recorded value, no transcription risk.
+
+All 9/9 resolutions, checkpoint fingerprint `bff6d7f2...`. Speed-up
+3,452×–54,731×, between Neo-Hookean's 1,630×–25,676× and Mooney-Rivlin's
+3,574×–56,355× — all three B1 materials in the same order-of-magnitude
+band. **The operator error bottoms at N=37 (3.53%) then rises to N=49
+(4.27%)** — the same shape as Neo-Hookean (also bottoms at N=37); **Mooney-Rivlin,
+whose error falls monotonically all the way to N=49, is the exception among
+the three, not the rule.** As with the other two materials, the cheapest
+FEM solve (N=13, 0.474%) is already 7.4× more accurate than the operator's
+best.
+
+**Point 2's B1 side is now fully done**: Neo-Hookean, Mooney-Rivlin and
+Arruda-Boyce all have complete 9-resolution Pareto sweeps. Not yet in the
+report (Table 18 currently covers Neo-Hookean and Mooney-Rivlin only — see
+report_builders for the next version to add).
+
 ### 🎯 NEXT
 
 1. **B2 Pareto, all three materials** — every B2 checkpoint now exists, so
    `cell_pareto_B2.py` (`Round6_Pareto_B2.ipynb`) will run for all three on
    its next launch instead of reporting "no checkpoint yet" for two of them.
-3. **B1 × Arruda-Boyce Pareto** — RUNNING in Omar's session as of 2026-09-01,
-   past N=25. It is CPU-FEM-bound: 19.81 / 34.74 / 54.18 / 79.05 s per sample
-   at N=13/17/21/25 against the operator's 5.7 ms, 20 samples per resolution,
-   so ~62.6 min of solve is behind it. The 20 N=101 reference solves are done
-   and cached. **Remaining ~5.3 h of pure solve is EXTRAPOLATED, not measured**
-   — its four points are 0.95–0.97× Mooney-Rivlin's measured times at the same
-   N, so MR's remaining rows were scaled by 0.96. Read it as a floor: MR's own
-   pure-solve arithmetic was 6.62 h against a recorded 14 h 31 m wall clock.
-   ⚠️ It runs the module at `65d5a65`, which has fingerprinted resume but
-   predates the progress-file fix (`21d9eee`), so partial rows go straight into
-   `pareto_B1_arruda_boyce.json`. Nothing is lost if it dies, but restart it
-   through `Round6_RUN_THIS.ipynb` — a stale pasted cell would see that file
-   and skip the sweep as finished.
-4. The MMS family is **not** outstanding — see "POINT 9's FAMILY HALF IS
-   CLOSED" above. (This line previously said it was; that was stale.)
+2. **Fold B1 × Arruda-Boyce's Pareto into the report** — Table 18 and its
+   surrounding prose currently cover only Neo-Hookean and Mooney-Rivlin.
 
 ---
 
@@ -952,7 +961,7 @@ sweep is almost entirely 20 CPU solves at each of nine meshes — the largest
 5.5 minutes each. **Expect B1×Arruda-Boyce to take comparably long**, since its
 assembly cost is in the same 2.1–2.4× band.
 
-### 🔄 B1 × Arruda-Boyce Pareto is RUNNING — restarted 2026-08-31 at `65d5a65`
+### ✅ DONE, see top of file — B1 × Arruda-Boyce Pareto finished 2026-09-01. History below is how it got there.
 
 **Restarted deliberately, with resume protection active.** The first attempt
 was killed at about 7 minutes (N=13 in flight) because it was executing from a
