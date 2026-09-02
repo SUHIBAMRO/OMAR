@@ -382,11 +382,27 @@ report_builders for the next version to add).
 
 ### 🎯 NEXT
 
+### ✅ REPORT v42 AND SUMMARY v15 ARE WRITTEN (2026-09-01)
+
+Builder: `report_builders/make_v42.py` / `make_summary_v15.py`. Adds Table
+18a (Mooney-Rivlin) and 18b (Arruda-Boyce) — Mooney-Rivlin's Pareto had been
+sitting recorded in `point2_results/` for days without ever reaching the
+report, a gap only noticed while adding Arruda-Boyce's. Retexts the stale
+"run for B1 × Neo-Hookean only" closing line and the summary's section-9
+header. **Caught one authoring bug before it shipped**: the first version
+of `make_summary_v15.py` was missing the `new_table(...)` call for
+Arruda-Boyce entirely (a plain omission, not a tool issue) — verified by
+counting tables with the Pareto header (got 2, expected 3), found the
+missing line by reading the script, rebuilt from the `.pre_v15.docx`
+backup rather than patching the already-wrong output.
+
+### 🎯 NEXT
+
 1. **B2 Pareto, all three materials** — every B2 checkpoint now exists, so
    `cell_pareto_B2.py` (`Round6_Pareto_B2.ipynb`) will run for all three on
    its next launch instead of reporting "no checkpoint yet" for two of them.
-2. **Fold B1 × Arruda-Boyce's Pareto into the report** — Table 18 and its
-   surrounding prose currently cover only Neo-Hookean and Mooney-Rivlin.
+   This is the only Pareto work left — B1's is done for all three materials
+   as of v42.
 
 ---
 
@@ -452,7 +468,7 @@ being honest. Only this file says what is actually outstanding.
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v41**, summary mirrored (v14), branch
+Current artefacts: report **v42**, summary mirrored (v15), branch
 `claude/claude-code-question-d307wp`.
 
 **Nothing measured is unwritten.** Point 7b's 2×2 is complete and in §8.9;
