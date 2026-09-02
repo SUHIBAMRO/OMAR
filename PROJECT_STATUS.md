@@ -5,8 +5,41 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-01 (AB Pareto in flight; MMS family closed). **Read the master table immediately below first;
+Last updated: 2026-09-02 (Table 18c — B2 × Neo-Hookean Pareto — folded into
+report v43 / summary v16). **Read the master table immediately below first;
 everything after it is detail.**
+
+---
+
+# ✅ Table 18c is written — report v43, summary v16 (2026-09-02)
+
+`point2_results/pareto_B2_neo_hookean.json` (the training-resolution
+anchoring finding, committed earlier) was recorded as data but had not yet
+been folded into the actual `.docx` files. Closed now:
+
+- `report_builders/make_v43.py` → `PFEM_Transolver_Report_v43.docx`: adds
+  Table 18c (full 9-row Pareto for B2 × Neo-Hookean) plus three paragraphs
+  stating the anchoring finding — sharp local minima at N=21 and N=33 (the
+  two jointly-trained resolutions), 4.30×/3.65× below neighbouring meshes —
+  and explicitly flagging it as a **candidate explanation, not established**
+  (B1 vs B2 checkpoints differ in both geometry and training protocol at
+  once). Retexts the old "not yet extended to B2" line to "one of three B2
+  materials so far."
+- `report_builders/make_summary_v16.py`: mirrors the same table and finding
+  into `PFEM_Summary_Completed_Work.docx`.
+- Both scripts assert every number against the committed JSON before
+  writing (`anchor[21] > 3`, `anchor[33] > 3`, `0.8 < b1_ratio_21 < 1.3`) and
+  were independently verified afterward by re-reading the built `.docx`
+  paragraph/table content back out and checking it against the source JSON.
+
+**Still open, cannot be closed by me:** Timon's email mentions "our paper
+on continual learning ... now on arXiv" with **no title and no arXiv ID**
+(checked `advisor_feedback/2026-08-28_round6_timon.md` directly). Nothing
+is added for this — a fabricated citation would be worse than none. Omar
+needs to get the actual reference from Timon first.
+
+**Still to fold in once they finish:** B2 × Mooney-Rivlin's Pareto and
+B2 × Arruda-Boyce's Pareto (both running on Colab as of this update).
 
 ---
 
@@ -496,7 +529,7 @@ being honest. Only this file says what is actually outstanding.
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v42**, summary mirrored (v15), branch
+Current artefacts: report **v43**, summary mirrored (v16), branch
 `claude/claude-code-question-d307wp`.
 
 **Nothing measured is unwritten.** Point 7b's 2×2 is complete and in §8.9;
