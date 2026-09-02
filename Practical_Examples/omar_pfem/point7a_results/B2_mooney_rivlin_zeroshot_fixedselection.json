@@ -1,0 +1,139 @@
+{
+  "geometry": "B2",
+  "material": "mooney_rivlin",
+  "study": "zero-shot resolution invariance, checkpoint selection corrected (second of the two B2 materials gated behind the Neo-Hookean rerun)",
+  "checkpoint": "pfem_run/zeroshot_B2_mooney_rivlin_fixedsel/model_best.pt",
+  "checkpoint_fingerprint_prefix": "4d76646d14674ad0",
+  "fine_N": 101,
+  "n_eval_samples": 20,
+  "train_resolutions": [
+    21,
+    33
+  ],
+  "test_resolutions": [
+    13,
+    17,
+    25,
+    29,
+    37,
+    41,
+    49
+  ],
+  "training": {
+    "selection_metric": "both_components",
+    "epochs_requested": 4000,
+    "best_epoch": 3350,
+    "final_epoch": 4000,
+    "best_combined_val_error": 0.034406,
+    "early_stopped": false,
+    "note_on_early_stopped": "ran the full 4000-epoch budget without triggering patience 15 -- unlike Neo-Hookean (stopped at 3500) the best checkpoint (epoch 3350) was close to the end, so whether a longer budget would have found a better one further out is not known, same open question raised for B1 in PROJECT_STATUS.md",
+    "superseded_broken_selection_peak_per_component": 0.9752,
+    "superseded_peak_epoch": 25,
+    "train_wall_clock_s_this_segment_only": 8663,
+    "wall_clock_caveat": "this run resumed from epoch 1651/4000 after a container restart lost track of an earlier segment; the reported wall clock covers only epoch 1651 onward, not the true total training time"
+  },
+  "rows": [
+    {
+      "N": 13,
+      "mean_rel_L2_vs_fine_reference": 0.19462,
+      "mean_combined_rel_L2_vs_fine_reference": 0.19607
+    },
+    {
+      "N": 17,
+      "mean_rel_L2_vs_fine_reference": 0.079047,
+      "mean_combined_rel_L2_vs_fine_reference": 0.077937
+    },
+    {
+      "N": 25,
+      "mean_rel_L2_vs_fine_reference": 0.066098,
+      "mean_combined_rel_L2_vs_fine_reference": 0.056481
+    },
+    {
+      "N": 29,
+      "mean_rel_L2_vs_fine_reference": 0.073031,
+      "mean_combined_rel_L2_vs_fine_reference": 0.064001
+    },
+    {
+      "N": 37,
+      "mean_rel_L2_vs_fine_reference": 0.12197,
+      "mean_combined_rel_L2_vs_fine_reference": 0.10735
+    },
+    {
+      "N": 41,
+      "mean_rel_L2_vs_fine_reference": 0.19973,
+      "mean_combined_rel_L2_vs_fine_reference": 0.18152
+    },
+    {
+      "N": 49,
+      "mean_rel_L2_vs_fine_reference": 0.32457,
+      "mean_combined_rel_L2_vs_fine_reference": 0.30283
+    }
+  ],
+  "comparison": {
+    "B1_range_per_component_same_seven_meshes": [
+      0.050376113714820855,
+      0.10642525217969193
+    ],
+    "B2_neo_hookean_fixedsel_per_component_same_meshes": {
+      "13": 0.23142,
+      "17": 0.11422,
+      "25": 0.072015,
+      "29": 0.071113,
+      "37": 0.080817,
+      "41": 0.15113,
+      "49": 0.26912
+    },
+    "spread_max_over_min": {
+      "B2_mooney_rivlin": 4.910436019244153,
+      "B2_neo_hookean": 3.7843994768888956,
+      "B1_worst_case": 2.112613386220406
+    },
+    "mesh_by_mesh_vs_neo_hookean": {
+      "13": [
+        0.19462,
+        0.23142,
+        "MR better"
+      ],
+      "17": [
+        0.079047,
+        0.11422,
+        "MR better"
+      ],
+      "25": [
+        0.066098,
+        0.072015,
+        "MR better"
+      ],
+      "29": [
+        0.073031,
+        0.071113,
+        "NH better"
+      ],
+      "37": [
+        0.12197,
+        0.080817,
+        "NH better"
+      ],
+      "41": [
+        0.19973,
+        0.15113,
+        "NH better"
+      ],
+      "49": [
+        0.32457,
+        0.26912,
+        "NH better"
+      ]
+    }
+  },
+  "reading": {
+    "headline": "B2 x Mooney-Rivlin works, 0.0661 to 0.3246 across seven unseen meshes -- comparable to Neo-Hookean's 0.0711 to 0.2691 and to B1's range 0.0504-0.1064, confirming the fixed-selection recipe is not specific to Neo-Hookean.",
+    "the_crossover": "Mooney-Rivlin is BETTER than Neo-Hookean at all three coarse meshes ([13, 17, 25]) and WORSE at all three fine meshes ([37, 41, 49]) -- the two materials' errors cross over somewhere between N=29 and N=37. Training was at N=21 and 33 for both materials, so this is not explained by one material training closer to the fine end.",
+    "the_spread_is_wider_than_neo_hookean's": "Mooney-Rivlin's spread across the seven meshes is 4.91x, wider than Neo-Hookean's 3.78x, both far wider than B1's worst case 2.11x. B2's resolution invariance is real for both materials and weaker than B1's for both, and weakest yet for Mooney-Rivlin.",
+    "what_this_does_not_establish": "Arruda-Boyce, the third B2 case, has not been evaluated yet (training just started, epoch 200 of 4000 as this file is written). Whether the coarse/fine crossover and the widening spread are a B2 pattern or Mooney-Rivlin-specific is not known until it finishes."
+  },
+  "provenance": {
+    "source": "transcribed from the Colab stdout of cell_b2_fixed_selection_all.py, commit 1666be7, run on an A100",
+    "why_not_the_run_s_own_json": "the run wrote its JSON to Google Drive; only the console output was returned to this repository"
+  }
+}

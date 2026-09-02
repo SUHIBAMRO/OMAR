@@ -250,12 +250,72 @@ and refuses to emit Table 12b unless the rerun beats the superseded run on
 **both** metrics at **every** mesh. v38 also recomputes B1's span and spread
 from `zeroshot_B1_*.json` rather than quoting v37's prose.
 
+### ✅ B2 × Mooney-Rivlin fixed-selection: DONE, both training and eval (2026-09-01)
+
+**📁 Now a data file:** `point7a_results/B2_mooney_rivlin_zeroshot_fixedselection.json`,
+written by `record_b2_mooney_rivlin_fixedselection.py`. Second of the two B2
+materials gated behind Neo-Hookean's rerun — **only Arruda-Boyce is left.**
+
+Ran the full 4000-epoch budget (did not early-stop), best at epoch 3350,
+`combined_val_error` 3.4406e-02 — comparable to Neo-Hookean's 2.14e-02 and
+to B1's own range. Zero-shot on the seven unseen meshes, per_component:
+
+| N | 13 | 17 | 25 | 29 | 37 | 41 | 49 |
+|---|---|---|---|---|---|---|---|
+| Mooney-Rivlin | 0.1946 | 0.0790 | 0.0661 | 0.0730 | 0.1220 | 0.1997 | 0.3246 |
+| Neo-Hookean (recorded) | 0.2314 | 0.1142 | 0.0720 | 0.0711 | 0.0808 | 0.1511 | 0.2691 |
+
+**The finding: a clean crossover, not a uniform win or loss.** Mooney-Rivlin
+beats Neo-Hookean at all three coarse meshes (13, 17, 25) and loses at all
+three fine meshes (37, 41, 49) — training was at N=21 and 33 for both
+materials, so this is not explained by one training closer to the fine end.
+**Mooney-Rivlin's spread is 4.91×**, wider than Neo-Hookean's 3.78×, both far
+past B1's worst case 2.11×. B2's resolution invariance is real for both
+materials tried so far and gets weaker each time it's checked more closely.
+
+⚠️ **Wall clock is incomplete, and said so in the record.** This run resumed
+from epoch 1651/4000 after the container restart that lost track of it (see
+below); the recorded `train_wall_clock_s_this_segment_only` covers only that
+segment, not the true total from epoch 1.
+
+**Arruda-Boyce started immediately after** (same cell, same session) — epoch
+200/4000 as of this update, still in the noisy early phase every B2 run
+shows (see B2×NH's own history: 0.037 at 950, converging only by 2750).
+Ceiling ~3h46m from a fresh start if it runs the full budget.
+
+### ⚠️ Container restart lost /tmp and confused (but did not lose) a live Colab tab (2026-09-01)
+
+The session's container restarted mid-conversation: `/tmp` was wiped (the
+report/summary .docx builds live only there, see below) and the local git
+checkout briefly reverted to an old commit (fixed by `git merge --ff-only`
+against origin — nothing was lost on GitHub). Separately, this made a
+still-running B2 training Colab tab (commit `69b594c`, running continuously
+since early in the session) appear to be gone from Colab's "Active sessions"
+list, which led to relaunching it in a second tab — a real but
+non-destructive duplicate-write risk (both tabs would have periodically
+overwritten the same `train_state_latest.pt`/`metrics_history.json` on
+Drive) that was caught and resolved by closing one tab. **Lesson for next
+time: before concluding a Colab tab is dead, check its own scrollback first
+— "not in Active Sessions" is not proof of that.**
+
+**The .docx artifacts (report v39, summary v12 at the time) were recovered
+from Omar's own copy** (sent to him earlier via chat) rather than rebuilt
+from scratch, since the builder chain has no committed base document before
+`make_v28.py`'s `PFEM_Transolver_Report_v27.docx` and none of v1–v27 was
+ever committed to git — **the .docx files are a single point of failure
+outside the repo.** Whoever holds the report/summary should keep the latest
+copies somewhere durable; this file cannot substitute for that.
+
 ### 🎯 NEXT
 
-1. **The other two B2 materials** — `Round6_B2_FixedSelection_All.ipynb`. Its
-   gate is now **open** (`zeroshot_eval.json` exists, 7/7). ~7 h 32 m for both.
-   This is now the **only** thing standing between the report and a complete
-   six-case resolution-invariance study, and v38 says so in §10.
+1. **Arruda-Boyce fixed-selection** — running now (`Round6_B2_FixedSelection_All.ipynb`,
+   commit `1666be7`+), epoch 200/4000 as of this update. **The only B2
+   material left**, and once it finishes and is recorded, all six cases
+   (point 7 / R5-1/R5-7a) are done.
+2. **B2 Pareto for Neo-Hookean and Mooney-Rivlin** — both checkpoints exist
+   now, so `cell_pareto_B2.py` (`Round6_Pareto_B2.ipynb`) will pick up
+   Mooney-Rivlin too on its next run instead of reporting "no checkpoint
+   yet". Arruda-Boyce's stays blocked until its training finishes.
 3. **B1 × Arruda-Boyce Pareto** — RUNNING in Omar's session as of 2026-09-01,
    past N=25. It is CPU-FEM-bound: 19.81 / 34.74 / 54.18 / 79.05 s per sample
    at N=13/17/21/25 against the operator's 5.7 ms, 20 samples per resolution,
