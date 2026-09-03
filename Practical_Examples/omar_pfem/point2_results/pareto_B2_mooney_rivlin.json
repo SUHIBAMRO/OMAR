@@ -1,0 +1,117 @@
+{
+  "geometry": "B2",
+  "material": "mooney_rivlin",
+  "checkpoint": "pfem_run/zeroshot_B2_mooney_rivlin_fixedsel/model_best.pt",
+  "checkpoint_fingerprint": "4d76646d14674ad009b38a5165b88261192968c719b37687953c0cf872686a6a",
+  "fine_N": 101,
+  "batch_size": 1,
+  "n_samples": 20,
+  "train_resolutions": [
+    21,
+    33
+  ],
+  "solver_side": "the CPU reference solver, the cost of producing a new solution today; the GPU-native solver of section 8.5 is 71.7-171.5x faster and shifts the speed-up column down by about two orders of magnitude without touching accuracy",
+  "metric": "combined relative L2 over both displacement components, ||e||/||u||, every row scored against the SAME N=101 reference -- the convergence-study convention of section 4.4",
+  "rows": [
+    {
+      "N": 13,
+      "n_nodes": 169,
+      "fem_rel_L2": 0.019525635046158986,
+      "fem_ms_per_sample": 21566.057666001143,
+      "operator_rel_L2": 0.165039340638395,
+      "operator_ms_per_sample": 5.65918350184802,
+      "speedup": 3810.8072761660223
+    },
+    {
+      "N": 17,
+      "n_nodes": 289,
+      "fem_rel_L2": 0.011258209446253106,
+      "fem_ms_per_sample": 38272.3334350012,
+      "operator_rel_L2": 0.0709803986791039,
+      "operator_ms_per_sample": 5.612317498162156,
+      "speedup": 6819.345742206156
+    },
+    {
+      "N": 21,
+      "n_nodes": 441,
+      "fem_rel_L2": 0.007308095151896258,
+      "fem_ms_per_sample": 59901.1025769978,
+      "operator_rel_L2": 0.02079486322189907,
+      "operator_ms_per_sample": 5.621075499220751,
+      "speedup": 10656.519839539938
+    },
+    {
+      "N": 25,
+      "n_nodes": 625,
+      "fem_rel_L2": 0.005213180585585557,
+      "fem_ms_per_sample": 86515.03317150127,
+      "operator_rel_L2": 0.05680641892930135,
+      "operator_ms_per_sample": 5.572944999585161,
+      "speedup": 15524.113942976519
+    },
+    {
+      "N": 29,
+      "n_nodes": 841,
+      "fem_rel_L2": 0.003913633024101612,
+      "fem_ms_per_sample": 117666.67327300092,
+      "operator_rel_L2": 0.057309975076120026,
+      "operator_ms_per_sample": 5.564422499446664,
+      "speedup": 21146.250717788218
+    },
+    {
+      "N": 33,
+      "n_nodes": 1089,
+      "fem_rel_L2": 0.0030682487014455665,
+      "fem_ms_per_sample": 153728.79927699978,
+      "operator_rel_L2": 0.024097411886594762,
+      "operator_ms_per_sample": 5.686479002179112,
+      "speedup": 27034.09248817932
+    },
+    {
+      "N": 37,
+      "n_nodes": 1369,
+      "fem_rel_L2": 0.0024842581954679656,
+      "fem_ms_per_sample": 194649.7673019985,
+      "operator_rel_L2": 0.09539975094729769,
+      "operator_ms_per_sample": 5.715952000173274,
+      "speedup": 34053.77919480392
+    },
+    {
+      "N": 41,
+      "n_nodes": 1681,
+      "fem_rel_L2": 0.0020446816743412825,
+      "fem_ms_per_sample": 239277.51179250015,
+      "operator_rel_L2": 0.16472587217132187,
+      "operator_ms_per_sample": 5.639642000005551,
+      "speedup": 42427.78385441215
+    },
+    {
+      "N": 49,
+      "n_nodes": 2401,
+      "fem_rel_L2": 0.0015198860891366783,
+      "fem_ms_per_sample": 345074.7159174994,
+      "operator_rel_L2": 0.2790471304336879,
+      "operator_ms_per_sample": 5.6894879999163095,
+      "speedup": 60651.27757059604
+    }
+  ],
+  "shape": {
+    "training_resolution_anchoring": {
+      "note": "the anchoring effect found in B2 x Neo-Hookean REPLICATES here: local minima at N=21 and N=33, 3.07x and 3.17x better than the mean of each point's immediate neighbours -- smaller than Neo-Hookean's 4.30x / 3.65x but the same shape, at the same two resolutions. Two of three B2 materials now show it.",
+      "anchor_ratios": {
+        "21": 3.0725573004450673,
+        "33": 3.16859185422251
+      },
+      "neo_hookean_anchor_ratios_for_comparison": {
+        "21": 4.297635429195373,
+        "33": 3.6468902992968912
+      },
+      "still_open": "Arruda-Boyce, the third and last B2 material, decides whether this is a general property of B2's two-resolution training protocol or coincidental to these two materials."
+    }
+  },
+  "reading": {
+    "headline": "B2 x Mooney-Rivlin's operator/FEM Pareto is measured, speed-up 3,811x-60,651x. The training-resolution anchoring effect replicates from Neo-Hookean, at a smaller magnitude."
+  },
+  "cost": "A100. Only the resumed tail (N=41, N=49) has a captured wall clock: 11706s (3h 15m 6s, run manifest). N=13-37 finished in an earlier session whose own wall clock was not recorded, so the full 9-resolution cost is NOT 3h15m6s -- it is at least that much more, unmeasured.",
+  "provenance": "fetched directly from Google Drive (pfem_run/zeroshot_B2_mooney_rivlin_fixedsel/pareto_B2_mooney_rivlin.json, file id 1uN8oJRbcEFzFrr7bnPHpCUQKokwdt0sX), not transcribed from Colab stdout. N=41/N=49 cross-checked against the run's own stdout independently."
+}
