@@ -5,9 +5,32 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-02 (B2 x Mooney-Rivlin and B2 x Arruda-Boyce Pareto
-sweeps running in parallel, each in its own isolated notebook). **Read the
-master table immediately below first; everything after it is detail.**
+Last updated: 2026-09-03 (B2 x Mooney-Rivlin's Pareto is DONE, 9/9, folded
+into report v45 / summary v18; B2 x Arruda-Boyce still running, 6/9).
+**Read the master table immediately below first; everything after it is
+detail.**
+
+---
+
+# ✅ B2 × Mooney-Rivlin Pareto is DONE (9/9) — anchoring effect replicates
+
+Fetched directly from Google Drive (file id
+`1uN8oJRbcEFzFrr7bnPHpCUQKokwdt0sX`), N=41/N=49 cross-checked against the
+run's own stdout independently. `point2_results/pareto_B2_mooney_rivlin.json`,
+`record_pareto_b2_mooney_rivlin.py`. Folded into **report v45** (Table 18d)
+and **summary v18**, both verified by re-reading the built `.docx` against
+the source JSON.
+
+**The training-resolution anchoring effect found in Neo-Hookean's Pareto
+REPLICATES here**: local minima at N=21 and N=33 (the two jointly-trained
+resolutions), ratios **3.07×** and **3.17×** — smaller than Neo-Hookean's
+4.30×/3.65× but the same shape, at the same two resolutions. **Two of
+three B2 materials now show it.** Arruda-Boyce is the deciding case for
+whether this generalizes across all of B2 or is coincidental to these two
+materials — check its own anchor ratios once `pareto_B2_arruda_boyce.json`
+completes.
+
+Speed-up 3,811×–60,651×, same order of magnitude as every other case.
 
 ---
 
@@ -547,7 +570,7 @@ being honest. Only this file says what is actually outstanding.
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v44**, summary mirrored (v17), branch
+Current artefacts: report **v45**, summary mirrored (v18), branch
 `claude/claude-code-question-d307wp`.
 
 **Nothing measured is unwritten.** Point 7b's 2×2 is complete and in §8.9;
