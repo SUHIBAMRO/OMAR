@@ -5,49 +5,57 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-03 (B2 x Mooney-Rivlin's Pareto is DONE, 9/9, folded
-into report v45 / summary v18; B2 x Arruda-Boyce still running, 6/9).
+Last updated: 2026-09-03 (**POINT 2 IS COMPLETE — all six geometry ×
+material Pareto sweeps done**, folded into report v46 / summary v19).
 **Read the master table immediately below first; everything after it is
 detail.**
 
 ---
 
-# ✅ B2 × Mooney-Rivlin Pareto is DONE (9/9) — anchoring effect replicates
+# ✅✅✅ POINT 2 (ACCURACY/COST PARETO) IS COMPLETE — ALL SIX CASES
 
+B2 × Arruda-Boyce finished last (9/9 resolutions, 7h9m20s wall clock).
 Fetched directly from Google Drive (file id
-`1uN8oJRbcEFzFrr7bnPHpCUQKokwdt0sX`), N=41/N=49 cross-checked against the
-run's own stdout independently. `point2_results/pareto_B2_mooney_rivlin.json`,
-`record_pareto_b2_mooney_rivlin.py`. Folded into **report v45** (Table 18d)
-and **summary v18**, both verified by re-reading the built `.docx` against
-the source JSON.
+`1dEn57bytN4DkkMDkQ7VnMtY4plT3b0yo`), all nine rows cross-checked against
+the run's own stdout independently — exact match.
+`point2_results/pareto_B2_arruda_boyce.json`,
+`record_pareto_b2_arruda_boyce.py`. Folded into **report v46** (Table
+18e) and **summary v19**; both also retext every stale "still running"
+sentence left over from the Neo-Hookean and Mooney-Rivlin additions (the
+main summary line, Table 18c's and 18d's own speed-up sentences, and the
+summary's "Remaining work" closing paragraph) — verified by re-reading
+the built `.docx` against the source JSON.
 
-**The training-resolution anchoring effect found in Neo-Hookean's Pareto
-REPLICATES here**: local minima at N=21 and N=33 (the two jointly-trained
-resolutions), ratios **3.07×** and **3.17×** — smaller than Neo-Hookean's
-4.30×/3.65× but the same shape, at the same two resolutions. **Two of
-three B2 materials now show it.** Arruda-Boyce is the deciding case for
-whether this generalizes across all of B2 or is coincidental to these two
-materials — check its own anchor ratios once `pareto_B2_arruda_boyce.json`
-completes.
+**The headline finding: the training-resolution anchoring effect now
+replicates in THREE OF THREE B2 materials.**
 
-Speed-up 3,811×–60,651×, same order of magnitude as every other case.
+| | N=21 anchor ratio | N=33 anchor ratio |
+|---|---|---|
+| Neo-Hookean | 4.30× | 3.65× |
+| Mooney-Rivlin | 3.07× | 3.17× |
+| Arruda-Boyce | 2.99× | 2.47× |
 
----
+Every B2 material's operator error has a sharp local minimum exactly at
+N=21 and N=33 — the two resolutions the checkpoint was jointly trained
+on — smallest for Arruda-Boyce, largest for Neo-Hookean, but the same
+shape every time. **This is no longer "a candidate pattern in one case"
+— it is a property of B2's two-resolution training protocol**, observed
+at every material tried. What remains genuinely unresolved: whether the
+effect traces to the training protocol or to the B2 geometry itself — no
+B1 checkpoint trained jointly at two resolutions exists to separate the
+two, so every available B1-vs-B2 comparison still differs in both at
+once. Not fixable without a B1 run that was never done; stated as an
+open question in both documents, not smoothed over.
 
-# First real Arruda-Boyce Pareto numbers (8 of 9 resolutions, in progress)
+Speed-up 3,725×–59,234×, same order of magnitude as every other case in
+the report.
 
-|  | N=13 | N=17 | N=21 | N=25 | N=29 | N=33 | N=37 | N=41 |
-|---|---|---|---|---|---|---|---|---|
-| Arruda-Boyce FEM ms/sample (measured) | 20,870.5 | 37,056.6 | 57,877.5 | 83,374.8 | 113,473.4 | 148,153.5 | 187,680.2 | 231,947.7 |
-| Neo-Hookean FEM ms/sample (Table 18c) | 10,108.5 | 18,024.7 | 27,916.1 | 40,024.5 | 54,559.5 | 71,714.2 | 90,885.4 | 111,848.2 |
-| ratio | 2.065× | 2.056× | 2.073× | 2.083× | 2.080× | 2.066× | 2.065× | 2.074× |
-
-Eight points now, all within 2.056–2.083× — a tight, stable cluster around
-**2.07×**. Only N=49 remains. Projected remaining time from here, using
-this measured ratio against Neo-Hookean's own N=49 cost: **≈1h50m**. Not
-yet a recordable result (1/9 resolutions still outstanding); will be
-folded into the report once `pareto_B2_arruda_boyce.json` is complete,
-same as Neo-Hookean's was.
+**With this, every one of Timon's nine round-5 points is now measured
+and written up.** See the "Timon's 9 points" status further down for the
+full mapping — nothing on that list is outstanding except the two
+items Omar owns separately (open-sourcing the GPU-FEM code, sending the
+correction email), which were never on Timon's numbered list to begin
+with.
 
 ---
 
@@ -569,7 +577,7 @@ being honest. Only this file says what is actually outstanding.
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v45**, summary mirrored (v18), branch
+Current artefacts: report **v46**, summary mirrored (v19), branch
 `claude/claude-code-question-d307wp`.
 
 **Nothing measured is unwritten.** Point 7b's 2×2 is complete and in §8.9;
