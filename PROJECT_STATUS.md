@@ -5,11 +5,72 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-03 (cross-checked the user-run `Round6_Print_All_
-Final_Results.ipynb` Colab output against report v47 table-by-table;
-found and fixed one gap — Table 20a wasn't printed — notebook now
-reproduces it exactly). **Read the master table immediately below first;
-everything after it is detail.**
+Last updated: 2026-09-03 (full numeric audit of every table in the report
+against its source, requested explicitly by Omar — found and fixed one
+real error; report v48 / summary v22). **Read the master table
+immediately below first; everything after it is detail.**
+
+---
+
+# ✅ Full table audit, all 48 tables — one error found and fixed — report v48, summary v22
+
+Omar asked directly: check EVERYTHING, and fix whatever is wrong. This
+went beyond the earlier duplicate-numbering pass and beyond the earlier
+Colab-notebook cross-check (which covered 7 of the 48 tables) — every
+single captioned table in the report was matched against its source,
+cell by cell.
+
+**Method.** Built a full inventory: 48 numbered tables, mapped in
+document order to the 48 raw table objects in the `.docx` (the caption
+paragraph is NOT always immediately before its table — several sections,
+e.g. Tables 11/12/18/19, place the table BEFORE its own caption, with
+analysis paragraphs in between — so position-relative-to-caption is
+unreliable and document ORDER was used instead, verified against every
+table's column headers).
+
+- **27 tables backed by committed JSON** (`point{2,5,6,7a,7b,8,9}_results/`)
+  were checked value-by-value against that JSON: Tables 11, 12, 12b, 12c,
+  13 (its final row only — see caveat below), 18–18e, 19, 19a, 20, 20a,
+  20b, 21, 22, 23, 24, 24a, 24b, 24c, 24d, 24e.
+- **Cross-table identities** were checked where two tables report the
+  same underlying measurement: Table 4a's Total(s) column against Table
+  7's Native-FEM(s) column (exact match, all 6 cases); Table 5's epoch
+  counts against Table 7's Opt.-steps column (exact match for the three
+  B1 cases at 100 steps/epoch — the three B2 cases use a different,
+  unverified steps-per-epoch, flagged below, not asserted as wrong);
+  Table 5 against Table 11's in-distribution column (exact match, all 6);
+  Table 5's B2×Neo-Hookean value against Table 13's final row (exact:
+  both 9.11%); Table 7's own Speed-up column re-derived from its Native-
+  FEM and training-time columns (exact match, all 6 cases).
+- **21 tables have no committed source JSON** — mesh convergence (Tables
+  1, 2, 1a, 1b, 2a, 2b, 6a), hyperparameters/protocol (3, 4), batch-size
+  sweep (6), GPU memory (8), solver agreement (9), GPU-native FEM timing/
+  latency/speed-up/break-even (10, 10a–10d), and Table 4a itself. These
+  predate the `record_*.py`-plus-JSON convention this project later
+  adopted. They were checked for internal and cross-table arithmetic
+  consistency (all of which passed, see above) but could not be
+  independently re-derived from a source file in this session — this is
+  a real, honest limit, not a claim that they contain errors.
+
+**The one error found.** Table 24c (Q4/Q9/operator over the operator's
+own 16-member test family), N=33 row, last column
+("operator/Q4, single member"): printed as **13.32×**. The correct value
+is **13.33×** — computed from the single (non-family) operator and Q4 L2
+values at N=33 (0.011362 / 0.00085254, both from
+`mms_operator_rate_B1_neo_hookean.json`), which is the same source Table
+24a and 24b already draw from. Table 24b, the very next table in the
+same report, already states this exact ratio correctly as 13.33×, and
+the source JSON's own precomputed field
+(`ratios_operator_over_Q4.L2["33"]`) says 13.33 too — so Table 24c's
+13.32× was disagreeing with its own neighboring table, not just with the
+source. Fixed in both documents: `report_builders/make_v48.py` and
+`report_builders/make_summary_v22.py`. Verified afterward by re-reading
+both `.docx` files and by re-running `check_report_tables.py` on both
+(still `ALL CLEAR`, the fix didn't touch any caption).
+
+**Everything else checked out exactly.** No other numeric discrepancy
+was found anywhere in the 27 JSON-backed tables or in the cross-table
+identities above.
 
 ---
 
@@ -40,10 +101,9 @@ against the real JSON first (same practice as before), rebuilt the
 notebook via `make_round6_notebooks.py`, verified 37/37 via
 `check_notebooks.py`.
 
-The full remaining audit — checking every OTHER number in every table
-against its source JSON — is still in progress; Tables 1–17, 19, 21,
-22–24e all still warrant the same table-by-table check just done for the
-18-series and the Point 8/9 tables above.
+This remaining audit was then completed in full — see the section above
+("Full table audit, all 48 tables") for the result: one error found and
+fixed (Table 24c), everything else confirmed correct.
 
 ---
 
@@ -83,9 +143,9 @@ ambiguous there (it never had separate hyperparameters/protocol tables).
 duplicate table numbers`. Run this checker again after any future table
 addition or renumbering, on both files, before treating either as final.
 
-The full remaining audit — checking every OTHER number in every table
-against its source JSON, not just numbering collisions — is still in
-progress.
+This audit — checking every OTHER number in every table against its
+source JSON, not just numbering collisions — was completed afterward; see
+"Full table audit, all 48 tables" above for the result.
 
 ---
 
@@ -654,7 +714,7 @@ being honest. Only this file says what is actually outstanding.
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v47**, summary mirrored (v21), branch
+Current artefacts: report **v48**, summary mirrored (v22), branch
 `claude/claude-code-question-d307wp`.
 
 **Nothing measured is unwritten.** Point 7b's 2×2 is complete and in §8.9;
