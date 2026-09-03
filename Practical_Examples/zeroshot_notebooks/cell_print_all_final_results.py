@@ -162,6 +162,32 @@ if d is not None and 'rows' in d:
         ('solve_s', 'solve (s)', '{:.3f}'),
         ('us_per_dof', 'us/DOF', '{:,.0f}'),
     ]) if all('n_dof' in r for r in d['rows']) else print(f'  {json.dumps(d, indent=2)}')
+if d is not None and 'rows' in d and all('stats' in r for r in d['rows']):
+    print('\n--- Table 20a: Newton/CG iteration counts ---')
+    rows_20a = []
+    for r in d['rows']:
+        s = r['stats']
+        newton = s['newton_iters_total']
+        cg = s['cg_iters_total']
+        # ms/CG iter uses the measured CG-only time (t_cg_s) when the run
+        # has a timing breakdown; earlier runs only recorded total solve_s,
+        # in which CG is ~99% of the cost, so solve_s is used as a stand-in.
+        cg_time_s = s.get('t_cg_s', r['solve_s'])
+        rows_20a.append({
+            'N': r['N'], 'n_dof': r['n_dof'], 'newton': newton, 'cg': cg,
+            'cap': f"{s['cg_failures']} of {newton}",
+            'cg_per_newton': cg / newton,
+            'ms_per_cg': cg_time_s * 1000 / cg,
+        })
+    print_rows(rows_20a, [
+        ('N', 'N', '{}'),
+        ('n_dof', 'DOF', '{:,}'),
+        ('newton', 'Newton iters', '{}'),
+        ('cg', 'CG iters', '{:,}'),
+        ('cap', 'CG hit cap', '{}'),
+        ('cg_per_newton', 'CG/Newton', '{:,.1f}'),
+        ('ms_per_cg', 'ms/CG iter', '{:.1f}'),
+    ])
 d = load('point8_results', 'gpu_fem_cg_converged_B1_neo_hookean.json')
 if d is not None:
     print('\n--- Table 20b: CG-converged re-run ---')

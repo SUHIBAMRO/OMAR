@@ -5,9 +5,45 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-03 (fixed three duplicate table numbers found by a
-new checker script; report v47 / summary v21). **Read the master table
-immediately below first; everything after it is detail.**
+Last updated: 2026-09-03 (cross-checked the user-run `Round6_Print_All_
+Final_Results.ipynb` Colab output against report v47 table-by-table;
+found and fixed one gap — Table 20a wasn't printed — notebook now
+reproduces it exactly). **Read the master table immediately below first;
+everything after it is detail.**
+
+---
+
+# ✅ Numeric cross-check: Colab notebook output vs. report v47 tables
+
+Omar ran `Round6_Print_All_Final_Results.ipynb` on Colab and pasted the
+full output back. Checked it directly against the live `.docx`, table by
+table, by extracting each table's actual cell contents from the file:
+**Table 18 series, 19, 20, 20b, 22/23, 24, 24a all match exactly**,
+number for number (e.g. Table 20's µs/DOF column, Table 20b's predicted
+vs. measured CG-per-Newton values, Table 24a's rate-in-h row
+-0.59/1.99/+0.78/1.00).
+
+One gap found: the notebook's Table 20 print block only pulled
+`N`/`n_dof`/`solve_s`/`us_per_dof` from `gpu_fem_scaling_B1_neo_hookean.json`,
+with no block for the report's separate **Table 20a** (Newton iters / CG
+iters / CG solves that hit the cap / CG per Newton solve / ms per CG
+iteration). Confirmed the same JSON file already holds every field
+needed (`stats.newton_iters_total`, `stats.cg_iters_total`,
+`stats.cg_failures`, and `stats.t_cg_s` where a timing breakdown exists,
+falling back to `solve_s` for the four earliest-commit rows that only
+recorded total solve time) — derived all 8 rows from it and verified
+each one against the report's Table 20a cell-by-cell (all 8 rows,
+including the non-obvious "ms per CG iteration" values 38.8/39.5/40.4/
+41.5/40.4/74.8/152.1/296.6). Added the missing block to
+`zeroshot_notebooks/cell_print_all_final_results.py`, tested locally
+against the real JSON first (same practice as before), rebuilt the
+notebook via `make_round6_notebooks.py`, verified 37/37 via
+`check_notebooks.py`.
+
+The full remaining audit — checking every OTHER number in every table
+against its source JSON — is still in progress; Tables 1–17, 19, 21,
+22–24e all still warrant the same table-by-table check just done for the
+18-series and the Point 8/9 tables above.
 
 ---
 
