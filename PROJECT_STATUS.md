@@ -5,10 +5,51 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-03 (**POINT 2 IS COMPLETE — all six geometry ×
-material Pareto sweeps done**, folded into report v46 / summary v19).
-**Read the master table immediately below first; everything after it is
-detail.**
+Last updated: 2026-09-03 (fixed three duplicate table numbers found by a
+new checker script; report v47 / summary v21). **Read the master table
+immediately below first; everything after it is detail.**
+
+---
+
+# ✅ Duplicate table numbers found and fixed — report v47, summary v21
+
+While confirming to Omar that every number in the documents is correct
+(not just the ones added this session), built
+`report_builders/check_report_tables.py` — scans a `.docx` for every
+"Table N." caption (including "Table N (word)." variants; the first
+version of the script missed those and was fixed before being trusted)
+and flags any number used for more than one table.
+
+**It found three real collisions in the report**, present since long
+before this session: Table 3, 4 and 5 each captioned two completely
+different tables —
+
+| Number | Mesh-convergence meaning (0 inline references) | The OTHER meaning (heavily referenced) |
+|---|---|---|
+| 3 | B1 × Mooney-Rivlin mesh convergence | Transolver hyperparameters |
+| 4 | B1 × Arruda-Boyce mesh convergence | Training protocol (2 references) |
+| 5 | B2 × Mooney-Rivlin mesh convergence | Best validation error (11 references) |
+
+(Table 6 had the same problem — mesh convergence vs. the batch-size
+sweep, "Table 6 (revised)" — caught only after fixing the checker's
+regex to see that caption form at all.)
+
+**Fix:** renumbered only the mesh-convergence quartet — 1a, 1b, 2a, 2b,
+alongside Table 1/2 (B1/B2 × Neo-Hookean) they belong with — since it had
+zero inline references anywhere, versus 13+ references for the other
+meanings. A compound "(Tables 1–6)" sentence that depended on the old
+numeric range was reworded to name the new labels directly. Applied
+identically to the summary so both documents agree on what "Table 1a"
+etc. means, even though the summary's own Table 3/4 were not technically
+ambiguous there (it never had separate hyperparameters/protocol tables).
+
+**Verified:** re-ran the checker on both outputs — `ALL CLEAR, no
+duplicate table numbers`. Run this checker again after any future table
+addition or renumbering, on both files, before treating either as final.
+
+The full remaining audit — checking every OTHER number in every table
+against its source JSON, not just numbering collisions — is still in
+progress.
 
 ---
 
@@ -577,7 +618,7 @@ being honest. Only this file says what is actually outstanding.
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v46**, summary mirrored (v20), branch
+Current artefacts: report **v47**, summary mirrored (v21), branch
 `claude/claude-code-question-d307wp`.
 
 **Nothing measured is unwritten.** Point 7b's 2×2 is complete and in §8.9;
