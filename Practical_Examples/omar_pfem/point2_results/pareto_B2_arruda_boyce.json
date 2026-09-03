@@ -1,0 +1,121 @@
+{
+  "geometry": "B2",
+  "material": "arruda_boyce",
+  "checkpoint": "pfem_run/zeroshot_B2_arruda_boyce_fixedsel/model_best.pt",
+  "checkpoint_fingerprint": "3424f961455b635d0656b53d8438d53627700575864c385dafeb14d73e8d3f45",
+  "fine_N": 101,
+  "batch_size": 1,
+  "n_samples": 20,
+  "train_resolutions": [
+    21,
+    33
+  ],
+  "solver_side": "the CPU reference solver, the cost of producing a new solution today; the GPU-native solver of section 8.5 is 71.7-171.5x faster and shifts the speed-up column down by about two orders of magnitude without touching accuracy",
+  "metric": "combined relative L2 over both displacement components, ||e||/||u||, every row scored against the SAME N=101 reference -- the convergence-study convention of section 4.4",
+  "rows": [
+    {
+      "N": 13,
+      "n_nodes": 169,
+      "fem_rel_L2": 0.01934633348326857,
+      "fem_ms_per_sample": 20870.493054500002,
+      "operator_rel_L2": 0.2635221398562967,
+      "operator_ms_per_sample": 5.6032755001069745,
+      "speedup": 3724.695145562904
+    },
+    {
+      "N": 17,
+      "n_nodes": 289,
+      "fem_rel_L2": 0.01116115144622183,
+      "fem_ms_per_sample": 37056.644341999345,
+      "operator_rel_L2": 0.1057816166672475,
+      "operator_ms_per_sample": 5.569119500250963,
+      "speedup": 6653.950295074374
+    },
+    {
+      "N": 21,
+      "n_nodes": 441,
+      "fem_rel_L2": 0.007253167053877048,
+      "fem_ms_per_sample": 57877.52493400012,
+      "operator_rel_L2": 0.03181460918619187,
+      "operator_ms_per_sample": 5.577541000093333,
+      "speedup": 10376.8891941864
+    },
+    {
+      "N": 25,
+      "n_nodes": 625,
+      "fem_rel_L2": 0.005182033058499364,
+      "fem_ms_per_sample": 83374.7977349999,
+      "operator_rel_L2": 0.08440254257411113,
+      "operator_ms_per_sample": 5.73114149938192,
+      "speedup": 14547.677411906778
+    },
+    {
+      "N": 29,
+      "n_nodes": 841,
+      "fem_rel_L2": 0.0038965601281189866,
+      "fem_ms_per_sample": 113473.39435449976,
+      "operator_rel_L2": 0.08257219044150935,
+      "operator_ms_per_sample": 5.640911500449874,
+      "speedup": 20116.1451204207
+    },
+    {
+      "N": 33,
+      "n_nodes": 1089,
+      "fem_rel_L2": 0.0030600643705638803,
+      "fem_ms_per_sample": 148153.4894360002,
+      "operator_rel_L2": 0.03796356496149738,
+      "operator_ms_per_sample": 5.6414409991703,
+      "speedup": 26261.63943889327
+    },
+    {
+      "N": 37,
+      "n_nodes": 1369,
+      "fem_rel_L2": 0.002482138351499219,
+      "fem_ms_per_sample": 187680.22048799958,
+      "operator_rel_L2": 0.10479892116936822,
+      "operator_ms_per_sample": 5.677023000316694,
+      "speedup": 33059.61953607195
+    },
+    {
+      "N": 41,
+      "n_nodes": 1681,
+      "fem_rel_L2": 0.002046006273641404,
+      "fem_ms_per_sample": 231947.7028985002,
+      "operator_rel_L2": 0.17563538118223027,
+      "operator_ms_per_sample": 5.710683499273728,
+      "speedup": 40616.452116108136
+    },
+    {
+      "N": 49,
+      "n_nodes": 2401,
+      "fem_rel_L2": 0.0015262671056611504,
+      "fem_ms_per_sample": 333647.3938764993,
+      "operator_rel_L2": 0.29507113013240305,
+      "operator_ms_per_sample": 5.632697500914219,
+      "speedup": 59234.03375067567
+    }
+  ],
+  "shape": {
+    "training_resolution_anchoring": {
+      "note": "the anchoring effect now REPLICATES in all three B2 materials. Local minima at N=21 and N=33: 2.99x and 2.47x here, against 3.07x/3.17x (Mooney-Rivlin) and 4.30x/3.65x (Neo-Hookean) -- Arruda-Boyce shows the smallest effect of the three, but the same shape, at the same two resolutions, every time.",
+      "anchor_ratios": {
+        "21": 2.9889438233913945,
+        "33": 2.46777550792331
+      },
+      "mooney_rivlin_anchor_ratios_for_comparison": {
+        "21": 3.0725573004450673,
+        "33": 3.16859185422251
+      },
+      "neo_hookean_anchor_ratios_for_comparison": {
+        "21": 4.297635429195373,
+        "33": 3.6468902992968912
+      },
+      "conclusion": "three of three B2 materials show this effect. It is a property of B2's two-resolution training protocol, not a coincidence of one or two materials. What remains unresolved (stated in the Neo-Hookean record) is whether the effect is caused by the training PROTOCOL (joint two-resolution training) or by the B2 GEOMETRY -- B1 has no equivalent two-resolution checkpoint to test against, so protocol and geometry still differ at once between every B1/B2 comparison available."
+    }
+  },
+  "reading": {
+    "headline": "B2 x Arruda-Boyce's operator/FEM Pareto is measured, speed-up 3,725x-59,234x. This closes point 2 of the round-5 review for all six geometry x material combinations."
+  },
+  "cost": "A100, 25760s wall clock end to end (7h 9m 20s, run manifest). Ran in a dedicated notebook isolated to this material only, in parallel with Mooney-Rivlin's own dedicated run, with zero shared files between the two.",
+  "provenance": "fetched directly from Google Drive (pfem_run/zeroshot_B2_arruda_boyce_fixedsel/pareto_B2_arruda_boyce.json, file id 1dEn57bytN4DkkMDkQ7VnMtY4plT3b0yo), not transcribed from Colab stdout. All nine rows cross-checked against the run's own stdout independently."
+}
