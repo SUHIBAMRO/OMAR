@@ -1,63 +1,62 @@
-# VINO
-This repository contains the code and database associated with the paper "[Variational Physics-informed Neural Operator (VINO) for Learning Partial Differential Equations]([https://arxiv.org/abs/2411.06587])".
+# PFEM / Transolver — Hyperelasticity Neural Operator
 
+A physics-informed neural operator (Transolver) trained to predict the
+displacement field of 2D hyperelastic solids under randomly sampled
+material and loading fields, without labeled data — trained by directly
+minimizing the discrete total potential energy of the body. Six
+benchmark cases: two geometries (B1, B2) × three material models
+(Neo-Hookean, Mooney-Rivlin, Arruda-Boyce).
 
+Author: Omar Amro. Advisor: Prof. Timon Rabczuk.
 
-Variational Physics-informed Neural Operator (VINO) for Learning Partial Differential Equations
+**Start with `PROJECT_STATUS.md`** at the repo root — it is the living,
+authoritative record of what is done, what is in progress, and what is
+still pending. This README only orients you to the repo layout.
 
+## Repository layout
 
-## Paper Title:
-**[Variational Physics-informed Neural Operator (VINO) for Learning Partial Differential Equations]([https://arxiv.org/abs/2411.06587])**
+- `Practical_Examples/omar_pfem/` — the actual project: data generation,
+  training, the GPU-native FEM solver, and every measurement behind the
+  report (`point{2,5,6,7a,7b,8,9}_results/`).
+- `Practical_Examples/report_builders/` — the scripts that build and
+  version the report and summary `.docx` files from that data
+  (`make_vN.py`, `make_summary_vN.py`), plus `check_report_tables.py`.
+- `Practical_Examples/zeroshot_notebooks/` — the Colab notebooks used to
+  run training/evaluation and to print results for cross-checking.
+- `advisor_feedback/` — the advisor's feedback emails, stored verbatim.
+- `Comparative_Examples/`, `Integration/`, and the top-level `.py` files
+  and `utils/` under `Practical_Examples/` — third-party code, see below.
 
-## Abstract:
+## Third-party code: VINO
 
-Solving partial differential equations (PDEs) is a required step in the simulation of natural and engineering systems. The associated computational costs significantly increase when exploring various scenarios, such as changes in initial or boundary conditions or different input configurations. This study proposes the Variational Physics-Informed Neural Operator (VINO), a deep learning method designed for solving PDEs by minimizing the energy formulation of PDEs. This framework can be trained without any labeled data, resulting in improved performance and accuracy compared to existing deep learning methods and conventional PDE solvers. By discretizing the domain into elements, the variational format allows VINO to overcome the key challenge in physics-informed neural operators, namely the efficient evaluation of the governing equations for computing the loss. Comparative results demonstrate VINO's superior performance, especially as the mesh resolution increases. As a result, this study suggests a better way to incorporate physical laws into neural operators, opening a new approach for modeling and simulating nonlinear and complex processes in science and engineering.
+This repository's root `README.md` used to be VINO's own, unedited,
+because an early exploration of this project (commit `f3d78f0`,
+2026-07-03) vendored the code from
+[`eshaghi-ms/VINO`](https://github.com/eshaghi-ms/VINO) as-is — the
+files now under `Comparative_Examples/`, `Integration/`, and
+`Practical_Examples/utils/` plus the top-level `Practical_Examples/*.py`
+scripts. A few days later (commit `fff41c6`, 2026-07-06) that prototype
+briefly used VINO's own closed-form energy-integration method, in a
+now-abandoned directory (`Practical_Examples/omar/`).
 
+**None of that vendored code or method is part of the active project.**
+The actual pipeline behind every result in the report
+(`Practical_Examples/omar_pfem/`) is a separate implementation, started
+independently on 2026-07-09 ("isolated from omar/"), using ordinary
+Gauss-quadrature energy assembly. The one real connection that remains:
+`materials_torch.py`'s Mooney-Rivlin and Arruda-Boyce strain-energy
+densities were cross-checked against VINO's own implementation for
+correctness (documented in the report, Section 2.4) — not adopted as
+the training method.
 
-## Requirements:
-The required packages have been mentioned in each section separately. 
+VINO is cited in the report as reference [4]:
 
-## Datasets:
-The datasets used in the paper are available in the [Link](https://seafile.cloud.uni-hannover.de/d/4341006631ab427b8270/)  .
-You can also generate the datasets using the provided scripts.
+> Eshaghi, M.S., Anitescu, C., Thombre, M., Wang, Y., Zhuang, X., and
+> Rabczuk, T. "Variational Physics-informed Neural Operator (VINO) for
+> Learning Partial Differential Equations." Computer Methods in Applied
+> Mechanics and Engineering, 437, 117785, 2025.
+> [doi:10.1016/j.cma.2025.117785](https://doi.org/10.1016/j.cma.2025.117785)
 
-## Contributing
-We welcome contributions to improve the implementation and extend the framework. Please fork the repository, create a feature branch, and submit a pull request with your changes.
-
-## Contact:
-
-For any inquiries or issues regarding this repository, please feel free to reach out:
-
-**Mohammad Sadegh Eshaghi**  
-[eshaghi.khanghah[at]iop.uni-hannover.de]  
-[GitHub](https://github.com/eshaghi-ms)  
-[LinkedIn](https://www.linkedin.com/in/mohammad-sadegh-eshaghi-89679b240/) 
-
-**Dr. Cosmin Anitescu**  
-[cosmin.anitescu[at]uni-weimar.de ]  
-[ISM](https://www.uni-weimar.de/en/civil-and-environmental-engineering/institute/ism/team/academic-staff/cosmin-anitescu/)  
-[LinkedIn](https://www.linkedin.com/in/cosmin-anitescu-2312914/?originalSubdomain=de) 
-
-**Prof. Dr.-Ing. Timon Rabczuk**  
-[timon.rabczuk[at]uni-weimar.de]  
-[ISM](https://www.uni-weimar.de/de/bau-und-umwelt/institute/ism/team/professuren/prof-dr-ing-timon-rabczuk/)  
-[LinkedIn](https://www.linkedin.com/in/timon-rabczuk-71969113/?originalSubdomain=de) 
-
-## How to Cite:
-If you use this code in your research, please cite the following paper:
-
-```bibtex
-@article{eshaghi2025vino,
-title = {Variational Physics-informed Neural Operator (VINO) for solving partial differential equations},
-journal = {Computer Methods in Applied Mechanics and Engineering},
-volume = {437},
-pages = {117785},
-year = {2025},
-issn = {0045-7825},
-doi = {https://doi.org/10.1016/j.cma.2025.117785},
-url = {https://www.sciencedirect.com/science/article/pii/S004578252500057X},
-author = {Mohammad Sadegh Eshaghi and Cosmin Anitescu and Manish Thombre and Yizheng Wang and Xiaoying Zhuang and Timon Rabczuk},
-keywords = {Neural operator, Physics-informed neural network, Physics-informed neural operator, Partial differential equation, Machine learning},
-}
-```
- 
+The original VINO README (its own description, abstract, dataset links,
+and author contacts) is preserved unmodified at
+[`Comparative_Examples/VINO_README.md`](Comparative_Examples/VINO_README.md).

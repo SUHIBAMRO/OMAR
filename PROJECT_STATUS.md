@@ -5,10 +5,61 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-04 (made every table's formatting identical in
-both documents — same header style, same font size — after Omar noticed
-they looked inconsistent; report v51 / summary v24). **Read the master
-table immediately below first; everything after it is detail.**
+Last updated: 2026-09-04 (fixed the repo root README, which was still
+VINO's own unedited README from an early vendoring — added an honest
+provenance note and a VINO citation to the report; report v52). **Read
+the master table immediately below first; everything after it is
+detail.**
+
+---
+
+# ✅ Repo root README fixed; VINO's real (small) connection to this project documented
+
+Omar noticed the repo's root `README.md` was still describing VINO's
+paper, not this project, and asked why. Unshallowed the git history
+(this session's clone had been shallow) to find out for certain rather
+than guessing:
+
+- **2026-07-03** (`f3d78f0`): an early exploration vendored
+  `eshaghi-ms/VINO`'s code as-is — the files now under
+  `Comparative_Examples/`, `Integration/`, `Practical_Examples/utils/`,
+  and the top-level `Practical_Examples/*.py` scripts.
+- **2026-07-06** (`fff41c6`): that prototype (`Practical_Examples/omar/`,
+  now abandoned) briefly switched to VINO's own closed-form
+  energy-integration method.
+- **2026-07-09**: a separate pipeline, `Practical_Examples/omar_pfem/`,
+  started "isolated from omar/". **This is the only codebase behind
+  every result in the report.** It uses ordinary Gauss-quadrature energy
+  assembly (already correctly described in the report's Section 5.2),
+  not VINO's method.
+
+My first read of this (before unshallowing and checking `omar_pfem/`
+itself) overstated the connection — I initially told Omar the whole
+project's training method came from VINO. Checked further and corrected
+that before acting on it: the only real, current connection is that
+`materials_torch.py`'s Mooney-Rivlin and Arruda-Boyce strain-energy
+densities were cross-checked against VINO's implementation for
+correctness (its own docstring says so) — not that VINO's method was
+adopted.
+
+**Fixed, scaled to match the real (smaller) finding:**
+- `README.md` at the repo root now describes this project, with an
+  honest "Third-party code: VINO" section naming exactly which commits
+  and directories are vendored, what the real connection is, and what it
+  is not.
+- VINO's original README preserved unmodified at
+  `Comparative_Examples/VINO_README.md`, so its own attribution isn't
+  lost.
+- `report_builders/make_v52.py`: adds one sentence after Section 2.4
+  (right where the Mooney-Rivlin/Arruda-Boyce derivative computation is
+  already discussed) documenting the cross-check honestly, and adds VINO
+  as reference [4]. Section 5.2's description of the actual training
+  method is untouched — it was already correct.
+- The summary was NOT touched — it has no references section or
+  material-derivation discussion, so there was nothing there to fix.
+
+Current artefact: report **v52**. Summary stays at v24 (unaffected by
+this fix).
 
 ---
 
@@ -796,7 +847,7 @@ being honest. Only this file says what is actually outstanding.
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v51**, summary mirrored (v24), branch
+Current artefacts: report **v52**, summary mirrored (v24), branch
 `claude/claude-code-question-d307wp`.
 
 **Nothing measured is unwritten.** Point 7b's 2×2 is complete and in §8.9;
