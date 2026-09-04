@@ -5,11 +5,39 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-04 (found and fixed five stale "still open" / "in
-progress" sentences in the summary and two in the report, all
-contradicted by the rest of their own document; report v50 / summary
-v23). **Read the master table immediately below first; everything after
-it is detail.**
+Last updated: 2026-09-04 (made every table's formatting identical in
+both documents — same header style, same font size — after Omar noticed
+they looked inconsistent; report v51 / summary v24). **Read the master
+table immediately below first; everything after it is detail.**
+
+---
+
+# ✅ Table formatting made consistent across both documents — report v51, summary v24
+
+Omar asked how to make every table look the same in Word. Checked
+directly rather than guessing: table borders were already identical
+everywhere (newer `make_vN.py` scripts copy `tblPr` from an existing
+table when building a new one, which carries the border settings). What
+was NOT copied is header-row shading and font size, because those live
+on the cell (`tcPr`) and the run, not on the table-level `tblPr` — so
+every table added after the border-copying convention started kept its
+borders but lost the styled look.
+
+**Report**: 20 of 50 tables had a styled header (dark fill `#1F2937`,
+bold white text, 9pt) and 9pt body text throughout; the other 30 had no
+header shading, no bold/white header text, and no explicit font size at
+all (rendering in whatever size Word's Normal style defaults to).
+**Summary**: same problem, different numbers — 21 of 48 tables styled
+(lighter fill `#E8EAED`, bold, 8pt), 27 bare.
+
+Fixed by applying the report's own header style (`#1F2937`, bold, white,
+9pt) to the header row of every table in BOTH documents, and 9pt to
+every other cell, via `make_v51.py` and `make_summary_v24.py`. Chose the
+report's style rather than the summary's own so the two documents match
+each other too, not just internally. Verified: all 50 report tables and
+all 48 summary tables now share one identical formatting signature; text
+content untouched (spot-checked Table 24c's N=33 row, still `13.33×`);
+`check_report_tables.py` still `ALL CLEAR` on both.
 
 ---
 
@@ -768,7 +796,7 @@ being honest. Only this file says what is actually outstanding.
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v50**, summary mirrored (v23), branch
+Current artefacts: report **v51**, summary mirrored (v24), branch
 `claude/claude-code-question-d307wp`.
 
 **Nothing measured is unwritten.** Point 7b's 2×2 is complete and in §8.9;
