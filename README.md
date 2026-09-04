@@ -52,17 +52,8 @@ PROJECT_STATUS.md         current project status (read this first)
 ## Usage
 
 Each benchmark case is trained with `omar_pfem/train_B1.py` or
-`train_B2.py`, e.g.:
-
-```bash
-python -m omar_pfem.train_B1 --material neo_hookean --epochs 750 \
-    --batch_size 8 --lr 2e-3 --validate_every 25 \
-    --early_stop_patience 8 --out_dir ./results_B1_neo_hookean
-```
-
-`--material` selects `neo_hookean`, `mooney_rivlin`, or `arruda_boyce`.
-See each script's `--help` for the full set of options. In practice,
-every result in the report was produced by running the corresponding
+`train_B2.py`; see each script's `--help` for the full set of options.
+Every result in the report was produced by running the corresponding
 cell in `Practical_Examples/zeroshot_notebooks/` on Colab — start there
 to reproduce a specific table rather than invoking the scripts directly.
 
