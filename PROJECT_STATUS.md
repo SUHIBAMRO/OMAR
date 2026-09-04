@@ -5,10 +5,64 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-03 (full numeric audit of every table in the report
-against its source, requested explicitly by Omar — found and fixed one
-real error; report v48 / summary v22). **Read the master table
-immediately below first; everything after it is detail.**
+Last updated: 2026-09-04 (found and fixed five stale "still open" / "in
+progress" sentences in the summary and two in the report, all
+contradicted by the rest of their own document; report v50 / summary
+v23). **Read the master table immediately below first; everything after
+it is detail.**
+
+---
+
+# ✅ Stale "still open" sentences found and fixed — report v50, summary v23
+
+Omar quoted a sentence straight out of the summary: *"Still open: the
+same high-DOF study for B2, and the five remaining resolution-invariance
+cases."* Checking it found this was one of **five** leftover sentences
+in the summary, plus **two** more of the same kind in the report, all
+describing a project status from well before this session — never
+updated even after the rest of the same document moved past it.
+
+**In the summary** (`make_summary_v23.py`):
+- Para 9 ("Resolution invariance…") still described the single-
+  resolution, five-unseen-resolution protocol and said "The other five
+  cases are still running."
+- Para 10 — the sentence Omar quoted.
+- Para 12 (the "1. Mesh refinement" item) said "B2's DOF-referenced
+  study is not started yet" — it was **cancelled** by Omar on
+  2026-08-27, a scope decision, not a pending measurement.
+- Para 69 (the "7. Resolution invariance" item) said "done for 1 of 6
+  cases. The other 5 are running now" — three paragraphs later the same
+  document already says all six have a valid result.
+- Para 168 ("Remaining work.") named the out-of-distribution attribution
+  extension as the one open item left — see below, that closed too.
+
+**In the report** (`make_v49.py`, `make_v50.py`):
+- The point-mapping overview table at the top of the report (row 7,
+  "Resolution invariance") still described the old single-resolution
+  protocol on B1 × Neo-Hookean only and said "Extending the same
+  zero-shot protocol to the other 5 cases is in progress." Section 8.7's
+  actual body has long since covered all six cases under the current
+  two-resolution joint-training protocol; the overview row was never
+  updated to match.
+- Section 10's "remaining items" list had one bullet ("Extend the
+  out-of-distribution evaluation to isolate the individual contributions
+  of the material-stiffness shift and the loading-magnitude shift") that
+  read as still open. It is not — Table 19 already isolates exactly
+  those two factors (at seven shift levels each) and Table 19a tests
+  normalization as a mitigation. With this fixed, all four bullets in
+  that list now state they are closed, so the list's own heading ("The
+  remaining items are:") was rewritten too, since nothing in it remains.
+
+All five summary sentences and two report sentences now agree with the
+rest of their own document. Verified with `check_report_tables.py` on
+both outputs afterward — still `ALL CLEAR`.
+
+**Also found while fixing this:** the "SETTLED — do not reopen" table
+further below still warned that "§4.4 still ends with a 'NOTE — pending'
+line and §10 still lists it. **Both are stale and should be rewritten.**"
+— that warning is itself now stale: §4.4 already says the B2 study "is
+not planned" and (as of this fix) §10 no longer references it at all.
+Corrected in place rather than left to mislead the next session.
 
 ---
 
@@ -704,7 +758,7 @@ This list is the authority.
 
 | item | status | why it looks open but is not |
 |---|---|---|
-| **B2 mesh-convergence at ~10M/40M DOF** (§4.4) | **CANCELLED by Omar 2026-08-27** — *"خلص ملغي ما بدنا ياه"* | §4.4 still ends with a "NOTE — pending" line and §10 still lists it. **Both are stale and should be rewritten.** It was never among Timon's requests |
+| **B2 mesh-convergence at ~10M/40M DOF** (§4.4) | **CANCELLED by Omar 2026-08-27** — *"خلص ملغي ما بدنا ياه"* | Was stale in an earlier revision (§4.4 ended with a "NOTE — pending" line and §10 listed it); **fixed as of report v50** — §4.4 now says "not planned" and §10 no longer references it. It was never among Timon's requests |
 | **Data-driven vs physics-informed, other cases** (§8.9) | **COMPLETE** — point 7b, Table 21 | §8.9 closes with *"The comparison covers one case"*, which is a caveat, not a to-do. Timon's instruction was *"I'd start with one specific problem such as B1-Neo Hookean. **Based on the results, we can decide then.**"* One case was the instruction; extending is a decision that was never taken |
 
 **The rule:** a sentence in the report that names a limitation is the report
@@ -714,7 +768,7 @@ being honest. Only this file says what is actually outstanding.
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v48**, summary mirrored (v22), branch
+Current artefacts: report **v50**, summary mirrored (v23), branch
 `claude/claude-code-question-d307wp`.
 
 **Nothing measured is unwritten.** Point 7b's 2×2 is complete and in §8.9;
