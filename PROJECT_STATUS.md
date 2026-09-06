@@ -5,11 +5,43 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-06 (Timon sent a manuscript-level review, round 8
-— seven substantial points, most requiring real new measurement work
-before the paper, not editorial fixes; one quick item already done).
-**Read the master table immediately below first; everything after it is
-detail.**
+Last updated: 2026-09-06 (built one consolidated work queue from both of
+today's emails — round 7 and round 8 — so work happens item by item in a
+fixed order instead of scattered across sections). **This work queue is
+now the single authoritative list — read it first, before anything
+else in this file.**
+
+---
+
+# 🔢 WORK QUEUE — do these in order, one at a time
+
+Everything actionable from today's two emails (round 7 and round 8),
+merged into one list. Duplicates removed (round 8's points 1 and 5 are
+one item, not two — see row 5). Status is exact: "done" means already in
+report v54; nothing else below is started.
+
+| # | Item | From | Status | Needs before starting |
+|---|---|---|---|---|
+| 1 | Continual-learning citation added to §8.6 | R7 | ✅ Done (report v53) | — |
+| 2 | DD-NO wall-clock time added to Table 21 | R8.4 | ✅ Done (report v54) | — |
+| 3 | Decide: is B1/B2 at its current size a demanding-enough FEM problem for an NO to be worth using? (or scale up — e.g. Timon's tire example) | R8.1 | ⬜ Not started — **needs a decision, not measurement, first** | Omar + Timon decide before redoing anything below at a different scale |
+| 4 | Improve/benchmark the GPU-native solver's preconditioner; rerun N=1001 and N=1401 to full CG convergence | R8.1 + R8.5 (same concern) | ⬜ Not started | Nothing — can start now |
+| 5 | Label Table 10c/10d's batch-size-1 column as the primary single-query break-even comparison (editorial, quick) | R8.7-A | ⬜ Not started | Nothing — can start now |
+| 6 | Extend the OOD progressive-shift study (Tables 19/19a) to the other five cases | R8.2 | ⬜ Not started | Nothing — can start now |
+| 7 | New study: train a DD-NO on FEM labels from a coarse mesh vs. a finer mesh; measure how its accuracy/generalization across resolutions changes | R8.3 | ⬜ Not started | Nothing — can start now |
+| 8 | New break-even: physics-informed operator vs. DD-NO, total cost of ownership (data generation + training + N inferences) | R8.7-B | ⬜ Not started | **Needs #7's results** |
+| 9 | Richer manufactured-solution family (sum of several sine/cosine modes, boundary conditions preserved) | R8.6 | ⬜ Not started | Nothing — can start now |
+| 10 | Report the MMS energy NORM (not the energy value) — the computation already exists in this codebase (§4.4/Table 6a); apply it to the MMS study | R8.6 | ⬜ Not started | Nothing — can start now |
+| 11 | Extend MMS to at least one other material/problem | R8.6 | ⬜ Not started | Nothing — best done after #9 and #10, same study |
+| 12 | Convert several tables into figures, matching Timon's previous papers' presentation | R8, general | ⬜ Not started | Best done last, once the data above is final |
+| 13 | GPU-FEM vs. torch-fem efficiency comparison | R7.1 | ⬜ Not started (approved, not built) | Nothing — can start now |
+| 14 | Get the GOEE/"trust" paper Timon says he attached — it never arrived in this session | R7 | ⬜ Waiting on Omar to forward the file | — |
+| 15 | Open-source the GPU-FEM code (Apache 2.0) | R7.2 | 🚫 Do not do yet | **Blocked until the paper is submitted/on arXiv** — explicit instruction, not a technical dependency |
+
+**Rows 3, 4, 5, 6, 7, 9, 10, 13 have no dependency on each other or on
+anything else** — pick whichever one to start with. Rows 8, 11, 12 wait
+on other rows finishing first, as marked. Row 15 waits on the paper
+submission itself, not on any of this work.
 
 ---
 
