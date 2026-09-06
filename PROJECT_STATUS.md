@@ -5,12 +5,68 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-06 (Timon replied to the round-7 email — torch-fem
-approved, no sign-off needed to open-source, Apache 2.0 leaned on,
-publish only after the paper is submitted, continual-learning citation
-given, commercial relevance confirmed with GOEE/trust named as future
-work). **Read the master table immediately below first; everything
-after it is detail.**
+Last updated: 2026-09-06 (Timon sent a manuscript-level review, round 8
+— seven substantial points, most requiring real new measurement work
+before the paper, not editorial fixes; one quick item already done).
+**Read the master table immediately below first; everything after it is
+detail.**
+
+---
+
+# 📬 Timon's round-8 review (2026-09-06) — manuscript-level, mostly NEW WORK
+
+Stored verbatim at `advisor_feedback/2026-09-06_round8_timon.md`, with a
+full point-by-point reading. **This is a different kind of feedback than
+rounds 5–7**: he opens with "I went now to the work and manuscript" —
+this is a review of the report itself, not answers to open questions.
+Most of the seven points require genuinely new measurement or
+engineering work for the paper, not report edits. Full detail in the
+table below ("🔬 Timon's round-8 review — new work needed for the
+paper"); headline:
+
+- **Point 1**: questions whether the benchmark problem is demanding
+  enough for a neural operator to be worth using at all ("if the FE
+  solution can be done in miliseconds, we do not need NOs any more") —
+  a benchmark-design decision, not a bug fix. Suggests scaling to
+  problems where FE takes minutes even academically, names a tire-tread
+  industrial example.
+- **Point 2**: repeat the OOD progressive-shift study (Tables 19/19a,
+  currently B1×Neo-Hookean only) for the other five cases.
+- **Point 3**: build a data-driven counterpart to the resolution-
+  invariance study — a DD-NO trained on two discretizations, zero-shot
+  evaluated the same way as Table 12 — and show it as a figure. New
+  study, does not exist yet.
+- **Point 4**: DD-NO wall-clock training time. **Done** — the numbers
+  were already committed in `point7b_results/`, just not in Table 21.
+  Added in report v54 (`make_v54.py`).
+- **Point 5**: the "assembly is negligible" misreading he warns against
+  **is already explicitly addressed in the report**, near-verbatim,
+  Section 8.5 — worth pointing him to that paragraph rather than
+  rewriting it. Two other parts of this point are real and open: rerun
+  N=1001/1401 to CG convergence (only N=501/701 done, per Table 20b),
+  and improve/benchmark the preconditioner before drawing scaling
+  conclusions.
+- **Point 6**: a richer manufactured-solution family (multiple sine/
+  cosine modes) and — technically correct, checked directly against the
+  source JSON — the current MMS "Energy" column is the relative error of
+  the scalar energy VALUE (superconverges, rate = 2× the H1 rate), not
+  the ENERGY NORM he's asking for. The proper energy-norm computation
+  already exists in this codebase (Section 4.4's Table 6a, "tangent/
+  incremental energy norm") — this is applying existing code to a new
+  section, not building new theory.
+- **Point 7**: restructure the break-even comparison — primary
+  single-query comparison at batch size 1 for both methods (Table
+  10c/10d's bs=1 column already is this, just not labeled as primary),
+  plus a NEW total-cost-of-ownership break-even between the
+  physics-informed operator and a DD-NO specifically (needs point 3's
+  study and point 4's wall-clock numbers as inputs). Batched throughput
+  numbers stay, but presented separately, not as the headline.
+
+**None of points 1, 2, 3, 5 (preconditioner + rerun), 6 (new family),
+or 7 (Comparison B) have been started.** These are substantial —
+multiple new studies, not edits — and need Omar's prioritization before
+work begins, the same way earlier blocked items waited for a decision
+rather than being guessed at.
 
 ---
 
@@ -864,7 +920,7 @@ being honest. Only this file says what is actually outstanding.
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v53**, summary mirrored (v24), branch
+Current artefacts: report **v54**, summary mirrored (v24), branch
 `claude/claude-code-question-d307wp`.
 
 **Nothing measured is unwritten.** Point 7b's 2×2 is complete and in §8.9;
