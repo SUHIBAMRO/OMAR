@@ -24,28 +24,45 @@ engineering work for the paper, not report edits. Full detail in the
 table below ("🔬 Timon's round-8 review — new work needed for the
 paper"); headline:
 
-- **Point 1**: questions whether the benchmark problem is demanding
-  enough for a neural operator to be worth using at all ("if the FE
-  solution can be done in miliseconds, we do not need NOs any more") —
-  a benchmark-design decision, not a bug fix. Suggests scaling to
-  problems where FE takes minutes even academically, names a tire-tread
-  industrial example.
+- **Point 1** (revised after Omar's review — the first pass wrongly
+  assumed "GPU native FEM" meant the CPU reference solver at N=21; his
+  own heading says GPU, not CPU): almost certainly the **same underlying
+  concern as point 5** — the GPU-native matrix-free solver (Table
+  20/20a) hides element-level ("assembly") work inside every CG
+  Hessian-vector product, so the true cost of that work is large even
+  though the instrumented "assembly" phase shows 0.1–0.6%. A better
+  preconditioner is the shared concrete remedy for both points.
+  Separately, point 1 also questions whether the benchmark problem is
+  demanding enough for a neural operator to be worth using at all ("if
+  the FE solution can be done in miliseconds, we do not need NOs any
+  more") — a benchmark-design decision, not a bug fix. Suggests scaling
+  to problems where FE takes minutes even academically, names a
+  tire-tread industrial example.
 - **Point 2**: repeat the OOD progressive-shift study (Tables 19/19a,
   currently B1×Neo-Hookean only) for the other five cases.
-- **Point 3**: build a data-driven counterpart to the resolution-
-  invariance study — a DD-NO trained on two discretizations, zero-shot
-  evaluated the same way as Table 12 — and show it as a figure. New
-  study, does not exist yet.
+- **Point 3** (sharpened by Omar): not a generic "DD-NO resolution-
+  invariance study" — the precise experiment is training the DD-NO on
+  FEM labels generated at a COARSE mesh versus a FINER one, and
+  measuring how its accuracy and zero-shot generalization across
+  resolutions changes as a function of that label-generation mesh. This
+  targets something the physics-informed operator structurally cannot
+  suffer from (it never trains on FEM labels), since the DD-NO's
+  accuracy ceiling is inherited directly from whatever mesh generated
+  its data — that asymmetry is the real comparison being asked for, not
+  just "does a DD-NO also generalize." New study, does not exist yet;
+  present as a figure.
 - **Point 4**: DD-NO wall-clock training time. **Done** — the numbers
   were already committed in `point7b_results/`, just not in Table 21.
   Added in report v54 (`make_v54.py`).
-- **Point 5**: the "assembly is negligible" misreading he warns against
-  **is already explicitly addressed in the report**, near-verbatim,
-  Section 8.5 — worth pointing him to that paragraph rather than
-  rewriting it. Two other parts of this point are real and open: rerun
-  N=1001/1401 to CG convergence (only N=501/701 done, per Table 20b),
-  and improve/benchmark the preconditioner before drawing scaling
-  conclusions.
+- **Point 5** (Omar's explicit caution, kept): the "assembly is
+  negligible" misreading he warns against **is already explicitly
+  addressed in the report**, near-verbatim, Section 8.5 — worth pointing
+  him to that paragraph, but as confirmation alongside the real
+  remaining work, never as a substitute for it. Two other parts of this
+  point are real and open: rerun N=1001/1401 to CG convergence (only
+  N=501/701 done, per Table 20b), and improve/benchmark the
+  preconditioner before drawing scaling conclusions — which is also the
+  concrete fix for point 1 above.
 - **Point 6**: a richer manufactured-solution family (multiple sine/
   cosine modes) and — technically correct, checked directly against the
   source JSON — the current MMS "Energy" column is the relative error of

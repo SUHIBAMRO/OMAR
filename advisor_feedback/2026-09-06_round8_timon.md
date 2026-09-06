@@ -7,6 +7,14 @@ email is "last" or give a numbered list to map against; the mapping
 below is inferred from content, and marked uncertain where it is.
 Stored verbatim first; the reading follows below it.
 
+**Revised after Omar's own review of the first reading** (same day):
+point 1 had wrongly assumed "GPU native FEM" meant the CPU reference
+solver — Timon's own heading says GPU, and points 1 and 5 are now read
+as the same underlying concern; point 3 sharpened to the specific
+coarse-vs-fine label-generation question, not a generic DD-NO study;
+point 5 explicitly kept as "cite the existing caveat AND do the
+remaining real work," not one instead of the other.
+
 ---
 
 Dear Omar,
@@ -55,28 +63,40 @@ with a data-driven neural operator (DD-NO, needs FEM-generated labels)
 
 ### Point-by-point
 
-**1 — GPU-native FEM implementation / benchmark scale.** Two claims,
-one about the current implementation and one about the benchmark's
-design:
-- "Assembly time is significantly too long... should be small portion
-  of the solve time" — this describes the CPU reference solver's own
-  numbers (Table 4a: assembly outweighs the sparse solve by 290–692×
-  across the six cases at the study's small N=21 mesh), not the
-  GPU-native matrix-free solver (Table 20/20a), where CG already
-  dominates at 99%+. The report already explains why the CPU case looks
-  this way (441 nodes, a dense/direct solve is trivial) but does not
-  make the assembly step itself faster — that would need real
-  engineering work if he wants it improved rather than just explained.
-- **The bigger point**: "if the FE solution can be done in milliseconds,
-  we do not need NOs any more." This questions whether the whole
-  benchmark problem is demanding enough, at the accuracy the advisor's
-  own QoIs require, for a neural operator to be worth using at all. He
-  suggests academic problems scaled so FE takes minutes, and names a
-  concrete industrial example (a tire with different tread profiles,
-  which also showcases the operator's resolution-independence). This is
-  a benchmark-design question, not an implementation bug — it asks
-  whether B1/B2 at their current sizes are the right test case for the
-  paper's central claim.
+**1 — GPU-native FEM implementation / benchmark scale.** Corrected
+after Omar pushed back on the first reading, which had wrongly assumed
+this was about the CPU reference solver (Table 4a): Timon's own heading
+says **"GPU native FEM"** explicitly, not CPU. The first draft of this
+reading substituted its own guess (the CPU/N=21 assembly-vs-solve split)
+for what he actually wrote, which named neither a solver nor a
+resolution. That was an assumption, not something confirmed from the
+committed timing data, and it should have been flagged as such rather
+than stated as if it were certain.
+
+Read correctly, points 1 and 5 are almost certainly the **same
+concern**, not two: the GPU-native matrix-free solver (Table 20/20a) is
+the only thing in this report actually named "GPU native FEM," and it is
+exactly where element-level ("assembly") work is not a separate,
+measurable phase — it happens inside every Hessian-vector product of the
+CG loop (Section 8.5 already says this; see point 5 below). So when
+Timon says the assembly time is "significantly too long" for this
+solver, he is most likely reacting to the fact that this hidden
+per-iteration element work makes the effective cost of "assembly," done
+implicitly thousands of times over, large relative to what a solver like
+TensorMesh — which presumably assembles explicitly once and factorizes —
+would spend. That reframes this as a real, open concern about the
+GPU-native solver's cost structure at scale, not something already
+explained by the small-mesh CPU case.
+- **The separate, bigger point**: "if the FE solution can be done in
+  milliseconds, we do not need NOs any more." This questions whether the
+  whole benchmark problem is demanding enough, at the accuracy the
+  advisor's own QoIs require, for a neural operator to be worth using at
+  all. He suggests academic problems scaled so FE takes minutes, and
+  names a concrete industrial example (a tire with different tread
+  profiles, which also showcases the operator's resolution-independence).
+  This is a benchmark-design question, not an implementation bug — it
+  asks whether B1/B2 at their current sizes are the right test case for
+  the paper's central claim.
 
 **2 — OOD.** "Well addressed" — no further diagnosis needed on the one
 case done (B1 × Neo-Hookean, Tables 19/19a). **For the paper**: repeat
@@ -84,19 +104,25 @@ the same progressive, factor-isolated study for the other five cases.
 This is new measurement work (five more progressive sweeps), not an
 edit.
 
-**3 — mapped with real uncertainty.** Likely means: the resolution-
-invariance study (round-5 point 7), where B2's zero-shot generalization
-is real but weaker than B1's (already reported, Table 12b/12c) — "it
-seems that for case 2 [B2], VINO [our physics-informed operator] is
-suboptimal" fits this reading. **For the paper**: build the
-data-driven counterpart of this same study — a DD-NO trained on data
-from two discretizations (matching the PI model's joint N=21/33
-training) and zero-shot evaluated the same way — and show how using two
-different discretizations to generate that data affects the result.
-Present as a figure. This is a new study, not something already
-measured under a different name — Table 21's data-driven comparison
-uses one resolution, one case (B1 × Neo-Hookean), not the two-resolution
-zero-shot protocol this asks for.
+**3 — mapped with real uncertainty, refined by Omar.** Likely means:
+the resolution-invariance study (round-5 point 7), where B2's zero-shot
+generalization is real but weaker than B1's (already reported, Table
+12b/12c) — "it seems that for case 2 [B2], VINO [our physics-informed
+operator] is suboptimal" fits this reading. **The precise experiment
+this asks for, sharper than "a DD-NO resolution-invariance study" in
+general**: train the DD-NO on FEM labels generated at a COARSE
+discretization versus a FINER one, and measure how its accuracy and
+zero-shot generalization across resolutions changes as a function of
+that label-generation mesh. This targets something the physics-informed
+operator structurally cannot suffer from — it never trains on FEM
+labels at all — while the DD-NO's accuracy ceiling is inherited directly
+from whatever mesh generated its training data. That asymmetry, not
+just "does a DD-NO also generalize across resolutions," is the actual
+comparison with the physics-informed operator that matters here. New
+study either way — Table 21's data-driven comparison uses one
+resolution, one case (B1 × Neo-Hookean), not the two-resolution
+zero-shot protocol or the coarse-vs-fine label question this asks for.
+Present as a figure.
 
 **4 — DD-NO wall-clock training time.** Already measured and committed
 (`point7b_results/comparison_B1_neo_hookean.json`); it just was not in
@@ -107,22 +133,30 @@ data-driven number does not include the 5.65 h of CPU time spent
 generating its 800 training labels, which the report now says
 explicitly next to it.
 
-**5 — GPU-FEM scaling.** Three separable claims:
+**5 — GPU-FEM scaling.** Three separable claims, and — per Omar's
+explicit caution — the first one being already stated in the report is
+NOT a reason to treat this point as closed; two of its three parts are
+real, unstarted work, and the reply to Timon needs to say both things at
+once, not substitute the first for the other two:
 - *"Assembly is negligible" is not the right interpretation* — **this
   exact caveat is already in the report**, near-verbatim: Section 8.5
   already says "It should not be read literally... the assembly has not
   become cheap, it has moved inside the CG loop, where this
   instrumentation cannot separate it... At the sizes in Table 20 the
   question simply does not have the clean answer it has at small
-  scale." Worth pointing him to this paragraph directly rather than
-  rewriting something that already says what he's asking for.
+  scale." Worth pointing him to this paragraph directly — but as
+  confirmation the concern is understood, alongside the two items below,
+  not instead of them.
 - *The largest cases were not all rerun to convergence* — **true and
   already flagged as a limit in the report** (Table 20b reruns only
-  N=501 and N=701 to convergence; N=1001 and N=1401 were not). Not yet
-  done: rerunning those two to convergence too.
+  N=501 and N=701 to convergence; N=1001 and N=1401 were not). **Not yet
+  done**: rerunning those two to convergence too.
 - *Improve/benchmark the linear solver or preconditioner before drawing
-  scaling conclusions* — real, not-yet-started engineering work (a
-  better preconditioner than the current Jacobi one).
+  scaling conclusions* — **real, not-yet-started engineering work** (a
+  better preconditioner than the current Jacobi one). This is also the
+  concrete remedy for point 1's concern, since a better preconditioner
+  directly reduces the CG-hidden cost point 1 is most likely reacting
+  to — the two points converge on the same fix.
 
 **6 — MMS.** Two requests:
 - A richer manufactured-solution family (a sum of several sine/cosine
@@ -160,10 +194,15 @@ be framed, not just which numbers to report:
 ### What this adds up to
 
 Points 2, 3, 6 (family), and 7 (Comparison B) are new measurement work,
-not edits — a fresh OOD sweep for five cases, a new DD-NO study across
-two discretizations, a richer MMS family, and a new PI-vs-DD-NO
-break-even. Point 1 raises a benchmark-design question that needs a
-decision before any of the above is worth redoing at a different scale.
-Point 5's preconditioner ask is separate engineering work. Only point 4
-(wall-clock) and part of point 6 (the energy-norm metric, which already
-exists in this codebase) were quick, and point 4 is already done.
+not edits — a fresh OOD sweep for five cases, a new DD-NO study on
+coarse-vs-fine label generation, a richer MMS family, and a new
+PI-vs-DD-NO break-even. Points 1 and 5 are most likely the same
+underlying concern (the GPU-native solver's CG-hidden cost structure)
+seen from two angles, with a shared concrete remedy — a better
+preconditioner — plus rerunning the two largest cases to full CG
+convergence. Point 1 additionally raises a separate benchmark-design
+question (is B1/B2 at its current size demanding enough) that needs a
+decision before redoing any of the above at a different scale. Only
+point 4 (wall-clock) and part of point 6 (the energy-norm metric, which
+already exists in this codebase) were quick, and point 4 is already
+done.
