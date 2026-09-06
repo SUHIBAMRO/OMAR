@@ -27,11 +27,16 @@
 #  can be sized from real numbers instead of a guess. Read that output
 #  before letting Stage 1 run unattended.
 #
-#  Sample count default is 200 train / 50 test, NOT the 800/200 Table 21
-#  uses -- deliberately smaller, since this is a first pilot answering a
-#  qualitative/quantitative TREND question ("does coarser hurt, and by
-#  how much"), not a publication-scale model. Raise N_TRAIN/N_TEST below
-#  once Stage 0's calibration shows the full-scale cost is acceptable.
+#  Sample count and optimizer budget MATCH Table 21 exactly: 800 train /
+#  200 test, 75,000 optimizer steps. This is deliberate, not a leftover
+#  default -- both COARSE and FINE must be trained under the SAME budget
+#  Table 21 uses. Giving fine a bigger budget than coarse (e.g. running
+#  fine at 800/75,000 while leaving coarse at a smaller pilot budget)
+#  would confound label-resolution with training budget: any accuracy
+#  gap could then come from fine simply being trained longer/on more
+#  data, not from its finer label mesh. Both resolutions here get the
+#  identical 800/200/75,000 budget, so the only thing that differs
+#  between the two runs is COARSE_N vs. FINE_N.
 #
 #  Self-contained: mounts Drive, clones/updates the repo. Resumable:
 #  every stage (generate/convert/train/eval, per resolution) is skipped
@@ -81,10 +86,11 @@ GEOMETRY = 'B1'
 MATERIAL = 'neo_hookean'
 RESOLUTIONS = {'coarse': 13, 'fine': 33}
 CALIBRATION_SAMPLES = 20
-N_TRAIN = 200
-N_TEST = 50
-OPT_STEPS = 20_000   # a pilot budget, not Table 7's 75,000 -- raise once
-                     # calibration shows time budget allows it
+N_TRAIN = 800   # matches Table 21 exactly, both coarse AND fine
+N_TEST = 200    # matches Table 21 exactly, both coarse AND fine
+OPT_STEPS = 75_000   # matches Table 7/21's own budget, both coarse AND
+                     # fine -- see the module docstring above for why
+                     # this must be identical across the two resolutions
 BATCH = 8
 TEST_RESOLUTIONS = '13,17,25,29,37,41,49'   # Table 12's own seven
 FINE_REF_N = 101
