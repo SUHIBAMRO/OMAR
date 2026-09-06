@@ -40,7 +40,19 @@
 #
 #  Self-contained: mounts Drive, clones/updates the repo. Resumable:
 #  every stage (generate/convert/train/eval, per resolution) is skipped
-#  if its output already exists on Drive.
+#  if its output already exists on Drive -- and every stage past
+#  calibration is now keyed by the budget itself (see BUDGET_TAG below),
+#  not just by resolution, so a directory left over from an earlier run
+#  at a DIFFERENT N_TRAIN/N_TEST/OPT_STEPS can never be silently reused
+#  as if it were this run. (This is not hypothetical: an earlier run of
+#  this exact cell, before the budget was raised to 800/200/75,000,
+#  left pilot-scale 200/50/20,000 directories on Drive under the old
+#  unkeyed paths -- re-running the cell after the fix printed "[skip]
+#  already done" for every stage and silently reused those pilot
+#  results instead of training at the new budget. If you have Drive
+#  output from before this fix, it sits under the OLD paths without a
+#  budget tag and is simply ignored now -- safe to delete once you no
+#  longer need it, but harmless to leave in place either way.)
 # =====================================================================
 import os, subprocess, sys, time
 
@@ -95,6 +107,18 @@ BATCH = 8
 TEST_RESOLUTIONS = '13,17,25,29,37,41,49'   # Table 12's own seven
 FINE_REF_N = 101
 
+# Every stage past calibration is keyed by this budget tag, NOT just by
+# tag/N. A resumability check that only asked "does this directory
+# exist?" would silently reuse a stale directory from an earlier run at
+# a DIFFERENT budget (e.g. an old 200/50/20,000 pilot run sharing the
+# same {tag}_N{N}_raw path as this 800/200/75,000 run) and report
+# "[skip] already done" without ever training at the intended budget.
+# That happened once already on this project's Drive -- see
+# PROJECT_STATUS.md. Baking the budget into the path makes a changed
+# budget always start a fresh directory instead of silently adopting
+# whatever happens to already sit at the old path.
+BUDGET_TAG = f'{N_TRAIN}tr_{N_TEST}te_{OPT_STEPS}steps'
+
 
 def stage0_calibrate(tag, N):
     calib_dir = f'{OUT}/{tag}_N{N}_calib'
@@ -122,7 +146,7 @@ def stage0_calibrate(tag, N):
 
 
 def stage1_generate(tag, N):
-    raw_dir = f'{OUT}/{tag}_N{N}_raw'
+    raw_dir = f'{OUT}/{tag}_N{N}_{BUDGET_TAG}_raw'
     if os.path.exists(f'{raw_dir}/split_indices.json'):
         print(f'[skip] {tag} (N={N}) full dataset already generated: {raw_dir}')
         return raw_dir
@@ -138,7 +162,7 @@ def stage1_generate(tag, N):
 
 
 def stage2_convert(tag, N, raw_dir):
-    q4_dir = f'{OUT}/{tag}_N{N}_q4'
+    q4_dir = f'{OUT}/{tag}_N{N}_{BUDGET_TAG}_q4'
     npz = f'{q4_dir}/hyperelastic_training_data_q4.npz'
     if os.path.exists(npz):
         print(f'[skip] {tag} (N={N}) already converted: {npz}')
@@ -152,7 +176,7 @@ def stage2_convert(tag, N, raw_dir):
 
 
 def stage3_train(tag, N, npz):
-    train_dir = f'{OUT}/{tag}_N{N}_train'
+    train_dir = f'{OUT}/{tag}_N{N}_{BUDGET_TAG}_train'
     ckpt = f'{train_dir}/model_best.pt'
     if os.path.exists(ckpt):
         print(f'[skip] {tag} (N={N}) already trained: {ckpt}')
@@ -173,7 +197,7 @@ def stage3_train(tag, N, npz):
 
 
 def stage4_zeroshot_eval(tag, N, ckpt):
-    out_json = f'{OUT}/{tag}_N{N}_zeroshot.json'
+    out_json = f'{OUT}/{tag}_N{N}_{BUDGET_TAG}_zeroshot.json'
     if os.path.exists(out_json):
         print(f'[skip] {tag} (N={N}) already evaluated: {out_json}')
         return out_json
@@ -199,7 +223,7 @@ for tag, N in RESOLUTIONS.items():
     result = stage4_zeroshot_eval(tag, N, ckpt)
     print(f'{tag} (N={N}) done: {result}')
 
-print('\nAll done. Compare coarse_N13_zeroshot.json against '
-      'fine_N33_zeroshot.json, and both against Table 12\'s physics-'
-      'informed B1 x Neo-Hookean column, at the same seven test '
-      'resolutions.')
+print(f'\nAll done. Compare coarse_N13_{BUDGET_TAG}_zeroshot.json against '
+      f'fine_N33_{BUDGET_TAG}_zeroshot.json, and both against Table 12\'s '
+      f'physics-informed B1 x Neo-Hookean column, at the same seven test '
+      f'resolutions.')
