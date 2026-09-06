@@ -5,11 +5,12 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-06 (built one consolidated work queue from both of
-today's emails — round 7 and round 8 — so work happens item by item in a
-fixed order instead of scattered across sections). **This work queue is
-now the single authoritative list — read it first, before anything
-else in this file.**
+Last updated: 2026-09-06 (worked the queue: items 5 and 8 done directly
+in the report; items 6 and 7 have Colab notebooks built and ready for
+Omar to run; items 9 and 10 deliberately NOT attempted, since this
+session has no working PyTorch to verify delicate manufactured-solution
+math — report v56). **This work queue is now the single authoritative
+list — read it first, before anything else in this file.**
 
 ---
 
@@ -26,13 +27,13 @@ report v54; nothing else below is started.
 | 2 | DD-NO wall-clock time added to Table 21 | R8.4 | ✅ Done (report v54) | — |
 | 3 | Decide: is B1/B2 at its current size a demanding-enough FEM problem for an NO to be worth using? (or scale up — e.g. Timon's tire example) | R8.1 | ⬜ Not started — **a decision, not measurement** | None — but see the risk note below: this is the highest-leverage item to settle first |
 | 4 | Improve/benchmark the GPU-native solver's preconditioner; rerun N=1001 and N=1401 to full CG convergence | R8.1 + R8.5 (same concern) | ⬜ Not started | None to START it, but do this **before #13** — see below |
-| 5 | Label Table 10c/10d's batch-size-1 column as the primary single-query break-even comparison (editorial, quick) | R8.7-A | ⬜ Not started | None |
-| 6 | Extend the OOD progressive-shift study (Tables 19/19a) to the other five cases | R8.2 | ⬜ Not started | None |
-| 7 | New study: train a DD-NO on FEM labels from a coarse mesh vs. a finer mesh; measure how its accuracy/generalization across resolutions changes | R8.3 | ⬜ Not started | None |
-| 8 | New break-even: physics-informed operator vs. DD-NO, total cost of ownership (data generation + training + N inferences) | R8.7-B | ⬜ Not started | **Corrected — does NOT need #7.** Every input it needs already exists: DD-NO training time (#2, done), its 800-solve data-generation cost (5.65 h, already known), and the PI operator's training/inference costs (Tables 5, 7, 10a, already known). This is a calculation over existing numbers, not a new experiment — could be done immediately |
-| 9 | Richer manufactured-solution family (sum of several sine/cosine modes, boundary conditions preserved) | R8.6 | ⬜ Not started | None |
-| 10 | Report the MMS energy NORM (not the energy value) — the computation already exists in this codebase (§4.4/Table 6a); apply it to the MMS study | R8.6 | ⬜ Not started | None |
-| 11 | Extend MMS to at least one other material/problem | R8.6 | ⬜ Not started | Practical only, not hard: do after #9 and #10 so the new material isn't measured with the old family/metric and then redone |
+| 5 | Label Table 10c/10d's batch-size-1 column as the primary single-query break-even comparison (editorial, quick) | R8.7-A | ✅ Done (report v55) — a sentence added right after Table 10d naming it "the primary, single-query result," everything else "a separate throughput experiment" | — |
+| 6 | Extend the OOD progressive-shift study (Tables 19/19a) to the other five cases | R8.2 | 🟡 Notebook built, not yet run: `zeroshot_notebooks/cell_ood_progressive_remaining.py` / `Round6_OOD_Progressive_Remaining.ipynb`. Uses each case's real Table 5/7/11 checkpoint (verified against `point5_results/physical_quantities_B2_*.json`'s own checkpoint field, not guessed). ~7.5–20 h total, CPU-only, resumable at two levels | Needs Omar to run it on Colab |
+| 7 | New study: train a DD-NO on FEM labels from a coarse mesh vs. a finer mesh; measure how its accuracy/generalization across resolutions changes | R8.3 | 🟡 Notebook built, not yet run: `zeroshot_notebooks/cell_dd_no_coarse_vs_fine.py` / `Round6_DD_NO_Coarse_vs_Fine.ipynb`. B1×Neo-Hookean, N=13 (coarse) vs. N=33 (fine), zero-shot evaluated at Table 12's same seven resolutions. Runs a 20-sample calibration at each resolution FIRST and prints the real measured per-sample cost — genuinely not known ahead of time, so read that before leaving it unattended. Pilot scale (200/50 samples, 20k steps), not Table 21's 800/200/75k — raise once calibration shows the budget allows it | Needs Omar to run it on Colab (GPU preferred) |
+| 8 | New break-even: physics-informed operator vs. DD-NO, total cost of ownership (data generation + training + N inferences) | R8.7-B | ✅ Done (report v56, new Table 21a) — 800-solve label-generation cost (5.65 h) makes DD-NO more expensive by a FIXED 18,924 s (Adam) / 18,694 s (AdamW+OneCycle) for every N, not a break-even threshold, under the stated assumption that DD-NO's inference cost equals the PI operator's (not separately measured, but same architecture) | — |
+| 9 | Richer manufactured-solution family (sum of several sine/cosine modes, boundary conditions preserved) | R8.6 | 🔴 **Not started — deliberately not attempted blind.** This session has no `torch` available to execute or verify numerical/derivative code (checked: `ModuleNotFoundError`). `mms_study.py`'s exact solution, its analytic gradient, and the autodiff-derived body force are exactly the kind of code where an unverified change can be silently wrong. Needs a session with a working PyTorch environment to extend `u_exact`/`grad_u_exact`/`body_force_exact` and re-run `verify_derivation`'s existing autodiff cross-check before trusting any new numbers | Needs a torch-enabled environment |
+| 10 | Report the MMS energy NORM (not the energy value) — the computation already exists in this codebase (§4.4/Table 6a); apply it to the MMS study | R8.6 | 🔴 **Not started, same reason as #9.** The existing function is `high_dof_convergence_study.py`'s `compute_tangent_energy_error(coarse, fine, ...)` — built for comparing two discrete FE fields, not obviously a drop-in for an MMS error field without checking its internals match how MMS represents solutions. Lower mathematical risk than #9 (reusing tested code, not deriving new math) but still needs to be wired up and verified in a torch-enabled environment, not guessed | Needs a torch-enabled environment |
+| 11 | Extend MMS to at least one other material/problem | R8.6 | ⬜ Not started | Do after #9 and #10 are verified working |
 | 12 | Convert several tables into figures, matching Timon's previous papers' presentation | R8, general | ⬜ Not started | Practical only: do last, once the data above is final, so figures aren't rebuilt every time a number changes |
 | 13 | GPU-FEM vs. torch-fem efficiency comparison | R7.1 | ⬜ Not started (approved, not built) | **Do after #4.** Comparing against torch-fem before fixing our own preconditioner risks an unflattering comparison that goes stale the moment #4 improves it — fix our own solver first |
 | 14 | Get the GOEE/"trust" paper Timon says he attached — it never arrived in this session | R7 | ⬜ Waiting on Omar to forward the file | None |
@@ -979,7 +980,7 @@ being honest. Only this file says what is actually outstanding.
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v54**, summary mirrored (v24), branch
+Current artefacts: report **v56**, summary mirrored (v24), branch
 `claude/claude-code-question-d307wp`.
 
 **Nothing measured is unwritten.** Point 7b's 2×2 is complete and in §8.9;
