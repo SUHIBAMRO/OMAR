@@ -142,6 +142,28 @@ def _psi_and_P(F, mu, lam, material, dtype):
     return psi.detach(), P.detach()
 
 
+def tangent_modulus_batched(F, mu, lam, material, dtype):
+    """C[q,i,j,k,l] = d^2 psi / dF_ij dF_kl, batched over the leading
+    dimension -- the fourth-order tangent modulus at each point's own F.
+    Same nested-jacrev-then-vmap pattern body_force_exact already uses for
+    its own second derivative, applied here to psi instead of P: one
+    jacrev gives P = dpsi/dF (2,2), a second gives dP/dF (2,2,2,2), and
+    vmap batches both over the leading (point) dimension without ever
+    forming psi's full batched Hessian at once."""
+    energy_density_fn, _ = get_material_fns_torch(material)
+
+    def psi_of_F(Fm, mu_i, lam_i):
+        return energy_density_fn(Fm[None], mu_i[None], lam_i[None], dtype=dtype).squeeze(0)
+
+    def P_of_F(Fm, mu_i, lam_i):
+        return torch.func.jacrev(psi_of_F)(Fm, mu_i, lam_i)      # (2,2)
+
+    def C_of_F(Fm, mu_i, lam_i):
+        return torch.func.jacrev(P_of_F)(Fm, mu_i, lam_i)        # (2,2,2,2)
+
+    return torch.func.vmap(C_of_F)(F, mu, lam)
+
+
 def P_exact(xy, mu, lam, material, alpha=DEFAULT_ALPHA, beta=DEFAULT_BETA,
             dtype=torch.float64):
     """First Piola-Kirchhoff stress of the manufactured solution, (...,2,2)."""
@@ -288,8 +310,47 @@ def boundary_nodes(nodes, Lx=1.0, Ly=1.0, tol=1e-9):
 # ----------------------------------------------------------------------
 def compute_errors(nodes, elements, order, u_h, mu_e, lam_e, material,
                    alpha, beta, dtype=torch.float64):
-    """L2, H1 semi-norm, energy and stress errors of u_h against u*, all as
-    relative quantities and all integrated on the FE mesh's own quadrature."""
+    """L2, H1 semi-norm, energy (value AND norm) and stress errors of u_h
+    against u*, all as relative quantities and all integrated on the FE
+    mesh's own quadrature.
+
+    energy_rel vs. energy_norm_rel -- these are deliberately DIFFERENT
+    quantities, not two names for one thing:
+      - energy_rel compares the scalar total energy VALUES U(u_h) and
+        U(u*). By classical Galerkin superconvergence (Cea's lemma plus
+        the energy functional's own orthogonality property) this
+        converges at DOUBLE the H1 rate -- e.g. rate ~2 for Q4 rather
+        than H1's ~1 -- which is a real, textbook property of this
+        specific functional, not evidence the comparison is broken.
+      - energy_norm_rel is the actual NORM of the discretization error in
+        the energy inner product, ||e||_E = sqrt(a(e,e)) where
+        a(v,w) = int (grad v) : C(F*) : (grad w) dV and C = d^2 psi/dF^2
+        is the fourth-order tangent modulus at F* = I + grad(u*) (the
+        advisor-confirmed linearization, mirroring the tangent/incremental
+        energy norm high_dof_convergence_study.py's
+        compute_tangent_energy_error already uses for Table 6a, here
+        expressed as a direct quadrature integral against the continuous
+        exact solution instead of a matrix-free Hessian-vector product
+        against a second discrete field). This is expected to converge at
+        the SAME rate as H1_semi_rel (Cea's lemma), not double it -- if it
+        did superconverge like energy_rel, that would indicate a bug, not
+        a feature.
+
+    An earlier version of energy_norm_rel evaluated u* at the mesh's own
+    NODES and reused the matrix-free Hessian-vector machinery from
+    high_dof_convergence_study.py (built for comparing two already-
+    discrete FE fields). That silently computed ||u_h - I_h(u*)||_E
+    (against the NODAL INTERPOLANT of u*) rather than ||u_h - u*||_E
+    (against the true continuous solution) -- u_h converging to I_h(u*)
+    faster than to u* itself is itself a well-documented superconvergence
+    effect on uniform meshes (see e.g. Wahlbin's "Superconvergence in
+    Galerkin Finite Element Methods"), which is exactly why that version
+    also measured rate ~2 for Q4, defeating the entire point of adding a
+    norm that should NOT superconverge. Caught by checking the measured
+    rate against Cea's-lemma theory rather than trusting a plausible-
+    looking number. Integrating directly at Gauss points (matching
+    L2_rel/H1_semi_rel's own convention exactly, with no nodal
+    interpolation step) avoids the artifact."""
     xg, dNdx, dV = quadrature_data(nodes, elements, order, dtype)
     Ng = shape_values(order, dtype)
     Q, G = dV.shape
@@ -312,10 +373,10 @@ def compute_errors(nodes, elements, order, u_h, mu_e, lam_e, material,
     eye = torch.eye(2, dtype=dtype).expand(Q, G, 2, 2)
     mu_g = mu_e[:, None].expand(Q, G).reshape(-1)
     lam_g = lam_e[:, None].expand(Q, G).reshape(-1)
+    F_star = (eye + grad_star).reshape(-1, 2, 2)
     psi_h, P_h = _psi_and_P((eye + grad_uh).reshape(-1, 2, 2), mu_g, lam_g,
                             material, dtype)
-    psi_s, P_s = _psi_and_P((eye + grad_star).reshape(-1, 2, 2), mu_g, lam_g,
-                            material, dtype)
+    psi_s, P_s = _psi_and_P(F_star, mu_g, lam_g, material, dtype)
     P_h, P_s = P_h.reshape(Q, G, 2, 2), P_s.reshape(Q, G, 2, 2)
     psi_h, psi_s = psi_h.reshape(Q, G), psi_s.reshape(Q, G)
 
@@ -323,12 +384,26 @@ def compute_errors(nodes, elements, order, u_h, mu_e, lam_e, material,
     stress_ref = integ((P_s ** 2).sum((-1, -2)))
     U_h, U_s = integ(psi_h), integ(psi_s)
 
+    # Energy NORM: a(v,w) = int grad(v) : C(F*) : grad(w) dV, C the tangent
+    # modulus at F* (the exact solution's own deformation gradient) -- same
+    # linearization point high_dof_convergence_study.py uses (there, the
+    # fine reference field; here, the continuous exact solution).
+    C = tangent_modulus_batched(F_star, mu_g, lam_g, material, dtype).reshape(Q, G, 2, 2, 2, 2)
+    grad_e = grad_uh - grad_star
+    e_energy_sq = integ(torch.clamp(
+        torch.einsum('qgij,qgijkl,qgkl->qg', grad_e, C, grad_e), min=0.0))
+    u_energy_sq = integ(torch.clamp(
+        torch.einsum('qgij,qgijkl,qgkl->qg', grad_star, C, grad_star), min=0.0))
+    energy_norm_abs = math.sqrt(e_energy_sq)
+    energy_norm_rel = energy_norm_abs / (math.sqrt(u_energy_sq) + 1e-30)
+
     return {
         "L2_rel": math.sqrt(l2_err / l2_ref),
         "H1_semi_rel": math.sqrt(h1_err / h1_ref),
         "stress_rel_L2": math.sqrt(stress_err / stress_ref),
         "energy_rel": abs(U_h - U_s) / abs(U_s),
         "energy_fe": U_h, "energy_exact": U_s,
+        "energy_norm_abs": energy_norm_abs, "energy_norm_rel": energy_norm_rel,
     }
 
 
@@ -483,18 +558,26 @@ def main():
             print(f"[resume] {len(rows)} rows already done")
         except Exception:
             rows = []
-    done = {(r["order"], r["N"]) for r in rows}
+    # A row saved before the energy-NORM field existed lacks
+    # "energy_norm_rel" -- treating it as done would silently skip
+    # recomputing it and leave that field permanently missing (the same
+    # kind of stale-artifact bug the DD-NO coarse-vs-fine notebook hit).
+    # Requiring the new field too forces a clean recompute of any old row.
+    done = {(r["order"], r["N"]) for r in rows if "energy_norm_rel" in r}
 
     print(f"\nDevice: {device}, dtype float64, alpha={args.alpha}, beta={args.beta}")
     print(f"u*(x,y) = {args.alpha} * (sin(pi x) sin(pi y), "
           f"{args.beta} sin(pi x) sin(pi y))\n")
-    hdr = f"{'order':<6}{'N':>5}{'DOF':>9}{'L2':>12}{'H1 semi':>12}{'stress':>12}{'energy':>12}{'s':>8}"
+    hdr = (f"{'order':<6}{'N':>5}{'DOF':>9}{'L2':>12}{'H1 semi':>12}{'stress':>12}"
+           f"{'energy':>12}{'E-norm':>12}{'s':>8}")
     print(hdr)
     print("-" * len(hdr))
     for r in sorted(rows, key=lambda r: (r["order"], r["N"])):
+        if "energy_norm_rel" not in r:
+            continue
         print(f"{r['order']:<6}{r['N']:>5}{r['n_dof']:>9,}{r['L2_rel']:>12.3e}"
               f"{r['H1_semi_rel']:>12.3e}{r['stress_rel_L2']:>12.3e}"
-              f"{r['energy_rel']:>12.3e}{r['wall_clock_s']:>8.1f}")
+              f"{r['energy_rel']:>12.3e}{r['energy_norm_rel']:>12.3e}{r['wall_clock_s']:>8.1f}")
 
     for order in orders:
         for N in Ns:
@@ -506,7 +589,7 @@ def main():
             print(f"{err['order']:<6}{err['N']:>5}{err['n_dof']:>9,}"
                   f"{err['L2_rel']:>12.3e}{err['H1_semi_rel']:>12.3e}"
                   f"{err['stress_rel_L2']:>12.3e}{err['energy_rel']:>12.3e}"
-                  f"{err['wall_clock_s']:>8.1f}", flush=True)
+                  f"{err['energy_norm_rel']:>12.3e}{err['wall_clock_s']:>8.1f}", flush=True)
             rep = {"study": "method of manufactured solutions",
                    "geometry": "B1 (unit square)", "material": args.material,
                    "manufactured_solution":
@@ -531,10 +614,28 @@ def main():
                                      "the FE mesh's own quadrature, so U* is the "
                                      "exact solution's energy evaluated with the "
                                      "same rule and the comparison is not polluted "
-                                     "by quadrature error",
-                       "note": "all four are integrated on the same quadrature as "
-                               "the body-force assembly, so no two of them can "
-                               "disagree about the integration rule",
+                                     "by quadrature error. This is a VALUE "
+                                     "comparison and superconverges (fitted rate "
+                                     "is double the H1 rate) -- see energy_norm_rel "
+                                     "for the NORM the advisor's point 6 asked for",
+                       "energy_norm_rel": "sqrt(int grad(e):C(F*):grad(e) dV / "
+                                          "int grad(u*):C(F*):grad(u*) dV), "
+                                          "e = u_h - u*, C = d^2 psi/dF^2 the "
+                                          "fourth-order tangent modulus at "
+                                          "F* = I + grad(u*) (the advisor-"
+                                          "confirmed tangent/incremental energy "
+                                          "norm, same linearization Table 6a "
+                                          "uses, expressed as a direct quadrature "
+                                          "integral against the continuous exact "
+                                          "solution rather than a matrix-free "
+                                          "Hessian-vector product against a "
+                                          "second discrete field). A norm, not a "
+                                          "value, so expected to converge at the "
+                                          "SAME rate as H1_semi_rel (Cea's "
+                                          "lemma), not double it like energy_rel",
+                       "note": "all quantities are integrated on the same "
+                               "quadrature as the body-force assembly, so no two "
+                               "of them can disagree about the integration rule",
                    },
                    "solver": {
                        "newton_tol": 1e-10, "cg_tol": 1e-8, "load_steps": 5,
@@ -568,10 +669,14 @@ def main():
         exp = {"L2": 2 if order == "Q4" else 3,
                "H1_semi": 1 if order == "Q4" else 2,
                "stress": 1 if order == "Q4" else 2,
-               "energy": 2 if order == "Q4" else 4}
+               "energy": 2 if order == "Q4" else 4,
+               # A NORM, not a value -- expected to track H1_semi's rate,
+               # not superconverge like the value comparison above it does.
+               "energy_norm": 1 if order == "Q4" else 2}
         got = {}
         for norm, key in (("L2", "L2_rel"), ("H1_semi", "H1_semi_rel"),
-                          ("stress", "stress_rel_L2"), ("energy", "energy_rel")):
+                          ("stress", "stress_rel_L2"), ("energy", "energy_rel"),
+                          ("energy_norm", "energy_norm_rel")):
             p, pw = fit_convergence_rate(hs, [r[key] for r in rs])
             got[norm] = {"rate": p, "pairwise": pw, "expected": exp[norm]}
             ps = ", ".join(f"{x:.2f}" for x in pw)
