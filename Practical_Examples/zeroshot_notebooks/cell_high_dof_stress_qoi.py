@@ -11,29 +11,28 @@
 #  material, resolutions, fine reference) so the new stress numbers land
 #  in a directly comparable table, not a different study.
 #
-#  CHECK THIS FIRST, BEFORE RUNNING: if you (or an earlier session) still
-#  have the ORIGINAL checkpoint directory from whenever Table 6a itself
-#  was generated, point CHECKPOINT_DIR at it below instead of the fresh
-#  path this cell defaults to. solve_one() returns an already-solved
-#  field IMMEDIATELY (no re-solve at all) when a checkpoint shows that
-#  solve already finished -- so reusing the original checkpoints turns
-#  this into a few minutes of pure post-processing (computing the new
-#  stress QoI from already-solved fields) instead of a multi-hour rerun.
-#  There is no way to find that path from this notebook; you have to
-#  know it or find it yourself on Drive.
+#  CHECKPOINT_DIR below points at the ORIGINAL checkpoint folder from
+#  whenever Table 6a itself was generated -- found 2026-09-06 by
+#  searching Drive directly: /content/drive/MyDrive/pfem_ckpt contains
+#  fine_B1_neo_hookean_Q4_N2236.pt (the ~10M-DOF reference itself, the
+#  single most expensive solve in the whole study) plus
+#  coarse_B1_neo_hookean_Q4_N1001.pt and _N1401.pt (the two next most
+#  expensive). solve_one() returns an already-solved field IMMEDIATELY
+#  (no re-solve at all) when a checkpoint shows that solve already
+#  finished, so those three resolutions cost seconds here, not hours.
 #
-#  IF NO EXISTING CHECKPOINTS ARE FOUND (the default path here is new
-#  and empty): this is a full, fresh multi-hour run. From this project's
-#  own previously-recorded Table 6a timings (coarse resolutions only,
-#  wall-clock in seconds): N=51 227, N=101 445, N=201 884, N=401 1802,
-#  N=701 5940, N=1401 11872 -- summing to ~5.9 h, PLUS the ~10M-DOF
-#  fine reference itself (N=2236), which is NOT in that sum and is
-#  almost certainly the single largest cost, not separately timed
-#  before. Budget roughly 8-15+ h total, GPU strongly required, and
-#  expect to need several Colab sessions -- this is exactly what
-#  --checkpoint_dir (at both the outer solve level and CG's own internal
-#  level, via --cg_checkpoint_every) is for: a disconnect anywhere loses
-#  at most a few thousand CG iterations, never a whole solve.
+#  Checked and NOT found anywhere on Drive: checkpoints for N=51, 101,
+#  201, 401, 701 -- those five must be solved fresh. From this project's
+#  own previously-recorded Table 6a timings (wall-clock in seconds):
+#  N=51 227, N=101 445, N=201 884, N=401 1802, N=701 5940 -- summing to
+#  ~2.6 h. That is the real expected cost of this run with the
+#  checkpoints below, NOT the 8-15+ h a fully-fresh run would need.
+#
+#  If CHECKPOINT_DIR below turns out to be wrong (moved/renamed since),
+#  the run simply falls back to solving everything fresh -- resumable at
+#  both the outer solve level and CG's own internal level (via
+#  --cg_checkpoint_every), so a disconnect anywhere loses at most a few
+#  thousand CG iterations, never a whole solve.
 #
 #  Only the peak-stress QoI is new; L2/H1/energy are recomputed too
 #  (cheap, seconds) simply because they come from the same function call
@@ -78,9 +77,11 @@ print('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available()
 
 R = '/content/drive/MyDrive/pfem_run'
 
-# ---- CHECK THIS: point at the ORIGINAL Table 6a checkpoint directory
-# here if you have it, instead of this fresh default. ----
-CHECKPOINT_DIR = f'{R}/high_dof_stress_qoi_ckpt'
+# Found on Drive 2026-09-06: the original Table 6a checkpoints live in
+# pfem_ckpt (a sibling of pfem_run, not inside it). If this path has since
+# moved, edit it here -- everything still works, just falls back to a
+# fresh multi-hour run instead of reusing the ~10M-DOF reference solve.
+CHECKPOINT_DIR = '/content/drive/MyDrive/pfem_ckpt'
 OUT_JSON = f'{R}/high_dof_stress_qoi_B1_neo_hookean.json'
 
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
