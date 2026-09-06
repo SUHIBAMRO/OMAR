@@ -5,11 +5,28 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-04 (fixed the repo root README, which was still
-VINO's own unedited README from an early vendoring — added an honest
-provenance note and a VINO citation to the report; report v52). **Read
-the master table immediately below first; everything after it is
-detail.**
+Last updated: 2026-09-06 (Timon replied to the round-7 email — torch-fem
+approved, no sign-off needed to open-source, Apache 2.0 leaned on,
+publish only after the paper is submitted, continual-learning citation
+given, commercial relevance confirmed with GOEE/trust named as future
+work). **Read the master table immediately below first; everything
+after it is detail.**
+
+---
+
+# 📬 Timon's round-7 reply (2026-09-06) — see the table further below
+
+Stored verbatim at `advisor_feedback/2026-09-06_round7_timon.md`. Full
+resolution table under "✅ Answered by Timon, round 7" further down this
+file. Headline: the torch-fem GPU-FEM comparison is unblocked, the
+open-source license question is resolved (Apache 2.0 leaned on, no
+approval needed) but publishing is gated on the paper being submitted/on
+arXiv first, the continual-learning citation was given
+(arxiv.org/abs/2605.04832), and Timon confirmed genuine industrial
+relevance for the commercialization question, naming trust/goal-oriented
+error estimation as the key future direction — with a paper attachment
+on that topic that did not come through and still needs to be requested
+from Omar.
 
 ---
 
@@ -847,7 +864,7 @@ being honest. Only this file says what is actually outstanding.
 
 # MASTER TABLE — where every item stands
 
-Current artefacts: report **v52**, summary mirrored (v24), branch
+Current artefacts: report **v53**, summary mirrored (v24), branch
 `claude/claude-code-question-d307wp`.
 
 **Nothing measured is unwritten.** Point 7b's 2×2 is complete and in §8.9;
@@ -904,13 +921,17 @@ resume on re-run. All 12 repo notebooks pass `check_notebooks.py`.
 | ⚠️ **the two zero-shot protocols are not the same study** | Table 12 (B1×Neo-Hookean) trained at **N=21 only** and evaluated 5 resolutions, all FINER. The five new notebooks train at **N=21 and 33** and evaluate 7, including two COARSER (13, 17) — which is what round-5 item 7 actually asked for. So B1×MR cannot be added as another row of Table 12: material and protocol differ at once. Either B1×NH is re-run under the new protocol, or the new cases get their own table |
 | **R5-2** Pareto, remaining cases | **B1×MR and B1×AB are unblocked now** — their checkpoints are valid; cell at `zeroshot_notebooks/cell_pareto_remaining_B1.py`, ~2 h per case (measured 1 h 54 m / 6 h 24 m on B1×NH). **B2×Neo-Hookean is unblocked too, as of 2026-09-01** (fixed-selection checkpoint exists) — `zeroshot_notebooks/cell_pareto_B2.py` runs it now, does not wait for the other two, and reports "no checkpoint yet" and skips a case rather than asserting. B2×MR and B2×AB stay blocked on their fixed-selection retrain finishing |
 
-## ⬜ Not started
+## ✅ Answered by Timon, round 7 (2026-09-06) — see `advisor_feedback/2026-09-06_round7_timon.md`
 
-| Item | Blocker |
+| Item | Resolution |
 |---|---|
-| **R6** open-source the GPU-FEM code (`gpu_fem_solver.py`, `matrix_free_solver.py` + their `materials_torch.py`/`data/fem_core.py`/`data/q9_element.py`/`data/materials.py` dependencies — a self-contained set, checked 2026-09-02) | **Blocked on Omar, waiting on Timon.** Two answers needed before any repo/file work starts: (1) does this need formal sign-off from Timon or the university before a public release — Omar said yes, needs to confirm; (2) which license — MIT or Apache 2.0 suggested, Omar wants to ask Timon first. Do not create a public repo or push this code anywhere until both come back |
-| **R6** benchmark the GPU-FEM solver against Tensormesh, computational efficiency | **Blocked on Timon, question drafted 2026-09-02, not yet sent.** Checked TensorMesh's own repo (`github.com/camlab-ethz/TensorMesh`) directly, twice: its element library is triangular/tetrahedral/pyramid/prismatic only — **no Q4/Q9 quadrilateral elements**, which this entire study is built on. A comparison on a different element type would not be a fair like-for-like test. Found `torch-fem` (`github.com/meyer-nils/torch-fem`, MIT) as a closer match: PyTorch-native, GPU-accelerated, supports Q4/Q9-equivalent quads (`Quad1`/`Quad2`), and defines hyperelastic materials via autodiff of the energy function — the same approach this codebase uses. Question for Omar to send Timon: is `torch-fem` an acceptable substitute, or was TensorMesh named for a specific reason? **Do not start building the comparison until this comes back** — building it against the wrong library wastes the work |
-| Send Timon the correction + the B1×NH Pareto result | Drafted in the reading of the round-6 email; not sent. Can be combined with the torch-fem question above into one email |
+| **R6** benchmark the GPU-FEM solver, computational efficiency | **Unblocked.** No preference between TensorMesh and torch-fem — "torch-FEM is also fine," the only requirement is "an efficient GPU implementation... for a fair comparison to a NO," which torch-fem satisfies. The comparison can now be built |
+| **R6** open-source the GPU-FEM code — approval | **Resolved: no institutional/advisor sign-off needed.** "There is no approval necessary" |
+| **R6** open-source the GPU-FEM code — license | **Resolved, leans Apache 2.0**: "both MIT or Apache License are fine... Apache is more general and also TensorMesh is based on Apache license" |
+| **New gate, not previously known**: when to actually publish | **Do not open-source or make any repository public yet**, license question notwithstanding: "I'd wait though until the paper is on arxiv and submitted to a journal... not before" |
+| Continual-learning citation | **Done.** Fetched the real title/authors from arXiv (not guessed): "Replay-Based Continual Learning for Physics-Informed Neural Operators" (Wang, Eshaghi, Zhuang, Rabczuk, Liu, arXiv:2605.04832) — uses the same Transolver architecture this report does. Added as reference [5] and one sentence at the end of §8.6, framed accurately as incremental adaptation with some retraining budget, distinct from this report's own zero-shot (no retraining) approach. `report_builders/make_v53.py`, report **v53** |
+| Commercial/industrial relevance (Omar's question) | **Confirmed as real**, not speculative: cites ANSYS SIMAI as an existing commercial neural-operator product (his own characterization, not confirmed fact) and "several start-up companies about CAE acceleration." Names **trust / accuracy verification without ground truth** as the key obstacle, proposes **goal-oriented error estimation (GOEE)** adapted from FEM as a candidate future direction — explicitly framed as future work, not a request to act now |
+| GOEE/trust paper Timon says he attached | **Not received in this session** — his email says "I attach a recent paper" but no attachment came through. Do not assume or act on its content until Omar shares the actual file |
 
 ## 🚫 Cancelled by Omar — DO NOT PROPOSE THESE AGAIN
 
