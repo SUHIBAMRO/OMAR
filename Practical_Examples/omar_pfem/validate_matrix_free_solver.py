@@ -30,6 +30,10 @@ def main():
     parser.add_argument("--N", type=int, default=11)
     parser.add_argument("--cg_tol", type=float, default=1e-8)
     parser.add_argument("--newton_tol", type=float, default=1e-8)
+    parser.add_argument("--precond_kind", type=str, default="jacobi", choices=["jacobi", "block2x2"],
+                         help="which preconditioner solve_matrix_free builds -- 'jacobi' is the "
+                              "existing default every published number uses, 'block2x2' is the new "
+                              "opt-in 2x2 node-block preconditioner (item 4)")
     parser.add_argument("--cpu", action="store_true")
     args = parser.parse_args()
 
@@ -94,7 +98,8 @@ def main():
     u_free, stats = solve_matrix_free(
         xy_t, quad_t, free_dofs_t, elem_params_t, fext_free_t, n_free=len(free_dofs_np),
         material=args.material, order="Q4", nsteps=10, newton_max=30,
-        newton_tol=args.newton_tol, cg_tol=args.cg_tol, device=device, dtype=dtype)
+        newton_tol=args.newton_tol, cg_tol=args.cg_tol, precond_kind=args.precond_kind,
+        device=device, dtype=dtype)
 
     u_full_mf = np.zeros(ndof)
     u_full_mf[free_dofs_np] = u_free.cpu().numpy()

@@ -241,8 +241,8 @@ def build_mesh_and_bcs(geometry, order, N, material, device, dtype):
 
 
 def solve_one(geometry, order, N, material, device, dtype, cg_tol, newton_tol,
-              use_jacobi=True, cg_max_iter=2000, verbose=False, checkpoint_path=None,
-              cg_progress_every=None, cg_checkpoint_every=2000):
+              use_jacobi=True, precond_kind="jacobi", cg_max_iter=2000, verbose=False,
+              checkpoint_path=None, cg_progress_every=None, cg_checkpoint_every=2000):
     nodes, elements, free_dofs, fext_full, elem_params_np = build_mesh_and_bcs(
         geometry, order, N, material, device, dtype)
 
@@ -257,6 +257,7 @@ def solve_one(geometry, order, N, material, device, dtype, cg_tol, newton_tol,
         xy_t, quad_t, free_dofs_t, elem_params_t, fext_free_t, n_free=len(free_dofs),
         material=material, order=order, nsteps=10, newton_max=30,
         newton_tol=newton_tol, cg_tol=cg_tol, cg_max_iter=cg_max_iter, use_jacobi=use_jacobi,
+        precond_kind=precond_kind,
         device=device, dtype=dtype, verbose=verbose, checkpoint_path=checkpoint_path,
         cg_progress_every=cg_progress_every, cg_checkpoint_every=cg_checkpoint_every)
     wall_s = time.time() - t0
@@ -630,6 +631,14 @@ def main():
     parser.add_argument("--no_jacobi", action="store_true",
                          help="Disable the Jacobi preconditioner (plain CG) -- for comparing "
                               "iteration counts/wall-clock with vs. without it on your own hardware")
+    parser.add_argument("--precond_kind", type=str, default="jacobi", choices=["jacobi", "block2x2"],
+                         help="Which preconditioner to build when the preconditioner is enabled "
+                              "(i.e. --no_jacobi is NOT passed). 'jacobi' (default) is the scalar "
+                              "diagonal every already-published number in this study uses -- passing "
+                              "nothing here changes nothing. 'block2x2' is the new opt-in 2x2 "
+                              "per-node block preconditioner (captures u/v coupling a scalar diagonal "
+                              "discards), validated against the dense CPU reference on both B1 and B2 "
+                              "(including B2's partially-fixed-DOF nodes) in validate_matrix_free_solver.py")
     parser.add_argument("--cpu", action="store_true")
     parser.add_argument("--out_json", type=str, default=None)
     parser.add_argument("--checkpoint_dir", type=str, default=None,
@@ -688,6 +697,7 @@ def main():
                      if args.checkpoint_dir else None)
         fine = solve_one(args.geometry, order, args.fine_N, args.material, device, dtype,
                           args.cg_tol, args.newton_tol, use_jacobi=not args.no_jacobi,
+                          precond_kind=args.precond_kind,
                           cg_max_iter=args.cg_max_iter, verbose=False, checkpoint_path=ckpt_path,
                           cg_progress_every=args.cg_progress_every,
                           cg_checkpoint_every=args.cg_checkpoint_every)
@@ -713,6 +723,7 @@ def main():
                                  if args.checkpoint_dir else None)
             coarse = solve_one(args.geometry, order, N, args.material, device, dtype,
                                 args.cg_tol, args.newton_tol, use_jacobi=not args.no_jacobi,
+                                precond_kind=args.precond_kind,
                                 cg_max_iter=args.cg_max_iter, verbose=False,
                                 checkpoint_path=coarse_ckpt_path,
                                 cg_progress_every=args.cg_progress_every,

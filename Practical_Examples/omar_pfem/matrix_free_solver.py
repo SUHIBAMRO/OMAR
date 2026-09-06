@@ -202,6 +202,133 @@ def compute_jacobi_diagonal(xy, quad, uv_full, elem_params, material, order, dty
     return diag_free
 
 
+def compute_block_jacobi(xy, quad, uv_full, elem_params, material, order, dtype,
+                          chunk_size=200_000):
+    """Global 2x2 block-diagonal of the tangent stiffness at the CURRENT
+    displacement uv_full: same construction as compute_jacobi_diagonal
+    (local per-element Hessians via vmap+hessian, scatter-added by
+    connectivity, chunked to bound memory), generalized from a 1x1 diagonal
+    entry per DOF to a 2x2 block per NODE. For each element and each of its
+    local nodes a, the local Hessian's own (2x2) sub-block H[2a:2a+2,
+    2a:2a+2] -- that node's self-coupling of its x and y equations within
+    this one element -- is scatter-added into a global (n_nodes, 2, 2)
+    tensor. This captures the u/v (Poisson-ratio-driven) coupling at a node
+    that the scalar Jacobi diagonal discards by construction, which is the
+    natural next step up in preconditioner quality for a 2-component
+    vector-elasticity problem -- still O(DOF) memory and still built from
+    nothing bigger than an 8x8 (Q4) or 18x18 (Q9) local Hessian, so it costs
+    the same as compute_jacobi_diagonal to build, just with an extra 2x2
+    (not 2x1) local extraction per node per element.
+
+    Returns the raw per-node blocks (n_nodes, 2, 2), still in the FULL
+    (unconstrained) DOF numbering -- restricting to free_dofs and handling
+    nodes where a boundary condition leaves only one of the two DOFs free is
+    make_block_jacobi_apply's job, kept separate because that step is pure
+    indexing/inversion with no FEM assembly in it."""
+    n_nodes = xy.shape[0]
+    energy_density_fn, _ = get_material_fns_torch(material)
+    shape_data = precompute_shape_data(order, xy.device, dtype)
+
+    Xe_all = xy[quad]
+    ue_all = uv_full.reshape(n_nodes, 2)[quad].reshape(Xe_all.shape[0], -1)
+    n_local = quad.shape[1]
+
+    local_hess_fn = hessian(_local_element_energy, argnums=0)
+    batched_hess = vmap(local_hess_fn, in_dims=(0, 0, 0, None, None, None))
+
+    global_block = torch.zeros(n_nodes, 2, 2, device=xy.device, dtype=dtype)
+    n_elem = Xe_all.shape[0]
+    for start in range(0, n_elem, chunk_size):
+        end = min(start + chunk_size, n_elem)
+        elem_params_chunk = tuple(p[start:end] for p in elem_params)
+        H_local = batched_hess(ue_all[start:end], Xe_all[start:end], elem_params_chunk,
+                                energy_density_fn, shape_data, dtype)  # (chunk, 2nl, 2nl)
+        quad_chunk = quad[start:end]  # (chunk, n_local)
+        for a in range(n_local):
+            block_a = H_local[:, 2 * a:2 * a + 2, 2 * a:2 * a + 2]  # (chunk, 2, 2)
+            global_block.index_add_(0, quad_chunk[:, a], block_a)
+    return global_block
+
+
+def make_block_jacobi_apply(global_block, free_dofs, eps=1e-10):
+    """Builds the CG apply closure v -> M^-1 v for the 2x2 block-Jacobi
+    preconditioner, restricted to the free-DOF subspace.
+
+    A node whose two DOFs (x and y) are BOTH free gets a true 2x2
+    block-solve against its own node-local stiffness block. A node with
+    only ONE free DOF -- a boundary condition can fix just one component,
+    e.g. a symmetry line that fixes u_x but leaves u_y free -- cannot use a
+    2x2 solve at all (the other row/column belongs to a DOF that no longer
+    exists in the reduced free-DOF system), so it falls back to that single
+    scalar diagonal entry: exactly what compute_jacobi_diagonal already
+    does for every DOF. A partially-fixed node therefore loses nothing
+    relative to plain Jacobi, and a fully-free node gains the true
+    node-local 2x2 solve.
+
+    free_dofs is assumed sorted increasing, which every caller in this
+    module already guarantees (it is built by filtering range(ndof) in
+    order) -- that is what lets pairing be a single vectorized adjacent-diff
+    check below instead of a per-node Python loop: two consecutive entries
+    of free_dofs are one node's (x, y) pair iff the first is even (an
+    x-DOF, i.e. 2*node) and the second equals the first plus one."""
+    device = global_block.device
+    dtype = global_block.dtype
+    n_free = free_dofs.shape[0]
+    node_of_free = free_dofs // 2
+
+    is_x = (free_dofs % 2 == 0)
+    adjacent = torch.zeros(n_free, dtype=torch.bool, device=device)
+    if n_free > 1:
+        adjacent[:-1] = (free_dofs[1:] - free_dofs[:-1] == 1)
+    pair_start_mask = is_x & adjacent
+    pair_start_pos = torch.nonzero(pair_start_mask, as_tuple=False).squeeze(-1)
+    has_pairs = pair_start_pos.numel() > 0
+    pair_pos = (torch.stack([pair_start_pos, pair_start_pos + 1], dim=1) if has_pairs
+                else torch.zeros(0, 2, dtype=torch.long, device=device))
+
+    in_pair = torch.zeros(n_free, dtype=torch.bool, device=device)
+    if has_pairs:
+        in_pair[pair_pos.reshape(-1)] = True
+    singleton_pos = torch.nonzero(~in_pair, as_tuple=False).squeeze(-1)
+    has_singletons = singleton_pos.numel() > 0
+
+    if has_pairs:
+        pair_nodes = node_of_free[pair_pos[:, 0]]
+        blocks = global_block[pair_nodes]  # (n_pairs, 2, 2)
+        a, b, c, d = blocks[:, 0, 0], blocks[:, 0, 1], blocks[:, 1, 0], blocks[:, 1, 1]
+        det = a * d - b * c
+        # Same near-singular guard as compute_jacobi_diagonal, applied per
+        # pair: an ill-conditioned 2x2 block falls back to a pure diagonal
+        # solve for that one node rather than amplifying the CG direction.
+        safe = det.abs() > eps
+        a_safe = torch.where(a.abs() > eps, a, torch.ones_like(a))
+        d_safe = torch.where(d.abs() > eps, d, torch.ones_like(d))
+        inv00 = torch.where(safe, d / det, 1.0 / a_safe)
+        inv11 = torch.where(safe, a / det, 1.0 / d_safe)
+        inv01 = torch.where(safe, -b / det, torch.zeros_like(a))
+        inv10 = torch.where(safe, -c / det, torch.zeros_like(a))
+
+    if has_singletons:
+        singleton_nodes = node_of_free[singleton_pos]
+        singleton_comp = free_dofs[singleton_pos] % 2
+        singleton_diag = global_block[singleton_nodes, singleton_comp, singleton_comp]
+        singleton_diag = torch.where(singleton_diag.abs() > eps, singleton_diag,
+                                      torch.ones_like(singleton_diag))
+
+    def apply(v):
+        out = torch.empty_like(v)
+        if has_singletons:
+            out[singleton_pos] = v[singleton_pos] / singleton_diag
+        if has_pairs:
+            vx = v[pair_pos[:, 0]]
+            vy = v[pair_pos[:, 1]]
+            out[pair_pos[:, 0]] = inv00 * vx + inv01 * vy
+            out[pair_pos[:, 1]] = inv10 * vx + inv11 * vy
+        return out
+
+    return apply
+
+
 def _make_energy_fn(xy, quad, n_nodes, material, order, dtype):
     energy_density_fn, _ = get_material_fns_torch(material)
     shape_data = precompute_shape_data(order, xy.device, dtype)
@@ -225,17 +352,27 @@ def matrix_free_hvp(residual_fn, u, v, elem_params, free_dofs):
     return Hv
 
 
-def conjugate_gradient(matvec, b, x0, tol, max_iter, precond_diag=None,
+def conjugate_gradient(matvec, b, x0, tol, max_iter, precond_diag=None, precond_apply=None,
                         progress_every=None, progress_prefix="",
                         checkpoint_path=None, checkpoint_every=2000):
     """CG for symmetric (K = Hessian of a scalar energy) systems, with an
-    optional Jacobi (diagonal) preconditioner: precond_diag, if given, is
-    the diagonal of K (see compute_jacobi_diagonal) and M^-1 is simply
+    optional preconditioner. Two ways to supply one, in increasing order of
+    precedence:
+
+    precond_diag: the diagonal of K (see compute_jacobi_diagonal); M^-1 is
     elementwise division by it -- the cheapest preconditioner available,
     but on the heterogeneous-material problems in this study it captures
     exactly the effect (large E in one region making that region's
     equations locally much stiffer) that otherwise drives up CG's
-    iteration count. Returns (x, n_iter, final_residual_norm, converged).
+    iteration count.
+
+    precond_apply: a callable v -> M^-1 v, for a preconditioner that isn't
+    a pure elementwise scaling -- e.g. make_block_jacobi_apply's 2x2
+    node-block solve. If given, this is used and precond_diag is ignored;
+    passing neither falls back to unpreconditioned CG (M^-1 = identity),
+    exactly as before this parameter existed.
+
+    Returns (x, n_iter, final_residual_norm, converged).
 
     progress_every: if set, print a heartbeat line (iteration count,
     current relative residual, elapsed time, iters/s) every this many
@@ -260,6 +397,8 @@ def conjugate_gradient(matvec, b, x0, tol, max_iter, precond_diag=None,
     returns, converged or not -- a finished call's state is never
     meaningful to resume into again."""
     def apply_M_inv(v):
+        if precond_apply is not None:
+            return precond_apply(v)
         return v if precond_diag is None else v / precond_diag
 
     def save_state(it):
@@ -319,17 +458,28 @@ def conjugate_gradient(matvec, b, x0, tol, max_iter, precond_diag=None,
 def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
                        material="neo_hookean", order="Q4", nsteps=10, newton_max=30,
                        newton_tol=1e-7, cg_tol=1e-6, cg_max_iter=2000, use_jacobi=True,
+                       precond_kind="jacobi",
                        device=None, dtype=torch.float64, verbose=True, checkpoint_path=None,
                        cg_progress_every=None, cg_checkpoint_every=2000):
     """Single-sample (no batch dimension) matrix-free Newton-CG solve.
     elem_params: tuple of (n_elements,) tensors, or (n_elements, n_gauss)
     when the material is sampled per Gauss point as B2's reference solver
-    does -- see element_energy_order_agnostic. use_jacobi: recompute the
-    exact diagonal of K at the start of every Newton iteration (see
-    compute_jacobi_diagonal) and use it to precondition CG -- cheap
-    relative to the CG iterations it is meant to reduce, since it only
-    needs small per-element Hessians, never the global one. Returns
-    (u_free, stats).
+    does -- see element_energy_order_agnostic. use_jacobi: recompute a
+    preconditioner at the start of every Newton iteration and use it for
+    CG -- cheap relative to the CG iterations it is meant to reduce, since
+    it only needs small per-element Hessians, never the global one.
+
+    precond_kind selects WHICH preconditioner use_jacobi builds, and only
+    matters when use_jacobi=True:
+      "jacobi" (default) -- the scalar diagonal of K (compute_jacobi_diagonal).
+          This is the exact preconditioner every already-published number in
+          this study was produced with; kept as the default so no existing
+          result changes unless this argument is passed explicitly.
+      "block2x2" -- the 2x2 per-node block-diagonal of K
+          (compute_block_jacobi / make_block_jacobi_apply), which also
+          captures each node's u/v coupling instead of discarding it. Opt-in
+          only: pass precond_kind="block2x2" to use it.
+    Returns (u_free, stats).
 
     checkpoint_path: if given, save (u_free, stats, next step) to this file
     after every completed Newton iteration (not just every completed load
@@ -417,17 +567,25 @@ def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
                 return matrix_free_hvp(residual_fn, u_free, v, elem_params, free_dofs)
 
             precond_diag = None
+            precond_apply = None
             if use_jacobi:
                 _sync(); _t0 = time.time()
                 u_full = torch.zeros(ndof, dtype=dtype, device=device).index_copy(0, free_dofs, u_free)
-                precond_diag = compute_jacobi_diagonal(xy, quad, u_full, elem_params, material, order,
-                                                        dtype, free_dofs)
+                if precond_kind == "block2x2":
+                    global_block = compute_block_jacobi(xy, quad, u_full, elem_params, material, order, dtype)
+                    precond_apply = make_block_jacobi_apply(global_block, free_dofs)
+                elif precond_kind == "jacobi":
+                    precond_diag = compute_jacobi_diagonal(xy, quad, u_full, elem_params, material, order,
+                                                            dtype, free_dofs)
+                else:
+                    raise ValueError(f"unknown precond_kind {precond_kind!r}, expected 'jacobi' or 'block2x2'")
                 _sync(); stats["t_precond_s"] += time.time() - _t0
 
             cg_checkpoint_path = f"{checkpoint_path}.cg_state" if checkpoint_path is not None else None
             _sync(); _t0 = time.time()
             delta, cg_iters, cg_res, cg_converged = conjugate_gradient(
-                matvec, -R, torch.zeros_like(u_free), cg_tol, cg_max_iter, precond_diag=precond_diag,
+                matvec, -R, torch.zeros_like(u_free), cg_tol, cg_max_iter,
+                precond_diag=precond_diag, precond_apply=precond_apply,
                 progress_every=cg_progress_every, progress_prefix=f"step {step}/{nsteps} newton {it}: ",
                 checkpoint_path=cg_checkpoint_path, checkpoint_every=cg_checkpoint_every)
             _sync(); stats["t_cg_s"] += time.time() - _t0
