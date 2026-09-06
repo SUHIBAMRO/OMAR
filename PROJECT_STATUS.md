@@ -7,10 +7,13 @@ finishes or a new one starts.
 
 Last updated: 2026-09-06 (worked the queue: items 5 and 8 done directly
 in the report; items 6 and 7 have Colab notebooks built and ready for
-Omar to run; items 9 and 10 deliberately NOT attempted, since this
-session has no working PyTorch to verify delicate manufactured-solution
-math — report v56). **This work queue is now the single authoritative
-list — read it first, before anything else in this file.**
+Omar to run (item 7's notebook had a stale-artifact bug, found and
+fixed the same day); item 3 decided (Option A, current problem size is
+justified — see below) using existing Table 6a data, no new experiment
+needed; items 9 and 10 deliberately NOT attempted, since this session
+has no working PyTorch to verify delicate manufactured-solution math —
+report v56). **This work queue is now the single authoritative list —
+read it first, before anything else in this file.**
 
 ---
 
@@ -25,7 +28,7 @@ report v54; nothing else below is started.
 |---|---|---|---|---|
 | 1 | Continual-learning citation added to §8.6 | R7 | ✅ Done (report v53) | — |
 | 2 | DD-NO wall-clock time added to Table 21 | R8.4 | ✅ Done (report v54) | — |
-| 3 | Decide: is B1/B2 at its current size a demanding-enough FEM problem for an NO to be worth using? (or scale up — e.g. Timon's tire example) | R8.1 | ⬜ Not started — **a decision, not measurement** | None — but see the risk note below: this is the highest-leverage item to settle first |
+| 3 | Decide: is B1/B2 at its current size a demanding-enough FEM problem for an NO to be worth using? (or scale up — e.g. Timon's tire example) | R8.1 | ✅ **Decided 2026-09-06: Omar chose Option A (justify current size), not Option B (scale up) — scaling up now would open a large new work cycle.** Answered using Timon's own suggested method ("checking some QoIs and requesting stricter error tolerances versus your high fidelity ground truth") — and the needed data **already existed in the report, no new experiment required**: Table 6a (B1×Neo-Hookean vs. the ~10M-DOF reference) gives H1/energy relative error AND wall-clock at 6 resolutions. Reaching ≤1% error needs N=201 (~15 min); ≤0.5% needs N=401 (~30 min); a strict ≤0.2% verification-grade tolerance needs N=701–1401 (~100–200 min). **This is not milliseconds at any reasonable accuracy target.** Honesty caveat included in the reply: these times are measured with the same solver/preconditioner Timon separately flagged as suboptimal (item #4), so they are a conservative lower bound — fixing the preconditioner would only make the numbers faster, strengthening rather than undermining the argument. Scope limit: currently only demonstrated for B1×Neo-Hookean (Table 6a's only case); not yet checked whether the other five geometry×material combinations show the same pattern. Draft reply to Timon prepared, not yet sent — Omar's action | Omar to review/send the draft reply to Timon; consider extending Table 6a's high-DOF sweep to the other 5 cases later if Timon wants stronger evidence |
 | 4 | Improve/benchmark the GPU-native solver's preconditioner; rerun N=1001 and N=1401 to full CG convergence | R8.1 + R8.5 (same concern) | ⬜ Not started | None to START it, but do this **before #13** — see below |
 | 5 | Label Table 10c/10d's batch-size-1 column as the primary single-query break-even comparison (editorial, quick) | R8.7-A | ✅ Done (report v55) — a sentence added right after Table 10d naming it "the primary, single-query result," everything else "a separate throughput experiment" | — |
 | 6 | Extend the OOD progressive-shift study (Tables 19/19a) to the other five cases | R8.2 | 🟡 **Notebook built AND locally verified end-to-end**, not yet run for real: `zeroshot_notebooks/cell_ood_progressive_remaining.py` / `Round6_OOD_Progressive_Remaining.ipynb`. Uses each case's real Table 5/7/11 checkpoint (verified against `point5_results/physical_quantities_B2_*.json`'s own checkpoint field, not guessed). Omar asked directly why this wasn't tested rather than just statically read — so a torch/jax/h5py/timm/matplotlib environment was installed in this session and the actual wrapper script was run against all 5 cases (fake untrained checkpoints, 1 sample, 1 shift, CPU) end to end: all 5 produced valid, correctly-shaped JSON, matching the schema of the already-proven `ood_progressive_B1_neo_hookean.json` exactly. No code bugs found. ~7.5–20 h total at full scale, CPU-only, resumable at two levels | Needs Omar to run it for real on Colab |
