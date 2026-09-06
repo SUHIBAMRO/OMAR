@@ -1,4 +1,4 @@
-# Reply to Timon's round-8, point 1 — drafted 2026-09-06
+# Reply to Timon's round-8, point 1 — drafted 2026-09-06, revised same day
 
 Omar's decision: answer point 1's benchmark-scale question using his own
 suggested method ("checking some QoIs and requesting stricter error
@@ -6,37 +6,45 @@ tolerances versus your high fidelity ground truth"), rather than scaling
 up to a new problem (e.g. the tire example) — the latter would open a
 large new work cycle that is out of scope right now.
 
-No new experiment was needed. Table 6a (already in report v56, from
-`high_dof_convergence_study.py`, B1 x Neo-Hookean vs. a ~10M-DOF
-reference) already carries exactly this: relative error in H1 semi-norm
-and the tangent energy norm, together with wall-clock cost, at 6
-resolutions from N=51 (5,202 DOF) to N=1401 (3,925,602 DOF). Reading it
-as a tolerance-vs-cost table:
+**This draft was revised once already**, after a closer read of the
+report text surrounding Table 6a turned up two things the first pass
+overstated:
+- The N=1001/1401 rows have the CG solver hitting its iteration cap
+  without reaching cg_tol on every Newton iteration, so their numbers
+  carry extra, unquantified error and aren't clean data points.
+- The report's own text says H1/energy still don't reach the advisor's
+  own previously-stated 1e-4 target even at N=1401 — a stronger point in
+  the same direction, but not the same claim as "0.2% costs 3 hours,"
+  which the first draft had implied.
 
-| target relative error | resolution needed | wall-clock |
-|---|---|---|
-| <=1% (H1 and energy) | N=201 | ~15 min |
-| <=0.5% | N=401 | ~30 min |
-| <=0.2% (strict, verification-grade) | N=701-1401 | ~100-200 min |
+The revised table below only uses the clean N=51-401 range, and states
+the 1e-4/N=1401 story separately with its caveats rather than folding it
+into a clean number.
 
-None of these are "milliseconds" at any accuracy level a paper would
-plausibly claim as verified.
+**Omar's verdict after reviewing this revision (2026-09-06): the core
+argument is sound, but NOT ready to treat as the paper's final answer
+without two more things**:
+1. Re-measure the same table once the preconditioner (work-queue item
+   #4) is improved — item #4 is now a hard prerequisite for closing this
+   point, not just "nice to do before #13."
+2. Add an engineering QoI like peak stress, since Table 6a's L2/H1/
+   energy are all norms of the error FIELD, not the literal example
+   ("maximum stresses or similar") Timon's email named.
 
-**Honesty caveat, included in the reply rather than omitted**: these
-wall-clock numbers are measured with the same solver/preconditioner
-Timon separately flagged as suboptimal (points 1 and 5, the CG-hidden
-element cost). That is a reason these numbers are a conservative LOWER
-BOUND, not an inflated one — improving the preconditioner (work-queue
-item #4) will only make the numbers faster, and even a large constant-
-factor speedup will not bring multi-million-DOF CG solves into the
-millisecond range. So the argument survives, and arguably strengthens
-once #4 is done and the same table can be re-measured.
+**(2) is now done at the code level** (same day): `high_dof_convergence_
+study.py` has a new `compute_peak_stress_error()` function (peak
+Frobenius-norm PK1 stress, plus a stress-field L2 norm), wired into the
+main sweep and the JSON report. Verified end-to-end on tiny CPU test
+cases for BOTH B1 and B2 — catching and fixing a real bug along the way
+(B2's analytic material field expects polar (theta, r) coordinates, not
+Cartesian, which the first version of the new code got wrong). **Not yet
+run at the real N=51-1401 sweep scale** (needs GPU, like the other
+Colab-run studies in this project) — so there are no real peak-stress-
+vs-N numbers yet, only a verified-correct implementation.
 
-**Scope limit, stated plainly**: Table 6a is B1 x Neo-Hookean only, the
-one case this high-DOF sweep was run for. It is not yet checked whether
-the other five geometry x material combinations show the same pattern.
-Offered as a follow-up if Timon wants broader evidence before this
-argument goes in the paper, not hidden as if already covered.
+**So: do not send this draft yet.** It should wait until at least (1) is
+further along, or be sent explicitly framed as a progress update with
+both open items named, not as a final answer.
 
 ---
 
@@ -49,35 +57,48 @@ used your suggested check rather than scaling up to a new problem for
 now (that would be a substantial separate effort I'd rather scope
 deliberately later, possibly around the tire example you mentioned).
 
-Table 6a in the current report already gives me what I need: B1 x
-Neo-Hookean's relative error against a ~10M-DOF reference solution, at
-six resolutions, together with the wall-clock cost of each solve.
-Reading it as a required-accuracy-vs-cost table:
+Table 6a in the current report (B1 x Neo-Hookean's error against a
+~10M-DOF reference, six resolutions with wall-clock cost) gives a direct
+tolerance-vs-cost answer for the accuracy range that is cleanly measured
+(N=51 to N=701, no solver issues):
 
 - Reaching <=1% relative error (H1 semi-norm and tangent energy norm)
   needs N=201 (80,802 DOF): about 15 minutes.
 - Reaching <=0.5% needs N=401 (321,602 DOF): about 30 minutes.
-- A strict <=0.2% verification-grade tolerance needs N=701-1401
-  (roughly 1-4 million DOF): 100-200 minutes.
 
-So at any accuracy level I'd be comfortable calling "verified" for the
-paper, this problem costs minutes to hours of FEM time, not
-milliseconds.
+So even at a modest accuracy target, this problem costs tens of minutes
+of FEM time, not milliseconds.
 
-One caveat I want to flag rather than gloss over: these times come from
-the same solver/preconditioner you noted is still suboptimal (points 1
-and 5). I read that as making this a conservative lower bound, not an
-inflated one — a better preconditioner will only make these numbers
-faster, and I don't expect any realistic speedup to bring multi-million-
-DOF CG solves down to milliseconds, so I think the conclusion holds
-either way. I plan to re-measure this same table once the preconditioner
-work is done, so we have the honest post-fix numbers too.
+I want to be upfront about where the evidence gets weaker, rather than
+stretch it further than it holds. The table also has an N=1401 point
+(~198 minutes) at 0.16% H1 error, but I'd flag it rather than lean on
+it: the CG solver hit its iteration cap without reaching cg_tol on every
+Newton iteration at that mesh, so that number carries some unquantified
+error beyond discretization and isn't a clean data point. More
+importantly, this is the same section where you had earlier asked for a
+1e-4 relative-error target, and it's honest to say directly: even at
+N=1401, with that reference and that solver, we do not reach it in H1 or
+the energy norm (they land at 1.6x10^-3 and 7.8x10^-4 respectively) —
+closing that gap would need a substantially finer reference than the
+~10M-DOF one we have, beyond what's computationally tractable here right
+now. I read that as arguably a stronger point in the same direction (the
+problem doesn't get "easy" even at large compute), but I didn't want to
+fold it into a clean "0.2% costs 3 hours" number when the data behind it
+isn't clean.
 
-The one limitation I'd flag: this is currently only measured for B1 x
-Neo-Hookean, since that is the one case the high-DOF sweep was run for.
-Happy to extend it to the other five cases if you'd like broader
-evidence before this goes into the paper, or if you'd still prefer the
-larger industrial-scale problem instead.
+One more caveat: these times come from the same solver/preconditioner
+you flagged as suboptimal (points 1 and 5). I'd expect a better
+preconditioner to only make these numbers faster, and I don't think any
+realistic speedup brings multi-million-DOF CG solves into the
+millisecond range, so I think the core conclusion (1%/0.5% tolerances
+cost tens of minutes) survives regardless. I plan to re-measure this
+table once the preconditioner work is done.
+
+Last limitation: this is currently B1 x Neo-Hookean only, the one case
+this high-DOF sweep was run for -- not yet checked on the other five
+combinations. Happy to extend it if you'd like broader evidence before
+this goes into the paper, or if you'd still prefer the larger
+industrial-scale problem instead.
 
 Best regards,
 

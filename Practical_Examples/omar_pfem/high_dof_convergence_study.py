@@ -38,6 +38,16 @@ identical physical problem is solved at every mesh size):
     quadrature energy assembly (matrix_free_solver.element_energy_order_agnostic)
     -- a global scalar that can look converged even where a pointwise
     L2/H1 error has not, and vice versa.
+  - Peak PK1 stress QoI (added 2026-09-06, see compute_peak_stress_error):
+    max Frobenius-norm first Piola-Kirchhoff stress over the coarse mesh's
+    own Gauss points, compared between u_h and u_ref -- the specific
+    engineering QoI the advisor's email named as an example ("maximum
+    stresses or similar") when asking to check tolerance-vs-cost, which
+    none of the three field norms above directly answers. Both fields use
+    the SAME true material parameters sampled at that exact physical
+    point, so the comparison isolates displacement-gradient error, not a
+    material-sampling artifact. Also reports a quadrature-weighted L2 norm
+    of the full stress-field error, alongside the single peak value.
 
 Convergence rate: for two consecutive resolutions with errors e1 (coarser,
 mesh size h1) and e2 (finer, h2), p = log(e1/e2) / log(h1/h2), plus a
@@ -505,6 +515,89 @@ def compute_l2_h1_errors_cross_order(coarse, fine, coarse_order, fine_order, geo
     }
 
 
+def compute_peak_stress_error(coarse, fine, order, geometry, material, E_fn, nu_fn,
+                               device, dtype, **geom_kwargs):
+    """Peak (max Frobenius-norm) first Piola-Kirchhoff stress comparison
+    between an already-solved coarse field and the fine reference -- the
+    literal engineering QoI the advisor named ("maximum stresses or
+    similar") for the point-1 tolerance-vs-cost check, alongside the
+    L2/H1/energy norms compute_l2_h1_errors and compute_tangent_energy_error
+    already report. Added 2026-09-06: those three are all norms of the
+    error FIELD; none of them is the specific peak-value QoI the advisor's
+    email actually named as an example, so the point-1 tolerance table was
+    incomplete without this.
+
+    Reuses the exact PK1 recipe physical_quantities_eval.py's
+    gauss_quantities already validated: F = I + grad(u), P = dPsi/dF via
+    autograd, both fields evaluated at the coarse mesh's own Gauss points
+    (same points compute_l2_h1_errors integrates over). Both stress fields
+    use the SAME true material parameters, sampled directly from the
+    analytic (E, nu) field at that exact physical point -- not either
+    mesh's own discretized/element-averaged elem_params -- so the only
+    difference between the two stress fields is displacement-gradient
+    error, not a material-sampling artifact that would contaminate the
+    comparison.
+
+    E_fn/nu_fn are called with whatever coordinate convention that
+    geometry's own AnalyticField class expects -- Cartesian (x, y) for
+    B1, but polar (theta, r) for B2 (its own docstring: "Calling
+    convention matches RegularGridInterpolator: pts is (N,2) polar
+    (theta, r)"), NOT the (x, y) `pts` this function otherwise works in.
+    Passing raw Cartesian points straight through for B2 would silently
+    swap x/y for theta/r and sample the wrong material value at every
+    point -- the exact conversion below (r = norm, theta = atan2(y, x))
+    is the same one precompute_element_params_B2 already uses to build
+    the solver's own elem_params, so this reuses a validated convention
+    rather than inventing a new one.
+    """
+    nodes_c, elements_c, u_c = coarse["nodes"], coarse["elements"], coarse["u"]
+    pts, detJs, ws, Ns, dN_dXs, elem_idx = gauss_points_and_weights_physical(nodes_c, elements_c, order)
+
+    u_ref_at_gp, grad_u_ref = evaluate_fe_field_and_gradient(pts, fine, order, geometry, **geom_kwargs)
+    u_c_per_elem = u_c[elements_c]
+    grad_u_h = np.einsum("qad,qak->qdk", u_c_per_elem[elem_idx], dN_dXs)
+
+    if geometry == "B1":
+        material_query_pts = pts
+    else:
+        r = np.linalg.norm(pts, axis=1)
+        theta = np.arctan2(pts[:, 1], pts[:, 0])
+        material_query_pts = np.stack([theta, r], axis=1)
+    E_at_pts = torch.tensor(E_fn(material_query_pts), dtype=dtype, device=device)
+    nu_at_pts = torch.tensor(nu_fn(material_query_pts), dtype=dtype, device=device)
+    energy_density_fn, E_nu_to_params_fn = get_material_fns_torch(material)
+    params = E_nu_to_params_fn(E_at_pts, nu_at_pts)
+
+    def pk1_stress(grad_u_np):
+        Q = grad_u_np.shape[0]
+        F = torch.eye(2, dtype=dtype, device=device).expand(Q, 2, 2).clone()
+        F = F + torch.tensor(grad_u_np, dtype=dtype, device=device)
+        F = F.detach().clone().requires_grad_(True)
+        W = energy_density_fn(F, *params, dtype=dtype)
+        P, = torch.autograd.grad(W.sum(), F)
+        return P.detach().cpu().numpy()
+
+    P_h = pk1_stress(grad_u_h)
+    P_ref = pk1_stress(grad_u_ref)
+
+    fro_h = np.sqrt(np.sum(P_h ** 2, axis=(1, 2)))
+    fro_ref = np.sqrt(np.sum(P_ref ** 2, axis=(1, 2)))
+    peak_h = float(np.max(fro_h))
+    peak_ref = float(np.max(fro_ref))
+    peak_abs_err = abs(peak_h - peak_ref)
+    peak_rel_err = peak_abs_err / (peak_ref + 1e-30)
+
+    stress_l2_sq = np.sum((P_h - P_ref) ** 2, axis=(1, 2)) * detJs * ws
+    stress_l2_abs = float(np.sqrt(np.sum(stress_l2_sq)))
+    ref_stress_l2 = float(np.sqrt(np.sum(np.sum(P_ref ** 2, axis=(1, 2)) * detJs * ws))) + 1e-30
+
+    return {
+        "peak_stress_pred": peak_h, "peak_stress_ref": peak_ref,
+        "peak_stress_abs_err": peak_abs_err, "peak_stress_rel_err": peak_rel_err,
+        "stress_field_l2_abs": stress_l2_abs, "stress_field_l2_rel": stress_l2_abs / ref_stress_l2,
+    }
+
+
 def fit_convergence_rate(hs, errors):
     """Single log-log least-squares fit p across all (h, error) pairs where
     error > 0, plus each consecutive pair's own p for comparison."""
@@ -584,6 +677,9 @@ def main():
               f"after each order finishes (and again at the end), so progress survives a "
               f"disconnect instead of living only in this cell's output.")
 
+    E_fn = AnalyticFieldB1("E") if args.geometry == "B1" else AnalyticFieldB2("E")
+    nu_fn = AnalyticFieldB1("nu") if args.geometry == "B1" else AnalyticFieldB2("nu")
+
     for order in orders:
         print(f"\n{'='*90}\nORDER = {order}\n{'='*90}")
         print(f"Solving common fine reference at N={args.fine_N}...")
@@ -633,6 +729,12 @@ def main():
                                                          args.material, device, dtype, **geom_kwargs)
             energy_abs_err = energy_errs["tangent_energy_abs"]
             energy_rel_err = energy_errs["tangent_energy_rel"]
+            # Peak PK1 stress QoI -- the advisor's own named example ("maximum
+            # stresses or similar") for the point-1 tolerance-vs-cost check,
+            # distinct from the three FIELD norms above.
+            stress_errs = compute_peak_stress_error(coarse, fine, order, args.geometry,
+                                                      args.material, E_fn, nu_fn, device, dtype,
+                                                      **geom_kwargs)
             row = {
                 "N": N, "n_dof": coarse["n_dof"], "wall_clock_s": coarse["wall_clock_s"],
                 "newton_iters": coarse["stats"]["newton_iters_total"],
@@ -645,6 +747,12 @@ def main():
                 "l2_abs_error": errs["l2_abs"], "l2_rel_error": errs["l2_rel"],
                 "h1_semi_abs_error": errs["h1_semi_abs"], "h1_semi_rel_error": errs["h1_semi_rel"],
                 "energy_abs_error": float(energy_abs_err), "energy_rel_error": float(energy_rel_err),
+                "peak_stress_pred": stress_errs["peak_stress_pred"],
+                "peak_stress_ref": stress_errs["peak_stress_ref"],
+                "peak_stress_abs_err": stress_errs["peak_stress_abs_err"],
+                "peak_stress_rel_err": stress_errs["peak_stress_rel_err"],
+                "stress_field_l2_abs": stress_errs["stress_field_l2_abs"],
+                "stress_field_l2_rel": stress_errs["stress_field_l2_rel"],
             }
             rows.append(row)
             if row["cg_failures"] > 0:
@@ -656,12 +764,15 @@ def main():
                   f"L2_abs={row['l2_abs_error']:.4e}, L2_rel={row['l2_rel_error']:.4e}, "
                   f"H1_abs={row['h1_semi_abs_error']:.4e}, H1_rel={row['h1_semi_rel_error']:.4e}, "
                   f"energy_abs={row['energy_abs_error']:.4e}, energy_rel={row['energy_rel_error']:.4e}, "
+                  f"peak_stress_rel={row['peak_stress_rel_err']:.4e}, "
                   f"wall_clock={row['wall_clock_s']:.1f}s")
 
         hs = [1.0 / (N - 1) for N in resolutions if N < args.fine_N]
         rate_l2, pairwise_l2 = fit_convergence_rate(hs, [r["l2_rel_error"] for r in rows])
         rate_h1, pairwise_h1 = fit_convergence_rate(hs, [r["h1_semi_rel_error"] for r in rows])
         rate_energy, pairwise_energy = fit_convergence_rate(hs, [r["energy_rel_error"] for r in rows])
+        rate_peak_stress, pairwise_peak_stress = fit_convergence_rate(
+            hs, [r["peak_stress_rel_err"] for r in rows])
 
         print(f"\n{order} convergence rates (log-log LEAST-SQUARES fit across ALL "
               f"{len(rows)} resolutions -- this is the number to report, not any single "
@@ -669,7 +780,10 @@ def main():
         print(f"  L2:     p = {rate_l2}   (pairwise: {[round(p, 2) for p in pairwise_l2]})")
         print(f"  H1:     p = {rate_h1}   (pairwise: {[round(p, 2) for p in pairwise_h1]})")
         print(f"  Energy: p = {rate_energy}   (pairwise: {[round(p, 2) for p in pairwise_energy]})")
-        if any(len(pw) >= 2 and (max(pw) - min(pw)) > 1.0 for pw in [pairwise_l2, pairwise_h1, pairwise_energy]):
+        print(f"  Peak stress: p = {rate_peak_stress}   "
+              f"(pairwise: {[round(p, 2) for p in pairwise_peak_stress]})")
+        if any(len(pw) >= 2 and (max(pw) - min(pw)) > 1.0
+               for pw in [pairwise_l2, pairwise_h1, pairwise_energy, pairwise_peak_stress]):
             print(f"  NOTE: individual pairwise rates above vary a lot (even going negative) at "
                   f"coarse/pre-asymptotic resolutions -- this is expected FEM behavior for a "
                   f"smoothly-varying (not mesh-aligned) exact field, NOT a bug. It happens because "
@@ -687,6 +801,7 @@ def main():
                 "l2_fit": rate_l2, "l2_pairwise": pairwise_l2,
                 "h1_semi_fit": rate_h1, "h1_semi_pairwise": pairwise_h1,
                 "energy_fit": rate_energy, "energy_pairwise": pairwise_energy,
+                "peak_stress_fit": rate_peak_stress, "peak_stress_pairwise": pairwise_peak_stress,
             },
         }
 
