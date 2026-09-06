@@ -81,50 +81,99 @@ from omar_pfem.run_manifest import write_manifest
 # ----------------------------------------------------------------------
 # The manufactured solution family
 # ----------------------------------------------------------------------
-# u*(x,y) = alpha * (sin(pi x) sin(pi y), beta sin(pi x) sin(pi y))
+# u_x(x,y) = alpha     * sum_i w_i sin(m_i pi x) sin(n_i pi y)   (modes[0])
+# u_y(x,y) = alpha*beta * sum_j w_j sin(p_j pi x) sin(q_j pi y)  (modes[1])
 #
-# It vanishes on all four edges of the unit square, so homogeneous Dirichlet
-# is exact. beta != 1 breaks the u = v symmetry, so a bug that treats the two
-# components alike cannot hide. alpha sets the strain magnitude: at 0.05 the
-# deformation is finite but well inside the range where the Newton solve
-# converges in a few iterations, which keeps the convergence study about
-# discretization error rather than about solver tolerance.
+# MODES_SINGLE is the ORIGINAL field every existing result (Tables 22-24,
+# the (alpha,beta) family mms_operator.py samples, mms_family_fem.py) was
+# built from, and stays the default for every function below -- nothing
+# already published silently changes shape. MODES_RICHER is a NEW, EXTRA
+# option (Timon's round-8, point 6: "a richer family of MS containing the
+# sum of several sine/cosine spatial modes while preserving the boundary
+# conditions"), selected explicitly via --richer_family, never the
+# implicit default -- see main()'s own comment on why.
 #
-# This is the "parametrised family" Timon asked for: (alpha, beta) are its
-# parameters, and the operator study varies them.
+# Every term sin(k pi x) with k a positive integer vanishes at x=0 and
+# x=1 -- same for y -- so ANY sum of such terms vanishes exactly on all
+# four edges of the unit square: homogeneous Dirichlet stays the EXACT
+# boundary condition for MODES_RICHER too, no inhomogeneous-Dirichlet
+# support needed in the solver, same as MODES_SINGLE.
+#
+# Both mode sets use DIFFERENT terms for the two components (not a
+# beta-scaled copy of one field), for the same reason beta != 1 does:
+# a bug that treats the two components alike, or that only gets one
+# mode's derivative right while the others coincidentally cancel, cannot
+# hide behind a single mode's correct-looking result.
+MODES_SINGLE = (((1, 1, 1.0),), ((1, 1, 1.0),))
+MODES_RICHER = (
+    ((1, 1, 1.0), (2, 1, 0.5), (1, 3, 0.3)),
+    ((1, 1, 1.0), (3, 2, -0.4), (2, 2, 0.2)),
+)
+DEFAULT_MODES = MODES_SINGLE
 DEFAULT_ALPHA, DEFAULT_BETA = 0.05, 0.7
 
 
-def u_exact(xy, alpha=DEFAULT_ALPHA, beta=DEFAULT_BETA):
+def _mode_sum(x, y, modes):
+    s = torch.zeros_like(x)
+    for m, n, w in modes:
+        s = s + w * torch.sin(m * math.pi * x) * torch.sin(n * math.pi * y)
+    return s
+
+
+def _mode_sum_grad(x, y, modes):
+    """d/dx and d/dy of _mode_sum(x, y, modes), term by term."""
+    pi = math.pi
+    dsdx = torch.zeros_like(x)
+    dsdy = torch.zeros_like(x)
+    for m, n, w in modes:
+        dsdx = dsdx + w * m * pi * torch.cos(m * pi * x) * torch.sin(n * pi * y)
+        dsdy = dsdy + w * n * pi * torch.sin(m * pi * x) * torch.cos(n * pi * y)
+    return dsdx, dsdy
+
+
+def _mode_sum_str(modes):
+    terms = [f"{w:+.2g}*sin({m} pi x)sin({n} pi y)" for m, n, w in modes]
+    return " ".join(terms).lstrip("+")
+
+
+def manufactured_solution_str(alpha, beta, modes=DEFAULT_MODES):
+    """Human-readable u* description for logging and the JSON report --
+    kept in one place so the printed formula and the saved metadata can
+    never drift apart from each other or from `modes`."""
+    return (f"u_x = {alpha}*[{_mode_sum_str(modes[0])}]; "
+            f"u_y = {alpha}*{beta}*[{_mode_sum_str(modes[1])}]; "
+            f"vanishes on the boundary")
+
+
+def u_exact(xy, alpha=DEFAULT_ALPHA, beta=DEFAULT_BETA, modes=DEFAULT_MODES):
     """(...,2) -> (...,2). Differentiable in xy; used both to evaluate the
     solution and, through autodiff, to derive the body force."""
-    s = torch.sin(math.pi * xy[..., 0]) * torch.sin(math.pi * xy[..., 1])
-    return torch.stack([alpha * s, alpha * beta * s], dim=-1)
+    x, y = xy[..., 0], xy[..., 1]
+    sx = _mode_sum(x, y, modes[0])
+    sy = _mode_sum(x, y, modes[1])
+    return torch.stack([alpha * sx, alpha * beta * sy], dim=-1)
 
 
-def _grad_u_single(x, alpha, beta):
+def _grad_u_single(x, alpha, beta, modes=DEFAULT_MODES):
     """grad u at ONE point: (2,2) with [i][j] = du_i/dx_j."""
     return torch.autograd.functional.jacobian(
-        lambda p: u_exact(p, alpha, beta), x, create_graph=True, vectorize=False)
+        lambda p: u_exact(p, alpha, beta, modes), x, create_graph=True, vectorize=False)
 
 
-def grad_u_exact(xy, alpha=DEFAULT_ALPHA, beta=DEFAULT_BETA):
+def grad_u_exact(xy, alpha=DEFAULT_ALPHA, beta=DEFAULT_BETA, modes=DEFAULT_MODES):
     """Analytic gradient, (...,2,2) with [...,i,j] = du_i/dx_j.
 
     Written out rather than autodiffed because it is needed at every Gauss
     point of every mesh in the sweep and closed form is far cheaper. It is
     checked against autodiff in verify_derivation()."""
     x, y = xy[..., 0], xy[..., 1]
-    pi = math.pi
-    sx, cx = torch.sin(pi * x), torch.cos(pi * x)
-    sy, cy = torch.sin(pi * y), torch.cos(pi * y)
-    dsdx, dsdy = pi * cx * sy, pi * sx * cy
-    z = torch.zeros_like(x)
+    dsx_dx, dsx_dy = _mode_sum_grad(x, y, modes[0])
+    dsy_dx, dsy_dy = _mode_sum_grad(x, y, modes[1])
     g = torch.stack([
-        torch.stack([alpha * dsdx, alpha * dsdy], dim=-1),
-        torch.stack([alpha * beta * dsdx, alpha * beta * dsdy], dim=-1),
+        torch.stack([alpha * dsx_dx, alpha * dsx_dy], dim=-1),
+        torch.stack([alpha * beta * dsy_dx, alpha * beta * dsy_dy], dim=-1),
     ], dim=-2)
-    return g + z[..., None, None]
+    return g
 
 
 def _psi_and_P(F, mu, lam, material, dtype):
@@ -165,18 +214,18 @@ def tangent_modulus_batched(F, mu, lam, material, dtype):
 
 
 def P_exact(xy, mu, lam, material, alpha=DEFAULT_ALPHA, beta=DEFAULT_BETA,
-            dtype=torch.float64):
+            dtype=torch.float64, modes=DEFAULT_MODES):
     """First Piola-Kirchhoff stress of the manufactured solution, (...,2,2)."""
     F = torch.eye(2, dtype=dtype, device=xy.device).expand(
         xy.shape[:-1] + (2, 2)).clone()
-    F = F + grad_u_exact(xy, alpha, beta)
+    F = F + grad_u_exact(xy, alpha, beta, modes)
     _, P = _psi_and_P(F.reshape(-1, 2, 2), mu.reshape(-1), lam.reshape(-1),
                       material, dtype)
     return P.reshape(xy.shape[:-1] + (2, 2))
 
 
 def body_force_exact(xy, mu, lam, material, alpha=DEFAULT_ALPHA,
-                     beta=DEFAULT_BETA, dtype=torch.float64):
+                     beta=DEFAULT_BETA, dtype=torch.float64, modes=DEFAULT_MODES):
     """b = -Div P, with (Div P)_i = sum_j dP_ij / dx_j.
 
     Nested autodiff: P already involves one derivative of psi with respect to
@@ -190,7 +239,7 @@ def body_force_exact(xy, mu, lam, material, alpha=DEFAULT_ALPHA,
 
     def P_at(p, mu_i, lam_i):
         F = torch.eye(2, dtype=p.dtype, device=p.device) + \
-            grad_u_exact(p, alpha, beta)
+            grad_u_exact(p, alpha, beta, modes)
 
         def psi_of_F(Fm):
             return energy_density_fn(Fm[None], mu_i[None], lam_i[None],
@@ -281,7 +330,7 @@ def shape_values(order, dtype=torch.float64):
 
 
 def assemble_body_force(nodes, elements, order, mu_e, lam_e, material,
-                        alpha, beta, dtype=torch.float64):
+                        alpha, beta, dtype=torch.float64, modes=DEFAULT_MODES):
     """f_a = integral of N_a * b over the domain, as a (2*n_nodes,) vector.
 
     mu_e, lam_e are per-element, matching the solver's own convention."""
@@ -290,7 +339,7 @@ def assemble_body_force(nodes, elements, order, mu_e, lam_e, material,
     Q, G = dV.shape
     mu_g = mu_e[:, None].expand(Q, G)
     lam_g = lam_e[:, None].expand(Q, G)
-    b = body_force_exact(xg, mu_g, lam_g, material, alpha, beta, dtype)  # (Q,G,2)
+    b = body_force_exact(xg, mu_g, lam_g, material, alpha, beta, dtype, modes)  # (Q,G,2)
 
     contrib = torch.einsum('gl,qgi,qg->qli', Ng, b, dV)   # (Q, n_local, 2)
     f = torch.zeros(len(nodes), 2, dtype=dtype)
@@ -309,7 +358,7 @@ def boundary_nodes(nodes, Lx=1.0, Ly=1.0, tol=1e-9):
 # Errors
 # ----------------------------------------------------------------------
 def compute_errors(nodes, elements, order, u_h, mu_e, lam_e, material,
-                   alpha, beta, dtype=torch.float64):
+                   alpha, beta, dtype=torch.float64, modes=DEFAULT_MODES):
     """L2, H1 semi-norm, energy (value AND norm) and stress errors of u_h
     against u*, all as relative quantities and all integrated on the FE
     mesh's own quadrature.
@@ -359,8 +408,8 @@ def compute_errors(nodes, elements, order, u_h, mu_e, lam_e, material,
     uh_g = torch.einsum('gl,qli->qgi', Ng, ue)               # (Q,G,2)
     grad_uh = torch.einsum('qgla,qli->qgia', dNdx, ue)       # (Q,G,2,2) [i][a]
 
-    u_star = u_exact(xg, alpha, beta)
-    grad_star = grad_u_exact(xg, alpha, beta)
+    u_star = u_exact(xg, alpha, beta, modes)
+    grad_star = grad_u_exact(xg, alpha, beta, modes)
 
     def integ(v):
         return float(torch.einsum('qg...,qg->', v, dV).item())
@@ -411,7 +460,7 @@ def compute_errors(nodes, elements, order, u_h, mu_e, lam_e, material,
 # Verification of the derivation itself
 # ----------------------------------------------------------------------
 def verify_derivation(material="neo_hookean", alpha=DEFAULT_ALPHA,
-                      beta=DEFAULT_BETA, dtype=torch.float64):
+                      beta=DEFAULT_BETA, dtype=torch.float64, modes=DEFAULT_MODES):
     """Three independent checks, before any mesh is built. If the body force
     is wrong every number this module produces is wrong, and a convergence
     table alone would not say which piece failed."""
@@ -422,8 +471,8 @@ def verify_derivation(material="neo_hookean", alpha=DEFAULT_ALPHA,
     ok = True
 
     # 1) the closed-form gradient against autodiff
-    ad = torch.stack([_grad_u_single(p, alpha, beta) for p in pts])
-    cf = grad_u_exact(pts, alpha, beta)
+    ad = torch.stack([_grad_u_single(p, alpha, beta, modes) for p in pts])
+    cf = grad_u_exact(pts, alpha, beta, modes)
     e = (ad - cf).abs().max().item()
     print(f"  grad u*: closed form vs autodiff, max |diff| = {e:.3e}")
     ok &= e < 1e-10
@@ -435,19 +484,19 @@ def verify_derivation(material="neo_hookean", alpha=DEFAULT_ALPHA,
                       torch.stack([t, torch.ones_like(t)], -1),
                       torch.stack([torch.zeros_like(t), t], -1),
                       torch.stack([torch.ones_like(t), t], -1)])
-    e = u_exact(edge, alpha, beta).abs().max().item()
+    e = u_exact(edge, alpha, beta, modes).abs().max().item()
     print(f"  u* on the boundary, max |u*| = {e:.3e}")
     ok &= e < 1e-14
 
     # 3) the divergence, by autodiff against a central finite difference
     h = 1e-5
-    b_ad = body_force_exact(pts, mu, lam, material, alpha, beta, dtype)
+    b_ad = body_force_exact(pts, mu, lam, material, alpha, beta, dtype, modes)
     div_fd = torch.zeros_like(pts)
     for j in range(2):
         off = torch.zeros(2, dtype=dtype)
         off[j] = h
-        Pp = P_exact(pts + off, mu, lam, material, alpha, beta, dtype)
-        Pm = P_exact(pts - off, mu, lam, material, alpha, beta, dtype)
+        Pp = P_exact(pts + off, mu, lam, material, alpha, beta, dtype, modes)
+        Pm = P_exact(pts - off, mu, lam, material, alpha, beta, dtype, modes)
         div_fd += (Pp[..., :, j] - Pm[..., :, j]) / (2 * h)
     b_fd = -div_fd
     rel = ((b_ad - b_fd).norm() / b_fd.norm()).item()
@@ -461,7 +510,7 @@ def verify_derivation(material="neo_hookean", alpha=DEFAULT_ALPHA,
 
 # ----------------------------------------------------------------------
 def solve_mms(order, N, material, alpha, beta, device, dtype=torch.float64,
-              newton_tol=1e-10, cg_tol=1e-8, verbose=False):
+              newton_tol=1e-10, cg_tol=1e-8, verbose=False, modes=DEFAULT_MODES):
     nodes, elements = build_mesh(order, N)
     from omar_pfem.materials_torch import get_material_fns
     _, E_nu_to_params = get_material_fns(material)
@@ -480,7 +529,7 @@ def solve_mms(order, N, material, alpha, beta, device, dtype=torch.float64,
                    torch.full((n_el,), float(params[1]), dtype=dtype))
 
     fext = assemble_body_force(nodes, elements, order, mu_e, lam_e, material,
-                               alpha, beta, dtype)
+                               alpha, beta, dtype, modes)
 
     fixed = boundary_nodes(nodes)
     fixed_dofs = np.concatenate([2 * fixed, 2 * fixed + 1])
@@ -516,7 +565,7 @@ def solve_mms(order, N, material, alpha, beta, device, dtype=torch.float64,
     u_h = u_full.reshape(len(nodes), 2).cpu().numpy()
 
     err = compute_errors(nodes, elements, order, u_h, mu_e, lam_e, material,
-                         alpha, beta, dtype)
+                         alpha, beta, dtype, modes)
     err.update({"order": order, "N": N, "h": 1.0 / (N - 1),
                 "n_nodes": len(nodes), "n_dof": 2 * len(nodes),
                 "n_elements": n_el, "wall_clock_s": wall,
@@ -534,13 +583,24 @@ def main():
     p.add_argument("--beta", type=float, default=DEFAULT_BETA)
     p.add_argument("--verify", action="store_true",
                    help="run the derivation checks and stop")
+    p.add_argument("--richer_family", action="store_true",
+                   help="use MODES_RICHER (a sum of several sine/cosine spatial "
+                        "modes, Timon's round-8 point 6) instead of the default "
+                        "MODES_SINGLE. NOT the default: Tables 22-24 and every "
+                        "other existing result (mms_operator.py's (alpha,beta) "
+                        "family, mms_family_fem.py) were built assuming "
+                        "MODES_SINGLE, so this stays deliberately opt-in rather "
+                        "than silently changing the shape those already depend "
+                        "on. Also changes the default --out_json name so a run "
+                        "with this flag can never overwrite the reference file.")
     p.add_argument("--out_json", default=None)
     p.add_argument("--cpu", action="store_true")
     p.add_argument("--verbose", action="store_true")
     args = p.parse_args()
+    modes = MODES_RICHER if args.richer_family else MODES_SINGLE
 
     print("Verifying the manufactured solution and its body force:")
-    if not verify_derivation(args.material, args.alpha, args.beta):
+    if not verify_derivation(args.material, args.alpha, args.beta, modes=modes):
         raise SystemExit("derivation checks failed")
     if args.verify:
         return
@@ -549,7 +609,9 @@ def main():
     dtype = torch.float64
     orders = [o.strip() for o in args.orders.split(",") if o.strip()]
     Ns = [int(n) for n in args.Ns.split(",") if n.strip()]
-    out_json = args.out_json or f"mms_B1_{args.material}.json"
+    default_name = (f"mms_richer_B1_{args.material}.json" if args.richer_family
+                     else f"mms_B1_{args.material}.json")
+    out_json = args.out_json or default_name
 
     rows = []
     if os.path.exists(out_json):
@@ -566,8 +628,7 @@ def main():
     done = {(r["order"], r["N"]) for r in rows if "energy_norm_rel" in r}
 
     print(f"\nDevice: {device}, dtype float64, alpha={args.alpha}, beta={args.beta}")
-    print(f"u*(x,y) = {args.alpha} * (sin(pi x) sin(pi y), "
-          f"{args.beta} sin(pi x) sin(pi y))\n")
+    print(f"{manufactured_solution_str(args.alpha, args.beta, modes)}\n")
     hdr = (f"{'order':<6}{'N':>5}{'DOF':>9}{'L2':>12}{'H1 semi':>12}{'stress':>12}"
            f"{'energy':>12}{'E-norm':>12}{'s':>8}")
     print(hdr)
@@ -584,7 +645,7 @@ def main():
             if (order, N) in done:
                 continue
             err, *_ = solve_mms(order, N, args.material, args.alpha, args.beta,
-                                device, dtype, verbose=args.verbose)
+                                device, dtype, verbose=args.verbose, modes=modes)
             rows.append(err)
             print(f"{err['order']:<6}{err['N']:>5}{err['n_dof']:>9,}"
                   f"{err['L2_rel']:>12.3e}{err['H1_semi_rel']:>12.3e}"
@@ -592,9 +653,8 @@ def main():
                   f"{err['energy_norm_rel']:>12.3e}{err['wall_clock_s']:>8.1f}", flush=True)
             rep = {"study": "method of manufactured solutions",
                    "geometry": "B1 (unit square)", "material": args.material,
-                   "manufactured_solution":
-                       f"u* = {args.alpha}*(sin(pi x)sin(pi y), "
-                       f"{args.beta}*sin(pi x)sin(pi y)); vanishes on the boundary",
+                   "manufactured_solution": manufactured_solution_str(args.alpha, args.beta, modes),
+                   "richer_family": args.richer_family,
                    "alpha": args.alpha, "beta": args.beta,
                    "body_force": "b = -Div P(F*), by nested autodiff, checked "
                                  "against a central finite difference",
