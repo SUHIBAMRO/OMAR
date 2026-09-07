@@ -3,6 +3,20 @@ coarse-vs-fine training-mesh resolution study), and #14 (GOEE paper
 confirmation/citation) to the Report document Omar uploaded directly
 (the copy he actually sent to Timon). Anchors below were verified to
 exist, uniquely, in this exact file before writing this script.
+
+IMPORTANT CONTEXT, 2026-09-07: the .docx file Omar sent to Timon (and
+uploaded here for this edit) does NOT match "report v56" as tracked in
+PROJECT_STATUS.md. Checking known anchors from make_v53.py/54/55/56
+against it shows it is missing items #1 (continual-learning citation),
+#2 (Table 21 wall-clock rows), #5 (batch-size-1 labeling), and #8
+(Table 21a budget comparison) -- i.e. it predates v53. This script does
+NOT attempt to backfill that gap; it only adds #6/#7/#14 on top of
+whatever this file actually contains. See PROJECT_STATUS.md for the
+full note and Omar's decision on whether the v53-56 backfill should
+still happen. This script therefore does NOT follow the SRC/DST
+'PFEM_Transolver_Report_vNN.docx' naming convention of make_v39.py
+through make_v56.py, since the true version number of the input file
+is unknown -- SRC/DST below are generic working filenames instead.
 """
 import copy
 from docx import Document
