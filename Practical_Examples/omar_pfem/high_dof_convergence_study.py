@@ -242,7 +242,8 @@ def build_mesh_and_bcs(geometry, order, N, material, device, dtype):
 
 def solve_one(geometry, order, N, material, device, dtype, cg_tol, newton_tol,
               use_jacobi=True, precond_kind="jacobi", cg_max_iter=2000, verbose=False,
-              checkpoint_path=None, cg_progress_every=None, cg_checkpoint_every=2000):
+              checkpoint_path=None, cg_progress_every=None, cg_checkpoint_every=2000,
+              mg_min_coarse_n=13, mg_max_levels=4):
     nodes, elements, free_dofs, fext_full, elem_params_np = build_mesh_and_bcs(
         geometry, order, N, material, device, dtype)
 
@@ -252,12 +253,37 @@ def solve_one(geometry, order, N, material, device, dtype, cg_tol, newton_tol,
     elem_params_t = tuple(torch.tensor(p, dtype=dtype, device=device) for p in elem_params_np)
     fext_free_t = torch.tensor(fext_full[free_dofs], dtype=dtype, device=device)
 
+    mg_hierarchy = None
+    if precond_kind == "mgv":
+        # Builds the SAME kind of coarser meshes solve_matrix_free's own
+        # Jacobi/block2x2 branches never need, by calling this file's own
+        # build_mesh_and_bcs at successively coarser N (same geometry,
+        # material, and BC convention -- not a separate mesh-generation
+        # path), matching validate_multigrid_precond.py's own hierarchy
+        # construction exactly, since that is what was actually validated
+        # (correctness + iteration-count) before this was ever pointed at
+        # a real N=401/701 problem.
+        from omar_pfem.multigrid_precond import build_mg_hierarchy, coarsen_N
+        Ns_mg = [N]
+        while True:
+            nc = coarsen_N(Ns_mg[-1])
+            if nc is None or nc < mg_min_coarse_n or len(Ns_mg) >= mg_max_levels:
+                break
+            Ns_mg.append(nc)
+        mesh_tuples = [(N, nodes, elements, free_dofs, elem_params_np)]
+        for n in Ns_mg[1:]:
+            c_nodes, c_elements, c_free, _c_fext, c_params = build_mesh_and_bcs(
+                geometry, order, n, material, device, dtype)
+            mesh_tuples.append((n, c_nodes, c_elements, c_free, c_params))
+        mg_hierarchy = build_mg_hierarchy(mesh_tuples, dtype, device)
+        print(f"  [mgv] hierarchy N: {Ns_mg} ({len(mesh_tuples)} levels)")
+
     t0 = time.time()
     u_free, stats = solve_matrix_free(
         xy_t, quad_t, free_dofs_t, elem_params_t, fext_free_t, n_free=len(free_dofs),
         material=material, order=order, nsteps=10, newton_max=30,
         newton_tol=newton_tol, cg_tol=cg_tol, cg_max_iter=cg_max_iter, use_jacobi=use_jacobi,
-        precond_kind=precond_kind,
+        precond_kind=precond_kind, mg_hierarchy=mg_hierarchy,
         device=device, dtype=dtype, verbose=verbose, checkpoint_path=checkpoint_path,
         cg_progress_every=cg_progress_every, cg_checkpoint_every=cg_checkpoint_every)
     wall_s = time.time() - t0
@@ -677,14 +703,22 @@ def main():
     parser.add_argument("--no_jacobi", action="store_true",
                          help="Disable the Jacobi preconditioner (plain CG) -- for comparing "
                               "iteration counts/wall-clock with vs. without it on your own hardware")
-    parser.add_argument("--precond_kind", type=str, default="jacobi", choices=["jacobi", "block2x2"],
+    parser.add_argument("--precond_kind", type=str, default="jacobi",
+                         choices=["jacobi", "block2x2", "mgv"],
                          help="Which preconditioner to build when the preconditioner is enabled "
                               "(i.e. --no_jacobi is NOT passed). 'jacobi' (default) is the scalar "
                               "diagonal every already-published number in this study uses -- passing "
-                              "nothing here changes nothing. 'block2x2' is the new opt-in 2x2 "
-                              "per-node block preconditioner (captures u/v coupling a scalar diagonal "
-                              "discards), validated against the dense CPU reference on both B1 and B2 "
-                              "(including B2's partially-fixed-DOF nodes) in validate_matrix_free_solver.py")
+                              "nothing here changes nothing. 'block2x2' is the 2x2 per-node block "
+                              "preconditioner (captures u/v coupling a scalar diagonal discards); "
+                              "measured (real GPU re-run 2026-09-07) to NOT reduce cg_failures at "
+                              "N=401/701 relative to plain Jacobi. 'mgv' is a geometric multigrid "
+                              "V-cycle (multigrid_precond.py) -- validated against the dense/plain-"
+                              "Jacobi reference on both B1 and B2 (including B2's partially-fixed-DOF "
+                              "nodes) in validate_multigrid_precond.py, where its iteration-count "
+                              "advantage over plain Jacobi GREW with problem size (3x at N=9, 5.2x at "
+                              "N=33, 9.7x at N=65 on CPU) -- the signature of correctly-functioning "
+                              "multigrid, and the reason it is being tried on the real N=401+ problem "
+                              "that block2x2 could not fix.")
     parser.add_argument("--cpu", action="store_true")
     parser.add_argument("--out_json", type=str, default=None)
     parser.add_argument("--checkpoint_dir", type=str, default=None,
