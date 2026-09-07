@@ -516,77 +516,122 @@ def compute_l2_h1_errors_cross_order(coarse, fine, coarse_order, fine_order, geo
     }
 
 
-def compute_peak_stress_error(coarse, fine, order, geometry, material, E_fn, nu_fn,
-                               device, dtype, **geom_kwargs):
+def _material_query_pts(pts, geometry):
+    """Converts physical (x, y) points to whatever coordinate convention
+    that geometry's own AnalyticField class expects -- Cartesian (x, y)
+    for B1, but polar (theta, r) for B2 (its own docstring: "Calling
+    convention matches RegularGridInterpolator: pts is (N,2) polar
+    (theta, r)"). Passing raw Cartesian points straight through for B2
+    would silently swap x/y for theta/r and sample the wrong material
+    value at every point -- this is the same conversion
+    precompute_element_params_B2 already uses to build the solver's own
+    elem_params, reused here rather than inventing a new one."""
+    if geometry == "B1":
+        return pts
+    r = np.linalg.norm(pts, axis=1)
+    theta = np.arctan2(pts[:, 1], pts[:, 0])
+    return np.stack([theta, r], axis=1)
+
+
+def _pk1_stress_at(grad_u_np, E_np_or_t, nu_np_or_t, material, device, dtype):
+    """F = I + grad(u), P = dPsi/dF via autograd -- the exact PK1 recipe
+    physical_quantities_eval.py's gauss_quantities already validated."""
+    energy_density_fn, E_nu_to_params_fn = get_material_fns_torch(material)
+    E_t = torch.as_tensor(E_np_or_t, dtype=dtype, device=device)
+    nu_t = torch.as_tensor(nu_np_or_t, dtype=dtype, device=device)
+    params = E_nu_to_params_fn(E_t, nu_t)
+    Q = grad_u_np.shape[0]
+    F = torch.eye(2, dtype=dtype, device=device).expand(Q, 2, 2).clone()
+    F = F + torch.tensor(grad_u_np, dtype=dtype, device=device)
+    F = F.detach().clone().requires_grad_(True)
+    W = energy_density_fn(F, *params, dtype=dtype)
+    P, = torch.autograd.grad(W.sum(), F)
+    return P.detach().cpu().numpy()
+
+
+def find_fine_peak_stress(fine, order, geometry, material, E_fn, nu_fn, device, dtype):
+    """Locates the fine reference's own peak (max Frobenius-norm PK1
+    stress) point, ONCE, from the fine mesh's own dense Gauss points --
+    this is the FIXED target every coarse resolution's peak-stress error
+    is measured against. Call once per order, right after the fine
+    reference is solved, and reuse the (location, value) pair for every
+    resolution in that order's sweep (both are independent of which
+    coarse N is being tested next).
+
+    Returns (x_star, peak_ref): x_star is a (1, 2) physical point, and
+    peak_ref is the scalar Frobenius-norm stress there."""
+    nodes_f, elements_f, u_f = fine["nodes"], fine["elements"], fine["u"]
+    pts_f, detJs_f, ws_f, Ns_f, dN_dXs_f, elem_idx_f = gauss_points_and_weights_physical(
+        nodes_f, elements_f, order)
+    u_f_per_elem = u_f[elements_f]
+    grad_u_f = np.einsum("qad,qak->qdk", u_f_per_elem[elem_idx_f], dN_dXs_f)
+
+    E_f = E_fn(_material_query_pts(pts_f, geometry))
+    nu_f = nu_fn(_material_query_pts(pts_f, geometry))
+    P_f = _pk1_stress_at(grad_u_f, E_f, nu_f, material, device, dtype)
+    fro_f = np.sqrt(np.sum(P_f ** 2, axis=(1, 2)))
+    star_idx = int(np.argmax(fro_f))
+    x_star = pts_f[star_idx:star_idx + 1]  # (1, 2)
+    peak_ref = float(fro_f[star_idx])
+    return x_star, peak_ref
+
+
+def compute_peak_stress_error(coarse, fine, x_star, peak_ref, order, geometry, material,
+                               E_fn, nu_fn, device, dtype, **geom_kwargs):
     """Peak (max Frobenius-norm) first Piola-Kirchhoff stress comparison
     between an already-solved coarse field and the fine reference -- the
     literal engineering QoI the advisor named ("maximum stresses or
     similar") for the point-1 tolerance-vs-cost check, alongside the
     L2/H1/energy norms compute_l2_h1_errors and compute_tangent_energy_error
-    already report. Added 2026-09-06: those three are all norms of the
-    error FIELD; none of them is the specific peak-value QoI the advisor's
-    email actually named as an example, so the point-1 tolerance table was
-    incomplete without this.
+    already report.
 
-    Reuses the exact PK1 recipe physical_quantities_eval.py's
-    gauss_quantities already validated: F = I + grad(u), P = dPsi/dF via
-    autograd, both fields evaluated at the coarse mesh's own Gauss points
-    (same points compute_l2_h1_errors integrates over). Both stress fields
-    use the SAME true material parameters, sampled directly from the
-    analytic (E, nu) field at that exact physical point -- not either
-    mesh's own discretized/element-averaged elem_params -- so the only
-    difference between the two stress fields is displacement-gradient
-    error, not a material-sampling artifact that would contaminate the
-    comparison.
+    FIXED 2026-09-07: the original version computed peak_h/peak_ref as
+    max(|P|) over the COARSE mesh's own Gauss points -- a point set whose
+    density (and therefore the achieved sample maximum of a continuous
+    field) grows with the coarse resolution N under test, so "peak_ref"
+    silently drifted upward across rows (13.9 at N=51 to 39.3 at N=1401 in
+    the first real run) instead of estimating one fixed target value; the
+    reported "peak stress error" was measuring how the sampling density
+    changed, not how accurate the coarse solution's stress prediction was.
+    Fixed by comparing against a FIXED point instead: x_star/peak_ref (from
+    find_fine_peak_stress, called once per order, the same for every row)
+    is the fine reference's own true peak-stress location and value; every
+    coarse resolution's stress is evaluated at that exact physical point
+    via its own shape functions (evaluate_fe_field_and_gradient does exact
+    point-location FE evaluation and works for any structured mesh, so the
+    same routine already used for the fine side is reused for the coarse
+    side here). This makes peak-stress error a genuine, fixed-target
+    pointwise QoI, comparable in kind to the peak-stress a posteriori
+    error estimators goal-oriented/adjoint methods target -- still
+    expected to be noisier than a global norm like L2/H1 (a pointwise
+    value has no built-in energy-norm smoothing), but no longer inflated
+    by a moving reference on top of that.
 
-    E_fn/nu_fn are called with whatever coordinate convention that
-    geometry's own AnalyticField class expects -- Cartesian (x, y) for
-    B1, but polar (theta, r) for B2 (its own docstring: "Calling
-    convention matches RegularGridInterpolator: pts is (N,2) polar
-    (theta, r)"), NOT the (x, y) `pts` this function otherwise works in.
-    Passing raw Cartesian points straight through for B2 would silently
-    swap x/y for theta/r and sample the wrong material value at every
-    point -- the exact conversion below (r = norm, theta = atan2(y, x))
-    is the same one precompute_element_params_B2 already uses to build
-    the solver's own elem_params, so this reuses a validated convention
-    rather than inventing a new one.
+    The stress-FIELD L2 comparison below is untouched by this fix -- it
+    was already a genuine integral over the coarse mesh's own Gauss
+    points against the fine field evaluated there, never a max, so it was
+    never subject to the moving-target bug.
     """
     nodes_c, elements_c, u_c = coarse["nodes"], coarse["elements"], coarse["u"]
-    pts, detJs, ws, Ns, dN_dXs, elem_idx = gauss_points_and_weights_physical(nodes_c, elements_c, order)
 
+    u_c_at_star, grad_u_c_at_star = evaluate_fe_field_and_gradient(x_star, coarse, order, geometry,
+                                                                    **geom_kwargs)
+    E_star = E_fn(_material_query_pts(x_star, geometry))
+    nu_star = nu_fn(_material_query_pts(x_star, geometry))
+    P_c_star = _pk1_stress_at(grad_u_c_at_star, E_star, nu_star, material, device, dtype)
+    peak_h = float(np.sqrt(np.sum(P_c_star ** 2)))
+    peak_abs_err = abs(peak_h - peak_ref)
+    peak_rel_err = peak_abs_err / (peak_ref + 1e-30)
+
+    pts, detJs, ws, Ns, dN_dXs, elem_idx = gauss_points_and_weights_physical(nodes_c, elements_c, order)
     u_ref_at_gp, grad_u_ref = evaluate_fe_field_and_gradient(pts, fine, order, geometry, **geom_kwargs)
     u_c_per_elem = u_c[elements_c]
     grad_u_h = np.einsum("qad,qak->qdk", u_c_per_elem[elem_idx], dN_dXs)
 
-    if geometry == "B1":
-        material_query_pts = pts
-    else:
-        r = np.linalg.norm(pts, axis=1)
-        theta = np.arctan2(pts[:, 1], pts[:, 0])
-        material_query_pts = np.stack([theta, r], axis=1)
-    E_at_pts = torch.tensor(E_fn(material_query_pts), dtype=dtype, device=device)
-    nu_at_pts = torch.tensor(nu_fn(material_query_pts), dtype=dtype, device=device)
-    energy_density_fn, E_nu_to_params_fn = get_material_fns_torch(material)
-    params = E_nu_to_params_fn(E_at_pts, nu_at_pts)
-
-    def pk1_stress(grad_u_np):
-        Q = grad_u_np.shape[0]
-        F = torch.eye(2, dtype=dtype, device=device).expand(Q, 2, 2).clone()
-        F = F + torch.tensor(grad_u_np, dtype=dtype, device=device)
-        F = F.detach().clone().requires_grad_(True)
-        W = energy_density_fn(F, *params, dtype=dtype)
-        P, = torch.autograd.grad(W.sum(), F)
-        return P.detach().cpu().numpy()
-
-    P_h = pk1_stress(grad_u_h)
-    P_ref = pk1_stress(grad_u_ref)
-
-    fro_h = np.sqrt(np.sum(P_h ** 2, axis=(1, 2)))
-    fro_ref = np.sqrt(np.sum(P_ref ** 2, axis=(1, 2)))
-    peak_h = float(np.max(fro_h))
-    peak_ref = float(np.max(fro_ref))
-    peak_abs_err = abs(peak_h - peak_ref)
-    peak_rel_err = peak_abs_err / (peak_ref + 1e-30)
+    E_at_pts = E_fn(_material_query_pts(pts, geometry))
+    nu_at_pts = nu_fn(_material_query_pts(pts, geometry))
+    P_h = _pk1_stress_at(grad_u_h, E_at_pts, nu_at_pts, material, device, dtype)
+    P_ref = _pk1_stress_at(grad_u_ref, E_at_pts, nu_at_pts, material, device, dtype)
 
     stress_l2_sq = np.sum((P_h - P_ref) ** 2, axis=(1, 2)) * detJs * ws
     stress_l2_abs = float(np.sqrt(np.sum(stress_l2_sq)))
@@ -595,6 +640,7 @@ def compute_peak_stress_error(coarse, fine, order, geometry, material, E_fn, nu_
     return {
         "peak_stress_pred": peak_h, "peak_stress_ref": peak_ref,
         "peak_stress_abs_err": peak_abs_err, "peak_stress_rel_err": peak_rel_err,
+        "peak_stress_loc": x_star[0].tolist(),
         "stress_field_l2_abs": stress_l2_abs, "stress_field_l2_rel": stress_l2_abs / ref_stress_l2,
     }
 
@@ -707,6 +753,14 @@ def main():
               f"CG iters={fine['stats']['cg_iters_total']}, "
               f"CG failures={fine['stats']['cg_failures']}")
 
+        # Fixed peak-stress target for this order's whole sweep -- located
+        # ONCE from the fine reference's own dense Gauss points, then every
+        # coarse resolution below is compared against this same physical
+        # point (see compute_peak_stress_error's docstring for why a FIXED
+        # target matters here).
+        peak_x_star, peak_ref_fixed = find_fine_peak_stress(
+            fine, order, args.geometry, args.material, E_fn, nu_fn, device, dtype)
+
         rows = []
         for N in resolutions:
             if N >= args.fine_N:
@@ -743,9 +797,9 @@ def main():
             # Peak PK1 stress QoI -- the advisor's own named example ("maximum
             # stresses or similar") for the point-1 tolerance-vs-cost check,
             # distinct from the three FIELD norms above.
-            stress_errs = compute_peak_stress_error(coarse, fine, order, args.geometry,
-                                                      args.material, E_fn, nu_fn, device, dtype,
-                                                      **geom_kwargs)
+            stress_errs = compute_peak_stress_error(coarse, fine, peak_x_star, peak_ref_fixed, order,
+                                                      args.geometry, args.material, E_fn, nu_fn,
+                                                      device, dtype, **geom_kwargs)
             row = {
                 "N": N, "n_dof": coarse["n_dof"], "wall_clock_s": coarse["wall_clock_s"],
                 "newton_iters": coarse["stats"]["newton_iters_total"],
@@ -762,6 +816,11 @@ def main():
                 "peak_stress_ref": stress_errs["peak_stress_ref"],
                 "peak_stress_abs_err": stress_errs["peak_stress_abs_err"],
                 "peak_stress_rel_err": stress_errs["peak_stress_rel_err"],
+                # Fixed across every row in this order's sweep (same fine
+                # reference) -- included so a reader can confirm this
+                # directly rather than trust it, per the fix described in
+                # compute_peak_stress_error's docstring.
+                "peak_stress_loc": stress_errs["peak_stress_loc"],
                 "stress_field_l2_abs": stress_errs["stress_field_l2_abs"],
                 "stress_field_l2_rel": stress_errs["stress_field_l2_rel"],
             }

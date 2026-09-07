@@ -31,59 +31,58 @@ without two more things**:
    energy are all norms of the error FIELD, not the literal example
    ("maximum stresses or similar") Timon's email named.
 
-**(2) is now done, including the real sweep** (`high_dof_convergence_
-study.py`'s `compute_peak_stress_error()`, peak Frobenius-norm PK1
-stress plus a stress-field L2 norm; verified on tiny CPU cases for both
-B1 and B2 first, catching and fixing a real bug along the way — B2's
-analytic material field expects polar (theta, r) coordinates, not
-Cartesian). **The real GPU sweep finished 2026-09-07**
-(`highdof_stress_qoi_results/high_dof_stress_qoi_B1_neo_hookean.json`),
-and it does NOT tell the same clean story L2/H1/energy do — this needs
-to go to Timon honestly, not smoothed over:
+**(2) is now done at the code level, TWICE** — the first version had a
+real measurement bug, caught by Omar asking the right question ("هل في
+طريقه صحيحه لعمله ولا المشكله باشي تاني؟") after the first real sweep's
+numbers looked wrong, rather than accepting a "this QoI is just noisy"
+explanation at face value.
 
-| N | H1_semi_rel | peak_stress_rel | CG failures |
-|---|---|---|---|
-| 51 | 1.76% | 1.97% | 0 |
-| 101 | 1.10% | 3.17% | 0 |
-| 201 | 0.63% | 0.22% | 0 |
-| 401 | 0.36% | 5.19% | 20 |
-| 701 | 0.29% | 7.58% | 30 |
-| 1001 | 0.18% | 1.95% | 40 |
-| 1401 | 0.16% | 3.72% | 80 |
+**Run 1 (2026-09-06/07, `high_dof_convergence_study.py`'s original
+`compute_peak_stress_error()`)**: peak stress predicted vs. reference
+were both computed as `max(|P|)` over the COARSE mesh's OWN Gauss
+points. This is a real bug, not an inherent QoI property: that point set
+gets denser as the coarse resolution N under test increases, so the
+"reference" peak value silently drifted UPWARD across rows purely from
+sampling more points closer to wherever the true maximum actually is —
+confirmed directly in the data, `peak_stress_ref` itself climbed from
+13.9 at N=51 to 39.3 at N=1401, a ~2.8x range, despite "reference" being
+supposed to mean one fixed target. The resulting "peak stress error"
+column (1.97% / 3.17% / 0.22% / 5.19% / 7.58% / 1.95% / 3.72%, overall
+fitted rate *negative*) was measuring how the sampling density changed
+between rows, not how accurate each coarse solution's stress prediction
+was. This was NOT simply "pointwise QoIs are noisier than norms" (true
+in general, but not the dominant effect here) — it was comparing against
+a moving target, which will produce exactly this kind of directionless,
+even backwards-trending noise regardless of solver quality.
 
-H1 (a global field norm) decreases smoothly and monotonically with
-refinement, as always. **Peak stress does not** — it is non-monotonic at
-every step, and the overall least-squares convergence rate across all 7
-points is actually *negative* (-0.29, meaning the fitted trend is
-slightly worsening, not improving, with refinement). This is not a bug:
-a pointwise maximum is a local, non-averaged functional, and it is
-well known in FEM that such quantities converge far less smoothly than
-global norms, especially without a stress-recovery/smoothing step,
-which nothing in this pipeline currently does. It is also not fully
-separable from the CG issue Table 6a already has: N=401 onward all have
-CG failures (hitting the 2000-iteration cap without reaching cg_tol),
-and those four rows are also the four largest and most erratic
-peak-stress errors (5.2%, 7.6%, 2.0%, 3.7%) — some of this noise is
-very plausibly leftover algebraic error from unconverged CG, on top of
-the genuine discretization-driven roughness. **These N=1001/1401 rows
-still used the OLD checkpoints (pre-item-#4 preconditioner) — the
-block-Jacobi improvement has not yet been applied to this table**, so
-disentangling "genuinely noisy QoI" from "noisy because CG didn't
-converge" needs the item #4 re-run before it can be said cleanly.
+**Fixed 2026-09-07**: `find_fine_peak_stress()` now locates the fine
+reference's own peak-stress point ONCE per order (from the fine mesh's
+own dense Gauss points), and every coarse resolution's stress is
+evaluated at that SAME fixed physical point (via the fine mesh's own
+exact point-location FE evaluation, already validated, applied to the
+coarse mesh too). Verified on CPU: `peak_stress_ref` is now byte-for-byte
+identical across different coarse N in the same sweep (e.g. 12.4648592
+at both N=6 and N=11, B1; confirmed also on B2's polar-coordinate path),
+and the error at those two points now moves the expected direction
+(30.8% -> 20.2% as N increases) instead of drifting incoherently. This
+now makes peak-stress error a genuine, fixed-target pointwise QoI —
+still expected to converge less smoothly than a global norm like L2/H1
+in general (that part of the original reasoning was correct even though
+the specific numbers weren't trustworthy), but no longer inflated by a
+moving reference on top of that.
 
-**Reading this honestly, it now argues in Timon's favor more than mine**:
-a naive tolerance-vs-cost table works for L2/H1/energy, but the one QoI
-he actually named by example (max stress) does NOT reduce to "run it
-longer, tolerance improves" — which is closer to the kind of problem
-goal-oriented error estimation (which he separately proposed, R7) exists
-to solve, rather than something a plain convergence study can paper over.
-I'd rather send this finding as-is than round it into looking cleaner
-than it is.
+**The Run-1 numbers above are RETRACTED — do not use them anywhere.**
+The real, corrected sweep has not been re-run yet (needs the same GPU
+Colab pipeline as before); this section of the reply will be rewritten
+once it has, with the item #4 (block-Jacobi preconditioner) re-run
+folded in at the same time so N=401-1401's CG-failure question is
+addressed in the same pass rather than needing a third run.
 
-**So: do not send this draft yet.** It should wait until item #4's
-actual re-run (block2x2 preconditioner) on N=401-1401 is done, so we
-know whether the CG failures were driving the peak-stress noise — that
-re-run is the direct next step, not a nice-to-have.
+**So: do not send this draft yet.** Two GPU runs are still needed before
+this point closes: (1) the corrected peak-stress sweep with the fixed
+`compute_peak_stress_error`, and (2) item #4's `--precond_kind block2x2`
+re-run at N=401-1401 to see whether CG failures there go away. Both
+should ideally happen in one combined run rather than two.
 
 ---
 
@@ -133,27 +132,16 @@ millisecond range, so I think the core conclusion (1%/0.5% tolerances
 cost tens of minutes) survives regardless. I plan to re-measure this
 table once the preconditioner work is done.
 
-I also ran the peak-stress QoI you named as an example ("maximum
-stresses or similar") at the same resolutions, and it's worth reporting
-honestly rather than folding into the same story: it does NOT converge
-as cleanly as H1/energy. Where H1 error drops smoothly from 1.8% at
-N=51 to 0.16% at N=1401, the peak-stress relative error is non-monotonic
-at every step (1.97% -> 3.17% -> 0.22% -> 5.19% -> 7.58% -> 1.95% ->
-3.72%), and its fitted trend across all seven points is actually
-slightly negative rather than improving. Part of this is likely
-unavoidable -- a pointwise maximum is a local, non-smoothed functional
-and is known to converge far less regularly than a global norm -- but
-part of it may be the same solver issue: N=401 onward are exactly where
-CG starts missing its convergence tolerance, and those rows also carry
-the largest, most erratic peak-stress errors. I want to re-run this
-once the preconditioner fix (point 1/5) is in before drawing a firm
-conclusion about how much of the noise is genuine versus solver
-artifact. Either way, I think this is a real finding worth naming to
-you directly: the QoI you asked about specifically does not reduce to
-"run it longer and the tolerance improves" the way the field norms do,
-which looks like exactly the kind of case your goal-oriented
-error-estimation suggestion (round 7) was aimed at, rather than
-something a convergence table alone resolves.
+I also implemented the peak-stress QoI you named as an example ("maximum
+stresses or similar"). The first real run's numbers turned out to be
+measuring an artifact -- the "reference" peak value I was comparing
+against was silently redefined at every mesh resolution instead of being
+one fixed target, which produced meaningless, directionless noise that
+I nearly reported as a genuine finding about the QoI. Caught and fixed
+before sending anything based on it. I'll include the corrected
+peak-stress-vs-N numbers together with the preconditioner re-run once
+both are done -- I'd rather send this a few days later with numbers I
+trust than send something now and have to retract it.
 
 Last limitation: this is currently B1 x Neo-Hookean only, the one case
 this high-DOF sweep was run for -- not yet checked on the other five
