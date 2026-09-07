@@ -1,0 +1,42 @@
+[
+  {
+    "kind": {
+      "study": "mms",
+      "material": "mooney_rivlin"
+    },
+    "finished_at_utc": "2026-09-07T10:12:48+00:00",
+    "finished_at_local": "2026-09-07T10:12:48+00:00",
+    "duration_s": null,
+    "duration_human": null,
+    "command": "python3 -m omar_pfem.mms_study --material mooney_rivlin --orders Q4,Q9 --Ns 5,9,17,33 --out_json omar_pfem/point9_results/mms_B1_mooney_rivlin.json --cpu",
+    "argv": [
+      "/home/user/OMAR/Practical_Examples/omar_pfem/mms_study.py",
+      "--material",
+      "mooney_rivlin",
+      "--orders",
+      "Q4,Q9",
+      "--Ns",
+      "5,9,17,33",
+      "--out_json",
+      "omar_pfem/point9_results/mms_B1_mooney_rivlin.json",
+      "--cpu"
+    ],
+    "git": {
+      "commit": "68654d3f671ed7e043c73810fdb568e1825c2d43",
+      "dirty": true
+    },
+    "environment": {
+      "python": "3.11.15",
+      "host": "vm",
+      "platform": "Linux-6.18.44-fc-v24-x86_64-with-glibc2.39",
+      "torch": "2.14.0+cpu",
+      "cuda_available": false,
+      "cuda_version": null,
+      "cpu_count": 4
+    },
+    "args": null,
+    "results": null,
+    "outputs": [],
+    "notes": null
+  }
+]
