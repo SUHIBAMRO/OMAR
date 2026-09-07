@@ -1,29 +1,28 @@
-"""Adds items #6 (OOD progressive-shift, remaining 5 cases), #7 (DD-NO
-coarse-vs-fine training-mesh resolution study), and #14 (GOEE paper
-confirmation/citation) to the Report document Omar uploaded directly
-(the copy he actually sent to Timon). Anchors below were verified to
-exist, uniquely, in this exact file before writing this script.
-
-IMPORTANT CONTEXT, 2026-09-07: the .docx file Omar sent to Timon (and
-uploaded here for this edit) does NOT match "report v56" as tracked in
-PROJECT_STATUS.md. Checking known anchors from make_v53.py/54/55/56
-against it shows it is missing items #1 (continual-learning citation),
-#2 (Table 21 wall-clock rows), #5 (batch-size-1 labeling), and #8
-(Table 21a budget comparison) -- i.e. it predates v53. This script does
-NOT attempt to backfill that gap; it only adds #6/#7/#14 on top of
-whatever this file actually contains. See PROJECT_STATUS.md for the
-full note and Omar's decision on whether the v53-56 backfill should
-still happen. This script therefore does NOT follow the SRC/DST
-'PFEM_Transolver_Report_vNN.docx' naming convention of make_v39.py
-through make_v56.py, since the true version number of the input file
-is unknown -- SRC/DST below are generic working filenames instead.
+"""Full pass over the REAL Report_uploaded.docx (the file Omar actually
+sends Timon), adding everything PROJECT_STATUS.md tracks as agreed but
+not yet applied to this exact file: items #1, #2, #5, #8 (previously
+described in report_builders/make_v53.py..make_v56.py, but those
+scripts' anchors do not all match this document -- e.g. it has no
+bracket-numbered References section at all, so item #1's citation is
+added inline instead of via a [5] cross-reference) plus #6, #7, #14
+(added in a prior pass, add_items_6_7_14_report.py -- reproduced here
+with one fix: that pass placed the new OOD content BEFORE the sentence
+"...has not been measured for the other five cases", which read as
+self-contradictory once the new content directly answered it. This
+version places it AFTER instead, so the sentence introduces an open
+question that the very next paragraphs resolve.)
 """
 import copy
+import json
+import os
+
 from docx import Document
 from docx.oxml.ns import qn
+from docx.text.paragraph import Paragraph
 
 SRC = 'Report_uploaded.docx'
-DST = 'Report_updated.docx'
+DST = 'Report_full_updated.docx'
+PF = '/home/user/OMAR/Practical_Examples/omar_pfem'
 
 doc = Document(SRC)
 ORIGINAL = list(doc.paragraphs)
@@ -63,16 +62,148 @@ def new_table(anchor_para, header, rows):
     return tbl
 
 
+def insert_after(anchor_para, text):
+    """Deep-copies anchor_para's XML (style, formatting) so the new
+    paragraph matches its neighbours, inserts it immediately after
+    anchor_para, and sets its text. Returns the new Paragraph so calls
+    can be chained to build a sequence in the intended reading order."""
+    new_p_el = copy.deepcopy(anchor_para._p)
+    anchor_para._p.addnext(new_p_el)
+    np = Paragraph(new_p_el, anchor_para._parent)
+    for r in list(np.runs):
+        r._r.getparent().remove(r._r)
+    np.add_run(text)
+    return np
+
+
+def insert_after_table(table, style_para, text):
+    """Like insert_after, but positions the new paragraph immediately
+    after a table element (tables aren't Paragraph objects, so they
+    need their own addnext target) while copying style_para's
+    formatting."""
+    new_p_el = copy.deepcopy(style_para._p)
+    table._tbl.addnext(new_p_el)
+    np = Paragraph(new_p_el, style_para._parent)
+    for r in list(np.runs):
+        r._r.getparent().remove(r._r)
+    np.add_run(text)
+    return np
+
+
 HEADING3_STYLE = find_para(
     'Accuracy against cost: the operator and the finite-element '
     'solver on one pair of axes'
 ).style
 
-# ---------------------------------------------------------------------
-# Item #6: OOD progressive-shift study extended to the other 5 cases
-# Inserted right after the paragraph that flagged this as unmeasured,
-# i.e. right before the "8.7 Resolution invariance" heading.
-# ---------------------------------------------------------------------
+# =======================================================================
+# Item #5 (was make_v55.py): label the batch-size-1 comparison as the
+# primary, single-query result.
+# =======================================================================
+insert_after(
+    find_para('What this clarifies is where the operator is useful'),
+    'To name this plainly: the batch-size-1 comparison above is the '
+    'primary, single-query result — matched hardware, matched batch '
+    'size, one FEM solve against one operator inference — and every '
+    'other batch size in Tables 10 through 10d is a separate throughput '
+    'experiment, useful for understanding how both methods scale with '
+    'batching but not the figure a deployment claim should be built on.'
+)
+
+# =======================================================================
+# Item #2 (was make_v54.py): add training wall-clock rows to Table 21.
+# =======================================================================
+D7b = json.load(open(os.path.join(PF, 'point7b_results', 'comparison_B1_neo_hookean.json')))
+runs = D7b['runs']
+pi_adam = runs['physics_informed']['train_wall_clock_s']
+pi_onecycle = runs['physics_informed_adamw_onecycle']['train_wall_clock_s']
+dd_adam = runs['data_driven_matched_optimizer']['train_wall_clock_s']
+dd_onecycle = runs['data_driven_own_optimizer']['train_wall_clock_s']
+assert (pi_adam, pi_onecycle, dd_adam, dd_onecycle) == (2873.8, 3108.9, 1458.3, 1463.0)
+
+t21 = None
+for t in doc.tables:
+    hdr = [c.text for c in t.rows[0].cells]
+    if hdr == ['Training loss', 'Adam, lr 2×10⁻³', 'AdamW lr 10⁻³ + OneCycleLR']:
+        t21 = t
+        break
+assert t21 is not None, 'Table 21 not found'
+assert len(t21.rows) == 3
+from docx.table import _Row
+for label, adam_val, onecycle_val in [
+    ('Physics-informed, wall-clock (s)', pi_adam, pi_onecycle),
+    ('Data-driven, wall-clock (s)', dd_adam, dd_onecycle),
+]:
+    new_tr = copy.deepcopy(t21.rows[2]._tr)
+    t21._tbl.append(new_tr)
+    row = _Row(new_tr, t21)
+    row.cells[0].text = label
+    row.cells[1].text = f'{adam_val:,.1f}'
+    row.cells[2].text = f'{onecycle_val:,.1f}'
+assert len(t21.rows) == 5
+
+# =======================================================================
+# Item #8 (was make_v56.py): Table 21a, total cost of ownership,
+# physics-informed vs. data-driven.
+# =======================================================================
+label_cost_h = runs['data_driven_matched_optimizer']['label_generation_cost_h']
+assert label_cost_h == runs['data_driven_own_optimizer']['label_generation_cost_h'] == 5.65
+label_cost_s = label_cost_h * 3600.0
+dd_total_adam = label_cost_s + dd_adam
+dd_total_onecycle = label_cost_s + dd_onecycle
+gap_adam = dd_total_adam - pi_adam
+gap_onecycle = dd_total_onecycle - pi_onecycle
+
+anchor8 = find_para_exact(
+    'The comparison covers one case, B1 × Neo-Hookean, and two '
+    'optimiser settings. Two recipes are enough to show that the '
+    'ranking is not fixed; they are not enough to map out which '
+    'family of schedules favours which loss, and nothing here should '
+    'be read as identifying the best available recipe for either.'
+)
+
+cap21a = anchor8.insert_paragraph_before(
+    'Table 21a. Total cost before the first inference, physics-informed '
+    'versus data-driven, at each matched optimiser: training time plus '
+    '(data-driven only) the 800-solve label-generation cost of Table '
+    '4a. The physics-informed model pays no label-generation cost.'
+)
+header21a = ['Optimiser', 'PI training (s)', 'PI label-gen (s)',
+             'PI total (s)', 'DD-NO training (s)', 'DD-NO label-gen (s)',
+             'DD-NO total (s)', 'DD-NO − PI (s)']
+rows21a = [
+    ('Adam, lr 2×10⁻³', f'{pi_adam:,.1f}', '—', f'{pi_adam:,.1f}',
+     f'{dd_adam:,.1f}', f'{label_cost_s:,.1f}', f'{dd_total_adam:,.1f}',
+     f'{gap_adam:,.1f}'),
+    ('AdamW lr 10⁻³ + OneCycleLR', f'{pi_onecycle:,.1f}', '—',
+     f'{pi_onecycle:,.1f}', f'{dd_onecycle:,.1f}', f'{label_cost_s:,.1f}',
+     f'{dd_total_onecycle:,.1f}', f'{gap_onecycle:,.1f}'),
+]
+new_table(cap21a, header21a, rows21a)
+
+anchor8.insert_paragraph_before(
+    'The data-driven model is more expensive by a fixed amount — '
+    f'{gap_adam:,.0f} s ({gap_adam/3600:.2f} h) under matched Adam, '
+    f'{gap_onecycle:,.0f} s ({gap_onecycle/3600:.2f} h) under matched '
+    'AdamW+OneCycleLR — for every number of future inferences, not just '
+    'below some threshold. This assumes the two checkpoints’ inference '
+    'cost is equal, which was not separately measured for the '
+    'data-driven model but follows from it sharing the physics-informed '
+    'model’s architecture exactly; under that assumption the '
+    'per-inference term is identical on both sides of the comparison '
+    'and cancels, so what remains is the label-generation cost minus '
+    'the (small, and inconsistently signed) training-time difference — '
+    'a constant, not a break-even point in the usual sense. The '
+    'label-generation cost dominates by more than an order of magnitude '
+    'in both pairings, which is why the sign of that constant does not '
+    'depend on which optimiser is used.'
+)
+
+# =======================================================================
+# Item #6 (fixed ordering) + item #1: OOD progressive-shift extended to
+# all six cases, then the continual-learning future-work note.
+# Everything below is inserted AFTER the sentence that flagged the
+# other five cases as unmeasured, and BEFORE the "8.7" heading.
+# =======================================================================
 anchor6 = find_para_exact(
     'This diagnosis covers B1 × Neo-Hookean. Whether the same '
     'attribution holds for the other five cases has not been '
@@ -80,7 +211,8 @@ anchor6 = find_para_exact(
     'a different factor.'
 )
 
-p1 = anchor6.insert_paragraph_before(
+p1 = insert_after(
+    anchor6,
     'The same isolation has now been run for the other five geometry '
     '× material combinations, using the identical protocol as Table '
     '19: ten held-out samples per point, the same relative-shift grid '
@@ -89,7 +221,8 @@ p1 = anchor6.insert_paragraph_before(
     'Neo-Hookean remains in Table 19 above.'
 )
 
-cap25 = anchor6.insert_paragraph_before(
+cap25 = insert_after(
+    p1,
     'Table 25. Progressive out-of-distribution shift, all six geometry '
     '× material combinations, at the shift endpoint k = 3σ (baseline = '
     'k = 0). Same protocol as Table 19: mean relative L2 error over ten '
@@ -106,9 +239,10 @@ rows25 = [
     ('B2 × Mooney-Rivlin', '0.1020', '0.1260', '1.23×', '0.5584', '5.47×', '0.4857', '4.76×'),
     ('B2 × Arruda-Boyce', '0.1852', '0.1493', '0.81×', '0.4209', '2.27×', '0.4956', '2.68×'),
 ]
-new_table(cap25, header25, rows25)
+tbl25 = new_table(cap25, header25, rows25)
 
-p2 = anchor6.insert_paragraph_before(
+p2 = insert_after_table(
+    tbl25, cap25,
     'The pattern already established for B1 × Neo-Hookean holds '
     'without exception in every one of the five new cases: shifting '
     'the loading magnitude alone produces at most mild degradation at '
@@ -123,7 +257,8 @@ p2 = anchor6.insert_paragraph_before(
     'already reported for B1 × Neo-Hookean.'
 )
 
-p3 = anchor6.insert_paragraph_before(
+p3 = insert_after(
+    p2,
     'Material sensitivity is itself material-dependent. Mooney-Rivlin '
     'is the most fragile of the three materials on both geometries '
     '(4.71× on B1, 5.47× on B2), and Arruda-Boyce is consistently the '
@@ -141,10 +276,35 @@ p3 = anchor6.insert_paragraph_before(
     'folding all six cases into one flat degradation figure.'
 )
 
-# ---------------------------------------------------------------------
+# --- Item #1 (was make_v53.py): continual-learning future-work note.
+# This document has no bracket-numbered References section anywhere
+# (checked directly -- no paragraph anywhere matches r'^\[\d+\]'), so
+# the citation is given inline in full, the same way item #14's
+# citation was added, rather than via a "[5]" cross-reference into a
+# bibliography that does not exist in this file.
+insert_after(
+    p3,
+    'Since normalization is not a clean fix and the underlying '
+    'sensitivity to distribution shift remains, a mitigation that '
+    'accepts some retraining rather than insisting on a single fixed '
+    'zero-shot model is a candidate direction for future work: '
+    'continual learning, which adapts a trained operator to new data '
+    'distributions incrementally while limiting forgetting of what it '
+    'already learned. Wang, Eshaghi, Zhuang, Rabczuk, and Liu, '
+    '"Replay-Based Continual Learning for Physics-Informed Neural '
+    'Operators" (arXiv:2605.04832), apply exactly this — a '
+    'replay-and-distillation strategy — to physics-informed operators '
+    'built on the same Transolver architecture used throughout this '
+    'report, without labeled data. This is a different approach from '
+    'the zero-shot generalization studied above (no retraining at all) '
+    'and has not been implemented or tested here; it is named as a '
+    'candidate, not adopted.'
+)
+
+# =======================================================================
 # Item #7: DD-NO coarse-vs-fine training-mesh resolution study.
 # Inserted at the end of Section 8.7, right before the "8.8" heading.
-# ---------------------------------------------------------------------
+# =======================================================================
 anchor7 = find_para_exact('8.8 Error in physically important quantities beyond displacement')
 
 h3 = anchor7.insert_paragraph_before(
@@ -205,9 +365,9 @@ p5 = anchor7.insert_paragraph_before(
     'at any one fixed resolution.'
 )
 
-# ---------------------------------------------------------------------
+# =======================================================================
 # Conclusion: close out item #6's open action, add #7 and #14
-# ---------------------------------------------------------------------
+# =======================================================================
 remaining6 = find_para_exact(
     'Extend the out-of-distribution evaluation to isolate the '
     'individual contributions of the material-stiffness shift and the '
@@ -232,11 +392,9 @@ last_item = find_para_exact(
     'Section 8.7 covers the three B1 materials (Table 12) and all '
     'three B2 materials (Table 12b, Table 12c).'
 )
+
+
 def new_list_item(anchor_para, text):
-    """Deep-copies anchor_para's XML (numPr, style, everything) so the
-    new paragraph renders as a correctly-numbered member of the same
-    bulleted list, then replaces its run text."""
-    from docx.text.paragraph import Paragraph
     new_p_el = copy.deepcopy(anchor_para._p)
     anchor_para._p.addprevious(new_p_el)
     np = Paragraph(new_p_el, anchor_para._parent)
@@ -246,7 +404,7 @@ def new_list_item(anchor_para, text):
     return np
 
 
-p6 = new_list_item(
+new_list_item(
     last_item,
     'A new study trains a data-driven operator on FEM labels from a '
     'coarse mesh (N = 13) versus a finer mesh (N = 33) and evaluates '
@@ -259,7 +417,7 @@ p6 = new_list_item(
     'cross-resolution robustness; this item is closed.'
 )
 
-p7 = new_list_item(
+new_list_item(
     last_item,
     'Timon’s suggested "GOEE" / trust reference has been tracked '
     'down and confirmed directly with Omar: arXiv:2609.02982v1 (Cheng, '
