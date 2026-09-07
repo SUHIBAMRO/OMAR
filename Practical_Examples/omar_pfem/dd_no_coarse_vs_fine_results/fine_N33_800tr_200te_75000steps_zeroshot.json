@@ -1,0 +1,74 @@
+{
+  "geometry": "B1",
+  "material": "neo_hookean",
+  "checkpoint": "/content/drive/MyDrive/pfem_run/dd_no_coarse_vs_fine/fine_N33_800tr_200te_75000steps_train/model_best.pt",
+  "checkpoint_fingerprint": "df1d692dca3c21676a128ce0b31b44eba9277fa5b93463c932913565e7ad46a7",
+  "fine_N": 101,
+  "test_resolutions": [
+    13,
+    17,
+    25,
+    29,
+    37,
+    41,
+    49
+  ],
+  "rows": [
+    {
+      "N": 13,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.13718051591558028,
+      "std_rel_L2_vs_fine_reference": 0.03484927270949733,
+      "mean_combined_rel_L2_vs_fine_reference": 0.1035084943445019,
+      "std_combined_rel_L2_vs_fine_reference": 0.029981113677543407
+    },
+    {
+      "N": 17,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.1282438159060603,
+      "std_rel_L2_vs_fine_reference": 0.031017317397566364,
+      "mean_combined_rel_L2_vs_fine_reference": 0.09549676367732747,
+      "std_combined_rel_L2_vs_fine_reference": 0.02682987677000437
+    },
+    {
+      "N": 25,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.11818699335281808,
+      "std_rel_L2_vs_fine_reference": 0.025363746824433018,
+      "mean_combined_rel_L2_vs_fine_reference": 0.0845932849472543,
+      "std_combined_rel_L2_vs_fine_reference": 0.02215155905483482
+    },
+    {
+      "N": 29,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.11504505320268203,
+      "std_rel_L2_vs_fine_reference": 0.023486802456323293,
+      "mean_combined_rel_L2_vs_fine_reference": 0.08084654558025582,
+      "std_combined_rel_L2_vs_fine_reference": 0.0202585008796523
+    },
+    {
+      "N": 37,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.11102489805969962,
+      "std_rel_L2_vs_fine_reference": 0.02148932998723251,
+      "mean_combined_rel_L2_vs_fine_reference": 0.07595662630168463,
+      "std_combined_rel_L2_vs_fine_reference": 0.017356401813337193
+    },
+    {
+      "N": 41,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.10987652700975495,
+      "std_rel_L2_vs_fine_reference": 0.021233738411204666,
+      "mean_combined_rel_L2_vs_fine_reference": 0.0745911301148102,
+      "std_combined_rel_L2_vs_fine_reference": 0.01648664810087097
+    },
+    {
+      "N": 49,
+      "n_eval_samples": 20,
+      "mean_rel_L2_vs_fine_reference": 0.10897152237092991,
+      "std_rel_L2_vs_fine_reference": 0.021869230244797384,
+      "mean_combined_rel_L2_vs_fine_reference": 0.07364885450242586,
+      "std_combined_rel_L2_vs_fine_reference": 0.016242826886502505
+    }
+  ]
+}
