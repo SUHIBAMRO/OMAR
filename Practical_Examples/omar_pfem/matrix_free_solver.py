@@ -458,7 +458,7 @@ def conjugate_gradient(matvec, b, x0, tol, max_iter, precond_diag=None, precond_
 def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
                        material="neo_hookean", order="Q4", nsteps=10, newton_max=30,
                        newton_tol=1e-7, cg_tol=1e-6, cg_max_iter=2000, use_jacobi=True,
-                       precond_kind="jacobi",
+                       precond_kind="jacobi", mg_hierarchy=None,
                        device=None, dtype=torch.float64, verbose=True, checkpoint_path=None,
                        cg_progress_every=None, cg_checkpoint_every=2000):
     """Single-sample (no batch dimension) matrix-free Newton-CG solve.
@@ -478,7 +478,21 @@ def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
       "block2x2" -- the 2x2 per-node block-diagonal of K
           (compute_block_jacobi / make_block_jacobi_apply), which also
           captures each node's u/v coupling instead of discarding it. Opt-in
-          only: pass precond_kind="block2x2" to use it.
+          only: pass precond_kind="block2x2" to use it. Measured (item #4,
+          real GPU re-run 2026-09-07) to NOT reduce cg_failures at N=401/701
+          relative to plain Jacobi -- kept for reference/comparison, not
+          recommended as a fix by itself.
+      "mgv" -- a geometric multigrid V-cycle (multigrid_precond.py),
+          requires `mg_hierarchy` (a list of multigrid_precond.MGLevel,
+          built ONCE by the caller before the Newton loop via
+          multigrid_precond.build_mg_hierarchy, from a chain of
+          successively coarser meshes of the SAME domain/BCs/material).
+          Rebuilding the hierarchy's mesh/material data every Newton
+          iteration would be wasted work (only the current nonlinear state
+          changes, not the geometry), so only the state-dependent part
+          (injected displacement, per-level tangent matvec and Jacobi
+          smoother diagonal) is rebuilt here, once per Newton iteration,
+          exactly like "jacobi"/"block2x2" already do.
     Returns (u_free, stats).
 
     checkpoint_path: if given, save (u_free, stats, next step) to this file
@@ -577,8 +591,15 @@ def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
                 elif precond_kind == "jacobi":
                     precond_diag = compute_jacobi_diagonal(xy, quad, u_full, elem_params, material, order,
                                                             dtype, free_dofs)
+                elif precond_kind == "mgv":
+                    if mg_hierarchy is None:
+                        raise ValueError("precond_kind='mgv' requires mg_hierarchy "
+                                         "(see multigrid_precond.build_mg_hierarchy)")
+                    from omar_pfem.multigrid_precond import build_mg_precond_apply
+                    precond_apply = build_mg_precond_apply(mg_hierarchy, u_full, material, order)
                 else:
-                    raise ValueError(f"unknown precond_kind {precond_kind!r}, expected 'jacobi' or 'block2x2'")
+                    raise ValueError(f"unknown precond_kind {precond_kind!r}, "
+                                     "expected 'jacobi', 'block2x2', or 'mgv'")
                 _sync(); stats["t_precond_s"] += time.time() - _t0
 
             cg_checkpoint_path = f"{checkpoint_path}.cg_state" if checkpoint_path is not None else None
