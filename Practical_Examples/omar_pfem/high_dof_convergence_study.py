@@ -243,7 +243,7 @@ def build_mesh_and_bcs(geometry, order, N, material, device, dtype):
 def solve_one(geometry, order, N, material, device, dtype, cg_tol, newton_tol,
               use_jacobi=True, precond_kind="jacobi", cg_max_iter=2000, verbose=False,
               checkpoint_path=None, cg_progress_every=None, cg_checkpoint_every=2000,
-              mg_min_coarse_n=13, mg_max_levels=4):
+              mg_min_coarse_n=13, mg_max_levels=8):
     nodes, elements, free_dofs, fext_full, elem_params_np = build_mesh_and_bcs(
         geometry, order, N, material, device, dtype)
 

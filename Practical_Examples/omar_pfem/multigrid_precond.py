@@ -63,7 +63,7 @@ import torch
 
 from omar_pfem.matrix_free_solver import (
     _make_energy_fn, matrix_free_hvp, compute_jacobi_diagonal)
-from torch.func import grad
+from torch.func import grad, vmap
 
 
 def coarsen_N(N):
@@ -264,31 +264,47 @@ def _level_matvec_and_diag(level, u_full_level, material, order):
     return matvec, diag
 
 
-def _build_dense_factor(matvec, n_free, dtype, device):
-    """Materializes the (small, coarsest-level-only) tangent operator as a
-    dense matrix by applying matvec to each unit basis vector, then
-    LU-factors it ONCE. This is the fix for an earlier, much slower design
-    that re-ran conjugate_gradient from scratch at the coarsest level on
-    EVERY V-cycle call -- and a V-cycle is called once per FINE-level CG
-    ITERATION, so an unconverged or slowly-converging coarse CG inside it
-    made the whole preconditioner far more expensive than plain Jacobi
-    instead of cheaper (caught directly: a tiny N=9/coarsest-N=5 smoke
-    test hung for over a minute before this fix). The coarsest level's
-    operator does not change during a single Newton iteration's CG solve
-    (only the smoother/matvec's LINEARIZATION point does, which is fixed
-    for the whole Newton iteration), so factoring it once and reusing the
-    factorization for every V-cycle call in that CG solve is both correct
-    and the obviously cheaper design -- n_free here is small by
-    construction (coarsening stops well before it grows large), so
-    O(n_free^2) to build the matrix and O(n_free^3) to factor it once is
-    negligible next to the fine-level work this whole preconditioner
-    exists to reduce."""
-    K = torch.zeros(n_free, n_free, dtype=dtype, device=device)
-    e = torch.zeros(n_free, dtype=dtype, device=device)
-    for j in range(n_free):
-        e.zero_()
-        e[j] = 1.0
-        K[:, j] = matvec(e)
+def _build_dense_factor(matvec, n_free, dtype, device, chunk_size=500):
+    """Materializes the (coarsest-level-only) tangent operator as a dense
+    matrix by applying matvec to batches of unit basis vectors via vmap,
+    then LU-factors it ONCE. This is the fix for an earlier, much slower
+    design that re-ran conjugate_gradient from scratch at the coarsest
+    level on EVERY V-cycle call -- and a V-cycle is called once per
+    FINE-level CG ITERATION, so an unconverged or slowly-converging coarse
+    CG inside it made the whole preconditioner far more expensive than
+    plain Jacobi instead of cheaper (caught directly: a tiny N=9/coarsest-
+    N=5 smoke test hung for over a minute before that fix). The coarsest
+    level's operator does not change during a single Newton iteration's CG
+    solve (only the smoother/matvec's LINEARIZATION point does, which is
+    fixed for the whole Newton iteration), so factoring it once and
+    reusing the factorization for every V-cycle call in that CG solve is
+    both correct and the obviously cheaper design.
+
+    Second fix, on top of the first: a SERIAL Python loop calling matvec
+    (jvp of a reverse-mode grad) once per basis vector was still the real
+    bottleneck on GPU once mg_max_levels stopped coarsening before the
+    coarsest level's n_free got small (e.g. ~5000 free DOFs at N=51) --
+    real GPU timing showed each CG solve costing ~82x more than the old
+    non-converging plain-Jacobi run, even though CG now genuinely
+    converged. Root cause: thousands of tiny sequential autodiff calls
+    each pay GPU kernel-launch/dispatch overhead that dominates their
+    actual (cheap) FLOP cost. Batching matvec over chunks of basis vectors
+    with vmap (the same chunk-and-accumulate pattern compute_jacobi_diagonal
+    already uses for the same reason) turns those thousands of serial
+    dispatches into a handful of batched ones -- same exact matrix, just
+    built without paying per-column overhead thousands of times over.
+    chunk_size bounds peak memory the same way it does there; it changes
+    nothing mathematically."""
+    basis = torch.eye(n_free, dtype=dtype, device=device)
+    batched_matvec = vmap(matvec)
+    rows = []
+    for start in range(0, n_free, chunk_size):
+        end = min(start + chunk_size, n_free)
+        rows.append(batched_matvec(basis[start:end]))
+    # rows[i] holds matvec(e_j) as its i-th ROW for each basis vector e_j in
+    # that chunk -- i.e. row j = K @ e_j = column j of K, so concatenating
+    # rows gives K^T, not K.
+    K = torch.cat(rows, dim=0).T
     K = 0.5 * (K + K.T)  # matvec is symmetric in exact arithmetic; symmetrize away FP noise
     return torch.linalg.lu_factor(K)
 
