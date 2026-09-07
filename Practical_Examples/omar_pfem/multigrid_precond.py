@@ -62,7 +62,7 @@ import scipy.sparse as sp
 import torch
 
 from omar_pfem.matrix_free_solver import (
-    _make_energy_fn, matrix_free_hvp, compute_jacobi_diagonal)
+    _make_energy_fn, matrix_free_hvp, compute_jacobi_diagonal, conjugate_gradient)
 from torch.func import grad, vmap
 
 
@@ -313,18 +313,57 @@ def _build_dense_factor(matvec, n_free, dtype, device, chunk_size=500):
     return torch.linalg.lu_factor(K)
 
 
-def build_mg_precond_apply(levels, u_full_fine, material, order, nu1=2, nu2=2, omega=0.6):
+def build_mg_precond_apply(levels, u_full_fine, material, order, nu1=2, nu2=2, omega=0.6,
+                            coarse_direct_max_free=4000, coarse_cg_iters=50, coarse_cg_tol=1e-2):
     """Builds the v -> M^-1 v closure for one Newton iteration's CG solve,
     a standard symmetric V-cycle: damped-Jacobi pre-smooth, restrict the
     residual, recurse on the coarser level, prolong the correction back,
-    damped-Jacobi post-smooth. The coarsest level is solved EXACTLY via a
-    dense LU factorization built once per Newton iteration (see
-    _build_dense_factor's docstring for why a from-scratch CG re-solve at
-    the coarsest level, tried first, was a real performance bug, not a
-    correctness one) -- its own free-DOF count is small by construction (a
-    few hundred at most, since coarsening stops well before that in
-    high_dof_convergence_study.py's own hierarchy choice), so this is
-    cheap relative to the fine-level CG this whole thing preconditions.
+    damped-Jacobi post-smooth. The coarsest level is normally solved
+    EXACTLY via a dense LU factorization built once per Newton iteration
+    (see _build_dense_factor's docstring for why a from-scratch CG re-solve
+    at the coarsest level, tried first, was a real performance bug, not a
+    correctness one) -- its free-DOF count is small by construction FOR
+    MOST N (a few hundred to a couple thousand, e.g. N=401's own hierarchy
+    bottoms out at N=26, ~1300 free DOF), so the exact solve is cheap
+    relative to the fine-level CG this whole thing preconditions.
+
+    coarse_direct_max_free is the escape hatch for when that assumption
+    breaks: coarsen_N requires (N-1) even at every step to keep the
+    coarser grid's nodes an exact subset of the finer one, so how many
+    times a given N can coarsen depends on how many factors of 2 divide
+    (N-1) -- NOT on N's own size. This is a real, confirmed problem for
+    two of this study's own standard resolutions: N=701 and N=1401 both
+    bottom out at N=176 (700=2^2*175 and 1400=2^3*175 respectively only
+    have 2-3 factors of 2), ~62000 free DOF -- N=1001 fares slightly
+    better (structural floor N=126, ~32000 free DOF, since 1000=2^3*125).
+    A dense O(n^2)-memory, O(n^3)-time factorization at that size is not
+    merely slower, it is computationally infeasible (tens of hours PER
+    Newton iteration, of which a solve needs ~20) -- this was caught by
+    computing the actual hierarchy for every one of this study's target
+    N via coarsen_N directly, before ever pointing N=701/1001/1401 at the
+    GPU, exactly the same discipline that caught the N=401 performance
+    bug rather than trusting the fix would generalize by assumption.
+
+    When the coarsest level's own n_free exceeds coarse_direct_max_free,
+    this falls back to an INEXACT coarse solve instead: a matrix-free CG
+    call (reusing conjugate_gradient, this module's own dependency) using
+    that level's Jacobi diagonal as a preconditioner, capped at
+    coarse_cg_iters iterations (a loose coarse_cg_tol, not driven to full
+    convergence) rather than an expensive from-scratch full solve every
+    V-cycle call -- an inexact but reasonably accurate coarse-grid
+    correction is a standard, textbook multigrid variant (unlike the
+    earlier, already-rejected design this file's git history has, which
+    re-ran a FULL CG solve to tight tolerance at the coarsest level on
+    every V-cycle call and was rightly abandoned for being too slow even
+    at small coarsest sizes) -- here the point is not to solve exactly,
+    only cheaply enough to still steer the V-cycle in the right direction.
+    4000 is a deliberately conservative threshold, comfortably above every
+    N this study has actually validated the exact dense path on (up to
+    N=401's ~2600 free DOF at its own largest non-coarsest intermediate
+    level) and comfortably below N=1001/701/1401's ~32000-62000 DOF
+    coarsest levels, so existing validated behavior for N<=401 is
+    byte-for-byte unchanged and only the genuinely-too-large cases take
+    the new path.
 
     u_full_fine: the CURRENT full-numbering displacement at the finest
     level (dtype/device matching `levels[0]`) -- rebuilt every Newton
@@ -344,7 +383,15 @@ def build_mg_precond_apply(levels, u_full_fine, material, order, nu1=2, nu2=2, o
         matvecs.append(mv)
         diags.append(dg)
 
-    coarse_lu = _build_dense_factor(matvecs[-1], levels[-1].n_free, dtype, device)
+    coarsest_n_free = levels[-1].n_free
+    use_direct_coarse = coarsest_n_free <= coarse_direct_max_free
+    if not getattr(levels[-1], "_mg_coarse_mode_announced", False):
+        mode = f"exact dense LU (n_free={coarsest_n_free})" if use_direct_coarse else \
+               f"approximate CG fallback (n_free={coarsest_n_free} > {coarse_direct_max_free}, capped at {coarse_cg_iters} iters)"
+        print(f"  [mgv] coarsest-level solve: {mode}", flush=True)
+        levels[-1]._mg_coarse_mode_announced = True
+    if use_direct_coarse:
+        coarse_lu = _build_dense_factor(matvecs[-1], coarsest_n_free, dtype, device)
 
     def damped_jacobi(level_idx, r_free, x0, iters):
         x = x0
@@ -356,8 +403,14 @@ def build_mg_precond_apply(levels, u_full_fine, material, order, nu1=2, nu2=2, o
 
     def vcycle(level_idx, r_free):
         if level_idx == n_levels - 1:
-            LU, piv = coarse_lu
-            x = torch.linalg.lu_solve(LU, piv, r_free.unsqueeze(-1)).squeeze(-1)
+            if use_direct_coarse:
+                LU, piv = coarse_lu
+                x = torch.linalg.lu_solve(LU, piv, r_free.unsqueeze(-1)).squeeze(-1)
+            else:
+                x0 = torch.zeros_like(r_free)
+                x, _, _, _ = conjugate_gradient(
+                    matvecs[level_idx], r_free, x0, tol=coarse_cg_tol,
+                    max_iter=coarse_cg_iters, precond_diag=diags[level_idx])
             return x
 
         lvl = levels[level_idx]
