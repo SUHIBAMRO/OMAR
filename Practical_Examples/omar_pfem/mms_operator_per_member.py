@@ -87,8 +87,7 @@ def main():
     else:
         params = E_nu_to_params(torch.tensor(E, dtype=torch.float64),
                                 torch.tensor(nu, dtype=torch.float64))
-    mu_e = torch.full((n_el,), float(params[0]), dtype=torch.float64)
-    lam_e = torch.full((n_el,), float(params[1]), dtype=torch.float64)
+    params_e = tuple(torch.full((n_el,), float(p), dtype=torch.float64) for p in params)
 
     print(f"[N={args.N}] {len(nodes)} nodes, {2 * len(nodes)} DOF, device {device}")
 
@@ -99,8 +98,8 @@ def main():
     train_p = sample_family(args.ntrain, args.seed)
     test_p = sample_family(args.ntest, args.seed + 1)
     t0 = time.time()
-    Ftr, _ = build_dataset(train_p, nodes, elements, "Q4", mu_e, lam_e, args.material)
-    Fte, _ = build_dataset(test_p, nodes, elements, "Q4", mu_e, lam_e, args.material)
+    Ftr, _ = build_dataset(train_p, nodes, elements, "Q4", params_e, args.material)
+    Fte, _ = build_dataset(test_p, nodes, elements, "Q4", params_e, args.material)
     print(f"dataset rebuilt in {time.time() - t0:.1f}s (must match the "
           f"training run's own family, not merely have the same size)")
 
@@ -129,7 +128,7 @@ def main():
             uv = predict(model, xy_t, fb, normd, mask)
             alpha, beta = test_p[i]
             e = compute_errors(nodes, elements, "Q4",
-                               uv[0].double().cpu().numpy(), mu_e, lam_e,
+                               uv[0].double().cpu().numpy(), params_e,
                                args.material, alpha, beta)
             per_member.append({"alpha": alpha, "beta": beta,
                                **{k: float(e[k]) for k in

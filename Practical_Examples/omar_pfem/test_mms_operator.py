@@ -33,15 +33,14 @@ def setup():
     params = conv(torch.tensor(1000.0, dtype=DT), torch.tensor(0.3, dtype=DT),
                   mode="plane_strain")
     n_el = len(elements)
-    mu_e = torch.full((n_el,), float(params[0]), dtype=DT)
-    lam_e = torch.full((n_el,), float(params[1]), dtype=DT)
-    f = assemble_body_force(nodes, elements, "Q4", mu_e, lam_e, MAT,
+    params_e = tuple(torch.full((n_el,), float(p), dtype=DT) for p in params)
+    f = assemble_body_force(nodes, elements, "Q4", params_e, MAT,
                             DEFAULT_ALPHA, DEFAULT_BETA, DT).reshape(len(nodes), 2)
     xy = torch.tensor(nodes, dtype=DT)
     quad = torch.tensor(elements, dtype=torch.long)
     pn = tuple(torch.full((1, len(nodes)), float(p), dtype=DT) for p in params)
     fn, _ = get_material_fns(MAT)
-    return nodes, elements, xy, quad, f, pn, fn, mu_e, lam_e
+    return nodes, elements, xy, quad, f, pn, fn
 
 
 def Pi_of(xy, quad, uv, f, pn, fn):
@@ -50,7 +49,7 @@ def Pi_of(xy, quad, uv, f, pn, fn):
 
 
 def main():
-    nodes, elements, xy, quad, f, pn, fn, mu_e, lam_e = setup()
+    nodes, elements, xy, quad, f, pn, fn = setup()
     mask = dirichlet_mask(nodes, DT)
 
     err, u_fem, _, _ = solve_mms("Q4", N, MAT, DEFAULT_ALPHA, DEFAULT_BETA,

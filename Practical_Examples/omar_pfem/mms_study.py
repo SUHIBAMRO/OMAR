@@ -176,8 +176,16 @@ def grad_u_exact(xy, alpha=DEFAULT_ALPHA, beta=DEFAULT_BETA, modes=DEFAULT_MODES
     return g
 
 
-def _psi_and_P(F, mu, lam, material, dtype):
+def _psi_and_P(F, params, material, dtype):
     """psi(F) and P = dpsi/dF, batched over the leading dimension.
+
+    `params` is a tuple of per-point tensors, one per material parameter
+    (2 for Neo-Hookean's (mu, lam), 4 for Mooney-Rivlin's (c, c1, c2, d),
+    3 for Arruda-Boyce's (mu_ab, N_ab, kappa_ab)) -- NOT hardcoded to
+    exactly two, since only Neo-Hookean's energy density happens to take
+    two parameters; the others do not and would raise a TypeError if
+    called with a hardcoded (mu, lam) pair (caught when item #11 first
+    tried Mooney-Rivlin/Arruda-Boyce through this file).
 
     torch.enable_grad() is not decoration: this builds its own little
     autograd graph to get P, and callers legitimately evaluate errors inside
@@ -186,47 +194,53 @@ def _psi_and_P(F, mu, lam, material, dtype):
     energy_density_fn, _ = get_material_fns_torch(material)
     with torch.enable_grad():
         F = F.detach().requires_grad_(True)
-        psi = energy_density_fn(F, mu, lam, dtype=dtype)
+        psi = energy_density_fn(F, *params, dtype=dtype)
         P, = torch.autograd.grad(psi.sum(), F, create_graph=False)
     return psi.detach(), P.detach()
 
 
-def tangent_modulus_batched(F, mu, lam, material, dtype):
+def tangent_modulus_batched(F, params, material, dtype):
     """C[q,i,j,k,l] = d^2 psi / dF_ij dF_kl, batched over the leading
     dimension -- the fourth-order tangent modulus at each point's own F.
     Same nested-jacrev-then-vmap pattern body_force_exact already uses for
     its own second derivative, applied here to psi instead of P: one
     jacrev gives P = dpsi/dF (2,2), a second gives dP/dF (2,2,2,2), and
     vmap batches both over the leading (point) dimension without ever
-    forming psi's full batched Hessian at once."""
+    forming psi's full batched Hessian at once.
+
+    `params` is a tuple of per-point tensors -- see _psi_and_P's docstring
+    for why this is not hardcoded to exactly two (mu, lam)."""
     energy_density_fn, _ = get_material_fns_torch(material)
 
-    def psi_of_F(Fm, mu_i, lam_i):
-        return energy_density_fn(Fm[None], mu_i[None], lam_i[None], dtype=dtype).squeeze(0)
+    def psi_of_F(Fm, *params_i):
+        params_exp = tuple(p[None] for p in params_i)
+        return energy_density_fn(Fm[None], *params_exp, dtype=dtype).squeeze(0)
 
-    def P_of_F(Fm, mu_i, lam_i):
-        return torch.func.jacrev(psi_of_F)(Fm, mu_i, lam_i)      # (2,2)
+    def P_of_F(Fm, *params_i):
+        return torch.func.jacrev(psi_of_F)(Fm, *params_i)      # (2,2)
 
-    def C_of_F(Fm, mu_i, lam_i):
-        return torch.func.jacrev(P_of_F)(Fm, mu_i, lam_i)        # (2,2,2,2)
+    def C_of_F(Fm, *params_i):
+        return torch.func.jacrev(P_of_F)(Fm, *params_i)        # (2,2,2,2)
 
-    return torch.func.vmap(C_of_F)(F, mu, lam)
+    return torch.func.vmap(C_of_F)(F, *params)
 
 
-def P_exact(xy, mu, lam, material, alpha=DEFAULT_ALPHA, beta=DEFAULT_BETA,
+def P_exact(xy, params, material, alpha=DEFAULT_ALPHA, beta=DEFAULT_BETA,
             dtype=torch.float64, modes=DEFAULT_MODES):
-    """First Piola-Kirchhoff stress of the manufactured solution, (...,2,2)."""
+    """First Piola-Kirchhoff stress of the manufactured solution, (...,2,2).
+    `params` is a tuple of per-point tensors -- see _psi_and_P's docstring."""
     F = torch.eye(2, dtype=dtype, device=xy.device).expand(
         xy.shape[:-1] + (2, 2)).clone()
     F = F + grad_u_exact(xy, alpha, beta, modes)
-    _, P = _psi_and_P(F.reshape(-1, 2, 2), mu.reshape(-1), lam.reshape(-1),
-                      material, dtype)
+    params_flat = tuple(p.reshape(-1) for p in params)
+    _, P = _psi_and_P(F.reshape(-1, 2, 2), params_flat, material, dtype)
     return P.reshape(xy.shape[:-1] + (2, 2))
 
 
-def body_force_exact(xy, mu, lam, material, alpha=DEFAULT_ALPHA,
+def body_force_exact(xy, params, material, alpha=DEFAULT_ALPHA,
                      beta=DEFAULT_BETA, dtype=torch.float64, modes=DEFAULT_MODES):
-    """b = -Div P, with (Div P)_i = sum_j dP_ij / dx_j.
+    """b = -Div P, with (Div P)_i = sum_j dP_ij / dx_j. `params` is a tuple
+    of per-point tensors -- see _psi_and_P's docstring.
 
     Nested autodiff: P already involves one derivative of psi with respect to
     F, and this takes a second derivative with respect to position. Done
@@ -237,23 +251,25 @@ def body_force_exact(xy, mu, lam, material, alpha=DEFAULT_ALPHA,
     structurally zero."""
     energy_density_fn, _ = get_material_fns_torch(material)
 
-    def P_at(p, mu_i, lam_i):
+    def P_at(p, *params_i):
         F = torch.eye(2, dtype=p.dtype, device=p.device) + \
             grad_u_exact(p, alpha, beta, modes)
 
         def psi_of_F(Fm):
-            return energy_density_fn(Fm[None], mu_i[None], lam_i[None],
+            params_exp = tuple(pi[None] for pi in params_i)
+            return energy_density_fn(Fm[None], *params_exp,
                                      dtype=p.dtype).squeeze(0)
 
         return torch.func.jacrev(psi_of_F)(F)      # (2,2) = P
 
-    def div_P_at(p, mu_i, lam_i):
+    def div_P_at(p, *params_i):
         # dP[i,j] / dx[k]  -> contract j == k
-        dP = torch.func.jacrev(P_at, argnums=0)(p, mu_i, lam_i)   # (2,2,2)
+        dP = torch.func.jacrev(P_at, argnums=0)(p, *params_i)   # (2,2,2)
         return torch.einsum('ijj->i', dP)
 
     flat = xy.reshape(-1, 2)
-    div = torch.func.vmap(div_P_at)(flat, mu.reshape(-1), lam.reshape(-1))
+    params_flat = tuple(p.reshape(-1) for p in params)
+    div = torch.func.vmap(div_P_at)(flat, *params_flat)
     return (-div).reshape(xy.shape)
 
 
@@ -329,17 +345,18 @@ def shape_values(order, dtype=torch.float64):
     return shape_at_gauss(order, dtype)[0]
 
 
-def assemble_body_force(nodes, elements, order, mu_e, lam_e, material,
+def assemble_body_force(nodes, elements, order, params_e, material,
                         alpha, beta, dtype=torch.float64, modes=DEFAULT_MODES):
     """f_a = integral of N_a * b over the domain, as a (2*n_nodes,) vector.
 
-    mu_e, lam_e are per-element, matching the solver's own convention."""
+    params_e is a tuple of per-element tensors, one per material parameter
+    (see _psi_and_P's docstring) -- matching the solver's own per-element
+    convention."""
     xg, _, dV = quadrature_data(nodes, elements, order, dtype)
     Ng = shape_values(order, dtype)                    # (G, n_local)
     Q, G = dV.shape
-    mu_g = mu_e[:, None].expand(Q, G)
-    lam_g = lam_e[:, None].expand(Q, G)
-    b = body_force_exact(xg, mu_g, lam_g, material, alpha, beta, dtype, modes)  # (Q,G,2)
+    params_g = tuple(p[:, None].expand(Q, G) for p in params_e)
+    b = body_force_exact(xg, params_g, material, alpha, beta, dtype, modes)  # (Q,G,2)
 
     contrib = torch.einsum('gl,qgi,qg->qli', Ng, b, dV)   # (Q, n_local, 2)
     f = torch.zeros(len(nodes), 2, dtype=dtype)
@@ -357,7 +374,7 @@ def boundary_nodes(nodes, Lx=1.0, Ly=1.0, tol=1e-9):
 # ----------------------------------------------------------------------
 # Errors
 # ----------------------------------------------------------------------
-def compute_errors(nodes, elements, order, u_h, mu_e, lam_e, material,
+def compute_errors(nodes, elements, order, u_h, params_e, material,
                    alpha, beta, dtype=torch.float64, modes=DEFAULT_MODES):
     """L2, H1 semi-norm, energy (value AND norm) and stress errors of u_h
     against u*, all as relative quantities and all integrated on the FE
@@ -420,12 +437,11 @@ def compute_errors(nodes, elements, order, u_h, mu_e, lam_e, material,
     h1_ref = integ((grad_star ** 2).sum((-1, -2)))
 
     eye = torch.eye(2, dtype=dtype).expand(Q, G, 2, 2)
-    mu_g = mu_e[:, None].expand(Q, G).reshape(-1)
-    lam_g = lam_e[:, None].expand(Q, G).reshape(-1)
+    params_g = tuple(p[:, None].expand(Q, G).reshape(-1) for p in params_e)
     F_star = (eye + grad_star).reshape(-1, 2, 2)
-    psi_h, P_h = _psi_and_P((eye + grad_uh).reshape(-1, 2, 2), mu_g, lam_g,
+    psi_h, P_h = _psi_and_P((eye + grad_uh).reshape(-1, 2, 2), params_g,
                             material, dtype)
-    psi_s, P_s = _psi_and_P(F_star, mu_g, lam_g, material, dtype)
+    psi_s, P_s = _psi_and_P(F_star, params_g, material, dtype)
     P_h, P_s = P_h.reshape(Q, G, 2, 2), P_s.reshape(Q, G, 2, 2)
     psi_h, psi_s = psi_h.reshape(Q, G), psi_s.reshape(Q, G)
 
@@ -437,7 +453,7 @@ def compute_errors(nodes, elements, order, u_h, mu_e, lam_e, material,
     # modulus at F* (the exact solution's own deformation gradient) -- same
     # linearization point high_dof_convergence_study.py uses (there, the
     # fine reference field; here, the continuous exact solution).
-    C = tangent_modulus_batched(F_star, mu_g, lam_g, material, dtype).reshape(Q, G, 2, 2, 2, 2)
+    C = tangent_modulus_batched(F_star, params_g, material, dtype).reshape(Q, G, 2, 2, 2, 2)
     grad_e = grad_uh - grad_star
     e_energy_sq = integ(torch.clamp(
         torch.einsum('qgij,qgijkl,qgkl->qg', grad_e, C, grad_e), min=0.0))
@@ -466,8 +482,21 @@ def verify_derivation(material="neo_hookean", alpha=DEFAULT_ALPHA,
     table alone would not say which piece failed."""
     torch.manual_seed(0)
     pts = torch.rand(6, 2, dtype=dtype) * 0.8 + 0.1     # interior points
-    mu = torch.full((6,), 385.0, dtype=dtype)
-    lam = torch.full((6,), 577.0, dtype=dtype)
+    # Same E=1000, nu=0.3 (plane strain) solve_mms uses -- generic over
+    # however many parameters this material's energy density actually takes
+    # (2 for Neo-Hookean, 4 for Mooney-Rivlin, 3 for Arruda-Boyce), rather
+    # than hardcoding a (mu, lam) pair that only means something for
+    # Neo-Hookean. (385.0, 577.0 were themselves just this same E, nu pair's
+    # Neo-Hookean (mu, lam) rounded to 3 figures -- computing it here instead
+    # is strictly more precise, not a behavior change.)
+    from omar_pfem.materials_torch import get_material_fns
+    _, E_nu_to_params = get_material_fns(material)
+    E, nu = 1000.0, 0.3
+    base_params = E_nu_to_params(
+        torch.tensor(E, dtype=dtype), torch.tensor(nu, dtype=dtype),
+        mode="plane_strain") if material == "neo_hookean" else \
+        E_nu_to_params(torch.tensor(E, dtype=dtype), torch.tensor(nu, dtype=dtype))
+    params = tuple(torch.full((6,), float(p), dtype=dtype) for p in base_params)
     ok = True
 
     # 1) the closed-form gradient against autodiff
@@ -490,13 +519,13 @@ def verify_derivation(material="neo_hookean", alpha=DEFAULT_ALPHA,
 
     # 3) the divergence, by autodiff against a central finite difference
     h = 1e-5
-    b_ad = body_force_exact(pts, mu, lam, material, alpha, beta, dtype, modes)
+    b_ad = body_force_exact(pts, params, material, alpha, beta, dtype, modes)
     div_fd = torch.zeros_like(pts)
     for j in range(2):
         off = torch.zeros(2, dtype=dtype)
         off[j] = h
-        Pp = P_exact(pts + off, mu, lam, material, alpha, beta, dtype, modes)
-        Pm = P_exact(pts - off, mu, lam, material, alpha, beta, dtype, modes)
+        Pp = P_exact(pts + off, params, material, alpha, beta, dtype, modes)
+        Pm = P_exact(pts - off, params, material, alpha, beta, dtype, modes)
         div_fd += (Pp[..., :, j] - Pm[..., :, j]) / (2 * h)
     b_fd = -div_fd
     rel = ((b_ad - b_fd).norm() / b_fd.norm()).item()
@@ -523,12 +552,17 @@ def solve_mms(order, N, material, alpha, beta, device, dtype=torch.float64,
         if material == "neo_hookean" else \
         E_nu_to_params(torch.tensor(E, dtype=dtype), torch.tensor(nu, dtype=dtype))
     n_el = len(elements)
+    # One tensor per material parameter (2 for Neo-Hookean, 4 for
+    # Mooney-Rivlin, 3 for Arruda-Boyce) -- NOT hardcoded to exactly two
+    # (mu, lam), which only ever meant something for Neo-Hookean and
+    # silently mislabeled Mooney-Rivlin's/Arruda-Boyce's own parameters as
+    # "mu, lam" before this was generalized (item #11: extending this
+    # study to another material caught it immediately with a TypeError
+    # from the material's own energy-density function).
     elem_params_t = tuple(
         torch.full((n_el,), float(p), dtype=dtype, device=device) for p in params)
-    mu_e, lam_e = (torch.full((n_el,), float(params[0]), dtype=dtype),
-                   torch.full((n_el,), float(params[1]), dtype=dtype))
 
-    fext = assemble_body_force(nodes, elements, order, mu_e, lam_e, material,
+    fext = assemble_body_force(nodes, elements, order, elem_params_t, material,
                                alpha, beta, dtype, modes)
 
     fixed = boundary_nodes(nodes)
@@ -564,7 +598,7 @@ def solve_mms(order, N, material, alpha, beta, device, dtype=torch.float64,
     u_full = u_full.index_copy(0, free_t, u_free)
     u_h = u_full.reshape(len(nodes), 2).cpu().numpy()
 
-    err = compute_errors(nodes, elements, order, u_h, mu_e, lam_e, material,
+    err = compute_errors(nodes, elements, order, u_h, elem_params_t, material,
                          alpha, beta, dtype, modes)
     err.update({"order": order, "N": N, "h": 1.0 / (N - 1),
                 "n_nodes": len(nodes), "n_dof": 2 * len(nodes),

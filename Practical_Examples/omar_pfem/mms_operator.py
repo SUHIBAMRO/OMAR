@@ -84,18 +84,22 @@ def sample_family(n, seed):
     return list(zip(a.tolist(), b.tolist()))
 
 
-def build_dataset(params, nodes, elements, order, mu_e, lam_e, material,
+def build_dataset(params, nodes, elements, order, params_e, material,
                   dtype=torch.float64):
     """For each (alpha, beta): the consistent nodal body force the network is
     given, and the exact nodal displacement it is scored against.
 
     No finite-element solve is involved -- the target is analytic. The body
     force is the same assembly mms_study feeds to the FEM solver, so the
-    operator and the FEM solver are driven by an identical right-hand side."""
+    operator and the FEM solver are driven by an identical right-hand side.
+
+    params_e is a tuple of per-element material-parameter tensors (2 for
+    Neo-Hookean, more for the other materials) -- see mms_study.py's
+    _psi_and_P docstring for why this isn't a hardcoded (mu_e, lam_e) pair."""
     xy_t = torch.tensor(nodes, dtype=dtype)
     F, U = [], []
     for (alpha, beta) in params:
-        f = assemble_body_force(nodes, elements, order, mu_e, lam_e, material,
+        f = assemble_body_force(nodes, elements, order, params_e, material,
                                 alpha, beta, dtype).reshape(len(nodes), 2)
         F.append(f)
         U.append(u_exact(xy_t, alpha, beta))
@@ -199,8 +203,7 @@ def main():
     else:
         params = E_nu_to_params(torch.tensor(E, dtype=torch.float64),
                                 torch.tensor(nu, dtype=torch.float64))
-    mu_e = torch.full((n_el,), float(params[0]), dtype=torch.float64)
-    lam_e = torch.full((n_el,), float(params[1]), dtype=torch.float64)
+    params_e = tuple(torch.full((n_el,), float(p), dtype=torch.float64) for p in params)
 
     print(f"MMS operator | {args.material} | Q4 mesh N={args.N} "
           f"({len(nodes)} nodes, {2*len(nodes)} DOF) | device {device}")
@@ -210,8 +213,8 @@ def main():
     train_p = sample_family(args.ntrain, args.seed)
     test_p = sample_family(args.ntest, args.seed + 1)
     t0 = time.time()
-    Ftr, Utr = build_dataset(train_p, nodes, elements, "Q4", mu_e, lam_e, args.material)
-    Fte, Ute = build_dataset(test_p, nodes, elements, "Q4", mu_e, lam_e, args.material)
+    Ftr, Utr = build_dataset(train_p, nodes, elements, "Q4", params_e, args.material)
+    Fte, Ute = build_dataset(test_p, nodes, elements, "Q4", params_e, args.material)
     print(f"dataset built in {time.time()-t0:.1f}s "
           f"(analytic targets -- no FEM solves)\n")
 
@@ -255,7 +258,7 @@ def main():
                     a, b = params_list[i + j]
                     errs.append(compute_errors(
                         nodes, elements, "Q4",
-                        uv[j].double().cpu().numpy(), mu_e, lam_e,
+                        uv[j].double().cpu().numpy(), params_e,
                         args.material, a, b))
         model.train()
         return {k: float(np.mean([e[k] for e in errs]))
@@ -325,7 +328,7 @@ def main():
     # member of it. Score the operator on that member too, so one number in
     # the table is a like-for-like comparison rather than a mean against a
     # single point.
-    f_single = assemble_body_force(nodes, elements, "Q4", mu_e, lam_e,
+    f_single = assemble_body_force(nodes, elements, "Q4", params_e,
                                    args.material, DEFAULT_ALPHA, DEFAULT_BETA,
                                    torch.float64).reshape(len(nodes), 2)
     model.load_state_dict(torch.load(os.path.join(args.out_dir, "model_best.pt"),
