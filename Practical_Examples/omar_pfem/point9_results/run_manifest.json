@@ -38,5 +38,45 @@
     "results": null,
     "outputs": [],
     "notes": null
+  },
+  {
+    "kind": {
+      "study": "mms",
+      "material": "arruda_boyce"
+    },
+    "finished_at_utc": "2026-09-07T10:27:01+00:00",
+    "finished_at_local": "2026-09-07T10:27:01+00:00",
+    "duration_s": null,
+    "duration_human": null,
+    "command": "python3 -m omar_pfem.mms_study --material arruda_boyce --orders Q4,Q9 --Ns 5,9,17,33 --out_json omar_pfem/point9_results/mms_B1_arruda_boyce.json --cpu",
+    "argv": [
+      "/home/user/OMAR/Practical_Examples/omar_pfem/mms_study.py",
+      "--material",
+      "arruda_boyce",
+      "--orders",
+      "Q4,Q9",
+      "--Ns",
+      "5,9,17,33",
+      "--out_json",
+      "omar_pfem/point9_results/mms_B1_arruda_boyce.json",
+      "--cpu"
+    ],
+    "git": {
+      "commit": "c378fce73f537cccf8015314bd99a2bee7b6a358",
+      "dirty": true
+    },
+    "environment": {
+      "python": "3.11.15",
+      "host": "vm",
+      "platform": "Linux-6.18.44-fc-v24-x86_64-with-glibc2.39",
+      "torch": "2.14.0+cpu",
+      "cuda_available": false,
+      "cuda_version": null,
+      "cpu_count": 4
+    },
+    "args": null,
+    "results": null,
+    "outputs": [],
+    "notes": null
   }
 ]
