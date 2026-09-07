@@ -294,7 +294,11 @@ def _build_dense_factor(matvec, n_free, dtype, device, chunk_size=500):
     dispatches into a handful of batched ones -- same exact matrix, just
     built without paying per-column overhead thousands of times over.
     chunk_size bounds peak memory the same way it does there; it changes
-    nothing mathematically."""
+    nothing mathematically. CONFIRMED on real GPU data 2026-09-07: after
+    this fix plus raising mg_max_levels, a full N=401 re-run hit
+    cg_failures=0 (was 20) at wall_clock_s=2615.8 (~43.6 min, vs. an ~87
+    min projection before this fix and ~27 min for the old, non-converging
+    run) -- see PROJECT_STATUS.md's item #4 for the full comparison."""
     basis = torch.eye(n_free, dtype=dtype, device=device)
     batched_matvec = vmap(matvec)
     rows = []
