@@ -185,7 +185,16 @@ def build_mg_hierarchy(mesh_tuples, dtype, device):
         Nf, Nc = levels[k].N, levels[k + 1].N
         P = build_prolongation_matrix(Nc, Nf)
         R = (P.T * 0.25).tocsr()   # standard 2D variational scaling, R = P^T / 4
-        levels[k].R_from_finer = None  # not used on the finest side
+        # NOTE: do not touch levels[k].R_from_finer here -- it defaults to
+        # None in MGLevel.__init__ and, for k > 0, was already correctly
+        # set to a real sparse tensor by the PREVIOUS iteration (when this
+        # same level was levels[k+1]). A line here that reset it to None
+        # unconditionally was a real bug: harmless with exactly 2 levels
+        # (k only ever 0, and level 0 never needs its own R_from_finer),
+        # but silently wiped level 1's operator the moment a 3rd level
+        # existed -- caught only because a 3-level N=65 hierarchy test was
+        # run, not by the 2-level N=9 smoke tests, which is exactly why
+        # both were worth running rather than stopping at the first PASS.
         levels[k + 1].P_to_finer = _scipy_to_torch_sparse(P, dtype, device)
         levels[k + 1].R_from_finer = _scipy_to_torch_sparse(R, dtype, device)
         levels[k + 1].inject_from_finer = torch.tensor(

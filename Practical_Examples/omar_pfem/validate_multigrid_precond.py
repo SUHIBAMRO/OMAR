@@ -188,5 +188,7 @@ if __name__ == "__main__":
         ok2a = check_solution_matches("B1", "neo_hookean", 9, device, dtype)
     if stage in ("2b2", "all"):
         ok2b = check_solution_matches("B2", "neo_hookean", 9, device, dtype)
+    if stage == "2c":
+        check_solution_matches("B1", "neo_hookean", 33, device, dtype)
     if stage == "3":
         check_iteration_count("B1", "neo_hookean", 65, device, dtype)
