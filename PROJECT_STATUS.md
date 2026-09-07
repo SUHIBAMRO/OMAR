@@ -5,7 +5,7 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-06 (worked the queue: items 5 and 8 done directly
+Last updated: 2026-09-07 (worked the queue: items 5 and 8 done directly
 in the report; items 6 and 7 have Colab notebooks built and ready for
 Omar to run (item 7's notebook had a stale-artifact bug, found and
 fixed the same day, and is now LIVE on Omar's own Colab); item 3
@@ -15,14 +15,17 @@ underlying script per Omar's own condition, and that real GPU sweep is
 LIVE on Colab right now (started same day, found and reused the
 original Table 6a checkpoints on Drive to cut the cost from ~8-15 h to
 ~2.6 h — see item 3 for the full story and what to do once it
-finishes); item 9 (richer MMS family) and item 10 (MMS energy norm) are
-both implemented and verified, kept strictly opt-in/additive so nothing
-already-published changed silently — item 10's full sweep is committed,
-item 9's full sweep is running in the background; item 4 (block-Jacobi
-preconditioner) is implemented, validated against the dense CPU
+finishes); **item 9 (richer MMS family) and item 10 (MMS energy norm)
+are both DONE** — implemented, safety-checked so nothing
+already-published changed silently, full sweeps run and committed, all
+rates matching theory on both element orders; **item 4 (block-Jacobi
+preconditioner) is implemented, validated** against the dense CPU
 reference on both B1 and B2 (including B2's mixed-fixed-DOF nodes), and
-committed, also strictly opt-in — the actual N=1001/N=1401 Colab re-run
-this item exists to produce is still pending, needs Omar's GPU —
+committed, kept strictly opt-in — the actual N=1001/N=1401 Colab re-run
+this item exists to produce is still pending, needs Omar's GPU; **item
+14's paper was read in full** and is almost certainly NOT the GOEE
+paper Timon meant (no goal-oriented/adjoint content at all — see item
+14's row for what it actually is and what to ask Omar) —
 report v56). **This work queue is now the single authoritative list —
 read it first, before anything else in this file.**
 
