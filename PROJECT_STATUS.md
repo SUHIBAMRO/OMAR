@@ -15,9 +15,11 @@ correct-but-82x-slower CG), re-verifying correctness on CPU before
 trusting the rewrite, then re-running for real — see item #4's row and
 the summary above for the full story. Next: extend to N=701/1001/1401.
 Earlier the same day: items 5 and 8 done directly
-in the report; items 6 and 7 have Colab notebooks built and ready for
-Omar to run (item 7's notebook had a stale-artifact bug, found and
-fixed the same day, and is now LIVE on Omar's own Colab); item 3
+in the report; items 6 and 7 (Colab notebooks built earlier the same
+day, item 7's notebook had a stale-artifact bug found and fixed) have
+SINCE BOTH FINISHED RUNNING and their results are written into both
+real documents (item #6: Table 25 + §8.6; item #7: new §8.7 + Table
+26) — nothing further pending on either; item 3
 decided (Option A, current problem size is justified — see below) using
 existing Table 6a data, then a peak-stress QoI was added to the
 underlying script per Omar's own condition, and that real GPU sweep
