@@ -11,11 +11,14 @@ Omar to run (item 7's notebook had a stale-artifact bug, found and
 fixed the same day, and is now LIVE on Omar's own Colab); item 3
 decided (Option A, current problem size is justified — see below) using
 existing Table 6a data, then a peak-stress QoI was added to the
-underlying script per Omar's own condition, and that real GPU sweep is
-LIVE on Colab right now (started same day, found and reused the
-original Table 6a checkpoints on Drive to cut the cost from ~8-15 h to
-~2.6 h — see item 3 for the full story and what to do once it
-finishes); **item 9 (richer MMS family) and item 10 (MMS energy norm)
+underlying script per Omar's own condition, and that real GPU sweep
+FINISHED 2026-09-07 (2.59h, found and reused the original Table 6a
+checkpoints on Drive to cut the cost from ~8-15h to ~2.6h) — **and it
+surfaced a genuine, not-yet-resolved finding**: peak stress does not
+converge monotonically with mesh refinement the way H1/energy do, and
+it may be entangled with the same CG-non-convergence issue item #4
+exists to fix, so item #3 stays open pending item #4's actual re-run
+(see item 3's row for the full numbers); **item 9 (richer MMS family) and item 10 (MMS energy norm)
 are both DONE** — implemented, safety-checked so nothing
 already-published changed silently, full sweeps run and committed, all
 rates matching theory on both element orders; **item 4 (block-Jacobi
