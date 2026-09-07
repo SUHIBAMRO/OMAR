@@ -1,0 +1,168 @@
+{
+  "geometry": "B1",
+  "material": "neo_hookean",
+  "fine_N": 2236,
+  "device": "cuda",
+  "orders": {
+    "Q4": {
+      "fine_reference": {
+        "N": 2236,
+        "n_dof": 9999392,
+        "strain_energy": 0.017716290334512143,
+        "wall_clock_s": 4.101184844970703
+      },
+      "rows": [
+        {
+          "N": 51,
+          "n_dof": 5202,
+          "wall_clock_s": 0.7145888805389404,
+          "newton_iters": 20,
+          "cg_iters": 5744,
+          "cg_failures": 0,
+          "l2_abs_error": 1.5639442738719892e-06,
+          "l2_rel_error": 0.000493369076636971,
+          "h1_semi_abs_error": 0.00011141381112267662,
+          "h1_semi_rel_error": 0.017552621458335218,
+          "energy_abs_error": 0.0028656425589268794,
+          "energy_rel_error": 0.01517513716621421,
+          "peak_stress_pred": 16.27289143803884,
+          "peak_stress_ref": 43.47671959446411,
+          "peak_stress_abs_err": 27.203828156425267,
+          "peak_stress_rel_err": 0.6257102286044859,
+          "peak_stress_loc": [
+            9.455251248554231e-05,
+            9.455251248554231e-05
+          ],
+          "stress_field_l2_abs": 0.08989789497838625,
+          "stress_field_l2_rel": 0.01416514261788485
+        },
+        {
+          "N": 101,
+          "n_dof": 20402,
+          "wall_clock_s": 0.6904900074005127,
+          "newton_iters": 20,
+          "cg_iters": 11476,
+          "cg_failures": 0,
+          "l2_abs_error": 5.940531112409883e-07,
+          "l2_rel_error": 0.0001874027349353878,
+          "h1_semi_abs_error": 6.958405876626951e-05,
+          "h1_semi_rel_error": 0.010962566385219547,
+          "energy_abs_error": 0.0017360522612259205,
+          "energy_rel_error": 0.009193341685183952,
+          "peak_stress_pred": 19.951111248635037,
+          "peak_stress_ref": 43.47671959446411,
+          "peak_stress_abs_err": 23.52560834582907,
+          "peak_stress_rel_err": 0.5411081738748428,
+          "peak_stress_loc": [
+            9.455251248554231e-05,
+            9.455251248554231e-05
+          ],
+          "stress_field_l2_abs": 0.05531419260285884,
+          "stress_field_l2_rel": 0.00871594643174272
+        },
+        {
+          "N": 201,
+          "n_dof": 80802,
+          "wall_clock_s": 0.7205116748809814,
+          "newton_iters": 20,
+          "cg_iters": 22876,
+          "cg_failures": 0,
+          "l2_abs_error": 2.2148253651879191e-07,
+          "l2_rel_error": 6.986990268770203e-05,
+          "h1_semi_abs_error": 4.000265720455804e-05,
+          "h1_semi_rel_error": 0.006302205487342308,
+          "energy_abs_error": 0.001039241460836017,
+          "energy_rel_error": 0.005503349211462419,
+          "peak_stress_pred": 24.374374203374362,
+          "peak_stress_ref": 43.47671959446411,
+          "peak_stress_abs_err": 19.102345391089745,
+          "peak_stress_rel_err": 0.4393695193489724,
+          "peak_stress_loc": [
+            9.455251248554231e-05,
+            9.455251248554231e-05
+          ],
+          "stress_field_l2_abs": 0.031896066860719885,
+          "stress_field_l2_rel": 0.005025901342888235
+        },
+        {
+          "N": 401,
+          "n_dof": 321602,
+          "wall_clock_s": 1585.368592262268,
+          "newton_iters": 20,
+          "cg_iters": 40000,
+          "cg_failures": 20,
+          "l2_abs_error": 7.923676623043645e-08,
+          "l2_rel_error": 2.4996395800280652e-05,
+          "h1_semi_abs_error": 2.2776122290665472e-05,
+          "h1_semi_rel_error": 0.0035882651029491546,
+          "energy_abs_error": 0.000593126567881544,
+          "energy_rel_error": 0.003140928025545129,
+          "peak_stress_pred": 29.569795814383273,
+          "peak_stress_ref": 43.47671959446411,
+          "peak_stress_abs_err": 13.906923780080835,
+          "peak_stress_rel_err": 0.31987058613896907,
+          "peak_stress_loc": [
+            9.455251248554231e-05,
+            9.455251248554231e-05
+          ],
+          "stress_field_l2_abs": 0.018942261441945284,
+          "stress_field_l2_rel": 0.002984747462944499
+        },
+        {
+          "N": 701,
+          "n_dof": 982802,
+          "wall_clock_s": 4498.180214643478,
+          "newton_iters": 30,
+          "cg_iters": 60000,
+          "cg_failures": 30,
+          "l2_abs_error": 3.1979812816671665e-08,
+          "l2_rel_error": 1.0088499276432035e-05,
+          "h1_semi_abs_error": 1.8105777001260906e-05,
+          "h1_semi_rel_error": 0.0028524772111527823,
+          "energy_abs_error": 0.0003598324236508671,
+          "energy_rel_error": 0.0019055085459779221,
+          "peak_stress_pred": 34.239816027600874,
+          "peak_stress_ref": 43.47671959446411,
+          "peak_stress_abs_err": 9.236903566863234,
+          "peak_stress_rel_err": 0.212456313471253,
+          "peak_stress_loc": [
+            9.455251248554231e-05,
+            9.455251248554231e-05
+          ],
+          "stress_field_l2_abs": 0.014395443469519206,
+          "stress_field_l2_rel": 0.0022683158820387466
+        }
+      ],
+      "convergence_rates": {
+        "l2_fit": 1.4681193213190817,
+        "l2_pairwise": [
+          1.396525285614804,
+          1.4233989716372344,
+          1.4829510414866738,
+          1.621354465861477
+        ],
+        "h1_semi_fit": 0.7151197169808209,
+        "h1_semi_pairwise": [
+          0.6791009318944041,
+          0.7986568789133671,
+          0.8125703138167164,
+          0.4100688700457846
+        ],
+        "energy_fit": 0.7826643863581347,
+        "energy_pairwise": [
+          0.723048290111777,
+          0.7402794848080431,
+          0.8091189928811379,
+          0.8930580415041949
+        ],
+        "peak_stress_fit": 0.3996005769835525,
+        "peak_stress_pairwise": [
+          0.2095776536854165,
+          0.3004822462905671,
+          0.45794645346223506,
+          0.7311804293869655
+        ]
+      }
+    }
+  }
+}
