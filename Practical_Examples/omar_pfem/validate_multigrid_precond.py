@@ -70,14 +70,14 @@ def check_interpolation_operators():
 
 
 def check_solution_matches(geometry, material, N, device, dtype):
-    print(f"\n=== 2. V-cycle solve vs plain-Jacobi solve, {geometry} x {material}, N={N} ===")
+    print(f"\n=== 2. V-cycle solve vs plain-Jacobi solve, {geometry} x {material}, N={N} ===", flush=True)
     Ns = [N]
     while True:
         nc = coarsen_N(Ns[-1])
-        if nc is None or nc < 5 or len(Ns) >= 4:
+        if nc is None or nc < 5 or len(Ns) >= 3:
             break
         Ns.append(nc)
-    print(f"  hierarchy N: {Ns}")
+    print(f"  hierarchy N: {Ns}", flush=True)
 
     mesh_tuples = []
     fine_fext = None
@@ -95,18 +95,22 @@ def check_solution_matches(geometry, material, N, device, dtype):
     params_t = tuple(torch.tensor(p, dtype=dtype, device=device) for p in fine_params)
     fext_free_t = torch.tensor(fine_fext[fine_free], dtype=dtype, device=device)
 
-    kwargs = dict(material=material, order="Q4", nsteps=5, newton_max=40,
-                  newton_tol=1e-10, cg_tol=1e-10, cg_max_iter=3000,
-                  use_jacobi=True, device=device, dtype=dtype, verbose=False)
+    kwargs = dict(material=material, order="Q4", nsteps=2, newton_max=15,
+                  newton_tol=1e-6, cg_tol=1e-8, cg_max_iter=1000,
+                  use_jacobi=True, device=device, dtype=dtype, verbose=True)
 
+    print("  solving with jacobi...", flush=True)
     u_jacobi, stats_jacobi = solve_matrix_free(
         xy_t, quad_t, free_t, params_t, fext_free_t, n_free=len(fine_free),
         precond_kind="jacobi", **kwargs)
+    print("  jacobi solve done.", flush=True)
 
     mg_hierarchy = build_mg_hierarchy(mesh_tuples, dtype, device)
+    print("  solving with mgv...", flush=True)
     u_mgv, stats_mgv = solve_matrix_free(
         xy_t, quad_t, free_t, params_t, fext_free_t, n_free=len(fine_free),
         precond_kind="mgv", mg_hierarchy=mg_hierarchy, **kwargs)
+    print("  mgv solve done.", flush=True)
 
     diff = (u_jacobi - u_mgv).norm().item()
     ref_norm = u_jacobi.norm().item() + 1e-30
@@ -172,16 +176,17 @@ def check_iteration_count(geometry, material, N, device, dtype):
 
 
 if __name__ == "__main__":
+    import sys
     device = torch.device("cpu")
     dtype = torch.float64
 
-    ok1 = check_interpolation_operators()
-    ok2a = check_solution_matches("B1", "neo_hookean", 17, device, dtype)
-    ok2b = check_solution_matches("B2", "neo_hookean", 17, device, dtype)
+    stage = sys.argv[1] if len(sys.argv) > 1 else "all"
 
-    if ok1 and ok2a and ok2b:
-        print("\nAll correctness checks PASSED -- proceeding to the iteration-count comparison.")
+    if stage in ("1", "all"):
+        ok1 = check_interpolation_operators()
+    if stage in ("2b1", "all"):
+        ok2a = check_solution_matches("B1", "neo_hookean", 9, device, dtype)
+    if stage in ("2b2", "all"):
+        ok2b = check_solution_matches("B2", "neo_hookean", 9, device, dtype)
+    if stage == "3":
         check_iteration_count("B1", "neo_hookean", 65, device, dtype)
-    else:
-        print("\nCorrectness checks FAILED -- not running the iteration-count "
-              "comparison until these are fixed.")

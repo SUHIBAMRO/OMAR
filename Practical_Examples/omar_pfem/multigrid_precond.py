@@ -37,11 +37,15 @@ Design (standard symmetric V-cycle, so the preconditioner stays
 compatible with CG's SPD assumption):
   pre-smooth (damped Jacobi) -> restrict residual -> recurse on the
   coarser level -> prolong the correction -> post-smooth.
-The coarsest level is solved with plain unpreconditioned CG run to a
-tight tolerance (its own free-DOF count is small by construction, a few
-hundred at most), not a hand-rolled dense solve -- reuses
-conjugate_gradient directly instead of adding a second linear-solve
-implementation to validate.
+The coarsest level is solved EXACTLY via a dense LU factorization built
+once per Newton iteration (its own free-DOF count is small by
+construction, a few hundred at most) and reused for every V-cycle call
+within that Newton iteration's CG solve -- an earlier version re-ran a
+full CG solve from scratch at the coarsest level on every V-cycle call
+instead, which is correct but far too slow (a V-cycle is invoked once
+per FINE-level CG iteration, so redoing an iterative coarse solve that
+often dominated the total cost; caught by a tiny smoke test hanging,
+fixed before any real-scale timing was trusted).
 
 VALIDATION STATUS, stated explicitly per this project's own discipline
 of not trusting a plausible-looking number: this file has been checked
@@ -58,7 +62,7 @@ import scipy.sparse as sp
 import torch
 
 from omar_pfem.matrix_free_solver import (
-    _make_energy_fn, matrix_free_hvp, compute_jacobi_diagonal, conjugate_gradient)
+    _make_energy_fn, matrix_free_hvp, compute_jacobi_diagonal)
 from torch.func import grad
 
 
@@ -251,18 +255,47 @@ def _level_matvec_and_diag(level, u_full_level, material, order):
     return matvec, diag
 
 
-def build_mg_precond_apply(levels, u_full_fine, material, order, nu1=2, nu2=2, omega=0.6,
-                            coarse_cg_tol=1e-10, coarse_cg_max_iter=500):
+def _build_dense_factor(matvec, n_free, dtype, device):
+    """Materializes the (small, coarsest-level-only) tangent operator as a
+    dense matrix by applying matvec to each unit basis vector, then
+    LU-factors it ONCE. This is the fix for an earlier, much slower design
+    that re-ran conjugate_gradient from scratch at the coarsest level on
+    EVERY V-cycle call -- and a V-cycle is called once per FINE-level CG
+    ITERATION, so an unconverged or slowly-converging coarse CG inside it
+    made the whole preconditioner far more expensive than plain Jacobi
+    instead of cheaper (caught directly: a tiny N=9/coarsest-N=5 smoke
+    test hung for over a minute before this fix). The coarsest level's
+    operator does not change during a single Newton iteration's CG solve
+    (only the smoother/matvec's LINEARIZATION point does, which is fixed
+    for the whole Newton iteration), so factoring it once and reusing the
+    factorization for every V-cycle call in that CG solve is both correct
+    and the obviously cheaper design -- n_free here is small by
+    construction (coarsening stops well before it grows large), so
+    O(n_free^2) to build the matrix and O(n_free^3) to factor it once is
+    negligible next to the fine-level work this whole preconditioner
+    exists to reduce."""
+    K = torch.zeros(n_free, n_free, dtype=dtype, device=device)
+    e = torch.zeros(n_free, dtype=dtype, device=device)
+    for j in range(n_free):
+        e.zero_()
+        e[j] = 1.0
+        K[:, j] = matvec(e)
+    K = 0.5 * (K + K.T)  # matvec is symmetric in exact arithmetic; symmetrize away FP noise
+    return torch.linalg.lu_factor(K)
+
+
+def build_mg_precond_apply(levels, u_full_fine, material, order, nu1=2, nu2=2, omega=0.6):
     """Builds the v -> M^-1 v closure for one Newton iteration's CG solve,
     a standard symmetric V-cycle: damped-Jacobi pre-smooth, restrict the
     residual, recurse on the coarser level, prolong the correction back,
-    damped-Jacobi post-smooth. The coarsest level is solved with plain CG
-    to a tight tolerance rather than a hand-rolled direct solve (see this
-    module's own docstring for why) -- its own free-DOF count is small by
-    construction (a few hundred at most, since coarsening stops well
-    before that in high_dof_convergence_study.py's own hierarchy choice),
-    so this is cheap relative to the fine-level CG this whole thing
-    preconditions.
+    damped-Jacobi post-smooth. The coarsest level is solved EXACTLY via a
+    dense LU factorization built once per Newton iteration (see
+    _build_dense_factor's docstring for why a from-scratch CG re-solve at
+    the coarsest level, tried first, was a real performance bug, not a
+    correctness one) -- its own free-DOF count is small by construction (a
+    few hundred at most, since coarsening stops well before that in
+    high_dof_convergence_study.py's own hierarchy choice), so this is
+    cheap relative to the fine-level CG this whole thing preconditions.
 
     u_full_fine: the CURRENT full-numbering displacement at the finest
     level (dtype/device matching `levels[0]`) -- rebuilt every Newton
@@ -282,6 +315,8 @@ def build_mg_precond_apply(levels, u_full_fine, material, order, nu1=2, nu2=2, o
         matvecs.append(mv)
         diags.append(dg)
 
+    coarse_lu = _build_dense_factor(matvecs[-1], levels[-1].n_free, dtype, device)
+
     def damped_jacobi(level_idx, r_free, x0, iters):
         x = x0
         mv, dg = matvecs[level_idx], diags[level_idx]
@@ -292,9 +327,8 @@ def build_mg_precond_apply(levels, u_full_fine, material, order, nu1=2, nu2=2, o
 
     def vcycle(level_idx, r_free):
         if level_idx == n_levels - 1:
-            x0 = torch.zeros_like(r_free)
-            x, *_ = conjugate_gradient(matvecs[level_idx], r_free, x0, coarse_cg_tol,
-                                       coarse_cg_max_iter, precond_diag=diags[level_idx])
+            LU, piv = coarse_lu
+            x = torch.linalg.lu_solve(LU, piv, r_free.unsqueeze(-1)).squeeze(-1)
             return x
 
         lvl = levels[level_idx]
