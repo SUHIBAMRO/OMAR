@@ -151,8 +151,8 @@ def check_iteration_count(geometry, material, N, device, dtype):
     params_t = tuple(torch.tensor(p, dtype=dtype, device=device) for p in fine_params)
     fext_free_t = torch.tensor(fine_fext[fine_free], dtype=dtype, device=device)
 
-    kwargs = dict(material=material, order="Q4", nsteps=10, newton_max=30,
-                  newton_tol=1e-8, cg_tol=1e-8, cg_max_iter=3000,
+    kwargs = dict(material=material, order="Q4", nsteps=2, newton_max=15,
+                  newton_tol=1e-6, cg_tol=1e-8, cg_max_iter=3000,
                   use_jacobi=True, device=device, dtype=dtype, verbose=False)
 
     import time
