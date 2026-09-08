@@ -1,0 +1,44 @@
+{
+  "geometry": "B1",
+  "material": "neo_hookean",
+  "order": "Q4",
+  "device": "cuda",
+  "rows": [
+    {
+      "N": 401,
+      "n_dof": 321602,
+      "ours_precond": "mgv",
+      "ours_resumed_from_checkpoint": true,
+      "ours_wall_clock_s": 2615.819307565689,
+      "ours_cg_iters": 3066,
+      "ours_cg_failures": 0,
+      "ours_peak_mem_mb": null,
+      "torchfem_wall_clock_s": 6.2634663581848145,
+      "torchfem_peak_mem_mb": 3292.622336
+    },
+    {
+      "N": 701,
+      "n_dof": 982802,
+      "ours_precond": "mgv",
+      "ours_resumed_from_checkpoint": true,
+      "ours_wall_clock_s": 7205.425608158112,
+      "ours_cg_iters": 2710,
+      "ours_cg_failures": 0,
+      "ours_peak_mem_mb": null,
+      "torchfem_wall_clock_s": 10.997507333755493,
+      "torchfem_peak_mem_mb": 9669.784064
+    },
+    {
+      "N": 1001,
+      "n_dof": 2004002,
+      "ours_precond": "mgv",
+      "ours_resumed_from_checkpoint": true,
+      "ours_wall_clock_s": 17314.837193489075,
+      "ours_cg_iters": 5219,
+      "ours_cg_failures": 0,
+      "ours_peak_mem_mb": null,
+      "torchfem_wall_clock_s": 14.460285186767578,
+      "torchfem_peak_mem_mb": 19498.905088
+    }
+  ]
+}
