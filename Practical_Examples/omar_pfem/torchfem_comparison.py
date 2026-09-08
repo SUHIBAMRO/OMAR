@@ -49,10 +49,40 @@ converged strain energy, same displacement field) to a tight tolerance
 a timing comparison between two solvers before confirming they are
 actually solving the same problem correctly.
 """
+import sys
 import time
+import types
 
 import numpy as np
 import torch
+
+# torch-fem's own __init__.py unconditionally imports pyvista (for mesh
+# plotting/export -- never used by anything in this module, which only
+# calls Planar/HyperelasticPlaneStrain/.solve()). On Colab specifically,
+# `import torchfem` fails with:
+#   ModuleNotFoundError: No module named 'IPython.core.guarded_eval'
+# which has nothing to do with FEM at all -- confirmed directly by
+# reading pyvista's own source
+# (pyvista/core/utilities/misc.py's _allow_ipython_completion): pyvista
+# registers each VTK-wrapping class with IPython's tab-completion
+# policy, but ONLY does anything `if 'IPython' in sys.modules` (true on
+# Colab, since the notebook kernel itself is IPython; false in a plain
+# script, which is why this never triggers in this project's own dev
+# environment). When it does trigger, it unconditionally imports
+# IPython.core.guarded_eval, a submodule Colab's installed IPython
+# version does not have. The function only uses that module via
+# `getattr(guarded_eval, 'EVALUATION_POLICIES', {}).get('limited')`
+# (already defaulting to {} if the attribute is missing), so a harmless
+# empty stub module satisfies the import and makes the rest of the
+# function a no-op -- confirmed by reading the function's full source,
+# not guessed. Installed defensively, before torch-fem/pyvista are ever
+# imported, but only if the real submodule isn't already there.
+if "IPython" in sys.modules and "IPython.core.guarded_eval" not in sys.modules:
+    try:
+        import IPython.core.guarded_eval  # noqa: F401
+    except ModuleNotFoundError:
+        sys.modules["IPython.core.guarded_eval"] = types.ModuleType(
+            "IPython.core.guarded_eval")
 
 from omar_pfem.high_dof_convergence_study import (
     build_mesh_and_bcs, AnalyticFieldB1)
