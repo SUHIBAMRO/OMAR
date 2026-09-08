@@ -894,9 +894,8 @@ def cmd_eval(args):
         panel_data.sort(key=lambda p: int(p['title'].split('=')[1].split('\n')[0]))
         plot_panel_grid(
             panel_data, args.save_sample_plot, cmap='viridis',
-            suptitle=f'One trained operator -> {len(panel_data)} resolutions (no retraining)\n'
-                      f'({args.geometry}, {args.material.replace("_", "-").title()}, '
-                      f'predicted |u|; seed i=0 of each)')
+            suptitle=f'Zero-shot resolution generalization ({args.geometry}, '
+                      f'{args.material.replace("_", "-").title()})')
 
     print("\n" + "=" * 90)
     print(f"ZERO-SHOT RESOLUTION-INVARIANCE EVAL (single checkpoint: {args.checkpoint})")

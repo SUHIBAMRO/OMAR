@@ -86,8 +86,7 @@ def make_resolution_grid_figure(Ns, checkpoint_dir, out_path, material='neo_hook
     cax = fig.add_axes([0.90, 0.15, 0.015, 0.7])
     fig.colorbar(im, cax=cax, label='|u|')
 
-    fig.suptitle('Converged displacement magnitude across mesh resolutions\n'
-                  f'(B1, {material.replace("_", "-").title()}, item #4\'s own mgv solves)',
+    fig.suptitle(f'Mesh convergence (B1, {material.replace("_", "-").title()})',
                   fontsize=10, y=1.05)
 
     os.makedirs(os.path.dirname(out_path), exist_ok=True)

@@ -420,9 +420,8 @@ def main():
             p.pop('_k', None)
         plot_panel_grid(
             panel_data, args.save_sample_plot, cmap='viridis',
-            suptitle=f'Out-of-distribution shift (material), predicted |u|\n'
-                      f'({args.geometry}, {args.material.replace("_", "-").title()}; '
-                      f'Tables 19/25)')
+            suptitle=f'Out-of-distribution generalization ({args.geometry}, '
+                      f'{args.material.replace("_", "-").title()})')
 
     report = save()
     print("\n" + "=" * 62)
