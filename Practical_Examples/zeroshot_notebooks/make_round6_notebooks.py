@@ -891,6 +891,22 @@ NOTEBOOKS = {
          "well inside torch-fem's own float32 precision). This cell "
          "re-runs that same check once more before the real sweep.\n",
          "\n",
+         "**Staged at N=401 only for now**: \"ours\" resumes from an "
+         "existing checkpoint at every N (near-free), so the only real\n",
+         "cost left is torch-fem's own solve time — never measured at any "
+         "of these sizes before. Testing only small/cheap N instead\n",
+         "would not answer the same question, and could plausibly flip the "
+         "conclusion: item #4's own numbers already showed our solver's\n",
+         "relative standing change with N (worse at small/medium N, better "
+         "at the largest tested), since multigrid's advantage grows with\n",
+         "N while its fixed overhead does not — there's no reason to "
+         "assume torch-fem's own scaling is flat either. So this cell\n",
+         "solves only N=401 first (cheapest of the four), matching the "
+         "same cheapest-first staging used for block2x2 and mgv earlier.\n",
+         "Edit `RESOLUTIONS` in the cell to `[401, 701, 1001, 1401]` and "
+         "re-run to extend once N=401 looks right — it skips what's\n",
+         "already in the output JSON.\n",
+         "\n",
          "* **NEEDS A GPU.**\n",
          "* Resumable: skips any N already in the output JSON.\n",
          "* Report every number honestly, including any resolution where "

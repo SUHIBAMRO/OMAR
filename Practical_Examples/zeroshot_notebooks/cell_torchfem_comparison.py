@@ -55,25 +55,38 @@
 #  docstring for why float32: its near_null_space() hardcodes
 #  torch.eye(3) at float32 and errors on a float64 model).
 #
-#  WHAT THIS CELL DOES: runs the real N=401/701/1001/1401 sweep on GPU,
-#  solving with BOTH solvers at each resolution (ours: multigrid
-#  preconditioner, item #4's best available; torch-fem: its own
-#  Jacobi-preconditioned CG, since AMG would need an extra pyamg/amgx
-#  dependency this comparison does not assume is installed -- both
-#  sides use their best readily-available option, not necessarily their
-#  theoretical best). Resumable across resolutions: a re-run of this
-#  cell skips any N already written to OUT_JSON.
+#  WHAT THIS CELL DOES, AND WHY IT IS STAGED AT N=401 ONLY FOR NOW:
+#  "ours" resumes from an existing checkpoint at every N (near-free, see
+#  torchfem_comparison.py's own run_sweep_row docstring), so the ONLY
+#  real cost left in this whole comparison is torch-fem's own solve
+#  time -- and that has never been measured at ANY of these four sizes
+#  before. Shrinking the resolutions tested (e.g. to N=51/101/201, all
+#  cheap and already-solved on "our" side) would NOT answer the same
+#  question and could plausibly give the OPPOSITE conclusion: item #4's
+#  own real numbers already showed our solver's relative standing
+#  change directly with N (worse than a plain approach at small/medium
+#  N, better at the largest one tested), because our own multigrid
+#  preconditioner's advantage grows with N while its fixed overhead
+#  does not -- there is no reason to assume torch-fem's own scaling
+#  behavior is flat either. A small-scale-only test answers "who is
+#  faster on a tiny problem," not "who is more efficient at the
+#  million-DOF scale this report's whole solver story is about," which
+#  is what Timon actually asked for. So: solves ONLY N=401 (the
+#  cheapest of the four, and instantly comparable to Table 20c's own
+#  N=401 row) as a first real data point, following the exact same
+#  cheapest-first staging this project has used for every other GPU
+#  comparison (block2x2, mgv). Once this looks right, extend
+#  RESOLUTIONS below to [401, 701, 1001, 1401] and re-run -- it will
+#  skip N=401 (already in OUT_JSON) and solve only the remaining three.
 #
 #  WHAT TO CHECK when this finishes:
-#    1. wall_clock_s, both solvers, at each N -- which is faster, and
-#       by how much, at each of the four resolutions.
+#    1. wall_clock_s, both solvers, at N=401 -- which is faster, and by
+#       how much.
 #    2. peak_mem_mb, both solvers -- this is where the matrix-free vs.
-#       assembled-sparse architectural difference should show up most
-#       clearly, especially at N=1401 (millions of DOF).
-#    3. ours_cg_failures should be 0 at every N (item #4's own result,
-#       already confirmed separately) -- if not, something about this
-#       specific run regressed and should be investigated before
-#       trusting the rest of the row.
+#       assembled-sparse architectural difference should show up.
+#    3. ours_cg_failures should be 0 (item #4's own already-confirmed
+#       result) -- if not, something regressed and should be
+#       investigated before trusting the rest of the row.
 #  Report the real numbers either way -- a result unfavorable to our
 #  own solver is still the honest answer to Timon's question.
 # =====================================================================
@@ -132,9 +145,17 @@ os.makedirs(os.path.dirname(OUT_JSON), exist_ok=True)
 # highdof_stress_qoi_results/*.json.
 CHECKPOINT_DIR = '/content/drive/MyDrive/pfem_ckpt'
 
+# Staged: N=401 only for now (the cheapest of the four, and "ours" own
+# side is already free via the checkpoint above) -- see this cell's own
+# header for why testing only small/cheap N here would not answer the
+# same question. Once this looks right, change to
+# RESOLUTIONS = [401, 701, 1001, 1401] and re-run; it skips N=401
+# (already in OUT_JSON) and solves only the remaining three.
+RESOLUTIONS = [401]
+
 t0 = time.time()
 from omar_pfem.torchfem_comparison import run_sweep
-rows = run_sweep([401, 701, 1001, 1401], OUT_JSON, checkpoint_dir=CHECKPOINT_DIR)
+rows = run_sweep(RESOLUTIONS, OUT_JSON, checkpoint_dir=CHECKPOINT_DIR)
 elapsed = time.time() - t0
 
 print(f'\nDone in {elapsed/3600:.2f} h. Results: {OUT_JSON}')
