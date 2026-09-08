@@ -163,6 +163,19 @@ def build_shifted_b2(N, seed, material, kw, R_in=1.0, R_out=2.0):
             "node_forces": node_forces, "uv_exact": uv}
 
 
+@torch.no_grad()
+def _predict_uv(geometry, sample, model, args, device, dtype):
+    """Item #12: one forward pass, for the sample-plot hook only -- the
+    exact same mesh_tensors_of/loss_and_pred call run_cell's own per-seed
+    loop already makes."""
+    mesh_t = mesh_tensors_of(geometry, sample, device, dtype)
+    E_b = torch.tensor(sample["E_node"][None], device=device, dtype=dtype)
+    nu_b = torch.tensor(sample["nu_node"][None], device=device, dtype=dtype)
+    f_b = torch.tensor(sample["node_forces"][None], device=device, dtype=dtype)
+    _, _, _, uv_pred, _ = loss_and_pred(geometry, mesh_t, model, E_b, nu_b, f_b, args, dtype)
+    return uv_pred[0].cpu().numpy()
+
+
 def per_component_rel_l2(pred, ref):
     """Tables 5 and 11's definition, so these numbers can be read against
     their degradation factors."""
@@ -210,6 +223,13 @@ def main():
     p.add_argument("--mode", default="plane_strain")
     p.add_argument("--Ly", type=float, default=1.0)
     p.add_argument("--R_out", type=float, default=2.0)
+    p.add_argument("--save_sample_plot", type=str, default=None,
+                   help="Item #12: if given, save a side-by-side field-panel PNG "
+                        "(one panel per shift level of the 'material' factor -- "
+                        "baseline plus each k-sigma shift -- the network's own "
+                        "predicted |u| for seed i=0 of each) to this path. Opt-in "
+                        "and additive only -- omitting it reproduces this "
+                        "command's existing numeric behavior exactly, unchanged.")
     args = p.parse_args()
     started = time.time()
 
@@ -308,6 +328,25 @@ def main():
         os.replace(tmp, p)
         return s
 
+    # Item #12: side-by-side field-panel figure, "material" factor only
+    # (baseline + each k-sigma shift), matching the "Nominal / Unseen a /
+    # Unseen b" style Omar pointed to. Populated either inline from
+    # run_cell's own per-seed loop (seed i=0, reusing its already-computed
+    # prediction) or, for a cell already in `done` from an earlier run,
+    # via one extra cheap forward pass done ONLY for the plot -- never
+    # touches rows/out_json, so --save_sample_plot reproduces this
+    # command's existing numeric output byte-for-byte.
+    panel_data = [] if args.save_sample_plot else None
+
+    def capture_panel(factor, k, s, uv_pred_np):
+        if panel_data is None or factor != "material":
+            return
+        label = 'Nominal (baseline)' if k == 0.0 else f'material shift, k={k:g}σ'
+        panel_data.append({
+            'title': label, 'x': s['xy'][:, 0], 'y': s['xy'][:, 1],
+            'values': np.sqrt((uv_pred_np ** 2).sum(axis=1)), '_k': k,
+        })
+
     def run_cell(factor, k):
         kw = field_kwargs(args.geometry, factor, k)
         errs = []
@@ -320,7 +359,10 @@ def main():
             with torch.no_grad():
                 _, _, _, uv, _ = loss_and_pred(
                     args.geometry, mesh_t, model, E, nu, f, args, dtype)
-            errs.append(per_component_rel_l2(uv[0].cpu().numpy(), s["uv_exact"]))
+            uv_np = uv[0].cpu().numpy()
+            if i == 0:
+                capture_panel(factor, k, s, uv_np)
+            errs.append(per_component_rel_l2(uv_np, s["uv_exact"]))
         return {"factor": factor, "shift_sigma": k,
                 "field_kwargs": {kk: float(vv) for kk, vv in kw.items()},
                 "n_samples": args.n_samples,
@@ -341,10 +383,23 @@ def main():
         print(f"       {baseline['mean_rel_L2']:.4f}\n")
     if baseline is not None:
         print(f"in-distribution baseline: {baseline['mean_rel_L2']:.4f}\n")
+        if panel_data is not None and not panel_data:
+            # Baseline was loaded from an existing out_json (this run never
+            # called run_cell for it), so no panel exists yet -- one extra
+            # cheap forward pass gets one, without touching rows/out_json.
+            kw0 = field_kwargs(args.geometry, "material", 0.0)
+            s0 = cached_build(args.N, args.seed_base, args.material, kw0, "material", 0.0)
+            uv0 = _predict_uv(args.geometry, s0, model, args, device, dtype)
+            capture_panel("material", 0.0, s0, uv0)
 
     for factor in factors:
         for k in shifts:
             if k == 0.0 or (factor, k) in done:
+                if panel_data is not None and factor == "material" and k != 0.0:
+                    kw = field_kwargs(args.geometry, factor, k)
+                    s = cached_build(args.N, args.seed_base, args.material, kw, factor, k)
+                    uv_np = _predict_uv(args.geometry, s, model, args, device, dtype)
+                    capture_panel(factor, k, s, uv_np)
                 continue
             t0 = time.time()
             row = run_cell(factor, k)
@@ -357,6 +412,17 @@ def main():
             print(f"  {factor:<9} k={k:>4}sigma  err={row['mean_rel_L2']:.4f}"
                   + (f"  ({deg:.2f}x)" if deg else "")
                   + f"   [{time.time() - t0:.0f}s]")
+
+    if panel_data:
+        from omar_pfem.panel_grid_plot import plot_panel_grid
+        panel_data.sort(key=lambda p: p['_k'])
+        for p in panel_data:
+            p.pop('_k', None)
+        plot_panel_grid(
+            panel_data, args.save_sample_plot, cmap='viridis',
+            suptitle=f'Out-of-distribution shift (material), predicted |u|\n'
+                      f'({args.geometry}, {args.material.replace("_", "-").title()}; '
+                      f'Tables 19/25)')
 
     report = save()
     print("\n" + "=" * 62)

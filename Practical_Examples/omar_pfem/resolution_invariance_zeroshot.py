@@ -689,6 +689,20 @@ def interpolate_to_reference(coarse_nodes, coarse_field, fine_nodes):
     return np.stack([u_at_fine, v_at_fine], axis=1)
 
 
+@torch.no_grad()
+def _predict_uv(geometry, sample, model, args, device, dtype):
+    """Item #12: one forward pass, for the sample-plot hook only -- the
+    exact same mesh_tensors_of/loss_and_pred call cmd_eval's own per-seed
+    loop already makes, factored out so the done_Ns (cached) branch below
+    can get a prediction without duplicating that call inline."""
+    mesh_t = mesh_tensors_of(geometry, sample, device, dtype)
+    E_b = torch.tensor(sample["E_node"][None], device=device, dtype=dtype)
+    nu_b = torch.tensor(sample["nu_node"][None], device=device, dtype=dtype)
+    f_b = torch.tensor(sample["node_forces"][None], device=device, dtype=dtype)
+    _, _, _, uv_pred, _ = loss_and_pred(geometry, mesh_t, model, E_b, nu_b, f_b, args, dtype)
+    return uv_pred[0].cpu().numpy()
+
+
 def cmd_eval(args):
     run_started_at = time.time()
     device = torch.device("cuda" if torch.cuda.is_available() and not args.cpu else "cpu")
@@ -780,8 +794,29 @@ def cmd_eval(args):
             torch.save(fine_cache, fine_cache_path)
         return fine_cache[seed]
 
+    # Item #12: side-by-side field-panel figure, one panel per test
+    # resolution, the network's own predicted |u| for the FIRST eval seed
+    # (i=0) at each N -- entirely additive, collected alongside whatever
+    # this call already computes. Populated below either from the normal
+    # per-seed loop (when N's metrics are being computed fresh) or, when N
+    # is already in done_Ns (cached from an earlier run so its metrics
+    # loop is skipped), from one extra cheap forward pass done ONLY for
+    # the plot -- this never touches rows/out_json, so a run with
+    # --save_sample_plot set reproduces byte-identical numeric output to
+    # the same command without it.
+    panel_data = [] if args.save_sample_plot else None
+
     for N in test_resolutions:
         if N in done_Ns:
+            if panel_data is not None:
+                seed0 = 20_000_000
+                coarse_sample0, _ = build_fn(N, seed=seed0, material=args.material, solve_fem=False)
+                uv_pred0 = _predict_uv(args.geometry, coarse_sample0, model, args, device, dtype)
+                panel_data.append({
+                    'title': f'N={N}\n({2 * coarse_sample0["xy"].shape[0]:,} DOF)',
+                    'x': coarse_sample0['xy'][:, 0], 'y': coarse_sample0['xy'][:, 1],
+                    'values': np.sqrt((uv_pred0 ** 2).sum(axis=1)),
+                })
             continue
         # BOTH METRICS, from here on. The reported number has always been the
         # per-component average, and it stays first and unchanged so every
@@ -818,6 +853,17 @@ def cmd_eval(args):
                 _, _, _, uv_pred, _ = loss_and_pred(args.geometry, mesh_t, model, E_b, nu_b, f_b, args, dtype)
             uv_pred_np = uv_pred[0].cpu().numpy()
 
+            if panel_data is not None and i == 0:
+                # Reuses this same seed's already-computed prediction --
+                # no extra forward pass needed when N's metrics are being
+                # computed fresh (unlike the done_Ns branch above, which
+                # has no prediction lying around to reuse).
+                panel_data.append({
+                    'title': f'N={N}\n({2 * coarse_sample["xy"].shape[0]:,} DOF)',
+                    'x': coarse_sample['xy'][:, 0], 'y': coarse_sample['xy'][:, 1],
+                    'values': np.sqrt((uv_pred_np ** 2).sum(axis=1)),
+                })
+
             uv_pred_on_fine = interpolate_to_reference(coarse_sample["xy"], uv_pred_np, fine_sample["xy"])
             uv_exact_fine = fine_sample["uv_exact"]
 
@@ -842,6 +888,15 @@ def cmd_eval(args):
               f"{args.n_eval_samples} samples, NO retraining)   "
               f"both-components {row['mean_combined_rel_L2_vs_fine_reference']:.4e}")
         _save_report()
+
+    if panel_data:
+        from omar_pfem.panel_grid_plot import plot_panel_grid
+        panel_data.sort(key=lambda p: int(p['title'].split('=')[1].split('\n')[0]))
+        plot_panel_grid(
+            panel_data, args.save_sample_plot, cmap='viridis',
+            suptitle=f'One trained operator -> {len(panel_data)} resolutions (no retraining)\n'
+                      f'({args.geometry}, {args.material.replace("_", "-").title()}, '
+                      f'predicted |u|; seed i=0 of each)')
 
     print("\n" + "=" * 90)
     print(f"ZERO-SHOT RESOLUTION-INVARIANCE EVAL (single checkpoint: {args.checkpoint})")
@@ -971,6 +1026,12 @@ def main():
                          help="Common fine-mesh FEM reference resolution, per the advisor's request")
     p_eval.add_argument("--n_eval_samples", type=int, default=20)
     p_eval.add_argument("--out_json", type=str, default=None)
+    p_eval.add_argument("--save_sample_plot", type=str, default=None,
+                         help="Item #12: if given, save a side-by-side field-panel "
+                              "PNG (one panel per test resolution, the network's own "
+                              "predicted |u|, seed i=0 of each) to this path. Opt-in "
+                              "and additive only -- omitting it reproduces this "
+                              "command's existing numeric behavior exactly, unchanged.")
     p_eval.set_defaults(func=cmd_eval)
 
     args = parser.parse_args()
