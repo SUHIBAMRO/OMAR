@@ -148,7 +148,19 @@ def build_torchfem_model(nodes, elements, mu, lam, fext_full, fixed_dofs,
     ], dim=-1)  # (n_elem, 2)
 
     material = HyperelasticPlaneStrain(psi=neo_hookean_psi_3d, params=params)
-    model = Planar(nodes_t, elements_t, material)
+    # torch-fem's own FEM.__init__ builds an internal index-mapping via
+    # `torch.arange(self.n_dof_per_node)` with no explicit device -- a
+    # real bug in torch-fem itself, confirmed directly: on a GPU run
+    # this raises "Expected all tensors to be on the same device" the
+    # moment nodes/elements are CUDA tensors, since torch.arange
+    # defaults to CPU regardless of its other operands' device. Not
+    # fixable by moving our own tensors around (the mismatch is INSIDE
+    # torch-fem's own constructor, before we get any tensor back);
+    # `with torch.device(device):` makes every device-less tensor
+    # creation inside that block (including torch-fem's own internal
+    # torch.arange calls) default to the right device instead.
+    with torch.device(device):
+        model = Planar(nodes_t, elements_t, material)
 
     n_nodes = nodes.shape[0]
     model.forces = torch.tensor(fext_full, dtype=dtype, device=device).reshape(n_nodes, 2)
