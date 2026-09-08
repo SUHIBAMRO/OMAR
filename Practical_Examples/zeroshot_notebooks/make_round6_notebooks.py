@@ -945,6 +945,47 @@ NOTEBOOKS = {
          "+ plotting.\n",
          "* Saves to `/content/drive/MyDrive/pfem_run/figures/"
          "fig_B1_resolution_grid.png` — fetch it from Drive afterward.\n"]),
+    "Round6_All_Study_Figures.ipynb": (
+        "cell_all_study_figures.py",
+        ["# Item #12: field-panel-grid figures for every study with a "
+         "saved checkpoint\n",
+         "\n",
+         "One notebook, four independent sections, each producing a "
+         "side-by-side field-panel figure in the style Omar pointed to\n",
+         "from Timon's own group's papers (VINO Figs. 7a/8d/9d; the "
+         "PFEM/NOWS screenshots he shared) — one panel per case,\n",
+         "arranged in a row, showing the actual field rather than a "
+         "summary number. Tables themselves are left untouched, matching\n",
+         "those papers' own practice of keeping the table AND adding a "
+         "companion figure.\n",
+         "\n",
+         "* **A — FEM convergence (Table 6a/20), B1 Neo-Hookean.** No new "
+         "solving: reuses item #4's own converged checkpoints\n",
+         "  (N=51/101/201/401/701/1001/1401) directly.\n",
+         "* **B — Zero-shot resolution (Table 12), B1 Neo-Hookean.** One "
+         "trained checkpoint, evaluated at 7 resolutions never seen\n",
+         "  together, no retraining — cheap forward passes only.\n",
+         "* **C — OOD shift (Tables 19/25), B2, all 3 materials.** One "
+         "trained checkpoint per material, baseline + two shift levels —\n",
+         "  a few small (N=21) fresh FEM solves plus forward passes, "
+         "reusing ood_progressive.py's own validated sample construction.\n",
+         "* **D — DD-NO coarse-vs-fine (Table 26), B1 Neo-Hookean.** Both "
+         "already-trained checkpoints (N=13-trained, N=33-trained),\n",
+         "  evaluated at the same 3 resolutions, no retraining.\n",
+         "\n",
+         "**Each section is independent and wrapped in its own "
+         "try/except** — if one checkpoint path does not match your "
+         "actual\n",
+         "Drive layout, that section prints `SECTION ... FAILED` with "
+         "the real error and the others still run. Fix the path\n",
+         "constant named in that section and re-run just this cell.\n",
+         "\n",
+         "* No GPU strictly required for A; a GPU speeds up B/C/D's "
+         "forward passes and C's small FEM solves, but nothing here is\n",
+         "  large-scale.\n",
+         "* Saves every figure to "
+         "`/content/drive/MyDrive/pfem_run/figures/` — fetch them from "
+         "Drive afterward.\n"]),
     "Round6_DD_NO_Coarse_vs_Fine.ipynb": (
         "cell_dd_no_coarse_vs_fine.py",
         ["# DD-NO on coarse vs. fine FEM labels — Timon round 8, point 3\n",
