@@ -160,6 +160,23 @@ CHECKPOINT_DIR = '/content/drive/MyDrive/pfem_ckpt'
 # already in OUT_JSON and solves only N=1401.
 RESOLUTIONS = [401, 701, 1001]
 
+# This cell has been re-run several times in this SAME Colab kernel while
+# this comparison's own code was still being fixed (pyvista/IPython, then
+# the torch-fem device-mismatch bug below) -- `git reset --hard` above
+# only updates the FILES on disk, it does not touch Python's own
+# `sys.modules` cache. The CPU correctness check just above runs as a
+# fresh subprocess every time (always sees the latest code), but a plain
+# `import omar_pfem...` in THIS process reuses whatever was already
+# imported earlier in this same kernel session, silently ignoring any
+# fix committed since -- exactly what happened when the device-mismatch
+# fix below was pushed but a stale in-kernel import kept reproducing the
+# pre-fix error. Force a clean re-import of this project's own package
+# every time this cell runs, regardless of what an earlier cell run in
+# this kernel already imported.
+for _mod_name in list(sys.modules):
+    if _mod_name == 'omar_pfem' or _mod_name.startswith('omar_pfem.'):
+        del sys.modules[_mod_name]
+
 t0 = time.time()
 from omar_pfem.torchfem_comparison import run_sweep
 rows = run_sweep(RESOLUTIONS, OUT_JSON, checkpoint_dir=CHECKPOINT_DIR)
