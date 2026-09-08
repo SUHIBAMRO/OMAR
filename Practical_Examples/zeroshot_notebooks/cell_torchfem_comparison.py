@@ -124,9 +124,17 @@ run([sys.executable, '-m', 'omar_pfem.torchfem_comparison', '11'])
 OUT_JSON = '/content/drive/MyDrive/pfem_run/torchfem_comparison_B1_neo_hookean.json'
 os.makedirs(os.path.dirname(OUT_JSON), exist_ok=True)
 
+# item #4's own checkpoints already hold the fully-converged mgv solve
+# at all four of these resolutions (Round6_MGV_Recheck_N701_1001_1401.
+# ipynb's real ~14.86h run) -- reusing them here means "ours" resumes
+# in seconds and this cell's own real cost is torch-fem's solve time
+# alone, not ~15h spent reproducing numbers already committed in
+# highdof_stress_qoi_results/*.json.
+CHECKPOINT_DIR = '/content/drive/MyDrive/pfem_ckpt'
+
 t0 = time.time()
 from omar_pfem.torchfem_comparison import run_sweep
-rows = run_sweep([401, 701, 1001, 1401], OUT_JSON)
+rows = run_sweep([401, 701, 1001, 1401], OUT_JSON, checkpoint_dir=CHECKPOINT_DIR)
 elapsed = time.time() - t0
 
 print(f'\nDone in {elapsed/3600:.2f} h. Results: {OUT_JSON}')

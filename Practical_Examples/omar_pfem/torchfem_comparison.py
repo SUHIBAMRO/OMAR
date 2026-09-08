@@ -134,7 +134,17 @@ def build_torchfem_model(nodes, elements, mu, lam, fext_full, fixed_dofs,
 
 
 def solve_ours(nodes, elements, free_dofs, elem_params, fext_full, nsteps=10,
-                device=None, dtype=torch.float64, mg_hierarchy=None):
+                device=None, dtype=torch.float64, mg_hierarchy=None, checkpoint_path=None):
+    """checkpoint_path: if given and it already holds a completed solve
+    (e.g. from item #4's own N=401/701/1001/1401 mgv runs, already on
+    Drive), this resumes and returns near-instantly instead of
+    re-solving from scratch -- avoiding ~15h of REDUNDANT GPU time
+    reproducing wall-clock/cg_iters numbers this project already has
+    committed (highdof_stress_qoi_results/*.json). The elapsed time
+    returned in that case is the resume time, not a real solve cost --
+    reuse the already-committed JSON's own wall_clock_s/cg_iters for
+    "ours" instead of this call's own timing whenever a checkpoint was
+    reused; see run_sweep_row's own docstring."""
     device = device or torch.device('cpu')
     xy_t = torch.tensor(nodes, dtype=dtype, device=device)
     quad_t = torch.tensor(elements, dtype=torch.long, device=device)
@@ -151,7 +161,8 @@ def solve_ours(nodes, elements, free_dofs, elem_params, fext_full, nsteps=10,
         xy_t, quad_t, free_t, params_t, fext_free_t, n_free=len(free_dofs),
         material="neo_hookean", order="Q4", nsteps=nsteps, newton_max=30,
         newton_tol=1e-8, cg_tol=1e-8, cg_max_iter=2000, precond_kind=precond_kind,
-        mg_hierarchy=mg_hierarchy, device=device, dtype=dtype, verbose=False)
+        mg_hierarchy=mg_hierarchy, device=device, dtype=dtype, verbose=False,
+        checkpoint_path=checkpoint_path)
     if device.type == "cuda":
         torch.cuda.synchronize(device)
     elapsed = time.time() - t0
@@ -214,7 +225,7 @@ def _correctness_check(N=11):
     return ok
 
 
-def run_sweep_row(N, device, use_mgv=True):
+def run_sweep_row(N, device, use_mgv=True, checkpoint_dir=None):
     """One resolution's worth of the real comparison: builds the SAME
     B1 x Neo-Hookean mesh/BCs/material both solvers see, solves with
     each, and returns a dict of everything needed to compare them --
@@ -223,11 +234,34 @@ def run_sweep_row(N, device, use_mgv=True):
     against torch-fem's own best readily-available one (Jacobi -- AMG
     would need an extra pyamg/amgx dependency this comparison does not
     assume is installed); documented explicitly rather than silently
-    picking whichever happens to be convenient."""
+    picking whichever happens to be convenient.
+
+    checkpoint_dir: if given and matches item #4's own checkpoint
+    naming/location (coarse_B1_neo_hookean_Q4_N{N}.pt), "ours" resumes
+    from the ALREADY-COMPLETED mgv solve those runs left on Drive
+    instead of re-solving from scratch -- avoiding ~15h of genuinely
+    redundant GPU time reproducing wall-clock/cg_iters numbers this
+    project already has committed (see PROJECT_STATUS.md's item #4).
+    When that happens, `ours_resumed_from_checkpoint` is True in the
+    returned row and `ours_wall_clock_s`/`ours_cg_iters` are read
+    directly from that already-committed data (the checkpoint resume's
+    own near-instant timing would badly understate the real solve
+    cost, and would report zero peak memory, neither of which is a
+    fair "ours" number for this comparison)."""
     nodes, elements, free_dofs, fext_full, elem_params = build_mesh_and_bcs(
         "B1", "Q4", N, "neo_hookean", device, torch.float64)
     mu, lam = elem_params
     fixed_dofs = np.setdiff1d(np.arange(2 * nodes.shape[0]), free_dofs)
+
+    checkpoint_path = None
+    if checkpoint_dir is not None:
+        import os
+        checkpoint_path = os.path.join(checkpoint_dir, f"coarse_B1_neo_hookean_Q4_N{N}.pt")
+        resumed = os.path.exists(checkpoint_path)
+    else:
+        resumed = False
+
+    known = _known_mgv_result(N) if resumed and use_mgv else None
 
     mg_hierarchy = None
     if use_mgv:
@@ -246,11 +280,24 @@ def run_sweep_row(N, device, use_mgv=True):
         mg_hierarchy = build_mg_hierarchy(mesh_tuples, torch.float64, device)
         print(f"  [ours] mgv hierarchy N: {Ns_mg}")
 
-    _u_ours, t_ours, stats, peak_ours = solve_ours(
+    _u_ours, t_ours_call, stats, peak_ours = solve_ours(
         nodes, elements, free_dofs, elem_params, fext_full,
-        device=device, mg_hierarchy=mg_hierarchy)
-    print(f"  ours:      N={N} wall_clock={t_ours:.1f}s cg_iters={stats['cg_iters_total']} "
-          f"cg_failures={stats['cg_failures']} peak_mem_mb={peak_ours}")
+        device=device, mg_hierarchy=mg_hierarchy, checkpoint_path=checkpoint_path)
+
+    if known is not None:
+        print(f"  ours:      N={N} RESUMED from existing checkpoint in {t_ours_call:.1f}s -- "
+              f"using item #4's already-committed real numbers instead: "
+              f"wall_clock={known['wall_clock_s']:.1f}s cg_iters={known['cg_iters']} "
+              f"cg_failures={known['cg_failures']}")
+        ours_wall_clock_s = known["wall_clock_s"]
+        ours_cg_iters = known["cg_iters"]
+        ours_cg_failures = known["cg_failures"]
+    else:
+        print(f"  ours:      N={N} wall_clock={t_ours_call:.1f}s cg_iters={stats['cg_iters_total']} "
+              f"cg_failures={stats['cg_failures']} peak_mem_mb={peak_ours}")
+        ours_wall_clock_s = t_ours_call
+        ours_cg_iters = stats["cg_iters_total"]
+        ours_cg_failures = stats["cg_failures"]
 
     _u_theirs, t_theirs, peak_theirs = solve_theirs(
         nodes, elements, mu, lam, fext_full, fixed_dofs, device=device)
@@ -259,17 +306,52 @@ def run_sweep_row(N, device, use_mgv=True):
     return {
         "N": N, "n_dof": int(2 * nodes.shape[0]),
         "ours_precond": "mgv" if use_mgv else "jacobi",
-        "ours_wall_clock_s": t_ours, "ours_cg_iters": stats["cg_iters_total"],
-        "ours_cg_failures": stats["cg_failures"], "ours_peak_mem_mb": peak_ours,
+        "ours_resumed_from_checkpoint": known is not None,
+        "ours_wall_clock_s": ours_wall_clock_s, "ours_cg_iters": ours_cg_iters,
+        "ours_cg_failures": ours_cg_failures,
+        "ours_peak_mem_mb": peak_ours if known is None else None,
         "torchfem_wall_clock_s": t_theirs, "torchfem_peak_mem_mb": peak_theirs,
     }
 
 
-def run_sweep(resolutions, out_json, device=None):
+def _known_mgv_result(N):
+    """Item #4's own already-committed, real-GPU-measured mgv result
+    for this N, from highdof_stress_qoi_results/*.json -- reused here
+    instead of re-solving "ours" from scratch when a checkpoint resume
+    is detected. Returns None for any N not already measured there."""
+    import json
+    import os
+    PF = os.path.dirname(os.path.abspath(__file__))
+    sources = [
+        ("high_dof_stress_qoi_B1_neo_hookean_mgv_N401.json", (401,)),
+        ("high_dof_stress_qoi_B1_neo_hookean_mgv_N701_1001_1401.json", (701, 1001, 1401)),
+    ]
+    for fname, ns in sources:
+        if N not in ns:
+            continue
+        path = os.path.join(PF, "highdof_stress_qoi_results", fname)
+        if not os.path.exists(path):
+            return None
+        with open(path) as f:
+            data = json.load(f)
+        for row in data["orders"]["Q4"]["rows"]:
+            if row["N"] == N:
+                return {"wall_clock_s": row["wall_clock_s"], "cg_iters": row["cg_iters"],
+                        "cg_failures": row["cg_failures"]}
+    return None
+
+
+def run_sweep(resolutions, out_json, device=None, checkpoint_dir=None):
     """Resumable across resolutions, matching high_dof_convergence_study's
     own pattern: writes progress after every row so a Colab disconnect
     loses at most the resolution in progress, and a re-run of this same
-    call skips resolutions already in out_json instead of re-solving them."""
+    call skips resolutions already in out_json instead of re-solving them.
+
+    checkpoint_dir: item #4's own checkpoint directory (typically
+    /content/drive/MyDrive/pfem_ckpt on Colab) -- when given, "ours"
+    reuses the already-completed mgv solves there instead of re-solving
+    from scratch; see run_sweep_row's own docstring for why this
+    matters (~15h of otherwise-redundant GPU time)."""
     import json
     import os
 
@@ -286,7 +368,7 @@ def run_sweep(resolutions, out_json, device=None):
         if N in done:
             print(f"  N={N} already in {out_json}, skipping")
             continue
-        row = run_sweep_row(N, device)
+        row = run_sweep_row(N, device, checkpoint_dir=checkpoint_dir)
         rows.append(row)
         rows.sort(key=lambda r: r["N"])
         if out_json:
@@ -301,7 +383,8 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "sweep":
         resolutions = [int(x) for x in sys.argv[2].split(",")] if len(sys.argv) > 2 else [401, 701, 1001, 1401]
         out_json = sys.argv[3] if len(sys.argv) > 3 else None
-        run_sweep(resolutions, out_json)
+        checkpoint_dir = sys.argv[4] if len(sys.argv) > 4 else None
+        run_sweep(resolutions, out_json, checkpoint_dir=checkpoint_dir)
     else:
         N = int(sys.argv[1]) if len(sys.argv) > 1 else 11
         ok = _correctness_check(N)
