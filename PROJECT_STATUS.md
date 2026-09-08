@@ -5,7 +5,75 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-08 (**item #13 is FULLY DONE**, after five real
+Last updated: 2026-09-08 (**item #12 (tables → figures) is essentially
+DONE for the whole tracked punch-list** — every table Omar named that
+lacked a figure now has one, built with a safety-first, two-track
+approach he set explicitly mid-session:
+
+1. **Notebook-based, model-touching figures** (`Round6_Project_Figures.ipynb`,
+   `zeroshot_notebooks/cell_project_figures.py`): additive, opt-in
+   `--save_sample_plot` flags added directly to the ORIGINAL already-
+   validated scripts (`resolution_invariance_zeroshot.py`,
+   `ood_progressive.py`), re-invoked with their real original commands
+   from `run_manifest.json` — never a separate reimplementation.
+   Verified byte-identical numeric output on fresh vs. resumed runs
+   before trusting it. Produces: FEM field grid, Table 12 zero-shot
+   field grid, 6 OOD-case field grids, DD-NO coarse-vs-fine field grid.
+   Titles cleaned of internal notes (item numbers, "no retraining",
+   seed indices) per Omar's explicit "publication-ready title" request.
+2. **Local scripts reading already-committed numbers**
+   (`report_builders/make_figure_*.py`): no model, no new computation.
+   For tables with a JSON source, read it directly. For the ~20 tables
+   with NO separate JSON anywhere (mesh convergence, training cost,
+   latency, break-even, ID/OOD, B2 fix history, operator-vs-FEM,
+   PI-vs-DD), built `report_builders/docx_table_map.py`, a reusable
+   utility that safely pairs every caption to its table by checking
+   BOTH directions and inferring the convention from resolved
+   neighbours — needed because one document block (Tables 1/1a/1b/
+   2/2a/2b) uses "caption after table," the opposite of everywhere
+   else, which would have silently mislabeled all six tables one slot
+   off if only one direction were checked. Verified against 57
+   captioned tables, zero ambiguity errors.
+
+Real bugs caught and fixed BEFORE anything was sent to Omar, each by
+visually inspecting the rendered PNG or double-checking caption text
+rather than trusting a first pass: (a) a reaction-force panel silently
+overwriting the stress panel in `make_figure_physical_quantities.py`
+(a dropped `ax = axes[2]` line); (b) a naive dict-merge letting a
+checkpoint-resume artifact (0.76s) silently overwrite the real N=401
+solve time (2615.8s) in the solver-scaling figure; (c) the mesh-
+convergence caption-direction trap described above; (d) the most
+serious one — Table 10 is the GPU-native FEM SOLVER's own timing, NOT
+the trained operator's, confirmed only by reading each table's own
+caption text (the header rows are identical across Tables 10/10a/10b/
+10c and would not have caught this) — an earlier combined figure had
+mislabeled it, caught and fixed by splitting into correctly-labeled
+`make_figure_operator_latency.py` (Tables 10/10a/10b) and
+`make_figure_breakeven.py` (Table 10d, break-even vs. both CPU-FEM and
+GPU-FEM).
+
+Full list of local-script figures built and sent, this session: mesh
+convergence (Tables 1/1a/1b/2/2a/2b), physical quantities (15/16/17),
+zero-shot resolution (12/12b/12c), MMS convergence (22/22a/22b/23/23a),
+solver scaling (20/20a/20c), torch-fem comparison (20d), training cost
+(5/7/8), operator-vs-GPU-FEM latency (10/10a/10b), break-even (10c/10d),
+ID-vs-OOD degradation (11), B2 fix history (13/14), operator-vs-FEM
+accuracy/cost across resolutions (18/18a-e), physics-informed vs.
+data-driven training (21/21a). Table 9 (correctness check, all PASS)
+was explicitly skipped as not figure-worthy — validation only, no
+trend to show.
+
+**All scripts and the `docx_table_map.py` utility are committed and
+pushed; all figures have been sent to Omar as PNGs via SendUserFile,
+in batches, as they were produced and verified.** Nothing has been
+embedded into the actual Report/Summary docx files yet (unlike item
+#13's Table 20d, which WAS inserted) — that insertion step, plus Omar's
+own review/approval of which figures he actually wants kept in the
+final documents, is the only remaining work on item #12. Do NOT insert
+anything into the docx without Omar's sign-off on the figure set first,
+per his standing "explain before touching the real documents" rule.
+
+Previous update, 2026-09-08 (**item #13 is FULLY DONE**, after five real
 issues found and fixed one after another on the way there (pyvista/
 IPython, two separate torch-fem internal device-default bugs, a stale
 in-kernel module cache, and a stale browser tab never picking up any
