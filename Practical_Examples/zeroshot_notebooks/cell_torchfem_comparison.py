@@ -55,38 +55,40 @@
 #  docstring for why float32: its near_null_space() hardcodes
 #  torch.eye(3) at float32 and errors on a float64 model).
 #
-#  WHAT THIS CELL DOES, AND WHY N=1401 IS STAGED SEPARATELY:
-#  "ours" resumes from an existing checkpoint at every N (near-free, see
-#  torchfem_comparison.py's own run_sweep_row docstring), so the ONLY
-#  real cost left in this whole comparison is torch-fem's own solve
-#  time -- and that has never been measured at ANY of these four sizes
-#  before. Shrinking the resolutions tested down to only small/cheap N
-#  (e.g. 51/101/201) would NOT answer the same question and could
-#  plausibly give the OPPOSITE conclusion: item #4's own real numbers
-#  already showed our solver's relative standing change directly with N
-#  (worse than a plain approach at small/medium N, better at the
-#  largest one tested), because our own multigrid preconditioner's
-#  advantage grows with N while its fixed overhead does not -- there is
-#  no reason to assume torch-fem's own scaling behavior is flat either.
-#  A small-scale-only test answers "who is faster on a tiny problem,"
-#  not "who is more efficient at the million-DOF scale this report's
-#  whole solver story is about," which is what Timon actually asked
-#  for. So: solves the three cheaper resolutions (401/701/1001) now,
-#  following the exact same cheapest-first Stage-1/Stage-2 split this
-#  project already used for the block2x2 and mgv rechecks -- N=1401
-#  (the most expensive, and the one most likely to show a real memory
-#  gap) is held back for a separate decision once these three look
-#  right. Once they do, extend RESOLUTIONS below to
-#  [401, 701, 1001, 1401] and re-run -- it will
-#  skip 401/701/1001 (already in OUT_JSON) and solve only N=1401.
+#  RESULT, N=401/701/1001 (real A100 run, 2026-09-08, after five real
+#  environment/library bugs found and fixed along the way -- see
+#  PROJECT_STATUS.md item #13 for the full story of each one):
+#  torch-fem is dramatically FASTER in wall-clock than our own
+#  matrix-free mgv solver -- 6.26s/11.00s/14.46s vs. 2615.8s/7205.4s/
+#  17314.8s, i.e. ~418x/655x/1197x, an advantage that GROWS with N (the
+#  opposite direction the memory argument above predicted). Report this
+#  honestly, but with two caveats stated alongside it, not hidden: (1)
+#  the two solvers are NOT run at matched precision/tolerance --
+#  torch-fem's own float32 working precision forces stol=1e-4, Newton
+#  rtol=atol=1e-3, while "ours" runs float64 with cg_tol=1e-8,
+#  newton_tol=1e-8 (several orders tighter), which plausibly explains a
+#  large share of the gap on its own; (2) "ours" own peak_mem_mb is
+#  `null` at all three rows because "ours" resumed from item #4's own
+#  checkpoint (avoiding ~15h of redundant GPU time) rather than solving
+#  fresh -- so torch-fem's own memory (3292.6/9669.8/19498.9 MB,
+#  committed) currently has nothing real to compare against. Omar's own
+#  call (2026-09-08), asked directly once this gap was confirmed and
+#  the real cost of fixing it was made explicit (~44min/~2h/~5h of NEW
+#  GPU time, since a real, non-resumed "ours" solve is exactly item #4's
+#  own already-known cost, not free like this comparison's resumed
+#  numbers): accept the wall-clock-only comparison as sufficient for
+#  Timon's stated question, note the memory gap honestly as a
+#  deliberately-left-open item rather than spend more GPU hours closing
+#  it. Extending to N=1401 (below) IS worth doing given how the sweep
+#  turned out -- torch-fem's own solve time stayed in the single/low
+#  double digits of seconds even at 2M DOF, and "ours" resumes for free
+#  regardless, so real new cost for N=1401 is well under a minute.
 #
-#  WHAT TO CHECK when this finishes:
-#    1. wall_clock_s, both solvers, at each of N=401/701/1001 -- which
-#       is faster, and by how much, and whether the gap moves with N.
-#    2. peak_mem_mb, both solvers -- this is where the matrix-free vs.
-#       assembled-sparse architectural difference should show up, and
-#       is worth watching for a trend across these three even before
-#       N=1401 runs.
+#  WHAT TO CHECK when this finishes (now covers N=1401 too):
+#    1. wall_clock_s, both solvers, at N=401/701/1001/1401 -- does the
+#       ~400x-1200x gap (growing with N) continue at the largest size.
+#    2. peak_mem_mb, torch-fem only (see the "ours" caveat above) --
+#       does its own memory keep scaling ~linearly with n_dof.
 #    3. ours_cg_failures should be 0 at every N (item #4's own
 #       already-confirmed result) -- if not, something regressed and
 #       should be investigated before trusting the rest of that row.
@@ -148,17 +150,14 @@ os.makedirs(os.path.dirname(OUT_JSON), exist_ok=True)
 # highdof_stress_qoi_results/*.json.
 CHECKPOINT_DIR = '/content/drive/MyDrive/pfem_ckpt'
 
-# Staged (Omar's call): the three cheaper resolutions now, N=1401 (the
-# most expensive, and the one most likely to expose a real memory
-# difference) held back for a separate decision once these three look
-# right -- the same Stage-1/Stage-2 split already used for the
-# block2x2 and mgv rechecks earlier in this project. "ours" own side is
-# free via the checkpoint above regardless of how many N are listed
-# here; only torch-fem's own solve time scales with this list. Once
-# these three look right, change to
-# RESOLUTIONS = [401, 701, 1001, 1401] and re-run; it skips whatever is
-# already in OUT_JSON and solves only N=1401.
-RESOLUTIONS = [401, 701, 1001]
+# N=401/701/1001 finished 2026-09-08 (real result: torch-fem ~418x-
+# 1197x faster in wall-clock, see this file's header comment).
+# Omar's call once that result was in: extend to N=1401 too, since the
+# real cost turned out to be tiny (torch-fem's own solve time stayed
+# under 15s even at N=1001, and "ours" resumes for free regardless of
+# how many N are listed here) -- this run will skip 401/701/1001
+# (already in OUT_JSON) and solve only the new N=1401.
+RESOLUTIONS = [401, 701, 1001, 1401]
 
 # This cell has been re-run several times in this SAME Colab kernel while
 # this comparison's own code was still being fixed (pyvista/IPython, then

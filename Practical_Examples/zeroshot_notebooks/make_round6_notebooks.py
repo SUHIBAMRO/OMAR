@@ -891,23 +891,24 @@ NOTEBOOKS = {
          "well inside torch-fem's own float32 precision). This cell "
          "re-runs that same check once more before the real sweep.\n",
          "\n",
-         "**Staged: the three cheaper resolutions now, N=1401 held back**: "
-         "\"ours\" resumes from an existing checkpoint at every N\n",
-         "(near-free), so the only real cost left is torch-fem's own solve "
-         "time — never measured at any of these sizes before. Testing\n",
-         "only small/cheap N would not answer the same question, and could "
-         "plausibly flip the conclusion: item #4's own numbers already\n",
-         "showed our solver's relative standing change with N (worse at "
-         "small/medium N, better at the largest tested), since multigrid's\n",
-         "advantage grows with N while its fixed overhead does not — "
-         "there's no reason to assume torch-fem's own scaling is flat\n",
-         "either. So this cell solves N=401/701/1001 now, following the "
-         "same Stage-1/Stage-2 split already used for block2x2 and mgv;\n",
-         "N=1401 (the most expensive, and most likely to show a real "
-         "memory gap) is a separate decision once these three look right.\n",
-         "Edit `RESOLUTIONS` in the cell to `[401, 701, 1001, 1401]` and "
-         "re-run to add it — it skips what's\n",
-         "already in the output JSON.\n",
+         "**RESULT (2026-09-08, real A100 run, N=401/701/1001)**: "
+         "torch-fem is dramatically faster in wall-clock than our own\n",
+         "matrix-free mgv solver — 6.26s/11.00s/14.46s vs. "
+         "2615.8s/7205.4s/17314.8s, i.e. ~418x/655x/1197x, growing with N.\n",
+         "Reported honestly with two caveats: the two solvers are not run "
+         "at matched precision/tolerance (torch-fem forced to float32\n",
+         "with loose tolerances vs. our float64/tight, which plausibly "
+         "explains a large share of the gap), and \"ours\" own peak GPU\n",
+         "memory was never captured this run (it resumed from a "
+         "checkpoint rather than solving fresh) — Omar's own call once\n",
+         "this was confirmed: accept the wall-clock-only comparison as "
+         "sufficient, note the memory gap as a deliberately open item\n",
+         "rather than spend the several more GPU-hours a real \"ours\" "
+         "solve at these sizes would cost. N=1401 is now included too,\n",
+         "added once the first three showed how cheap this sweep really "
+         "is (torch-fem's own solve time stayed under 15s even at 2M\n",
+         "DOF; \"ours\" resumes for free) — skips whatever is already in "
+         "the output JSON.\n",
          "\n",
          "* **NEEDS A GPU.**\n",
          "* Resumable: skips any N already in the output JSON.\n",
