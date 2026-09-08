@@ -55,38 +55,41 @@
 #  docstring for why float32: its near_null_space() hardcodes
 #  torch.eye(3) at float32 and errors on a float64 model).
 #
-#  WHAT THIS CELL DOES, AND WHY IT IS STAGED AT N=401 ONLY FOR NOW:
+#  WHAT THIS CELL DOES, AND WHY N=1401 IS STAGED SEPARATELY:
 #  "ours" resumes from an existing checkpoint at every N (near-free, see
 #  torchfem_comparison.py's own run_sweep_row docstring), so the ONLY
 #  real cost left in this whole comparison is torch-fem's own solve
 #  time -- and that has never been measured at ANY of these four sizes
-#  before. Shrinking the resolutions tested (e.g. to N=51/101/201, all
-#  cheap and already-solved on "our" side) would NOT answer the same
-#  question and could plausibly give the OPPOSITE conclusion: item #4's
-#  own real numbers already showed our solver's relative standing
-#  change directly with N (worse than a plain approach at small/medium
-#  N, better at the largest one tested), because our own multigrid
-#  preconditioner's advantage grows with N while its fixed overhead
-#  does not -- there is no reason to assume torch-fem's own scaling
-#  behavior is flat either. A small-scale-only test answers "who is
-#  faster on a tiny problem," not "who is more efficient at the
-#  million-DOF scale this report's whole solver story is about," which
-#  is what Timon actually asked for. So: solves ONLY N=401 (the
-#  cheapest of the four, and instantly comparable to Table 20c's own
-#  N=401 row) as a first real data point, following the exact same
-#  cheapest-first staging this project has used for every other GPU
-#  comparison (block2x2, mgv). Once this looks right, extend
-#  RESOLUTIONS below to [401, 701, 1001, 1401] and re-run -- it will
-#  skip N=401 (already in OUT_JSON) and solve only the remaining three.
+#  before. Shrinking the resolutions tested down to only small/cheap N
+#  (e.g. 51/101/201) would NOT answer the same question and could
+#  plausibly give the OPPOSITE conclusion: item #4's own real numbers
+#  already showed our solver's relative standing change directly with N
+#  (worse than a plain approach at small/medium N, better at the
+#  largest one tested), because our own multigrid preconditioner's
+#  advantage grows with N while its fixed overhead does not -- there is
+#  no reason to assume torch-fem's own scaling behavior is flat either.
+#  A small-scale-only test answers "who is faster on a tiny problem,"
+#  not "who is more efficient at the million-DOF scale this report's
+#  whole solver story is about," which is what Timon actually asked
+#  for. So: solves the three cheaper resolutions (401/701/1001) now,
+#  following the exact same cheapest-first Stage-1/Stage-2 split this
+#  project already used for the block2x2 and mgv rechecks -- N=1401
+#  (the most expensive, and the one most likely to show a real memory
+#  gap) is held back for a separate decision once these three look
+#  right. Once they do, extend RESOLUTIONS below to
+#  [401, 701, 1001, 1401] and re-run -- it will
+#  skip 401/701/1001 (already in OUT_JSON) and solve only N=1401.
 #
 #  WHAT TO CHECK when this finishes:
-#    1. wall_clock_s, both solvers, at N=401 -- which is faster, and by
-#       how much.
+#    1. wall_clock_s, both solvers, at each of N=401/701/1001 -- which
+#       is faster, and by how much, and whether the gap moves with N.
 #    2. peak_mem_mb, both solvers -- this is where the matrix-free vs.
-#       assembled-sparse architectural difference should show up.
-#    3. ours_cg_failures should be 0 (item #4's own already-confirmed
-#       result) -- if not, something regressed and should be
-#       investigated before trusting the rest of the row.
+#       assembled-sparse architectural difference should show up, and
+#       is worth watching for a trend across these three even before
+#       N=1401 runs.
+#    3. ours_cg_failures should be 0 at every N (item #4's own
+#       already-confirmed result) -- if not, something regressed and
+#       should be investigated before trusting the rest of that row.
 #  Report the real numbers either way -- a result unfavorable to our
 #  own solver is still the honest answer to Timon's question.
 # =====================================================================
@@ -145,13 +148,17 @@ os.makedirs(os.path.dirname(OUT_JSON), exist_ok=True)
 # highdof_stress_qoi_results/*.json.
 CHECKPOINT_DIR = '/content/drive/MyDrive/pfem_ckpt'
 
-# Staged: N=401 only for now (the cheapest of the four, and "ours" own
-# side is already free via the checkpoint above) -- see this cell's own
-# header for why testing only small/cheap N here would not answer the
-# same question. Once this looks right, change to
-# RESOLUTIONS = [401, 701, 1001, 1401] and re-run; it skips N=401
-# (already in OUT_JSON) and solves only the remaining three.
-RESOLUTIONS = [401]
+# Staged (Omar's call): the three cheaper resolutions now, N=1401 (the
+# most expensive, and the one most likely to expose a real memory
+# difference) held back for a separate decision once these three look
+# right -- the same Stage-1/Stage-2 split already used for the
+# block2x2 and mgv rechecks earlier in this project. "ours" own side is
+# free via the checkpoint above regardless of how many N are listed
+# here; only torch-fem's own solve time scales with this list. Once
+# these three look right, change to
+# RESOLUTIONS = [401, 701, 1001, 1401] and re-run; it skips whatever is
+# already in OUT_JSON and solves only N=1401.
+RESOLUTIONS = [401, 701, 1001]
 
 t0 = time.time()
 from omar_pfem.torchfem_comparison import run_sweep
