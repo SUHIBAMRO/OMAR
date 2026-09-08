@@ -39,6 +39,18 @@
       "ours_peak_mem_mb": null,
       "torchfem_wall_clock_s": 14.460285186767578,
       "torchfem_peak_mem_mb": 19498.905088
+    },
+    {
+      "N": 1401,
+      "n_dof": 3925602,
+      "ours_precond": "mgv",
+      "ours_resumed_from_checkpoint": true,
+      "ours_wall_clock_s": 27257.392720222473,
+      "ours_cg_iters": 6377,
+      "ours_cg_failures": 0,
+      "ours_peak_mem_mb": null,
+      "torchfem_wall_clock_s": 29.108236074447632,
+      "torchfem_peak_mem_mb": 38063.775232
     }
   ]
 }
