@@ -61,28 +61,30 @@ import torch
 # calls Planar/HyperelasticPlaneStrain/.solve()). On Colab specifically,
 # `import torchfem` fails with:
 #   ModuleNotFoundError: No module named 'IPython.core.guarded_eval'
-# which has nothing to do with FEM at all -- confirmed directly by
-# reading pyvista's own source
-# (pyvista/core/utilities/misc.py's _allow_ipython_completion): pyvista
-# registers each VTK-wrapping class with IPython's tab-completion
-# policy, but ONLY does anything `if 'IPython' in sys.modules` (true on
-# Colab, since the notebook kernel itself is IPython; false in a plain
-# script, which is why this never triggers in this project's own dev
-# environment). When it does trigger, it unconditionally imports
-# IPython.core.guarded_eval, a submodule Colab's installed IPython
-# version does not have. The function only uses that module via
-# `getattr(guarded_eval, 'EVALUATION_POLICIES', {}).get('limited')`
-# (already defaulting to {} if the attribute is missing), so a harmless
-# empty stub module satisfies the import and makes the rest of the
-# function a no-op -- confirmed by reading the function's full source,
-# not guessed. Installed defensively, before torch-fem/pyvista are ever
-# imported, but only if the real submodule isn't already there.
-if "IPython" in sys.modules and "IPython.core.guarded_eval" not in sys.modules:
+# raised deep inside pyvista's own IPython-tab-completion integration
+# code, which has nothing to do with FEM at all. A first, narrower fix
+# (stubbing only the one missing IPython submodule pyvista's own source
+# appears to need) did not clear it on Colab's actual environment --
+# rather than keep guessing at pyvista's exact internal control flow
+# from the outside, this replaces the entire pyvista module with a
+# permissive stub whenever the real import fails, since nothing in this
+# comparison ever calls a single pyvista plotting function. A MagicMock
+# answers ANY attribute access or call with another MagicMock, so every
+# `pyvista.Whatever`, `pyvista.plotting.Whatever`, `from pyvista import
+# DataSet`-style reference inside torch-fem's own source resolves to
+# some harmless object instead of raising -- robust to exactly which
+# pyvista internals are involved, not just the one this project happened
+# to trace. Installed defensively, before torch-fem is ever imported,
+# and only if the real pyvista import fails (leaves environments where
+# it imports fine, like this project's own dev environment, untouched).
+if "pyvista" not in sys.modules:
     try:
-        import IPython.core.guarded_eval  # noqa: F401
-    except ModuleNotFoundError:
-        sys.modules["IPython.core.guarded_eval"] = types.ModuleType(
-            "IPython.core.guarded_eval")
+        import pyvista  # noqa: F401
+    except Exception:
+        from unittest.mock import MagicMock
+        _pyvista_stub = MagicMock(name="pyvista")
+        sys.modules["pyvista"] = _pyvista_stub
+        sys.modules["pyvista.plotting"] = _pyvista_stub.plotting
 
 from omar_pfem.high_dof_convergence_study import (
     build_mesh_and_bcs, AnalyticFieldB1)
