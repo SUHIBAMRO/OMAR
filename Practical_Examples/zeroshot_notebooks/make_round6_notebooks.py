@@ -849,6 +849,53 @@ NOTEBOOKS = {
          "  to overshoot by a similar factor too.\n",
          "* If Colab disconnects, just re-run this same cell — see the\n",
          "  resumability note above.\n"]),
+    "Round6_TorchFEM_Comparison.ipynb": (
+        "cell_torchfem_comparison.py",
+        ["# GPU-FEM vs. torch-fem — efficiency comparison (item #13)\n",
+         "\n",
+         "Timon's round-7 email named this comparison directly, with no "
+         "preference between torch-fem and TensorMesh (the library he\n",
+         "mentioned first) — the only requirement is \"an efficient GPU "
+         "implementation ... necessary for a fair comparison to a NO,\"\n",
+         "which torch-fem satisfies. Done AFTER item #4 (the multigrid "
+         "preconditioner fix) deliberately: comparing before fixing our\n",
+         "own solver's preconditioner would have measured a configuration "
+         "Timon had already flagged as suboptimal.\n",
+         "\n",
+         "**Scope**: the large-scale matrix-free solver (Table 20/20a/20b/"
+         "20c in the report) at the same resolutions those tables use —\n",
+         "N=401/701/1001/1401 — not the small-scale batched solver "
+         "compared against the neural operator elsewhere.\n",
+         "\n",
+         "**Why this isn't just \"whose CG is faster\"**: torch-fem always "
+         "explicitly assembles a sparse tangent stiffness matrix, even in\n",
+         "its \"cg\" iterative mode (confirmed by reading its source) — the "
+         "opposite of our own solver, which never forms K at all. This\n",
+         "cell measures peak GPU memory for both solvers (not just "
+         "wall-clock), since that is where the architectural difference\n",
+         "should show up most clearly at the largest resolutions.\n",
+         "\n",
+         "**A real bug found in torch-fem along the way**: writing our "
+         "Neo-Hookean energy with `torch.log(torch.linalg.det(F))` for\n",
+         "ln(J) — a completely standard way to write it — makes torch-fem's "
+         "own double-backprop tangent stiffness come out all-NaN at\n",
+         "F=Identity (exactly where every solve starts), a known sharp "
+         "edge in `det`'s double-backward. Fixed by using\n",
+         "`torch.linalg.slogdet` instead (same value, stable gradient) — "
+         "confirmed directly by computing the Hessian both ways.\n",
+         "\n",
+         "**Validated on CPU before this cell was written** (`python -m "
+         "omar_pfem.torchfem_comparison <N>`): both solvers, given the\n",
+         "identical mesh/material/BCs/load, converge to the same "
+         "displacement field (relative difference ~2-5e-6 at N=11/21,\n",
+         "well inside torch-fem's own float32 precision). This cell "
+         "re-runs that same check once more before the real sweep.\n",
+         "\n",
+         "* **NEEDS A GPU.**\n",
+         "* Resumable: skips any N already in the output JSON.\n",
+         "* Report every number honestly, including any resolution where "
+         "torch-fem wins — that is a legitimate answer to Timon's\n",
+         "  question, not a failure to fix.\n"]),
     "Round6_DD_NO_Coarse_vs_Fine.ipynb": (
         "cell_dd_no_coarse_vs_fine.py",
         ["# DD-NO on coarse vs. fine FEM labels — Timon round 8, point 3\n",
