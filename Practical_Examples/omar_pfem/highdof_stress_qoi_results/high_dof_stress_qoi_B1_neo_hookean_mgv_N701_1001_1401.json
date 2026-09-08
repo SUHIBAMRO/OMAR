@@ -1,0 +1,224 @@
+{
+  "geometry": "B1",
+  "material": "neo_hookean",
+  "fine_N": 2236,
+  "device": "cuda",
+  "orders": {
+    "Q4": {
+      "fine_reference": {
+        "N": 2236,
+        "n_dof": 9999392,
+        "strain_energy": 0.017716290334512143,
+        "wall_clock_s": 2.355736255645752
+      },
+      "rows": [
+        {
+          "N": 51,
+          "n_dof": 5202,
+          "wall_clock_s": 0.7595243453979492,
+          "newton_iters": 20,
+          "cg_iters": 5744,
+          "cg_failures": 0,
+          "l2_abs_error": 1.5639442738719892e-06,
+          "l2_rel_error": 0.000493369076636971,
+          "h1_semi_abs_error": 0.00011141381112267662,
+          "h1_semi_rel_error": 0.017552621458335218,
+          "energy_abs_error": 0.0028656425589268794,
+          "energy_rel_error": 0.01517513716621421,
+          "peak_stress_pred": 16.27289143803884,
+          "peak_stress_ref": 43.47671959446411,
+          "peak_stress_abs_err": 27.203828156425267,
+          "peak_stress_rel_err": 0.6257102286044859,
+          "peak_stress_loc": [
+            9.455251248554231e-05,
+            9.455251248554231e-05
+          ],
+          "stress_field_l2_abs": 0.08989789497838625,
+          "stress_field_l2_rel": 0.01416514261788485
+        },
+        {
+          "N": 101,
+          "n_dof": 20402,
+          "wall_clock_s": 0.6338684558868408,
+          "newton_iters": 20,
+          "cg_iters": 11476,
+          "cg_failures": 0,
+          "l2_abs_error": 5.940531112409883e-07,
+          "l2_rel_error": 0.0001874027349353878,
+          "h1_semi_abs_error": 6.958405876626951e-05,
+          "h1_semi_rel_error": 0.010962566385219547,
+          "energy_abs_error": 0.0017360522612259205,
+          "energy_rel_error": 0.009193341685183952,
+          "peak_stress_pred": 19.951111248635037,
+          "peak_stress_ref": 43.47671959446411,
+          "peak_stress_abs_err": 23.52560834582907,
+          "peak_stress_rel_err": 0.5411081738748428,
+          "peak_stress_loc": [
+            9.455251248554231e-05,
+            9.455251248554231e-05
+          ],
+          "stress_field_l2_abs": 0.05531419260285884,
+          "stress_field_l2_rel": 0.00871594643174272
+        },
+        {
+          "N": 201,
+          "n_dof": 80802,
+          "wall_clock_s": 0.7040913105010986,
+          "newton_iters": 20,
+          "cg_iters": 22876,
+          "cg_failures": 0,
+          "l2_abs_error": 2.2148253651879191e-07,
+          "l2_rel_error": 6.986990268770203e-05,
+          "h1_semi_abs_error": 4.000265720455804e-05,
+          "h1_semi_rel_error": 0.006302205487342308,
+          "energy_abs_error": 0.001039241460836017,
+          "energy_rel_error": 0.005503349211462419,
+          "peak_stress_pred": 24.374374203374362,
+          "peak_stress_ref": 43.47671959446411,
+          "peak_stress_abs_err": 19.102345391089745,
+          "peak_stress_rel_err": 0.4393695193489724,
+          "peak_stress_loc": [
+            9.455251248554231e-05,
+            9.455251248554231e-05
+          ],
+          "stress_field_l2_abs": 0.031896066860719885,
+          "stress_field_l2_rel": 0.005025901342888235
+        },
+        {
+          "N": 401,
+          "n_dof": 321602,
+          "wall_clock_s": 0.7642605304718018,
+          "newton_iters": 20,
+          "cg_iters": 3066,
+          "cg_failures": 0,
+          "l2_abs_error": 7.923676507040931e-08,
+          "l2_rel_error": 2.499639543433314e-05,
+          "h1_semi_abs_error": 2.2776122291329336e-05,
+          "h1_semi_rel_error": 0.003588265103053743,
+          "energy_abs_error": 0.000593126567883158,
+          "energy_rel_error": 0.003140928025553676,
+          "peak_stress_pred": 29.569795814148517,
+          "peak_stress_ref": 43.47671959446411,
+          "peak_stress_abs_err": 13.90692378031559,
+          "peak_stress_rel_err": 0.31987058614436864,
+          "peak_stress_loc": [
+            9.455251248554231e-05,
+            9.455251248554231e-05
+          ],
+          "stress_field_l2_abs": 0.01894226144207365,
+          "stress_field_l2_rel": 0.0029847474629647254
+        },
+        {
+          "N": 701,
+          "n_dof": 982802,
+          "wall_clock_s": 7205.425608158112,
+          "newton_iters": 20,
+          "cg_iters": 2710,
+          "cg_failures": 0,
+          "l2_abs_error": 3.198238956776447e-08,
+          "l2_rel_error": 1.0089312150218516e-05,
+          "h1_semi_abs_error": 1.8105776888494214e-05,
+          "h1_semi_rel_error": 0.002852477193386938,
+          "energy_abs_error": 0.00035983242292849456,
+          "energy_rel_error": 0.0019055085421525665,
+          "peak_stress_pred": 34.2398160623544,
+          "peak_stress_ref": 43.47671959446411,
+          "peak_stress_abs_err": 9.236903532109707,
+          "peak_stress_rel_err": 0.21245631267189355,
+          "peak_stress_loc": [
+            9.455251248554231e-05,
+            9.455251248554231e-05
+          ],
+          "stress_field_l2_abs": 0.014395443383124268,
+          "stress_field_l2_rel": 0.002268315868425341
+        },
+        {
+          "N": 1001,
+          "n_dof": 2004002,
+          "wall_clock_s": 17314.837193489075,
+          "newton_iters": 20,
+          "cg_iters": 5219,
+          "cg_failures": 0,
+          "l2_abs_error": 1.634049478221684e-08,
+          "l2_rel_error": 5.154847863928102e-06,
+          "h1_semi_abs_error": 1.1716503072251753e-05,
+          "h1_semi_rel_error": 0.0018458742102008211,
+          "energy_abs_error": 0.00024031025796174664,
+          "energy_rel_error": 0.001272573620760103,
+          "peak_stress_pred": 37.31505682737638,
+          "peak_stress_ref": 43.47671959446411,
+          "peak_stress_abs_err": 6.161662767087726,
+          "peak_stress_rel_err": 0.14172326763752183,
+          "peak_stress_loc": [
+            9.455251248554231e-05,
+            9.455251248554231e-05
+          ],
+          "stress_field_l2_abs": 0.009354836331560675,
+          "stress_field_l2_rel": 0.0014740597406703087
+        },
+        {
+          "N": 1401,
+          "n_dof": 3925602,
+          "wall_clock_s": 27257.392720222473,
+          "newton_iters": 20,
+          "cg_iters": 6377,
+          "cg_failures": 0,
+          "l2_abs_error": 7.262811766660089e-09,
+          "l2_rel_error": 2.29116010380748e-06,
+          "h1_semi_abs_error": 1.0363313689554989e-05,
+          "h1_semi_rel_error": 0.0016326919302257375,
+          "energy_abs_error": 0.0001477140926078572,
+          "energy_rel_error": 0.0007822265235851762,
+          "peak_stress_pred": 40.133069729712616,
+          "peak_stress_ref": 43.47671959446411,
+          "peak_stress_abs_err": 3.343649864751491,
+          "peak_stress_rel_err": 0.07690667317911534,
+          "peak_stress_loc": [
+            9.455251248554231e-05,
+            9.455251248554231e-05
+          ],
+          "stress_field_l2_abs": 0.009519861615128107,
+          "stress_field_l2_rel": 0.0015000568073234445
+        }
+      ],
+      "convergence_rates": {
+        "l2_fit": 1.5749201454295603,
+        "l2_pairwise": [
+          1.396525285614804,
+          1.4233989716372344,
+          1.482951062607745,
+          1.6212104640342944,
+          1.8827760887530152,
+          2.4099442141347747
+        ],
+        "h1_semi_fit": 0.7251573646147478,
+        "h1_semi_pairwise": [
+          0.6791009318944041,
+          0.7986568789133671,
+          0.8125703137746658,
+          0.4100688812273191,
+          1.2202562105140566,
+          0.3647339513905273
+        ],
+        "energy_fit": 0.8646396181378525,
+        "energy_pairwise": [
+          0.723048290111777,
+          0.7402794848080431,
+          0.8091189928772121,
+          0.8930580450963843,
+          1.131864203224867,
+          1.44633695828805
+        ],
+        "peak_stress_fit": 0.5828014615733872,
+        "peak_stress_pairwise": [
+          0.2095776536854165,
+          0.3004822462905671,
+          0.45794645343788176,
+          0.7311804361404304,
+          1.1350952735940836,
+          1.81674331516272
+        ]
+      }
+    }
+  }
+}
