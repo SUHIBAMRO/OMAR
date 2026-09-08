@@ -232,9 +232,16 @@ def solve_theirs(nodes, elements, mu, lam, fext_full, fixed_dofs, nsteps=10,
         torch.cuda.reset_peak_memory_stats(device)
         torch.cuda.synchronize(device)
     t0 = time.time()
-    u, *_ = model.solve(
-        increments=increments, max_iter=30, rtol=1e-3, atol=1e-3, stol=1e-4,
-        method="cg", preconditioner="jacobi", nlgeom=True, verbose=False)
+    # Same torch-fem device bug as build_torchfem_model's own comment
+    # explains, but a SECOND instance of it, hit inside .solve() itself
+    # rather than the constructor: near_null_space()/skew() (base.py)
+    # build torch.zeros/torch.arange/torch.eye with no explicit device,
+    # then torch.cat them against self.nodes (which IS on the right
+    # device, since we built it that way) -- same fix, same reason.
+    with torch.device(device):
+        u, *_ = model.solve(
+            increments=increments, max_iter=30, rtol=1e-3, atol=1e-3, stol=1e-4,
+            method="cg", preconditioner="jacobi", nlgeom=True, verbose=False)
     if device.type == "cuda":
         torch.cuda.synchronize(device)
     elapsed = time.time() - t0
