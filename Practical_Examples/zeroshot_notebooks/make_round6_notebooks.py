@@ -915,6 +915,36 @@ NOTEBOOKS = {
          "* Report every number honestly, including any resolution where "
          "torch-fem wins — that is a legitimate answer to Timon's\n",
          "  question, not a failure to fix.\n"]),
+    "Round6_Field_Snapshot_Grid.ipynb": (
+        "cell_field_snapshot_grid.py",
+        ["# Item #12: displacement-field snapshot grid across resolutions\n",
+         "\n",
+         "Omar's own direction for item #12 (converting tables into "
+         "figures, per Timon's round-8 request): rather than a plain\n",
+         "log-log line plot of the numbers already in Table 6a, build the "
+         "same kind of side-by-side field-panel figure Timon's own group\n",
+         "uses (VINO Figs. 7a/8d/9d; the PFEM/NOWS screenshots Omar "
+         "shared) — one panel per mesh resolution, arranged in a row,\n",
+         "each showing the actual displacement FIELD, not just a summary "
+         "number.\n",
+         "\n",
+         "**No new solving happens here.** This reuses item #4's own "
+         "already-converged checkpoints on Drive (the same ~14.86h of\n",
+         "real GPU work already committed and written into the report) — "
+         "each one already holds the converged free-DOF displacement.\n",
+         "Loading and reshaping that into an image costs no new GPU time; "
+         "the cell needs no GPU and finishes in seconds.\n",
+         "\n",
+         "**Output**: one PNG, 7 panels (N=51/101/201/401/701/1001/1401), "
+         "each the |u| (displacement magnitude) field over B1's domain —\n",
+         "the same convergence story Table 6a's numbers already tell "
+         "(the field barely changes past N=201, where L2 error gets\n",
+         "small), but as a picture instead of a table.\n",
+         "\n",
+         "* No GPU needed — pure CPU mesh regeneration + checkpoint load "
+         "+ plotting.\n",
+         "* Saves to `/content/drive/MyDrive/pfem_run/figures/"
+         "fig_B1_resolution_grid.png` — fetch it from Drive afterward.\n"]),
     "Round6_DD_NO_Coarse_vs_Fine.ipynb": (
         "cell_dd_no_coarse_vs_fine.py",
         ["# DD-NO on coarse vs. fine FEM labels — Timon round 8, point 3\n",
