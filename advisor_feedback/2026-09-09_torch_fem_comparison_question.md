@@ -34,6 +34,12 @@ you like me to re-run it at matched precision/tolerance and with a
 fresh (non-resumed) solve so a real peak-memory number exists, before
 this goes into the final report?
 
+Separately, and not urgent: the MMS richer-family gap you'd flagged
+(round-8 point 6) is now fully closed too — I've re-run the richer
+sine/cosine family for Mooney-Rivlin and Arruda-Boyce as well, and
+Q4/Q9 convergence rates now match theory for all three materials. No
+action needed on that one, just flagging it as done.
+
 Best regards,
 
 Omar
