@@ -5,7 +5,42 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-09 (**round-8 point 6's MMS gap fully closed**:
+Last updated: 2026-09-09 (**final pre-send proofread of the Report/Summary,
+per Omar's explicit request** ("check them very carefully one more time
+before I send to Timon"). Systematic scan of both docx files for stale
+status language ("not yet", "remaining work", "has not been measured",
+"assumed", etc.) turned up two genuine self-contradictions in the
+Report -- both leftover from earlier sessions, unrelated to today's
+point-6 work, and both now fixed:
+(1) A paragraph in §9.1 (B2 accuracy fix, ~para 479) still said
+"propagating these corrected numbers through Table 7... remains the
+immediate remaining work," directly contradicted by Table 7's own note
+(~para 215) which already states all three B2 rows reflect the
+corrected recipe -- this propagation was done long ago (documented
+earlier in this file as "Table 7: done as of v19"), the "remaining
+work" sentence was just never deleted afterward. Fixed to state the
+propagation is done and point at the note under Table 7.
+(2) A paragraph in the OOD section (~para 305) said "whether the same
+attribution holds for the other five cases has not been measured,"
+directly contradicted by the VERY NEXT paragraph (~para 306), which
+says the same isolation "has now been run for the other five... Table
+25." Fixed para 305 to say the diagnosis was originally B1×Neo-Hookean
+only and has since been extended, rather than claiming it's unmeasured.
+Checked the Summary for the same two contradiction patterns -- neither
+exists there (Summary's own text on both topics is already correct).
+Also noted, but deliberately did NOT touch: Figure numbers in both
+documents do not run in ascending physical/page order (e.g. Figure 1
+physically appears after Figure 17) -- confirmed this is a long-
+standing structural property (each new figure keeps counting up from
+wherever earlier sessions left off, inserted at its own topical anchor,
+not renumbered into page order) and not something broken today; each
+individual figure's caption/number/anchor is still individually
+correct (verified in an earlier pass). Renumbering all 39 figures into
+strict page order would require updating every cross-reference in both
+documents and was flagged to Omar as optional future work, not done.
+Both corrected files re-sent to Omar.)
+
+Previous update, 2026-09-09 (**round-8 point 6's MMS gap fully closed**:
 Omar spotted, from the Summary's own point-6 text, that the richer
 sine/cosine manufactured-solution family had only ever been run for
 Neo-Hookean, while the 3-material extension (Mooney-Rivlin, Arruda-
