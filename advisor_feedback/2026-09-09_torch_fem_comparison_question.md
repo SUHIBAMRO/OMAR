@@ -34,11 +34,18 @@ you like me to re-run it at matched precision/tolerance and with a
 fresh (non-resumed) solve so a real peak-memory number exists, before
 this goes into the final report?
 
-Separately, and not urgent: the MMS richer-family gap you'd flagged
-(round-8 point 6) is now fully closed too — I've re-run the richer
-sine/cosine family for Mooney-Rivlin and Arruda-Boyce as well, and
-Q4/Q9 convergence rates now match theory for all three materials. No
-action needed on that one, just flagging it as done.
+Separately, and not urgent: round-8 point 6 (MMS) is now fully done and
+combined too. The energy norm is computed correctly as a proper
+quadrature norm against the exact continuous solution (the previous
+version compared against the nodal interpolant, which silently
+superconverges — caught and fixed). The richer manufactured-solution
+family (sum of several sine/cosine modes, boundary conditions
+preserved) was originally verified only for Neo-Hookean; I've now
+re-run it for Mooney-Rivlin and Arruda-Boyce as well, so it covers the
+same three materials as the rest of the report. Q4/Q9 rates match
+theory exactly for all three (e.g. the energy-norm rate comes out at
+~1.0 for Q4 and ~2.0 for Q9, the expected values, for every material).
+No action needed here, just flagging it as done.
 
 Best regards,
 
