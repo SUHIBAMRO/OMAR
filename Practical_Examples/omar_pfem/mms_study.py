@@ -562,8 +562,20 @@ def solve_mms(order, N, material, alpha, beta, device, dtype=torch.float64,
     elem_params_t = tuple(
         torch.full((n_el,), float(p), dtype=dtype, device=device) for p in params)
 
-    fext = assemble_body_force(nodes, elements, order, elem_params_t, material,
-                               alpha, beta, dtype, modes)
+    # assemble_body_force builds its own quadrature-point tensors from the
+    # numpy `nodes`/`elements` arrays with no explicit device= (torch.tensor
+    # defaults to CPU), while elem_params_t above was just built directly on
+    # `device` -- on a CPU run these silently match by accident, which is why
+    # this was never caught until an actual `device="cuda"` run (Arruda-
+    # Boyce's richer-family study, 2026-09-09) hit a real cross-device error
+    # inside its energy-density function's clamp. `with torch.device(device):`
+    # makes every device-less tensor created inside this call (and any
+    # nested torch.func.vmap/jacrev calls it makes) default to the right
+    # device automatically, the same fix already used for torch-fem's own
+    # analogous device bugs (item #13).
+    with torch.device(device):
+        fext = assemble_body_force(nodes, elements, order, elem_params_t, material,
+                                   alpha, beta, dtype, modes)
 
     fixed = boundary_nodes(nodes)
     fixed_dofs = np.concatenate([2 * fixed, 2 * fixed + 1])
