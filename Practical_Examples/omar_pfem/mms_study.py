@@ -610,8 +610,14 @@ def solve_mms(order, N, material, alpha, beta, device, dtype=torch.float64,
     u_full = u_full.index_copy(0, free_t, u_free)
     u_h = u_full.reshape(len(nodes), 2).cpu().numpy()
 
-    err = compute_errors(nodes, elements, order, u_h, elem_params_t, material,
-                         alpha, beta, dtype, modes)
+    # Same device-mismatch class as assemble_body_force above: compute_errors
+    # also builds its quadrature-point tensors from numpy nodes/elements with
+    # no explicit device=, while elem_params_t (params_e here) is already on
+    # `device` -- a second real instance of the same bug, hit right after
+    # fixing the first one, at u_h's own energy-density evaluation.
+    with torch.device(device):
+        err = compute_errors(nodes, elements, order, u_h, elem_params_t, material,
+                             alpha, beta, dtype, modes)
     err.update({"order": order, "N": N, "h": 1.0 / (N - 1),
                 "n_nodes": len(nodes), "n_dof": 2 * len(nodes),
                 "n_elements": n_el, "wall_clock_s": wall,
