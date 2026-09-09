@@ -5,7 +5,31 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-09 (**item #12 is now FULLY DONE**: all 13
+Last updated: 2026-09-09 (**B2 OOD hole-rendering fix CONFIRMED for all
+3 cases**: re-checked Drive after Omar's follow-up notebook re-run --
+`fig_B2_neo_hookean_ood_grid.png`, `fig_B2_mooney_rivlin_ood_grid.png`,
+`fig_B2_arruda_boyce_ood_grid.png` all now show the correct ring hole
+and the clean title, downloaded and visually verified all three
+directly (not just checked metadata/timestamps). The earlier note below
+about Mooney-Rivlin/Arruda-Boyce being stale is RESOLVED -- that
+notebook run only got through Neo-Hookean; a later re-run finished all
+6 OOD cases (plus refreshed both DD-NO figures, B1-only so never
+affected by the hole bug in the first place). Nothing further needed on
+this specific item.
+
+Separately, tried to upload the 13 report figures + both updated docx
+to Google Drive via `mcp__Google_Drive__create_file` and confirmed this
+is NOT technically feasible through this tool for files this size: it
+requires the full base64 payload inlined as one generated tool-call
+argument (no path-based upload), which is merely painful for the PNGs
+(130-580 KB base64 each) but categorically impossible for the two docx
+files (~5.7 MB each, ~7.6M base64 characters -- no single tool call can
+carry that). Resolution: sent all 15 files directly to Omar via
+SendUserFile instead (already done), for him to upload to Drive
+himself if he wants them there -- safer than risking a corrupted
+docx from a chunked-reassembly upload attempt.
+
+Previous update, 2026-09-09 (**item #12 is now FULLY DONE**: all 13
 table-based figures are embedded directly in the real Report and
 Summary docx files as Figures 17-29, both promoted to new
 `..._updated_2026-09-09.docx` canonical files, sent to Omar, pushed to
