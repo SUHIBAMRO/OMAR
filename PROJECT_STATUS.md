@@ -5,7 +5,34 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-08 (**item #12 (tables → figures) is essentially
+Last updated: 2026-09-09 (**real bug found by Omar himself, directly in
+a rendered figure, and fixed**: the B2 OOD field-panel figure (`fig_B2_
+neo_hookean_ood_grid.png` etc., Tables 19/25) rendered the ring domain
+as if part of its inner hole were filled with material. Root cause
+confirmed locally (zoomed before/after comparison, no GPU needed): B2
+is a quarter ring, R_in=1 to R_out=2 (`data_generate_B2.py`), with a
+genuinely empty hole from r=0 to r=1, but `panel_grid_plot.py`'s
+`tricontourf` was only ever given the raw (x, y) node cloud, so it fell
+back to a plain Delaunay triangulation that has no notion of the hole
+— it filled a real, visible angular wedge of it with interpolated
+colour, bounded by straight chords instead of the true circular
+boundary. Fixed by teaching `panel_grid_plot.py` to accept the real Q4
+element connectivity (`quad`, already available on every sample dict
+as `s['quad']`) and build an exact `matplotlib.tri.Triangulation` from
+it instead of guessing — wired into both `ood_progressive.py` (where
+this was spotted) and `resolution_invariance_zeroshot.py` (same shared
+utility, not yet hit in practice since Table 12/26 have only been run
+on B1 so far, but would have the same bug on B2). Verified end-to-end
+locally with a random-initialized model (no real checkpoint needed to
+exercise the plotting path) plus a zoomed real-field-values comparison
+showing the fix. B1 figures were never affected (no hole in that
+geometry). **Committed and pushed; NOT yet regenerated with a real
+checkpoint** — the 3 real B2 OOD PNGs (`fig_B2_{neo_hookean,mooney_
+rivlin,arruda_boyce}_ood_grid.png`) still need Section C of `Round6_
+Project_Figures.ipynb` re-run on Colab (fresh tab from GitHub, per the
+known stale-tab lesson) to pick up this fix before they're resent.
+
+Previous update, 2026-09-08 (**item #12 (tables → figures) is essentially
 DONE for the whole tracked punch-list** — every table Omar named that
 lacked a figure now has one, built with a safety-first, two-track
 approach he set explicitly mid-session:
