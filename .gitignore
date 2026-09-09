@@ -11,6 +11,9 @@
 *.png
 *.jpeg
 *.npz
+# Except the report figures: these are the actual publication-ready
+# outputs of report_builders/make_figure_*.py, meant to be tracked.
+!Practical_Examples/report_builders/figures/*.png
 
 # Ignore file swap
 *.swp
