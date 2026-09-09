@@ -815,6 +815,7 @@ def cmd_eval(args):
                 panel_data.append({
                     'title': f'N={N}\n({2 * coarse_sample0["xy"].shape[0]:,} DOF)',
                     'x': coarse_sample0['xy'][:, 0], 'y': coarse_sample0['xy'][:, 1],
+                    'quad': coarse_sample0['quad'],
                     'values': np.sqrt((uv_pred0 ** 2).sum(axis=1)),
                 })
             continue
@@ -861,6 +862,7 @@ def cmd_eval(args):
                 panel_data.append({
                     'title': f'N={N}\n({2 * coarse_sample["xy"].shape[0]:,} DOF)',
                     'x': coarse_sample['xy'][:, 0], 'y': coarse_sample['xy'][:, 1],
+                    'quad': coarse_sample['quad'],
                     'values': np.sqrt((uv_pred_np ** 2).sum(axis=1)),
                 })
 

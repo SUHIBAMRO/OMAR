@@ -343,7 +343,7 @@ def main():
             return
         label = 'Nominal (baseline)' if k == 0.0 else f'material shift, k={k:g}σ'
         panel_data.append({
-            'title': label, 'x': s['xy'][:, 0], 'y': s['xy'][:, 1],
+            'title': label, 'x': s['xy'][:, 0], 'y': s['xy'][:, 1], 'quad': s['quad'],
             'values': np.sqrt((uv_pred_np ** 2).sum(axis=1)), '_k': k,
         })
 
