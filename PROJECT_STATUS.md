@@ -5,7 +5,37 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-09 (**B2 OOD hole-rendering fix CONFIRMED for all
+Last updated: 2026-09-09 (**item #12 is now COMPLETELY done, including
+the notebook-generated figures**: the 10 remaining field-grid PNGs
+fetched from Drive -- B1 mesh-convergence grid, B1 zero-shot grid, all
+six OOD grids (B1/B2 x 3 materials, all now showing the corrected ring
+hole), and both DD-NO coarse/fine grids -- are embedded as Figures
+30-39 in both Report and Summary (`embed_more_figures.py`), on top of
+the 13 local-script figures (17-29) from the previous entry. Both docx
+files now carry all 39 figures; sent to Omar; the 10 PNGs + the script
+pushed to GitHub alongside the earlier 13.
+
+Anchor coverage checked directly per document rather than assumed: the
+six OOD figures anchor to Table 25 in the Report (the only table
+covering all six geometry x material combinations -- Table 19 there is
+B1 x Neo-Hookean only) but to Table 19 in the Summary (which has no
+Table 25/26 at all); DD-NO anchors to Table 26 in the Report but to its
+own intro paragraph in the Summary (no dedicated table there).
+
+**Real bug caught before trusting the result**: inserting several
+figures against one SHARED anchor (the six OOD figures all anchor to
+the same table) lands them in REVERSE of insertion-call order, since
+each new pair splices in immediately after the anchor, pushing the
+previous pair further down -- assigning figure numbers by call order
+put "Figure 36" physically before "Figure 31" in an early draft. Fixed
+by a placeholder-caption + second-pass-renumber scheme: insert all
+figures first with a placeholder, THEN walk the document's own final
+paragraph order once to assign real numbers, so numbering always
+matches actual physical position regardless of how the insertions
+themselves were ordered. Verified by reading the saved file back and
+printing the six OOD captions in the order they actually appear.
+
+Previous update, 2026-09-09 (**B2 OOD hole-rendering fix CONFIRMED for all
 3 cases**: re-checked Drive after Omar's follow-up notebook re-run --
 `fig_B2_neo_hookean_ood_grid.png`, `fig_B2_mooney_rivlin_ood_grid.png`,
 `fig_B2_arruda_boyce_ood_grid.png` all now show the correct ring hole
