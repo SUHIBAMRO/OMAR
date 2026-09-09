@@ -5,7 +5,20 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-09 (**cross-checked Timon's two separate emails
+Last updated: 2026-09-09 (**one more gap closed in the Summary's new
+top "Response to round-8" section**: Omar asked directly whether the
+torch-fem comparison's two caveats -- float32/loose-tolerance vs. our
+float64/tight, and "ours" own peak memory never measured (checkpoint-
+resumed, not a fresh solve) -- were stated in that TOP section
+specifically, not just somewhere else in the document. Checked and
+they were NOT (they were only in the older narrative further down).
+Since the whole point of that top section is "the answer to everything
+in one place, no searching required," added a new "Extra -- GPU-native
+solver vs. torch-fem (item #13, related to points 1 and 5)" entry right
+after Point 7, before "Tables into figures," with both caveats stated
+plainly. Figure count (39) reconfirmed unaffected. Sent to Omar.
+
+Previous update, 2026-09-09 (**cross-checked Timon's two separate emails
 against the real documents, per Omar's own question ("did these emails
 get answered correctly, or not")** -- both his round-8 email (7 points)
 and his separate Sep-6 email answering 3 of Omar's OWN earlier
