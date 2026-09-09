@@ -134,9 +134,11 @@ operator's 800-solve label-generation cost (5.65h CPU) makes it more
 expensive than the physics-informed operator by a fixed 18,924s (Adam)
 / 18,694s (AdamW+OneCycle) at every problem count, not a variable
 break-even threshold — since the physics-informed operator pays no
-data-generation cost at all. One caveat: this assumes both operators'
-own inference cost is equal (same architecture), which I haven't
-separately measured for the DD-NO specifically.
+data-generation cost at all. This relies on both operators' own
+inference cost being equal (same architecture); now confirmed directly
+rather than assumed: the DD-NO checkpoint measures 4.625 ms/sample
+versus the physics-informed model's own 4.586 ms/sample, a 0.8%
+difference.
 
 **Tables into figures.** Per your general suggestion, every table in
 both the report and the summary that lacked a figure now has one — 39
