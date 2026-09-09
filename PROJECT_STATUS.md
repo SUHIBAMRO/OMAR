@@ -5,7 +5,58 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-09 (**real bug found by Omar himself, directly in
+Last updated: 2026-09-09 (**item #12 is now FULLY DONE**: all 13
+table-based figures are embedded directly in the real Report and
+Summary docx files as Figures 17-29, both promoted to new
+`..._updated_2026-09-09.docx` canonical files, sent to Omar, pushed to
+GitHub (script + PNGs, `.gitignore` amended with one narrow exception
+for `report_builders/figures/*.png`), and a Drive upload of the same
+13 PNGs + both docx files was kicked off in a background agent
+(pfem_run/figures for the PNGs, pfem_run root for the docx -- first
+time either docx has been placed on Drive; searched first and
+confirmed neither existed there before).
+
+Two real things found and fixed on the way, each caught by actually
+checking rather than assuming:
+1. **Style pass, per Omar's own direct feedback** ("colours I don't
+   like, no numbers on bars/points, legend sits on the data"): built
+   `report_builders/plot_style.py`, one shared palette (material colour
+   is the same everywhere it appears; ditto geometry colour) plus bar/
+   line label helpers, applied across all 13 scripts. Two real overlap
+   bugs caught by re-inspecting each rendered PNG (not just re-running
+   the script): a `bbox_to_anchor`-floated legend colliding with the
+   axes title in two figures (OOD degradation, PI-vs-DD), fixed by
+   keeping the legend inside the axes with generous y-headroom instead
+   of trying to float it above; and two near-coincident line endpoints
+   (zero-shot resolution) that no on-plot label placement could avoid
+   overlapping, fixed by moving the number into the legend text itself.
+2. **Figure-numbering pass, for the docx embedding**: originally
+   planned to number the 13 new figures (17-29) in table-number order,
+   but checked the ACTUAL physical position of each anchor first and
+   found the Report and Summary do NOT lay out sections in ascending
+   table-number order (MMS's tables physically precede the B2 fix-
+   history tables), and don't even order sections the same way as each
+   other -- confirmed the EXISTING Figures 1-16 aren't in strict
+   physical order either, so this is normal for this document, but the
+   NEW figures were still numbered by each one's own real anchor
+   position per document (computed, not assumed) to keep them at least
+   internally consistent.
+
+**Also found, unrelated to the above, while spot-checking Drive for the
+B2 hole-rendering fix's real result**: only `fig_B2_neo_hookean_ood_
+grid.png` on Drive actually shows the corrected ring (downloaded and
+visually confirmed) -- `fig_B2_mooney_rivlin_ood_grid.png` and
+`fig_B2_arruda_boyce_ood_grid.png` are STILL the old, pre-fix images
+(solid disk, no hole, old un-cleaned title with "Tables 19/25" baked
+in) even after Omar's own notebook re-run. Section C of `Round6_
+Project_Figures.ipynb` most likely didn't finish all 6 OOD cases in
+that run. **Not yet told to Omar or investigated further** -- next
+session (or later this one) should raise this specifically and get
+those two regenerated before considering item #12's notebook-based
+figures fully closed (the 13 local-script ones embedded above ARE
+fully closed).
+
+Previous update, 2026-09-09 (**real bug found by Omar himself, directly in
 a rendered figure, and fixed**: the B2 OOD field-panel figure (`fig_B2_
 neo_hookean_ood_grid.png` etc., Tables 19/25) rendered the ring domain
 as if part of its inner hole were filled with material. Root cause
