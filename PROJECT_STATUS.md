@@ -5,7 +5,32 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-09 (**round-8 reply drafted, then restructured
+Last updated: 2026-09-09 (**cross-checked Timon's two separate emails
+against the real documents, per Omar's own question ("did these emails
+get answered correctly, or not")** -- both his round-8 email (7 points)
+and his separate Sep-6 email answering 3 of Omar's OWN earlier
+questions (TensorMesh-vs-torch-fem preference: none, torch-fem is
+fine; open-source license: Apache 2.0, wait until arxiv/journal;
+GOEE/industrial-relevance paper). Checked systematically against
+PROJECT_STATUS.md's own R6/R7/R8 entries and the real docx text, not
+just recalled from memory. Result: every point across both emails IS
+correctly reflected in the real documents already (continual-learning
+citation added, GOEE paper confirmed and correctly NOT overclaimed as
+true goal-oriented error estimation, license question resolved) --
+**except one real, found bug**: the Summary's own "GPU-native FEM at
+finer discretization" paragraph still had the ORIGINAL, now-stale
+rhetorical question to Timon ("I would value your view on whether
+[torch-fem] is an acceptable substitute... or whether Tensor Mesh was
+named for a specific reason") verbatim, even though he'd already
+answered exactly this in the Sep-6 email and that answer was already
+used to justify choosing torch-fem for item #13 -- the Report's own
+equivalent paragraph was already correctly updated to state this as
+resolved, but the Summary's was never edited to match. **Fixed**:
+replaced the dangling question with a factual sentence citing his
+Sep-6 confirmation. Figure count (39) reconfirmed unaffected. Sent to
+Omar.
+
+Previous update, 2026-09-09 (**round-8 reply drafted, then restructured
 directly into the Summary document itself**: after drafting a combined
 reply email covering Timon's all 7 round-8 points
 (`advisor_feedback/2026-09-09_reply_to_round8_combined.md`), Omar
