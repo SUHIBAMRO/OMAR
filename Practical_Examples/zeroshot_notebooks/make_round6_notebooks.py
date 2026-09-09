@@ -849,6 +849,28 @@ NOTEBOOKS = {
          "  to overshoot by a similar factor too.\n",
          "* If Colab disconnects, just re-run this same cell — see the\n",
          "  resumability note above.\n"]),
+    "Round6_Measure_DD_NO_Latency.ipynb": (
+        "cell_measure_dd_no_latency.py",
+        ["# DD-NO inference latency (round-8, point 7 follow-up)\n",
+         "\n",
+         "Table 21a's break-even Comparison B (physics-informed vs. "
+         "data-driven total cost of ownership) currently ASSUMES the\n",
+         "data-driven operator's per-sample inference cost equals the "
+         "physics-informed operator's own measured number (4.586 ms/sample,\n",
+         "B1 x Neo-Hookean) — true by construction, since both use the "
+         "identical `Transolver_Irregular_Mesh` architecture and inference\n",
+         "time depends only on the forward-pass computational graph, not "
+         "which loss trained the weights — but never actually measured for\n",
+         "the DD-NO checkpoint specifically until now.\n",
+         "\n",
+         "**Standalone, no retraining, no risk**: `measure_inference_"
+         "latency.py` only loads the already-trained DD-NO checkpoint and\n",
+         "times its forward pass, the exact same script/protocol that "
+         "produced the physics-informed operator's own Table 7 number.\n",
+         "\n",
+         "* No GPU-hours risk beyond a few minutes of timing runs. Requires "
+         "a GPU runtime for the number to be comparable to Table 7's own\n",
+         "  GPU-measured figure.\n"]),
     "Round6_TorchFEM_Comparison.ipynb": (
         "cell_torchfem_comparison.py",
         ["# GPU-FEM vs. torch-fem — efficiency comparison (item #13)\n",
