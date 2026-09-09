@@ -1,0 +1,10 @@
+{
+  "geometry": "B1",
+  "material": "neo_hookean",
+  "checkpoint": "data_driven/B1_neo_hookean/model_best.pt",
+  "device": "cuda",
+  "batch_size": 1,
+  "n_repeats": 200,
+  "inference_ms_per_sample": 4.6247351169586180,
+  "note": "Measured 2026-09-09 via omar_pfem/measure_inference_latency.py on Colab (A100), same protocol as the physics-informed operator's own Table 7 number for this case (4.586 ms/sample). Confirms round-8 point 7's Comparison B equal-inference-cost assumption to within 0.8%."
+}
