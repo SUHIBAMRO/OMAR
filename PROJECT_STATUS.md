@@ -5,7 +5,32 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-09 (**full-document sanity check, per Omar's own
+Last updated: 2026-09-09 (**round-8 reply drafted, then restructured
+directly into the Summary document itself**: after drafting a combined
+reply email covering Timon's all 7 round-8 points
+(`advisor_feedback/2026-09-09_reply_to_round8_combined.md`), Omar
+pointed out the Summary's own top narrative section ("Summary of what
+was done and what came out") does NOT actually answer Timon's 7 points
+point-by-point -- checked this directly and confirmed it's true: that
+narrative predates round-8, mixes in unrelated/older experiments (its
+"Out-of-distribution behaviour" paragraph describes Table 11's single-
+shift-level experiment, not Table 25's progressive multi-factor study
+point 2 actually asked for), and never mentions the preconditioner fix,
+richer MMS family, or Comparison A/B restructuring at all.
+
+**Fixed by inserting a new, clearly-labeled section right after the
+title**, before the existing narrative: "Response to Professor
+Rabczuk's round-8 feedback (points 1-7)", using the SAME point numbers
+Timon used, each with its own final result stated plainly (same content
+as the drafted email, condensed) -- so he can read the answer to each
+of his own questions in one place without hunting through the rest of
+the document. The original narrative section stays below it unchanged,
+as supporting detail. Verified the figure count is still 39 (unaffected
+by this text-only insertion) before sending. Sent to Omar; the combined
+email draft is unaffected/still separate for whenever he wants to
+actually send something to Timon by email specifically.
+
+Previous update, 2026-09-09 (**full-document sanity check, per Omar's own
 worry about a mix-up**: after all 39 figures were embedded across both
 documents, Omar explicitly asked to verify there was no duplication or
 misplacement before going further. Checked programmatically, not just
