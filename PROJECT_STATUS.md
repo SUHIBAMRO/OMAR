@@ -5,7 +5,58 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-09 (**final pre-send proofread of the Report/Summary,
+Last updated: 2026-09-09 (**second, even more exhaustive pre-send audit**
+of both files, per Omar's explicit request for a "very very very
+careful" full check of both documents' correctness. This pass was
+mechanical/systematic rather than prose-reading: (1) confirmed 39
+embedded media files in each docx exactly match 39 Figure captions in
+each, and all 39 image-content hashes are unique in each file (no
+figure secretly reuses another's image); (2) confirmed zero duplicate
+Figure numbers and zero duplicate Table numbers in either file; (3)
+checked every inline "(Table N)"/"(Figure N)" reference in both
+documents' running text resolves to an actual caption -- the Report is
+100% clean; the Summary has six references (Tables 20b/20c/20d/21a/25/
+26) that point at tables which exist only in the full Report, not
+duplicated inside the Summary itself -- confirmed this is intentional
+(the Summary explicitly says in its own opening paragraph that full
+tables/methodology live in the main report), not a broken reference,
+though only one of the six spells out "in the report" explicitly while
+the other five don't -- flagged to Omar as an optional wording
+consistency nit, not fixed since it's not a factual error; (4) scanned
+for encoding corruption (mojibake), leftover template markers, and
+double-spaces -- found several double-spaces that turned out to be
+false positives (Word equation objects/oMath for variables like N, h
+render as empty in python-docx's plain-text extraction, which looks
+like a gap but displays correctly in Word) after checking the raw XML
+for `oMath` elements; (5) after filtering out the oMath false
+positives, found ONE genuine typo: the Report's own opening paragraph
+(introduction, ~para 11) had lost two em-dashes somewhere in an
+earlier session's editing history -- "...material field, and loading
+each solve is a full Newton-Raphson..." and "...total potential energy
+of the elastic body  a physics-informed..." both should read with an
+em-dash ("loading -- each solve", "elastic body -- a physics-informed").
+Fixed both directly in the run text. This paragraph is the very first
+thing a reader sees, so worth catching before sending. (6) Cross-
+checked every headline number quoted in the Summary's "Response to
+round-8" section against its source table in the Report's real data
+tables (which required reading real docx Table objects, not just
+paragraphs, since python-docx's `document.paragraphs` silently skips
+text inside table cells) -- DD-NO vs PI-operator inference latency
+(4.625/4.586 ms), all three OOD degradation factors (4.75x/5.47x/
+2.27x), DD-NO coarse/fine-trained accuracy sweep (Table 26: 10.52%->
+25.90% coarse, 10.90%-13.72% fine), training wall-clock (1,458.3s/
+1,463.0s vs 2,873.8s/3,108.9s), and torch-fem speedup factors (418x/
+655x/1,197x/936x) all verified to match the Report's own table cells
+exactly, character for character where rounding allows. (7) checked
+for duplicate numbered section headings (e.g. two "8.4"s) -- none
+found, 29 numbered headings in the Report, all unique. Noted again,
+NOT fixed (same as previous entry): Figure numbers don't run in page
+order in either file, a long-standing structural property, not new
+breakage. Corrected Report re-sent to Omar under its plain filename
+`PFEM_Transolver_Report_2026-09-09.docx`; Summary needed no changes
+this pass and was re-sent unchanged.)
+
+Previous update, 2026-09-09 (**final pre-send proofread of the Report/Summary,
 per Omar's explicit request** ("check them very carefully one more time
 before I send to Timon"). Systematic scan of both docx files for stale
 status language ("not yet", "remaining work", "has not been measured",
