@@ -5,7 +5,33 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-09 (**item #12 is now COMPLETELY done, including
+Last updated: 2026-09-09 (**full-document sanity check, per Omar's own
+worry about a mix-up**: after all 39 figures were embedded across both
+documents, Omar explicitly asked to verify there was no duplication or
+misplacement before going further. Checked programmatically, not just
+by spot-checking a few: (1) exactly 39 "Figure N." captions in each
+document, 1-39, no gaps, no duplicate numbers; (2) exactly 39 embedded
+images in each, matched 1:1 to captions; (3) hashed every embedded
+image's raw bytes -- zero duplicate image content in either document
+(no picture accidentally embedded twice under two different figure
+numbers); (4) printed every Figure-17-through-39 caption alongside the
+nearest preceding table/paragraph in both documents and confirmed each
+one topically matches its anchor (e.g. Figure 31-36's six OOD field
+grids each sit right after Table 25/Table 19 as intended, in the
+correct B1-NH/MR/AB, B2-NH/MR/AB reading order). Everything checked out
+clean -- no fix needed, just confirmed.
+
+Also, per Omar's request, added two new paragraphs to the informal
+"plain summary of what was done" narrative at the very top of the
+Summary document (right after the existing MMS paragraph, before the
+numbered results sections begin) -- covering item #13 (torch-fem
+comparison) and item #12 (all 39 figures), in the same plain-language
+style as the existing narrative entries there. Deliberately did NOT
+touch the Report's own Abstract/Executive Summary (formal paper prose,
+different register, and Omar's own wording named only "the Summary"
+specifically).
+
+Previous update, 2026-09-09 (**item #12 is now COMPLETELY done, including
 the notebook-generated figures**: the 10 remaining field-grid PNGs
 fetched from Drive -- B1 mesh-convergence grid, B1 zero-shot grid, all
 six OOD grids (B1/B2 x 3 materials, all now showing the corrected ring
