@@ -30,6 +30,8 @@ from docx.table import Table
 from docx.text.paragraph import Paragraph
 from docx.oxml.ns import qn
 
+from plot_style import MATERIAL_COLOR, add_line_labels
+
 DELIV = '/tmp/claude-0/-home-user/64d7c4d8-d5f0-5686-a58f-aa87abfd4ba4/scratchpad/deliverables'
 REPORT = os.path.join(DELIV, 'PFEM_Transolver_Report_updated_2026-09-08.docx')
 OUT = 'report_builders/figures'
@@ -77,7 +79,9 @@ def pct(s):
 
 
 fig, axes = plt.subplots(1, 2, figsize=(10, 4.2), dpi=200)
-colors = {'Neo-Hookean': '#1f77b4', 'Mooney-Rivlin': '#ff7f0e', 'Arruda-Boyce': '#2ca02c'}
+# Staggered vertically (index-dependent dy) since the three materials'
+# finest-resolution points sit very close together, especially for B2.
+LABEL_DY = {'Neo-Hookean': 10, 'Mooney-Rivlin': 20, 'Arruda-Boyce': -16}
 
 for cap, geometry, material in CASES:
     tbl = label_for[cap]
@@ -90,8 +94,12 @@ for cap, geometry, material in CASES:
             N.append(n)
             delta_energy.append(d)
     ax = axes[0] if geometry == 'B1' else axes[1]
-    ax.loglog(N, delta_energy, marker='o', color=colors[material], linewidth=1.6,
+    ax.loglog(N, delta_energy, marker='o', color=MATERIAL_COLOR[material], linewidth=1.6,
                markersize=5, label=material)
+    # Value label on the finest-resolution point only (the headline
+    # number) -- labelling all 7 points per line would be unreadable.
+    add_line_labels(ax, [N[-1]], [delta_energy[-1]], fmt='{:.3f}%',
+                     color=MATERIAL_COLOR[material], dy=LABEL_DY[material])
 
 for ax, geometry in zip(axes, ('B1', 'B2')):
     ax.set_xlabel('N')
@@ -99,6 +107,8 @@ for ax, geometry in zip(axes, ('B1', 'B2')):
     ax.set_title(geometry)
     ax.legend(frameon=False, fontsize=8)
     ax.grid(True, which='both', alpha=0.25)
+    xlo, xhi = ax.get_xlim()
+    ax.set_xlim(xlo, xhi * 1.6)
 
 fig.suptitle('Mesh convergence: strain energy vs. resolution', fontsize=12)
 fig.tight_layout(rect=[0, 0, 1, 0.93])

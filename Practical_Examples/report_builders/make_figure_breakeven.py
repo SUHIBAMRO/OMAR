@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from docx_table_map import build_table_map, get_rows
+from plot_style import NEUTRAL, HIGHLIGHT, GOOD, SECONDARY, PRIMARY, add_bar_labels
 
 DELIV = '/tmp/claude-0/-home-user/64d7c4d8-d5f0-5686-a58f-aa87abfd4ba4/scratchpad/deliverables'
 REPORT = os.path.join(DELIV, 'PFEM_Transolver_Report_updated_2026-09-08.docx')
@@ -33,17 +34,26 @@ by_case = {r['Case']: r for r in rows}
 
 COLS = [('vs. CPU FEM', 'CPU FEM (bs=1)'), ('vs. GPU FEM, bs=1', 'GPU FEM, bs=1'),
         ('bs=8', 'GPU FEM, bs=8'), ('bs=32', 'GPU FEM, bs=32'), ('bs=128', 'GPU FEM, bs=128')]
-COLORS = ['#7f7f7f', '#d62728', '#ff7f0e', '#2ca02c', '#1f77b4']
+COLORS = [NEUTRAL, HIGHLIGHT, SECONDARY, GOOD, PRIMARY]
 
 x = np.arange(len(CASES))
 width = 0.15
 
 fig, ax = plt.subplots(figsize=(11, 6), dpi=200)
+all_bars = []
 for i, (key, label) in enumerate(COLS):
     vals = [float(by_case[c][key].replace(',', '')) for c in CASES]
-    ax.bar(x + (i - 2) * width, vals, width, label=label, color=COLORS[i])
+    bars = ax.bar(x + (i - 2) * width, vals, width, label=label, color=COLORS[i])
+    all_bars.append(bars)
+
+# Labelling all 30 bars would be unreadable at this density -- label only
+# the two "bookend" series (cheapest baseline, most demanding baseline),
+# the two numbers a reader actually needs to see at a glance.
+add_bar_labels(ax, all_bars[0], fmt='{:.0f}', fontsize=6.5)
+add_bar_labels(ax, all_bars[-1], fmt='{:,.0f}', fontsize=6.5, rotation=90)
 
 ax.set_yscale('log')
+ax.set_ylim(top=ax.get_ylim()[1] * 3)
 ax.set_xticks(x)
 ax.set_xticklabels([c.replace('×', 'x') for c in CASES], rotation=0, ha='center', fontsize=9)
 ax.set_ylabel('Break-even (new problem instances)')

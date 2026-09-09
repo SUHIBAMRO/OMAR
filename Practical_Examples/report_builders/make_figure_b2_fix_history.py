@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from docx_table_map import build_table_map, get_rows
+from plot_style import NEUTRAL, HIGHLIGHT, GOOD, PRIMARY, SECONDARY
 
 DELIV = '/tmp/claude-0/-home-user/64d7c4d8-d5f0-5686-a58f-aa87abfd4ba4/scratchpad/deliverables'
 REPORT = os.path.join(DELIV, 'PFEM_Transolver_Report_updated_2026-09-08.docx')
@@ -27,7 +28,7 @@ fig, axes = plt.subplots(1, 2, figsize=(11, 4.6), dpi=200)
 ax = axes[0]
 labels = ['Original\nbaseline', 'Force-consistency\nfix alone', '+ Loss-scale\nnormalization']
 vals = [float(r['Mean rel. L2 error'].rstrip('%')) for r in rows13]
-colors = ['#7f7f7f', '#d62728', '#2ca02c']
+colors = [NEUTRAL, HIGHLIGHT, GOOD]
 ax.bar(labels, vals, color=colors)
 ax.axhline(9.0, color='black', linewidth=1, linestyle='--', label='9.00% target')
 for i, v in enumerate(vals):
@@ -40,7 +41,7 @@ ax.grid(True, axis='y', alpha=0.25)
 ax = axes[1]
 materials = [r['Case'].split(' × ')[1] for r in rows14]
 vals14 = [float(r['Mean rel. L2 error'].rstrip('%')) for r in rows14]
-colors14 = ['#1f77b4' if v < 9.0 else '#ff7f0e' for v in vals14]
+colors14 = [PRIMARY if v < 9.0 else SECONDARY for v in vals14]
 ax.bar(materials, vals14, color=colors14)
 ax.axhline(9.0, color='black', linewidth=1, linestyle='--', label='9.00% target')
 for i, v in enumerate(vals14):

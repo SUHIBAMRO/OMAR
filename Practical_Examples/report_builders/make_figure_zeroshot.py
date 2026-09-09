@@ -18,6 +18,8 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+from plot_style import MATERIAL_COLOR
+
 PF = 'omar_pfem/point7a_results'
 OUT = 'report_builders/figures'
 os.makedirs(OUT, exist_ok=True)
@@ -32,8 +34,6 @@ B2_FILES = {
     'Mooney-Rivlin': 'B2_mooney_rivlin_zeroshot_fixedselection.json',
     'Arruda-Boyce': 'B2_arruda_boyce_zeroshot_fixedselection.json',
 }
-COLORS = {'Neo-Hookean': '#1f77b4', 'Mooney-Rivlin': '#ff7f0e', 'Arruda-Boyce': '#2ca02c'}
-
 fig, axes = plt.subplots(1, 2, figsize=(10, 4.2), dpi=200)
 
 for ax, geometry, files in [(axes[0], 'B1', B1_FILES), (axes[1], 'B2', B2_FILES)]:
@@ -42,12 +42,18 @@ for ax, geometry, files in [(axes[0], 'B1', B1_FILES), (axes[1], 'B2', B2_FILES)
         rows = sorted(d['rows'], key=lambda r: r['N'])
         N = [r['N'] for r in rows]
         err = [r['mean_rel_L2_vs_fine_reference'] * 100 for r in rows]
-        ax.semilogy(N, err, marker='o', color=COLORS[material], linewidth=1.6,
-                     markersize=5, label=material)
+        # The headline number (error at the largest test resolution) goes
+        # straight into the legend label, not an on-plot annotation --
+        # the three materials' finest-resolution points can land almost
+        # exactly on top of each other (e.g. B2's all near 30-34%), where
+        # any on-plot text placement risks overlapping regardless of
+        # how it's nudged. The legend never has that problem.
+        ax.semilogy(N, err, marker='o', color=MATERIAL_COLOR[material], linewidth=1.6,
+                     markersize=5, label=f'{material} ({err[-1]:.2f}% at N={N[-1]})')
     ax.set_xlabel('N (test resolution)')
     ax.set_ylabel('Mean relative L2 error (%)')
     ax.set_title(geometry)
-    ax.legend(frameon=False, fontsize=8)
+    ax.legend(frameon=False, fontsize=7.5, loc='upper center')
     ax.grid(True, which='both', alpha=0.25)
 
 fig.suptitle('Zero-shot resolution invariance (one checkpoint, seven unseen resolutions)',

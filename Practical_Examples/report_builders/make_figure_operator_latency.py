@@ -19,6 +19,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from docx_table_map import build_table_map, get_rows
+from plot_style import MATERIAL_COLOR
 
 DELIV = '/tmp/claude-0/-home-user/64d7c4d8-d5f0-5686-a58f-aa87abfd4ba4/scratchpad/deliverables'
 REPORT = os.path.join(DELIV, 'PFEM_Transolver_Report_updated_2026-09-08.docx')
@@ -32,7 +33,6 @@ rows10b = {r['Case']: r for r in get_rows(tmap['Table 10b'])}
 
 CASES = ['B1 × Neo-Hookean', 'B1 × Mooney-Rivlin', 'B1 × Arruda-Boyce',
           'B2 × Neo-Hookean', 'B2 × Mooney-Rivlin', 'B2 × Arruda-Boyce']
-MATERIAL_COLOR = {'Neo-Hookean': '#1f77b4', 'Mooney-Rivlin': '#ff7f0e', 'Arruda-Boyce': '#2ca02c'}
 BATCH = [1, 8, 32, 128]
 
 fig, axes = plt.subplots(1, 3, figsize=(15, 4.6), dpi=200)
