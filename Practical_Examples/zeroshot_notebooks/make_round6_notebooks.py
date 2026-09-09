@@ -849,6 +849,26 @@ NOTEBOOKS = {
          "  to overshoot by a similar factor too.\n",
          "* If Colab disconnects, just re-run this same cell — see the\n",
          "  resumability note above.\n"]),
+    "Round6_MMS_Richer_ArrudaBoyce.ipynb": (
+        "cell_mms_richer_remaining.py",
+        ["# Richer-family MMS, Arruda-Boyce (round-8, point 6 follow-up)\n",
+         "\n",
+         "Closes a real gap Omar caught: the richer sine/cosine "
+         "manufactured-solution family (built and verified for\n",
+         "Neo-Hookean only) and the three-material MMS extension "
+         "(Mooney-Rivlin/Arruda-Boyce, using the ORIGINAL single-mode\n",
+         "field) had never been run together. This notebook runs the "
+         "richer family for Arruda-Boyce specifically. Mooney-Rivlin is\n",
+         "running the same study on CPU at the same time — not "
+         "duplicated here.\n",
+         "\n",
+         "**Pure numerics, no neural network**: this verifies the FEM "
+         "solver itself against a closed-form manufactured solution, not\n",
+         "the trained operator. GPU is used when available since it "
+         "speeds up the larger meshes (N=33) but isn't required for\n",
+         "correctness.\n",
+         "\n",
+         "* Resumable — safe to re-run if interrupted.\n"]),
     "Round6_Measure_DD_NO_Latency.ipynb": (
         "cell_measure_dd_no_latency.py",
         ["# DD-NO inference latency (round-8, point 7 follow-up)\n",
