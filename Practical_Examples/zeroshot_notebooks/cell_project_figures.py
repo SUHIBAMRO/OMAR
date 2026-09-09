@@ -38,6 +38,7 @@ import os, sys, subprocess
 
 from google.colab import drive
 drive.mount('/content/drive')
+from IPython.display import Image, display
 
 REPO = '/content/OMAR'
 def run(cmd):
@@ -146,7 +147,7 @@ for label, ckpt, out_json in DD_NO_CASES:
         print(f'SECTION D ({label}) FAILED:', e); failures.append((f'D_{label}', e))
 
 print('\n' + '=' * 70)
-print(f'DONE. Figures saved under {FIG} -- fetch them from Drive.')
+print(f'DONE. Figures saved under {FIG}.')
 if failures:
     print(f'\n{len(failures)} section(s) failed -- check the real error printed above')
     print('each, fix that section\'s own checkpoint/path constant, and re-run just it:')
@@ -154,3 +155,28 @@ if failures:
         print(f'  {name}: {e}')
 else:
     print('All sections succeeded.')
+
+# --- Section E: show every figure INLINE, right here, at the end of this
+# cell/notebook -- so there is no need to go open Drive separately to see
+# whether a given figure actually looks right. Reads straight off disk
+# (the same files each section above just saved), so this never depends on
+# the sections above having succeeded -- whatever exists gets shown,
+# whatever is missing is reported by name instead of silently skipped.
+print('\n' + '=' * 70)
+print('=== E: all figures, inline ===')
+EXPECTED_FIGS = [
+    ('A: FEM convergence field grid (B1)', f'{FIG}/fig_B1_resolution_grid.png'),
+    ('B: zero-shot resolution field grid (Table 12, B1)', f'{FIG}/fig_B1_zeroshot_grid.png'),
+] + [
+    (f'C: OOD shift field grid ({g} x {m})', f'{FIG}/fig_{g}_{m}_ood_grid.png')
+    for g, m, _ in OOD_CASES
+] + [
+    ('D: DD-NO coarse-trained field grid (B1)', f'{FIG}/fig_B1_dd_no_coarse_grid.png'),
+    ('D: DD-NO fine-trained field grid (B1)', f'{FIG}/fig_B1_dd_no_fine_grid.png'),
+]
+for title, path in EXPECTED_FIGS:
+    print(f'\n--- {title} ---')
+    if os.path.isfile(path):
+        display(Image(filename=path))
+    else:
+        print(f'  (missing -- {path} was not produced, see that section\'s error above)')
