@@ -5,7 +5,52 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-09 (**one more gap closed in the Summary's new
+Last updated: 2026-09-09 (**round-8 point 6's MMS gap fully closed**:
+Omar spotted, from the Summary's own point-6 text, that the richer
+sine/cosine manufactured-solution family had only ever been run for
+Neo-Hookean, while the 3-material extension (Mooney-Rivlin, Arruda-
+Boyce) still used the original single-mode field -- two separate work
+sessions that were never reconciled. Asked directly why this wasn't
+done from the start, and whether other round-8 points had similar
+unmerged/unverified gaps. Re-ran the richer family for Mooney-Rivlin
+(local CPU) and Arruda-Boyce (Colab, resumed a partial GPU run on
+CPU); both now show `rate_check: "as expected"` for Q4 and Q9, same
+as Neo-Hookean's own earlier run -- e.g. energy-norm rate ~1.0 at Q4,
+~2.0 at Q9 for both materials, matching theory. Results committed:
+`omar_pfem/point9_results/mms_richer_B1_mooney_rivlin.json` (19b8d1f)
+and `mms_richer_B1_arruda_boyce.json` (c41aba4). Along the way, found
+and fixed two real device-mismatch bugs in `omar_pfem/mms_study.py`
+(numpy-derived mesh tensors default to CPU while `elem_params_t` is
+built directly on `device`; silently matched by accident on CPU-only
+runs, only surfaced once GPU was used) -- `assemble_body_force` call
+site (c8f354a) and `compute_errors` call site (f747413), each wrapped
+in `with torch.device(device):`, each verified via a CPU regression
+test showing byte-identical numeric output before re-attempting GPU.
+Empirically confirmed GPU gives NO benefit for this pure-FEM-solver
+verification study: CPU was faster at every mesh size tested (N=5
+through 33) for both materials -- this is a numerics-only study with
+no neural network, so there's no large batched tensor op for a GPU to
+win on. Updated the Summary's point-6 text (paragraph in the
+"Response to round-8" section) from "not yet combined... remaining
+work" to "done and combined... gap closed," and the same in the draft
+combined-reply email (`advisor_feedback/2026-09-09_reply_to_round8_
+combined.md`, both the status table and the point-6 body paragraph).
+Checked the Report for an equivalent point-6 caveat: none found --
+the Report's own MMS section (Tables 22/22a/22b, paragraphs ~433-446)
+documents the ORIGINAL single-mode-field study across all three
+materials already (a separate, earlier piece of work, item #9-era,
+unaffected by this round-8-specific richer-family follow-up), so no
+Report edit was needed. The existing `fig_mms_convergence.png`
+(Figure 27/28) plots that original single-mode data and remains
+correct for what it documents; no new figure was built for the
+richer-family numbers since the Summary's round-8 section is
+text-only (no embedded tables/figures) for every one of the 7 points,
+matching the section's existing style. Not yet done: the updated
+Summary docx has not yet been re-sent to Omar as a file -- do that
+next if he wants the refreshed copy, otherwise the committed
+JSON + updated .md email draft are the durable record.)
+
+Previous update, 2026-09-09 (**one more gap closed in the Summary's new
 top "Response to round-8" section**: Omar asked directly whether the
 torch-fem comparison's two caveats -- float32/loose-tolerance vs. our
 float64/tight, and "ours" own peak memory never measured (checkpoint-

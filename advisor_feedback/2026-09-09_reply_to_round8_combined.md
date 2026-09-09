@@ -17,11 +17,11 @@ for full derivation/caveats on each number below):
 - Point 3 (DD-NO coarse-vs-fine): DONE.
 - Point 4 (DD-NO wall-clock): DONE (already sent informally before).
 - Point 5 (GPU-FEM scaling/preconditioner): DONE, one caveat kept.
-- Point 6 (MMS): energy norm fixed correctly; richer sine/cosine
-  family built but ONLY for Neo-Hookean, not yet merged with the
-  three-material extension (which still uses the original single-mode
-  field) — genuinely incomplete, stated as such below, not glossed
-  over.
+- Point 6 (MMS): DONE. Energy norm fixed correctly; richer sine/cosine
+  family (previously only Neo-Hookean) now re-run for Mooney-Rivlin
+  and Arruda-Boyce too (2026-09-09) — Q4/Q9 rates match theory for
+  all three materials, closing the gap between the richer family and
+  the three-material extension.
 - Point 7 (break-even restructure): DONE in substance, one caveat kept
   (DD-NO inference cost assumed equal to the physics-informed
   operator's, not separately measured).
@@ -30,10 +30,7 @@ for full derivation/caveats on each number below):
 not a final-checked one. In particular: point 2's exact B1×MR/B1×AB
 degradation numbers should be pulled from Table 25 directly before
 sending (this draft states the B2 numbers, which are confirmed, and
-describes B1 only qualitatively); point 6's honesty about the
-unmerged MMS family should be double-checked against how much detail
-Omar wants to expose before the richer-family run is redone across all
-three materials.
+describes B1 only qualitatively).
 
 ---
 
@@ -111,19 +108,17 @@ negligible" isn't the right interpretation is already stated in the
 report near-verbatim — the element-level work is hidden inside every
 CG Hessian-vector product, not a separate phase that disappeared.
 
-**6. MMS.** Two of the three things you asked for are done; I want to
-flag honestly that they haven't been combined yet. The energy norm is
-now computed correctly as a proper quadrature norm against the exact
-continuous solution (the previous version compared against the nodal
-interpolant, which silently superconverges — caught and fixed). The
-richer manufactured-solution family (sum of several sine/cosine modes,
-boundary conditions preserved) is built and verified — Q4/Q9 rates
-match theory exactly — but so far only for Neo-Hookean. The extension
-to Mooney-Rivlin and Arruda-Boyce that's currently in the report still
-uses the original single-mode field, not the richer family. Re-running
-the richer family across all three materials is the remaining work
-here; I didn't want to present the two as already merged when they
-aren't.
+**6. MMS.** All three things you asked for are done and now combined.
+The energy norm is computed correctly as a proper quadrature norm
+against the exact continuous solution (the previous version compared
+against the nodal interpolant, which silently superconverges — caught
+and fixed). The richer manufactured-solution family (sum of several
+sine/cosine modes, boundary conditions preserved) was originally
+verified only for Neo-Hookean; I've now re-run it for Mooney-Rivlin
+and Arruda-Boyce as well, so it covers the same three materials as the
+rest of the report. Q4/Q9 rates match theory exactly for all three
+(e.g. the energy-norm rate comes out at ~1.0 for Q4 and ~2.0 for Q9,
+the expected values, for every material).
 
 **7. Break-even methodology.** Restructured as you suggested. Comparison
 A (single query, same hardware, batch size 1 both sides) is now labeled
@@ -146,7 +141,7 @@ figures in total, covering all seven points above plus the earlier
 results.
 
 Happy to walk through any of this on a call if useful, especially
-point 1's benchmark-scale decision and point 6's remaining MMS work.
+point 1's benchmark-scale decision.
 
 Best regards,
 
