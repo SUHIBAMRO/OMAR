@@ -1,0 +1,16 @@
+{
+  "geometry": "B1",
+  "material": "neo_hookean",
+  "order": "Q4",
+  "device": "cuda",
+  "tol": 1e-08,
+  "direct_max_n": 701,
+  "rows": [
+    {"N": 401,  "n_dof": 321602,  "method": "cg",     "total_time_s": 11.630450963973999, "assembly_time_s": 5.03986120223999,  "solve_time_s": 6.47557806968689,   "other_time_s": 0.11501169204711914, "n_nonlinear_iters": 11, "peak_mem_mb": 5840.750592},
+    {"N": 401,  "n_dof": 321602,  "method": "direct", "total_time_s": 166.56699681282043, "assembly_time_s": 3.670232057571411, "solve_time_s": 162.87045574188232, "other_time_s": 0.02630901336669922, "n_nonlinear_iters": 11, "peak_mem_mb": 5983.695872},
+    {"N": 701,  "n_dof": 982802,  "method": "cg",     "total_time_s": 25.310420036315918, "assembly_time_s": 8.74299430847168,  "solve_time_s": 16.524919271469116, "other_time_s": 0.04250645637512207, "n_nonlinear_iters": 11, "peak_mem_mb": 17729.942528},
+    {"N": 701,  "n_dof": 982802,  "method": "direct", "total_time_s": 835.5794341564178, "assembly_time_s": 9.010233163833618,  "solve_time_s": 826.5233254432678,  "other_time_s": 0.04587554931640625, "n_nonlinear_iters": 11, "peak_mem_mb": 18153.22368},
+    {"N": 1001, "n_dof": 2004002, "method": "cg",     "total_time_s": 55.13914251327515,  "assembly_time_s": 16.845612049102783, "solve_time_s": 38.21443700790405,  "other_time_s": 0.07909345626831055, "n_nonlinear_iters": 11, "peak_mem_mb": 36142.452736},
+    {"N": 1401, "n_dof": 3925602, "method": "cg",     "total_time_s": 133.4268877506256,  "assembly_time_s": 32.387967109680176, "solve_time_s": 100.88424682617188, "other_time_s": 0.15467381477355957, "n_nonlinear_iters": 11, "peak_mem_mb": 70842.795008}
+  ]
+}

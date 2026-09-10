@@ -1,0 +1,9 @@
+{
+  "N": 1401,
+  "n_nodes": 1962801,
+  "n_elements": 1960000,
+  "no_inference_ms_per_sample": 2286.6918671131134,
+  "no_inference_device": "cuda",
+  "torchfem_N1401_matched_fp64_1e8_s": 133.83,
+  "torchfem_N1401_old_unmatched_float32_1e3_s": 29.108236074447632
+}

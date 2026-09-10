@@ -1,0 +1,14 @@
+{
+  "geometry": "B1",
+  "material": "neo_hookean",
+  "order": "Q4",
+  "fine_N": 2236,
+  "device": "cuda",
+  "tol": 1e-08,
+  "peak_stress_x_star": [9.455251248554231e-05, 9.455251248554231e-05],
+  "peak_stress_ref": 43.47671959446411,
+  "rows": [
+    {"N": 1001, "n_dof": 2004002, "tol": 1e-08, "torchfem_wall_clock_s": 56.55970239639282, "torchfem_peak_mem_mb": 36138.372096, "l2_rel": 5.154826920774057e-06, "h1_semi_rel": 0.0018458742097210434, "energy_norm_rel": 0.001272573620721198, "peak_stress_pred": 37.315056833797485, "peak_stress_ref": 43.47671959446411, "peak_stress_rel_err": 0.14172326748983122, "stress_field_l2_rel": 0.0014740597407836304},
+    {"N": 1401, "n_dof": 3925602, "tol": 1e-08, "torchfem_wall_clock_s": 133.48080277442932, "torchfem_peak_mem_mb": 70838.193664, "l2_rel": 2.2911392294998408e-06, "h1_semi_rel": 0.0016326919302203794, "energy_norm_rel": 0.0007822265235573957, "peak_stress_pred": 40.1330697392001, "peak_stress_ref": 43.47671959446411, "peak_stress_rel_err": 0.07690667296089541, "stress_field_l2_rel": 0.001500056807376479}
+  ]
+}

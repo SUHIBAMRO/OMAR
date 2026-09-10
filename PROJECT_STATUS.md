@@ -5,7 +5,55 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**All 4 round-9 notebook figures retrieved
+Last updated: 2026-09-10 (**Line-by-line re-audit of both original
+Timon round-9 emails against the actual document text, per Omar's
+"تاكدلي انو كل النقاط هاي جاهزه ومجاوبين عليها كلها بشكل صحيح خصوصا في
+السمراي" request -- found 4 real gaps, not just re-confirmed what was
+already there, and fixed all 4 in both documents:**
+
+1. **"For the paper, timing should only be compared after the methods
+demonstrate comparable accuracy and mesh convergence"** -- this
+methodological REQUIREMENT was being satisfied in substance (accuracy
+shown before timing, in both documents) but never stated as satisfied.
+Added one explicit sentence to Summary Point 1 and Report (the
+matched-precision paragraph) confirming the ordering was honored.
+
+2. **Nonlinear iteration count** -- Timon explicitly asked for "total
+time together with assembly, solve/factorization, nonlinear
+iterations and peak memory." The breakdown measurement DID capture
+this (`n_nonlinear_iters` in the real data, retrieved from Drive:
+constant 11 at every N, both CG and direct), but the number itself was
+never actually stated in either document -- only percentages. Added
+the real number (11, constant across N and solver choice -- itself a
+finding: solve-time growth with N is a per-iteration cost effect, not
+more iterations) to Summary Point 6 and the Report's timing-breakdown
+paragraph.
+
+3. **TensorMesh Q4/Q9 ambiguity** -- Summary Point 5 said "Confirmed
+the library (Q4/Q9 elements...) matches what you described," which
+could be misread as both element types having been tested; only Q4
+ever was. Reworded to state plainly that the LIBRARY has both, but
+only Q4 was attempted.
+
+4. **The actual "still too slow / competitive baseline" argument was
+NEVER in either real document** -- only in the separate, unsent email
+drafts. This is Timon's own named "main concern," not a minor point;
+leaving the substantive answer (memory-wall evidence, the direct-solver
+finding) out of the documents themselves while it sat in an unsent
+email was a real gap, not a stylistic choice. Added a new paragraph
+addressing this directly to both Summary (after Point 6) and Report
+(after the timing-breakdown paragraph).
+
+Also retrieved and committed the two remaining task result files that
+had only ever lived on Drive/in this file's own prose, never as
+committed data: `torchfem_qoi_large_dof.json` (task #9) and
+`no_inference_vs_torchfem_N1401.json` (task #12), alongside
+`torchfem_timing_breakdown.json` (task #3, now including the real
+`n_nonlinear_iters` field used for fix #2 above) -- all three sourced
+directly from Drive via the Google Drive connector, not retyped from
+memory.
+
+Previous update, 2026-09-10 (**All 4 round-9 notebook figures retrieved
 from Omar's own Google Drive (via the Google Drive connector he shared)
 and embedded in both real documents, closing the "put the images in
 the files" request.** Found by `search_files` in the `pfem_run` Drive
