@@ -5,7 +5,81 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**First real, WORKING proof-of-concept: B1 x
+Last updated: 2026-09-10 (**Cross-validation against "ours" own solver
+FAILED -- found a real, unresolved, reproducible correctness problem
+in TensorMesh's own quad-element energy integration, before trusting
+ANY TensorMesh number.** Per this project's own standing discipline
+(never trust a comparison before confirming both sides solve the same
+problem correctly), built the real B1 mesh at N=3 (using this
+project's own `build_mesh_and_bcs`, not a re-derived TensorMesh mesh)
+and solved it both ways.
+
+**Displacement fields do NOT match**: "ours" max displacement 5.69mm,
+TensorMesh's own (Newton+direct, same mesh/material/load/BCs) 9.04mm
+-- a genuine, large, physically real disagreement, not a rounding
+difference.
+
+**Isolated the cause by comparing raw strain ENERGY at a fixed test
+displacement (bypassing the solver/BCs/load entirely)**: "ours" own
+`element_energy_order_agnostic` and TensorMesh's own `ElementAssembler
+.energy()`, evaluated at the identical random small u_test on the
+identical mesh, give different energies (0.0389 vs 0.0305, ratio
+1.28x) even with a spatially UNIFORM material (ruling out a per-
+element material-ordering mismatch, since uniform material removes
+any possible index-mapping bug entirely).
+
+**Root-caused further with a minimal sanity probe**: built a trivial
+`ElementAssembler` whose `element_energy` returns the CONSTANT 1.0
+(independent of displacement) on a single unit-square quad element --
+the total "energy" should equal the element's AREA, exactly 1.0. It
+instead returns 0.5773502691896257 = 1/sqrt(3) EXACTLY (the standard
+2-point Gauss quadrature POINT coordinate, not a weight or any
+sensible area value) -- a strong, reproducible signature of something
+genuinely wrong in TensorMesh's own default quadrature_order=2
+integration for quad elements specifically. Tried quadrature_order=3/4
+on the same trivial probe: both CRASH with "linalg.inv: ... input
+matrix is singular" inside `tensormesh/element/element.py`'s own
+`eval_shape_grad` (`torch.inverse(cell_jacobian)` on a singular
+matrix) -- so the bug isn't limited to the default order, higher
+orders fail outright for this element type. Ruled out my own
+z-padding as the cause (retested with genuinely 2D `(n,2)` points,
+matching `gen_rectangle`'s own point shape exactly -- same wrong
+0.5774 result either way).
+
+**Working theory, not yet confirmed**: this may connect back to the
+earlier-noted discrepancy between the top-level README (which lists
+only triangular/tetrahedral/pyramid/prismatic under "Core strengths,"
+omitting quadrilateral even though quad/quad9 are real and documented
+elsewhere) -- quad-element support may simply be less mature/less
+tested in this specific library than its simplex-element support.
+
+**Practical consequence: TensorMesh's own quad-element energy/Newton
+path cannot currently be trusted for this project's B1/B2 comparison**
+until this integration bug is understood and fixed (either a real bug
+in the installed `tensormesh-fem` version, or a real but non-obvious
+usage requirement this investigation hasn't found yet -- e.g. a
+required mesh/element construction step `gen_rectangle`'s own internal
+gmsh pipeline does that a hand-built `meshio.Mesh` does not). This is
+now flagged as a genuine blocker, not glossed over -- the small-scale
+"it worked!" result reported earlier in this same session (clean
+Newton convergence to a plausible-looking displacement) is RETRACTED
+as evidence of correctness: it converged cleanly to a WRONG answer,
+which is a reminder that Newton converging is not by itself proof the
+underlying physics/integration is right (the same lesson item #9's
+MMS energy-norm bug and the B2 peak-stress bug both already taught
+this project the hard way).
+
+Not yet decided with Omar: whether to keep debugging TensorMesh's own
+quadrature internals (a genuinely open-ended third-party-library
+investigation with no guaranteed resolution), try their own official
+`gen_rectangle`-based mesh construction path instead of a hand-built
+`meshio.Mesh` (untested combination with per-element material data),
+report this finding as-is to Timon as a legitimate, honest research
+finding in its own right, or deprioritize task #4 relative to the
+other still-open items (#3's production-scale run, #5's reply, #8's
+tolerance sweep) given how deep this rabbit hole has already gone.)
+
+Previous update, 2026-09-10 (**First real, WORKING proof-of-concept: B1 x
 Neo-Hookean x Q4 solved in TensorMesh via Newton + direct solver, not
 L-BFGS.** Omar pushed back on the "default Jacobian is dense" claim
 (citing a different repo, `sparsexlab/torch-sla`) -- checked directly:
