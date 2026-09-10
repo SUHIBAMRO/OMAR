@@ -5,7 +5,42 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Tasks #2+#6 built and ready to run on Colab
+Last updated: 2026-09-10 (**Task #3 built: torch-fem timing breakdown by
+phase, done in parallel while Omar runs the #2/#6 Colab notebook.**
+New `solve_theirs_with_breakdown()` in `torchfem_comparison.py`:
+monkeypatches the model's own `assemble_matrix`/`integrate_material`
+(assembly) and the module-level `torchfem.sparse.sparse_solve` (linear
+solve, confirmed by reading `NewtonRaphsonAdjoint.forward` -- each
+Newton iteration calls `eval_residual` (assembly) THEN, only if not
+converged, `sparse_solve` (the actual linear solve) -- a clean, real
+split in torch-fem's own code, not something forced) to time each
+phase separately from the outside, restoring both after. Supports
+`method="cg"` (default) and `method="direct"` (Timon's own suggestion
+-- a real factorization). Verified at N=11: assembly=0.977s vs.
+solve=0.036s (cg) / 0.016s (direct) -- assembly dominates hugely at
+this tiny scale (Python/vmap overhead per Newton iteration), solve
+time is genuinely tiny at this DOF count either way. Both methods run
+without error at N=11 -- NOT yet tested at production N, especially
+"direct," which is expected to scale far worse than CG and needs a
+small-to-large staged test (matching the same discipline as the
+memory-risk staging on tasks #2/#6) before ever pointing it at
+N=701+. Committed (6f3fe47).
+
+**"ours" side needs no new instrumentation**: `matrix_free_solver.py`'s
+own `stats` dict already tracks `newton_iters_total`/`cg_iters_total`,
+and peak GPU memory is already measured in `solve_ours`. The one
+thing "ours" genuinely does NOT have is a separate assembly/
+factorization phase -- by architecture (matrix-free: every CG
+iteration IS the Hessian-vector product, already argued this way
+elsewhere in the report) -- so the eventual write-up needs to say that
+honestly rather than force a number that doesn't correspond to
+anything real on "ours" side.
+
+Not yet done: running this at the real production N once #2/#6's
+results are in, and folding all three (accuracy/convergence, timing
+breakdown, the eventual re-run) into one final table for Timon.)
+
+Previous update, 2026-09-10 (**Tasks #2+#6 built and ready to run on Colab
 (Omar's choice: "افتح كلوب جديد نشوف").** New `run_convergence_study()`
 in `torchfem_comparison.py`: runs torch-fem (at the matched FP64/1e-8
 precision from the previous fix) through the EXACT SAME methodology
