@@ -5,7 +5,77 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Tasks #2, #6, and #7 all COMPLETE -- full
+Last updated: 2026-09-10 (**TensorMesh API investigation (task #4):
+real findings from actually installing and introspecting the library
+(`pip install tensormesh-fem`), not just reading docs pages.**
+
+**Confirmed real, by direct code introspection (not summarized docs)**:
+- `tensormesh.Quadrilateral` is a real element class; `tensormesh.
+  element_type2order` maps `'quad': 1` and `'quad9': 2` -- Q4/Q9 exist
+  exactly as Timon said, verified two independent ways now (docs AND
+  live code).
+- `tensormesh.dataset.mesh.gen_rectangle(chara_length=0.2, order=1,
+  element_type='quad', left=0, right=1, bottom=0, top=1)` actually
+  RUNS (after installing missing system libs the sandbox lacked:
+  `libglu1-mesa`, `libxft2` -- gmsh's own runtime deps, not a
+  TensorMesh problem) and produces a real STRUCTURED grid via gmsh's
+  "Transfinite" meshing: 49 nodes/36 elements at order=1 (Q4), 169
+  nodes/36 elements at order=2 (Q9) for the same element count --
+  matches the expected Q4/Q9 node-count relationship exactly, and
+  confirms the mesh is controllable/structured like our own B1 grid,
+  not an arbitrary unstructured one.
+- `tensormesh.sparse.SparseTensor.nonlinear_solve` (real signature via
+  `inspect.signature`, real docstring via `inspect.getdoc`): `A.
+  nonlinear_solve(residual_fn, u0, *params, jac_fn=None, method=
+  'newton', tol=1e-8, atol=1e-12, max_iter=50, line_search=True,
+  linear_solver='auto', linear_method='auto')`. Confirms Newton-Raphson
+  with Armijo line search, adjoint-based backward, and the docstring's
+  own note that "the Jacobian of a general nonlinear residual is NOT
+  symmetric, so a direct method (e.g. 'lu') is recommended over 'cg'"
+  -- direct-solver support for Newton is real and is the RECOMMENDED
+  path, not an obscure option. (The OLDER, module-level
+  `tensormesh.sparse.nonlinear_solve` function is explicitly marked
+  `.. deprecated::` in its own docstring, scheduled for removal --
+  confirms `A.nonlinear_solve(...)`, the SparseMatrix METHOD, is the
+  one to use, not the deprecated free function.)
+
+**A real, substantive engineering gap found, not glossed over**:
+neither of TensorMesh's own two solid-mechanics examples (hyperelastic_
+beam.py, plasticity_strip.py -- fetched and read in full via raw
+GitHub source, not summarized) uses `nonlinear_solve` at all -- both
+instead call `ElementAssembler.energy()` to get a scalar potential
+energy, then hand it to `torch.optim.LBFGS` directly (exactly the
+"L-BFGS energy-minimization approach" Timon said not to use).
+`ElementAssembler` itself (introspected directly: `dir(ElementAssembler)`)
+exposes only `energy()`/`element_energy()` -- no residual/tangent/
+Hessian method a `nonlinear_solve` call could consume directly. The
+`nonlinear_solve` docstring's own DEFAULT `jac_fn=None` path uses
+`torch.autograd.functional.jacobian`, which is a DENSE Jacobian by
+default in vanilla PyTorch -- a real, unresolved scalability question
+for our actual problem sizes (hundreds of thousands to millions of DOF
+at N=401+): whether TensorMesh does something sparsity-aware
+internally isn't yet confirmed, and if not, the default path would be
+completely impractical at those sizes, requiring an explicit sparse
+`jac_fn` to be written by hand (real new engineering, not a
+configuration flag) -- analogous to what this project already built
+for "ours" own matrix-free solver and for torch-fem's own assembled
+sparse matrix, but now for a THIRD library with no existing template
+to adapt.
+
+**Bottom line for Omar**: the library, Q4/Q9 elements, and the Newton+
+direct-solver API are all real and confirmed by running real code, not
+assumption -- Timon's suggestion is technically sound. But building our
+own B1 x Neo-Hookean case is genuine new engineering (writing a
+residual function AND, almost certainly, an explicit sparse Jacobian
+for it to scale), not "adapt their example" -- their own example is
+architecturally a dead end for this (different solve path entirely).
+Next step, not yet started: a SMALL-SCALE test (a tiny quad mesh, a
+few elements) writing our own residual_fn for a hyperelastic problem
+and checking whether the DEFAULT autograd jac_fn path is fast enough
+even at toy scale to gauge how bad the dense-Jacobian scaling really
+is, before committing to writing an explicit sparse Jacobian.)
+
+Previous update, 2026-09-10 (**Tasks #2, #6, and #7 all COMPLETE -- full
 real result, N=51 through N=1401, matched FP64/1e-8 precision, same
 A100-SXM4-80GB Colab session.** Omar ran the follow-up notebook;
 N=1001 (56.65s, 36.1GB) and N=1401 (133.83s, 70.8GB) both completed
