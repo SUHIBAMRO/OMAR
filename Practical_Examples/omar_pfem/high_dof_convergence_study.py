@@ -663,11 +663,86 @@ def compute_peak_stress_error(coarse, fine, x_star, peak_ref, order, geometry, m
     stress_l2_abs = float(np.sqrt(np.sum(stress_l2_sq)))
     ref_stress_l2 = float(np.sqrt(np.sum(np.sum(P_ref ** 2, axis=(1, 2)) * detJs * ws))) + 1e-30
 
-    return {
+    out = {
         "peak_stress_pred": peak_h, "peak_stress_ref": peak_ref,
         "peak_stress_abs_err": peak_abs_err, "peak_stress_rel_err": peak_rel_err,
         "peak_stress_loc": x_star[0].tolist(),
         "stress_field_l2_abs": stress_l2_abs, "stress_field_l2_rel": stress_l2_abs / ref_stress_l2,
+    }
+    # Per-component (P11/P12/P21/P22) field errors, same weighted-L2 convention
+    # as the Frobenius-norm stress_field_l2_rel above -- reuses P_h/P_ref
+    # already computed, no extra solve. Added 2026-09-10 after Omar's own
+    # review flagged that "all QoIs" wasn't literally true without these.
+    wdet = detJs * ws
+    for name, (i, j) in [("P11", (0, 0)), ("P12", (0, 1)), ("P21", (1, 0)), ("P22", (1, 1))]:
+        a, b = P_h[:, i, j], P_ref[:, i, j]
+        num = float(np.sqrt(np.sum(wdet * (a - b) ** 2)))
+        den = float(np.sqrt(np.sum(wdet * b ** 2))) + 1e-30
+        out[f"{name}_field_l2_rel"] = num / den
+    return out
+
+
+def pk1_component_errors_at_point(x_star, coarse, fine, order, geometry, material,
+                                   E_fn, nu_fn, device, dtype, **geom_kwargs):
+    """Per-component (P11/P12/P21/P22) PK1 stress comparison at the SAME
+    fixed peak-stress location x_star that compute_peak_stress_error already
+    locates and compares in Frobenius norm only -- extends that one scalar
+    QoI to the full stress tensor at that point, reusing the already-solved
+    coarse and fine fields (evaluate_fe_field_and_gradient does exact FE
+    evaluation at any physical point, the same routine compute_peak_stress_
+    error already uses for the coarse side; used here for the fine side too,
+    even though x_star is one of its own Gauss points, for a single
+    consistent code path)."""
+    u_c_at_star, grad_u_c_at_star = evaluate_fe_field_and_gradient(x_star, coarse, order, geometry,
+                                                                    **geom_kwargs)
+    u_f_at_star, grad_u_f_at_star = evaluate_fe_field_and_gradient(x_star, fine, order, geometry,
+                                                                    **geom_kwargs)
+    E_star = E_fn(_material_query_pts(x_star, geometry))
+    nu_star = nu_fn(_material_query_pts(x_star, geometry))
+    P_c = _pk1_stress_at(grad_u_c_at_star, E_star, nu_star, material, device, dtype)[0]
+    P_f = _pk1_stress_at(grad_u_f_at_star, E_star, nu_star, material, device, dtype)[0]
+    out = {}
+    for name, (i, j) in [("P11", (0, 0)), ("P12", (0, 1)), ("P21", (1, 0)), ("P22", (1, 1))]:
+        a, b = float(P_c[i, j]), float(P_f[i, j])
+        out[f"{name}_at_peak_pred"] = a
+        out[f"{name}_at_peak_ref"] = b
+        out[f"{name}_at_peak_rel_err"] = abs(a - b) / (abs(b) + 1e-30)
+    return out
+
+
+def compute_reaction_resultant_error(coarse, fine, geometry, material, E_fn, nu_fn, device, dtype,
+                                      order="Q4"):
+    """Total reaction-force resultant on the fixed boundary, compared
+    between the coarse (torch-fem) and fine reference solutions -- each
+    assembled on ITS OWN mesh via gauss_quantities, not interpolated
+    cross-mesh like the L2/H1/stress-field errors above. Per-node reactions
+    have no 1-1 correspondence between two different meshes (different node
+    counts), but the TOTAL resultant is a physically meaningful,
+    mesh-independent quantity: by equilibrium it converges to the same fixed
+    vector under refinement regardless of node count, so comparing the two
+    resultants is the correct cross-mesh reaction QoI, not a per-node
+    comparison (reaction_errors in physical_quantities_eval.py is for the
+    same-mesh NO-vs-FEM comparison and doesn't apply here). B1 only: the
+    fixed boundary is the bottom edge (y=0), both DOF components (see
+    build_mesh_and_bcs)."""
+    from omar_pfem.physical_quantities_eval import gauss_quantities
+
+    def _resultant(field):
+        nodes, elements, u = field["nodes"], field["elements"], field["u"]
+        E_node = E_fn(_material_query_pts(nodes, geometry))
+        nu_node = nu_fn(_material_query_pts(nodes, geometry))
+        _, _, R = gauss_quantities(nodes, elements, u, E_node, nu_node, material,
+                                    "plane_strain", order, device, dtype)
+        bottom = np.where(np.abs(nodes[:, 1]) < 1e-9)[0]
+        return R.detach().cpu().numpy()[bottom].sum(axis=0)
+
+    R_c = _resultant(coarse)
+    R_f = _resultant(fine)
+    rel_err = float(np.linalg.norm(R_c - R_f) / (np.linalg.norm(R_f) + 1e-30))
+    return {
+        "reaction_resultant_pred": R_c.tolist(),
+        "reaction_resultant_ref": R_f.tolist(),
+        "reaction_resultant_rel_err": rel_err,
     }
 
 
@@ -834,6 +909,19 @@ def main():
             stress_errs = compute_peak_stress_error(coarse, fine, peak_x_star, peak_ref_fixed, order,
                                                       args.geometry, args.material, E_fn, nu_fn,
                                                       device, dtype, **geom_kwargs)
+            # Per-component PK1 stress at the same fixed peak point, and the
+            # reaction-force resultant on the fixed boundary (B1 only) --
+            # added 2026-09-10 alongside the same two QoIs in
+            # torchfem_comparison.py's run_qoi_study, so "ours" and
+            # torch-fem land in the same JSON schema for a genuine
+            # side-by-side "all QoIs" comparison.
+            pk1_comp = pk1_component_errors_at_point(peak_x_star, coarse, fine, order, args.geometry,
+                                                       args.material, E_fn, nu_fn, device, dtype,
+                                                       **geom_kwargs)
+            reaction_errs = (compute_reaction_resultant_error(coarse, fine, args.geometry,
+                                                                args.material, E_fn, nu_fn, device,
+                                                                dtype, order=order)
+                              if args.geometry == "B1" else None)
             row = {
                 "N": N, "n_dof": coarse["n_dof"], "wall_clock_s": coarse["wall_clock_s"],
                 "newton_iters": coarse["stats"]["newton_iters_total"],
@@ -857,7 +945,19 @@ def main():
                 "peak_stress_loc": stress_errs["peak_stress_loc"],
                 "stress_field_l2_abs": stress_errs["stress_field_l2_abs"],
                 "stress_field_l2_rel": stress_errs["stress_field_l2_rel"],
+                "P11_field_l2_rel": stress_errs["P11_field_l2_rel"],
+                "P12_field_l2_rel": stress_errs["P12_field_l2_rel"],
+                "P21_field_l2_rel": stress_errs["P21_field_l2_rel"],
+                "P22_field_l2_rel": stress_errs["P22_field_l2_rel"],
+                "P11_at_peak_rel_err": pk1_comp["P11_at_peak_rel_err"],
+                "P12_at_peak_rel_err": pk1_comp["P12_at_peak_rel_err"],
+                "P21_at_peak_rel_err": pk1_comp["P21_at_peak_rel_err"],
+                "P22_at_peak_rel_err": pk1_comp["P22_at_peak_rel_err"],
             }
+            if reaction_errs is not None:
+                row["reaction_resultant_pred"] = reaction_errs["reaction_resultant_pred"]
+                row["reaction_resultant_ref"] = reaction_errs["reaction_resultant_ref"]
+                row["reaction_resultant_rel_err"] = reaction_errs["reaction_resultant_rel_err"]
             rows.append(row)
             if row["cg_failures"] > 0:
                 print(f"  WARNING: {row['cg_failures']} CG failure(s) at N={N} -- the linear "

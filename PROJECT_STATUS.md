@@ -5,7 +5,69 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Line-by-line re-audit of both original
+Last updated: 2026-09-10 (**Omar caught a real overclaim after reading
+the corrected Summary himself: "all QoIs at large DOF" (task #9) only
+ever checked L2, H1, energy norm, and peak (Frobenius) stress -- NOT
+reaction force or the per-component PK1 stress tensor (P11/P12/P21/P22),
+both established QoIs this project already tracks at the standard
+resolution via physical_quantities_eval.py's own reaction_errors/
+stress_errors. Fixed the text immediately (Summary Point 1, Report
+paragraph 268) to state precisely what was checked and flag the real
+gap, rather than leave the overclaim standing -- then closed the gap
+itself rather than just noting it:**
+
+**Two new library functions added to `high_dof_convergence_study.py`**,
+smoke-tested locally at N=11 before ever touching Colab (same discipline
+as every other real result this session):
+- `pk1_component_errors_at_point`: per-component P11/P12/P21/P22 error
+  at the SAME fixed peak-stress point `compute_peak_stress_error`
+  already locates (that function only ever reduced to the Frobenius
+  norm). Local test at N=11: P11/P12/P21/P22 errors 3.6%/16.2%/16.5%/
+  11.4% -- physically sensible (shear components noisier than normal
+  components at this coarse N, as expected).
+- `compute_reaction_resultant_error`: total reaction-force resultant on
+  the fixed boundary (B1: bottom edge, both DOF components), compared
+  between the coarse and fine meshes by their RESULTANT -- the
+  mesh-independent equilibrium quantity -- not node-by-node (per-node
+  reactions have no 1-1 correspondence between two different meshes;
+  the existing same-mesh `reaction_errors` utility doesn't apply here).
+  Local test at N=11 vs. fine N=21: resultant relative error 2.26e-3,
+  and the two solvers' own resultant vectors agree to 4 significant
+  digits (both ~6.25-6.27 in the loaded direction, ~0 in the other --
+  correct by symmetry).
+- `compute_peak_stress_error` itself gained P11-P22 FIELD errors too
+  (purely additive to its existing return dict, no behavior change for
+  existing callers).
+
+**Wired into BOTH sides of the comparison, not just torch-fem**:
+`torchfem_comparison.py`'s `run_qoi_study` (torch-fem side) and
+`high_dof_convergence_study.py`'s own CLI `main()` ("ours" side) both
+now compute and save all the new fields, confirmed by an identical
+local smoke test on both code paths (numbers matched to ~9 significant
+digits, as expected since torch-fem already matches "ours" almost
+exactly at this scale).
+
+**New Colab notebook built** (not yet run):
+`Round6_TorchFEM_Reaction_PK1_Components.ipynb` /
+`cell_torchfem_qoi_reaction_pk1_components.py`. Targets N=1001/1401,
+matching task #9. The "ours" side RESUMES from the existing
+`coarse_B1_neo_hookean_Q4_N1001/1401.pt` checkpoints already on Drive
+(confirmed present via the Drive connector) -- no new multi-hour solve,
+just the new QoI computation on an already-solved field; torch-fem side
+resolves fresh (cheap, ~2-3 minutes total per the already-measured
+timing breakdown). Separate out_json files from task #9's own run,
+deliberately -- `run_qoi_study`'s resumability keys on N alone, so
+reusing the same file would see "N=1001/1401 already done" and silently
+keep the old rows that lack these new fields. 57/57 notebooks verified
+(`make_round6_notebooks.py` + `check_notebooks.py`).
+
+**Not yet done**: actually running this notebook on Colab for the real
+N=1001/1401 numbers -- until then, the documents' own caveat ("reaction
+force and per-component PK1 stresses... have not yet been checked at
+large DOF") stays accurate and should NOT be removed until this real
+result comes back.
+
+Previous update, 2026-09-10 (**Line-by-line re-audit of both original
 Timon round-9 emails against the actual document text, per Omar's
 "تاكدلي انو كل النقاط هاي جاهزه ومجاوبين عليها كلها بشكل صحيح خصوصا في
 السمراي" request -- found 4 real gaps, not just re-confirmed what was

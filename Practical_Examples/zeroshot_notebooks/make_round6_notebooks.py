@@ -1324,6 +1324,32 @@ NOTEBOOKS = {
          "reported.\n",
          "* **Resumable**: skips resolutions already in its own "
          "out_json.\n"]),
+    "Round6_TorchFEM_Reaction_PK1_Components.ipynb": (
+        "cell_torchfem_qoi_reaction_pk1_components.py",
+        ["# Reaction force + per-component PK1 stress, ours vs. torch-fem (large DOF)\n",
+         "\n",
+         "Closes a real gap Omar flagged after re-reading the Summary himself: the "
+         "earlier \"all QoIs at large DOF\" result (task #9) covered L2, H1,\n",
+         "energy norm, and peak (Frobenius) stress — NOT reaction force or the "
+         "per-component PK1 stress tensor (P11/P12/P21/P22), both established\n",
+         "QoIs this project already tracks at the standard resolution. Calling "
+         "the earlier result \"all QoIs\" was an overclaim until this ran.\n",
+         "\n",
+         "**How**: two new library functions in high_dof_convergence_study.py "
+         "(pk1_component_errors_at_point, compute_reaction_resultant_error),\n",
+         "smoke-tested locally at N=11 first. \"Ours\" side RESUMES from the "
+         "existing coarse_*_N1001/1401.pt checkpoints already on Drive — no\n",
+         "new multi-hour solve, just the new QoI computation on an "
+         "already-solved field. torch-fem side resolves fresh (cheap, ~2-3\n",
+         "minutes total).\n",
+         "\n",
+         "* Targets N=1001 and N=1401, matching task #9.\n",
+         "* Produces a 2-panel figure (reaction-resultant relative error; "
+         "per-component PK1 stress field error at N=1401) plus a printed\n",
+         "  per-N, per-component ratio analysis.\n",
+         "* Separate out_json files from task #9's own run — its "
+         "resumability keys on N alone, so reusing the same file would\n",
+         "  silently keep the old rows that lack these new fields.\n"]),
     "Round6_NO_Inference_vs_TorchFEM_N1401.ipynb": (
         "cell_no_inference_vs_torchfem_N1401.py",
         ["# NO inference time vs. torch-fem at N=1401 (round-9, item 12)\n",

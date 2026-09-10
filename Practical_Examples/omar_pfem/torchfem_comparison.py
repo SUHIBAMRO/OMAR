@@ -89,7 +89,8 @@ if "pyvista" not in sys.modules:
 from omar_pfem.high_dof_convergence_study import (
     build_mesh_and_bcs, AnalyticFieldB1, solve_one, compute_l2_h1_errors,
     fit_convergence_rate, compute_tangent_energy_error, find_fine_peak_stress,
-    compute_peak_stress_error)
+    compute_peak_stress_error, pk1_component_errors_at_point,
+    compute_reaction_resultant_error)
 from omar_pfem.matrix_free_solver import solve_matrix_free
 
 
@@ -715,6 +716,15 @@ def run_qoi_study(resolutions, out_json, geometry="B1", material="neo_hookean",
                                                device, dtype, **geom_kwargs)
         stress = compute_peak_stress_error(coarse, fine, x_star, peak_ref, order, geometry,
                                             material, E_fn, nu_fn, device, dtype, **geom_kwargs)
+        # Per-component PK1 stress at the same fixed peak point, and the
+        # reaction-force resultant on the fixed boundary -- the two QoIs
+        # Omar flagged as missing from the "all QoIs" claim (2026-09-10):
+        # peak_stress_rel_err above is Frobenius-norm only, and nothing
+        # here checked reactions at all before now.
+        pk1_comp = pk1_component_errors_at_point(x_star, coarse, fine, order, geometry, material,
+                                                  E_fn, nu_fn, device, dtype, **geom_kwargs)
+        reaction = compute_reaction_resultant_error(coarse, fine, geometry, material, E_fn, nu_fn,
+                                                      device, dtype, order=order)
 
         row = {"N": N, "n_dof": int(2 * nodes.shape[0]), "tol": tol,
                "torchfem_wall_clock_s": elapsed, "torchfem_peak_mem_mb": peak_mb,
@@ -723,10 +733,22 @@ def run_qoi_study(resolutions, out_json, geometry="B1", material="neo_hookean",
                "peak_stress_pred": stress["peak_stress_pred"],
                "peak_stress_ref": stress["peak_stress_ref"],
                "peak_stress_rel_err": stress["peak_stress_rel_err"],
-               "stress_field_l2_rel": stress["stress_field_l2_rel"]}
+               "stress_field_l2_rel": stress["stress_field_l2_rel"],
+               "P11_field_l2_rel": stress["P11_field_l2_rel"],
+               "P12_field_l2_rel": stress["P12_field_l2_rel"],
+               "P21_field_l2_rel": stress["P21_field_l2_rel"],
+               "P22_field_l2_rel": stress["P22_field_l2_rel"],
+               "P11_at_peak_rel_err": pk1_comp["P11_at_peak_rel_err"],
+               "P12_at_peak_rel_err": pk1_comp["P12_at_peak_rel_err"],
+               "P21_at_peak_rel_err": pk1_comp["P21_at_peak_rel_err"],
+               "P22_at_peak_rel_err": pk1_comp["P22_at_peak_rel_err"],
+               "reaction_resultant_pred": reaction["reaction_resultant_pred"],
+               "reaction_resultant_ref": reaction["reaction_resultant_ref"],
+               "reaction_resultant_rel_err": reaction["reaction_resultant_rel_err"]}
         print(f'  N={N}: l2_rel={row["l2_rel"]:.3e} h1_semi_rel={row["h1_semi_rel"]:.3e} '
               f'energy_norm_rel={row["energy_norm_rel"]:.3e} '
-              f'peak_stress_rel_err={row["peak_stress_rel_err"]:.3e}')
+              f'peak_stress_rel_err={row["peak_stress_rel_err"]:.3e} '
+              f'reaction_resultant_rel_err={row["reaction_resultant_rel_err"]:.3e}')
         rows.append(row)
         rows.sort(key=lambda r: r["N"])
         if out_json:
