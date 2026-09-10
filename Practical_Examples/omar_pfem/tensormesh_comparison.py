@@ -128,22 +128,39 @@ def _make_assembler_class():
     return NeoHookean2D
 
 
-def build_tensormesh_model(nodes, elements, mu, lam, dtype=torch.float64):
+def build_tensormesh_model(nodes, elements, mu, lam, dtype=torch.float64, device=None):
     """nodes/elements come directly from build_mesh_and_bcs -- the SAME
     arrays this project's own solver and torchfem_comparison.py both
     use, not a re-derivation. `elements` is reordered to TensorMesh's
     own tensor-product convention (see to_tensormesh_element_order)
-    before building the mesh."""
+    before building the mesh.
+
+    WHY `with torch.device(device):` WRAPS THE MESH/MODEL CONSTRUCTION:
+    a real bug, the same CLASS of bug this project already hit for
+    torch-fem's near_null_space (hardcoded float32) and TensorMesh's own
+    default dtype -- TensorMesh's `Mesh`/`ElementAssembler` construction
+    creates its own internal tensors (from the numpy `meshio.Mesh` it's
+    built from) without an explicit device, so they silently land on CPU
+    regardless of the caller's intended device. On CUDA this produced a
+    real, reproducible crash (`RuntimeError: Expected all tensors to be
+    on the same device ... mat2 is on cpu`) inside `model.energy()`'s own
+    einsum the first time this was actually run on a GPU (2026-09-10,
+    N=401 production sweep) -- the CPU-only smoke tests never caught it
+    because `_correctness_check` always builds on `torch.device('cpu')`
+    by construction. Fixed the same way as the earlier two device/dtype
+    bugs: a context manager, not patching the library itself."""
     import meshio
     from tensormesh import Mesh
 
+    device = device or torch.device("cpu")
     elements_tm = to_tensormesh_element_order(elements)
     mio_mesh = meshio.Mesh(nodes.astype(np.float64), [("quad", elements_tm)])
-    tm_mesh = Mesh(mio_mesh)
-    NeoHookean2D = _make_assembler_class()
-    model = NeoHookean2D.from_mesh(tm_mesh)
-    mu_t = torch.tensor(mu, dtype=dtype)
-    lam_t = torch.tensor(lam, dtype=dtype)
+    with torch.device(device):
+        tm_mesh = Mesh(mio_mesh)
+        NeoHookean2D = _make_assembler_class()
+        model = NeoHookean2D.from_mesh(tm_mesh)
+    mu_t = torch.tensor(mu, dtype=dtype, device=device)
+    lam_t = torch.tensor(lam, dtype=dtype, device=device)
     return tm_mesh, model, mu_t, lam_t
 
 
@@ -258,7 +275,8 @@ def solve_tensormesh(nodes, elements, free_dofs, fext_full, mu, lam, dtype=torch
     device = device or torch.device("cpu")
     torch.set_default_dtype(dtype)
     n_nodes = nodes.shape[0]
-    tm_mesh, model, mu_t, lam_t = build_tensormesh_model(nodes, elements, mu, lam, dtype=dtype)
+    tm_mesh, model, mu_t, lam_t = build_tensormesh_model(nodes, elements, mu, lam, dtype=dtype,
+                                                          device=device)
 
     fixed_set = set(np.setdiff1d(np.arange(n_nodes * 2), free_dofs).tolist())
     free_mask_dof = torch.tensor([i not in fixed_set for i in range(n_nodes * 2)], device=device)
@@ -273,12 +291,16 @@ def solve_tensormesh(nodes, elements, free_dofs, fext_full, mu, lam, dtype=torch
         res = grad_full - f_ext
         return torch.where(free_mask_dof, res, u_flat)
 
-    # LinearElasticityElementAssembler used only for its correctly-sized/
-    # patterned SparseMatrix object to call .nonlinear_solve on -- its
-    # own linear physics is irrelevant here; the real tangent comes from
-    # build_sparse_jac_fn (or, if use_sparse_jac=False, from
+    # Same device fix as build_tensormesh_model's own docstring explains:
+    # LinearElasticityElementAssembler.from_mesh creates its own internal
+    # tensors too, and needs the same context manager to land on `device`
+    # rather than silently defaulting to CPU. Used only for its correctly
+    # -sized/patterned SparseMatrix object to call .nonlinear_solve on --
+    # its own linear physics is irrelevant here; the real tangent comes
+    # from build_sparse_jac_fn (or, if use_sparse_jac=False, from
     # nonlinear_solve's own default dense-then-sparsify autograd path).
-    K = LinearElasticityElementAssembler.from_mesh(tm_mesh, E=1.0, nu=0.3)(tm_mesh.points)
+    with torch.device(device):
+        K = LinearElasticityElementAssembler.from_mesh(tm_mesh, E=1.0, nu=0.3)(tm_mesh.points)
 
     jac_fn = None
     if use_sparse_jac:

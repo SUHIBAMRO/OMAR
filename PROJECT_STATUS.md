@@ -5,7 +5,39 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**TensorMesh's N=51 ceiling BROKEN via a real
+Last updated: 2026-09-10 (**Real CUDA bug caught on Omar's first Colab
+run of the new production sweep, fixed the same way this project has
+already fixed two prior device/dtype bugs (torch-fem's near_null_space
+hardcoding float32; TensorMesh's own default dtype) -- a context
+manager around the third-party library's own construction, not a patch
+to the library itself.**
+
+**The bug**: `RuntimeError: Expected all tensors to be on the same
+device ... mat2 is on cpu`, inside `model.energy()`'s own einsum, the
+FIRST time this ever ran on an actual GPU. Root cause: `build_
+tensormesh_model`'s `Mesh(mio_mesh)`/`ElementAssembler.from_mesh(...)`
+and `LinearElasticityElementAssembler.from_mesh(...)` all create their
+own internal tensors from the numpy `meshio.Mesh` input without an
+explicit device, silently landing on CPU regardless of the caller's
+intended device -- this project's own CPU-only `_correctness_check`
+never caught it because it always builds on `torch.device('cpu')` by
+construction, so N=11's correctness check on Colab (relative difference
+1.190e-11, still PASS) ran fine right before the SAME session's N=401
+production sweep crashed, since only the sweep passes `device='cuda'`
+through.
+
+**Fix**: `build_tensormesh_model` now accepts and threads through
+`device`, wrapping `Mesh(mio_mesh)`/`NeoHookean2D.from_mesh(...)` in
+`with torch.device(device):`; `solve_tensormesh` does the same for
+`LinearElasticityElementAssembler.from_mesh(...)`. Re-verified on CPU
+(the only device available here) after the fix: N=11 correctness check
+unchanged (1.190e-11, PASS) and the N=11/21 convergence-sweep smoke
+test unchanged (L2 p=1.849, H1 p=1.450) -- the fix only touches the
+CUDA code path, confirmed not to have altered CPU behavior at all.
+**The CUDA path itself is not yet re-verified for real** (no GPU in
+this environment) -- that is Omar's next re-run of the same notebook.
+
+Previous update, 2026-09-10 (**TensorMesh's N=51 ceiling BROKEN via a real
 sparse Jacobian, per Omar's explicit instruction ("صلح تينسور وخلينا
 نكملها كما هو مطلوب"). This is the fix for the dense-Jacobian scaling
 wall documented in the previous entries, not a workaround around it.**
