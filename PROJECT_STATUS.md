@@ -5,7 +5,30 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Task #8 (optional tolerance sensitivity)
+Last updated: 2026-09-10 (**Round-9 fully closed out on Omar's "خلص
+اعطيني الي انعمل" request: Summary Point 5 (TensorMesh) updated with
+the real N=51-ceiling/dense-Jacobian scaling numbers and the explicit
+decision framing; Summary's round-9 intro paragraph updated to state
+all 7 points now have a real result, with Point 5's production-scale
+scope as the one open decision; confirmed (by code inspection, since
+in every one of the three notebooks -- timing breakdown, all-QoI,
+NO@N1401 -- `fig.savefig(...)` runs BEFORE the printed "ANALYSIS"
+block that Omar's own pasted Colab output showed completing, so the
+figure save could not have been skipped) that all three notebooks
+DID produce their required figures, same as task #8's own explicit
+"Saved figure:" line; double-checked the Report itself for the
+N=1401 NO-inference caveat Omar was told had already been added --
+confirmed present (inside paragraph 339, appended to the same
+paragraph as the "essentially flat" claim, not a separate one --
+an earlier grep for it missed this because it excluded paragraphs
+containing "flat", a search-scripting mistake, not a documentation
+gap). Wrote one comprehensive round-9 status email covering all
+7 points plus the "still too slow" argument in a single narrative
+(`advisor_feedback/2026-09-10_round9_full_status_all_points.md`),
+superseding the earlier narrower draft. Sent the updated Summary to
+Omar; both documents current as of this entry.
+
+Previous update, 2026-09-10 (**Task #8 (optional tolerance sensitivity)
 run for real on Colab (A100), result committed:
 `torchfem_tolerance_sensitivity_results.json`. torch-fem re-run at
 N=401/1401 with tol=1e-6/1e-7, compared against the already-committed
