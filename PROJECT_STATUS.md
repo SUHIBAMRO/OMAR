@@ -5,7 +5,45 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**The `.to(device)` fix DID work -- Omar's
+Last updated: 2026-09-10 (**The nvmath-python install fix ALSO worked as
+intended -- cuDSS became available and got selected/used -- but hit a
+THIRD, different, real bug immediately on its first actual solve:
+`TypeError: matrix_create_csr() takes exactly 13 positional arguments
+(12 given)`, inside torch_sla's own nvmath_backend.py.**
+
+**Root cause, found by diffing the actual installed API across versions
+directly (downloaded both wheels, unzipped, diffed the .pxd stub files
+-- not guessed, not from a changelog)**: nvmath-python 1.0.0 added a new
+required `offset_type` parameter to `cudss.matrix_create_csr` between
+its own 0.9.0 and 1.0.0 releases (0.9.0's own `cudss.pxd`: 12 params;
+1.0.0's: 13, with `offset_type` inserted before `index_type`).
+`pip install nvmath-python[cu12]` (unpinned) pulled the latest (1.0.0);
+torch_sla 0.3.2's own `nvmath_backend.py` calls `matrix_create_csr` with
+the OLDER 12-argument form, matching 0.9.0's signature exactly, not
+1.0.0's -- a genuine version-compatibility gap between two third-party
+packages, not something either project's own code got wrong.
+
+**Fix**: pinned the install to `nvmath-python[cu12]==0.9.0` specifically
+(the newest version whose own API still matches torch_sla's 12-arg
+call) instead of leaving it unpinned. 58/58 notebooks rebuilt and
+verified.
+
+**Pattern across all three fixes so far, worth naming explicitly**: this
+TensorMesh comparison has now hit three DIFFERENT real bugs in three
+different third-party layers on the very first real GPU run of each fix
+(device placement -> missing optional dependency -> version
+incompatibility within that dependency) -- each one only reachable by
+actually running on real CUDA hardware, none reproducible on the
+CPU-only smoke tests this project otherwise relies on for verification.
+This is not a sign the approach is wrong; it is what "the first real
+GPU run of new third-party-library code" actually looks like, and each
+bug has been root-caused from primary evidence (installed source,
+diffed wheels) rather than patched by guessing. **Still not confirmed
+working end-to-end** -- Omar's next re-run is the real test, and this
+entry does not claim success ahead of that, per the standing discipline
+after the first "fix" turned out not to be one.
+
+Previous update, 2026-09-10 (**The `.to(device)` fix DID work -- Omar's
 re-run got past the device-placement crash entirely (correctness check
 still PASS, 1.190e-11) and hit a DIFFERENT, later, real error:
 `ValueError: Method 'lu' not supported by backend 'pytorch'.

@@ -82,7 +82,19 @@ run([sys.executable, '-m', 'pip', 'install', '-q', 'tensormesh-fem', 'torch-fem'
 # this notebook (2026-09-10): "ValueError: Method 'lu' not supported by
 # backend 'pytorch'" -- not a bug in this project's own code, a missing
 # optional dependency for the direct solver Timon explicitly asked for.
-run([sys.executable, '-m', 'pip', 'install', '-q', 'nvmath-python[cu12]'])
+#
+# PINNED TO 0.9.0, NOT LATEST -- a second real bug, found by diffing the
+# installed .pxd stub files across versions directly, not guessed:
+# nvmath-python 1.0.0 added a new required `offset_type` parameter to
+# `cudss.matrix_create_csr` (12 args in 0.9.0's own cudss.pxd -> 13 in
+# 1.0.0's), which torch_sla 0.3.2's own nvmath_backend.py does NOT pass
+# (it was written against the older 12-arg signature) -- installing
+# unpinned "nvmath-python[cu12]" pulled the latest (1.0.0) and crashed
+# with "TypeError: matrix_create_csr() takes exactly 13 positional
+# arguments (12 given)" on the very first real cuDSS solve. 0.9.0 is the
+# newest version whose own cudss.pxd still matches torch_sla's 12-arg
+# call exactly.
+run([sys.executable, '-m', 'pip', 'install', '-q', 'nvmath-python[cu12]==0.9.0'])
 
 WORK = f'{REPO}/Practical_Examples'
 os.chdir(WORK)
