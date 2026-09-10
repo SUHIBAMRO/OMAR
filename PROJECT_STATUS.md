@@ -5,7 +5,55 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**REAL result from Omar's Colab run (A100-
+Last updated: 2026-09-10 (**Task #4 (TensorMesh) UNBLOCKED -- Omar
+identified `camlab-ethz/TensorMesh` and did his own documentation
+research; independently verified every one of his claims against the
+live docs before accepting them, rather than trusting the summary.**
+Fetched and confirmed directly:
+- `docs.tensor-mesh.com/user_guide/elements_and_quadrature.html`:
+  element types explicitly include `quad, quad8, quad9, quad16` (2D)
+  alongside the simplex types the README's own short blurb mentions;
+  node-count formula `(p+1)^d` for tensor-product shapes confirms
+  `quad`=Q4 (p=1: 4 nodes) and `quad9`=Q9 (p=2: 9 nodes) exactly.
+  (The top-level README's "Core strengths" blurb only lists
+  triangular/tetrahedral/pyramid/prismatic -- an incomplete summary,
+  not a real absence of quad support; caught this discrepancy and
+  verified against the fuller docs page before either accepting or
+  rejecting Omar's claim.)
+- `docs.tensor-mesh.com/example_gallery/solid/hyperelastic_beam.html`:
+  confirms Omar's caught problem is real -- "Solved with a compressible
+  Neo-Hookean strain-energy density and L-BFGS energy minimization,"
+  exactly the method Timon said not to use. Additional detail Omar's
+  own summary didn't mention: this example runs on quadratic TETRAHEDRA
+  (P2), not quad9 -- so it isn't reusable even as a Newton-solver
+  template for our own quad/quad9 B1 setup; a genuinely new setup must
+  be built, not adapted from their example.
+- `docs.tensor-mesh.com/user_guide/linear_solvers.html`: confirms
+  `SparseMatrix.nonlinear_solve()` is explicitly documented for
+  "hyperelasticity, plasticity, phase-field," with
+  `method="newton"` (Newton-Raphson + Armijo line search) as its
+  DEFAULT method (not something bolted on); cuDSS is confirmed as a
+  CUDA direct-solver backend (lu/cholesky/ldlt) and is the DEFAULT
+  direct backend on CUDA "when memory allows."
+- GitHub releases page: v0.1.0's own description already listed
+  `triangle / quad / tet / hex / pyramid / prism` -- quad support is
+  not a recent addition.
+
+**Conclusion: Omar's identification and API research were correct.**
+Timon's three sentences (Q4/Q9 exist; don't use the L-BFGS approach;
+use Newton + direct solver) all check out against the real, current
+documentation, not just a plausible-sounding guess. Package name:
+`tensormesh-fem` (pip). Real next step, NOT yet started: our own
+B1 x Neo-Hookean setup on TensorMesh's quad/quad9 elements, solved via
+`nonlinear_solve(method="newton")` + cuDSS -- their own hyperelastic
+example cannot be reused as-is (wrong element family AND wrong
+solver), so this requires reading TensorMesh's actual mesh-generation
+and residual-definition API before writing any real code, same
+discipline as every other new-library integration in this project
+(torch-fem's own two device bugs and one dtype bug were all found by
+reading source directly, not assumed).)
+
+Previous update, 2026-09-10 (**REAL result from Omar's Colab run (A100-
 SXM4-80GB), tasks #2+#6 -- torch-fem's accuracy and mesh convergence
 now genuinely established, per Timon's own required order.** N=11
 correctness check on this GPU session: 3.574e-11 relative displacement
