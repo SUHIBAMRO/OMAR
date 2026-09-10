@@ -5,7 +5,61 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Timon replied to the standalone torch-fem
+Last updated: 2026-09-10 (**cost estimate + task breakdown for Timon's
+5 items, at Omar's request, before starting any of the real work.**
+Tracked as tasks #1-#5 (task tool):
+1. Apply the FP64/1e-8 fix, re-run torch-fem sweep. LOW-MEDIUM cost:
+   ~30-60 min engineering; only torch-fem needs a fresh solve ("ours"
+   reuses existing checkpoints, no re-solve needed), so compute is
+   just 4 torch-fem solves (401/701/1001/1401), each currently a few
+   seconds to half a minute at float32/loose tolerance -- expect
+   noticeably slower at FP64/1e-8 (more CG iterations) but almost
+   certainly minutes not hours. REAL RISK: torch-fem's peak GPU memory
+   was already 3.3GB/9.7GB/19.5GB/38.1GB at N=401/701/1001/1401 under
+   float32 -- float64 roughly doubles memory per tensor, so N=1401
+   could approach ~70-80GB, which may not fit on a smaller Colab GPU
+   (T4 16GB). May need a bigger GPU, or dropping/flagging the largest
+   N if it OOMs. Testing the optional 1e-6/1e-7 variants triples the
+   solve count but each is still cheap -- total added time small.
+2. Strengthen the accuracy check to production scale (N=401 instead of
+   N=11, FP64/1e-8 instead of loose float32). LOW cost, bundled into
+   #1's re-run -- just an array comparison once both sides have a
+   solution at the same N; needs checking that "ours" checkpoint
+   stores the full displacement field, not just summary stats.
+3. Timing breakdown by phase (assembly/solve/factorization/nonlinear
+   iterations/peak memory). MEDIUM-HIGH cost: needs real instrumentation
+   (torch-fem's assembly and linear-solve happen inside one internal
+   Newton loop, not exposed as separate timed calls -- would need to
+   wrap `assemble_matrix`/`integrate_material` vs the linear solve
+   step directly, ~2-4 hours engineering). Also: torch-fem supports
+   method="direct" (an actual factorization), but direct sparse solves
+   scale much worse than CG/multigrid at millions of DOF -- N=1401
+   with a direct solver could be very slow/memory-heavy or infeasible,
+   needs testing at small N first before committing to running it at
+   the full sweep. For "ours" (matrix-free): no separate "assembly" or
+   "factorization" phase exists by architecture (every CG iteration IS
+   the Hessian-vector product, already argued this way in the report),
+   so this needs honest framing to Timon rather than forcing an
+   artificial split -- but nonlinear-iteration counts and peak memory
+   are already tracked and cheap to report.
+4. TensorMesh + Newton + direct solver. COST UNKNOWN / BLOCKED -- no
+   public package exists; cannot even scope the cost until Omar gets
+   the actual code/access from Timon.
+5. Substantive reply on "GPU FEM still too slow". LOW cost (writing
+   only) but explicitly ordered AFTER #1 and #3 produce fairer numbers
+   -- answering this now, before the fair comparison exists, would
+   mean guessing at numbers that are about to change.
+
+**Bottom line given to Omar:** #1+#2 together are a same-day, mostly-
+GPU-idle-time task (the real risk is a possible OOM at N=1401, not
+raw runtime); #3 is real engineering effort spread across a few hours,
+with its own separate risk that a direct-solver test at the largest N
+may not even be practical; #4 cannot start without Omar's input; #5
+waits on #1 and #3. Not yet started on any of them -- this entry is
+the cost estimate only, per Omar's explicit request to see costs
+before beginning.)
+
+Previous update, 2026-09-10 (**Timon replied to the standalone torch-fem
 comparison question (2026-09-09), with substantial new feedback —
 logging it here as a new round of work, not yet done except one quick
 investigation below.** His reply, in full:
