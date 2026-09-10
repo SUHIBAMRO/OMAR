@@ -5,7 +5,112 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-09 (**second, even more exhaustive pre-send audit**
+Last updated: 2026-09-10 (**Timon replied to the standalone torch-fem
+comparison question (2026-09-09), with substantial new feedback —
+logging it here as a new round of work, not yet done except one quick
+investigation below.** His reply, in full:
+
+> I still need to read your two files but I agree that the present
+> torch-fem comparison is not fair. We certainly should use the same
+> criteria and FP64 with a tolerance of 10^-8 seems more reasonable
+> than the 10^-3. If you wish you can also test 10^-6 or 10^-7 and
+> report the difference.
+>
+> I would also suggest testing TensorMesh which indeed has Q4 and Q9
+> elements, but not with the L-BFGS energy-minimization approach. We
+> tested this for the torsion problem: it is fast, but the results
+> were inadequate and strongly mesh dependent under refinement. If
+> possible, please use a Newton-type solve with a direct solver.
+>
+> For the paper, timing should only be compared after the methods
+> demonstrate comparable accuracy and mesh convergence. Please report
+> total time together with assembly, solve/factorization, nonlinear
+> iterations and peak memory.
+>
+> My main concern remains that our current GPU FEM implementation is
+> still too slow to serve as a competitive baseline.
+>
+> Last but not least: Did you compare the accuracy of your FEM
+> implementation with torch-FEM?
+
+**Breaking this into concrete items:**
+1. Matched precision/tolerance for torch-fem (FP64, 1e-8, optionally
+   1e-6/1e-7 too) instead of the current float32/1e-3.
+2. Test TensorMesh (Q4/Q9 elements) with a Newton-type solve + direct
+   solver, NOT L-BFGS energy minimization (Timon's own group found
+   L-BFGS fast but inadequate/mesh-dependent on the torsion problem).
+3. Restructure the paper's timing comparison: only compare timing
+   once accuracy/mesh-convergence parity is demonstrated; report total
+   time, assembly, solve/factorization, nonlinear iterations, and peak
+   memory as separate columns (currently only one wall-clock number
+   per side exists).
+4. His standing concern that the GPU-native FEM solver may still be
+   too slow to be a competitive baseline — needs a substantive
+   response once (1)-(3) produce fairer numbers, not just reassurance.
+5. Direct question: was accuracy (not just speed) ever compared
+   between "ours" and torch-fem?
+
+**Item 5, answered from what already exists:** Yes, partially.
+`omar_pfem/torchfem_comparison.py`'s `_correctness_check(N=11)`
+already does exactly this — solves the same tiny B1×Neo-Hookean
+problem with both solvers and compares the displacement field
+(`relative displacement-field difference < 1e-3`), run automatically
+every time the module is invoked without `sweep` args. Caveats to be
+upfront about: (a) it only runs at N=11, not at the large N=401-1401
+resolutions the timing sweep actually uses; (b) the 1e-3 tolerance is
+loosened specifically because torch-fem's own near-null-space setup
+hardcodes float32 (see below) — it was never a true float64-vs-float64
+accuracy check.
+
+**Item 1, investigated (not yet re-run at scale):** Confirmed Timon's
+FP64 request is achievable, and confirmed the exact reason it wasn't
+done originally is a real bug in torch-fem's own source, not a choice
+on our side: `torchfem.base.near_null_space()`'s internal `skew()`
+helper builds `torch.eye(3)` with no explicit dtype, which defaults to
+float32 regardless of the model's own dtype -- verified directly with
+a minimal float64 Planar/HyperelasticPlaneStrain model, reproducing
+exactly `RuntimeError: expected scalar type Float but found Double` at
+`torchfem/base.py:30`'s `torch.linalg.cross(eye, ...)` call, triggered
+from inside `.solve()`'s call to `near_null_space()`. Found a genuine,
+non-invasive fix: wrapping the `.solve()` call in
+`torch.set_default_dtype(torch.float64)` / restore-after (the same
+"context-manager-around-the-library's-own-hardcoded-tensor-creation"
+pattern already used twice for torch-fem's separate device bugs in
+`build_torchfem_model`/`solve_theirs`) makes every dtype-less tensor
+torch-fem creates internally default to float64 instead of float32,
+since PyTorch's global default dtype governs exactly those calls.
+Verified end-to-end on a tiny 2-element hand-built mesh: model solves
+successfully in float64 with `rtol=atol=1e-8` (Timon's requested
+tolerance), Newton converges in 5 total iterations across 2 load
+increments, no dtype errors. NOT yet applied to `torchfem_comparison.py`
+itself, NOT yet re-run at the real N=401-1401 sweep resolutions, and
+1e-6/1e-7 variants not yet tried -- this was a feasibility check only,
+done before promising Omar a specific re-run plan or spending real
+GPU/CPU time on the full sweep.
+
+**Item 2 (TensorMesh), checked and blocked:** `pip install tensormesh`
+and `pip show tensormesh` both fail -- no package under that name is
+publicly available (not on PyPI). This is very likely Timon's own
+group's internal/research code (a different library from torch-fem),
+not something installable the way torch-fem was. Cannot proceed on
+this item without either the actual package/source from Timon, or
+confirmation of its real public name/location -- flagged to Omar
+before doing anything else on this point.
+
+**Item 3 (timing breakdown):** not started. Both `solve_ours` and
+`solve_theirs` currently return one aggregate wall-clock number each;
+neither this project's own matrix-free solver nor torch-fem's `.solve()`
+currently expose assembly/factorization/nonlinear-iteration timing
+as separate measured quantities in this comparison script. Would need
+new instrumentation on both sides.
+
+**Not yet decided with Omar:** compute strategy for the real re-run
+(local CPU vs. Colab GPU, as in previous rounds), and whether to wait
+on TensorMesh access before sending anything further to Timon, or
+answer the precision/accuracy/timing-breakdown items now and treat
+TensorMesh as a separate follow-up.)
+
+Previous update, 2026-09-09 (**second, even more exhaustive pre-send audit**
 of both files, per Omar's explicit request for a "very very very
 careful" full check of both documents' correctness. This pass was
 mechanical/systematic rather than prose-reading: (1) confirmed 39
