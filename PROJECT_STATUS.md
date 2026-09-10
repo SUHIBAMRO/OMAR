@@ -5,7 +5,51 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Task #12 real result: NO inference at
+Last updated: 2026-09-10 (**"Flat inference cost" claim fixed in both
+documents, and the Summary's top intro section fully replaced with
+round-9's ready findings -- both per Omar's explicit instruction.**
+
+**"Flat" claim fix**: found the exact text in both documents (Report
+para 337, Table 18 discussion; Summary para 176/168 after the section
+replacement below, same Table 18 caption) claiming inference cost is
+"essentially flat in mesh size" over its own tested range (169-2,401
+nodes, i.e. up to N=49). That claim is true within its own range, not
+wrong -- fixed by APPENDING the real N=1401 finding as an explicit
+caveat in both, not by rewriting the original sentence: inference cost
+there is 2,286.7 ms/sample, ~500x higher, a fitted ~n^0.74 (sublinear,
+not flat) scaling, still 59x faster than torch-fem's matched-precision
+solve at that N, and with the explicit reminder that accuracy at
+N=1401 itself was never checked (zero-shot study stops at N=49).
+
+**Summary's top section replaced**: per Omar's explicit instruction
+("احذف المقدمه السابقه وضيف النقاط الجداد الي جهزو" -- delete the
+previous intro, add the new ready points), deleted the entire old
+"Response to Professor Rabczuk's round-8 feedback (points 1-7)"
+section (20 paragraphs, right after the document's own opening
+paragraph) and inserted a new "Response to Timon's round-9 feedback
+(torch-fem comparison + follow-up email)" section in its place (12
+paragraphs: intro + 5 points), covering only what's actually READY,
+not the still-pending items (#3 and #9's Colab runs, #8's optional
+tolerance sweep):
+1. torch-fem matched-precision accuracy/convergence/timing (tasks
+   #1/#2/#6/#7) -- identical errors to "ours" at every N, 204-306x
+   speedup at matched precision.
+2. NO inference cost at large mesh sizes (task #12) -- the new
+   N=1401 finding and its correction to the "flat" claim.
+3. Batch-size table removed (task #10).
+4. torch-fem solver description fixed (task #11).
+5. TensorMesh investigated and paused (task #4) -- stated honestly as
+   a real bug found in the library, not glossed over or hidden.
+Verified after both edits: 258 paragraphs (was 266 before this pass),
+document opens cleanly, no dangling "round-8"/"points 1-7" references
+left over from the deleted section, the earlier "flat" caveat fix
+survived the later paragraph-index shift from the section replacement
+(re-verified at its new index, 168).
+
+Both files ready and sent to Omar as the new canonical copies (same
+filenames as before, scratchpad-only, not git-tracked).
+
+Previous update, 2026-09-10 (**Task #12 real result: NO inference at
 N=1401 measured for the first time, and it changes the picture
 substantially from the small-N number already in the report.**
 Real Colab run (A100-SXM4-80GB): mesh built correctly (1,962,801
