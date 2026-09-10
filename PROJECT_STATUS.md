@@ -5,7 +5,75 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Tasks #5 and #8 both delivered on Omar's
+Last updated: 2026-09-10 (**TensorMesh bug RETRACTED -- it was never a
+library bug, it was this project's own usage mistake, now found and
+fixed. Real B1 x Neo-Hookean result now matches "ours" to ~10
+significant digits.** Per Omar's explicit instruction to keep trying
+rather than accept the earlier "found a bug in TensorMesh" conclusion.
+
+**Root cause, found by comparing against TensorMesh's own official
+mesh generator instead of assuming the hand-built one was equivalent**:
+re-ran the exact same trivial "constant-integrand energy should equal
+the unit square's area" probe using `gen_rectangle` (TensorMesh's own
+generator) instead of a hand-built `meshio.Mesh` -- it returned the
+CORRECT area (1.0), immediately proving the earlier "quadrature bug"
+verdict was wrong and the fault was in this project's own mesh
+construction, not the library.
+
+**Found the actual difference by inspecting `gen_rectangle`'s own
+`cells['quad']` connectivity directly**: TensorMesh's `Quadrilateral`
+element expects nodes in TENSOR-PRODUCT order (bottom-left, bottom-
+right, TOP-LEFT, top-right) -- confirmed directly from its own
+generated connectivity, e.g. element `[0, 4, 7, 8]` where node 7 is
+physically top-left and node 8 is top-right. This is NOT the
+perimeter/counter-clockwise order (bottom-left, bottom-right, TOP-
+RIGHT, top-left) that meshio/VTK, torch-fem, AND this project's own
+`generate_grid_Q4` all use -- the last two node indices are swapped
+relative to what this project builds by default.
+
+**Fix, verified directly on the earlier trivial area probe first**:
+`elements[:, [0,1,3,2]]` (swap the last two columns) on a hand-built
+mesh now gives the correct area (1.0) exactly.
+
+**Then re-ran the FULL real B1 x Neo-Hookean x N=3 cross-validation
+that earlier showed a 5.69mm-vs-9.04mm mismatch, with the corrected
+element order**: TensorMesh's own Newton + direct-solver (LU) result
+now matches "ours" own solver to ~10 significant digits (max
+displacement 0.0056922094117... vs "ours" 0.0056922094118..., every
+nodal displacement component matching to the same precision) --
+converges cleanly in 3 Newton iterations. TensorMesh is confirmed
+correct and usable for this project's B1/B2 case once elements are
+passed with the right node ordering; the earlier "real, reproducible
+bug in TensorMesh's own quadrature" conclusion is RETRACTED --
+it was a real, reproducible bug in how this project called it, now
+understood and fixed with a one-line index permutation.
+
+The fix and the full working pipeline (`to_tensormesh_element_order`,
+`build_tensormesh_model`, `solve_tensormesh`, `_correctness_check`) are
+now committed in `Practical_Examples/omar_pfem/tensormesh_comparison.py`
+(previously a `NotImplementedError` stub) -- and actually RUN, not just
+written: `python -m omar_pfem.tensormesh_comparison 3` from
+`Practical_Examples/` gives `relative displacement-field difference:
+1.269e-11`, `PASS`, exit code 0, confirming the committed code path
+works end-to-end, the same discipline used for every other real result
+this session. (The dead placeholder `NeoHookean2DAssembler` stub class
+left over from the earlier NotImplementedError version was also removed
+-- superseded by `_make_assembler_class()`'s inner class.)
+
+Not yet done: scaling this corrected setup to production N (matching
+the torch-fem comparison's own N=51...1401 sweep) and building a real
+accuracy/convergence/timing study against the same fine reference,
+the same way torch-fem's own comparison was built. Given TensorMesh's
+default Jacobian path is a dense-then-sparsify `torch.autograd.
+functional.jacobian` (confirmed earlier by reading the installed
+torch-sla source directly), this will need either accepting that cost
+at small/medium N or writing an explicit sparse `jac_fn` before
+attempting the largest resolutions -- not yet decided which. Also not
+yet done: correcting the Summary's round-9 section, which currently
+still says "TensorMesh investigated and paused" (Point 5) -- that
+framing is now stale and needs to reflect this real, verified success.
+
+Previous update, 2026-09-10 (**Tasks #5 and #8 both delivered on Omar's
 "give me both, let's run them" request.**
 
 **Task #8** (optional tolerance sensitivity): new notebook
