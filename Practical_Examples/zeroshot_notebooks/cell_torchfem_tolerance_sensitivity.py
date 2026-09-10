@@ -90,10 +90,10 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
-from plot_style import PRIMARY, SECONDARY, add_bar_labels
+from plot_style import PRIMARY, SECONDARY, add_bar_labels, legend_below
 
 tols_sorted = sorted(all_rows.keys(), reverse=True)  # 1e-6, 1e-7, 1e-8
-fig, axes = plt.subplots(1, 2, figsize=(11, 4.5), dpi=200)
+fig, axes = plt.subplots(1, 2, figsize=(11, 5.0), dpi=200)
 
 for N, ax_col in zip(RESOLUTIONS, [0, 1]):
     ax = axes[ax_col]
@@ -110,11 +110,24 @@ for N, ax_col in zip(RESOLUTIONS, [0, 1]):
     ax.set_ylabel('L2 relative error', color=PRIMARY)
     ax2.set_ylabel('wall-clock (s)', color=SECONDARY)
     ax.set_title(f'N={N}')
+    # 2026-09-10 fix (Omar flagged this figure directly): the original
+    # 'upper left' legend with frameon=False rendered its text directly on
+    # top of the tallest bars, unreadable where they overlapped, AND relied
+    # on an extreme y-axis zoom (six-digit tick labels) to show the
+    # near-identical L2 values across tolerances instead of printing them --
+    # inconsistent with every other figure in this project, which uses
+    # add_bar_labels for exact values. Fixed both: legend_below (always
+    # clear of the bars regardless of height) and explicit add_bar_labels on
+    # both series, with headroom (set_ylim) so the labels don't clip.
+    ax.set_ylim(top=ax.get_ylim()[1] * 3)
+    ax2.set_ylim(top=ax2.get_ylim()[1] * 1.3)
+    add_bar_labels(ax, b1, fmt='{:.4e}', fontsize=7)
+    add_bar_labels(ax2, b2, fmt='{:.2f}', fontsize=7)
     lines = [b1, b2]
-    ax.legend(lines, [l.get_label() for l in lines], frameon=False, fontsize=8, loc='upper left')
+    legend_below(ax, ncol=2, y=-0.28, handles=lines, labels=[l.get_label() for l in lines])
 
 fig.suptitle('torch-fem tolerance sensitivity: accuracy vs. cost', fontsize=12)
-fig.tight_layout(rect=[0, 0, 1, 0.93])
+fig.tight_layout(rect=[0, 0.08, 1, 0.93])
 FIG_PATH = f'{R}/fig_torchfem_tolerance_sensitivity.png'
 fig.savefig(FIG_PATH)
 print('Saved figure:', FIG_PATH)

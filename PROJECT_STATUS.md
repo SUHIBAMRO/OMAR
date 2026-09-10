@@ -5,7 +5,32 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**REAL PRODUCTION-SCALE SUCCESS at N=401 and
+Last updated: 2026-09-10 (**Omar reviewed the round-9 figures directly
+and flagged a real defect in Figure 43 (torch-fem tolerance
+sensitivity): the legend (placed 'upper left', frameon=False) rendered
+its text directly on top of the tallest bars, unreadable where they
+overlapped. Fixed and re-embedded in both documents.**
+
+Root cause: this was the ONE figure in the whole round-9 batch that
+didn't use `add_bar_labels` for exact values -- it relied instead on an
+extreme y-axis zoom (six-digit tick labels) to show the near-identical
+L2 values across tolerances, which pushed the tallest bars close to the
+top of the axes and directly under the default legend position.
+Inconsistent with house style, not just a placement bug.
+
+Fixed both things: moved the legend to `legend_below` (this project's
+own plot_style.py helper, always clear of the bars regardless of
+height) and added explicit `add_bar_labels` on both series instead of
+relying on axis zoom -- now shows "2.5000e-05" identically on all three
+tolerance bars at N=401, the real finding, directly and precisely,
+matching every other figure's own style. Regenerated locally from the
+already-committed real data (`torchfem_tolerance_sensitivity_results.
+json`) -- no new Colab run needed, this was a plotting-code fix, not a
+data fix. Updated the notebook cell source too (so a future re-run
+produces the corrected figure directly), rebuilt all 58 notebooks, and
+replaced the embedded Figure 43 image in both real documents in place.
+
+Previous update, 2026-09-10 (**REAL PRODUCTION-SCALE SUCCESS at N=401 and
 N=701 -- TensorMesh, real cuDSS direct solver, sparse jac_fn, matching
 torch-fem's own numbers closely.** The version-pin fix worked
 completely for these two: N=401 solved in 5.11s (l2_rel=2.500e-05,
