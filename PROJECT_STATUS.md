@@ -5,7 +5,46 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Task #3 real result: timing breakdown by
+Last updated: 2026-09-10 (**Tasks #5 and #8 both delivered on Omar's
+"give me both, let's run them" request.**
+
+**Task #8** (optional tolerance sensitivity): new notebook
+`Round6_TorchFEM_Tolerance_Sensitivity.ipynb` -- reruns torch-fem at
+N=401/1401 with tol=1e-6/1e-7 (one out_json per tolerance, since
+`run_convergence_study`'s own resumability keys on N alone, not
+(N, tol) -- sharing one file across tolerances at the same N would
+silently skip the second run), reusing the already-committed tol=1e-8
+numbers rather than re-solving. 56/56 notebooks verified. Not yet run
+-- sent to Omar.
+
+**Task #5** (the "GPU FEM still too slow" reply) drafted in full:
+`advisor_feedback/2026-09-10_reply_gpu_fem_still_too_slow.md`. Takes
+the concern head-on rather than deflecting it -- states plainly that
+torch-fem is 204-306x faster at matched precision, then makes the
+actual case for why that doesn't settle "competitive baseline":
+- torch-fem's own peak memory (5.7/17.3/35.3/69.2 GB at N=401-1401)
+  is already within ~13% of the 80GB A100's own ceiling at the
+  largest size tested; "ours" ran the same N=1401 case on the same
+  hardware with no comparable wall, since it never allocates for a
+  global matrix -- direct, measured evidence for the architectural
+  tradeoff, not just an assertion of it.
+- Tested whether switching torch-fem itself to a direct solver would
+  close the gap (per Timon's own suggestion) rather than assuming
+  CG+Jacobi was already its best foot -- it's 14x/33x SLOWER at
+  N=401/701, the opposite of a fix.
+- The assembly/solve timing breakdown (43%->24% assembly share as N
+  grows) and the NO@N1401 finding (still fastest at 59x over
+  torch-fem-matched, but unvalidated for accuracy past N=49) are both
+  folded in as supporting context, not the headline.
+- Closes by offering to restructure the report's own framing (torch-
+  fem as the primary GPU-FEM baseline at reachable sizes, "ours" for
+  sizes beyond that) rather than defending "ours" past what the
+  evidence shows.
+NOT sent -- explicitly marked "do not send without Omar's own review"
+in the file itself, matching this project's standing practice for
+draft advisor replies.
+
+Previous update, 2026-09-10 (**Task #3 real result: timing breakdown by
 phase, AND a genuinely unexpected finding -- torch-fem's own direct
 (LU) solve is dramatically SLOWER than its CG+Jacobi at this problem,
 not faster.** Real Colab run (A100-SXM4-80GB):
