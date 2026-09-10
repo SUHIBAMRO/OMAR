@@ -5,7 +5,61 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Timon sent a SECOND email, mid-session,
+Last updated: 2026-09-10 (**Task #10 DONE -- Omar's explicit decision:
+remove the batch-size study (Table 6/Figures 8-10) from BOTH real
+documents entirely, and fix the numbering/ordering, not just leave a
+gap.** Investigated scope carefully before editing (this project's own
+established discipline, and this document's numbering is otherwise
+NOT physically sequential -- confirmed extensively in an earlier
+session's figure-numbering audit -- so a full renumbering had to be
+deliberately scoped, not assumed necessary everywhere).
+
+**Report** (`PFEM_Transolver_Report_2026-09-09.docx`): removed the
+entire §8.2 block (heading, 2 narrative paragraphs, the Table 6
+(revised) object, its caption, 2 more paragraphs, and Figures 8/9/10
+with captions -- 15 body elements, verified nothing else in the whole
+document referenced "Table 6" plain or "Figures 8/9/10" before
+deleting). Found and fixed 5 places where OTHER paragraphs pointed at
+the now-deleted section: paragraph 494 was deleted entirely (its whole
+point -- "confirming batch size 8 as the right choice on accuracy
+grounds" -- rested on the removed table's data, not something to keep
+with a dangling citation); four other paragraphs (171, 182, 224, 493)
+had the dangling "(Section 8.2)"/"Section 8.2" phrase removed while
+keeping their surrounding factual content (e.g. total GPU-hours
+accounting, which stays true regardless of whether the table is shown).
+Then renumbered headings §8.3-8.11 -> §8.2-8.10 (9 headings) AND every
+one of 21 cross-reference runs throughout the document ("Section 8.N"/
+"§8.N", case-insensitive, single-pass regex substitution keyed by the
+captured number to avoid any collision risk) -- verified afterward:
+headings run 8.1-8.10 with no gaps/duplicates, zero remaining "Table 6"
+plain or "Figure 8/9/10" references, document still opens cleanly
+(495 paragraphs, down from 510). One residual, deliberately NOT fixed:
+39 media files remain embedded (36 are actually referenced) -- deleting
+a paragraph containing an image reference doesn't remove the underlying
+media/relationship from the docx package; this is inert (no visible
+defect, no broken reference) so left alone rather than risk corrupting
+the file with a more invasive cleanup for a cosmetic file-size gain.
+
+**Summary** (`PFEM_Work_Summary_2026-09-09.docx`): same treatment,
+smaller scope (this document's own numbering is a simpler "1.-11."
+list mirroring the Report's §8.1-8.11): removed item "2. Batch-size
+sweeps..." (10 body elements: heading, one sentence, Table 6 (revised),
+Figures 8/9/10), renumbered items 3-11 -> 2-10 (9 headings), and fixed
+2 more cross-references that pointed INTO the Report's own renumbered
+section (paragraphs 129/131: "Section 8.6"/"§8.6" -> "Section 8.5"/
+"§8.5", matching the Report's old-8.6-is-now-8.5 mapping) -- these
+were the OOD-mitigation discussion citing the Report's out-of-
+distribution section by its old number. Verified clean the same way:
+1-10 sequential headings with no gaps/duplicates, zero leftover Table
+6/Figure 8-10 references, 266 paragraphs (down from 275).
+
+Both corrected files ready to send back to Omar as the new canonical
+copies (same filenames, `PFEM_Transolver_Report_2026-09-09.docx` /
+`PFEM_Work_Summary_2026-09-09.docx`, in the scratchpad deliverables
+folder -- these docx files are session-scratchpad-only per this
+project's established pattern, not git-tracked).
+
+Previous update, 2026-09-10 (**Timon sent a SECOND email, mid-session,
 reacting to the standalone torch-fem question -- 4 new points, broken
 down and checked against the real Report text before any work
 started:**
