@@ -5,7 +5,37 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Real CUDA bug caught on Omar's first Colab
+Last updated: 2026-09-10 (**The first CUDA-bug fix attempt (a `torch.
+device(device):` context manager) did NOT actually fix it -- Omar
+re-ran the notebook and got the IDENTICAL crash, at the identical line.
+Real root cause found this time, not another guess: read TensorMesh's
+own installed `Mesh.__init__` source directly and found every one of
+its internal buffers is built via `torch.from_numpy(...)`
+(`self.register_buffer("points", torch.from_numpy(mesh.points...))`),
+which is tied to the host numpy array's own memory and does NOT respect
+any ambient `torch.device(...)` context manager -- unlike `torch.zeros`
+/`torch.tensor`, which DO respect it, and which is why the earlier
+device/dtype fixes for torch-fem and TensorMesh's own dtype (both using
+context managers) worked while this one didn't.
+
+`Mesh` and `ElementAssembler` are both confirmed `nn.Module` subclasses,
+though, so the actual fix is calling `.to(device)` on them explicitly
+after construction -- `nn.Module.to()` recursively moves every
+registered buffer regardless of how it was created, which a
+constructor-wrapping context manager cannot do for numpy-backed
+tensors. Replaced both `with torch.device(device):` blocks in
+`build_tensormesh_model`/`solve_tensormesh` with explicit
+`.to(device)` calls on `tm_mesh`, `model`, and the
+`LinearElasticityElementAssembler` instance. Re-verified on CPU (still
+the only device available here): correctness check and convergence
+sweep smoke test both unchanged (1.190e-11 / PASS; L2 p=1.849, H1
+p=1.450) -- the fix only touches the CUDA-specific device placement, no
+CPU behavior change. **Still not re-verified on actual CUDA** -- that
+is Omar's next re-run, and this entry deliberately does NOT claim
+success until that real run confirms it, given the last claimed fix
+turned out not to be one.
+
+Previous update, 2026-09-10 (**Real CUDA bug caught on Omar's first Colab
 run of the new production sweep, fixed the same way this project has
 already fixed two prior device/dtype bugs (torch-fem's near_null_space
 hardcoding float32; TensorMesh's own default dtype) -- a context

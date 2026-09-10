@@ -135,30 +135,40 @@ def build_tensormesh_model(nodes, elements, mu, lam, dtype=torch.float64, device
     own tensor-product convention (see to_tensormesh_element_order)
     before building the mesh.
 
-    WHY `with torch.device(device):` WRAPS THE MESH/MODEL CONSTRUCTION:
-    a real bug, the same CLASS of bug this project already hit for
-    torch-fem's near_null_space (hardcoded float32) and TensorMesh's own
-    default dtype -- TensorMesh's `Mesh`/`ElementAssembler` construction
-    creates its own internal tensors (from the numpy `meshio.Mesh` it's
-    built from) without an explicit device, so they silently land on CPU
-    regardless of the caller's intended device. On CUDA this produced a
-    real, reproducible crash (`RuntimeError: Expected all tensors to be
-    on the same device ... mat2 is on cpu`) inside `model.energy()`'s own
-    einsum the first time this was actually run on a GPU (2026-09-10,
-    N=401 production sweep) -- the CPU-only smoke tests never caught it
-    because `_correctness_check` always builds on `torch.device('cpu')`
-    by construction. Fixed the same way as the earlier two device/dtype
-    bugs: a context manager, not patching the library itself."""
+    WHY `.to(device)` IS CALLED EXPLICITLY, NOT JUST A `with torch.
+    device(device):` CONTEXT MANAGER: a real bug, the same CLASS of bug
+    this project already hit for torch-fem's near_null_space (hardcoded
+    float32) and TensorMesh's own default dtype, but with a twist that
+    took a second real GPU run to actually find -- a `torch.device(...)`
+    context manager was tried FIRST and did NOT fix it: TensorMesh's own
+    `Mesh.__init__` (confirmed by reading the installed source directly)
+    builds every one of its internal buffers via `torch.from_numpy(...)`
+    (`self.register_buffer("points", torch.from_numpy(mesh.points...))`,
+    same for cells/point_data/cell_data), and `torch.from_numpy` is
+    fundamentally tied to the host numpy array's own memory -- it always
+    produces a CPU tensor and does NOT respect any ambient device
+    context manager, unlike `torch.zeros`/`torch.tensor`. `Mesh` and
+    `ElementAssembler` ARE both `nn.Module` subclasses, though (confirmed
+    directly), so the correct fix is calling `.to(device)` on them after
+    construction -- `nn.Module.to()` recursively moves every registered
+    buffer/parameter regardless of how it was originally created, which
+    a context manager around the constructor call cannot do for
+    numpy-backed tensors. On CUDA this produced a real, reproducible
+    crash (`RuntimeError: Expected all tensors to be on the same device
+    ... mat2 is on cpu`) inside `model.energy()`'s own einsum, TWICE --
+    once before the context-manager attempt, identically again after
+    it, which is what proved the context manager wasn't the fix. The
+    CPU-only smoke tests never catch this because `_correctness_check`
+    always builds on `torch.device('cpu')` by construction."""
     import meshio
     from tensormesh import Mesh
 
     device = device or torch.device("cpu")
     elements_tm = to_tensormesh_element_order(elements)
     mio_mesh = meshio.Mesh(nodes.astype(np.float64), [("quad", elements_tm)])
-    with torch.device(device):
-        tm_mesh = Mesh(mio_mesh)
-        NeoHookean2D = _make_assembler_class()
-        model = NeoHookean2D.from_mesh(tm_mesh)
+    tm_mesh = Mesh(mio_mesh).to(device)
+    NeoHookean2D = _make_assembler_class()
+    model = NeoHookean2D.from_mesh(tm_mesh).to(device)
     mu_t = torch.tensor(mu, dtype=dtype, device=device)
     lam_t = torch.tensor(lam, dtype=dtype, device=device)
     return tm_mesh, model, mu_t, lam_t
@@ -291,16 +301,16 @@ def solve_tensormesh(nodes, elements, free_dofs, fext_full, mu, lam, dtype=torch
         res = grad_full - f_ext
         return torch.where(free_mask_dof, res, u_flat)
 
-    # Same device fix as build_tensormesh_model's own docstring explains:
-    # LinearElasticityElementAssembler.from_mesh creates its own internal
-    # tensors too, and needs the same context manager to land on `device`
-    # rather than silently defaulting to CPU. Used only for its correctly
-    # -sized/patterned SparseMatrix object to call .nonlinear_solve on --
-    # its own linear physics is irrelevant here; the real tangent comes
-    # from build_sparse_jac_fn (or, if use_sparse_jac=False, from
-    # nonlinear_solve's own default dense-then-sparsify autograd path).
-    with torch.device(device):
-        K = LinearElasticityElementAssembler.from_mesh(tm_mesh, E=1.0, nu=0.3)(tm_mesh.points)
+    # Same device fix as build_tensormesh_model's own docstring explains
+    # (a context manager does NOT work here -- Mesh/ElementAssembler's
+    # own internal buffers are built via torch.from_numpy, which ignores
+    # any ambient device context; .to(device) is the real fix). Used
+    # only for its correctly-sized/patterned SparseMatrix object to call
+    # .nonlinear_solve on -- its own linear physics is irrelevant here;
+    # the real tangent comes from build_sparse_jac_fn (or, if
+    # use_sparse_jac=False, from nonlinear_solve's own default
+    # dense-then-sparsify autograd path).
+    K = LinearElasticityElementAssembler.from_mesh(tm_mesh, E=1.0, nu=0.3).to(device)(tm_mesh.points)
 
     jac_fn = None
     if use_sparse_jac:
