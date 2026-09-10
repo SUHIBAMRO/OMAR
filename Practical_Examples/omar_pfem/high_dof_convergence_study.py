@@ -243,7 +243,7 @@ def build_mesh_and_bcs(geometry, order, N, material, device, dtype):
 def solve_one(geometry, order, N, material, device, dtype, cg_tol, newton_tol,
               use_jacobi=True, precond_kind="jacobi", cg_max_iter=2000, verbose=False,
               checkpoint_path=None, cg_progress_every=None, cg_checkpoint_every=2000,
-              mg_min_coarse_n=13, mg_max_levels=8):
+              mg_min_coarse_n=13, mg_max_levels=8, hvp_method="autodiff"):
     nodes, elements, free_dofs, fext_full, elem_params_np = build_mesh_and_bcs(
         geometry, order, N, material, device, dtype)
 
@@ -285,7 +285,8 @@ def solve_one(geometry, order, N, material, device, dtype, cg_tol, newton_tol,
         newton_tol=newton_tol, cg_tol=cg_tol, cg_max_iter=cg_max_iter, use_jacobi=use_jacobi,
         precond_kind=precond_kind, mg_hierarchy=mg_hierarchy,
         device=device, dtype=dtype, verbose=verbose, checkpoint_path=checkpoint_path,
-        cg_progress_every=cg_progress_every, cg_checkpoint_every=cg_checkpoint_every)
+        cg_progress_every=cg_progress_every, cg_checkpoint_every=cg_checkpoint_every,
+        hvp_method=hvp_method)
     wall_s = time.time() - t0
 
     ndof = 2 * len(nodes)

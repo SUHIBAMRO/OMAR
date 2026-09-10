@@ -1378,6 +1378,36 @@ NOTEBOOKS = {
          "  CUDA_ITERATIVE_THRESHOLD (2,000,000 DOF) switching the direct "
          "solver to an iterative fallback, not a regression.\n",
          "* **Resumable**: skips resolutions already in its own out_json.\n"]),
+    "Round6_Cached_Hessian_Speedup_Production.ipynb": (
+        "cell_cached_hessian_speedup_production.py",
+        ["# Does the cached-Hessian speedup hold on GPU at production scale?\n",
+         "\n",
+         "Per Omar's own request: make \"ours\" own matrix-free solver faster than BOTH torch-fem "
+         "and TensorMesh, not just the fallback for sizes beyond\n",
+         "their memory ceiling. `matrix_free_hvp` (the existing per-CG-iteration Hessian-vector "
+         "product) redifferentiates the full residual via autodiff on\n",
+         "every single CG call, even though the tangent it uses is fixed for the whole CG solve "
+         "within one Newton iteration.\n",
+         "\n",
+         "**The fix**: precompute the small per-element local Hessian ONCE per Newton iteration "
+         "(`precompute_local_hessians`, matrix_free_solver.py), reuse it\n",
+         "for a cheap batched matrix-vector product on every CG iteration (`cached_hessian_hvp`) "
+         "instead. New opt-in `hvp_method` parameter on `solve_matrix_free`\n",
+         "(\"autodiff\" default, unchanged; \"cached_hessian\" new).\n",
+         "\n",
+         "**Verified correct AND fast on CPU already** (before this notebook ever ran): final "
+         "solution matches to 1e-13/1e-14 relative difference, with 15.6x\n",
+         "(N=11) / 22.3x (N=21) wall-clock speedup, growing with N. **Not yet known whether this "
+         "holds on GPU** — GPU already parallelizes the autodiff path\n",
+         "more than CPU, so the relative benefit could be smaller (or similarly large, if "
+         "kernel-launch overhead for many small ops is itself the bottleneck).\n",
+         "\n",
+         "* Step 1: correctness re-check at N=21 on this device.\n",
+         "* Step 2+3: real speed at N=401/701/1001/1401 (matching torch-fem's and TensorMesh's own "
+         "sweeps), both hvp_methods, plus a genuine three-way\n",
+         "  comparison table against the already-committed torch-fem and TensorMesh numbers.\n",
+         "* Does NOT reuse existing checkpoints (a different hvp_method needs a fresh solve from "
+         "the same starting point for a fair timing).\n"]),
     "Round6_NO_Inference_vs_TorchFEM_N1401.ipynb": (
         "cell_no_inference_vs_torchfem_N1401.py",
         ["# NO inference time vs. torch-fem at N=1401 (round-9, item 12)\n",

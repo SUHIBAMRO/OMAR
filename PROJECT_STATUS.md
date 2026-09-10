@@ -5,7 +5,34 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**NEW WORK STARTED, per Omar's own request:
+Last updated: 2026-09-10 (**Colab notebook built for the cached-Hessian
+GPU test** (the previous entry's own "direct next step, not yet
+built"): `Round6_Cached_Hessian_Speedup_Production.ipynb` /
+`cell_cached_hessian_speedup_production.py`. Also added `hvp_method`
+passthrough to `solve_one` (high_dof_convergence_study.py) so the
+notebook can call it directly rather than duplicating solve_matrix_free
+plumbing; smoke-tested locally (N=11, CPU) after the change, unaffected.
+
+The notebook: (1) re-verifies correctness at N=21 on whatever device it
+runs on before trusting any timing: fails loudly with an exception if
+`cached_hessian` doesn't match `autodiff` to 1e-6 relative, exactly like
+the local CPU check already passed (1.94e-13). (2) Times BOTH hvp_methods
+at N=401/701/1001/1401 (mgv-preconditioned, matching "ours" own
+Table 6a/20-series methodology, no new preconditioner). (3) Prints a
+genuine three-way comparison table against the already-committed real
+torch-fem and TensorMesh numbers at those same N. Deliberately does NOT
+reuse "ours" own existing converged checkpoints for this -- a different
+hvp_method needs a fresh solve from u=0 for the wall-clock comparison
+to mean anything; resuming a converged checkpoint would just detect
+convergence immediately and measure nothing. 59/59 notebooks verified.
+
+**Not yet run.** This is the honest current state: the algorithmic
+speedup is real and verified on CPU; whether it closes any of the
+204-306x gap against torch-fem (or TensorMesh) on the actual A100
+hardware every other number in this project was measured on is
+completely unknown until this notebook is actually run.
+
+Previous update, 2026-09-10 (**NEW WORK STARTED, per Omar's own request:
 make "ours" own matrix-free solver faster than BOTH torch-fem and
 TensorMesh, not just the "only option beyond the memory ceiling"
 framing used until now.** First real, verified result -- a genuine
