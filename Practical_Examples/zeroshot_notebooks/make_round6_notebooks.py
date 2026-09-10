@@ -1268,6 +1268,95 @@ NOTEBOOKS = {
          "* **NEEDS A GPU** with enough memory (an 80GB A100 or similar) "
          "for the projected ~67GB at N=1401 — if a smaller GPU got\n",
          "  allocated this session, run only N=1001 and stop.\n"]),
+    "Round6_TorchFEM_Timing_Breakdown.ipynb": (
+        "cell_torchfem_timing_breakdown.py",
+        ["# torch-fem timing breakdown by phase (round-9, item 3)\n",
+         "\n",
+         "Timon asked to \"report total time together with assembly, "
+         "solve/factorization, nonlinear iterations and peak memory\" —\n",
+         "the existing comparison only ever reported one aggregate "
+         "wall-clock number per side.\n",
+         "\n",
+         "**How**: `solve_theirs_with_breakdown` instruments torch-fem's "
+         "own Newton loop from the outside (no source changes) —\n",
+         "monkeypatches `assemble_matrix`/`integrate_material` (assembly) "
+         "and the module-level `sparse_solve` (linear solve) with\n",
+         "timers for the duration of one solve call, restored after. "
+         "Runs both \"cg\" (matched to the main study) and \"direct\"\n",
+         "(a real factorization, Timon's own suggestion) — direct is "
+         "tried only up to N=701 given the untested fill-in cost at\n",
+         "larger DOF.\n",
+         "\n",
+         "**\"Ours\" side needs no new work**: nonlinear/CG iteration "
+         "counts already live in highdof_stress_qoi_results/*.json,\n",
+         "and it has no separate assembly phase by architecture — the "
+         "cell's own printed analysis says so explicitly.\n",
+         "\n",
+         "* Produces a 3-panel figure (assembly vs. solve time, CG vs. "
+         "direct, peak memory) saved to Drive, plus a printed\n",
+         "  breakdown analysis for each resolution.\n",
+         "* **Resumable**: skips (N, method) pairs already in its own "
+         "out_json.\n",
+         "* Runs on CPU too (slower, no peak-memory figure).\n"]),
+    "Round6_TorchFEM_All_QoIs_Large_DOF.ipynb": (
+        "cell_torchfem_all_qois_large_dof.py",
+        ["# torch-fem vs. ours: all QoIs at large DOF (round-9, item 9)\n",
+         "\n",
+         "Timon: \"What about all QoIs, particularly for large DOFs (in "
+         "the range of millions)?\" — the earlier convergence study\n",
+         "only compared L2/H1 displacement error.\n",
+         "\n",
+         "**How**: extends the same fine-~10M-DOF-reference methodology "
+         "with the energy norm and peak-stress QoIs already computed\n",
+         "for \"ours\" own Table 6a-adjacent work "
+         "(compute_tangent_energy_error, find_fine_peak_stress/\n",
+         "compute_peak_stress_error) — torch-fem's numbers land in the "
+         "same units/convention as \"ours\" already-published ones.\n",
+         "\"Ours\" needs no new computation — its numbers already exist "
+         "in highdof_stress_qoi_results/..._mgv_N701_1001_1401.json.\n",
+         "\n",
+         "* Targets N=1001 and N=1401 specifically — Timon's own "
+         "\"large DOFs\" phrasing; L2/H1 at smaller N is already fully\n",
+         "  covered by the earlier convergence study.\n",
+         "* Produces a 3-panel figure (L2, energy-norm, peak-stress, "
+         "ours vs. torch-fem, log scale) plus a printed per-N ratio\n",
+         "  analysis across every QoI, not just the ones already "
+         "reported.\n",
+         "* **Resumable**: skips resolutions already in its own "
+         "out_json.\n"]),
+    "Round6_NO_Inference_vs_TorchFEM_N1401.ipynb": (
+        "cell_no_inference_vs_torchfem_N1401.py",
+        ["# NO inference time vs. torch-fem at N=1401 (round-9, item 12)\n",
+         "\n",
+         "Timon: \"Did you try for N=1401 NO inference time and compare "
+         "it to the 30s of torch-FEM?\" — not previously measured: the\n",
+         "operator's own Table 7 latency number was measured at the "
+         "study's standard resolution (N=21), not N=1401.\n",
+         "\n",
+         "**How**: `build_sample_b1(N=1401, seed=0, material="
+         "'neo_hookean', solve_fem=False)` builds the mesh/BC/material\n",
+         "structure at N=1401 WITHOUT solving the FEM ground truth "
+         "(hours at this size, not needed for a timing measurement),\n",
+         "fed into `benchmark_inference_latency_Q4` — the exact same "
+         "timing protocol that produced Table 7's own number.\n",
+         "\n",
+         "Compares against BOTH torch-fem N=1401 numbers now on record: "
+         "133.83s (matched FP64/1e-8, this project's own real\n",
+         "number) and 29.1s (\"~30s\", the old unmatched float32/1e-3 "
+         "number Timon's email likely refers to).\n",
+         "\n",
+         "* **NEEDS A GPU** for a number comparable to Table 7's own "
+         "GPU-measured figure.\n",
+         "* **Real, stated risk**: N=1401 is far beyond any resolution "
+         "this operator has ever been evaluated at (zero-shot study:\n",
+         "  up to N=49 only) — this measures whatever actually happens "
+         "at that scale (fast, slow, or an OOM), not an assumption.\n",
+         "* Checkpoint path is guessed (`CKPT` near the top of the "
+         "cell) — update it if the assert fails.\n",
+         "* Produces a bar-chart figure (log scale) plus a printed "
+         "speedup analysis, with the accuracy caveat stated explicitly\n",
+         "  (fast inference here is not evidence of accuracy at a mesh "
+         "size never validated).\n"]),
 }
 
 

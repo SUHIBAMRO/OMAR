@@ -88,7 +88,8 @@ if "pyvista" not in sys.modules:
 
 from omar_pfem.high_dof_convergence_study import (
     build_mesh_and_bcs, AnalyticFieldB1, solve_one, compute_l2_h1_errors,
-    fit_convergence_rate)
+    fit_convergence_rate, compute_tangent_energy_error, find_fine_peak_stress,
+    compute_peak_stress_error)
 from omar_pfem.matrix_free_solver import solve_matrix_free
 
 
@@ -622,7 +623,7 @@ def run_convergence_study(resolutions, out_json, geometry="B1", material="neo_ho
             nodes, elements, mu, lam, fext_full, fixed_dofs,
             dtype=dtype, device=device, tol=tol)
 
-        coarse = {"nodes": nodes, "elements": elements,
+        coarse = {"nodes": nodes, "elements": elements, "N": N,
                   "u": u_theirs.reshape(len(nodes), 2)}
         errs = compute_l2_h1_errors(coarse, fine, order, geometry)
 
@@ -649,6 +650,158 @@ def run_convergence_study(resolutions, out_json, geometry="B1", material="neo_ho
     return rows
 
 
+def run_qoi_study(resolutions, out_json, geometry="B1", material="neo_hookean",
+                   order="Q4", fine_N=2236, checkpoint_dir=None, device=None,
+                   tol=1e-8, dtype=torch.float64):
+    """Timon round-9 item 9 (2026-09-10): "What about all QoIs,
+    particularly for large DOFs?" -- extends run_convergence_study's
+    L2/H1 comparison with the energy norm and peak-stress QoIs
+    high_dof_convergence_study.py already computes for "ours" own
+    Table 6a/22-series and B1 point-1 study (compute_tangent_energy_
+    error, find_fine_peak_stress/compute_peak_stress_error), evaluated
+    against the SAME fine reference, so torch-fem's numbers land in the
+    same units/convention as "ours" own already-published ones at the
+    same N. "ours" own numbers need no new computation here -- they
+    already exist in highdof_stress_qoi_results/*.json (energy_rel_
+    error, peak_stress_rel_err columns) at every N this function is
+    typically pointed at (1001, 1401 particularly, per Timon's own
+    "large DOFs" phrasing, but works at any N).
+
+    Resumable like every other sweep in this project."""
+    import json
+    import os
+
+    device = device or (torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu'))
+    print('device:', device)
+    geom_kwargs = {"Lx": 1.0, "Ly": 1.0} if geometry == "B1" else {}
+
+    fine_ckpt = (os.path.join(checkpoint_dir, f"fine_{geometry}_{material}_{order}_N{fine_N}.pt")
+                 if checkpoint_dir else None)
+    print(f'Loading/resuming fine reference N={fine_N} (checkpoint={fine_ckpt})...')
+    fine = solve_one(geometry, order, fine_N, material, device, torch.float64,
+                      cg_tol=1e-8, newton_tol=1e-8, checkpoint_path=fine_ckpt)
+    print(f'  fine reference ready: n_dof={fine["n_dof"]}, wall_clock_s={fine["wall_clock_s"]:.1f}')
+
+    E_fn = AnalyticFieldB1("E")
+    nu_fn = AnalyticFieldB1("nu")
+    print('Locating fine reference\'s own peak-stress point...')
+    x_star, peak_ref = find_fine_peak_stress(fine, order, geometry, material, E_fn, nu_fn,
+                                              device, dtype)
+    print(f'  x_star={x_star}, peak_ref={peak_ref:.4f}')
+
+    done = {}
+    if out_json and os.path.exists(out_json):
+        with open(out_json) as f:
+            done = {r["N"]: r for r in json.load(f).get("rows", [])}
+    rows = list(done.values())
+
+    for N in resolutions:
+        if N in done:
+            print(f'  N={N} already in {out_json}, skipping')
+            continue
+        nodes, elements, free_dofs, fext_full, elem_params = build_mesh_and_bcs(
+            geometry, order, N, material, device, dtype)
+        mu, lam = elem_params
+        fixed_dofs = np.setdiff1d(np.arange(2 * nodes.shape[0]), free_dofs)
+
+        u_theirs, elapsed, peak_mb = solve_theirs(
+            nodes, elements, mu, lam, fext_full, fixed_dofs,
+            dtype=dtype, device=device, tol=tol)
+
+        coarse = {"nodes": nodes, "elements": elements, "N": N,
+                  "u": u_theirs.reshape(len(nodes), 2)}
+        l2h1 = compute_l2_h1_errors(coarse, fine, order, geometry, **geom_kwargs)
+        energy = compute_tangent_energy_error(coarse, fine, order, order, geometry, material,
+                                               device, dtype, **geom_kwargs)
+        stress = compute_peak_stress_error(coarse, fine, x_star, peak_ref, order, geometry,
+                                            material, E_fn, nu_fn, device, dtype, **geom_kwargs)
+
+        row = {"N": N, "n_dof": int(2 * nodes.shape[0]), "tol": tol,
+               "torchfem_wall_clock_s": elapsed, "torchfem_peak_mem_mb": peak_mb,
+               "l2_rel": l2h1["l2_rel"], "h1_semi_rel": l2h1["h1_semi_rel"],
+               "energy_norm_rel": energy["tangent_energy_rel"],
+               "peak_stress_pred": stress["peak_stress_pred"],
+               "peak_stress_ref": stress["peak_stress_ref"],
+               "peak_stress_rel_err": stress["peak_stress_rel_err"],
+               "stress_field_l2_rel": stress["stress_field_l2_rel"]}
+        print(f'  N={N}: l2_rel={row["l2_rel"]:.3e} h1_semi_rel={row["h1_semi_rel"]:.3e} '
+              f'energy_norm_rel={row["energy_norm_rel"]:.3e} '
+              f'peak_stress_rel_err={row["peak_stress_rel_err"]:.3e}')
+        rows.append(row)
+        rows.sort(key=lambda r: r["N"])
+        if out_json:
+            with open(out_json, "w") as f:
+                json.dump({"geometry": geometry, "material": material, "order": order,
+                           "fine_N": fine_N, "device": str(device), "tol": tol,
+                           "peak_stress_x_star": [float(x) for x in np.ravel(x_star)],
+                           "peak_stress_ref": float(peak_ref), "rows": rows}, f, indent=2)
+    return rows
+
+
+def run_breakdown_sweep(resolutions, out_json, geometry="B1", material="neo_hookean",
+                         order="Q4", device=None, tol=1e-8, dtype=torch.float64,
+                         direct_max_n=701):
+    """Timon round-9 item 3 (2026-09-10), at production scale: total time,
+    assembly time, solve/factorization time, nonlinear-iteration count,
+    and peak memory for torch-fem, at each N, using
+    solve_theirs_with_breakdown. Also tries method="direct" (a real
+    factorization, Timon's own suggestion) at every N up to
+    `direct_max_n` -- direct sparse solves scale far worse than CG at
+    large DOF (see that function's own docstring), so this stops
+    attempting "direct" above that N rather than risk an OOM/multi-hour
+    factorization on an untested size; "cg" is always attempted at
+    every N regardless.
+
+    Resumable like every other sweep in this project: writes progress
+    after every row, skips (N, method) pairs already in out_json."""
+    import json
+    import os
+
+    device = device or (torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu'))
+    print('device:', device)
+
+    done = set()
+    rows = []
+    if out_json and os.path.exists(out_json):
+        with open(out_json) as f:
+            rows = json.load(f).get("rows", [])
+        done = {(r["N"], r["method"]) for r in rows}
+
+    for N in resolutions:
+        nodes, elements, free_dofs, fext_full, elem_params = build_mesh_and_bcs(
+            geometry, order, N, material, device, dtype)
+        mu, lam = elem_params
+        fixed_dofs = np.setdiff1d(np.arange(2 * nodes.shape[0]), free_dofs)
+
+        methods = ["cg"] + (["direct"] if N <= direct_max_n else [])
+        for method in methods:
+            if (N, method) in done:
+                print(f'  N={N} method={method} already in {out_json}, skipping')
+                continue
+            precond = "jacobi" if method == "cg" else None
+            result = solve_theirs_with_breakdown(
+                nodes, elements, mu, lam, fext_full, fixed_dofs,
+                dtype=dtype, device=device, tol=tol, method=method, preconditioner=precond)
+            row = {"N": N, "n_dof": int(2 * nodes.shape[0]), "method": method,
+                   "total_time_s": result["total_time_s"],
+                   "assembly_time_s": result["assembly_time_s"],
+                   "solve_time_s": result["solve_time_s"],
+                   "other_time_s": result["other_time_s"],
+                   "n_nonlinear_iters": result["n_nonlinear_iters"],
+                   "peak_mem_mb": result["peak_mem_mb"]}
+            print(f'  N={N} method={method}: total={row["total_time_s"]:.2f}s '
+                  f'assembly={row["assembly_time_s"]:.2f}s solve={row["solve_time_s"]:.2f}s '
+                  f'iters={row["n_nonlinear_iters"]} peak_mem_mb={row["peak_mem_mb"]}')
+            rows.append(row)
+            rows.sort(key=lambda r: (r["N"], r["method"]))
+            if out_json:
+                with open(out_json, "w") as f:
+                    json.dump({"geometry": geometry, "material": material, "order": order,
+                               "device": str(device), "tol": tol, "direct_max_n": direct_max_n,
+                               "rows": rows}, f, indent=2)
+    return rows
+
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == "sweep":
@@ -662,6 +815,17 @@ if __name__ == "__main__":
         checkpoint_dir = sys.argv[4] if len(sys.argv) > 4 else None
         fine_N = int(sys.argv[5]) if len(sys.argv) > 5 else 2236
         run_convergence_study(resolutions, out_json, checkpoint_dir=checkpoint_dir, fine_N=fine_N)
+    elif len(sys.argv) > 1 and sys.argv[1] == "breakdown":
+        resolutions = [int(x) for x in sys.argv[2].split(",")] if len(sys.argv) > 2 else [401, 701, 1001, 1401]
+        out_json = sys.argv[3] if len(sys.argv) > 3 else None
+        direct_max_n = int(sys.argv[4]) if len(sys.argv) > 4 else 701
+        run_breakdown_sweep(resolutions, out_json, direct_max_n=direct_max_n)
+    elif len(sys.argv) > 1 and sys.argv[1] == "qoi":
+        resolutions = [int(x) for x in sys.argv[2].split(",")] if len(sys.argv) > 2 else [1001, 1401]
+        out_json = sys.argv[3] if len(sys.argv) > 3 else None
+        checkpoint_dir = sys.argv[4] if len(sys.argv) > 4 else None
+        fine_N = int(sys.argv[5]) if len(sys.argv) > 5 else 2236
+        run_qoi_study(resolutions, out_json, checkpoint_dir=checkpoint_dir, fine_N=fine_N)
     else:
         N = int(sys.argv[1]) if len(sys.argv) > 1 else 11
         tol = float(sys.argv[2]) if len(sys.argv) > 2 else 1e-8
