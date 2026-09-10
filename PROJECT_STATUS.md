@@ -5,7 +5,51 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Omar reviewed the round-9 figures directly
+Last updated: 2026-09-10 (**TENSORMESH PRODUCTION-SCALE COMPARISON FULLY
+CLOSED, ALL FOUR RESOLUTIONS -- complete, real, verified success, not a
+partial one. This is the actual end state of the TensorMesh saga that
+started with a small-scale-only proof of concept, hit an N=51 ceiling,
+required a real sparse-Jacobian fix, then three real environment/
+dependency bugs (device placement, missing cuDSS dependency, nvmath-
+python version mismatch) each only found by running on actual CUDA
+hardware -- and now, finally, runs correctly and completely.**
+
+Real result (N=401/701/1001/1401, matching torch-fem's own sweep
+exactly, real cuDSS direct solver forced past the library's own
+conservative 2M-DOF auto-fallback):
+
+| N | DOF | TensorMesh L2_rel | torch-fem L2_rel | TensorMesh wall_s | torch-fem wall_s | speedup |
+|---|---|---|---|---|---|---|
+| 401 | 321,602 | 2.4996e-05 | 2.500e-05 | 5.11 | 9.82 | 1.92x |
+| 701 | 982,802 | 1.0089e-05 | 1.009e-05 | 14.17 | 25.15 | 1.77x |
+| 1001 | 2,004,002 | 5.1549e-06 | 5.155e-06 | 31.43 | 56.65 | 1.80x |
+| 1401 | 3,925,602 | 2.2912e-06 | 2.291e-06 | 62.96 | 133.83 | 2.13x |
+
+L2 relative error matches torch-fem to every printed digit at all four
+resolutions -- no accuracy tradeoff for the speed. TensorMesh is
+CONSISTENTLY FASTER than torch-fem at every single resolution tested,
+including N=1401 (3.9M DOF, well past the library's own 2M-DOF
+"iterative fallback" threshold, which forcing cuDSS explicitly
+correctly bypassed with no degradation). Convergence rates: L2 p=1.884,
+H1 p=0.670 (both fitted across only 4 points against the same
+comparatively-close fine reference already flagged elsewhere in this
+project as flattening true rates somewhat -- consistent with, not a new
+concern beyond, torch-fem's own already-documented convergence-rate
+caveat).
+
+Real result JSON committed
+(`tensormesh_convergence_production_N401_1401.json`) and the figure
+(`fig_tensormesh_convergence_production.png`, Figure 45) embedded in
+the Summary right after Point 5's text, which was rewritten to state
+this complete success plainly -- replacing every earlier "ceiling at
+N=51" / "pending real numbers" framing, now genuinely obsolete.
+
+**Task #4 (TensorMesh) is now completely done in the fullest sense**:
+correct at small scale, verified against "ours" own solver to ~10
+significant digits, AND fast and accurate at the exact same production
+scale torch-fem was tested at, with no remaining open sub-questions.
+
+Previous update, 2026-09-10 (**Omar reviewed the round-9 figures directly
 and flagged a real defect in Figure 43 (torch-fem tolerance
 sensitivity): the legend (placed 'upper left', frameon=False) rendered
 its text directly on top of the tallest bars, unreadable where they

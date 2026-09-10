@@ -1,0 +1,15 @@
+{
+  "geometry": "B1",
+  "material": "neo_hookean",
+  "order": "Q4",
+  "fine_N": 2236,
+  "device": "cuda",
+  "tol": 1e-08,
+  "rows": [
+    {"N": 401, "n_dof": 321602, "tol": 1e-08, "tensormesh_wall_clock_s": 5.105398416519165, "l2_rel": 2.4996403351050347e-05, "h1_semi_rel": 0.0035882651031765487},
+    {"N": 701, "n_dof": 982802, "tol": 1e-08, "tensormesh_wall_clock_s": 14.170728921890259, "l2_rel": 1.0089319115970962e-05, "h1_semi_rel": 0.0028524771934988896},
+    {"N": 1001, "n_dof": 2004002, "tol": 1e-08, "tensormesh_wall_clock_s": 31.434792041778564, "l2_rel": 5.154858252675972e-06, "h1_semi_rel": 0.0018458742103925059},
+    {"N": 1401, "n_dof": 3925602, "tol": 1e-08, "tensormesh_wall_clock_s": 62.96240448951721, "l2_rel": 2.291170457850915e-06, "h1_semi_rel": 0.001632691930233872}
+  ],
+  "convergence_rates": {"l2_fit": 1.884, "h1_semi_fit": 0.670}
+}
