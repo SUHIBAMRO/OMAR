@@ -1,0 +1,20 @@
+{
+  "geometry": "B1",
+  "material": "neo_hookean",
+  "order": "Q4",
+  "fine_N": 2236,
+  "device": "cuda (A100-SXM4-80GB)",
+  "tol": 1e-08,
+  "note": "Real A100-SXM4-80GB Colab run, 2026-09-10 (two sessions: N=51-701 then N=1001/1401 extension). Timon round-9 items 2+6+7. torch-fem run at matched FP64/1e-8 precision through the same methodology as 'ours' own Table 6a (evaluated against the same fine ~10M-DOF reference). l2_rel/h1_semi_rel are identical to every printed digit to 'ours' own already-published numbers at EVERY N from 51 to 1401 -- both solvers converge to the same discretized FE solution. Fitted convergence rate over all 7 points (L2 p=1.575, H1 p=0.725) matches 'ours' own previously-fitted 7-point rate (L2 p=1.57, H1 p=0.73) almost exactly. Wall-clock comparison at matched precision (ours_wall_clock_s from highdof_stress_qoi_results/*.json, the real non-resumed solves): torch-fem is 266x/287x/306x/204x faster than 'ours' at N=401/701/1001/1401 -- smaller than the old unmatched-precision gap (418x/655x/1197x/936x) but still a large, real advantage. 'ours' own peak_mem_mb remains unmeasured (resumed from checkpoint, same known gap as item #13's original writeup) -- torch-fem's own peak memory (real, measured) is 5.71/17.31/35.29/69.18 GB at N=401/701/1001/1401.",
+  "rows": [
+    {"N": 51, "torchfem_wall_clock_s": 3.42, "l2_rel": 4.934e-04, "h1_semi_rel": 1.755e-02, "torchfem_peak_mem_mb": 107.953152},
+    {"N": 101, "torchfem_wall_clock_s": 2.84, "l2_rel": 1.874e-04, "h1_semi_rel": 1.096e-02, "torchfem_peak_mem_mb": 381.583872},
+    {"N": 201, "torchfem_wall_clock_s": 4.64, "l2_rel": 6.987e-05, "h1_semi_rel": 6.302e-03, "torchfem_peak_mem_mb": 1478.51776},
+    {"N": 401, "torchfem_wall_clock_s": 9.82, "l2_rel": 2.500e-05, "h1_semi_rel": 3.588e-03, "torchfem_peak_mem_mb": 5847.33952, "ours_wall_clock_s": 2615.819307565689, "speedup_x": 266.4},
+    {"N": 701, "torchfem_wall_clock_s": 25.15, "l2_rel": 1.009e-05, "h1_semi_rel": 2.852e-03, "torchfem_peak_mem_mb": 17728.525312, "ours_wall_clock_s": 7205.425608158112, "speedup_x": 286.5},
+    {"N": 1001, "torchfem_wall_clock_s": 56.65, "l2_rel": 5.155e-06, "h1_semi_rel": 1.846e-03, "torchfem_peak_mem_mb": 36138.372096, "ours_wall_clock_s": 17314.837193489075, "speedup_x": 305.6},
+    {"N": 1401, "torchfem_wall_clock_s": 133.83, "l2_rel": 2.291e-06, "h1_semi_rel": 1.633e-03, "torchfem_peak_mem_mb": 70837.712896, "ours_wall_clock_s": 27257.392720222473, "speedup_x": 203.7}
+  ],
+  "fitted_rate_over_all_7_points": {"L2_p": 1.575, "H1_p": 0.725, "expected": {"L2": 2, "H1": 1}},
+  "ours_own_7_point_fit_for_comparison": {"L2_p": 1.57, "H1_p": 0.73}
+}

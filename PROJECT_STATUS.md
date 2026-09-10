@@ -5,7 +5,67 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Task #4 (TensorMesh) UNBLOCKED -- Omar
+Last updated: 2026-09-10 (**Tasks #2, #6, and #7 all COMPLETE -- full
+real result, N=51 through N=1401, matched FP64/1e-8 precision, same
+A100-SXM4-80GB Colab session.** Omar ran the follow-up notebook;
+N=1001 (56.65s, 36.1GB) and N=1401 (133.83s, 70.8GB) both completed
+successfully, comfortably under the 80GB budget as projected.
+
+**Accuracy + mesh convergence (tasks #2+#6), now fully closed**:
+torch-fem's l2_rel/h1_semi_rel against the shared fine ~10M-DOF
+reference are IDENTICAL to "ours" own already-published numbers at
+EVERY one of the 7 resolutions (51/101/201/401/701/1001/1401), not
+just the first 5 -- e.g. N=1001: both 5.155e-06 L2 / 1.846e-03 H1;
+N=1401: both 2.291e-06 / 1.633e-03. The fitted convergence rate over
+all 7 points (L2 p=1.575, H1 p=0.725) matches "ours" own previously-
+fitted 7-point rate (L2 p=1.57, H1 p=0.73) almost exactly. This is
+about as clean an accuracy/convergence answer as this kind of study
+can produce -- both solvers provably converge to the same discretized
+solution at every mesh size tested.
+
+**Timing re-run at matched precision (task #7), now effectively done
+by compiling already-existing data rather than a new run**: cross-
+referencing torch-fem's real matched-precision wall-clock (this run)
+against "ours" own real, non-resumed wall-clock (already committed in
+`highdof_stress_qoi_results/high_dof_stress_qoi_B1_neo_hookean_mgv_N401.json`
+and `..._mgv_N701_1001_1401.json`) gives the fair comparison Timon
+asked for:
+
+| N | ours wall (s) | torch-fem wall (s) | speedup | torch-fem peak mem |
+|---|---|---|---|---|
+| 401 | 2615.8 | 9.82 | 266x | 5.71 GB |
+| 701 | 7205.4 | 25.15 | 287x | 17.31 GB |
+| 1001 | 17314.8 | 56.65 | 306x | 35.29 GB |
+| 1401 | 27257.4 | 133.83 | 204x | 69.18 GB |
+
+At matched FP64/1e-8 precision, torch-fem is still 204x-306x faster in
+wall-clock -- roughly HALF the old unmatched-precision gap (418x-
+1197x), but still a large, real, now-fully-defensible advantage, not
+an artifact of comparing float64/tight to float32/loose. "ours" own
+peak_mem_mb remains unmeasured at these N (resumed from checkpoint,
+the same pre-existing gap item #13's original writeup already flagged
+honestly) -- torch-fem's own peak memory is real and measured
+throughout. Full compiled result saved:
+`omar_pfem/torchfem_convergence_vs_fine_reference_full.json`
+(supersedes the earlier N=51-701-only file, now removed).
+
+**Caveat carried forward, unchanged**: the fitted convergence RATE
+(not the error VALUES, which are exact matches) at N=1001/1401
+specifically should be read against the same fine_N=2236-is-only-
+1.6x-2.2x-those-resolutions caveat already on record for "ours" own
+Table 6a -- this affects both solvers' fitted rate identically since
+they share the same reference, not a torch-fem-specific weakness.
+
+Tasks #2, #6, #7 marked completed. Remaining open items: task #3's
+production-scale run (the assembly/solve/factorization breakdown is
+built and verified only at N=11 so far), task #5 (the "still too
+slow" reply, now finally unblocked -- real fair numbers exist), task
+#4 (TensorMesh, unblocked yesterday, API investigation not yet
+started), and the two audit gaps from the third re-read (1e-6/1e-7 at
+production N; auditing the rest of the report's own timing tables
+against the "timing after accuracy" rule).)
+
+Previous update, 2026-09-10 (**Task #4 (TensorMesh) UNBLOCKED -- Omar
 identified `camlab-ethz/TensorMesh` and did his own documentation
 research; independently verified every one of his claims against the
 live docs before accepting them, rather than trusting the summary.**
