@@ -5,7 +5,31 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**TENSORMESH PRODUCTION-SCALE COMPARISON FULLY
+Last updated: 2026-09-10 (**Folded the real TensorMesh production
+result into the Report too, not just the Summary -- the Report's own
+torch-fem comparison section (§8.4-adjacent, around Table 20d/Figure
+22) previously only mentioned TensorMesh in passing ("presumably
+assembles explicitly once and factorizes... measured against torch-fem
+rather than TensorMesh specifically" -- now stale, since TensorMesh WAS
+tested directly).** Fixed that stale sentence and added a full new
+paragraph + Figure 45 (same figure as the Summary's own) right before
+the section's closing "Three limits of this study" paragraph, stating
+the real result plainly: L2 matches torch-fem to every printed digit
+at N=401-1401, TensorMesh 1.77-2.13x faster at every resolution, no
+degradation past the library's own 2M-DOF iterative-fallback
+threshold -- framed as confirming, not contradicting, the matrix-free-
+vs-assembled architectural point already argued there (TensorMesh still
+assembles explicitly and would face the same GPU-memory ceiling at
+larger sizes; it's the fastest of the three methods at the sizes where
+all three can run, not a replacement for "ours" at sizes beyond that).
+
+Both documents' image counts now match (46 each) and paragraph
+insertion order was verified correct after a mis-ordering caught and
+fixed mid-edit (an `insert_paragraph_before` sequencing mistake put the
+new paragraph's image before its own body text; fixed by re-ordering
+the underlying XML elements directly, then re-verified).
+
+Previous update, 2026-09-10 (**TENSORMESH PRODUCTION-SCALE COMPARISON FULLY
 CLOSED, ALL FOUR RESOLUTIONS -- complete, real, verified success, not a
 partial one. This is the actual end state of the TensorMesh saga that
 started with a small-scale-only proof of concept, hit an N=51 ceiling,
