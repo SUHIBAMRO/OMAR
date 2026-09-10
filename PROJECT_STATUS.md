@@ -5,7 +5,27 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**"Flat inference cost" claim fixed in both
+Last updated: 2026-09-10 (**Task #9 real result: torch-fem matches
+"ours" on EVERY QoI at large DOF, not just L2/H1 -- 1.00x ratio across
+the board.** Real Colab run (A100-SXM4-80GB): fine reference resumed
+instantly (4.6s), peak-stress point located
+(x_star≈[9.46e-05, 9.46e-05], peak_ref=43.48). At N=1001
+(2,004,002 DOF) and N=1401 (3,925,602 DOF), torch-fem's L2, H1,
+energy-norm, and peak-stress relative errors are IDENTICAL to "ours"
+own already-published numbers to every printed digit at both
+resolutions (e.g. N=1401: L2 2.291e-06/2.291e-06, energy-norm
+7.822e-04/7.822e-04, peak-stress 7.691e-02/7.691e-02, all ratios
+exactly 1.00x). This is the cleanest possible, most complete answer to
+Timon's "what about all QoIs, particularly for large DOFs" question --
+not just displacement error, every quantity checked agrees exactly.
+Saved: `torchfem_qoi_large_dof.json` (Drive) + figure. Task #9 done.
+
+**Folded into both real documents**: enhanced the round-9 Summary
+section's Point 1 (matched-precision torch-fem study) and the Report's
+own torch-fem discussion to state the all-QoI agreement explicitly,
+not just L2/H1 -- see the edits below this entry for the exact text.
+
+Previous update, 2026-09-10 (**"Flat inference cost" claim fixed in both
 documents, and the Summary's top intro section fully replaced with
 round-9's ready findings -- both per Omar's explicit instruction.**
 
