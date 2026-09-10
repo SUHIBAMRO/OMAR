@@ -5,7 +5,103 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Cross-validation against "ours" own solver
+Last updated: 2026-09-10 (**Timon sent a SECOND email, mid-session,
+reacting to the standalone torch-fem question -- 4 new points, broken
+down and checked against the real Report text before any work
+started:**
+
+> I saw the differences between torch-FEM and your code is small, at
+> least in the displacements. What about all QoIs, particularly for
+> large DOFs (in the range of millions). Table 6 confused me as higher
+> batch sizes usually means faster but I understand what you did; we
+> should certainly not include this in the manuscript. There is also a
+> confusing about the torch-fem solver where directly after the Jacobi
+> preconditioning for iterative solvers, you describe the procedure
+> for a direct solver where preconditioning is not applicable. Did you
+> try for N=1401 NO inference time and compare it to the 30s of
+> torch-FEM?
+
+Tracked as tasks #9-#12:
+- **#9** (all QoIs at large DOF): only L2/H1 was checked at N=1001/1401
+  before this; needed extending to energy norm and peak stress too.
+- **#10** (Table 6 confusion): checked the real text -- Table 6
+  (revised) is validation-error-vs-batch-size under an EQUAL
+  optimizer-step budget (not a speed table); the "higher batch = should
+  be faster" confusion likely comes from the wall-clock angle
+  (Figure 10), where this equal-step-budget framing makes larger batch
+  size mean MORE wall-clock, inverting normal intuition. Needs Omar's
+  editorial call on what "we should certainly not include this" means
+  in scope (whole table vs. just the wall-clock angle) -- not decided.
+- **#11** (Jacobi/direct-solver text bug) -- DONE, a real bug, found on
+  the first read: Report paragraph 281 correctly describes torch-fem's
+  "preconditioner setup" (iterative-solver language), but the VERY NEXT
+  paragraph (282) described it as "assembles... and factorizes/solves
+  it with cuSPARSE-backed routines" (direct-solver language) --
+  contradicts 281 and doesn't match the actual run config
+  (`torchfem_comparison.py`'s `solve_theirs` uses `method="cg",
+  preconditioner="jacobi"`, i.e. genuinely iterative, never a direct
+  factorization in this study). Fixed paragraph 282 in the real Report
+  docx to say it "solves that system iteratively (CG, Jacobi-
+  preconditioned, cuSPARSE-backed) rather than by a direct
+  factorization" -- consistent with 281 and the real code. This is
+  exactly the kind of textual inconsistency this project's own
+  discipline exists to catch before it reaches an advisor.
+- **#12** (NO inference time at N=1401 vs. torch-fem's ~30s): never
+  measured anywhere in the report (searched -- zero matches for
+  torch-fem + inference/operator together). Timon's own "~30s" is the
+  OLD, unmatched-precision torch-fem number (29.1s, float32/1e-3, pre-
+  fix) -- he may not have absorbed the new matched-precision number
+  (133.83s) yet.
+
+**Built 3 new Colab notebooks for tasks #3, #9, #12** (Omar's explicit
+request: each should measure, save a resumable checkpoint, generate
+its own figure, and print an analysis -- not just raw numbers):
+1. `Round6_TorchFEM_Timing_Breakdown.ipynb` (task #3): new
+   `run_breakdown_sweep()` in torchfem_comparison.py runs
+   `solve_theirs_with_breakdown` (built earlier, verified only at N=11
+   until now) across N=401/701/1001/1401 with method="cg", and ALSO
+   method="direct" up to N=701 only (untested fill-in cost above that).
+   3-panel figure: assembly-vs-solve stacked bars, CG-vs-direct total
+   time, peak memory.
+2. `Round6_TorchFEM_All_QoIs_Large_DOF.ipynb` (task #9): new
+   `run_qoi_study()` extends the L2/H1 methodology with energy-norm and
+   peak-stress comparisons at N=1001/1401, reusing high_dof_
+   convergence_study.py's own `compute_tangent_energy_error`/
+   `find_fine_peak_stress`/`compute_peak_stress_error` against the
+   SAME fine reference -- "ours" own numbers need no new computation
+   (already in `highdof_stress_qoi_results/..._mgv_N701_1001_1401.json`).
+   Real bug caught and fixed during local smoke-testing before this
+   ever reached Colab: the "coarse" dict built from torch-fem's own
+   solution was missing the `"N"` key that `evaluate_fe_field_and_
+   gradient` (called from inside `compute_tangent_energy_error`) needs
+   -- `KeyError: 'N'`. Fixed by adding `"N": N` to the dict; re-ran the
+   smoke test (tiny fine_N=33, N=11/17) and got sane real numbers
+   (energy_norm_rel 3.8e-2/2.7e-2, peak_stress_rel_err 0.20/0.12)
+   before trusting it at production scale.
+3. `Round6_NO_Inference_vs_TorchFEM_N1401.ipynb` (task #12): reuses
+   `build_sample_b1(N=1401, seed=0, material='neo_hookean',
+   solve_fem=False)` (resolution_invariance_zeroshot.py) to build the
+   N=1401 mesh/BC/material structure WITHOUT solving the expensive FEM
+   ground truth (not needed for a timing-only measurement), fed into
+   `benchmark_inference_latency_Q4` (train_B1.py) -- the exact same
+   protocol that produced Table 7's own number. Compares against BOTH
+   torch-fem N=1401 numbers now on record (133.83s matched, 29.1s old
+   unmatched) so Omar can see which one Timon meant once this lands.
+   Explicitly states the real caveat in its own printed analysis: N=1401
+   is far beyond any resolution this operator's own zero-shot study
+   ever validated (up to N=49 only) -- fast inference there is not
+   evidence of accuracy. Checkpoint path in the cell is a guess (`CKPT`
+   near the top) with a fallback and an assert -- may need updating
+   once run for real.
+
+All 3 registered in `make_round6_notebooks.py`, 55/55 notebooks
+verified. Not yet run for real on Colab -- sent to Omar to run next.
+Committed (ee51f14 for the notebooks/code; the paragraph-282 fix is in
+the live scratchpad Report docx, not git-tracked per this project's
+own established pattern for deliverable docx files -- needs to be
+re-sent to Omar as an updated file.)
+
+Previous update, 2026-09-10 (**Cross-validation against "ours" own solver
 FAILED -- found a real, unresolved, reproducible correctness problem
 in TensorMesh's own quad-element energy integration, before trusting
 ANY TensorMesh number.** Per this project's own standing discipline
