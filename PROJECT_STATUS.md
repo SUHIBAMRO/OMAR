@@ -5,7 +5,71 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Reaction-force + per-component PK1 stress
+Last updated: 2026-09-10 (**TensorMesh's N=51 ceiling BROKEN via a real
+sparse Jacobian, per Omar's explicit instruction ("صلح تينسور وخلينا
+نكملها كما هو مطلوب"). This is the fix for the dense-Jacobian scaling
+wall documented in the previous entries, not a workaround around it.**
+
+**`build_sparse_jac_fn`** (new, `tensormesh_comparison.py`): an explicit
+`jac_fn` for TensorMesh's own `nonlinear_solve`, whose exact contract
+(`jac_fn(u, A, *params) -> (val, row, col, shape)`, a sparse COO triple)
+was confirmed by reading `torch_sla`'s installed source directly, not
+assumed. Built by REUSING this project's own already-correct,
+already-fast per-element Hessian machinery
+(`matrix_free_solver.py`'s `vmap(hessian(_local_element_energy))`, the
+SAME function "ours" own matrix-free solver already uses for its
+Hessian-vector products) -- standard FEM assembly: each element's local
+8x8 (Q4) Hessian is scatter-added into a global sparse COO structure by
+node connectivity, with fixed-DOF rows overridden to identity to match
+the residual's own `torch.where(free_mask_dof, res, u_flat)`
+convention. Correctness of reusing "ours" own energy Hessian for
+TensorMesh's own tangent rests on the already-verified fact that the
+two solvers' residuals (same Neo-Hookean psi(mu, lam)) already agree to
+~10 significant digits.
+
+**Real, measured result (CPU, this environment, before touching
+Colab)**:
+
+| N | dense Jacobian (old) | sparse Jacobian (new) |
+|---|---|---|
+| 51 | 105.27s | 0.42-0.49s (~215-250x faster) |
+| 101 | (untested, dense) | 2.22s |
+| 201 | (untested, dense) | 9.32s |
+| 401 | ~10 DAYS (projected) | **62.77s** |
+
+Correctness re-verified at N=51 against "ours" own solver: relative
+displacement-field difference 1.212e-11 -- IDENTICAL to the dense-
+Jacobian result (1.269e-11 at N=3, same order at N=51), confirming the
+sparse Jacobian is not just faster but exactly as correct.
+
+**New sweep function** `run_tensormesh_convergence_study` (mirrors
+`torchfem_comparison.py`'s own `run_convergence_study` exactly: same
+fine reference, same `compute_l2_h1_errors`/`fit_convergence_rate`,
+same resumability), smoke-tested locally at N=11/21 before Colab
+(L2 p=1.849, H1 p=1.450 -- in the expected ballpark for a 2-point fit).
+New CLI subcommand: `python -m omar_pfem.tensormesh_comparison
+convergence <Ns> <out_json> <ckpt_dir> <fine_N>`.
+
+**New Colab notebook built** (not yet run):
+`Round6_TensorMesh_Convergence_Production.ipynb` /
+`cell_tensormesh_convergence_production.py`. Targets N=401/701/1001/
+1401, matching torch-fem's own sweep exactly, against the same fine
+reference. One real caveat flagged in the notebook itself (confirmed
+by reading torch_sla's own source, not assumed): `CUDA_ITERATIVE_
+THRESHOLD = 2_000_000` means N=1001 (2,004,002 DOF) and N=1401
+(3,925,602 DOF) may silently fall back from a true direct solve to an
+iterative one on CUDA -- the notebook watches for and reports this
+rather than assuming `linear_method='lu'` was honored throughout.
+58/58 notebooks verified.
+
+**Not yet done**: running this notebook for the real GPU numbers at
+production scale, and folding the result into both documents (Summary
+Point 5 currently still describes the N=51 ceiling as the practical
+limit -- that framing is now STALE and needs updating once this real
+result comes back, the same "retract and replace" discipline used for
+the earlier TensorMesh quadrature-bug retraction).
+
+Previous update, 2026-09-10 (**Reaction-force + per-component PK1 stress
 notebook RUN FOR REAL on Colab (A100) -- the "all QoIs at large DOF"
 claim is now literally true, not caveated.** Real result, both sides
 computed from the same code path:

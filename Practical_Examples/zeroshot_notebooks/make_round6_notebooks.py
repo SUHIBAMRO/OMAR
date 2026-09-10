@@ -1350,6 +1350,34 @@ NOTEBOOKS = {
          "* Separate out_json files from task #9's own run — its "
          "resumability keys on N alone, so reusing the same file would\n",
          "  silently keep the old rows that lack these new fields.\n"]),
+    "Round6_TensorMesh_Convergence_Production.ipynb": (
+        "cell_tensormesh_convergence_production.py",
+        ["# TensorMesh production-scale convergence (N=401-1401), sparse jac_fn\n",
+         "\n",
+         "Per Omar's explicit instruction (\"صلح تينسور وخلينا نكملها كما هو مطلوب\" — "
+         "fix TensorMesh and let's finish it as required): the default\n",
+         "dense-then-sparsify Jacobian in TensorMesh's own nonlinear_solve was "
+         "measured to be intractable past N=51 (~10 days projected for N=401).\n",
+         "\n",
+         "**The fix**: an explicit sparse jac_fn (tensormesh_comparison.py's "
+         "build_sparse_jac_fn), reusing this project's OWN already-correct,\n",
+         "already-fast per-element Hessian machinery (matrix_free_solver.py's "
+         "vmap+hessian local tangent) rather than re-deriving assembly from\n",
+         "scratch. Real, measured result on CPU alone, before this notebook "
+         "ever ran: N=51 dropped from 105.27s (dense) to 0.42-0.49s (sparse) —\n",
+         "same accuracy (relative displacement-field difference 1.212e-11, "
+         "unchanged). N=401 (torch-fem's own smallest production point)\n",
+         "solved in 62.77s on CPU alone, previously projected at ~10 days.\n",
+         "\n",
+         "* Targets N=401/701/1001/1401, matching torch-fem's own sweep "
+         "exactly, against the same fine ~10M-DOF reference.\n",
+         "* Produces a 2-panel figure (L2 error; wall-clock time, both "
+         "TensorMesh vs. torch-fem) plus a printed per-N analysis.\n",
+         "* Watch for a jump in TensorMesh's own wall-clock between N=701 "
+         "and N=1001 — that would be torch_sla's own\n",
+         "  CUDA_ITERATIVE_THRESHOLD (2,000,000 DOF) switching the direct "
+         "solver to an iterative fallback, not a regression.\n",
+         "* **Resumable**: skips resolutions already in its own out_json.\n"]),
     "Round6_NO_Inference_vs_TorchFEM_N1401.ipynb": (
         "cell_no_inference_vs_torchfem_N1401.py",
         ["# NO inference time vs. torch-fem at N=1401 (round-9, item 12)\n",

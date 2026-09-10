@@ -82,7 +82,8 @@ above).
 import numpy as np
 import torch
 
-from omar_pfem.high_dof_convergence_study import build_mesh_and_bcs
+from omar_pfem.high_dof_convergence_study import (
+    build_mesh_and_bcs, solve_one, compute_l2_h1_errors, fit_convergence_rate)
 
 
 def to_tensormesh_element_order(elements):
@@ -146,22 +147,122 @@ def build_tensormesh_model(nodes, elements, mu, lam, dtype=torch.float64):
     return tm_mesh, model, mu_t, lam_t
 
 
+def build_sparse_jac_fn(nodes, elements, mu, lam, free_mask_dof, material, order, device, dtype):
+    """Explicit sparse dF/du for TensorMesh's own nonlinear_solve (the
+    ``jac_fn`` hook, contract confirmed by reading torch_sla's installed
+    source directly: ``jac_fn(u, A, *params) -> (val, row, col, shape)``,
+    a sparse COO triple), replacing its default ``jac_fn=None`` path -- a
+    literal dense torch.autograd.functional.jacobian call, confirmed by
+    the SAME source reading, which this module's own docstring already
+    measured as intractable past N=51 (~10 days projected at N=401).
+
+    Built by reusing THIS PROJECT'S OWN already-correct, already-fast
+    matrix-free machinery (matrix_free_solver.py's own vmap+hessian
+    per-element tangent, the same one "ours" own solver already uses for
+    its Hessian-vector products) -- NOT by re-deriving element assembly
+    from scratch, and not by asking TensorMesh's own ElementAssembler for
+    a tangent it does not expose. Correctness of this reuse rests on the
+    already-verified fact (this module's own _correctness_check) that
+    TensorMesh's residual, built from the SAME Neo-Hookean psi(mu, lam),
+    matches "ours" own solver to ~10 significant digits -- so the SAME
+    energy's Hessian is the correct tangent for both.
+
+    Standard FEM assembly: for each element and each pair of its local
+    nodes (a, b), the local 8x8 (Q4) Hessian's own 2x2 sub-block
+    H[2a:2a+2, 2b:2b+2] is scatter-added (via a COO triple with possibly
+    repeated (row, col) -- summed by the backend's own COO->CSR/CSC
+    conversion, the same "shared-DOF contributions add" rule every FEM
+    assembler relies on, not something this code does by hand) at global
+    rows/cols 2*quad[:,a]+ca, 2*quad[:,b]+cb. Rows belonging to a FIXED
+    DOF are then overridden with a single identity entry (1 on the
+    diagonal, nothing else) -- matching residual()'s own
+    ``torch.where(free_mask_dof, res, u_flat)`` convention exactly:
+    d(u_flat[i])/d(u_flat[j]) = 1 if i==j else 0 for a fixed row.
+
+    The (row, col) index structure is built ONCE (element connectivity
+    never changes across Newton iterations); only the VALUES are
+    recomputed each call, at the cost of one vmapped 8x8 Hessian per
+    element -- the same cost "ours" own matrix-free solver already pays
+    every CG iteration, not a new one."""
+    from omar_pfem.matrix_free_solver import precompute_shape_data, _local_element_energy
+    from omar_pfem.materials_torch import get_material_fns as get_material_fns_torch
+    from torch.func import hessian, vmap
+
+    energy_density_fn, _ = get_material_fns_torch(material)
+    shape_data = precompute_shape_data(order, device, dtype)
+    xy = torch.tensor(nodes, dtype=dtype, device=device)
+    quad = torch.tensor(elements, dtype=torch.long, device=device)
+    n_nodes = xy.shape[0]
+    n_dof = 2 * n_nodes
+    n_elem, n_local = quad.shape
+    elem_params = (torch.as_tensor(mu, dtype=dtype, device=device),
+                   torch.as_tensor(lam, dtype=dtype, device=device))
+    Xe_all = xy[quad]  # (n_elem, n_local, 2)
+
+    local_hess_fn = hessian(_local_element_energy, argnums=0)
+    batched_hess = vmap(local_hess_fn, in_dims=(0, 0, 0, None, None, None))
+
+    # Static (row, col) template: one entry per (element, local-node-pair,
+    # component-pair) -- (n_elem, n_local, n_local, 2, 2) flattened.
+    rows, cols = [], []
+    for a in range(n_local):
+        for b in range(n_local):
+            for ca in range(2):
+                for cb in range(2):
+                    rows.append(2 * quad[:, a] + ca)
+                    cols.append(2 * quad[:, b] + cb)
+    row_template = torch.cat(rows)
+    col_template = torch.cat(cols)
+    free_row_mask = free_mask_dof[row_template]
+    fixed_idx = (~free_mask_dof).nonzero(as_tuple=True)[0]
+
+    def jac_fn(u, _A, *_params):
+        ue_all = u.reshape(n_nodes, 2)[quad].reshape(n_elem, -1)  # (n_elem, 2*n_local)
+        H_local = batched_hess(ue_all, Xe_all, elem_params, energy_density_fn, shape_data,
+                                dtype)  # (n_elem, 2*n_local, 2*n_local)
+        vals = []
+        for a in range(n_local):
+            for b in range(n_local):
+                block = H_local[:, 2 * a:2 * a + 2, 2 * b:2 * b + 2]  # (n_elem, 2, 2)
+                for ca in range(2):
+                    for cb in range(2):
+                        vals.append(block[:, ca, cb])
+        val_template = torch.cat(vals)
+        val = torch.where(free_row_mask, val_template, torch.zeros_like(val_template))
+        val = torch.cat([val, torch.ones(fixed_idx.shape[0], dtype=dtype, device=device)])
+        row = torch.cat([row_template, fixed_idx])
+        col = torch.cat([col_template, fixed_idx])
+        return val.detach(), row, col, (n_dof, n_dof)
+
+    return jac_fn
+
+
 def solve_tensormesh(nodes, elements, free_dofs, fext_full, mu, lam, dtype=torch.float64,
-                      tol=1e-8, method="newton", linear_method="lu"):
+                      tol=1e-8, method="newton", linear_method="lu", material="neo_hookean",
+                      order="Q4", device=None, use_sparse_jac=True):
     """Newton + direct solver (per Timon's own request), NOT the
     L-BFGS energy-minimization approach TensorMesh's own hyperelastic_
     beam.py example uses. Returns the full nodal displacement field,
     shape (n_nodes, 2), matching solve_ours'/solve_theirs' own return
-    convention in torchfem_comparison.py."""
+    convention in torchfem_comparison.py.
+
+    use_sparse_jac=True (the default, and the whole point of this
+    module's 2026-09-10 extension): builds and passes an explicit
+    sparse jac_fn (build_sparse_jac_fn), replacing nonlinear_solve's
+    own default dense-then-sparsify Jacobian -- the fix that scales this
+    comparison past the ~N=51 ceiling the dense path was measured to
+    hit. use_sparse_jac=False keeps the original dense-default behavior,
+    for _correctness_check's own A/B comparison against it."""
     from tensormesh import LinearElasticityElementAssembler
 
+    device = device or torch.device("cpu")
     torch.set_default_dtype(dtype)
     n_nodes = nodes.shape[0]
     tm_mesh, model, mu_t, lam_t = build_tensormesh_model(nodes, elements, mu, lam, dtype=dtype)
 
     fixed_set = set(np.setdiff1d(np.arange(n_nodes * 2), free_dofs).tolist())
-    free_mask_dof = torch.tensor([i not in fixed_set for i in range(n_nodes * 2)])
-    f_ext_flat = torch.tensor(fext_full, dtype=dtype)
+    free_mask_dof = torch.tensor([i not in fixed_set for i in range(n_nodes * 2)], device=device)
+    f_ext_flat = torch.tensor(fext_full, dtype=dtype, device=device)
 
     def energy_fn(u_flat):
         return model.energy(point_data={"u": u_flat.reshape(n_nodes, 2)},
@@ -174,15 +275,95 @@ def solve_tensormesh(nodes, elements, free_dofs, fext_full, mu, lam, dtype=torch
 
     # LinearElasticityElementAssembler used only for its correctly-sized/
     # patterned SparseMatrix object to call .nonlinear_solve on -- its
-    # own linear physics is irrelevant here (nonlinear_solve's default
-    # Jacobian path is its own dense-then-sparsify autograd Jacobian,
-    # not this K's values; see this module's own docstring).
+    # own linear physics is irrelevant here; the real tangent comes from
+    # build_sparse_jac_fn (or, if use_sparse_jac=False, from
+    # nonlinear_solve's own default dense-then-sparsify autograd path).
     K = LinearElasticityElementAssembler.from_mesh(tm_mesh, E=1.0, nu=0.3)(tm_mesh.points)
 
-    u0 = torch.zeros(n_nodes * 2, dtype=dtype)
-    u = K.nonlinear_solve(residual, u0, f_ext_flat, method=method, verbose=False,
+    jac_fn = None
+    if use_sparse_jac:
+        jac_fn = build_sparse_jac_fn(nodes, elements, mu, lam, free_mask_dof, material, order,
+                                      device, dtype)
+
+    u0 = torch.zeros(n_nodes * 2, dtype=dtype, device=device)
+    u = K.nonlinear_solve(residual, u0, f_ext_flat, jac_fn=jac_fn, method=method, verbose=False,
                            max_iter=30, tol=tol, linear_method=linear_method)
-    return u.reshape(n_nodes, 2).detach().numpy()
+    return u.reshape(n_nodes, 2).detach().cpu().numpy()
+
+
+def run_tensormesh_convergence_study(resolutions, out_json, geometry="B1", material="neo_hookean",
+                                      order="Q4", fine_N=2236, checkpoint_dir=None, device=None,
+                                      tol=1e-8, dtype=torch.float64):
+    """TensorMesh's own ACCURACY and MESH CONVERGENCE at PRODUCTION scale,
+    against the exact same fine ~10M-DOF reference used throughout this
+    project (and by torchfem_comparison.py's own run_convergence_study,
+    for a genuine apples-to-apples comparison across all three: "ours",
+    torch-fem, and TensorMesh). Only possible past N=51 because of
+    build_sparse_jac_fn -- with the default dense Jacobian this same
+    sweep was measured (2026-09-10) to project ~10 days for a single
+    N=401 solve; with the sparse Jacobian, N=401 solves in ~63s on CPU
+    alone (real, measured, not extrapolated).
+
+    Resumable like every other sweep in this project: writes progress
+    after every row, skips resolutions already in out_json."""
+    import json
+    import os
+
+    device = device or (torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu'))
+    print('device:', device)
+
+    fine_ckpt = (os.path.join(checkpoint_dir, f"fine_{geometry}_{material}_{order}_N{fine_N}.pt")
+                 if checkpoint_dir else None)
+    print(f'Loading/resuming fine reference N={fine_N} (checkpoint={fine_ckpt})...')
+    fine = solve_one(geometry, order, fine_N, material, device, torch.float64,
+                      cg_tol=1e-8, newton_tol=1e-8, checkpoint_path=fine_ckpt)
+    print(f'  fine reference ready: n_dof={fine["n_dof"]}, wall_clock_s={fine["wall_clock_s"]:.1f}')
+
+    done = {}
+    if out_json and os.path.exists(out_json):
+        with open(out_json) as f:
+            done = {r["N"]: r for r in json.load(f).get("rows", [])}
+    rows = list(done.values())
+
+    for N in resolutions:
+        if N in done:
+            print(f'  N={N} already in {out_json}, skipping')
+            continue
+        nodes, elements, free_dofs, fext_full, elem_params = build_mesh_and_bcs(
+            geometry, order, N, material, device, dtype)
+        mu, lam = elem_params
+
+        import time
+        t0 = time.time()
+        u_tm = solve_tensormesh(nodes, elements, free_dofs, fext_full, mu, lam, dtype=dtype,
+                                 tol=tol, material=material, order=order, device=device)
+        elapsed = time.time() - t0
+
+        coarse = {"nodes": nodes, "elements": elements, "N": N,
+                  "u": u_tm.reshape(len(nodes), 2)}
+        errs = compute_l2_h1_errors(coarse, fine, order, geometry)
+
+        row = {"N": N, "n_dof": int(2 * nodes.shape[0]), "tol": tol,
+               "tensormesh_wall_clock_s": elapsed,
+               "l2_rel": errs["l2_rel"], "h1_semi_rel": errs["h1_semi_rel"]}
+        print(f'  N={N}: wall_clock={elapsed:.2f}s l2_rel={errs["l2_rel"]:.3e} '
+              f'h1_semi_rel={errs["h1_semi_rel"]:.3e}')
+        rows.append(row)
+        rows.sort(key=lambda r: r["N"])
+        if out_json:
+            with open(out_json, "w") as f:
+                json.dump({"geometry": geometry, "material": material, "order": order,
+                           "fine_N": fine_N, "device": str(device), "tol": tol,
+                           "rows": rows}, f, indent=2)
+
+    sub_fine_rows = [r for r in rows if r["N"] < fine_N]
+    hs = [1.0 / (r["N"] - 1) for r in sub_fine_rows]
+    if len(hs) >= 2:
+        rate_l2, _ = fit_convergence_rate(hs, [r["l2_rel"] for r in sub_fine_rows])
+        rate_h1, _ = fit_convergence_rate(hs, [r["h1_semi_rel"] for r in sub_fine_rows])
+        print(f'\nFitted convergence rate (TensorMesh, {order}): L2 p={rate_l2:.3f} '
+              f'(expected 2), H1 p={rate_h1:.3f} (expected 1)')
+    return rows
 
 
 def _correctness_check(N=3):
@@ -213,6 +394,14 @@ def _correctness_check(N=3):
 
 if __name__ == "__main__":
     import sys
-    N = int(sys.argv[1]) if len(sys.argv) > 1 else 3
-    ok, _rel_diff = _correctness_check(N)
-    sys.exit(0 if ok else 1)
+    if len(sys.argv) > 1 and sys.argv[1] == "convergence":
+        # python -m omar_pfem.tensormesh_comparison convergence <Ns> <out_json> <ckpt_dir> <fine_N>
+        Ns = [int(n) for n in sys.argv[2].split(",")]
+        out_json = sys.argv[3]
+        ckpt_dir = sys.argv[4] if len(sys.argv) > 4 else None
+        fine_N = int(sys.argv[5]) if len(sys.argv) > 5 else 2236
+        run_tensormesh_convergence_study(Ns, out_json, checkpoint_dir=ckpt_dir, fine_N=fine_N)
+    else:
+        N = int(sys.argv[1]) if len(sys.argv) > 1 else 3
+        ok, _rel_diff = _correctness_check(N)
+        sys.exit(0 if ok else 1)
