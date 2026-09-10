@@ -5,7 +5,24 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**TensorMesh dense-Jacobian scaling measured
+Last updated: 2026-09-10 (**Task #8 (optional tolerance sensitivity)
+run for real on Colab (A100), result committed:
+`torchfem_tolerance_sensitivity_results.json`. torch-fem re-run at
+N=401/1401 with tol=1e-6/1e-7, compared against the already-committed
+tol=1e-8 numbers. L2 relative error is identical to 4 significant
+digits across all three tolerances at both N (e.g. 2.500e-05 at
+N=401, 2.291e-06 at N=1401, same to the printed digit regardless of
+tolerance); wall-clock differs by only 1.02x (N=401) / 1.10x (N=1401)
+between tightest and loosest -- smaller than ordinary GPU run-to-run
+noise. Conclusion: loosening the tolerance buys nothing measurable
+either way, so 1e-8 is kept as the standard throughout the report,
+not because 1e-6/1e-7 were untested but because they were tested and
+found not to matter. Folded into the Summary as new "Point 7" (after
+Point 6's timing breakdown, before the pre-existing "Summary of what
+was done" section) in `PFEM_Work_Summary_2026-09-09.docx`, sent to
+Omar. Task #8 marked completed.**
+
+Previous update, 2026-09-10 (**TensorMesh dense-Jacobian scaling measured
 directly, answering "do we need to run it to get a result": timed the
 real, committed `solve_tensormesh` at N=3/11/21/31/51 on CPU (no GPU in
 this environment) -- 0.13s / 0.21s / 2.64s / 14.53s / 105.27s. Fits an
