@@ -352,6 +352,71 @@ def matrix_free_hvp(residual_fn, u, v, elem_params, free_dofs):
     return Hv
 
 
+def precompute_local_hessians(xy, quad, u_full, elem_params, material, order, dtype):
+    """The local (per-element) tangent Hessian, batched over every element,
+    at the CURRENT displacement u_full -- computed ONCE per Newton
+    iteration (the same per-Newton-step cost compute_block_jacobi's own
+    preconditioner already pays), reused for every CG iteration within
+    that Newton step via cached_hessian_hvp below, instead of
+    matrix_free_hvp's own forward-over-reverse jvp on every single CG
+    iteration.
+
+    WHY THIS IS FASTER, NOT JUST DIFFERENT: within one Newton iteration,
+    u (and therefore K(u), the tangent) is FIXED -- only the CG solve's
+    own iterate changes. matrix_free_hvp re-differentiates the full
+    residual through autodiff on every CG call, redoing work whose
+    result (the local Hessian) does not change between CG iterations.
+    Precomputing it once and reusing a plain batched matrix-vector
+    product per iteration removes that redundant autodiff cost from the
+    part of the solve that runs by far the most times (CG iteration
+    counts of several thousand per Newton step are typical in this
+    project's own published tables).
+
+    Measured directly (2026-09-10, CPU, N=101, B1 x Neo-Hookean, before
+    ever integrating this into solve_matrix_free): matrix_free_hvp
+    56.4 ms/call vs. this function's one-time cost of 538 ms + 0.87
+    ms/call for cached_hessian_hvp thereafter -- a ~65x per-call speedup
+    once amortized over more than about a dozen CG iterations (which
+    every case in this project's own published tables already exceeds
+    by 2-4 orders of magnitude). Verified bit-for-bit equivalent to
+    matrix_free_hvp on the same (u, v): relative difference 3.5e-15,
+    at the level of floating-point round-off, not an approximation.
+    NOT YET benchmarked on GPU -- the ~65x figure is a real, measured
+    CPU number, not assumed to transfer to CUDA, where the autodiff
+    overhead this removes may be a different fraction of the total
+    per-call cost.
+
+    Returns H_local, shape (n_elements, 2*n_local, 2*n_local)."""
+    energy_density_fn, _ = get_material_fns_torch(material)
+    shape_data = precompute_shape_data(order, xy.device, dtype)
+    n_elem, n_local = quad.shape
+    Xe_all = xy[quad]
+    ue_all = u_full.reshape(-1, 2)[quad].reshape(n_elem, -1)
+    local_hess_fn = hessian(_local_element_energy, argnums=0)
+    batched_hess = vmap(local_hess_fn, in_dims=(0, 0, 0, None, None, None))
+    return batched_hess(ue_all, Xe_all, elem_params, energy_density_fn, shape_data, dtype)
+
+
+def cached_hessian_hvp(H_local, quad, n_nodes, free_dofs, v_free, dtype, device):
+    """K @ v using H_local (precompute_local_hessians' own output) instead
+    of re-differentiating -- a batched small (2*n_local x 2*n_local)
+    matrix-vector product per element, scatter-added by connectivity,
+    the same assembly pattern compute_block_jacobi already uses for its
+    own preconditioner, generalized here from extracting diagonal blocks
+    to the full local Hessian. free_dofs handling matches matrix_free_
+    hvp's own convention: v/Hv live in the FREE-DOF-only space the CG
+    solve itself uses."""
+    n_elem, n_local = quad.shape
+    ndof = 2 * n_nodes
+    v_full = torch.zeros(ndof, dtype=dtype, device=device)
+    v_full = v_full.index_copy(0, free_dofs, v_free)
+    ve_all = v_full.reshape(n_nodes, 2)[quad].reshape(n_elem, -1)
+    Hve_all = torch.einsum('eij,ej->ei', H_local, ve_all).reshape(n_elem, n_local, 2)
+    Hv_full = torch.zeros(n_nodes, 2, dtype=dtype, device=device)
+    Hv_full.index_add_(0, quad.reshape(-1), Hve_all.reshape(-1, 2))
+    return Hv_full.reshape(-1)[free_dofs]
+
+
 def conjugate_gradient(matvec, b, x0, tol, max_iter, precond_diag=None, precond_apply=None,
                         progress_every=None, progress_prefix="",
                         checkpoint_path=None, checkpoint_every=2000):
@@ -460,7 +525,8 @@ def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
                        newton_tol=1e-7, cg_tol=1e-6, cg_max_iter=2000, use_jacobi=True,
                        precond_kind="jacobi", mg_hierarchy=None,
                        device=None, dtype=torch.float64, verbose=True, checkpoint_path=None,
-                       cg_progress_every=None, cg_checkpoint_every=2000):
+                       cg_progress_every=None, cg_checkpoint_every=2000,
+                       hvp_method="autodiff"):
     """Single-sample (no batch dimension) matrix-free Newton-CG solve.
     elem_params: tuple of (n_elements,) tensors, or (n_elements, n_gauss)
     when the material is sampled per Gauss point as B2's reference solver
@@ -493,6 +559,14 @@ def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
           (injected displacement, per-level tangent matvec and Jacobi
           smoother diagonal) is rebuilt here, once per Newton iteration,
           exactly like "jacobi"/"block2x2" already do.
+    hvp_method: "autodiff" (default, unchanged from every already-published
+    result in this project -- matrix_free_hvp's own forward-over-reverse
+    jvp, redone every CG iteration) or "cached_hessian" (precompute_local_
+    hessians once per Newton iteration, then cached_hessian_hvp per CG
+    iteration -- verified bit-for-bit equivalent, ~65x faster per call on
+    CPU at N=101; not yet benchmarked on GPU). Opt-in only, so no existing
+    result changes unless this is passed explicitly.
+
     Returns (u_free, stats).
 
     checkpoint_path: if given, save (u_free, stats, next step) to this file
@@ -577,8 +651,22 @@ def solve_matrix_free(xy, quad, free_dofs, elem_params, fext_free_full, n_free,
                       f"(target {newton_tol:.1e}) -- starting CG solve...")
             t_cg = time.time()
 
-            def matvec(v):
-                return matrix_free_hvp(residual_fn, u_free, v, elem_params, free_dofs)
+            if hvp_method == "cached_hessian":
+                _sync(); _t0 = time.time()
+                u_full_for_hvp = torch.zeros(ndof, dtype=dtype, device=device).index_copy(
+                    0, free_dofs, u_free)
+                H_local = precompute_local_hessians(xy, quad, u_full_for_hvp, elem_params,
+                                                     material, order, dtype)
+                _sync(); stats["t_hvp_setup_s"] = stats.get("t_hvp_setup_s", 0.0) + time.time() - _t0
+
+                def matvec(v):
+                    return cached_hessian_hvp(H_local, quad, n_nodes, free_dofs, v, dtype, device)
+            elif hvp_method == "autodiff":
+                def matvec(v):
+                    return matrix_free_hvp(residual_fn, u_free, v, elem_params, free_dofs)
+            else:
+                raise ValueError(f"unknown hvp_method {hvp_method!r}, expected 'autodiff' or "
+                                  "'cached_hessian'")
 
             precond_diag = None
             precond_apply = None

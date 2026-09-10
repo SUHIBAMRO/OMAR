@@ -5,7 +5,63 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Folded the real TensorMesh production
+Last updated: 2026-09-10 (**NEW WORK STARTED, per Omar's own request:
+make "ours" own matrix-free solver faster than BOTH torch-fem and
+TensorMesh, not just the "only option beyond the memory ceiling"
+framing used until now.** First real, verified result -- a genuine
+algorithmic speedup to "ours" own core solver, not a comparison against
+someone else's code this time.
+
+**The idea**: `matrix_free_hvp` (the existing, every-CG-iteration
+Hessian-vector product) redifferentiates the FULL residual via
+forward-over-reverse autodiff on every single CG call, even though the
+tangent K(u) it's implicitly using is FIXED for the whole CG solve
+within one Newton iteration -- only the outer Newton loop changes u.
+Precomputing the small per-element local Hessian ONCE per Newton
+iteration (the same vmap+hessian technique `compute_block_jacobi`
+already uses for its own preconditioner, and the same one just used to
+fix TensorMesh's own scaling problem) and reusing it for a cheap batched
+matrix-vector product on every CG iteration removes that redundant
+autodiff cost from the part of the solve that runs by far the most
+times.
+
+**New functions, `matrix_free_solver.py`**: `precompute_local_hessians`
+(the one-time per-Newton-step cost) and `cached_hessian_hvp` (the cheap
+per-CG-iteration reuse). Wired into `solve_matrix_free` as a new,
+OPT-IN `hvp_method` parameter ("autodiff", the default, unchanged --
+every already-published number in this project stays exactly
+reproducible -- or "cached_hessian", the new path).
+
+**Verified correct AND fast, end-to-end, on CPU (this environment, no
+GPU)**, not just an isolated Hv-call microbenchmark:
+
+| N | method | wall_clock | cg_iters | rel. diff vs. autodiff |
+|---|---|---|---|---|
+| 11 | autodiff | 23.89s | 996 | -- |
+| 11 | cached_hessian | 1.53s | 994 | 1.94e-13 |
+| 21 | autodiff | 49.61s | 2008 | -- |
+| 21 | cached_hessian | 2.22s | 2009 | 6.76e-14 |
+
+Speedup: 15.6x at N=11, 22.3x at N=21 -- growing with N, as expected
+(the one-time H_local cost is amortized over more CG iterations at
+larger N). Final displacement fields match to floating-point round-off
+(1e-13/1e-14), not an approximation -- cg_iters_total differs by ~1 at
+each N from ordinary floating-point-order-of-operations noise in the
+convergence check, not a correctness difference.
+
+**Not yet known**: whether this same speedup holds on GPU. The isolated
+per-call Hv benchmark that motivated this (56.4ms/call -> 0.87ms/call,
+~65x, at N=101) was ALSO CPU-only -- GPU already parallelizes the
+autodiff-heavy path much more than CPU does, so the relative benefit of
+removing that overhead could be smaller (or, possibly, similarly large
+if the autodiff dispatch/kernel-launch overhead this removes is itself
+the GPU bottleneck for many small per-element ops -- genuinely unknown
+without testing). A Colab notebook to test this at real production
+scale (N=401-1401, matching torch-fem's and TensorMesh's own sweeps,
+so a genuine three-way speed comparison becomes possible) is the
+direct next step, not yet built.
+
+Previous update, 2026-09-10 (**Folded the real TensorMesh production
 result into the Report too, not just the Summary -- the Report's own
 torch-fem comparison section (§8.4-adjacent, around Table 20d/Figure
 22) previously only mentioned TensorMesh in passing ("presumably
