@@ -1,0 +1,16 @@
+{
+  "description": "Real, measured wall-clock time of solve_tensormesh (Newton + direct/LU, dense-Jacobian default path) at increasing mesh resolution, B1 x Neo-Hookean, CPU (no GPU in this environment). Used to answer whether TensorMesh's current code can produce a result at torch-fem's own production sweep sizes (N=401...1401) without first writing an explicit sparse jac_fn.",
+  "device": "cpu",
+  "geometry": "B1",
+  "material": "neo_hookean",
+  "order": "Q4",
+  "rows": [
+    {"N": 3,  "n_dof": 18,   "wall_clock_s": 0.13},
+    {"N": 11, "n_dof": 242,  "wall_clock_s": 0.21},
+    {"N": 21, "n_dof": 882,  "wall_clock_s": 2.64},
+    {"N": 31, "n_dof": 1922, "wall_clock_s": 14.53},
+    {"N": 51, "n_dof": 5202, "wall_clock_s": 105.27}
+  ],
+  "fitted_scaling_exponent_dof": 2.19,
+  "note": "Fit uses the last two points (N=31, N=51). Extrapolating to torch-fem's own smallest PRODUCTION resolution (N=401, 321,602 DOF) gives on the order of 10 days of CPU time for a single such solve -- this is the real basis for treating N=51 as the practical ceiling for the current dense-Jacobian default path, not a guess."
+}

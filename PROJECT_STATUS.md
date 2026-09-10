@@ -5,7 +5,27 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**TensorMesh bug RETRACTED -- it was never a
+Last updated: 2026-09-10 (**TensorMesh dense-Jacobian scaling measured
+directly, answering "do we need to run it to get a result": timed the
+real, committed `solve_tensormesh` at N=3/11/21/31/51 on CPU (no GPU in
+this environment) -- 0.13s / 0.21s / 2.64s / 14.53s / 105.27s. Fits an
+empirical dof^2.2 scaling law from the last two points. Extrapolating
+that law to torch-fem's own smallest PRODUCTION resolution, N=401
+(321,602 DOF, vs. N=51's 5,202), gives roughly 10 days of CPU time for
+ONE such run -- even a generous 50-100x GPU speedup for dense linear
+algebra leaves hours, not seconds, and Newton needs several such solves
+per case, not one. Conclusion, with real numbers behind it rather than
+a guess: N=51 (matching torch-fem's own smallest sweep point) is the
+ceiling for what the CURRENT dense-Jacobian code can produce as a real
+result -- already run, now committed as real evidence. Anything past
+N=51 (i.e. torch-fem's own N=401...1401 range) is not "slow," it is
+intractable without first writing an explicit sparse `jac_fn` -- this
+is now a concrete, evidence-backed decision point for Omar, not an
+open-ended one: invest in the sparse Jacobian (real added engineering),
+or treat TensorMesh's role in the report as "confirmed correct at
+small scale, not pursued at production scale for a documented reason."
+
+Previous update, 2026-09-10 (**TensorMesh bug RETRACTED -- it was never a
 library bug, it was this project's own usage mistake, now found and
 fixed. Real B1 x Neo-Hookean result now matches "ours" to ~10
 significant digits.** Per Omar's explicit instruction to keep trying
