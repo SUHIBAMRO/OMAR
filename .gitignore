@@ -32,3 +32,4 @@ core.32826
 *.pkl
 *.h5
 __pycache__/
+.gmsh_cache/
