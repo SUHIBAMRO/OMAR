@@ -5,7 +5,38 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Omar corrected the priority order after his
+Last updated: 2026-09-10 (**Task #1 done: torch-fem now runs at matched
+FP64/1e-8 precision, verified with a real result.** Fixed
+`solve_theirs` in `omar_pfem/torchfem_comparison.py` -- defaults
+changed from float32/1e-3 to float64/1e-8 (tol now a parameter so
+1e-6/1e-7 are one call away), root-caused and fixed the real blocker
+(torch-fem's `near_null_space()/skew()` hardcoding `torch.eye(3)` at
+float32 regardless of model dtype -- `torch.set_default_dtype
+(torch.float64)` around `.solve()`, restored after, same pattern as
+its two known device bugs). Ran the existing N=11 correctness check at
+tol=1e-8/1e-7/1e-6: relative displacement-field difference is 3.6e-11
+at all three (essentially machine precision, tolerance doesn't
+distinguish itself yet at this tiny mesh) -- a MUCH stronger real
+answer to Timon's direct question than the old float32 pass/fail.
+Committed (6c04278).
+
+**Next step needs a decision this sandbox can't make alone:** tasks #2
+(accuracy at production N) and #6 (mesh convergence across N=51...1401)
+both need either (a) "ours" already-computed checkpoints from Google
+Drive (pfem_run) to compare torch-fem against directly at N=401 etc.
+without re-solving "ours" from scratch, or (b) the fine ~10M-DOF
+reference solution `high_dof_convergence_study.py` already used for
+Table 6a/6b/6c, so torch-fem can be run through that SAME methodology
+(evaluate_fe_field_and_gradient / compute_l2_h1_errors against the
+shared fine reference) -- which would answer accuracy AND convergence
+in one unified, more rigorous study, directly comparable to "ours" own
+Table 6a numbers, rather than a simpler ours-vs-torchfem pointwise
+diff. Either path requires fetching a large file from Google Drive (a
+per-N checkpoint, or the fine-reference checkpoint) or a fresh Colab
+session -- this local sandbox has neither. Not yet decided with Omar
+which path or which compute venue to use.)
+
+Previous update, 2026-09-10 (**Omar corrected the priority order after his
 own detailed line-by-line analysis of Timon's email** -- he was right
 that the initial cost-estimate entry undersold two things: (1) "for
 the paper, timing should only be compared after..." is a general
