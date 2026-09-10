@@ -5,7 +5,45 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Task #9 real result: torch-fem matches
+Last updated: 2026-09-10 (**Task #3 real result: timing breakdown by
+phase, AND a genuinely unexpected finding -- torch-fem's own direct
+(LU) solve is dramatically SLOWER than its CG+Jacobi at this problem,
+not faster.** Real Colab run (A100-SXM4-80GB):
+
+| N | method | total | assembly | solve | peak mem |
+|---|---|---|---|---|---|
+| 401 | cg | 11.63s | 5.04s (43%) | 6.48s | 5.7 GB |
+| 401 | direct | 166.57s | 3.67s | 162.87s | 6.0 GB |
+| 701 | cg | 25.31s | 8.74s (35%) | 16.52s | 17.3 GB |
+| 701 | direct | 835.58s | 9.01s | 826.52s | 18.2 GB |
+| 1001 | cg | 55.14s | 16.85s (31%) | 38.21s | 35.3 GB |
+| 1401 | cg | 133.43s | 32.39s (24%) | 100.88s | 69.2 GB |
+
+(direct deliberately not attempted above N=701, per the pre-registered
+plan -- untested fill-in cost at larger DOF.)
+
+**Two real findings**: (1) assembly's share of total time DECREASES
+as N grows (43% -> 35% -> 31% -> 24%) -- the CG solve itself scales
+worse than assembly with problem size, as expected for an iterative
+method without a comparably scaling preconditioner. (2) The direct
+(LU) solve is 14x slower at N=401 and 33x slower at N=701 than
+CG+Jacobi -- growing WORSE relative to CG as N increases, not better.
+This is the opposite of what Timon's own suggestion ("Newton-type
+solve with a direct solver") might have implied for TensorMesh
+specifically, but is a genuine, honest, measured result FOR TORCH-FEM
+in this comparison: a direct sparse factorization does not pay off
+here even at the smaller resolutions tested, consistent with the
+well-known fill-in cost of direct methods on 2D elasticity stiffness
+matrices at this scale. Worth stating plainly in the write-up rather
+than assumed away.
+
+"Ours" needs no new measurement (architectural point already made:
+no separate assembly/factorization phase exists for a matrix-free
+solver). Task #3 done.
+
+**Folded into both real documents** -- see the edits below this entry.
+
+Previous update, 2026-09-10 (**Task #9 real result: torch-fem matches
 "ours" on EVERY QoI at large DOF, not just L2/H1 -- 1.00x ratio across
 the board.** Real Colab run (A100-SXM4-80GB): fine reference resumed
 instantly (4.6s), peak-stress point located
