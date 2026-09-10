@@ -270,6 +270,113 @@ def solve_theirs(nodes, elements, mu, lam, fext_full, fixed_dofs, nsteps=10,
     return u.reshape(-1).cpu().numpy(), elapsed, peak_mb
 
 
+def solve_theirs_with_breakdown(nodes, elements, mu, lam, fext_full, fixed_dofs, nsteps=10,
+                                 dtype=torch.float64, device=None, tol=1e-8, method="cg",
+                                 preconditioner="jacobi"):
+    """Timon round-9 item 3 (2026-09-10): total time PLUS assembly,
+    solve/factorization, and nonlinear-iteration count, not just one
+    aggregate wall-clock number like solve_theirs above.
+
+    torch-fem's own Newton loop (torchfem.sparse.NewtonRaphsonAdjoint.
+    forward, confirmed by reading its source, not assumed) has a clean,
+    natural split already: each iteration calls `eval_residual(...)`
+    (which internally calls the model's own `integrate_material` --
+    element-level residual/tangent -- then `assemble_matrix` -- builds
+    the global sparse K -- together "assembly" in Timon's sense) and
+    THEN, only if not yet converged, calls the module-level
+    `sparse_solve(...)` function ("solve/factorization" in Timon's
+    sense -- this is also where method="direct" would do a real
+    factorization instead of CG). Neither phase is exposed as a
+    separately-timed return value by torch-fem itself, so this
+    instruments both from the outside: `assemble_matrix`/
+    `integrate_material` are monkeypatched on the MODEL INSTANCE only
+    (does not affect any other model), and `torchfem.sparse.sparse_solve`
+    is monkeypatched at module level for the duration of this call only,
+    restored in `finally:` -- the same "wrap the library's own call from
+    the outside" pattern already used for its device/dtype bugs, just
+    for timing instead of a bug fix this time.
+
+    method: "cg" (iterative, matches solve_theirs' own default) or
+    "direct" (a real factorization -- Timon's own suggestion -- but
+    direct sparse solves scale far worse than CG at millions of DOF;
+    test at small N before ever pointing this at N=1001/1401).
+
+    Returns a dict, not a bare tuple, since there are now five numbers
+    worth keeping instead of two."""
+    import torchfem.sparse as _tf_sparse
+
+    device = device or torch.device('cpu')
+    model = build_torchfem_model(nodes, elements, mu, lam, fext_full, fixed_dofs,
+                                  dtype=dtype, device=device)
+    increments = torch.linspace(0.0, 1.0, nsteps + 1, dtype=dtype, device=device)
+
+    assembly_time = 0.0
+    solve_time = 0.0
+    n_linear_solves = 0
+
+    orig_assemble_matrix = model.assemble_matrix
+    orig_integrate_material = model.integrate_material
+
+    def timed_assemble_matrix(*args, **kwargs):
+        nonlocal assembly_time
+        t = time.time()
+        out = orig_assemble_matrix(*args, **kwargs)
+        assembly_time += time.time() - t
+        return out
+
+    def timed_integrate_material(*args, **kwargs):
+        nonlocal assembly_time
+        t = time.time()
+        out = orig_integrate_material(*args, **kwargs)
+        assembly_time += time.time() - t
+        return out
+
+    model.assemble_matrix = timed_assemble_matrix
+    model.integrate_material = timed_integrate_material
+
+    orig_sparse_solve = _tf_sparse.sparse_solve
+
+    def timed_sparse_solve(*args, **kwargs):
+        nonlocal solve_time, n_linear_solves
+        t = time.time()
+        out = orig_sparse_solve(*args, **kwargs)
+        solve_time += time.time() - t
+        n_linear_solves += 1
+        return out
+
+    if device.type == "cuda":
+        torch.cuda.reset_peak_memory_stats(device)
+        torch.cuda.synchronize(device)
+    t0 = time.time()
+    old_default_dtype = torch.get_default_dtype()
+    torch.set_default_dtype(dtype)
+    _tf_sparse.sparse_solve = timed_sparse_solve
+    try:
+        with torch.device(device):
+            u, *_ = model.solve(
+                increments=increments, max_iter=30, rtol=tol, atol=tol, stol=tol,
+                method=method, preconditioner=preconditioner, nlgeom=True, verbose=False)
+    finally:
+        torch.set_default_dtype(old_default_dtype)
+        _tf_sparse.sparse_solve = orig_sparse_solve
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
+    total_elapsed = time.time() - t0
+    peak_mb = (torch.cuda.max_memory_allocated(device) / 1e6) if device.type == "cuda" else None
+
+    other_time = total_elapsed - assembly_time - solve_time
+    return {
+        "u": u.reshape(-1).cpu().numpy(),
+        "total_time_s": total_elapsed,
+        "assembly_time_s": assembly_time,
+        "solve_time_s": solve_time,
+        "other_time_s": other_time,
+        "n_nonlinear_iters": n_linear_solves,
+        "peak_mem_mb": peak_mb,
+        "method": method,
+    }
+
+
 def _correctness_check(N=11, tol=1e-8):
     """tol: shared rtol/atol/stol passed to solve_theirs -- Timon's
     round-9 request (2026-09-10) to test 1e-8 (and optionally 1e-6/1e-7)
