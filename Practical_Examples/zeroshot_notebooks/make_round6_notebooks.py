@@ -1245,6 +1245,29 @@ NOTEBOOKS = {
          "own already-converged checkpoint (near-instant) rather than\n",
          "  re-solving it; each test resolution is appended to the JSON as "
          "it finishes.\n"]),
+    "Round6_TorchFEM_Convergence_Extend_N1001_1401.ipynb": (
+        "cell_torchfem_convergence_extend_N1001_1401.py",
+        ["# Extend torch-fem convergence study to N=1001/1401\n",
+         "\n",
+         "Follow-up to Round6_TorchFEM_Convergence_vs_Fine_Reference.ipynb, "
+         "now that N=701's real float64 peak memory is known (17.7GB,\n",
+         "~1.83x the old float32 number) and this session's GPU turned out "
+         "to be an 80GB A100 — projected ~34GB at N=1001 and ~67GB at\n",
+         "N=1401, comfortable headroom on this GPU rather than the small-"
+         "GPU risk the first notebook was deliberately conservative about.\n",
+         "\n",
+         "**Real result so far (N=51-701)**: torch-fem's own L2_rel/"
+         "H1_semi_rel against the shared fine ~10M-DOF reference are\n",
+         "IDENTICAL (every printed digit) to \"ours\" own already-published "
+         "numbers at every N — both solvers converge to the SAME\n",
+         "discretized FE solution, the strongest possible answer to "
+         "Timon's accuracy question.\n",
+         "\n",
+         "* Same out_json as the first notebook — resumable, skips "
+         "N=51-701 (already done), solves only N=1001 and N=1401.\n",
+         "* **NEEDS A GPU** with enough memory (an 80GB A100 or similar) "
+         "for the projected ~67GB at N=1401 — if a smaller GPU got\n",
+         "  allocated this session, run only N=1001 and stop.\n"]),
 }
 
 

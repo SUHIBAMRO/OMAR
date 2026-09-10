@@ -5,7 +5,66 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Task #3 built: torch-fem timing breakdown by
+Last updated: 2026-09-10 (**REAL result from Omar's Colab run (A100-
+SXM4-80GB), tasks #2+#6 -- torch-fem's accuracy and mesh convergence
+now genuinely established, per Timon's own required order.** N=11
+correctness check on this GPU session: 3.574e-11 relative displacement
+difference (matches the earlier local CPU verification exactly).
+
+**Main result, N=51/101/201/401/701, torch-fem at matched FP64/1e-8
+vs. the shared fine ~10M-DOF reference**: `l2_rel`/`h1_semi_rel` are
+IDENTICAL to "ours" own already-published numbers (highdof_stress_qoi
+_B1_neo_hookean_mgv_N701_1001_1401.json) to every printed digit at
+every single N (e.g. N=401: both 2.500e-05 L2 / 3.588e-03 H1; N=701:
+both 1.009e-05 / 2.852e-03). This is the strongest possible answer to
+both Timon's accuracy question and his mesh-convergence prerequisite:
+the two solvers converge to the SAME discretized FE solution at every
+mesh tested, not just a close one -- expected for two correct
+implementations of the same Q4 element formulation, but genuinely
+confirmed here, not assumed. Saved as
+`omar_pfem/torchfem_convergence_vs_fine_reference_N51_701.json`.
+
+**Memory scaling, real numbers**: torch-fem's float64 peak memory came
+in at 1.776x (N=401: 5847MB vs old float32 3293MB) and 1.833x (N=701:
+17729MB vs 9670MB) the old float32 numbers -- close to but a bit under
+the naive "roughly doubles" estimate. Projected from this real ratio:
+~34.4GB at N=1001, ~67.1GB at N=1401. Since this session's actual GPU
+is an 80GB A100 (not the smaller T4 the first notebook was
+conservative about), BOTH remaining resolutions now look feasible in
+the same session, with N=1401 leaving a real but survivable ~13GB
+headroom. Built a follow-up notebook/cell
+(`cell_torchfem_convergence_extend_N1001_1401.py` /
+`Round6_TorchFEM_Convergence_Extend_N1001_1401.ipynb`, registered in
+`make_round6_notebooks.py`, 52/52 verified) that resumes the SAME
+out_json (skips N=51-701, solves only 1001/1401) -- sent to Omar to
+run next.
+
+**Wall-clock, real numbers (all still trivially fast for torch-fem)**:
+3.42/2.84/4.64/9.82/25.15s at N=51/101/201/401/701 (N=101 being
+slightly faster than N=51 is small-N Python/vmap-overhead noise, not a
+red flag -- consistent with the earlier finding that assembly
+dominates wall-clock at tiny N). No time risk expected at 1001/1401,
+only the memory question above.
+
+**Two gaps Omar caught by re-reading the email a third time, NOT yet
+closed by this run:**
+1. The 1e-6/1e-7 tolerance variants Timon suggested ("if you wish")
+   have only been tested at the tiny N=11 scale (all three tolerances
+   gave the same ~3.6e-11 there) -- not yet at production N, where a
+   real tolerance-vs-cost tradeoff might actually show up.
+2. "For the paper, timing should only be compared after..." was
+   applied only to the torch-fem comparison specifically. Not yet
+   done: auditing the REST of the report's own timing tables (e.g.
+   the GPU-native-FEM-alone tables, Table 20/20a-d) to check each one
+   already had its own accuracy/convergence parity established before
+   its timing numbers were presented, or whether any need the same
+   treatment/caveat applied here.
+Neither gap blocks the current milestone (accuracy+convergence for the
+torch-fem comparison specifically IS now genuinely established), but
+both are open before treating Timon's round-9 feedback as fully
+addressed.)
+
+Previous update, 2026-09-10 (**Task #3 built: torch-fem timing breakdown by
 phase, done in parallel while Omar runs the #2/#6 Colab notebook.**
 New `solve_theirs_with_breakdown()` in `torchfem_comparison.py`:
 monkeypatches the model's own `assemble_matrix`/`integrate_material`
