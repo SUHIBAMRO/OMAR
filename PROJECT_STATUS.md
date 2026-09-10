@@ -5,7 +5,68 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**TensorMesh API investigation (task #4):
+Last updated: 2026-09-10 (**First real, WORKING proof-of-concept: B1 x
+Neo-Hookean x Q4 solved in TensorMesh via Newton + direct solver, not
+L-BFGS.** Omar pushed back on the "default Jacobian is dense" claim
+(citing a different repo, `sparsexlab/torch-sla`) -- checked directly:
+the ACTUALLY INSTALLED package (`pip show torch-sla` -> home page
+`walkerchi/torch-sla`, a different repo than the one Omar's source
+cited) confirms the dense-then-sparsify claim word for word in its own
+source comment (`torch_sla/sparse_tensor/autograd.py`,
+`NonlinearSolveFunction.forward`): `# Dense autograd Jacobian, then
+sparsify (robust default)`, followed by an actual
+`torch.autograd.functional.jacobian(..., vectorize=True)` call reshaped
+to `(n,n)` before sparsifying via `torch.nonzero`. Read directly from
+the installed source, not a docstring or a citation -- this is now as
+confirmed as it can be. HOWEVER, Omar's other claim was ALSO verified
+correct and important: `torch_sla/backends/__init__.py` has a real
+`CUDA_ITERATIVE_THRESHOLD = 2_000_000` with the comment "direct solvers
+(cudss) work well up to ~2M DOF" -- above that, `choose_backend`
+auto-falls-back to iterative (Jacobi-preconditioned PyTorch-native),
+not cuDSS. This means at our own benchmark's largest resolutions
+(N=1001 is 2,004,002 DOF, right at the line; N=1401 is 3,925,602 DOF,
+well past it), TensorMesh would NOT actually give Timon's requested
+"direct solver" automatically -- a real, concrete constraint on how
+far this comparison can honestly go before hitting the same kind of
+memory/method wall as the torch-fem comparison did, just for a
+different reason (fill-in cost of direct factorization, not raw
+assembled-matrix memory).
+
+**Built and ran a real small-scale test** (Omar's own suggested next
+step, phrased almost identically to what was already in progress):
+tiny quad mesh (9 nodes, 4 elements) via `gen_rectangle(chara_length=
+0.5, order=1, element_type='quad')`, our own Neo-Hookean psi (matching
+`materials_torch.py`'s exact 2D form), residual = `grad(energy) -
+f_ext` computed via `torch.func.grad` (needed instead of plain
+`torch.autograd.grad`, which errors on `nonlinear_solve`'s own
+no-grad-required first residual evaluation), BCs enforced by
+overwriting the residual at fixed dofs with `u - 0`, fed into `K.
+nonlinear_solve(residual, u0, f_ext, method='newton', linear_method=
+'lu')` where `K` comes from `LinearElasticityElementAssembler` (just
+used for its correct sparsity-pattern-sized SparseMatrix object, not
+its own linear physics). Hit and fixed the exact same "NaN Hessian at
+F=I from log(det(F)) instead of slogdet" bug this project already
+diagnosed for torch-fem earlier (same root cause, same fix, second
+library). After the fix: clean quadratic Newton convergence, `||F||`
+5774 -> 57.9 -> 0.0032 -> 9.1e-11 in 3 iterations, 0.54s wall-clock,
+plausible displacement (1.09cm max under the applied load on a 1m x 1m
+domain, E=1MPa). NOT yet cross-validated numerically against "ours" or
+torch-fem's own solution at this exact tiny problem (only checked for
+physical plausibility so far) -- that numeric cross-check is the
+immediate next step, matching this project's own standing discipline
+of confirming two solvers agree before trusting either one's timing.
+
+**Corrected verdict on Omar's message**: his Q4/Q9-exists, L-BFGS-
+confirmed, and no-ready-made-Newton-example points were all already
+right; his NEW cuDSS-2M-DOF-threshold claim is ALSO right and
+important, now added to the record; his "dense Jacobian claim needs
+correction" push was investigated in good faith but the correction
+itself doesn't hold for the package that's actually installed (traced
+to a different repo than the one his source cited) -- kept the
+original dense-Jacobian finding, now backed by literal source code
+rather than a docstring.)
+
+Previous update, 2026-09-10 (**TensorMesh API investigation (task #4):
 real findings from actually installing and introspecting the library
 (`pip install tensormesh-fem`), not just reading docs pages.**
 
