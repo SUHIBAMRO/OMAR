@@ -1357,6 +1357,30 @@ NOTEBOOKS = {
          "speedup analysis, with the accuracy caveat stated explicitly\n",
          "  (fast inference here is not evidence of accuracy at a mesh "
          "size never validated).\n"]),
+    "Round6_TorchFEM_Tolerance_Sensitivity.ipynb": (
+        "cell_torchfem_tolerance_sensitivity.py",
+        ["# torch-fem tolerance sensitivity: 1e-6/1e-7 vs. 1e-8 "
+         "(round-9, optional item)\n",
+         "\n",
+         "Timon's own suggestion, explicitly optional: \"If you wish "
+         "you can also test 10^-6 or 10^-7 and report the difference\"\n",
+         "— unlike the FP64/1e-8 request itself (\"we certainly "
+         "should\"), which is already done.\n",
+         "\n",
+         "**How**: reruns `run_convergence_study` at N=401 and N=1401 "
+         "(small and large ends of the already-measured range) at\n",
+         "tol=1e-6 and tol=1e-7, each to its OWN out_json file "
+         "(resumability keys on N alone, not (N, tol), so sharing one\n",
+         "file across tolerances at the same N would silently skip the "
+         "second run) — reuses the already-committed tol=1e-8 numbers\n",
+         "rather than re-solving them.\n",
+         "\n",
+         "* Produces a 2-panel figure (accuracy + wall-clock vs. "
+         "tolerance, one panel per N) plus a printed analysis of\n",
+         "  whether loosening the tolerance actually saves meaningful "
+         "time for the accuracy given up.\n",
+         "* Cheap: at most 4 new torch-fem solves (2 tolerances x 2 "
+         "resolutions), each a few seconds to ~2 minutes.\n"]),
 }
 
 
