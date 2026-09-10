@@ -5,7 +5,35 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Round-9 fully closed out on Omar's "خلص
+Last updated: 2026-09-10 (**All 4 round-9 notebook figures retrieved
+from Omar's own Google Drive (via the Google Drive connector he shared)
+and embedded in both real documents, closing the "put the images in
+the files" request.** Found by `search_files` in the `pfem_run` Drive
+folder: `fig_torchfem_timing_breakdown.png`,
+`fig_torchfem_all_qois_large_dof.png`,
+`fig_no_inference_vs_torchfem_N1401.png`,
+`fig_torchfem_tolerance_sensitivity.png` -- all 4 present, confirming
+(this time directly, not just by code-order inference) that every one
+of the 4 notebooks did produce its required figure. Downloaded,
+decoded, and committed to git at
+`Practical_Examples/report_builders/figures/round9/` (force-added past
+the repo's blanket `*.png` gitignore rule, same as the existing report
+figures). Embedded as Figures 40-43 in the Summary (right after Points
+1/2/6/7 respectively) and Figures 40/42/43 in the Report (right after
+the matched-precision/all-QoI paragraph and the timing-breakdown
+paragraph; Figure 41, NO@N1401, placed later at the Table 18 "essentially
+flat" discussion). The Report previously had no text at all for the
+tolerance-sensitivity result (task #8) -- added a new paragraph there,
+mirroring the Summary's own Point 7, so Figure 43 has supporting text
+in both documents, not just the Summary. Note for whoever edits figure
+numbering next: the Report's own figure numbers are ALREADY
+non-monotonic with paragraph position in several places pre-existing
+this session's edits (e.g. Figure 31 appears before Figure 24 by
+position) -- the new 40-43 insertions follow that same pre-existing
+pattern rather than introducing a new inconsistency, but a full
+figure-renumbering pass was never in scope and still isn't.
+
+Previous update, 2026-09-10 (**Round-9 fully closed out on Omar's "خلص
 اعطيني الي انعمل" request: Summary Point 5 (TensorMesh) updated with
 the real N=51-ceiling/dense-Jacobian scaling numbers and the explicit
 decision framing; Summary's round-9 intro paragraph updated to state
