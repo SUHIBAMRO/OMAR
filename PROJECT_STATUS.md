@@ -5,7 +5,36 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Omar caught a real overclaim after reading
+Last updated: 2026-09-10 (**Reaction-force + per-component PK1 stress
+notebook RUN FOR REAL on Colab (A100) -- the "all QoIs at large DOF"
+claim is now literally true, not caveated.** Real result, both sides
+computed from the same code path:
+
+- **Reaction-force resultant**: matches to 5.656e-7 (N=1001) and
+  2.311e-7 (N=1401) relative error between "ours" and torch-fem's own
+  resultant vectors -- both essentially machine-precision agreement,
+  the strongest possible confirmation that both solvers are enforcing
+  the same equilibrium at the fixed boundary.
+- **Per-component PK1 stress field error (P11/P12/P21/P22)**: IDENTICAL
+  between "ours" and torch-fem to every printed digit at both N=1001
+  and N=1401, ratio exactly 1.00x on all four components (e.g. N=1401:
+  P11 7.505e-3/7.505e-3, P12 1.151e-2/1.151e-2, P21 1.156e-2/1.156e-2,
+  P22 8.994e-4/8.994e-4).
+
+Retrieved the real result JSONs and figure from Drive via the Google
+Drive connector (not retyped from the pasted log), committed to
+`Practical_Examples/omar_pfem/torchfem_qoi_reaction_pk1_N1001_1401.json`,
+`.../high_dof_stress_qoi_B1_neo_hookean_reaction_pk1_N1001_1401.json`,
+and the figure to `report_builders/figures/round9/fig_torchfem_reaction_
+pk1_components.png`. Updated BOTH documents: replaced the "have not yet
+been checked" caveat (Summary Point 1, Report paragraph 268) with this
+real result, and embedded the new figure (Figure 44) right after it in
+both. The "all QoIs" claim now covers every QoI this project tracks --
+L2, H1, energy norm, peak stress, reaction force, and all four PK1
+stress components -- with a real, matching number behind every one of
+them, not a subset with an honesty caveat on the rest.
+
+Previous update, 2026-09-10 (**Omar caught a real overclaim after reading
 the corrected Summary himself: "all QoIs at large DOF" (task #9) only
 ever checked L2, H1, energy norm, and peak (Frobenius) stress -- NOT
 reaction force or the per-component PK1 stress tensor (P11/P12/P21/P22),

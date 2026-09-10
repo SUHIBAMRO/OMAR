@@ -1,0 +1,16 @@
+{
+  "geometry": "B1",
+  "material": "neo_hookean",
+  "fine_N": 2236,
+  "device": "cuda",
+  "orders": {
+    "Q4": {
+      "fine_reference": {"N": 2236, "n_dof": 9999392, "strain_energy": 0.017716290334512143, "wall_clock_s": 3.4765169620513916},
+      "rows": [
+        {"N": 1001, "n_dof": 2004002, "wall_clock_s": 0.9474656581878662, "newton_iters": 20, "cg_iters": 5219, "cg_failures": 0, "l2_abs_error": 1.634049478221684e-08, "l2_rel_error": 5.154847863928102e-06, "h1_semi_abs_error": 1.1716503072251753e-05, "h1_semi_rel_error": 0.0018458742102008211, "energy_abs_error": 0.00024031025796174664, "energy_rel_error": 0.001272573620760103, "peak_stress_pred": 37.31505682737638, "peak_stress_ref": 43.47671959446411, "peak_stress_abs_err": 6.161662767087726, "peak_stress_rel_err": 0.14172326763752183, "peak_stress_loc": [9.455251248554231e-05, 9.455251248554231e-05], "stress_field_l2_abs": 0.009354836331560675, "stress_field_l2_rel": 0.0014740597406703087, "P11_field_l2_rel": 0.007537183890237121, "P12_field_l2_rel": 0.012098396661254606, "P21_field_l2_rel": 0.012000193822637614, "P22_field_l2_rel": 0.0008116915089232273, "P11_at_peak_rel_err": 0.06873390961171352, "P12_at_peak_rel_err": 0.11596000824591633, "P21_at_peak_rel_err": 0.13196089050867557, "P22_at_peak_rel_err": 0.15414838907708975, "reaction_resultant_pred": [-4.187622471008012e-15, 6.273234862990519], "reaction_resultant_ref": [-7.862634154864878e-15, 6.273238411453514], "reaction_resultant_rel_err": 5.656509067088793e-07},
+        {"N": 1401, "n_dof": 3925602, "wall_clock_s": 1.2428009510040283, "newton_iters": 20, "cg_iters": 6377, "cg_failures": 0, "l2_abs_error": 7.262811766660089e-09, "l2_rel_error": 2.29116010380748e-06, "h1_semi_abs_error": 1.0363313689554989e-05, "h1_semi_rel_error": 0.0016326919302257375, "energy_abs_error": 0.0001477140926078572, "energy_rel_error": 0.0007822265235851762, "peak_stress_pred": 40.133069729712616, "peak_stress_ref": 43.47671959446411, "peak_stress_abs_err": 3.343649864751491, "peak_stress_rel_err": 0.07690667317911534, "peak_stress_loc": [9.455251248554231e-05, 9.455251248554231e-05], "stress_field_l2_abs": 0.009519861615128107, "stress_field_l2_rel": 0.0015000568073234445, "P11_field_l2_rel": 0.00750459983920992, "P12_field_l2_rel": 0.011505469364816757, "P21_field_l2_rel": 0.011562909257303846, "P22_field_l2_rel": 0.0008994441244539867, "P11_at_peak_rel_err": 0.02251298581171957, "P12_at_peak_rel_err": 0.05850711699725463, "P21_at_peak_rel_err": 0.06909607864525188, "P22_at_peak_rel_err": 0.08603343531220461, "reaction_resultant_pred": [-1.5595164049031496e-15, 6.273236961847147], "reaction_resultant_ref": [-7.855695260960971e-15, 6.273238411453514], "reaction_resultant_rel_err": 2.310778376828135e-07}
+      ],
+      "convergence_rates": {"l2_fit": 2.4099442141347707, "l2_pairwise": [2.4099442141347747], "h1_semi_fit": 0.36473395139052334, "h1_semi_pairwise": [0.3647339513905273], "energy_fit": 1.4463369582880479, "energy_pairwise": [1.44633695828805], "peak_stress_fit": 1.816743315162715, "peak_stress_pairwise": [1.81674331516272]}
+    }
+  }
+}

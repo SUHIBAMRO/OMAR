@@ -1,0 +1,14 @@
+{
+  "geometry": "B1",
+  "material": "neo_hookean",
+  "order": "Q4",
+  "fine_N": 2236,
+  "device": "cuda",
+  "tol": 1e-08,
+  "peak_stress_x_star": [9.455251248554231e-05, 9.455251248554231e-05],
+  "peak_stress_ref": 43.47671959446411,
+  "rows": [
+    {"N": 1001, "n_dof": 2004002, "tol": 1e-08, "torchfem_wall_clock_s": 56.51120591163635, "torchfem_peak_mem_mb": 36138.546176, "l2_rel": 5.154826920632971e-06, "h1_semi_rel": 0.001845874209721051, "energy_norm_rel": 0.001272573620721202, "peak_stress_pred": 37.31505683379749, "peak_stress_ref": 43.47671959446411, "peak_stress_rel_err": 0.14172326748983105, "stress_field_l2_rel": 0.0014740597407836198, "P11_field_l2_rel": 0.007537183892963742, "P12_field_l2_rel": 0.012098396657279157, "P21_field_l2_rel": 0.012000193819190047, "P22_field_l2_rel": 0.0008116915090819192, "P11_at_peak_rel_err": 0.06873390940526351, "P12_at_peak_rel_err": 0.11596000824598798, "P21_at_peak_rel_err": 0.13196089049585802, "P22_at_peak_rel_err": 0.1541483889178823, "reaction_resultant_pred": [-4.180683577104105e-15, 6.273234863096642], "reaction_resultant_ref": [-7.966717563423487e-15, 6.273238411453514], "reaction_resultant_rel_err": 5.656339899103553e-07},
+    {"N": 1401, "n_dof": 3925602, "tol": 1e-08, "torchfem_wall_clock_s": 133.44841170310974, "torchfem_peak_mem_mb": 70840.560128, "l2_rel": 2.291139229299352e-06, "h1_semi_rel": 0.0016326919302203666, "energy_norm_rel": 0.0007822265235574132, "peak_stress_pred": 40.13306973919974, "peak_stress_ref": 43.47671959446411, "peak_stress_rel_err": 0.07690667296090375, "stress_field_l2_rel": 0.001500056807376469, "P11_field_l2_rel": 0.007504599838511013, "P12_field_l2_rel": 0.011505469364864832, "P21_field_l2_rel": 0.011562909257421244, "P22_field_l2_rel": 0.0008994441246181221, "P11_at_peak_rel_err": 0.02251298549786626, "P12_at_peak_rel_err": 0.05850711699238862, "P21_at_peak_rel_err": 0.06909607861792219, "P22_at_peak_rel_err": 0.08603343507919829, "reaction_resultant_pred": [-2.144985578045322e-15, 6.273236961960387], "reaction_resultant_ref": [-7.862634154864878e-15, 6.273238411453514], "reaction_resultant_rel_err": 2.3105978638672859e-07}
+  ]
+}
