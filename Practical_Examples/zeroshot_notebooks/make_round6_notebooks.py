@@ -1208,6 +1208,43 @@ NOTEBOOKS = {
          "  minutes between them; the last two are hours each.\n",
          "* **Resumable**: each resolution is appended to the JSON as it\n",
          "  finishes, and each solve checkpoints internally.\n"]),
+    "Round6_TorchFEM_Convergence_vs_Fine_Reference.ipynb": (
+        "cell_torchfem_convergence_vs_fine_reference.py",
+        ["# torch-fem accuracy + mesh convergence vs. the fine reference "
+         "(round-9, items 2+6)\n",
+         "\n",
+         "Timon's reply to the standalone torch-fem question was explicit: "
+         "\"timing should only be compared after the methods demonstrate\n",
+         "comparable accuracy and mesh convergence,\" plus \"did you compare "
+         "the accuracy of your FEM implementation with torch-FEM?\" The\n",
+         "existing correctness check only ever ran at N=11 with a loose "
+         "float32 tolerance — not a real answer to either question.\n",
+         "\n",
+         "**Methodology**: instead of a simpler ours-vs-torchfem pointwise "
+         "diff, this runs torch-fem through the SAME study \"ours\" own\n",
+         "Table 6a/6b/6c already uses — evaluated against the same fine "
+         "~10M-DOF reference, via exact FE point location, with a fitted\n",
+         "convergence rate across several N. Answers accuracy AND "
+         "convergence together, directly comparable to \"ours\" own\n",
+         "already-published L2/H1 numbers at the same N (this cell prints "
+         "both side by side; \"ours\" needs no re-solve).\n",
+         "\n",
+         "**Prerequisite already applied**: torch-fem now runs at matched "
+         "FP64/1e-8 (not the old float32/1e-3) — see torchfem_comparison.\n",
+         "py's own docstring for the real bug this fixed.\n",
+         "\n",
+         "* **NEEDS A GPU** for a memory number comparable to \"ours,\" but "
+         "runs on CPU too (just no peak-memory figure).\n",
+         "* Deliberately stops at N=701 this run (~19-20GB expected at "
+         "float64, roughly double torch-fem's own float32 9.7GB at this\n",
+         "  N) rather than also attempting N=1001/1401 (38.1GB at float32, "
+         "could approach ~76GB at float64) in the same run — a separate\n",
+         "  follow-up should attempt those once this run's own N=701 memory "
+         "usage is known.\n",
+         "* **Resumable**: the fine ~10M-DOF reference RESUMES from \"ours\" "
+         "own already-converged checkpoint (near-instant) rather than\n",
+         "  re-solving it; each test resolution is appended to the JSON as "
+         "it finishes.\n"]),
 }
 
 

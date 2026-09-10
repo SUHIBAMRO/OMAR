@@ -87,7 +87,8 @@ if "pyvista" not in sys.modules:
         sys.modules["pyvista.plotting"] = _pyvista_stub.plotting
 
 from omar_pfem.high_dof_convergence_study import (
-    build_mesh_and_bcs, AnalyticFieldB1)
+    build_mesh_and_bcs, AnalyticFieldB1, solve_one, compute_l2_h1_errors,
+    fit_convergence_rate)
 from omar_pfem.matrix_free_solver import solve_matrix_free
 
 
@@ -458,6 +459,89 @@ def run_sweep(resolutions, out_json, device=None, checkpoint_dir=None):
     return rows
 
 
+def run_convergence_study(resolutions, out_json, geometry="B1", material="neo_hookean",
+                           order="Q4", fine_N=2236, checkpoint_dir=None, device=None,
+                           tol=1e-8, dtype=torch.float64):
+    """Timon round-9 items 2+6 (2026-09-10): torch-fem's own ACCURACY and
+    MESH CONVERGENCE, evaluated against the exact same fine ~10M-DOF
+    reference "ours" own Table 6a/6b/6c uses -- not a simpler,
+    single-point ours-vs-torchfem displacement diff. Reuses
+    high_dof_convergence_study.py's own solve_one/compute_l2_h1_errors/
+    fit_convergence_rate directly, so torch-fem's L2/H1 numbers at each
+    N land in exactly the same units and convention as "ours" own
+    already-published numbers at the same N -- a genuine apples-to-
+    apples table, and a single study that answers "did you compare
+    accuracy" and "is there mesh convergence" together, since both are
+    now the same set of rows against the same reference.
+
+    fine_N/checkpoint_dir: point at "ours" own already-converged fine
+    reference (e.g. checkpoint_dir=".../pfem_ckpt", which holds
+    fine_B1_neo_hookean_Q4_N2236.pt) so solve_one() RESUMES near-
+    instantly instead of re-solving the single most expensive problem
+    in the whole study.
+
+    Resumable like every other sweep in this project: writes progress
+    after every row, skips resolutions already in out_json -- a Colab
+    disconnect loses at most the row in progress."""
+    import json
+    import os
+
+    device = device or (torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu'))
+    print('device:', device)
+
+    fine_ckpt = (os.path.join(checkpoint_dir, f"fine_{geometry}_{material}_{order}_N{fine_N}.pt")
+                 if checkpoint_dir else None)
+    print(f'Loading/resuming fine reference N={fine_N} (checkpoint={fine_ckpt})...')
+    fine = solve_one(geometry, order, fine_N, material, device, torch.float64,
+                      cg_tol=1e-8, newton_tol=1e-8, checkpoint_path=fine_ckpt)
+    print(f'  fine reference ready: n_dof={fine["n_dof"]}, wall_clock_s={fine["wall_clock_s"]:.1f}')
+
+    done = {}
+    if out_json and os.path.exists(out_json):
+        with open(out_json) as f:
+            done = {r["N"]: r for r in json.load(f).get("rows", [])}
+    rows = list(done.values())
+
+    for N in resolutions:
+        if N in done:
+            print(f'  N={N} already in {out_json}, skipping')
+            continue
+        nodes, elements, free_dofs, fext_full, elem_params = build_mesh_and_bcs(
+            geometry, order, N, material, device, dtype)
+        mu, lam = elem_params
+        fixed_dofs = np.setdiff1d(np.arange(2 * nodes.shape[0]), free_dofs)
+
+        u_theirs, elapsed, peak_mb = solve_theirs(
+            nodes, elements, mu, lam, fext_full, fixed_dofs,
+            dtype=dtype, device=device, tol=tol)
+
+        coarse = {"nodes": nodes, "elements": elements,
+                  "u": u_theirs.reshape(len(nodes), 2)}
+        errs = compute_l2_h1_errors(coarse, fine, order, geometry)
+
+        row = {"N": N, "n_dof": int(2 * nodes.shape[0]), "tol": tol,
+               "torchfem_wall_clock_s": elapsed, "torchfem_peak_mem_mb": peak_mb,
+               "l2_rel": errs["l2_rel"], "h1_semi_rel": errs["h1_semi_rel"]}
+        print(f'  N={N}: wall_clock={elapsed:.2f}s l2_rel={errs["l2_rel"]:.3e} '
+              f'h1_semi_rel={errs["h1_semi_rel"]:.3e} peak_mem_mb={peak_mb}')
+        rows.append(row)
+        rows.sort(key=lambda r: r["N"])
+        if out_json:
+            with open(out_json, "w") as f:
+                json.dump({"geometry": geometry, "material": material, "order": order,
+                           "fine_N": fine_N, "device": str(device), "tol": tol,
+                           "rows": rows}, f, indent=2)
+
+    sub_fine_rows = [r for r in rows if r["N"] < fine_N]
+    hs = [1.0 / (r["N"] - 1) for r in sub_fine_rows]
+    if len(hs) >= 2:
+        rate_l2, _ = fit_convergence_rate(hs, [r["l2_rel"] for r in sub_fine_rows])
+        rate_h1, _ = fit_convergence_rate(hs, [r["h1_semi_rel"] for r in sub_fine_rows])
+        print(f'\nFitted convergence rate (torch-fem, {order}): L2 p={rate_l2:.3f} '
+              f'(expected 2), H1 p={rate_h1:.3f} (expected 1)')
+    return rows
+
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == "sweep":
@@ -465,6 +549,12 @@ if __name__ == "__main__":
         out_json = sys.argv[3] if len(sys.argv) > 3 else None
         checkpoint_dir = sys.argv[4] if len(sys.argv) > 4 else None
         run_sweep(resolutions, out_json, checkpoint_dir=checkpoint_dir)
+    elif len(sys.argv) > 1 and sys.argv[1] == "convergence":
+        resolutions = [int(x) for x in sys.argv[2].split(",")] if len(sys.argv) > 2 else [51, 101, 201, 401]
+        out_json = sys.argv[3] if len(sys.argv) > 3 else None
+        checkpoint_dir = sys.argv[4] if len(sys.argv) > 4 else None
+        fine_N = int(sys.argv[5]) if len(sys.argv) > 5 else 2236
+        run_convergence_study(resolutions, out_json, checkpoint_dir=checkpoint_dir, fine_N=fine_N)
     else:
         N = int(sys.argv[1]) if len(sys.argv) > 1 else 11
         tol = float(sys.argv[2]) if len(sys.argv) > 2 else 1e-8
