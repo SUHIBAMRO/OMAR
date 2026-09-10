@@ -73,6 +73,16 @@ else:
     run(['git', '-C', REPO, 'reset', '--hard', 'origin/claude/claude-code-question-d307wp'])
 
 run([sys.executable, '-m', 'pip', 'install', '-q', 'tensormesh-fem', 'torch-fem'])
+# WITHOUT this, torch_sla's own is_cudss_available() returns False (confirmed
+# by reading its source: it does `import nvmath.bindings.cudss`, catching
+# ImportError), so on CUDA select_backend() silently falls back to the
+# 'pytorch' backend regardless of problem size -- which does NOT support
+# method='lu' (its own valid methods are iterative-only: cg/bicgstab/gmres/
+# minres/lsqr/lsmr). This is what actually broke the first real GPU run of
+# this notebook (2026-09-10): "ValueError: Method 'lu' not supported by
+# backend 'pytorch'" -- not a bug in this project's own code, a missing
+# optional dependency for the direct solver Timon explicitly asked for.
+run([sys.executable, '-m', 'pip', 'install', '-q', 'nvmath-python[cu12]'])
 
 WORK = f'{REPO}/Practical_Examples'
 os.chdir(WORK)
@@ -86,6 +96,20 @@ for _mod_name in list(sys.modules):
 import torch
 print('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available()
       else 'NONE -- Runtime > Change runtime type > GPU strongly recommended')
+
+# Confirm the direct solver is ACTUALLY available before spending any real
+# GPU time -- fail loudly and clearly here rather than discover it deep
+# inside a Newton iteration after minutes of solving.
+from torch_sla.backends import is_cudss_available
+if not is_cudss_available():
+    raise RuntimeError(
+        "cuDSS is NOT available after installing nvmath-python[cu12] -- "
+        "the sweep below would silently fall back to an iterative solver "
+        "on CUDA, not the direct solver Timon explicitly asked for. Check "
+        "the pip install output above for the real error (wrong CUDA "
+        "version extra is the most likely cause -- try [cu13] or check "
+        "`nvidia-smi`/`torch.version.cuda` for the actual CUDA version).")
+print('cuDSS (real direct solver on CUDA) is available.')
 
 # Cheap correctness re-check before spending any real GPU time on the
 # sweep below -- same discipline as every other GPU run in this project.

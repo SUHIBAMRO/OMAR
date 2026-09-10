@@ -5,7 +5,46 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**The first CUDA-bug fix attempt (a `torch.
+Last updated: 2026-09-10 (**The `.to(device)` fix DID work -- Omar's
+re-run got past the device-placement crash entirely (correctness check
+still PASS, 1.190e-11) and hit a DIFFERENT, later, real error:
+`ValueError: Method 'lu' not supported by backend 'pytorch'.
+Available methods: ['cg', 'bicgstab', 'gmres', 'minres', 'lsqr',
+'lsmr']`, at the spsolve call inside the very first Newton iteration of
+the N=401 sweep.**
+
+**Root cause, confirmed by reading torch_sla's own installed source
+(backends/__init__.py's `select_backend`/`is_cudss_available`), not
+guessed**: cuDSS -- the real direct-solver backend on CUDA -- requires
+the optional `nvmath-python` package (`import nvmath.bindings.cudss`);
+without it, `is_cudss_available()` returns False and `select_backend`
+silently falls back to the `'pytorch'` backend on CUDA REGARDLESS OF
+PROBLEM SIZE, which only supports iterative methods (cg/bicgstab/gmres/
+minres/lsqr/lsmr) -- `'lu'` (this project's own explicit
+`linear_method` choice, matching Timon's "direct solver" requirement)
+is not one of them. This is not a bug in anything this project wrote --
+it's a missing optional dependency of the third-party library, the same
+class of "silent fallback" issue as the two previous device/dtype bugs,
+just one level up (a missing solver backend instead of a wrong tensor
+device).
+
+**Fix**: added `pip install nvmath-python[cu12]` to the notebook's setup
+cell, plus an explicit `is_cudss_available()` check immediately after
+that FAILS LOUDLY with a clear message if cuDSS still isn't available --
+so if the wrong CUDA extra was needed (`[cu13]` instead of `[cu12]`, if
+Colab's own CUDA version differs from what was assumed here), the
+notebook stops immediately with a diagnosable error instead of silently
+running an iterative solver 30+ minutes into a sweep and only
+discovering the substitution afterward, or crashing confusingly deep in
+a Newton iteration as it did this time. 58/58 notebooks re-verified.
+
+**Not yet re-verified for real** -- this is the third fix attempt in a
+row for this same notebook; per the discipline established after the
+first fix attempt turned out to be wrong, this entry does NOT claim
+success, only that a specific, source-confirmed root cause was
+addressed. Omar's next re-run is the actual test.
+
+Previous update, 2026-09-10 (**The first CUDA-bug fix attempt (a `torch.
 device(device):` context manager) did NOT actually fix it -- Omar
 re-ran the notebook and got the IDENTICAL crash, at the identical line.
 Real root cause found this time, not another guess: read TensorMesh's
