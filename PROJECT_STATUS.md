@@ -5,7 +5,34 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**The nvmath-python install fix ALSO worked as
+Last updated: 2026-09-10 (**REAL PRODUCTION-SCALE SUCCESS at N=401 and
+N=701 -- TensorMesh, real cuDSS direct solver, sparse jac_fn, matching
+torch-fem's own numbers closely.** The version-pin fix worked
+completely for these two: N=401 solved in 5.11s (l2_rel=2.500e-05,
+h1_semi_rel=3.588e-03) and N=701 in 14.17s (l2_rel=1.009e-05,
+h1_semi_rel=2.852e-03) -- both l2_rel/h1_semi_rel values match
+torch-fem's own already-committed numbers at the same N to the printed
+digits (torch-fem: N=401 2.500e-05/3.588e-03, N=701 ~1.009e-05/
+2.852e-03). This is the real, working, production-scale TensorMesh
+comparison Timon asked for, not just a small-scale proof of concept.
+
+**N=1001 then hit exactly the CUDA_ITERATIVE_THRESHOLD behavior this
+module's own docstring predicted before ever running on real
+hardware**: `ValueError: Method 'lu' not supported by backend
+'pytorch'` -- torch_sla's own `select_backend` silently switches to the
+iterative-only 'pytorch' backend above 2,000,000 DOF regardless of
+cuDSS's own availability (N=1001 = 2,004,002 DOF, just over the line).
+This is a conservative library default, not proof cuDSS itself can't
+handle it -- so rather than accept the fallback unverified, added an
+explicit `linear_solver` parameter to `solve_tensormesh`, defaulting to
+forcing `'cudss'` on CUDA (bypassing the size-based auto-switch) while
+leaving CPU's own working `'auto'`->`'scipy'` path untouched. Re-verified
+on CPU: correctness unchanged (1.190e-11, PASS). Whether cuDSS can
+genuinely factor a 2M+ DOF system when forced, or hits a real memory/
+capability limit instead, is real information either way and is what
+Omar's next re-run will show -- not assumed in either direction.
+
+Previous update, 2026-09-10 (**The nvmath-python install fix ALSO worked as
 intended -- cuDSS became available and got selected/used -- but hit a
 THIRD, different, real bug immediately on its first actual solve:
 `TypeError: matrix_create_csr() takes exactly 13 positional arguments

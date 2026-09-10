@@ -265,8 +265,8 @@ def build_sparse_jac_fn(nodes, elements, mu, lam, free_mask_dof, material, order
 
 
 def solve_tensormesh(nodes, elements, free_dofs, fext_full, mu, lam, dtype=torch.float64,
-                      tol=1e-8, method="newton", linear_method="lu", material="neo_hookean",
-                      order="Q4", device=None, use_sparse_jac=True):
+                      tol=1e-8, method="newton", linear_method="lu", linear_solver=None,
+                      material="neo_hookean", order="Q4", device=None, use_sparse_jac=True):
     """Newton + direct solver (per Timon's own request), NOT the
     L-BFGS energy-minimization approach TensorMesh's own hyperelastic_
     beam.py example uses. Returns the full nodal displacement field,
@@ -279,10 +279,31 @@ def solve_tensormesh(nodes, elements, free_dofs, fext_full, mu, lam, dtype=torch
     own default dense-then-sparsify Jacobian -- the fix that scales this
     comparison past the ~N=51 ceiling the dense path was measured to
     hit. use_sparse_jac=False keeps the original dense-default behavior,
-    for _correctness_check's own A/B comparison against it."""
+    for _correctness_check's own A/B comparison against it.
+
+    linear_solver="cudss" (not "auto") is deliberate: torch_sla's own
+    select_backend (confirmed by reading its source) silently switches
+    to the iterative-only 'pytorch' backend above CUDA_ITERATIVE_
+    THRESHOLD = 2_000_000 DOF regardless of cuDSS's own availability --
+    a conservative memory-safety default, not a proof cuDSS itself
+    can't handle more. N=1001 (2,004,002 DOF) sits right above that
+    line and crashed with 'auto' ("Method 'lu' not supported by backend
+    'pytorch'"), exactly as this module's own docstring predicted before
+    ever running on real hardware. Forcing 'cudss' explicitly tests
+    whether the real solver can go past the library's own conservative
+    threshold rather than accepting it unverified -- the same discipline
+    already used for torch-fem's own direct-vs-CG timing test."""
     from tensormesh import LinearElasticityElementAssembler
 
     device = device or torch.device("cpu")
+    if linear_solver is None:
+        # 'auto' on CUDA silently drops to the iterative-only 'pytorch'
+        # backend above CUDA_ITERATIVE_THRESHOLD=2M DOF regardless of
+        # cuDSS availability (see this function's own docstring) --
+        # force cuDSS explicitly there instead of accepting that
+        # untested. On CPU, 'auto' already correctly picks 'scipy'
+        # (supports 'lu' natively), which every local test here used.
+        linear_solver = "cudss" if device.type == "cuda" else "auto"
     torch.set_default_dtype(dtype)
     n_nodes = nodes.shape[0]
     tm_mesh, model, mu_t, lam_t = build_tensormesh_model(nodes, elements, mu, lam, dtype=dtype,
@@ -319,7 +340,8 @@ def solve_tensormesh(nodes, elements, free_dofs, fext_full, mu, lam, dtype=torch
 
     u0 = torch.zeros(n_nodes * 2, dtype=dtype, device=device)
     u = K.nonlinear_solve(residual, u0, f_ext_flat, jac_fn=jac_fn, method=method, verbose=False,
-                           max_iter=30, tol=tol, linear_method=linear_method)
+                           max_iter=30, tol=tol, linear_method=linear_method,
+                           linear_solver=linear_solver)
     return u.reshape(n_nodes, 2).detach().cpu().numpy()
 
 
