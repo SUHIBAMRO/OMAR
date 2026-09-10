@@ -126,15 +126,13 @@ def neo_hookean_psi_3d(F3d, params):
 
 
 def build_torchfem_model(nodes, elements, mu, lam, fext_full, fixed_dofs,
-                          dtype=torch.float32, device=None):
+                          dtype=torch.float64, device=None):
     device = device or torch.device('cpu')
-    # torch-fem's own near_null_space() (called unconditionally inside
-    # solve(), regardless of preconditioner choice -- confirmed by
-    # reading base.py, not assumed) hardcodes torch.eye(3) at its
-    # default (float32) dtype and errors on a float64 model. float32 is
-    # torch-fem's own working precision here, not a compromise on our
-    # side; the correctness check below uses a tolerance appropriate to
-    # single precision rather than this project's usual 1e-8 float64 one.
+    # Building the model itself works fine in float64 (Planar(...) below
+    # has no dtype-hardcoded internals). The float32 blocker is entirely
+    # inside .solve() -- see solve_theirs' own docstring for the real
+    # bug (near_null_space()/skew() hardcoding torch.eye(3) at float32)
+    # and its fix (torch.set_default_dtype around the .solve() call).
     """nodes/elements/fext_full/fixed_dofs come directly from
     build_mesh_and_bcs -- the SAME arrays this project's own solver
     uses, not a re-derivation."""
@@ -217,17 +215,34 @@ def solve_ours(nodes, elements, free_dofs, elem_params, fext_full, nsteps=10,
 
 
 def solve_theirs(nodes, elements, mu, lam, fext_full, fixed_dofs, nsteps=10,
-                  dtype=torch.float32, device=None):
+                  dtype=torch.float64, device=None, tol=1e-8):
+    """tol: shared rtol/atol/stol, matching "ours" own newton_tol=cg_tol=1e-8
+    default (solve_ours above) -- Timon's round-9 request (2026-09-10) to
+    use the SAME criteria on both sides instead of torch-fem's previous
+    float32/1e-3. dtype now defaults to float64 to match "ours" as well.
+
+    Getting float64 working here at all required a real fix, not just
+    changing this function's own dtype argument: torch-fem's own
+    near_null_space()/skew() (base.py, called unconditionally inside
+    .solve(), regardless of preconditioner or method) builds torch.eye(3)
+    with no explicit dtype, which silently defaults to float32 --
+    confirmed directly, this raises "RuntimeError: expected scalar type
+    Float but found Double" the moment .solve() is called on a float64
+    model, even though building the model itself (Planar(...)) works
+    fine in float64. torch.set_default_dtype(torch.float64) around the
+    .solve() call (with the previous default restored after, in
+    finally:) makes every dtype-less tensor torch-fem creates internally
+    default to float64 too, since PyTorch's global default dtype governs
+    exactly those calls -- the same "wrap the library's own hardcoded
+    tensor creation" pattern already used for its two separate device
+    bugs (see build_torchfem_model's and this function's own device
+    comment below), just for dtype instead of device this time. Verified
+    on a small hand-built 2-element mesh before touching this function:
+    Newton converges to rtol=atol=1e-8 in float64 with no dtype errors."""
     device = device or torch.device('cpu')
     model = build_torchfem_model(nodes, elements, mu, lam, fext_full, fixed_dofs,
                                   dtype=dtype, device=device)
     increments = torch.linspace(0.0, 1.0, nsteps + 1, dtype=dtype, device=device)
-    # stol (the iterative linear solver's own tolerance) defaults to
-    # 1e-10, unreachable in float32 -- torch-fem's own working precision
-    # here, see build_torchfem_model's docstring -- so CG never
-    # "converges" and Newton gives up after exhausting its cutbacks.
-    # Loosened to a float32-appropriate value; rtol/atol (Newton's own
-    # convergence test) loosened correspondingly.
     if device.type == "cuda":
         torch.cuda.reset_peak_memory_stats(device)
         torch.cuda.synchronize(device)
@@ -238,10 +253,15 @@ def solve_theirs(nodes, elements, mu, lam, fext_full, fixed_dofs, nsteps=10,
     # build torch.zeros/torch.arange/torch.eye with no explicit device,
     # then torch.cat them against self.nodes (which IS on the right
     # device, since we built it that way) -- same fix, same reason.
-    with torch.device(device):
-        u, *_ = model.solve(
-            increments=increments, max_iter=30, rtol=1e-3, atol=1e-3, stol=1e-4,
-            method="cg", preconditioner="jacobi", nlgeom=True, verbose=False)
+    old_default_dtype = torch.get_default_dtype()
+    torch.set_default_dtype(dtype)
+    try:
+        with torch.device(device):
+            u, *_ = model.solve(
+                increments=increments, max_iter=30, rtol=tol, atol=tol, stol=tol,
+                method="cg", preconditioner="jacobi", nlgeom=True, verbose=False)
+    finally:
+        torch.set_default_dtype(old_default_dtype)
     if device.type == "cuda":
         torch.cuda.synchronize(device)
     elapsed = time.time() - t0
@@ -249,8 +269,15 @@ def solve_theirs(nodes, elements, mu, lam, fext_full, fixed_dofs, nsteps=10,
     return u.reshape(-1).cpu().numpy(), elapsed, peak_mb
 
 
-def _correctness_check(N=11):
-    print(f"=== CPU correctness check: our solver vs. torch-fem, B1 x Neo-Hookean, N={N} ===")
+def _correctness_check(N=11, tol=1e-8):
+    """tol: shared rtol/atol/stol passed to solve_theirs -- Timon's
+    round-9 request (2026-09-10) to test 1e-8 (and optionally 1e-6/1e-7)
+    at MATCHED float64 precision on both sides, replacing the previous
+    float32/1e-3 check. The printed relative displacement-field
+    difference is now a real matched-precision accuracy number, not a
+    loose pass/fail against a single-precision-appropriate bound."""
+    print(f"=== CPU correctness check: our solver vs. torch-fem, B1 x Neo-Hookean, "
+          f"N={N}, matched FP64/tol={tol:.0e} ===")
     nodes, elements, free_dofs, fext_full, elem_params = build_mesh_and_bcs(
         "B1", "Q4", N, "neo_hookean", torch.device('cpu'), torch.float64)
     mu, lam = elem_params
@@ -261,19 +288,21 @@ def _correctness_check(N=11):
     print(f"  ours:      wall_clock={t_ours:.2f}s, cg_iters_total={stats['cg_iters_total']}, "
           f"cg_failures={stats['cg_failures']}")
 
-    u_theirs, t_theirs, _peak2 = solve_theirs(nodes, elements, mu, lam, fext_full, fixed_dofs)
+    u_theirs, t_theirs, _peak2 = solve_theirs(nodes, elements, mu, lam, fext_full, fixed_dofs,
+                                               dtype=torch.float64, tol=tol)
     print(f"  torch-fem: wall_clock={t_theirs:.2f}s")
 
     diff = np.linalg.norm(u_ours - u_theirs)
     ref = np.linalg.norm(u_ours) + 1e-30
     rel_diff = diff / ref
     print(f"  relative displacement-field difference: {rel_diff:.3e}")
-    # torch-fem's side runs in float32 (see build_torchfem_model's own
-    # docstring), so the tolerance here is single-precision-appropriate,
-    # not this project's usual 1e-8 float64 one.
-    ok = rel_diff < 1e-3
+    # Now a genuine float64-vs-float64 comparison, so held to this
+    # project's own usual 1e-6 standard (looser than 1e-8 since the two
+    # solvers still differ in element formulation/assembly details, not
+    # just floating-point noise) rather than the old single-precision one.
+    ok = rel_diff < 1e-6
     print("  " + ("PASS" if ok else "FAIL"))
-    return ok
+    return ok, rel_diff
 
 
 def run_sweep_row(N, device, use_mgv=True, checkpoint_dir=None):
@@ -438,5 +467,6 @@ if __name__ == "__main__":
         run_sweep(resolutions, out_json, checkpoint_dir=checkpoint_dir)
     else:
         N = int(sys.argv[1]) if len(sys.argv) > 1 else 11
-        ok = _correctness_check(N)
+        tol = float(sys.argv[2]) if len(sys.argv) > 2 else 1e-8
+        ok, _rel_diff = _correctness_check(N, tol=tol)
         sys.exit(0 if ok else 1)
