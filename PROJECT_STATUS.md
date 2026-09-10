@@ -5,7 +5,39 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Task #1 done: torch-fem now runs at matched
+Last updated: 2026-09-10 (**Tasks #2+#6 built and ready to run on Colab
+(Omar's choice: "افتح كلوب جديد نشوف").** New `run_convergence_study()`
+in `torchfem_comparison.py`: runs torch-fem (at the matched FP64/1e-8
+precision from the previous fix) through the EXACT SAME methodology
+"ours" own Table 6a/6b/6c uses -- evaluated against the shared fine
+~10M-DOF reference via `high_dof_convergence_study.py`'s own
+`solve_one`/`compute_l2_h1_errors`/`fit_convergence_rate`, with a
+fitted convergence rate across several N. This answers Timon's
+accuracy question AND his mesh-convergence request together, in
+numbers directly comparable to "ours" own already-published L2/H1
+values at the same N (no re-solve of "ours" needed -- those numbers
+already exist in `highdof_stress_qoi_results/..._mgv_N701_1001_1401.json`).
+Smoke-tested locally first (fine_N=33 toy reference, N=11/17, no
+checkpoint): ran end to end, L2 rate 1.945 (expected 2), H1 rate 1.382
+(expected 1, noisy with only 2 points) -- confirms the plumbing before
+pointing it at the real fine_N=2236 reference. Committed (6f5e564).
+
+**New Colab notebook**: `Round6_TorchFEM_Convergence_vs_Fine_Reference.ipynb`
+(cell: `cell_torchfem_convergence_vs_fine_reference.py`, registered in
+`make_round6_notebooks.py`, 51/51 notebooks verified). Resumes "ours"
+own already-converged fine-reference checkpoint from
+`pfem_ckpt/fine_B1_neo_hookean_Q4_N2236.pt` (no re-solve of the single
+most expensive problem in the study), runs torch-fem at
+N=51/101/201/401/701, and prints torch-fem's numbers side by side with
+"ours" already-committed values at the same N. Deliberately STOPS
+before N=1001/1401 given the float64 memory-doubling risk already
+flagged (torch-fem's float32 peak memory was 19.5GB/38.1GB at those
+two N; float64 could approach ~39GB/~76GB) -- a separate follow-up
+notebook should attempt those two only after seeing N=701's real
+float64 memory number. Sent to Omar to run on a fresh Colab session.
+Not yet run for real -- this entry is "built and ready," not "done.")
+
+Previous update, 2026-09-10 (**Task #1 done: torch-fem now runs at matched
 FP64/1e-8 precision, verified with a real result.** Fixed
 `solve_theirs` in `omar_pfem/torchfem_comparison.py` -- defaults
 changed from float32/1e-3 to float64/1e-8 (tol now a parameter so
