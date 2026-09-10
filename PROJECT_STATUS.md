@@ -5,7 +5,52 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**Task #10 DONE -- Omar's explicit decision:
+Last updated: 2026-09-10 (**Task #12 real result: NO inference at
+N=1401 measured for the first time, and it changes the picture
+substantially from the small-N number already in the report.**
+Real Colab run (A100-SXM4-80GB): mesh built correctly (1,962,801
+nodes, 1,960,000 elements -- exactly 1401² and 1400² as expected for a
+Q4 grid), checkpoint loaded (`data_driven/B1_neo_hookean/model_best.pt`
+-- the guessed path worked, no fallback needed).
+
+**Result: 2,286.69 ms/sample (2.29s) at N=1401** -- roughly 500x
+SLOWER than the operator's own already-published Table 7 number
+(4.6247 ms/sample, measured at the study's standard resolution N=21,
+441 nodes). Node count grew ~4,451x (441 -> 1,962,801) while inference
+time grew only ~494x -- a fitted scaling exponent of ~0.74 (time ~
+n^0.74), i.e. genuinely sublinear in node count, consistent with
+Transolver's own fixed-slice-count architecture (a bounded number of
+latent tokens regardless of input mesh size) rather than a naive
+per-node cost that would scale linearly or worse.
+
+**Compared against torch-fem's own N=1401 numbers**: NO is 59x faster
+than torch-fem's matched-precision solve (133.83s) and 13x faster than
+the old unmatched one (29.1s, likely what Timon's own "~30s" referred
+to). This is a MUCH smaller speed advantage than the thousands-of-times
+gap already reported at the study's standard resolution -- the
+operator's own inference cost is not flat with mesh size the way the
+report's existing "inference cost is essentially flat in mesh size"
+language (Table 18 discussion, §8.5/new numbering) claims; that
+language was written from the zero-shot study's own tested range
+(up to N=49) and may need revisiting or at least an explicit caveat
+now that N=1401 shows real, substantial growth.
+
+**The notebook's own printed caveat stands and matters more now, not
+less**: this operator was never validated for ACCURACY at N=1401 --
+the zero-shot resolution-invariance study only ever tested up to N=49.
+A 59x-vs-133.83s speed advantage at a mesh size 28x beyond anything
+the model's own predictions were checked against is not evidence the
+prediction is trustworthy there, only that it runs fast.
+
+Not yet decided with Omar: whether/how to fold this new N=1401 number
+into the Report (the existing "inference cost is essentially flat in
+mesh size" claim may need a stated caveat or a corrected framing), and
+whether this becomes part of the same reply that closes task #5.
+
+Task #12 data-wise done; documentation follow-up (updating the Report's
+own "flat inference cost" language) not yet started.)
+
+Previous update, 2026-09-10 (**Task #10 DONE -- Omar's explicit decision:
 remove the batch-size study (Table 6/Figures 8-10) from BOTH real
 documents entirely, and fix the numbering/ordering, not just leave a
 gap.** Investigated scope carefully before editing (this project's own
