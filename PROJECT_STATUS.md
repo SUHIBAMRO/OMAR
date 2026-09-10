@@ -5,7 +5,32 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
-Last updated: 2026-09-10 (**cost estimate + task breakdown for Timon's
+Last updated: 2026-09-10 (**Omar corrected the priority order after his
+own detailed line-by-line analysis of Timon's email** -- he was right
+that the initial cost-estimate entry undersold two things: (1) "for
+the paper, timing should only be compared after..." is a general
+methodological rule Timon wants applied, not a note scoped to just the
+torch-fem table; (2) "still too slow to serve as a competitive
+baseline" is a real concern about the paper's core benchmark
+credibility, not a line needing a reassuring reply. Omar also
+correctly separated out a task the previous entry had folded into the
+single-N accuracy check: Timon wants MESH CONVERGENCE verified for
+torch-fem too (error decreasing properly under refinement across
+several N, comparable to Table 6a/6b/6c's own methodology), not just a
+single-point displacement match. Corrected task order (task-tool
+tasks #1-#7 now): #1 apply the FP64/1e-8 dtype fix to
+torchfem_comparison.py (code only, verified at N=11) -> #2 accuracy
+comparison at production N (u_x/u_y, strain energy, stress, relative
+L2) and #6 mesh-convergence study for torch-fem across N=51...1401
+(both blocked on #1, run after it) -> #7 re-run the real timing sweep
+at matched precision (blocked on #2 AND #6 -- timing is not reported
+before accuracy+convergence parity is shown, per Timon's explicit
+rule) -> #5 the substantive "still too slow" reply (blocked on #7).
+Task #3 (timing-breakdown instrumentation) and #4 (TensorMesh, blocked
+on Omar/Timon) run in parallel, not gated by the above chain. Starting
+execution now on task #1.)
+
+Previous update, 2026-09-10 (**cost estimate + task breakdown for Timon's
 5 items, at Omar's request, before starting any of the real work.**
 Tracked as tasks #1-#5 (task tool):
 1. Apply the FP64/1e-8 fix, re-run torch-fem sweep. LOW-MEDIUM cost:
