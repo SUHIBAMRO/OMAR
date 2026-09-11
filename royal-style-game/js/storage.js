@@ -21,6 +21,8 @@ const Save = (function () {
     hints: CFG.hintEnabled,
     seenRules: false,
     totalWins: 0,
+    rescueLevel: 1,           // أعلى مهمّة إنقاذ مفتوحة
+    rescueStars: {},          // نجوم كل مهمّة
   };
 
   let data = null;
@@ -140,9 +142,31 @@ const Save = (function () {
     setFlag(k, v) { load(); data[k] = v; flush(); },
     flag(k) { return load()[k]; },
 
+    /* -------- مهمّات الإنقاذ -------- */
+    rescueLevel() { return load().rescueLevel || 1; },
+    rescueStars(lv) { return (load().rescueStars || {})[lv] || 0; },
+    totalRescueStars() {
+      load();
+      let t = 0;
+      for (const k in (data.rescueStars || {})) t += data.rescueStars[k];
+      return t;
+    },
+    /** يسجّل فوزاً في مهمّة إنقاذ ويُرجع النجوم الجديدة المكتسبة */
+    recordRescueWin(lv, stars) {
+      load();
+      data.rescueStars = data.rescueStars || {};
+      const prev = data.rescueStars[lv] || 0;
+      const gained = Math.max(0, stars - prev);
+      if (stars > prev) data.rescueStars[lv] = stars;
+      if (lv >= (data.rescueLevel || 1)) data.rescueLevel = lv + 1;
+      flush();
+      return gained;
+    },
+
     reset() {
       data = Object.assign({}, DEFAULTS);
       data.stars = {}; data.best = {};
+      data.rescueStars = {}; data.rescueLevel = 1;
       data.boosters = Object.assign({}, DEFAULTS.boosters);
       data.livesAt = Date.now();
       flush();

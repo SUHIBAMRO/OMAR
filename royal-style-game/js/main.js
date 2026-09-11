@@ -17,6 +17,9 @@
       UI.openLevel(Save.maxLevel());
     };
     U.$('#btn-shop').onclick = () => { Sfx.click(); UI.showShop(); };
+    U.$('#btn-rescue').onclick = () => { Sfx.click(); UI.showMissions(); };
+    U.$('#btn-rescue-quit').onclick = () => { Sfx.click(); Rescue.stop(); UI.show('screen-map'); };
+    U.$('#btn-rescue-retry').onclick = () => { Sfx.click(); Rescue.retry(); };
     U.$('#btn-how').onclick = () => { Sfx.click(); UI.showRules(); };
     U.$('#btn-settings').onclick = () => { Sfx.click(); UI.showSettings(); };
     U.$('#res-coins').onclick = () => { Sfx.click(); UI.showShop(); };
@@ -40,7 +43,7 @@
     let rt = null;
     window.addEventListener('resize', () => {
       clearTimeout(rt);
-      rt = setTimeout(() => { Game.resize(); UI.buildMap(); }, 120);
+      rt = setTimeout(() => { Game.resize(); Rescue.resize(); UI.buildMap(); }, 120);
     });
     window.addEventListener('orientationchange', () => setTimeout(() => Game.resize(), 250));
 

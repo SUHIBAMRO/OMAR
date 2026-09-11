@@ -24,7 +24,48 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-11 (**New, unrelated side task added at Omar's own
+Last updated: 2026-09-11 (**Game side task extended at Omar's own
+request: countdown bombs + timed levels in the match-3 mode, and a whole
+second game mode, "Rescue Missions" -- the pin-pull puzzles from the
+Royal Match ads (lava, snake, water, treasure, timer).** Still entirely
+separate from the PFEM/Transolver work, still in `royal-style-game/`,
+still no ads/libraries/external assets.
+
+He asked for "the snake and the fire and those, and the timing". The
+official Royal Match wiki and Help Center are both blocked by this
+session's network egress proxy, so they could not be read directly --
+that limitation was stated plainly rather than papered over, and the
+reading was taken from the screenshot he sent plus what searches did
+return: those are the ad mini-games, i.e. pin-pull rescue puzzles.
+
+Rescue mode is a falling-sand cellular simulation (`rescue-sim.js`,
+DOM-free like `board.js`): lava+water make stone, lava burns the snake,
+the snake eats gold and kills the king, gold must reach his basin, all
+under a timer. Five hand-designed missions.
+
+Because the sim is DOM-free, every mission is machine-verified: each
+carries a known `solution` pull order, and a Node harness checks that
+order actually wins and that other orders lose (a puzzle everyone wins
+is not a puzzle). That harness found and fixed four real bugs, none of
+which would have been visible by eye: (1) a drain pit smaller than the
+lava volume, so the "correct" order still killed the king; (2) the win
+firing the instant gold landed, before the lava finished falling, which
+made a level unloseable -- wins now resolve only once the board is at
+rest; (3) one single snake cell surviving in a corner and eating the
+entire gold stream, fixed by letting fire spread diagonally; (4) liquids
+jittering in place instead of draining off flat shelves, fixed with
+per-cell flow-direction memory -- lava now clears a shelf in 0.6s
+instead of never. A real-browser Playwright run then played mission 3
+to a win through actual pointer events, with zero console errors.
+
+Match-3 additions: a bomb piece with a per-move fuse (defused by an
+adjacent match or any blast, instant loss at zero) and timed levels
+(seconds instead of moves, clears add time, leftover time becomes
+score), plus six new hand-made levels and generator support. A pacing
+bug found here too: bomb spawning was rolled per spawner cell per
+gravity step, so a level's entire bomb budget could drop in one move.
+
+Previous update, 2026-09-11 (**New, unrelated side task added at Omar's own
 request: a complete Match-3 game (`royal-style-game/`), built from a
 Royal Match screenshot he sent.** This has nothing to do with the
 PFEM/Transolver work -- it lives in its own top-level folder and touches

@@ -48,7 +48,35 @@
     <footer class="mapbar">
       <button class="mapbar-btn" id="btn-how">القواعد</button>
       <button class="mapbar-btn primary" id="btn-play">العب</button>
+      <button class="mapbar-btn" id="btn-rescue">إنقاذ</button>
       <button class="mapbar-btn" id="btn-shop">المتجر</button>
+    </footer>
+  </section>
+
+  <!-- ================= مهمّات الإنقاذ ================= -->
+  <section id="screen-rescue" class="screen">
+    <header class="gamebar">
+      <button class="icon-btn" id="btn-rescue-quit" aria-label="خروج">
+        <span class="ico ico-back"></span>
+      </button>
+      <div class="moves-box" id="rescue-time-box">
+        <span class="moves-label">الوقت</span>
+        <b id="rescue-time">1:00</b>
+      </div>
+      <div class="rescue-title" id="rescue-name">المهمّة ١</div>
+      <div class="score-box">
+        <span class="score-label">الذهب</span>
+        <b id="rescue-gold">0/0</b>
+      </div>
+    </header>
+
+    <div class="rescue-wrap" id="rescue-wrap">
+      <canvas id="rescue-canvas"></canvas>
+    </div>
+
+    <footer class="rescue-bar">
+      <p class="rescue-hint" id="rescue-hint"></p>
+      <button class="mapbar-btn" id="btn-rescue-retry">إعادة</button>
     </footer>
   </section>
 
@@ -97,8 +125,11 @@
 <script src="js/storage.js"></script>
 <script src="js/levels.js"></script>
 <script src="js/board.js"></script>
+<script src="js/rescue-sim.js"></script>
+<script src="js/rescue-levels.js"></script>
 <script src="js/effects.js"></script>
 <script src="js/game.js"></script>
+<script src="js/rescue.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/main.js"></script>
 </body>

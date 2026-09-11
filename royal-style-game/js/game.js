@@ -52,6 +52,7 @@ const Game = (function () {
   /* ------------------------------------------------------------------ */
 
   function start(levelNo, pre) {
+    if (typeof Rescue !== 'undefined') Rescue.stop();
     S.levelNo = levelNo;
     S.def = Levels.get(levelNo);
     S.board = new Board(S.def);

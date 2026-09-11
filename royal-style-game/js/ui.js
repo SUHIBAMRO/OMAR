@@ -17,6 +17,7 @@ const UI = (function () {
     U.$$('.screen').forEach(s => s.classList.toggle('active', s.id === id));
     if (id === 'screen-map') { buildMap(); startLivesTicker(); }
     if (id === 'screen-game') setTimeout(() => Game.resize(), 30);
+    if (id === 'screen-rescue') setTimeout(() => Rescue.resize(), 30);
   }
 
   /* ------------------------------------------------------------------ */
@@ -687,7 +688,22 @@ const UI = (function () {
         Math.round(CFG.lives.refillMs / 60000) + ' دقيقة. ' +
         'تُكسب العملات من الفوز والنجوم والهدية الدورية، وتُصرف على المعزّزات والحركات الإضافية والقلوب.'));
 
-      box.appendChild(U.el('h3', '', '٩) حالات خاصّة'));
+      box.appendChild(U.el('h3', '', '٩) مهمّات الإنقاذ'));
+      box.appendChild(U.el('p', '',
+        'وضع لعب ثانٍ مستقلّ عن اللوحة: الملك محاصر، وأمامك دبابيس تسحبها بالترتيب الذي تختاره. ' +
+        'ما إن يُسحب الدبّوس حتى ينهار ما فوقه وتتدفّق المواد بالجاذبية.'));
+      const rs = U.el('ul');
+      [['الذهب', 'أنزِله إلى حوض الملك — يكفي جمع ٨٠٪ منه للفوز.'],
+       ['الحمم (النار)', 'تقتل الملك فور ملامسته. صرِّفها في بئر جانبية أو أخمِدها بالماء.'],
+       ['الماء', 'يحوّل الحمم التي يلمسها إلى صخر جامد لا يتحرّك ولا يؤذي.'],
+       ['الأفعى', 'تبتلع كل ذهب يلمسها، وتقتل الملك إن وصلت إليه. الحمم وحدها تحرقها.'],
+       ['الوقت', 'لكل مهمّة مؤقّت؛ إن نفد خسرت.'],
+      ].forEach(([a, b]) => rs.appendChild(U.el('li', '', '<b>' + a + ':</b> ' + b)));
+      box.appendChild(rs);
+      box.appendChild(U.el('p', '',
+        'القاعدة الذهبية: <b>ليس كل دبّوس يجب أن يُسحب</b>. بعضها فخّ خالص.'));
+
+      box.appendChild(U.el('h3', '', '١٠) حالات خاصّة'));
       const sp = U.el('ul');
       ['إذا لم تبقَ أي حركة ممكنة تُخلَط اللوحة تلقائياً دون استهلاك حركة.',
        'عند تحقيق كل الأهداف تتحوّل الحركات المتبقّية إلى صواريخ تنفجر دفعةً واحدة.',
@@ -699,6 +715,81 @@ const UI = (function () {
       dlg.appendChild(box);
       dlg.appendChild(btn('فهمت', 'green', closeModal));
     });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*                         مهمّات الإنقاذ                              */
+  /* ------------------------------------------------------------------ */
+
+  const RESCUE_LOSE = {
+    lava:  'أحرقت الحمم الملك',
+    snake: 'وصلت الأفعى إلى الملك',
+    gold:  'ضاع الذهب',
+    time:  'نفد الوقت',
+  };
+
+  function showMissions() {
+    openModal(dlg => {
+      dlg.appendChild(U.el('h2', '', 'مهمّات الإنقاذ'));
+      dlg.appendChild(U.el('p', '', 'اسحب الدبابيس بالترتيب الصحيح: أنزِل الذهب إلى الملك، ' +
+        'وأبعِد عنه الحمم والأفعى.'));
+      const list = U.el('div', 'mission-list');
+      const maxLv = Save.rescueLevel();
+      RESCUE_LEVELS.forEach((def, i) => {
+        const lv = i + 1;
+        const locked = lv > maxLv;
+        const row = U.el('div', 'mission' + (locked ? ' locked' : ''));
+        row.appendChild(U.el('div', 'num', String(lv)));
+        const info = U.el('div', 'info');
+        info.innerHTML = '<b>' + def.name + '</b><small>' +
+          (locked ? 'مقفلة' : def.hint) + '</small>';
+        row.appendChild(info);
+        const ms = U.el('div', 'ms');
+        const st = Save.rescueStars(lv);
+        for (let k = 0; k < 3; k++) ms.appendChild(U.el('i', k < st ? 'on' : ''));
+        row.appendChild(ms);
+        if (!locked) {
+          row.onclick = () => {
+            Sfx.click();
+            closeModal();
+            show('screen-rescue');
+            Rescue.start(lv);
+          };
+        }
+        list.appendChild(row);
+      });
+      dlg.appendChild(list);
+      dlg.appendChild(U.el('p', 'hint-note', 'المهمّات لا تستهلك قلوباً.'));
+    });
+  }
+
+  function showRescueWin(res) {
+    openModal(dlg => {
+      dlg.appendChild(U.el('h2', '', 'نجا الملك!'));
+      const sr = U.el('div', 'stars-row');
+      for (let i = 0; i < 3; i++) sr.appendChild(U.el('i', (i === 1 ? 'mid ' : '') + (i < res.stars ? 'on' : '')));
+      dlg.appendChild(sr);
+      dlg.appendChild(U.el('p', '', 'مكافأة: <b>' + res.coins + '</b> عملة'));
+      if (!res.last) {
+        dlg.appendChild(btn('المهمّة التالية', 'green', () => {
+          closeModal();
+          Rescue.start(res.level + 1);
+        }));
+      } else {
+        dlg.appendChild(U.el('p', 'hint-note', 'أنهيت كل المهمّات المتاحة.'));
+      }
+      dlg.appendChild(btn('قائمة المهمّات', '', () => { closeModal(); Rescue.stop(); show('screen-map'); showMissions(); }));
+      dlg.appendChild(btn('الخريطة', '', () => { closeModal(); Rescue.stop(); show('screen-map'); }));
+    }, { closable: false });
+  }
+
+  function showRescueLose(res) {
+    openModal(dlg => {
+      dlg.appendChild(U.el('h2', '', RESCUE_LOSE[res.reason] || 'فشلت المهمّة'));
+      dlg.appendChild(U.el('p', '', 'جرّب ترتيباً آخر لسحب الدبابيس — ليس كل دبّوس يجب أن يُسحب.'));
+      dlg.appendChild(btn('إعادة المحاولة', 'green', () => { closeModal(); Rescue.retry(); }));
+      dlg.appendChild(btn('قائمة المهمّات', '', () => { closeModal(); Rescue.stop(); show('screen-map'); showMissions(); }));
+    }, { closable: false });
   }
 
   /* ------------------------------------------------------------------ */
@@ -717,6 +808,7 @@ const UI = (function () {
   }
 
   return {
+    showMissions, showRescueWin, showRescueLose,
     show, refreshTop, buildMap, openLevel,
     buildGoals, updateGoals, buildBoosterBar, banner,
     showWin, showLose, showNoLives, showBuyBooster, showShop, showSettings, showRules,
