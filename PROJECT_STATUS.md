@@ -24,7 +24,23 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-11 (**Mirrored Points 8+9 into the full Report too,
+Last updated: 2026-09-11 (**Converted the draft email to Timon into a real
+.docx (`Email_to_Timon_2026-09-11.docx`), per Omar's own direct
+correction** ("ليش حاطها بملف مختلف؟" -- why is it in a different file?
+-- he wanted a normal Word file, not the plain-text .md the
+`advisor_feedback/` folder's own convention had used). Same content as
+`advisor_feedback/2026-09-11_assembled_direct_experiment_for_timon.md`
+(both Point-8 and Point-9-equivalent sections), rebuilt with real Word
+tables (not markdown pipe syntax) via python-docx, verified via readback
+(38 paragraphs, 2 tables, correct row/column contents) before sending.
+Still a draft, not sent. Also confirmed directly with Omar: both new
+documents (Report, Summary) already contain the FULL detail for Points
+8 and 9 -- nothing was left out or summarized down -- and the third,
+still-in-progress optimization (coalescing-reuse + its memory-regression
+fix) is deliberately NOT in either document or the email yet, pending
+real GPU confirmation.
+
+Previous update, 2026-09-11 (**Mirrored Points 8+9 into the full Report too,
 per Omar's own request ("حدّثه بنفس الشي") once he confirmed he wants both
 deliverables consistent before sending to Timon.** Added a new Heading-3
 subsection, "An assembled and directly solved variant (experimental)",
