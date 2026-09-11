@@ -9,13 +9,18 @@
 #  1. Correctness re-check at small N (matches the CPU result: final
 #     solution should match the existing 'autodiff' path to ~1e-13).
 #  2. Speed at N=401/701/1001/1401 (matching torch-fem's and
-#     TensorMesh's own sweeps exactly), 'autodiff' (the OLD, every-
-#     already-published-number path) vs 'cached_hessian' (the NEW path)
-#     -- run mgv-preconditioned, matching "ours" own already-published
+#     TensorMesh's own sweeps exactly) -- 'cached_hessian' ONLY, run
+#     fresh, mgv-preconditioned, matching "ours" own already-published
 #     Table 6a/20-series methodology, not a new preconditioner.
+#     'autodiff' is NOT re-run: those numbers are already real,
+#     committed, published results (high_dof_stress_qoi_B1_neo_hookean_
+#     mgv_N701_1001_1401.json) -- re-running them here would cost
+#     roughly 14.4 GPU-HOURS for information this project already has
+#     (N=701 alone is ~2h, N=1001 ~4.8h, N=1401 ~7.6h). Reused directly
+#     from that file instead (KNOWN_AUTODIFF_WALL_CLOCK_S below).
 #  3. A genuine three-way speed comparison at those same N: "ours"
-#     (both hvp_methods), torch-fem, and TensorMesh, all already-
-#     committed real numbers for the other two.
+#     (both hvp_methods, one fresh and one known), torch-fem, and
+#     TensorMesh, all already-committed real numbers for the other two.
 #
 #  WHY THIS MIGHT NOT MATCH THE CPU RATIO: GPU already parallelizes the
 #  autodiff-heavy 'autodiff' path far more than CPU does (many small
@@ -113,26 +118,39 @@ os.makedirs(R, exist_ok=True)
 RESOLUTIONS = [401, 701, 1001, 1401]
 MG_MIN_COARSE_N = 13
 
+# DELIBERATELY DOES NOT RE-RUN 'autodiff' FRESH -- those numbers are
+# ALREADY real, committed, published results (high_dof_stress_qoi_
+# B1_neo_hookean_mgv_N701_1001_1401.json), and re-running them here
+# would cost roughly 14.4 HOURS of GPU time for information this
+# project already has: N=401 0.76s, N=701 7205.43s (~2h), N=1001
+# 17314.84s (~4.8h), N=1401 27257.39s (~7.6h). Only 'cached_hessian' is
+# run fresh below -- that is the only genuinely new information this
+# notebook exists to produce.
+KNOWN_AUTODIFF_WALL_CLOCK_S = {401: 0.7642605304718018, 701: 7205.425608158112,
+                                1001: 17314.837193489075, 1401: 27257.392720222473}
+
 results = {}
 for N in RESOLUTIONS:
-    results[N] = {}
-    for method in ['autodiff', 'cached_hessian']:
-        print(f'\n  N={N}, hvp_method={method} ...')
-        r = solve_one('B1', 'Q4', N, 'neo_hookean', device, torch.float64,
-                       cg_tol=1e-8, newton_tol=1e-8, precond_kind='mgv',
-                       mg_min_coarse_n=MG_MIN_COARSE_N, hvp_method=method,
-                       cg_progress_every=None)
-        results[N][method] = {
+    print(f'\n  N={N}, hvp_method=cached_hessian ...')
+    r = solve_one('B1', 'Q4', N, 'neo_hookean', device, torch.float64,
+                   cg_tol=1e-8, newton_tol=1e-8, precond_kind='mgv',
+                   mg_min_coarse_n=MG_MIN_COARSE_N, hvp_method='cached_hessian',
+                   cg_progress_every=None)
+    results[N] = {
+        'cached_hessian': {
             'wall_clock_s': r['wall_clock_s'],
             'cg_iters_total': r['stats']['cg_iters_total'],
             'newton_iters_total': r['stats']['newton_iters_total'],
             'cg_failures': r['stats']['cg_failures'],
-        }
-        print(f'    wall_clock={r["wall_clock_s"]:.2f}s, cg_iters={r["stats"]["cg_iters_total"]}, '
-              f'cg_failures={r["stats"]["cg_failures"]}')
-    speedup = results[N]['autodiff']['wall_clock_s'] / results[N]['cached_hessian']['wall_clock_s']
+        },
+        'autodiff_wall_clock_s_KNOWN_FROM_EARLIER_RUN': KNOWN_AUTODIFF_WALL_CLOCK_S[N],
+    }
+    print(f'    wall_clock={r["wall_clock_s"]:.2f}s, cg_iters={r["stats"]["cg_iters_total"]}, '
+          f'cg_failures={r["stats"]["cg_failures"]}')
+    speedup = KNOWN_AUTODIFF_WALL_CLOCK_S[N] / r['wall_clock_s']
     results[N]['speedup_cached_vs_autodiff'] = speedup
-    print(f'  --> speedup at N={N}: {speedup:.2f}x')
+    print(f'  --> speedup at N={N}: {speedup:.2f}x (vs. the already-known autodiff time '
+          f'{KNOWN_AUTODIFF_WALL_CLOCK_S[N]:.2f}s, not re-run here)')
 
 OUT_JSON = f'{R}/cached_hessian_speedup_production_N401_1401.json'
 with open(OUT_JSON, 'w') as f:
@@ -154,9 +172,10 @@ if os.path.exists(TM_JSON):
 print('\n' + '=' * 70)
 print('THREE-WAY COMPARISON (wall-clock, seconds)')
 print('=' * 70)
+print('(ours-autodiff column is the already-known/published number, NOT re-run in this notebook)')
 print(f'{"N":<6} {"ours(autodiff)":<16} {"ours(cached)":<14} {"torch-fem":<12} {"TensorMesh":<12}')
 for N in RESOLUTIONS:
-    o_a = results[N]['autodiff']['wall_clock_s']
+    o_a = results[N]['autodiff_wall_clock_s_KNOWN_FROM_EARLIER_RUN']
     o_c = results[N]['cached_hessian']['wall_clock_s']
     tf = tf_rows.get(N, {}).get('torchfem_wall_clock_s')
     tm = tm_rows.get(N, {}).get('tensormesh_wall_clock_s')

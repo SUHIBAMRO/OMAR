@@ -17,7 +17,32 @@ finishes or a new one starts.
 > numbers look great. Remove this reminder only once Timon has
 > actually been asked, not once the GPU result comes back.
 
-Last updated: 2026-09-10 (**Colab notebook built for the cached-Hessian
+Last updated: 2026-09-11 (**Caught and fixed a real, serious flaw in the
+cached-Hessian test notebook BEFORE Omar ran it and wasted the time**:
+it was designed to re-run BOTH hvp_methods ('autodiff' AND
+'cached_hessian') fresh at every one of N=401/701/1001/1401. The
+'autodiff' numbers at those exact resolutions ALREADY EXIST as real,
+committed, published results
+(`highdof_stress_qoi_results/high_dof_stress_qoi_B1_neo_hookean_mgv_
+N701_1001_1401.json`): N=401 0.76s, N=701 7205.43s (~2h), N=1001
+17314.84s (~4.8h), N=1401 27257.39s (~7.6h) -- summing to roughly
+**14.4 GPU-hours** the notebook would have burned re-deriving numbers
+this project already has, just to answer "how long will this take?"
+Fixed: the notebook now reuses those known numbers directly
+(`KNOWN_AUTODIFF_WALL_CLOCK_S`) and only runs `cached_hessian` fresh --
+the ONLY genuinely new information it needs to produce. Rebuilt and
+re-verified (59/59 notebooks OK).
+
+This means the real, honest time estimate for this notebook is now
+governed by ONLY the four fresh `cached_hessian` solves (plus the
+small N=21 correctness check) -- if the CPU-measured 15.6-22.3x
+speedup holds even partially on GPU, this should be a small fraction
+of the 14.4 hours the unfixed version would have cost, not comparable
+to it. The exact number is still unknown until it actually runs, but
+the ORDER OF MAGNITUDE risk (hours vs. minutes) has been removed by
+this fix, not just estimated more carefully.
+
+Previous update, 2026-09-10 (**Colab notebook built for the cached-Hessian
 GPU test** (the previous entry's own "direct next step, not yet
 built"): `Round6_Cached_Hessian_Speedup_Production.ipynb` /
 `cell_cached_hessian_speedup_production.py`. Also added `hvp_method`
