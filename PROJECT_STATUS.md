@@ -5,6 +5,18 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
+> ⚠️ **STANDING REMINDER, Omar's own explicit instruction (2026-09-10):
+> before the cached-Hessian speedup (`hvp_method="cached_hessian"` in
+> `matrix_free_solver.py`/`solve_matrix_free`) is finalized, applied
+> broadly, or used as the basis for any claim to Timon, ASK TIMON ABOUT
+> IT FIRST.** Plan: run the GPU test notebook
+> (`Round6_Cached_Hessian_Speedup_Production.ipynb`) to get real
+> production-scale numbers -- if it holds up, the next step is
+> consulting Timon before finalizing/applying it more broadly, not
+> silently rolling it out. Do not skip this step even if the GPU
+> numbers look great. Remove this reminder only once Timon has
+> actually been asked, not once the GPU result comes back.
+
 Last updated: 2026-09-10 (**Colab notebook built for the cached-Hessian
 GPU test** (the previous entry's own "direct next step, not yet
 built"): `Round6_Cached_Hessian_Speedup_Production.ipynb` /
