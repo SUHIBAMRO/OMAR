@@ -132,16 +132,21 @@ KNOWN_AUTODIFF_WALL_CLOCK_S = {401: 0.7642605304718018, 701: 7205.425608158112,
 results = {}
 for N in RESOLUTIONS:
     print(f'\n  N={N}, hvp_method=cached_hessian ...')
+    if device.type == 'cuda':
+        torch.cuda.reset_peak_memory_stats(device)
     r = solve_one('B1', 'Q4', N, 'neo_hookean', device, torch.float64,
                    cg_tol=1e-8, newton_tol=1e-8, precond_kind='mgv',
                    mg_min_coarse_n=MG_MIN_COARSE_N, hvp_method='cached_hessian',
                    cg_progress_every=None)
+    peak_mem_mb = (torch.cuda.max_memory_allocated(device) / 1e6) if device.type == 'cuda' else None
+    print(f'    peak_mem_mb={peak_mem_mb}')
     results[N] = {
         'cached_hessian': {
             'wall_clock_s': r['wall_clock_s'],
             'cg_iters_total': r['stats']['cg_iters_total'],
             'newton_iters_total': r['stats']['newton_iters_total'],
             'cg_failures': r['stats']['cg_failures'],
+            'peak_mem_mb': peak_mem_mb,
         },
         'autodiff_wall_clock_s_KNOWN_FROM_EARLIER_RUN': KNOWN_AUTODIFF_WALL_CLOCK_S[N],
     }
@@ -182,6 +187,18 @@ for N in RESOLUTIONS:
     tf_s = f'{tf:.2f}' if tf is not None else '(n/a)'
     tm_s = f'{tm:.2f}' if tm is not None else '(n/a)'
     print(f'{N:<6} {o_a:<16.2f} {o_c:<14.2f} {tf_s:<12} {tm_s:<12}')
+
+print('\n' + '=' * 70)
+print('PEAK GPU MEMORY (MB) -- answers "how many GB will this use"')
+print('=' * 70)
+print('(ours-cached is the only one measured fresh here; torch-fem is its own already-known peak)')
+print(f'{"N":<6} {"ours(cached) MB":<18} {"torch-fem MB":<14}')
+for N in RESOLUTIONS:
+    o_mem = results[N]['cached_hessian']['peak_mem_mb']
+    tf_mem = tf_rows.get(N, {}).get('torchfem_peak_mem_mb')
+    o_mem_s = f'{o_mem:.1f}' if o_mem is not None else '(n/a, not CUDA)'
+    tf_mem_s = f'{tf_mem:.1f}' if tf_mem is not None else '(n/a)'
+    print(f'{N:<6} {o_mem_s:<18} {tf_mem_s:<14}')
 
 print('\n' + '=' * 70)
 print('ANALYSIS')
