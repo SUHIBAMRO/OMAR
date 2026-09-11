@@ -24,7 +24,37 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-11 (**Two corrections per Omar's own direct
+Last updated: 2026-09-11 (**New, unrelated side task added at Omar's own
+request: a complete Match-3 game (`royal-style-game/`), built from a
+Royal Match screenshot he sent.** This has nothing to do with the
+PFEM/Transolver work -- it lives in its own top-level folder and touches
+none of the research files. Plain HTML/CSS/JS, no libraries, no external
+image or audio assets (all art drawn on Canvas, all SFX synthesised with
+WebAudio), no ads, no network calls, no tracking; progress saved in
+localStorage. Full rule set implemented: match-3/4/5 and L/T shapes ->
+rocket / TNT / light ball, all six special-pair combos, four obstacle
+families (box, ice, chain, grass) plus droppable royal-chest collectibles,
+six goal types, boosters (pre-level and in-level), lives with timed
+refill, coins, 3-star scoring, level map, and an in-game rules panel.
+24 hand-made levels plus a seeded generator for the rest.
+
+Verification actually run (not assumed): `board.js` is DOM-free, so a
+headless Node harness played all 48 first levels with a greedy 1-ply bot
+-- 39/48 wins, star spread 7/13/19, no runaway loops or exceptions. That
+harness caught two real, level-breaking bugs that were then fixed: several
+levels had goal counts larger than the obstacles that actually exist on the
+board (mathematically unwinnable -- level 4 asked for 12 boxes on a board
+holding 7), and one layout sealed the entire top row with boxes/ice so no
+new pieces could ever spawn (permanent deadlock). Both are now prevented
+structurally by a `sanitize()` pass on every level, hand-made or generated.
+A Playwright pass in real Chromium (412x892, 360x640, 1280x800) drove
+actual pointer events through a full win, a loss, the +5-moves purchase,
+the no-lives and shop dialogs, and booster use; zero console/page errors.
+A third bug was found and fixed there: tap-a-piece-then-tap-its-neighbour
+could never swap, because pointerdown overwrote the selection before
+pointerup could read it.
+
+Previous update, 2026-09-11 (**Two corrections per Omar's own direct
 feedback: (1) real Word tables added to Points 8/9 in both the Report
 and the Summary, instead of numbers embedded only in prose; (2) the
 email rewritten to be short and general, with detail left to the
