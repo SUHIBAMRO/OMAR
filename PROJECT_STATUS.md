@@ -24,7 +24,23 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-11 (**REAL GPU RESULT: symmetric-storage optimization
+Last updated: 2026-09-11 (**Added "Point 9" to `PFEM_Work_Summary_2026-09-09.docx`,
+per Omar's own explicit request** ("حط الارقام هاي برضو بنقطه منفصله مع
+تفاصيل العمل عشان يشوف الدكتور ويقررلي" -- put these numbers in a
+separate point too, with full work detail, so the professor can see and
+decide) -- a SEPARATE point from Point 8, not a numbers-refresh of it,
+inserted right after Point 8's own body and before the "Summary of what
+was done" heading (verified paragraph order via python-docx readback).
+Documents both cuDSS optimizations (analysis-reuse and symmetric
+storage) with the real verification methodology (not just final numbers):
+the 95.7%-of-one-solve ANALYSIS finding, the bit-for-bit CPU proof that
+symmetric_bc is an exact reformulation, and the real GPU numbers for
+both. Explicitly frames it as Omar's own request describes -- full
+engineering detail so Timon can judge the work itself, ending with an
+open question about whether the approach and its depth of optimization
+are sound and worth continuing, not a claimed conclusion.
+
+Previous update, 2026-09-11 (**REAL GPU RESULT: symmetric-storage optimization
 CONFIRMED CORRECT, gives a modest further speedup and a meaningful memory
 reduction on top of analysis-reuse.** Omar ran Step 3 of `Round6_
 Assembled_Direct_Reuse_Analysis.ipynb` for real (A100). Correctness
