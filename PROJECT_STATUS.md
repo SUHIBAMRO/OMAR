@@ -24,7 +24,42 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-11 (**Fixed a real, stale-text bug in the Summary's
+Last updated: 2026-09-11 (**Two corrections per Omar's own direct
+feedback: (1) real Word tables added to Points 8/9 in both the Report
+and the Summary, instead of numbers embedded only in prose; (2) the
+email rewritten to be short and general, with detail left to the
+attached files.** Omar's own words: "انا الايميل بدي يكون عام والنصوص
+والجداول تكون في الملفات" (I want the email to be general, with the
+text and tables in the files).
+
+**Tables added** (both documents, same 3 tables, same numbers,
+positioned at the natural point in the existing prose -- verified via
+python-docx readback that paragraph/table order is correct in both):
+1. Production wall-clock/memory, N=401-2001, ours vs. torch-fem(cg) vs.
+   TensorMesh (6 rows).
+2. Direct-vs-direct fairness check, N=401/701 (3 rows incl. header).
+3. Optimization progression at N=1401: assembled+direct only ->
+   +analysis-reuse -> +analysis-reuse+symmetric (3 rows).
+
+Implementation note: the Report's own existing 58 tables use explicit
+`<w:tblBorders>` XML rather than a named table style (confirmed by
+reading one directly) -- a first attempt using a named style ('Grid
+Table Light') failed with `KeyError: no style with name...` since
+neither that nor Word's own built-in 'Table Grid' exists in this
+document's style gallery. Fixed by building the same explicit-border
+XML the document's own tables already use, via `OxmlElement`, rather
+than assuming a style name would be available. The Summary's own style
+gallery does have 'Grid Table Light' (used instead there, matching its
+own already-existing tables).
+
+**Email rewritten to be short**: `Email_to_Timon_2026-09-11.docx`
+(and the matching `.md` draft) now states the headline results for
+Points 8 and 9 in a few sentences each, points to the attached
+Report/Summary for full numbers and verification methodology, and ends
+with the same open question -- no inline tables or paragraph-level
+technical detail in the email itself anymore.
+
+Previous update, 2026-09-11 (**Fixed a real, stale-text bug in the Summary's
 own intro, caught by Omar's own question ("هل مقدمة السمّاري فيها كل
 النقاط مع التجارب الثلاث؟").** The paragraph right before Point 1 still
 said "All seven points below..." and "[TensorMesh] does not yet reach
