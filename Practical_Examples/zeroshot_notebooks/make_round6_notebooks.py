@@ -1461,6 +1461,33 @@ NOTEBOOKS = {
          "real memory-ceiling extrapolation fit from each architecture's measured MB/DOF "
          "slope, and two new real points (N=1701, N=2001, both still below\n",
          "`fine_N=2236` so a real accuracy number exists for them too).\n"]),
+    "Round6_Profile_cuDSS_Analysis_Reuse.ipynb": (
+        "cell_profile_cudss_analysis_reuse.py",
+        ["# Quick diagnostic: is reusing cuDSS's own ANALYSIS phase worth building?\n",
+         "\n",
+         "Per Omar's own request to keep improving the assembled+direct solver "
+         "(\"هل في طريقه نحسن الطريقه الثانيه اكثر؟ اسرع وادق وافضل\"):\n",
+         "reading `torch_sla`'s own installed source directly showed that every single "
+         "Newton iteration currently pays for a brand-new cuDSS handle\n",
+         "plus ANALYSIS (fill-reducing reordering) + FACTORIZATION + SOLVE, even though "
+         "ANALYSIS depends only on the matrix's sparsity PATTERN — and\n",
+         "`build_sparse_jac_fn`'s own row/col template never changes within one Newton solve, "
+         "only the VALUES do. Confirmed on CPU already (before any\n",
+         "GPU time): the CSR structure really is byte-identical across different displacement "
+         "fields.\n",
+         "\n",
+         "**This cell does NOT change any solver.** It's a small, cheap, read-only diagnostic "
+         "(`omar_pfem/profile_cudss_analysis_reuse.py`) that measures, on\n",
+         "a real Jacobian from this project's own mesh: (1) how big a fraction of one full "
+         "solve ANALYSIS actually is, and (2) whether reusing it across\n",
+         "matrices with the same pattern but different values gives the SAME answer as the "
+         "current always-redo-everything behavior — a real correctness\n",
+         "check, not just a timing number. If ANALYSIS turns out to be a small fraction, or "
+         "the correctness check fails, that's the honest answer and no\n",
+         "further engineering is warranted; if it's a large fraction and correct, that's the "
+         "green light to build the full opt-in optimization next.\n",
+         "\n",
+         "**CUDA-only, cannot be verified in the development environment — not yet run.**\n"]),
     "Round6_NO_Inference_vs_TorchFEM_N1401.ipynb": (
         "cell_no_inference_vs_torchfem_N1401.py",
         ["# NO inference time vs. torch-fem at N=1401 (round-9, item 12)\n",

@@ -24,7 +24,48 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-11 (**EXTENDED RUN CONFIRMED THE MEMORY MODEL
+Last updated: 2026-09-11 (**NEW LEAD FOR SPEEDING UP THE ASSEMBLED+DIRECT
+SOLVER FURTHER, per Omar's own request ("هل في طريقه نحسن الطريقه الثانيه
+اكثر؟ اسرع وادق وافضل تكون؟") -- found by reading torch_sla's own
+installed source, not guessed:** `NonlinearSolveFunction.forward`
+(`torch_sla/sparse_tensor/autograd.py`) calls `spsolve(...)` fresh on
+EVERY Newton iteration, and its own cuDSS backend (`nvmath_backend.py`'s
+`nvmath_solve`) does a brand-new `cudss.create()` -> ANALYSIS ->
+FACTORIZATION -> SOLVE -> `cudss.destroy()` every single call, with zero
+reuse across calls. ANALYSIS (fill-reducing reordering) depends ONLY on
+the matrix's sparsity PATTERN, not its values -- and `build_sparse_jac_
+fn`'s own row/col template is static across every Newton iteration of
+one solve (only VALUES change). **Confirmed on CPU already, before any
+GPU time was spent**: built two real Jacobians (N=11) at different
+displacement fields via `build_sparse_jac_fn`, and their CSR structure
+(`crow_indices`/`col_indices`) is byte-identical -- the assumption this
+whole idea depends on holds, not just architecturally plausible.
+
+Built `omar_pfem/profile_cudss_analysis_reuse.py` -- a small, READ-ONLY
+diagnostic (does not change any solver): builds 3 real Jacobians with
+the same pattern/different values, times Method A (current behavior:
+full ANALYSIS+FACTORIZATION+SOLVE every call) vs. Method B (ANALYSIS
+once, reused via an in-place value-buffer update on the SAME cuDSS
+descriptor, then only FACTORIZATION+SOLVE per call), and REQUIRES a
+correctness match between the two before reporting any speedup number --
+if Method B's answer differs from Method A's, the script says so
+explicitly and refuses to trust the timing. Registered as
+`Round6_Profile_cuDSS_Analysis_Reuse.ipynb`, rebuilt and verified
+(61/61 notebooks OK). **CUDA-only (cuDSS has no CPU path) -- cannot be
+run or verified further in this development environment; NOT YET RUN.**
+This answers "is there a way to make the assembled+direct solver faster"
+with a concrete, source-grounded lead rather than a vague idea, but its
+real payoff (both whether cuDSS's own API honors this reuse pattern at
+all, and how big ANALYSIS's own share of one solve actually is) is
+unknown until Omar runs it for real.
+
+On "more accurate": accuracy is already excellent (matches torch-fem/
+TensorMesh to every printed digit at every tested N) -- this is not the
+solver's bottleneck. A real accuracy improvement would come from a finer
+mesh (larger N), a different axis entirely from this diagnostic, not a
+solver-internals change.
+
+Previous update, 2026-09-11 (**EXTENDED RUN CONFIRMED THE MEMORY MODEL
 EMPIRICALLY, NOT JUST BY EXTRAPOLATION -- Omar's own real A100 run of the
 extended sweep (N=1701, N=2001 added to the existing N=401-1401):
 
