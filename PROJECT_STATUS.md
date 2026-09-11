@@ -24,7 +24,62 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-11 (**Added "Point 9" to `PFEM_Work_Summary_2026-09-09.docx`,
+Last updated: 2026-09-11 (**THIRD cuDSS-adjacent optimization built on the
+SAME `reuse_analysis=True` code path, per Omar's own go-ahead ("حسنها
+وخلينا نجرب فش ورانا اشي")** -- reusing the COALESCING step
+(`torch.sparse_coo_tensor(...).coalesce()`, which sorts and sums
+duplicate (row, col) entries from multiple elements touching the same
+global DOF pair), not just cuDSS's own ANALYSIS phase. Same underlying
+insight, one level up: `build_sparse_jac_fn`'s raw (row, col) COO output
+is exactly as static across Newton iterations as the sparsity pattern
+ANALYSIS-reuse already exploits -- only the VALUES change -- so the
+sort+group-by `coalesce()` performs is just as wastefully repeated every
+iteration as ANALYSIS was.
+
+**Implementation** (`_newton_cudss_reuse_analysis`, `assembled_direct_
+solver.py`): on the first Newton iteration only, precomputes a reusable
+`scatter_idx` array via `torch.sort` + `torch.unique_consecutive` on an
+integer-encoded `row*n+col` key -- mapping each raw COO entry directly to
+its final coalesced slot. Every later iteration then does a single
+`index_add_` instead of a full sort. This is baked directly into the
+existing code path (no new parameter) -- both `matrix_type="general"`
+and `"symmetric"` now use it automatically. Added `stats["t_coalesce_s"]`
+to separately time this step (one-time sort+groupby on iteration 0, the
+cheap `index_add_` after), now also printed by `_correctness_check_
+reuse_analysis`.
+
+**Verified two ways before this ever touched the GPU**:
+1. Offline on CPU, standalone (not through the CUDA-only function itself,
+   which can't run here): built real Jacobians via `build_sparse_jac_fn`
+   at N=21 across 3 different displacement fields (both `matrix_type`
+   settings), and confirmed the fast `scatter_idx`-based path matches
+   `torch.sparse_coo_tensor(...).coalesce()`'s own real output to
+   floating-point noise (~1e-13) at every iteration tested, not just the
+   first.
+2. An in-function self-check runs on every real solve's own first
+   iteration (compares the fast-path result against a real `coalesce()`
+   call computed in the same pass) and raises rather than silently
+   trusting the shortcut if it doesn't match -- this is the safeguard
+   that actually protects a real run, not just this session's own manual
+   check.
+
+**Re-verified both existing default paths are still completely
+unaffected**: re-ran `python -m omar_pfem.assembled_direct_solver 11`
+and `21` after this change -- identical results to every prior run
+(1.196e-11 and 1.240e-11), confirming `reuse_analysis=False` (which
+never touches this new code at all) is untouched.
+
+**Operational note for the next GPU run**: because this changes what
+`reuse_analysis=True` itself computes, the notebook's `OUT_REUSE`/
+`OUT_SYMMETRIC` output paths were changed to new `_v2` filenames (`cell_
+assembled_direct_reuse_analysis.py`) -- the OLD committed-to-Drive JSONs
+already have rows for every N from the PRE-coalescing-optimization code,
+and `run_assembled_direct_convergence_study` skips any N already present
+in its own out_json, so reusing the old filenames would have silently
+kept reporting stale numbers instead of testing this change at all.
+Rebuilt and re-verified (62/62 notebooks OK). **NOT YET RUN ON GPU.**
+
+Previous update, 2026-09-11 (**Added "Point 9" to `PFEM_Work_Summary_2026-09-09.docx`,
 per Omar's own explicit request** ("حط الارقام هاي برضو بنقطه منفصله مع
 تفاصيل العمل عشان يشوف الدكتور ويقررلي" -- put these numbers in a
 separate point too, with full work detail, so the professor can see and

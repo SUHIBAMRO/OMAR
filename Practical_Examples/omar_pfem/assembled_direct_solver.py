@@ -82,6 +82,30 @@ def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_
     and raises rather than silently returning a wrong answer if it ever
     doesn't.
 
+    SECOND optimization, same idea one level up (2026-09-11, per Omar's
+    own go-ahead "حسنها وخلينا نجرب"): jac_fn's raw (row, col) COO output
+    has repeated entries (multiple elements contribute to the same global
+    DOF pair) that torch.sparse_coo_tensor(...).coalesce() sorts and sums
+    every single call -- but since that raw template is exactly as static
+    across Newton iterations as the sparsity pattern ANALYSIS depends on
+    (only the VALUES differ), the sort+group-by itself is just as
+    reusable. Computed ONCE on the first iteration: a `scatter_idx` array
+    (via torch.sort + torch.unique_consecutive on an integer-encoded
+    row*n+col key) that maps each raw entry directly to its final
+    coalesced slot; every later iteration then does a single `index_add_`
+    instead of a full sort. Verified two ways before being trusted here:
+    (1) offline on CPU across multiple real Jacobians with different
+    displacement fields (both matrix_type settings) -- the fast scatter
+    path matches torch.sparse_coo_tensor(...).coalesce()'s own real
+    output to floating-point noise (~1e-13) at every iteration tested;
+    (2) an in-function self-check on the FIRST iteration's own real
+    coalesce() result, every time this function actually runs, which
+    raises rather than silently trusting the shortcut if it doesn't
+    match. `stats["t_coalesce_s"]` times this step separately (the
+    one-time sort+groupby on iteration 0, the index_add_ on every
+    iteration after) so the real end-to-end benefit is measurable, not
+    assumed.
+
     Returns (u, stats) where stats has n_newton_iters and phase-time
     totals (analysis/factorization/solve), for verifying the real
     end-to-end speedup this buys, not just the isolated-call number
@@ -122,11 +146,13 @@ def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_
     F = F_eval(u)
     f0 = float(torch.linalg.vector_norm(F))
     converged = False
-    stats = {"n_newton_iters": 0, "t_analysis_s": 0.0, "t_factorization_s": 0.0, "t_solve_s": 0.0}
+    stats = {"n_newton_iters": 0, "t_analysis_s": 0.0, "t_factorization_s": 0.0, "t_solve_s": 0.0,
+             "t_coalesce_s": 0.0}
 
     handle = config = data = A_desc = None
     cval_buf = crow0 = ccol0 = None
     value_type = None
+    keep_mask = scatter_idx = row0 = col0 = None
 
     try:
         for it in range(max_iter):
@@ -140,20 +166,62 @@ def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_
 
             val, row, col, shape = jac_fn(u, None)
             m, n = shape
-            if matrix_type == "symmetric":
-                keep = row >= col
-                val, row, col = val[keep], row[keep], col[keep]
-            indices = torch.stack([row, col], dim=0)
-            A_coo = torch.sparse_coo_tensor(indices, val, (m, n)).coalesce()
-            A_csr = A_coo.to_sparse_csr()
-            crow = A_csr.crow_indices().int()
-            ccol = A_csr.col_indices().int()
-            cval = A_csr.values()
 
             if handle is None:
-                crow0, ccol0 = crow, ccol
-                cval_buf = cval.clone()
+                # ---- One-time setup (first Newton iteration only) ----
+                # jac_fn's own row/col template is static across every
+                # iteration (build_sparse_jac_fn builds it once outside the
+                # closure it returns) -- only VALUES change each call. So
+                # both the symmetric filter mask AND the coalescing
+                # sort/group-by torch.sparse_coo_tensor(...).coalesce()
+                # performs are themselves static too, and repaying their
+                # cost every iteration (as the first version of this
+                # function did) is exactly the same class of waste
+                # ANALYSIS-reuse already fixed for cuDSS's own reordering
+                # -- just one level up, in how the COO triple is turned
+                # into CSR values in the first place.
+                torch.cuda.synchronize(); _tc0 = _time.time()
+                row0, col0 = row, col  # raw (pre-filter) template, for the cheap
+                                        # equality check every later iteration does
+                if matrix_type == "symmetric":
+                    keep_mask = row >= col
+                    row_f, col_f, val_f = row[keep_mask], col[keep_mask], val[keep_mask]
+                else:
+                    row_f, col_f, val_f = row, col, val
+
+                indices = torch.stack([row_f, col_f], dim=0)
+                A_coo = torch.sparse_coo_tensor(indices, val_f, (m, n)).coalesce()
+                A_csr = A_coo.to_sparse_csr()
+                crow0 = A_csr.crow_indices().int()
+                ccol0 = A_csr.col_indices().int()
+                cval_buf = A_csr.values().clone()
                 value_type = _DTYPE_MAP[cval_buf.dtype]
+
+                # Precompute a reusable scatter map reproducing coalesce()'s
+                # own sort+sum, so later iterations can skip it entirely:
+                # key encodes (row, col) as one integer per raw entry;
+                # sorting groups duplicates together; unique_consecutive
+                # gives each final coalesced slot; scatter_idx[i] is which
+                # slot the i-th RAW (pre-sort) entry lands in.
+                key = row_f.to(torch.int64) * n + col_f.to(torch.int64)
+                sorted_key, sort_perm = torch.sort(key)
+                _, inverse_idx = torch.unique_consecutive(sorted_key, return_inverse=True)
+                scatter_idx = torch.empty_like(inverse_idx)
+                scatter_idx[sort_perm] = inverse_idx
+
+                # Self-check against the real coalesce() result computed
+                # just above, on this same first iteration -- if the
+                # precomputed map doesn't reproduce it exactly, abort
+                # rather than trust an unverified shortcut for every
+                # remaining iteration.
+                check_buf = torch.zeros_like(cval_buf).index_add(0, scatter_idx, val_f)
+                if not torch.allclose(check_buf, cval_buf, rtol=1e-10, atol=1e-12):
+                    raise RuntimeError(
+                        "Coalescing scatter-map self-check failed: the precomputed "
+                        "map does not reproduce torch.sparse_coo_tensor(...).coalesce()'s "
+                        "own result -- aborting rather than trusting an unverified shortcut.")
+                torch.cuda.synchronize(); stats["t_coalesce_s"] += _time.time() - _tc0
+
                 handle = cudss.create()
                 cudss.set_stream(handle, torch.cuda.current_stream().cuda_stream)
                 config = cudss.config_create()
@@ -164,12 +232,17 @@ def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_
                     mtype_val, mview_val, cudss.IndexBase.ZERO.value)
                 do_analysis = True
             else:
-                if not (torch.equal(crow, crow0) and torch.equal(ccol, ccol0)):
+                if not (torch.equal(row, row0) and torch.equal(col, col0)):
                     raise RuntimeError(
                         "Jacobian sparsity pattern changed mid-solve -- the "
-                        "analysis-reuse assumption does not hold here; aborting "
-                        "rather than silently returning a wrong answer.")
-                cval_buf.copy_(cval)
+                        "analysis-reuse AND coalescing-scatter-map assumptions "
+                        "both depend on it; aborting rather than silently "
+                        "returning a wrong answer.")
+                torch.cuda.synchronize(); _tc0 = _time.time()
+                val_f = val[keep_mask] if keep_mask is not None else val
+                cval_buf.zero_()
+                cval_buf.index_add_(0, scatter_idx, val_f)
+                torch.cuda.synchronize(); stats["t_coalesce_s"] += _time.time() - _tc0
                 do_analysis = False
 
             neg_F = (-F).unsqueeze(0).contiguous()
@@ -460,6 +533,7 @@ def _correctness_check_reuse_analysis(N=11, device=None, matrix_type="general"):
     t_reuse = time.time() - t0
     print(f"  reuse_analysis=True (matrix_type={matrix_type}):  wall_clock={t_reuse:.3f}s, "
           f"n_newton_iters={stats['n_newton_iters']}, "
+          f"t_coalesce={stats['t_coalesce_s']:.4f}s, "
           f"t_analysis={stats['t_analysis_s']:.4f}s, "
           f"t_factorization={stats['t_factorization_s']:.4f}s, "
           f"t_solve={stats['t_solve_s']:.4f}s")

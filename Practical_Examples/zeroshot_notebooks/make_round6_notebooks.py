@@ -1530,8 +1530,32 @@ NOTEBOOKS = {
          "  identically, so the eliminated columns contribute exactly zero either way): a full "
          "Newton solve with `symmetric_bc=True` gave a BIT-FOR-BIT identical\n",
          "  answer to the default at N=11/21 (0.000e+00 relative difference). `matrix_type="
-         "'symmetric'` then lets cuDSS skip the redundant triangle. **Not yet\n",
-         "  run on GPU.**\n",
+         "'symmetric'` then lets cuDSS skip the redundant triangle.\n",
+         "\n",
+         "**REAL RESULT, Step 3 (Omar's own A100)**: correctness PASSED (N=11, relative "
+         "difference 8.875e-16). A further, modest 1.7-3.9% end-to-end speedup over\n",
+         "reuse-analysis alone (23.68s vs. 24.61s at N=1401), and a more useful ~16% peak-memory "
+         "reduction at every N — bringing memory back close to the very\n",
+         "first (pre-optimization) baseline while keeping the full speed advantage. Best verified "
+         "configuration at N=1401: 23.68s (5.65x faster than torch-fem's cg,\n",
+         "2.66x faster than TensorMesh) at 17.14GB peak memory (~4.1x less than torch-fem's).\n",
+         "\n",
+         "**Third optimization, baked directly into the SAME `reuse_analysis=True` code path** "
+         "(added 2026-09-11, per Omar's own go-ahead — \"حسنها وخلينا نجرب\"),\n",
+         "not a separate step — re-running Steps 1-3 above exercises it automatically: the "
+         "COALESCING step (`torch.sparse_coo_tensor(...).coalesce()`, which sorts\n",
+         "and sums duplicate (row, col) entries) was being redone from scratch every Newton "
+         "iteration too, even though jac_fn's own raw (row, col) template is exactly\n",
+         "as static as the sparsity pattern ANALYSIS-reuse already exploits — only the values "
+         "change. Now precomputes a reusable `scatter_idx` (via `torch.sort` +\n",
+         "`torch.unique_consecutive`) on the first iteration so every later one does a single "
+         "`index_add_` instead of a full sort; `stats['t_coalesce_s']` (now printed\n",
+         "by Steps 1/3's own correctness check) times this separately. Verified two ways before "
+         "this ran on GPU: offline on CPU across multiple real Jacobians (both\n",
+         "matrix_type settings) — the fast path matches `coalesce()`'s own output to "
+         "floating-point noise (~1e-13); and an in-function self-check on every real\n",
+         "run's own first iteration, which raises rather than trusting the shortcut if it ever "
+         "disagrees. **Not yet run on GPU — re-run Steps 1-3 to test it.**\n",
          "\n",
          "**Still experimental.** Per the standing PROJECT_STATUS.md reminder (same category of "
          "change as the cached-Hessian speedup and the assembled+direct\n",

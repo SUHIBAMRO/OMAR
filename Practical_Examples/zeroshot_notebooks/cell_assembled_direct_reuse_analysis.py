@@ -28,6 +28,22 @@
 #     only the actual end-to-end number says how much this matters for
 #     the whole solve, not just its linear-algebra phase.
 #
+#  UPDATED 2026-09-11 (per Omar's own go-ahead, "حسنها وخلينا نجرب"):
+#  _newton_cudss_reuse_analysis itself now ALSO reuses the COALESCING
+#  step (torch.sparse_coo_tensor(...).coalesce(), which sorts and sums
+#  duplicate (row, col) entries) across Newton iterations, the same way
+#  it already reuses cuDSS's own ANALYSIS phase -- jac_fn's raw (row,
+#  col) template is exactly as static as the sparsity pattern ANALYSIS
+#  depends on, only the VALUES change. This is baked directly into the
+#  SAME reuse_analysis=True code path, not a separate opt-in flag, so
+#  re-running Steps 1-3 below exercises it automatically; the printed
+#  correctness check now also reports stats['t_coalesce_s'] so this
+#  step's own cost (and the benefit of skipping it on later iterations)
+#  is visible, not folded invisibly into the other numbers. Verified
+#  offline on CPU (multiple real Jacobians, both matrix_type settings)
+#  before this ever touched the GPU -- see build_sparse_jac_fn/
+#  _newton_cudss_reuse_analysis's own docstrings for the exact method.
+#
 #  STILL EXPERIMENTAL: this is a NEW code path (bypasses torch_sla's own
 #  nonlinear_solve for the first time), not yet run for real. Per the
 #  standing PROJECT_STATUS.md reminder (applies equally to this, same
@@ -104,7 +120,15 @@ os.makedirs(R, exist_ok=True)
 RESOLUTIONS = [401, 701, 1001, 1401]
 
 OUT_BASELINE = f'{R}/assembled_direct_convergence_production_N401_1401.json'
-OUT_REUSE = f'{R}/assembled_direct_reuse_analysis_production_N401_1401.json'
+# NOTE (2026-09-11): _newton_cudss_reuse_analysis itself changed (the new
+# coalescing-reuse optimization, see this file's own header comment) --
+# the OLD OUT_REUSE/OUT_SYMMETRIC files from the previous run already have
+# rows for every N here, and run_assembled_direct_convergence_study SKIPS
+# any N already present in its own out_json. Reusing those old filenames
+# would silently report the PRE-coalescing-optimization numbers again,
+# not test the new code at all. Pointing at new "_v2" filenames instead
+# forces a genuinely fresh sweep with the current code.
+OUT_REUSE = f'{R}/assembled_direct_reuse_analysis_production_N401_1401_v2.json'
 
 print('\n-- reuse_analysis=False (already-committed numbers reused if present) --')
 run([
@@ -177,7 +201,7 @@ print('CPU already confirmed (before this notebook ran): symmetric_bc=True gives
 print('identical full Newton solve to the default at N=11/21 (0.000e+00 relative difference).')
 run([sys.executable, '-m', 'omar_pfem.assembled_direct_solver', 'reuse_check', '11', 'symmetric'])
 
-OUT_SYMMETRIC = f'{R}/assembled_direct_reuse_symmetric_production_N401_1401.json'
+OUT_SYMMETRIC = f'{R}/assembled_direct_reuse_symmetric_production_N401_1401_v2.json'
 print('\n-- reuse_analysis=True, matrix_type=symmetric (genuinely new numbers) --')
 run([
     sys.executable, '-u', '-m', 'omar_pfem.assembled_direct_solver', 'convergence',
