@@ -16,8 +16,61 @@ finishes or a new one starts.
 > silently rolling it out. Do not skip this step even if the GPU
 > numbers look great. Remove this reminder only once Timon has
 > actually been asked, not once the GPU result comes back.
+>
+> **This reminder now also covers the new assembled+direct solver
+> experiment (`omar_pfem/assembled_direct_solver.py`,
+> `Round6_Assembled_Direct_Speedup_Production.ipynb`, added 2026-09-11)
+> -- same category of change (a new way to make "ours" own core solver
+> faster), same rule: GPU-verify first, then ask Timon, before treating
+> either of these as a finalized/official result.**
 
-Last updated: 2026-09-11 (**Caught and fixed a real, serious flaw in the
+Last updated: 2026-09-11 (**NEW EXPERIMENT BUILT, per Omar's own explicit
+request** -- "since torch-fem/TensorMesh's memory-heavy explicit-
+assembly approach already works correctly and fast at the SAME tested
+resolutions [up to N=1401] without ever running out of memory [only
+69GB of 80GB used], let's actually try letting 'ours' own solver adopt
+the same explicit-assembly + direct-solve strategy and see what
+happens." New module `omar_pfem/assembled_direct_solver.py`:
+`solve_assembled_direct` -- Newton + a real direct solve (cuDSS on
+CUDA), using OUR OWN residual/energy (matrix_free_solver.py's own
+element_energy_order_agnostic), reusing tensormesh_comparison.py's own
+`build_sparse_jac_fn` (already TensorMesh-independent -- it only ever
+differentiated "our own" element energy) for the sparse tangent, and
+building the `torch_sla.SparseTensor` A directly from a COO triple
+(confirmed possible by reading torch_sla's own source) instead of going
+through TensorMesh's Mesh/ElementAssembler at all -- so this drops the
+TensorMesh dependency entirely.
+
+**Correctness verified on CPU before trusting anything** (same
+discipline as every other change this project makes): compared against
+solve_matrix_free's own converged result at N=11 (rel_diff=1.196e-11)
+and N=21 (rel_diff=1.240e-11) -- the same order of agreement already
+established between "ours" and TensorMesh (1.269e-11 at N=3). Also
+smoke-tested the new resumable convergence-study CLI end to end
+(N=11/21 against a coarse fine_N=51 reference, just to exercise the
+pipeline, not a real accuracy result).
+
+Built `Round6_Assembled_Direct_Speedup_Production.ipynb` /
+`cell_assembled_direct_speedup_production.py`: Step 1 re-verifies
+correctness on-device; Step 2+3 runs the real N=401/701/1001/1401
+sweep, tracking wall-clock, peak GPU memory (torch.cuda.
+reset_peak_memory_stats/max_memory_allocated, matching the pattern
+already used for the cached-Hessian notebook), and L2/H1 accuracy vs.
+the same fine ~10M-DOF reference every other sweep in this project uses
+-- then prints a genuine three-way comparison (wall-clock, peak memory,
+accuracy) against the already-committed torch-fem and TensorMesh
+numbers, plus a 2-panel figure. Rebuilt and re-verified (60/60
+notebooks OK).
+
+**Not yet run on GPU.** This is the honest current state: correctness
+is verified on CPU only; whether this becomes competitive with
+torch-fem/TensorMesh in speed, and what its real peak-memory footprint
+is at production scale, is completely unknown until this notebook is
+actually run. Per the standing reminder above, this is framed to Omar
+as an experiment, not a decided architecture change -- matrix-free
+stays the default everywhere; this is a new, separate, opt-in module.
+
+Previous update, 2026-09-11 (**Caught and fixed a real, serious flaw in the
 cached-Hessian test notebook BEFORE Omar ran it and wasted the time**:
 it was designed to re-run BOTH hvp_methods ('autodiff' AND
 'cached_hessian') fresh at every one of N=401/701/1001/1401. The

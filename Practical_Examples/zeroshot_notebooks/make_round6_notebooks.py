@@ -1408,6 +1408,44 @@ NOTEBOOKS = {
          "  comparison table against the already-committed torch-fem and TensorMesh numbers.\n",
          "* Does NOT reuse existing checkpoints (a different hvp_method needs a fresh solve from "
          "the same starting point for a fair timing).\n"]),
+    "Round6_Assembled_Direct_Speedup_Production.ipynb": (
+        "cell_assembled_direct_speedup_production.py",
+        ["# EXPERIMENT: \"ours\" own solver, assembled + direct-solved, like torch-fem/TensorMesh\n",
+         "\n",
+         "Omar's own request: torch-fem and TensorMesh's memory-heavy explicit-matrix-assembly + "
+         "direct-solve approach already works correctly and fast at\n",
+         "every resolution \"ours\" own matrix-free solver has been tested at (up to N=1401, "
+         "~69GB of an 80GB A100 -- comfortably inside the limit, never\n",
+         "crashing). Since matrix-free is a choice made to avoid an out-of-memory failure that, "
+         "at these exact sizes, never actually happens for the other\n",
+         "two solvers, this notebook tries the same thing for \"ours\": assemble the global "
+         "sparse tangent explicitly, factorize it directly (cuDSS via\n",
+         "torch_sla), and see whether it becomes competitive in speed AND memory too.\n",
+         "\n",
+         "**Not TensorMesh** -- `omar_pfem/assembled_direct_solver.py`'s own "
+         "`solve_assembled_direct` builds a `torch_sla.SparseTensor` directly from a COO\n",
+         "triple (no mesh/assembler object required), reusing `build_sparse_jac_fn`'s "
+         "already-\"our own\" element-energy Hessian -- this drops the TensorMesh\n",
+         "dependency entirely for what is otherwise \"our own\" solver, just assembled instead "
+         "of matrix-free.\n",
+         "\n",
+         "**Correctness already verified on CPU** (before this notebook ever ran): N=11 "
+         "rel_diff=1.196e-11, N=21 rel_diff=1.240e-11 against `solve_matrix_free`'s\n",
+         "own converged result -- the same order of agreement already established between "
+         "\"ours\" and TensorMesh (1.269e-11 at N=3).\n",
+         "\n",
+         "**EXPERIMENTAL, NOT A FINALIZED RESULT.** Per the standing PROJECT_STATUS.md "
+         "reminder (2026-09-10, which applies equally here -- the same category\n",
+         "of change as the cached-Hessian speedup): must be verified here on real GPU hardware, "
+         "then discussed with Timon, before being finalized, applied\n",
+         "broadly, or presented as an official project result. Changes no existing default.\n",
+         "\n",
+         "* Step 1: correctness re-check at N=11 on this device.\n",
+         "* Step 2+3: accuracy + speed + peak GPU memory at N=401/701/1001/1401 (matching "
+         "torch-fem's and TensorMesh's own sweeps), plus a genuine\n",
+         "  three-way comparison table and figure against the already-committed torch-fem and "
+         "TensorMesh numbers.\n",
+         "* **Resumable**: skips resolutions already in its own out_json.\n"]),
     "Round6_NO_Inference_vs_TorchFEM_N1401.ipynb": (
         "cell_no_inference_vs_torchfem_N1401.py",
         ["# NO inference time vs. torch-fem at N=1401 (round-9, item 12)\n",
