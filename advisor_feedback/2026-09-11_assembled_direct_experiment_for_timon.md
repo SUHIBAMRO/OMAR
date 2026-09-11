@@ -1,4 +1,4 @@
-# Update on GPU-FEM: an assembled+direct variant of "our" own solver — drafted 2026-09-11
+# Update on GPU-FEM: an assembled+direct variant of "our" own solver — drafted 2026-09-11, updated 2026-09-11 with the follow-up optimization work
 
 Do not send without Omar's own review. This is a direct update to the
 2026-09-10 reply ("GPU FEM still too slow"), which told you that our
@@ -6,7 +6,10 @@ matrix-free solver "exists for the resolutions an assembled approach
 can't reach" while conceding torch-fem is faster at sizes both solvers
 can run. New results below revise that framing: assembled the same way
 torch-fem is, our own solver isn't just reaching those sizes — it's
-faster and lower-memory than torch-fem at every one of them.
+faster and lower-memory than torch-fem at every one of them. This
+version also adds a second section on two further optimizations
+(matches the Report's/Summary's own Point 9, mirrored here) — same
+numbers as those two documents, so all three stay consistent.
 
 ---
 
@@ -105,10 +108,59 @@ methodological gap I haven't found yet — this is a new code path,
 verified carefully but not battle-tested the way the existing solver
 comparisons are.
 
-I'd like your read on this before treating it as more than a promising
-experiment: does it change how you'd want the GPU-FEM comparison framed
-in the report, and is there anything in the setup above you'd want
-checked further before it's trusted at face value?
+---
+
+**A second round of engineering on the same solver, documented here at
+the same level of detail as above so you can judge the work itself, not
+just the final numbers.**
+
+(1) *Reusing the direct solver's own matrix reordering.* The underlying
+library (torch_sla, via NVIDIA's cuDSS) recomputes a full matrix-
+reordering ("analysis") step from scratch on every Newton iteration,
+even though that step depends only on the matrix's sparsity pattern,
+which never changes within one Newton solve — only the numeric values
+do. Measured directly, before writing any new code: this reordering
+step was 95.7% of one linear solve's own cost at N=401. I wrote a
+custom Newton loop that computes it once per solve and reuses it every
+iteration thereafter. Verified bit-for-bit identical to the original
+solver at N=11 (relative difference 3.5e-16) before trusting any
+timing, then measured a real, independently verified 2.0-2.4× END-TO-END
+speedup at production scale (N=401-1401, not just in the isolated
+linear-solve step), at the cost of a real but modest ~30-40% increase
+in peak memory.
+
+(2) *Symmetric matrix storage.* The assembled tangent matrix is
+mathematically symmetric (it's the Hessian of a scalar energy), but was
+being stored and factorized as a general (non-symmetric) matrix, because
+of how fixed boundary-condition rows were eliminated during assembly.
+Since our own Dirichlet boundary conditions hold the fixed displacements
+at exactly zero throughout every Newton iteration (confirmed directly
+from the solver's own update rule, not assumed), I confirmed a small
+change to that elimination makes the stored matrix genuinely symmetric
+with ZERO change to the physical solution — verified bit-for-bit
+identical (0.0 relative difference, not merely close) through a
+complete nonlinear solve at N=11 and N=21, entirely on CPU, before this
+was ever run on a GPU. This lets the direct solver use a cheaper
+symmetric factorization instead of a general one. Real, GPU-verified
+result: a further, modest 1.7-3.9% speedup, and — more usefully — a
+consistent ~16% reduction in peak memory at every resolution, bringing
+memory back down close to the very first (pre-optimization) baseline
+while keeping the full speed advantage from (1).
+
+Combined, the best verified configuration solves N=1401 in 23.68 seconds
+(versus 133.83s for torch-fem's own iterative solve and 62.96s for
+TensorMesh — 5.65× and 2.66× faster respectively) using 17.14GB of peak
+memory (versus torch-fem's 70.84GB, roughly 4.1× less), with accuracy
+identical to the first section's own numbers at every resolution.
+
+I'd like your read on both parts of this before treating either as more
+than a promising experiment: does it change how you'd want the GPU-FEM
+comparison framed in the report, is there anything in the setup above
+you'd want checked further before it's trusted at face value, and — for
+the second section specifically — is the underlying approach, and the
+depth of optimization now built on top of it, sound engineering worth
+continuing, or would you rather I stop here and treat the first section's
+own result as the one to report?
 
 Best regards,
 
