@@ -24,7 +24,49 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-11 (**Converted the draft email to Timon into a real
+Last updated: 2026-09-11 (**CLOSED the coalescing-reuse optimization
+thread -- real GPU result confirmed the memory fix mostly worked, but
+also showed the optimization itself is not worth reporting.** Omar's
+real A100 run (commit 67d8a67, the memory-regression fix):
+
+- Correctness: PASS at N=11 for both matrix_type settings (relative
+  differences 1.406e-15 / 1.064e-15).
+- Memory (N=1401): reuse alone 19,522.8MB (BETTER than the original
+  pre-coalescing-reuse baseline of 20,544.5MB); reuse+symmetric
+  19,378.4MB (vs. the original 17,140.7MB -- ~13% still remaining,
+  attributed to `row0`/`col0`/`scatter_idx` being legitimately kept
+  alive every iteration for the pattern-consistency safety check, not a
+  further bug -- these are real, necessary, intentionally-retained
+  buffers, not an oversight like the one just fixed).
+- **Speed (N=1401): reuse 24.46s, reuse+symmetric 23.74s -- both
+  essentially IDENTICAL to the pre-coalescing-reuse numbers (24.61s /
+  23.68s), i.e. this third optimization produced NO material end-to-end
+  speed benefit at production scale**, consistent with the working
+  hypothesis that per-element Jacobian assembly, not the coalescing
+  step, dominates remaining wall-clock time once analysis-reuse is
+  already in place.
+
+**Decision (Omar's own, given this result): do NOT add a "Point 10" for
+the coalescing-reuse optimization to any document.** It is technically
+correct and the memory bug is fixed, but it changes nothing about the
+headline numbers already reported in Point 8/Point 9 -- adding it would
+be noise, not signal. Points 8 and 9, as already written into the
+Report, the Summary, and the draft email, remain the complete and final
+story of this week's "make our own solver faster" work. The code changes
+themselves (coalescing-reuse + its memory fix) stay in the repository as
+a verified, opt-in, non-default code path -- they are just not being
+elevated into the advisor-facing narrative, since they don't move the
+numbers.
+
+**All three deliverables (`PFEM_Transolver_Report_2026-09-09.docx`,
+`PFEM_Work_Summary_2026-09-09.docx`, `Email_to_Timon_2026-09-11.docx`)
+are therefore FINAL and ready to send as-is** -- no further content
+changes pending. Only remaining standing constraint: per the reminder at
+the top of this file, Omar should send the email to Timon himself (or
+explicitly confirm he wants it sent on his behalf, if that capability is
+ever used) -- this session does not send it automatically.
+
+Previous update, 2026-09-11 (**Converted the draft email to Timon into a real
 .docx (`Email_to_Timon_2026-09-11.docx`), per Omar's own direct
 correction** ("ليش حاطها بملف مختلف؟" -- why is it in a different file?
 -- he wanted a normal Word file, not the plain-text .md the
