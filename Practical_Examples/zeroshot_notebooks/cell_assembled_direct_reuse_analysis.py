@@ -44,6 +44,17 @@
 #  before this ever touched the GPU -- see build_sparse_jac_fn/
 #  _newton_cudss_reuse_analysis's own docstrings for the exact method.
 #
+#  REAL BUG FOUND AND FIXED after the first GPU run of the coalescing-
+#  reuse change above (Omar's own A100): peak memory rose 35-46% at
+#  N=1401 versus the pre-change baseline, even though wall-clock barely
+#  moved. Root cause: several one-time setup tensors were left referenced
+#  by _newton_cudss_reuse_analysis's own frame for the WHOLE solve, not
+#  just the first iteration that builds them (Python scopes by function,
+#  not by if/else block). Fixed with explicit `del` statements. NOT YET
+#  RE-VERIFIED ON GPU -- OUT_REUSE/OUT_SYMMETRIC below were bumped to
+#  "_v3" so this re-run tests the fix with genuinely fresh numbers,
+#  not the old (inflated-memory) ones.
+#
 #  STILL EXPERIMENTAL: this is a NEW code path (bypasses torch_sla's own
 #  nonlinear_solve for the first time), not yet run for real. Per the
 #  standing PROJECT_STATUS.md reminder (applies equally to this, same
@@ -120,15 +131,14 @@ os.makedirs(R, exist_ok=True)
 RESOLUTIONS = [401, 701, 1001, 1401]
 
 OUT_BASELINE = f'{R}/assembled_direct_convergence_production_N401_1401.json'
-# NOTE (2026-09-11): _newton_cudss_reuse_analysis itself changed (the new
-# coalescing-reuse optimization, see this file's own header comment) --
-# the OLD OUT_REUSE/OUT_SYMMETRIC files from the previous run already have
-# rows for every N here, and run_assembled_direct_convergence_study SKIPS
-# any N already present in its own out_json. Reusing those old filenames
-# would silently report the PRE-coalescing-optimization numbers again,
-# not test the new code at all. Pointing at new "_v2" filenames instead
-# forces a genuinely fresh sweep with the current code.
-OUT_REUSE = f'{R}/assembled_direct_reuse_analysis_production_N401_1401_v2.json'
+# NOTE (2026-09-11, now on its SECOND bump): _newton_cudss_reuse_analysis
+# keeps changing (first the coalescing-reuse optimization itself, now a
+# fix for a real memory regression that optimization introduced -- see
+# that function's own docstring), and run_assembled_direct_convergence_
+# study SKIPS any N already present in its own out_json. Reusing an old
+# filename would silently report a PREVIOUS version's numbers again, not
+# test the current code. "_v3" forces a genuinely fresh sweep this time.
+OUT_REUSE = f'{R}/assembled_direct_reuse_analysis_production_N401_1401_v3.json'
 
 print('\n-- reuse_analysis=False (already-committed numbers reused if present) --')
 run([
@@ -201,7 +211,7 @@ print('CPU already confirmed (before this notebook ran): symmetric_bc=True gives
 print('identical full Newton solve to the default at N=11/21 (0.000e+00 relative difference).')
 run([sys.executable, '-m', 'omar_pfem.assembled_direct_solver', 'reuse_check', '11', 'symmetric'])
 
-OUT_SYMMETRIC = f'{R}/assembled_direct_reuse_symmetric_production_N401_1401_v2.json'
+OUT_SYMMETRIC = f'{R}/assembled_direct_reuse_symmetric_production_N401_1401_v3.json'
 print('\n-- reuse_analysis=True, matrix_type=symmetric (genuinely new numbers) --')
 run([
     sys.executable, '-u', '-m', 'omar_pfem.assembled_direct_solver', 'convergence',

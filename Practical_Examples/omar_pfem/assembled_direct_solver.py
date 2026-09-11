@@ -106,6 +106,24 @@ def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_
     iteration after) so the real end-to-end benefit is measurable, not
     assumed.
 
+    A REAL MEMORY REGRESSION was found and fixed the first time this ran
+    on GPU (Omar's own A100, 2026-09-11): peak memory rose 35-46% at
+    N=1401 versus the pre-coalescing-reuse baseline, even though wall-
+    clock barely moved (the coalescing sort turns out to be a small
+    fraction of one solve's total time at production scale, unlike at
+    tiny N where it was ~35% of one call). Root cause: several one-time
+    setup tensors (the raw COO indices, the sort permutation, the
+    self-check buffer, etc.) were left referenced by this function's own
+    frame for the ENTIRE remaining solve, not just the first iteration
+    that builds them -- Python scopes by function, not by if/else block,
+    so an un-deleted name inside `if handle is None:` stays alive (and
+    therefore un-freeable by the CUDA caching allocator) until the whole
+    function returns. Fixed with explicit `del` statements right after
+    these are no longer needed. NOT YET RE-VERIFIED ON GPU after this
+    fix -- expected to bring peak memory back down close to the
+    pre-coalescing-reuse numbers while keeping the (small) speed benefit,
+    but that is a prediction, not yet a measurement.
+
     Returns (u, stats) where stats has n_newton_iters and phase-time
     totals (analysis/factorization/solve), for verifying the real
     end-to-end speedup this buys, not just the isolated-call number
@@ -220,6 +238,20 @@ def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_
                         "Coalescing scatter-map self-check failed: the precomputed "
                         "map does not reproduce torch.sparse_coo_tensor(...).coalesce()'s "
                         "own result -- aborting rather than trusting an unverified shortcut.")
+
+                # Free every one-time setup scratch tensor explicitly instead
+                # of leaving it referenced by this function's own frame for
+                # the rest of the solve (a real regression found on GPU,
+                # 2026-09-11: peak memory rose 35-46% after this optimization
+                # was added, because Python does not scope by if/else block
+                # -- these names would otherwise stay alive, and therefore
+                # un-freeable by the CUDA caching allocator, until the whole
+                # function returns, not just until this branch is done with
+                # them). Only crow0/ccol0/cval_buf/keep_mask/scatter_idx/
+                # row0/col0 are needed by later iterations; everything else
+                # here was scratch for computing those.
+                del key, sorted_key, sort_perm, inverse_idx, check_buf, A_coo, A_csr, indices
+                del row_f, col_f, val_f
                 torch.cuda.synchronize(); stats["t_coalesce_s"] += _time.time() - _tc0
 
                 handle = cudss.create()

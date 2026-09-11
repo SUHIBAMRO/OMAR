@@ -24,7 +24,44 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-11 (**THIRD cuDSS-adjacent optimization built on the
+Last updated: 2026-09-11 (**REAL MEMORY REGRESSION FOUND AND FIXED, from
+Omar's own GPU run of the coalescing-reuse optimization.** Correctness
+and speed were both fine (relative differences 6.5e-16/1.0e-15, PASS;
+end-to-end speedup 2.00-2.39x, matching the pre-coalescing-reuse numbers
+closely) -- but peak memory rose sharply: N=1401 went from 20,544MB to
+27,844MB (reuse, +35%) and from 17,141MB to 25,122MB (reuse+symmetric,
++46%). Root cause, found by re-reading the new code rather than assuming
+it was a hardware artifact: several one-time setup tensors (the raw COO
+indices, the sort permutation, the self-check buffer, etc.) were left
+referenced by `_newton_cudss_reuse_analysis`'s own function frame for the
+ENTIRE remaining solve, not just the first Newton iteration that builds
+them -- Python scopes by function, not by if/else block, so an
+un-deleted name inside `if handle is None:` stays alive (and therefore
+un-freeable by the CUDA caching allocator) until the whole function
+returns.
+
+**Fixed** with explicit `del` statements right after these scratch
+tensors are no longer needed (before the cuDSS handle is even created).
+Also explains why the coalescing-reuse speedup itself was much smaller
+in production (?0.1-0.5%) than the N=11 correctness check suggested
+(4.04x/3.01x): at N=11 the coalescing sort is ~22-36% of one call's tiny
+total cost, but at N=1401 it is a small fraction of a much larger
+per-iteration cost dominated by assembly and factorization -- consistent
+with the earlier finding that per-element Jacobian assembly, not the
+linear-solve step, now dominates remaining wall-clock time.
+
+Re-verified the existing default (`reuse_analysis=False`) CPU path is
+still completely unaffected after this fix (N=11: 1.196e-11, N=21:
+1.240e-11, identical to every prior run). Bumped the notebook's
+`OUT_REUSE`/`OUT_SYMMETRIC` paths to new `_v3` filenames (now the second
+bump for this same code) so the next GPU run tests the fix with
+genuinely fresh numbers, not the old, memory-inflated ones. Rebuilt and
+re-verified (62/62 notebooks OK). **NOT YET RE-VERIFIED ON GPU** --
+expected to bring peak memory back down close to the pre-coalescing-
+reuse numbers while keeping the same speed, but that is a prediction,
+not yet a measurement.
+
+Previous update, 2026-09-11 (**THIRD cuDSS-adjacent optimization built on the
 SAME `reuse_analysis=True` code path, per Omar's own go-ahead ("حسنها
 وخلينا نجرب فش ورانا اشي")** -- reusing the COALESCING step
 (`torch.sparse_coo_tensor(...).coalesce()`, which sorts and sums
