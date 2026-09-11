@@ -24,7 +24,66 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-11 (**NEW LEAD FOR SPEEDING UP THE ASSEMBLED+DIRECT
+Last updated: 2026-09-11 (**BUILT THE REAL cuDSS ANALYSIS-REUSE OPTIMIZATION,
+per Omar's own go-ahead ("بلش") after the diagnostic confirmed it was
+worth doing.** New `_newton_cudss_reuse_analysis` in `omar_pfem/
+assembled_direct_solver.py`: a custom Newton loop that bypasses
+torch_sla's own `SparseTensor.nonlinear_solve` for the linear-solve step
+entirely -- computes cuDSS's ANALYSIS phase ONCE (first Newton
+iteration), then reuses it for every subsequent iteration via an
+in-place update of the SAME value buffer the cuDSS matrix descriptor
+already points to (crow/ccol, and therefore the descriptor itself, never
+change -- only cval's contents), redoing only FACTORIZATION+SOLVE.
+Mirrors torch_sla's own Newton+Armijo-line-search logic exactly (same
+convergence test, same backtracking rule, same `du = J^-1 @ (-F)` sign
+convention) so behavior is otherwise identical to the existing default
+path -- the ONLY difference is the linear-solve step.
+
+Wired in as a new opt-in parameter, `reuse_analysis=False` (default,
+unchanged -- every existing published number is untouched) / `True` (new
+path) on `solve_assembled_direct`, plus `return_stats=True` to get back
+the Newton-loop's own iteration count and per-phase time totals. Also
+threaded through `run_assembled_direct_convergence_study` (new
+`reuse_analysis` parameter) and the CLI (`convergence ... reuse` to
+select it, plus a new `reuse_check <N>` subcommand).
+
+**Verified the existing default path is completely unaffected**: re-ran
+the original CPU correctness check (N=11) after all these changes --
+identical result (`assembled_direct: wall_clock=0.15s`, `relative
+displacement-field difference: 1.196e-11`, PASS), confirming
+`reuse_analysis=False` still calls the exact same code as before.
+
+**The new `reuse_analysis=True` path itself CANNOT be verified in this
+development environment** -- cuDSS has no CPU fallback at all, so its
+correctness and speed can only be checked on Omar's own GPU. Added
+`_correctness_check_reuse_analysis` (compares `reuse_analysis=True`
+against the already-verified `False` path at small N, reports real
+speedup and Newton iteration count -- not just the isolated 3-call
+number the earlier diagnostic measured) and a new notebook, `Round6_
+Assembled_Direct_Reuse_Analysis.ipynb` / `cell_assembled_direct_reuse_
+analysis.py`: Step 1 re-verifies correctness on-device; Step 2 runs a
+REAL end-to-end production sweep (N=401-1401) with BOTH settings and
+reports the true total-solve speedup (not just the linear-solve phase's
+own number, since assembly and residual/line-search evaluations are
+NOT sped up by this change -- only measuring the whole solve says how
+much this actually matters end to end). Rebuilt and re-verified (62/62
+notebooks OK).
+
+**NOT YET RUN ON GPU.** This is a real, source-grounded optimization
+with a CPU-verifiable prerequisite (identical CSR structure across
+Newton iterations) already confirmed, and an isolated-call speedup
+already measured for real (profile_cudss_analysis_reuse.py, ~3x on 3
+calls, asymptotically ~22x per iteration once ANALYSIS's one-time cost
+is amortized) -- but the REAL end-to-end number for a full production
+solve, and whether the custom Newton loop's own logic (line search,
+convergence criteria) behaves identically to torch_sla's own
+implementation at real scale, is still unknown until this notebook
+actually runs. Per the standing reminder above (same category of core-
+solver-speedup change): GPU-verify first, then Omar's own call on
+bringing this to Timon -- not to be finalized or presented as an
+official result unprompted even if the numbers look great.
+
+Previous update, 2026-09-11 (**NEW LEAD FOR SPEEDING UP THE ASSEMBLED+DIRECT
 SOLVER FURTHER, per Omar's own request ("هل في طريقه نحسن الطريقه الثانيه
 اكثر؟ اسرع وادق وافضل تكون؟") -- found by reading torch_sla's own
 installed source, not guessed:** `NonlinearSolveFunction.forward`

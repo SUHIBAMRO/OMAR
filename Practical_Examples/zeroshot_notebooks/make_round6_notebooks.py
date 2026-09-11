@@ -1488,6 +1488,37 @@ NOTEBOOKS = {
          "green light to build the full opt-in optimization next.\n",
          "\n",
          "**CUDA-only, cannot be verified in the development environment — not yet run.**\n"]),
+    "Round6_Assembled_Direct_Reuse_Analysis.ipynb": (
+        "cell_assembled_direct_reuse_analysis.py",
+        ["# Real GPU test: cuDSS analysis-reuse Newton loop, end-to-end\n",
+         "\n",
+         "The diagnostic notebook above (Profile cuDSS Analysis Reuse) found, on a real A100: "
+         "ANALYSIS was 95.7% of one full cuDSS solve's own time at\n",
+         "N=401, and reusing it (instead of redoing it every Newton iteration, which is what "
+         "torch_sla's own generic `nonlinear_solve` does) gave the SAME\n",
+         "answer as redoing it — but that was measured on 3 isolated matrices, not a real "
+         "end-to-end Newton solve.\n",
+         "\n",
+         "**Built the real thing**: `_newton_cudss_reuse_analysis` in "
+         "`omar_pfem/assembled_direct_solver.py` — a custom Newton loop (bypassing\n",
+         "torch_sla's own `nonlinear_solve` for the first time) that computes cuDSS's ANALYSIS "
+         "phase ONCE per solve and reuses it via an in-place value-buffer\n",
+         "update every subsequent Newton iteration, redoing only FACTORIZATION+SOLVE. Wired in "
+         "as a new opt-in `reuse_analysis=True` parameter on "
+         "`solve_assembled_direct`\n",
+         "(default `False`, so nothing already published changes).\n",
+         "\n",
+         "* Step 1: correctness re-check on-device (`reuse_analysis=True` vs. `False`, N=11) — "
+         "must match before anything below is trusted.\n",
+         "* Step 2: REAL end-to-end speed at N=401/701/1001/1401, both settings — since assembly "
+         "and residual/line-search evaluations are NOT sped up by\n",
+         "  this change, only the real total-solve number says how much this matters for the "
+         "whole solve, not just its isolated linear-algebra phase.\n",
+         "\n",
+         "**Still experimental — not yet run.** Per the standing PROJECT_STATUS.md reminder "
+         "(same category of change as the cached-Hessian speedup and the\n",
+         "assembled+direct experiment itself): verify here first; whether/when to bring this to "
+         "Timon is Omar's own call, not something to finalize unprompted.\n"]),
     "Round6_NO_Inference_vs_TorchFEM_N1401.ipynb": (
         "cell_no_inference_vs_torchfem_N1401.py",
         ["# NO inference time vs. torch-fem at N=1401 (round-9, item 12)\n",
