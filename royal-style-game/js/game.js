@@ -22,6 +22,10 @@ const Game = (function () {
     bonusTimer: 0,
 
     moves: 0,
+    timed: false,
+    timeLeft: 0,
+    bombBlown: null,
+    bonusLeft: 0,
     cascade: 0,
     ending: false,
     endStage: '',
@@ -51,7 +55,14 @@ const Game = (function () {
     S.levelNo = levelNo;
     S.def = Levels.get(levelNo);
     S.board = new Board(S.def);
-    S.moves = S.def.moves + ((pre && pre.moves) ? CFG.economy.extraMovesAmount : 0);
+    S.timed = !!S.def.timeLimit;
+    S.timeLeft = S.def.timeLimit || 0;
+    S.bombBlown = null;
+    S.moves = S.timed ? 0 : S.def.moves;
+    if (pre && pre.moves) {
+      if (S.timed) S.timeLeft += 20;                 // معزّز البداية يمنح وقتاً في المراحل المؤقّتة
+      else S.moves += CFG.economy.extraMovesAmount;
+    }
     S.state = 'idle';
     S.t = 0; S.cascade = 0; S.ending = false; S.endStage = '';
     S.sel = null; S.drag = null; S.swapAnim = null;
@@ -296,7 +307,7 @@ const Game = (function () {
 
     /* صاروخ / قنبلة / كرة: تُزرع في الخانة ثم تنفجر */
     if (key === 'rocket' || key === 'tnt' || key === 'ball') {
-      if (!S.board.isFree(r, c)) { Sfx.invalid(); return; }
+      if (!S.board.isFree(r, c) || cell.piece.kind !== 'normal') { Sfx.invalid(); return; }
       if (!Save.useBooster(key)) return;
       S.activeBooster = null; UI.buildBoosterBar();
       const p = cell.piece;
@@ -314,9 +325,24 @@ const Game = (function () {
   /* ------------------------------------------------------------------ */
 
   function consumeMove() {
-    S.moves = Math.max(0, S.moves - 1);
+    if (!S.timed) {
+      S.moves = Math.max(0, S.moves - 1);
+      if (S.moves === 3) Sfx.lastMoves();
+    }
+    /* كل حركة تُنقص فتيل كل قنبلة على اللوحة */
+    const blown = S.board.tickBombs();
+    if (blown && !S.bombBlown) S.bombBlown = blown;
+    else if (S.board.minFuse() <= CFG.bomb.warnAt) Sfx.lastMoves();
     updateHud();
-    if (S.moves === 3) Sfx.lastMoves();
+  }
+
+  /** إضافة ثوانٍ إلى مؤقّت المراحل المؤقّتة */
+  function addTime(sec) {
+    if (!S.timed || sec <= 0) return;
+    sec = Math.min(sec, CFG.timed.maxAdd);
+    S.timeLeft += sec;
+    const el = U.$('#moves-count');
+    if (el) FX.text(S.w / 2, S.h * 0.12, '+' + sec.toFixed(1) + ' ث', '#7dff9a', S.tile * 0.42);
   }
 
   function startClear() {
@@ -329,6 +355,20 @@ const Game = (function () {
   }
 
   function afterSettle() {
+    /* انفجار قنبلة موقوتة = خسارة فورية */
+    if (S.bombBlown && !S.ending) {
+      const { r, c } = S.bombBlown;
+      S.bombBlown = null;
+      FX.ring(ccx(c), ccy(r), S.tile * 4, '#ff6b6b');
+      FX.burst(ccx(c), ccy(r), '#ff4d4d', 40, 2.6);
+      shake();
+      Sfx.tnt();
+      UI.banner('انفجرت القنبلة!');
+      setTimeout(() => finishLose('bomb'), 900);
+      S.state = 'done';
+      return;
+    }
+
     /* تسلسل النهاية */
     if (S.ending) {
       if (S.endStage === 'blast') { finishWin(); return; }
@@ -353,11 +393,20 @@ const Game = (function () {
       S.endStage = 'bonus';
       S.state = 'bonus';
       S.bonusTimer = 0;
+      if (S.timed) {
+        /* الوقت المتبقّي يتحوّل نقاطاً، ثم ثلاثة صواريخ مكافأة */
+        S.board.stats.score += Math.round(S.timeLeft * CFG.timed.leftoverSecScore);
+        S.timeLeft = 0;
+        S.bonusLeft = 3;
+      } else {
+        S.bonusLeft = S.moves;
+      }
       UI.banner('أحسنت!');
       Sfx.win();
       return;
     }
-    if (S.moves <= 0) { finishLose(); return; }
+    if (S.timed) { if (S.timeLeft <= 0) { finishLose('time'); return; } }
+    else if (S.moves <= 0) { finishLose(); return; }
     if (!S.board.hasMoves()) {
       UI.banner('لا توجد حركات — خَلْط!');
       Sfx.shuffle();
@@ -388,15 +437,30 @@ const Game = (function () {
     UI.showWin({ level: S.levelNo, stars, score, coins });
   }
 
-  function finishLose() {
+  function finishLose(reason) {
     S.state = 'done';
     Sfx.lose();
-    UI.showLose({ level: S.levelNo, score: S.board.stats.score, board: S.board });
+    UI.showLose({
+      level: S.levelNo,
+      score: S.board.stats.score,
+      board: S.board,
+      reason: reason || (S.timed ? 'time' : 'moves'),
+      timed: S.timed,
+    });
   }
 
   /** شراء 5 حركات إضافية والاستمرار */
   function continueWithMoves() {
-    S.moves += CFG.economy.extraMovesAmount;
+    if (S.timed) S.timeLeft += 30;
+    else S.moves += CFG.economy.extraMovesAmount;
+    S.bombBlown = null;
+    /* قنبلة انفجرت: أعِد ضبط فتائل ما تبقّى حتى لا تنفجر فوراً مرّة أخرى */
+    for (let r = 0; r < S.board.rows; r++) {
+      for (let c = 0; c < S.board.cols; c++) {
+        const pc = S.board.grid[r][c].piece;
+        if (pc && pc.kind === 'bomb' && pc.fuse <= 0) pc.fuse = S.board.bombFuse;
+      }
+    }
     S.ending = false; S.endStage = '';
     S.state = 'idle';
     S.idleTime = 0;
@@ -424,6 +488,15 @@ const Game = (function () {
   function update(dt) {
     const ms = dt * 1000;
     if (S.shakeT > 0) S.shakeT -= ms;
+
+    /* المؤقّت الزمني يعمل ما دامت المرحلة جارية */
+    if (S.timed && !S.ending && S.state !== 'done') {
+      S.timeLeft -= dt;
+      if (S.timeLeft <= 0) {
+        S.timeLeft = 0;
+        if (S.state === 'idle') { finishLose('time'); return; }
+      }
+    }
     FX.update(dt);
     tweenPieces(dt);
 
@@ -474,7 +547,9 @@ const Game = (function () {
         S.t += ms;
         playFx(S.t);
         if (S.t >= S.clearDur) {
+          const cleared = countClearing();
           S.board.finishClear();
+          if (S.timed) addTime(cleared * CFG.timed.secPerPiece);
           S.board.fx.length = 0;
           S.state = 'fall';
           S.fallTimer = 0;
@@ -500,8 +575,9 @@ const Game = (function () {
         S.bonusTimer += ms;
         if (S.bonusTimer < 170) break;
         S.bonusTimer = 0;
-        if (S.moves > 0) {
-          S.moves--;
+        if (S.bonusLeft > 0) {
+          S.bonusLeft--;
+          if (!S.timed) S.moves--;
           S.board.stats.score += CFG.score.leftoverMove;
           S.board.placeBonusRocket();
           const f = S.board.fx[S.board.fx.length - 1];
@@ -535,6 +611,18 @@ const Game = (function () {
       case 'ball+color': return 'كرة مضيئة!';
       default: return '';
     }
+  }
+
+  /** عدد القطع المعلَّمة للمسح في الموجة الحالية */
+  function countClearing() {
+    let n = 0;
+    for (let r = 0; r < S.board.rows; r++) {
+      for (let c = 0; c < S.board.cols; c++) {
+        const p = S.board.grid[r][c].piece;
+        if (p && p.clearing) n++;
+      }
+    }
+    return n;
   }
 
   /** هل استقرّت مواضع العرض؟ */
@@ -633,6 +721,12 @@ const Game = (function () {
         case 'beam':
           FX.beam(ccx(f.fc), ccy(f.fr), x, y,
             f.color >= 0 && PIECE_TYPES[f.color] ? PIECE_TYPES[f.color].light : '#ffffff');
+          break;
+        case 'defuse':
+          FX.ring(x, y, S.tile * 1.3, '#7dff9a');
+          FX.burst(x, y, '#7dff9a', 18, 1.3);
+          FX.text(x, y, 'تم!', '#7dff9a', S.tile * 0.34);
+          Sfx.collect();
           break;
         case 'collect':
           FX.burst(x, y, '#ffcc4d', 18, 1.4);
@@ -785,9 +879,21 @@ const Game = (function () {
 
   function updateHud(force) {
     const mv = U.$('#moves-count');
-    if (mv && (force || mv.textContent !== String(S.moves))) {
-      mv.textContent = S.moves;
-      mv.parentElement.classList.toggle('low', S.moves <= 5);
+    if (mv) {
+      if (S.timed) {
+        const txt = U.mmss(S.timeLeft);
+        if (force || mv.textContent !== txt) {
+          mv.textContent = txt;
+          mv.parentElement.classList.toggle('low', S.timeLeft <= CFG.timed.warnAt);
+        }
+      } else if (force || mv.textContent !== String(S.moves)) {
+        mv.textContent = S.moves;
+        mv.parentElement.classList.toggle('low', S.moves <= 5);
+      }
+      if (force) {
+        const lbl = mv.parentElement.querySelector('.moves-label');
+        if (lbl) lbl.textContent = S.timed ? 'الوقت' : 'الحركات';
+      }
     }
     const sc = U.$('#score-count');
     const score = S.board ? S.board.stats.score : 0;

@@ -55,11 +55,21 @@ class Board {
     this.itemsLeft = def.items || 0;
     this.itemsOnBoard = 0;
 
+    /* القنابل الموقوتة: ما يُزرع منها في المخطّط + ما يتساقط لاحقاً */
+    this.bombFuse = def.bombFuse || CFG.bomb.defaultFuse;
+    this.bombsLeft = def.bombs || 0;
+    this.bombsOnBoard = 0;
+    this.explodedAt = null;        // موضع القنبلة التي انفجرت (خسارة)
+    /* القنابل المتساقطة تنزل واحدة كل bombEvery حركات، لا دفعةً واحدة */
+    this.bombEvery = 3;
+    this.bombMoveTick = 0;
+    this.bombArmed = def.layout.join('').indexOf('t') < 0 && this.bombsLeft > 0;
+
     /* إحصاءات المرحلة */
     this.stats = {
       score: 0,
       colors: new Array(PIECE_TYPES.length).fill(0),
-      box: 0, ice: 0, chain: 0, grass: 0, item: 0,
+      box: 0, ice: 0, chain: 0, grass: 0, item: 0, bomb: 0,
     };
 
     this.fx = [];          // أحداث بصرية ينتظرها العارض
@@ -92,6 +102,7 @@ class Board {
       case 'K': cell.chain = 2; break;
       case 'g': cell.grass = 1; break;
       case 'G': cell.grass = 2; break;
+      case 't': cell.initBomb = true; break;
       default: break;
     }
     return cell;
@@ -112,6 +123,14 @@ class Board {
     };
   }
 
+  newBomb(r, c, fuse) {
+    const p = this.newPiece(-1, r, c);
+    p.kind = 'bomb';
+    p.fuse = fuse == null ? this.bombFuse : fuse;
+    this.bombsOnBoard++;
+    return p;
+  }
+
   newItem(r, c) {
     const p = this.newPiece(-1, r, c);
     p.kind = 'item';
@@ -124,6 +143,11 @@ class Board {
       for (let c = 0; c < this.cols; c++) {
         const cell = this.grid[r][c];
         if (!cell.exists || cell.box > 0 || cell.piece) continue;
+        if (cell.initBomb) {
+          cell.initBomb = false;
+          cell.piece = this.newBomb(r, c);
+          continue;
+        }
         cell.piece = this.newPiece(this.safeColor(r, c), r, c);
       }
     }
@@ -190,7 +214,7 @@ class Board {
     if (Math.abs(r1 - r2) + Math.abs(c1 - c2) !== 1) return false;
     if (!this.isFree(r1, c1) || !this.isFree(r2, c2)) return false;
     const a = this.grid[r1][c1].piece, b = this.grid[r2][c2].piece;
-    if (a.kind === 'item' || b.kind === 'item') return false;
+    if (a.kind !== 'normal' || b.kind !== 'normal') return false;
     return true;
   }
 
@@ -412,6 +436,16 @@ class Board {
     if (p.kind === 'item') return false;      // الأغراض لا تُدمَّر، تُنزَّل فقط
     if (p.clearing) return false;
 
+    /* القنبلة الموقوتة: أي إصابة تُبطل مفعولها */
+    if (p.kind === 'bomb') {
+      p.clearing = true;
+      p.clearDelay = delay;
+      this.stats.bomb++;
+      this.stats.score += CFG.score.obstacleHit * 3;
+      this.fx.push({ type: 'defuse', r, c, delay });
+      return true;
+    }
+
     p.clearing = true;
     p.clearDelay = delay;
 
@@ -436,12 +470,17 @@ class Board {
       const N = [[1, 0], [-1, 0], [0, 1], [0, -1]];
       for (const [dr, dc] of N) {
         const n = this.at(r + dr, c + dc);
-        if (n && n.exists && n.box > 0 && n.hitPhase !== this.phase) {
-          n.hitPhase = this.phase;
-          n.box--;
-          this.stats.box++;
-          this.stats.score += CFG.score.obstacleHit;
-          this.fx.push({ type: 'box', r: r + dr, c: c + dc, delay, broken: n.box === 0 });
+        if (!n || !n.exists) continue;
+        if (n.box > 0) {
+          if (n.hitPhase !== this.phase) {
+            n.hitPhase = this.phase;
+            n.box--;
+            this.stats.box++;
+            this.stats.score += CFG.score.obstacleHit;
+            this.fx.push({ type: 'box', r: r + dr, c: c + dc, delay, broken: n.box === 0 });
+          }
+        } else if (n.piece && n.piece.kind === 'bomb') {
+          this.markClear(r + dr, c + dc, delay);
         }
       }
     }
@@ -607,7 +646,10 @@ class Board {
       for (let c = 0; c < this.cols; c++) {
         const cell = this.grid[r][c];
         const p = cell.piece;
-        if (p && p.clearing) { cell.piece = null; n++; }
+        if (p && p.clearing) {
+          if (p.kind === 'bomb') this.bombsOnBoard--;
+          cell.piece = null; n++;
+        }
         if (p) p.justMade = false;
       }
     }
@@ -690,6 +732,10 @@ class Board {
             p = this.newItem(r, c);
             this.itemsLeft--;
             this.itemsOnBoard++;
+          } else if (this.bombArmed && this.bombsLeft > 0 && this.bombsOnBoard < 3) {
+            p = this.newBomb(r, c);
+            this.bombsLeft--;
+            this.bombArmed = false;
           } else {
             p = this.newPiece(U.randInt(0, this.colors), r, c);
           }
@@ -895,6 +941,40 @@ class Board {
     return true;
   }
 
+  /**
+   * يُنقص فتيل كل قنبلة على اللوحة بمقدار حركة واحدة.
+   * يُرجع موضع أول قنبلة بلغ فتيلها الصفر (أي خسارة المرحلة) أو null.
+   */
+  tickBombs() {
+    /* تسليح قنبلة جديدة للنزول كل عدّة حركات */
+    this.bombMoveTick++;
+    if (this.bombsLeft > 0 && this.bombMoveTick % this.bombEvery === 0) this.bombArmed = true;
+
+    let blown = null;
+    for (let r = 0; r < this.rows; r++) {
+      for (let c = 0; c < this.cols; c++) {
+        const p = this.grid[r][c].piece;
+        if (!p || p.kind !== 'bomb' || p.clearing) continue;
+        p.fuse--;
+        if (p.fuse <= 0 && !blown) blown = { r, c };
+      }
+    }
+    this.explodedAt = blown;
+    return blown;
+  }
+
+  /** أقل فتيل متبقٍّ على اللوحة (للتحذير في الواجهة) */
+  minFuse() {
+    let m = Infinity;
+    for (let r = 0; r < this.rows; r++) {
+      for (let c = 0; c < this.cols; c++) {
+        const p = this.grid[r][c].piece;
+        if (p && p.kind === 'bomb' && !p.clearing) m = Math.min(m, p.fuse);
+      }
+    }
+    return m;
+  }
+
   /* ------------------------------------------------------------------ */
   /*                             الأهداف                                 */
   /* ------------------------------------------------------------------ */
@@ -908,6 +988,7 @@ class Board {
       case GOAL.CHAIN: return this.stats.chain;
       case GOAL.GRASS: return this.stats.grass;
       case GOAL.ITEM:  return this.stats.item;
+      case GOAL.BOMB:  return this.stats.bomb;
       default: return 0;
     }
   }

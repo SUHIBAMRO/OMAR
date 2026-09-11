@@ -164,6 +164,7 @@ const UI = (function () {
       case GOAL.CHAIN: return 'chain1';
       case GOAL.GRASS: return 'grass1';
       case GOAL.ITEM:  return 'item';
+      case GOAL.BOMB:  return 'bombIcon';
       default: return 'p0';
     }
   }
@@ -177,6 +178,7 @@ const UI = (function () {
       case GOAL.CHAIN: return 'سلسلة';
       case GOAL.GRASS: return 'بلاطة عشب';
       case GOAL.ITEM:  return 'صندوق ملكي';
+      case GOAL.BOMB:  return 'قنبلة موقوتة';
       default: return '';
     }
   }
@@ -189,6 +191,7 @@ const UI = (function () {
       case GOAL.CHAIN: return 'اكسر ' + goal.count + ' سلسلة';
       case GOAL.GRASS: return 'نظّف ' + goal.count + ' بلاطة عشب';
       case GOAL.ITEM:  return 'أنزِل ' + goal.count + ' من الصناديق الملكية';
+      case GOAL.BOMB:  return 'أبطِل ' + goal.count + ' قنبلة موقوتة';
       default: return '';
     }
   }
@@ -308,8 +311,18 @@ const UI = (function () {
       }
       dlg.appendChild(gp);
 
-      dlg.appendChild(U.el('p', '', 'الحركات: <b>' + def.moves + '</b>' +
+      dlg.appendChild(U.el('p', '', (def.timeLimit
+          ? 'الوقت: <b>' + U.mmss(def.timeLimit) + '</b>'
+          : 'الحركات: <b>' + def.moves + '</b>') +
         (Save.bestFor(lv) ? ' — أفضل نتيجة: <b>' + U.fmt(Save.bestFor(lv)) + '</b>' : '')));
+      if (def.timeLimit) {
+        dlg.appendChild(U.el('p', 'hint-note',
+          'مرحلة مؤقّتة: لا حدّ للحركات، لكن كل قطعة تُزيلها تضيف ثوانيَ إلى العدّاد.'));
+      }
+      if (def.bombs || /t/.test(def.layout.join(''))) {
+        dlg.appendChild(U.el('p', 'hint-note',
+          'انتبه للقنابل الموقوتة: إن وصل عدّاد أي منها إلى صفر خسرت المرحلة فوراً.'));
+      }
 
       /* معزّزات ما قبل البدء */
       dlg.appendChild(U.el('p', '', 'معزّزات البداية (اختياري):'));
@@ -318,7 +331,7 @@ const UI = (function () {
         { k: 'rocket', sp: 'rh', lbl: 'صاروخ' },
         { k: 'tnt', sp: 'tnt', lbl: 'قنبلة' },
         { k: 'ball', sp: 'ball', lbl: 'كرة' },
-        { k: 'moves', sp: 'moves', lbl: '+5 حركات' },
+        { k: 'moves', sp: 'moves', lbl: def.timeLimit ? '+20 ثانية' : '+5 حركات' },
       ];
       for (const it of items) {
         const d = U.el('div', 'prebooster');
@@ -385,9 +398,19 @@ const UI = (function () {
     }, { closable: false });
   }
 
+  const LOSE_TITLE = {
+    moves: 'نفدت الحركات',
+    time:  'نفد الوقت',
+    bomb:  'انفجرت القنبلة',
+  };
+
   function showLose(res) {
     openModal(dlg => {
-      dlg.appendChild(U.el('h2', '', 'نفدت الحركات'));
+      dlg.appendChild(U.el('h2', '', LOSE_TITLE[res.reason] || LOSE_TITLE.moves));
+      if (res.reason === 'bomb') {
+        dlg.appendChild(U.el('p', 'hint-note',
+          'كان عليك إبطالها بمطابقة ملاصقة لها أو بانفجار يصيبها قبل أن يصل عدّادها إلى صفر.'));
+      }
       const left = [];
       for (const g of res.board.def.goals) {
         const n = Math.max(0, g.count - res.board.goalProgress(g));
@@ -405,7 +428,8 @@ const UI = (function () {
       }
       dlg.appendChild(gp);
 
-      dlg.appendChild(btn('+' + CFG.economy.extraMovesAmount + ' حركات ومتابعة', 'gold', () => {
+      dlg.appendChild(btn((res.timed ? '+30 ثانية ومتابعة'
+                                     : '+' + CFG.economy.extraMovesAmount + ' حركات ومتابعة'), 'gold', () => {
         if (!Save.spend(CFG.economy.extraMovesCost)) { banner('العملات لا تكفي'); return; }
         closeModal();
         Game.continueWithMoves();
@@ -626,13 +650,24 @@ const UI = (function () {
       box.appendChild(tileRow('item', '<b>الصندوق الملكي</b> — ينزل مع الجاذبية. أفرِغ ما تحته حتى يصل إلى خانة التجميع في الأسفل.'));
       box.appendChild(tileRow('collector', '<b>خانة التجميع</b> — النقطة التي يجب أن يصل إليها الصندوق الملكي.'));
 
-      box.appendChild(U.el('h3', '', '٥) المعزّزات'));
+      box.appendChild(U.el('h3', '', '٥) القنبلة الموقوتة والمراحل المؤقّتة'));
+      box.appendChild(tileRow('bombIcon',
+        '<b>القنبلة الموقوتة</b> — تحمل عدّاداً ينقص مع كل حركة تلعبها. ' +
+        'أبطِلها بمطابقة <b>ملاصقة</b> لها أو بانفجار يصيبها. ' +
+        'إن وصل عدّاد أي قنبلة إلى صفر <b>خسرت المرحلة فوراً</b>. القنابل تنزل مع الجاذبية ولا تُبدَّل.'));
+      box.appendChild(tileRow('clock',
+        '<b>المراحل المؤقّتة</b> — بدل عدد الحركات يوجد وقت بالثواني. ' +
+        'لا حدّ لعدد الحركات، وكل قطعة تُزيلها تضيف <b>' + CFG.timed.secPerPiece +
+        ' ثانية</b> إلى العدّاد (بحدّ أقصى ' + CFG.timed.maxAdd + ' ثانية للموجة الواحدة). ' +
+        'عند الفوز يتحوّل الوقت المتبقّي إلى نقاط.'));
+
+      box.appendChild(U.el('h3', '', '٦) المعزّزات'));
       for (const k of BOOSTER_ORDER) {
         box.appendChild(tileRow(boosterSprite(k), '<b>' + BOOSTER_INFO[k].name + '</b> — ' + BOOSTER_INFO[k].desc));
       }
       box.appendChild(U.el('p', '', 'استعمال المعزّز <b>لا</b> يستهلك حركة. يمكن أيضاً اختيار معزّز يُزرع على اللوحة قبل بدء المرحلة.'));
 
-      box.appendChild(U.el('h3', '', '٦) النقاط والنجوم'));
+      box.appendChild(U.el('h3', '', '٧) النقاط والنجوم'));
       const sc = U.el('ul');
       [['قطعة عادية', CFG.score.piece + ' نقطة'],
        ['كسر طبقة عائق', CFG.score.obstacleHit + ' نقطة'],
@@ -646,13 +681,13 @@ const UI = (function () {
         CFG.score.cascadeMul[CFG.score.cascadeMul.length - 1] + '</b>. ' +
         'النجوم الثلاث تُمنح حسب مجموع النقاط مقارنةً بمعيار المرحلة.'));
 
-      box.appendChild(U.el('h3', '', '٧) القلوب والعملات'));
+      box.appendChild(U.el('h3', '', '٨) القلوب والعملات'));
       box.appendChild(U.el('p', '',
         'كل محاولة تستهلك قلباً، والحدّ الأقصى ' + CFG.lives.max + ' قلوب، ويتجدّد قلب كل ' +
         Math.round(CFG.lives.refillMs / 60000) + ' دقيقة. ' +
         'تُكسب العملات من الفوز والنجوم والهدية الدورية، وتُصرف على المعزّزات والحركات الإضافية والقلوب.'));
 
-      box.appendChild(U.el('h3', '', '٨) حالات خاصّة'));
+      box.appendChild(U.el('h3', '', '٩) حالات خاصّة'));
       const sp = U.el('ul');
       ['إذا لم تبقَ أي حركة ممكنة تُخلَط اللوحة تلقائياً دون استهلاك حركة.',
        'عند تحقيق كل الأهداف تتحوّل الحركات المتبقّية إلى صواريخ تنفجر دفعةً واحدة.',

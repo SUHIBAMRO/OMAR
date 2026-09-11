@@ -452,6 +452,56 @@ const Art = (function () {
     ctx.restore();
   }
 
+  /* القنبلة الموقوتة: كرة سوداء بفتيل وعدّاد ظاهر */
+  function drawTimeBomb(ctx, s, fuse, danger) {
+    const cx = s / 2, cy = s * 0.56, r = s * 0.3;
+    /* الفتيل */
+    ctx.beginPath();
+    ctx.moveTo(cx + r * 0.45, cy - r * 0.85);
+    ctx.quadraticCurveTo(cx + r * 1.2, cy - r * 1.5, cx + r * 0.8, cy - r * 1.9);
+    stroked(ctx, '#7d5a2e', s * 0.05);
+    ctx.beginPath();
+    ctx.arc(cx + r * 0.8, cy - r * 2.0, s * 0.055, 0, 7);
+    ctx.fillStyle = danger ? '#ff4d4d' : '#ffd76a'; ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx + r * 0.8, cy - r * 2.0, s * 0.028, 0, 7);
+    ctx.fillStyle = '#fff'; ctx.fill();
+    /* الجسم */
+    const g = ctx.createRadialGradient(cx - r * .35, cy - r * .35, r * .1, cx, cy, r);
+    g.addColorStop(0, danger ? '#8a3a3a' : '#5c6484');
+    g.addColorStop(1, danger ? '#2e0d0d' : '#161b33');
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7);
+    ctx.fillStyle = g; ctx.fill();
+    stroked(ctx, danger ? '#ff6b6b' : '#0b0e22', s * 0.05);
+    /* فوّهة علوية */
+    rr(ctx, cx - r * 0.3, cy - r * 1.18, r * 0.6, r * 0.4, s * 0.03);
+    ctx.fillStyle = '#3a4664'; ctx.fill();
+    stroked(ctx, '#0b0e22', s * 0.04);
+    /* العدّاد (يُحذف في أيقونة الواجهة) */
+    if (fuse == null) return;
+    ctx.fillStyle = '#fff';
+    ctx.font = '900 ' + (s * 0.34) + 'px "Tajawal",Arial,sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = s * 0.07; ctx.strokeStyle = 'rgba(0,0,0,.7)';
+    ctx.strokeText(String(fuse), cx, cy + s * 0.02);
+    ctx.fillText(String(fuse), cx, cy + s * 0.02);
+  }
+
+  function drawClock(ctx, s) {
+    const cx = s / 2, cy = s * 0.54, r = s * 0.32;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7);
+    ctx.fillStyle = grad(ctx, cx, cy - r, cx, cy + r, '#ffe9a8', '#f0a71b');
+    ctx.fill(); stroked(ctx, '#8c5c04', s * 0.06);
+    ctx.beginPath(); ctx.arc(cx, cy, r * 0.78, 0, 7);
+    ctx.fillStyle = '#fdf6e2'; ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(cx, cy); ctx.lineTo(cx, cy - r * 0.52);
+    ctx.moveTo(cx, cy); ctx.lineTo(cx + r * 0.4, cy + r * 0.2);
+    stroked(ctx, '#5c3f1d', s * 0.055);
+    rr(ctx, cx - s * 0.07, cy - r * 1.28, s * 0.14, s * 0.08, s * 0.02);
+    ctx.fillStyle = '#c97f05'; ctx.fill();
+  }
+
   /* الغرض الملكي الذي يجب إنزاله إلى الأسفل */
   function drawItem(ctx, s) {
     const w = s * 0.74, h = s * 0.58, x = (s - w) / 2, y = (s - h) / 2 + s * 0.03;
@@ -525,9 +575,9 @@ const Art = (function () {
     if (/^p[0-5]$/.test(name)) {
       const i = +name[1];
       DRAWERS[i](ctx, s, PIECE_TYPES[i]);
-    } else if (/^p[0-5](rh|rv)$/.test(name)) {
-      const i = +name[1];
-      DRAWERS[i](ctx, s, PIECE_TYPES[i]);
+    } else if (/^bomb:/.test(name)) {
+      const fuse = +name.split(':')[1];
+      drawTimeBomb(ctx, s, fuse, fuse <= CFG.bomb.warnAt);
     } else {
       switch (name) {
         case 'rh': drawRocket(ctx, s, false); break;
@@ -543,6 +593,8 @@ const Art = (function () {
         case 'grass1': drawGrass(ctx, s, 1); break;
         case 'grass2': drawGrass(ctx, s, 2); break;
         case 'item': drawItem(ctx, s); break;
+        case 'clock': drawClock(ctx, s); break;
+        case 'bombIcon': drawTimeBomb(ctx, s, null, false); break;
         case 'tile': drawTile(ctx, s, false); break;
         case 'tileAlt': drawTile(ctx, s, true); break;
         case 'collector': drawCollector(ctx, s); break;
@@ -606,6 +658,10 @@ const Art = (function () {
     if (!piece) return;
     if (piece.kind === 'item') {
       ctx.drawImage(sprite('item', size), x, y, size, size);
+      return;
+    }
+    if (piece.kind === 'bomb') {
+      ctx.drawImage(sprite('bomb:' + piece.fuse, size), x, y, size, size);
       return;
     }
     switch (piece.special) {

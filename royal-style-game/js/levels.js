@@ -8,6 +8,7 @@
      i  جليد بطبقة واحدة         I  جليد بطبقتين
      k  سلسلة بطبقة واحدة        K  سلسلة بطبقتين
      g  عشب بطبقة واحدة          G  عشب بطبقتين
+     t  قنبلة موقوتة تبدأ على اللوحة
      _  خليّة تجميع (يُجمع فيها الغرض الملكي الهابط)
    كل صفوف المخطّط يجب أن تكون بنفس الطول.
    ========================================================================== */
@@ -473,6 +474,116 @@ const Levels = (function () {
         '_.._.._.._'.slice(0, 9),
       ],
     }),
+    /* ---------- 25-27: القنبلة الموقوتة ---------- */
+    L({
+      moves: 24, colors: 5, bombFuse: 10,
+      goals: [{ type: GOAL.BOMB, count: 4 }],
+      layout: [
+        '.........',
+        '.........',
+        '..t...t..',
+        '.........',
+        '.........',
+        '.........',
+        '..t...t..',
+        '.........',
+        '.........',
+      ],
+    }),
+
+    L({
+      moves: 26, colors: 5, bombs: 4, bombFuse: 9,
+      goals: [
+        { type: GOAL.BOMB, count: 6 },
+        { type: GOAL.BOX, count: 12 },
+      ],
+      layout: [
+        '.........',
+        '..bbbbb..',
+        '..b...b..',
+        '....t....',
+        '.b.....b.',
+        '....t....',
+        '..b...b..',
+        '..bbbbb..',
+        '.........',
+      ],
+    }),
+
+    L({
+      moves: 28, colors: 6, bombs: 6, bombFuse: 8,
+      goals: [
+        { type: GOAL.BOMB, count: 8 },
+        { type: GOAL.ICE, count: 16 },
+      ],
+      layout: [
+        '.........',
+        '.iiiiiii.',
+        '.i.....i.',
+        '.i..t..i.',
+        '.i.....i.',
+        '.i..t..i.',
+        '.i.....i.',
+        '.iiiiiii.',
+        '.........',
+      ],
+    }),
+
+    /* ---------- 28-30: المراحل المؤقّتة بالزمن ---------- */
+    L({
+      timeLimit: 75, colors: 5,
+      goals: [{ type: GOAL.COLOR, color: 3, count: 45 }],
+      layout: [
+        '.........',
+        '.........',
+        '.........',
+        '.........',
+        '.........',
+        '.........',
+        '.........',
+        '.........',
+        '.........',
+      ],
+    }),
+
+    L({
+      timeLimit: 90, colors: 5,
+      goals: [
+        { type: GOAL.GRASS, count: 24 },
+        { type: GOAL.BOX, count: 12 },
+      ],
+      layout: [
+        '.........',
+        '.bb...bb.',
+        '..ggggg..',
+        '..ggggg..',
+        '..ggggg..',
+        '..ggggg..',
+        '..ggggg..',
+        '.bb...bb.',
+        '.........',
+      ],
+    }),
+
+    L({
+      timeLimit: 120, colors: 6, bombs: 4, bombFuse: 12,
+      goals: [
+        { type: GOAL.BOMB, count: 4 },
+        { type: GOAL.CHAIN, count: 16 },
+        { type: GOAL.ICE, count: 12 },
+      ],
+      layout: [
+        '.........',
+        '.kk...kk.',
+        '.k.....k.',
+        '..iiiii..',
+        '..i...i..',
+        '..iiiii..',
+        '.k.....k.',
+        '.kk...kk.',
+        '.........',
+      ],
+    }),
   ];
 
   /* ======================= توليد المراحل بعد المصنوعة يدوياً ======================= */
@@ -480,7 +591,7 @@ const Levels = (function () {
   function generate(levelNo) {
     const rnd = U.rng(levelNo * 7919 + 13);
     const rows = 9, cols = 9;
-    const diff = Math.min(1, (levelNo - 25) / 60);     // 0 .. 1
+    const diff = Math.min(1, (levelNo - HANDMADE.length) / 60);   // 0 .. 1
     const colors = levelNo < 40 ? 5 : (rnd() < 0.5 ? 5 : 6);
     const moves = Math.max(18, Math.round(30 - diff * 8 + (rnd() * 4 - 2)));
 
@@ -547,11 +658,22 @@ const Levels = (function () {
       goals.push({ type: GOAL.COLOR, color: col, count: 20 + Math.round(diff * 25) });
     }
 
-    const base = 2500 + Math.round(diff * 4000) + goals.length * 800;
+    /* قنابل موقوتة في جزء من المراحل المتقدّمة */
+    let bombs = 0;
+    if (levelNo > 30 && rnd() < 0.3) {
+      bombs = 3 + Math.floor(rnd() * 3 + diff * 2);
+      goals.push({ type: GOAL.BOMB, count: bombs });
+    }
+
+    /* كل مرحلة سابعة تقريباً تكون مؤقّتة بالزمن بدل الحركات */
+    const timed = (levelNo % 7 === 0) && levelNo > 30;
+
     return {
-      moves, colors, items,
+      moves: timed ? 0 : moves,
+      timeLimit: timed ? 60 + Math.round(moves * 2.5) : 0,
+      colors, items, bombs,
+      bombFuse: Math.max(6, CFG.bomb.defaultFuse - Math.round(diff * 3)),
       goals,
-      stars: [base, base * 2, base * 3],
       layout: grid.map(r => r.join('')),
       generated: true,
     };
@@ -584,12 +706,13 @@ const Levels = (function () {
 
     /* (ب) حساب السعة الفعلية لكل نوع عائق */
     const cap = { box: 0, ice: 0, chain: 0, grass: 0 };
-    let collectors = 0;
+    let collectors = 0, bombsOnMap = 0;
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const ch = grid[r][c];
         if (FAMILY[ch]) cap[FAMILY[ch]] += HP[ch];
         if (ch === '_') collectors++;
+        if (ch === 't') bombsOnMap++;
       }
     }
 
@@ -602,6 +725,10 @@ const Levels = (function () {
       if (g.type === GOAL.ITEM) {
         g.count = Math.min(g.count, def.items || 0);
         return g.count > 0 && collectors > 0;
+      }
+      if (g.type === GOAL.BOMB) {
+        g.count = Math.min(g.count, bombsOnMap + (def.bombs || 0));
+        return g.count > 0;
       }
       return true;
     });
@@ -616,8 +743,11 @@ const Levels = (function () {
     /* (ج) عتبات النجوم تُحسب من "نقاط المعيار" حتى تبقى عادلة في كل المراحل:
            هدف اللون أرخص من كسر عائق، وإنزال غرض هو الأغلى، مع وزن للحركات. */
     const W = { [GOAL.COLOR]: 110, [GOAL.BOX]: 230, [GOAL.ICE]: 230,
-                [GOAL.CHAIN]: 230, [GOAL.GRASS]: 230, [GOAL.ITEM]: 900 };
-    const par = def.goals.reduce((a, g) => a + g.count * (W[g.type] || 150), 0) + def.moves * 260;
+                [GOAL.CHAIN]: 230, [GOAL.GRASS]: 230, [GOAL.ITEM]: 900,
+                [GOAL.BOMB]: 500 };
+    /* المراحل المؤقّتة تُقاس بالثواني لا بالحركات */
+    const budget = def.timeLimit ? def.timeLimit * 150 : def.moves * 260;
+    const par = def.goals.reduce((a, g) => a + g.count * (W[g.type] || 150), 0) + budget;
     def.par = Math.round(par);
     def.stars = [Math.round(par * 0.55), Math.round(par * 0.90), Math.round(par * 1.30)];
     return def;
@@ -635,6 +765,10 @@ const Levels = (function () {
     }
     def.id = levelNo;
     def.items = def.items || 0;
+    def.bombs = def.bombs || 0;
+    def.bombFuse = def.bombFuse || CFG.bomb.defaultFuse;
+    def.timeLimit = def.timeLimit || 0;
+    def.moves = def.moves || 0;
     def.colors = U.clamp(def.colors || 5, 3, PIECE_TYPES.length);
     def.rows = def.layout.length;
     def.cols = def.layout[0].length;
