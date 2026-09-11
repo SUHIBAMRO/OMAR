@@ -194,8 +194,8 @@ body{
   min-width:44px;
 }
 .goal canvas{width:34px;height:34px;display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
-.goal b{font-size:13px;font-weight:800;margin-top:-4px;
-  text-shadow:0 2px 0 rgba(0,0,0,.6)}
+.goal b{font-size:13px;font-weight:800;margin-top:-1px;line-height:1;
+  text-shadow:0 1px 3px #12163a,0 2px 0 rgba(0,0,0,.75)}
 .goal.done b{color:#7dff9a}
 .goal.done::after{
   content:"";position:absolute;inset:auto 0 8px 0;margin:auto;width:18px;height:18px;
