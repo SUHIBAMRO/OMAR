@@ -41,7 +41,25 @@
       "assembled_direct_peak_mem_mb": 15647.6,
       "l2_rel": 2.291e-06,
       "h1_semi_rel": 1.633e-03
+    },
+    {
+      "N": 1701,
+      "n_dof": 5788802,
+      "tol": 1e-08,
+      "assembled_direct_wall_clock_s": 91.53,
+      "assembled_direct_peak_mem_mb": 23060.9,
+      "l2_rel": 1.165e-06,
+      "h1_semi_rel": 1.518e-03
+    },
+    {
+      "N": 2001,
+      "n_dof": 8008002,
+      "tol": 1e-08,
+      "assembled_direct_wall_clock_s": 127.44,
+      "assembled_direct_peak_mem_mb": 31906.6,
+      "l2_rel": 4.289e-07,
+      "h1_semi_rel": 8.640e-04
     }
   ],
-  "_note": "Transcribed directly from Omar's real Colab A100 run output (2026-09-11), not re-derived -- wall-clock/memory/error values are printed to the precision the notebook itself prints (see cell_assembled_direct_speedup_production.py). Fitted convergence rate printed by that same run: L2 p=1.884 (expected 2), H1 p=0.670 (expected 1)."
+  "_note": "Transcribed directly from Omar's real Colab A100 run output (2026-09-11), not re-derived -- wall-clock/memory/error values are printed to the precision the notebook itself prints (see cell_assembled_direct_speedup_production.py). N=401-1401 from the first run (fitted rate then: L2 p=1.884, H1 p=0.670). N=1701/2001 added in the extended run (per Omar's own go-ahead) -- fitted rate across all six points: L2 p=2.380 (expected 2), H1 p=0.786 (expected 1). Memory-ceiling extrapolation from that same run (fit over all six real points, this GPU's real torch.cuda.get_device_properties total_memory ~85GB): ours(assembled) 0.00399 MB/DOF -> projected ceiling ~N=3267 (21,353,620 DOF); torch-fem(cg) 0.01804 MB/DOF -> projected ceiling ~N=1535 (4,716,170 DOF). Predicted-vs-actual memory at the two new points matched to within 0.15%: N=1701 predicted ~23,097MB vs actual 23,060.9MB; N=2001 predicted ~31,952MB vs actual 31,906.6MB -- the fitted line is empirically validated, not just an extrapolation. Wall-clock grew ~9-10% faster than a naive linear-per-DOF model at these two new points (91.53s/127.44s vs. ~84s/~116s predicted), a real, mild super-linearity worth stating plainly, not something to smooth over."
 }

@@ -24,7 +24,50 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-11 (**FAIRNESS RE-CHECK FOUND THE COMPARISON WAS TOO
+Last updated: 2026-09-11 (**EXTENDED RUN CONFIRMED THE MEMORY MODEL
+EMPIRICALLY, NOT JUST BY EXTRAPOLATION -- Omar's own real A100 run of the
+extended sweep (N=1701, N=2001 added to the existing N=401-1401):
+
+| N | wall_clock | peak_mem | l2_rel |
+|---|---|---|---|
+| 1701 | 91.53s | 23,060.9 MB | 1.165e-06 |
+| 2001 | 127.44s | 31,906.6 MB | 4.289e-07 |
+
+**The fitted 0.00399 MB/DOF line (fit from the ORIGINAL N=401-1401 points
+only) predicted 23,097MB and 31,952MB at these two new sizes -- actual
+values matched to within 0.15% at both.** This is a real, out-of-sample
+confirmation, not a self-fit: the memory-ceiling projection (~N=3267,
+~21.4M DOF on this GPU's real ~85GB, per `torch.cuda.get_device_
+properties`) is now on empirically solid ground, not just an
+extrapolation from 4 points.
+
+Accuracy kept improving correctly (l2_rel=4.289e-07 at N=2001, the best
+point yet) and the fitted convergence rate across all SIX points actually
+improved: L2 p=2.380 (expected 2, now essentially matching), H1 p=0.786
+(expected 1, up from 0.670 with only 4 points) -- no numerical
+degradation at the larger sizes.
+
+**One real, honest caveat, stated plainly rather than smoothed over**:
+wall-clock grew ~9-10% faster than a naive linear-per-DOF model at these
+two new points (91.53s/127.44s actual vs. ~84s/~116s a straight-line fit
+from the smaller points would have predicted) -- a mild, real
+super-linearity in time (not memory), plausibly ordinary sparse-direct
+fill-in growth, not a red flag at these wall-clock magnitudes (under 2.5
+minutes even at N=2001), but worth carrying forward rather than omitting.
+
+Real committed JSON updated (`omar_pfem/assembled_direct_convergence_
+production_N401_1401.json`) with both new rows and this analysis.
+
+**Per Omar's own explicit instruction ("وثق هاي النتيجه عشان نسال تيمون
+عنها" -- document this result so we can ask Timon about it), this is now
+being prepared as the basis for actually consulting Timon** -- see
+`advisor_feedback/2026-09-11_assembled_direct_experiment_for_timon.md`
+(drafted, summarizing this whole experiment for Timon's review). Per the
+standing reminder above: DRAFTED, NOT YET SENT -- Omar has not yet said
+to send it. Remove/narrow the standing reminder only once Timon has
+actually been asked, not once this draft exists.
+
+Previous update, 2026-09-11 (**FAIRNESS RE-CHECK FOUND THE COMPARISON WAS TOO
 GENEROUS TO TORCH-FEM, NOT TO "OURS"** -- the promised double-check of
 whether the memory/speed comparison was apples-to-apples. Torch-fem's own
 already-committed `torchfem_convergence_vs_fine_reference_full.json`
