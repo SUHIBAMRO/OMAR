@@ -143,7 +143,7 @@ for N in RESOLUTIONS:
         print(f'{N:<6} {"(n/a)":<12} {"(n/a)":<12} {"(n/a)":<10} {"(n/a)":<14}')
 
 print('\n' + '=' * 70)
-print('ANALYSIS')
+print('ANALYSIS (Steps 1-2)')
 print('=' * 70)
 print('l2_rel should match between the two settings (same physics, same tolerance) -- if it')
 print('does not, something in the new code path is wrong and the speedup number should not be')
@@ -152,3 +152,66 @@ print('in the isolated linear-solve measurement), that is real evidence this opt
 print('worth keeping as the new opt-in default for solve_assembled_direct -- still Omar\'s own call,')
 print('and per the standing reminder, not something to present to Timon without that conversation')
 print('first.')
+
+# ---- Step 3: symmetric-storage on top of analysis-reuse ----------------
+# Per Omar's own request to keep pushing further ("جرب الطريقه هاي هات
+# نجربها"): the assembled Jacobian is currently GENERAL (non-symmetric) in
+# cuDSS's own terms even though the underlying tangent (a Hessian) IS
+# symmetric, because fixed-DOF rows are zeroed without the matching
+# columns. build_sparse_jac_fn(symmetric_bc=True) fixes this -- confirmed
+# EXACT (not approximate) on CPU already, before any GPU time: this
+# project's own Dirichlet BCs hold u_fixed=0 identically at every Newton
+# iterate, so the eliminated columns contribute exactly zero to the
+# free-DOF equations regardless. A full CPU Newton solve with
+# symmetric_bc=True gave a BIT-FOR-BIT IDENTICAL answer to the default at
+# N=11 and N=21 (0.000e+00 relative difference) -- not just close.
+# matrix_type='symmetric' then lets cuDSS skip storing/factorizing the
+# redundant triangle, typically cheaper than general LU for the same
+# matrix. NEVER RUN ON GPU before this cell -- Step 3's own correctness
+# check is what actually verifies the lower-triangle-filtering logic in
+# _newton_cudss_reuse_analysis is right, not an assumption.
+print('\n' + '=' * 70)
+print('STEP 3: symmetric-storage cuDSS test (on top of analysis-reuse)')
+print('=' * 70)
+print('CPU already confirmed (before this notebook ran): symmetric_bc=True gives a BIT-FOR-BIT')
+print('identical full Newton solve to the default at N=11/21 (0.000e+00 relative difference).')
+run([sys.executable, '-m', 'omar_pfem.assembled_direct_solver', 'reuse_check', '11', 'symmetric'])
+
+OUT_SYMMETRIC = f'{R}/assembled_direct_reuse_symmetric_production_N401_1401.json'
+print('\n-- reuse_analysis=True, matrix_type=symmetric (genuinely new numbers) --')
+run([
+    sys.executable, '-u', '-m', 'omar_pfem.assembled_direct_solver', 'convergence',
+    ','.join(str(n) for n in RESOLUTIONS), OUT_SYMMETRIC, '/content/drive/MyDrive/pfem_ckpt', '2236',
+    'reuse_symmetric',
+])
+
+with open(OUT_SYMMETRIC) as f:
+    sym_rows = {r['N']: r for r in json.load(f)['rows']}
+
+print('\n' + '=' * 70)
+print('THREE-WAY END-TO-END COMPARISON: baseline vs. reuse vs. reuse+symmetric')
+print('=' * 70)
+print(f'{"N":<6} {"baseline s":<12} {"reuse s":<12} {"reuse+sym s":<14} {"l2_rel match?":<14}')
+for N in RESOLUTIONS:
+    b = base_rows.get(N, {})
+    r = reuse_rows.get(N, {})
+    s = sym_rows.get(N, {})
+    bs = b.get('assembled_direct_wall_clock_s')
+    rs = r.get('assembled_direct_wall_clock_s')
+    ss = s.get('assembled_direct_wall_clock_s')
+    b_l2, s_l2 = b.get('l2_rel'), s.get('l2_rel')
+    l2_match = 'yes' if (b_l2 is not None and s_l2 is not None
+                          and abs(b_l2 - s_l2) / (abs(b_l2) + 1e-30) < 1e-3) else '(check)'
+    bs_s = f'{bs:.2f}' if bs is not None else '(n/a)'
+    rs_s = f'{rs:.2f}' if rs is not None else '(n/a)'
+    ss_s = f'{ss:.2f}' if ss is not None else '(n/a)'
+    print(f'{N:<6} {bs_s:<12} {rs_s:<12} {ss_s:<14} {l2_match:<14}')
+
+print('\n' + '=' * 70)
+print('ANALYSIS (Step 3)')
+print('=' * 70)
+print('l2_rel must match the baseline for the symmetric-storage numbers to be trusted at all --')
+print('if the lower-triangle filtering in _newton_cudss_reuse_analysis were wrong, this is where')
+print('it would show up as a real, wrong displacement field, not just a timing anomaly. If it')
+print('matches AND reuse+symmetric is faster than reuse alone, that is a further real win on top')
+print('of the analysis-reuse speedup -- still experimental, still Omar\'s own call on next steps.')

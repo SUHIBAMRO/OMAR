@@ -52,7 +52,7 @@ from omar_pfem.tensormesh_comparison import build_sparse_jac_fn
 
 
 def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_iter,
-                                  line_search=True, verbose=False):
+                                  line_search=True, verbose=False, matrix_type="general"):
     """Custom Newton loop, bypassing torch_sla's own SparseTensor.
     nonlinear_solve entirely for the linear-solve step -- added 2026-09-11
     after a real, GPU-measured finding (omar_pfem/profile_cudss_analysis_
@@ -85,11 +85,35 @@ def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_
     Returns (u, stats) where stats has n_newton_iters and phase-time
     totals (analysis/factorization/solve), for verifying the real
     end-to-end speedup this buys, not just the isolated-call number
-    profile_cudss_analysis_reuse.py already measured."""
+    profile_cudss_analysis_reuse.py already measured.
+
+    matrix_type="general" (default, unchanged): stores the FULL matrix
+    (jac_fn's own output as-is), FULL view -- correct for ANY matrix,
+    including the non-symmetric one build_sparse_jac_fn(symmetric_bc=
+    False) (the default) produces. matrix_type="symmetric" (opt-in,
+    2026-09-11): filters to the LOWER triangle (row >= col) only, matching
+    cuDSS's own documented convention for symmetric storage (nvmath_
+    backend.py's own mtype_map uses the same LOWER view for "symmetric").
+    ONLY valid if jac_fn's own output is actually symmetric -- i.e. built
+    with build_sparse_jac_fn(symmetric_bc=True) -- passing "symmetric"
+    for a matrix that ISN'T (the default assembly) would silently drop
+    real upper-triangle-only entries and return a wrong answer; this
+    function does not itself check that, since it has no cheap way to
+    (checking symmetry costs as much as a dense conversion) -- the
+    caller (solve_assembled_direct) is responsible for pairing
+    matrix_type="symmetric" with symmetric_bc=True, and the correctness
+    check this whole feature is gated behind (_correctness_check_
+    reuse_analysis) is what actually catches a mismatch here, not this
+    docstring."""
     import time as _time
 
     import nvmath.bindings.cudss as cudss
     from torch_sla.backends.nvmath_backend import CUDA_R_32I, _DTYPE_MAP
+
+    mtype_val, mview_val = (
+        (cudss.MatrixType.SYMMETRIC.value, cudss.MatrixViewType.LOWER.value)
+        if matrix_type == "symmetric" else
+        (cudss.MatrixType.GENERAL.value, cudss.MatrixViewType.FULL.value))
 
     def F_eval(uu):
         return residual_fn(uu, None, f_ext)
@@ -116,6 +140,9 @@ def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_
 
             val, row, col, shape = jac_fn(u, None)
             m, n = shape
+            if matrix_type == "symmetric":
+                keep = row >= col
+                val, row, col = val[keep], row[keep], col[keep]
             indices = torch.stack([row, col], dim=0)
             A_coo = torch.sparse_coo_tensor(indices, val, (m, n)).coalesce()
             A_csr = A_coo.to_sparse_csr()
@@ -134,8 +161,7 @@ def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_
                 A_desc = cudss.matrix_create_csr(
                     m, n, cval_buf.numel(), crow0.data_ptr(), 0, ccol0.data_ptr(),
                     cval_buf.data_ptr(), CUDA_R_32I, value_type,
-                    cudss.MatrixType.GENERAL.value, cudss.MatrixViewType.FULL.value,
-                    cudss.IndexBase.ZERO.value)
+                    mtype_val, mview_val, cudss.IndexBase.ZERO.value)
                 do_analysis = True
             else:
                 if not (torch.equal(crow, crow0) and torch.equal(ccol, ccol0)):
@@ -206,7 +232,7 @@ def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_
 def solve_assembled_direct(nodes, elements, free_dofs, fext_full, mu, lam, dtype=torch.float64,
                             tol=1e-8, material="neo_hookean", order="Q4", device=None,
                             linear_solver=None, max_iter=30, reuse_analysis=False,
-                            return_stats=False):
+                            return_stats=False, symmetric_bc=False, matrix_type="general"):
     """Newton + a real direct solver (cuDSS on CUDA, matching Timon's own
     "Newton-type solve with a direct solver" requirement, and the same
     linear_solver policy solve_tensormesh already uses: 'auto' silently
@@ -242,7 +268,25 @@ def solve_assembled_direct(nodes, elements, free_dofs, fext_full, mu, lam, dtype
     from _newton_cudss_reuse_analysis (n_newton_iters, per-phase time
     totals) when reuse_analysis=True; ignored (returns None as the second
     element) when reuse_analysis=False, since torch_sla's own
-    nonlinear_solve does not expose that breakdown."""
+    nonlinear_solve does not expose that breakdown.
+
+    symmetric_bc=False (default, unchanged): passed straight through to
+    build_sparse_jac_fn -- see that function's own docstring. True
+    assembles a genuinely symmetric matrix (exact, not approximate, given
+    this project's own u_fixed=0 Dirichlet BCs), verified on CPU (dense
+    equality against symmetric_bc=False's own solution, N=11: ~4e-13
+    relative difference) before ever being wired into a real solve.
+
+    matrix_type="general" (default): only meaningful when reuse_analysis=
+    True (the non-reuse path via torch_sla's own nonlinear_solve does not
+    expose matrix-type control); passed to _newton_cudss_reuse_analysis.
+    "symmetric" REQUIRES symmetric_bc=True's matrix (asserting this
+    pairing is the caller's responsibility, not checked here) and lets
+    cuDSS skip storing/factorizing the redundant triangle -- typically a
+    further reduction in both ANALYSIS and FACTORIZATION cost on top of
+    the analysis-reuse speedup. NOT YET VERIFIED end-to-end on GPU as of
+    2026-09-11; use _correctness_check_reuse_analysis with
+    symmetric_bc=True before trusting a production run with this set."""
     from omar_pfem.matrix_free_solver import element_energy_order_agnostic, precompute_shape_data
     from omar_pfem.materials_torch import get_material_fns as get_material_fns_torch
 
@@ -275,7 +319,7 @@ def solve_assembled_direct(nodes, elements, free_dofs, fext_full, mu, lam, dtype
         return torch.where(free_mask_dof, res, u_flat)
 
     jac_fn = build_sparse_jac_fn(nodes, elements, mu, lam, free_mask_dof, material, order, device,
-                                  dtype)
+                                  dtype, symmetric_bc=symmetric_bc)
 
     u0 = torch.zeros(n_dof, dtype=dtype, device=device)
     stats = None
@@ -284,7 +328,7 @@ def solve_assembled_direct(nodes, elements, free_dofs, fext_full, mu, lam, dtype
             raise RuntimeError("reuse_analysis=True requires CUDA (cuDSS has no CPU path).")
         u, stats = _newton_cudss_reuse_analysis(residual, jac_fn, u0, f_ext_flat, tol=tol,
                                                  atol=1e-12, max_iter=max_iter, line_search=True,
-                                                 verbose=False)
+                                                 verbose=False, matrix_type=matrix_type)
     else:
         # Dummy SparseTensor A: nonlinear_solve passes it automatically as
         # the second positional arg to residual/jac_fn, but neither uses
@@ -361,16 +405,25 @@ def _correctness_check(N=11):
     return ok, rel_diff
 
 
-def _correctness_check_reuse_analysis(N=11, device=None):
+def _correctness_check_reuse_analysis(N=11, device=None, matrix_type="general"):
     """GPU-only (cuDSS has no CPU path): compares reuse_analysis=True
     against reuse_analysis=False (the already CPU-verified default path)
     at a small N, and reports the real end-to-end speedup and Newton
     iteration count -- not just the isolated 3-call number
     profile_cudss_analysis_reuse.py already measured. Must be run on a
     real GPU; this module's own CPU correctness check cannot cover this
-    path at all."""
-    print(f"=== correctness check: reuse_analysis=True vs. reuse_analysis=False, "
-          f"B1 x Neo-Hookean, N={N} ===")
+    path at all.
+
+    matrix_type="symmetric" (2026-09-11) tests the further optimization
+    on top of analysis-reuse: pairs symmetric_bc=True (an exact
+    reformulation, CPU-verified separately -- see build_sparse_jac_fn's
+    own docstring) with cuDSS's own symmetric storage, comparing against
+    the SAME reuse_analysis=False/matrix_type='general' baseline as
+    always -- if the symmetric-storage lower-triangle filtering in
+    _newton_cudss_reuse_analysis has a bug, THIS is what catches it,
+    not an assumption that it's fine."""
+    print(f"=== correctness check: reuse_analysis=True (matrix_type={matrix_type}) vs. "
+          f"reuse_analysis=False, B1 x Neo-Hookean, N={N} ===")
     from omar_pfem.high_dof_convergence_study import build_mesh_and_bcs
 
     device = device or torch.device("cuda")
@@ -399,11 +452,13 @@ def _correctness_check_reuse_analysis(N=11, device=None):
     u_reuse, stats = solve_assembled_direct(nodes, elements, free_dofs, fext_full, mu, lam,
                                              dtype=dtype, material="neo_hookean", order="Q4",
                                              device=device, reuse_analysis=True,
-                                             return_stats=True)
+                                             return_stats=True,
+                                             symmetric_bc=(matrix_type == "symmetric"),
+                                             matrix_type=matrix_type)
     if device.type == "cuda":
         torch.cuda.synchronize(device)
     t_reuse = time.time() - t0
-    print(f"  reuse_analysis=True:  wall_clock={t_reuse:.3f}s, "
+    print(f"  reuse_analysis=True (matrix_type={matrix_type}):  wall_clock={t_reuse:.3f}s, "
           f"n_newton_iters={stats['n_newton_iters']}, "
           f"t_analysis={stats['t_analysis_s']:.4f}s, "
           f"t_factorization={stats['t_factorization_s']:.4f}s, "
@@ -423,7 +478,8 @@ def _correctness_check_reuse_analysis(N=11, device=None):
 def run_assembled_direct_convergence_study(resolutions, out_json, geometry="B1",
                                             material="neo_hookean", order="Q4", fine_N=2236,
                                             checkpoint_dir=None, device=None, tol=1e-8,
-                                            dtype=torch.float64, reuse_analysis=False):
+                                            dtype=torch.float64, reuse_analysis=False,
+                                            symmetric_bc=False, matrix_type="general"):
     """Mirrors tensormesh_comparison.py's own run_tensormesh_convergence_study
     exactly (same fine reference, same accuracy metrics, same resumable-JSON
     pattern), so its output is directly comparable row-for-row against the
@@ -477,7 +533,8 @@ def run_assembled_direct_convergence_study(resolutions, out_json, geometry="B1",
         t0 = time.time()
         u_ad = solve_assembled_direct(nodes, elements, free_dofs, fext_full, mu, lam, dtype=dtype,
                                        tol=tol, material=material, order=order, device=device,
-                                       reuse_analysis=reuse_analysis)
+                                       reuse_analysis=reuse_analysis, symmetric_bc=symmetric_bc,
+                                       matrix_type=matrix_type)
         elapsed = time.time() - t0
         peak_mem_mb = (torch.cuda.max_memory_allocated(device) / 1e6
                        if device.type == "cuda" else None)
@@ -514,18 +571,22 @@ def run_assembled_direct_convergence_study(resolutions, out_json, geometry="B1",
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == "convergence":
-        # python -m omar_pfem.assembled_direct_solver convergence <Ns> <out_json> <ckpt_dir> <fine_N> [reuse]
+        # python -m omar_pfem.assembled_direct_solver convergence <Ns> <out_json> <ckpt_dir> <fine_N> [reuse|reuse_symmetric]
         Ns = [int(n) for n in sys.argv[2].split(",")]
         out_json = sys.argv[3]
         ckpt_dir = sys.argv[4] if len(sys.argv) > 4 else None
         fine_N = int(sys.argv[5]) if len(sys.argv) > 5 else 2236
-        reuse = len(sys.argv) > 6 and sys.argv[6] == "reuse"
-        run_assembled_direct_convergence_study(Ns, out_json, checkpoint_dir=ckpt_dir, fine_N=fine_N,
-                                                reuse_analysis=reuse)
+        mode = sys.argv[6] if len(sys.argv) > 6 else None
+        reuse = mode in ("reuse", "reuse_symmetric")
+        symmetric = mode == "reuse_symmetric"
+        run_assembled_direct_convergence_study(
+            Ns, out_json, checkpoint_dir=ckpt_dir, fine_N=fine_N, reuse_analysis=reuse,
+            symmetric_bc=symmetric, matrix_type="symmetric" if symmetric else "general")
     elif len(sys.argv) > 1 and sys.argv[1] == "reuse_check":
-        # python -m omar_pfem.assembled_direct_solver reuse_check <N>  (GPU only)
+        # python -m omar_pfem.assembled_direct_solver reuse_check <N> [symmetric]  (GPU only)
         N = int(sys.argv[2]) if len(sys.argv) > 2 else 11
-        ok, _rel_diff = _correctness_check_reuse_analysis(N)
+        matrix_type = "symmetric" if (len(sys.argv) > 3 and sys.argv[3] == "symmetric") else "general"
+        ok, _rel_diff = _correctness_check_reuse_analysis(N, matrix_type=matrix_type)
         sys.exit(0 if ok else 1)
     else:
         N = int(sys.argv[1]) if len(sys.argv) > 1 else 11

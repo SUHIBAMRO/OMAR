@@ -24,7 +24,62 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-11 (**OMAR'S DECISION: keep the matrix-free solver as
+Last updated: 2026-09-11 (**IMPLEMENTED THE SYMMETRIC-STORAGE OPTIMIZATION,
+per Omar's own go-ahead ("جرب الطريقه هاي هات نجربها").** Two real code
+changes, both opt-in, both CPU-verified before any GPU time:
+
+1. `build_sparse_jac_fn` (`tensormesh_comparison.py`) gained a new
+   `symmetric_bc=False` parameter. Default unchanged (masks by ROW only,
+   same as every already-published result, TensorMesh's own comparison
+   included). `symmetric_bc=True` ALSO masks by column
+   (`free_mask_dof[col_template]`), producing a genuinely symmetric
+   matrix. **Verified exact, not approximate**: (a) dense equality check
+   at N=11 -- the default matrix is confirmed NOT symmetric (max
+   asymmetry 921.77), the new one IS (max asymmetry 2.3e-13, floating-
+   point noise), and solving both with the same physically-consistent
+   RHS gives the same answer (4.36e-13 relative difference); (b) a FULL
+   Newton solve via `solve_assembled_direct` with `symmetric_bc=True` vs.
+   the default gives a BIT-FOR-BIT IDENTICAL result at N=11 and N=21
+   (0.000e+00 relative difference, not just close) -- the strongest
+   correctness evidence in this whole experiment so far, because it's
+   not a tolerance-bounded match, it's exact equality through a full
+   nonlinear solve.
+
+2. `_newton_cudss_reuse_analysis` (`assembled_direct_solver.py`) gained a
+   new `matrix_type="general"` parameter. `"symmetric"` filters the
+   Jacobian to its LOWER triangle (row >= col) before building CSR,
+   matching cuDSS's own documented convention for symmetric storage
+   (same LOWER view already used in torch_sla's own nvmath_backend.py),
+   and passes `MatrixType.SYMMETRIC`/`MatrixViewType.LOWER` instead of
+   `GENERAL`/`FULL` to cuDSS -- ONLY valid when paired with `symmetric_
+   bc=True`'s own genuinely-symmetric matrix (documented explicitly as
+   the caller's responsibility, since checking symmetry cheaply isn't
+   possible here). `solve_assembled_direct` threads both new parameters
+   through (`symmetric_bc`, `matrix_type`), plus the CLI
+   (`reuse_check <N> symmetric`, `convergence ... reuse_symmetric`).
+
+**Re-verified both existing default paths are completely unaffected**:
+re-ran `python -m omar_pfem.assembled_direct_solver 11` and `python -m
+omar_pfem.tensormesh_comparison 3` after all these changes -- identical
+results to before (1.196e-11 and 1.269e-11 respectively), confirming
+`symmetric_bc=False`/`matrix_type="general"` still calls the exact same
+code paths, and TensorMesh's own already-published comparison
+(`build_sparse_jac_fn`'s default caller) is untouched.
+
+Extended `Round6_Assembled_Direct_Reuse_Analysis.ipynb` / `cell_
+assembled_direct_reuse_analysis.py` with a new Step 3: re-verifies
+correctness on-device with `matrix_type="symmetric"` (N=11) before
+running a real production sweep (N=401-1401) and a three-way wall-clock
+comparison (baseline / reuse / reuse+symmetric). Rebuilt and re-verified
+(62/62 notebooks OK). **NOT YET RUN ON GPU** -- the lower-triangle
+filtering logic and cuDSS's own handling of symmetric storage are new,
+untested-on-real-hardware code; the CPU-level correctness (build_sparse_
+jac_fn's own symmetric_bc=True output) is solid, but the GPU-specific
+part (does cuDSS's own API actually behave as documented here) is
+exactly what Step 3's own correctness check exists to catch before any
+speed number from it is trusted.
+
+Previous update, 2026-09-11 (**OMAR'S DECISION: keep the matrix-free solver as
 the reported default everywhere; the assembled+direct experiment (and its
 cuDSS analysis-reuse follow-up) is documented as a SEPARATE, clearly
 labeled open point, not merged into or replacing anything existing.**

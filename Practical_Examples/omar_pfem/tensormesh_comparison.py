@@ -174,7 +174,8 @@ def build_tensormesh_model(nodes, elements, mu, lam, dtype=torch.float64, device
     return tm_mesh, model, mu_t, lam_t
 
 
-def build_sparse_jac_fn(nodes, elements, mu, lam, free_mask_dof, material, order, device, dtype):
+def build_sparse_jac_fn(nodes, elements, mu, lam, free_mask_dof, material, order, device, dtype,
+                         symmetric_bc=False):
     """Explicit sparse dF/du for TensorMesh's own nonlinear_solve (the
     ``jac_fn`` hook, contract confirmed by reading torch_sla's installed
     source directly: ``jac_fn(u, A, *params) -> (val, row, col, shape)``,
@@ -210,7 +211,30 @@ def build_sparse_jac_fn(nodes, elements, mu, lam, free_mask_dof, material, order
     never changes across Newton iterations); only the VALUES are
     recomputed each call, at the cost of one vmapped 8x8 Hessian per
     element -- the same cost "ours" own matrix-free solver already pays
-    every CG iteration, not a new one."""
+    every CG iteration, not a new one.
+
+    symmetric_bc=False (default, unchanged -- every already-published
+    result, TensorMesh's own comparison included, uses this): masks
+    entries by ROW only (free_row_mask), so a free row's entry in a FIXED
+    column is kept. The underlying continuous tangent (a Hessian) IS
+    symmetric, but this row-only elimination makes the STORED matrix
+    non-symmetric (general), since the mirror entry -- a fixed row's
+    entry in a free column -- IS zeroed by the row mask. symmetric_bc=
+    True (opt-in, 2026-09-11) additionally masks by column
+    (free_mask_dof[col_template]), zeroing BOTH triangles' contact with
+    fixed DOFs, producing a genuinely symmetric matrix. This is an EXACT
+    equivalent reformulation here, not an approximation: this project's
+    Dirichlet BCs hold u_fixed=0 IDENTICALLY at every Newton iterate (the
+    residual convention drives du_fixed=-u_fixed every step, so u_fixed
+    stays exactly 0 once it starts there), so the eliminated columns'
+    contribution to the free-DOF equations, K[free,fixed] @ u_fixed, is
+    exactly zero regardless of which convention is used -- dropping those
+    entries changes nothing about the equations the free DOFs actually
+    solve. Verified this way against symmetric_bc=False's own output (a
+    dense equality check at small N) before ever being used for a real
+    solve. Lets a symmetric-aware direct solver (matrix_type='symmetric'
+    in cuDSS) skip storing/factorizing the redundant half, typically
+    cheaper than a general (LU) factorization of the same matrix."""
     from omar_pfem.matrix_free_solver import precompute_shape_data, _local_element_energy
     from omar_pfem.materials_torch import get_material_fns as get_material_fns_torch
     from torch.func import hessian, vmap
@@ -241,6 +265,7 @@ def build_sparse_jac_fn(nodes, elements, mu, lam, free_mask_dof, material, order
     row_template = torch.cat(rows)
     col_template = torch.cat(cols)
     free_row_mask = free_mask_dof[row_template]
+    keep_mask = (free_row_mask & free_mask_dof[col_template]) if symmetric_bc else free_row_mask
     fixed_idx = (~free_mask_dof).nonzero(as_tuple=True)[0]
 
     def jac_fn(u, _A, *_params):
@@ -255,7 +280,7 @@ def build_sparse_jac_fn(nodes, elements, mu, lam, free_mask_dof, material, order
                     for cb in range(2):
                         vals.append(block[:, ca, cb])
         val_template = torch.cat(vals)
-        val = torch.where(free_row_mask, val_template, torch.zeros_like(val_template))
+        val = torch.where(keep_mask, val_template, torch.zeros_like(val_template))
         val = torch.cat([val, torch.ones(fixed_idx.shape[0], dtype=dtype, device=device)])
         row = torch.cat([row_template, fixed_idx])
         col = torch.cat([col_template, fixed_idx])

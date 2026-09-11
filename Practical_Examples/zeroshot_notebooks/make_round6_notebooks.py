@@ -1515,10 +1515,28 @@ NOTEBOOKS = {
          "  this change, only the real total-solve number says how much this matters for the "
          "whole solve, not just its isolated linear-algebra phase.\n",
          "\n",
-         "**Still experimental — not yet run.** Per the standing PROJECT_STATUS.md reminder "
-         "(same category of change as the cached-Hessian speedup and the\n",
-         "assembled+direct experiment itself): verify here first; whether/when to bring this to "
-         "Timon is Omar's own call, not something to finalize unprompted.\n"]),
+         "**REAL RESULT, Steps 1-2 (Omar's own A100)**: correctness PASSED (N=11, relative "
+         "difference 3.479e-16). Real end-to-end speedup at production scale:\n",
+         "N=401 2.01x, N=701 2.35x, N=1001 2.36x, N=1401 2.38x — accuracy identical at every N. "
+         "A real, modest memory cost: peak memory ~30-40% higher than the\n",
+         "non-reuse baseline (still ~3.5x lower than torch-fem's own).\n",
+         "\n",
+         "* Step 3 (added 2026-09-11, per Omar's own go-ahead — \"جرب الطريقه هاي هات نجربها\"): "
+         "a further optimization on top of analysis-reuse. The assembled\n",
+         "  Jacobian is currently GENERAL (non-symmetric) even though the underlying tangent IS "
+         "symmetric, because fixed-DOF rows are zeroed without the\n",
+         "  matching columns. `build_sparse_jac_fn(symmetric_bc=True)` fixes this — confirmed "
+         "EXACT on CPU (this project's own Dirichlet BCs hold u_fixed=0\n",
+         "  identically, so the eliminated columns contribute exactly zero either way): a full "
+         "Newton solve with `symmetric_bc=True` gave a BIT-FOR-BIT identical\n",
+         "  answer to the default at N=11/21 (0.000e+00 relative difference). `matrix_type="
+         "'symmetric'` then lets cuDSS skip the redundant triangle. **Not yet\n",
+         "  run on GPU.**\n",
+         "\n",
+         "**Still experimental.** Per the standing PROJECT_STATUS.md reminder (same category of "
+         "change as the cached-Hessian speedup and the assembled+direct\n",
+         "experiment itself): verify here first; whether/when to bring this to Timon is Omar's "
+         "own call, not something to finalize unprompted.\n"]),
     "Round6_NO_Inference_vs_TorchFEM_N1401.ipynb": (
         "cell_no_inference_vs_torchfem_N1401.py",
         ["# NO inference time vs. torch-fem at N=1401 (round-9, item 12)\n",
