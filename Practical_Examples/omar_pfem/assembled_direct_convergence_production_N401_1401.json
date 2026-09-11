@@ -1,0 +1,47 @@
+{
+  "geometry": "B1",
+  "material": "neo_hookean",
+  "order": "Q4",
+  "fine_N": 2236,
+  "device": "cuda",
+  "tol": 1e-08,
+  "rows": [
+    {
+      "N": 401,
+      "n_dof": 321602,
+      "tol": 1e-08,
+      "assembled_direct_wall_clock_s": 4.75,
+      "assembled_direct_peak_mem_mb": 1295.3,
+      "l2_rel": 2.5e-05,
+      "h1_semi_rel": 3.588e-03
+    },
+    {
+      "N": 701,
+      "n_dof": 982802,
+      "tol": 1e-08,
+      "assembled_direct_wall_clock_s": 12.99,
+      "assembled_direct_peak_mem_mb": 3929.3,
+      "l2_rel": 1.009e-05,
+      "h1_semi_rel": 2.852e-03
+    },
+    {
+      "N": 1001,
+      "n_dof": 2004002,
+      "tol": 1e-08,
+      "assembled_direct_wall_clock_s": 28.42,
+      "assembled_direct_peak_mem_mb": 7991.0,
+      "l2_rel": 5.155e-06,
+      "h1_semi_rel": 1.846e-03
+    },
+    {
+      "N": 1401,
+      "n_dof": 3925602,
+      "tol": 1e-08,
+      "assembled_direct_wall_clock_s": 58.54,
+      "assembled_direct_peak_mem_mb": 15647.6,
+      "l2_rel": 2.291e-06,
+      "h1_semi_rel": 1.633e-03
+    }
+  ],
+  "_note": "Transcribed directly from Omar's real Colab A100 run output (2026-09-11), not re-derived -- wall-clock/memory/error values are printed to the precision the notebook itself prints (see cell_assembled_direct_speedup_production.py). Fitted convergence rate printed by that same run: L2 p=1.884 (expected 2), H1 p=0.670 (expected 1)."
+}

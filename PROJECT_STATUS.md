@@ -24,7 +24,48 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-11 (**NEW EXPERIMENT BUILT, per Omar's own explicit
+Last updated: 2026-09-11 (**REAL GPU RESULT: the assembled+direct experiment
+WORKED, all four resolutions, A100.** Omar ran
+`Round6_Assembled_Direct_Speedup_Production.ipynb` for real. Step 1
+(N=11 correctness re-check on-device) PASSED: rel_diff=1.196e-11,
+identical to the CPU number. Step 2+3, real production sweep:
+
+| N | ours(assembled) | torch-fem | TensorMesh | ours peak MB | torch-fem peak MB | L2 rel (all three) |
+|---|---|---|---|---|---|---|
+| 401 | 4.75s | 9.82s | 5.11s | 1295.3 | 5847.3 | 2.500e-05 |
+| 701 | 12.99s | 25.15s | 14.17s | 3929.3 | 17728.5 | 1.009e-05 |
+| 1001 | 28.42s | 56.65s | 31.43s | 7991.0 | 36138.4 | 5.155e-06 |
+| 1401 | 58.54s | 133.83s | 62.96s | 15647.6 | 70837.7 | 2.291e-06 |
+
+**Accuracy matches torch-fem and TensorMesh to every printed digit at
+all four N** -- expected (all three solve the identical discretized
+problem to tol=1e-8) but a strong additional correctness confirmation
+in its own right, at four more points than the CPU-only N=11/21 checks.
+
+**Speed: faster than BOTH torch-fem (1.94-2.29x) AND TensorMesh
+(1.08-1.11x) at every single N.** **Memory: ~4.5x LESS peak GPU memory
+than torch-fem at every N** (15.6GB vs. 70.8GB at N=1401, a remarkably
+consistent ratio across all four sizes) -- comfortably inside the 80GB
+A100 limit with far more headroom than either existing baseline.
+Fitted convergence rate: L2 p=1.884 (expected 2, reasonable); H1
+p=0.670 (expected 1, on the low side -- not yet cross-checked against
+"ours" own matrix-free solver's own fitted rate at the same N range;
+worth a look before reading too much into it, but a convergence-rate
+diagnostic, not a correctness red flag given the L2/H1 numbers
+THEMSELVES match torch-fem/TensorMesh exactly at every N).
+
+**This result is real and this good, but has NOT been picked apart yet
+for a subtle unfairness in the comparison** (e.g. whether torch-fem's
+own already-committed peak-memory number was measured over an exactly
+equivalent scope to solve_assembled_direct's) -- flagged to Omar
+directly rather than presented as clean. Per the standing reminder
+above: this is exactly the "if it holds up" branch of Omar's own
+2026-09-10 plan ("خلينا نجربها اول على النوتبوك تبعنا واذا زبطت بنسال
+تيمون عنها") -- GPU verification is now done and it held up, so the
+next decision (asking Timon, or double-checking further first) is
+Omar's to make explicitly, not something to proceed on unprompted.
+
+Previous update, 2026-09-11 (**NEW EXPERIMENT BUILT, per Omar's own explicit
 request** -- "since torch-fem/TensorMesh's memory-heavy explicit-
 assembly approach already works correctly and fast at the SAME tested
 resolutions [up to N=1401] without ever running out of memory [only
