@@ -24,7 +24,49 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-11 (**IMPLEMENTED THE SYMMETRIC-STORAGE OPTIMIZATION,
+Last updated: 2026-09-11 (**REAL GPU RESULT: symmetric-storage optimization
+CONFIRMED CORRECT, gives a modest further speedup and a meaningful memory
+reduction on top of analysis-reuse.** Omar ran Step 3 of `Round6_
+Assembled_Direct_Reuse_Analysis.ipynb` for real (A100). Correctness
+PASSED on-device (N=11, relative difference 8.875e-16) -- the
+lower-triangle-filtering logic in `_newton_cudss_reuse_analysis` and
+cuDSS's own handling of `matrix_type="symmetric"` both behave exactly as
+documented, not just as hoped.
+
+Real production-scale three-way comparison (baseline / reuse-analysis /
+reuse+symmetric), wall-clock:
+
+| N | baseline | +reuse | +reuse+symmetric | l2_rel |
+|---|---|---|---|---|
+| 401 | 4.75s | 2.36s | 2.32s | identical at all three |
+| 701 | 12.99s | 5.54s | 5.35s | identical |
+| 1001 | 28.42s | 12.02s | 11.61s | identical |
+| 1401 | 58.54s | 24.61s | 23.68s | identical |
+
+**Honest read**: the additional speedup from symmetric storage over
+reuse-analysis alone is real but modest (1.7-3.9%, growing slightly with
+N) -- much smaller than a naive "LDLT is roughly half the cost of LU"
+expectation would suggest. The likely reason: after removing ANALYSIS's
+95.7%-of-one-solve overhead via reuse, per-element Jacobian ASSEMBLY
+(unaffected by either optimization) is now a much larger share of the
+remaining total time, so a further cut to the already-shrunken
+linear-solve cost moves the total only a little. **Peak memory dropped
+more substantially**: 1511.7/4303.1/8753.8/17140.7 MB vs. reuse-alone's
+1788.5/5154.9/10487.5/20544.5 MB -- a consistent ~15.5-16.6% reduction at
+every N, bringing memory back down close to the ORIGINAL (pre-reuse)
+baseline's own footprint while keeping reuse's speed advantage.
+
+**Best verified configuration so far vs. torch-fem/TensorMesh at
+N=1401**: 23.68s (5.65x faster than torch-fem's cg, 2.66x faster than
+TensorMesh) at 17.14GB peak memory (~4.13x less than torch-fem's
+70.84GB) -- a real, fully GPU-verified number, not a projection.
+
+Not yet folded back into the Summary's own "Point 8" numbers (those
+still cite the pre-symmetric reuse-analysis figures) -- Omar's call on
+whether that's worth a refresh given the improvement here is modest, or
+whether to wait for further optimization attempts first.
+
+Previous update, 2026-09-11 (**IMPLEMENTED THE SYMMETRIC-STORAGE OPTIMIZATION,
 per Omar's own go-ahead ("جرب الطريقه هاي هات نجربها").** Two real code
 changes, both opt-in, both CPU-verified before any GPU time:
 
