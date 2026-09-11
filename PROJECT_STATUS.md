@@ -24,7 +24,28 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-11 (**CLOSED the coalescing-reuse optimization
+Last updated: 2026-09-11 (**Fixed a real, stale-text bug in the Summary's
+own intro, caught by Omar's own question ("هل مقدمة السمّاري فيها كل
+النقاط مع التجارب الثلاث؟").** The paragraph right before Point 1 still
+said "All seven points below..." and "[TensorMesh] does not yet reach
+production mesh sizes" -- both wrong now: there are nine points (seven
+of Timon's own plus Points 8/9), and TensorMesh was fully resolved at
+production scale long ago. Rewrote it in place: "All seven of his own
+feedback points below now have a real, measured result... Point 5
+(TensorMesh) has since been fully resolved at production scale too...
+Points 8 and 9, added afterward, are not part of his own feedback --
+they document a follow-on investigation into making our own GPU solver
+faster... presented as an open question for his judgment." Per Omar's
+own explicit choice, the failed cached-Hessian experiment is NOT
+mentioned in this intro (or anywhere else) -- confirmed directly via
+AskUserQuestion rather than assumed. Also walked through, point by
+point, that all seven of Timon's own round-9 items (both emails, quoted
+in full by Omar) map onto Points 1-7 with nothing missed, and that
+Points 8-9 (not 3 -- the third attempt, cached-Hessian, is deliberately
+excluded) are the real answer to his own stated main concern ("GPU FEM
+... too slow to serve as a competitive baseline").
+
+Previous update, 2026-09-11 (**CLOSED the coalescing-reuse optimization
 thread -- real GPU result confirmed the memory fix mostly worked, but
 also showed the optimization itself is not worth reporting.** Omar's
 real A100 run (commit 67d8a67, the memory-regression fix):
