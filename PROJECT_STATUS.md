@@ -24,7 +24,55 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-11 (**REAL GPU RESULT: the assembled+direct experiment
+Last updated: 2026-09-11 (**FAIRNESS RE-CHECK FOUND THE COMPARISON WAS TOO
+GENEROUS TO TORCH-FEM, NOT TO "OURS"** -- the promised double-check of
+whether the memory/speed comparison was apples-to-apples. Torch-fem's own
+already-committed `torchfem_convergence_vs_fine_reference_full.json`
+numbers used its `method='cg'` (iterative) option, not a direct solve --
+confirmed by reading `solve_theirs`'s own source
+(`method="cg", preconditioner="jacobi"`, hardcoded). A separate
+already-committed file, `torchfem_timing_breakdown.json`, has torch-fem's
+own REAL `method='direct'` numbers (`direct_max_n=701`): N=401 direct
+166.57s (vs. its own cg 11.63s -- 14x slower), N=701 direct 835.58s (vs.
+cg 25.31s -- 33x slower) -- torch-fem's own direct solve was so
+impractical that N=1001/1401 were never even attempted with it.
+**Architecturally matched (direct vs. direct)**: "ours" is ~35x faster at
+N=401, ~64x faster at N=701, and solved N=1001/1401 directly in under a
+minute each where torch-fem's own direct solve was never tried at all.
+Peak memory difference between torch-fem's cg and direct methods was
+small (5840.75 vs. 5983.7 MB at N=401), so the previously-reported ~4.5x
+memory advantage stands regardless of which torch-fem method it's
+compared against.
+
+Per Omar's own go-ahead ("هات نجرب فش اشي ورانا اهم اشي الدقه والسرعه
+ويكون الاشي صحيح بشكل دقيق جدا" -- let's try it, nothing holding us back,
+accuracy and speed are what matter most, and it has to be very precisely
+correct), extended `cell_assembled_direct_speedup_production.py`:
+1. Added the direct-vs-direct comparison table above (reading
+   `torchfem_timing_breakdown.json` directly, not hardcoded).
+2. Added a real memory-ceiling extrapolation: fits each architecture's
+   own measured MB/DOF slope from its REAL data points (least-squares
+   through the origin, not a hardcoded ratio) and projects where it
+   would exhaust this GPU's own real `torch.cuda.get_device_properties`
+   memory. Locally verified against the already-committed JSONs before
+   trusting it: ours fits to 0.003987 MB/DOF (projected ceiling ~N=3167
+   on an 80GB card), torch-fem(cg) fits to 0.018043 MB/DOF (projected
+   ceiling ~N=1488 -- i.e. torch-fem's own already-tested N=1401 is
+   ALREADY close to the largest problem it could fit on this exact GPU)
+   -- a ~4.5x DOF capability gap, consistent with the memory ratio
+   already measured directly at N=401-1401.
+3. Added two NEW resolutions to the sweep, N=1701 and N=2001 (both still
+   below `fine_N=2236`, so a real L2/H1 accuracy number exists for them
+   too, not just speed/memory with no correctness check) -- the actual
+   point of the extension: does "ours" really stay safely inside the
+   memory envelope as N approaches where torch-fem's own fitted line
+   would already be in trouble, or does the real behavior diverge from
+   the extrapolation once measured. RESOLUTIONS now
+   `[401, 701, 1001, 1401, 1701, 2001]`; existing N=401-1401 rows are
+   resumed from the already-written Drive JSON, not re-solved. Rebuilt
+   and re-verified (60/60 notebooks OK). **Not yet run at the new N.**
+
+Previous update, 2026-09-11 (**REAL GPU RESULT: the assembled+direct experiment
 WORKED, all four resolutions, A100.** Omar ran
 `Round6_Assembled_Direct_Speedup_Production.ipynb` for real. Step 1
 (N=11 correctness re-check on-device) PASSED: rel_diff=1.196e-11,

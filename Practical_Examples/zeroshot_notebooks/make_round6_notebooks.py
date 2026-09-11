@@ -1441,11 +1441,26 @@ NOTEBOOKS = {
          "broadly, or presented as an official project result. Changes no existing default.\n",
          "\n",
          "* Step 1: correctness re-check at N=11 on this device.\n",
-         "* Step 2+3: accuracy + speed + peak GPU memory at N=401/701/1001/1401 (matching "
-         "torch-fem's and TensorMesh's own sweeps), plus a genuine\n",
-         "  three-way comparison table and figure against the already-committed torch-fem and "
-         "TensorMesh numbers.\n",
-         "* **Resumable**: skips resolutions already in its own out_json.\n"]),
+         "* Step 2+3: accuracy + speed + peak GPU memory at N=401/701/1001/1401/1701/2001, plus "
+         "a genuine three-way comparison table and figure against the\n",
+         "  already-committed torch-fem and TensorMesh numbers.\n",
+         "* **Resumable**: skips resolutions already in its own out_json.\n",
+         "\n",
+         "**REAL RESULT (Omar's own A100, first run, N=401-1401)**: accuracy matched "
+         "torch-fem/TensorMesh to every printed digit; \"ours\" was faster than\n",
+         "BOTH at every N (vs. torch-fem's own `cg` numbers) and used ~4.5x less peak memory "
+         "than torch-fem at every N. **Stronger finding on a fairness\n",
+         "re-check**: torch-fem's own committed `cg` numbers are its iterative option, not a "
+         "direct solve — `torchfem_timing_breakdown.json` has its real\n",
+         "`method='direct'` numbers too (only up to `direct_max_n=701`; direct was 14-33x "
+         "slower than cg there, so N=1001/1401 were never even attempted\n",
+         "with it). Architecturally matched (direct vs. direct), \"ours\" is ~35x/~64x faster "
+         "at N=401/701, and reached N=1001/1401 directly in under a\n",
+         "minute each where torch-fem's own direct solve was never tried. This extended run "
+         "(per Omar's own go-ahead) adds that direct-vs-direct table, a\n",
+         "real memory-ceiling extrapolation fit from each architecture's measured MB/DOF "
+         "slope, and two new real points (N=1701, N=2001, both still below\n",
+         "`fine_N=2236` so a real accuracy number exists for them too).\n"]),
     "Round6_NO_Inference_vs_TorchFEM_N1401.ipynb": (
         "cell_no_inference_vs_torchfem_N1401.py",
         ["# NO inference time vs. torch-fem at N=1401 (round-9, item 12)\n",
