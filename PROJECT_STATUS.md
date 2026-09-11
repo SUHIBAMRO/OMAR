@@ -24,7 +24,39 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-11 (**REAL MEMORY REGRESSION FOUND AND FIXED, from
+Last updated: 2026-09-11 (**Mirrored Points 8+9 into the full Report too,
+per Omar's own request ("حدّثه بنفس الشي") once he confirmed he wants both
+deliverables consistent before sending to Timon.** Added a new Heading-3
+subsection, "An assembled and directly solved variant (experimental)",
+inside Section 8.4 (GPU-native finite-element solver) of
+`PFEM_Transolver_Report_2026-09-09.docx` -- positioned right after the
+existing TensorMesh discussion's own closing "Three limits of this
+study" paragraph and before Section 8.5, verified via python-docx
+readback. Same two paragraphs of content as the Summary's Points 8+9
+(the real accuracy/speed/memory numbers for the assembled+direct
+solver, then the analysis-reuse and symmetric-storage optimizations,
+each with its own verification method stated), rewritten in the
+Report's own neutral third-person register rather than the Summary's
+direct-address-to-Timon style, and ending the same way: an explicit
+open question left for the advisor's own judgment, not a claimed
+conclusion. Does NOT include the newest coalescing-reuse optimization
+or its memory-regression fix -- that GPU result is still pending real
+confirmation from Omar, per the standing "verify before writing it
+anywhere" discipline.
+
+Confirmed with Omar directly (in response to his own question, "هل
+كتبت كل تجربة لحال ولا دمجتهم"): of the three "make our own solver
+faster" experiments tried this week, only two produced a positive
+result worth telling Timon about, and each is its own separate point,
+never merged: Point 8 (the assembled+direct solver itself) and Point 9
+(the two verified optimizations on top of it). The first experiment
+(cached-Hessian on the matrix-free solver) did NOT reach the goal even
+after real GPU verification (Sept 10-11 run, N=401-1401 -- see the
+much earlier entries below) and was deliberately never written into
+either document, since there was no positive result to report; it
+remains tracked only here, internally.
+
+Previous update, 2026-09-11 (**REAL MEMORY REGRESSION FOUND AND FIXED, from
 Omar's own GPU run of the coalescing-reuse optimization.** Correctness
 and speed were both fine (relative differences 6.5e-16/1.0e-15, PASS;
 end-to-end speedup 2.00-2.39x, matching the pre-coalescing-reuse numbers
