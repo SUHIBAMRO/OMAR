@@ -24,7 +24,57 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-11 (**BUILT THE REAL cuDSS ANALYSIS-REUSE OPTIMIZATION,
+Last updated: 2026-09-11 (**OMAR'S DECISION: keep the matrix-free solver as
+the reported default everywhere; the assembled+direct experiment (and its
+cuDSS analysis-reuse follow-up) is documented as a SEPARATE, clearly
+labeled open point, not merged into or replacing anything existing.**
+Added "Point 8 -- experimental, open question: an assembled+direct
+variant of our own solver" to `PFEM_Work_Summary_2026-09-09.docx`
+(inserted right after Point 7, before the "Summary of what was done"
+section -- verified via python-docx readback that paragraph order is
+title-then-body-then-heading, not scrambled). States the real result
+(accuracy matches to every printed digit; 2.0-2.4x faster than torch-fem's
+own iterative solve end to end, 35-64x faster architecturally matched
+against its real direct solve; ~3.5-4.5x lower peak memory; the cuDSS
+analysis-reuse follow-up's own further 2.0-2.4x end-to-end speedup at a
+~30-40% memory cost) and explicitly poses it to Timon as an open
+question -- "does this change how you'd want the GPU-FEM comparison
+framed, should this become the primary comparison" -- rather than
+asserting a conclusion. The Report was NOT touched this round (Omar
+asked for the file + Summary only).
+
+**Answering Omar's own question, "can we make this even better?"**: a
+concrete, not-yet-tried lead, found by re-reading build_sparse_jac_fn's
+own assembly logic while implementing the analysis-reuse optimization:
+the assembled Jacobian is currently built as GENERAL (non-symmetric) in
+cuDSS's own terms, even though the underlying continuous tangent operator
+IS symmetric (it's the Hessian of a scalar energy) -- because fixed-DOF
+rows are overridden to identity WITHOUT the matching column entries also
+being zeroed (build_sparse_jac_fn only masks by row: `free_row_mask =
+free_mask_dof[row_template]`), which breaks symmetry of the stored
+matrix. Confirmed this project's own Dirichlet BCs hold u_fixed=0
+IDENTICALLY throughout every Newton iteration (the residual convention
+itself drives fixed-DOF entries to exactly 0 every step, verified by the
+math: du_fixed = -res_fixed = -u_fixed, so u_fixed after any step is
+always 0 if it started at 0) -- which means the SAME symmetric
+column-elimination (zero the fixed columns too, not just rows) costs
+NOTHING on the right-hand side (the eliminated columns' contribution to
+free-DOF equations is `K[free,fixed] @ u_fixed = K[free,fixed] @ 0 = 0`
+exactly), so this isn't a "quick hack that changes the physics" -- it's
+a standard, exactly-equivalent BC-elimination scheme that a general/
+non-symmetric one is not required for here. If done, this would let
+cuDSS use `matrix_type="symmetric"` (or "spd", if the tangent is positive
+definite at every iterate this problem reaches, plausible well below any
+buckling/instability point but not yet checked) instead of "general" --
+typically a real, further reduction in both ANALYSIS and FACTORIZATION
+cost (symmetric reordering is usually cheaper to compute, and LDLT/
+Cholesky factorization is usually cheaper than general LU for the same
+matrix size), on top of the analysis-reuse speedup already built.
+**NOT YET IMPLEMENTED OR VERIFIED** -- this is a lead, not a result; the
+usual CPU-then-GPU correctness discipline applies before any speed claim
+here either.
+
+Previous update, 2026-09-11 (**BUILT THE REAL cuDSS ANALYSIS-REUSE OPTIMIZATION,
 per Omar's own go-ahead ("بلش") after the diagnostic confirmed it was
 worth doing.** New `_newton_cudss_reuse_analysis` in `omar_pfem/
 assembled_direct_solver.py`: a custom Newton loop that bypasses
