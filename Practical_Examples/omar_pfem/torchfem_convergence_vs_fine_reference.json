@@ -5,11 +5,11 @@
   "fine_N": 2236,
   "device": "cuda (A100-SXM4-80GB)",
   "tol": 1e-08,
-  "note": "Real A100-SXM4-80GB Colab run, 2026-09-12 (Timon round-10, item 1 follow-up). Adds low-N torch-fem accuracy at EXACTLY the resolutions the NO's own zero-shot study (point7a_results/zeroshot_B1_neo_hookean.json) was tested at, plus a few coarser points, to the existing N=51..1401 series (torchfem_convergence_vs_fine_reference_full.json) so a real (not extrapolated) accuracy-matched FEM resolution can be found against the NO's own known accuracy (5.2%-9.7% at N=13-49). REAL RESULT: torch-fem's error at the coarsest resolution originally planned (N=6, l2_rel=1.214e-02, 1.2%) was ALREADY smaller than the NO's error at every N the NO was ever tested at (best case 5.21% at N=29) -- so N=3,4,5 were added (CPU-smoke-tested first) to find the actual crossover. See PROJECT_STATUS.md for the full analysis.",
+  "note": "Real A100-SXM4-80GB Colab run, 2026-09-12 (Timon round-10, item 1 follow-up). Adds low-N torch-fem accuracy at EXACTLY the resolutions the NO's own zero-shot study (point7a_results/zeroshot_B1_neo_hookean.json) was tested at, plus a few coarser points, to the existing N=51..1401 series (torchfem_convergence_vs_fine_reference_full.json) so a real (not extrapolated) accuracy-matched FEM resolution can be found against the NO's own known accuracy (5.2%-9.7% at N=13-49). REAL RESULT (both runs, N=6-1401 then N=3-5): torch-fem at N=3 (l2_rel=3.896e-02, 3.9%, only 9 nodes) ALREADY beats the NO's own BEST accuracy anywhere in its tested range (5.21% at N=29) -- the accuracy-matched crossover is at the coarsest sensible FEM mesh, essentially N=3-4. See PROJECT_STATUS.md for the full analysis.",
   "rows": [
-    {"N": 3, "torchfem_wall_clock_s": null, "l2_rel": null, "h1_semi_rel": null, "torchfem_peak_mem_mb": null, "_pending": "not yet run on GPU -- CPU-only smoke test confirmed N=3 solves without crashing (max|u|=5.692e-3), real l2_rel/h1_semi_rel vs the fine reference not yet measured"},
-    {"N": 4, "torchfem_wall_clock_s": null, "l2_rel": null, "h1_semi_rel": null, "torchfem_peak_mem_mb": null, "_pending": "not yet run on GPU"},
-    {"N": 5, "torchfem_wall_clock_s": null, "l2_rel": null, "h1_semi_rel": null, "torchfem_peak_mem_mb": null, "_pending": "not yet run on GPU"},
+    {"N": 3, "torchfem_wall_clock_s": 1.33, "l2_rel": 3.896e-02, "h1_semi_rel": 1.811e-01, "torchfem_peak_mem_mb": 17.427968},
+    {"N": 4, "torchfem_wall_clock_s": 1.35, "l2_rel": 2.456e-02, "h1_semi_rel": 1.394e-01, "torchfem_peak_mem_mb": 17.615872},
+    {"N": 5, "torchfem_wall_clock_s": 1.37, "l2_rel": 1.660e-02, "h1_semi_rel": 1.117e-01, "torchfem_peak_mem_mb": 17.829376},
     {"N": 6, "torchfem_wall_clock_s": 2.63, "l2_rel": 1.214e-02, "h1_semi_rel": 9.401e-02, "torchfem_peak_mem_mb": 18.12224},
     {"N": 9, "torchfem_wall_clock_s": 1.44, "l2_rel": 6.248e-03, "h1_semi_rel": 6.535e-02, "torchfem_peak_mem_mb": 19.398656},
     {"N": 11, "torchfem_wall_clock_s": 1.50, "l2_rel": 4.569e-03, "h1_semi_rel": 5.542e-02, "torchfem_peak_mem_mb": 20.864512},
@@ -36,6 +36,6 @@
     "source": "omar_pfem/point7a_results/zeroshot_B1_neo_hookean.json",
     "metric": "mean_rel_L2_vs_fine_reference",
     "rows": {"13": 0.0967, "17": 0.0791, "25": 0.0574, "29": 0.0521, "37": 0.0525, "41": 0.0562, "49": 0.0670},
-    "finding": "torch-fem at N=6 (l2_rel=1.214e-02, 1.2%) is ALREADY 4.3x-8x more accurate than the NO's error at every single resolution the NO was ever tested at (best 5.21% at N=29, worst 9.67% at N=13). The accuracy-matched crossover FEM resolution is BELOW N=6, not inside the NO's own tested range -- N=3,4,5 were added to find it for real."
+    "finding": "torch-fem at N=3 (l2_rel=3.896e-02, 3.9%, only 9 nodes -- essentially the coarsest FEM mesh that means anything) is ALREADY more accurate than the NO's own BEST accuracy anywhere in its tested range (5.21% at N=29), and torch-fem at N=4 (2.46%) beats the NO's best by 2x. The accuracy-matched crossover is at the practical floor of what a FEM mesh even is -- there is no meaningful FEM resolution coarse enough to be LESS accurate than the NO for this problem."
   }
 }

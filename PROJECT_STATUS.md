@@ -24,7 +24,29 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-12 (**Plan clarified/corrected for Timon round-10
+Last updated: 2026-09-12 (**REAL GPU RESULT: the FEM-side crossover is now
+fully confirmed with real (not extrapolated) data -- torch-fem at N=3
+(9 nodes, l2_rel=3.9%) already beats the NO's own best accuracy anywhere
+in its tested range (5.21% at N=29).** Second real run of
+`Round6_TorchFEM_Convergence_LowN_matched_to_NO.ipynb` (resumed cleanly,
+skipped every already-done N, added the new N=3/4/5 points):
+
+| N | nodes | torch-fem l2_rel |
+|---|---|---|
+| 3 | 9 | 3.90% |
+| 4 | 16 | 2.46% |
+| 5 | 25 | 1.66% |
+| 6 | 36 | 1.21% |
+
+Committed to `torchfem_convergence_vs_fine_reference.json`. **The FEM
+side of Timon's item 1 comparison is now done and real, no further GPU
+time needed there.** Even N=3 -- 4 elements, the coarsest mesh that
+means anything at all -- is already more accurate than the NO's best
+case. There is no FEM resolution coarse enough for this problem to be
+LESS accurate than the NO; the crossover sits at the practical floor of
+what a finite-element mesh even is.
+
+Previous update, 2026-09-12 (**Plan clarified/corrected for Timon round-10
 item 1 (Omar relayed a second-opinion review, which was right): the
 low-N torch-fem sweep is only HALF of what's needed.** The other half --
 the NO's own accuracy, in the SAME QoI set (L2, H1, energy, PK1 stress,
