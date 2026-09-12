@@ -1776,6 +1776,47 @@ NOTEBOOKS = {
          "time for the accuracy given up.\n",
          "* Cheap: at most 4 new torch-fem solves (2 tolerances x 2 "
          "resolutions), each a few seconds to ~2 minutes.\n"]),
+    "Round6_TorchFEM_Convergence_LowN_matched_to_NO.ipynb": (
+        "cell_torchfem_convergence_low_N_matched_to_NO.py",
+        ["# torch-fem accuracy at the SAME low N the NO was zero-shot "
+         "tested at (Timon round-10, item 1)\n",
+         "\n",
+         "Timon: \"a fair comparison between... our NO in relevant QoIs "
+         "and norms versus a 'suitable' GPU native (coarsest) FEM\n",
+         "simulation which achieves a comparable or better accuracy.\" "
+         "The NO's own real accuracy at small resolutions is already\n",
+         "known (`point7a_results/zeroshot_B1_neo_hookean.json`: "
+         "mean_rel_L2_vs_fine_reference = 5.2%-9.7% at N=13..49). What "
+         "was\n",
+         "missing was torch-fem's OWN error, in the SAME norm against "
+         "the SAME kind of fine reference, at those SAME resolutions --\n",
+         "the existing convergence sweep only goes down to N=51, where "
+         "it is already at 0.049% (far below the NO's range), so that\n",
+         "comparison alone is not at a matched N.\n",
+         "\n",
+         "**How**: reuses `run_convergence_study` exactly as the "
+         "existing convergence notebook does -- the expensive fine "
+         "~10M-DOF\n",
+         "reference (N=2236) is RESUMED from \"ours\" own already-"
+         "converged checkpoint on Drive, never re-solved. Only adds "
+         "small,\n",
+         "cheap solves at N = 6, 9, 11, 13, 17, 21, 25, 29, 33, 37, 41, "
+         "45, 49 (matching the NO study's own resolutions, plus a few\n",
+         "coarser points below that range).\n",
+         "\n",
+         "* Writes into the SAME Drive file "
+         "(`pfem_run/torchfem_convergence_vs_fine_reference.json`) "
+         "already holding\n",
+         "  N=51..1401, so all resolutions join one convergence-rate "
+         "fit.\n",
+         "* **Cheap**: every new solve here is smaller than N=51, which "
+         "itself took 3.42s. Expect a few minutes total, dominated by\n",
+         "  Colab/Drive/checkpoint-loading overhead, not by the solves "
+         "themselves.\n",
+         "* Prints a side-by-side table against the NO's own known "
+         "zero-shot numbers at the matching N.\n",
+         "* Resumable: skips any N already present in the output "
+         "file.\n"]),
 }
 
 

@@ -24,7 +24,43 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-12 (**TASK #14 DONE -- FIRST REAL, TRUSTWORTHY
+Last updated: 2026-09-12 (**Task #14's natural next step (accuracy-matched
+FEM N) started -- notebook built and pushed, NOT YET RUN on GPU.**
+Found the two pieces of already-committed data needed to frame this
+properly, both WITHOUT spending new GPU time:
+
+1. The NO's own real, known accuracy at small (actually-validated)
+   resolutions: `omar_pfem/point7a_results/zeroshot_B1_neo_hookean.json`
+   -- `mean_rel_L2_vs_fine_reference` = 9.7% (N=13), down to a best of
+   5.2% (N=29), rising back to 6.7% (N=49). U-shaped, trained at N=21/33.
+2. torch-fem's own accuracy in the SAME norm against a fine reference,
+   but only from N=51 upward so far:
+   `omar_pfem/torchfem_convergence_vs_fine_reference_full.json` --
+   already 0.049% (l2_rel=4.934e-04) at N=51, i.e. ~100x MORE accurate
+   than the NO's best number, at a coarser N than the NO's own worst-case
+   test point. Extrapolating the fitted rate (L2_p=1.575) backwards
+   suggests torch-fem would only need roughly N~3-6 to reach the NO's
+   5-10% error band -- but this is backward extrapolation past the
+   measured range, not a real data point, so it is NOT being reported
+   as a finding yet.
+
+**What's missing and what was built**: real (not extrapolated)
+torch-fem error at the SAME low N the NO study used. New notebook
+`Round6_TorchFEM_Convergence_LowN_matched_to_NO.ipynb` (cell:
+`cell_torchfem_convergence_low_N_matched_to_NO.py`) runs
+`run_convergence_study` at N = 6, 9, 11, 13, 17, 21, 25, 29, 33, 37, 41,
+45, 49 -- reusing (not re-solving) the already-converged fine N=2236
+reference checkpoint on Drive, so every new solve is small/cheap (all
+smaller than N=51, which alone took 3.42s). Writes into the SAME Drive
+file already holding N=51..1401 so one convergence-rate fit covers all
+points. 68/68 notebooks verified building clean before push.
+**NOT YET RUN** -- next session/step should run it on a fresh Colab tab,
+expect a few minutes total (dominated by Drive/checkpoint-load overhead,
+not the solves themselves), then compare its `l2_rel` at each N directly
+against the NO's `mean_rel_L2_vs_fine_reference` at the same N to find
+the real (not extrapolated) accuracy-matched FEM resolution.
+
+Previous update, 2026-09-12 (**TASK #14 DONE -- FIRST REAL, TRUSTWORTHY
 RESULT for Timon's item 1, seventh real GPU run, after the mesh-precision
 bug fix.** `Ground-truth relative residual: 1.030e-10 (converged_likely=
 True)` -- matches the in-loop step-10 check exactly, confirming the
