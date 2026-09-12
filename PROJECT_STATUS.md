@@ -24,7 +24,51 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-12 (**Timon sent a new round of feedback (round-10)
+Last updated: 2026-09-12 (**TASK #18 started: Summary cleanup, per
+Omar's own explicit go-ahead ("نظّف الي لازم يتنظف بشكل صحيح").** Timon's
+own complaint was that the Summary "contains later on still the old
+studies and results which is a bit confusing" -- one CONCRETE, already-
+known instance of this was fixed today. Checked BOTH canonical
+deliverables (`PFEM_Transolver_Report_2026-09-09.docx`,
+`PFEM_Work_Summary_2026-09-09.docx`, scratchpad-only, not git-tracked)
+for the stale "inference cost is essentially flat in mesh size" claim
+flagged back on 2026-09-10 (task #12's own real N=1401 finding
+contradicted it) but never confirmed fully closed out.
+
+**Report: already fully fixed** (paragraph 359) -- contains the complete
+N=1401 caveat (sublinear ~n^0.74 scaling, not flat; accuracy at N=1401
+never checked) already, from an earlier session; no action needed.
+
+**Summary: two of three instances already fixed** (paragraphs 12 and
+198, the latter Table 18's own caption) -- **but paragraph 56 (under the
+heading "Accuracy-cost trade-off and break-even", Omar's own first-
+person narrative predating the N=1401 work) still had the OLD, un-
+caveated claim**: "the operator's case rests entirely on cost, since its
+inference time is nearly flat with mesh size while FEM cost grows with
+N" -- stated with no qualification, reading exactly like the kind of
+stale leftover Timon was complaining about. Fixed in place (python-docx,
+consolidated into the paragraph's first run, no other formatting
+touched): added "...within the small resolutions actually tested here
+(N=13 to 49)" plus the same N=1401 real numbers already used in
+paragraphs 12/198 (2.29 s/sample, ~n^0.74, still faster than matched-
+precision FEM there) as a follow-on sentence, keeping the rest of the
+paragraph (speed-up range, break-even numbers) unchanged since those
+were not flagged as stale. Verified the document still opens cleanly
+(288 paragraphs, 55 tables, same as before the edit) and sent the
+updated file to Omar.
+
+**Not yet done**: a fuller structural read-through of the Summary
+(and, more lightly, the Report) for OTHER old/superseded content Timon's
+complaint might also be pointing at, beyond this one already-identified
+instance -- not yet scoped or started, since finding this one concrete
+fix first seemed like the right-sized next step rather than a full
+re-read of a ~300-paragraph document in one pass. Task #14's own final
+N=1401 accuracy number (once that notebook run lands) will also need to
+be folded into both documents once trusted -- naturally sequenced after
+this task, not before, per this project's own "verify before writing it
+anywhere" discipline.
+
+Previous update, 2026-09-12 (**Timon sent a new round of feedback (round-10)
 on the round-9 replies already sent to him -- a genuinely new phase:
 he says we're close to a first paper and wants the results
 restructured, not just more points appended.** Full text stored at
