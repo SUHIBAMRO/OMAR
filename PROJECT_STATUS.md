@@ -153,6 +153,40 @@ needs a real GPU run.
   input, relative difference 4.638e-02), explicitly labeled in both the
   code and the printed analysis as NOT an accuracy claim.
 
+**TASK #15 started (2026-09-12), while Omar runs task #14's notebook on
+GPU.** Timon's item 2: "report the maximum feasible batch size and
+throughput (samples/s) for both approaches at the same GPU memory."
+Tables 10a-c already exist (operator latency by batch size 1/8/32/128
+at N=21, matched speed-up, break-even) but neither the NO script
+(`inference_latency_by_batch.py`) nor the FEM script
+(`gpu_fem_benchmark.py`) that produced them ever tracked peak GPU
+memory or searched for a maximum feasible batch size -- both were
+extended with a new `--find_max_batch`/`--mem_budget_gb` flag pair
+(opt-in only, existing fixed-batch-size behavior unchanged) sharing one
+new search routine, `omar_pfem/max_feasible_batch.py`
+(`find_max_feasible_batch`): doubles batch size from 1, resetting/
+reading CUDA peak-memory stats around each try, until a real
+`torch.cuda.OutOfMemoryError`/OOM `RuntimeError` or an explicit
+`--mem_budget_gb` cap is hit -- "max feasible" means actually ran
+successfully at that size on that GPU, not extrapolated.
+
+**Unit-tested the search logic itself before writing any GPU-facing
+code around it**, with `torch.cuda.reset_peak_memory_stats`/
+`empty_cache`/`max_memory_allocated` monkeypatched so the pure
+control-flow (doubling, OOM-stop, budget-stop) could be verified on
+CPU: a mock that OOMs at bs=64 correctly reports max_feasible=32/
+stopped_at=64; a mock that never OOMs but exceeds a 10GB budget at
+bs=16 correctly reports max_feasible=8/stopped_at=16. Both PASSED
+before any real script was touched.
+
+New notebook `zeroshot_notebooks/cell_max_feasible_batch_size.py` /
+`Round6_Max_Feasible_Batch_Size.ipynb` (registered, 65/65 notebooks OK)
+runs 4 configurations at N=21 (matching Tables 10a-c's own resolution):
+NO and FEM each at their own natural memory ceiling, then each again
+capped at the OTHER's peak memory from that first run -- the actual
+"same GPU memory" comparison Timon asked for, in both directions. CODE
+ONLY -- not yet run on a real GPU.
+
 **Immediately followed up (before running task #14's own GPU cell) by
 extending `no_accuracy_at_n1401.py` to also score a bf16-autocast forward
 pass against the SAME real ground truth**, not just fp32-vs-bf16

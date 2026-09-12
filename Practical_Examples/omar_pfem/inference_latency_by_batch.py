@@ -71,6 +71,14 @@ def main():
     p.add_argument("--n_repeats", type=int, default=50)
     p.add_argument("--n_warmup", type=int, default=10)
     p.add_argument("--out_json", type=str, default=None)
+    p.add_argument("--find_max_batch", action="store_true",
+                   help="Timon round-10 item 2: ignore --batch_sizes and instead double the "
+                        "batch size from 1 until a real OOM or --mem_budget_gb is exceeded, "
+                        "reporting peak memory and throughput (samples/s) at every size tried.")
+    p.add_argument("--mem_budget_gb", type=float, default=None,
+                   help="stop --find_max_batch once peak memory exceeds this many GB "
+                        "(e.g. pass the GPU-FEM solver's own peak memory at some N, to find "
+                        "the NO's own max batch size at the SAME memory budget)")
     p.add_argument("--model", type=str, default="Transolver_Irregular_Mesh")
     p.add_argument("--n_hidden", type=int, default=256)
     p.add_argument("--n_layers", type=int, default=4)
@@ -126,8 +134,7 @@ def main():
                torch.tensor(s0["thetahalfpi_nodes"], device=device, dtype=torch.long))
         geo_kw = {"R_out": args.R_out}
 
-    rows = []
-    for B in batch_sizes:
+    def _run_one_batch(B):
         # distinct samples, cycled if the pool is smaller than the batch
         pick = [test[i % len(test)] for i in range(B)]
         E_b = torch.tensor(np.stack([s["E_node"] for s in pick]), device=device, dtype=dtype)
@@ -154,17 +161,40 @@ def main():
             times.append(time.perf_counter() - t0)
 
         med = statistics.median(times)
-        rows.append({"batch_size": B,
-                     "median_batch_time_s": med,
-                     "per_sample_ms": 1000.0 * med / B,
-                     "per_batch_ms": 1000.0 * med,
-                     "n_repeats": args.n_repeats})
-        print(f"  bs={B:>4d}: {1000.0 * med / B:>9.4f} ms/sample   "
-              f"({1000.0 * med:>9.3f} ms/batch)")
+        return {"median_batch_time_s": med,
+                "per_sample_ms": 1000.0 * med / B,
+                "per_batch_ms": 1000.0 * med,
+                "n_repeats": args.n_repeats}
+
+    max_feasible_bs = None
+    stopped_at_bs = None
+    if args.find_max_batch:
+        from omar_pfem.max_feasible_batch import find_max_feasible_batch
+        rows, max_feasible_bs, stopped_at_bs = find_max_feasible_batch(
+            _run_one_batch, device, start_bs=1, mem_budget_gb=args.mem_budget_gb)
+        for r in rows:
+            print(f"  bs={r['batch_size']:>5d}: {r['per_sample_ms']:>9.4f} ms/sample   "
+                  f"peak_mem={r['peak_memory_mb']:>9.1f} MB   "
+                  f"throughput={r['throughput_samples_per_s']:>9.2f} samples/s")
+        if stopped_at_bs is not None:
+            print(f"  Stopped at bs={stopped_at_bs} (OOM or memory budget exceeded).")
+        print(f"  Max feasible batch size: {max_feasible_bs}")
+    else:
+        rows = []
+        for B in batch_sizes:
+            r = _run_one_batch(B)
+            r["batch_size"] = B
+            r["throughput_samples_per_s"] = B / r["median_batch_time_s"]
+            rows.append(r)
+            print(f"  bs={B:>4d}: {r['per_sample_ms']:>9.4f} ms/sample   "
+                  f"({r['per_batch_ms']:>9.3f} ms/batch)   "
+                  f"throughput={r['throughput_samples_per_s']:>9.2f} samples/s")
 
     report = {"geometry": args.geometry, "material": args.material,
               "checkpoint": args.checkpoint, "device": device.type,
-              "n_nodes": int(xy.shape[0]), "rows": rows}
+              "n_nodes": int(xy.shape[0]), "rows": rows,
+              "max_feasible_batch_size": max_feasible_bs,
+              "stopped_at_batch_size": stopped_at_bs}
     with open(args.out_json, "w") as f:
         json.dump(report, f, indent=2)
     print(f"\nWritten to {args.out_json}")

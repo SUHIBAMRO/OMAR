@@ -1660,6 +1660,35 @@ NOTEBOOKS = {
          "could only report a 4.6% fp32-vs-bf16 self-consistency gap, not\n",
          "  a real accuracy verdict -- this cell gives that verdict directly, "
          "for free, while a real GPU is already being spent here anyway.\n"]),
+    "Round6_Max_Feasible_Batch_Size.ipynb": (
+        "cell_max_feasible_batch_size.py",
+        ["# Max feasible batch size + throughput, NO vs. GPU-FEM (Timon "
+         "round-10, item 2)\n",
+         "\n",
+         "Timon: \"report the maximum feasible batch size and throughput "
+         "(samples/s) for both approaches at the same GPU memory. I\n",
+         "expect that the NO should benefit from batching but this should "
+         "be demonstrated.\"\n",
+         "\n",
+         "`inference_latency_by_batch.py` (NO) and `gpu_fem_benchmark.py` "
+         "(FEM) already existed (Tables 10a-c's own fixed-batch-size\n",
+         "numbers at N=21), but neither tracked peak memory or searched "
+         "for a max feasible batch size -- both gained a `--find_max_batch`\n",
+         "flag (shared search logic in `omar_pfem/max_feasible_batch.py`, "
+         "doubling batch size from 1 until a real OOM or a\n",
+         "`--mem_budget_gb` cap) instead of a new script.\n",
+         "\n",
+         "Runs 4 configurations at N=21 (matching Tables 10a-c's own "
+         "convention): NO and FEM each at their own natural memory\n",
+         "ceiling, then each again capped at the OTHER's peak memory -- "
+         "the actual \"same GPU memory\" comparison asked for.\n",
+         "\n",
+         "* **NEEDS A GPU.**\n",
+         "* Checkpoint/dataset paths are guessed near the top of the "
+         "cell -- update them if the asserts fail.\n",
+         "* The search logic (`find_max_feasible_batch`) was unit-tested "
+         "with monkeypatched CUDA calls before this cell was ever\n",
+         "  written, not just assumed correct.\n"]),
     "Round6_TorchFEM_Tolerance_Sensitivity.ipynb": (
         "cell_torchfem_tolerance_sensitivity.py",
         ["# torch-fem tolerance sensitivity: 1e-6/1e-7 vs. 1e-8 "

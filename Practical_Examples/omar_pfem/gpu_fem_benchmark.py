@@ -123,6 +123,14 @@ def main():
                               "regenerates fresh random samples so it is not just re-solving a cached batch")
     parser.add_argument("--cpu", action="store_true")
     parser.add_argument("--out_json", type=str, default=None)
+    parser.add_argument("--find_max_batch", action="store_true",
+                         help="Timon round-10 item 2: ignore --batch_sizes and instead double "
+                              "the batch size from 1 until a real OOM or --mem_budget_gb is "
+                              "exceeded, reporting peak memory and throughput (samples/s).")
+    parser.add_argument("--mem_budget_gb", type=float, default=None,
+                         help="stop --find_max_batch once peak memory exceeds this many GB "
+                              "(e.g. the NO's own peak memory at bs=1, to find the FEM "
+                              "solver's own max batch size at the SAME memory budget)")
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() and not args.cpu else "cpu")
@@ -132,8 +140,7 @@ def main():
     batch_sizes = [int(b) for b in args.batch_sizes.split(",") if b.strip()]
     build_fn = build_batch_b1 if args.geometry == "B1" else build_batch_b2
 
-    rows = []
-    for bs in batch_sizes:
+    def _run_one_batch(bs):
         # Untimed warm-up (separate fresh batch, not one of the timed repeats) --
         # first CUDA call in a process pays one-time kernel-compile/context costs
         # that would otherwise leak into repeat 0's measurement, matching
@@ -154,14 +161,33 @@ def main():
                 torch.cuda.synchronize(device)
             times_s.append(time.perf_counter() - t0)
         median_s = float(np.median(times_s))
-        per_sample_ms = 1000.0 * median_s / bs
-        rows.append({
-            "batch_size": bs, "n_nodes": n_nodes,
-            "median_batch_time_s": median_s, "per_sample_ms": per_sample_ms,
-            "all_repeat_times_s": times_s,
-        })
-        print(f"batch_size={bs:>4d}  median_batch_time={median_s:.4f}s  "
-              f"per_sample={per_sample_ms:.3f}ms  (repeats: {[f'{t:.3f}' for t in times_s]})")
+        return {"n_nodes": n_nodes, "median_batch_time_s": median_s,
+                "per_sample_ms": 1000.0 * median_s / bs, "all_repeat_times_s": times_s}
+
+    max_feasible_bs = None
+    stopped_at_bs = None
+    if args.find_max_batch:
+        from omar_pfem.max_feasible_batch import find_max_feasible_batch
+        rows, max_feasible_bs, stopped_at_bs = find_max_feasible_batch(
+            _run_one_batch, device, start_bs=1, mem_budget_gb=args.mem_budget_gb)
+        for r in rows:
+            print(f"batch_size={r['batch_size']:>5d}  per_sample={r['per_sample_ms']:.3f}ms  "
+                  f"peak_mem={r['peak_memory_mb']:.1f}MB  "
+                  f"throughput={r['throughput_samples_per_s']:.2f} samples/s")
+        if stopped_at_bs is not None:
+            print(f"Stopped at bs={stopped_at_bs} (OOM or memory budget exceeded).")
+        print(f"Max feasible batch size: {max_feasible_bs}")
+    else:
+        rows = []
+        for bs in batch_sizes:
+            r = _run_one_batch(bs)
+            r["batch_size"] = bs
+            r["throughput_samples_per_s"] = bs / r["median_batch_time_s"]
+            rows.append(r)
+            print(f"batch_size={bs:>4d}  median_batch_time={r['median_batch_time_s']:.4f}s  "
+                  f"per_sample={r['per_sample_ms']:.3f}ms  "
+                  f"throughput={r['throughput_samples_per_s']:.2f} samples/s  "
+                  f"(repeats: {[f'{t:.3f}' for t in r['all_repeat_times_s']]})")
 
     print("\n" + "=" * 80)
     print(f"GPU-native FEM solve cost per sample (device={device}):")
@@ -175,7 +201,9 @@ def main():
     if args.out_json:
         with open(args.out_json, "w") as f:
             json.dump({"geometry": args.geometry, "material": args.material, "N": args.N,
-                       "device": str(device), "rows": rows}, f, indent=2)
+                       "device": str(device), "rows": rows,
+                       "max_feasible_batch_size": max_feasible_bs,
+                       "stopped_at_batch_size": stopped_at_bs}, f, indent=2)
         print(f"Full report written to {args.out_json}")
 
 
