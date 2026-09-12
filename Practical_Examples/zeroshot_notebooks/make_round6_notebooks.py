@@ -1594,6 +1594,37 @@ NOTEBOOKS = {
          "speedup analysis, with the accuracy caveat stated explicitly\n",
          "  (fast inference here is not evidence of accuracy at a mesh "
          "size never validated).\n"]),
+    "Round6_NO_Inference_Profile_N1401.ipynb": (
+        "cell_no_inference_profile_n1401.py",
+        ["# NO inference profiling at N=1401 (Timon round-10, item 3)\n",
+         "\n",
+         "Timon: \"I am a bit surprised how slow the NO is at inference for "
+         "N=1401 while FEM scales better ... Could you please check this\n",
+         "before considering the 2.29s as the final inference number. Can "
+         "you also report the pure GPU forward-pass time after warm-up,\n",
+         "excluding data transfer/preprocessing, the precision used, and "
+         "the peak GPU memory. Ideally, can you provide some profiling to\n",
+         "find out where the most inference time is spent.\"\n",
+         "\n",
+         "**Does NOT change** the existing 2.29s measurement or its "
+         "methodology (`benchmark_inference_latency_Q4`, Round6_NO_\n",
+         "Inference_vs_TorchFEM_N1401.ipynb) -- adds precision, peak "
+         "memory, a `torch.profiler` breakdown of the forward pass, and a\n",
+         "bf16-autocast timing check on top of the exact same call "
+         "(`predict_displacement_Q4_only`), via\n",
+         "`omar_pfem/profile_no_inference_n1401.py`.\n",
+         "\n",
+         "* **NEEDS A GPU** -- peak-memory and profiler numbers are not "
+         "meaningful on CPU (`profile_inference_detailed` raises if the\n",
+         "  device isn't CUDA).\n",
+         "* The bf16 check is a **speed/self-consistency diagnostic only**, "
+         "explicitly labeled as not an accuracy claim -- a real accuracy\n",
+         "  check would need ground truth, not just a fp32-vs-bf16 output "
+         "comparison.\n",
+         "* Checkpoint path is guessed (`CKPT` near the top of the cell) "
+         "-- update it if the assert fails.\n",
+         "* Saves the full profiler table to a separate `.txt` file "
+         "(too wide for JSON) alongside the numeric results JSON.\n"]),
     "Round6_TorchFEM_Tolerance_Sensitivity.ipynb": (
         "cell_torchfem_tolerance_sensitivity.py",
         ["# torch-fem tolerance sensitivity: 1e-6/1e-7 vs. 1e-8 "

@@ -24,7 +24,60 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-11 (**Two corrections per Omar's own direct
+Last updated: 2026-09-12 (**Timon sent a new round of feedback (round-10)
+on the round-9 replies already sent to him -- a genuinely new phase:
+he says we're close to a first paper and wants the results
+restructured, not just more points appended.** Full text stored at
+`advisor_feedback/2026-09-12_round10_timon.md` (to be added -- read it
+there before acting on any point; do not rely on this summary alone).
+His five points, and what already existed before this email arrived:
+
+1. **Accuracy-matched comparison, not same-resolution.** The N=1401
+   speed comparison (NO 2.29s vs. torch-fem 133.83s) was already done
+   (task #12), and this project had ALREADY internally flagged, before
+   Timon's email, that the operator's own ACCURACY was never checked at
+   N=1401 (zero-shot study only went up to N=49) -- see the 2026-09-10
+   entry below. What's still missing: measuring that accuracy (incl.
+   QoIs) for real, then finding the coarsest FEM resolution with
+   comparable accuracy, and comparing speed there instead of at N=1401.
+2. **Batch size / throughput, FEM vs. NO.** Tables 10a-c (operator
+   latency by batch size, matched speed-up, break-even) already exist
+   and are verified -- but only at N=21, and without "max feasible
+   batch size" / throughput-in-samples-per-second framing at a matched
+   GPU memory budget, which is the new ask.
+3. **Profile the NO's own inference speed** -- not yet done at all
+   before today. New this session: `omar_pfem/profile_no_inference_n1401.py`
+   (extends the existing `benchmark_inference_latency_Q4` call, without
+   changing its methodology or the existing 2.29s number, with peak
+   GPU memory, precision reporting, a `torch.profiler` breakdown of the
+   forward pass, and a bf16-autocast timing check labeled explicitly as
+   a diagnostic, not an accuracy claim) and
+   `zeroshot_notebooks/cell_no_inference_profile_n1401.py` /
+   `Round6_NO_Inference_Profile_N1401.ipynb` (registered in
+   `make_round6_notebooks.py`, rebuilt, 63/63 notebooks OK). CODE ONLY
+   SO FAR -- not yet run on a real GPU, no numbers to report yet.
+4. **A complex-geometry example** (tire, pressure vessel with local
+   stress concentration -- Timon is flexible on which) where fine
+   resolution is genuinely required by the geometry/physics, not just
+   demonstrated for its own sake. Not started; needs a design decision
+   with Omar first.
+5. **Update break-even** once 1/2/3 land -- `break_even_analysis.py`
+   already exists and was used for the N=21/matched-batch break-even,
+   just needs re-running with the new inputs.
+
+Tracked as tasks #13-18 (task tool). Order agreed with Omar: start with
+#13 (profiling, cheapest, may change the 2.29s number itself), then #14
+(accuracy-matched comparison), #15 (batching) in parallel, #17
+(break-even) once 1/3 land, #16 (new example) as its own larger
+side-track, #18 (Summary cleanup, incl. the already-known stale "flat
+inference cost" claim -- see 2026-09-10 entry below) done LAST so it
+isn't redone twice.
+
+**Standing discipline still applies**: nothing from this new round goes
+into the Report/Summary/an email to Timon until it is verified on a
+real GPU, same as every other numeric claim in this project.
+
+Previous update, 2026-09-11 (**Two corrections per Omar's own direct
 feedback: (1) real Word tables added to Points 8/9 in both the Report
 and the Summary, instead of numbers embedded only in prose; (2) the
 email rewritten to be short and general, with detail left to the
