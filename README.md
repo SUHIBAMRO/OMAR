@@ -12,6 +12,26 @@ Arruda-Boyce).
 **Author:** Omar Amro
 **Advisor:** Prof. Dr.-Ing. Timon Rabczuk
 
+## Highlights
+
+- **Physics-informed neural operator** (Transolver) trained without any
+  labeled displacement data, by directly minimizing the discrete total
+  potential energy (Deep Energy Method) via standard finite-element
+  Gauss-quadrature assembly.
+- **Custom GPU-native finite-element solver**, built from scratch in
+  PyTorch: a matrix-free Newton–Krylov solve with a geometric multigrid
+  preconditioner, plus a from-scratch sparse-assembly and direct-solve
+  path, benchmarked against established finite-element libraries
+  (torch-fem, TensorMesh) on an NVIDIA A100.
+- **Six benchmark cases** spanning two geometries and three nonlinear
+  hyperelastic material models (Neo-Hookean, Mooney-Rivlin, Arruda-Boyce).
+- **Verification discipline throughout**: convergence studies against a
+  ~10-million-DOF numerical reference, manufactured-solution checks, and
+  cross-validation against independent finite-element implementations
+  before any timing or accuracy claim is trusted.
+
+See `PROJECT_STATUS.md` for the current, detailed state of the project.
+
 ## Status
 
 `PROJECT_STATUS.md` at the repo root is the authoritative, living record
