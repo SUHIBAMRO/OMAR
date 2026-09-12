@@ -114,6 +114,14 @@ print('Saved:', OUT_JSON)
 print('\n' + '=' * 70)
 print('RESULT -- NO accuracy at N=1401 (first real ground-truth check there)')
 print('=' * 70)
+gt_conv = rec['ground_truth_convergence']
+if not gt_conv['converged_likely']:
+    print(f"*** WARNING: ground-truth relative residual {gt_conv['relative_residual']:.3e} "
+          f"-- the ground-truth solve itself may NOT have converged at N={N_TEST}. Every "
+          f"QoI error below would then be comparing the NO against a WRONG reference, not "
+          f"evidence the NO itself is inaccurate. DO NOT trust the numbers below as-is. ***")
+else:
+    print(f"Ground-truth convergence OK (relative residual {gt_conv['relative_residual']:.3e}).")
 print(json.dumps(rec, indent=2))
 print('\nCompare fp32 disp_rel_L2/L2_rel/H1_semi_rel/energy_rel/P_rel_L2 above against this '
       "checkpoint's own already-published numbers at N=21/N=1001/N=1401 (FEM-vs-FEM) in "

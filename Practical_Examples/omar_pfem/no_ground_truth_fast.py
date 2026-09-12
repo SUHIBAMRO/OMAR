@@ -100,6 +100,57 @@ def solve_b1_fast_gpu(N, seed, material, device, dtype, Lx=1.0, Ly=1.0, order="Q
     return u_full, nodes, elements, None
 
 
+def check_convergence(nodes, elements, free_dofs, fext_full, mu, lam, u_full,
+                       material, order, device, dtype):
+    """Independent, post-hoc convergence check for solve_assembled_direct's
+    own output -- reimplements the SAME residual solve_assembled_direct's
+    own internal Newton loop drives to zero (grad(energy) - f_ext on the
+    free DOFs), from OUTSIDE that function, since solve_assembled_direct
+    hardcodes verbose=False internally and exposes no residual/convergence
+    info to its caller. Added after a real N=1401 accuracy run produced
+    physically implausible numbers (e.g. peak PK1 stress ~3.4e6x the
+    ground truth's own value) that look much more like "the ground truth
+    itself never converged at this size" than "the operator is merely
+    inaccurate here" -- this checks that hypothesis directly instead of
+    assuming either explanation."""
+    from omar_pfem.matrix_free_solver import element_energy_order_agnostic, precompute_shape_data
+    from omar_pfem.materials_torch import get_material_fns as get_material_fns_torch
+
+    n_nodes = nodes.shape[0]
+    n_dof = 2 * n_nodes
+    fixed_set = set(np.setdiff1d(np.arange(n_dof), free_dofs).tolist())
+    free_mask_dof = torch.tensor([i not in fixed_set for i in range(n_dof)], device=device)
+
+    xy = torch.tensor(nodes, dtype=dtype, device=device)
+    quad = torch.tensor(elements, dtype=torch.long, device=device)
+    energy_density_fn, _ = get_material_fns_torch(material)
+    shape_data = precompute_shape_data(order, device, dtype)
+    elem_params = (torch.as_tensor(mu, dtype=dtype, device=device),
+                   torch.as_tensor(lam, dtype=dtype, device=device))
+    f_ext_flat = torch.tensor(fext_full, dtype=dtype, device=device)
+    u_flat = torch.tensor(u_full, dtype=dtype, device=device)
+
+    def energy_fn(u):
+        uv = u.reshape(n_nodes, 2)
+        return element_energy_order_agnostic(xy, quad, uv, elem_params, energy_density_fn,
+                                              shape_data, dtype)
+
+    grad_full = torch.func.grad(energy_fn)(u_flat)
+    res = grad_full - f_ext_flat
+    res_free = res[free_mask_dof]
+    f_ext_free_norm = torch.linalg.norm(f_ext_flat[free_mask_dof])
+    res_norm = torch.linalg.norm(res_free)
+    rel_res = (res_norm / f_ext_free_norm.clamp_min(1e-30)).item()
+
+    return {
+        "residual_norm": res_norm.item(),
+        "f_ext_free_norm": f_ext_free_norm.item(),
+        "relative_residual": rel_res,
+        "u_max_abs": u_flat.abs().max().item(),
+        "converged_likely": rel_res < 1e-4,
+    }
+
+
 def _correctness_check(N=11, material="neo_hookean", seed=0, verbose=False):
     """CPU-only. Compares solve_b1_fast_gpu's own output against the slow
     reference build_sample_b1 itself uses (data_generate_B1.

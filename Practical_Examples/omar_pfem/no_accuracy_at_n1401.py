@@ -33,7 +33,9 @@ from omar_pfem.high_dof_convergence_study import (
     compute_l2_h1_errors_cross_order,
     compute_tangent_energy_error,
 )
-from omar_pfem.no_ground_truth_fast import solve_b1_fast_gpu
+from omar_pfem.data.parametric_field import ParametricFieldB1
+from omar_pfem.gpu_fem_solver import precompute_element_params_B1
+from omar_pfem.no_ground_truth_fast import check_convergence, solve_b1_fast_gpu
 from omar_pfem.physical_quantities_eval import (
     as_solved_field,
     gauss_quantities,
@@ -100,6 +102,29 @@ def evaluate_no_accuracy_at_n1401(model, args, device, N=1401, seed=0,
     assert np.allclose(nodes_np, nodes_gt) and np.array_equal(elems_np, elems_gt)
     u_ref = u_ref_flat.reshape(-1, 2)
 
+    print("Checking the ground-truth solve's own convergence (independent, post-hoc -- "
+          "solve_assembled_direct exposes no residual info to its caller)...")
+    from omar_pfem.high_dof_convergence_study import assemble_traction_top_generic
+    E_fn = ParametricFieldB1("E", seed)
+    nu_fn = ParametricFieldB1("nu", seed)
+    ty_fn = ParametricFieldB1("ty", seed)
+    tolx = 1e-12
+    bottom_nodes_np = np.where(np.abs(nodes_np[:, 1]) < tolx)[0]
+    fixed_dofs_np = np.concatenate([2 * bottom_nodes_np, 2 * bottom_nodes_np + 1])
+    ndof = 2 * len(nodes_np)
+    free_dofs_np = np.setdiff1d(np.arange(ndof), fixed_dofs_np)
+    fext_full_np = assemble_traction_top_generic(nodes_np, elems_np, args.Ly, ty_fn, "Q4")
+    mu_np, lam_np = precompute_element_params_B1(nodes_np, elems_np, E_fn, nu_fn, material)
+    convergence = check_convergence(nodes_np, elems_np, free_dofs_np, fext_full_np,
+                                     mu_np, lam_np, u_ref_flat, material, "Q4", device, dtype)
+    print(f"  Ground-truth relative residual: {convergence['relative_residual']:.3e} "
+          f"(converged_likely={convergence['converged_likely']})")
+    if not convergence["converged_likely"]:
+        print("  WARNING: the ground truth itself may not have converged at this N -- "
+              "any accuracy numbers below would be comparing the NO against a WRONG "
+              "reference, not evidence the NO itself is inaccurate. Do not trust the "
+              "QoI errors below until this is resolved.")
+
     xy = torch.tensor(nodes_np, device=device, dtype=torch.float32)
     quad = torch.tensor(elems_np, device=device, dtype=torch.long)
     top_edges = torch.tensor(sample["top_edges"], device=device, dtype=torch.long)
@@ -129,6 +154,7 @@ def evaluate_no_accuracy_at_n1401(model, args, device, N=1401, seed=0,
     print("Running NO forward pass (fp32)...")
     u_pred_fp32 = _forward(use_bf16=False)
     result = {"N": N, "seed": seed, "material": material,
+              "ground_truth_convergence": convergence,
               "fp32": _score_prediction(u_pred_fp32, u_ref, nodes_np, elems_np, sample,
                                          args, material, device, dtype)}
 

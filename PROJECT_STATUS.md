@@ -122,6 +122,41 @@ This CPU-side unblock only removes the "would take hours" blocker for
 getting a ground truth at all -- the actual N=1401 comparison still
 needs a real GPU run.
 
+**FIRST REAL RUN (2026-09-12) produced physically implausible numbers --
+under active investigation, NOT trusted yet.** disp_rel_L2=6.40 (640%),
+L2_rel=3.27, energy_rel=6.32, and stress errors in the MILLIONS
+(P_rel_L2=8,703, P_peak_rel_err=3,437,311 -- predicted peak PK1 stress
+162.6 million vs. the ground truth's own 47.3). These are not "the NO
+generalizes poorly this far out" numbers -- a multi-million-times stress
+blow-up looks far more like "one of the two fields being compared never
+converged" than gradual accuracy degradation.
+
+**Real, concrete hypothesis, not yet confirmed**: `solve_assembled_direct`
+does a SINGLE full-load Newton solve (verified fine at N=11/N=21, a much
+smaller, better-conditioned problem) with `max_iter=30` and NO
+load-stepping/warm-start -- at N=1401 (a much larger, plausibly
+worse-conditioned problem), it may not actually reach convergence within
+that iteration budget, and neither `solve_assembled_direct` itself nor
+`A.nonlinear_solve` (`verbose=False`, hardcoded, no residual exposed to
+the caller) would report that failure -- it just returns whatever state
+it stopped at.
+
+**Added `omar_pfem.no_ground_truth_fast.check_convergence`**: an
+independent, post-hoc residual check (reimplements the same
+grad(energy) - f_ext residual `solve_assembled_direct`'s own internal
+Newton loop drives to zero, from OUTSIDE that function) -- computes the
+relative residual norm on the free DOFs and flags `converged_likely=
+(relative_residual < 1e-4)`. Verified the checker itself first: at N=21
+with a random-init model, reports relative residual 3.976e-06,
+`converged_likely=True` (correctly agrees with the already-established
+N=21 correctness numbers). Wired into `no_accuracy_at_n1401.py`
+(`ground_truth_convergence` now in the result dict) and the notebook
+cell (prints a loud `*** WARNING ***` banner before dumping any QoI
+numbers if not converged, instead of a number that could be silently
+copied into a document). Re-smoke-tested end-to-end on CPU, no plumbing
+errors. **Not yet re-run at N=1401** -- this is the very next thing to
+check before any of the numbers above are treated as real.
+
 **TASK #13 DONE -- real GPU result from Omar's own A100 run (2026-09-12).**
 `Round6_NO_Inference_Profile_N1401.ipynb`:
 
