@@ -73,6 +73,57 @@ side-track, #18 (Summary cleanup, incl. the already-known stale "flat
 inference cost" claim -- see 2026-09-10 entry below) done LAST so it
 isn't redone twice.
 
+**TASK #16 started (2026-09-12): new B7 case (ring + local notch),
+Omar's own choice after discussing several candidates.** Timon's item 4
+asked for a geometry where "fine spatial resolution is actually required
+... e.g. due to local stress concentrations," naming tire/pressure
+vessel as flexible examples. Chose to extend B2 (already a pressure-
+vessel-like ring under internal pressure) with a single smooth local
+notch (Gaussian dimple) in the inner wall, rather than a literal tire --
+this is a genuine, non-simplified instance of "a pressure vessel with a
+local detail" (one of Timon's own two named examples), not an
+approximation of one, and reuses the vast majority of B2's own already-
+verified solver machinery (materials, Q4 shape functions, Newton loop),
+unlike a literal tire cross-section which would need an entirely new
+meshing/material/BC stack for comparatively little additional evidence
+toward Timon's actual stated criterion.
+
+New file `omar_pfem/data/data_generate_B7.py`: `generate_grid_Q4_ring_notch`
+(same structured (r fast, theta slow) grid as B2, but the inner radius is
+now R_in(theta) = R_in_base - notch_depth*exp(-0.5*((theta-notch_theta0)/
+notch_width)**2), a smooth Gaussian dimple centered away from both
+symmetry edges -- still simply connected, no topology change), a notch-
+aware `assemble_traction_inner_indexed` (B2's own traction assembler
+detects the loaded boundary by distance from a CONSTANT R_in, which
+would silently mis-load a notched boundary -- this one detects it by
+grid INDEX instead, robust to any per-theta radius), and
+`solve_hyperelastic_TL_ring_notch` (a thin copy of B2's own Newton loop,
+differing only in which traction assembler it calls). Smoke-tested: a
+21x-node mesh converges cleanly (residual ~5e-11 per load step) to a
+physically sensible displacement field.
+
+**Real, CPU-computed mesh-convergence check of the actual physical claim
+(`omar_pfem/b7_notch_stress_concentration_check.py`), before any
+Transolver training time is spent on this case**: peak PK1 stress at the
+notch across 3 resolutions (72/288/1,152 elements): **11.70 -> 12.72 ->
+13.45 -- still rising, not converged**, while max displacement barely
+moves (0.008193 -> 0.008384 -> 0.008455, <1% change from the middle to
+the finest resolution already). This is exactly the signature Timon
+described: a globally smooth, quickly-converged displacement field
+hiding a genuinely under-resolved LOCAL quantity at the notch -- real
+evidence this geometry needs fine resolution there, not an assumption.
+A 4th, finer resolution (97x49, ~4,600 elements) is running (CPU, pure-
+Python per-element assembly is the bottleneck at this element count, not
+the physics) to confirm the trend continues before treating this as
+settled.
+
+**Not yet done**: confirming the 4th resolution point, then (much
+larger scope) building the training-data generator for B7, training a
+new Transolver checkpoint on it, and running the same NO-vs-FEM
+accuracy/speed comparison already done for B1/B2 -- tracked as the next
+phase of task #16, realistically days of combined dev+GPU-training time,
+not a single-session addition.
+
 **Standing discipline still applies**: nothing from this new round goes
 into the Report/Summary/an email to Timon until it is verified on a
 real GPU, same as every other numeric claim in this project.
