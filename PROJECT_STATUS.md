@@ -336,9 +336,29 @@ other code run in the same process. Verified importable and syntactically
 correct; rebuilt `Round6_NO_TorchCompile_N1401.ipynb` with the real
 torch.compile result folded into its own markdown and an updated 4-bar
 figure (eager / compile / eager+TF32 / compile+TF32). 67/67 notebooks OK.
-**Not yet run** -- genuinely unknown whether TF32 helps more than
-torch.compile did, by how much, and whether its own precision cost is
-acceptable (tracked as task #20).
+**REAL RESULT, Omar's own A100 run (2026-09-12): TF32 is a much bigger,
+much cleaner win than either torch.compile or bf16.**
+
+| variant | ms/sample | speedup vs. eager | rel. diff vs. eager |
+|---|---|---|---|
+| eager (fp32) | 2295.02 | 1.00x | -- |
+| torch.compile | 2144.57 | 1.07x | 2.03e-06 |
+| eager + TF32 | 486.07 | **4.72x** | 4.72e-03 |
+| torch.compile + TF32 | **395.91** | **5.80x** | 4.72e-03 |
+
+TF32 alone very nearly matches bf16's own speedup (5.69x, from the
+profiling cell) but at roughly 10x tighter precision cost (0.47% vs.
+4.6%) -- a materially better trade than bf16 for the same ballpark
+speedup. Combined with torch.compile, TF32 reaches 5.80x at that same
+0.47% cost, the best result of every optimization tried in task #13/#19/
+#20. Task #20 DONE.
+
+**Not yet done**: this 0.47% relative difference is still only a
+self-consistency check (TF32 output vs. strict-fp32 eager output on the
+SAME input), same limitation bf16 originally had -- a real accuracy
+verdict against ground truth (mirroring what was done for bf16 in
+no_accuracy_at_n1401.py) is the natural follow-up, once the ground-truth
+convergence question above is resolved.
 
 **Immediately followed up (before running task #14's own GPU cell) by
 extending `no_accuracy_at_n1401.py` to also score a bf16-autocast forward
