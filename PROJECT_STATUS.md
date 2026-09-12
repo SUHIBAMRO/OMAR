@@ -77,6 +77,51 @@ isn't redone twice.
 into the Report/Summary/an email to Timon until it is verified on a
 real GPU, same as every other numeric claim in this project.
 
+**Real unblock found and CPU-verified for task #14 (2026-09-12), while
+Omar runs the task #13 profiling notebook on Colab in parallel.** The
+NO's own accuracy was never checked at N=1401 because build_sample_b1's
+own `solve_fem=True` path (`data_generate_B1.solve_hyperelastic_TL_
+spatial`) is a slow CPU per-element-Python-loop solver, estimated to
+cost hours at N=1401 -- the reason the task #12 timing measurement
+built its N=1401 sample with `solve_fem=False` and never got a ground
+truth there at all.
+
+Found that `high_dof_convergence_study.py` already has a GPU-vectorized
+path for the exact same B1 geometry/BCs, built for a DIFFERENT field
+generator (`AnalyticFieldB1`, used for FEM-vs-FEM mesh-convergence
+studies) -- but `gpu_fem_solver.precompute_element_params_B1`'s own
+docstring states it "reproduces solve_hyperelastic_TL_spatial's own
+per-element (E, nu) evaluation exactly", and `assemble_traction_top_
+generic`'s docstring likewise claims "identical physics and quadrature
+convention" to the original. Both take any field callable of (nodes),
+not specifically `AnalyticFieldB1` -- so substituting `ParametricFieldB1`
+(the SAME field generator `build_sample_b1` itself uses for the NO's own
+train/test samples) should let the fast, already-verified, DEFAULT
+`solve_matrix_free` GPU solver (not the experimental assembled+direct
+one from Points 8/9) solve the exact same physical problem, just fast.
+
+New file `omar_pfem/no_ground_truth_fast.py` (`solve_b1_fast_gpu` +
+`_correctness_check`) implements this bridge and was verified, right
+here, against the real slow reference (not assumed from the docstrings
+alone): **N=11: relative displacement difference 3.924e-12 (reference
+4.46s, fast path 34.36s on CPU); N=21: 6.675e-12 (reference 17.97s, fast
+path 73.11s on CPU)** -- both at the same bit-for-bit-identical level as
+every other verified solver-equivalence check in this project. The fast
+path is SLOWER than the reference at these tiny N on CPU (more
+Python/PyTorch overhead per CG iteration) -- expected and irrelevant,
+since the entire point is GPU speed at N=1401, already proven
+extensively elsewhere in this project for the identical `solve_matrix_
+free` call on other B1 problems.
+
+**Not yet done**: picking which of the NO's actual held-out B1
+neo-Hookean test-set seeds to evaluate at N=1401, running that on a real
+GPU, computing NO-vs-ground-truth QoIs (L2/H1/energy/peak-stress, reusing
+the same functions already used for Table 15-17's QoI checks) at N=1401,
+and then finding the coarsest FEM N whose own accuracy is comparable.
+This CPU-side unblock only removes the "would take hours" blocker for
+getting a ground truth at all -- the actual N=1401 comparison still
+needs a real GPU run.
+
 Previous update, 2026-09-11 (**Two corrections per Omar's own direct
 feedback: (1) real Word tables added to Points 8/9 in both the Report
 and the Summary, instead of numbers embedded only in prose; (2) the
