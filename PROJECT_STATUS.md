@@ -282,6 +282,37 @@ at `solve_assembled_direct`'s own default tol/max_iter per step (1e-8,
 30 -- appropriate again now that each step's own force is 1/10th of the
 full one).
 
+**Sixth real GPU run (2026-09-12): nsteps=10 produced a relative residual
+identical to 10+ significant digits (0.0026116077158543226 vs. the
+original single-shot run's 0.002611607715948935) to the single-shot
+run's own number.** This level of agreement across two structurally
+different Newton trajectories (cold-start-at-full-load vs. warm-started-
+from-90%-load) is far too precise to be a coincidental match of two
+genuinely different computations landing near the same point -- but it
+is ALSO not proof the load-stepping code silently failed to run (its own
+mechanism was independently re-verified correct and BENEFICIAL at N=21:
+3.847e-14, tighter than single-shot's 8.44e-11). Two real possibilities
+remain open: (a) something prevents `nsteps=10` from actually being
+exercised at this scale despite being correct in principle, or (b) both
+paths genuinely converge to nearly the same true solution (unique for a
+well-posed problem) and the LAST increment specifically hits a
+structural difficulty (e.g. near-singular tangent, precision floor at
+this DOF count) regardless of how good the warm start is.
+
+**Added per-load-step diagnostics** (`no_ground_truth_fast.py`): after
+each of the `nsteps` calls, checks that step's own residual (against its
+own `alpha*fext_full`, not the full load) via the same `check_convergence`
+machinery, and prints it -- so the next run shows exactly which step (if
+any) fails to converge, rather than treating the 10-step loop as a black
+box. Smoke-tested at N=21: all 10 steps converge cleanly and the residual
+actually IMPROVES monotonically from step 1 (4.94e-10) to step 10
+(5.36e-11). Rebuilt notebooks, 67/67 OK. This is the most direct
+diagnostic possible short of instrumenting `torch_sla`'s own internals --
+if this run STILL shows steps 1-9 converging fine and step 10 alone
+failing at the SAME residual as before, that would be strong evidence for
+possibility (b) above (a genuine structural difficulty at the full load,
+independent of path) rather than a code bug.
+
 **N=401 stress test result: inconclusive for confirming the fix, but
 informative.** Both single-shot AND load-stepped CONVERGE FINE at N=401
 (`converged_likely=True` both ways; single-shot even faster and slightly

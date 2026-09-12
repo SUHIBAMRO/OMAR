@@ -120,6 +120,13 @@ def solve_b1_fast_gpu(N, seed, material, device, dtype, Lx=1.0, Ly=1.0, order="Q
                 **solve_kwargs,
             )
         else:
+            # Diagnostic (2026-09-12): a prior N=1401 run with nsteps=10 reported a
+            # relative residual identical to the single-shot run's to 10+ significant
+            # digits, which is far too precise to be coincidence -- print each step's
+            # OWN residual (checked against that step's own alpha*fext_full, via the
+            # same machinery check_convergence uses) so the next run shows exactly
+            # which step (if any) is the one that does not actually converge, instead
+            # of treating the whole 10-step loop as a black box.
             u0 = None
             for step in range(1, nsteps + 1):
                 alpha = step / nsteps
@@ -130,6 +137,12 @@ def solve_b1_fast_gpu(N, seed, material, device, dtype, Lx=1.0, Ly=1.0, order="Q
                 )
                 u0 = (u_full_t.reshape(-1) if torch.is_tensor(u_full_t)
                       else np.asarray(u_full_t).reshape(-1))
+                _step_check = check_convergence(
+                    nodes, elements, free_dofs, alpha * fext_full, mu, lam, u0,
+                    material, order, device, dtype)
+                print(f"  [load-step {step}/{nsteps}, alpha={alpha:.2f}] "
+                      f"relative_residual={_step_check['relative_residual']:.3e} "
+                      f"converged_likely={_step_check['converged_likely']}")
     finally:
         torch.set_default_dtype(_prev_default_dtype)
 
