@@ -128,11 +128,16 @@ not merely "a smooth quantity that happens to converge slower." Saved to
 `omar_pfem/b7_notch_stress_concentration_check.json`. The physical case
 for B7 is now solid, real evidence, not a hunch.
 
-**Not yet done**: building the training-data generator for B7, training
-a new Transolver checkpoint on it, and running the same NO-vs-FEM
-accuracy/speed comparison already done for B1/B2 -- tracked as the next
-phase of task #16, realistically days of combined dev+GPU-training time,
-not a single-session addition.
+**DEFERRED (2026-09-12), Omar's own explicit choice**: rather than
+commit days of dev+GPU-training time to B7 on this project's own
+judgment alone, check with Timon FIRST that the ring+notch design is an
+acceptable instance of his own "pressure vessel with local details"
+suggestion, before training a full new checkpoint on it. The geometry,
+solver, and physical-evidence work above (real, GPU-independent,
+committed) stays as-is and is ready to resume immediately once Timon
+confirms -- nothing here is wasted regardless of his answer, since the
+mesh-convergence evidence is useful either way. Training-data generation
+and Transolver training for B7 are on hold until then.
 
 **Standing discipline still applies**: nothing from this new round goes
 into the Report/Summary/an email to Timon until it is verified on a
