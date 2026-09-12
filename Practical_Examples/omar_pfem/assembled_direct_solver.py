@@ -337,7 +337,8 @@ def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_
 def solve_assembled_direct(nodes, elements, free_dofs, fext_full, mu, lam, dtype=torch.float64,
                             tol=1e-8, material="neo_hookean", order="Q4", device=None,
                             linear_solver=None, max_iter=30, reuse_analysis=False,
-                            return_stats=False, symmetric_bc=False, matrix_type="general"):
+                            return_stats=False, symmetric_bc=False, matrix_type="general",
+                            u0_init=None):
     """Newton + a real direct solver (cuDSS on CUDA, matching Timon's own
     "Newton-type solve with a direct solver" requirement, and the same
     linear_solver policy solve_tensormesh already uses: 'auto' silently
@@ -391,7 +392,20 @@ def solve_assembled_direct(nodes, elements, free_dofs, fext_full, mu, lam, dtype
     further reduction in both ANALYSIS and FACTORIZATION cost on top of
     the analysis-reuse speedup. NOT YET VERIFIED end-to-end on GPU as of
     2026-09-11; use _correctness_check_reuse_analysis with
-    symmetric_bc=True before trusting a production run with this set."""
+    symmetric_bc=True before trusting a production run with this set.
+
+    u0_init=None (default, unchanged from every result already published
+    with this function): start the single full-load Newton solve from a
+    zero displacement field, exactly as before. Passing a (n_dof,) tensor
+    instead warm-starts Newton from that field -- added 2026-09-12 so an
+    external caller can build genuine incremental load-stepping around
+    this function (solve at alpha_1*fext_full, feed that converged u back
+    in as u0_init for alpha_2*fext_full, etc.), which this function's own
+    single-shot solve cannot do internally. Motivated by a real, confirmed
+    non-convergence at N=1401 on a problem large enough to need it (relative
+    residual 2.612e-03, unchanged by tightening tol/max_iter alone -- see
+    PROJECT_STATUS.md) even though the same single-shot solve was verified
+    exact at N=11/N=21."""
     from omar_pfem.matrix_free_solver import element_energy_order_agnostic, precompute_shape_data
     from omar_pfem.materials_torch import get_material_fns as get_material_fns_torch
 
@@ -426,7 +440,10 @@ def solve_assembled_direct(nodes, elements, free_dofs, fext_full, mu, lam, dtype
     jac_fn = build_sparse_jac_fn(nodes, elements, mu, lam, free_mask_dof, material, order, device,
                                   dtype, symmetric_bc=symmetric_bc)
 
-    u0 = torch.zeros(n_dof, dtype=dtype, device=device)
+    if u0_init is None:
+        u0 = torch.zeros(n_dof, dtype=dtype, device=device)
+    else:
+        u0 = torch.as_tensor(u0_init, dtype=dtype, device=device).reshape(n_dof).clone()
     stats = None
     if reuse_analysis:
         if device.type != "cuda":

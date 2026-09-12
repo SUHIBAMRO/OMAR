@@ -97,19 +97,17 @@ def evaluate_no_accuracy_at_n1401(model, args, device, N=1401, seed=0,
 
     print(f"Solving FEM ground truth at N={N} (fast GPU path, verified vs. the slow "
           f"CPU reference at small N -- see no_ground_truth_fast_correctness.json)...")
-    # tol/max_iter tightened past solve_assembled_direct's own defaults (1e-8, 30):
-    # the first real N=1401 run converged_likely=False (relative residual 2.6e-3).
-    # Likely cause, not just "not enough iterations": the slow reference solver
-    # (and solve_matrix_free) both use 10-step incremental LOADING, so their own
-    # tol=1e-7/1e-8 absolute residual criterion is checked against 1/10th of the
-    # full force each step -- effectively a much tighter RELATIVE bar than the
-    # SAME absolute number checked once against the FULL force in a single shot,
-    # which is what solve_assembled_direct does here. A much tighter absolute tol
-    # (with more iteration budget to actually reach it) compensates directly,
-    # without needing to add load-stepping (which solve_assembled_direct's u0 is
-    # not currently able to warm-start between steps anyway).
+    # nsteps=10 genuine load-stepping (2026-09-12): tightening tol/max_iter alone
+    # (1e-8/30 -> 1e-10/60) left the EXACT SAME relative residual (2.612e-03) at
+    # N=1401 -- Newton was genuinely stalled starting from zero at the full load,
+    # not short on iterations or a loose tolerance. solve_b1_fast_gpu now supports
+    # real incremental loading (solve_assembled_direct gained a u0_init parameter
+    # for this), mirroring solve_matrix_free's/the slow reference's own nsteps=10
+    # convention exactly, at solve_assembled_direct's own default tol/max_iter
+    # per step (1e-8/30 -- appropriate again now that each step's own residual is
+    # checked against only 1/10th of the full force, not the full force at once).
     u_ref_flat, nodes_gt, elems_gt, solve_stats = solve_b1_fast_gpu(
-        N, seed, material, device, dtype, tol=1e-10, max_iter=60)
+        N, seed, material, device, dtype, nsteps=10)
     assert np.allclose(nodes_np, nodes_gt) and np.array_equal(elems_np, elems_gt)
     u_ref = u_ref_flat.reshape(-1, 2)
 

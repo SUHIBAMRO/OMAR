@@ -254,6 +254,36 @@ confirmed it correctly restores) the one known leak in
 dtype-leak hypothesis for THIS crash is now considered wrong, not
 confirmed** -- something else is creating the float64 tensor.
 
+**Fifth real GPU run (2026-09-12): THE CRASH IS FIXED.** The
+`model.to(torch.float32)`-before-`load_state_dict` fix worked -- the run
+completed end to end for the first time (fp32 forward, bf16 forward,
+JSON+figure saved). The dtype diagnostic confirmed everything clean
+(`non_fp32_params=NONE non_fp32_buffers=NONE`), so this really was the
+checkpoint-dtype issue, not a leak. Ground-truth convergence, however,
+was still exactly `2.612e-03` (identical to the four prior runs) --
+confirming, for real this time, that tightening tol/max_iter alone truly
+never touches this problem, and that a structural fix (load-stepping)
+was the only thing that was ever going to change it.
+
+**Real fix implemented and verified at small N (not yet at N=1401)**:
+added an optional `u0_init` parameter to `assembled_direct_solver.
+solve_assembled_direct` (`None` default, exactly reproducing every
+existing result unchanged) so an external caller can warm-start Newton
+from a previous solution -- the one thing this single-shot solver could
+not do internally. Built genuine incremental load-stepping around it in
+`solve_b1_fast_gpu` (`no_ground_truth_fast.py`, new `nsteps` parameter,
+default `nsteps=1` preserving the already-published N=11/N=21
+correctness numbers exactly), mirroring `solve_matrix_free`'s/the slow
+reference's own `nsteps=10` convention. Re-verified correctness with
+`nsteps=10` at N=21: relative difference vs. the slow reference
+**3.847e-14** -- even tighter than the single-shot check's own 8.44e-11.
+`no_accuracy_at_n1401.py` now calls `solve_b1_fast_gpu(..., nsteps=10)`
+at `solve_assembled_direct`'s own default tol/max_iter per step (1e-8,
+30 -- appropriate again now that each step's own force is 1/10th of the
+full one). A stress test at N=401 (single-shot vs. load-stepped
+convergence, to directly confirm load-stepping fixes the same kind of
+stall the accuracy pipeline hit at N=1401) is running.
+
 **Fourth real GPU run (2026-09-12): the dtype diagnostic printed
 `default_dtype=torch.float32` and every input float32, yet the SAME crash
 happened anyway** -- the leak-based hypothesis is now conclusively ruled

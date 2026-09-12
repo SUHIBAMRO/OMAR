@@ -69,7 +69,24 @@ from omar_pfem.high_dof_convergence_study import assemble_traction_top_generic
 
 
 def solve_b1_fast_gpu(N, seed, material, device, dtype, Lx=1.0, Ly=1.0, order="Q4",
-                       **solve_kwargs):
+                       nsteps=1, **solve_kwargs):
+    """nsteps=1 (default, unchanged from every result already published with
+    this function, including the N=11/N=21 correctness checks below): a
+    single full-load Newton solve, exactly as before.
+
+    nsteps>1: genuine incremental load-stepping built around
+    solve_assembled_direct's new u0_init parameter -- solve at
+    (step/nsteps)*fext_full, feed that converged displacement back in as
+    the next step's warm start, exactly mirroring solve_matrix_free's/
+    solve_hyperelastic_TL_spatial's own nsteps=10 convention (their own
+    absolute tol/max_iter defaults are UNCHANGED here; this only adds the
+    load-stepping they already have and solve_assembled_direct's own
+    single-shot call does not). Added 2026-09-12 after tightening tol/
+    max_iter alone left the ground truth genuinely stalled and not
+    converged at N=1401 (relative residual 2.612e-03, identical whether
+    tol/max_iter were the function's own defaults or tightened by 100x/2x)
+    -- i.e. the problem was never "not enough iterations" at the full
+    load, it was starting Newton at the full load from zero at all."""
     from omar_pfem.data.data_generate_B1 import generate_grid_Q4
 
     E_fn = ParametricFieldB1("E", seed)
@@ -96,11 +113,23 @@ def solve_b1_fast_gpu(N, seed, material, device, dtype, Lx=1.0, Ly=1.0, order="Q
     # solver file, since this is the only call site that combines the two.
     _prev_default_dtype = torch.get_default_dtype()
     try:
-        u_full_t = solve_assembled_direct(
-            nodes, elements, free_dofs, fext_full, mu, lam,
-            dtype=dtype, material=material, order=order, device=device,
-            **solve_kwargs,
-        )
+        if nsteps <= 1:
+            u_full_t = solve_assembled_direct(
+                nodes, elements, free_dofs, fext_full, mu, lam,
+                dtype=dtype, material=material, order=order, device=device,
+                **solve_kwargs,
+            )
+        else:
+            u0 = None
+            for step in range(1, nsteps + 1):
+                alpha = step / nsteps
+                u_full_t = solve_assembled_direct(
+                    nodes, elements, free_dofs, alpha * fext_full, mu, lam,
+                    dtype=dtype, material=material, order=order, device=device,
+                    u0_init=u0, **solve_kwargs,
+                )
+                u0 = (u_full_t.reshape(-1) if torch.is_tensor(u_full_t)
+                      else np.asarray(u_full_t).reshape(-1))
     finally:
         torch.set_default_dtype(_prev_default_dtype)
 
