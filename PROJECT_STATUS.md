@@ -187,6 +187,39 @@ capped at the OTHER's peak memory from that first run -- the actual
 "same GPU memory" comparison Timon asked for, in both directions. CODE
 ONLY -- not yet run on a real GPU.
 
+**Reopened task #13 (2026-09-12): a second-opinion review of the profiling
+result (Omar shared a GPT review) correctly identified a real remaining
+gap.** Everything already measured was confirmed genuinely done (pure
+GPU forward time, precision, peak memory, profiler breakdown, the
+2.29s number itself confirmed real) -- but Timon's own wording asked to
+"check this before considering the 2.29s as the final inference
+number," which implies an actual optimization ATTEMPT, not just a
+diagnosis of where the time goes. Two things were still needed before
+task #13 could be called fully done: (1) trying a real, safe
+optimization, not just profiling; (2) validating bf16's ACCURACY against
+real ground truth, not just its self-consistency with fp32 (already
+in progress -- see the `no_accuracy_at_n1401.py` bf16-scoring extension
+above, queued in task #14's own notebook run).
+
+**New file `omar_pfem/no_inference_torch_compile.py`** addresses (1):
+tries `torch.compile(model)` on the exact same forward-pass call the
+profiling cell measured, targeting what that cell's own profiler table
+pointed at -- 4,800 `cudaLaunchKernel` calls and 2,893 "Command Buffer
+Full" events across only 30 repeats (160 kernel launches per single
+forward pass), which is exactly the kind of dispatch overhead
+`torch.compile`'s kernel fusion is built to remove, without touching
+the architecture or any weight. Correctness-checked before any speedup
+is trusted (compiled output vs. eager output relative difference on the
+same input) and wrapped in a broad `except Exception` so a
+model-specific `torch.compile` failure is reported honestly (with the
+real error message) rather than crashing the cell or being silently
+assumed to have worked. Wrapped into
+`zeroshot_notebooks/cell_no_inference_torch_compile.py` /
+`Round6_NO_TorchCompile_N1401.ipynb` (registered, 66/66 notebooks OK).
+CODE ONLY -- not yet run on a real GPU; genuinely unknown yet whether
+`torch.compile` helps, hurts, or fails outright on Transolver's
+slice-based Physics Attention.
+
 **Immediately followed up (before running task #14's own GPU cell) by
 extending `no_accuracy_at_n1401.py` to also score a bf16-autocast forward
 pass against the SAME real ground truth**, not just fp32-vs-bf16
