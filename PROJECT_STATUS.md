@@ -330,6 +330,21 @@ Genuinely not yet re-verified on a real GPU at N=1401 itself, but the
 CPU-side risk (hours-scale Python loop or wrong-solver-choice blowup)
 that caused the original mistake is now closed.
 
+**Second bug from the same fix, caught by Omar's own real run
+(2026-09-12): `ModuleNotFoundError: No module named 'torch_sla'`.**
+Switching the ground-truth backend to `solve_assembled_direct` (previous
+entry) pulls in `assembled_direct_solver.py`'s own `from torch_sla import
+SparseTensor` at module level -- every OTHER notebook that touches this
+module already installs `torch-sla` + a pinned `nvmath-python[cu12]`
+first (e.g. `cell_assembled_direct_speedup_production.py`), but
+`cell_no_accuracy_at_n1401.py` was written before that dependency existed
+and never gained the same install step. Fixed: added the same two
+`pip install -q` lines (`torch-sla`, `nvmath-python[cu12]==0.9.0`) right
+after cloning the repo, plus the same `is_cudss_available()` check every
+other assembled+direct notebook uses to fail fast with a clear message
+rather than silently falling back to an iterative solver. Rebuilt,
+67/67 notebooks OK.
+
 **Checked and cleared a real methodological question before building
 further (2026-09-12), rather than assuming it away**: is ParametricFieldB1
 (used by the new ground-truth bridge, and by build_sample_b1's own NO-input

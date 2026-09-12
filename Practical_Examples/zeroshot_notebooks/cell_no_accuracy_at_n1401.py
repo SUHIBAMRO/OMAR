@@ -16,6 +16,14 @@
 #  Plumbing already smoke-tested with a random-init model at N=21 on CPU
 #  (no crashes/shape errors) -- this cell is the first run against the
 #  REAL checkpoint at the REAL N=1401.
+#
+#  Ground truth now goes through assembled_direct_solver.solve_assembled_
+#  direct (switched from solve_matrix_free after that solver's own real
+#  N=1401 cost turned out to be ~7.5 hours -- see PROJECT_STATUS.md), which
+#  needs torch-sla + a pinned nvmath-python for a real cuDSS direct solve
+#  on CUDA -- same two packages every other assembled+direct notebook in
+#  this project already installs (e.g. cell_assembled_direct_speedup_
+#  production.py), installed here for the same reason.
 # =====================================================================
 import json
 import os
@@ -46,6 +54,9 @@ else:
     run(['git', '-C', REPO, 'checkout', 'claude/claude-code-question-d307wp'])
     run(['git', '-C', REPO, 'reset', '--hard', 'origin/claude/claude-code-question-d307wp'])
 
+run([sys.executable, '-m', 'pip', 'install', '-q', 'torch-sla'])
+run([sys.executable, '-m', 'pip', 'install', '-q', 'nvmath-python[cu12]==0.9.0'])
+
 WORK = f'{REPO}/Practical_Examples'
 os.chdir(WORK)
 sys.path.insert(0, WORK)
@@ -58,6 +69,16 @@ for _mod_name in list(sys.modules):
 import torch
 assert torch.cuda.is_available(), 'this cell needs a real GPU'
 print('GPU:', torch.cuda.get_device_name(0))
+
+# Confirm the direct solver is ACTUALLY available before spending any real
+# GPU time -- same discipline as every other assembled+direct notebook.
+from torch_sla.backends import is_cudss_available
+if not is_cudss_available():
+    raise RuntimeError(
+        "cuDSS is NOT available after installing nvmath-python[cu12] -- the ground-truth "
+        "solve below would silently fall back to an iterative solver, not the direct one "
+        "this notebook is meant to use. Check the pip install output above for the real error.")
+print('cuDSS (real direct solver on CUDA) is available.')
 
 R = '/content/drive/MyDrive/pfem_run'
 CKPT = f'{R}/results/checkpoints/B1_neo_hookean/model_best.pt'
