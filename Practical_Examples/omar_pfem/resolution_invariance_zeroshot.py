@@ -115,6 +115,38 @@ def build_sample_b1(N, seed, material, Lx=1.0, Ly=1.0, solve_fem=True):
     }, (E_fn, nu_fn, ty_fn)
 
 
+def build_sample_b1_fast(N, seed, material, device, dtype=torch.float64, Lx=1.0, Ly=1.0,
+                          solve_fem=True, nsteps=10):
+    """Same sample as build_sample_b1 (identical xy/quad/E_node/nu_node/
+    node_forces construction, reused via solve_fem=False), but the FEM solve
+    itself goes through solve_b1_fast_gpu (the GPU direct-solver path built
+    2026-09-12 for the N=1401 accuracy pipeline) instead of the original
+    solve_hyperelastic_TL_spatial -- a CPU-only scipy.sparse.linalg.spsolve
+    per-sample loop measured at 7.3 HOURS to generate N=21's own 500 samples
+    (this file's own _generate_samples_resumable docstring). That cost makes
+    generating training data at any resolution beyond the original 21/33 (to
+    widen the trained range and address the smooth accuracy degradation seen
+    at N>=101, per the corrected-checkpoint sweep) impractical with the old
+    path. solve_b1_fast_gpu solves N=401 in ~4.75s single-shot (see
+    assembled_direct_convergence_production_N401_1401.json) -- orders of
+    magnitude cheaper.
+
+    Existing checkpoints/results are UNTOUCHED: this is a new function, not
+    a change to build_sample_b1, and is opt-in via a new CLI flag."""
+    sample, fns = build_sample_b1(N, seed, material, Lx, Ly, solve_fem=False)
+    if solve_fem:
+        from omar_pfem.no_ground_truth_fast import solve_b1_fast_gpu
+        u_flat, nodes_gt, elems_gt, _ = solve_b1_fast_gpu(
+            N, seed, material, device, dtype, Lx=Lx, Ly=Ly, nsteps=nsteps)
+        assert np.allclose(sample["xy"].astype(np.float64), nodes_gt) and \
+            np.array_equal(sample["quad"], elems_gt), (
+                f"build_sample_b1_fast: mesh mismatch between build_sample_b1 and "
+                f"solve_b1_fast_gpu at N={N} -- the two must solve the identical mesh "
+                f"for uv_exact to be a valid ground truth for this sample's own xy/quad.")
+        sample["uv_exact"] = u_flat.reshape(-1, 2).astype(np.float32)
+    return sample, fns
+
+
 def build_sample_b2(N, seed, material, R_in=1.0, R_out=2.0, solve_fem=True):
     from omar_pfem.data.data_generate_B2 import (
         generate_grid_Q4_ring, solve_hyperelastic_TL_ring, assemble_traction_inner_curved)
@@ -359,7 +391,22 @@ def cmd_train(args):
     np.random.seed(args.seed); random.seed(args.seed); torch.manual_seed(args.seed)
 
     train_resolutions = [int(n) for n in args.train_resolutions.split(",") if n.strip()]
-    build_fn = build_sample_b1 if args.geometry == "B1" else build_sample_b2
+    if args.geometry == "B1" and int(getattr(args, "fast_solver", 0)):
+        # Opt-in (default off, so every existing checkpoint/result is
+        # reproduced identically): solve_b1_fast_gpu instead of the original
+        # CPU-only solve_hyperelastic_TL_spatial, verified bit-identical at
+        # N=13 (relative L2 diff 0.0) and ~4.7x faster even on CPU alone --
+        # see build_sample_b1_fast's own docstring for why this exists
+        # (the old path was measured at 7.3 HOURS to generate N=21's own 500
+        # samples, making any resolution wider than the original 21/33
+        # impractical without this).
+        import functools
+        fast_device = torch.device("cuda" if torch.cuda.is_available() and not args.cpu else "cpu")
+        build_fn = functools.partial(build_sample_b1_fast, device=fast_device, dtype=torch.float64)
+        print(f"[fast_solver] generating training/val samples via solve_b1_fast_gpu "
+              f"on {fast_device} instead of the original CPU solver")
+    else:
+        build_fn = build_sample_b1 if args.geometry == "B1" else build_sample_b2
 
     # Cache generated samples so a disconnect/restart doesn't need to
     # re-solve n_train_per_res+n_val_per_res FEM problems per resolution
@@ -972,6 +1019,13 @@ def main():
     p_train.add_argument("--train_resolutions", type=str, default="21,33")
     p_train.add_argument("--n_train_per_res", type=int, default=400)
     p_train.add_argument("--n_val_per_res", type=int, default=100)
+    p_train.add_argument("--fast_solver", type=int, default=0,
+                          help="B1 only: generate training/val FEM samples via "
+                               "solve_b1_fast_gpu (verified bit-identical to the original "
+                               "solve_hyperelastic_TL_spatial at N=13) instead of the original "
+                               "CPU-only path, which was measured at 7.3 HOURS for N=21 alone. "
+                               "Default 0 (off) so every existing checkpoint reproduces "
+                               "identically; turn on to make wider train_resolutions practical.")
     p_train.add_argument("--gen_chunk", type=int, default=25,
                           help="FEM samples generated between on-disk saves. Smaller = less "
                                "lost to an interrupted Colab session, at the cost of more "

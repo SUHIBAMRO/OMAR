@@ -113,7 +113,57 @@ finishes or a new one starts.
 > number and it has replaced every stale reference to "640% error"
 > in this file and any deliverable.**
 
-Last updated: 2026-09-12 (**REAL GPU RESULT: the FEM-side crossover is now
+Last updated: 2026-09-12 (**Omar's decision, given the corrected-checkpoint
+sweep's much less alarming real numbers (7-34% smooth degradation, not the
+false 640% flat catastrophe): proceed with multi-resolution retraining to
+improve the NO's accuracy, in all cases.** Real numbers from the
+corrected-checkpoint sweep (now confirmed, matches the original zero-shot
+study's shape closely): disp_rel_L2 = 13.8%(N=13) -> 9.75%(21) ->
+7.37%(33,37, best -- exactly the training resolutions) -> 8.5%(49) ->
+15.0%(101) -> 22.3%(201) -> 29.0%(401) -> 34.3%(701) -> (1001/1401 pending,
+run interrupted mid-sweep by this decision). Smooth, monotonic-ish growth
+away from the trained resolutions -- the normal, well-known operator-
+learning generalization gap, NOT a broken model, so training on a WIDER
+resolution range is a reasonable, moderate-risk fix (unlike before the
+checkpoint bug was found, when the situation looked like the model was
+fundamentally non-functional).
+
+**Built, tested, ready to run**:
+1. `omar_pfem/resolution_invariance_zeroshot.py` gained
+   `build_sample_b1_fast` + a new opt-in `--fast_solver 1` flag (default
+   0, every existing checkpoint/result reproduces identically). Generates
+   training/val FEM ground truth via `solve_b1_fast_gpu` instead of the
+   original CPU-only `solve_hyperelastic_TL_spatial` -- **this file's own
+   docstring already recorded that the old path measured 7.3 HOURS to
+   generate N=21's 500 samples alone**, which would make widening the
+   trained range to include N=101/201 (needed to address the accuracy
+   gap seen exactly there) impractical without this. Verified
+   bit-identical to the original solver at N=13 (relative L2 diff
+   **0.0**, not just "close") before being trusted, and CPU end-to-end
+   smoke-tested via a full `train` invocation (tiny counts/epochs, no
+   crashes, checkpoint produced) before writing any notebook.
+2. New notebook `B1_NeoHookean_MultiRes_Retrain.ipynb` (builder:
+   `make_b1_multires_retrain_notebook.py`): generates 400 train + 100 val
+   samples at N = 21, 33, 101, 201 (widening from the original 2
+   resolutions with 2 more chosen exactly where the corrected sweep
+   showed real, growing error) using `--fast_solver 1`, trains with the
+   SAME protocol as the original checkpoint (2000 epochs max,
+   early-stop patience 8, batch_size 8, lr 2e-3), then runs the SAME
+   rigorous accuracy sweep (real ground truth, all QoIs, N=13..1401) on
+   BOTH the new and the original checkpoint side by side for a direct,
+   honest before/after comparison. Writes to a NEW out_dir
+   (`zeroshot_B1_neo_hookean_multires`) -- the original checkpoint is
+   never touched, so it stays available as the baseline. 70/70 notebooks
+   verified building clean before push.
+
+**Staged deliberately**: N=21,33,101,201 first (moderate, real cost data
+not yet available -- the notebook's own generation cell prints a live
+per-resolution time estimate), not immediately going to N=401/701. If
+this measurably helps, a follow-up with an even wider range is the next
+natural step, decided with real cost/benefit data in hand rather than
+guessed up front.
+
+Previous update, 2026-09-12 (**REAL GPU RESULT: the FEM-side crossover is now
 fully confirmed with real (not extrapolated) data -- torch-fem at N=3
 (9 nodes, l2_rel=3.9%) already beats the NO's own best accuracy anywhere
 in its tested range (5.21% at N=29).** Second real run of
