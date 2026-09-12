@@ -43,8 +43,49 @@ from omar_pfem.physical_quantities_eval import (
 from omar_pfem.resolution_invariance_zeroshot import build_sample_b1
 
 
+def _score_prediction(u_pred, u_ref, nodes_np, elems_np, sample, args, material,
+                       device, dtype):
+    """Everything downstream of a displacement prediction: the same QoI set
+    (disp L2, H1 semi-norm, tangent-energy norm, PK1 stress, reactions)
+    Table 15-17 already reports, applied to whatever u_pred is handed in --
+    factored out so fp32 and bf16 predictions can be scored identically
+    without duplicating the QoI code."""
+    rms = lambda a: np.sqrt(np.mean(a ** 2))
+    e_u = rms(u_pred[:, 0] - u_ref[:, 0]) / (rms(u_ref[:, 0]) + 1e-12)
+    e_v = rms(u_pred[:, 1] - u_ref[:, 1]) / (rms(u_ref[:, 1]) + 1e-12)
+    rec = {"disp_rel_L2": 0.5 * (e_u + e_v)}
+
+    fp = as_solved_field(nodes_np, elems_np, u_pred)
+    fr = as_solved_field(nodes_np, elems_np, u_ref)
+    h1 = compute_l2_h1_errors_cross_order(fp, fr, "Q4", "Q4", "B1", Lx=args.Lx, Ly=args.Ly)
+    rec["L2_rel"] = float(h1["l2_rel"])
+    rec["H1_semi_rel"] = float(h1["h1_semi_rel"])
+    en = compute_tangent_energy_error(fp, fr, "Q4", "Q4", "B1", material, device, dtype,
+                                       Lx=args.Lx, Ly=args.Ly)
+    rec["energy_rel"] = float(en["tangent_energy_rel"])
+
+    P_p, w, R_p = gauss_quantities(nodes_np, elems_np, u_pred, sample["E_node"],
+                                    sample["nu_node"], material, "plane_strain", "Q4",
+                                    device, dtype)
+    P_r, _, R_r = gauss_quantities(nodes_np, elems_np, u_ref, sample["E_node"],
+                                    sample["nu_node"], material, "plane_strain", "Q4",
+                                    device, dtype)
+    rec.update(stress_errors(P_p, P_r, w))
+    rec.update(reaction_errors(R_p, R_r, np.asarray(sample["bottom_nodes"]), [0, 1]))
+    return rec
+
+
 def evaluate_no_accuracy_at_n1401(model, args, device, N=1401, seed=0,
-                                   material="neo_hookean", dtype=torch.float64):
+                                   material="neo_hookean", dtype=torch.float64,
+                                   also_bf16=True):
+    """also_bf16: also score a bf16-autocast forward pass against the SAME
+    ground truth, not just the fp32-vs-fp32 self-consistency check the
+    profiling cell (Timon round-10, item 3) already did -- bf16 measured
+    5.69x faster there (402.8ms vs. 2290.2ms/sample) but with a 4.6%
+    self-consistency gap vs. fp32, which is not itself an accuracy
+    verdict. This answers the real question directly: is bf16 still
+    accurate enough against real ground truth to be worth adopting,
+    while a real GPU is already being spent on this N=1401 sample anyway."""
     from omar_pfem.train_B1 import total_potential_energy_Q4_hyperelastic
 
     sample, _ = build_sample_b1(N, seed=seed, material=material, Lx=args.Lx, Ly=args.Ly,
@@ -67,40 +108,39 @@ def evaluate_no_accuracy_at_n1401(model, args, device, N=1401, seed=0,
     nu_b = torch.tensor(sample["nu_node"][None], device=device, dtype=torch.float32)
     f_b = torch.tensor(sample["node_forces"][None], device=device, dtype=torch.float32)
 
-    print("Running NO forward pass...")
-    model.eval()
-    with torch.no_grad():
-        _, _, _, uv_pred, _ = total_potential_energy_Q4_hyperelastic(
-            xy, quad, top_edges, bottom_nodes, model, E_b, nu_b, f_b,
-            use_soft_dirichlet=bool(args.use_soft_dirichlet), mode="plane_strain",
-            dtype=torch.float32, fun_dim=args.fun_dim, material=material, Ly=args.Ly,
-        )
-    u_pred = uv_pred[0].double().cpu().numpy()
+    def _forward(use_bf16):
+        model.eval()
+        with torch.no_grad():
+            if use_bf16:
+                with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+                    _, _, _, uv_pred, _ = total_potential_energy_Q4_hyperelastic(
+                        xy, quad, top_edges, bottom_nodes, model, E_b, nu_b, f_b,
+                        use_soft_dirichlet=bool(args.use_soft_dirichlet), mode="plane_strain",
+                        dtype=torch.float32, fun_dim=args.fun_dim, material=material, Ly=args.Ly,
+                    )
+            else:
+                _, _, _, uv_pred, _ = total_potential_energy_Q4_hyperelastic(
+                    xy, quad, top_edges, bottom_nodes, model, E_b, nu_b, f_b,
+                    use_soft_dirichlet=bool(args.use_soft_dirichlet), mode="plane_strain",
+                    dtype=torch.float32, fun_dim=args.fun_dim, material=material, Ly=args.Ly,
+                )
+        return uv_pred[0].float().double().cpu().numpy()
 
-    rms = lambda a: np.sqrt(np.mean(a ** 2))
-    e_u = rms(u_pred[:, 0] - u_ref[:, 0]) / (rms(u_ref[:, 0]) + 1e-12)
-    e_v = rms(u_pred[:, 1] - u_ref[:, 1]) / (rms(u_ref[:, 1]) + 1e-12)
-    rec = {"N": N, "seed": seed, "material": material, "disp_rel_L2": 0.5 * (e_u + e_v)}
+    print("Running NO forward pass (fp32)...")
+    u_pred_fp32 = _forward(use_bf16=False)
+    result = {"N": N, "seed": seed, "material": material,
+              "fp32": _score_prediction(u_pred_fp32, u_ref, nodes_np, elems_np, sample,
+                                         args, material, device, dtype)}
 
-    fp = as_solved_field(nodes_np, elems_np, u_pred)
-    fr = as_solved_field(nodes_np, elems_np, u_ref)
-    h1 = compute_l2_h1_errors_cross_order(fp, fr, "Q4", "Q4", "B1", Lx=args.Lx, Ly=args.Ly)
-    rec["L2_rel"] = float(h1["l2_rel"])
-    rec["H1_semi_rel"] = float(h1["h1_semi_rel"])
-    en = compute_tangent_energy_error(fp, fr, "Q4", "Q4", "B1", material, device, dtype,
-                                       Lx=args.Lx, Ly=args.Ly)
-    rec["energy_rel"] = float(en["tangent_energy_rel"])
+    if also_bf16 and device.type == "cuda":
+        print("Running NO forward pass (bf16 autocast, diagnostic)...")
+        u_pred_bf16 = _forward(use_bf16=True)
+        result["bf16"] = _score_prediction(u_pred_bf16, u_ref, nodes_np, elems_np, sample,
+                                            args, material, device, dtype)
+        result["bf16_vs_fp32_disp_rel_diff"] = float(
+            np.linalg.norm(u_pred_bf16 - u_pred_fp32) / np.linalg.norm(u_pred_fp32))
 
-    P_p, w, R_p = gauss_quantities(nodes_np, elems_np, u_pred, sample["E_node"],
-                                    sample["nu_node"], material, "plane_strain", "Q4",
-                                    device, dtype)
-    P_r, _, R_r = gauss_quantities(nodes_np, elems_np, u_ref, sample["E_node"],
-                                    sample["nu_node"], material, "plane_strain", "Q4",
-                                    device, dtype)
-    rec.update(stress_errors(P_p, P_r, w))
-    rec.update(reaction_errors(R_p, R_r, np.asarray(sample["bottom_nodes"]), [0, 1]))
-
-    return rec
+    return result
 
 
 if __name__ == "__main__":

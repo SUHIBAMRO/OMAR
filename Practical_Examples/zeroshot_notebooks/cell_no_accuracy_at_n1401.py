@@ -94,9 +94,15 @@ print('\n' + '=' * 70)
 print('RESULT -- NO accuracy at N=1401 (first real ground-truth check there)')
 print('=' * 70)
 print(json.dumps(rec, indent=2))
-print('\nCompare disp_rel_L2/L2_rel/H1_semi_rel/energy_rel/P_rel_L2 above against this '
+print('\nCompare fp32 disp_rel_L2/L2_rel/H1_semi_rel/energy_rel/P_rel_L2 above against this '
       "checkpoint's own already-published numbers at N=21/N=1001/N=1401 (FEM-vs-FEM) in "
       'Tables 15-17, to see how much accuracy degrades this far past the training '
       'resolution -- this is the number needed before the 10x speed-up at N=1401 can be '
       "called an accuracy-matched comparison, and before finding the coarsest FEM N with "
       'comparable accuracy (the next step, not done in this cell).')
+if 'bf16' in rec:
+    print(f"\nbf16 autocast (Timon round-10, item 3 follow-up -- 5.69x faster than fp32 "
+          f"in the profiling cell, 4.6% self-consistency gap there): disp_rel_L2="
+          f"{rec['bf16']['disp_rel_L2']:.4e} vs. fp32's {rec['fp32']['disp_rel_L2']:.4e}, "
+          f"against the SAME real ground truth -- this is the real accuracy verdict the "
+          f"profiling cell's own self-consistency check could not give.")

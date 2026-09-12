@@ -122,6 +122,51 @@ This CPU-side unblock only removes the "would take hours" blocker for
 getting a ground truth at all -- the actual N=1401 comparison still
 needs a real GPU run.
 
+**TASK #13 DONE -- real GPU result from Omar's own A100 run (2026-09-12).**
+`Round6_NO_Inference_Profile_N1401.ipynb`:
+
+- **Pure GPU forward-pass time (after warm-up, excl. data transfer/
+  preprocessing): 2,290.23 ms/sample** -- matches the already-recorded
+  2,286.69 ms/sample (task #12) closely, as expected (same call, more
+  instrumentation, not a different measurement).
+- **Precision: torch.float32.**
+- **Peak GPU memory: 23,163.0 MB (~23.16 GB)** -- a genuinely NEW number,
+  never measured before. Notably HIGHER than the assembled+direct GPU-FEM
+  solver's own peak memory at the same N=1401 (15.6-20.5 GB depending on
+  which optimization variant, Points 8/9) -- the NO is not just slower
+  than expected at this size, it is also not the more memory-frugal
+  option at bs=1, contrary to the usual "NOs are cheap, FEM is expensive"
+  intuition. Directly relevant to Timon's item 2 (memory comparison) too.
+- **torch.profiler breakdown**: ~67% of CUDA time in `aten::bmm`/
+  `aten::einsum` (batched matmuls -- Transolver's slice-based Physics
+  Attention operating on 1,962,801 tokens, one per mesh node), another
+  ~22% in `aten::linear`/`aten::addmm` (the MLP layers) -- i.e. the time
+  is genuinely spent in the network's own core compute over a very large
+  token count, not wasted in an obvious inefficiency or bug. Some
+  disproportionate CPU-side time in `aten::sum`/`aten::copy_`/
+  `aten::clone` (CPU-total far exceeding their own CUDA-total, suggesting
+  some CPU-GPU sync overhead), but this is a minor fraction next to the
+  dominant GEMM cost. Full top-20 table saved to
+  `no_inference_profile_N1401_profiler_table.txt` (Drive).
+- **bf16 autocast: 402.76 ms/sample -- 5.69x faster than fp32** -- but
+  only a SELF-CONSISTENCY check (bf16 output vs. fp32 output on the same
+  input, relative difference 4.638e-02), explicitly labeled in both the
+  code and the printed analysis as NOT an accuracy claim.
+
+**Immediately followed up (before running task #14's own GPU cell) by
+extending `no_accuracy_at_n1401.py` to also score a bf16-autocast forward
+pass against the SAME real ground truth**, not just fp32-vs-bf16
+self-consistency -- refactored `evaluate_no_accuracy_at_n1401` to share
+one `_score_prediction` helper between an fp32 and an (optional) bf16
+run, returning `{"fp32": {...}, "bf16": {...}, "bf16_vs_fp32_disp_rel_diff":
+...}` instead of a single flat dict. Re-smoke-tested on CPU with a
+random-init model at N=21 (bf16 correctly skipped there, since it needs
+CUDA) -- no plumbing errors. This means the next GPU run (task #14's own
+notebook, not yet run) will answer BOTH "what is the NO's real accuracy
+at N=1401" AND "is the 5.69x-faster bf16 path still accurate enough to
+matter" in one pass, since both need the same expensive N=1401 ground
+truth solve and the same GPU session anyway.
+
 **Checked and cleared a real methodological question before building
 further (2026-09-12), rather than assuming it away**: is ParametricFieldB1
 (used by the new ground-truth bridge, and by build_sample_b1's own NO-input

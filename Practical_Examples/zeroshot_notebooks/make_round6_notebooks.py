@@ -1653,7 +1653,13 @@ NOTEBOOKS = {
          "(Timon's actual accuracy-matched-comparison ask) -- that is\n",
          "  the next step once this cell's own numbers are in.\n",
          "* Checkpoint path is guessed (`CKPT` near the top of the cell) "
-         "-- update it if the assert fails.\n"]),
+         "-- update it if the assert fails.\n",
+         "* Also scores a bf16-autocast forward pass against the SAME "
+         "ground truth (Timon round-10, item 3 follow-up): the profiling\n",
+         "  cell found bf16 5.69x faster (402.8ms vs. 2290.2ms/sample) but "
+         "could only report a 4.6% fp32-vs-bf16 self-consistency gap, not\n",
+         "  a real accuracy verdict -- this cell gives that verdict directly, "
+         "for free, while a real GPU is already being spent here anyway.\n"]),
     "Round6_TorchFEM_Tolerance_Sensitivity.ipynb": (
         "cell_torchfem_tolerance_sensitivity.py",
         ["# torch-fem tolerance sensitivity: 1e-6/1e-7 vs. 1e-8 "
