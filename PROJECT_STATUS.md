@@ -282,7 +282,59 @@ at `solve_assembled_direct`'s own default tol/max_iter per step (1e-8,
 30 -- appropriate again now that each step's own force is 1/10th of the
 full one).
 
-**Sixth real GPU run (2026-09-12): nsteps=10 produced a relative residual
+**THE REAL BUG, FOUND AND FIXED (2026-09-12): the "non-convergence" was
+never real -- it was a bug in `check_convergence`'s own caller, comparing
+a correctly-converged solution against a subtly WRONG problem.**
+`no_accuracy_at_n1401.py`'s convergence check rebuilt `fext_full`/`mu`/
+`lam` from `nodes_np`/`elems_np` (`sample["xy"]`/`sample["quad"]` from
+`build_sample_b1`), only ever checked against `nodes_gt`/`elems_gt` (the
+mesh `solve_b1_fast_gpu` actually solved on) via `np.allclose` -- NOT
+bit-identity. `build_sample_b1` stores its own mesh as `"xy": nodes.
+astype(np.float32)` -- float32 precision, not the float64 mesh actually
+solved on.
+
+**Directly proven, not just suspected**: at N=401, checking the SAME
+converged solution against the exact float64 mesh gives relative
+residual 7.63e-13 (essentially perfect); checking the SAME solution
+against that SAME mesh merely rounded to float32 and back (max node
+coordinate difference only **2.86e-08**) gives relative residual
+**1.59e-4** -- an 8-ORDER-OF-MAGNITUDE jump from a microscopic mesh
+perturbation. `ParametricFieldB1`'s trigonometric basis functions (and
+Q4 quadrature/connectivity) are sensitive to exactly which physical
+point they are sampled at, and this sensitivity is invisible at coarse N
+(negligible relative to a large element) but dominant at N=1401's fine
+spacing -- explaining every single "converged_likely=False" result
+across all six prior real GPU runs, including the sixth run's own
+apparent "identical residual regardless of load-stepping" mystery (BOTH
+single-shot and load-stepped were, in fact, converging correctly the
+entire time -- the SAME buggy outer check was comparing both against the
+SAME wrong problem, hence the suspiciously identical numbers).
+
+**Fixed**: the convergence check now uses `nodes_gt`/`elems_gt` (the
+exact float64 mesh `solve_b1_fast_gpu` actually solved on) instead of
+`nodes_np`/`elems_np`. Re-verified at N=21: the outer check now matches
+the in-loop step-10 check EXACTLY (5.357e-11, both), where it previously
+would have silently used the (here, harmlessly close at this coarse N)
+float32-truncated mesh. `nsteps=10` load-stepping is KEPT (not reverted
+to `nsteps=1`) purely because it is ALREADY independently verified to
+converge excellently at the real N=1401 via the sixth run's own per-step
+diagnostic (relative residual 1.03e-10 at the final step) -- switching
+back to an untested single-shot call at this late stage would introduce
+a new unverified variable rather than removing one.
+
+**What this means for the actual accuracy numbers**: the catastrophic
+QoI errors reported in every N=1401 run so far (disp_rel_L2=6.4, i.e.
+640%; peak PK1 stress error a factor of ~3.4 million) were almost
+certainly NOT an artifact of bad ground truth after all -- the ground
+truth was very likely fine the whole time. These numbers may be the
+NO's own genuine, real accuracy at this extreme extrapolation (28x
+beyond the zero-shot study's own tested range, up to N=49) -- exactly
+the risk this project already flagged as a caveat before Timon's round-
+10 email ever arrived. The next real GPU run (with this fix in place)
+is the one that finally settles whether that is really true.
+
+**Superseded framing (kept for the record): sixth real GPU run
+(2026-09-12) produced a relative residual
 identical to 10+ significant digits (0.0026116077158543226 vs. the
 original single-shot run's 0.002611607715948935) to the single-shot
 run's own number.** This level of agreement across two structurally

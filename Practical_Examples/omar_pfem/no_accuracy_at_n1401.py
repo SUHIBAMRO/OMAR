@@ -114,17 +114,34 @@ def evaluate_no_accuracy_at_n1401(model, args, device, N=1401, seed=0,
     print("Checking the ground-truth solve's own convergence (independent, post-hoc -- "
           "solve_assembled_direct exposes no residual info to its caller)...")
     from omar_pfem.high_dof_convergence_study import assemble_traction_top_generic
+    # BUG FOUND AND FIXED (2026-09-12): this check previously rebuilt fext_full/mu/lam
+    # from nodes_np/elems_np (sample["xy"]/sample["quad"] from build_sample_b1), but
+    # build_sample_b1 stores its own mesh as "xy": nodes.astype(np.float32) -- float32
+    # precision, not the float64 mesh solve_b1_fast_gpu actually solved on (nodes_gt/
+    # elems_gt, only checked for np.allclose above, not bit-identity). Directly
+    # confirmed the effect at N=401: checking a PERFECTLY converged solution
+    # (relative residual 7.63e-13 against the exact float64 mesh) against the SAME
+    # solution's own float32-truncated mesh (max node coordinate difference only
+    # 2.86e-08!) gave relative residual 1.59e-4 -- an 8-order-of-magnitude jump from
+    # a microscopic mesh perturbation, because ParametricFieldB1's trigonometric
+    # basis functions are sensitive to exactly which physical point they're sampled
+    # at, and Q4 quadrature/connectivity amplify this further at fine mesh spacing.
+    # This is almost certainly what produced every "converged_likely=False" result
+    # in every prior run at N=1401 -- the ground truth was very likely converging
+    # correctly the entire time; the CHECK ITSELF was comparing it against a subtly
+    # different, float32-perturbed problem. Fixed by using nodes_gt/elems_gt (the
+    # exact float64 mesh solve_b1_fast_gpu actually solved on) here instead.
     E_fn = ParametricFieldB1("E", seed)
     nu_fn = ParametricFieldB1("nu", seed)
     ty_fn = ParametricFieldB1("ty", seed)
     tolx = 1e-12
-    bottom_nodes_np = np.where(np.abs(nodes_np[:, 1]) < tolx)[0]
+    bottom_nodes_np = np.where(np.abs(nodes_gt[:, 1]) < tolx)[0]
     fixed_dofs_np = np.concatenate([2 * bottom_nodes_np, 2 * bottom_nodes_np + 1])
-    ndof = 2 * len(nodes_np)
+    ndof = 2 * len(nodes_gt)
     free_dofs_np = np.setdiff1d(np.arange(ndof), fixed_dofs_np)
-    fext_full_np = assemble_traction_top_generic(nodes_np, elems_np, args.Ly, ty_fn, "Q4")
-    mu_np, lam_np = precompute_element_params_B1(nodes_np, elems_np, E_fn, nu_fn, material)
-    convergence = check_convergence(nodes_np, elems_np, free_dofs_np, fext_full_np,
+    fext_full_np = assemble_traction_top_generic(nodes_gt, elems_gt, args.Ly, ty_fn, "Q4")
+    mu_np, lam_np = precompute_element_params_B1(nodes_gt, elems_gt, E_fn, nu_fn, material)
+    convergence = check_convergence(nodes_gt, elems_gt, free_dofs_np, fext_full_np,
                                      mu_np, lam_np, u_ref_flat, material, "Q4", device, dtype)
     print(f"  Ground-truth relative residual: {convergence['relative_residual']:.3e} "
           f"(converged_likely={convergence['converged_likely']})")
