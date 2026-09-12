@@ -238,21 +238,48 @@ CPU smoke tests never hit it) -- the fix removes a definite, real bug
 either way, but is not yet CONFIRMED as the fix for this exact CUDA
 crash; the next GPU run is the real test.
 
-**Also addressed the actual non-convergence, not just detecting it**:
-tightened the ground-truth solve's own `tol`/`max_iter` from
-`solve_assembled_direct`'s defaults (1e-8, 30) to (1e-10, 60) in
-`no_accuracy_at_n1401.py`'s own call. Reasoning, not a guess: the slow
-reference solver and `solve_matrix_free` both use 10-step incremental
-loading, so their own "1e-8 absolute residual" criterion is checked
-against only 1/10th of the full force each step -- a much tighter
-RELATIVE bar than the SAME absolute number checked once against the
-FULL force in a single shot, which is what `solve_assembled_direct` does
-here (it has no warm-start/load-stepping option). A much tighter
-absolute tolerance, with more iteration budget to actually reach it,
-compensates directly. Re-smoke-tested on CPU (still converges cleanly at
-N=21, relative residual 3.976e-06, unchanged from before). **Not yet
-confirmed at N=1401** -- the next GPU run will show, via the same
-`check_convergence` diagnostic, whether this closes the gap.
+**Third real GPU run (2026-09-12): the dtype-leak fix did NOT resolve the
+crash, and the tightened tol/max_iter did NOT change the ground-truth
+convergence at all.** Exact same numbers both times:
+`relative_residual=2.612e-03` (identical to the digit, with tol=1e-10/
+max_iter=60 vs. the original 1e-8/30 -- meaning Newton is genuinely
+STALLED at this residual, not merely short on iteration budget or
+stopped by a loose tolerance; the earlier reasoning about load-stepping
+making the absolute tolerance effectively looser was not confirmed and
+should not be assumed correct going forward), then the SAME `Float and
+Double` crash in the model's own first Linear layer, in the exact same
+place. Since the fix specifically targeted (and, in a CPU smoke test,
+confirmed it correctly restores) the one known leak in
+`solve_assembled_direct`, and the crash persisted anyway, **the original
+dtype-leak hypothesis for THIS crash is now considered wrong, not
+confirmed** -- something else is creating the float64 tensor.
+
+**Added a diagnostic print right before the model call** (`omar_pfem/
+no_accuracy_at_n1401.py`): prints `xy`/`E_b`/`nu_b`/`f_b` dtypes, the
+current global default dtype, the model's own parameter dtype, and
+whether an input-norm is installed -- so the next run identifies the
+actual source instead of guessing again. **Also added a defensive
+`torch.set_default_dtype(torch.float32)` immediately before building
+those tensors**, as a cheap, safe mitigation regardless of the true root
+cause (a no-op if nothing is actually leaked at that point, a real fix
+if something still is) -- avoids spending another GPU round-trip purely
+on diagnosis before also attempting a fix. Re-smoke-tested on CPU:
+diagnostic prints all-float32/`input_norm_installed=False` as expected,
+no regressions.
+
+**SUPERSEDED entry (kept for the record, not a live TODO): first attempt
+at the non-convergence, RULED OUT by the third run above.** Tightened
+`tol`/`max_iter` from `solve_assembled_direct`'s defaults (1e-8, 30) to
+(1e-10, 60), reasoning that the slow reference/`solve_matrix_free`'s own
+10-step loading makes their absolute tolerance effectively tighter in
+relative terms than a single-shot solve at the full load. **This did NOT
+change the result at all** -- confirmed by the third run above
+(identical `2.612e-03` residual with both settings) -- so Newton is
+genuinely stalled at this residual, not short on tolerance or iteration
+budget. The real fix (most likely: actual load-stepping with a
+warm-started u0 between steps, which `solve_assembled_direct` does not
+currently support) is still open; tracked as the next thing to solve
+once the current dtype crash is out of the way.
 
 **Added `omar_pfem.no_ground_truth_fast.check_convergence`**: an
 independent, post-hoc residual check (reimplements the same

@@ -88,7 +88,7 @@ def evaluate_no_accuracy_at_n1401(model, args, device, N=1401, seed=0,
     verdict. This answers the real question directly: is bf16 still
     accurate enough against real ground truth to be worth adopting,
     while a real GPU is already being spent on this N=1401 sample anyway."""
-    from omar_pfem.train_B1 import total_potential_energy_Q4_hyperelastic
+    from omar_pfem.train_B1 import get_input_norm, total_potential_energy_Q4_hyperelastic
 
     sample, _ = build_sample_b1(N, seed=seed, material=material, Lx=args.Lx, Ly=args.Ly,
                                  solve_fem=False)
@@ -136,6 +136,17 @@ def evaluate_no_accuracy_at_n1401(model, args, device, N=1401, seed=0,
               "reference, not evidence the NO itself is inaccurate. Do not trust the "
               "QoI errors below until this is resolved.")
 
+    # Defensive: the previous run crashed with a Float/Double mismatch inside the
+    # model's own first Linear layer despite every input built below being
+    # explicitly float32, and the suspected torch.set_default_dtype leak from
+    # solve_assembled_direct was already fixed without resolving it -- so some
+    # OTHER leak of the global default (root cause not yet confirmed -- see the
+    # diagnostic print below) is the likely remaining explanation. Forcing the
+    # default back to float32 here, immediately before the model is ever called,
+    # is a safe no-op if nothing is actually leaked, and a real fix if something
+    # still is -- cheaper than another GPU round-trip to isolate the exact source.
+    torch.set_default_dtype(torch.float32)
+
     xy = torch.tensor(nodes_np, device=device, dtype=torch.float32)
     quad = torch.tensor(elems_np, device=device, dtype=torch.long)
     top_edges = torch.tensor(sample["top_edges"], device=device, dtype=torch.long)
@@ -143,6 +154,19 @@ def evaluate_no_accuracy_at_n1401(model, args, device, N=1401, seed=0,
     E_b = torch.tensor(sample["E_node"][None], device=device, dtype=torch.float32)
     nu_b = torch.tensor(sample["nu_node"][None], device=device, dtype=torch.float32)
     f_b = torch.tensor(sample["node_forces"][None], device=device, dtype=torch.float32)
+
+    # Diagnostic (2026-09-12): the previous run crashed here with a Float/Double
+    # mismatch inside the model's own first Linear layer, even though every input
+    # constructed above is explicitly float32 and the suspected torch.set_default_
+    # dtype leak from solve_assembled_direct was already fixed (and confirmed fixed
+    # in a CPU smoke test) without resolving this crash -- meaning that hypothesis
+    # was wrong. Printing every relevant dtype right before the model call, plus
+    # the model's own parameter dtype and any installed input-norm state, so the
+    # NEXT run pinpoints the actual source instead of guessing again.
+    print(f"  [dtype diagnostic] xy={xy.dtype} E_b={E_b.dtype} nu_b={nu_b.dtype} "
+          f"f_b={f_b.dtype} default_dtype={torch.get_default_dtype()} "
+          f"model_param_dtype={next(model.parameters()).dtype} "
+          f"input_norm_installed={get_input_norm() is not None}")
 
     def _forward(use_bf16):
         model.eval()
