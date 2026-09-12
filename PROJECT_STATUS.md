@@ -153,7 +153,40 @@ needs a real GPU run.
   input, relative difference 4.638e-02), explicitly labeled in both the
   code and the printed analysis as NOT an accuracy claim.
 
-**TASK #15 started (2026-09-12), while Omar runs task #14's notebook on
+**TASK #15 DONE -- real GPU result from Omar's own A100 run (2026-09-12),
+and a striking, decisive confirmation of Timon's own stated expectation.**
+`Round6_Max_Feasible_Batch_Size.ipynb`, N=21:
+
+| config | max feasible bs | peak memory | throughput at max bs | bs=1 throughput |
+|---|---|---|---|---|
+| NO (own ceiling) | **8,192** | 47.6 GB | **4,212.66 samples/s** | 206.26 |
+| FEM (own ceiling) | **256** | 38.7 GB | **2.86 samples/s** | 0.59 |
+| FEM (capped at NO's 47.61 GB) | 256 (unchanged -- already OOMs before that budget) | 38.7 GB | 2.86 | 0.58 |
+| NO (capped at FEM's 38.69 GB) | 4,096 | 24.4 GB | 4,214.78 | 206.24 |
+
+**NO batches 32x further than FEM before OOM (8,192 vs. 256), and its
+peak throughput is ~1,473x FEM's (4,212.66 vs. 2.86 samples/s) even
+though FEM's own bs=1 latency is already ~350x worse than NO's
+(1,701ms vs. 4.85ms/sample) before batching is even considered.**
+NO's own throughput scales dramatically with batching (206 -> 4,213
+samples/s, ~20x) while FEM's barely moves (0.59 -> 2.86, ~4.8x) because
+FEM hits its memory ceiling at a small batch size where NO is nowhere
+close to its own. This directly and decisively confirms Timon's own
+stated expectation ("I expect that the NO should benefit from batching
+but this should be demonstrated") -- demonstrated, not just expected.
+
+Also directly relevant to Timon's item 2 memory framing: FEM's own
+per-sample memory cost (~155 MB/sample, linear in batch size) is
+roughly **25x** NO's own at matched batch sizes (e.g. bs=256: FEM 39,615
+MB vs. NO 1,541 MB) -- consistent with, and now quantifying at the
+batched-inference regime, the same "NO cheaper at inference, not
+training" pattern already documented elsewhere in this project.
+
+Both underlying scripts also wrote real run manifests
+(`max_feasible_batch/run_manifest.json`) automatically, per this
+project's existing convention.
+
+Previous update, 2026-09-12 (**TASK #15 started, while Omar runs task #14's notebook on
 GPU.** Timon's item 2: "report the maximum feasible batch size and
 throughput (samples/s) for both approaches at the same GPU memory."
 Tables 10a-c already exist (operator latency by batch size 1/8/32/128
