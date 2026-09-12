@@ -24,7 +24,63 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-12 (**Omar asked, reasonably, whether the N=1401
+Last updated: 2026-09-12 (**REAL GPU RESULT (A100) for the accuracy-matched
+FEM resolution, Timon round-10 item 1 -- a striking, honest finding: FEM
+beats the NO's accuracy at EVERY resolution the NO was ever tested at,
+even at the coarsest FEM mesh originally planned.**
+
+`Round6_TorchFEM_Convergence_LowN_matched_to_NO.ipynb` ran clean (CPU
+correctness check PASS, 3.574e-11 rel. diff). Real torch-fem l2_rel vs.
+the fine N=2236 reference, at exactly the NO's own tested resolutions
+(committed: `torchfem_convergence_vs_fine_reference.json`):
+
+| N | torch-fem l2_rel | NO mean_rel_L2_vs_fine |
+|---|---|---|
+| 6 | 1.214% | (NO not tested this coarse) |
+| 13 | 0.354% | 9.67% |
+| 17 | 0.238% | 7.91% |
+| 25 | 0.136% | 5.74% |
+| 29 | 0.110% | 5.21% (NO's own best) |
+| 37 | 0.078% | 5.25% |
+| 41 | 0.067% | 5.62% |
+| 49 | 0.052% | 6.70% |
+
+**Even N=6 (36 nodes) -- the coarsest point originally planned -- is
+already 4.3x-8x MORE accurate than the NO at every single resolution the
+NO was ever tested at.** The accuracy-matched crossover point is below
+N=6, not inside the range this cell was designed around. Added N=3, 4, 5
+to the sweep (CPU-smoke-tested first, both solve cleanly -- N=3 has only
+9 nodes) to find the real crossover instead of extrapolating a fitted
+rate. **NOT YET RUN on GPU** -- next step. Every FEM solve in this whole
+sweep took 1.4-2.6s wall-clock (dominated by fixed Newton/kernel-launch
+overhead at this tiny scale, not the linear solve itself), so N=3-5 cost
+essentially nothing extra.
+
+**Why this matters for the report**: Timon's own framing (item 1) was
+"a fair comparison between... our NO... versus a 'suitable' GPU native
+(coarsest) FEM simulation which achieves a comparable or better
+accuracy." The honest answer emerging here is that for this smooth,
+well-posed 2D problem, native FEM is dramatically more DOF-efficient
+than the NO -- an all but degenerately coarse mesh already matches or
+beats the NO's own best accuracy. This is a real, defensible finding to
+report (with the appropriate framing: the NO's advantage is not raw
+per-solve accuracy-per-DOF here, but decoupling from resolution/geometry
+re-meshing and batched throughput, points 2/4 already in progress) --
+NOT something to hide or work around. Omar's own explicit instruction
+today (2026-09-12): correctness matters more than a flattering number,
+so this is being reported as found, once the N=3-5 point confirms the
+real crossover.
+
+**Also open (Omar's own request, understandable given real project
+history)**: independent confirmation that the N=1401 catastrophic
+accuracy result (640% error) is real and not a bug --
+`Round6_NO_Accuracy_Degradation_Sweep.ipynb` (see entry directly below),
+built and pushed, not yet run. Now secondary to the finding above (since
+the comparison is moving away from using N=1401 as the primary
+speed-vs-accuracy point at all), but still valuable supporting evidence
+for the report on why N=1401 is excluded from the main comparison.
+
+Previous update, 2026-09-12 (**Omar asked, reasonably, whether the N=1401
 catastrophic accuracy result (640% displacement error) might itself be
 wrong -- built an independent verification, NOT YET RUN on GPU.**
 The ground-truth solve at N=1401 is already confirmed correct on its own

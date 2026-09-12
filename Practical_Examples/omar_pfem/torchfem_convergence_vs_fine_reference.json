@@ -1,0 +1,41 @@
+{
+  "geometry": "B1",
+  "material": "neo_hookean",
+  "order": "Q4",
+  "fine_N": 2236,
+  "device": "cuda (A100-SXM4-80GB)",
+  "tol": 1e-08,
+  "note": "Real A100-SXM4-80GB Colab run, 2026-09-12 (Timon round-10, item 1 follow-up). Adds low-N torch-fem accuracy at EXACTLY the resolutions the NO's own zero-shot study (point7a_results/zeroshot_B1_neo_hookean.json) was tested at, plus a few coarser points, to the existing N=51..1401 series (torchfem_convergence_vs_fine_reference_full.json) so a real (not extrapolated) accuracy-matched FEM resolution can be found against the NO's own known accuracy (5.2%-9.7% at N=13-49). REAL RESULT: torch-fem's error at the coarsest resolution originally planned (N=6, l2_rel=1.214e-02, 1.2%) was ALREADY smaller than the NO's error at every N the NO was ever tested at (best case 5.21% at N=29) -- so N=3,4,5 were added (CPU-smoke-tested first) to find the actual crossover. See PROJECT_STATUS.md for the full analysis.",
+  "rows": [
+    {"N": 3, "torchfem_wall_clock_s": null, "l2_rel": null, "h1_semi_rel": null, "torchfem_peak_mem_mb": null, "_pending": "not yet run on GPU -- CPU-only smoke test confirmed N=3 solves without crashing (max|u|=5.692e-3), real l2_rel/h1_semi_rel vs the fine reference not yet measured"},
+    {"N": 4, "torchfem_wall_clock_s": null, "l2_rel": null, "h1_semi_rel": null, "torchfem_peak_mem_mb": null, "_pending": "not yet run on GPU"},
+    {"N": 5, "torchfem_wall_clock_s": null, "l2_rel": null, "h1_semi_rel": null, "torchfem_peak_mem_mb": null, "_pending": "not yet run on GPU"},
+    {"N": 6, "torchfem_wall_clock_s": 2.63, "l2_rel": 1.214e-02, "h1_semi_rel": 9.401e-02, "torchfem_peak_mem_mb": 18.12224},
+    {"N": 9, "torchfem_wall_clock_s": 1.44, "l2_rel": 6.248e-03, "h1_semi_rel": 6.535e-02, "torchfem_peak_mem_mb": 19.398656},
+    {"N": 11, "torchfem_wall_clock_s": 1.50, "l2_rel": 4.569e-03, "h1_semi_rel": 5.542e-02, "torchfem_peak_mem_mb": 20.864512},
+    {"N": 13, "torchfem_wall_clock_s": 1.47, "l2_rel": 3.544e-03, "h1_semi_rel": 4.849e-02, "torchfem_peak_mem_mb": 22.462464},
+    {"N": 17, "torchfem_wall_clock_s": 1.54, "l2_rel": 2.379e-03, "h1_semi_rel": 3.949e-02, "torchfem_peak_mem_mb": 26.326528},
+    {"N": 21, "torchfem_wall_clock_s": 1.61, "l2_rel": 1.749e-03, "h1_semi_rel": 3.374e-02, "torchfem_peak_mem_mb": 31.716352},
+    {"N": 25, "torchfem_wall_clock_s": 1.65, "l2_rel": 1.360e-03, "h1_semi_rel": 2.971e-02, "torchfem_peak_mem_mb": 37.912576},
+    {"N": 29, "torchfem_wall_clock_s": 1.73, "l2_rel": 1.100e-03, "h1_semi_rel": 2.675e-02, "torchfem_peak_mem_mb": 45.600256},
+    {"N": 33, "torchfem_wall_clock_s": 1.79, "l2_rel": 9.148e-04, "h1_semi_rel": 2.436e-02, "torchfem_peak_mem_mb": 54.087168},
+    {"N": 37, "torchfem_wall_clock_s": 1.86, "l2_rel": 7.775e-04, "h1_semi_rel": 2.182e-02, "torchfem_peak_mem_mb": 64.09984},
+    {"N": 41, "torchfem_wall_clock_s": 1.94, "l2_rel": 6.721e-04, "h1_semi_rel": 2.092e-02, "torchfem_peak_mem_mb": 74.9184},
+    {"N": 45, "torchfem_wall_clock_s": 1.99, "l2_rel": 5.890e-04, "h1_semi_rel": 1.952e-02, "torchfem_peak_mem_mb": 87.227392},
+    {"N": 49, "torchfem_wall_clock_s": 2.03, "l2_rel": 5.221e-04, "h1_semi_rel": 1.841e-02, "torchfem_peak_mem_mb": 100.649984},
+    {"N": 51, "torchfem_wall_clock_s": 3.42, "l2_rel": 4.934e-04, "h1_semi_rel": 1.755e-02, "torchfem_peak_mem_mb": 107.953152},
+    {"N": 101, "torchfem_wall_clock_s": 2.84, "l2_rel": 1.874e-04, "h1_semi_rel": 1.096e-02, "torchfem_peak_mem_mb": 381.583872},
+    {"N": 201, "torchfem_wall_clock_s": 4.64, "l2_rel": 6.987e-05, "h1_semi_rel": 6.302e-03, "torchfem_peak_mem_mb": 1478.51776},
+    {"N": 401, "torchfem_wall_clock_s": 9.82, "l2_rel": 2.500e-05, "h1_semi_rel": 3.588e-03, "torchfem_peak_mem_mb": 5847.33952},
+    {"N": 701, "torchfem_wall_clock_s": 25.15, "l2_rel": 1.009e-05, "h1_semi_rel": 2.852e-03, "torchfem_peak_mem_mb": 17728.525312},
+    {"N": 1001, "torchfem_wall_clock_s": 56.65, "l2_rel": 5.155e-06, "h1_semi_rel": 1.846e-03, "torchfem_peak_mem_mb": 36138.372096},
+    {"N": 1401, "torchfem_wall_clock_s": 133.83, "l2_rel": 2.291e-06, "h1_semi_rel": 1.633e-03, "torchfem_peak_mem_mb": 70837.712896}
+  ],
+  "fitted_rate_low_N_6_to_49": {"L2_p": 1.475, "H1_p": 0.724, "expected": {"L2": 2, "H1": 1}},
+  "no_comparison": {
+    "source": "omar_pfem/point7a_results/zeroshot_B1_neo_hookean.json",
+    "metric": "mean_rel_L2_vs_fine_reference",
+    "rows": {"13": 0.0967, "17": 0.0791, "25": 0.0574, "29": 0.0521, "37": 0.0525, "41": 0.0562, "49": 0.0670},
+    "finding": "torch-fem at N=6 (l2_rel=1.214e-02, 1.2%) is ALREADY 4.3x-8x more accurate than the NO's error at every single resolution the NO was ever tested at (best 5.21% at N=29, worst 9.67% at N=13). The accuracy-matched crossover FEM resolution is BELOW N=6, not inside the NO's own tested range -- N=3,4,5 were added to find it for real."
+  }
+}

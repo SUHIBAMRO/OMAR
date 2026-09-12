@@ -86,7 +86,16 @@ CHECKPOINT_DIR = '/content/drive/MyDrive/pfem_ckpt'
 # (point7a_results/zeroshot_B1_neo_hookean.json) was tested at, plus a
 # few coarser points below that range to see where torch-fem's own
 # error actually crosses into the NO's 5-10% band.
-RESOLUTIONS = [6, 9, 11, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49]
+#
+# REAL RESULT from the first run of this cell (2026-09-12): torch-fem's
+# error at the COARSEST point tested (N=6, l2_rel=1.214e-02, 1.2%) was
+# ALREADY smaller than the NO's error at every single N the NO was ever
+# tested at (best case 5.21% at N=29) -- the crossover point is below
+# N=6, not inside the originally chosen range. Added N=3, 4, 5 (CPU
+# smoke-tested first: both solve fine, N=3 has only 9 nodes) to find the
+# real (not extrapolated) crossover instead of guessing from a fitted
+# rate.
+RESOLUTIONS = [3, 4, 5, 6, 9, 11, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49]
 
 from omar_pfem.torchfem_comparison import run_convergence_study
 rows = run_convergence_study(RESOLUTIONS, OUT_JSON, checkpoint_dir=CHECKPOINT_DIR,
