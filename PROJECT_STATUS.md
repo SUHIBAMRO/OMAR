@@ -280,9 +280,33 @@ reference's own `nsteps=10` convention. Re-verified correctness with
 `no_accuracy_at_n1401.py` now calls `solve_b1_fast_gpu(..., nsteps=10)`
 at `solve_assembled_direct`'s own default tol/max_iter per step (1e-8,
 30 -- appropriate again now that each step's own force is 1/10th of the
-full one). A stress test at N=401 (single-shot vs. load-stepped
-convergence, to directly confirm load-stepping fixes the same kind of
-stall the accuracy pipeline hit at N=1401) is running.
+full one).
+
+**N=401 stress test result: inconclusive for confirming the fix, but
+informative.** Both single-shot AND load-stepped CONVERGE FINE at N=401
+(`converged_likely=True` both ways; single-shot even faster and slightly
+tighter: 49.95s/7.63e-13 vs. load-stepped 254.69s/8.33e-11) -- N=401 does
+not reproduce the N=1401 stall at all, so this test could not directly
+confirm load-stepping fixes THAT specific failure. N=11 re-verified too:
+2.887e-14 relative difference vs. the slow reference, consistent with
+N=21's own 3.847e-14.
+
+**Reframes the hypothesis**: since Points 8/9's own already-published,
+thoroughly-verified numbers show single-shot `solve_assembled_direct`
+converging correctly even at N=1401 for the ORIGINAL benchmark problem
+(`AnalyticFieldB1` -- a simple, deterministic, smooth closed-form field),
+the stall is likely not really about mesh size alone, but about THIS
+specific seed=0 `ParametricFieldB1` realization's own load pattern (a
+randomly-seeded low-order Fourier series) being harder for a zero-init,
+full-load Newton step to handle directly, at this particular size and
+seed. Load-stepping is still the right, standard, generic robustness fix
+regardless of the exact cause, and is unlikely to hurt (verified exact
+at N=11/N=21), but its effect on the ACTUAL N=1401 failure is not yet
+directly confirmed -- further CPU-side testing at intermediate N is not
+practical (N=401's own load-stepped run already took ~4.2 minutes on
+CPU) and unlikely to reproduce it anyway given N=401 already converges
+fine either way. The real GPU run at N=1401 is the next and most direct
+test.
 
 **Fourth real GPU run (2026-09-12): the dtype diagnostic printed
 `default_dtype=torch.float32` and every input float32, yet the SAME crash
