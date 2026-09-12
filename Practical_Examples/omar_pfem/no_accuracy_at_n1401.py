@@ -228,6 +228,51 @@ def evaluate_no_accuracy_at_n1401(model, args, device, N=1401, seed=0,
     return result
 
 
+def run_accuracy_degradation_sweep(model, args, resolutions, out_json, device,
+                                    seed=0, material="neo_hookean"):
+    """Runs evaluate_no_accuracy_at_n1401 at several N and saves one combined,
+    resumable JSON -- built 2026-09-12 because the single N=1401 result (640%
+    displacement error) is so far outside the zero-shot study's own validated
+    range (N<=49, 5-10% error) that it is reasonable to want independent
+    confirmation this is a genuine accuracy breakdown and not an isolated
+    fluke/bug, before trusting it. Running the SAME already-debugged pipeline
+    (same ground-truth solver, same convergence check, same QoI scoring) at
+    several resolutions IN BETWEEN N=49 and N=1401 either shows a smooth,
+    monotonic-ish degradation (the expected signature of an operator pushed
+    past its trained resolution range) or a suspicious discontinuity (which
+    would instead point at a remaining bug specific to N=1401) -- either way
+    this is real, direct evidence rather than another round of re-reading the
+    same single already-explained result.
+
+    Resumable like every other sweep in this project: writes progress after
+    every N, skips resolutions already present in out_json."""
+    import os
+
+    done = {}
+    if out_json and os.path.exists(out_json):
+        with open(out_json) as f:
+            done = {r["N"]: r for r in json.load(f).get("rows", [])}
+    rows = list(done.values())
+
+    for N in resolutions:
+        if N in done:
+            print(f"  N={N} already in {out_json}, skipping")
+            continue
+        print(f"\n=== N={N} ===")
+        rec = evaluate_no_accuracy_at_n1401(model, args, device, N=N, seed=seed,
+                                             material=material)
+        rows.append(rec)
+        rows.sort(key=lambda r: r["N"])
+        if out_json:
+            with open(out_json, "w") as f:
+                json.dump({"seed": seed, "material": material, "rows": rows}, f, indent=2)
+        gt_conv = rec["ground_truth_convergence"]
+        print(f"  N={N}: ground_truth converged_likely={gt_conv['converged_likely']} "
+              f"(relative_residual={gt_conv['relative_residual']:.3e}), "
+              f"fp32 disp_rel_L2={rec['fp32']['disp_rel_L2']:.4e}")
+    return rows
+
+
 if __name__ == "__main__":
     import argparse
 
@@ -238,6 +283,10 @@ if __name__ == "__main__":
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--material", default="neo_hookean")
     ap.add_argument("--N", type=int, default=1401)
+    ap.add_argument("--resolutions", type=str, default=None,
+                     help="comma-separated N values -- if given, runs the resumable "
+                          "multi-N sweep (run_accuracy_degradation_sweep) instead of "
+                          "the single --N evaluation")
     ap.add_argument("--out_json", default="no_accuracy_at_n1401.json")
     ap.add_argument("--cpu", action="store_true")
     cli = ap.parse_args()
@@ -257,9 +306,14 @@ if __name__ == "__main__":
     model = build_model(args, device).to(torch.float32)
     model.load_state_dict(torch.load(cli.checkpoint, map_location=device))
 
-    rec = evaluate_no_accuracy_at_n1401(model, args, device, N=cli.N, seed=cli.seed,
-                                         material=cli.material)
-    print(json.dumps(rec, indent=2))
-    with open(cli.out_json, "w") as f:
-        json.dump(rec, f, indent=2)
-    print("Saved:", cli.out_json)
+    if cli.resolutions:
+        resolutions = [int(n) for n in cli.resolutions.split(",") if n.strip()]
+        run_accuracy_degradation_sweep(model, args, resolutions, cli.out_json, device,
+                                        seed=cli.seed, material=cli.material)
+    else:
+        rec = evaluate_no_accuracy_at_n1401(model, args, device, N=cli.N, seed=cli.seed,
+                                             material=cli.material)
+        print(json.dumps(rec, indent=2))
+        with open(cli.out_json, "w") as f:
+            json.dump(rec, f, indent=2)
+        print("Saved:", cli.out_json)

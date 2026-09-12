@@ -1817,6 +1817,40 @@ NOTEBOOKS = {
          "zero-shot numbers at the matching N.\n",
          "* Resumable: skips any N already present in the output "
          "file.\n"]),
+    "Round6_NO_Accuracy_Degradation_Sweep.ipynb": (
+        "cell_no_accuracy_degradation_sweep.py",
+        ["# Does NO accuracy break down smoothly between N=49 and N=1401, "
+         "or is N=1401 an isolated fluke?\n",
+         "\n",
+         "Omar asked, reasonably, whether the N=1401 catastrophic result "
+         "(640% displacement error) might itself be wrong -- there is\n",
+         "real history in this project of results that looked genuine "
+         "turning out to be bugs (the float32/float64 mesh-mismatch bug\n",
+         "that produced a false \"non-convergence\" alarm across six "
+         "consecutive runs, found and fixed 2026-09-12). The ground-truth\n",
+         "solve at N=1401 is now independently confirmed correct "
+         "(relative_residual=1.030e-10, matching the in-loop step-10\n",
+         "diagnostic exactly) -- but that is still just ONE resolution.\n",
+         "\n",
+         "**What this does**: runs the exact same, already-debugged "
+         "pipeline (no code changes -- same ground-truth solver, same\n",
+         "convergence check, same QoI scoring) at N = 49, 101, 201, 401, "
+         "701, 1001, 1401. A smooth, monotonic-ish rise in error is the\n",
+         "expected signature of an operator pushed past its trained "
+         "resolution range (trained at N=21/33, validated to N=49); a\n",
+         "sudden discontinuity would instead point at a bug specific to "
+         "N=1401. Either way this is real, independent evidence.\n",
+         "\n",
+         "* **NEEDS A GPU.**\n",
+         "* **Cheap**: even the N=1401 ground-truth solve is fast with "
+         "the assembled+direct backend (58.54s single-shot, per\n",
+         "  `assembled_direct_convergence_production_N401_1401.json`); "
+         "every other N here is cheaper. Expect well under 30 minutes\n",
+         "  total.\n",
+         "* Resumable: skips any N already present in the output JSON.\n",
+         "* Saves a log-log figure of disp_rel_L2 vs. N, with the "
+         "training resolutions (21, 33) and the top of the validated\n",
+         "  zero-shot range (49) marked.\n"]),
 }
 
 

@@ -24,7 +24,40 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-12 (**Task #14's natural next step (accuracy-matched
+Last updated: 2026-09-12 (**Omar asked, reasonably, whether the N=1401
+catastrophic accuracy result (640% displacement error) might itself be
+wrong -- built an independent verification, NOT YET RUN on GPU.**
+The ground-truth solve at N=1401 is already confirmed correct on its own
+terms (relative_residual=1.030e-10, matches the in-loop step-10
+diagnostic exactly), and the crash/dtype/mesh-precision bugs found along
+the way are all fixed -- but a single N=1401 number is still one data
+point, and this project has real history of single "findings" that later
+turned out to be bugs (the mesh-precision one, found the same day). The
+right way to gain confidence without re-litigating the same number is to
+check whether the error rises SMOOTHLY between N=49 (known good, 5-10%)
+and N=1401 (640%) or jumps there suddenly (which would instead point at
+a bug specific to that one resolution).
+
+**Built**: `run_accuracy_degradation_sweep` (new function in
+`no_accuracy_at_n1401.py`, resumable, same pattern as every other sweep
+in this project) runs the EXACT SAME already-debugged pipeline (same
+ground-truth solver, same convergence check, same QoI scoring -- no
+code changes to the pipeline itself) at N = 49, 101, 201, 401, 701,
+1001, 1401. CPU-smoke-tested first with a random-init model at N=5/7/9
+(no crashes, resume-skip logic confirmed working) before writing the
+GPU notebook, per this project's standing discipline. New notebook
+`Round6_NO_Accuracy_Degradation_Sweep.ipynb` (cell:
+`cell_no_accuracy_degradation_sweep.py`), 69/69 notebooks verified
+building clean before push. **NOT YET RUN.** Expected cheap (well under
+30 min total -- even the N=1401 ground-truth solve alone is only 58.54s
+with the assembled+direct backend per the already-committed
+`assembled_direct_convergence_production_N401_1401.json`; every other N
+here is smaller/cheaper). Once run, a smooth rise in error with N
+confirms the N=1401 finding is real (the expected signature of an
+operator pushed past its trained range); any discontinuity instead means
+go back and debug that specific point before trusting it.
+
+Previous update, 2026-09-12 (**Task #14's natural next step (accuracy-matched
 FEM N) started -- notebook built and pushed, NOT YET RUN on GPU.**
 Found the two pieces of already-committed data needed to frame this
 properly, both WITHOUT spending new GPU time:
