@@ -24,7 +24,49 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-12 (**TASK #18 started: Summary cleanup, per
+Last updated: 2026-09-12 (**TASK #14 DONE -- FIRST REAL, TRUSTWORTHY
+RESULT for Timon's item 1, seventh real GPU run, after the mesh-precision
+bug fix.** `Ground-truth relative residual: 1.030e-10 (converged_likely=
+True)` -- matches the in-loop step-10 check exactly, confirming the
+ground truth genuinely converged and the fix works. This is the real,
+final answer:
+
+**The NO's own accuracy at N=1401 is catastrophically bad -- a real,
+confirmed finding, not a bug:**
+| QoI | fp32 relative error |
+|---|---|
+| displacement (disp_rel_L2) | 640% |
+| displacement (L2_rel) | 327% |
+| H1 semi-norm | 578% |
+| tangent energy | 632% |
+| PK1 stress (P_rel_L2) | 870,000% |
+| peak PK1 stress | a factor of ~3,437,311x off |
+
+bf16 is similarly (slightly worse) catastrophic -- not a meaningfully
+different verdict, since fp32 itself already fails completely here.
+
+**This is not surprising in hindsight, and was already flagged as a risk
+before Timon's round-10 email arrived**: N=1401 is 28x beyond the
+zero-shot resolution-invariance study's own validated range (up to
+N=49). The operator was never trained or validated anywhere near this
+resolution, and this result is the honest, now-confirmed consequence.
+Directly answers Timon's own framing: "the 10 times speed-up at N=1401
+is not yet an accuracy matched comparison" -- it still isn't, but now for
+a known, real reason (the NO has no accuracy at all there), not an
+open question.
+
+**Next, natural step (not yet started)**: find the coarsest FEM
+resolution whose own accuracy (same QoIs) is comparable to the NO's own
+KNOWN-GOOD accuracy at its actually-validated resolutions (e.g. the
+already-published Table 15-17 numbers, or the zero-shot study's own
+N<=49 range) -- this is literally what Timon asked for ("a fair
+comparison between ... our NO in relevant QoIs and norms versus a
+'suitable' GPU native (coarsest) FEM simulation which achieves a
+comparable or better accuracy"), and now has the real NO-side data point
+needed to reason about it (catastrophic at N=1401, known-good at N<=49).
+Task #17 (break-even) is downstream of this.
+
+Previous update, 2026-09-12 (**TASK #18 started: Summary cleanup, per
 Omar's own explicit go-ahead ("نظّف الي لازم يتنظف بشكل صحيح").** Timon's
 own complaint was that the Summary "contains later on still the old
 studies and results which is a bit confusing" -- one CONCRETE, already-
