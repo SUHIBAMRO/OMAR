@@ -1,31 +1,39 @@
 # =====================================================================
-#  CELL -- does the NO's accuracy break down SMOOTHLY between N=49 (known
-#  good, 5-10% error) and N=1401 (catastrophic, 640% error), or is the
-#  N=1401 result an isolated, suspicious one-off?
+#  CELL -- full NO accuracy sweep (real ground truth, all QoIs) across
+#  every resolution that matters for Timon round-10 item 1: the exact
+#  same N torch-fem was just measured at (13-49), PLUS enough
+#  intermediate/large points (101-1401) to see how the NO's own accuracy
+#  degrades on the way to the already-known catastrophic result at
+#  N=1401 (640% displacement error).
 #
-#  WHY THIS EXISTS: Omar asked, reasonably, whether the N=1401 result
+#  WHY THIS EXISTS (two purposes merged into one sweep, both raised
+#  2026-09-12): (1) Omar asked, reasonably, whether the N=1401 result
 #  might itself be wrong -- there is real history in this project of
 #  results that looked like genuine findings turning out to be bugs (the
 #  float32/float64 mesh-mismatch bug that produced a false
 #  "non-convergence" alarm across six consecutive runs, found and fixed
-#  2026-09-12). The single N=1401 number, however trustworthy the
-#  ground-truth solve itself now is (relative_residual=1.030e-10,
-#  converged_likely=True, matching the in-loop step-10 diagnostic
-#  exactly), is still just ONE data point. This cell runs the EXACT SAME,
-#  already-debugged pipeline (no code changes, same ground-truth solver,
-#  same convergence check, same QoI scoring) at several resolutions IN
-#  BETWEEN N=49 and N=1401. A smooth, monotonic-ish rise in error is the
-#  expected signature of an operator being pushed past its trained
-#  resolution range -- real, independent evidence, not a re-explanation
-#  of the same single number.
+#  the same day). Running the SAME already-debugged pipeline at several
+#  resolutions in between N=49 and N=1401 shows whether the error rises
+#  smoothly (expected if the operator is genuinely being pushed past its
+#  trained range) or jumps suspiciously (which would instead point at a
+#  bug specific to N=1401). (2) The real point of Timon's item 1 needs
+#  the NO's own accuracy, in the SAME QoI set FEM was already checked in
+#  (L2, H1, energy, PK1 stress, reaction), at the SAME resolutions
+#  torch-fem was just measured at (torchfem_convergence_vs_fine_
+#  reference.json, N=13..49) -- the existing zero-shot study
+#  (point7a_results/zeroshot_B1_neo_hookean.json) only ever measured
+#  plain L2 against a fixed N=101 reference, never the full QoI set
+#  against each N's own real converged ground truth. This sweep is what
+#  makes the direct "at this N, NO gets X% error; what's the coarsest
+#  FEM N that also gets <=X%?" table possible.
 #
 #  COST: cheap. The ground-truth solver (assembled+direct) is fast even
 #  at N=1401 (see assembled_direct_convergence_production_N401_1401.json:
 #  58.54s wall-clock for a SINGLE-shot solve there; this cell's nsteps=10
 #  load-stepping costs some multiple of that, still on the order of a
-#  few minutes at the largest N tested here). All intermediate N below
-#  are far cheaper than N=1401. Expect the whole sweep well under 30
-#  minutes on a real GPU.
+#  few minutes at the largest N tested here). All the small/intermediate
+#  N below are far cheaper than N=1401. Expect the whole sweep (16
+#  resolutions) well under an hour on a real GPU, likely much less.
 #
 #  RESUMABLE: run_accuracy_degradation_sweep skips any N already present
 #  in its output JSON.
@@ -107,17 +115,26 @@ model = build_model(args, device).to(torch.float32)
 model.load_state_dict(torch.load(CKPT, map_location=device))
 print('Checkpoint loaded, cast to float32.')
 
-# N=49 is the top of the zero-shot study's own validated range (known
-# good, 5-10% error); N=1401 is the already-measured catastrophic point.
-# These fill in between, at increasing distance past the trained
-# resolutions (21, 33).
-RESOLUTIONS = [49, 101, 201, 401, 701, 1001, 1401]
+# Widened 2026-09-12 (Omar's own instruction, matching a second-opinion
+# review's plan): every resolution the NO's own zero-shot study tested
+# (13-49, so this sweep's numbers are directly comparable to the SAME
+# resolutions torch-fem was just measured at in
+# torchfem_convergence_vs_fine_reference.json -- needed to actually find
+# the coarsest FEM N matching the NO's accuracy, not just confirm the
+# N=1401 finding), PLUS the intermediate/large points already used to
+# check the N=1401 result isn't an isolated fluke. Every one of these
+# runs through the EXACT SAME already-debugged pipeline as N=1401 (real
+# converged ground truth, same QoI set: L2, H1, energy, PK1 stress,
+# reaction) -- not the older zero-shot study's own L2-only numbers
+# (which used a fixed N=101 reference rather than each N's own exact
+# solution, and never measured H1/energy/stress/reaction at all).
+RESOLUTIONS = [13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 101, 201, 401, 701, 1001, 1401]
 
 OUT_JSON = f'{R}/no_accuracy_degradation_sweep.json'
 rows = run_accuracy_degradation_sweep(model, args, RESOLUTIONS, OUT_JSON, device)
 
 print('\n' + '=' * 70)
-print('RESULT -- NO accuracy vs. N, N=49..1401 (real ground truth at every point)')
+print('RESULT -- NO accuracy vs. N, N=13..1401 (real ground truth at every point)')
 print('=' * 70)
 print(f"{'N':<8}{'converged_likely':<20}{'disp_rel_L2':<16}{'L2_rel':<14}{'H1_semi_rel':<14}")
 for r in rows:
@@ -135,6 +152,35 @@ else:
           'NO-vs-real-FEM comparison.')
 
 print(json.dumps(rows, indent=2))
+
+# ---- Direct crossover against the already-measured torch-fem low-N sweep ----
+# L2_rel here (from compute_l2_h1_errors_cross_order, same function torch-fem's
+# own convergence study uses) is the SAME metric definition as torch-fem's
+# l2_rel -- unlike disp_rel_L2 (a simpler RMS metric), so this is the field to
+# use for a like-for-like crossover, not disp_rel_L2.
+FEM_JSON = f'{REPO}/Practical_Examples/omar_pfem/torchfem_convergence_vs_fine_reference.json'
+if os.path.exists(FEM_JSON):
+    with open(FEM_JSON) as f:
+        fem_rows = sorted([r for r in json.load(f)['rows'] if r.get('l2_rel') is not None],
+                           key=lambda r: r['N'])
+    print('\n' + '=' * 70)
+    print('CROSSOVER -- for each NO resolution, the coarsest torch-fem N tested here')
+    print('that already matches or beats the NO\'s own L2_rel error at that N')
+    print('=' * 70)
+    for r in rows:
+        no_l2 = r['fp32']['L2_rel']
+        match = next((fr for fr in fem_rows if fr['l2_rel'] <= no_l2), None)
+        if match:
+            print(f"  NO at N={r['N']:<6} L2_rel={no_l2:.4e}  ->  torch-fem already matches "
+                  f"at N={match['N']} (l2_rel={match['l2_rel']:.4e}, "
+                  f"wall_clock={match['torchfem_wall_clock_s']:.2f}s)")
+        else:
+            print(f"  NO at N={r['N']:<6} L2_rel={no_l2:.4e}  ->  no torch-fem point in this "
+                  f"sweep is coarse enough to match (need N<{fem_rows[0]['N']} -- extend the "
+                  f"torch-fem sweep coarser if this matters)")
+else:
+    print(f"\n(torch-fem comparison file not found at {FEM_JSON} -- run the low-N torch-fem "
+          f"sweep notebook first for the crossover table)")
 
 # ---- Figure: error vs. N, log-log, with the training resolutions marked ----
 import matplotlib

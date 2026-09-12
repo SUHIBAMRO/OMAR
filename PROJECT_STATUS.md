@@ -24,7 +24,43 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
-Last updated: 2026-09-12 (**REAL GPU RESULT (A100) for the accuracy-matched
+Last updated: 2026-09-12 (**Plan clarified/corrected for Timon round-10
+item 1 (Omar relayed a second-opinion review, which was right): the
+low-N torch-fem sweep is only HALF of what's needed.** The other half --
+the NO's own accuracy, in the SAME QoI set (L2, H1, energy, PK1 stress,
+reaction), at the SAME resolutions torch-fem was just measured at
+(N=13-49) -- did not exist yet; the only prior NO accuracy numbers at
+small N were the older zero-shot study's plain-L2-only numbers against a
+fixed N=101 reference (not the same rigorous per-N real-ground-truth
+methodology already used for N=1401).
+
+**Fixed**: widened `Round6_NO_Accuracy_Degradation_Sweep.ipynb` (cell:
+`cell_no_accuracy_degradation_sweep.py`) from N=[49,101,...,1401] to
+N=[13,17,21,25,29,33,37,41,45,49,101,201,401,701,1001,1401] -- the exact
+same already-debugged pipeline (`run_accuracy_degradation_sweep`, no
+code changes) at every resolution that matters. Also added a direct
+crossover print block: for each NO resolution, finds the coarsest
+torch-fem N (from the already-committed `torchfem_convergence_vs_fine_
+reference.json`) whose l2_rel already matches or beats the NO's own
+L2_rel there -- this IS the "coarsest suitable FEM" table Timon's item 1
+actually asked for, computed directly instead of eyeballing two separate
+tables. 69/69 notebooks verified building clean before push. **NOT YET
+RUN** -- this is now the single next step, expected well under an hour
+(likely much less, since every N here is far cheaper than N=1401's own
+58.54s single-shot solve).
+
+**On Omar's own question of whether to also try to fix/retrain the NO
+for large N (a second-opinion review's suggested step 3, contingent on
+this sweep confirming N=1401 stays bad)**: NOT started, and deliberately
+not queued yet. This would be a large, open-ended undertaking (real
+multi-resolution/progressive training, new GPU-hours at real risk of not
+succeeding) well beyond what Timon's email asked for, and beyond what
+this project has already agreed to (see the "correctness first" decision
+just below). The right time to decide this is after the sweep above
+lands and the actual crossover table is real, not preemptively -- ask
+Omar explicitly once that data exists.
+
+Previous update, 2026-09-12 (**REAL GPU RESULT (A100) for the accuracy-matched
 FEM resolution, Timon round-10 item 1 -- a striking, honest finding: FEM
 beats the NO's accuracy at EVERY resolution the NO was ever tested at,
 even at the coarsest FEM mesh originally planned.**
