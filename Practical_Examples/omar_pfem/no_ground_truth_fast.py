@@ -116,11 +116,20 @@ def _correctness_check(N=11, material="neo_hookean", seed=0, verbose=False):
     rel_diff = np.linalg.norm(u_fast - u_ref_flat) / np.linalg.norm(u_ref_flat)
     print(f"N={N}: reference (slow CPU) {t_ref:.2f}s, fast path (on CPU here) {t_fast:.2f}s, "
           f"relative displacement difference {rel_diff:.3e}")
-    return rel_diff
+    return {
+        "N": N, "material": material, "seed": seed,
+        "t_reference_slow_cpu_s": t_ref, "t_fast_path_on_cpu_s": t_fast,
+        "relative_displacement_difference": rel_diff,
+    }
 
 
 if __name__ == "__main__":
+    import json
     import sys
 
-    N = int(sys.argv[1]) if len(sys.argv) > 1 else 11
-    _correctness_check(N)
+    Ns = [int(x) for x in sys.argv[1:]] if len(sys.argv) > 1 else [11, 21]
+    results = [_correctness_check(N) for N in Ns]
+    out_path = "omar_pfem/no_ground_truth_fast_correctness.json"
+    with open(out_path, "w") as f:
+        json.dump({"checks": results}, f, indent=2)
+    print("Saved:", out_path)

@@ -1625,6 +1625,35 @@ NOTEBOOKS = {
          "-- update it if the assert fails.\n",
          "* Saves the full profiler table to a separate `.txt` file "
          "(too wide for JSON) alongside the numeric results JSON.\n"]),
+    "Round6_NO_Accuracy_N1401.ipynb": (
+        "cell_no_accuracy_at_n1401.py",
+        ["# NO accuracy at N=1401 (Timon round-10, item 1)\n",
+         "\n",
+         "Timon: \"the NO accuracy at N=1401 itself, including these QoIs "
+         "has not been checked. So the 10 times speed-up at N=1401 is\n",
+         "not yet an accuracy matched comparison.\"\n",
+         "\n",
+         "First real FEM ground truth at N=1401 for this checkpoint -- "
+         "previously blocked by the slow CPU reference solver (\"would\n",
+         "cost hours\"). Unblocked by `omar_pfem/no_ground_truth_fast.py` "
+         "(CPU-verified against that slow reference: N=11 relative\n",
+         "displacement difference 3.9e-12, N=21 6.7e-12 -- see `omar_pfem/"
+         "no_ground_truth_fast_correctness.json`).\n",
+         "\n",
+         "Computes the SAME QoIs already used for Table 15-17 (displacement "
+         "L2, H1 semi-norm, tangent-energy norm, PK1 stress, reaction\n",
+         "forces), reusing `physical_quantities_eval.py`'s own machinery "
+         "unchanged, applied here to NO-vs-FEM instead of FEM-vs-FEM.\n",
+         "\n",
+         "* **NEEDS A GPU.**\n",
+         "* Plumbing already smoke-tested with a random-init model at "
+         "N=21 on CPU (no crashes/shape errors) -- this cell is the first\n",
+         "  run against the REAL checkpoint at the REAL N=1401.\n",
+         "* Does NOT yet find the coarsest FEM N with comparable accuracy "
+         "(Timon's actual accuracy-matched-comparison ask) -- that is\n",
+         "  the next step once this cell's own numbers are in.\n",
+         "* Checkpoint path is guessed (`CKPT` near the top of the cell) "
+         "-- update it if the assert fails.\n"]),
     "Round6_TorchFEM_Tolerance_Sensitivity.ipynb": (
         "cell_torchfem_tolerance_sensitivity.py",
         ["# torch-fem tolerance sensitivity: 1e-6/1e-7 vs. 1e-8 "
