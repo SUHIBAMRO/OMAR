@@ -91,6 +91,23 @@ finishes or a new one starts.
 > correctly (needs the checkpoint path it actually used double-checked,
 > not just assumed correct because the numbers looked sane).
 >
+> **Second real incident caught mid-run, same day**: the corrected-
+> checkpoint re-run of the widened accuracy sweep resolved the RIGHT
+> checkpoint (`zeroshot_B1_neo_hookean/model_best.pt`, fingerprint
+> confirmed matching) -- but then silently skipped N=13..1001 as
+> "already in {out_json}" because the OLD wrong-checkpoint run's rows
+> were still sitting in the same Drive JSON, which would have produced a
+> file MIXING stale wrong-model rows with one freshly-correct N=1401
+> row. Fixed properly (not by asking Omar to manually delete a Drive
+> file): `run_accuracy_degradation_sweep` now takes a
+> `checkpoint_fingerprint` parameter, stores it in out_json, and on
+> resume discards EVERY existing row automatically if the stored
+> fingerprint doesn't match the checkpoint now loaded (or is absent).
+> Unit-tested locally (three scenarios: fresh run, fingerprint-mismatch
+> discard, same-fingerprint correct skip) before pushing.
+> `cell_no_accuracy_degradation_sweep.py` now passes the resolved
+> fingerprint through. 69/69 notebooks re-verified.
+>
 > **Do not remove this reminder until the corrected-checkpoint re-run
 > has produced a real, trustworthy N=1401 (and matched low-N) accuracy
 > number and it has replaced every stale reference to "640% error"

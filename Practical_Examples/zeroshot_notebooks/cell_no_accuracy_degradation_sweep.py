@@ -141,7 +141,14 @@ print('Checkpoint loaded, cast to float32.')
 RESOLUTIONS = [13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 101, 201, 401, 701, 1001, 1401]
 
 OUT_JSON = f'{R}/no_accuracy_degradation_sweep.json'
-rows = run_accuracy_degradation_sweep(model, args, RESOLUTIONS, OUT_JSON, device)
+# checkpoint_fingerprint pinned to the resolved checkpoint's own hash: an
+# earlier run of this exact sweep silently mixed rows from the WRONG
+# checkpoint (see the checkpoint-resolution comment above) with a plain
+# resume-by-N. Passing the fingerprint here makes run_accuracy_degradation_
+# sweep detect that mismatch itself and discard every stale row instead of
+# keeping them -- no manual Drive cleanup needed.
+rows = run_accuracy_degradation_sweep(model, args, RESOLUTIONS, OUT_JSON, device,
+                                       checkpoint_fingerprint=_ckpt_fp)
 
 print('\n' + '=' * 70)
 print('RESULT -- NO accuracy vs. N, N=13..1401 (real ground truth at every point)')

@@ -229,7 +229,7 @@ def evaluate_no_accuracy_at_n1401(model, args, device, N=1401, seed=0,
 
 
 def run_accuracy_degradation_sweep(model, args, resolutions, out_json, device,
-                                    seed=0, material="neo_hookean"):
+                                    seed=0, material="neo_hookean", checkpoint_fingerprint=None):
     """Runs evaluate_no_accuracy_at_n1401 at several N and saves one combined,
     resumable JSON -- built 2026-09-12 because the single N=1401 result (640%
     displacement error) is so far outside the zero-shot study's own validated
@@ -244,14 +244,39 @@ def run_accuracy_degradation_sweep(model, args, resolutions, out_json, device,
     this is real, direct evidence rather than another round of re-reading the
     same single already-explained result.
 
+    checkpoint_fingerprint: pass the sha256 of the checkpoint actually loaded
+    into `model` (e.g. from resolve_b1_checkpoint.py). Stored in out_json;
+    on resume, if out_json's own stored fingerprint does not match, EVERY
+    existing row is discarded and recomputed from scratch instead of being
+    silently kept. This exists because of a real incident (2026-09-12): a
+    checkpoint-path bug caused an earlier run of this exact sweep to
+    evaluate a completely different (wrong) model, and a plain resume-by-N
+    would otherwise have silently mixed those stale, wrong rows with newly
+    computed correct ones in the same file. Pass None to skip this check
+    (not recommended once a fingerprint is available).
+
     Resumable like every other sweep in this project: writes progress after
-    every N, skips resolutions already present in out_json."""
+    every N, skips resolutions already present in out_json (unless the
+    fingerprint check above discards them first)."""
     import os
 
     done = {}
     if out_json and os.path.exists(out_json):
         with open(out_json) as f:
-            done = {r["N"]: r for r in json.load(f).get("rows", [])}
+            prev = json.load(f)
+        prev_fp = prev.get("checkpoint_fingerprint")
+        if checkpoint_fingerprint is not None and prev_fp is not None and prev_fp != checkpoint_fingerprint:
+            print(f"*** {out_json} was computed with a DIFFERENT checkpoint "
+                  f"(fingerprint {prev_fp}) than the one loaded now "
+                  f"({checkpoint_fingerprint}) -- discarding all {len(prev.get('rows', []))} "
+                  f"existing row(s) and recomputing every resolution from scratch. "
+                  f"This is the fix for a real incident where a wrong-checkpoint bug's stale "
+                  f"results would otherwise have been silently kept. ***")
+        elif checkpoint_fingerprint is not None and prev_fp is None:
+            print(f"*** {out_json} has rows with no recorded checkpoint fingerprint (predates "
+                  f"this safety check) -- discarding and recomputing from scratch to be safe. ***")
+        else:
+            done = {r["N"]: r for r in prev.get("rows", [])}
     rows = list(done.values())
 
     for N in resolutions:
@@ -265,7 +290,9 @@ def run_accuracy_degradation_sweep(model, args, resolutions, out_json, device,
         rows.sort(key=lambda r: r["N"])
         if out_json:
             with open(out_json, "w") as f:
-                json.dump({"seed": seed, "material": material, "rows": rows}, f, indent=2)
+                json.dump({"seed": seed, "material": material,
+                           "checkpoint_fingerprint": checkpoint_fingerprint, "rows": rows},
+                          f, indent=2)
         gt_conv = rec["ground_truth_convergence"]
         print(f"  N={N}: ground_truth converged_likely={gt_conv['converged_likely']} "
               f"(relative_residual={gt_conv['relative_residual']:.3e}), "
