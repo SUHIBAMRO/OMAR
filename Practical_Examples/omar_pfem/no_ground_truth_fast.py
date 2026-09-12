@@ -86,11 +86,23 @@ def solve_b1_fast_gpu(N, seed, material, device, dtype, Lx=1.0, Ly=1.0, order="Q
     fext_full = assemble_traction_top_generic(nodes, elements, Ly, ty_fn, order)
     mu, lam = precompute_element_params_B1(nodes, elements, E_fn, nu_fn, material)
 
-    u_full_t = solve_assembled_direct(
-        nodes, elements, free_dofs, fext_full, mu, lam,
-        dtype=dtype, material=material, order=order, device=device,
-        **solve_kwargs,
-    )
+    # solve_assembled_direct calls torch.set_default_dtype(dtype) internally and never
+    # restores it -- harmless in isolation, but a real bug for any caller (like the
+    # N=1401 accuracy pipeline) that runs an fp32 NO forward pass in the SAME process
+    # afterward: new tensors created without an explicit dtype elsewhere (e.g. inside
+    # the model's own input-normalization helper) silently become float64, causing a
+    # "mat1 and mat2 must have the same dtype" crash in the model's own first Linear
+    # layer. Save/restore the global default here rather than patching the shared
+    # solver file, since this is the only call site that combines the two.
+    _prev_default_dtype = torch.get_default_dtype()
+    try:
+        u_full_t = solve_assembled_direct(
+            nodes, elements, free_dofs, fext_full, mu, lam,
+            dtype=dtype, material=material, order=order, device=device,
+            **solve_kwargs,
+        )
+    finally:
+        torch.set_default_dtype(_prev_default_dtype)
 
     if torch.is_tensor(u_full_t):
         u_full = u_full_t.detach().cpu().numpy()

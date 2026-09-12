@@ -117,9 +117,19 @@ Python per-element assembly is the bottleneck at this element count, not
 the physics) to confirm the trend continues before treating this as
 settled.
 
-**Not yet done**: confirming the 4th resolution point, then (much
-larger scope) building the training-data generator for B7, training a
-new Transolver checkpoint on it, and running the same NO-vs-FEM
+**4th resolution CONFIRMED the trend (97x49, 4,608 elements)**: peak PK1
+stress 13.9372 (still rising, +3.7% from the previous resolution) while
+max displacement is essentially flat (0.008478, +0.27%). The RATIO
+between peak-stress change and displacement change actually WIDENS as
+resolution increases (3.7x -> 6.7x -> 13.7x across the three consecutive
+refinements), which is the specific signature of a genuine local
+concentration effect (slow local convergence next to a fast global one),
+not merely "a smooth quantity that happens to converge slower." Saved to
+`omar_pfem/b7_notch_stress_concentration_check.json`. The physical case
+for B7 is now solid, real evidence, not a hunch.
+
+**Not yet done**: building the training-data generator for B7, training
+a new Transolver checkpoint on it, and running the same NO-vs-FEM
 accuracy/speed comparison already done for B1/B2 -- tracked as the next
 phase of task #16, realistically days of combined dev+GPU-training time,
 not a single-session addition.
@@ -191,6 +201,53 @@ that iteration budget, and neither `solve_assembled_direct` itself nor
 `A.nonlinear_solve` (`verbose=False`, hardcoded, no residual exposed to
 the caller) would report that failure -- it just returns whatever state
 it stopped at.
+
+**Second real GPU run (2026-09-12) confirmed the hypothesis directly,
+then hit a NEW, different bug.** `check_convergence` reported, for real,
+at N=1401: **relative residual 2.612e-03, `converged_likely=False`** --
+confirming the ground truth genuinely did not converge, exactly the
+diagnosis suspected from the implausible QoI numbers. The run then
+crashed one line later with `RuntimeError: mat1 and mat2 must have the
+same dtype, but got Float and Double`, inside the NO's own first Linear
+layer (`Transolver_Irregular_Mesh.py`'s `linear_pre`).
+
+**Root cause found and fixed**: `assembled_direct_solver.solve_assembled_
+direct` calls `torch.set_default_dtype(dtype)` internally and never
+restores it -- harmless in every PREVIOUS use of that function (a
+standalone FEM-only benchmark script, never followed by an NO forward
+pass in the same process), but this accuracy pipeline is the first
+caller to run an fp32 NO forward pass in the SAME process afterward:
+some tensor created without an explicit dtype elsewhere downstream (most
+likely inside the model's own input-normalization or positional-encoding
+path) silently became float64 from the leaked global default, then
+`torch.cat` with an explicit-fp32 tensor upcast the result, crashing in
+the first Linear layer. Fixed at the one call site that combines both
+(`no_ground_truth_fast.solve_b1_fast_gpu`): save `torch.get_default_
+dtype()` before calling `solve_assembled_direct`, restore it in a
+`finally` block regardless of outcome -- rather than patching the shared,
+already-verified solver file itself. Re-smoke-tested on CPU: confirmed
+the default dtype is `torch.float32` again immediately after the call
+completes (previously it silently stayed `torch.float64` for the rest of
+the process). NOTE: this specific crash was not reproducible on CPU (the
+CPU smoke tests never hit it) -- the fix removes a definite, real bug
+either way, but is not yet CONFIRMED as the fix for this exact CUDA
+crash; the next GPU run is the real test.
+
+**Also addressed the actual non-convergence, not just detecting it**:
+tightened the ground-truth solve's own `tol`/`max_iter` from
+`solve_assembled_direct`'s defaults (1e-8, 30) to (1e-10, 60) in
+`no_accuracy_at_n1401.py`'s own call. Reasoning, not a guess: the slow
+reference solver and `solve_matrix_free` both use 10-step incremental
+loading, so their own "1e-8 absolute residual" criterion is checked
+against only 1/10th of the full force each step -- a much tighter
+RELATIVE bar than the SAME absolute number checked once against the
+FULL force in a single shot, which is what `solve_assembled_direct` does
+here (it has no warm-start/load-stepping option). A much tighter
+absolute tolerance, with more iteration budget to actually reach it,
+compensates directly. Re-smoke-tested on CPU (still converges cleanly at
+N=21, relative residual 3.976e-06, unchanged from before). **Not yet
+confirmed at N=1401** -- the next GPU run will show, via the same
+`check_convergence` diagnostic, whether this closes the gap.
 
 **Added `omar_pfem.no_ground_truth_fast.check_convergence`**: an
 independent, post-hoc residual check (reimplements the same

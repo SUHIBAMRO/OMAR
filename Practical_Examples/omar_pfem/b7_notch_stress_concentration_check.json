@@ -1,0 +1,48 @@
+{
+  "geometry": "B7_ring_notch",
+  "material": "neo_hookean",
+  "R_in_base": 1.0,
+  "R_out": 2.0,
+  "notch_depth": 0.3,
+  "notch_width": 0.15,
+  "rows": [
+    {
+      "Ntheta": 13,
+      "Nr": 7,
+      "n_elements": 72,
+      "peak_pk1_stress": 11.702292818737948,
+      "max_abs_displacement": 0.008192563212277654
+    },
+    {
+      "Ntheta": 25,
+      "Nr": 13,
+      "n_elements": 288,
+      "peak_pk1_stress": 12.721046850541855,
+      "max_abs_displacement": 0.008384045792039019
+    },
+    {
+      "Ntheta": 49,
+      "Nr": 25,
+      "n_elements": 1152,
+      "peak_pk1_stress": 13.445658527977438,
+      "max_abs_displacement": 0.00845511710965175
+    },
+    {
+      "Ntheta": 97,
+      "Nr": 49,
+      "n_elements": 4608,
+      "peak_pk1_stress": 13.93718294540077,
+      "max_abs_displacement": 0.008477691228385683
+    }
+  ],
+  "peak_stress_relative_change_between_resolutions": [
+    0.08705593404504944,
+    0.056961638923978784,
+    0.036556366235285395
+  ],
+  "max_displacement_relative_change_between_resolutions": [
+    0.02337273143946001,
+    0.008476971545195423,
+    0.002669876530528989
+  ]
+}
