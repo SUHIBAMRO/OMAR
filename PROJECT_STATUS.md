@@ -254,6 +254,42 @@ confirmed it correctly restores) the one known leak in
 dtype-leak hypothesis for THIS crash is now considered wrong, not
 confirmed** -- something else is creating the float64 tensor.
 
+**Fourth real GPU run (2026-09-12): the dtype diagnostic printed
+`default_dtype=torch.float32` and every input float32, yet the SAME crash
+happened anyway** -- the leak-based hypothesis is now conclusively ruled
+out (nothing in that printout was float64). Investigated the model's own
+forward code directly (`Transolver_Irregular_Mesh.py`) instead of
+guessing again: `unified_pos=0` means `get_grid` never runs, so the only
+two things concatenated at the crash site are exactly `xy_domain` and
+`fun_material` -- both already confirmed float32 by the earlier
+diagnostic. Cross-checked against `physical_quantities_eval.py`, the
+ALREADY-ESTABLISHED, working reference for this exact checkpoint and
+this exact `total_potential_energy_Q4_hyperelastic` call: that file
+builds the model as `build_model(args, device).to(torch.float32)`, one
+step neither `no_accuracy_at_n1401.py` nor the notebook cell ever had.
+Reasoning: `Module.load_state_dict`'s underlying `Tensor.copy_` casts an
+incoming checkpoint value to the DESTINATION parameter's existing dtype,
+so if the checkpoint file itself stores some parameter as float64,
+casting the freshly-built model to float32 BEFORE loading (not after) is
+what actually protects against it landing as float64 -- while
+`next(model.parameters()).dtype` only samples ONE parameter and is not
+proof every parameter is float32.
+
+**Added `.to(torch.float32)` right after `build_model(...)`, before
+`load_state_dict`, in both `no_accuracy_at_n1401.py`'s own CLI and the
+notebook cell** -- matching the established, working pattern exactly.
+**Also replaced the earlier single-parameter dtype check with a
+comprehensive one**: iterates every named parameter AND buffer for a
+non-float32 floating dtype, and separately prints `model.preprocess.
+linear_pre[0].weight.dtype` directly (the exact layer the traceback
+names), so if this still crashes, the next run will show with certainty
+which specific tensor is at fault rather than another guess. Re-smoke-
+tested on CPU: all-clean (`non_fp32_params=NONE non_fp32_buffers=NONE`).
+Rebuilt the notebook, 67/67 OK. Genuinely not certain this is the fix --
+three prior attempts were not -- but it is the first one backed by a
+DIRECTLY COMPARABLE, already-working reference file doing something this
+code was missing, not a hypothesis invented from first principles.
+
 **Added a diagnostic print right before the model call** (`omar_pfem/
 no_accuracy_at_n1401.py`): prints `xy`/`E_b`/`nu_b`/`f_b` dtypes, the
 current global default dtype, the model's own parameter dtype, and

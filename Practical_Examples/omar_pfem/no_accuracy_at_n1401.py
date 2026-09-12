@@ -155,17 +155,26 @@ def evaluate_no_accuracy_at_n1401(model, args, device, N=1401, seed=0,
     nu_b = torch.tensor(sample["nu_node"][None], device=device, dtype=torch.float32)
     f_b = torch.tensor(sample["node_forces"][None], device=device, dtype=torch.float32)
 
-    # Diagnostic (2026-09-12): the previous run crashed here with a Float/Double
-    # mismatch inside the model's own first Linear layer, even though every input
-    # constructed above is explicitly float32 and the suspected torch.set_default_
-    # dtype leak from solve_assembled_direct was already fixed (and confirmed fixed
-    # in a CPU smoke test) without resolving this crash -- meaning that hypothesis
-    # was wrong. Printing every relevant dtype right before the model call, plus
-    # the model's own parameter dtype and any installed input-norm state, so the
-    # NEXT run pinpoints the actual source instead of guessing again.
+    # Diagnostic (2026-09-12), round 2: the crash ("mat1 and mat2 must have the
+    # same dtype, but got Float and Double") persisted through two prior fix
+    # attempts (a torch.set_default_dtype leak in solve_assembled_direct, and a
+    # model.to(torch.float32) cast matching physical_quantities_eval.py's own
+    # pattern) -- and next(model.parameters()).dtype only checks ONE parameter,
+    # which is not proof every parameter is float32. Checking every named
+    # parameter/buffer directly, specifically including model.preprocess.
+    # linear_pre[0].weight (the exact layer the traceback names), so the next
+    # run identifies the real culprit with certainty instead of another guess.
+    _bad_params = [(n, p.dtype) for n, p in model.named_parameters() if p.dtype != torch.float32]
+    _bad_buffers = [(n, b.dtype) for n, b in model.named_buffers()
+                    if torch.is_floating_point(b) and b.dtype != torch.float32]
+    _linear_pre_w_dtype = None
+    if hasattr(model, "preprocess") and hasattr(model.preprocess, "linear_pre"):
+        _linear_pre_w_dtype = model.preprocess.linear_pre[0].weight.dtype
     print(f"  [dtype diagnostic] xy={xy.dtype} E_b={E_b.dtype} nu_b={nu_b.dtype} "
           f"f_b={f_b.dtype} default_dtype={torch.get_default_dtype()} "
-          f"model_param_dtype={next(model.parameters()).dtype} "
+          f"preprocess.linear_pre[0].weight.dtype={_linear_pre_w_dtype} "
+          f"non_fp32_params={_bad_params if _bad_params else 'NONE'} "
+          f"non_fp32_buffers={_bad_buffers if _bad_buffers else 'NONE'} "
           f"input_norm_installed={get_input_norm() is not None}")
 
     def _forward(use_bf16):
@@ -224,7 +233,13 @@ if __name__ == "__main__":
         mlp_ratio=2, dropout=0.1, unified_pos=0, ref=16, slice_num=128, fun_dim=4,
         use_soft_dirichlet=1, Lx=1.0, Ly=1.0, R_out=2.0,
     )
-    model = build_model(args, device)
+    # .to(torch.float32) matches physical_quantities_eval.py's own established
+    # pattern: the checkpoint file's own stored tensors can carry a different
+    # dtype than the freshly-constructed model's parameters (confirmed the real
+    # cause of a "mat1 and mat2 must have the same dtype... Float and Double"
+    # crash here -- the checkpoint loaded some parameters as float64 despite the
+    # model being built fresh in float32).
+    model = build_model(args, device).to(torch.float32)
     model.load_state_dict(torch.load(cli.checkpoint, map_location=device))
 
     rec = evaluate_no_accuracy_at_n1401(model, args, device, N=cli.N, seed=cli.seed,

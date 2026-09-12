@@ -98,9 +98,16 @@ args = argparse.Namespace(
     mlp_ratio=2, dropout=0.1, unified_pos=0, ref=16, slice_num=128, fun_dim=4,
     use_soft_dirichlet=1, Lx=1.0, Ly=1.0, R_out=2.0,
 )
-model = build_model(args, device)
+# .to(torch.float32) matches physical_quantities_eval.py's own established
+# pattern -- confirmed the real, root cause of the "mat1 and mat2 must have the
+# same dtype... Float and Double" crash from the previous 3 runs: the checkpoint
+# file itself stores some parameters as float64, and load_state_dict's in-place
+# copy_() casts the incoming checkpoint values to whatever dtype the model's OWN
+# parameters already are -- so this cast must happen BEFORE load_state_dict, not
+# after, for it to have any effect.
+model = build_model(args, device).to(torch.float32)
 model.load_state_dict(torch.load(CKPT, map_location=device))
-print('Checkpoint loaded.')
+print('Checkpoint loaded, cast to float32.')
 
 N_TEST = 1401
 rec = evaluate_no_accuracy_at_n1401(model, args, device, N=N_TEST, seed=0,
