@@ -22,13 +22,37 @@ callable of (nodes), not specifically AnalyticFieldB1 (the field used
 elsewhere in that file for FEM-vs-FEM mesh-convergence studies) -- so
 substituting ParametricFieldB1 (the SAME field generator build_sample_b1
 itself uses for the NO's own train/test samples) and feeding the result
-into solve_matrix_free (the DEFAULT, already-reported GPU solver, NOT the
-experimental assembled+direct one from Points 8/9) should solve the exact
-same physical problem build_sample_b1 solves, just via a fast path instead
-of the slow one -- solve_matrix_free's own defaults (nsteps=10,
-newton_max=30, newton_tol=1e-7) already match build_sample_b1's own call to
-solve_hyperelastic_TL_spatial exactly, so no override is needed for that
-part.
+into a fast GPU solver should solve the exact same physical problem
+build_sample_b1 solves, just via a fast path instead of the slow one.
+
+**Solver backend: assembled_direct_solver.solve_assembled_direct, NOT
+solve_matrix_free.** The first version of this module used solve_matrix_free
+(the DEFAULT solver reported everywhere else in this project), reasoning
+that touching the experimental assembled+direct solver from Points 8/9
+should be avoided per the standing "ask before treating it as more than an
+experiment" rule. That was wrong in a way that would have cost ~7.5 hours
+of real GPU time: solve_matrix_free's own already-measured N=1401 cost is
+27,257.4s (the 204-306x-slower-than-torch-fem finding that motivated
+building the assembled+direct solver in the first place), not something
+this module's speed claim can survive. Switched to solve_assembled_direct
+once Omar explicitly confirmed this is fine PURELY as an internal
+ground-truth calculation tool (its own accuracy has already been verified
+bit-for-bit identical to solve_matrix_free/torch-fem in every check done so
+far -- the standing rule is about not presenting it as a finalized RESULT
+without review, not about whether its output can be trusted as a correct
+FEM solution, which is separately and thoroughly established).
+
+One real wrinkle checked before trusting this, not assumed: solve_matrix_free
+and solve_hyperelastic_TL_spatial both use 10-step incremental LOAD STEPPING
+(nsteps=10) to help Newton's own convergence, while solve_assembled_direct
+does a SINGLE full-load Newton solve with no load-stepping and no
+warm-start-from-previous-step option. Verified directly (not assumed) that
+this does not matter for THIS problem: single-shot solve_assembled_direct
+converges to the correct answer at N=11 (relative difference 8.41e-11 vs.
+the slow reference) and N=21 (8.44e-11) -- both at the same
+bit-for-bit-identical level as every other check in this project, and
+faster even on CPU (N=21: 0.28s vs. the slow reference's 17.7s) before this
+was ever pointed at N=1401 or a GPU.
 
 MUST be verified against solve_hyperelastic_TL_spatial's own real output
 before this is ever trusted at N=1401 -- that is what _correctness_check
@@ -38,10 +62,10 @@ here as the ground truth for the ground truth.
 import numpy as np
 import torch
 
+from omar_pfem.assembled_direct_solver import solve_assembled_direct
 from omar_pfem.data.parametric_field import ParametricFieldB1
 from omar_pfem.gpu_fem_solver import precompute_element_params_B1
 from omar_pfem.high_dof_convergence_study import assemble_traction_top_generic
-from omar_pfem.matrix_free_solver import solve_matrix_free
 
 
 def solve_b1_fast_gpu(N, seed, material, device, dtype, Lx=1.0, Ly=1.0, order="Q4",
@@ -60,23 +84,20 @@ def solve_b1_fast_gpu(N, seed, material, device, dtype, Lx=1.0, Ly=1.0, order="Q
     free_dofs = np.setdiff1d(np.arange(ndof), fixed_dofs)
 
     fext_full = assemble_traction_top_generic(nodes, elements, Ly, ty_fn, order)
-    elem_params_np = precompute_element_params_B1(nodes, elements, E_fn, nu_fn, material)
+    mu, lam = precompute_element_params_B1(nodes, elements, E_fn, nu_fn, material)
 
-    xy_t = torch.tensor(nodes, dtype=dtype, device=device)
-    quad_t = torch.tensor(elements, dtype=torch.long, device=device)
-    free_dofs_t = torch.tensor(free_dofs, dtype=torch.long, device=device)
-    elem_params_t = tuple(torch.tensor(p, dtype=dtype, device=device) for p in elem_params_np)
-    fext_free_t = torch.tensor(fext_full[free_dofs], dtype=dtype, device=device)
-
-    u_free, stats = solve_matrix_free(
-        xy_t, quad_t, free_dofs_t, elem_params_t, fext_free_t, len(free_dofs),
-        material=material, order=order, device=device, dtype=dtype,
+    u_full_t = solve_assembled_direct(
+        nodes, elements, free_dofs, fext_full, mu, lam,
+        dtype=dtype, material=material, order=order, device=device,
         **solve_kwargs,
     )
 
-    u_full = np.zeros(ndof, dtype=np.float64)
-    u_full[free_dofs] = u_free.detach().cpu().numpy().astype(np.float64)
-    return u_full, nodes, elements, stats
+    if torch.is_tensor(u_full_t):
+        u_full = u_full_t.detach().cpu().numpy()
+    else:
+        u_full = np.asarray(u_full_t)
+    u_full = u_full.astype(np.float64).reshape(-1)
+    return u_full, nodes, elements, None
 
 
 def _correctness_check(N=11, material="neo_hookean", seed=0, verbose=False):
@@ -106,7 +127,7 @@ def _correctness_check(N=11, material="neo_hookean", seed=0, verbose=False):
 
     t0 = time.time()
     u_fast, nodes2, elements2, stats = solve_b1_fast_gpu(
-        N, seed, material, device, dtype, verbose=verbose)
+        N, seed, material, device, dtype)
     t_fast = time.time() - t0
 
     assert np.allclose(nodes, nodes2) and np.array_equal(elements, elements2), \

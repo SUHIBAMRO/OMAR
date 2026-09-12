@@ -4,17 +4,17 @@
       "N": 11,
       "material": "neo_hookean",
       "seed": 0,
-      "t_reference_slow_cpu_s": 4.480528354644775,
-      "t_fast_path_on_cpu_s": 35.37982249259949,
-      "relative_displacement_difference": 3.923740631330799e-12
+      "t_reference_slow_cpu_s": 4.546536684036255,
+      "t_fast_path_on_cpu_s": 0.4769399166107178,
+      "relative_displacement_difference": 8.414912027985996e-11
     },
     {
       "N": 21,
       "material": "neo_hookean",
       "seed": 0,
-      "t_reference_slow_cpu_s": 18.069328546524048,
-      "t_fast_path_on_cpu_s": 73.67445993423462,
-      "relative_displacement_difference": 6.67489151027479e-12
+      "t_reference_slow_cpu_s": 18.02791666984558,
+      "t_fast_path_on_cpu_s": 0.19062423706054688,
+      "relative_displacement_difference": 8.440728279366505e-11
     }
   ]
 }

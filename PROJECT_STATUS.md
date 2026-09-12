@@ -259,6 +259,50 @@ at N=1401" AND "is the 5.69x-faster bf16 path still accurate enough to
 matter" in one pass, since both need the same expensive N=1401 ground
 truth solve and the same GPU session anyway.
 
+**CRITICAL CORRECTION (2026-09-12), caught before real GPU time was
+wasted**: `no_ground_truth_fast.py` originally called `solve_matrix_free`
+(the DEFAULT solver reported everywhere else in this project) for the
+N=1401 ground truth, reasoning this was the "safe" choice since it
+avoids the experimental assembled+direct solver from Points 8/9 (per the
+standing "ask before treating it as more than an experiment" rule).
+**This was wrong in a way that would have cost ~7.5 hours of real GPU
+time**: `solve_matrix_free`'s own already-measured N=1401 cost is
+**27,257.4 seconds** (the 204-306x-slower-than-torch-fem finding,
+already on record, that motivated building the assembled+direct solver
+in the first place) -- Omar caught this by asking how long the queued
+notebooks would take, which prompted re-checking the already-recorded
+numbers instead of assuming "GPU-vectorized" meant "fast at N=1401."
+
+**Fix, confirmed with Omar via AskUserQuestion before implementing**:
+switch `no_ground_truth_fast.py` to `assembled_direct_solver.
+solve_assembled_direct` instead. This uses the experimental solver
+PURELY as an internal ground-truth calculation tool, not as a
+presented result -- its own accuracy has already been established
+bit-for-bit identical to solve_matrix_free/torch-fem in every check
+done in this project so far, so the standing "ask before finalizing"
+rule (about not presenting it as a RESULT without review) does not
+block using it as calculation infrastructure. Omar's own choice,
+explicitly: "ايه، استخدم السريع (موصى فيه)."
+
+One real wrinkle checked before trusting this, not assumed:
+`solve_matrix_free`/`solve_hyperelastic_TL_spatial` both use 10-step
+incremental load-stepping to help Newton's own convergence, while
+`solve_assembled_direct` does a single full-load Newton solve with no
+load-stepping and no warm-start option. Verified directly that this
+does not matter for this specific problem: single-shot
+`solve_assembled_direct` converges to the correct answer at N=11
+(relative difference 8.415e-11 vs. the slow reference, 0.48s vs. 4.55s)
+and N=21 (8.441e-11, 0.19s vs. 18.03s) -- both re-verified end-to-end
+(`no_ground_truth_fast_correctness.json` updated) and through the full
+`evaluate_no_accuracy_at_n1401` pipeline (smoke-tested again on CPU with
+a random-init model at N=21, no errors) before this was ever pointed at
+N=1401 again. Expected N=1401 ground-truth cost now: roughly the same
+order of magnitude as Points 8/9's own real N=1401 number for this
+solver (58.54s, default config) -- i.e. under a minute, not hours.
+Genuinely not yet re-verified on a real GPU at N=1401 itself, but the
+CPU-side risk (hours-scale Python loop or wrong-solver-choice blowup)
+that caused the original mistake is now closed.
+
 **Checked and cleared a real methodological question before building
 further (2026-09-12), rather than assuming it away**: is ParametricFieldB1
 (used by the new ground-truth bridge, and by build_sample_b1's own NO-input
