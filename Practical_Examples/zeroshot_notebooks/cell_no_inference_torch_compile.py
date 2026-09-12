@@ -95,10 +95,11 @@ print(f'\nBuilding N={N_TEST} sample...')
 sample, _ = build_sample_b1(N_TEST, seed=0, material='neo_hookean', Lx=args.Lx, Ly=args.Ly,
                              solve_fem=False)
 
-print('\nRunning eager baseline + torch.compile attempt (this can take a few minutes -- '
+print('\nRunning eager baseline + torch.compile + TF32 attempts (this can take ~15-20 min -- '
       'the FIRST compiled call triggers real compilation, not counted in the timing)...')
 result = profile_with_torch_compile(sample, model, args, device, dtype,
-                                     n_repeats=200, n_warmup=20, compile_warmup=5)
+                                     n_repeats=200, n_warmup=20, compile_warmup=5,
+                                     try_tf32=True)
 
 OUT_JSON = f'{R}/no_inference_torch_compile_N1401.json'
 with open(OUT_JSON, 'w') as f:
@@ -121,25 +122,48 @@ else:
     print("Eager mode's 2.29s stays the answer -- this was a genuine attempt, honestly "
           "reported, not assumed to succeed.")
 
+if result['eager_tf32_ms_per_sample'] is not None:
+    print(f"\neager + TF32: {result['eager_tf32_ms_per_sample']:.4f} ms/sample -- "
+          f"{result['speedup_tf32_vs_eager']:.2f}x vs. strict-fp32 eager, output relative "
+          f"difference: {result['eager_tf32_vs_eager_rel_diff']:.3e}")
+    if result['compiled_tf32_ms_per_sample'] is not None:
+        print(f"torch.compile + TF32: {result['compiled_tf32_ms_per_sample']:.4f} ms/sample -- "
+              f"{result['speedup_compiled_tf32_vs_eager']:.2f}x vs. strict-fp32 eager, output "
+              f"relative difference: {result['compiled_tf32_vs_eager_rel_diff']:.3e}")
+    print("TF32 trades precision (19-bit mantissa) for speed on Ampere+ tensor cores -- "
+          "check the relative differences above are acceptable (comparable to bf16's own "
+          "~1e-2 self-consistency gap, or tighter) before treating a TF32 number as the "
+          "one to finalize.")
+elif result['tf32_error'] is not None:
+    print(f"\nTF32 test did not produce a usable result: {result['tf32_error']}")
+
 # ---- Figure ------------------------------------------------------------
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from plot_style import PRIMARY, SECONDARY, add_bar_labels
 
-fig, ax = plt.subplots(figsize=(5, 4.5), dpi=200)
-labels = ['eager (fp32)']
+fig, ax = plt.subplots(figsize=(7, 4.5), dpi=200)
+labels = ['eager\n(fp32)']
 values = [result['eager_ms_per_sample']]
 colors = [PRIMARY]
 if result['compile_succeeded']:
     labels.append('torch.compile')
     values.append(result['compiled_ms_per_sample'])
     colors.append(SECONDARY)
+if result['eager_tf32_ms_per_sample'] is not None:
+    labels.append('eager\n+ TF32')
+    values.append(result['eager_tf32_ms_per_sample'])
+    colors.append('#27AE60')
+if result['compiled_tf32_ms_per_sample'] is not None:
+    labels.append('compile\n+ TF32')
+    values.append(result['compiled_tf32_ms_per_sample'])
+    colors.append('#C0392B')
 bars = ax.bar(labels, values, color=colors)
 ax.set_ylabel('ms/sample')
-title = 'NO inference, N=1401: eager vs. torch.compile'
+title = 'NO inference, N=1401: optimization attempts'
 if not result['compile_succeeded']:
-    title += '\n(compile FAILED -- see printed error)'
+    title += '\n(torch.compile FAILED -- see printed error)'
 ax.set_title(title)
 ax.grid(True, axis='y', alpha=0.25)
 add_bar_labels(ax, bars, fmt='{:.1f}')

@@ -245,6 +245,33 @@ CODE ONLY -- not yet run on a real GPU; genuinely unknown yet whether
 `torch.compile` helps, hurts, or fails outright on Transolver's
 slice-based Physics Attention.
 
+**REAL RESULT, Omar's own A100 run (2026-09-12): torch.compile works,
+correctness-verified, but the speedup is modest.** 2145.7 ms/sample vs.
+eager 2287.2 ms/sample -- **1.07x**, output relative difference
+**2.031e-06** (floating-point noise level for fp32, well within the
+correctness-check threshold). This IS a real, verified, free optimization
+-- but it only closes a small fraction of the "modest 10x speed-up"
+concern by itself.
+
+**Immediately followed up**: that same run's own PyTorch warning flagged
+that TF32 tensor cores are available on the A100 but not enabled for fp32
+matmul, recommending `torch.set_float32_matmul_precision('high')`. This
+targets the SAME dominant cost the profiler already found (~90% in GEMM/
+bmm/einsum) from a different angle than kernel fusion -- Ampere's tensor
+cores execute fp32 matmuls several times faster at TF32 (19-bit mantissa)
+precision. Extended `no_inference_torch_compile.py` (now also covers TF32,
+docstring/module name effectively broadened) to test eager+TF32 and
+torch.compile+TF32, both checked against the strict-fp32 eager baseline
+before any speedup is trusted, with a `finally` block restoring the
+global matmul-precision setting afterward so it cannot leak into any
+other code run in the same process. Verified importable and syntactically
+correct; rebuilt `Round6_NO_TorchCompile_N1401.ipynb` with the real
+torch.compile result folded into its own markdown and an updated 4-bar
+figure (eager / compile / eager+TF32 / compile+TF32). 67/67 notebooks OK.
+**Not yet run** -- genuinely unknown whether TF32 helps more than
+torch.compile did, by how much, and whether its own precision cost is
+acceptable (tracked as task #20).
+
 **Immediately followed up (before running task #14's own GPU cell) by
 extending `no_accuracy_at_n1401.py` to also score a bf16-autocast forward
 pass against the SAME real ground truth**, not just fp32-vs-bf16

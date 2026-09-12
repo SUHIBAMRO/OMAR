@@ -1695,8 +1695,8 @@ NOTEBOOKS = {
          "batch size, NO vs. FEM.\n"]),
     "Round6_NO_TorchCompile_N1401.ipynb": (
         "cell_no_inference_torch_compile.py",
-        ["# torch.compile attempt for NO inference at N=1401 (Timon "
-         "round-10, item 3 gap)\n",
+        ["# torch.compile + TF32 attempts for NO inference at N=1401 "
+         "(Timon round-10, item 3 gap)\n",
          "\n",
          "Timon: \"there is probably still room for optimising the NO "
          "at inference. Could you please check this before considering\n",
@@ -1705,24 +1705,34 @@ NOTEBOOKS = {
          "faster; a second-opinion review of that cell's own result "
          "correctly flagged this as the one remaining real gap.\n",
          "\n",
-         "Targets what the profiler's own numbers pointed at: 4,800 "
-         "`cudaLaunchKernel` calls / 2,893 \"Command Buffer Full\" events\n",
-         "across only 30 repeats (160 kernel launches per single forward "
-         "pass) -- `torch.compile`'s kernel fusion is built exactly for\n",
-         "this kind of dispatch overhead, without changing the "
-         "architecture or a single weight.\n",
+         "**torch.compile real result (Omar's own A100 run, 2026-09-12)**: "
+         "2145.7ms vs. eager 2287.2ms -- **1.07x, correctness-verified** "
+         "(output\n",
+         "relative difference 2.03e-6, floating-point noise level for "
+         "fp32). A real but modest speedup, not the answer by itself.\n",
          "\n",
-         "**Correctness-checked before any speedup is trusted**: "
-         "compares the compiled model's output against eager mode's on "
-         "the\n",
-         "same input. If `torch.compile` fails or does not help on this "
-         "architecture, that is reported honestly (not hidden) and\n",
-         "eager mode's 2.29s stays the answer.\n",
+         "**Added TF32 matmul precision** after that same run's own "
+         "warning flagged it: \"TensorFloat32 tensor cores available but "
+         "not\n",
+         "enabled ... consider `torch.set_float32_matmul_precision"
+         "('high')`.\" Targets the SAME dominant cost the profiler found "
+         "(GEMM/\n",
+         "bmm/einsum) from a different angle -- Ampere's tensor cores "
+         "execute fp32 matmuls several times faster at TF32 (19-bit\n",
+         "mantissa) precision. Tested both alone (eager+TF32) and "
+         "combined with `torch.compile`.\n",
+         "\n",
+         "**Correctness-checked before any speedup is trusted**: every "
+         "variant's output is compared against the strict-fp32 eager\n",
+         "baseline. A failure in either `torch.compile` or the TF32 test "
+         "is reported honestly (not hidden), and eager mode's number\n",
+         "stays the answer for whichever one fails.\n",
          "\n",
          "* **NEEDS A GPU.**\n",
-         "* Can take a few minutes -- the first compiled call triggers "
-         "real compilation, which is untimed (`compile_warmup`), not\n",
-         "  counted in the reported speedup.\n",
+         "* Takes ~15-20 minutes -- the first compiled call triggers "
+         "real compilation, untimed (`compile_warmup`); TF32 adds two\n",
+         "  more full timing passes on top of the already-run eager/"
+         "compile ones.\n",
          "* Checkpoint path is guessed (`CKPT` near the top of the "
          "cell) -- update it if the assert fails.\n",
          "* Saves a bar-chart figure (eager vs. compiled ms/sample, or "
