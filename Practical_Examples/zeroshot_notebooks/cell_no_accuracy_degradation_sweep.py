@@ -94,10 +94,20 @@ if not is_cudss_available():
 print('cuDSS (real direct solver on CUDA) is available.')
 
 R = '/content/drive/MyDrive/pfem_run'
-CKPT = f'{R}/results/checkpoints/B1_neo_hookean/model_best.pt'
-if not os.path.exists(CKPT):
-    CKPT = f'{R}/data_driven/B1_neo_hookean/model_best.pt'
-assert os.path.exists(CKPT), f'checkpoint not found, update CKPT: tried {CKPT}'
+# BUG FOUND 2026-09-12: a hardcoded path here ('results/checkpoints/
+# B1_neo_hookean/model_best.pt', which never existed on Drive) silently
+# fell back to 'data_driven/B1_neo_hookean/model_best.pt' -- a COMPLETELY
+# DIFFERENT model (train_data_driven.py's own data-driven-loss baseline
+# from the round-5/6 comparison study). Found via a real GPU run of this
+# exact sweep: disp_rel_L2 was ~620-640% at EVERY N from 13 to 1401 --
+# flat regardless of resolution, the signature of evaluating the wrong
+# model everywhere, not a real resolution-dependent accuracy failure.
+# Fixed properly this time: resolve by CONTENT (sha256), verified against
+# the zero-shot study's own already-trusted checkpoint fingerprint, not
+# by guessing a path -- see resolve_b1_checkpoint.py's own docstring.
+from omar_pfem.resolve_b1_checkpoint import resolve_b1_neo_hookean_checkpoint
+CKPT, _ckpt_fp = resolve_b1_neo_hookean_checkpoint(R)
+print(f'Resolved checkpoint (verified by fingerprint): {CKPT}')
 print('Using checkpoint:', CKPT)
 
 device = torch.device('cuda')

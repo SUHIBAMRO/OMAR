@@ -77,13 +77,17 @@ print('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available()
 R = '/content/drive/MyDrive/pfem_run'
 # Same checkpoint item #4/Table 7's own inference-latency number used --
 # the physics-informed operator for B1 x Neo-Hookean.
-CKPT = f'{R}/results/checkpoints/B1_neo_hookean/model_best.pt'
-if not os.path.exists(CKPT):
-    # fall back to the data-driven one used for the round-8 point-7
-    # latency check, if the physics-informed path differs in this Drive
-    CKPT = f'{R}/data_driven/B1_neo_hookean/model_best.pt'
-assert os.path.exists(CKPT), f'checkpoint not found, update CKPT: tried {CKPT}'
-print('Using checkpoint:', CKPT)
+# BUG FOUND 2026-09-12: a hardcoded path here ('results/checkpoints/
+# B1_neo_hookean/model_best.pt', which never existed on Drive) silently
+# fell back to 'data_driven/B1_neo_hookean/model_best.pt' -- a COMPLETELY
+# DIFFERENT model (train_data_driven.py's own data-driven-loss baseline
+# from the round-5/6 comparison study). Fixed properly this time: resolve
+# by CONTENT (sha256), verified against the zero-shot study's own
+# already-trusted checkpoint fingerprint, not by guessing a path -- see
+# resolve_b1_checkpoint.py's own docstring.
+from omar_pfem.resolve_b1_checkpoint import resolve_b1_neo_hookean_checkpoint
+CKPT, _ckpt_fp = resolve_b1_neo_hookean_checkpoint(R)
+print(f'Resolved checkpoint (verified by fingerprint): {CKPT}')
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 dtype = torch.float32

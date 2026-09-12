@@ -58,11 +58,20 @@ assert torch.cuda.is_available(), 'this cell needs a real GPU -- peak-memory/pro
 print('GPU:', torch.cuda.get_device_name(0))
 
 R = '/content/drive/MyDrive/pfem_run'
-CKPT = f'{R}/results/checkpoints/B1_neo_hookean/model_best.pt'
-if not os.path.exists(CKPT):
-    CKPT = f'{R}/data_driven/B1_neo_hookean/model_best.pt'
-assert os.path.exists(CKPT), f'checkpoint not found, update CKPT: tried {CKPT}'
-print('Using checkpoint:', CKPT)
+# BUG FOUND 2026-09-12: a hardcoded path here ('results/checkpoints/
+# B1_neo_hookean/model_best.pt', which never existed on Drive) silently
+# fell back to 'data_driven/B1_neo_hookean/model_best.pt' -- a COMPLETELY
+# DIFFERENT model (train_data_driven.py's own data-driven-loss baseline
+# from the round-5/6 comparison study). Same architecture as the
+# data-driven model, so this profiling cell's TIMING numbers are likely
+# unaffected either way -- but re-run to be sure now that accuracy
+# elsewhere was found to be corrupted by this same bug. Fixed properly
+# this time: resolve by CONTENT (sha256), verified against the zero-shot
+# study's own already-trusted checkpoint fingerprint, not by guessing a
+# path -- see resolve_b1_checkpoint.py's own docstring.
+from omar_pfem.resolve_b1_checkpoint import resolve_b1_neo_hookean_checkpoint
+CKPT, _ckpt_fp = resolve_b1_neo_hookean_checkpoint(R)
+print(f'Resolved checkpoint (verified by fingerprint): {CKPT}')
 
 device = torch.device('cuda')
 dtype = torch.float32

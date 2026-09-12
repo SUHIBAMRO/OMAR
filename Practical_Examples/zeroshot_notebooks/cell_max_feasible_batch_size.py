@@ -68,11 +68,18 @@ assert torch.cuda.is_available(), 'this cell needs a real GPU'
 print('GPU:', torch.cuda.get_device_name(0))
 
 R = '/content/drive/MyDrive/pfem_run'
-CKPT = f'{R}/results/checkpoints/B1_neo_hookean/model_best.pt'
-if not os.path.exists(CKPT):
-    CKPT = f'{R}/data_driven/B1_neo_hookean/model_best.pt'
+# BUG FOUND 2026-09-12: a hardcoded path here ('results/checkpoints/
+# B1_neo_hookean/model_best.pt', which never existed on Drive) silently
+# fell back to 'data_driven/B1_neo_hookean/model_best.pt' -- a COMPLETELY
+# DIFFERENT model (train_data_driven.py's own data-driven-loss baseline
+# from the round-5/6 comparison study). Fixed properly this time:
+# resolve by CONTENT (sha256), verified against the zero-shot study's own
+# already-trusted checkpoint fingerprint, not by guessing a path --
+# see resolve_b1_checkpoint.py's own docstring for the full story.
+from omar_pfem.resolve_b1_checkpoint import resolve_b1_neo_hookean_checkpoint
+CKPT, _ckpt_fp = resolve_b1_neo_hookean_checkpoint(R)
+print(f'Resolved checkpoint (verified by fingerprint): {CKPT}')
 DATA = f'{R}/results/datasets/B1_neo_hookean/hyperelastic_training_data_q4.npz'
-assert os.path.exists(CKPT), f'checkpoint not found, update CKPT: tried {CKPT}'
 assert os.path.exists(DATA), f'dataset not found, update DATA: tried {DATA}'
 print('Using checkpoint:', CKPT)
 print('Using dataset:', DATA)

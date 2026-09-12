@@ -24,6 +24,78 @@ finishes or a new one starts.
 > faster), same rule: GPU-verify first, then ask Timon, before treating
 > either of these as a finalized/official result.**
 
+> 🚨 **CRITICAL BUG FOUND 2026-09-12, INVALIDATES EVERY ROUND-10 NO
+> ACCURACY NUMBER PRODUCED SO FAR: every round-10 GPU notebook that loads
+> the B1 x Neo-Hookean checkpoint (`cell_no_accuracy_at_n1401.py`,
+> `cell_no_accuracy_degradation_sweep.py`, `cell_no_inference_profile_
+> n1401.py`, `cell_no_inference_torch_compile.py`,
+> `cell_max_feasible_batch_size.py`, `cell_no_inference_vs_torchfem_
+> N1401.py`) tried a WRONG first-choice path
+> (`results/checkpoints/B1_neo_hookean/model_best.pt` -- an extra,
+> never-existed "checkpoints/" segment) and silently fell back to
+> `data_driven/B1_neo_hookean/model_best.pt` when that path was missing
+> on Drive -- which is a COMPLETELY DIFFERENT model
+> (`train_data_driven.py`'s own data-driven-loss baseline from the
+> round-5/6 physics-informed-vs-data-driven comparison study, not the
+> real physics-informed checkpoint every other result in this project is
+> about).**
+>
+> **Caught via a real GPU run of the widened accuracy sweep**: disp_rel_L2
+> was ~620-640% at EVERY single N tested, from N=13 (well inside/near the
+> trained range) all the way to N=1001 -- flat, resolution-independent
+> error is the signature of evaluating the wrong model everywhere, not a
+> real resolution-dependent accuracy failure. This means **the entire
+> "NO fails catastrophically at N=1401 (640% error)" finding, treated as
+> solid and thoroughly re-verified across seven real GPU runs, is now
+> IN DOUBT** -- it may have been the data-driven baseline's own (possibly
+> genuinely worse, or just differently-scaled) accuracy the whole time,
+> not the physics-informed operator's.
+>
+> **First fix attempt (superseded, see below)**: hardcoded the path used
+> by `cell_ood_progressive.py` ("Table 5's own checkpoint",
+> `results/B1_neo_hookean/model_best.pt`). Then found a THIRD candidate
+> path in the wild (`cell_project_figures.py` uses
+> `zeroshot_B1_neo_hookean/model_best.pt`) -- meaning there may genuinely
+> be multiple distinct B1 x Neo-Hookean checkpoints on Drive (e.g. a
+> single-resolution one for Table 5 vs. the two-resolution N=21/33 one
+> the zero-shot study itself trained and evaluated), so hardcoding
+> ANOTHER guessed path risked repeating the exact same mistake.
+>
+> **Real fix**: new `omar_pfem/resolve_b1_checkpoint.py` --
+> `resolve_b1_neo_hookean_checkpoint(run_dir)` hashes (sha256) every
+> known candidate path that exists under the Drive run dir and returns
+> the one whose hash matches the zero-shot study's OWN already-committed
+> fingerprint (`point7a_results/zeroshot_B1_neo_hookean.json`'s
+> `checkpoint_fingerprint`, `86030f4f...`) -- resolved by CONTENT, not by
+> guessing a path. Raises loudly with every candidate's own hash printed
+> if none match, rather than silently substituting anything. Unit-tested
+> locally with fake files (both the match and no-match cases) before
+> wiring into any cell. All six affected cells now call this instead of
+> hardcoding a path. Notebooks rebuilt, 69/69 verified, committed and
+> pushed.
+>
+> **EVERY round-10 accuracy result must be treated as unverified until
+> re-run with the corrected checkpoint path**: task #14 (N=1401 accuracy,
+> the "640% error" finding), the just-run widened accuracy sweep
+> (N=13-1001, still running when this bug was caught -- the in-flight
+> Colab run should be stopped, it is using the wrong model). Task #13/15/
+> 19/20 (profiling, batch size, torch.compile, TF32) measure TIMING, not
+> accuracy -- same architecture either way, so those numbers are LIKELY
+> still valid, but were not re-verified with the correct checkpoint and
+> should not be cited as settled until they are. The FEM-side
+> low-N crossover result (torch-fem beats the NO's best accuracy at
+> N=3-4) is UNAFFECTED (torch-fem never loads this checkpoint at all) but
+> its own framing ("NO's best accuracy anywhere is only 5.21%") rests on
+> the OLDER zero-shot study's numbers (`point7a_results/
+> zeroshot_B1_neo_hookean.json`), which DOES appear to load a checkpoint
+> correctly (needs the checkpoint path it actually used double-checked,
+> not just assumed correct because the numbers looked sane).
+>
+> **Do not remove this reminder until the corrected-checkpoint re-run
+> has produced a real, trustworthy N=1401 (and matched low-N) accuracy
+> number and it has replaced every stale reference to "640% error"
+> in this file and any deliverable.**
+
 Last updated: 2026-09-12 (**REAL GPU RESULT: the FEM-side crossover is now
 fully confirmed with real (not extrapolated) data -- torch-fem at N=3
 (9 nodes, l2_rel=3.9%) already beats the NO's own best accuracy anywhere
