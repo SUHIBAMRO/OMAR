@@ -1659,7 +1659,9 @@ NOTEBOOKS = {
          "  cell found bf16 5.69x faster (402.8ms vs. 2290.2ms/sample) but "
          "could only report a 4.6% fp32-vs-bf16 self-consistency gap, not\n",
          "  a real accuracy verdict -- this cell gives that verdict directly, "
-         "for free, while a real GPU is already being spent here anyway.\n"]),
+         "for free, while a real GPU is already being spent here anyway.\n",
+         "* Saves a grouped bar-chart figure of every QoI's relative error "
+         "(fp32, and bf16 if available).\n"]),
     "Round6_Max_Feasible_Batch_Size.ipynb": (
         "cell_max_feasible_batch_size.py",
         ["# Max feasible batch size + throughput, NO vs. GPU-FEM (Timon "
@@ -1688,7 +1690,9 @@ NOTEBOOKS = {
          "cell -- update them if the asserts fail.\n",
          "* The search logic (`find_max_feasible_batch`) was unit-tested "
          "with monkeypatched CUDA calls before this cell was ever\n",
-         "  written, not just assumed correct.\n"]),
+         "  written, not just assumed correct.\n",
+         "* Saves a 2-panel figure: throughput and peak memory vs. "
+         "batch size, NO vs. FEM.\n"]),
     "Round6_NO_TorchCompile_N1401.ipynb": (
         "cell_no_inference_torch_compile.py",
         ["# torch.compile attempt for NO inference at N=1401 (Timon "
@@ -1720,7 +1724,24 @@ NOTEBOOKS = {
          "real compilation, which is untimed (`compile_warmup`), not\n",
          "  counted in the reported speedup.\n",
          "* Checkpoint path is guessed (`CKPT` near the top of the "
-         "cell) -- update it if the assert fails.\n"]),
+         "cell) -- update it if the assert fails.\n",
+         "* Saves a bar-chart figure (eager vs. compiled ms/sample, or "
+         "just eager if compile failed).\n"]),
+    "Round6_NO_Inference_Profile_N1401_Figure.ipynb": (
+        "cell_no_inference_profile_n1401_figure.py",
+        ["# Figure for the N=1401 profiling result (added after the fact)\n",
+         "\n",
+         "Omar caught that the round-10 notebooks were missing the "
+         "figures this project normally produces alongside a result --\n",
+         "this one was already run (twice) before that catch, so rather "
+         "than re-spend GPU time re-running the expensive profiling\n",
+         "job, this small cell just reads the JSON it already saved to "
+         "Drive (`no_inference_profile_N1401.json`) and plots it.\n",
+         "\n",
+         "* Does NOT need a GPU runtime -- only reads a JSON already on "
+         "Drive from the earlier real run.\n",
+         "* Run `Round6_NO_Inference_Profile_N1401.ipynb` first if that "
+         "JSON is not there yet.\n"]),
     "Round6_TorchFEM_Tolerance_Sensitivity.ipynb": (
         "cell_torchfem_tolerance_sensitivity.py",
         ["# torch-fem tolerance sensitivity: 1e-6/1e-7 vs. 1e-8 "

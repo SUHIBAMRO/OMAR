@@ -187,6 +187,31 @@ capped at the OTHER's peak memory from that first run -- the actual
 "same GPU memory" comparison Timon asked for, in both directions. CODE
 ONLY -- not yet run on a real GPU.
 
+**Real catch by Omar (2026-09-12): none of the round-10 notebooks built so
+far (profiling, accuracy, max-feasible-batch, torch.compile) generated a
+figure, breaking this project's own established convention** (every prior
+comparison-style result, e.g. `cell_no_inference_vs_torchfem_N1401.py`
+from task #12, saves a PNG alongside its JSON). Fixed across all of them:
+
+- `cell_no_accuracy_at_n1401.py`: grouped bar chart of every QoI's
+  relative error (fp32, plus bf16 alongside it once that run happens).
+- `cell_max_feasible_batch_size.py`: 2-panel figure, throughput and peak
+  memory vs. batch size, NO vs. FEM (log-x on batch size).
+- `cell_no_inference_torch_compile.py`: bar chart, eager vs. compiled
+  ms/sample (or eager alone with a "compile FAILED" title, if it fails).
+- Task #13's profiling notebook had ALREADY been run twice (real
+  results already in hand) before this catch -- rather than re-spend
+  GPU time just to add a plot, added a separate, GPU-free companion
+  cell (`cell_no_inference_profile_n1401_figure.py` /
+  `Round6_NO_Inference_Profile_N1401_Figure.ipynb`) that reads the
+  already-saved `no_inference_profile_N1401.json` from Drive and plots
+  it -- no need to redo the expensive profiling run.
+
+All four cells reuse `report_builders/plot_style.py`'s shared
+PRIMARY/SECONDARY colors and `add_bar_labels` helper (the standalone
+figure-only cell inlines the two constants it needs, since it does not
+clone the repo). Rebuilt and verified: 67/67 notebooks OK.
+
 **Reopened task #13 (2026-09-12): a second-opinion review of the profiling
 result (Omar shared a GPT review) correctly identified a real remaining
 gap.** Everything already measured was confirmed genuinely done (pure

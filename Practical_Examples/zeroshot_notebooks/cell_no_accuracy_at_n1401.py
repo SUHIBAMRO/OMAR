@@ -106,3 +106,38 @@ if 'bf16' in rec:
           f"{rec['bf16']['disp_rel_L2']:.4e} vs. fp32's {rec['fp32']['disp_rel_L2']:.4e}, "
           f"against the SAME real ground truth -- this is the real accuracy verdict the "
           f"profiling cell's own self-consistency check could not give.")
+
+# ---- Figure ----------------------------------------------------------
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from plot_style import PRIMARY, SECONDARY, add_bar_labels
+
+qoi_keys = ['disp_rel_L2', 'L2_rel', 'H1_semi_rel', 'energy_rel', 'P_rel_L2',
+            'reaction_resultant_rel_err']
+qoi_labels = ['disp L2', 'L2', 'H1 semi', 'energy', 'PK1 stress', 'reaction']
+
+fig, ax = plt.subplots(figsize=(8, 4.5), dpi=200)
+x = np.arange(len(qoi_keys))
+width = 0.35 if 'bf16' in rec else 0.6
+fp32_vals = [rec['fp32'][k] for k in qoi_keys]
+bars1 = ax.bar(x - (width / 2 if 'bf16' in rec else 0), fp32_vals, width,
+               label='fp32', color=PRIMARY)
+if 'bf16' in rec:
+    bf16_vals = [rec['bf16'][k] for k in qoi_keys]
+    bars2 = ax.bar(x + width / 2, bf16_vals, width, label='bf16', color=SECONDARY)
+ax.set_xticks(x)
+ax.set_xticklabels(qoi_labels, rotation=20, ha='right')
+ax.set_ylabel('Relative error')
+ax.set_title(f'NO accuracy vs. real FEM ground truth at N={N_TEST}')
+ax.legend()
+ax.grid(True, axis='y', alpha=0.25)
+add_bar_labels(ax, bars1, fmt='{:.2e}', fontsize=7, rotation=90, pad=6)
+if 'bf16' in rec:
+    add_bar_labels(ax, bars2, fmt='{:.2e}', fontsize=7, rotation=90, pad=6)
+ax.set_ylim(top=ax.get_ylim()[1] * 1.6)
+fig.tight_layout()
+FIG_PATH = f'{R}/fig_no_accuracy_at_n1401.png'
+fig.savefig(FIG_PATH)
+print('\nSaved figure:', FIG_PATH)

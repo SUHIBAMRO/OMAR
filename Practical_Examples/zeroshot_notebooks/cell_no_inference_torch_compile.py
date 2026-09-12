@@ -120,3 +120,30 @@ else:
     print(f"\ntorch.compile did not produce a usable result on this model: {result['error']}")
     print("Eager mode's 2.29s stays the answer -- this was a genuine attempt, honestly "
           "reported, not assumed to succeed.")
+
+# ---- Figure ------------------------------------------------------------
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from plot_style import PRIMARY, SECONDARY, add_bar_labels
+
+fig, ax = plt.subplots(figsize=(5, 4.5), dpi=200)
+labels = ['eager (fp32)']
+values = [result['eager_ms_per_sample']]
+colors = [PRIMARY]
+if result['compile_succeeded']:
+    labels.append('torch.compile')
+    values.append(result['compiled_ms_per_sample'])
+    colors.append(SECONDARY)
+bars = ax.bar(labels, values, color=colors)
+ax.set_ylabel('ms/sample')
+title = 'NO inference, N=1401: eager vs. torch.compile'
+if not result['compile_succeeded']:
+    title += '\n(compile FAILED -- see printed error)'
+ax.set_title(title)
+ax.grid(True, axis='y', alpha=0.25)
+add_bar_labels(ax, bars, fmt='{:.1f}')
+fig.tight_layout()
+FIG_PATH = f'{R}/fig_no_inference_torch_compile_N1401.png'
+fig.savefig(FIG_PATH)
+print('\nSaved figure:', FIG_PATH)

@@ -57,6 +57,7 @@ else:
 WORK = f'{REPO}/Practical_Examples'
 os.chdir(WORK)
 sys.path.insert(0, WORK)
+sys.path.insert(0, f'{WORK}/report_builders')
 
 for _mod_name in list(sys.modules):
     if _mod_name == 'omar_pfem' or _mod_name.startswith('omar_pfem.'):
@@ -138,3 +139,39 @@ for name, res in [('NO (own memory ceiling)', no_natural),
           f'throughput={last["throughput_samples_per_s"]:.2f} samples/s '
           f'(bs=1 throughput: {res["rows"][0]["throughput_samples_per_s"]:.2f} samples/s)')
 print('\nAll four JSON files saved under', OUT_DIR)
+
+# ---- Figure ----------------------------------------------------------
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from plot_style import PRIMARY, SECONDARY
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5), dpi=200)
+
+for res, label, color in [(no_natural, 'NO', PRIMARY), (fem_natural, 'FEM', SECONDARY)]:
+    bs = [r['batch_size'] for r in res['rows']]
+    thr = [r['throughput_samples_per_s'] for r in res['rows']]
+    mem = [r['peak_memory_mb'] / 1024.0 for r in res['rows']]
+    ax1.plot(bs, thr, 'o-', color=color, label=label)
+    ax2.plot(bs, mem, 'o-', color=color, label=label)
+
+ax1.set_xscale('log', base=2)
+ax1.set_yscale('log')
+ax1.set_xlabel('Batch size')
+ax1.set_ylabel('Throughput (samples/s)')
+ax1.set_title('Throughput vs. batch size (own memory ceiling)')
+ax1.grid(True, which='both', alpha=0.25)
+ax1.legend()
+
+ax2.set_xscale('log', base=2)
+ax2.set_xlabel('Batch size')
+ax2.set_ylabel('Peak GPU memory (GB)')
+ax2.set_title('Peak memory vs. batch size')
+ax2.grid(True, which='both', alpha=0.25)
+ax2.legend()
+
+fig.suptitle('Max feasible batch size, NO vs. GPU-FEM (N=21)')
+fig.tight_layout()
+FIG_PATH = f'{OUT_DIR}/fig_max_feasible_batch_size.png'
+fig.savefig(FIG_PATH)
+print('Saved figure:', FIG_PATH)
