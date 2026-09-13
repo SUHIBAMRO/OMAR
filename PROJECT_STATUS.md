@@ -108,12 +108,70 @@ finishes or a new one starts.
 > `cell_no_accuracy_degradation_sweep.py` now passes the resolved
 > fingerprint through. 69/69 notebooks re-verified.
 >
-> **Do not remove this reminder until the corrected-checkpoint re-run
-> has produced a real, trustworthy N=1401 (and matched low-N) accuracy
-> number and it has replaced every stale reference to "640% error"
-> in this file and any deliverable.**
+> ✅ **RESOLVED 2026-09-13: the full, real, trustworthy sweep finished --
+> see the "REAL, FINAL, CORRECTED N=1401 result" entry below for the
+> complete table.** This reminder's own condition is met (a real number
+> replaced the false 640%), EXCEPT the deliverables: the canonical
+> Report/Summary `.docx` files (not git-tracked, in the scratchpad) still
+> need every stale "640%"/catastrophic-failure reference corrected to
+> the real numbers below before this is fully closed out -- do that
+> before removing this block entirely.
 
-Last updated: 2026-09-12 (**Omar's decision, given the corrected-checkpoint
+Last updated: 2026-09-13 (**REAL, FINAL, CORRECTED N=1401 result -- the
+widened accuracy sweep finished end to end with the RIGHT checkpoint.
+This table supersedes every "640% error" claim anywhere in this project.**
+
+| N | disp_rel_L2 | L2_rel | H1_semi_rel |
+|---|---|---|---|
+| 13 | 13.85% | 6.58% | 20.43% |
+| 17 | 11.60% | 5.60% | 18.52% |
+| 21 | 9.75% | 4.78% | 17.11% |
+| 25 | 8.55% | 4.25% | 15.96% |
+| 29 | 7.75% | 3.92% | 14.98% |
+| **33** | **7.37%** | 3.81% | 14.30% |
+| **37** | **7.37%** | 3.94% | 13.91% (H1 best here) |
+| 41 | 7.62% | 4.23% | 13.79% |
+| 45 | 8.02% | 4.62% | 13.86% |
+| 49 | 8.50% | 5.07% | 14.07% |
+| 101 | 14.99% | 10.91% | 19.99% |
+| 201 | 22.28% | 17.79% | 28.38% |
+| 401 | 28.97% | 24.73% | 36.92% |
+| 701 | 34.34% | 30.60% | 44.87% |
+| 1001 | 38.82% | 34.86% | 51.82% |
+| **1401** | **44.65%** | **39.49%** | **61.16%** |
+
+Ground truth converged at EVERY single N (`converged_likely=True`
+throughout, residuals 1.8e-11 to 1.0e-10). Smooth, monotonic U-shape:
+best exactly at the trained resolutions (33/37), rising steadily in both
+directions -- the textbook signature of an ordinary operator-learning
+generalization gap, not a broken model. **The real N=1401 headline number
+for Timon's item 1 is disp_rel_L2=44.65% (or L2_rel=39.49% in the metric
+matching torch-fem's own convention) -- bad, and still a real accuracy
+problem to disclose honestly, but nowhere near the false 640%** that a
+wrong-checkpoint bug produced. bf16 tracks fp32 closely throughout
+(diff 0.003-0.005) except its own H1/energy/stress numbers degrade faster
+at high N (a separate, secondary bf16-specific finding, not the headline).
+
+**Crossover table (auto-computed against the already-committed torch-fem
+low-N sweep, same L2_rel-equivalent metric)**: torch-fem at N=3 (9 nodes,
+l2_rel=3.90%) already matches or beats the NO's L2_rel at EVERY
+resolution from 13 to 1401 except the NO's own single best point (N=33,
+3.81%, where torch-fem needs N=4 -- 16 nodes, 2.46% -- to match). **This
+is now the complete, real, defensible answer to Timon's item 1**: even
+the NO's best-ever accuracy is matched by an almost degenerately coarse
+FEM mesh. Full JSON: `no_accuracy_degradation_sweep.json` (needs pulling
+from Drive and committing to the repo next).
+
+**Still open**: (1) commit the real JSON above to the repo (currently
+only in the conversation log and on Drive); (2) correct every "640%"/
+catastrophic-failure reference in the canonical Report/Summary `.docx`
+files to these real numbers; (3) the multi-resolution retraining
+notebook (`B1_NeoHookean_MultiRes_Retrain.ipynb`, previous entry below)
+is built and ready but NOT YET RUN -- Omar's decision was to proceed
+with it regardless of the outcome, so this remains the next real step
+once (1)/(2) are done.
+
+Previous update, 2026-09-12 (**Omar's decision, given the corrected-checkpoint
 sweep's much less alarming real numbers (7-34% smooth degradation, not the
 false 640% flat catastrophe): proceed with multi-resolution retraining to
 improve the NO's accuracy, in all cases.** Real numbers from the
