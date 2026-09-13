@@ -228,6 +228,105 @@ def evaluate_no_accuracy_at_n1401(model, args, device, N=1401, seed=0,
     return result
 
 
+def run_no_peak_stress_fixed_location(model, args, resolutions, out_json, device,
+                                       seed=0, material="neo_hookean", fine_N_for_peak=1401):
+    """Fixes a real metric-definition mismatch found 2026-09-13: the NO's own
+    P_peak_rel_err (in _score_prediction, used by evaluate_no_accuracy_at_n1401)
+    compares against the COARSE mesh's own sample-max stress -- a quantity that
+    is itself limited by how many points that mesh has, and is NOT the same
+    thing as torch-fem's own peak_stress_rel_err (compute_peak_stress_error in
+    high_dof_convergence_study.py), which compares against a FIXED physical
+    location and value located once from a much finer reference. Comparing the
+    two numbers directly (as the multi-QoI crossover notebook first did) was
+    comparing two differently-defined quantities that happen to share a name.
+
+    This computes the NO's peak-stress error the SAME way torch-fem's is
+    computed: locate the true peak (location x_star, value peak_ref) ONCE from
+    a fine ground truth (fine_N_for_peak, solved via solve_b1_fast_gpu -- the
+    same already-verified fast path every other result here uses), then
+    evaluate the NO's OWN prediction at every resolution in `resolutions` at
+    that SAME fixed point, via compute_peak_stress_error -- literally the same
+    function torch-fem's sweep calls, just handed the NO's own predicted field
+    as "coarse" instead of torch-fem's solved field.
+
+    NOT a full unification with torch-fem's own number: this uses
+    ParametricFieldB1 (matching every other NO-accuracy result in this
+    project), while torch-fem's own sweep used AnalyticFieldB1 -- so the two
+    fixed-location peak-stress numbers describe the same KIND of metric on two
+    different (but analogous) problem instances, not an identical physical
+    problem. A full unification would need torch-fem re-solved against the
+    same ParametricFieldB1 realization, which this does not do.
+
+    Resumable like every other sweep in this project."""
+    import os
+
+    from omar_pfem.high_dof_convergence_study import compute_peak_stress_error, find_fine_peak_stress
+    from omar_pfem.train_B1 import get_input_norm, total_potential_energy_Q4_hyperelastic
+
+    geom_kwargs = {"Lx": args.Lx, "Ly": args.Ly}
+
+    print(f"Solving fine ground truth (N={fine_N_for_peak}) to locate the true peak-stress point...")
+    u_fine_flat, nodes_fine, elems_fine, _ = solve_b1_fast_gpu(
+        fine_N_for_peak, seed, material, device, torch.float64, Lx=args.Lx, Ly=args.Ly, nsteps=10)
+    fine = {"nodes": nodes_fine, "elements": elems_fine,
+            "u": u_fine_flat.reshape(-1, 2), "N": fine_N_for_peak}
+
+    E_fn = ParametricFieldB1("E", seed)
+    nu_fn = ParametricFieldB1("nu", seed)
+    x_star, peak_ref = find_fine_peak_stress(fine, "Q4", "B1", material, E_fn, nu_fn,
+                                              device, torch.float64)
+    print(f"  x_star={x_star}, peak_ref={peak_ref:.4f}")
+
+    done = {}
+    if out_json and os.path.exists(out_json):
+        with open(out_json) as f:
+            done = {r["N"]: r for r in json.load(f).get("rows", [])}
+    rows = list(done.values())
+
+    for N in resolutions:
+        if N in done:
+            print(f"  N={N} already in {out_json}, skipping")
+            continue
+        sample, _ = build_sample_b1(N, seed=seed, material=material, Lx=args.Lx, Ly=args.Ly,
+                                     solve_fem=False)
+        nodes_np, elems_np = sample["xy"], sample["quad"]
+
+        torch.set_default_dtype(torch.float32)
+        xy = torch.tensor(nodes_np, device=device, dtype=torch.float32)
+        quad = torch.tensor(elems_np, device=device, dtype=torch.long)
+        top_edges = torch.tensor(sample["top_edges"], device=device, dtype=torch.long)
+        bottom_nodes = torch.tensor(sample["bottom_nodes"], device=device, dtype=torch.long)
+        E_b = torch.tensor(sample["E_node"][None], device=device, dtype=torch.float32)
+        nu_b = torch.tensor(sample["nu_node"][None], device=device, dtype=torch.float32)
+        f_b = torch.tensor(sample["node_forces"][None], device=device, dtype=torch.float32)
+
+        model.eval()
+        with torch.no_grad():
+            _, _, _, uv_pred, _ = total_potential_energy_Q4_hyperelastic(
+                xy, quad, top_edges, bottom_nodes, model, E_b, nu_b, f_b,
+                use_soft_dirichlet=bool(args.use_soft_dirichlet), mode="plane_strain",
+                dtype=torch.float32, fun_dim=args.fun_dim, material=material, Ly=args.Ly,
+            )
+        u_pred = uv_pred[0].float().double().cpu().numpy()
+
+        coarse = {"nodes": nodes_np.astype(np.float64), "elements": elems_np, "u": u_pred, "N": N}
+        stress_err = compute_peak_stress_error(coarse, fine, x_star, peak_ref, "Q4", "B1",
+                                                material, E_fn, nu_fn, device, torch.float64,
+                                                **geom_kwargs)
+        row = {"N": N, **stress_err}
+        print(f"  N={N}: peak_stress_pred={row['peak_stress_pred']:.4f} "
+              f"peak_stress_ref={row['peak_stress_ref']:.4f} "
+              f"peak_stress_rel_err={row['peak_stress_rel_err']:.3e}")
+        rows.append(row)
+        rows.sort(key=lambda r: r["N"])
+        if out_json:
+            with open(out_json, "w") as f:
+                json.dump({"seed": seed, "material": material, "fine_N_for_peak": fine_N_for_peak,
+                           "x_star": x_star[0].tolist(), "peak_ref": peak_ref, "rows": rows},
+                          f, indent=2)
+    return rows
+
+
 def run_accuracy_degradation_sweep(model, args, resolutions, out_json, device,
                                     seed=0, material="neo_hookean", checkpoint_fingerprint=None):
     """Runs evaluate_no_accuracy_at_n1401 at several N and saves one combined,

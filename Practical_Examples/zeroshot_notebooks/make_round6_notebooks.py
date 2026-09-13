@@ -1894,6 +1894,42 @@ NOTEBOOKS = {
          "before this cell was written, confirming `run_qoi_study` runs\n",
          "  clean end to end.\n",
          "* Resumable: skips any N already present in the output JSON.\n"]),
+    "Round6_NO_Peak_Stress_Fixed_Location.ipynb": (
+        "cell_no_peak_stress_fixed_location.py",
+        ["# Fix the peak-stress metric mismatch: same fixed-location "
+         "definition for the NO as for torch-fem (2026-09-13)\n",
+         "\n",
+         "The multi-QoI crossover compared the NO's own P_peak_rel_err "
+         "(max stress over the COARSE mesh's OWN gauss points -- limited\n",
+         "by how many points that mesh even has) directly against "
+         "torch-fem's peak_stress_rel_err (a FIXED physical location and\n",
+         "value, located once from a much finer reference). These are NOT "
+         "the same quantity despite the shared name -- comparing them\n",
+         "directly was comparing two different things.\n",
+         "\n",
+         "**Fix**: `run_no_peak_stress_fixed_location`\n",
+         "(`no_accuracy_at_n1401.py`) locates the true peak (x_star, "
+         "peak_ref) ONCE from a fine ground truth (N=1401, solved via\n",
+         "solve_b1_fast_gpu), then calls `compute_peak_stress_error` -- "
+         "the EXACT SAME function torch-fem's own sweep uses -- on the\n",
+         "NO's own prediction at every resolution, at that same fixed "
+         "point. CPU-smoke-tested locally (N=5,7,9 against a tiny\n",
+         "fine_N_for_peak=21, random-init model, resume-skip verified) "
+         "before this cell was written.\n",
+         "\n",
+         "**Still not a full unification**: this uses ParametricFieldB1 "
+         "(matching every other NO-accuracy result), while torch-fem's own\n",
+         "sweep used AnalyticFieldB1 -- the two fixed-location numbers "
+         "describe the same KIND of metric on two different (but\n",
+         "analogous) problems, not an identical one. Also prints the "
+         "corrected multi-QoI crossover using this fixed-location peak-\n",
+         "stress number in place of the old, non-comparable one.\n",
+         "\n",
+         "* **NEEDS A GPU.**\n",
+         "* Cheap -- the one \"expensive-looking\" step (N=1401 ground "
+         "truth) is the same solve the accuracy-degradation sweep\n",
+         "  already did with the fast assembled+direct backend.\n",
+         "* Resumable: skips any N already present in the output JSON.\n"]),
 }
 
 

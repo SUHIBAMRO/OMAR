@@ -117,7 +117,61 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-13 (**A second-opinion review made a correct,
+Last updated: 2026-09-13 (**Real GPU run of the low-N full-QoI sweep
+landed, committed (`torchfem_full_qoi_low_N_result.json`), and it caught a
+GENUINE methodology bug in the multi-QoI crossover script itself, plus a
+real metric-definition mismatch that needed a proper fix -- both now
+fixed.**
+
+**Bug #1 (message wording, fixed)**: when no torch-fem row satisfied a
+metric, the crossover printed "need N < {smallest N}" -- backwards. Since
+FEM error decreases monotonically with N, failing to find a match among
+the tested range (all the way to N=49) means the true answer is "need
+N > 49", not "need N < 3". Real data showing why this mattered: torch-fem's
+own peak-stress error barely improves across the WHOLE low-N range tested
+(82.7% at N=3 down to only 63.0% at N=49) -- converging far slower than
+every other metric (L2/H1/energy converge at the expected rate). `x_star`
+(the located peak point) is at [9.46e-05, 9.46e-05], essentially the
+(0,0) domain corner -- plausibly a boundary-condition-change point,
+a classic slow-convergence/near-singularity location in FEM. Flagged
+honestly as a real, currently-unexplained finding, not smoothed over.
+
+**Bug #2 (real metric-definition mismatch, fixed properly)**: comparing
+the NO's own `P_peak_rel_err` (from `evaluate_no_accuracy_at_n1401` --
+max stress over the COARSE mesh's OWN gauss points, so it is literally
+limited by how many points that mesh has) against torch-fem's
+`peak_stress_rel_err` (`compute_peak_stress_error` -- a FIXED physical
+location/value from a much finer reference) was comparing two
+DIFFERENT quantities that happen to share a name -- not a fair
+crossover. **Real fix**: new `run_no_peak_stress_fixed_location`
+(`no_accuracy_at_n1401.py`) locates x_star/peak_ref ONCE from a fine
+ground truth (N=1401, solve_b1_fast_gpu), then calls
+`compute_peak_stress_error` -- the EXACT SAME function torch-fem's own
+sweep already uses -- on the NO's own prediction at every resolution, at
+that same fixed point. CPU-smoke-tested (N=5,7,9 vs. a tiny fine_N=21,
+random-init model; resume-skip logic verified) before writing the
+notebook. New notebook `Round6_NO_Peak_Stress_Fixed_Location.ipynb`
+(cell: `cell_no_peak_stress_fixed_location.py`) also prints the
+corrected multi-QoI crossover using this fixed-location peak-stress
+number. 72/72 notebooks verified.
+
+**Known remaining limitation, not fixed (bigger follow-up, not started)**:
+even after this fix, the NO's peak-stress number uses ParametricFieldB1
+while torch-fem's own low-N sweep uses AnalyticFieldB1 -- analogous but
+not identical physical problems. A full unification would need torch-fem
+re-solved against the same ParametricFieldB1 realization. Not blocking
+for the other 4 metrics (L2, H1, energy, reaction), which ARE each
+internally consistent within their own comparison.
+
+**Corrected crossover picture so far (pre-peak-stress-fix data, still
+informative for the other 4 metrics)**: for the NO's small-to-medium
+resolutions (13-49), the BINDING (hardest-to-match) metric is the
+**tangent energy norm**, requiring torch-fem N=5-9 (not L2's N=3-4). For
+large NO resolutions (101+), N=3 already satisfies every metric except
+peak stress (still open). **NOT YET RUN**: the peak-stress-fix notebook
+itself, which will supersede this picture once it lands.
+
+Previous update, 2026-09-13 (**A second-opinion review made a correct,
 important point: the "coarsest suitable FEM" crossover found so far
 (torch-fem N=3-4 beats the NO's best L2 error) used ONLY the L2 norm --
 not proof FEM is "suitable" in every sense Timon cares about, since a

@@ -1,0 +1,27 @@
+{
+  "geometry": "B1",
+  "material": "neo_hookean",
+  "order": "Q4",
+  "fine_N": 2236,
+  "note": "Real A100 Colab run, 2026-09-13 (Round6_TorchFEM_Full_QoI_LowN.ipynb). Full QoI set (L2, H1, tangent energy, peak PK1 stress at a fixed location, reaction resultant) via run_qoi_study (torchfem_comparison.py, unchanged, already built/used at N=1001/1401 for Timon round-9 item 9), pointed at low N (3-49) instead of the large-N range. x_star=[9.455e-05, 9.455e-05] (essentially the (0,0) domain corner), peak_ref=43.4767 -- peak-stress error converges very slowly (83% at N=3 down to only 63% at N=49), plausibly because this point sits at or near a boundary-condition-change corner (a classic FEM slow-convergence/near-singularity location), unlike the other QoIs which converge at the expected rate. Uses AnalyticFieldB1 (this study's own field generator for the FEM-vs-FEM tables), NOT ParametricFieldB1 (the NO-accuracy sweep's own field generator) -- the two sweeps solve analogous but not identical physical problems; see PROJECT_STATUS.md for the full caveat on the peak-stress metric specifically.",
+  "x_star": [9.45525125e-05, 9.45525125e-05],
+  "peak_ref": 43.4767,
+  "rows": [
+    {"N": 3, "l2_rel": 3.896e-02, "h1_semi_rel": 1.811e-01, "energy_norm_rel": 1.510e-01, "peak_stress_rel_err": 8.266e-01, "reaction_resultant_rel_err": 4.471e-02},
+    {"N": 4, "l2_rel": 2.456e-02, "h1_semi_rel": 1.394e-01, "energy_norm_rel": 1.138e-01, "peak_stress_rel_err": 8.167e-01, "reaction_resultant_rel_err": 2.617e-02},
+    {"N": 5, "l2_rel": 1.660e-02, "h1_semi_rel": 1.117e-01, "energy_norm_rel": 9.235e-02, "peak_stress_rel_err": 8.074e-01, "reaction_resultant_rel_err": 1.633e-02},
+    {"N": 6, "l2_rel": 1.214e-02, "h1_semi_rel": 9.401e-02, "energy_norm_rel": 7.864e-02, "peak_stress_rel_err": 7.988e-01, "reaction_resultant_rel_err": 1.106e-02},
+    {"N": 9, "l2_rel": 6.248e-03, "h1_semi_rel": 6.535e-02, "energy_norm_rel": 5.600e-02, "peak_stress_rel_err": 7.764e-01, "reaction_resultant_rel_err": 4.723e-03},
+    {"N": 11, "l2_rel": 4.569e-03, "h1_semi_rel": 5.542e-02, "energy_norm_rel": 4.774e-02, "peak_stress_rel_err": 7.634e-01, "reaction_resultant_rel_err": 3.133e-03},
+    {"N": 13, "l2_rel": 3.544e-03, "h1_semi_rel": 4.849e-02, "energy_norm_rel": 4.191e-02, "peak_stress_rel_err": 7.517e-01, "reaction_resultant_rel_err": 2.238e-03},
+    {"N": 17, "l2_rel": 2.379e-03, "h1_semi_rel": 3.949e-02, "energy_norm_rel": 3.415e-02, "peak_stress_rel_err": 7.313e-01, "reaction_resultant_rel_err": 1.316e-03},
+    {"N": 21, "l2_rel": 1.749e-03, "h1_semi_rel": 3.374e-02, "energy_norm_rel": 2.915e-02, "peak_stress_rel_err": 7.137e-01, "reaction_resultant_rel_err": 8.719e-04},
+    {"N": 25, "l2_rel": 1.360e-03, "h1_semi_rel": 2.971e-02, "energy_norm_rel": 2.562e-02, "peak_stress_rel_err": 6.983e-01, "reaction_resultant_rel_err": 6.232e-04},
+    {"N": 29, "l2_rel": 1.100e-03, "h1_semi_rel": 2.675e-02, "energy_norm_rel": 2.295e-02, "peak_stress_rel_err": 6.844e-01, "reaction_resultant_rel_err": 4.694e-04},
+    {"N": 33, "l2_rel": 9.148e-04, "h1_semi_rel": 2.436e-02, "energy_norm_rel": 2.088e-02, "peak_stress_rel_err": 6.718e-01, "reaction_resultant_rel_err": 3.673e-04},
+    {"N": 37, "l2_rel": 7.775e-04, "h1_semi_rel": 2.182e-02, "energy_norm_rel": 1.922e-02, "peak_stress_rel_err": 6.603e-01, "reaction_resultant_rel_err": 2.960e-04},
+    {"N": 41, "l2_rel": 6.721e-04, "h1_semi_rel": 2.092e-02, "energy_norm_rel": 1.782e-02, "peak_stress_rel_err": 6.495e-01, "reaction_resultant_rel_err": 2.440e-04},
+    {"N": 45, "l2_rel": 5.890e-04, "h1_semi_rel": 1.952e-02, "energy_norm_rel": 1.664e-02, "peak_stress_rel_err": 6.396e-01, "reaction_resultant_rel_err": 2.050e-04},
+    {"N": 49, "l2_rel": 5.221e-04, "h1_semi_rel": 1.841e-02, "energy_norm_rel": 1.562e-02, "peak_stress_rel_err": 6.302e-01, "reaction_resultant_rel_err": 1.748e-04}
+  ]
+}
