@@ -117,7 +117,68 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-13 (**Real GPU run of the low-N full-QoI sweep
+Last updated: 2026-09-13 (**REAL, FINAL, CORRECTED multi-QoI crossover --
+peak stress (now fixed-location, apples-to-apples) is the dominant
+binding constraint almost everywhere, with an important interpretive
+caveat.** Committed: `no_peak_stress_fixed_location_B1_neo_hookean.json`.
+
+**The NO's own peak-stress error (fixed location, same definition as
+torch-fem) is bad EVERYWHERE, not resolution-dependent the way L2/H1/
+energy are**: 60.7% (best, N=101) to 73.6% (worst, N=1401),
+non-monotonic in between (N=13: 71.8%, N=49: 62.0%, N=201: 62.0%,
+N=1401: 73.6%). This is a genuinely different picture from the other
+4 metrics, which all show the expected smooth degradation away from the
+trained resolutions (21/33).
+
+**Corrected coarsest-suitable-FEM crossover** (all 5 metrics, peak
+stress now real):
+
+| NO@N | coarsest suitable FEM | binding metric |
+|---|---|---|
+| 13 | N=21 | peak stress |
+| 17 | N=29 | peak stress |
+| 21 | N=33 | peak stress |
+| 25 | N=37 | peak stress |
+| 29 | N=41 | peak stress |
+| 33 | N=45 | peak stress |
+| 37 | N=49 | peak stress |
+| 41-201 | N=3-9 (tangent energy) | **peak stress unmatched -- FEM needs N>49, not tested that far** |
+| 401 | N=45 | peak stress |
+| 701 | N=33 | peak stress |
+| 1001 | N=25 | peak stress |
+| 1401 | N=17 | peak stress |
+
+**Important interpretive caveat, not yet resolved**: `x_star` (the
+located true peak-stress point) is essentially the (0,0) domain corner
+in BOTH the torch-fem and NO peak-stress studies. This is very likely a
+boundary-condition-transition point (where the fixed bottom edge meets
+a free edge) -- a classic location for a re-entrant-corner-type
+stress singularity in elasticity, where the true continuum stress may
+not even be a well-defined finite target, and standard h-refinement
+does NOT converge at the usual rate (confirmed here: torch-fem's own
+peak-stress error barely improves from N=3 to N=49, 83%->62%, while
+its L2/H1/energy at the same N converge from ~4%/18%/15% down to
+~0.05%/1.8%/1.6% -- normal rates). **This means "peak stress at this
+exact point" may not be a fair or meaningful metric to hold up as THE
+deciding factor for "coarsest suitable FEM"** -- both methods may
+simply be unable to converge there in the classical sense, making the
+comparison closer to "who fails less badly at an ill-posed target" than
+a genuine accuracy comparison. This should be flagged explicitly if/when
+this crossover goes into the report, not presented as a clean number.
+Not yet investigated further (e.g., checking whether x_star really sits
+at a BC discontinuity, or trying a spatially-averaged/regularized peak
+metric instead of a raw pointwise max).
+
+**All 5 result files for Timon's item 1 comparison are now committed**:
+`torchfem_convergence_vs_fine_reference.json` (L2/H1 low-N),
+`torchfem_full_qoi_low_N_result.json` (full QoI low-N),
+`no_accuracy_degradation_sweep_B1_neo_hookean.json` (NO full QoI,
+N=13-1401), `no_peak_stress_fixed_location_B1_neo_hookean.json` (NO
+peak stress, fixed-location). **Still open**: decide how to present the
+peak-stress caveat before writing any of this into the Report/Summary
+`.docx` files (not started).
+
+Previous update, 2026-09-13 (**Real GPU run of the low-N full-QoI sweep
 landed, committed (`torchfem_full_qoi_low_N_result.json`), and it caught a
 GENUINE methodology bug in the multi-QoI crossover script itself, plus a
 real metric-definition mismatch that needed a proper fix -- both now
