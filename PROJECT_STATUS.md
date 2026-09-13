@@ -117,7 +117,43 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-13 (**REAL, FINAL, CORRECTED multi-QoI crossover --
+Last updated: 2026-09-13 (**Drafted a real reply to Timon's round-10
+email, at Omar's explicit request ("مسودة حقيقية بدي أبعتها لتيمون").**
+`advisor_feedback/2026-09-13_reply_to_round10_draft.md` -- covers all 5
+points with the real numbers already committed in this file: point 1's
+full corrected accuracy-matched comparison (including the peak-stress
+singularity caveat, framed honestly rather than smoothed over) and a
+note that a retraining run is in progress and will be verified/followed
+up separately; point 2's real batch/throughput numbers; point 3's real
+profiling/torch.compile/TF32 numbers; point 4's B7 design + real
+mesh-convergence evidence, ending with a direct question asking Timon
+to confirm the design (this is what discharges the standing "ask Timon
+first" rule before any B7 training time is spent); point 5 explicitly
+deferred until point 1 is finalized. **NOT SENT** -- Omar to review
+first. Also serves as this project's own consolidated status: everything
+in the draft traces to already-committed, already-verified numbers in
+this file, nothing new asserted.
+
+**Live status of the in-progress retraining, for whoever reads this
+next**: `B1_NeoHookean_MultiRes_Retrain.ipynb` real training progress at
+epoch 875/2000 (early_stop_patience=8 checks = 200 epochs): validation
+error dropped from ~33% (epoch 25) to ~3.5% best-so-far (epoch 875,
+`both_components` metric) -- genuine, substantial improvement, but this
+is a TRAINING validation metric, not the rigorous FEM-referenced
+accuracy check used everywhere else in this file, and only covers the
+trained resolutions (21/33/101/201), not 401-1401. Real elapsed wall
+time so far: 34,110s (~9.5h) -- much longer than this project's own
+original estimate (1-3h), because larger resolutions (101/201) cost
+much more per training step than the original 21/33-only run. Real ETA
+if it runs to the full 2000 epochs at the current ~975s/25-epoch pace:
+~12h more; more likely to stop earlier via early-stopping once 200
+epochs pass with no new best. **Once it finishes: re-run the exact same
+accuracy-degradation-sweep + peak-stress-fixed-location notebooks
+against the new checkpoint (both already fingerprint-safe) for a real,
+apples-to-apples before/after comparison** -- this is the literal next
+step, not started yet.
+
+Previous update, 2026-09-13 (**REAL, FINAL, CORRECTED multi-QoI crossover --
 peak stress (now fixed-location, apples-to-apples) is the dominant
 binding constraint almost everywhere, with an important interpretive
 caveat.** Committed: `no_peak_stress_fixed_location_B1_neo_hookean.json`.
