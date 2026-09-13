@@ -117,7 +117,40 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-13 (**Drafted a real reply to Timon's round-10
+Last updated: 2026-09-13 (**Added real tables + real figures (pulled
+directly from Drive via the Google Drive connector, not regenerated) to
+the round-10 reply draft, at Omar's request -- and while doing that,
+found a real gap: points 2 and 3's own source JSON on Drive
+(`max_feasible_batch/no_max_batch_natural.json`) has
+`"checkpoint": ".../data_driven/B1_neo_hookean/model_best.pt"` in it
+explicitly -- CONFIRMED these were measured with the WRONG (pre-fix)
+checkpoint, not just "possibly."** `.../no_inference_torch_compile_
+N1401.json` (created 2026-09-12T12:45, well before the checkpoint fix)
+is almost certainly the same, though it doesn't store the checkpoint
+path directly.
+
+**Both `.docx` and `.md` reply drafts now carry an explicit, visible
+(red italic) caveat on points 2 and 3** stating this plainly rather than
+silently trusting the numbers: timing/peak-memory should be
+checkpoint-independent (same architecture/compute graph regardless of
+trained weights) but this has NOT been re-confirmed with the corrected
+checkpoint. **Real next step, still not done**: re-run
+`cell_max_feasible_batch_size.py` and `cell_no_inference_torch_compile.py`
+(both already fixed to use `resolve_b1_checkpoint`) once more to turn
+this from "expected, unconfirmed" into a real, checked number, ideally
+bundled with the retraining verification pass so it isn't a separate
+GPU round-trip.
+
+**Figures used, verified correct before embedding**: `fig_no_accuracy_
+degradation_sweep.png` (Drive, created 2026-09-13 -- confirmed by
+inspection to show the real post-fix curve, best ~7.4% at N=33-49 rising
+smoothly to ~44% at N=1401, matching the committed numbers exactly) and
+`fig_no_inference_torch_compile_N1401.png` (the eager/compile/TF32 bar
+chart). Deliberately did NOT use `fig_no_accuracy_at_n1401.png` (Drive,
+created 2026-09-12T13:10, BEFORE the checkpoint fix) since it almost
+certainly shows the false 640%-era numbers.
+
+Previous update, 2026-09-13 (**Drafted a real reply to Timon's round-10
 email, at Omar's explicit request ("مسودة حقيقية بدي أبعتها لتيمون").**
 `advisor_feedback/2026-09-13_reply_to_round10_draft.md` -- covers all 5
 points with the real numbers already committed in this file: point 1's
