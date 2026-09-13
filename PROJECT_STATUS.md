@@ -117,7 +117,30 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-13 (**REAL, FINAL, CORRECTED N=1401 result -- the
+Last updated: 2026-09-13 (**A second-opinion review made a correct,
+important point: the "coarsest suitable FEM" crossover found so far
+(torch-fem N=3-4 beats the NO's best L2 error) used ONLY the L2 norm --
+not proof FEM is "suitable" in every sense Timon cares about, since a
+coarse mesh could match displacement while being far worse at gradients
+(H1), energy, peak stress, or reactions.** Built the real fix: new
+notebook `Round6_TorchFEM_Full_QoI_LowN.ipynb` (cell:
+`cell_torchfem_full_qoi_low_N.py`) reuses `run_qoi_study`
+(`torchfem_comparison.py`, already built 2026-09-10 for Timon round-9
+item 9 and already used at N=1001/1401 -- **zero new solver code**) at
+the low-N range (3-49) instead of the large-N range it was originally
+pointed at. This already computes the FULL QoI set (L2, H1, energy,
+peak stress, per-component stress, reaction resultant) against the same
+fine reference, using machinery already validated for the high-N
+FEM-vs-FEM tables. CPU-smoke-tested locally (N=5,7 vs. a tiny fine_N=21)
+before writing the notebook -- ran clean. The cell also prints a
+multi-QoI crossover: for each NO resolution, the coarsest torch-fem N
+matching EACH metric separately, then the coarsest N satisfying ALL of
+them at once (the max across metrics) -- the real "coarsest suitable
+FEM" answer, not an L2-only guess. 71/71 notebooks verified. **NOT YET
+RUN** -- next step, expected cheap (every N here is smaller than N=51,
+which took 3.42s in the earlier L2/H1-only sweep).
+
+Previous update, 2026-09-13 (**REAL, FINAL, CORRECTED N=1401 result -- the
 widened accuracy sweep finished end to end with the RIGHT checkpoint.
 This table supersedes every "640% error" claim anywhere in this project.**
 

@@ -1861,6 +1861,39 @@ NOTEBOOKS = {
          "* Saves a log-log figure of disp_rel_L2 vs. N, with the "
          "training resolutions (21, 33) and the top of the old zero-shot\n",
          "  validated range (49) marked.\n"]),
+    "Round6_TorchFEM_Full_QoI_LowN.ipynb": (
+        "cell_torchfem_full_qoi_low_N.py",
+        ["# torch-fem's FULL QoI set at low N -- is N=3-4 really \"suitable\", "
+         "or does it only win on L2? (refined 2026-09-13)\n",
+         "\n",
+         "A second-opinion review made a correct point about the earlier "
+         "crossover (torch-fem N=3-4 beats the NO's best L2 error): L2\n",
+         "alone doesn't prove FEM is a suitable replacement in every sense "
+         "Timon cares about -- a coarse mesh could match displacement\n",
+         "while still being far worse at gradients (H1), energy, peak "
+         "stress, or reaction forces. The \"coarsest suitable FEM\" needs\n",
+         "to match or beat the NO in ALL of these at once, not just L2.\n",
+         "\n",
+         "**How**: reuses `run_qoi_study` (already built 2026-09-10 for "
+         "Timon round-9 item 9, \"what about all QoIs\", and already used\n",
+         "at N=1001/1401) UNCHANGED -- no new solver code. Same fine "
+         "~10M-DOF reference, RESUMED not re-solved. Only new here:\n",
+         "pointing it at N = 3,4,5,6,9,11,13,17,21,25,29,33,37,41,45,49 "
+         "instead of the large-N range. Prints a multi-QoI crossover: for\n",
+         "each NO resolution, the coarsest torch-fem N matching EACH "
+         "metric (L2, H1, energy, peak stress, reaction) separately, then\n",
+         "the coarsest N that satisfies ALL of them at once -- the real "
+         "answer to \"coarsest suitable FEM\", not an L2-only guess.\n",
+         "\n",
+         "* **NEEDS A GPU.**\n",
+         "* **Cheap**: every N here is smaller than N=51 (3.42s in the "
+         "earlier L2/H1-only sweep); the extra QoIs add only a small\n",
+         "  constant per N (one energy Hessian-vector product, a few "
+         "point evaluations, one reaction assembly), not a new solve.\n",
+         "* CPU-smoke-tested locally (N=5,7 against a tiny fine_N=21) "
+         "before this cell was written, confirming `run_qoi_study` runs\n",
+         "  clean end to end.\n",
+         "* Resumable: skips any N already present in the output JSON.\n"]),
 }
 
 
