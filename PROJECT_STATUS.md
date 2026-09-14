@@ -117,7 +117,20 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**`EXPERIMENT_LOG.md` extended BACK to the
+Last updated: 2026-09-14 (**Omar confirmed the finalized email was sent
+to Timon** (`advisor_feedback/2026-09-14_final_reply_round10_and_
+provenance.md`, attaching the updated Report and Round-10 Summary).
+Round-10 points 1/2/3/5 reported as complete; point 4 (B7 ring+notch)
+sent as a direct design-confirmation question, not a completed result
+-- **task #16 stays PENDING, now correctly described as "blocked on
+Timon's reply to the sent email" rather than "not started."** Nothing
+else changes: no new numbers, no code changes. Next real trigger on
+this project is Timon's reply -- when it arrives, re-open the relevant
+task(s) (most likely #16, possibly a new round-11 if he pushes back on
+any of points 1/2/3/5's framing) and update this file before doing
+anything else, per this file's own standing rule.
+
+Previous update, 2026-09-14 (**`EXPERIMENT_LOG.md` extended BACK to the
 project's actual first commit** (`f3d78f0`, 2026-07-03), closing a real
 gap Omar caught: the previous pass (below) started at `bfcb67c0`
 (2026-08-04), silently skipping the real first 34 commits
