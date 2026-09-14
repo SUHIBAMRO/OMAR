@@ -117,7 +117,54 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Points 2 and 3's checkpoint-independence
+Last updated: 2026-09-14 (**MAJOR RESULT: the multi-resolution retraining
+finished and dramatically fixes the resolution-extrapolation problem
+that drove point 1's whole "NO degrades badly away from training
+resolution" story.** Real A100 run, final before/after comparison cell
+of `B1_NeoHookean_MultiRes_Retrain.ipynb`, same 16-N accuracy-degradation
+sweep used everywhere else in round-10, ground-truth convergence
+confirmed at every N (relative residual 4.6e-10 to 1.0e-10,
+`converged_likely=True` throughout). Full table (disp_rel_L2, OLD
+checkpoint trained on N=21,33 only vs. NEW checkpoint trained on
+N=21,33,101,201) saved to
+`Practical_Examples/omar_pfem/no_accuracy_multires_retrain_comparison.json`:
+
+| N | OLD | NEW |
+|---|---|---|
+| 13 | 13.85% | 11.74% |
+| 33 | 7.37% | 3.50% |
+| 49 | 8.50% | 2.32% |
+| 101 | 14.99% | 3.55% |
+| 201 | 22.28% | 4.85% |
+| 401 | 28.97% | 5.62% |
+| 701 | 34.34% | 5.88% |
+| 1001 | 38.82% | 5.87% |
+| 1401 | **44.65%** | **5.85%** |
+
+Old checkpoint degraded monotonically and badly the further N got from
+the trained 21/33 pair (up to 44.65% at N=1401). New checkpoint instead
+gets BETTER at first (best ~2.3% around N=45-49) then plateaus at
+~5.8-5.9% for every N from 401 all the way to 1401 -- it stops
+degrading instead of climbing. N=1401 error: 44.65% -> 5.85%, a 7.6x
+reduction. This is a genuine, verified, resolution-robustness
+improvement, not a training-validation-only number -- checked against
+real independent FEM ground truth at every N, same discipline as every
+other number in this file.
+
+**Not yet done, before this can be folded into the Timon draft**: (1)
+confirm the exact epoch/stopping point the NEW checkpoint came from
+(last known live progress: epoch 875/2000, val error ~3.5% -- need the
+final number); (2) re-run the FEM low-N QoI crossover
+(`run_qoi_study`) and the peak-stress-fixed-location check
+against this NEW checkpoint -- the "near-degenerate FEM (N=3-9) already
+matches the NO's best accuracy" framing in the current draft was built
+against the OLD checkpoint's ~7.4% best case, and may no longer hold
+now that the NO's plateau is ~5.8% and its near-training best is ~2.3%;
+(3) decide whether to substantially rewrite point 1 of the draft with
+this new story before sending, since it changes the comparison's
+conclusion, not just a footnote.
+
+Previous update, 2026-09-14 (**Points 2 and 3's checkpoint-independence
 caveat is now RESOLVED with real re-measurement, closing the gap noted
 in the entry below.** Omar re-ran both `cell_max_feasible_batch_size.py`
 and `cell_no_inference_torch_compile.py` with the corrected checkpoint

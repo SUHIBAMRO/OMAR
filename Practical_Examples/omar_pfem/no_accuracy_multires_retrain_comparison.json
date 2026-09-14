@@ -1,0 +1,23 @@
+{
+  "note": "Real A100 run, 2026-09-14 (final before/after comparison cell of B1_NeoHookean_MultiRes_Retrain.ipynb). Compares the OLD checkpoint (trained on N=21,33 only -- zeroshot_B1_neo_hookean/model_best.pt, fingerprint 86030f4f...) against the NEW checkpoint (retrained on N=21,33,101,201, fast_solver=1 data generation) on the SAME accuracy-degradation sweep (disp_rel_L2 vs FEM ground truth, same 16 resolutions N=13..1401 used throughout round-10). OLD rows read from the existing no_accuracy_degradation_sweep.json (already committed); NEW rows freshly computed in this run. Ground-truth convergence confirmed at every N for the NEW run (relative_residual 4.6e-10 down to 1.0e-10, all converged_likely=True) -- same convergence discipline as every other result in this project.",
+  "caveat": "The exact stopping epoch of the retraining run that produced the NEW checkpoint has not yet been pulled from the training log/checkpoint metadata for this entry -- last known live progress (see PROJECT_STATUS.md, 2026-09-13 entry) was epoch 875/2000, val error ~3.5%. Should be confirmed before citing to Timon.",
+  "rows": [
+    {"N": 13,   "old_disp_rel_L2": 0.13848, "new_disp_rel_L2": 0.11735, "improved": true},
+    {"N": 17,   "old_disp_rel_L2": 0.11603, "new_disp_rel_L2": 0.08474, "improved": true},
+    {"N": 21,   "old_disp_rel_L2": 0.09750, "new_disp_rel_L2": 0.06510, "improved": true},
+    {"N": 25,   "old_disp_rel_L2": 0.08549, "new_disp_rel_L2": 0.05180, "improved": true},
+    {"N": 29,   "old_disp_rel_L2": 0.07750, "new_disp_rel_L2": 0.04210, "improved": true},
+    {"N": 33,   "old_disp_rel_L2": 0.07370, "new_disp_rel_L2": 0.03498, "improved": true},
+    {"N": 37,   "old_disp_rel_L2": 0.07366, "new_disp_rel_L2": 0.02981, "improved": true},
+    {"N": 41,   "old_disp_rel_L2": 0.07615, "new_disp_rel_L2": 0.02627, "improved": true},
+    {"N": 45,   "old_disp_rel_L2": 0.08016, "new_disp_rel_L2": 0.02414, "improved": true},
+    {"N": 49,   "old_disp_rel_L2": 0.08504, "new_disp_rel_L2": 0.02315, "improved": true},
+    {"N": 101,  "old_disp_rel_L2": 0.14990, "new_disp_rel_L2": 0.03548, "improved": true},
+    {"N": 201,  "old_disp_rel_L2": 0.22283, "new_disp_rel_L2": 0.04850, "improved": true},
+    {"N": 401,  "old_disp_rel_L2": 0.28972, "new_disp_rel_L2": 0.05620, "improved": true},
+    {"N": 701,  "old_disp_rel_L2": 0.34338, "new_disp_rel_L2": 0.05878, "improved": true},
+    {"N": 1001, "old_disp_rel_L2": 0.38817, "new_disp_rel_L2": 0.05868, "improved": true},
+    {"N": 1401, "old_disp_rel_L2": 0.44654, "new_disp_rel_L2": 0.05852, "improved": true}
+  ],
+  "headline": "Widening the training-resolution set from {21,33} to {21,33,101,201} eliminates the monotonic degradation seen with the old checkpoint. Old: near-best at N=33/37 (~7.4%), degrading monotonically to 44.65% at N=1401. New: best at N=45/49 (~2.3-2.4%), then plateaus at ~5.8-5.9% for every N from 401 to 1401 instead of continuing to climb. N=1401 error drops from 44.65% to 5.85% (7.6x reduction)."
+}
