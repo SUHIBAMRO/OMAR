@@ -26,7 +26,69 @@ against the description before merging. A handful of entries could not
 be tied to a specific commit with confidence -- these are listed in
 their own section at the end rather than guessed.
 
-## Round 4 / pre-Round-5 foundational results (2026-07-29 – 2026-08-19)
+Extended AGAIN 2026-09-14, same day, after Omar caught that the above
+pass still did not start "from the beginning of the project" as an
+email to Timon now literally promises: it began at commit `bfcb67c0`
+(2026-08-04), skipping the project's real first 34 commits
+(2026-07-03 -- 2026-08-03), including an entire abandoned prototype
+codebase and a full prior advisor-feedback round ("Round 3") that had
+never been logged anywhere before this. The three sections immediately
+below close that gap, read directly from `git log --reverse` back to
+the repository's actual first commit (`f3d78f0`, 2026-07-03) -- every
+commit hash in them re-checked with `git log -1 <hash>` against this
+file's own description before being written down.
+
+## Project origin -- VINO/FNO-based prototype, ABANDONED (2026-07-03 – 2026-07-07)
+
+**Not behind any result in the current report or any later round below.**
+The very first commits on this repo built B1/B2 hyperelasticity
+benchmarks on top of vendored `eshaghi-ms/VINO` code (JAX/FNO
+architecture, `Practical_Examples/omar/`) -- superseded three days
+later (`a4f20e4`, 2026-07-09) by the PyTorch/PFEM/Transolver pipeline
+(`Practical_Examples/omar_pfem/`) that every other entry in this log,
+and the entire report, is actually about. Kept here only because Timon
+asked for failures to stay visible, not just successes -- and this
+prototype had real, instructive ones before it was set aside.
+
+| Commit | Date | One-line description | Result file(s) |
+|---|---|---|---|
+| `f3d78f0` | 2026-07-03 | Vendored `eshaghi-ms/VINO` code unmodified as the foundation for the first prototype. | -- |
+| `0a43095` | 2026-07-03 | B1 (unit square) and B2 (quarter ring) hyperelasticity benchmarks added on top of VINO's unmodified FNO architecture/training loop; Arruda-Boyce added to `DemHyperelasticityLoss`. | -- |
+| `44aec4b` | 2026-07-03 | Real FEniCSx (dolfinx) FEM data generator added; verified with 2-3 pilot samples/case (0 solver failures, BCs satisfied to float precision) before committing to full generation. | -- |
+| `b4665ae` | 2026-07-03 | **Bug found+fixed**: Arruda-Boyce's raw invariant I1 has no lower bound under compression -- a full FEM generation run had all 550 samples "converge" to ~50-100% strain (~100x larger than Neo-Hookean/Mooney-Rivlin under the same load) instead of a physical response. Fixed by applying the polynomial series to the isochoric invariant I1_bar = I1/J instead (bounded below by 2, by 2D AM-GM). | -- |
+| `59dd939` | 2026-07-04 | **Bug found+fixed, real negative result while it lasted**: B2's loss inherited B1's flat-domain derivative code unchanged, silently feeding d/dr, d/dtheta into the strain-energy functional as if they were d/dx, d/dy -- wrong physics for B2's curved (polar) geometry. After a full 1000-epoch Colab run: B1 test errors a reasonable 3.6-4.8%, but all three B2 materials at **153-183%** (worse than predicting zero). Training loss looked completely normal throughout -- the network was correctly converging to the WRONG energy functional. Fixed via the polar chain rule; the three pre-fix B2 runs were declared invalid and had to be redone. | -- |
+| `fff41c6` | 2026-07-06 | Replaced the finite-difference/trapezoidal-quadrature (DEM) baseline with VINO's actual paper method (exact closed-form per-element energy integration) for B1; independently re-derived the existing Mooney-Rivlin formula from scratch with sympy and reproduced it byte-for-byte (0.00e+00 difference) before trusting the same method for Neo-Hookean/Arruda-Boyce. Cross-checked against the old DEM baseline on a smooth test field: all 6 material/geometry combinations agree to ~3.2%. | -- |
+| `e03b6ee` | 2026-07-07 | B2's curved-geometry exact closed-form integration (replacing an interim Gauss-quadrature version), validated against direct numerical integration to ~1e-5/1e-4. **Known limitation, not a bug, kept as-is at the time**: an approximately constant ~35-40% discrepancy vs. the exact continuum energy of a smooth test field, confirmed NOT to shrink with mesh refinement (cross-validated to ~1e-7 against a brute-force reference, ruling out an implementation bug) -- an inherent property of the forward-difference bilinear-ansatz method on curved geometry. Moot within days once this whole prototype was abandoned. | -- |
+
+## PFEM/Transolver pipeline bring-up (2026-07-09 – 2026-07-20)
+
+**This is where the codebase behind every other entry in this log, and
+the entire report, actually begins.**
+
+| Commit | Date | One-line description | Result file(s) |
+|---|---|---|---|
+| `a4f20e4` | 2026-07-09 | New, independent PFEM/Transolver pipeline started (`omar_pfem/`), per the professor's guidance to pursue PI-Transolver (Wang et al., PFEM, JMPS 2026) instead of pushing the FNO/VINO approach into complex geometries. B1 x Neo-Hookean only, real Q4 Gauss-quadrature FEM energy assembly (not autodiff, not VINO's closed-form method). Validated end-to-end on a 30-sample/15x15-mesh/200-epoch CPU run: no NaNs/crashes, physically sensible det(F), dominant-displacement test error drops from ~5.1 to 0.55-0.75 -- full GPU-scale convergence not yet attempted at this point. | -- |
+| `1c04791` | 2026-07-09 | Generalized to all 3 materials x both B1/B2 (6 cases total) from scratch for B2. Fixed a real Mooney-Rivlin 2D reference-state calibration bug (`d=2(c1+c2)`, not 3D's `2(c1+2c2)`) that otherwise leaves a residual PK1 stress of `-0.5*mu` at the undeformed state. All 6 combinations validated: FEM solver converges in 2 Newton iterations/load step, zero residual stress at F=I, symmetry BCs to machine precision, genuine energy-minimization convergence (Pi: ~67 -> ~0.01 over 300 epochs, B1xMooney-Rivlin). | -- |
+| `24cc9aa` | 2026-07-09 | Google Drive mounted for durable checkpoint storage (infrastructure only, not a result) -- local Colab disk doesn't survive a full runtime reset. | -- |
+
+## Round 3 (Timon's third feedback round) -- device metrics, OOD, mesh convergence, GPU-native FEM solver, first resolution-invariance attempt (2026-07-23 – 2026-08-03)
+
+| Commit | Date | One-line description | Result file(s) |
+|---|---|---|---|
+| `6398d18` | 2026-07-23 | Per the advisor's review that 10,000 epochs wasn't necessary and the best result so far came around epoch 1000 (later epochs possibly hurt by optimization instability): replaced gradient-accumulation "batch size" (never actually reduced wall-clock time) with real mini-batching, added best-checkpoint tracking, configurable early stopping, and a systematic batch-size screening study. Verified locally (CPU, tiny data): bs=1 reproduces prior per-sample numerics exactly. | `screening_summary.json` |
+| `c187f60` | 2026-07-29 | Device-level GPU memory (`torch.cuda.mem_get_info`) alongside allocator stats, standalone inference-latency benchmark, batch-size screening extended past 16 up to 256 with graceful OOM detection. | `inference_latency.json` |
+| `b8dc04c` | 2026-07-29 | OOD test generation/evaluation added (shifted material/load distributions, same mesh/solver). **Bug found+fixed in the same commit**: the dataset loader crashed on `ntrain=0`, which never came up in normal training but is exactly this script's own call pattern. | -- |
+| `8cce917` | 2026-07-29 | Mesh (h-refinement) convergence study for the reference FE solver, using fixed analytic fields (GRF's random-phase array isn't resolution-comparable). Confirms the reference solver is essentially converged at the N=21 mesh used throughout the study (e.g. B1/Mooney-Rivlin: 0.225% relative change from N=21->31). | -- |
+| `ff46d33` | 2026-07-29 | GPU-native Newton-Raphson FEM solver (autodiff-based tangent, batched) for a fair GPU-to-GPU comparison. **Real correctness bug found+fixed during development**: naively reusing the training-side energy assembly averages material parameters per-NODE then converts, while the CPU reference solver converts per-ELEMENT-centroid then averages -- a genuinely different (nonlinear) formula, not just a different implementation. Fixed by precomputing per-element parameters with the CPU solver's own exact calls; final agreement with the CPU reference: ~1e-13 to ~1e-14 relative error. | -- |
+| `b1a866f` | 2026-07-29 | First resolution-invariance study driver (Timon R3 item #7/7, completing code implementation for all 7 items of the advisor's third feedback round): 10 INDEPENDENT trainings, one per mesh resolution, compared side by side. **This design was later judged flawed by the advisor and replaced entirely -- see `589d8d0` below.** | -- |
+| `50eaa37` | 2026-07-29 | Resolution-invariance driver fix: epoch budget 500->2000 (matching the main protocol) and an explicit "hit epoch cap, not converged" flag per resolution, to avoid a false "resolution X performs worse" reading of an undertrained run. | -- |
+| `b4c8072` | 2026-07-29 | **Real bug found+fixed, could have inflated a headline OOD number**: `evaluate_ood.py` called the dataset loader with `ntrain=0` for the in-distribution split too, which reads `samples[0:ntest]` -- part of the TRAINING set for any real run, not the held-out test split. Would have measured train-set memorization as "in-distribution generalization," inflating both that number and the OOD degradation factor computed from it. Fixed via an explicit `--id_ntrain` flag; verified with a smoke test confirming the correct held-out indices are read. | -- |
+| `4a63d45` | 2026-07-30 | **Real process bug found+fixed, live on Colab**: 3 of the advisor's 7 round-3 items (batch-size screening, inference latency, device-level GPU memory) silently never executed for the 6 main cases, because `train_hyperelastic_Q4()` returns early -- before reaching any of that new code -- whenever a case is already fully trained, which all 6 already were. The code was correct and locally verified; it simply never ran on the user's own Drive data until this fix (separate standalone cells/scripts that don't require retraining). | -- |
+| `678a0f6` | 2026-08-01 | **Real bug found+fixed**: the mesh-convergence cell's skip check only tested whether an output file existed, not whether it contained every requested resolution -- an earlier interrupted run (B2 x Neo-Hookean, only N=6..26) was being skipped as "already done" on every subsequent run instead of completing to N=51. | -- |
+| `6e9cb78` | 2026-08-03 | Exact, measured CPU/GPU FEM cost breakdown (assembly/solve timing, proper GPU sync, warm-up pass, analytical FLOPs estimate) per the advisor's fourth-round request, replacing a placeholder constant "8.0 s/sample" figure. | -- |
+| `589d8d0` | 2026-08-04 | **Major correction, real negative finding about the project's OWN prior methodology**: the advisor correctly pointed out that training ten independent networks on ten meshes (`b1a866f`/`50eaa37`) does not demonstrate resolution invariance -- each network only ever learned its own resolution. Replaced with the actual test used ever since: train ONE Transolver model jointly on two mesh resolutions, then evaluate that SAME checkpoint with no retraining on unseen resolutions, scored against a common fine-mesh FEM reference. Required a new randomly-parametrized analytic field generator (`data/parametric_field.py`) since the GRF sampler's phase array isn't resolution-comparable. This is the direct methodological ancestor of every zero-shot resolution-invariance result reported in every later round. | -- |
+
+## Round 4 / pre-Round-5 foundational results (2026-08-04 – 2026-08-19)
 
 | Commit | Date | One-line description | Result file(s) |
 |---|---|---|---|
@@ -138,6 +200,42 @@ These are genuine, real findings that came out unfavorably (not
 development bugs) -- kept here explicitly per Timon's own request not
 to bury failures:
 
+- **Abandoned VINO/FNO prototype (`omar/`, 2026-07-03 -- 07-07, not
+  behind any current result)**: Arruda-Boyce's raw invariant produced
+  unbounded, unphysical ~50-100% strain under compression for all 550
+  samples of a full data-generation run before the fix (`b4665ae`); B2's
+  loss silently fed polar-coordinate derivatives into the strain-energy
+  functional as if they were Cartesian, producing 153-183% test error
+  (worse than predicting zero) after a full 1000-epoch run, with
+  completely normal-looking training loss throughout (`59dd939`); the
+  curved-geometry closed-form energy integration showed a constant
+  ~35-40% discrepancy vs. the true continuum energy that did NOT shrink
+  with mesh refinement, an inherent limitation of the method rather than
+  a bug (`e03b6ee`) -- moot days later when this whole codebase was set
+  aside for the PFEM/Transolver pipeline actually used ever since.
+- **The project's own first resolution-invariance study design was
+  methodologically wrong and had to be replaced entirely**: the original
+  version (`b1a866f`, `50eaa37`) trained 10 independent networks, one per
+  mesh resolution, and compared them side by side -- which the advisor
+  correctly pointed out does not demonstrate resolution invariance, since
+  each network only ever learned its own resolution. Replaced (`589d8d0`)
+  with the true zero-shot protocol used in every later round: one model
+  trained jointly on two resolutions, evaluated with no retraining on
+  unseen ones.
+- **OOD in-distribution evaluation bug that could have inflated a
+  headline number**: `evaluate_ood.py` read part of the TRAINING set as
+  the "in-distribution test set" (`ntrain=0` on a loader whose convention
+  needs the real ntrain to find the held-out slice), which would have
+  measured train-set memorization as generalization and inflated the OOD
+  degradation factor computed from it. Caught and fixed before any
+  numbers were reported from it (`b4c8072`).
+- **3 of the advisor's 7 round-3 feedback items silently never executed
+  on real data for months**, despite being correctly written and locally
+  verified: batch-size screening, inference latency, and device-level GPU
+  memory all lived inside a training function that returns early whenever
+  a case is already fully trained -- true for all 6 main cases by the
+  time this code was added. Found only because the user was actively
+  running the notebook (`4a63d45`).
 - **Q4-vs-Q9 direct agreement check FAILS** the advisor's own
   <1e-5-in-all-norms criterion in H1/energy (misses by ~2 orders of
   magnitude), despite L2 passing (`2c91f5661`, `58e429ae`).
@@ -207,9 +305,13 @@ to bury failures:
   table cell.
 - **Very early Round-4/pre-tracker results** (initial Tables 1-6 mesh
   convergence, Table 8 GPU memory, original Table 4a/7, the original
-  pre-"revised" Table 12) predate `PROJECT_STATUS.md` itself
-  (2026-08-15) and predate this project's one-commit-per-finding
-  discipline -- omitted rather than guessed at a commit.
+  pre-"revised" Table 12): the CODE behind these is now traced above
+  (mesh convergence `8cce917`/`678a0f6`, device GPU memory `c187f60`,
+  inference latency `4a63d45`) -- but the specific live-GPU-run commit
+  that produced the exact numbers actually printed in these report
+  tables predates `PROJECT_STATUS.md` itself (2026-08-15) and this
+  project's one-commit-per-finding discipline, and was not confidently
+  identified in this pass -- omitted rather than guessed at a commit.
 - **OOD degradation factors 4.75x/5.47x/2.27x (Table 25)**: the
   per-case breakdown (which factor belongs to which case/shift-type)
   was not confirmed against the live table in this pass.
