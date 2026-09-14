@@ -15,14 +15,32 @@
 #
 #  SAMPLE COUNT: 100 train + 20 val (NOT the multi-res checkpoint's own
 #  400+100) -- Omar's own explicit choice, recommended here given the
-#  real, measured per-sample ground-truth cost at N=1401 (58.54s,
-#  assembled_direct_convergence_production_N401_1401.json): 500 samples
-#  would cost ~8.1 GPU-hours on data generation ALONE, before any
-#  training; 120 samples costs ~1.9 GPU-hours -- appropriate for an
-#  ablation/comparison study, not the headline result.
+#  per-sample ground-truth cost at N=1401 available at the time (see
+#  CORRECTION below for why that number was wrong): appropriate for an
+#  ablation/comparison study, not the headline result, regardless.
 #
-#  COST ESTIMATE (data generation only, before training):
-#    120 samples x 58.54s/sample ~= 7,025s ~= 1.95 GPU-hours
+#  CORRECTION (2026-09-14, found on a real GPU run of this exact cell):
+#  the COST ESTIMATE below (58.54s/sample) was measured under a DIFFERENT
+#  condition than what this cell actually runs, and is wrong by ~10x.
+#  58.54s comes from assembled_direct_convergence_production_N401_1401.json,
+#  a single-shot solve (nsteps=1, one full-load Newton solve). But
+#  build_sample_b1_fast (called by THIS cell's --fast_solver 1 path) uses
+#  nsteps=10 (resolution_invariance_zeroshot.py's own hardcoded default),
+#  because a prior finding (2026-09-12) showed the single-shot solve does
+#  NOT converge at N=1401 with random per-sample material fields (Newton
+#  starting cold at full load stalls) -- 10 incremental load steps are
+#  needed for real convergence, not optional. The real, measured rate on
+#  this run's own console output was 587.2s/sample -- 587.2/58.54 = 10.03,
+#  matching nsteps=10 almost exactly (each load step costs about as much
+#  as one full single-shot solve). The fast solver (solve_assembled_direct)
+#  IS being used correctly here -- this was a benchmark/apples-to-oranges
+#  mismatch in the cost ESTIMATE, not a bug in the solver or a missed
+#  speedup opportunity.
+#
+#  COST ESTIMATE (data generation only, before training) -- CORRECTED:
+#    120 samples x ~587s/sample ~= 70,440s ~= 19.6 GPU-hours
+#  (the 58.54s-based estimate below undercounts by ~10x; kept crossed out
+#  in spirit, corrected in the number actually used for planning)
 #  Training cost itself is unknown in advance (single-resolution N=1401
 #  training has never been run) -- tracked for real via write_manifest,
 #  not guessed.
@@ -107,9 +125,11 @@ for f in sorted(os.listdir(OUT)):
 N_TRAIN = 100
 N_VAL = 20
 
-print(f'\nEstimated data-generation cost: {N_TRAIN + N_VAL} samples x ~58.5s/sample '
-      f'(real, measured, assembled_direct solver @ N=1401) '
-      f'~= {(N_TRAIN + N_VAL) * 58.54 / 3600:.2f} GPU-hours.\n')
+print(f'\nEstimated data-generation cost: {N_TRAIN + N_VAL} samples x ~587s/sample '
+      f'(real, measured on this cell\'s own nsteps=10 incremental-loading path @ N=1401 -- '
+      f'NOT the 58.54s single-shot number, which does not converge here; see the module '
+      f'header comment\'s CORRECTION for why) '
+      f'~= {(N_TRAIN + N_VAL) * 587.0 / 3600:.2f} GPU-hours.\n')
 
 # ---- Step 1: generate FEM ground truth at N=1401 (fast solver) ----
 run([sys.executable, '-u', '-m', 'omar_pfem.resolution_invariance_zeroshot', 'train',

@@ -117,7 +117,58 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Real fix attempted for Arruda-Boyce's torch-
+Last updated: 2026-09-14 (**Explained a real 10x cost blow-up in task
+#24's data generation, found live on Omar's own GPU run -- corrected
+the misleading estimate, not a solver bug**).
+
+Omar's live run of `B1_NeoHookean_Direct_N1401_Ablation.ipynb` (task
+#24) reported a real per-sample rate of **587.2s/sample** during data
+generation -- 10x higher than the 58.54s/sample this cell's own cost
+estimate used (`assembled_direct_convergence_production_N401_1401.json`).
+Root cause, confirmed by reading the actual code paths (not guessed):
+that 58.54s number is a **single-shot** solve (`nsteps=1`, one full-load
+Newton solve). This cell's actual data-generation path (`build_sample_
+b1_fast` -> `solve_b1_fast_gpu`, called from `resolution_invariance_
+zeroshot.py` with its own hardcoded `nsteps=10`) uses 10 incremental
+load steps instead, because a prior finding (2026-09-12, already
+documented in `solve_b1_fast_gpu`'s own docstring) showed the single-
+shot solve does NOT converge at N=1401 with random per-sample material
+fields (Newton starting cold at full load stalls) -- load-stepping is
+required for real convergence, not optional. 587.2/58.54 = 10.03,
+matching nsteps=10 almost exactly (each load step costs about as much
+as one full single-shot solve) -- strong confirmation this is the real
+explanation, not coincidence. **The fast solver itself (`solve_
+assembled_direct`) is working correctly and is genuinely being used**
+-- this was an apples-to-oranges benchmark mismatch in the cost
+ESTIMATE (comparing against a non-representative single-shot number),
+not a missed speedup or a bug. Separately confirmed the project's OTHER
+speedup idea (`hvp_method="cached_hessian"` in `matrix_free_solver.py`)
+does not apply here at all -- that is for the iterative matrix-free CG
+solver, a different linear-algebra approach entirely from the direct-
+factorization solver this cell uses; irrelevant to this cost question.
+
+**Corrected** (not just noted) the misleading 58.54s-based cost
+estimate in both `cell_train_b1_nh_direct_n1401.py` (the printed
+estimate + header comment) and `make_train_b1_nh_direct_n1401_notebook.py`
+(the notebook's own markdown), replacing it with the real 587s/sample
+number and the full explanation above, so future readers of this
+notebook see the correct ~19.6 GPU-hour data-generation estimate (not
+~1.9h) up front. Regenerated `B1_NeoHookean_Direct_N1401_Ablation.ipynb`,
+verified via `ast.parse`.
+
+**Decision (Omar, asked directly given the real cost)**: let the
+already-in-progress run continue as-is at 120 samples rather than stop
+and restart with a smaller count -- it is resumable (saves every 10
+samples via `--gen_chunk 10`), so nothing is lost if a Colab session
+limit cuts it off mid-run; restarting with different args would forfeit
+that safety for no clear benefit. Real total cost for this ablation is
+now expected to be **~20+ GPU-hours for data generation alone**, plus
+an as-yet-unmeasured training cost on top (single-resolution N=1401
+training has never been run before) -- likely spanning multiple Colab
+sessions given typical runtime limits, though checkpointed progress
+means that is an inconvenience, not a risk of lost work.
+
+Previous update, 2026-09-14 (**Real fix attempted for Arruda-Boyce's torch-
 fem OOM + 2 new B2 multi-res retrain notebooks built, both per Omar's
 own explicit choice**).
 
