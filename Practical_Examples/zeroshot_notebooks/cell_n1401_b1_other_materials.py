@@ -70,6 +70,8 @@ else:
     run(['git', '-C', REPO, 'checkout', 'claude/claude-code-question-d307wp'])
     run(['git', '-C', REPO, 'reset', '--hard', 'origin/claude/claude-code-question-d307wp'])
 
+run([sys.executable, '-m', 'pip', 'install', '-q',
+     'einops', 'timm', 'h5py', 'jax', 'tqdm'])
 run([sys.executable, '-m', 'pip', 'install', '-q', 'torch-sla'])
 run([sys.executable, '-m', 'pip', 'install', '-q', 'nvmath-python[cu12]==0.9.0'])
 

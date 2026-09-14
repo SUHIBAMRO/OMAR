@@ -64,9 +64,18 @@ else:
     run(['git', '-C', REPO, 'checkout', 'claude/claude-code-question-d307wp'])
     run(['git', '-C', REPO, 'reset', '--hard', 'origin/claude/claude-code-question-d307wp'])
 
+run([sys.executable, '-m', 'pip', 'install', '-q',
+     'einops', 'timm', 'h5py', 'jax', 'tqdm'])
+run([sys.executable, '-m', 'pip', 'install', '-q', 'torch-sla'])
+run([sys.executable, '-m', 'pip', 'install', '-q', 'nvmath-python[cu12]==0.9.0'])
+
 WORK = f'{REPO}/Practical_Examples'
 os.chdir(WORK)
 sys.path.insert(0, WORK)
+
+for _mod_name in list(sys.modules):
+    if _mod_name == 'omar_pfem' or _mod_name.startswith('omar_pfem.'):
+        del sys.modules[_mod_name]
 
 import torch
 assert torch.cuda.is_available(), 'this cell needs a real GPU'
