@@ -1,0 +1,26 @@
+{
+  "note": "Real A100 run, 2026-09-14 (Round6_BreakEven_AccuracyMatched.ipynb). Accuracy-matched break-even, NOT matched-N/matched-batch (that comparison, break_even_analysis.py, is used for point 2's own matched-GPU-memory table). Compares the NO's real inference cost at N=1401 (its deployment resolution) against native FEM at N=11 -- the coarsest suitable FEM for the multi-res checkpoint at N=1401, from no_peak_stress_fixed_location_multires.json's own crossover (bound by tangent energy). training_seconds=41881.28s is the real, confirmed total training wall-clock for the multi-res checkpoint (metrics_history_multires.json, early-stopped at epoch 1075, model_best.pt from epoch 875).",
+  "fem_N": 11,
+  "fem_ms_per_sample": 1625.639,
+  "no_N": 1401,
+  "no_eager_ms_per_sample": 2292.1,
+  "no_compile_tf32_ms_per_sample": 394.0,
+  "training_seconds": 41881.28,
+  "results": {
+    "eager_fp32": {
+      "speedup_vs_fem": 0.709,
+      "saving_ms_per_sample": -666.5,
+      "breaks_even": false,
+      "conclusion": "torch-fem at the accuracy-matched N=11 is CHEAPER per sample (1625.6ms) than the NO's own default eager fp32 forward pass at N=1401 (2292.1ms). The training cost is never repaid against this baseline, however many samples are solved, unless inference is optimized."
+    },
+    "compile_tf32": {
+      "speedup_vs_fem": 4.126,
+      "saving_ms_per_sample": 1231.6,
+      "breaks_even": true,
+      "break_even_samples": 34005,
+      "break_even_no_inference_gpu_hours": 3.72,
+      "conclusion": "With torch.compile+TF32 (394.0ms/sample, ~3.2e-3 relative accuracy cost vs strict fp32, already verified in point 3), the NO pays back its 41,881s (~11.6h) training investment after 34,005 solves -- only ~3.72 GPU-hours of NO inference time, a small fraction of the training cost."
+    }
+  },
+  "headline": "The accuracy-matched break-even genuinely depends on whether the NO's inference is optimized: in its default (eager fp32) deployment mode it NEVER breaks even against a FEM mesh coarse enough to match its own accuracy at N=1401 -- that FEM mesh is already cheaper per solve. Only with torch.compile+TF32 does the NO become both faster per-sample (4.13x) AND repay its training cost, after roughly 34,000 solves. This is reported as-is, including the unfavorable eager-mode case, rather than only the favorable one."
+}

@@ -117,7 +117,46 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Found the real final training wall-clock for
+Last updated: 2026-09-14 (**Point 5 (accuracy-matched break-even) DONE --
+real A100 result, `Round6_BreakEven_AccuracyMatched.ipynb`, saved to
+`Practical_Examples/omar_pfem/break_even_accuracy_matched_N1401.json`.**
+
+GPU-FEM at N=11 (the multi-res checkpoint's own coarsest-suitable FEM at
+N=1401): 1625.639 ms/sample, bs=1. Compared against the NO's own
+already-verified N=1401 timings (point 3):
+
+  - **eager fp32 (2292.1 ms/sample): NEVER breaks even.** The
+    accuracy-matched FEM mesh (N=11) is already CHEAPER per sample
+    (1625.6ms) than the NO's own default forward pass. Training cost is
+    never repaid against this baseline in this mode, regardless of
+    sample count -- an honest, unfavorable-to-the-NO finding, reported
+    as-is rather than only the favorable case below.
+  - **compile+TF32 (394.0 ms/sample, ~3.2e-3 rel. accuracy cost,
+    already verified point 3): breaks even after 34,005 samples**
+    (only ~3.72 GPU-hours of NO inference against the real 41,881.28s
+    (~11.6h) training cost) -- and is 4.13x faster per sample than the
+    accuracy-matched FEM the whole time after that.
+
+**Headline for the draft**: whether the NO ever pays for its own
+training investment against a genuinely accuracy-matched (not just
+resolution-matched) FEM baseline depends entirely on whether inference
+is optimized. Unoptimized, it does not. Optimized (torch.compile+TF32,
+already a verified, working option), it does, cheaply.
+
+**This is distinct from point 2's own break-even/throughput story**
+(matched GPU MEMORY, same N=21 for both methods) -- that one already
+strongly favors the NO (~1470x throughput) because it is not
+accuracy-limited by construction. This point 5 result is the first
+place in the whole round-10 investigation where the NO's default
+(non-optimized) deployment mode does NOT come out ahead.
+
+**All 5 of Timon's round-10 points are now numerically complete.**
+Only remaining before the draft can be finalized: rewriting the draft's
+point 1 (multi-res retraining results) and point 5 (this result)
+sections with the real numbers above -- both currently stale/placeholder
+in the `.md`/`.docx` drafts.
+
+Previous update, 2026-09-14 (**Found the real final training wall-clock for
 the new multi-res checkpoint, straight from its own `metrics_history.json`
 on Drive (pulled directly, no need to dig through the Colab tab) --
 committed to `Practical_Examples/omar_pfem/metrics_history_multires.json`.**
