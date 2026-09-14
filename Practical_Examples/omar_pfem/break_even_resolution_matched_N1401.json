@@ -1,0 +1,26 @@
+{
+  "note": "Resolution-MATCHED break-even (NO and FEM both solved/evaluated at N=1401), kept ALONGSIDE break_even_accuracy_matched_N1401.json (NOT a replacement) per Timon's round-11 point 1. Uses torch-fem's own matched-precision N=1401 number (this project's established fast-FEM reference at this N, per the round-9 headline result), not 'ours' own GPU-native solver (round-9 showed torch-fem beats 'ours' 204-306x at this N, so it is not a fair/representative FEM baseline for this specific comparison). No new GPU run was needed: every number reused here is already an independently verified measurement from an earlier real GPU run (see 'sources' below).",
+  "sources": {
+    "torchfem_N1401_ms_per_sample": "torchfem_convergence_vs_fine_reference_full.json (round-9, real A100 run)",
+    "no_N1401_ms_per_sample": "no_inference_torch_compile_N1401_multires.json (2026-09-14, multi-res checkpoint, re-verified)",
+    "training_seconds": "metrics_history_multires.json (2026-09-14, confirmed real training wall-clock)"
+  },
+  "torchfem_N1401_ms_per_sample": 133830.0,
+  "training_seconds": 41881.28,
+  "rows": [
+    {
+      "label": "eager fp32",
+      "no_ms_per_sample": 2292.1,
+      "speedup_vs_torchfem_N1401": 58.387504908162825,
+      "break_even_samples": 318.3970551453231,
+      "break_even_no_gpu_hours": 0.20272163613849864
+    },
+    {
+      "label": "compile+TF32",
+      "no_ms_per_sample": 394.0,
+      "speedup_vs_torchfem_N1401": 339.6700507614213,
+      "break_even_samples": 313.86792170029076,
+      "break_even_no_gpu_hours": 0.034351100319420715
+    }
+  ]
+}
