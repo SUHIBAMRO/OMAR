@@ -63,8 +63,8 @@ import numpy as np
 import torch
 
 from omar_pfem.assembled_direct_solver import solve_assembled_direct
-from omar_pfem.data.parametric_field import ParametricFieldB1
-from omar_pfem.gpu_fem_solver import precompute_element_params_B1
+from omar_pfem.data.parametric_field import ParametricFieldB1, ParametricFieldB2
+from omar_pfem.gpu_fem_solver import precompute_element_params_B1, precompute_element_params_B2
 from omar_pfem.high_dof_convergence_study import assemble_traction_top_generic
 
 
@@ -133,6 +133,84 @@ def solve_b1_fast_gpu(N, seed, material, device, dtype, Lx=1.0, Ly=1.0, order="Q
             # same machinery check_convergence uses) so the next run shows exactly
             # which step (if any) is the one that does not actually converge, instead
             # of treating the whole 10-step loop as a black box.
+            u0 = None
+            for step in range(1, nsteps + 1):
+                alpha = step / nsteps
+                u_full_t = solve_assembled_direct(
+                    nodes, elements, free_dofs, alpha * fext_full, *mat_params,
+                    dtype=dtype, material=material, order=order, device=device,
+                    u0_init=u0, **solve_kwargs,
+                )
+                u0 = (u_full_t.reshape(-1) if torch.is_tensor(u_full_t)
+                      else np.asarray(u_full_t).reshape(-1))
+                _step_check = check_convergence(
+                    nodes, elements, free_dofs, alpha * fext_full, mat_params, u0,
+                    material, order, device, dtype)
+                print(f"  [load-step {step}/{nsteps}, alpha={alpha:.2f}] "
+                      f"relative_residual={_step_check['relative_residual']:.3e} "
+                      f"converged_likely={_step_check['converged_likely']}")
+    finally:
+        torch.set_default_dtype(_prev_default_dtype)
+
+    if torch.is_tensor(u_full_t):
+        u_full = u_full_t.detach().cpu().numpy()
+    else:
+        u_full = np.asarray(u_full_t)
+    u_full = u_full.astype(np.float64).reshape(-1)
+    return u_full, nodes, elements, None
+
+
+def solve_b2_fast_gpu(N, seed, material, device, dtype, R_in=1.0, R_out=2.0, order="Q4",
+                       nsteps=1, **solve_kwargs):
+    """B2 (quarter-ring) analog of solve_b1_fast_gpu, built 2026-09-14
+    (Timon round-11 point 2, extending N=1401 coverage to B2's three
+    cases). Reuses the exact same building blocks build_sample_b2 already
+    uses for its own solve_fem=True (slow) path -- same grid
+    (generate_grid_Q4_ring), same symmetry BCs (u_y=0 on the theta=0 edge,
+    u_x=0 on the theta=pi/2 edge), same traction assembler
+    (assemble_traction_inner_curved) -- so this solves the IDENTICAL
+    physical problem, just through solve_assembled_direct instead of
+    data_generate_B2.solve_hyperelastic_TL_ring's per-element Python loop.
+
+    precompute_element_params_B2 samples material per Gauss point (not at
+    the element centroid, unlike B1 -- see its own docstring), returning
+    (n_elements, n_gauss) arrays instead of (n_elements,). No special
+    handling needed here: element_energy_order_agnostic/_local_element_energy
+    (matrix_free_solver.py) already accept both shapes generically (their
+    own docstrings state this explicitly, written for exactly this
+    B1-vs-B2 difference), and solve_assembled_direct's own *mat_params
+    generalization (2026-09-14, same commit as the material-arity fix)
+    passes whatever precompute_element_params_B2 returns straight through
+    unchanged.
+
+    MUST be verified against solve_hyperelastic_TL_ring's own real output
+    before this is ever trusted at N=1401 -- see _correctness_check_b2."""
+    from omar_pfem.data.data_generate_B2 import generate_grid_Q4_ring, assemble_traction_inner_curved
+
+    E_fn = ParametricFieldB2("E", seed)
+    nu_fn = ParametricFieldB2("nu", seed)
+    p_fn = ParametricFieldB2("p", seed)
+
+    nodes, elements = generate_grid_Q4_ring(R_in, R_out, N, N)
+    tolx = 1e-9
+    theta0_nodes = np.where(np.abs(nodes[:, 1]) < tolx)[0]
+    thetahalfpi_nodes = np.where(np.abs(nodes[:, 0]) < tolx)[0]
+    fixed_dofs = np.concatenate([2 * theta0_nodes + 1, 2 * thetahalfpi_nodes])
+    ndof = 2 * len(nodes)
+    free_dofs = np.setdiff1d(np.arange(ndof), fixed_dofs)
+
+    fext_full = assemble_traction_inner_curved(nodes, elements, R_in, p_fn)
+    mat_params = precompute_element_params_B2(nodes, elements, E_fn, nu_fn, material)
+
+    _prev_default_dtype = torch.get_default_dtype()
+    try:
+        if nsteps <= 1:
+            u_full_t = solve_assembled_direct(
+                nodes, elements, free_dofs, fext_full, *mat_params,
+                dtype=dtype, material=material, order=order, device=device,
+                **solve_kwargs,
+            )
+        else:
             u0 = None
             for step in range(1, nsteps + 1):
                 alpha = step / nsteps
@@ -247,6 +325,50 @@ def _correctness_check(N=11, material="neo_hookean", seed=0, verbose=False):
     u_ref_flat = np.asarray(u_ref).reshape(-1)
     rel_diff = np.linalg.norm(u_fast - u_ref_flat) / np.linalg.norm(u_ref_flat)
     print(f"N={N}: reference (slow CPU) {t_ref:.2f}s, fast path (on CPU here) {t_fast:.2f}s, "
+          f"relative displacement difference {rel_diff:.3e}")
+    return {
+        "N": N, "material": material, "seed": seed,
+        "t_reference_slow_cpu_s": t_ref, "t_fast_path_on_cpu_s": t_fast,
+        "relative_displacement_difference": rel_diff,
+    }
+
+
+def _correctness_check_b2(N=11, material="neo_hookean", seed=0, verbose=False):
+    """B2 analog of _correctness_check. Compares solve_b2_fast_gpu's own
+    output against the slow reference build_sample_b2 itself uses
+    (data_generate_B2.solve_hyperelastic_TL_ring) at a small N. Must PASS
+    before this is ever pointed at N=1401 -- same discipline as B1's own
+    check, built 2026-09-14 when extending N=1401 coverage to B2."""
+    import time
+
+    from omar_pfem.data.data_generate_B2 import generate_grid_Q4_ring, solve_hyperelastic_TL_ring
+
+    device = torch.device("cpu")
+    dtype = torch.float64
+    R_in, R_out = 1.0, 2.0
+
+    E_fn = ParametricFieldB2("E", seed)
+    nu_fn = ParametricFieldB2("nu", seed)
+    p_fn = ParametricFieldB2("p", seed)
+    nodes, elements = generate_grid_Q4_ring(R_in, R_out, N, N)
+
+    t0 = time.time()
+    u_ref = solve_hyperelastic_TL_ring(nodes, elements, E_fn, nu_fn, p_fn, R_in,
+                                        nsteps=10, newton_max=30, tol=1e-7,
+                                        material=material)
+    t_ref = time.time() - t0
+
+    t0 = time.time()
+    u_fast, nodes2, elements2, stats = solve_b2_fast_gpu(
+        N, seed, material, device, dtype, R_in=R_in, R_out=R_out)
+    t_fast = time.time() - t0
+
+    assert np.allclose(nodes, nodes2) and np.array_equal(elements, elements2), \
+        "mesh mismatch -- solve_b2_fast_gpu is not building the same grid as build_sample_b2"
+
+    u_ref_flat = np.asarray(u_ref).reshape(-1)
+    rel_diff = np.linalg.norm(u_fast - u_ref_flat) / np.linalg.norm(u_ref_flat)
+    print(f"[B2] N={N}: reference (slow CPU) {t_ref:.2f}s, fast path (on CPU here) {t_fast:.2f}s, "
           f"relative displacement difference {rel_diff:.3e}")
     return {
         "N": N, "material": material, "seed": seed,
