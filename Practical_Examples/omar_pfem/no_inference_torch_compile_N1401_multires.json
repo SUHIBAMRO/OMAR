@@ -1,0 +1,20 @@
+{
+  "note": "Real A100 run, 2026-09-14 (Round6_MultiRes_Points23_Reverify.ipynb, cell 2). Re-verification of point 3 (profiling/torch.compile/TF32) against the NEW multi-res checkpoint (trained N=21,33,101,201; fingerprint cb318c4694d820152d018bcb3a2caa6be4528f3654a59cc8aa2482e9cd495f86, verified before this run). Confirms checkpoint-independence: all four timing variants within 0.01-0.8% of the old (N=21,33-only) checkpoint's own numbers.",
+  "eager_ms_per_sample": 2286.8561458587646,
+  "compile_succeeded": true,
+  "compiled_ms_per_sample": 2145.170990228653,
+  "compiled_vs_eager_rel_diff": 5.853289053447952e-07,
+  "speedup_vs_eager": 1.066048420510763,
+  "eager_tf32_ms_per_sample": 487.3400056362152,
+  "eager_tf32_vs_eager_rel_diff": 0.0009130545076914132,
+  "speedup_tf32_vs_eager": 4.69252702304484,
+  "compiled_tf32_ms_per_sample": 395.02102613449097,
+  "compiled_tf32_vs_eager_rel_diff": 0.0009531202376820147,
+  "speedup_compiled_tf32_vs_eager": 5.789201066679851,
+  "old_vs_new_comparison": {
+    "eager_fp32":    {"old": 2292.0716, "new": 2286.8561, "rel_diff": 2.275e-03},
+    "torch_compile":  {"old": 2145.0600, "new": 2145.1710, "rel_diff": 5.174e-05},
+    "eager_tf32":     {"old": 491.1590,  "new": 487.3400,  "rel_diff": 7.775e-03},
+    "compile_tf32":   {"old": 394.0235,  "new": 395.0210,  "rel_diff": 2.532e-03}
+  }
+}
