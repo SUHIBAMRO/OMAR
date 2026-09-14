@@ -232,6 +232,179 @@ def evaluate_no_accuracy_at_n1401(model, args, device, N=1401, seed=0,
     return result
 
 
+def _score_prediction_b2(u_pred, u_ref, nodes_np, elems_np, sample, args, material,
+                          device, dtype):
+    """B2 analog of _score_prediction, built 2026-09-14 (Timon round-11
+    point 2, extending N=1401 coverage to B2's three cases). Same QoI set
+    EXCEPT reactions: high_dof_convergence_study.py's own reaction-
+    resultant comparison is explicitly documented as "B1 only" (its own
+    comment, line ~914) -- B2's two symmetry edges each carry only ONE
+    fixed displacement component (u_y=0 on theta=0, u_x=0 on theta=pi/2),
+    not a matching convention to reaction_errors()'s existing two-
+    component-per-node call without inventing a new comparison that has
+    no established precedent in this project. Omitted rather than
+    guessed at, same discipline as every other honest gap here.
+
+    compute_l2_h1_errors_cross_order/compute_tangent_energy_error's own
+    B2 defaults (R_in=1.0, R_out=2.0, theta_max=pi/2, in
+    _physical_to_normalized) already match this project's B2 geometry
+    exactly -- no geom_kwargs need to be passed explicitly."""
+    rms = lambda a: np.sqrt(np.mean(a ** 2))
+    e_u = rms(u_pred[:, 0] - u_ref[:, 0]) / (rms(u_ref[:, 0]) + 1e-12)
+    e_v = rms(u_pred[:, 1] - u_ref[:, 1]) / (rms(u_ref[:, 1]) + 1e-12)
+    rec = {"disp_rel_L2": 0.5 * (e_u + e_v)}
+
+    fp = as_solved_field(nodes_np, elems_np, u_pred)
+    fr = as_solved_field(nodes_np, elems_np, u_ref)
+    h1 = compute_l2_h1_errors_cross_order(fp, fr, "Q4", "Q4", "B2")
+    rec["L2_rel"] = float(h1["l2_rel"])
+    rec["H1_semi_rel"] = float(h1["h1_semi_rel"])
+    en = compute_tangent_energy_error(fp, fr, "Q4", "Q4", "B2", material, device, dtype)
+    rec["energy_rel"] = float(en["tangent_energy_rel"])
+
+    P_p, w, _ = gauss_quantities(nodes_np, elems_np, u_pred, sample["E_node"],
+                                  sample["nu_node"], material, "plane_strain", "Q4",
+                                  device, dtype)
+    P_r, _, _ = gauss_quantities(nodes_np, elems_np, u_ref, sample["E_node"],
+                                  sample["nu_node"], material, "plane_strain", "Q4",
+                                  device, dtype)
+    rec.update(stress_errors(P_p, P_r, w))
+    return rec
+
+
+def evaluate_no_accuracy_at_n1401_b2(model, args, device, N=1401, seed=0,
+                                      material="neo_hookean", dtype=torch.float64):
+    """B2 analog of evaluate_no_accuracy_at_n1401. See that function's own
+    docstring for the general rationale; differences here are exactly the
+    B1-vs-B2 differences already established elsewhere in this project:
+    build_sample_b2 (not build_sample_b1) for the NO's own input, and
+    train_B2.total_potential_energy_Q4_hyperelastic (inner_edges,
+    theta0_nodes, thetahalfpi_nodes, R_out -- not top_edges, bottom_nodes,
+    Ly) for the model forward pass. No bf16 diagnostic here (that was a
+    B1-specific, already-answered side question from round-10 item 3, not
+    part of what round-11 point 2 is asking)."""
+    from omar_pfem.data.data_generate_B2 import assemble_traction_inner_curved
+    from omar_pfem.gpu_fem_solver import precompute_element_params_B2
+    from omar_pfem.no_ground_truth_fast import solve_b2_fast_gpu
+    from omar_pfem.resolution_invariance_zeroshot import build_sample_b2
+    from omar_pfem.train_B2 import total_potential_energy_Q4_hyperelastic as tpe_b2
+
+    R_in, R_out = getattr(args, "R_in", 1.0), getattr(args, "R_out", 2.0)
+    sample, (E_fn, nu_fn, p_fn) = build_sample_b2(N, seed=seed, material=material,
+                                                   R_in=R_in, R_out=R_out, solve_fem=False)
+    nodes_np = sample["xy"]
+    elems_np = sample["quad"]
+
+    print(f"Solving FEM ground truth at N={N} (B2, fast GPU path, verified vs. the slow "
+          f"CPU reference at small N -- see _correctness_check_b2)...")
+    u_ref_flat, nodes_gt, elems_gt, _ = solve_b2_fast_gpu(
+        N, seed, material, device, dtype, R_in=R_in, R_out=R_out, nsteps=10)
+    assert np.allclose(nodes_np, nodes_gt) and np.array_equal(elems_np, elems_gt)
+    u_ref = u_ref_flat.reshape(-1, 2)
+
+    print("Checking the ground-truth solve's own convergence...")
+    from omar_pfem.no_ground_truth_fast import check_convergence
+    tolx = 1e-9
+    theta0_nodes_gt = np.where(np.abs(nodes_gt[:, 1]) < tolx)[0]
+    thetahalfpi_nodes_gt = np.where(np.abs(nodes_gt[:, 0]) < tolx)[0]
+    fixed_dofs_np = np.concatenate([2 * theta0_nodes_gt + 1, 2 * thetahalfpi_nodes_gt])
+    ndof = 2 * len(nodes_gt)
+    free_dofs_np = np.setdiff1d(np.arange(ndof), fixed_dofs_np)
+    fext_full_np = assemble_traction_inner_curved(nodes_gt, elems_gt, R_in, p_fn)
+    mat_params_np = precompute_element_params_B2(nodes_gt, elems_gt, E_fn, nu_fn, material)
+    convergence = check_convergence(nodes_gt, elems_gt, free_dofs_np, fext_full_np,
+                                     mat_params_np, u_ref_flat, material, "Q4", device, dtype)
+    print(f"  Ground-truth relative residual: {convergence['relative_residual']:.3e} "
+          f"(converged_likely={convergence['converged_likely']})")
+    if not convergence["converged_likely"]:
+        print("  WARNING: the ground truth itself may not have converged at this N -- "
+              "any accuracy numbers below would be comparing the NO against a WRONG "
+              "reference. Do not trust the QoI errors below until this is resolved.")
+
+    torch.set_default_dtype(torch.float32)
+
+    xy = torch.tensor(nodes_np, device=device, dtype=torch.float32)
+    quad = torch.tensor(elems_np, device=device, dtype=torch.long)
+    inner_edges = torch.tensor(sample["inner_edges"], device=device, dtype=torch.long)
+    theta0_nodes = torch.tensor(sample["theta0_nodes"], device=device, dtype=torch.long)
+    thetahalfpi_nodes = torch.tensor(sample["thetahalfpi_nodes"], device=device, dtype=torch.long)
+    E_b = torch.tensor(sample["E_node"][None], device=device, dtype=torch.float32)
+    nu_b = torch.tensor(sample["nu_node"][None], device=device, dtype=torch.float32)
+    f_b = torch.tensor(sample["node_forces"][None], device=device, dtype=torch.float32)
+
+    model.eval()
+    with torch.no_grad():
+        _, _, _, uv_pred, _ = tpe_b2(
+            xy, quad, inner_edges, theta0_nodes, thetahalfpi_nodes, model, E_b, nu_b, f_b,
+            use_soft_dirichlet=bool(getattr(args, "use_soft_dirichlet", 1)), R_out=R_out,
+            mode="plane_strain", dtype=torch.float32, fun_dim=args.fun_dim, material=material,
+        )
+    u_pred_fp32 = uv_pred[0].float().double().cpu().numpy()
+
+    result = {"N": N, "seed": seed, "material": material,
+              "ground_truth_convergence": convergence,
+              "fp32": _score_prediction_b2(u_pred_fp32, u_ref, nodes_np, elems_np, sample,
+                                            args, material, device, dtype)}
+    return result
+
+
+def run_accuracy_degradation_sweep_b2(model, args, resolutions, out_json, device,
+                                       seed=0, material="neo_hookean", checkpoint_fingerprint=None):
+    """B2 analog of run_accuracy_degradation_sweep. See that function's own
+    docstring for the resumability/fingerprint-safety rationale, unchanged
+    here."""
+    import os
+    import time
+
+    started = time.time()
+    done = {}
+    if out_json and os.path.exists(out_json):
+        with open(out_json) as f:
+            prev = json.load(f)
+        prev_fp = prev.get("checkpoint_fingerprint")
+        if checkpoint_fingerprint is not None and prev_fp is not None and prev_fp != checkpoint_fingerprint:
+            print(f"*** {out_json} was computed with a DIFFERENT checkpoint -- discarding all "
+                  f"{len(prev.get('rows', []))} existing row(s) and recomputing. ***")
+        elif checkpoint_fingerprint is not None and prev_fp is None:
+            print(f"*** {out_json} has rows with no recorded fingerprint -- discarding. ***")
+        else:
+            done = {r["N"]: r for r in prev.get("rows", [])}
+    rows = list(done.values())
+
+    for N in resolutions:
+        if N in done:
+            print(f"  N={N} already in {out_json}, skipping")
+            continue
+        print(f"\n=== N={N} ===")
+        rec = evaluate_no_accuracy_at_n1401_b2(model, args, device, N=N, seed=seed,
+                                                material=material)
+        rows.append(rec)
+        rows.sort(key=lambda r: r["N"])
+        if out_json:
+            with open(out_json, "w") as f:
+                json.dump({"seed": seed, "material": material,
+                           "checkpoint_fingerprint": checkpoint_fingerprint, "rows": rows},
+                          f, indent=2)
+        gt_conv = rec["ground_truth_convergence"]
+        print(f"  N={N}: ground_truth converged_likely={gt_conv['converged_likely']} "
+              f"(relative_residual={gt_conv['relative_residual']:.3e}), "
+              f"fp32 disp_rel_L2={rec['fp32']['disp_rel_L2']:.4e}")
+
+    if out_json:
+        try:
+            from omar_pfem.run_manifest import write_manifest
+            write_manifest(
+                os.path.dirname(os.path.abspath(out_json)) or ".",
+                kind="no_accuracy_degradation_sweep_b2",
+                args={"resolutions": resolutions, "seed": seed, "material": material,
+                      "checkpoint_fingerprint": checkpoint_fingerprint},
+                started_at=started, results={"n_rows": len(rows)}, outputs=[out_json],
+                notes="Timon round-11 point 2: extending N=1401 accuracy coverage to B2.")
+        except Exception as e:
+            print(f"[manifest] not recorded: {e}")
+    return rows
+
+
 def run_no_peak_stress_fixed_location(model, args, resolutions, out_json, device,
                                        seed=0, material="neo_hookean", fine_N_for_peak=1401):
     """Fixes a real metric-definition mismatch found 2026-09-13: the NO's own
