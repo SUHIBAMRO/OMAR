@@ -117,7 +117,58 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Real OOM crash on the resolution-matched
+Last updated: 2026-09-14 (**FOUND THE REAL ROOT CAUSE of the OOM
+pattern, affects every notebook that touches multiple materials on GPU,
+now fixed everywhere** (`24e3257`).
+
+The `1e0c391` fix (memory cleanup between cases) was necessary but not
+sufficient -- Omar's very next run failed EVEN WORSE: all 6 cases
+failed this time, including B1xNeo-Hookean, which had solved cleanly
+in the run before. Same symptom every time: "Newton-Raphson did not
+converge ... after 10 cutbacks," with a suspiciously constant
+"allocated=12.51GB reserved=20.06GB" printed as "before this case"
+memory for every single case -- looking healthy by PyTorch's own
+stats while the actual solve immediately failed.
+
+**Real root cause, found by reading the actual import chain, not
+guessed**: `omar_pfem.data.materials` unconditionally imports
+`omar_pfem.data.material_models_jax` (needed for Mooney-Rivlin/Arruda-
+Boyce's JAX-autodiff PK1/tangent) -- and this import happens for EVERY
+material, including Neo-Hookean, which never actually needs JAX itself.
+JAX's own default behavior the instant it first touches a GPU is to
+preallocate ~90% of that GPU's ENTIRE memory for the life of the
+process -- and this reservation is completely invisible to
+`torch.cuda.memory_allocated()`/`memory_reserved()` (JAX manages its
+own separate CUDA memory pool), which is exactly why the "before this
+case" print looked fine while torch-fem's own solve hit "78.61 GiB
+memory in use" and failed. `material_models_jax.py` already has its
+own protection (`os.environ.setdefault("JAX_PLATFORMS", "cpu")`, with
+its own comment describing this exact failure mode) -- but
+`setdefault` has no effect if jax was already imported/initialized
+earlier in the process by something else, or if the Colab runtime
+pre-sets the env var to something else first.
+
+**Fixed with a forced (not `setdefault`) `os.environ['JAX_PLATFORMS']
+= 'cpu'` at the very top of every affected script**, before any other
+import, plus a runtime assertion (`jax.devices()`, checked directly)
+that fails loudly with a clear diagnostic message instead of silently
+starving the GPU again if this somehow still doesn't take effect.
+Applied to all 4 scripts that touch multiple materials on GPU:
+`cell_resolution_matched_break_even_all_cases.py`,
+`cell_n1401_b1_other_materials.py` (both with the runtime assertion),
+`cell_train_b1_nh_direct_n1401.py` (defensive, Neo-Hookean only but
+the import happens regardless), and the shared generator for the new
+B1 Mooney-Rivlin/Arruda-Boyce multi-res retraining notebooks (set in
+the setup cell so it also covers the later `!python -m ...` shell
+cells, which inherit the kernel process's environment). All 5
+regenerated notebooks re-verified with `ast.parse` before commit.
+
+**Not yet re-run with this fix. If this is truly the root cause** (high
+confidence, but not yet confirmed on real GPU), all 5 pending notebooks
+should now run cleanly: the 2 accuracy notebooks, the direct-N1401
+ablation, and both new multi-res retraining notebooks.
+
+Previous update, 2026-09-14 (**Real OOM crash on the resolution-matched
 break-even notebook's first live A100 run, real numbers for 2 of 6
 cases before it, now fixed** (`1e0c391`).
 
