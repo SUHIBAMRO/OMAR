@@ -117,7 +117,22 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Audited the Summary against the Report for
+Last updated: 2026-09-14 (**Found and fixed a real process gap while
+answering Omar's "is anything missing?" check**: both documents' round-10
+sections claimed "re-measured against the retrained multi-resolution
+checkpoint: essentially identical" for points 2 and 3 -- but that exact
+sentence was WRITTEN during the earlier "حدث كلشي" full-document update,
+which happened BEFORE `Round6_MultiRes_Points23_Reverify.ipynb` actually
+ran. The claim happened to turn out true once the real GPU numbers
+landed (0.5% throughput difference, 0.01-0.8% timing differences), but
+it was asserted in a permanent deliverable before being verified --
+exactly the kind of thing this project's own discipline exists to catch.
+Fixed by replacing the vague "essentially identical" wording in both
+documents with the actual verified numbers (throughput 4,182.27 vs.
+4,203.79 samples/s; all four timing variants itemized) now that they
+exist. No other instances of this pattern found in either document.
+
+Previous update, 2026-09-14 (**Audited the Summary against the Report for
 consistency (Omar's explicit ask), then converted 4 topics from prose to
 proper tables in the Report to match the Summary.** Audit method:
 extracted every Table/Figure reference from both documents (95 in
