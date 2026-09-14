@@ -117,7 +117,55 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**New feedback from Timon (not a numbered
+Last updated: 2026-09-14 (**Real, user-caught bug in the Report: a stale
+"in progress" claim sitting INSIDE A TABLE CELL, invisible to every
+`python-docx` paragraph-text search this session had run** (`.paragraphs`
+skips table content entirely -- the exact gotcha this project's own docx
+work has been careful about elsewhere, missed here because the search
+was paragraph-only). Omar spotted it by reading the actual rendered
+Executive Summary and quoting the literal sentence back.
+
+**The bug**: the Executive Summary's own headline-results table, point 7
+("Resolution invariance"), said "A single trained model (B1 x
+Neo-Hookean, trained once at N=21)... on five unseen resolutions...
+Extending the same zero-shot protocol to the other 5 cases is in
+progress." -- directly contradicted by the very next paragraph right
+below the same table ("confirmed across all six (geometry, material)
+combinations") and by Section 8.6's own real content (all six cases,
+seven unseen resolutions, jointly trained at N=21 AND 33, not just
+N=21). Fixed with the real numbers: B1 stays within 5.0-10.6% across
+all seven resolutions; B2 shows the same property but weaker (7.1-26.9%
+for B2 x Neo-Hookean specifically, others spread 3.6-4.9x their own best
+case) -- both ranges pulled directly from Section 8.6's own already-
+verified text, not invented.
+
+**While fixing this, found and fixed a SECOND, broader bug in the same
+two tables**: a systematic off-by-one section-number drift affecting
+5 of 8 rows in the headline-results table and 6 of 7 rows in the
+"where each point is addressed" index (both apparently never updated
+after some earlier revision inserted or removed a section, shifting
+everything after it by one -- e.g. "GPU memory" cited as Section 8.4
+when the real heading is 8.3, "GPU-native FEM solver" cited as 8.5 when
+it is really 8.4, and so on down the list). One row (batch-size sweep)
+was not just off-by-one but pointing at the wrong section family
+entirely (cited 8.2, really belongs to 6.2 "Phase 1 batch-size
+screening" -- confirmed by reading 6.2's own content directly, which
+describes exactly the 4-256 batch-size sweep the row's own headline
+text summarizes). Verified every corrected mapping by reading the
+target section's actual heading/content before citing it, not just by
+arithmetic pattern-matching the off-by-one. This is the same table this
+project already knew was stale (flagged 2026-09-13, deliberately left
+unfixed at the time as "predates round-9, would need re-verifying every
+entry, out of scope for that pass") -- now actually fixed, entry by
+entry, because a concrete instance forced the issue.
+
+**Verified structurally unchanged otherwise** (546 paragraphs, 70
+tables, 45 images, same as before -- only table-cell text edited).
+Lesson for this project's own future docx work, noted here so it is not
+repeated: any "does the report say X" check must include `d.tables`,
+not just `d.paragraphs` -- confirmed by this exact miss.
+
+Previous update, 2026-09-14 (**New feedback from Timon (not a numbered
 round this time, a standing process request): save all simulation
 results/data/setups, including real failures, in some structured
 database-like form; his group is building a more formal platform for
