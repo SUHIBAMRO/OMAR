@@ -117,7 +117,50 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**TASK #22 IS NOW FULLY DONE ON THE
+Last updated: 2026-09-14 (**REAL GPU RESULT: B1's other two materials
+have the SAME N=1401 degradation problem Neo-Hookean had before its own
+multi-res retraining** -- Omar ran the (at-that-point-stale, since
+superseded) B1-only accuracy notebook on a real A100 and got real
+numbers for the original (N=21,33-only) Mooney-Rivlin/Arruda-Boyce
+checkpoints:
+
+| Material | Best disp_rel_L2 (near training res.) | @ N=1401 |
+|---|---|---|
+| Mooney-Rivlin | 6.5% (N=101) | **39.2%** |
+| Arruda-Boyce | 6.3% (N=41) | **45.6%** |
+
+Both also show the same fixed-location peak-stress caveat already
+documented for Neo-Hookean (64-78% relative error, worst near the
+domain-corner singularity) -- consistent with that being a shared
+methodological artifact, not specific to one material. Note: this run
+used the notebook version BEFORE it was expanded to cover B2 (a stale
+open browser tab from earlier in the session picked up the old,
+already-deleted `Round6_N1401_B1_OtherMaterials.ipynb` instead of its
+replacement) -- the numbers themselves are real and correct (same
+already-verified pipeline/checkpoint), just incomplete (no B2 rows,
+saved under the old output filename). Re-running the current
+`Round6_N1401_AllRemainingCases.ipynb` will reproduce these same two
+rows plus the missing B2 ones into the correct combined file.
+
+**Omar's decision once this pattern was confirmed** (AskUserQuestion,
+explicit choice over "leave as first-pass numbers"): extend the SAME
+multi-resolution retraining fix (N=21,33,101,201, identical protocol)
+to both materials, matching Neo-Hookean's own already-proven fix
+(44.65% -> 5.85%) rather than accept the worse original numbers. Two
+new notebooks built from one parametrized generator (`d2b5693`):
+`B1_MooneyRivlin_MultiRes_Retrain.ipynb`,
+`B1_ArrudaBoyce_MultiRes_Retrain.ipynb` -- identical structure/protocol
+to the original Neo-Hookean notebook (only `--material` and the output
+directory differ), each ~11.6 GPU-hours expected (same order as
+Neo-Hookean's own real measured cost), not yet run.
+
+**Updated task list**: task #22's scope has grown to include these two
+retrainings before the "all 6 cases" accuracy comparison can be
+considered final for B1 -- the two new checkpoints should be used
+(not the original ones) once ready, mirroring how Neo-Hookean's own
+final numbers came from its multi-res checkpoint, not its original one.
+
+Previous update, 2026-09-14 (**TASK #22 IS NOW FULLY DONE ON THE
 ENGINEERING SIDE, BOTH HALVES, ALL 6 CASES** -- Omar pushed back on
 leaving the resolution-matched break-even for later ("ليش ما تعملها؟"),
 so it got built today instead of deferred. `Round6_
