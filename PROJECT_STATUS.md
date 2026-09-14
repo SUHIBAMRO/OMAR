@@ -117,7 +117,31 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Rewrote the round-10 section's own opening
+Last updated: 2026-09-14 (**Audited the Summary against the Report for
+consistency (Omar's explicit ask), then converted 4 topics from prose to
+proper tables in the Report to match the Summary.** Audit method:
+extracted every Table/Figure reference from both documents (95 in
+Summary, 104 in Report) and diffed them, then cross-checked every major
+round-10 number (44.65%, 5.85%, 7.6x, 34,005, 1,470x, N=11, 41,881,
+1,625.6, etc.) appears identically in both -- all matched, zero
+inconsistencies found.
+
+**Found 4 topics presented as compact tables in the Summary (Table 4b,
+6b, 6c, 7b) but only as prose in the Report** (FLOPs per sample; fitted
+Q4-vs-Q9 convergence rates; the Q4-vs-Q9 direct fine-solution comparison
+against the advisor's <1e-5 criterion; per-case break-even). Confirmed
+the underlying numbers matched exactly before touching anything. Per
+Omar's explicit follow-up request, added matching formatted tables to
+the Report right after each topic's existing prose (prose kept, not
+replaced -- the Report's own narrative style), reusing the same table
+style as the rest of the document. Inserted in reverse paragraph-index
+order so earlier anchor indices stayed valid throughout a single script
+run; smoke-tested the insertion logic on a throwaway fake document
+first. Verified: paragraphs 542->546, tables 66->70 (exactly the 4
+expected), each landed in the correct document-body position (prose,
+then table, then caption, then whatever originally followed).
+
+Previous update, 2026-09-14 (**Rewrote the round-10 section's own opening
 paragraph in the Summary, per Omar's explicit request, to be a tight
 3-part cover note**: (1) the new findings this round (checkpoint bug,
 corrected N=1401 accuracy, the retraining and its 44.65%->5.85% result,
