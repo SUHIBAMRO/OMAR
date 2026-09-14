@@ -117,7 +117,44 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**TASK #18 DONE, and the canonical Report/
+Last updated: 2026-09-14 (**Points 2 and 3, re-verified against the
+multi-res checkpoint specifically (not just the old-vs-corrected-
+checkpoint question already closed) -- both confirmed checkpoint-
+independent.** Real A100 run, `Round6_MultiRes_Points23_Reverify.ipynb`,
+checkpoint identity verified by fingerprint before both cells.
+
+Point 2 (max feasible batch size/throughput, N=21): max-bs throughput
+old=4,203.79 vs. new=4,182.27 samples/s, relative difference 5.1e-3 --
+saved to `max_feasible_batch_multires.json`. Point 3
+(profiling/torch.compile/TF32, N=1401): all four variants (eager,
+compile, eager+TF32, compile+TF32) within 0.01-0.8% of the old
+checkpoint's own numbers -- saved to
+`no_inference_torch_compile_N1401_multires.json`.
+
+**Why this specific re-check mattered** (Omar's own catch, not something
+already planned): the draft/Report/Summary all now recommend the
+multi-res checkpoint per point 1, but points 2/3 had only ever been
+verified against the OLD (N=21,33-only) checkpoint's own weights --
+timing SHOULD be checkpoint-independent (same architecture, same
+parameter count) but this project verifies that instead of assuming it,
+same discipline as the earlier wrong-vs-correct-checkpoint question.
+Confirmed: no changes needed to points 2/3's numbers anywhere.
+
+**Next, per Omar's own explicit request**: a genuine structural
+cleanup/restructuring pass on the Summary (and, lighter, the Report) --
+NOT more appended content. Omar caught a real gap in the previous entry
+below: adding a whole new "round-10" section on top of the existing
+round-9 section is exactly the "old results left in, confusing" pattern
+Timon complained about in his own round-10 email ("contains later on
+still the old studies and results which is a bit confusing... wants the
+results restructured, not just more points appended"), and this
+project's own 2026-09-12 entry already flagged "a fuller structural
+read-through... not yet started" and it was never picked up until now.
+Deliberately deferred until this last GPU re-verification landed, so the
+restructuring is done once against final numbers rather than twice.
+NOT YET STARTED.
+
+Previous update, 2026-09-14 (**TASK #18 DONE, and the canonical Report/
 Summary deliverables are now updated with all of round-10's real
 findings** -- Omar explicitly asked for this ("حدث كلشي") after noticing
 the two canonical documents (`PFEM_Transolver_Report_2026-09-09.docx`,

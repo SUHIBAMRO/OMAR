@@ -1,0 +1,11 @@
+{
+  "note": "Real A100 run, 2026-09-14 (Round6_MultiRes_Points23_Reverify.ipynb, cell 1). Re-verification of point 2 (max feasible batch size/throughput) against the NEW multi-res checkpoint (fingerprint cb318c4694d820152d018bcb3a2caa6be4528f3654a59cc8aa2482e9cd495f86, verified before this run), N=21. Confirms checkpoint-independence.",
+  "no_multires_own_ceiling": {"max_feasible_bs": 8192, "peak_mem_mb": 48752.8, "throughput_max_bs": 4182.27, "throughput_bs1": 202.31},
+  "fem_own_ceiling": {"max_feasible_bs": 256, "peak_mem_mb": 39615.3, "throughput_max_bs": 2.86, "throughput_bs1": 0.59},
+  "fem_capped_at_no_47_61gb": {"max_feasible_bs": 256, "peak_mem_mb": 39615.3, "throughput_max_bs": 2.86, "throughput_bs1": 0.58},
+  "no_multires_capped_at_fem_38_69gb": {"max_feasible_bs": 4096, "peak_mem_mb": 24384.6, "throughput_max_bs": 4184.11, "throughput_bs1": 210.86},
+  "old_vs_new_comparison": {
+    "bs1_throughput": {"old": 193.30, "new": 202.31},
+    "max_bs_throughput": {"old": 4203.79, "new": 4182.27, "rel_diff": 5.119e-03}
+  }
+}
