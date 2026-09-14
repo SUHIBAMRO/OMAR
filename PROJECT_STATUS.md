@@ -117,7 +117,55 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Task #21/point-1 FULLY DONE for all 6 cases,
+Last updated: 2026-09-14 (**Real fix attempted for Arruda-Boyce's torch-
+fem OOM + 2 new B2 multi-res retrain notebooks built, both per Omar's
+own explicit choice**).
+
+**(1) Arruda-Boyce OOM fix**: root cause traced into torch-fem's own
+source (`torchfem/materials/hyperelasticity.py`, installed package, not
+guessed) -- `Hyperelastic3D.step()` does
+`vmap(jacrev(jacrev(self.psi)))(F_new, self.params)` over the WHOLE
+Gauss-point batch in one call, no chunking. Fine for Neo-Hookean/Mooney-
+Rivlin (both fit in 80GB at N=1401); Arruda-Boyce's own 5-term 8-chain
+energy needs more per-point intermediate memory and doesn't. Fixed in
+`torchfem_comparison.py` with a new
+`_build_chunked_hyperelastic_plane_strain_class()` -- a `HyperelasticPlaneStrain`
+subclass that processes the batch in chunks (starting at 50,000,
+halving on OOM with `torch.cuda.empty_cache()` between retries) and
+concatenates results; wired into `build_torchfem_model` for
+`material="arruda_boyce"` only, leaving Neo-Hookean/Mooney-Rivlin on
+torch-fem's own unmodified class so their already-verified numbers are
+untouched. **Verified correct on CPU before ever trusting it** (no GPU
+available in this environment): (a) isolated `step()` call, chunk_size=17
+against n=137 points, chunked vs. unchunked max abs diff = 0.0; (b) full
+Newton-loop solve (`solve_theirs` → `model.solve()`) for both B1 and B2
+x Arruda-Boyce at N=7, chunk_size forced to 5, chunked vs. unchunked
+final displacement field rel_diff = 0.0 for both geometries; (c) the
+existing B1 x Neo-Hookean `_correctness_check` still passes unchanged
+(3.544e-11, identical to its pre-existing value), confirming zero
+impact on the two materials that already worked. **NOT YET run on a
+real GPU** -- chunk_size=50,000 is a reasoned starting guess (not a
+measured value), and the halving-on-OOM retry exists specifically
+because that guess might need adjusting; needs a real A100 run on B1/B2
+x Arruda-Boyce at N=1401 before this is trusted as the actual fix.
+
+**(2) B2 multi-res retrain notebooks**: `B2_NeoHookean_MultiRes_
+Retrain.ipynb` and `B2_MooneyRivlin_MultiRes_Retrain.ipynb`, built by
+new `make_b2_multires_retrain_notebooks.py`, mirroring the B1 multi-res
+notebooks exactly (same N=21,33,101,201, same 400+100 samples, same
+training hyperparameters) -- the only real differences are
+`--geometry B2`, B2's own checkpoint naming convention (old checkpoint
+at `zeroshot_B2_{material}_fixedsel`, required suffix, NOT the
+unsuffixed known-worse version), and using `run_accuracy_degradation_
+sweep_b2` (not the B1 function) in the final old-vs-new comparison
+cell. Scope is deliberately Neo-Hookean + Mooney-Rivlin only, per
+Omar's own explicit choice when asked -- B2 x Arruda-Boyce is excluded
+here since it currently fails outright (the OOM above), and whether it
+also needs this same retrain is a separate decision once the OOM fix
+itself is verified. Both notebooks verified via `ast.parse` on every
+non-shell cell before commit.
+
+Previous update, 2026-09-14 (**Task #21/point-1 FULLY DONE for all 6 cases,
 real GPU numbers in: `Round6_ResolutionMatchedBreakEven_AllCases.ipynb`
 ran clean end to end on the JAX-fixed commit, confirming both the JAX
 fix and the KeyError summary fix**).

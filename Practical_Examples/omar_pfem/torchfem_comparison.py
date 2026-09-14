@@ -201,6 +201,91 @@ _PSI_3D_BY_MATERIAL = {
 }
 
 
+def _build_chunked_hyperelastic_plane_strain_class():
+    """Returns a HyperelasticPlaneStrain subclass that computes stress/
+    tangent in chunks along the Gauss-point batch dimension, instead of
+    one call over every point at once.
+
+    WHY THIS EXISTS (real bug found 2026-09-14, not anticipated in
+    advance): torch-fem's own Hyperelastic3D.step()
+    (torchfem/materials/hyperelasticity.py) does
+    `vmap(jacrev(jacrev(self.psi)))(F_new, self.params)` over the WHOLE
+    batch in a single call. That's fine for Neo-Hookean/Mooney-Rivlin --
+    both succeeded at N=1401 (~70.8GB/73.6GB peak on an 80GB A100, see
+    resolution_matched_break_even_all_cases.json) -- but Arruda-Boyce's
+    own energy density (a 5-term 8-chain series, more terms per Gauss
+    point than the other two materials) needs enough extra intermediate
+    memory per point that the identical batch OOMs, confirmed with the
+    GPU completely clean beforehand (allocated=0.14GB right before the
+    case) -- a genuine per-point memory cost, not cross-case
+    fragmentation, and not fixable by clearing memory between cases (that
+    fix, 1e0c391, was already applied and did not help this specific
+    case).
+
+    Chunking changes nothing about the physics: each Gauss point's
+    stress/tangent is independent of every other one (psi is evaluated
+    pointwise), so splitting the batch into pieces and concatenating the
+    results is bit-identical to computing them all in one call -- this
+    only trades wall-clock for peak memory. Starts at `chunk_size` and
+    halves on OOM (clearing the cache first) until a chunk fits or
+    chunk_size reaches 1, at which point a real, unrecoverable per-point
+    memory requirement (not a tunable batch size) would be the honest
+    conclusion.
+
+    Used only for Arruda-Boyce (see build_torchfem_model) -- Neo-Hookean/
+    Mooney-Rivlin keep torch-fem's own unmodified class, so their
+    already-verified N=1401 numbers are untouched by this change.
+
+    NOT YET VERIFIED ON REAL GPU as of 2026-09-14 (written in an
+    environment with no GPU access) -- chunk_size=50_000 is a reasonable
+    starting guess, not a measured value; the halving-on-OOM retry exists
+    specifically because that starting guess might be wrong. Needs a real
+    A100 run on B1/B2 x Arruda-Boyce at N=1401 before this is trusted.
+    """
+    from torchfem.materials import HyperelasticPlaneStrain
+    from torch.func import jacrev, vmap
+
+    class ChunkedHyperelasticPlaneStrain(HyperelasticPlaneStrain):
+        chunk_size = 50_000
+
+        def step(self, H_inc, F, stress, state, de0, cl, iter):
+            F3D = torch.zeros(F.shape[0], 3, 3, device=F.device, dtype=F.dtype)
+            F3D[..., 0:2, 0:2] = F
+            F3D[..., 2, 2] = 1.0
+            H_inc_3D = torch.zeros(H_inc.shape[0], 3, 3, device=H_inc.device, dtype=H_inc.dtype)
+            H_inc_3D[..., 0:2, 0:2] = H_inc
+
+            with torch.enable_grad():
+                F_new = (F3D + H_inc_3D).requires_grad_(True)
+                n = F_new.shape[0]
+                P_parts, ddsdde_parts = [], []
+                start, size = 0, self.chunk_size
+                while start < n:
+                    end = min(start + size, n)
+                    F_chunk = F_new[start:end]
+                    params_chunk = self.params[start:end] if self.is_vectorized else self.params
+                    try:
+                        P_chunk = vmap(jacrev(self.psi))(F_chunk, params_chunk)
+                        ddsdde_chunk = vmap(jacrev(jacrev(self.psi)))(F_chunk, params_chunk)
+                    except torch.cuda.OutOfMemoryError:
+                        if size <= 1:
+                            raise
+                        torch.cuda.empty_cache()
+                        size = max(1, size // 2)
+                        print(f'  [chunked hyperelastic] OOM, halving chunk_size '
+                              f'to {size} and retrying this chunk...')
+                        continue
+                    P_parts.append(P_chunk)
+                    ddsdde_parts.append(ddsdde_chunk)
+                    start = end
+                P_new = torch.cat(P_parts, dim=0)
+                ddsdde_new = torch.cat(ddsdde_parts, dim=0)
+
+            return (P_new[..., 0:2, 0:2], state, ddsdde_new[..., 0:2, 0:2, 0:2, 0:2])
+
+    return ChunkedHyperelasticPlaneStrain
+
+
 def build_torchfem_model(nodes, elements, *mat_params, fext_full, fixed_dofs,
                           material="neo_hookean", dtype=torch.float64, device=None):
     device = device or torch.device('cpu')
@@ -257,7 +342,14 @@ def build_torchfem_model(nodes, elements, *mat_params, fext_full, fixed_dofs,
     mat_params_per_elem = [p.mean(dim=-1) if p.dim() > 1 else p for p in mat_params_per_elem]
     params = torch.stack(mat_params_per_elem, dim=-1)  # (n_elem, n_params)
 
-    tf_material = HyperelasticPlaneStrain(psi=_PSI_3D_BY_MATERIAL[material], params=params)
+    # Arruda-Boyce specifically needs the chunked variant (real OOM found
+    # 2026-09-14 at N=1401 on an 80GB A100, GPU clean beforehand -- see
+    # _build_chunked_hyperelastic_plane_strain_class's own docstring).
+    # Neo-Hookean/Mooney-Rivlin keep torch-fem's own class unchanged so
+    # their already-verified numbers are untouched.
+    material_cls = (_build_chunked_hyperelastic_plane_strain_class()
+                     if material == "arruda_boyce" else HyperelasticPlaneStrain)
+    tf_material = material_cls(psi=_PSI_3D_BY_MATERIAL[material], params=params)
     # torch-fem's own FEM.__init__ builds an internal index-mapping via
     # `torch.arange(self.n_dof_per_node)` with no explicit device -- a
     # real bug in torch-fem itself, confirmed directly: on a GPU run
