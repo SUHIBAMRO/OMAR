@@ -117,7 +117,58 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**TIMON'S ROUND-11 REPLY RECEIVED**, saved
+Last updated: 2026-09-14 (**Tasks #21 and #23 (round-11) DONE, both
+needed ZERO new GPU time** -- realized this before building any
+notebook, exactly the discipline this project tries to keep:
+
+- **#21, resolution-matched break-even**: every number already existed
+  as an independently-verified real GPU measurement. New script
+  `omar_pfem/break_even_resolution_matched.py` (pure recombination, run
+  locally, no Colab needed) pairs torch-fem's own matched-precision
+  N=1401 number (133.83 s/sample, round-9's own headline result --
+  deliberately NOT "ours" own GPU-native solver, since round-9 already
+  established torch-fem beats it 204-306x at this N, making it the
+  wrong FEM baseline for this specific question) against the
+  already-verified NO@N=1401 numbers and the multi-res checkpoint's
+  training cost. **Confirms Timon's own prediction exactly**: this
+  comparison is dramatically more favorable than the accuracy-matched
+  one -- 58.4x speedup and break-even after only 318 samples even in
+  default EAGER mode (vs. "never" for accuracy-matched), 339.7x/314
+  samples with compile+TF32. Saved to
+  `break_even_resolution_matched_N1401.json`, manifest recorded.
+  Report/Summary NOT yet updated with this new table -- still pending.
+- **#23, multi-resolution training protocol**: traced the exact
+  mechanism directly from `resolution_invariance_zeroshot.py`'s own
+  training loop (lines ~549-611), not from memory. Precise answer for
+  Timon: (1) **weighting is EQUAL by construction, not importance-
+  weighted** -- 400 training samples generated per resolution (100 val
+  each), identical across all 4 resolutions; every epoch rebuilds a
+  fresh batch list (each batch homogeneous in N, since one forward pass
+  shares one mesh/quad tensor -- batches CANNOT mix resolutions), then
+  the WHOLE list spanning all 4 resolutions is shuffled together
+  (`random.shuffle(batch_plan)`) so batches from different resolutions
+  interleave randomly through the epoch rather than training
+  block-by-block; the loss itself (`Pi.mean()` per batch) carries no
+  cross-resolution weighting term -- the only "weighting" is via equal
+  sample counts. Validation error is the plain mean of the 4
+  resolutions' own per-resolution mean errors (equal per-resolution
+  weight regardless of difficulty). (2) **Why N=21,33,101,201**: kept
+  the original two the base checkpoint was already trained on (21,33),
+  and added two more chosen because the diagnostic accuracy-degradation
+  sweep had ALREADY measured real, growing error at exactly those two
+  points (15.0% at N=101, 22.3% at N=201) before this retraining ran --
+  not arbitrary, and deliberately staged (prove a moderate-cost fix
+  helps before considering an even wider/costlier range like 401/701).
+  (3) Confirms directly: yes, trained on {21,33,101,201}, zero-shot
+  evaluated (no retraining) at N=1401, exactly as Timon described.
+  Not yet written into the Report/reply -- still pending.
+
+Both committed/pushed (`006b28a`). **#22 and #24 genuinely need real
+GPU time** (extending accuracy analysis to 5 more cases; training a
+whole new N=1401 ablation checkpoint) -- notebooks for those are next,
+per Omar's explicit request to get them running.
+
+Previous update, 2026-09-14 (**TIMON'S ROUND-11 REPLY RECEIVED**, saved
 verbatim to `advisor_feedback/2026-09-14_round11_timon.md`. Reaction to
 the round-10+provenance email: points 1/2/3/5 "much clearer," four new
 asks before point 4 (B7) gets discussed further. Tracked as new tasks
