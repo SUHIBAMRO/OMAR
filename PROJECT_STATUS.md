@@ -117,7 +117,65 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**`EXPERIMENT_LOG.md` extended to cover the
+Last updated: 2026-09-14 (**`EXPERIMENT_LOG.md` extended BACK to the
+project's actual first commit** (`f3d78f0`, 2026-07-03), closing a real
+gap Omar caught: the previous pass (below) started at `bfcb67c0`
+(2026-08-04), silently skipping the real first 34 commits
+(2026-07-03 -- 2026-08-03). This mattered concretely because the final
+email to Timon (see the finalized-email entry below) explicitly
+promises documentation "traceable consistently from the beginning of
+the project onward" -- which was not yet true. Read every commit in
+that range directly (`git log -1 <hash>`, not delegated to a research
+agent this time, given the small range) and added three new sections
+to `EXPERIMENT_LOG.md`, in order: (1) "Project origin -- VINO/FNO-based
+prototype, ABANDONED (2026-07-03 -- 07-07)" -- the very first commits
+built B1/B2 benchmarks on vendored `eshaghi-ms/VINO` code
+(`Practical_Examples/omar/`), explicitly NOT behind any current report
+result (superseded 2 days later), but with two real bugs worth keeping
+visible: Arruda-Boyce's unbounded strain under compression (`b4665ae`)
+and B2's polar-vs-Cartesian derivative bug producing 153-183% test
+error, worse than predicting zero, with completely normal-looking
+training loss throughout (`59dd939`); (2) "PFEM/Transolver pipeline
+bring-up (2026-07-09 -- 07-20)" -- where the actual codebase behind
+every other result begins (`a4f20e4`, `1c04791`); (3) "Round 3
+(Timon's third feedback round) ... (2026-07-23 -- 08-03)" -- device
+metrics, OOD, mesh convergence, the GPU-native FEM solver, and,
+importantly, **the project's own first resolution-invariance study
+design (`b1a866f`/`50eaa37`: 10 independently-trained networks compared
+side by side) was methodologically wrong and had to be replaced
+entirely** once the advisor correctly pointed out it doesn't actually
+demonstrate resolution invariance -- replaced (`589d8d0`, 2026-08-04)
+with the true zero-shot protocol (one model, jointly trained on two
+resolutions, evaluated with no retraining on unseen ones) used in every
+round since. Also found two more real process bugs from this period:
+`evaluate_ood.py` briefly read part of the TRAINING set as the
+"in-distribution test set" before being caught (`b4c8072`), and 3 of
+the advisor's 7 round-3 items silently never executed on real data for
+months because the training function returned early for
+already-finished cases (`4a63d45`). Added all of these to the
+negative/failure-findings list (now covering the project's real
+beginning, not just round 4 onward). Committed (`22d2ce2`), pushed.
+
+Previous update, 2026-09-14 (**Recorded the finalized email Omar is
+actually sending to Timon**, merging the two separate drafts (round-10
+5-point reply + provenance/EXPERIMENT_LOG.md reply) into one --
+`advisor_feedback/2026-09-14_final_reply_round10_and_provenance.md`.
+Cross-checked its numbers against already-verified project data before
+recording: the 44.65%->5.85% multi-res result and the B7 mesh-
+convergence table (72/288/1,152/4,608 elements) both matched exactly.
+Also wrote out, at Omar's request, the full precise technical detail
+behind the email's point-4 paragraph (exact new files/functions --
+`data_generate_B7.py`'s `generate_grid_Q4_ring_notch` and
+`assemble_traction_inner_indexed`, the notch geometry formula, the
+smoke test, the 4-resolution convergence numbers and their widening
+3.7x->6.7x->13.7x ratio) directly in chat before Omar finalized the
+email himself. Attachments: the updated Report and Round-10 Summary.
+Committed (`c78206e`), pushed. **This same email is what surfaced the
+gap closed above**: it promises Timon full-project traceability "from
+the beginning," which prompted checking whether `EXPERIMENT_LOG.md`
+actually started at the beginning -- it did not, until this pass.
+
+Previous update, 2026-09-14 (**`EXPERIMENT_LOG.md` extended to cover the
 WHOLE project's history (round 4 through round 10), not just
 round-10**, per Omar's follow-up confirming Timon's provenance request
 ("note the exact git commit and a one-line description of the setup
