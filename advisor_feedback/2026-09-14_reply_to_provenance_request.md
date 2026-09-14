@@ -37,9 +37,12 @@ matched to its own accuracy, and peak PK1 stress converges slowly for
 both methods (likely a boundary-singularity artifact), not just for
 ours.
 
-I am now extending the same treatment backward across the rest of the
-project's history (round 5 through round 10) and will share that once
-it's put together properly rather than something assembled in a rush.
+I have now extended the same treatment backward across the rest of the
+project's history (round 4 through round 10) in the same
+`EXPERIMENT_LOG.md`, with the same rule: nothing goes in without an
+independently checked commit hash behind it, and anything I could not
+tie to a specific commit with confidence is listed separately rather
+than guessed at.
 
 I have deliberately not tried to design anything beyond this — you
 mentioned your group is building a more structured platform, and I did

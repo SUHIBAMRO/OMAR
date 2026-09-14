@@ -117,7 +117,49 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**One more real stale spot, caught by Omar
+Last updated: 2026-09-14 (**`EXPERIMENT_LOG.md` extended to cover the
+WHOLE project's history (round 4 through round 10), not just
+round-10**, per Omar's follow-up confirming Timon's provenance request
+("note the exact git commit and a one-line description of the setup
+for every run you consider final") applies project-wide: "على ما يبدو
+انو نعم لكل المشروع بشكل كامل بدو". Method: spawned a background
+research agent to mine the full 518-commit git log and all 8,481 lines
+of this file for every distinct final experimental result, including
+negative/failure findings, across rounds 4-9 (round-10 was already
+covered). Independently verified before merging any of it: sampled 13
+cited commit hashes with `git cat-file -t <hash>` (all valid) and 5
+commit messages with `git log -1 --format="%ad %s" <hash>` (all
+matched the described content). Added new dated sections for Round 4 /
+pre-Round-5 foundational results, Round 5, Round 6 (including a nested
+B2 zero-shot debugging chain sub-table and a Pareto/MMS/solver-speedup
+sub-table), Round 7/8, and Round 9, each as a Commit/Date/
+description/Result-file table, inserted before the existing Round-10
+section. Expanded the "known negative/failure results" list from 2 to
+11 items, each citing its own supporting commit(s) -- covering the
+Q4-vs-Q9 agreement failure, all three separate B2 accuracy
+catastrophes, the AB accuracy-search failed trials, the 16x speed-up
+reporting error, B2xNH's training-cost slowdown, MMS's non-convergence
+under refinement, the OOD-normalization mitigation that didn't work,
+torch-fem's direct-solver being slower than CG, the cuDSS
+coalescing-reuse null result, the still-unconfirmed cached-Hessian
+negative result, NO's eager-mode break-even failure, and the
+persistent slow-convergence caveat on peak PK1 stress for both
+methods. Also added 2 more Round-10 rows (B7 ring+notch feasibility
+check, commits `d0ae5a78`/`ce772938`) and a new "Unresolved" section
+listing 4 items the research pass could not confidently tie to a
+single commit rather than guessing at one: the cached-Hessian
+production run's missing commit, an ambiguous Pareto speed-up number
+(17,895x vs. 25,676x quoted in different places), very-early
+pre-tracker Round-4 results that predate this file itself, and the OOD
+Table-25 per-case breakdown. These 4 need Omar's own confirmation to
+fully close out. Committed (`6afbfcb`, "Expand EXPERIMENT_LOG.md to
+cover the whole project (rounds 4-10)"), pushed. The
+`advisor_feedback/2026-09-14_reply_to_provenance_request.md` draft
+still says this extension "will share... once it's put together
+properly" as future work -- now stale in that one sentence, not yet
+updated; draft is still unsent, awaiting Omar's review either way.
+
+Previous update, 2026-09-14 (**One more real stale spot, caught by Omar
 again, same family of bug as the table-cell one just fixed**: the
 Abstract's own item (vii) still described the ORIGINAL zero-shot
 protocol -- "trains a single network once... on five further mesh
