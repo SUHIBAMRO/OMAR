@@ -41,8 +41,44 @@
 #  own metrics_history.json if present, else left as "unknown" rather
 #  than guessed).
 # =====================================================================
-import json
+# Real bug found on a live A100 run (2026-09-14): EVERY case failed to
+# converge ("Newton-Raphson did not converge ... after 10 cutbacks"),
+# including B1xNeo-Hookean, which had solved cleanly in an earlier run of
+# this exact notebook. Traced to omar_pfem.data.materials unconditionally
+# importing omar_pfem.data.material_models_jax at module level (needed
+# for Mooney-Rivlin/Arruda-Boyce's JAX-autodiff-based E_nu_to_* --
+# neither this cell nor any material actually needs it to run on GPU,
+# it only converts two scalars, E and nu, to material parameters).
+# JAX's own default behavior the moment it first touches a GPU is to
+# preallocate ~90% of that GPU's ENTIRE memory for itself and never give
+# it back for the life of the process -- and this reservation is
+# invisible to torch.cuda.memory_allocated()/memory_reserved() (JAX
+# manages its own separate CUDA memory pool), which is exactly why the
+# "[gpu mem before this case] allocated=12.51GB reserved=20.06GB" print
+# below looked perfectly healthy while torch-fem's own solve immediately
+# hit "78.61 GiB memory in use" and OOM'd. Since data.materials is
+# imported for every material (including Neo-Hookean, which never
+# actually needs JAX itself), this poisoned the WHOLE run, not just the
+# Mooney-Rivlin/Arruda-Boyce cases. Fixed by forcing JAX onto CPU only,
+# BEFORE any omar_pfem import -- jax's actual work here (two-scalar
+# conversions) is instant on CPU regardless, so this costs nothing and
+# leaves the entire GPU to PyTorch/torch-fem as intended.
+#
+# NOTE: omar_pfem.data.material_models_jax already sets this SAME env var
+# via os.environ.setdefault(...) at its own import time -- and has for a
+# long time, with its own comment describing this exact failure mode. That
+# it still happened means either (a) something imports the bare `jax`
+# package before material_models_jax.py ever gets a chance to run (a
+# setdefault after jax is already imported/initialized has no effect on
+# jax's already-resolved backend), or (b) this Colab runtime's environment
+# already had JAX_PLATFORMS set to something else beforehand, which
+# setdefault would not override. Using a forced assignment here, at the
+# absolute top of this script, before any pip install/import, closes both
+# gaps regardless of which one it actually was.
 import os
+os.environ['JAX_PLATFORMS'] = 'cpu'
+
+import json
 import subprocess
 import sys
 import time
@@ -97,6 +133,22 @@ from omar_pfem.high_dof_convergence_study import build_mesh_and_bcs
 from omar_pfem.torchfem_comparison import solve_theirs
 from omar_pfem.measure_inference_latency import build_model
 import argparse
+
+# Diagnostic: confirm JAX actually resolved to CPU as intended (checked
+# directly, not assumed, given a previous run failed despite JAX_PLATFORMS
+# being set) -- import it explicitly here since data.materials only
+# imports it lazily on first use, which would otherwise happen deep
+# inside the first case's own build_mesh_and_bcs call, too late to catch
+# a wrong backend before spending real GPU time on a doomed sweep.
+import jax
+jax_devices = jax.devices()
+print(f'JAX devices: {jax_devices}')
+assert all(d.platform == 'cpu' for d in jax_devices), (
+    f'JAX resolved to a non-CPU backend ({jax_devices}) despite JAX_PLATFORMS=cpu -- '
+    f'it will preallocate most of the GPU for itself and starve torch-fem. Refusing to '
+    f'proceed; check whether something else imports jax before this cell, or whether '
+    f'this Colab runtime pre-sets JAX_PLATFORMS/JAX_PLATFORM_NAME to something else.')
+print('JAX confirmed CPU-only -- safe to proceed with the full GPU for PyTorch/torch-fem.')
 
 R = '/content/drive/MyDrive/pfem_run'
 device = torch.device('cuda')

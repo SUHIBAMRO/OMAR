@@ -32,8 +32,19 @@
 #  chunks -- same discipline as every other training cell in this
 #  project.
 # =====================================================================
-import json
+#
+#  Defensive fix (2026-09-14, found on a sibling notebook): force JAX
+#  onto CPU before any import. omar_pfem.data.materials unconditionally
+#  imports omar_pfem.data.material_models_jax, and JAX's own default
+#  behavior on first touching a GPU is to preallocate ~90% of it for
+#  the life of the process, invisible to torch.cuda's own memory stats.
+#  This case is Neo-Hookean only (whose own conversion doesn't actually
+#  use JAX), but the import happens regardless of material -- applied
+#  here anyway since it costs nothing and removes any risk.
 import os
+os.environ['JAX_PLATFORMS'] = 'cpu'
+
+import json
 import subprocess
 import sys
 import time

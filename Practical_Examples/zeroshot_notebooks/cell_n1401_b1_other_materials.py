@@ -55,8 +55,26 @@
 #  separate, comparably-sized piece of work -- not started yet, flagged
 #  honestly rather than attempted in a rush.
 # =====================================================================
-import json
+#
+#  REAL BUG FOUND 2026-09-14 on a sibling notebook (resolution-matched
+#  break-even), applies equally here since this script also loops over
+#  Mooney-Rivlin/Arruda-Boyce on GPU: omar_pfem.data.materials
+#  unconditionally imports omar_pfem.data.material_models_jax, which
+#  JAX-autodiff-derives those two materials' PK1/tangent. JAX's own
+#  default behavior the moment it first touches a GPU is to preallocate
+#  ~90% of that GPU's ENTIRE memory for itself for the life of the
+#  process -- invisible to torch.cuda.memory_allocated()/reserved()
+#  (JAX manages its own separate CUDA pool) -- which starves PyTorch/
+#  the NO model for every case in the same run, not just the ones that
+#  actually need JAX. material_models_jax.py already sets JAX_PLATFORMS=
+#  cpu via os.environ.setdefault at its own import time, but that has no
+#  effect if jax was already imported/initialized earlier in the process
+#  by something else, or if this Colab runtime pre-sets the env var to
+#  something else. Forcing it here, before any import, closes both gaps.
 import os
+os.environ['JAX_PLATFORMS'] = 'cpu'
+
+import json
 import subprocess
 import sys
 
@@ -116,6 +134,16 @@ from omar_pfem.no_accuracy_at_n1401 import (
     run_accuracy_degradation_sweep_b2, run_no_peak_stress_fixed_location_b2,
 )
 import argparse
+
+# Diagnostic: confirm JAX actually resolved to CPU (checked directly, not
+# assumed -- see the note above import os for why this matters here).
+import jax
+jax_devices = jax.devices()
+print(f'JAX devices: {jax_devices}')
+assert all(d.platform == 'cpu' for d in jax_devices), (
+    f'JAX resolved to a non-CPU backend ({jax_devices}) -- it will preallocate '
+    f'most of the GPU for itself and starve the NO model / ground-truth solver.')
+print('JAX confirmed CPU-only -- safe to proceed.')
 
 RESOLUTIONS = [13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 101, 201, 401, 701, 1001, 1401]
 
