@@ -117,7 +117,22 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Closed 2 of the 4 "Unresolved" flags in
+Last updated: 2026-09-14 (**Closed the cached-Hessian "Unresolved" flag
+in `EXPERIMENT_LOG.md`, confirmed directly by Omar**: it was the first
+of three attempts at speeding up "ours" own matrix-free solver, GPU-
+verified at production scale (~09-10/11) and found NOT to close the
+204-306x gap vs. torch-fem -- an honest negative result with no number
+worth a table, so none was ever recorded, and Omar confirmed there's
+nothing on Drive worth chasing either. Corrected course the very next
+day to the assembled+direct solver (Point 8) + cuDSS reuse (Point 9),
+both already documented. Only one item now remains genuinely open in
+`EXPERIMENT_LOG.md`'s "Unresolved" section: the exact commit behind the
+earliest pre-tracker report tables (Tables 1-6/8/4a/7/12), which
+predates `PROJECT_STATUS.md` itself and is likely untraceable. Task
+list is otherwise fully clean: #1-15/17-20 done, #16 blocked on
+Timon's reply. Committed (`80afa06`), pushed.
+
+Previous update, 2026-09-14 (**Closed 2 of the 4 "Unresolved" flags in
 `EXPERIMENT_LOG.md` by actually checking the live Report tables**,
 prompted by Omar asking "is there anything else left to do" -- neither
 needed Omar's own input after all: the "17,895x vs 25,676x" Pareto
