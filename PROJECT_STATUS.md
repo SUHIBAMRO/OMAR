@@ -117,7 +117,56 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**MAJOR RESULT: the multi-resolution retraining
+Last updated: 2026-09-14 (**Fixed-location peak-stress check for the NEW
+multi-res checkpoint done -- FLIPS the "coarsest suitable FEM" story from
+the old checkpoint.** Real A100 run, `Round6_NO_Peak_Stress_Fixed_
+Location_MultiRes.ipynb`, checkpoint identity verified by fingerprint
+before running (`cb318c4694...`, matches the fingerprint already recorded
+in `no_accuracy_degradation_sweep_multires.json`).
+
+Peak-stress error improved at EVERY N (e.g. N=1401: 0.7359 -> 0.4142,
+N=49: 0.6204 -> 0.5641) -- saved to
+`Practical_Examples/omar_pfem/no_peak_stress_fixed_location_multires.json`.
+**The important change**: torch-fem's own best measured peak-stress error
+in the tested low-N range (N=3-49) only gets down to 0.62 (at N=49, see
+`torchfem_full_qoi_low_N_result.json`) -- so for every NO resolution from
+N=29 upward, the new checkpoint's peak-stress accuracy (0.42-0.62) is now
+BETTER than anything torch-fem achieves in that whole low-N range. FEM
+would need N>49 to match it, which was never tested.
+
+This means the "coarsest suitable FEM" conclusion is now bound by
+**tangent energy**, not peak stress, for N>=29 -- and the coarsest
+suitable FEM needed dropped from the old checkpoint's N=17-45 range down
+to a genuinely near-degenerate N=9-17 for almost every resolution (full
+table: `no_peak_stress_fixed_location_multires.json`'s
+`coarsest_suitable_fem_crossover_new_checkpoint`). Concretely, at
+N=1401 the coarsest suitable FEM went from N=17 (old checkpoint, bound
+by peak stress) to N=11 (new checkpoint, bound by tangent energy,
+peak stress now unmatched in the tested FEM range at all).
+
+**Same caveat as before still applies**: x_star is unchanged (still
+essentially the (0,0) domain corner, a plausible near-singularity
+location) -- both methods still converge to this one metric very
+slowly, so it should still be reported with that caveat rather than as
+an unqualified win. But this is real, directly-measured progress, not
+an artifact: the new checkpoint is genuinely more accurate on this QoI
+at every single resolution tested.
+
+**Point 1 is now essentially complete** for the Timon draft, modulo one
+remaining number: the exact final training wall-clock for the new
+checkpoint (still need to confirm -- last known was 34,110s at epoch
+875/2000, not the final stopping point). Draft update still pending.
+
+**Point 5 (break-even) unblocked next**: now that point 1's
+accuracy-matched FEM resolution has a real answer for the new
+checkpoint (mostly N=9-17), break_even_analysis.py can be re-run for
+real using that N instead of an arbitrary one -- still needs (a) the
+final training wall-clock above, and (b) a GPU-FEM per-sample timing at
+the chosen matched N (already have N=21's from the point-2 matched-
+memory run; other N's would need `gpu_fem_benchmark.py` run once more,
+cheap, single N).
+
+Previous update, 2026-09-14 (**MAJOR RESULT: the multi-resolution retraining
 finished and dramatically fixes the resolution-extrapolation problem
 that drove point 1's whole "NO degrades badly away from training
 resolution" story.** Real A100 run, final before/after comparison cell
