@@ -117,7 +117,22 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Real, user-caught bug in the Report: a stale
+Last updated: 2026-09-14 (**Drafted a reply to Timon's provenance/
+database request** --
+`advisor_feedback/2026-09-14_reply_to_provenance_request.md`, NOT sent,
+Omar to review first. Short by design (matches this project's own
+established convention for process-level replies, e.g. the 2026-09-11
+GPU-solver update): explains the existing `write_manifest()`
+infrastructure, the round-10 gap found and closed, points to
+`EXPERIMENT_LOG.md` as the interim answer, explicitly keeps the two
+negative findings visible in the summary rather than only the
+favorable ones, and says the same treatment is being extended backward
+across the whole project's history (the background research agent for
+that was already running when this was drafted) without committing to
+designing anything beyond what was explicitly asked, deferring to
+Timon's own forthcoming platform.
+
+Previous update, 2026-09-14 (**Real, user-caught bug in the Report: a stale
 "in progress" claim sitting INSIDE A TABLE CELL, invisible to every
 `python-docx` paragraph-text search this session had run** (`.paragraphs`
 skips table content entirely -- the exact gotcha this project's own docx
