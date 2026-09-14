@@ -298,11 +298,12 @@ to bury failures:
   commit (`419c1285`) and the notebook-build commit (`c491e075`) were
   found nearby. If this run's own JSON exists on Drive, it should be
   pulled in and given its own row.
-- **B1xNeo-Hookean original Pareto "17,895x" vs. a later-quoted
-  "25,676x"** for the same case (both appear in the document, in
-  different contexts) -- not fully resolved which is the number Table
-  18 actually uses as final; worth a direct check against the live
-  table cell.
+- ~~B1xNeo-Hookean original Pareto "17,895x" vs. "25,676x"~~ **RESOLVED,
+  not actually ambiguous**: checked the live Report table directly
+  (`PFEM_Transolver_Report_2026-09-14.docx`, table index 40) --
+  17,895x is N=41's own speed-up and 25,676x is N=49's, two different
+  rows of the same Pareto sweep, not two conflicting numbers for one
+  case. No fix needed.
 - **Very early Round-4/pre-tracker results** (initial Tables 1-6 mesh
   convergence, Table 8 GPU memory, original Table 4a/7, the original
   pre-"revised" Table 12): the CODE behind these is now traced above
@@ -312,6 +313,9 @@ to bury failures:
   tables predates `PROJECT_STATUS.md` itself (2026-08-15) and this
   project's one-commit-per-finding discipline, and was not confidently
   identified in this pass -- omitted rather than guessed at a commit.
-- **OOD degradation factors 4.75x/5.47x/2.27x (Table 25)**: the
-  per-case breakdown (which factor belongs to which case/shift-type)
-  was not confirmed against the live table in this pass.
+- ~~OOD degradation factors 4.75x/5.47x/2.27x (Table 25)~~ **RESOLVED**:
+  checked the live Report table directly (table index 36, "Case |
+  Baseline | Loading @ k=3 | x | Material @ k=3 | x | Both @ k=3 | x").
+  All three are the "Material @ k=3" column, one row each: B2 x
+  Neo-Hookean = 4.75x, B2 x Mooney-Rivlin = 5.47x, B2 x Arruda-Boyce =
+  2.27x. No fix needed.
