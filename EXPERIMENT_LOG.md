@@ -291,13 +291,20 @@ to bury failures:
 
 ## Unresolved -- entries this pass could not confidently tie to one commit
 
-- **Cached-Hessian production-scale negative result** (~2026-09-10/11):
-  `PROJECT_STATUS.md` states a real GPU run at N=401-1401 "did NOT reach
-  the goal" of closing the 204-306x gap vs. torch-fem, with no numeric
-  table and no commit cited in the text. Only the CPU-verification
-  commit (`419c1285`) and the notebook-build commit (`c491e075`) were
-  found nearby. If this run's own JSON exists on Drive, it should be
-  pulled in and given its own row.
+- ~~Cached-Hessian production-scale negative result~~ **RESOLVED,
+  confirmed by Omar directly (2026-09-14) -- no numbers to chase**:
+  this was the FIRST of three attempts at making "ours" own solver
+  faster than torch-fem/TensorMesh. CPU-verified correct and fast
+  (`38a6879`-era commits, `Round6_Cached_Hessian_Speedup_Production
+  .ipynb`), then GPU-verified at production scale (~2026-09-10/11) and
+  found NOT to close the 204-306x gap -- an honest negative result with
+  no positive number worth a table, so none was ever recorded. Omar
+  then corrected course to the two approaches that DID work instead:
+  the assembled+direct solver (Point 8, `d30b320f`) and the cuDSS
+  reuse/symmetric optimizations on top of it (Point 9, `3c633579`),
+  both dated the very next day, 2026-09-11 -- both already in this log
+  above. Nothing further to add; the story is complete as narrative,
+  it just never produced a number.
 - ~~B1xNeo-Hookean original Pareto "17,895x" vs. "25,676x"~~ **RESOLVED,
   not actually ambiguous**: checked the live Report table directly
   (`PFEM_Transolver_Report_2026-09-14.docx`, table index 40) --
