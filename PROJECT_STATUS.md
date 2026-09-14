@@ -117,7 +117,75 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Task #22's ACCURACY/QoI half is now DONE
+Last updated: 2026-09-14 (**TASK #22 IS NOW FULLY DONE ON THE
+ENGINEERING SIDE, BOTH HALVES, ALL 6 CASES** -- Omar pushed back on
+leaving the resolution-matched break-even for later ("ليش ما تعملها؟"),
+so it got built today instead of deferred. `Round6_
+ResolutionMatchedBreakEven_AllCases.ipynb` (`24f100a`) is ready for
+Omar to run, cheap (~15 min expected, torch-fem's own N=1401 solve is
+only ~134s per case per round-9's own real measurement).
+
+**Getting there required generalizing torchfem_comparison.py (round-9's
+own headline-result module) past B1xNeo-Hookean, and surfaced 3 more
+real bugs, each verified before moving to the next**:
+1. `build_torchfem_model`/`solve_theirs`/`solve_theirs_with_breakdown`
+   hardcoded exactly `(mu, lam)` and a Neo-Hookean-only `psi` function.
+   Added `mooney_rivlin_psi_3d`/`arruda_boyce_psi_3d` -- exact 3D
+   reductions of `materials_torch.py`'s own 2D formulas, checked
+   numerically identical (0.0 difference) at a random F before ever
+   touching a solver -- and generalized the arity, same `*mat_params`
+   pattern as earlier today.
+2. Those functions also assumed every `fixed_dofs` entry came in x/y
+   PAIRS (true for B1's bottom clamp, false for B2's symmetry edges,
+   each fixing only one component). Fixed by building the constraints
+   tensor from `fixed_dofs`' own per-DOF decomposition -- a strict
+   generalization, verified to reproduce B1's exact old behavior via
+   the module's own `_correctness_check` (still PASS, 3.54e-11,
+   unchanged).
+3. **Real numerical bug caught by a live solver failure, not by
+   inspection**: the new psi functions made torch-fem's own
+   Newton-Raphson fail to converge even at a tiny N=7. Traced to
+   `torch.linalg.det()`'s own SECOND derivative being NaN at F=I --
+   confirmed directly via `torch.func.hessian` -- a broader instance of
+   the exact sharp edge already documented in this codebase for
+   `log(det(.))` specifically (here plain `det()` alone has it, no log
+   needed to trigger it). Fixed by routing J through `slogdet`
+   (`J = exp(lnJ)`) everywhere in both new psi functions.
+4. **A genuine architectural limitation of torch-fem's own public API**,
+   not a bug: B2's per-Gauss-point material sampling (this project's
+   own established convention since commit `af7e67c`, matched by
+   "ours" own solver) is incompatible with `HyperelasticPlaneStrain`,
+   which only accepts one parameter set per ELEMENT (confirmed by a
+   real shape-mismatch crash inside torch-fem's own
+   `integrate_material`). Handled pragmatically and documented as such:
+   average each element's own Gauss-point values to one number for
+   torch-fem's B2 calls specifically -- a small, bounded approximation
+   appropriate for a wall-clock comparison, not a new accuracy claim.
+
+**Verified end-to-end for all 6 cases** against the slow CPU reference
+solvers (not "ours" own solver -- see below) before ever building the
+notebook: B1's three materials match to ~1e-11 (machine precision,
+exact centroid-sampling match), B2's three materials to ~8e-4 (small,
+expected discretization-level difference from the averaging
+approximation, not a correctness failure). Also smoke-tested the full
+notebook flow (torch-fem solve + NO forward-pass timing) end-to-end at
+tiny N=7 with an untrained model for one non-B1xNH combination of each
+geometry before shipping.
+
+**One separate, pre-existing, UNRELATED bug found along the way, out of
+scope, flagged for its own follow-up**: "ours" own large-scale solver
+path (`matrix_free_solver.py`'s `element_energy_order_agnostic`, called
+via `solve_ours`) crashes with `TypeError: ... got multiple values for
+argument 'dtype'` for Mooney-Rivlin specifically -- confirmed NOT
+caused by anything touched today (this project's own small-scale path,
+`gpu_fem_solver.py`/`assembled_direct_solver.py`, already handles
+Mooney-Rivlin correctly, verified earlier today). Never triggered
+before because round-9's whole large-scale comparison was
+B1xNeo-Hookean-only. Not fixed this pass -- sidestepped by verifying
+torch-fem against the slow CPU reference solvers directly instead,
+which was sufficient for today's goal.
+
+Previous update, 2026-09-14 (**Task #22's ACCURACY/QoI half is now DONE
 for all 6 cases** -- `Round6_N1401_AllRemainingCases.ipynb` (`c75b787`)
 covers the 5 remaining cases (B1xMooney-Rivlin, B1xArruda-Boyce, and
 all 3 of B2), ready for Omar to run. Combined with the already-existing
