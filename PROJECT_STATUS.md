@@ -117,7 +117,43 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**FOUND THE REAL ROOT CAUSE of the OOM
+Last updated: 2026-09-14 (**Fixed a second, separate real bug in the
+resolution-matched break-even notebook's SUMMARY section, found on
+Omar's own most recent run**).
+
+Omar pasted a Colab log showing the resolution-matched break-even
+notebook's most recent run: all 6 cases failed with the same
+pre-JAX-fix pattern (`HEAD is now at dc0dc8e` -- confirmed from the
+log itself that this run started BEFORE the JAX fix (`24e3257`/
+`b8a82dc`) was pushed, so the failure itself is expected/stale, not a
+new problem; Omar recognized this himself ("النوتبوك القديم")).
+
+But a genuinely NEW, previously-latent bug surfaced on top of that:
+when EVERY row in `results` is a "failed" row (`{'geometry',
+'material', 'N', 'failed'}` only -- see `cell_resolution_matched_
+break_even_all_cases.py`'s `except RuntimeError` handler), the final
+summary-printing loop unconditionally accessed success-only keys
+(`torchfem_ms_per_sample`, `no_ms_per_sample`, `speedup_vs_torchfem`)
+on every row, crashing with `KeyError: 'torchfem_ms_per_sample'`
+instead of printing the failures. This bug existed since the loop was
+first written and was simply never exercised until a run happened to
+fail on literally every case.
+
+**Fixed**: the summary loop now checks `r.get('failed')` first and
+prints `"FAILED: <reason>"` for those rows instead of crashing;
+success rows are printed exactly as before. Verified with
+`py_compile` + regenerated `Round6_ResolutionMatchedBreakEven_
+AllCases.ipynb` + `ast.parse` on both non-shell cells before commit.
+
+**Still genuinely unverified**: whether the JAX fix itself actually
+resolves the underlying convergence failures on real GPU, since no
+run has yet used a commit at or after `24e3257`. Next run must be a
+true fresh Colab tab (Runtime > Restart runtime, not just re-run) on
+the latest commit, and must show the `jax.devices()` confirmation
+line printed by the new runtime assertion before trusting the rest of
+the output.
+
+Previous update, 2026-09-14 (**FOUND THE REAL ROOT CAUSE of the OOM
 pattern, affects every notebook that touches multiple materials on GPU,
 now fixed everywhere** (`24e3257`).
 

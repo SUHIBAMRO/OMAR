@@ -359,6 +359,9 @@ print('\n' + '=' * 78)
 print('SUMMARY -- resolution-matched comparison, all 6 cases, N=1401')
 print('=' * 78)
 for r in results:
+    if r.get('failed'):
+        print(f"  {r['geometry']} x {r['material']:<15} FAILED: {str(r['failed'])[:120]}")
+        continue
     be = f"{r['break_even_samples']:.0f} samples" if r.get('break_even_samples') else \
          ("never" if r.get('training_seconds') else "training cost unknown")
     print(f"  {r['geometry']} x {r['material']:<15} torch-fem={r['torchfem_ms_per_sample']:.1f}ms  "
