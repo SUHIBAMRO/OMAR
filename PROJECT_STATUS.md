@@ -117,7 +117,22 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Drafted a reply to Timon's provenance/
+Last updated: 2026-09-14 (**One more real stale spot, caught by Omar
+again, same family of bug as the table-cell one just fixed**: the
+Abstract's own item (vii) still described the ORIGINAL zero-shot
+protocol -- "trains a single network once... on five further mesh
+resolutions" -- while the body (Section 8.6) has long since covered all
+six (geometry, material) combinations on seven unseen resolutions, and
+round-10 added the multi-resolution retraining on top of that. Fixed:
+now says one network per combination (six total, each jointly trained
+at two resolutions), seven unseen resolutions, plus a mention of the
+round-10 retraining reaching N=1401. This is the FIRST paragraph a
+reader sees (the Abstract, before even the Executive Summary), so
+Omar's instinct to fix it before treating the file as send-ready was
+right. Verified structurally unchanged (546/70/45, matching before this
+edit). Report re-sent.
+
+Previous update, 2026-09-14 (**Drafted a reply to Timon's provenance/
 database request** --
 `advisor_feedback/2026-09-14_reply_to_provenance_request.md`, NOT sent,
 Omar to review first. Short by design (matches this project's own
