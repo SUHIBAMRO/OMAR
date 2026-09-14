@@ -402,9 +402,10 @@ def cmd_train(args):
         # impractical without this).
         import functools
         fast_device = torch.device("cuda" if torch.cuda.is_available() and not args.cpu else "cpu")
-        build_fn = functools.partial(build_sample_b1_fast, device=fast_device, dtype=torch.float64)
+        build_fn = functools.partial(build_sample_b1_fast, device=fast_device, dtype=torch.float64,
+                                      nsteps=int(getattr(args, "nsteps", 10)))
         print(f"[fast_solver] generating training/val samples via solve_b1_fast_gpu "
-              f"on {fast_device} instead of the original CPU solver")
+              f"on {fast_device} instead of the original CPU solver, nsteps={int(getattr(args, 'nsteps', 10))}")
     else:
         build_fn = build_sample_b1 if args.geometry == "B1" else build_sample_b2
 
@@ -1030,6 +1031,18 @@ def main():
                           help="FEM samples generated between on-disk saves. Smaller = less "
                                "lost to an interrupted Colab session, at the cost of more "
                                "frequent (cheap) writes.")
+    p_train.add_argument("--nsteps", type=int, default=10,
+                          help="fast_solver only: incremental load steps per sample "
+                               "(solve_b1_fast_gpu). Default 10, unchanged from every "
+                               "existing result -- a real 2026-09-12 finding showed nsteps=1 "
+                               "(single-shot) does NOT converge at N=1401 with random "
+                               "material fields. Whether fewer steps than 10 (e.g. 5) still "
+                               "converges reliably at N=1401 has NOT been tested; each "
+                               "load step currently converges to a relative residual "
+                               "1e2-1e3x tighter than the required tolerance (see console "
+                               "output), suggesting -- but not proving -- that larger steps "
+                               "might still work. Verify on a small trial before trusting a "
+                               "lower value for any real data generation.")
     p_train.add_argument("--stop_after_generation", action="store_true",
                           help="Generate (or finish generating) the FEM samples, write the "
                                "cache, and exit WITHOUT training. Lets the multi-hour data "

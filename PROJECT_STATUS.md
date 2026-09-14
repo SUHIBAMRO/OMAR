@@ -117,7 +117,54 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Explained a real 10x cost blow-up in task
+Last updated: 2026-09-14 (**Built a cheap diagnostic to test whether
+task #24's data generation can use fewer than 10 load steps, plus
+exposed `--nsteps` as a CLI flag -- untested speedup candidate, not yet
+applied to the real run**).
+
+Omar asked directly whether the 587s/sample cost (see entry just below)
+can be reduced. Real observation supporting a plausible speedup: every
+one of the 10 load steps in the console output converges to a relative
+residual ~1e2-1e3x TIGHTER than the required tolerance (e.g. 1.441e-09
+vs. the 1e-7 tolerance) -- Newton isn't struggling within any single
+step, which suggests (does NOT prove) that fewer, larger steps might
+still converge. Nothing between nsteps=1 (confirmed fails, 2026-09-12)
+and nsteps=10 (confirmed works) has ever been tested.
+
+**Made testable, not assumed**: added `--nsteps` as a CLI flag to
+`resolution_invariance_zeroshot.py`'s train subcommand (was hardcoded to
+10 inside `build_sample_b1_fast`/the fast_solver call site), default
+still 10 so every existing/in-progress run is completely unaffected.
+Built `cell_test_fewer_load_steps_n1401.py` /
+`Test_FewerLoadSteps_N1401.ipynb` -- a cheap (3 samples x 3 nsteps
+values = 6 solves, well under 30 min), SEPARATE, non-destructive
+diagnostic that writes nothing to the real output directory and cannot
+interfere with the already-running `B1_NeoHookean_Direct_N1401_
+Ablation.ipynb` (different Colab session, no shared files touched).
+Prints wall-clock, `converged_likely`, and relative residual for
+nsteps=10/5/3, with an explicit per-value "SAFE to use" / "DO NOT USE"
+verdict based on whether ALL 3 trial samples converged.
+
+**Important caveat, confirmed by reading the code**: convergence
+checking in `solve_b1_fast_gpu` is informational only (`converged_likely`
+is a printed field, not a hard assertion) -- a real production run with
+a lower nsteps that happens to fail for some particular random material
+field would silently save that (bad) sample rather than stopping. If
+a lower nsteps is adopted for the real remaining samples, the printed
+per-sample convergence lines should still be spot-checked, not assumed
+safe from the 3-seed smoke test alone.
+
+**Not yet run, not yet applied**: this is purely a candidate speedup
+built and reasoned through, per Omar's own request to look into it --
+whether nsteps=5 or 3 actually holds up on real GPU is unknown until
+this notebook is run. If it does, the REMAINING (not yet generated)
+samples in task #24's real job can resume with `--nsteps <verified
+value>` without discarding the samples already generated at nsteps=10
+(mixing is safe: nsteps only affects the SOLUTION METHOD, not the
+converged physical solution itself, provided each sample genuinely
+converges).
+
+Previous update, 2026-09-14 (**Explained a real 10x cost blow-up in task
 #24's data generation, found live on Omar's own GPU run -- corrected
 the misleading estimate, not a solver bug**).
 
