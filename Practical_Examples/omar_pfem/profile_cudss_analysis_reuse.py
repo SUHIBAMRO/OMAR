@@ -57,8 +57,8 @@ def build_three_jacobians(N=401, geometry="B1", material="neo_hookean", order="Q
     fixed_set = set(np.setdiff1d(np.arange(n_dof), free_dofs).tolist())
     free_mask_dof = torch.tensor([i not in fixed_set for i in range(n_dof)], device=device)
 
-    jac_fn = build_sparse_jac_fn(nodes, elements, mu, lam, free_mask_dof, material, order,
-                                  device, dtype)
+    jac_fn = build_sparse_jac_fn(nodes, elements, mu, lam, free_mask_dof=free_mask_dof,
+                                  material=material, order=order, device=device, dtype=dtype)
 
     torch.manual_seed(0)
     scale = 1e-4

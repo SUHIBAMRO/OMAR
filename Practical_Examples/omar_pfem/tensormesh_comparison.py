@@ -174,7 +174,7 @@ def build_tensormesh_model(nodes, elements, mu, lam, dtype=torch.float64, device
     return tm_mesh, model, mu_t, lam_t
 
 
-def build_sparse_jac_fn(nodes, elements, mu, lam, free_mask_dof, material, order, device, dtype,
+def build_sparse_jac_fn(nodes, elements, *mat_params, free_mask_dof, material, order, device, dtype,
                          symmetric_bc=False):
     """Explicit sparse dF/du for TensorMesh's own nonlinear_solve (the
     ``jac_fn`` hook, contract confirmed by reading torch_sla's installed
@@ -246,8 +246,10 @@ def build_sparse_jac_fn(nodes, elements, mu, lam, free_mask_dof, material, order
     n_nodes = xy.shape[0]
     n_dof = 2 * n_nodes
     n_elem, n_local = quad.shape
-    elem_params = (torch.as_tensor(mu, dtype=dtype, device=device),
-                   torch.as_tensor(lam, dtype=dtype, device=device))
+    # Generalized 2026-09-14 (see assembled_direct_solver.solve_assembled_direct's
+    # matching comment) -- was hardcoded to arity 2, silently wrong/crashing for
+    # Mooney-Rivlin (4 params) and Arruda-Boyce (3 params).
+    elem_params = tuple(torch.as_tensor(p, dtype=dtype, device=device) for p in mat_params)
     Xe_all = xy[quad]  # (n_elem, n_local, 2)
 
     local_hess_fn = hessian(_local_element_energy, argnums=0)
@@ -360,8 +362,8 @@ def solve_tensormesh(nodes, elements, free_dofs, fext_full, mu, lam, dtype=torch
 
     jac_fn = None
     if use_sparse_jac:
-        jac_fn = build_sparse_jac_fn(nodes, elements, mu, lam, free_mask_dof, material, order,
-                                      device, dtype)
+        jac_fn = build_sparse_jac_fn(nodes, elements, mu, lam, free_mask_dof=free_mask_dof,
+                                      material=material, order=order, device=device, dtype=dtype)
 
     u0 = torch.zeros(n_nodes * 2, dtype=dtype, device=device)
     u = K.nonlinear_solve(residual, u0, f_ext_flat, jac_fn=jac_fn, method=method, verbose=False,

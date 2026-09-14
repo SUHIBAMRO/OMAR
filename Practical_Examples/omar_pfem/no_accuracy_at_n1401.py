@@ -140,9 +140,13 @@ def evaluate_no_accuracy_at_n1401(model, args, device, N=1401, seed=0,
     ndof = 2 * len(nodes_gt)
     free_dofs_np = np.setdiff1d(np.arange(ndof), fixed_dofs_np)
     fext_full_np = assemble_traction_top_generic(nodes_gt, elems_gt, args.Ly, ty_fn, "Q4")
-    mu_np, lam_np = precompute_element_params_B1(nodes_gt, elems_gt, E_fn, nu_fn, material)
+    # Generalized 2026-09-14 (Timon round-11 point 2, extending past
+    # Neo-Hookean): was hardcoded `mu_np, lam_np = ...`, which crashes for
+    # Mooney-Rivlin (4 params) / Arruda-Boyce (3 params) -- see
+    # no_ground_truth_fast.py's matching fix/comment for the full reason.
+    mat_params_np = precompute_element_params_B1(nodes_gt, elems_gt, E_fn, nu_fn, material)
     convergence = check_convergence(nodes_gt, elems_gt, free_dofs_np, fext_full_np,
-                                     mu_np, lam_np, u_ref_flat, material, "Q4", device, dtype)
+                                     mat_params_np, u_ref_flat, material, "Q4", device, dtype)
     print(f"  Ground-truth relative residual: {convergence['relative_residual']:.3e} "
           f"(converged_likely={convergence['converged_likely']})")
     if not convergence["converged_likely"]:

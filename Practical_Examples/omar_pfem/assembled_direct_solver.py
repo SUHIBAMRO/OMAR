@@ -334,7 +334,7 @@ def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_
     return u, stats
 
 
-def solve_assembled_direct(nodes, elements, free_dofs, fext_full, mu, lam, dtype=torch.float64,
+def solve_assembled_direct(nodes, elements, free_dofs, fext_full, *mat_params, dtype=torch.float64,
                             tol=1e-8, material="neo_hookean", order="Q4", device=None,
                             linear_solver=None, max_iter=30, reuse_analysis=False,
                             return_stats=False, symmetric_bc=False, matrix_type="general",
@@ -423,8 +423,18 @@ def solve_assembled_direct(nodes, elements, free_dofs, fext_full, mu, lam, dtype
     quad = torch.tensor(elements, dtype=torch.long, device=device)
     energy_density_fn, _ = get_material_fns_torch(material)
     shape_data = precompute_shape_data(order, device, dtype)
-    elem_params = (torch.as_tensor(mu, dtype=dtype, device=device),
-                   torch.as_tensor(lam, dtype=dtype, device=device))
+    # Generalized 2026-09-14 (Timon round-11 point 2, extending N=1401
+    # ground-truth generation past Neo-Hookean): was hardcoded to exactly
+    # (mu, lam), silently crashing ("too many values to unpack") for any
+    # material whose numpy param registry (data/materials.py) returns a
+    # different arity -- Mooney-Rivlin returns (c, c1, c2, d), Arruda-Boyce
+    # returns (mu_ab, N_ab, kappa_ab). The math itself was already
+    # material-agnostic (energy_density_fn takes *elem_params generically,
+    # exactly as materials_torch.py's registry is designed) -- only this
+    # wrapper's signature assumed arity 2. *mat_params (any length) is
+    # 100%-compatible with every existing Neo-Hookean call site (all of
+    # them already pass exactly mu, lam positionally here).
+    elem_params = tuple(torch.as_tensor(p, dtype=dtype, device=device) for p in mat_params)
     f_ext_flat = torch.tensor(fext_full, dtype=dtype, device=device)
 
     def energy_fn(u_flat):
@@ -437,8 +447,9 @@ def solve_assembled_direct(nodes, elements, free_dofs, fext_full, mu, lam, dtype
         res = grad_full - f_ext
         return torch.where(free_mask_dof, res, u_flat)
 
-    jac_fn = build_sparse_jac_fn(nodes, elements, mu, lam, free_mask_dof, material, order, device,
-                                  dtype, symmetric_bc=symmetric_bc)
+    jac_fn = build_sparse_jac_fn(nodes, elements, *mat_params, free_mask_dof=free_mask_dof,
+                                  material=material, order=order, device=device,
+                                  dtype=dtype, symmetric_bc=symmetric_bc)
 
     if u0_init is None:
         u0 = torch.zeros(n_dof, dtype=dtype, device=device)

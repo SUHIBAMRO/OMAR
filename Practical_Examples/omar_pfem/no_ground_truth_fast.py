@@ -101,7 +101,13 @@ def solve_b1_fast_gpu(N, seed, material, device, dtype, Lx=1.0, Ly=1.0, order="Q
     free_dofs = np.setdiff1d(np.arange(ndof), fixed_dofs)
 
     fext_full = assemble_traction_top_generic(nodes, elements, Ly, ty_fn, order)
-    mu, lam = precompute_element_params_B1(nodes, elements, E_fn, nu_fn, material)
+    # Generalized 2026-09-14 (Timon round-11 point 2): was hardcoded
+    # `mu, lam = ...`, which crashes ("too many values to unpack") for any
+    # material other than Neo-Hookean -- Mooney-Rivlin's numpy param
+    # registry returns 4 values (c, c1, c2, d), Arruda-Boyce returns 3
+    # (mu_ab, N_ab, kappa_ab). Verified via _correctness_check for all
+    # three materials before this was trusted (see module docstring).
+    mat_params = precompute_element_params_B1(nodes, elements, E_fn, nu_fn, material)
 
     # solve_assembled_direct calls torch.set_default_dtype(dtype) internally and never
     # restores it -- harmless in isolation, but a real bug for any caller (like the
@@ -115,7 +121,7 @@ def solve_b1_fast_gpu(N, seed, material, device, dtype, Lx=1.0, Ly=1.0, order="Q
     try:
         if nsteps <= 1:
             u_full_t = solve_assembled_direct(
-                nodes, elements, free_dofs, fext_full, mu, lam,
+                nodes, elements, free_dofs, fext_full, *mat_params,
                 dtype=dtype, material=material, order=order, device=device,
                 **solve_kwargs,
             )
@@ -131,14 +137,14 @@ def solve_b1_fast_gpu(N, seed, material, device, dtype, Lx=1.0, Ly=1.0, order="Q
             for step in range(1, nsteps + 1):
                 alpha = step / nsteps
                 u_full_t = solve_assembled_direct(
-                    nodes, elements, free_dofs, alpha * fext_full, mu, lam,
+                    nodes, elements, free_dofs, alpha * fext_full, *mat_params,
                     dtype=dtype, material=material, order=order, device=device,
                     u0_init=u0, **solve_kwargs,
                 )
                 u0 = (u_full_t.reshape(-1) if torch.is_tensor(u_full_t)
                       else np.asarray(u_full_t).reshape(-1))
                 _step_check = check_convergence(
-                    nodes, elements, free_dofs, alpha * fext_full, mu, lam, u0,
+                    nodes, elements, free_dofs, alpha * fext_full, mat_params, u0,
                     material, order, device, dtype)
                 print(f"  [load-step {step}/{nsteps}, alpha={alpha:.2f}] "
                       f"relative_residual={_step_check['relative_residual']:.3e} "
@@ -154,7 +160,7 @@ def solve_b1_fast_gpu(N, seed, material, device, dtype, Lx=1.0, Ly=1.0, order="Q
     return u_full, nodes, elements, None
 
 
-def check_convergence(nodes, elements, free_dofs, fext_full, mu, lam, u_full,
+def check_convergence(nodes, elements, free_dofs, fext_full, mat_params, u_full,
                        material, order, device, dtype):
     """Independent, post-hoc convergence check for solve_assembled_direct's
     own output -- reimplements the SAME residual solve_assembled_direct's
@@ -179,8 +185,8 @@ def check_convergence(nodes, elements, free_dofs, fext_full, mu, lam, u_full,
     quad = torch.tensor(elements, dtype=torch.long, device=device)
     energy_density_fn, _ = get_material_fns_torch(material)
     shape_data = precompute_shape_data(order, device, dtype)
-    elem_params = (torch.as_tensor(mu, dtype=dtype, device=device),
-                   torch.as_tensor(lam, dtype=dtype, device=device))
+    # Generalized 2026-09-14, same fix/reason as solve_b1_fast_gpu above.
+    elem_params = tuple(torch.as_tensor(p, dtype=dtype, device=device) for p in mat_params)
     f_ext_flat = torch.tensor(fext_full, dtype=dtype, device=device)
     u_flat = torch.tensor(u_full, dtype=dtype, device=device)
 
