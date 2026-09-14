@@ -117,7 +117,19 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Real structural cleanup pass done on the
+Last updated: 2026-09-14 (**Rewrote the round-10 section's own opening
+paragraph in the Summary, per Omar's explicit request, to be a tight
+3-part cover note**: (1) the new findings this round (checkpoint bug,
+corrected N=1401 accuracy, the retraining and its 44.65%->5.85% result,
+points 2/3 reconfirmed checkpoint-independent, the accuracy-matched
+break-even), (2) implicitly the fixes made, (3) the one open question
+blocking further work (point 4/B7 design awaiting Timon's confirmation)
+-- replacing a shorter, less structured version. Verified structurally
+unchanged otherwise (316 paragraphs, 59 tables, 45 images, same as
+before this edit -- only the one paragraph's text changed). Both final
+`.docx` files (Report and Summary) sent to Omar.
+
+Previous update, 2026-09-14 (**Real structural cleanup pass done on the
 Summary** (the actual thing Omar asked for after catching that the
 previous pass only appended a round-10 section, exactly the pattern
 Timon complained about). Read through the full document (via `pandoc`)
