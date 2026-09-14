@@ -117,7 +117,63 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**REAL GPU RESULT: B1's other two materials
+Last updated: 2026-09-14 (**Real OOM crash on the resolution-matched
+break-even notebook's first live A100 run, real numbers for 2 of 6
+cases before it, now fixed** (`1e0c391`).
+
+**Real numbers obtained before the crash**:
+
+| Case | torch-fem @ N=1401 | NO @ N=1401 | Speedup | Break-even |
+|---|---|---|---|---|
+| B1 x Neo-Hookean | 135.22s | 2292.1ms | 59.0x | 315 samples |
+| B1 x Mooney-Rivlin | 134.45s | 2349.8ms | 57.2x | unknown (old checkpoint has no metrics_history.json) |
+
+(B1xNeo-Hookean's 59.0x/315 matches the earlier pure-calculation result
+from `break_even_resolution_matched.py`, 58.4x/318 -- the small
+difference is real run-to-run torch-fem timing variance, 135.22s vs.
+133.83s, not a discrepancy worth chasing.)
+
+**Then B1xArruda-Boyce crashed**: `CUDA out of memory`, trying to
+allocate 1.18GB with 78.6GB of the A100's 79.25GB already "in use".
+Peak GPU memory had climbed case-to-case within the same process
+(Neo-Hookean 70.8GB -> Mooney-Rivlin 73.6GB) even though each case
+solves an independent, identical-size problem (N=1401, ~4M DOF) --
+the classic PyTorch caching-allocator fragmentation pattern the OOM
+message itself points at. torch-fem's own tangent-stiffness Hessian
+(`vmap(jacrev(jacrev(psi)))`) is memory-hungry at this DOF count
+regardless of fragmentation, and Arruda-Boyce's own psi (a 5-term
+power series, the longest computational graph of the three materials)
+needs more of it than the other two's simpler polynomial forms.
+
+**A SECOND real bug found while fixing the first**: the exception that
+actually propagates out of torch-fem's own `model.solve()` here is a
+plain `RuntimeError` ("Newton-Raphson did not converge ... after 10
+cutbacks"), NOT a bare `torch.cuda.OutOfMemoryError` -- torchfem's own
+per-Newton-iteration try/except treats an OOM as just another
+failed-to-converge step and retries with cutbacks (which cannot fix an
+OOM, so it always exhausts them and raises its own wrapped
+`RuntimeError` instead, with the real OOM only visible as the chained
+`__cause__`). An `except torch.cuda.OutOfMemoryError` clause -- the
+first, natural-seeming fix attempt -- would silently NOT have caught
+this at all.
+
+**Fixed properly**: (1) `gc.collect()` + `torch.cuda.empty_cache()` +
+`reset_peak_memory_stats()` before each case, giving it a genuinely
+clean allocator state instead of fighting the previous case's
+fragmentation, plus explicit `del` of the previous case's large mesh/
+solution arrays; (2) catches `RuntimeError` (which `OutOfMemoryError`
+is itself a subclass of), checks the message for an OOM/convergence
+signature, logs a `{'failed': ...}` row instead of crashing the whole
+sweep, and continues to the remaining cases rather than losing
+whatever B2 results would otherwise have come after it.
+
+**Not yet re-run** with the fix. If Arruda-Boyce still fails even with
+a clean memory state (a real possibility -- its own Hessian may simply
+need more than fits on one A100 at N=1401), the honest fallback is a
+slightly smaller N for that one case specifically, not a workaround
+that hides the limitation.
+
+Previous update, 2026-09-14 (**REAL GPU RESULT: B1's other two materials
 have the SAME N=1401 degradation problem Neo-Hookean had before its own
 multi-res retraining** -- Omar ran the (at-that-point-stale, since
 superseded) B1-only accuracy notebook on a real A100 and got real
