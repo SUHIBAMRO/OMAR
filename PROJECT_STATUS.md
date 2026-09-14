@@ -117,7 +117,59 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**2 Colab notebooks built for tasks #22
+Last updated: 2026-09-14 (**Omar explicitly asked for the FULL scope of
+task #22 -- all 6 cases, not just B1's -- "even if it takes time,"
+overriding the earlier deferred-B2 plan. Building this properly now,
+one verified piece at a time, not rushed.**
+
+**Bug found live**: Omar's first real Colab run of the #24 notebook
+crashed with `ModuleNotFoundError: torch_sla` -- the cell script never
+installed it (or nvmath-python, or the model's own einops/timm/h5py/
+jax/tqdm dependencies). Same gap existed in the #22 notebook, not yet
+hit. Fixed both, plus added the module-cache-clear step (a previously-
+documented recurring bug class) for consistency. Committed (`bdc5be8`).
+
+**B2's fast N=1401 ground-truth solver, built from scratch and verified
+on the first attempt** (`1f72b2d`): B2 had NO fast GPU path at all
+before this -- only B1 did. `solve_b2_fast_gpu` reuses build_sample_b2's
+own building blocks (generate_grid_Q4_ring, the symmetry BCs, 
+assemble_traction_inner_curved), routed through solve_assembled_direct.
+No special handling was needed for B2's per-Gauss-point material
+sampling -- matrix_free_solver.py's own energy functions already
+accepted both per-element and per-Gauss-point param shapes generically
+(their own docstrings say so explicitly, written with exactly this
+B1-vs-B2 difference in mind). Verified via a new `_correctness_check_b2`
+against the slow reference at N=11, all three materials, first try:
+neo_hookean 3.14e-11, mooney_rivlin 7.88e-12, arruda_boyce 4.19e-11
+relative difference -- matching the same ~1e-11 precision level as
+every other matrix-free-vs-reference check in this project.
+
+**B2's full N=1401 accuracy-evaluation pipeline, built and smoke-tested**
+(`40cbb52`): `_score_prediction_b2` / `evaluate_no_accuracy_at_n1401_b2`
+/ `run_accuracy_degradation_sweep_b2`, mirroring B1's own but built on
+train_B2's own energy function (inner_edges/theta0_nodes/
+thetahalfpi_nodes/R_out, not top_edges/bottom_nodes/Ly) and
+solve_b2_fast_gpu. One QoI deliberately omitted, not guessed: reaction-
+force comparison, since `high_dof_convergence_study.py` already
+documents that QoI as "B1 only" (B2's two symmetry edges each fix only
+one displacement component, no established convention exists for
+combining them). Smoke-tested end-to-end on CPU (tiny N=5 mesh,
+untrained random-weight model): ground truth converges cleanly
+(1.58e-11 relative residual), every QoI comes back finite and
+physically sane (large but not NaN/inf, exactly as expected for a
+random model) -- confirms the whole pipeline is wired correctly before
+ever pointing it at a real checkpoint.
+
+**Still needed for full task #22 completion**: (1) B2's peak-stress
+fixed-location pipeline (mirroring `run_no_peak_stress_fixed_location`,
+not yet built), (2) the resolution-matched break-even for all 5
+remaining cases (needs a real torch-fem@N=1401 wall-clock number per
+material/geometry -- round-9's torch-fem sweep was B1xNeo-Hookean-only,
+so this needs torch-fem reconfigured and re-run for each), (3) one
+comprehensive notebook wiring all of the above together for Omar to
+run, covering all 6 cases. Continuing this now, same session.
+
+Previous update, 2026-09-14 (**2 Colab notebooks built for tasks #22
 (partial) and #24, ready for Omar to run** (`e411d45`) -- but only
 after a real bug was found and fixed first, which changed the plan.
 
