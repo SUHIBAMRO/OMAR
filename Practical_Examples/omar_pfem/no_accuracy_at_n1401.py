@@ -259,10 +259,12 @@ def run_no_peak_stress_fixed_location(model, args, resolutions, out_json, device
 
     Resumable like every other sweep in this project."""
     import os
+    import time
 
     from omar_pfem.high_dof_convergence_study import compute_peak_stress_error, find_fine_peak_stress
     from omar_pfem.train_B1 import get_input_norm, total_potential_energy_Q4_hyperelastic
 
+    started = time.time()
     geom_kwargs = {"Lx": args.Lx, "Ly": args.Ly}
 
     print(f"Solving fine ground truth (N={fine_N_for_peak}) to locate the true peak-stress point...")
@@ -324,6 +326,22 @@ def run_no_peak_stress_fixed_location(model, args, resolutions, out_json, device
                 json.dump({"seed": seed, "material": material, "fine_N_for_peak": fine_N_for_peak,
                            "x_star": x_star[0].tolist(), "peak_ref": peak_ref, "rows": rows},
                           f, indent=2)
+
+    if out_json:
+        try:
+            from omar_pfem.run_manifest import write_manifest
+            write_manifest(
+                os.path.dirname(os.path.abspath(out_json)) or ".",
+                kind="no_peak_stress_fixed_location",
+                args={"resolutions": resolutions, "seed": seed, "material": material,
+                      "fine_N_for_peak": fine_N_for_peak},
+                started_at=started,
+                results={"x_star": x_star[0].tolist(), "peak_ref": peak_ref, "rows": rows},
+                outputs=[out_json],
+                notes="Per Timon's own note, 2026-09-14, to record the exact git "
+                      "commit + setup for every run considered final.")
+        except Exception as e:
+            print(f"[manifest] not recorded: {e}")
     return rows
 
 
@@ -358,7 +376,9 @@ def run_accuracy_degradation_sweep(model, args, resolutions, out_json, device,
     every N, skips resolutions already present in out_json (unless the
     fingerprint check above discards them first)."""
     import os
+    import time
 
+    started = time.time()
     done = {}
     if out_json and os.path.exists(out_json):
         with open(out_json) as f:
@@ -396,6 +416,20 @@ def run_accuracy_degradation_sweep(model, args, resolutions, out_json, device,
         print(f"  N={N}: ground_truth converged_likely={gt_conv['converged_likely']} "
               f"(relative_residual={gt_conv['relative_residual']:.3e}), "
               f"fp32 disp_rel_L2={rec['fp32']['disp_rel_L2']:.4e}")
+
+    if out_json:
+        try:
+            from omar_pfem.run_manifest import write_manifest
+            write_manifest(
+                os.path.dirname(os.path.abspath(out_json)) or ".",
+                kind="no_accuracy_degradation_sweep",
+                args={"resolutions": resolutions, "seed": seed, "material": material,
+                      "checkpoint_fingerprint": checkpoint_fingerprint},
+                started_at=started, results={"rows": rows}, outputs=[out_json],
+                notes="Per Timon's own note, 2026-09-14, to record the exact git "
+                      "commit + setup for every run considered final.")
+        except Exception as e:
+            print(f"[manifest] not recorded: {e}")
     return rows
 
 

@@ -117,7 +117,63 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**New standalone deliverable, per Omar's
+Last updated: 2026-09-14 (**New feedback from Timon (not a numbered
+round this time, a standing process request): save all simulation
+results/data/setups, including real failures, in some structured
+database-like form; his group is building a more formal platform for
+this and will share more later; UNTIL THEN, "note the exact git commit
+and a one-line description of the setup for every run you consider
+final."**
+
+**Good news checked first**: this project already had exactly the
+infrastructure for this -- `omar_pfem/run_manifest.py`'s
+`write_manifest()` (git commit + dirty flag, full argv/args,
+environment, timing, results, output files, append-only per directory)
+already existed and is already used by most of this project's scripts
+(`break_even_analysis.py`, `inference_latency_by_batch.py`,
+`resolution_invariance_zeroshot.py`, and others).
+
+**Real gap found and closed**: round-10's own newest scripts did NOT
+call it yet -- `gpu_fem_benchmark.py` (used for point 2's FEM timing and
+point 5's break-even FEM-side number), and `no_accuracy_at_n1401.py`'s
+two sweep functions (`run_accuracy_degradation_sweep`,
+`run_no_peak_stress_fixed_location`, behind ALL of point 1's numbers).
+Added `write_manifest()` calls to all three (wrapped in try/except,
+matching the existing convention elsewhere, so a manifest failure never
+breaks the actual run). `no_accuracy_at_n1401.py`'s fix was smoke-tested
+locally first (monkeypatched the expensive per-N evaluator, confirmed
+the resumable-sweep bookkeeping and the new manifest call both work
+correctly with a fake fast evaluator before trusting it against a real
+GPU run); `gpu_fem_benchmark.py`'s fix was smoke-tested by exercising
+just the manifest-writing branch in isolation with fake args (the real
+FEM solve does not run fast enough on this machine's CPU to smoke-test
+end-to-end). `profile_with_torch_compile()` (point 3) has no `out_json`
+of its own -- its two calling cell scripts
+(`cell_no_inference_torch_compile.py`,
+`cell_no_inference_torch_compile_multires.py`) and the break-even cell
+script (`cell_break_even_accuracy_matched.py`) gained the call directly
+instead. All 75 notebooks regenerated via `make_round6_notebooks.py`
+(only the one embedding the changed cell actually differs, confirming
+the generator is otherwise deterministic) plus the two smaller
+generators for the multires-reverify and break-even notebooks.
+
+**New file**: `EXPERIMENT_LOG.md` (repo root, git-tracked) -- the
+interim, lightweight version of what Timon asked for, covering every
+round-10 result already produced this session: git commit + one-line
+description + which JSON file(s) hold the real numbers, for each. Also
+explicitly calls out the two genuine negative/failure results from this
+session (NO never breaks even in its default eager mode against an
+accuracy-matched FEM baseline; peak PK1 stress is a slow-converging QoI
+for BOTH methods) so they stay visible rather than only the favorable
+findings -- directly per Timon's own "including also failures" ask.
+
+**Not done, and not this project's call to design unilaterally**:
+Timon's own fuller "structured platform" -- explicitly told to wait for
+his own follow-up on that rather than build something that might
+conflict with it. This response covers only the concrete, immediate
+"until then" ask.
+
+Previous update, 2026-09-14 (**New standalone deliverable, per Omar's
 request: `PFEM_Round10_Summary_2026-09-14.docx`** (scratchpad
 `deliverables/`, not git-tracked) -- just the five round-10 points, none
 of the older round-9/historical material, for handing to Timon on its

@@ -24,6 +24,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 
 
 def run(cmd):
@@ -107,6 +108,7 @@ sample, _ = build_sample_b1(N_TEST, seed=0, material='neo_hookean', Lx=args.Lx, 
 
 print('\nRunning eager baseline + torch.compile + TF32 attempts (this can take ~15-20 min -- '
       'the FIRST compiled call triggers real compilation, not counted in the timing)...')
+_started = time.time()
 result = profile_with_torch_compile(sample, model, args, device, dtype,
                                      n_repeats=200, n_warmup=20, compile_warmup=5,
                                      try_tf32=True)
@@ -115,6 +117,17 @@ OUT_JSON = f'{R}/no_inference_torch_compile_N1401.json'
 with open(OUT_JSON, 'w') as f:
     json.dump(result, f, indent=2)
 print('Saved:', OUT_JSON)
+
+try:
+    from omar_pfem.run_manifest import write_manifest
+    write_manifest(
+        os.path.dirname(os.path.abspath(OUT_JSON)) or '.',
+        kind='no_inference_torch_compile', args={'checkpoint': CKPT, 'N': N_TEST},
+        started_at=_started, results=result, outputs=[OUT_JSON],
+        notes="Per Timon's own note, 2026-09-14, to record the exact git "
+              "commit + setup for every run considered final.")
+except Exception as e:
+    print(f'[manifest] not recorded: {e}')
 
 print('\n' + '=' * 70)
 print('RESULT -- torch.compile attempt at N=1401')

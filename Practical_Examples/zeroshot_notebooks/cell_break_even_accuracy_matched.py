@@ -29,6 +29,9 @@ import json
 import os
 import subprocess
 import sys
+import time
+
+_started = time.time()
 
 
 def run(cmd):
@@ -119,4 +122,15 @@ report = {
 OUT_SUMMARY = f'{R}/break_even/accuracy_matched_break_even_N1401.json'
 with open(OUT_SUMMARY, 'w') as f:
     json.dump(report, f, indent=2)
+
+try:
+    from omar_pfem.run_manifest import write_manifest
+    write_manifest(
+        os.path.dirname(os.path.abspath(OUT_SUMMARY)) or '.',
+        kind='break_even_accuracy_matched', args={'fem_N': 11, 'no_N': 1401},
+        started_at=_started, results=report, outputs=[OUT_JSON, OUT_SUMMARY],
+        notes="Per Timon's own note, 2026-09-14, to record the exact git "
+              "commit + setup for every run considered final.")
+except Exception as e:
+    print(f'[manifest] not recorded: {e}')
 print('\nSaved:', OUT_JSON, 'and', OUT_SUMMARY)

@@ -32,6 +32,7 @@ Usage:
 """
 import argparse
 import json
+import os
 import time
 import numpy as np
 import torch
@@ -112,6 +113,7 @@ def build_batch_b2(N, batch_size, material, device, dtype, seed0):
 
 
 def main():
+    started = time.time()
     parser = argparse.ArgumentParser("GPU-native FEM solver timing benchmark")
     parser.add_argument("--geometry", type=str, required=True, choices=["B1", "B2"])
     parser.add_argument("--material", type=str, default="neo_hookean",
@@ -199,12 +201,25 @@ def main():
     print("=" * 80)
 
     if args.out_json:
+        report = {"geometry": args.geometry, "material": args.material, "N": args.N,
+                  "device": str(device), "rows": rows,
+                  "max_feasible_batch_size": max_feasible_bs,
+                  "stopped_at_batch_size": stopped_at_bs}
         with open(args.out_json, "w") as f:
-            json.dump({"geometry": args.geometry, "material": args.material, "N": args.N,
-                       "device": str(device), "rows": rows,
-                       "max_feasible_batch_size": max_feasible_bs,
-                       "stopped_at_batch_size": stopped_at_bs}, f, indent=2)
+            json.dump(report, f, indent=2)
         print(f"Full report written to {args.out_json}")
+
+        try:
+            from omar_pfem.run_manifest import write_manifest
+            write_manifest(
+                os.path.dirname(os.path.abspath(args.out_json)) or ".",
+                kind="gpu_fem_benchmark", args=args, started_at=started,
+                results=report, outputs=[args.out_json],
+                notes="Native GPU FEM solver timing (per Timon's own note, 2026-09-14, "
+                      "to record the exact git commit + setup for every run considered "
+                      "final).")
+        except Exception as e:
+            print(f"[manifest] not recorded: {e}")
 
 
 if __name__ == "__main__":
