@@ -1,0 +1,905 @@
+[
+  {
+    "epoch": 25,
+    "per_resolution_val_error": {
+      "21": 0.510697066783905,
+      "33": 0.45918920636177063,
+      "101": 0.5045409202575684,
+      "201": 0.5000525712966919
+    },
+    "combined_val_error": 0.493619941174984,
+    "per_resolution_both_components": {
+      "21": 0.3443739116191864,
+      "33": 0.3084576725959778,
+      "101": 0.3420451581478119,
+      "201": 0.32976120710372925
+    },
+    "both_components_val_error": 0.33115948736667633,
+    "selection_metric": "both_components",
+    "is_best": true,
+    "opt_steps": 5000,
+    "cumulative_wall_clock_s": 969.6857976913452
+  },
+  {
+    "epoch": 50,
+    "per_resolution_val_error": {
+      "21": 0.5210675597190857,
+      "33": 0.4640856385231018,
+      "101": 0.5094411969184875,
+      "201": 0.5083383321762085
+    },
+    "combined_val_error": 0.5007331818342209,
+    "per_resolution_both_components": {
+      "21": 0.3375661075115204,
+      "33": 0.3023033142089844,
+      "101": 0.33046501874923706,
+      "201": 0.3192480802536011
+    },
+    "both_components_val_error": 0.3223956301808357,
+    "selection_metric": "both_components",
+    "is_best": true,
+    "opt_steps": 10000,
+    "cumulative_wall_clock_s": 1940.2171955108643
+  },
+  {
+    "epoch": 75,
+    "per_resolution_val_error": {
+      "21": 0.4536392092704773,
+      "33": 0.4507687985897064,
+      "101": 0.46561023592948914,
+      "201": 0.4435449540615082
+    },
+    "combined_val_error": 0.45339079946279526,
+    "per_resolution_both_components": {
+      "21": 0.3184129297733307,
+      "33": 0.30935293436050415,
+      "101": 0.3285457491874695,
+      "201": 0.30525752902030945
+    },
+    "both_components_val_error": 0.31539228558540344,
+    "selection_metric": "both_components",
+    "is_best": true,
+    "opt_steps": 15000,
+    "cumulative_wall_clock_s": 2911.285104751587
+  },
+  {
+    "epoch": 100,
+    "per_resolution_val_error": {
+      "21": 0.43746691942214966,
+      "33": 0.43633803725242615,
+      "101": 0.44524767994880676,
+      "201": 0.426490843296051
+    },
+    "combined_val_error": 0.4363858699798584,
+    "per_resolution_both_components": {
+      "21": 0.3029104471206665,
+      "33": 0.29921671748161316,
+      "101": 0.3118031620979309,
+      "201": 0.29113131761550903
+    },
+    "both_components_val_error": 0.3012654110789299,
+    "selection_metric": "both_components",
+    "is_best": true,
+    "opt_steps": 20000,
+    "cumulative_wall_clock_s": 3880.289642572403
+  },
+  {
+    "epoch": 125,
+    "per_resolution_val_error": {
+      "21": 0.4410344958305359,
+      "33": 0.42435088753700256,
+      "101": 0.44644302129745483,
+      "201": 0.4289056360721588
+    },
+    "combined_val_error": 0.435183510184288,
+    "per_resolution_both_components": {
+      "21": 0.3093131482601166,
+      "33": 0.29252520203590393,
+      "101": 0.31543391942977905,
+      "201": 0.29525721073150635
+    },
+    "both_components_val_error": 0.3031323701143265,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 25000,
+    "cumulative_wall_clock_s": 4847.837640762329
+  },
+  {
+    "epoch": 150,
+    "per_resolution_val_error": {
+      "21": 0.44518858194351196,
+      "33": 0.42057037353515625,
+      "101": 0.44740355014801025,
+      "201": 0.43352752923965454
+    },
+    "combined_val_error": 0.43667250871658325,
+    "per_resolution_both_components": {
+      "21": 0.30366045236587524,
+      "33": 0.28455039858818054,
+      "101": 0.3075271248817444,
+      "201": 0.2894654870033264
+    },
+    "both_components_val_error": 0.29630086570978165,
+    "selection_metric": "both_components",
+    "is_best": true,
+    "opt_steps": 30000,
+    "cumulative_wall_clock_s": 5815.39018201828
+  },
+  {
+    "epoch": 175,
+    "per_resolution_val_error": {
+      "21": 0.4357035756111145,
+      "33": 0.4289722442626953,
+      "101": 0.43970808386802673,
+      "201": 0.4247869849205017
+    },
+    "combined_val_error": 0.43229272216558456,
+    "per_resolution_both_components": {
+      "21": 0.30510538816452026,
+      "33": 0.29971611499786377,
+      "101": 0.3116591274738312,
+      "201": 0.2935105860233307
+    },
+    "both_components_val_error": 0.3024978041648865,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 35000,
+    "cumulative_wall_clock_s": 6783.387606859207
+  },
+  {
+    "epoch": 200,
+    "per_resolution_val_error": {
+      "21": 0.4444929361343384,
+      "33": 0.4241611659526825,
+      "101": 0.4446471333503723,
+      "201": 0.4317311644554138
+    },
+    "combined_val_error": 0.43625809997320175,
+    "per_resolution_both_components": {
+      "21": 0.30924317240715027,
+      "33": 0.297417551279068,
+      "101": 0.3123898506164551,
+      "201": 0.29646384716033936
+    },
+    "both_components_val_error": 0.3038786053657532,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 40000,
+    "cumulative_wall_clock_s": 7751.440149784088
+  },
+  {
+    "epoch": 225,
+    "per_resolution_val_error": {
+      "21": 0.4283634126186371,
+      "33": 0.4210923910140991,
+      "101": 0.4333919882774353,
+      "201": 0.4170494079589844
+    },
+    "combined_val_error": 0.42497429996728897,
+    "per_resolution_both_components": {
+      "21": 0.29692724347114563,
+      "33": 0.2856864631175995,
+      "101": 0.30423611402511597,
+      "201": 0.2835804224014282
+    },
+    "both_components_val_error": 0.2926075607538223,
+    "selection_metric": "both_components",
+    "is_best": true,
+    "opt_steps": 45000,
+    "cumulative_wall_clock_s": 8719.353319644928
+  },
+  {
+    "epoch": 250,
+    "per_resolution_val_error": {
+      "21": 0.4237063527107239,
+      "33": 0.43627098202705383,
+      "101": 0.4372671842575073,
+      "201": 0.422101229429245
+    },
+    "combined_val_error": 0.4298364371061325,
+    "per_resolution_both_components": {
+      "21": 0.2916882336139679,
+      "33": 0.29240232706069946,
+      "101": 0.3042197823524475,
+      "201": 0.28434115648269653
+    },
+    "both_components_val_error": 0.29316287487745285,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 50000,
+    "cumulative_wall_clock_s": 9691.66186094284
+  },
+  {
+    "epoch": 275,
+    "per_resolution_val_error": {
+      "21": 0.40504705905914307,
+      "33": 0.41512057185173035,
+      "101": 0.4205235242843628,
+      "201": 0.4027600884437561
+    },
+    "combined_val_error": 0.4108628109097481,
+    "per_resolution_both_components": {
+      "21": 0.2693285048007965,
+      "33": 0.2653859555721283,
+      "101": 0.27972760796546936,
+      "201": 0.2581823766231537
+    },
+    "both_components_val_error": 0.26815611124038696,
+    "selection_metric": "both_components",
+    "is_best": true,
+    "opt_steps": 55000,
+    "cumulative_wall_clock_s": 10677.089364528656
+  },
+  {
+    "epoch": 300,
+    "per_resolution_val_error": {
+      "21": 0.38067612051963806,
+      "33": 0.3304624855518341,
+      "101": 0.3703981041908264,
+      "201": 0.3694339990615845
+    },
+    "combined_val_error": 0.36274267733097076,
+    "per_resolution_both_components": {
+      "21": 0.2440003603696823,
+      "33": 0.20864418148994446,
+      "101": 0.23226861655712128,
+      "201": 0.22209522128105164
+    },
+    "both_components_val_error": 0.22675209492444992,
+    "selection_metric": "both_components",
+    "is_best": true,
+    "opt_steps": 60000,
+    "cumulative_wall_clock_s": 11662.688800096512
+  },
+  {
+    "epoch": 325,
+    "per_resolution_val_error": {
+      "21": 0.3185616731643677,
+      "33": 0.3169664442539215,
+      "101": 0.34707313776016235,
+      "201": 0.33992770314216614
+    },
+    "combined_val_error": 0.3306322395801544,
+    "per_resolution_both_components": {
+      "21": 0.21920131146907806,
+      "33": 0.20431773364543915,
+      "101": 0.22458091378211975,
+      "201": 0.20814155042171478
+    },
+    "both_components_val_error": 0.21406037732958794,
+    "selection_metric": "both_components",
+    "is_best": true,
+    "opt_steps": 65000,
+    "cumulative_wall_clock_s": 12648.899039268494
+  },
+  {
+    "epoch": 350,
+    "per_resolution_val_error": {
+      "21": 0.22430303692817688,
+      "33": 0.23290641605854034,
+      "101": 0.3163592219352722,
+      "201": 0.3286691904067993
+    },
+    "combined_val_error": 0.2755594663321972,
+    "per_resolution_both_components": {
+      "21": 0.1476406753063202,
+      "33": 0.14595399796962738,
+      "101": 0.20468883216381073,
+      "201": 0.2012547254562378
+    },
+    "both_components_val_error": 0.17488455772399902,
+    "selection_metric": "both_components",
+    "is_best": true,
+    "opt_steps": 70000,
+    "cumulative_wall_clock_s": 13635.27452993393
+  },
+  {
+    "epoch": 375,
+    "per_resolution_val_error": {
+      "21": 0.15054726600646973,
+      "33": 0.1508585512638092,
+      "101": 0.2255038022994995,
+      "201": 0.24741584062576294
+    },
+    "combined_val_error": 0.19358136504888535,
+    "per_resolution_both_components": {
+      "21": 0.1001221165060997,
+      "33": 0.09602533280849457,
+      "101": 0.14441506564617157,
+      "201": 0.15007172524929047
+    },
+    "both_components_val_error": 0.12265856005251408,
+    "selection_metric": "both_components",
+    "is_best": true,
+    "opt_steps": 75000,
+    "cumulative_wall_clock_s": 14617.719383239746
+  },
+  {
+    "epoch": 400,
+    "per_resolution_val_error": {
+      "21": 0.12929418683052063,
+      "33": 0.10492128878831863,
+      "101": 0.14092841744422913,
+      "201": 0.1633087545633316
+    },
+    "combined_val_error": 0.1346131619066,
+    "per_resolution_both_components": {
+      "21": 0.09764114022254944,
+      "33": 0.0828554704785347,
+      "101": 0.09567270427942276,
+      "201": 0.10143836587667465
+    },
+    "both_components_val_error": 0.09440192021429539,
+    "selection_metric": "both_components",
+    "is_best": true,
+    "opt_steps": 80000,
+    "cumulative_wall_clock_s": 15588.504286050797
+  },
+  {
+    "epoch": 425,
+    "per_resolution_val_error": {
+      "21": 0.12094581127166748,
+      "33": 0.09851942211389542,
+      "101": 0.10873612761497498,
+      "201": 0.13576947152614594
+    },
+    "combined_val_error": 0.11599270813167095,
+    "per_resolution_both_components": {
+      "21": 0.09402419626712799,
+      "33": 0.07483233511447906,
+      "101": 0.07142171263694763,
+      "201": 0.08064503222703934
+    },
+    "both_components_val_error": 0.0802308190613985,
+    "selection_metric": "both_components",
+    "is_best": true,
+    "opt_steps": 85000,
+    "cumulative_wall_clock_s": 16557.175104618073
+  },
+  {
+    "epoch": 450,
+    "per_resolution_val_error": {
+      "21": 0.18203061819076538,
+      "33": 0.15891806781291962,
+      "101": 0.1496172398328781,
+      "201": 0.14606741070747375
+    },
+    "combined_val_error": 0.15915833413600922,
+    "per_resolution_both_components": {
+      "21": 0.14633865654468536,
+      "33": 0.12600216269493103,
+      "101": 0.10736674070358276,
+      "201": 0.09903751313686371
+    },
+    "both_components_val_error": 0.11968626827001572,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 90000,
+    "cumulative_wall_clock_s": 17527.19329404831
+  },
+  {
+    "epoch": 475,
+    "per_resolution_val_error": {
+      "21": 0.11501510441303253,
+      "33": 0.0944499596953392,
+      "101": 0.09867098927497864,
+      "201": 0.12571707367897034
+    },
+    "combined_val_error": 0.10846328176558018,
+    "per_resolution_both_components": {
+      "21": 0.08847425132989883,
+      "33": 0.07587094604969025,
+      "101": 0.07213311642408371,
+      "201": 0.07920358330011368
+    },
+    "both_components_val_error": 0.07892047427594662,
+    "selection_metric": "both_components",
+    "is_best": true,
+    "opt_steps": 95000,
+    "cumulative_wall_clock_s": 18497.12096452713
+  },
+  {
+    "epoch": 500,
+    "per_resolution_val_error": {
+      "21": 0.0858207419514656,
+      "33": 0.07004956901073456,
+      "101": 0.0842563584446907,
+      "201": 0.10314753651618958
+    },
+    "combined_val_error": 0.08581855148077011,
+    "per_resolution_both_components": {
+      "21": 0.05475158616900444,
+      "33": 0.04509393498301506,
+      "101": 0.058947522193193436,
+      "201": 0.07007794827222824
+    },
+    "both_components_val_error": 0.057217747904360294,
+    "selection_metric": "both_components",
+    "is_best": true,
+    "opt_steps": 100000,
+    "cumulative_wall_clock_s": 19472.331778287888
+  },
+  {
+    "epoch": 525,
+    "per_resolution_val_error": {
+      "21": 0.12531507015228271,
+      "33": 0.10463903099298477,
+      "101": 0.09552037715911865,
+      "201": 0.11717302352190018
+    },
+    "combined_val_error": 0.11066187545657158,
+    "per_resolution_both_components": {
+      "21": 0.10655645281076431,
+      "33": 0.09032788872718811,
+      "101": 0.07729581743478775,
+      "201": 0.07923955470323563
+    },
+    "both_components_val_error": 0.08835492841899395,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 105000,
+    "cumulative_wall_clock_s": 20446.172443389893
+  },
+  {
+    "epoch": 550,
+    "per_resolution_val_error": {
+      "21": 0.09908918291330338,
+      "33": 0.07210401445627213,
+      "101": 0.05726926773786545,
+      "201": 0.07348337024450302
+    },
+    "combined_val_error": 0.07548645883798599,
+    "per_resolution_both_components": {
+      "21": 0.07633338123559952,
+      "33": 0.05830741301178932,
+      "101": 0.043747562915086746,
+      "201": 0.048841655254364014
+    },
+    "both_components_val_error": 0.0568075031042099,
+    "selection_metric": "both_components",
+    "is_best": true,
+    "opt_steps": 110000,
+    "cumulative_wall_clock_s": 21424.10591006279
+  },
+  {
+    "epoch": 575,
+    "per_resolution_val_error": {
+      "21": 0.09487701207399368,
+      "33": 0.06951534003019333,
+      "101": 0.056049566715955734,
+      "201": 0.058762118220329285
+    },
+    "combined_val_error": 0.06980100926011801,
+    "per_resolution_both_components": {
+      "21": 0.07545734941959381,
+      "33": 0.05557476356625557,
+      "101": 0.03848074749112129,
+      "201": 0.03470512852072716
+    },
+    "both_components_val_error": 0.05105449724942446,
+    "selection_metric": "both_components",
+    "is_best": true,
+    "opt_steps": 115000,
+    "cumulative_wall_clock_s": 22403.72226381302
+  },
+  {
+    "epoch": 600,
+    "per_resolution_val_error": {
+      "21": 0.0944514125585556,
+      "33": 0.07446301728487015,
+      "101": 0.06299979984760284,
+      "201": 0.09131038188934326
+    },
+    "combined_val_error": 0.08080615289509296,
+    "per_resolution_both_components": {
+      "21": 0.06393938511610031,
+      "33": 0.04709037020802498,
+      "101": 0.038137875497341156,
+      "201": 0.05347190797328949
+    },
+    "both_components_val_error": 0.050659884698688984,
+    "selection_metric": "both_components",
+    "is_best": true,
+    "opt_steps": 120000,
+    "cumulative_wall_clock_s": 23382.663861751556
+  },
+  {
+    "epoch": 625,
+    "per_resolution_val_error": {
+      "21": 0.1100475937128067,
+      "33": 0.09250911325216293,
+      "101": 0.07490992546081543,
+      "201": 0.08183319121599197
+    },
+    "combined_val_error": 0.08982495591044426,
+    "per_resolution_both_components": {
+      "21": 0.0713881328701973,
+      "33": 0.055088698863983154,
+      "101": 0.04243309050798416,
+      "201": 0.04867678880691528
+    },
+    "both_components_val_error": 0.054396677762269974,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 125000,
+    "cumulative_wall_clock_s": 24361.29142689705
+  },
+  {
+    "epoch": 650,
+    "per_resolution_val_error": {
+      "21": 0.09665980935096741,
+      "33": 0.0765991136431694,
+      "101": 0.06681596487760544,
+      "201": 0.0834861546754837
+    },
+    "combined_val_error": 0.08089026063680649,
+    "per_resolution_both_components": {
+      "21": 0.08072920888662338,
+      "33": 0.06680833548307419,
+      "101": 0.05815095826983452,
+      "201": 0.06218429282307625
+    },
+    "both_components_val_error": 0.06696819886565208,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 130000,
+    "cumulative_wall_clock_s": 25339.776286125183
+  },
+  {
+    "epoch": 675,
+    "per_resolution_val_error": {
+      "21": 0.10366199910640717,
+      "33": 0.0790705531835556,
+      "101": 0.08304900676012039,
+      "201": 0.11808723211288452
+    },
+    "combined_val_error": 0.09596719779074192,
+    "per_resolution_both_components": {
+      "21": 0.0646253228187561,
+      "33": 0.0478813461959362,
+      "101": 0.05524526908993721,
+      "201": 0.07446041703224182
+    },
+    "both_components_val_error": 0.06055308784217834,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 135000,
+    "cumulative_wall_clock_s": 26320.47133421898
+  },
+  {
+    "epoch": 700,
+    "per_resolution_val_error": {
+      "21": 0.12978515028953552,
+      "33": 0.11351166665554047,
+      "101": 0.11517520993947983,
+      "201": 0.12209953367710114
+    },
+    "combined_val_error": 0.12014289014041424,
+    "per_resolution_both_components": {
+      "21": 0.08672583103179932,
+      "33": 0.07290790230035782,
+      "101": 0.0694420337677002,
+      "201": 0.07084142416715622
+    },
+    "both_components_val_error": 0.07497929781675339,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 140000,
+    "cumulative_wall_clock_s": 27300.931614637375
+  },
+  {
+    "epoch": 725,
+    "per_resolution_val_error": {
+      "21": 0.11588218063116074,
+      "33": 0.08785384893417358,
+      "101": 0.07608666270971298,
+      "201": 0.08538632839918137
+    },
+    "combined_val_error": 0.09130225516855717,
+    "per_resolution_both_components": {
+      "21": 0.10927508771419525,
+      "33": 0.08465126156806946,
+      "101": 0.06318358331918716,
+      "201": 0.05966738238930702
+    },
+    "both_components_val_error": 0.07919432874768972,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 145000,
+    "cumulative_wall_clock_s": 28278.384334802628
+  },
+  {
+    "epoch": 750,
+    "per_resolution_val_error": {
+      "21": 0.1301214279419708,
+      "33": 0.11429405212402344,
+      "101": 0.10225892066955566,
+      "201": 0.11500471085309982
+    },
+    "combined_val_error": 0.115419777110219,
+    "per_resolution_both_components": {
+      "21": 0.07428906857967377,
+      "33": 0.06067100539803505,
+      "101": 0.054280512034893036,
+      "201": 0.06250744313001633
+    },
+    "both_components_val_error": 0.06293700728565454,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 150000,
+    "cumulative_wall_clock_s": 29250.59890794754
+  },
+  {
+    "epoch": 775,
+    "per_resolution_val_error": {
+      "21": 0.08890872448682785,
+      "33": 0.0733758881688118,
+      "101": 0.059589385986328125,
+      "201": 0.07192768156528473
+    },
+    "combined_val_error": 0.07345042005181313,
+    "per_resolution_both_components": {
+      "21": 0.05852636322379112,
+      "33": 0.04332176223397255,
+      "101": 0.03185068443417549,
+      "201": 0.04062290117144585
+    },
+    "both_components_val_error": 0.04358042776584625,
+    "selection_metric": "both_components",
+    "is_best": true,
+    "opt_steps": 155000,
+    "cumulative_wall_clock_s": 30223.323282957077
+  },
+  {
+    "epoch": 800,
+    "per_resolution_val_error": {
+      "21": 0.10269907861948013,
+      "33": 0.08854952454566956,
+      "101": 0.057875487953424454,
+      "201": 0.06274625658988953
+    },
+    "combined_val_error": 0.07796758692711592,
+    "per_resolution_both_components": {
+      "21": 0.07233405858278275,
+      "33": 0.05598090961575508,
+      "101": 0.032863907516002655,
+      "201": 0.03560788556933403
+    },
+    "both_components_val_error": 0.04919669032096863,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 160000,
+    "cumulative_wall_clock_s": 31195.27254509926
+  },
+  {
+    "epoch": 825,
+    "per_resolution_val_error": {
+      "21": 0.1241825670003891,
+      "33": 0.10928771644830704,
+      "101": 0.08924868702888489,
+      "201": 0.08596721291542053
+    },
+    "combined_val_error": 0.10217154584825039,
+    "per_resolution_both_components": {
+      "21": 0.0887582004070282,
+      "33": 0.0729378373319626,
+      "101": 0.05389440432190895,
+      "201": 0.05149487406015396
+    },
+    "both_components_val_error": 0.06677132938057184,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 165000,
+    "cumulative_wall_clock_s": 32166.550001621246
+  },
+  {
+    "epoch": 850,
+    "per_resolution_val_error": {
+      "21": 0.10345324873924255,
+      "33": 0.07513979077339172,
+      "101": 0.04861387237906456,
+      "201": 0.04557531699538231
+    },
+    "combined_val_error": 0.06819555722177029,
+    "per_resolution_both_components": {
+      "21": 0.07948319613933563,
+      "33": 0.058153484016656876,
+      "101": 0.03438500687479973,
+      "201": 0.02727694995701313
+    },
+    "both_components_val_error": 0.04982465924695134,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 170000,
+    "cumulative_wall_clock_s": 33137.52848362923
+  },
+  {
+    "epoch": 875,
+    "per_resolution_val_error": {
+      "21": 0.07744578272104263,
+      "33": 0.0537552647292614,
+      "101": 0.03676486387848854,
+      "201": 0.04720473289489746
+    },
+    "combined_val_error": 0.05379266105592251,
+    "per_resolution_both_components": {
+      "21": 0.05225152522325516,
+      "33": 0.03468451276421547,
+      "101": 0.02358226291835308,
+      "201": 0.03081553801894188
+    },
+    "both_components_val_error": 0.0353334597311914,
+    "selection_metric": "both_components",
+    "is_best": true,
+    "opt_steps": 175000,
+    "cumulative_wall_clock_s": 34109.59423947334
+  },
+  {
+    "epoch": 900,
+    "per_resolution_val_error": {
+      "21": 0.09379813075065613,
+      "33": 0.06926736235618591,
+      "101": 0.05788193643093109,
+      "201": 0.06432592868804932
+    },
+    "combined_val_error": 0.07131833955645561,
+    "per_resolution_both_components": {
+      "21": 0.07605645060539246,
+      "33": 0.05481544882059097,
+      "101": 0.038483064621686935,
+      "201": 0.039716072380542755
+    },
+    "both_components_val_error": 0.05226775910705328,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 180000,
+    "cumulative_wall_clock_s": 35081.345876693726
+  },
+  {
+    "epoch": 925,
+    "per_resolution_val_error": {
+      "21": 0.09235148876905441,
+      "33": 0.0829886794090271,
+      "101": 0.09766660630702972,
+      "201": 0.12407033890485764
+    },
+    "combined_val_error": 0.09926927834749222,
+    "per_resolution_both_components": {
+      "21": 0.05576556921005249,
+      "33": 0.04749932140111923,
+      "101": 0.05933777987957001,
+      "201": 0.07229503244161606
+    },
+    "both_components_val_error": 0.05872442573308945,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 185000,
+    "cumulative_wall_clock_s": 36052.55844330788
+  },
+  {
+    "epoch": 950,
+    "per_resolution_val_error": {
+      "21": 0.10335222631692886,
+      "33": 0.0797392800450325,
+      "101": 0.05969911813735962,
+      "201": 0.06479198485612869
+    },
+    "combined_val_error": 0.07689565233886242,
+    "per_resolution_both_components": {
+      "21": 0.09201551228761673,
+      "33": 0.07392089813947678,
+      "101": 0.049740035086870193,
+      "201": 0.04711088910698891
+    },
+    "both_components_val_error": 0.06569683365523815,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 190000,
+    "cumulative_wall_clock_s": 37025.45053291321
+  },
+  {
+    "epoch": 975,
+    "per_resolution_val_error": {
+      "21": 0.08145055919885635,
+      "33": 0.0558285228908062,
+      "101": 0.03967968001961708,
+      "201": 0.05014236643910408
+    },
+    "combined_val_error": 0.05677528213709593,
+    "per_resolution_both_components": {
+      "21": 0.05656745657324791,
+      "33": 0.037025175988674164,
+      "101": 0.02497304603457451,
+      "201": 0.03160163387656212
+    },
+    "both_components_val_error": 0.037541828118264675,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 195000,
+    "cumulative_wall_clock_s": 38000.280792951584
+  },
+  {
+    "epoch": 1000,
+    "per_resolution_val_error": {
+      "21": 0.13050159811973572,
+      "33": 0.12394685298204422,
+      "101": 0.1344618797302246,
+      "201": 0.15061089396476746
+    },
+    "combined_val_error": 0.134880306199193,
+    "per_resolution_both_components": {
+      "21": 0.10558222234249115,
+      "33": 0.0897684246301651,
+      "101": 0.08539676666259766,
+      "201": 0.0911964401602745
+    },
+    "both_components_val_error": 0.0929859634488821,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 200000,
+    "cumulative_wall_clock_s": 38971.51160812378
+  },
+  {
+    "epoch": 1025,
+    "per_resolution_val_error": {
+      "21": 0.10019871592521667,
+      "33": 0.0770658403635025,
+      "101": 0.05011971294879913,
+      "201": 0.0478568933904171
+    },
+    "combined_val_error": 0.06881029065698385,
+    "per_resolution_both_components": {
+      "21": 0.07227181643247604,
+      "33": 0.0518118292093277,
+      "101": 0.02868870459496975,
+      "201": 0.025716139003634453
+    },
+    "both_components_val_error": 0.044622122310101986,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 205000,
+    "cumulative_wall_clock_s": 39941.61441063881
+  },
+  {
+    "epoch": 1050,
+    "per_resolution_val_error": {
+      "21": 0.09633705019950867,
+      "33": 0.07945924252271652,
+      "101": 0.07585488259792328,
+      "201": 0.0752815306186676
+    },
+    "combined_val_error": 0.08173317648470402,
+    "per_resolution_both_components": {
+      "21": 0.06467113643884659,
+      "33": 0.048590123653411865,
+      "101": 0.04276067018508911,
+      "201": 0.04288403317332268
+    },
+    "both_components_val_error": 0.04972649086266756,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 210000,
+    "cumulative_wall_clock_s": 40911.80825424194
+  },
+  {
+    "epoch": 1075,
+    "per_resolution_val_error": {
+      "21": 0.13437920808792114,
+      "33": 0.1076541319489479,
+      "101": 0.08038239926099777,
+      "201": 0.07238209247589111
+    },
+    "combined_val_error": 0.09869945794343948,
+    "per_resolution_both_components": {
+      "21": 0.12980228662490845,
+      "33": 0.11008284986019135,
+      "101": 0.07821568101644516,
+      "201": 0.06899285316467285
+    },
+    "both_components_val_error": 0.09677341766655445,
+    "selection_metric": "both_components",
+    "is_best": false,
+    "opt_steps": 215000,
+    "cumulative_wall_clock_s": 41881.2802093029
+  }
+]

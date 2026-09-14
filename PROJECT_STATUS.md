@@ -117,7 +117,28 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Fixed-location peak-stress check for the NEW
+Last updated: 2026-09-14 (**Found the real final training wall-clock for
+the new multi-res checkpoint, straight from its own `metrics_history.json`
+on Drive (pulled directly, no need to dig through the Colab tab) --
+committed to `Practical_Examples/omar_pfem/metrics_history_multires.json`.**
+43 validation checkpoints logged, epoch 25 through epoch 1075. Training
+early-stopped exactly as configured: `model_best.pt` is from epoch 875
+(`both_components_val_error=0.0353`, `cumulative_wall_clock_s=34,109.6`),
+and the following 8 validation checks (epoch 900 through 1075) were all
+`is_best=false` -- exactly `early_stop_patience=8`, confirming the run
+stopped itself rather than being cut off. **Total training wall-clock:
+41,881.28s (~11.6h)** (epoch 1075's `cumulative_wall_clock_s`) -- this,
+not the 34,109.6s at the best checkpoint, is the real one-off cost to use
+for the break-even calc (point 5), matching this project's own
+`total_train_wall_clock_s` convention used everywhere else.
+
+**Point 1 is now fully numerically complete.** Point 5 (break-even) needs
+one more real number before it can be computed: GPU-FEM per-sample timing
+at N=11 (the new checkpoint's coarsest-suitable-FEM at N=1401) -- not yet
+measured, `gpu_fem_benchmark.py` has only been run at N=21 so far. Quick,
+single-N run, offered to Omar as the next step.
+
+Previous update, 2026-09-14 (**Fixed-location peak-stress check for the NEW
 multi-res checkpoint done -- FLIPS the "coarsest suitable FEM" story from
 the old checkpoint.** Real A100 run, `Round6_NO_Peak_Stress_Fixed_
 Location_MultiRes.ipynb`, checkpoint identity verified by fingerprint
