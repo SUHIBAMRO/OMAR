@@ -1,10 +1,13 @@
-"""Builds ONE notebook: extends the N=1401 accuracy/QoI/accuracy-matched
-analysis (Timon round-11 point 2) to B1 x Mooney-Rivlin and B1 x
-Arruda-Boyce, using their EXISTING zero-shot checkpoints (N=21,33 jointly
-trained) -- no retraining. See cell_n1401_b1_other_materials.py for the
-full rationale, the prerequisite material-parameter generalization fix,
-and what is deliberately NOT included (resolution-matched break-even for
-these two, and B2's three cases -- both flagged as separate follow-ups).
+"""Builds ONE notebook: extends the N=1401 accuracy/QoI analysis (Timon
+round-11 point 2) to ALL 5 remaining cases -- B1 x Mooney-Rivlin,
+B1 x Arruda-Boyce, and all three of B2 (Neo-Hookean, Mooney-Rivlin,
+Arruda-Boyce) -- using their EXISTING zero-shot checkpoints, no
+retraining. See cell_n1401_b1_other_materials.py for the full rationale,
+the prerequisite fixes (material-parameter arity generalization, the new
+B2 fast ground-truth solver and accuracy/peak-stress pipeline), and what
+is deliberately NOT included (resolution-matched break-even for these 5
+cases -- flagged as a separate follow-up needing torchfem_comparison.py
+generalized past B1xNeo-Hookean).
 """
 import json
 
@@ -27,37 +30,54 @@ def build():
     return {
         "nbformat": 4, "nbformat_minor": 0,
         "metadata": {
-            "colab": {"provenance": [], "name": "Round6_N1401_B1_OtherMaterials.ipynb"},
+            "colab": {"provenance": [], "name": "Round6_N1401_AllRemainingCases.ipynb"},
             "kernelspec": {"name": "python3", "display_name": "Python 3"},
             "language_info": {"name": "python"},
             "accelerator": "GPU",
         },
         "cells": [
             md(
-                "# N=1401 accuracy/QoI للحالتين الباقيتين من B1 (Mooney-Rivlin و Arruda-Boyce)",
+                "# N=1401 accuracy/QoI لكل الحالات الخمس الباقية (B1×2 و B2×3)",
                 "",
                 "**طلب تيمون (round-11, نقطة 2)**: وسّع تحليل N=1401 لكل الحالات الست، "
-                "ووضّح أي كمية (L2/H1/الطاقة/القوى/الإجهاد) بالضبط بتحدد \"أرخص FEM بنفس الدقة\".",
+                "ووضّح أي كمية (L2/H1/الطاقة/الإجهاد) بالضبط بتحدد \"أرخص FEM بنفس الدقة\".",
                 "",
-                "**هاي الخلية بتغطي B1×Mooney-Rivlin و B1×Arruda-Boyce فقط** (باستخدام "
-                "الـcheckpoints الموجودة أصلاً، المدربة على N=21,33 -- بدون إعادة تدريب)، "
-                "بنفس الطريقة المستخدمة أصلاً لـB1×Neo-Hookean.",
+                "**هاي الخلية بتغطي الحالات الخمس الباقية كلهم** (B1×Mooney-Rivlin، "
+                "B1×Arruda-Boyce، وB2 بمواتها التلاتة) -- الـcheckpoints الموجودة أصلاً "
+                "(N=21,33)، بدون إعادة تدريب. النطاق الكامل، مش جزء منه فقط -- بطلب Omar "
+                "الصريح.",
                 "",
-                "**حالات B2 الثلاث لسا مش مشمولة** -- بتحتاج مسار GPU سريع منفصل لتوليد "
-                "الحل المرجعي (fast ground truth) لهندسة B2، غير موجود لسا.",
+                "**شغل تحضيري حقيقي انعمل قبل هاي الخلية (كله موثق ومتحقق منه، مش مجرد "
+                "افتراض)**:",
+                "1. تصليح خطأ حقيقي: الحل السريع كان مبرمج بس لـNeo-Hookean (كان بينهار "
+                "مع Mooney-Rivlin وArruda-Boyce) -- تصلح وتحقق منه لكل المواد الثلاث.",
+                "2. بناء مسار GPU سريع جديد بالكامل لـB2 (`solve_b2_fast_gpu`) -- ما كان "
+                "موجود أبداً قبل هلق. تحقق منه ضد الحل المرجعي البطيء لكل المواد الثلاث "
+                "(دقة ~1e-11، نفس مستوى الدقة الموجود أصلاً لـB1).",
+                "3. بناء كامل خط تقييم الدقة والإجهاد لـB2 (`evaluate_no_accuracy_at_n1401_b2`، "
+                "`run_no_peak_stress_fixed_location_b2`) -- فحص شامل محلي (CPU، موديل غير "
+                "مدرب) قبل ما ينستخدم هون.",
                 "",
-                "**تصليح لازم قبل هاي الخلية (منجز فعلاً، commit 2f96fa9)**: الحل السريع "
-                "(`solve_b1_fast_gpu`) كان مبرمج بس لـNeo-Hookean (خطأ حقيقي كان بيطلع "
-                "\"too many values to unpack\" لأي مادة تانية) -- تصلح وتحقق منه على الـCPU "
-                "لكل الثلاث مواد قبل ما تستعمل هون.",
+                "**ملاحظة مهمة عن B2**: كمية \"القوى التفاعلية\" (reaction forces) مش "
+                "محسوبة لـB2 -- هاي أصلاً كانت \"B1 بس\" بكل المشروع من قبل (حدود التماثل "
+                "بـB2 كل وحدة فيها مركبة وحدة بس مثبتة، ومافي طريقة معتمدة أصلاً بالمشروع "
+                "لدمجهم بمقارنة وحدة) -- فجوة صادقة موثقة، مش تقصير.",
                 "",
-                "**الوقت المتوقع**: كل مادة ~16 دقة (نفس list الـNeo-Hookean)، كل وحدة "
-                "توليد بيانات مرجعية سريع (ثواني لكل عينة حتى عند N=1401) + inference سريع "
-                "-- الكل المتوقع أقل من ساعة على GPU حقيقي.",
+                "**مسارات الـcheckpoints** (تأكدت منهم من النوتبوكات الحقيقية الي بنتهم):",
+                "- B1: `zeroshot_B1_{material}/model_best.pt`",
+                "- B2: `zeroshot_B2_{material}_fixedsel/model_best.pt` (لاحظ لاحقة "
+                "`_fixedsel` -- هاي النسخة المصححة من Round 6، مش النسخة الأصلية).",
                 "",
-                "**مش مشمول هون (متروك كمتابعة منفصلة)**: مقارنة break-even المطابقة-بالدقة "
-                "(NO وFEM الاثنين على N=1401) لهاتين المادتين -- بتحتاج قياس torch-fem "
-                "حقيقي عند N=1401 لكل مادة، ما انقاس أبداً لغير Neo-Hookean.",
+                "**الوقت المتوقع**: 5 حالات × ~16 دقة لكل وحدة -- توليد مرجعي سريع "
+                "لـB1 وB2 الاثنين (ثواني لكل عينة حتى N=1401) -- الكل المتوقع أقل من "
+                "ساعتين على GPU حقيقي.",
+                "",
+                "**مش مشمول هون (شغل منفصل تاني، لسا ما بلش)**: مقارنة break-even "
+                "المطابقة-بالدقة (NO وFEM الاثنين على N=1401) لهاي الحالات الخمس -- "
+                "torch-fem (المكتبة الخارجية المستخدمة لقياس السرعة) مبرمجة حالياً بس "
+                "لـNeo-Hookean ولهندسة B1 (فرضية \"كل حدود التثبيت عندها مركبتين مثبتتين\" "
+                "غلط لـB2). تعميمها شغلة منفصلة بحجم مشابه لللي عملناه هلق، ولسا ما بلشت "
+                "فيها -- حتى ما نخاطر بأرقام round-9 الموثقة أصلاً بدون تحقق كافي.",
             ),
             code(*cell_src.splitlines()),
         ],
@@ -66,7 +86,7 @@ def build():
 
 if __name__ == "__main__":
     nb = build()
-    out_path = f"{HERE}/Round6_N1401_B1_OtherMaterials.ipynb"
+    out_path = f"{HERE}/Round6_N1401_AllRemainingCases.ipynb"
     with open(out_path, "w") as f:
         json.dump(nb, f, indent=1)
     print("wrote", out_path)
