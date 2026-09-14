@@ -33,7 +33,7 @@ from omar_pfem.high_dof_convergence_study import (
     compute_l2_h1_errors_cross_order,
     compute_tangent_energy_error,
 )
-from omar_pfem.data.parametric_field import ParametricFieldB1
+from omar_pfem.data.parametric_field import ParametricFieldB1, ParametricFieldB2
 from omar_pfem.gpu_fem_solver import precompute_element_params_B1
 from omar_pfem.no_ground_truth_fast import check_convergence, solve_b1_fast_gpu
 from omar_pfem.physical_quantities_eval import (
@@ -517,6 +517,109 @@ def run_no_peak_stress_fixed_location(model, args, resolutions, out_json, device
                 outputs=[out_json],
                 notes="Per Timon's own note, 2026-09-14, to record the exact git "
                       "commit + setup for every run considered final.")
+        except Exception as e:
+            print(f"[manifest] not recorded: {e}")
+    return rows
+
+
+def run_no_peak_stress_fixed_location_b2(model, args, resolutions, out_json, device,
+                                          seed=0, material="neo_hookean", fine_N_for_peak=1401):
+    """B2 analog of run_no_peak_stress_fixed_location. See that function's
+    own docstring for the full rationale (fixed-location peak stress,
+    located once from a fine reference, vs. the coarse-mesh-own-sample-max
+    metric _score_prediction_b2 computes) -- unchanged here. Built
+    2026-09-14, Timon round-11 point 2.
+
+    find_fine_peak_stress/compute_peak_stress_error already accept
+    geometry="B2" (used by the existing FEM-vs-FEM Table 15-17
+    comparisons) via _material_query_pts's own polar conversion -- just
+    needs ParametricFieldB2 (not ParametricFieldB1) as E_fn/nu_fn, and
+    solve_b2_fast_gpu for the fine reference."""
+    import os
+    import time
+
+    from omar_pfem.high_dof_convergence_study import compute_peak_stress_error, find_fine_peak_stress
+    from omar_pfem.no_ground_truth_fast import solve_b2_fast_gpu
+    from omar_pfem.resolution_invariance_zeroshot import build_sample_b2
+    from omar_pfem.train_B2 import total_potential_energy_Q4_hyperelastic as tpe_b2
+
+    started = time.time()
+    R_in, R_out = getattr(args, "R_in", 1.0), getattr(args, "R_out", 2.0)
+    geom_kwargs = {"R_in": R_in, "R_out": R_out}
+
+    print(f"Solving fine ground truth (N={fine_N_for_peak}, B2) to locate the true peak-stress point...")
+    u_fine_flat, nodes_fine, elems_fine, _ = solve_b2_fast_gpu(
+        fine_N_for_peak, seed, material, device, torch.float64, R_in=R_in, R_out=R_out, nsteps=10)
+    fine = {"nodes": nodes_fine, "elements": elems_fine,
+            "u": u_fine_flat.reshape(-1, 2), "N": fine_N_for_peak}
+
+    E_fn = ParametricFieldB2("E", seed)
+    nu_fn = ParametricFieldB2("nu", seed)
+    x_star, peak_ref = find_fine_peak_stress(fine, "Q4", "B2", material, E_fn, nu_fn,
+                                              device, torch.float64)
+    print(f"  x_star={x_star}, peak_ref={peak_ref:.4f}")
+
+    done = {}
+    if out_json and os.path.exists(out_json):
+        with open(out_json) as f:
+            done = {r["N"]: r for r in json.load(f).get("rows", [])}
+    rows = list(done.values())
+
+    for N in resolutions:
+        if N in done:
+            print(f"  N={N} already in {out_json}, skipping")
+            continue
+        sample, _ = build_sample_b2(N, seed=seed, material=material, R_in=R_in, R_out=R_out,
+                                     solve_fem=False)
+        nodes_np, elems_np = sample["xy"], sample["quad"]
+
+        torch.set_default_dtype(torch.float32)
+        xy = torch.tensor(nodes_np, device=device, dtype=torch.float32)
+        quad = torch.tensor(elems_np, device=device, dtype=torch.long)
+        inner_edges = torch.tensor(sample["inner_edges"], device=device, dtype=torch.long)
+        theta0_nodes = torch.tensor(sample["theta0_nodes"], device=device, dtype=torch.long)
+        thetahalfpi_nodes = torch.tensor(sample["thetahalfpi_nodes"], device=device, dtype=torch.long)
+        E_b = torch.tensor(sample["E_node"][None], device=device, dtype=torch.float32)
+        nu_b = torch.tensor(sample["nu_node"][None], device=device, dtype=torch.float32)
+        f_b = torch.tensor(sample["node_forces"][None], device=device, dtype=torch.float32)
+
+        model.eval()
+        with torch.no_grad():
+            _, _, _, uv_pred, _ = tpe_b2(
+                xy, quad, inner_edges, theta0_nodes, thetahalfpi_nodes, model, E_b, nu_b, f_b,
+                use_soft_dirichlet=bool(getattr(args, "use_soft_dirichlet", 1)), R_out=R_out,
+                mode="plane_strain", dtype=torch.float32, fun_dim=args.fun_dim, material=material,
+            )
+        u_pred = uv_pred[0].float().double().cpu().numpy()
+
+        coarse = {"nodes": nodes_np.astype(np.float64), "elements": elems_np, "u": u_pred, "N": N}
+        stress_err = compute_peak_stress_error(coarse, fine, x_star, peak_ref, "Q4", "B2",
+                                                material, E_fn, nu_fn, device, torch.float64,
+                                                **geom_kwargs)
+        row = {"N": N, **stress_err}
+        print(f"  N={N}: peak_stress_pred={row['peak_stress_pred']:.4f} "
+              f"peak_stress_ref={row['peak_stress_ref']:.4f} "
+              f"peak_stress_rel_err={row['peak_stress_rel_err']:.3e}")
+        rows.append(row)
+        rows.sort(key=lambda r: r["N"])
+        if out_json:
+            with open(out_json, "w") as f:
+                json.dump({"seed": seed, "material": material, "fine_N_for_peak": fine_N_for_peak,
+                           "x_star": x_star[0].tolist(), "peak_ref": peak_ref, "rows": rows},
+                          f, indent=2)
+
+    if out_json:
+        try:
+            from omar_pfem.run_manifest import write_manifest
+            write_manifest(
+                os.path.dirname(os.path.abspath(out_json)) or ".",
+                kind="no_peak_stress_fixed_location_b2",
+                args={"resolutions": resolutions, "seed": seed, "material": material,
+                      "fine_N_for_peak": fine_N_for_peak},
+                started_at=started,
+                results={"x_star": x_star[0].tolist(), "peak_ref": peak_ref, "rows": rows},
+                outputs=[out_json],
+                notes="Timon round-11 point 2: extending N=1401 peak-stress coverage to B2.")
         except Exception as e:
             print(f"[manifest] not recorded: {e}")
     return rows
