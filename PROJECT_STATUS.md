@@ -117,7 +117,61 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Reply-to-Timon draft FULLY FINALIZED --
+Last updated: 2026-09-14 (**TASK #18 DONE, and the canonical Report/
+Summary deliverables are now updated with all of round-10's real
+findings** -- Omar explicitly asked for this ("حدث كلشي") after noticing
+the two canonical documents (`PFEM_Transolver_Report_2026-09-09.docx`,
+`PFEM_Work_Summary_2026-09-09.docx`, scratchpad-only, not git-tracked)
+had NOT been touched this whole session; only the `advisor_feedback`
+email draft had. New dated copies saved:
+`.../deliverables/PFEM_Transolver_Report_2026-09-14.docx` and
+`.../PFEM_Work_Summary_2026-09-14.docx` (old 2026-09-09 versions kept
+alongside per this project's own convention, not deleted).
+
+**Stale claims fixed** (task #18's own original ask): both documents had
+"accuracy at N=1401 was never checked" left over from the round-9
+response (Report paragraph "...and accuracy at N=1401 has never been
+checked..."; Summary Point 2 and the Table 18 caption) -- all three now
+point to the real, since-completed check instead.
+
+**Report**: inserted a new subsection directly after Table 18's own
+Neo-Hookean discussion in Section 8.6 ("Round-10 follow-up: checkpoint
+fix, accuracy-matched comparison, throughput, profiling, and break-even
+at N=1401") -- the checkpoint-bug story, the corrected N=1401 sweep
+(Table 18-R10a), the multi-res retraining before/after (Table 18-R10b, 
+7.6x error reduction), the peak-stress crossover flip, matched-memory
+batch/throughput (Table 18-R10c), profiling/torch.compile/TF32 (Table
+18-R10d), and the accuracy-matched break-even (Table 18-R10e) -- three
+embedded figures (extracted from the already-built Timon email `.docx`
+rather than re-fetched). New tables deliberately labeled "18-R10a..e"
+(not "18f..j") so they don't read as if they precede the existing
+18a-18e in the document's own alphabetical scheme, even though they
+physically appear earlier in reading order (this section is Neo-Hookean-
+specific, the same case as Table 18 itself, so it belongs right after
+Table 18's own discussion, before the other-materials comparison).
+"Where each point of the feedback is addressed" (the round-8-era index
+table near the top) was NOT touched -- it already predates round-9 and
+its own section numbers no longer match current numbering; fixing it
+properly would mean re-verifying every entry, out of scope for this pass
+and flagged here rather than silently left stale.
+
+**Summary**: inserted a new "Response to Timon's round-10 feedback"
+section (Heading 2, same format as the existing round-9 section),
+positioned right after round-9's own section and before "Summary of
+what was done and what came out" -- all five points, same real numbers
+as the Report addition and the finalized email draft, condensed to the
+Summary's own terser style.
+
+**Verified structurally** (LibreOffice headless PDF conversion still
+fails in this sandbox, same known limitation as 2026-09-13 -- worked
+around the same way): `python-docx` paragraph/table/image counts before
+and after each edit matched the expected deltas exactly (Report: +23
+paragraphs, +5 tables, +3 images; Summary: +27 paragraphs, +4 tables, +3
+images), and every inserted element's position in the true document body
+order (not just `.paragraphs`, which skips tables) was walked and
+printed to confirm nothing landed out of sequence.
+
+Previous update, 2026-09-14 (**Reply-to-Timon draft FULLY FINALIZED --
 `advisor_feedback/2026-09-13_reply_to_round10_draft.md` and its `.docx`
 twin rewritten with every real number from this session.** Point 1
 rewritten with the retrained-checkpoint story (before/after table,
