@@ -9,12 +9,9 @@ Review before sending. Two things to decide first:
 2. Point 4 asks Timon a direct question (confirm the B7 design) —
    this IS the "ask Timon first" step from PROJECT_STATUS.md's own
    standing rule. Sending this email is what discharges that requirement.
-3. Points 2 and 3's numbers were measured BEFORE the checkpoint-
-   resolution bug fix -- confirmed directly (the source JSON on Drive
-   for point 2 literally has `"checkpoint": ".../data_driven/..."` in
-   it). Timing/memory should not depend on which trained weights are
-   loaded (same architecture, same compute graph), but this has not
-   been re-verified with the corrected checkpoint. Flagged inline below.
+3. Points 2 and 3 were both re-measured with the corrected checkpoint
+   and confirmed essentially identical to the original (wrong-checkpoint)
+   measurement in both cases -- both resolved, no caveats remain.
 
 ---
 
@@ -79,20 +76,31 @@ with that once it's verified.
 
 **2. Batch size and throughput at matched GPU memory**
 
-| Method | Max batch size | Peak GPU memory | Throughput |
+Re-measured with the corrected checkpoint, including two additional
+matched-memory scenarios (each method capped at the *other's* own
+memory ceiling), N=21:
+
+| Scenario | Max batch size | Peak GPU memory | Throughput |
 |---|---|---|---|
-| NO (own ceiling) | 8,192 | 47.6 GB | 4,212.66 samples/s |
+| NO (own ceiling) | 8,192 | 47.6 GB | 4,203.79 samples/s |
 | FEM (own ceiling) | 256 | 38.7 GB | 2.86 samples/s |
+| FEM (capped at NO's 47.6 GB) | 256 | 38.7 GB | 2.86 samples/s |
+| NO (capped at FEM's 38.7 GB) | 4,096 | 23.8 GB | 4,207.75 samples/s |
 
-Peak throughput favors the NO by roughly 1,473x. Batching helps the NO
-substantially (throughput rises ~20x from bs=1 to its own ceiling)
-while FEM barely benefits (~4.8x) — matching your own stated
-expectation directly.
+*(Figure attached: throughput and peak memory vs. batch size, NO vs.
+FEM, own memory ceilings.)*
 
-*[Caveat: this measurement predates the checkpoint-resolution fix
-mentioned above — used the wrong (data-driven) checkpoint. Timing/
-memory should be checkpoint-independent, but this has not yet been
-re-confirmed with the corrected checkpoint.]*
+Peak throughput favors the NO by roughly 1,470x regardless of which
+memory budget is used to cap it — FEM's own ceiling is already below
+its saturation point, so giving it more memory (matching the NO's own
+47.6 GB) changes nothing, while the NO barely gives anything up when
+capped down to FEM's much smaller 38.7 GB (4,207.75 vs. 4,203.79
+samples/s). Batching helps the NO substantially (throughput rises ~20x
+from bs=1 to its own ceiling) while FEM barely benefits (~5x) —
+matching your own stated expectation directly. Re-measured with the
+corrected checkpoint and confirmed essentially identical to the
+original (wrong-checkpoint) run — resolved, checkpoint-independent as
+expected.
 
 **3. NO inference optimization and profiling**
 
@@ -109,21 +117,20 @@ We tried to speed this up before treating 2.29s as final:
 
 | Variant | ms/sample | Speedup vs. eager | Output diff vs. eager |
 |---|---|---|---|
-| eager (fp32) | 2,295.0 | 1.00x | — |
-| torch.compile | 2,144.6 | 1.07x | 2.0e-6 |
-| eager + TF32 | 486.1 | 4.72x | 4.7e-3 |
-| compile + TF32 | 395.9 | 5.80x | 4.7e-3 |
+| eager (fp32) | 2,292.1 | 1.00x | — |
+| torch.compile | 2,145.1 | 1.07x | 6.0e-7 |
+| eager + TF32 | 491.2 | 4.67x | 3.2e-3 |
+| compile + TF32 | 394.0 | 5.82x | 3.2e-3 |
 
-*(Figure attached: same data as the table above.)*
+*(Figure attached: same data as the table above. Re-measured with the
+corrected checkpoint -- essentially identical to the original run,
+confirming timing/speedup is checkpoint-independent as expected.)*
 
 `torch.compile` alone gives 1.07x (correctness-checked, negligible
 output difference). Enabling TF32 matmul precision (Ampere tensor
-cores) gives 4.72x alone and 5.80x combined with `torch.compile` — the
-best result found, at a real but small accuracy cost (4.7e-3 relative
+cores) gives 4.67x alone and 5.82x combined with `torch.compile` — the
+best result found, at a real but small accuracy cost (~3.2e-3 relative
 difference vs. strict fp32), checked directly rather than assumed.
-
-*[Same caveat as point 2: measured with the pre-fix checkpoint;
-expected but not yet re-confirmed to be checkpoint-independent.]*
 
 **4. Complex-geometry example — one question before we commit training time**
 

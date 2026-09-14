@@ -117,7 +117,47 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-13 (**Added real tables + real figures (pulled
+Last updated: 2026-09-14 (**Points 2 and 3's checkpoint-independence
+caveat is now RESOLVED with real re-measurement, closing the gap noted
+in the entry below.** Omar re-ran both `cell_max_feasible_batch_size.py`
+and `cell_no_inference_torch_compile.py` with the corrected checkpoint
+(`Resolved checkpoint (verified by fingerprint):
+zeroshot_B1_neo_hookean/model_best.pt` printed in both real GPU logs).
+
+Point 3 (profiling/torch.compile/TF32, N=1401, bs=1) re-measured:
+eager 2,292.1 ms/sample, torch.compile 2,145.1 ms/sample (1.07x,
+output diff 6.0e-7), eager+TF32 491.2 ms/sample (4.67x), compile+TF32
+394.0 ms/sample (5.82x) -- essentially identical to the original
+(wrong-checkpoint) run. Confirms timing/speedup is checkpoint-
+independent as expected.
+
+Point 2 (max feasible batch size/throughput, N=21) re-measured, and
+extended with two new matched-memory scenarios (each method capped at
+the *other's* own memory ceiling) that weren't in the original run:
+  - NO (own ceiling): max_bs=8,192, peak_mem=47.61 GB, throughput=4,203.79 samples/s
+  - FEM (own ceiling): max_bs=256, peak_mem=38.69 GB, throughput=2.86 samples/s
+  - FEM (capped at NO's 47.61 GB): max_bs=256, peak_mem=38.69 GB, throughput=2.86 samples/s (FEM's own ceiling is already below saturation, so extra memory changes nothing)
+  - NO (capped at FEM's 38.69 GB): max_bs=4,096, peak_mem=23.81 GB, throughput=4,207.75 samples/s (NO barely gives anything up even at 1/2 its own memory budget)
+Essentially identical throughput to the original (wrong-checkpoint) run
+(4,203.79 vs. the old 4,212.66 samples/s, ~0.2% difference) -- confirms
+checkpoint-independence here too. New result files:
+`max_feasible_batch/{no_max_batch_natural,fem_max_batch_natural,
+fem_max_batch_matched_to_no,no_max_batch_matched_to_fem}.json`, figure
+`fig_max_feasible_batch_size.png` (all on Drive under
+`pfem_run/max_feasible_batch/`).
+
+**Both reply drafts (`.md` and `.docx`) updated**: red-italic caveats on
+points 2 and 3 removed (both resolved), point 2's table expanded to all
+four matched-memory scenarios, new Figure 2 (batch-size/throughput vs.
+memory chart) added to the `.docx` (now 4 tables, 3 images -- verified
+structurally via `python-docx`: `len(tables)==4`,
+`len(inline_shapes)==3`). Both files committed.
+
+**Still open in the draft**: point 1's retraining-verification follow-up
+(training still running) and the point-4 question to Timon (not yet
+sent). Omar has not yet decided to send this email.
+
+Previous update, 2026-09-13 (**Added real tables + real figures (pulled
 directly from Drive via the Google Drive connector, not regenerated) to
 the round-10 reply draft, at Omar's request -- and while doing that,
 found a real gap: points 2 and 3's own source JSON on Drive
