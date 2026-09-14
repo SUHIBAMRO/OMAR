@@ -1,17 +1,12 @@
 # DRAFT reply to Timon's round-10 email — NOT YET SENT
 
-Review before sending. Two things to decide first:
-1. Point 1's numbers are real and verified, but a retraining run is
-   in progress to see if a wider training-resolution range closes some
-   of the gap — you may want to wait for that before sending, or send
-   now and follow up separately once it's done. The draft below sends
-   now and says a follow-up is coming.
-2. Point 4 asks Timon a direct question (confirm the B7 design) —
+Review before sending. All five points are now numerically complete and
+verified with real GPU results, including a finished multi-resolution
+retraining that substantially improved point 1's story and a real
+accuracy-matched break-even for point 5. One thing to decide:
+1. Point 4 asks Timon a direct question (confirm the B7 design) —
    this IS the "ask Timon first" step from PROJECT_STATUS.md's own
    standing rule. Sending this email is what discharges that requirement.
-3. Points 2 and 3 were both re-measured with the corrected checkpoint
-   and confirmed essentially identical to the original (wrong-checkpoint)
-   measurement in both cases -- both resolved, no caveats remain.
 
 ---
 
@@ -23,56 +18,64 @@ Here is where things stand on your five round-10 points.
 
 **1. Accuracy-matched comparison (NO vs. coarsest suitable FEM)**
 
-The NO's own accuracy at N=1401, checked directly against a real FEM
-ground truth there for the first time: displacement relative L2 error
-44.65% (L2-norm 39.49%, H1 semi-norm 61.16%). This degrades smoothly
-and monotonically away from the trained resolutions — best at N=33/37
-(≈7.4%), rising to 8.5% at N=49, 15.0% at N=101, and up to the N=1401
-number above. Ground truth convergence was confirmed at every single
-resolution tested (relative residual 1.8e-11 to 1.0e-10 throughout).
+Along the way we found and fixed a checkpoint-loading bug that had
+caused the round-10 accuracy numbers to be measured against the wrong
+model at one point; every number below is from the corrected,
+fingerprint-verified checkpoint. We also went one step further: given
+that accuracy degraded away from the original training resolutions
+(N=21, 33), we retrained a new checkpoint on a wider spread (N=21, 33,
+101, 201) to test whether that gap was addressable. It was, dramatically:
 
-| N | disp_rel_L2 | L2_rel | H1_semi_rel |
-|---|---|---|---|
-| 13 | 13.85% | 6.58% | 20.43% |
-| 21 | 9.75% | 4.78% | 17.11% |
-| 33 | 7.37% | 3.81% | 14.30% |
-| 49 | 8.50% | 5.07% | 14.07% |
-| 101 | 14.99% | 10.91% | 19.99% |
-| 201 | 22.28% | 17.79% | 28.38% |
-| 401 | 28.97% | 24.73% | 36.92% |
-| 701 | 34.34% | 30.60% | 44.87% |
-| 1001 | 38.82% | 34.86% | 51.82% |
-| 1401 | 44.65% | 39.49% | 61.16% |
+| N | Original checkpoint (N=21,33 only) | Retrained (N=21,33,101,201) |
+|---|---|---|
+| 13 | 13.85% | 11.74% |
+| 33 | 7.37% | 3.50% |
+| 49 | 8.50% | 2.32% |
+| 101 | 14.99% | 3.55% |
+| 201 | 22.28% | 4.85% |
+| 701 | 34.34% | 5.88% |
+| 1401 | 44.65% | 5.85% |
 
-*(Table 1, abridged — full 16-row table available. See attached figure:
-NO accuracy degradation, N=49 to N=1401.)*
+*(disp_rel_L2 vs. a real FEM ground truth at every N, both checkpoints;
+full 16-row tables available. Ground-truth convergence confirmed at
+every resolution, relative residual 4.6e-10 to 1.0e-10 throughout. See
+attached figure: NO accuracy degradation, N=49 to N=1401.)*
 
-Comparing this against native FEM (torch-fem) at the same low
-resolutions, across the same QoI set (L2, H1, tangent energy, peak PK1
-stress, reaction resultant): a near-degenerate FEM mesh (as coarse as
-N=3-9, i.e. 9-81 nodes) already matches or beats the operator's own
-best-case accuracy in L2, H1, energy, and reactions.
+Widening the training-resolution set does not just shrink the error —
+it changes its whole shape: the original checkpoint degraded
+monotonically the further N got from 21/33, up to 44.65% at N=1401. The
+retrained checkpoint instead gets progressively more accurate up to
+~N=45-49 (best 2.3%), then plateaus around 5.8-5.9% instead of
+continuing to climb — a 7.6x reduction in error at N=1401.
 
-One QoI needs an explicit caveat rather than a clean number: peak PK1
-stress, evaluated at a fixed location/value located once from a fine
-reference (same convention for both methods). Both methods converge to
-it very slowly — torch-fem's own error there barely improves from 83%
-to 62% across the whole low-N range, while its other QoIs converge at
-the expected rate over the same range. The located point sits
-essentially at the domain corner where the fixed boundary meets the
-free edge — a classic boundary-condition-transition location prone to
-a stress singularity in elasticity, where the continuum target may not
-even be well-posed for either method to converge to in the usual sense.
-We think this metric should be reported with that caveat attached
-rather than used as a clean deciding factor.
+Comparing the retrained checkpoint's full QoI set (L2, H1, tangent
+energy, peak PK1 stress, reaction resultant) against native FEM at the
+same low resolutions (N=3-49):
 
-We are also mid-way through retraining the operator on a wider spread
-of resolutions (adding N=101 and 201 to the original 21/33) to see how
-much of the degradation above is an ordinary, addressable
-resolution-generalization gap. Validation error has already dropped
-substantially during training, but we have not yet re-run the same
-rigorous FEM-referenced check on the new checkpoint — will follow up
-with that once it's verified.
+- For L2, H1, tangent energy, and reactions, a near-degenerate FEM mesh
+  (N=3-9) still matches or beats the operator's accuracy — unchanged
+  from before.
+- Peak PK1 stress (evaluated at a fixed physical location located once
+  from a fine reference, not the coarse mesh's own sample-max) tells a
+  genuinely different story now: the retrained checkpoint's peak-stress
+  accuracy (42-70% relative error, improved at every single N) is now
+  BETTER than anything torch-fem achieves in the same low-N range (62%
+  at best, N=49) for every NO resolution from N=29 upward. FEM would
+  need N>49 (untested here) to match it.
+- As a result, the "coarsest suitable FEM" is now bound by tangent
+  energy rather than peak stress for most resolutions, and dropped from
+  N=17-45 (original checkpoint) to a genuinely near-degenerate N=9-17
+  (retrained checkpoint) for almost every resolution tested.
+
+The same caveat as before still applies to peak stress specifically:
+the located point sits essentially at the domain corner where the fixed
+boundary meets the free edge — a classic boundary-condition-transition
+location prone to a stress singularity, where the continuum target may
+not be well-posed for either method to converge to cleanly. Both
+methods still converge to it slowly. We think this metric should carry
+that caveat rather than be read as an unqualified result — but the
+improvement itself is real and directly measured against independent
+FEM ground truth, not a training-validation artifact.
 
 **2. Batch size and throughput at matched GPU memory**
 
@@ -162,12 +165,31 @@ different example instead?
 
 **5. Break-even analysis**
 
-Planned as the direct follow-on once item 1's numbers are finalized
-(after the retraining check mentioned above) — an update here would be
-premature before that.
+Using the retrained checkpoint's own coarsest-suitable FEM at N=1401
+(N=11, from the crossover above) against the NO's real inference cost
+there, and the real training wall-clock for the retrained checkpoint
+(41,881s, ~11.6h — confirmed from its own training log; it stopped
+itself via early stopping, 8 checks with no improvement, exactly as
+configured):
+
+| NO inference mode | ms/sample @ N=1401 | vs. FEM@N=11 (1,625.6 ms) | Break-even |
+|---|---|---|---|
+| eager fp32 (default) | 2,292.1 | 0.71x (slower) | **Never** — the accuracy-matched FEM mesh is already cheaper per sample |
+| compile + TF32 | 394.0 | 4.13x (faster) | After 34,005 samples (~3.72 GPU-hours of NO inference) |
+
+This is the one place in the whole investigation where the NO's default
+(unoptimized) deployment mode does not come out ahead: run naively, it
+never repays its own training cost against a FEM mesh that is only as
+accurate as it needs to be. With the inference optimizations from point
+3 (torch.compile + TF32, already verified, ~3.2e-3 relative accuracy
+cost), it both wins per-sample (4.13x) and repays its training cost
+cheaply — about 3.72 GPU-hours against 11.6 GPU-hours of training. We
+think the honest framing is that the operator's economic case depends
+on deploying it with these optimizations, not on its default settings.
 
 Let me know if the framing above looks right, particularly on point 1's
-stress-singularity caveat and on point 4.
+stress-singularity caveat, point 4's design question, and point 5's
+"only pays off with optimized inference" framing.
 
 Best regards,
 Omar

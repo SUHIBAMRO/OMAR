@@ -117,7 +117,23 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Point 5 (accuracy-matched break-even) DONE --
+Last updated: 2026-09-14 (**Reply-to-Timon draft FULLY FINALIZED --
+`advisor_feedback/2026-09-13_reply_to_round10_draft.md` and its `.docx`
+twin rewritten with every real number from this session.** Point 1
+rewritten with the retrained-checkpoint story (before/after table,
+7.6x error reduction at N=1401, the peak-stress crossover flip, same
+domain-corner caveat retained); point 5 rewritten with the real
+accuracy-matched break-even (eager never breaks even, compile+TF32
+breaks even after 34,005 samples). Points 2-4 unchanged (already
+finalized in the previous update). Preamble note trimmed to the one
+remaining real decision: whether to send (point 4's design question to
+Timon). `.docx` verified structurally (`python-docx`: 5 tables, 3
+images) before being copied into the repo. **All 5 of Timon's round-10
+points are now both numerically complete AND reflected in the actual
+draft text** -- nothing stale left in either file. Only remaining
+question is whether Omar wants to send it now.
+
+Previous update, 2026-09-14 (**Point 5 (accuracy-matched break-even) DONE --
 real A100 result, `Round6_BreakEven_AccuracyMatched.ipynb`, saved to
 `Practical_Examples/omar_pfem/break_even_accuracy_matched_N1401.json`.**
 
