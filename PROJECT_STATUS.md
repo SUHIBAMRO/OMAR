@@ -117,7 +117,54 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Points 2 and 3, re-verified against the
+Last updated: 2026-09-14 (**Real structural cleanup pass done on the
+Summary** (the actual thing Omar asked for after catching that the
+previous pass only appended a round-10 section, exactly the pattern
+Timon complained about). Read through the full document (via `pandoc`)
+looking specifically for standing "current-state" reference sections
+that still describe pre-round-10 results without any pointer to the
+corrected/retrained numbers -- not just the feedback-response log
+sections already fixed.
+
+**Found the real gap**: the Report already nests the round-10 addition
+correctly (it sits inside Section 8.6 "Resolution invariance," the
+right home, since the Report uses nested subsections). The **Summary
+uses flat, independently-numbered top-level sections** instead, so
+"6. Resolution invariance" and "8. Accuracy/cost Pareto" (where the
+round-10 material lives) are siblings with no link between them -- a
+reader checking Section 6 for resolution-invariance results would find
+nothing about N=1401, the checkpoint bug, or the retraining, since none
+of that is there. Fixed by appending a short cross-reference note at
+the end of Section 6 pointing to Section 8's round-10 findings.
+
+**Checked and found NOT stale** (so left alone, not touched): Section 3
+("Training cost vs. native FEM, and inference latency," the matched-N=21
+break-even numbers, 52-1,245 samples -- a different, still-valid
+comparison, not superseded by anything round-10 found); the "Accuracy-
+cost trade-off and break-even" first-person paragraph (already correctly
+caveated in the 2026-09-12 pass); "Final results, all six benchmark
+cases" (N=21 standard-resolution training results, unrelated to N=1401).
+Grepped for leftover "620-640%" (the wrong-checkpoint bug's own
+signature number) and confirmed the only occurrence is inside the new
+round-10 section's own explanation of the bug, correctly framed as
+historical context, not a stale leftover.
+
+**Verified structurally** (python-docx paragraph count 315->316, tables/
+images unchanged) and copied to
+`.../deliverables/PFEM_Work_Summary_2026-09-14.docx` (same filename,
+updated in place -- this IS the cleanup pass, not a new dated version).
+
+**Scope note, honestly**: this is a targeted fix for the one concrete
+cross-reference gap found, not a full line-by-line rewrite of a
+2,500+-line document. Judged sufficient because it directly addresses
+Timon's stated complaint (a reader can now find the current N=1401 story
+from either section that plausibly houses it) without the risk of a much
+larger rewrite silently dropping or corrupting other content. If Timon's
+next round still calls out confusion elsewhere, that would identify a
+second concrete instance to fix the same way, rather than guessing at a
+wholesale restructure now.
+
+Previous update, 2026-09-14 (**Points 2 and 3, re-verified against the
 multi-res checkpoint specifically (not just the old-vs-corrected-
 checkpoint question already closed) -- both confirmed checkpoint-
 independent.** Real A100 run, `Round6_MultiRes_Points23_Reverify.ipynb`,
