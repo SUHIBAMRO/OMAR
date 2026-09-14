@@ -117,7 +117,69 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Tasks #21 and #23 (round-11) DONE, both
+Last updated: 2026-09-14 (**2 Colab notebooks built for tasks #22
+(partial) and #24, ready for Omar to run** (`e411d45`) -- but only
+after a real bug was found and fixed first, which changed the plan.
+
+**Real bug found while scoping task #22**: `solve_b1_fast_gpu` (the fast
+GPU ground-truth generator behind round-10's own N=1401 accuracy
+pipeline) hardcoded `mu, lam = ...` from the material-parameter
+registry -- crashes ("too many values to unpack") for any material
+other than Neo-Hookean, since Mooney-Rivlin's registry returns 4 values
+and Arruda-Boyce's returns 3. This despite the function already exposing
+a `material=` parameter that looked functional. Confirmed via a local
+CPU check (`_correctness_check`) before trusting anything further.
+**Fixed properly, not patched around**: the underlying physics was
+already material-agnostic (energy_density_fn takes params generically,
+same pattern used throughout training) -- only 3 wrapper function
+signatures (`solve_assembled_direct`, `build_sparse_jac_fn`,
+`check_convergence`) assumed exactly 2 params. Changed to `*mat_params`
+(any length); needed zero call-site changes for `solve_assembled_direct`
+itself (every existing call already passed mu,lam positionally with
+everything else by keyword) and only mechanical keyword-conversion edits
+at `build_sparse_jac_fn`'s 3 callers. **Verified no regression** on every
+already-published piece of infrastructure touched (no_ground_truth_fast's
+own N=21 check: 8.44e-11, unchanged from its own docstring;
+assembled_direct_solver vs. solve_matrix_free: PASS, 1.196e-11;
+tensormesh_comparison vs. TensorMesh: PASS, 1.269e-11), then verified
+the actual fix (mooney_rivlin and arruda_boyce now PASS at N=11: 1.5e-11
+and 4.9e-11, where they previously crashed outright). Committed
+(`2f96fa9`).
+
+**Before spending any GPU time, surfaced two real cost estimates to
+Omar and asked him to choose** (AskUserQuestion): task #24's data-gen
+cost at N=1401 (real, measured: 58.54s/sample) -- 500 samples (matching
+the multi-res checkpoint's own count) would cost ~8.1 GPU-hours on data
+generation ALONE; and task #22's scope (retrain multi-res checkpoints
+for all 5 remaining cases vs. first evaluate with existing checkpoints).
+**Omar chose the recommended/cheaper option both times**: 100+20
+samples for #24 (~1.9 GPU-hours), and existing-checkpoints-first for
+#22.
+
+**Notebooks built and locally smoke-tested** (py_compile + full import
+check of every function called -- GPU parts obviously not runnable
+here):
+- `Round6_N1401_B1_OtherMaterials.ipynb` (task #22, first slice):
+  extends the N=1401 sweep to B1xMooney-Rivlin and B1xArruda-Boyce using
+  their EXISTING N=21,33 zero-shot checkpoints (path convention
+  `zeroshot_B1_{material}/model_best.pt`, confirmed by reading the
+  actual notebooks that produced `point7a_results/zeroshot_B1_
+  {material}.json`, not guessed). **B2's three cases explicitly NOT
+  included** -- B2 has no fast ground-truth path at all yet (a bigger,
+  separate dev task, not attempted this pass). Resolution-matched
+  break-even for these two materials also explicitly deferred (needs a
+  torch-fem@N=1401 number never measured for them).
+- `B1_NeoHookean_Direct_N1401_Ablation.ipynb` (task #24): trains a
+  brand-new checkpoint directly at N=1401 (100+20 samples), then
+  compares training cost/memory/accuracy/inference time against the
+  already-verified multi-res checkpoint numbers. Zero-shot N=1401
+  result stays untouched/separate, per Timon's explicit instruction.
+
+**Not yet run by Omar. Not yet written into the Report/reply.** Next
+step once these come back: fold real numbers into the Report/Summary
+and the eventual reply to Timon, same discipline as every other round.
+
+Previous update, 2026-09-14 (**Tasks #21 and #23 (round-11) DONE, both
 needed ZERO new GPU time** -- realized this before building any
 notebook, exactly the discipline this project tries to keep:
 
