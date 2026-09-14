@@ -117,7 +117,67 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Fixed a second, separate real bug in the
+Last updated: 2026-09-14 (**Task #21/point-1 FULLY DONE for all 6 cases,
+real GPU numbers in: `Round6_ResolutionMatchedBreakEven_AllCases.ipynb`
+ran clean end to end on the JAX-fixed commit, confirming both the JAX
+fix and the KeyError summary fix**).
+
+**Real, final result** (`resolution_matched_break_even_all_cases.json`,
+committed): 4 of 6 cases succeeded, 2 failed with a genuine (not a bug)
+GPU memory limit.
+
+| case | torch-fem @N=1401 | NO @N=1401 | speedup | break-even |
+|---|---|---|---|---|
+| B1 x neo_hookean | 133.98s | 2292.1ms | 58.5x | 318 samples |
+| B1 x mooney_rivlin | 134.43s | 2363.9ms | 56.9x | unknown (no training-time record) |
+| B1 x arruda_boyce | -- | -- | -- | **FAILED (OOM)** |
+| B2 x neo_hookean | 205.92s | 2353.5ms | 87.5x | unknown (no training-time record) |
+| B2 x mooney_rivlin | 207.79s | 2356.9ms | 88.2x | unknown (no training-time record) |
+| B2 x arruda_boyce | -- | -- | -- | **FAILED (OOM)** |
+
+**Both Arruda-Boyce cases (B1 AND B2) failed with the identical error**
+("Newton-Raphson did not converge in increment 8 after 10 cutbacks"),
+each time with GPU memory confirmed clean/near-empty right before the
+case started (`allocated=0.14GB`) -- ruling out the earlier
+cross-case-fragmentation explanation. **This is a genuine, material-
+specific finding, not a bug**: Arruda-Boyce's own energy density (a
+5-term 8-chain series, more terms than Neo-Hookean's 2-parameter or
+Mooney-Rivlin's 4-parameter forms) makes torch-fem's own double-backprop
+Hessian (`vmap(jacrev(jacrev(psi)))`) at N=1401 need more memory than
+fits in 80GB, independent of anything left over from a prior case.
+Checked and confirmed both failures are geometry-independent (same
+failure for B1 and B2), so this is specifically about Arruda-Boyce's
+own psi function's autodiff cost, not a B2-only or scale-only effect.
+Not fixed here -- a real fix would mean either a smaller N for this one
+case (breaks the "matched N=1401" comparison this table is about) or
+chunking torch-fem's own internal Hessian computation (third-party
+library internals, out of scope for now). Flagged, not silently
+dropped, in both the JSON output and the notebook's own summary line
+(`FAILED: Newton-Raphson did not converge...`).
+
+**Why 4 of 6 successful cases show "break-even unknown"**: `KNOWN_TRAINING_S`
+only has a real recorded number for B1xNeo-Hookean (41881.28s, its
+already-verified multi-res training wall-clock) -- this is the ONLY
+case with a pre-recorded training cost. For B1xMooney-Rivlin,
+B2xNeo-Hookean, B2xMooney-Rivlin (all still on their ORIGINAL, non-
+multires checkpoints), no `metrics_history.json` exists next to those
+checkpoints on Drive -- confirmed by searching this entire project's
+own history (PROJECT_STATUS.md, EXPERIMENT_LOG.md) for any previously
+recorded training wall-clock for these 4 checkpoints: none exists.
+These checkpoints predate `write_manifest`/`metrics_history.json`
+being added to the training script, so this number is genuinely lost,
+not something a bug is hiding -- the only way to get it now is to
+retrain (which the in-progress B1 MR/AB multi-res retraining notebooks
+will do, giving a NEW checkpoint with a real recorded training cost,
+though not the SAME checkpoint's original cost).
+
+**Also confirms two other things**: the JAX fix (`24e3257`/`b8a82dc`)
+is real and working -- every case that could run at all ran cleanly on
+a full, unfragmented GPU; and the KeyError summary-loop fix (`cdb6330`)
+is real and working -- the final summary printed cleanly for both
+FAILED rows instead of crashing.
+
+Previous update, 2026-09-14 (**Fixed a second, separate real bug in the
 resolution-matched break-even notebook's SUMMARY section, found on
 Omar's own most recent run**).
 

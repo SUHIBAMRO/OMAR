@@ -1,0 +1,54 @@
+{
+  "N": 1401,
+  "rows": [
+    {
+      "geometry": "B1",
+      "material": "neo_hookean",
+      "N": 1401,
+      "torchfem_ms_per_sample": 133980.51166534424,
+      "no_ms_per_sample": 2292.1,
+      "speedup_vs_torchfem": 58.45317030903723,
+      "training_seconds": 41881.28,
+      "break_even_samples": 318.0331471111644
+    },
+    {
+      "geometry": "B1",
+      "material": "mooney_rivlin",
+      "N": 1401,
+      "torchfem_ms_per_sample": 134432.35039710999,
+      "no_ms_per_sample": 2363.91499042511,
+      "speedup_vs_torchfem": 56.86852147459609,
+      "training_seconds": null
+    },
+    {
+      "geometry": "B1",
+      "material": "arruda_boyce",
+      "N": 1401,
+      "failed": "Newton-Raphson did not converge in increment 8 after 10 cutbacks."
+    },
+    {
+      "geometry": "B2",
+      "material": "neo_hookean",
+      "N": 1401,
+      "torchfem_ms_per_sample": 205921.80132865906,
+      "no_ms_per_sample": 2353.4917068481445,
+      "speedup_vs_torchfem": 87.49629358347505,
+      "training_seconds": null
+    },
+    {
+      "geometry": "B2",
+      "material": "mooney_rivlin",
+      "N": 1401,
+      "torchfem_ms_per_sample": 207789.25776481628,
+      "no_ms_per_sample": 2356.8728637695312,
+      "speedup_vs_torchfem": 88.16311688212264,
+      "training_seconds": null
+    },
+    {
+      "geometry": "B2",
+      "material": "arruda_boyce",
+      "N": 1401,
+      "failed": "Newton-Raphson did not converge in increment 8 after 10 cutbacks."
+    }
+  ]
+}
