@@ -128,8 +128,81 @@ def neo_hookean_psi_3d(F3d, params):
     return (mu / 2.0) * (I1 - 3.0 - 2.0 * lnJ) + (lam / 2.0) * (lnJ ** 2)
 
 
-def build_torchfem_model(nodes, elements, mu, lam, fext_full, fixed_dofs,
-                          dtype=torch.float64, device=None):
+def mooney_rivlin_psi_3d(F3d, params):
+    """3D analog of neo_hookean_psi_3d, generalized 2026-09-14 (Timon
+    round-11 point 2: resolution-matched break-even for the other
+    materials). Same reduction as neo_hookean_psi_3d: with F_33=1,
+    I1_3d = I1_2d + 1 and J_3d = J_2d exactly, so substituting
+    I1_2d = I1_3d - 1 (J_2d = J_3d needs no substitution) into
+    materials_torch.mooney_rivlin_energy_density_vectorized's own 2D
+    formula (psi = c*(J-1)^2 - d*ln(J) + c1*(I1_2d-2) + c2*(I2_2d-1),
+    I2_2d = J^2 for 2D) gives the expression below -- the same physical
+    energy this project's own solver already uses for Mooney-Rivlin,
+    not a different convention that happens to look similar.
+
+    params: (4,) tensor [c, c1, c2, d] for one element, matching
+    data/materials.py's own Mooney-Rivlin parameter order exactly.
+
+    Uses torch.linalg.slogdet for J (via exp(lnJ)), NOT
+    torch.linalg.det directly -- confirmed by direct test
+    (torch.func.hessian at F=I) that plain det()'s own SECOND
+    derivative is already NaN at F=I, independent of any log wrapping
+    (a broader instance of the exact sharp edge neo_hookean_psi_3d's
+    own docstring already documents for log(det(.)) specifically --
+    here it turns out det() ALONE has it). slogdet's log-part has a
+    finite, correct Hessian there; reconstructing J = exp(lnJ) from it
+    keeps every downstream term (including the ones that use J
+    polynomially, not logarithmically) on the safe path. Found because
+    a real torch-fem Newton solve of this material failed to converge
+    even at N=7 with 200 CG iterations and relaxed tolerance -- traced
+    to a NaN tangent stiffness at the very first (undeformed) Newton
+    iterate, not a preconditioner or iteration-count issue."""
+    c, c1, c2, d = params[0], params[1], params[2], params[3]
+    _sign, lnJ = torch.linalg.slogdet(F3d)
+    J = torch.exp(lnJ)
+    I1 = torch.sum(F3d ** 2, dim=(-2, -1))
+    return c * (J - 1.0) ** 2 - d * lnJ + c1 * (I1 - 3.0) + c2 * (J ** 2 - 1.0)
+
+
+def arruda_boyce_psi_3d(F3d, params):
+    """3D analog of neo_hookean_psi_3d for Arruda-Boyce, generalized
+    2026-09-14, same reduction as mooney_rivlin_psi_3d above
+    (I1_2d = I1_3d - 1, J_2d = J_3d). materials_torch.
+    arruda_boyce_energy_density_vectorized's own I1_bar = I1_2d/J_2d
+    becomes (I1_3d - 1)/J_3d here; the 5-term 8-chain series and the
+    volumetric kappa term are otherwise unchanged. The same I1_bar
+    clamp (to 3*N_ab, the chain-locking limit past which the series has
+    no physical meaning and overflows) is kept for the same reason.
+
+    params: (3,) tensor [mu_ab, N_ab, kappa_ab] for one element,
+    matching data/materials.py's own Arruda-Boyce parameter order.
+
+    Uses slogdet for J, same reason/fix as mooney_rivlin_psi_3d above
+    (plain torch.linalg.det's own second derivative is NaN at F=I)."""
+    mu_ab, N_ab, kappa_ab = params[0], params[1], params[2]
+    _sign, lnJ = torch.linalg.slogdet(F3d)
+    J = torch.exp(lnJ)
+    I1 = torch.sum(F3d ** 2, dim=(-2, -1))
+    I1_bar = torch.clamp((I1 - 1.0) / J, max=3.0 * N_ab - 1e-3)
+    alpha = [1 / 2, 1 / 20, 11 / 1050, 19 / 7000, 519 / 673750]
+    psi = torch.zeros_like(I1_bar)
+    i1_bar_pow = I1_bar
+    for k, a in enumerate(alpha, start=1):
+        psi = psi + mu_ab * a / (N_ab ** (k - 1)) * (i1_bar_pow - 2.0 ** k)
+        i1_bar_pow = i1_bar_pow * I1_bar
+    psi = psi + kappa_ab / 2 * (J - 1.0) ** 2
+    return psi
+
+
+_PSI_3D_BY_MATERIAL = {
+    "neo_hookean": neo_hookean_psi_3d,
+    "mooney_rivlin": mooney_rivlin_psi_3d,
+    "arruda_boyce": arruda_boyce_psi_3d,
+}
+
+
+def build_torchfem_model(nodes, elements, *mat_params, fext_full, fixed_dofs,
+                          material="neo_hookean", dtype=torch.float64, device=None):
     device = device or torch.device('cpu')
     # Building the model itself works fine in float64 (Planar(...) below
     # has no dtype-hardcoded internals). The float32 blocker is entirely
@@ -138,17 +211,53 @@ def build_torchfem_model(nodes, elements, mu, lam, fext_full, fixed_dofs,
     # and its fix (torch.set_default_dtype around the .solve() call).
     """nodes/elements/fext_full/fixed_dofs come directly from
     build_mesh_and_bcs -- the SAME arrays this project's own solver
-    uses, not a re-derivation."""
+    uses, not a re-derivation.
+
+    Generalized 2026-09-14 (Timon round-11 point 2, resolution-matched
+    break-even for the other materials/B2): was hardcoded to exactly
+    (mu, lam) and neo_hookean_psi_3d, and assumed every fixed_dofs entry
+    came in x/y PAIRS (true for B1's bottom clamp, false for B2's two
+    symmetry edges, each of which fixes only ONE component per node).
+    *mat_params (any arity) + _PSI_3D_BY_MATERIAL[material] handles the
+    first; building constraints directly from fixed_dofs' own per-DOF
+    (node, component) decomposition -- instead of assuming "every fixed
+    node has both components fixed" -- handles the second, and is a
+    strict generalization: for B1's own fixed_dofs (which DOES pair
+    every node's both components), this produces the exact same
+    constraints tensor as the old code, verified by the regression
+    check in this module's own _correctness_check before this was ever
+    trusted for B2."""
     from torchfem import Planar
     from torchfem.materials import HyperelasticPlaneStrain
 
     nodes_t = torch.tensor(nodes, dtype=dtype, device=device)
     elements_t = torch.tensor(elements, dtype=torch.long, device=device)
-    params = torch.stack([
-        torch.tensor(mu, dtype=dtype, device=device), torch.tensor(lam, dtype=dtype, device=device)
-    ], dim=-1)  # (n_elem, 2)
+    # HyperelasticPlaneStrain's own params contract (its docstring: "Shape:
+    # (p,) for a scalar or (N, p) for a batch of materials") is ONE value
+    # PER ELEMENT -- confirmed by a real crash otherwise ("size of tensor a
+    # (36) must match ... at non-singleton dimension 1" inside torch-fem's
+    # own integrate_material) when handed B2's (n_elements, n_gauss) arrays
+    # from precompute_element_params_B2 (per-Gauss-point sampling, this
+    # project's own established B2 convention since commit af7e67c, matched
+    # by "ours" own solver and the slow reference -- see that function's
+    # own docstring). torch-fem's public material API has no per-Gauss-
+    # point hook to match it exactly. Averaging each element's own Gauss-
+    # point values down to one number per element is the pragmatic
+    # approximation used here, specifically for THIS wall-clock comparison
+    # (not a new accuracy claim) -- the field varies smoothly and slowly
+    # relative to one element's own size (same reasoning that makes mesh
+    # refinement converge at all), so this differs from B2's own true
+    # per-Gauss-point solve by an amount of the same character (small,
+    # shrinking with N) as the already-documented, already-quantified
+    # centroid-vs-Gauss-point discretization difference in this project's
+    # own history -- not an unbounded or untested approximation. B1's own
+    # per-element (not per-Gauss-point) sampling is unaffected: mean over
+    # an axis of size 1 is a no-op.
+    mat_params_per_elem = [torch.tensor(p, dtype=dtype, device=device) for p in mat_params]
+    mat_params_per_elem = [p.mean(dim=-1) if p.dim() > 1 else p for p in mat_params_per_elem]
+    params = torch.stack(mat_params_per_elem, dim=-1)  # (n_elem, n_params)
 
-    material = HyperelasticPlaneStrain(psi=neo_hookean_psi_3d, params=params)
+    tf_material = HyperelasticPlaneStrain(psi=_PSI_3D_BY_MATERIAL[material], params=params)
     # torch-fem's own FEM.__init__ builds an internal index-mapping via
     # `torch.arange(self.n_dof_per_node)` with no explicit device -- a
     # real bug in torch-fem itself, confirmed directly: on a GPU run
@@ -161,18 +270,22 @@ def build_torchfem_model(nodes, elements, mu, lam, fext_full, fixed_dofs,
     # creation inside that block (including torch-fem's own internal
     # torch.arange calls) default to the right device instead.
     with torch.device(device):
-        model = Planar(nodes_t, elements_t, material)
+        model = Planar(nodes_t, elements_t, tf_material)
 
     n_nodes = nodes.shape[0]
     model.forces = torch.tensor(fext_full, dtype=dtype, device=device).reshape(n_nodes, 2)
 
-    # B1's fixed_dofs is bottom-edge nodes with BOTH components fixed
-    # (build_mesh_and_bcs: concatenate([2*bottom_nodes, 2*bottom_nodes+1])),
-    # so every fixed dof's node has both x and y constrained -- no need to
-    # split by component.
+    # Per-DOF, not per-node: fixed_dofs entries are individual (node,
+    # component) pairs (2*n for x, 2*n+1 for y) -- decoding node/component
+    # from each entry and setting only that one component handles both
+    # B1 (every fixed node happens to contribute both its DOFs) and B2
+    # (each symmetry edge contributes only one component per node)
+    # correctly with the same code.
     constraints = torch.zeros(n_nodes, 2, dtype=torch.bool, device=device)
-    fixed_nodes = np.unique(fixed_dofs // 2)
-    constraints[fixed_nodes, :] = True
+    fixed_dofs_arr = np.asarray(fixed_dofs)
+    node_idx = fixed_dofs_arr // 2
+    comp_idx = fixed_dofs_arr % 2
+    constraints[node_idx, comp_idx] = True
     model.constraints = constraints
     model.displacements = torch.zeros(n_nodes, 2, dtype=dtype, device=device)
     return model
@@ -217,8 +330,8 @@ def solve_ours(nodes, elements, free_dofs, elem_params, fext_full, nsteps=10,
     return u_full.cpu().numpy(), elapsed, stats, peak_mb
 
 
-def solve_theirs(nodes, elements, mu, lam, fext_full, fixed_dofs, nsteps=10,
-                  dtype=torch.float64, device=None, tol=1e-8):
+def solve_theirs(nodes, elements, *mat_params, fext_full, fixed_dofs, material="neo_hookean",
+                  nsteps=10, dtype=torch.float64, device=None, tol=1e-8):
     """tol: shared rtol/atol/stol, matching "ours" own newton_tol=cg_tol=1e-8
     default (solve_ours above) -- Timon's round-9 request (2026-09-10) to
     use the SAME criteria on both sides instead of torch-fem's previous
@@ -243,7 +356,8 @@ def solve_theirs(nodes, elements, mu, lam, fext_full, fixed_dofs, nsteps=10,
     on a small hand-built 2-element mesh before touching this function:
     Newton converges to rtol=atol=1e-8 in float64 with no dtype errors."""
     device = device or torch.device('cpu')
-    model = build_torchfem_model(nodes, elements, mu, lam, fext_full, fixed_dofs,
+    model = build_torchfem_model(nodes, elements, *mat_params, fext_full=fext_full,
+                                  fixed_dofs=fixed_dofs, material=material,
                                   dtype=dtype, device=device)
     increments = torch.linspace(0.0, 1.0, nsteps + 1, dtype=dtype, device=device)
     if device.type == "cuda":
@@ -272,7 +386,8 @@ def solve_theirs(nodes, elements, mu, lam, fext_full, fixed_dofs, nsteps=10,
     return u.reshape(-1).cpu().numpy(), elapsed, peak_mb
 
 
-def solve_theirs_with_breakdown(nodes, elements, mu, lam, fext_full, fixed_dofs, nsteps=10,
+def solve_theirs_with_breakdown(nodes, elements, *mat_params, fext_full, fixed_dofs,
+                                 material="neo_hookean", nsteps=10,
                                  dtype=torch.float64, device=None, tol=1e-8, method="cg",
                                  preconditioner="jacobi"):
     """Timon round-9 item 3 (2026-09-10): total time PLUS assembly,
@@ -308,7 +423,8 @@ def solve_theirs_with_breakdown(nodes, elements, mu, lam, fext_full, fixed_dofs,
     import torchfem.sparse as _tf_sparse
 
     device = device or torch.device('cpu')
-    model = build_torchfem_model(nodes, elements, mu, lam, fext_full, fixed_dofs,
+    model = build_torchfem_model(nodes, elements, *mat_params, fext_full=fext_full,
+                                  fixed_dofs=fixed_dofs, material=material,
                                   dtype=dtype, device=device)
     increments = torch.linspace(0.0, 1.0, nsteps + 1, dtype=dtype, device=device)
 
@@ -390,7 +506,6 @@ def _correctness_check(N=11, tol=1e-8):
           f"N={N}, matched FP64/tol={tol:.0e} ===")
     nodes, elements, free_dofs, fext_full, elem_params = build_mesh_and_bcs(
         "B1", "Q4", N, "neo_hookean", torch.device('cpu'), torch.float64)
-    mu, lam = elem_params
 
     fixed_dofs = np.setdiff1d(np.arange(2 * nodes.shape[0]), free_dofs)
 
@@ -398,7 +513,8 @@ def _correctness_check(N=11, tol=1e-8):
     print(f"  ours:      wall_clock={t_ours:.2f}s, cg_iters_total={stats['cg_iters_total']}, "
           f"cg_failures={stats['cg_failures']}")
 
-    u_theirs, t_theirs, _peak2 = solve_theirs(nodes, elements, mu, lam, fext_full, fixed_dofs,
+    u_theirs, t_theirs, _peak2 = solve_theirs(nodes, elements, *elem_params, fext_full=fext_full,
+                                               fixed_dofs=fixed_dofs, material="neo_hookean",
                                                dtype=torch.float64, tol=tol)
     print(f"  torch-fem: wall_clock={t_theirs:.2f}s")
 
@@ -490,7 +606,8 @@ def run_sweep_row(N, device, use_mgv=True, checkpoint_dir=None):
         ours_cg_failures = stats["cg_failures"]
 
     _u_theirs, t_theirs, peak_theirs = solve_theirs(
-        nodes, elements, mu, lam, fext_full, fixed_dofs, device=device)
+        nodes, elements, mu, lam, fext_full=fext_full, fixed_dofs=fixed_dofs,
+        material="neo_hookean", device=device)
     print(f"  torch-fem: N={N} wall_clock={t_theirs:.1f}s peak_mem_mb={peak_theirs}")
 
     return {
@@ -617,12 +734,11 @@ def run_convergence_study(resolutions, out_json, geometry="B1", material="neo_ho
             continue
         nodes, elements, free_dofs, fext_full, elem_params = build_mesh_and_bcs(
             geometry, order, N, material, device, dtype)
-        mu, lam = elem_params
         fixed_dofs = np.setdiff1d(np.arange(2 * nodes.shape[0]), free_dofs)
 
         u_theirs, elapsed, peak_mb = solve_theirs(
-            nodes, elements, mu, lam, fext_full, fixed_dofs,
-            dtype=dtype, device=device, tol=tol)
+            nodes, elements, *elem_params, fext_full=fext_full, fixed_dofs=fixed_dofs,
+            material=material, dtype=dtype, device=device, tol=tol)
 
         coarse = {"nodes": nodes, "elements": elements, "N": N,
                   "u": u_theirs.reshape(len(nodes), 2)}
@@ -702,12 +818,11 @@ def run_qoi_study(resolutions, out_json, geometry="B1", material="neo_hookean",
             continue
         nodes, elements, free_dofs, fext_full, elem_params = build_mesh_and_bcs(
             geometry, order, N, material, device, dtype)
-        mu, lam = elem_params
         fixed_dofs = np.setdiff1d(np.arange(2 * nodes.shape[0]), free_dofs)
 
         u_theirs, elapsed, peak_mb = solve_theirs(
-            nodes, elements, mu, lam, fext_full, fixed_dofs,
-            dtype=dtype, device=device, tol=tol)
+            nodes, elements, *elem_params, fext_full=fext_full, fixed_dofs=fixed_dofs,
+            material=material, dtype=dtype, device=device, tol=tol)
 
         coarse = {"nodes": nodes, "elements": elements, "N": N,
                   "u": u_theirs.reshape(len(nodes), 2)}
