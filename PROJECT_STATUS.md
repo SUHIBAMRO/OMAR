@@ -117,7 +117,37 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Found and fixed a real process gap while
+Last updated: 2026-09-14 (**New standalone deliverable, per Omar's
+request: `PFEM_Round10_Summary_2026-09-14.docx`** (scratchpad
+`deliverables/`, not git-tracked) -- just the five round-10 points, none
+of the older round-9/historical material, for handing to Timon on its
+own without the full multi-round Work Summary.
+
+Built by extracting the exact, already-verified "Response to Timon's
+round-10 feedback" section straight out of the finalized
+`PFEM_Work_Summary_2026-09-14.docx` (same content, same already-fixed
+numbers -- not retyped, so no risk of transcription drift) via
+python-docx, walking the true document-body order (not just
+`.paragraphs`, which skips tables).
+
+**Real bug caught and fixed during this extraction**: the first attempt
+put all 3 images in the wrong place -- bunched together near the top of
+the new document instead of after their respective tables. Root cause:
+`Document.add_paragraph()` inserts before the body's `sectPr` (section
+properties, the very last element) automatically, while the tables/text
+paragraphs were being moved into position with a raw `body.append()`
+call that doesn't know about `sectPr` and lands after it -- two
+different insertion mechanisms silently disagreeing on "the end of the
+document." Fixed by routing every single insertion (tables, copied
+paragraphs, and freshly-built image paragraphs alike) through one
+identical `sectPr.addprevious(el)` call, so nothing could land out of
+order relative to anything else. Verified by walking the saved file's
+own true body sequence end-to-end and printing every element in order --
+confirmed each image now sits directly after its own table's caption,
+matching the source section exactly (4 tables, 3 images, 29 paragraphs
+total).
+
+Previous update, 2026-09-14 (**Found and fixed a real process gap while
 answering Omar's "is anything missing?" check**: both documents' round-10
 sections claimed "re-measured against the retrained multi-resolution
 checkpoint: essentially identical" for points 2 and 3 -- but that exact
