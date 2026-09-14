@@ -117,7 +117,20 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Omar confirmed the finalized email was sent
+Last updated: 2026-09-14 (**Closed 2 of the 4 "Unresolved" flags in
+`EXPERIMENT_LOG.md` by actually checking the live Report tables**,
+prompted by Omar asking "is there anything else left to do" -- neither
+needed Omar's own input after all: the "17,895x vs 25,676x" Pareto
+pair is just N=41's and N=49's own numbers in the same sweep (Report
+table index 40), and the "4.75x/5.47x/2.27x" OOD figures are fully
+attributed in table index 36's "Material @ k=3" column (B2 x
+NH/MR/AB). Two genuinely open items remain: the cached-Hessian
+production run's missing JSON (needs Omar to say whether it exists on
+his Drive), and the exact commit behind the earliest pre-tracker
+report tables (likely untraceable, predates this file itself).
+Committed (`42a124b`), pushed.
+
+Previous update, 2026-09-14 (**Omar confirmed the finalized email was sent
 to Timon** (`advisor_feedback/2026-09-14_final_reply_round10_and_
 provenance.md`, attaching the updated Report and Round-10 Summary).
 Round-10 points 1/2/3/5 reported as complete; point 4 (B7 ring+notch)
