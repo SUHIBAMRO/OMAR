@@ -117,7 +117,40 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Omar explicitly asked for the FULL scope of
+Last updated: 2026-09-14 (**Task #22's ACCURACY/QoI half is now DONE
+for all 6 cases** -- `Round6_N1401_AllRemainingCases.ipynb` (`c75b787`)
+covers the 5 remaining cases (B1xMooney-Rivlin, B1xArruda-Boyce, and
+all 3 of B2), ready for Omar to run. Combined with the already-existing
+B1xNeo-Hookean coverage, every one of the 6 (geometry, material)
+combinations now has a working N=1401 accuracy-degradation-sweep +
+fixed-location-peak-stress pipeline, built on today's new B2
+infrastructure (`solve_b2_fast_gpu`, `evaluate_no_accuracy_at_n1401_b2`,
+`run_no_peak_stress_fixed_location_b2` -- all independently verified,
+see the entries just below). Also built a B2-checkpoint path detail
+worth remembering: B2 uses `zeroshot_B2_{material}_fixedsel/model_best.pt`
+(the Round-6-corrected checkpoints), NOT the un-suffixed
+`zeroshot_B2_{material}/` ones, which are the known-worse pre-fix
+checkpoints -- confirmed by reading `cell_b2_fixed_selection_all.py`
+directly rather than guessing.
+
+**Deliberately NOT included, flagged honestly rather than rushed**:
+the resolution-matched break-even (NO vs. FEM both at N=1401) for these
+5 cases. Root cause checked directly: `torchfem_comparison.py`'s
+`build_torchfem_model` hardcodes both the Neo-Hookean-specific `psi`
+function (params named literally `mu, lam`) and a B1-only BC assumption
+("every fixed node has BOTH displacement components fixed" -- true for
+B1's bottom clamp, FALSE for B2's two symmetry edges, each of which
+fixes only one component). `HyperelasticPlaneStrain` itself (torch-fem's
+own third-party class) is confirmed fully material-agnostic (accepts
+any `psi` callable + params) -- so this IS generalizable, but it is a
+separate, comparably-sized piece of real engineering (new psi functions
+per material, a corrected per-component BC-constraint builder for B2),
+touching the same wrapper behind round-9's already-published,
+carefully-verified 204-306x headline speedup number. Not started this
+pass, to avoid rushing a change with real regression risk to an
+already-reported result -- next up.
+
+Previous update, 2026-09-14 (**Omar explicitly asked for the FULL scope of
 task #22 -- all 6 cases, not just B1's -- "even if it takes time,"
 overriding the earlier deferred-B2 plan. Building this properly now,
 one verified piece at a time, not rushed.**
