@@ -117,7 +117,37 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Built a cheap diagnostic to test whether
+Last updated: 2026-09-14 (**Fixed a real crash in the fewer-load-steps
+diagnostic itself, found on Omar's real GPU run: `AttributeError:
+'NoneType' object has no attribute 'get'`**).
+
+`Test_FewerLoadSteps_N1401.ipynb` crashed immediately after its first
+solve (nsteps=10, seed=0) with `AttributeError: 'NoneType' object has
+no attribute 'get'`. Root cause, confirmed by reading `solve_b1_fast_gpu`'s
+actual source: its 4th return value is a HARDCODED `None`
+(`return u_full, nodes, elements, None`) -- the per-load-step
+`_step_check` dict computed inside its own loop is only ever printed,
+never returned to the caller. The diagnostic script's own bug: it
+assumed that 4th value WAS a live convergence dict (`conv.get(...)`)
+and never actually tested that assumption before pointing it at a real
+GPU.
+
+**Fixed** by replicating the SAME independent, post-hoc convergence
+check every other script in this project already uses for exactly this
+reason (`no_accuracy_at_n1401.py`'s own pattern, `check_convergence`
+called separately after the solve, not trusting a value the solver
+itself never populates) -- added `independent_convergence_check()` to
+`cell_test_fewer_load_steps_n1401.py`. A first fix attempt also had two
+wrong import paths (`precompute_element_params_B1`/`ParametricFieldB1`
+guessed from the wrong modules) -- caught by an AST-based existence
+check across the actual source files before ever re-trusting this on
+GPU, then corrected to their real definitions
+(`omar_pfem.gpu_fem_solver`/`omar_pfem.data.parametric_field`).
+**Verified end-to-end on CPU** (no GPU in this environment) at N=7,
+nsteps=10/5/3 all converging and the independent check running without
+error, before regenerating and pushing the notebook again.
+
+Previous update, 2026-09-14 (**Built a cheap diagnostic to test whether
 task #24's data generation can use fewer than 10 load steps, plus
 exposed `--nsteps` as a CLI flag -- untested speedup candidate, not yet
 applied to the real run**).

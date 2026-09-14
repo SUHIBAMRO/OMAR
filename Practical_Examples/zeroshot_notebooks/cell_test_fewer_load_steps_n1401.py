@@ -69,11 +69,40 @@ import torch
 assert torch.cuda.is_available(), 'this cell needs a real GPU'
 print('GPU:', torch.cuda.get_device_name(0))
 
-from omar_pfem.no_ground_truth_fast import solve_b1_fast_gpu
+import numpy as np
+from omar_pfem.no_ground_truth_fast import (solve_b1_fast_gpu, check_convergence,
+                                             precompute_element_params_B1)
+from omar_pfem.high_dof_convergence_study import assemble_traction_top_generic
+from omar_pfem.data.parametric_field import ParametricFieldB1
 
 N = 1401
 MATERIAL = 'neo_hookean'
 SEEDS = [0, 1, 2]  # 3 quick trials per nsteps value, not the real training seeds
+
+
+def independent_convergence_check(nodes_gt, elems_gt, u_full, seed, device, dtype):
+    # solve_b1_fast_gpu itself always returns None for its own 4th value --
+    # its internal per-load-step residual printouts are never returned to
+    # the caller (real bug found here, 2026-09-14: this cell originally
+    # assumed that 4th value WAS a convergence dict, crashing with
+    # AttributeError: 'NoneType' object has no attribute 'get' the moment
+    # it ran on a real GPU). Fixed by replicating the SAME independent,
+    # post-hoc check every other script in this project already uses
+    # (no_accuracy_at_n1401.py) instead of trusting a value that was never
+    # actually populated.
+    E_fn = ParametricFieldB1("E", seed)
+    nu_fn = ParametricFieldB1("nu", seed)
+    ty_fn = ParametricFieldB1("ty", seed)
+    tolx = 1e-12
+    bottom_nodes = np.where(np.abs(nodes_gt[:, 1]) < tolx)[0]
+    fixed_dofs = np.concatenate([2 * bottom_nodes, 2 * bottom_nodes + 1])
+    ndof = 2 * len(nodes_gt)
+    free_dofs = np.setdiff1d(np.arange(ndof), fixed_dofs)
+    fext_full = assemble_traction_top_generic(nodes_gt, elems_gt, 1.0, ty_fn, "Q4")
+    mat_params = precompute_element_params_B1(nodes_gt, elems_gt, E_fn, nu_fn, MATERIAL)
+    return check_convergence(nodes_gt, elems_gt, free_dofs, fext_full, mat_params,
+                              u_full, MATERIAL, "Q4", device, dtype)
+
 
 results = {}
 for nsteps in (10, 5, 3):
@@ -81,14 +110,16 @@ for nsteps in (10, 5, 3):
     rows = []
     for seed in SEEDS:
         t0 = time.time()
-        u_flat, nodes_gt, elems_gt, conv = solve_b1_fast_gpu(
+        u_flat, nodes_gt, elems_gt, _ = solve_b1_fast_gpu(
             N, seed, MATERIAL, torch.device('cuda'), torch.float64, nsteps=nsteps)
         dt = time.time() - t0
-        print(f'  seed={seed}: wall_clock={dt:.1f}s  converged_likely={conv.get("converged_likely")}  '
-              f'relative_residual={conv.get("relative_residual"):.3e}')
+        conv = independent_convergence_check(nodes_gt, elems_gt, u_flat, seed,
+                                              torch.device('cuda'), torch.float64)
+        print(f'  seed={seed}: wall_clock={dt:.1f}s  converged_likely={conv["converged_likely"]}  '
+              f'relative_residual={conv["relative_residual"]:.3e}')
         rows.append({'seed': seed, 'wall_clock_s': dt,
-                      'converged_likely': conv.get('converged_likely'),
-                      'relative_residual': conv.get('relative_residual')})
+                      'converged_likely': conv['converged_likely'],
+                      'relative_residual': conv['relative_residual']})
     results[nsteps] = rows
 
 print('\n' + '=' * 70)
