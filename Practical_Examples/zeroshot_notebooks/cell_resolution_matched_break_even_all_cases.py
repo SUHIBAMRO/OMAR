@@ -136,6 +136,32 @@ for geometry, material, ckpt, model_args in CASES:
     print(f'# {case_id}')
     print('#' * 78)
 
+    # ---- Start each case with a genuinely clean GPU memory state ----
+    # Real OOM hit on a live A100 run (2026-09-14): peak_mem_mb climbed
+    # case-to-case within the SAME process (Neo-Hookean 70.8GB ->
+    # Mooney-Rivlin 73.6GB -> Arruda-Boyce OOM'd trying to allocate just
+    # 1.18GB more with 78.6GB already "in use") even though each case
+    # solves the identical-size problem independently -- the classic
+    # PyTorch caching-allocator fragmentation pattern the OOM message
+    # itself points at ("reserved but unallocated memory is large").
+    # torch-fem's own tangent-stiffness Hessian (vmap(jacrev(jacrev(psi))))
+    # is memory-hungry at N=1401's ~4M DOF regardless, and Arruda-Boyce's
+    # own psi (a 5-term power series, the longest computational graph of
+    # the three materials) needs more of it than Neo-Hookean/Mooney-Rivlin's
+    # simpler polynomial forms -- but it should not need MORE than its own
+    # honest requirement just because two earlier cases ran first in the
+    # same kernel. gc.collect() + empty_cache() between cases (not inside
+    # solve_theirs itself, to avoid touching that already-verified function)
+    # gives each case a fresh allocator state instead of fighting whatever
+    # fragmentation the previous case left behind.
+    import gc
+    gc.collect()
+    if device.type == 'cuda':
+        torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats(device)
+        print(f'  [gpu mem before this case] allocated={torch.cuda.memory_allocated(device)/1e9:.2f}GB '
+              f'reserved={torch.cuda.memory_reserved(device)/1e9:.2f}GB')
+
     # ---- torch-fem @ N=1401, matched FP64/1e-8 precision ----
     nodes, elements, free_dofs, fext_full, elem_params = build_mesh_and_bcs(
         geometry, 'Q4', N, material, device, torch.float64)
@@ -143,9 +169,37 @@ for geometry, material, ckpt, model_args in CASES:
     if device.type == 'cuda':
         torch.cuda.synchronize(device)
     t0 = time.time()
-    u_theirs, t_theirs, peak_mb = solve_theirs(
-        nodes, elements, *elem_params, fext_full=fext_full, fixed_dofs=fixed_dofs,
-        material=material, dtype=torch.float64, device=device, tol=1e-8)
+    try:
+        u_theirs, t_theirs, peak_mb = solve_theirs(
+            nodes, elements, *elem_params, fext_full=fext_full, fixed_dofs=fixed_dofs,
+            material=material, dtype=torch.float64, device=device, tol=1e-8)
+    except RuntimeError as e:
+        # Real OOM caught here on a live run (2026-09-14): the actual exception
+        # that propagates out of model.solve() is torchfem's own RuntimeError
+        # ("Newton-Raphson did not converge ... after N cutbacks"), NOT a bare
+        # torch.cuda.OutOfMemoryError -- torchfem's own try/except around each
+        # Newton iteration treats an OOM as just another failed-to-converge
+        # step and retries with cutbacks (which cannot fix an OOM, so it always
+        # exhausts them and raises its own wrapped RuntimeError instead).
+        # torch.cuda.OutOfMemoryError IS a RuntimeError subclass, so this also
+        # catches the rarer case where OOM escapes uncaught.
+        is_oom = 'out of memory' in str(e).lower() or 'did not converge' in str(e).lower()
+        if not is_oom:
+            raise
+        print(f'  *** {case_id} failed (likely OOM at N={N} inside torch-fem\'s own Hessian -- '
+              f'"{e}") after a fresh-memory reset. Skipping this case rather than crashing the '
+              f'whole sweep; see PROJECT_STATUS.md for real fix options (e.g. a smaller N for '
+              f'this specific case). ***')
+        # Free whatever partial allocation remains from the failed attempt before continuing.
+        gc.collect()
+        if device.type == 'cuda':
+            torch.cuda.empty_cache()
+        results.append({'geometry': geometry, 'material': material, 'N': N, 'failed': str(e)})
+        continue
+    # Explicitly drop the large mesh/solution arrays for this case before moving on,
+    # rather than letting them survive (referenced by the loop variable) until the
+    # next iteration reassigns them.
+    del nodes, elements, free_dofs, fext_full, elem_params, u_theirs
     print(f'  torch-fem @ N={N}: wall_clock={t_theirs:.2f}s, peak_mem_mb={peak_mb}')
 
     # ---- NO @ N=1401 inference (eager fp32) ----
