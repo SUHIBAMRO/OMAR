@@ -117,7 +117,60 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Closed the cached-Hessian "Unresolved" flag
+Last updated: 2026-09-14 (**TIMON'S ROUND-11 REPLY RECEIVED**, saved
+verbatim to `advisor_feedback/2026-09-14_round11_timon.md`. Reaction to
+the round-10+provenance email: points 1/2/3/5 "much clearer," four new
+asks before point 4 (B7) gets discussed further. Tracked as new tasks
+#21-24 (task tool), task #16 (B7) now explicitly `addBlockedBy` all
+four -- Timon's own words: "Once this is finished, let's discuss Point
+4 separately before you invest the GPU time into the new geometry."
+
+1. **(Task #21)** Keep BOTH break-even comparisons in the report, not
+   just the accuracy-matched one: also add a resolution-MATCHED
+   break-even (NO vs. FEM, both AT N=1401), using the already-measured
+   optimized (compile+TF32) inference numbers -- Timon expects this one
+   to look much more favorable to the NO. Need a real FEM solve time at
+   N=1401 to pair against it (may already exist from round-9/10 data --
+   check before re-running anything on GPU).
+2. **(Task #22)** Extend the whole N=1401 accuracy/QoI/break-even
+   analysis from B1xNeo-Hookean-only to all 6 (geometry x material)
+   cases, as far as feasible. Also build ONE clear table showing, per
+   case, which specific QoI/norm (L2, H1, energy, reactions, peak
+   stress) actually determines that case's "accuracy-matched" FEM
+   resolution -- Timon explicitly said it's currently unclear why N=11
+   is the number for B1xNH, and correctly anticipates it won't be the
+   same QoI in every case.
+3. **(Task #23)** Document the multi-resolution training protocol in
+   real detail: exactly how N=21/33/101/201 are sampled/weighted
+   relative to each other during training (not yet written down
+   precisely anywhere), and the reasoning behind choosing those 4
+   specific resolutions. Must be answered from the actual training
+   code, not from memory.
+4. **(Task #24)** Train a NEW, separate ablation checkpoint for
+   B1xNeo-Hookean directly AT N=1401 (single-resolution, matching the
+   deployment resolution) and compare it against the existing
+   multi-res (N=21/33/101/201->1401 zero-shot) checkpoint on training
+   cost, memory, final accuracy/QoIs, and inference time. Timon
+   explicit: keep the zero-shot number separate, since it tests a
+   different thing (resolution generalization vs. "just train where
+   you'll deploy"). Real GPU training time, contingent on feasibility
+   (his own phrasing) -- dataset generation cost at N=1401 needs
+   checking before committing to this.
+
+On point 4 (B7): Timon confirms the notched-ring design is "a good
+starting point" but wants the FINAL example to include several
+different geometries, not one fixed geometry, and stresses FEM's N
+must be large enough at whichever geometry is used for the NO's
+advantage to actually show up. Not yet discussed further with Omar or
+committed to any specific plan -- explicitly on hold per his own
+request until #21-24 land.
+
+**Not yet started on any of #21-24** -- this entry only records receipt
+and breakdown of the feedback; scope/order still needs to be agreed
+with Omar before spending any real GPU time, same discipline as every
+previous round.
+
+Previous update, 2026-09-14 (**Closed the cached-Hessian "Unresolved" flag
 in `EXPERIMENT_LOG.md`, confirmed directly by Omar**: it was the first
 of three attempts at speeding up "ours" own matrix-free solver, GPU-
 verified at production scale (~09-10/11) and found NOT to close the
