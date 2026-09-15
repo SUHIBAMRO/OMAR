@@ -5,15 +5,79 @@ currently in progress, and (3) everything queued after that -- all in
 ONE file, formal address ("Dear Professor Rabczuk", never his first
 name alone), no admission/concession language.
 """
+import json
 import os
 
 from docx import Document
-from docx.shared import Pt
+from docx.shared import Pt, Inches
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 
+PF = '/home/user/OMAR/Practical_Examples/omar_pfem'
+FIG = '/home/user/OMAR/Practical_Examples/report_builders/figures'
 DELIV = '/tmp/claude-0/-home-user/64d7c4d8-d5f0-5686-a58f-aa87abfd4ba4/scratchpad/deliverables'
 OUT = os.path.join(DELIV, 'Timon_Status_Update_2026-09-15.docx')
 
 doc = Document()
+
+
+def load_richer(material):
+    return json.load(open(os.path.join(PF, 'point9_results', f'mms_richer_B1_{material}.json')))
+
+
+def fmt(v):
+    return f'{v:.3e}'
+
+
+def add_data_table(header, rows):
+    tbl = doc.add_table(rows=1 + len(rows), cols=len(header))
+    tbl.style = 'Light Grid Accent 1'
+    for j, h in enumerate(header):
+        c = tbl.cell(0, j)
+        c.text = ''
+        r = c.paragraphs[0].add_run(h)
+        r.bold = True
+    for i, row in enumerate(rows, start=1):
+        for j, v in enumerate(row):
+            tbl.cell(i, j).text = str(v)
+    return tbl
+
+
+def table_rows_for(rows):
+    out = []
+    for r in rows:
+        out.append([r['order'], r['N'], f"{r['n_dof']:,}", fmt(r['L2_rel']), fmt(r['H1_semi_rel']),
+                    fmt(r['stress_rel_L2']), fmt(r['energy_rel']), fmt(r['energy_norm_rel'])])
+    return out
+
+
+def rate_rows_for(material_label, rates):
+    out = []
+    for order in ('Q4', 'Q9'):
+        for norm_key, norm_label, theory in [
+            ('L2', 'L2', 2 if order == 'Q4' else 3),
+            ('H1_semi', 'H1 semi-norm', 1 if order == 'Q4' else 2),
+            ('stress', 'Stress', 1 if order == 'Q4' else 2),
+            ('energy_norm', 'Energy norm', 1 if order == 'Q4' else 2),
+        ]:
+            r = rates[order][norm_key]
+            pw = ', '.join(f'{v:.2f}' for v in r['pairwise'])
+            out.append([material_label, order, norm_label, f"{r['rate']:.2f}", theory, pw])
+    return out
+
+
+def add_caption(text):
+    p = doc.add_paragraph()
+    r = p.add_run(text)
+    r.italic = True
+    r.font.size = Pt(9)
+    return p
+
+
+def add_figure(image_path, caption_text, width_in=6.0):
+    img_p = doc.add_paragraph()
+    img_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    img_p.add_run().add_picture(image_path, width=Inches(width_in))
+    add_caption(caption_text)
 
 
 def title(text):
@@ -80,6 +144,25 @@ para('Same four resolutions and both element orders (Q4, Q9) as Tables 22/22a/22
      'row reports the internal-energy value (the original metric) and the energy norm '
      'side by side, so the two can be compared directly:')
 para('')
+
+nh = load_richer('neo_hookean')
+mr = load_richer('mooney_rivlin')
+ab = load_richer('arruda_boyce')
+HEADER = ['Order', 'N', 'DOF', 'L2', 'H1 semi-norm', 'Stress', 'Energy (value)', 'Energy norm']
+
+add_data_table(HEADER, table_rows_for(nh['rows']))
+add_caption('Table 22c. Q4 and Q9 against the richer-mode manufactured solution, B1 '
+            'geometry, Neo-Hookean, FP64.')
+para('')
+add_data_table(HEADER, table_rows_for(mr['rows']))
+add_caption('Table 22d. Q4 and Q9 against the richer-mode manufactured solution, B1 '
+            'geometry, Mooney-Rivlin, FP64.')
+para('')
+add_data_table(HEADER, table_rows_for(ab['rows']))
+add_caption('Table 22e. Q4 and Q9 against the richer-mode manufactured solution, B1 '
+            'geometry, Arruda-Boyce, FP64.')
+para('')
+
 p3 = doc.add_paragraph()
 p3.add_run('energy norm = sqrt( ∫ grad(e):C(F*):grad(e) dV / ∫ grad(u*):C(F*):'
            'grad(u*) dV )').italic = True
@@ -92,7 +175,22 @@ para('Table 23b gives the corresponding convergence rates for all three material
      '2 at Q9) rather than double it, consistent with Céa’s lemma for a norm rather '
      'than a value. All 24 rows land on their theoretical rate.')
 para('')
-para('Figure 28a (Report) / 27a (Summary) plots the same convergence data.')
+
+rate_header = ['Material', 'Order', 'Norm', 'Observed rate', 'Theory', 'Pairwise']
+rate_rows = (rate_rows_for('Neo-Hookean', nh['convergence_rates'])
+             + rate_rows_for('Mooney-Rivlin', mr['convergence_rates'])
+             + rate_rows_for('Arruda-Boyce', ab['convergence_rates']))
+add_data_table(rate_header, rate_rows)
+add_caption('Table 23b. Observed convergence rates on the richer-mode field, all three '
+            'materials, fitted by least squares on log h.')
+para('')
+
+para('Figure 28a (Report) / 27a (Summary) plots the same convergence data:')
+para('')
+add_figure(os.path.join(FIG, 'fig_mms_richer_convergence.png'),
+           'Figure 28a. Method of manufactured solutions, richer multi-mode family: '
+           'convergence rates in the energy norm, all three materials, Q4 and Q9 '
+           '(Tables 22c/22d/22e/23b).')
 para('')
 bold_lead('Representative numbers: ',
           'Neo-Hookean, Q4, N=33 — L2 = 2.011e-03, H1 semi-norm = 5.392e-02, energy '
