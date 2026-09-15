@@ -117,7 +117,78 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**✅ CLOSED: Omar's explicit decision --
+Last updated: 2026-09-15 (**✅ CLOSED FOR REAL THIS TIME: Timon's
+round-8 point 6 (richer MMS family + energy norm, not the scalar
+internal-energy value) -- Timon told Omar directly it was "still
+open," and he was right: the 2026-09-09 "fix" only ever reached a
+side JSON + a Summary text blurb, never the actual Report/Summary
+documents. Now genuinely reflected in BOTH canonical `.docx`
+deliverables, verified structurally, not just claimed in chat.**).
+
+Omar relayed Timon's exact wording: "we should use a combination of
+several spatial sine/cosine modes rather than essentially one spatial
+mode with different amplitudes and compute the actual energy norm of
+the error rather than the scalar internal-energy error." Investigated
+before touching anything: found this was ALREADY raised once before
+(round-8 point 6, `advisor_feedback/2026-09-06_round8_timon.md:34`),
+marked "DONE" on 2026-09-09, but the close was incomplete -- re-ran
+the richer family + confirmed `energy_norm_rel` converges at the
+correct (H1) rate for all three materials
+(`point9_results/mms_richer_B1_*.json`, `rate_check` "as expected" for
+both Q4 and Q9), yet PROJECT_STATUS.md's own 2026-09-09 entry states
+outright "no Report edit was needed" -- the Report's actual Tables
+22/22a/22b and Figure 27/28 were left showing the ORIGINAL single-
+mode/energy-value study. That is exactly why Timon still sees it as
+open: he reads the Report, and nothing in it had changed.
+
+**Scoped deliberately narrow, and why**: did NOT touch Tables
+22/22a/22b/24 series in place. Table 24's own text explicitly reuses
+"the N=17 rows of Table 22... not a second measurement" and computes
+its operator/Q4 ratios (2.42x, 1.03x, 3.11x) directly from them --
+editing Table 22 in place would have silently invalidated those ratios
+(comparing a richer-family Q4/Q9 number against an operator still
+scored on the single-mode field) without re-running the separate,
+much larger operator-vs-FEM study, which is outside what Timon asked
+for here. Instead, added NEW tables/figure after Table 23a, following
+this project's own established lettering convention (same one already
+used for 22a/22b/23a): **Tables 22c/22d/22e** (Neo-Hookean/Mooney-
+Rivlin/Arruda-Boyce on the richer multi-mode field, columns include
+BOTH "Energy (value)" and "Energy norm" side by side so the
+superconvergence-vs-correct-rate distinction is visible, not just
+asserted), **Table 23b** (rates on the richer field, energy-norm rate
+now correctly matching H1's own theoretical rate -- 1 at Q4, 2 at Q9
+-- instead of double it), and a new **Figure 28a** (Report) / **Figure
+27a** (Summary, matching that document's own separate figure
+numbering for the same original image) plotting the richer-family
+energy-norm convergence (`fig_mms_richer_convergence.png`, built by
+the new `make_figure_mms_richer.py`, same plotting convention as the
+existing `make_figure_mms.py` -- confirmed that script's OWN figure
+already always plotted `energy_norm_rel` correctly, it was only ever
+pointed at the wrong, single-mode data file).
+
+**No new GPU/CPU solving needed** -- the 2026-09-09 richer-family runs
+were already complete and correct data, just never wired into the
+actual deliverables. New scripts: `report_builders/
+make_figure_mms_richer.py`, `report_builders/
+add_richer_mms_to_report.py`, `report_builders/
+add_richer_mms_to_summary.py` (committed). **Verified structurally
+before calling this done** (not just "the script ran"): table/paragraph/
+image counts increased by exactly the expected amounts in both
+documents (+4 tables, +8 paragraphs, +1 image each), a real figure-
+number collision was caught and fixed (a naive "Figure 29" would have
+collided with an unrelated pre-existing Figure 29 later in the Report
+-- renumbered to 28a/27a following the table-lettering convention
+instead of renumbering every figure after it), and every new table's
+actual cell contents were spot-checked against the source JSON by
+direct XML-order traversal (not `doc.tables[]` indexing, which does
+not track insertion order for tables added via raw XML `addnext`).
+
+New canonical copies saved: `PFEM_Transolver_Report_2026-09-15.docx`
+and `PFEM_Work_Summary_2026-09-15.docx` (scratchpad `deliverables/`,
+not git-tracked, per this project's standing convention -- old dated
+copies kept alongside, not deleted).
+
+Previous update, 2026-09-15 (**✅ CLOSED: Omar's explicit decision --
 Arruda-Boyce's torch-fem break-even failure is accepted as a
 permanent torch-fem limitation, not pursued further. Comparison
 sweep's own error message corrected to stop asserting "likely OOM"
