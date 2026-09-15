@@ -117,7 +117,46 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**🎉 B1×Arruda-Boyce multi-resolution retrain
+Last updated: 2026-09-15 (**✅ nsteps=3 speedup CONFIRMED SAFE for B2 too
+and APPLIED to production -- real A100 run of
+`Test_FewerLoadSteps_B2_MultiRes.ipynb`: all 72 solves (2 materials ×
+4 resolutions × 3 nsteps × 3 seeds) converged, `nsteps=3` gives a real
+1.46x speedup uniformly across every material/resolution combination.
+Both B2 multi-res retrain notebooks now use `--nsteps 3`.**).
+
+This was a genuinely open question, not assumed: the earlier nsteps=3
+verification (`Test_FewerLoadSteps_N1401.ipynb`) was specific to
+N=1401 and said nothing about B2's own, much smaller resolutions
+(21,33,101,201). Built a dedicated diagnostic
+(`cell_test_fewer_load_steps_b2_multires.py`/
+`Test_FewerLoadSteps_B2_MultiRes.ipynb`) testing both B2 materials
+(Neo-Hookean, Mooney-Rivlin) at all 4 resolutions, nsteps=10/5/3, 3
+seeds each -- 72 real GPU solves. Result: **100% convergence, zero
+failures**, at every single (material, N, nsteps) combination --
+worst relative residual across the whole sweep was 1.955e-09, still
+far tighter than the 1e-7 convergence tolerance. Real measured
+speedup: nsteps=10 mean=8.73s, nsteps=5 mean=6.81s (1.28x), nsteps=3
+mean=5.98s (**1.46x**).
+
+**Applied to both B2 multi-res retrain notebooks**
+(`make_b2_multires_retrain_notebooks.py`, shared generator): added
+`--nsteps 3` to both the data-generation (Cell 2) and training (Cell
+3) commands, matching the same pattern already used for task #24.
+Regenerated `B2_NeoHookean_MultiRes_Retrain.ipynb` and
+`B2_MooneyRivlin_MultiRes_Retrain.ipynb`, verified via `ast.parse`.
+Since neither B2 job has started yet, this applies from the very
+first sample generated -- no mixed-nsteps caching concern here (unlike
+task #24, which had to reconcile already-generated nsteps=10 samples
+with new nsteps=3 ones).
+
+**Expected impact**: B2's own data-generation cost (already
+relatively cheap, ~3h10m for 2000 samples per material at nsteps=10,
+per the real B1×Mooney-Rivlin manifest number) drops by roughly a
+third -- modest in absolute terms as already flagged to Omar before
+running this, but free given the diagnostic itself only cost a few
+minutes of GPU time.
+
+Previous update, 2026-09-15 (**🎉 B1×Arruda-Boyce multi-resolution retrain
 FULLY DONE -- real GPU completion, no crash, genuine accuracy fix at
 N=1401 (45.6% -> 25.1% relative L2 error), same improvement pattern
 already seen for Neo-Hookean. Also real, reassuring evidence (not

@@ -156,6 +156,13 @@ def build(material):
                f"بتولّد 400 عينة تدريب + 100 تحقّق لكل حجم من الأربعة "
                f"({TRAIN_RESOLUTIONS}).",
                "",
+               "**تسريع حقيقي مُتحقّق منه، 2026-09-15** "
+               "(`Test_FewerLoadSteps_B2_MultiRes.ipynb`، تشغيل حقيقي على A100): "
+               "جربنا `nsteps=3` على B2 بكل أحجامها الأربعة والمادتين معاً "
+               "(3 seeds لكل توليفة، 72 حل إجمالاً) -- **كلها تقاربت بنجاح تام "
+               "بدون استثناء واحد**، بتسريع حقيقي 1.46x عن `nsteps=10` الافتراضي. "
+               "هاد النوتبوك هلق بيستخدم `--nsteps 3`.",
+               "",
                "**بتحفظ على Drive كل 25 عينة** — إذا وقف النوتبوك، رجّع شغّل",
                "نفس الخلية وبتكمّل من وين وقفت."),
             code(
@@ -163,7 +170,7 @@ def build(material):
                 f"    --geometry B2 --material {material} \\",
                 f"    --train_resolutions {TRAIN_RESOLUTIONS} \\",
                 "    --n_train_per_res 400 --n_val_per_res 100 \\",
-                "    --fast_solver 1 \\",
+                "    --fast_solver 1 --nsteps 3 \\",
                 "    --gen_chunk 25 --stop_after_generation \\",
                 "    --out_dir \"$OUT\"",
             ),
@@ -179,7 +186,7 @@ def build(material):
                 f"    --geometry B2 --material {material} \\",
                 f"    --train_resolutions {TRAIN_RESOLUTIONS} \\",
                 "    --n_train_per_res 400 --n_val_per_res 100 \\",
-                "    --fast_solver 1 \\",
+                "    --fast_solver 1 --nsteps 3 \\",
                 "    --epochs 2000 --validate_every 25 --batch_size 8 \\",
                 "    --early_stop_patience 8 --lr 2e-3 \\",
                 "    --out_dir \"$OUT\"",
