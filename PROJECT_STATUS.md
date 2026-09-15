@@ -117,7 +117,49 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**⚠️ Confirmed by reading the code: OUR OWN
+Last updated: 2026-09-15 (**🎉 B1×Arruda-Boyce multi-resolution retrain
+FULLY DONE -- real GPU completion, no crash, genuine accuracy fix at
+N=1401 (45.6% -> 25.1% relative L2 error), same improvement pattern
+already seen for Neo-Hookean. Also real, reassuring evidence (not
+proof) that our own solver's shared chain-locking-clamp exposure
+(previous entry below) does not actually cause a problem in
+practice: all 16 resolutions, both checkpoints, converged with
+relative_residual ~1e-10 -- clean, tight, no sign of degeneracy.**).
+
+`B1_ArrudaBoyce_MultiRes_Retrain.ipynb` finished end-to-end on a real
+A100: training resumed cleanly (per the earlier real disconnect/
+resume), Cell 4's comparison ran the full 16-resolution sweep for both
+OLD (N=21,33-only) and NEW (N=21,33,101,201) checkpoints against real
+FEM ground truth, with the `torch.cuda` memory cleanup fix (`12cad97`)
+holding -- no cuDSSError this time. Real result table (disp_rel_L2,
+OLD vs NEW):
+
+| N | OLD | NEW | better? |
+|---|---|---|---|
+| 13 | 0.2368 | 0.1913 | YES |
+| 17 | 0.1814 | 0.1587 | YES |
+| 21 | 0.1452 | 0.1396 | YES |
+| 25-101 | 0.0635-0.1192 | 0.1151-0.1292 | no (worse near old training res) |
+| 201 | 0.1922 | 0.1129 | YES |
+| 401 | 0.2789 | 0.1379 | YES |
+| 701 | 0.3543 | 0.1832 | YES |
+| 1001 | 0.4056 | 0.2178 | YES |
+| **1401** | **0.4562** | **0.2505** | **YES -- the target resolution** |
+
+Same tradeoff pattern already documented for B1×Neo-Hookean's own fix:
+slightly worse very close to the OLD checkpoint's narrow training
+range (N=25-101), clearly and increasingly better everywhere the old
+checkpoint actually degraded (N=201 upward), with the improvement
+growing with N -- exactly what multi-resolution training is supposed
+to buy. The fix is smaller in absolute terms than Neo-Hookean's
+(44.65%->5.85%) but still a genuine, substantial improvement (nearly
+halving the N=1401 error), not a marginal one.
+
+**GPU session freed** -- this job is completely done (training +
+comparison), freeing a concurrent-session slot for B2 or the
+fewer-load-steps diagnostic.
+
+Previous update, 2026-09-15 (**⚠️ Confirmed by reading the code: OUR OWN
 ground-truth solver shares the exact same chain-locking clamp as
 torch-fem's Arruda-Boyce implementation -- same risk in principle, not
 something we're immune to. Deliberately did NOT add a live diagnostic
