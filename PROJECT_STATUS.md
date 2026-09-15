@@ -117,7 +117,66 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**🧪 FOLLOW-UP diagnostic built (not yet run):
+Last updated: 2026-09-15 (**REAL RESULT of the 3-way convergence test
+(N=21, 3000 steps): TF32 does NOT harm final accuracy (same-seed fp32 vs
+TF32 stayed close and stable, 0.686 vs 0.633 final val error) -- BUT the
+measured speedup was 1.00x, i.e. NONE, at this resolution. The 1.12x
+seen in the very first (200-step) test was almost certainly warm-up
+noise, not a real effect. Also surfaced a SEPARATE, real finding: the
+fp32-vs-fp32 different-seed control run (seed=5678) itself spiked to
+val error 7.24 mid-training and never fully recovered (ended at 2.10 vs
+seed=1234's 0.686) -- a real training-instability event unrelated to
+TF32, flagged but not yet investigated (out of scope for this question).
+Built a THIRD diagnostic, `Test_TF32_Speed_N201.ipynb` (not yet run):
+tests whether TF32 gives a real per-step speedup at N=201, the LARGEST
+resolution in the multi-res set and the one that actually dominates a
+training epoch's cost, since N=21's matmuls may simply be too small to
+be tensor-core-bound regardless of precision.**).
+
+The 3000-step run (`Test_TF32_Training_Convergence.ipynb`) gave real
+per-checkpoint validation numbers (per_component, N=21):
+
+| step | A fp32/1234 | B fp32/5678 | C TF32/1234 |
+|---|---|---|---|
+| 300 | 0.799 | 0.657 | 0.860 |
+| 1200 | 0.639 | 0.608 | 0.695 |
+| 2100 | 0.627 | **7.239** (spike) | 0.654 |
+| 3000 | 0.686 | 2.105 | 0.633 |
+
+A and C (same seed, only precision differs) track each other closely
+the whole way -- no instability, no divergence, TF32 ends up if
+anything marginally better here. B (different seed, same fp32
+precision) is the one that misbehaves, which means the original plan
+(use |A-B| as the "natural noise floor" to judge TF32 against) doesn't
+quite work as intended: B is not a clean example of normal variation,
+it's an outlier instability event, so the computed ratio (0.04) is not
+fully trustworthy on its own -- though the direct A-vs-C comparison
+still independently supports "TF32 doesn't hurt accuracy here."
+
+Wall-clock: 95.3s (A) vs 93.4s (B) vs 94.9s (C) for 3000 steps each --
+essentially identical. **No real speedup at N=21.** Since N=21 is the
+cheapest/smallest resolution in the multi-res set (21,33,101,201), its
+matmuls may just be too small for TF32's tensor cores to matter,
+independent of whether TF32 is "safe." The real practical question is
+whether TF32 helps at N=201 -- the resolution with by far the biggest
+matmuls and the one that actually dominates a training epoch's
+wall-clock. Built `cell_test_tf32_speed_n201.py` /
+`Test_TF32_Speed_N201.ipynb` (generator:
+`make_test_tf32_speed_n201_notebook.py`) to test exactly that: 100 timed
+real training steps (after 10 warm-up steps, excluded from the timing)
+at N=201, fp32 vs TF32, same seed, reporting per-step wall-clock and a
+basic stability sanity check (no NaN/Inf, comparable loss magnitude) --
+not a full accuracy study again, since the numerical mechanism (TF32
+lowers matmul mantissa precision) doesn't depend on N and was already
+checked properly above. Not yet run on a real GPU.
+
+If N=201 also shows no real speedup, TF32-for-training should be
+dropped entirely (no resolution in the production range benefits). If
+it does show a real speedup there, that is where the actual time
+saving on a full multi-res job would come from, and it would be worth
+estimating the total training-time impact before adopting it.
+
+Previous update, 2026-09-15 (**🧪 FOLLOW-UP diagnostic built (not yet run):
 Omar asked whether TF32-for-training can be salvaged given even a
 modest (~1 hour on a long job) real speedup would be worth it. Realized
 the first test's decision rule (loss-TRAJECTORY matching) is arguably
