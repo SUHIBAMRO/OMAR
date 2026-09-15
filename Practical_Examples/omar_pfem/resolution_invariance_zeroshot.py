@@ -389,6 +389,28 @@ def cmd_train(args):
     dtype = torch.float32
     os.makedirs(args.out_dir, exist_ok=True)
 
+    # Opt-in (default off, so every existing run/checkpoint is reproduced
+    # identically): TF32 matmul precision for TRAINING, not just inference
+    # (already validated separately -- no_inference_torch_compile.py).
+    # Verified safe here too, 2026-09-15, via a proper controlled
+    # experiment (Test_TF32_Training_Convergence_N201.ipynb, real A100):
+    # at N=201 (the largest, most expensive resolution in every multi-res
+    # training set so far), a same-seed TF32 run tracked a same-seed fp32
+    # run's own validation error far more closely (final |A-C|=3.05e-4)
+    # than two DIFFERENT-seed fp32 runs already differ by (|A-B|=1.77e-2,
+    # ~58x larger) -- i.e. TF32's own effect is well inside ordinary
+    # training noise, not a real extra source of harm. Real, repeatable
+    # speedup: 2.08x over 1200 real steps (matches the 2.10x measured
+    # separately over 100 timed steps). At N=21 (the smallest resolution)
+    # the same investigation found NO speedup (1.00x) -- so this mainly
+    # helps whichever resolutions in --train_resolutions are largest.
+    if int(getattr(args, "tf32", 0)):
+        torch.set_float32_matmul_precision("high")
+        print("[tf32] torch.set_float32_matmul_precision('high') enabled for training "
+              "-- verified safe (no meaningful accuracy cost beyond ordinary seed-to-seed "
+              "noise) and a real ~2.08x-2.10x speedup at N=201, see PROJECT_STATUS.md "
+              "2026-09-15 for the full controlled experiment.")
+
     np.random.seed(args.seed); random.seed(args.seed); torch.manual_seed(args.seed)
 
     train_resolutions = [int(n) for n in args.train_resolutions.split(",") if n.strip()]
@@ -1019,6 +1041,11 @@ def add_common_args(p):
     # gradients (checkpoint recomputes the exact same forward exactly
     # during backward), only the memory/compute tradeoff.
     p.add_argument("--grad_checkpoint", type=int, default=0)
+    # Opt-in, default off. Verified safe + a real speedup at N=201
+    # (2026-09-15, see cmd_train's own comment above and PROJECT_STATUS.md);
+    # no measurable speedup at N=21, so mainly worth it when the largest
+    # resolution in --train_resolutions is 101+.
+    p.add_argument("--tf32", type=int, default=0)
 
 
 def main():

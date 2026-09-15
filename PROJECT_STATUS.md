@@ -117,7 +117,50 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**🚨 SECOND real OOM on task #24, batch_size=1
+Last updated: 2026-09-15 (**✅ TF32-for-training CONFIRMED and APPLIED: the
+N=201 convergence test (`Test_TF32_Training_Convergence_N201.ipynb`,
+1200 real steps, real A100) came back clean -- TF32's own deviation from
+the same-seed fp32 run (|A-C|=3.05e-4) is ~58x SMALLER than two
+different-seed fp32 runs already differ by (|A-B|=1.77e-2, and this
+time B behaved normally, unlike the N=21 test's own outlier run), with a
+real, repeatable **2.08x speedup** (matches the 2.10x measured
+separately in the short timing-only test). Added as a new opt-in
+`--tf32` flag (default off) to `resolution_invariance_zeroshot.py`, and
+turned ON for both B2 multi-res retrain notebooks, the ones that will
+actually benefit (they train up to N=201, the resolution where this
+helps).**).
+
+This closes out the whole TF32-for-training investigation Omar asked to
+pursue ("even an hour would be excellent, try it"): rejected outright
+at first (trajectory mismatch), re-examined because that decision rule
+was too strict for stochastic training, found genuinely safe but with
+ZERO speedup at N=21 (too small to be matmul-bound), found a real 2.10x
+speedup at N=201 in a quick timing test, and now CONFIRMED that speedup
+holds over a full 1200-step run with accuracy safety independently
+re-verified at the resolution that actually matters. Net result: TF32
+is a real, adopted speedup specifically for the largest resolution(s) in
+a multi-res training set, worth nothing at small resolutions -- both
+facts now documented, not assumed.
+
+Implementation: `--tf32` (default `0`) added next to `--grad_checkpoint`
+in `add_common_args`; `cmd_train` calls
+`torch.set_float32_matmul_precision("high")` once, near the top, only
+when the flag is set -- same mechanism already validated for inference
+in `no_inference_torch_compile.py`. Applied via `--tf32 1` in Cell 3
+(training only, not Cell 2's data generation, which is a pure FEM solve
+and unaffected by matmul precision) of both
+`B2_NeoHookean_MultiRes_Retrain.ipynb` and
+`B2_MooneyRivlin_MultiRes_Retrain.ipynb` (`make_b2_multires_retrain_
+notebooks.py`), since these are the next real jobs to run and they train
+up to N=201. **Deliberately NOT yet applied** to the direct-N1401
+ablation notebook (`B1_NeoHookean_Direct_N1401_Ablation.ipynb`), which
+was already mid-fix (batch_size + grad_checkpoint) this same day and
+should not be given a third reason to need a fresh-tab restart while
+still unverified at N=1401 itself -- worth adding once that job's
+current run settles, since N=1401 has even bigger matmuls than N=201
+and TF32 should help at least as much there.
+
+Previous update, 2026-09-15 (**🚨 SECOND real OOM on task #24, batch_size=1
 alone was NOT enough -- fixed properly this time with GRADIENT
 CHECKPOINTING, added as a new opt-in, default-off model feature and
 CPU-verified bit-identical (0.0 diff, forward AND every gradient) before

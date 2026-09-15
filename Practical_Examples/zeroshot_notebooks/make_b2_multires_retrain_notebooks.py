@@ -180,13 +180,21 @@ def build(material):
                "نفس بروتوكول B1 بالضبط (2000 epoch كحد أقصى، "
                "early stopping بصبر 8، batch_size=8، lr=2e-3) — بس على",
                "أربع أحجام بدل حجمين. B2 بتحتاج loss_force_norm تلقائياً",
-               "(الكود بيفعّلها لوحده لما geometry=B2، مش شي إضافي هون)."),
+               "(الكود بيفعّلها لوحده لما geometry=B2، مش شي إضافي هون).",
+               "",
+               "**تسريع تدريب حقيقي مُتحقّق منه، 2026-09-15** "
+               "(`Test_TF32_Training_Convergence_N201.ipynb`، تشغيل حقيقي على "
+               "A100، 1200 خطوة حقيقية): TF32 عند N=201 (أكبر حجم بهاي "
+               "المجموعة) آمن تماماً على الدقة (انحراف TF32 عن نفس الـseed "
+               "أصغر بـ58 ضعف من التذبذب الطبيعي بين seedين مختلفين بنفس "
+               "الدقة العادية)، وبتسريع حقيقي **2.08x**. هاد النوتبوك هلق "
+               "بيستخدم `--tf32 1`."),
             code(
                 "!python -m omar_pfem.resolution_invariance_zeroshot train \\",
                 f"    --geometry B2 --material {material} \\",
                 f"    --train_resolutions {TRAIN_RESOLUTIONS} \\",
                 "    --n_train_per_res 400 --n_val_per_res 100 \\",
-                "    --fast_solver 1 --nsteps 3 \\",
+                "    --fast_solver 1 --nsteps 3 --tf32 1 \\",
                 "    --epochs 2000 --validate_every 25 --batch_size 8 \\",
                 "    --early_stop_patience 8 --lr 2e-3 \\",
                 "    --out_dir \"$OUT\"",
