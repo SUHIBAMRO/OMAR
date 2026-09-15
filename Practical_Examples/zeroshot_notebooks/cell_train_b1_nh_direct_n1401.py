@@ -37,10 +37,24 @@
 #  mismatch in the cost ESTIMATE, not a bug in the solver or a missed
 #  speedup opportunity.
 #
-#  COST ESTIMATE (data generation only, before training) -- CORRECTED:
-#    120 samples x ~587s/sample ~= 70,440s ~= 19.6 GPU-hours
-#  (the 58.54s-based estimate below undercounts by ~10x; kept crossed out
-#  in spirit, corrected in the number actually used for planning)
+#  SPEEDUP FOUND AND APPLIED (2026-09-14, Test_FewerLoadSteps_N1401.ipynb,
+#  real A100 run): nsteps=10 is not actually required -- every one of its
+#  own 10 steps converged far tighter than the 1e-7 tolerance ever needed,
+#  suggesting fewer/larger steps would still work. Tested nsteps=5 and
+#  nsteps=3 directly (3 seeds each, independent post-hoc convergence check,
+#  not guessed): BOTH fully converged, and nsteps=3 was not only 1.64x
+#  faster (358.1s/sample mean vs. 588.9s/sample for nsteps=10, same 3
+#  seeds) but its relative residuals were actually TIGHTER (worst 4.459e-12
+#  vs. nsteps=10's own 3.859e-10). This cell now passes --nsteps 3.
+#  Mixing nsteps across samples already generated at nsteps=10 and new ones
+#  at nsteps=3 is safe -- it only changes the SOLUTION METHOD used to reach
+#  convergence, not the converged physical solution itself.
+#
+#  COST ESTIMATE (data generation only, before training) -- CORRECTED TWICE:
+#    120 samples x ~358s/sample ~= 42,960s ~= 11.9 GPU-hours (with nsteps=3)
+#  (the original 58.54s-based estimate undercounted by ~10x; the first
+#  correction, 587s/sample at nsteps=10, was itself ~1.64x higher than
+#  necessary once nsteps=3 was verified safe)
 #  Training cost itself is unknown in advance (single-resolution N=1401
 #  training has never been run) -- tracked for real via write_manifest,
 #  not guessed.
@@ -125,18 +139,27 @@ for f in sorted(os.listdir(OUT)):
 N_TRAIN = 100
 N_VAL = 20
 
-print(f'\nEstimated data-generation cost: {N_TRAIN + N_VAL} samples x ~587s/sample '
-      f'(real, measured on this cell\'s own nsteps=10 incremental-loading path @ N=1401 -- '
-      f'NOT the 58.54s single-shot number, which does not converge here; see the module '
-      f'header comment\'s CORRECTION for why) '
-      f'~= {(N_TRAIN + N_VAL) * 587.0 / 3600:.2f} GPU-hours.\n')
+# nsteps=3 verified SAFE 2026-09-14 (Test_FewerLoadSteps_N1401.ipynb, real
+# A100 run): 3 seeds all converged_likely=True at N=1401, relative residuals
+# actually TIGHTER than nsteps=10's own (worst 4.459e-12 vs 3.859e-10), and
+# 1.64x faster (358.1s/sample mean vs 588.9s/sample for nsteps=10 on the
+# SAME 3 seeds). Mixing nsteps across samples in the same cache is safe --
+# it only changes the SOLUTION METHOD, not the converged physical solution
+# -- so switching mid-run does not invalidate the samples already generated
+# at nsteps=10.
+NSTEPS = 3
+
+print(f'\nEstimated data-generation cost: {N_TRAIN + N_VAL} samples x ~358s/sample '
+      f'(real, measured, nsteps={NSTEPS}, verified SAFE on a real A100 run -- '
+      f'Test_FewerLoadSteps_N1401.ipynb, 2026-09-14) '
+      f'~= {(N_TRAIN + N_VAL) * 358.0 / 3600:.2f} GPU-hours.\n')
 
 # ---- Step 1: generate FEM ground truth at N=1401 (fast solver) ----
 run([sys.executable, '-u', '-m', 'omar_pfem.resolution_invariance_zeroshot', 'train',
      '--geometry', 'B1', '--material', 'neo_hookean',
      '--train_resolutions', '1401',
      '--n_train_per_res', str(N_TRAIN), '--n_val_per_res', str(N_VAL),
-     '--fast_solver', '1',
+     '--fast_solver', '1', '--nsteps', str(NSTEPS),
      '--gen_chunk', '10', '--stop_after_generation',
      '--out_dir', OUT])
 
@@ -146,7 +169,7 @@ run([sys.executable, '-u', '-m', 'omar_pfem.resolution_invariance_zeroshot', 'tr
      '--geometry', 'B1', '--material', 'neo_hookean',
      '--train_resolutions', '1401',
      '--n_train_per_res', str(N_TRAIN), '--n_val_per_res', str(N_VAL),
-     '--fast_solver', '1',
+     '--fast_solver', '1', '--nsteps', str(NSTEPS),
      '--epochs', '2000', '--validate_every', '25', '--batch_size', '8',
      '--early_stop_patience', '8', '--lr', '2e-3',
      '--out_dir', OUT])

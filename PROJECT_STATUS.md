@@ -117,7 +117,42 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-14 (**Fixed a real crash in the fewer-load-steps
+Last updated: 2026-09-15 (**Real speedup CONFIRMED and APPLIED: task
+#24's data generation now uses nsteps=3, verified 1.64x faster and MORE
+accurate than nsteps=10 on a real A100 run**).
+
+`Test_FewerLoadSteps_N1401.ipynb` finished its full 9-trial sweep (3
+seeds x nsteps=10/5/3) cleanly after the crash fix above. Real result:
+
+| nsteps | mean wall-clock | speedup vs. nsteps=10 | all converged | worst relative residual |
+|---|---|---|---|---|
+| 10 (baseline) | 588.9s | 1.00x | yes | 3.859e-10 |
+| 5 | 450.0s | 1.31x | yes | 1.636e-09 |
+| 3 | 358.1s | **1.64x** | yes | **4.459e-12** (tighter than baseline) |
+
+nsteps=3 is not just faster but converges to a TIGHTER residual than
+nsteps=10 on these 3 seeds -- a genuinely verified, safe speedup, not
+a guess. **Applied to the real, in-progress task #24 job**:
+`cell_train_b1_nh_direct_n1401.py` now passes `--nsteps 3` to both the
+data-generation and training commands (via the newly-added `--nsteps`
+CLI flag), and its own header comment/cost estimate corrected a second
+time: 120 samples now costs **~11.9 GPU-hours** for data generation
+(down from the ~19.6h estimate at nsteps=10, itself already a
+correction of the original wrong ~1.9h estimate). Mixing nsteps across
+samples in the same cache is safe -- confirmed this only changes the
+solution method, not the converged physical solution, so the ~15+
+samples already generated at nsteps=10 in the currently-running job
+stay valid; only new samples generated after this fix is pulled will
+use nsteps=3.
+
+**Action needed on the already-running Colab session**: interrupt the
+current cell and re-run from the top (Step 1 in the notebook re-clones/
+re-fetches the branch, so it will pick up `--nsteps 3` automatically) --
+it resumes from wherever `samples_cache_N1401.pt` left off, just faster
+from that point forward. Regenerated `B1_NeoHookean_Direct_N1401_
+Ablation.ipynb`, verified via `ast.parse` before commit.
+
+Previous update, 2026-09-14 (**Fixed a real crash in the fewer-load-steps
 diagnostic itself, found on Omar's real GPU run: `AttributeError:
 'NoneType' object has no attribute 'get'`**).
 
