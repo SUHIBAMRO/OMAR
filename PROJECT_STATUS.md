@@ -117,7 +117,48 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**🧪 NEW diagnostic built (not yet run): does TF32
+Last updated: 2026-09-15 (**❌ REAL GPU RESULT: TF32 matmul precision is NOT
+safe for training, REJECTED -- `Test_TF32_Training.ipynb` ran on a real
+A100. Speedup was modest (1.12x, nowhere near inference's 4.67x) AND the
+loss trajectory diverged hard (mean relative difference 121% across 200
+steps, e.g. step 40: fp32=14.3 vs TF32=129 -- ~9x apart). Decision rule
+(mean rel diff < 5%) failed by a wide margin. NOT applied to production
+training.**).
+
+Exactly the risk flagged before running it: inference is a single
+forward pass with fixed weights, so a small TF32 precision difference in
+one matmul stays small in the output. Training is 200 sequential Adam
+steps -- each step's gradient (computed through the hyperelastic energy,
+which is sensitive to small numerical differences) feeds directly into
+the next step's starting point, so a small per-step precision difference
+compounds instead of staying bounded. Real numbers from the run
+(N=21, batch_size=8, 400 real samples from the finished
+`zeroshot_B1_neo_hookean_multires` job, identical seed/model-init/batch-
+order in both runs so TF32 was the only variable):
+
+| step | fp32 loss | TF32 loss | rel diff |
+|---|---|---|---|
+| 0 | 149.76 | 149.79 | 2.3e-04 (fine, as expected for step 0) |
+| 20 | 149.84 | 225.83 | 0.51 |
+| 40 | 14.34 | 129.14 | 8.00 (worst) |
+| 60 | 2.45 | 14.92 | 5.08 |
+| 100 | 0.555 | 0.927 | 0.67 |
+| 180 | 0.223 | 0.294 | 0.32 |
+
+Both trajectories stayed finite (no NaN/Inf) and both eventually
+decreased, but they are visibly different optimization runs, not two
+noisy copies of the same one -- confirms training amplifies TF32's
+precision loss in a way inference never showed. Also worth noting: even
+the SPEEDUP alone was unimpressive here (1.12x) -- at this small problem
+size (N=21, batch=8) training is not matmul-bound the way N=1401
+inference was, so even a "safe" result would have bought little. Both
+findings point the same direction: **do not use TF32 for training**;
+keep it only where already validated (inference).
+
+No production files were touched -- this was purely a read-only
+diagnostic against a finished job's cached samples, as designed.
+
+Previous update, 2026-09-15 (**🧪 NEW diagnostic built (not yet run): does TF32
 matmul precision help TRAINING, not just inference? Omar's explicit
 request -- he is stopping his own running B2 notebook to free a GPU slot
 and test this. Waiting on a real GPU run of `Test_TF32_Training.ipynb`.**).
