@@ -117,7 +117,33 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**REAL RESULT of the 3-way convergence test
+Last updated: 2026-09-15 (**REAL RESULT at N=201 (100 timed steps,
+`Test_TF32_Speed_N201.ipynb`): a REAL 2.10x per-step speedup (547.0ms
+fp32 vs 260.5ms TF32) -- N=201 is the LARGEST resolution in the
+multi-res set, so this is where a substantial time saving (likely much
+more than "an hour", not just modest like N=21) could actually come
+from. BUT the loss gap after 100 steps was bigger than N=21 showed at a
+comparable step count (fp32=0.0697 vs TF32=0.3857, ~5.5x) -- N=21's own
+early gap did eventually close by step 3000, so it is not yet known
+whether N=201's gap is the same kind of transient or a real, persistent
+problem at this resolution. Built a 4th diagnostic (not yet run),
+`Test_TF32_Training_Convergence_N201.ipynb`: the same 3-way controlled
+experiment (fp32/seedA, fp32/seedB, TF32/seedA) used at N=21, run at
+N=201 with 1200 steps (fewer than N=21's 3000, since each N=201 step
+costs ~15-20x more wall-clock) to see whether the gap closes with more
+training the way it did at N=21.**).
+
+This diagnostic also has a built-in honesty check carried over from the
+N=21 result's own limitation: there, the fp32-different-seed control run
+(B) itself blew up mid-training (a real instability unrelated to TF32),
+which made the "natural noise floor" used to judge TF32 less trustworthy
+than intended. The new script automatically flags if run B does the same
+thing here, and the verdict now requires BOTH a ratio check AND a direct,
+ratio-independent A-vs-C comparison (TF32 must land within 50% of the
+same-seed fp32 run's own final value) before calling it safe -- not the
+ratio alone, in case B misbehaves again. Not yet run on a real GPU.
+
+Previous update, 2026-09-15 (**REAL RESULT of the 3-way convergence test
 (N=21, 3000 steps): TF32 does NOT harm final accuracy (same-seed fp32 vs
 TF32 stayed close and stable, 0.686 vs 0.633 final val error) -- BUT the
 measured speedup was 1.00x, i.e. NONE, at this resolution. The 1.12x
