@@ -117,7 +117,68 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**🚨 REVISED DIAGNOSIS: the `cuDSSError:
+Last updated: 2026-09-15 (**Arruda-Boyce chunked-Hessian fix (`ae2810b`)
+CONFIRMED FAILED on real GPU, second time -- chunking itself worked
+(found valid chunk sizes down to 390 points with no crash), but
+torch-fem's own Newton-Raphson solve still fails identically to
+before the fix. Real root cause still not isolated -- torch-fem
+swallows the true underlying error.**).
+
+Omar's live re-run of the resolution-matched break-even notebook
+(real A100, GPU clean beforehand: `allocated=0.14GB` right before this
+case) hit the exact same failure as before the chunked-Hessian fix:
+`Newton-Raphson did not converge in increment 8 after 10 cutbacks`.
+
+**What the log actually shows, read carefully**: the chunking DID work
+for its own narrow job -- every one of 8 separate Newton-iteration
+calls to the material's `step()` successfully found a working chunk
+size by halving (50000 -> ... -> 390), with NO chunk ever hitting the
+`if size <= 1: raise` floor. So the per-point Hessian computation
+itself never threw `torch.cuda.OutOfMemoryError` after the fix.
+
+**Real finding from reading torch-fem's own installed source
+(`torchfem/base.py` line ~819-848)**: the Newton-Raphson loop wraps
+`newton_solve(...)` in a bare `except RuntimeError as err`, and ANY
+`RuntimeError` (including `torch.cuda.OutOfMemoryError`, which IS a
+`RuntimeError` subclass in PyTorch) gets caught, the load-step cut in
+half, and retried -- after `max_cutbacks` (10) failed attempts it
+raises a NEW, generic `RuntimeError(f"Newton-Raphson did not converge
+in increment {n} after {max_cutbacks} cutbacks.") from err`, where
+`from err` only sets `__cause__` for traceback display -- `str(e)` of
+this outer exception does NOT include the original error's message.
+**This means the actual root cause is invisible in both the printed
+log and the JSON's own `'failed': str(e)` field** -- both only ever
+show this generic text, whether the real cause was memory, a singular
+matrix, NaN, or anything else.
+
+**Also found**: `cell_resolution_matched_break_even_all_cases.py`'s
+own except-block (line 238) treats `'out of memory' in str(e).lower()
+or 'did not converge' in str(e).lower()` as EQUIVALENT ("likely OOM"),
+printing the same canned diagnosis text either way -- so the existing
+"likely OOM" framing in this project's own logs/docs for this failure
+was never actually confirmed against the true underlying exception,
+just inferred from a generic message that can mean several different
+things.
+
+**Since the chunked per-point Hessian call itself no longer throws
+OOM, the real remaining bottleneck (if it is still memory) is most
+likely torch-fem's own GLOBAL sparse stiffness assembly/linear solve
+inside `newton_solve()` -- which uses the FULL, un-chunked `ddsdde`
+tensor for every element at once and was never touched by this fix --
+or this may be a genuine numerical non-convergence for Arruda-Boyce at
+N=1401 unrelated to memory at all. Not yet determined which.**
+
+**Not yet decided**: whether to spend more dev+GPU time modifying the
+except-catch to surface `err.__cause__`'s real message (cheap, CPU-only
+change, would definitively answer "memory or not") before deciding
+whether a further fix (chunking the global assembly too, or accepting
+this as a genuine torch-fem limitation for this material) is worth
+pursuing -- asked Omar directly rather than deciding unilaterally,
+given two fix attempts have already failed and this is a secondary
+comparison baseline, not the neural operator's own accuracy story
+(which already succeeds for Arruda-Boyce independently, per task #22).
+
+Previous update, 2026-09-15 (**🚨 REVISED DIAGNOSIS: the `cuDSSError:
 ALLOC_FAILED` crash was likely NOT (only) a memory-cleanup bug --
 real Drive evidence shows Colab silently downgraded the B1×Mooney-
 Rivlin multi-res session from an A100 to a Tesla T4 mid-run after a
