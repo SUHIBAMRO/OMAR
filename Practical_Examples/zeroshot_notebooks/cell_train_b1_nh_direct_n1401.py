@@ -219,13 +219,29 @@ run([sys.executable, '-u', '-m', 'omar_pfem.resolution_invariance_zeroshot', 'tr
 # top of the batch_size=1 slowdown already expected). Untested at
 # N=1401 until this run happens; the already-generated samples_cache.pt
 # is untouched and reused as-is, so this only re-runs the training step.
+#
+# VALIDATE_EVERY FIX (2026-09-15, found by Omar asking why a real run sat
+# silent with no printed progress): with n_train_per_res=100 and
+# batch_size=1 (forced by the OOM fixes above), one epoch is 100 steps --
+# the multi-res checkpoints' own --validate_every 25 (fine at batch_size=8,
+# where 25 epochs is a few thousand steps of CHEAP small-N work) means the
+# FIRST print here would not happen until 2500 steps of N=1401's own much
+# more expensive steps (~2.29s/sample eager forward alone, before backward,
+# checkpoint recompute, and the FEM energy assembly's own cost) -- easily
+# hours of total silence before any confirmation the run is even healthy.
+# Dropped to --validate_every 2 (200 steps to first print) purely for
+# faster feedback on a configuration that has never been run before; this
+# does not change what is learned, only how soon partial progress becomes
+# visible. early_stop_patience=8 is left unchanged, now counted in units
+# of "every 2 epochs" instead of "every 25", i.e. slightly more responsive
+# early stopping too, not just faster feedback.
 _train_started = time.time()
 run([sys.executable, '-u', '-m', 'omar_pfem.resolution_invariance_zeroshot', 'train',
      '--geometry', 'B1', '--material', 'neo_hookean',
      '--train_resolutions', '1401',
      '--n_train_per_res', str(N_TRAIN), '--n_val_per_res', str(N_VAL),
      '--fast_solver', '1', '--nsteps', str(NSTEPS),
-     '--epochs', '2000', '--validate_every', '25', '--batch_size', '1',
+     '--epochs', '2000', '--validate_every', '2', '--batch_size', '1',
      '--grad_checkpoint', '1',
      '--early_stop_patience', '8', '--lr', '2e-3',
      '--out_dir', OUT])

@@ -117,7 +117,42 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**🚨 THIRD real OOM on task #24 -- real progress
+Last updated: 2026-09-15 (**🐢 Task #24's allocator-config fix WORKED
+(no crash this time) but Omar caught a real usability problem: the run
+sat completely silent, with `--validate_every 25` inherited unchanged
+from the multi-res checkpoints' own recipe, meaning the FIRST print
+would not arrive until 2500 steps of N=1401's own expensive
+batch_size=1 steps -- plausibly hours of total silence before any
+confirmation the run is even healthy. Fixed to `--validate_every 2`
+(200 steps to first print). Not a correctness change, purely feedback
+speed.**).
+
+The multi-res checkpoints' `--validate_every 25` made sense there:
+batch_size=8 means one epoch is only ~12-13 steps of comparatively cheap
+work (N up to 201 only), so 25 epochs was a few hundred cheap steps.
+Here, the OOM fixes forced batch_size=1, so one epoch at N=1401
+(`n_train_per_res=100`) is 100 steps, each individually far more
+expensive (N=1401 has ~1.966M nodes vs ~201's ~40,804) -- the same
+"25 epochs before any print" recipe silently became "2500 very
+expensive steps before any print," with no way to distinguish a
+healthy-but-slow run from a hung one in the meantime. Dropped to
+`--validate_every 2` (200 steps to first print) -- this also means
+`train_state_latest.pt`/`model_best.pt` now save every 2 epochs instead
+of every 25, so less wall-clock is at risk if a future interruption
+happens before the first checkpoint. `early_stop_patience=8` left
+numerically unchanged, now simply counted in units of "every 2 epochs"
+instead of "every 25" (slightly more responsive early stopping as a
+side effect, not the point of the change).
+
+Regenerated `B1_NeoHookean_Direct_N1401_Ablation.ipynb`, verified via
+`ast.parse`. This is the FOURTH fix to this notebook today -- as always,
+a completely fresh Colab tab is required to pick it up; the training run
+in progress when this was found had already been sitting silent since
+before the fix, so nothing further was lost by restarting it (no
+checkpoint had been written yet either way, since epoch 25 -- the old
+threshold -- was never reached).
+
+Previous update, 2026-09-15 (**🚨 THIRD real OOM on task #24 -- real progress
 this time (got all the way through the full forward pass and into
 `loss.backward()` itself before failing), fixed with a cheap,
 zero-risk allocator config change: `PYTORCH_CUDA_ALLOC_CONF=
