@@ -258,6 +258,39 @@ def _build_chunked_hyperelastic_plane_strain_class():
             with torch.enable_grad():
                 F_new = (F3D + H_inc_3D).requires_grad_(True)
                 n = F_new.shape[0]
+
+                # Diagnostic added 2026-09-15, NOT a fix -- checks a real
+                # candidate root cause for the "Newton-Raphson did not
+                # converge" failure that survives the chunking fix above.
+                # arruda_boyce_psi_3d (this module) clamps I1_bar to
+                # 3*N_ab-1e-3 to avoid NaN/overflow in the chain series;
+                # a CPU test of that exact function confirmed the clamp
+                # makes the chain-stretch contribution to stress exactly
+                # flat (zero local sensitivity, bit-identical psi under a
+                # +-1e-4 perturbation) once triggered -- suspicious for a
+                # Newton solve, since a real chain-locking material should
+                # stiffen, not flatten. Not yet confirmed this is THE
+                # cause (needs a real GPU run to know whether the actual
+                # solve ever reaches this regime) -- this block only
+                # reports whether it does, at negligible cost (one
+                # comparison over the same tensor already being computed).
+                if self.params.shape[-1] == 3:
+                    with torch.no_grad():
+                        I1_full = torch.sum(F_new.detach() ** 2, dim=(-2, -1))
+                        _sign, lnJ_full = torch.linalg.slogdet(F_new.detach())
+                        J_full = torch.exp(lnJ_full)
+                        I1_bar_full = (I1_full - 1.0) / J_full
+                        N_ab_full = (self.params[..., 1] if self.is_vectorized
+                                     else self.params[1].expand(n))
+                        limit = 3.0 * N_ab_full - 1e-3
+                        n_clamped = (I1_bar_full >= limit).sum().item()
+                        if n_clamped > 0:
+                            print(f'  [chunked hyperelastic] {n_clamped}/{n} points at the '
+                                  f'chain-locking clamp this call (max I1_bar='
+                                  f'{I1_bar_full.max().item():.3f}, worst limit='
+                                  f'{limit.min().item():.3f}) -- candidate cause of the '
+                                  f'Newton non-convergence, see PROJECT_STATUS.md.')
+
                 P_parts, ddsdde_parts = [], []
                 start, size = 0, self.chunk_size
                 while start < n:

@@ -248,10 +248,26 @@ for geometry, material, ckpt, model_args in CASES:
         is_oom = 'out of memory' in str(e).lower() or 'did not converge' in str(e).lower()
         if not is_oom:
             raise
+        # Real candidate cause found 2026-09-15 (CPU-verified, not yet confirmed on a
+        # real solve): arruda_boyce_psi_3d clamps I1_bar at the chain-locking limit
+        # to avoid NaN/overflow; a direct test of that exact function shows the
+        # clamp makes the chain-stretch part of the stress exactly flat once
+        # triggered (bit-identical under a +-1e-4 perturbation), which is a
+        # suspicious, physically-backwards behavior right where Newton would need
+        # a well-conditioned tangent. The chunked material class above now reports
+        # (via its own print, see torchfem_comparison.py) whenever a real solve
+        # actually reaches this regime -- if that print appeared above, this is
+        # very likely the true cause; if it never appeared, this is NOT it and the
+        # search continues. torch-fem's own except RuntimeError in base.py still
+        # discards the real underlying error before re-raising this generic
+        # message, so err.__cause__ is the only way to see it -- surfaced below.
+        real_cause = getattr(e, '__cause__', None)
         print(f'  *** {case_id} failed at N={N} -- torch-fem\'s own Newton-Raphson solve did '
-              f'not converge ("{e}"). Root cause not conclusively memory (see PROJECT_STATUS.md, '
-              f'2026-09-15 entry) -- accepted as a torch-fem limitation for this material/size, '
-              f'not pursued further. Skipping this case rather than crashing the whole sweep. ***')
+              f'not converge ("{e}"). Real underlying error (via __cause__): '
+              f'{type(real_cause).__name__ if real_cause else "none captured"}: {real_cause}. '
+              f'Check the chunked-hyperelastic print above for chain-locking-clamp hits -- see '
+              f'PROJECT_STATUS.md, 2026-09-15 entry for the full investigation. Skipping this '
+              f'case rather than crashing the whole sweep. ***')
         # Free whatever partial allocation remains from the failed attempt before continuing.
         gc.collect()
         if device.type == 'cuda':

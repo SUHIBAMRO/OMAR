@@ -117,7 +117,76 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**✅ CLOSED FOR REAL THIS TIME: Timon's
+Last updated: 2026-09-15 (**🔬 REOPENED Arruda-Boyce/torch-fem investigation
+per Omar's explicit instruction ("keep digging until it actually works,
+don't just ask Timon and accept it") -- found a real, CPU-verified
+candidate root cause: the chain-locking safety clamp in
+`arruda_boyce_psi_3d` makes the chain-stretch stress contribution go
+EXACTLY FLAT once triggered, a physically-backwards, suspicious
+behavior for a Newton solve. Not yet confirmed as THE cause -- added a
+zero-cost diagnostic that will confirm or refute it on the next real
+GPU run.**).
+
+**What was tested, directly, on CPU** (`arruda_boyce_psi_3d` from
+`torchfem_comparison.py`, imported and called exactly as torch-fem
+does): pushed an isochoric deformation until `I1_bar` (the chain
+stretch invariant) crossed the existing safety clamp
+(`torch.clamp(I1_bar, max=3*N_ab-1e-3)`, added earlier to prevent
+NaN/overflow in the 5-term chain series). Once clamped, `psi` becomes
+**bit-identical** under a +-1e-4 perturbation of F (confirmed via both
+`jacrev` and independent central finite differences, matching to 6+
+significant figures) -- meaning the chain-stretch part of the stress
+has exactly zero local sensitivity there. Physically this is backwards:
+a real material approaching its finite-extensibility limit should
+stiffen sharply, not go flat. A flat/degenerate local stress-strain
+response at some quadrature points is a plausible source of a singular
+or ill-conditioned tangent stiffness for Newton's linear solve --
+independent of memory, consistent with the fact that the chunked-
+Hessian fix (which DID succeed at removing the earlier real OOM, see
+entries below) had no effect on this later, different failure.
+
+**What was NOT established** (need to be honest about the gap): whether
+the real N=1401 solve for Arruda-Boyce actually reaches this regime
+anywhere in the mesh. A first attempt to isolate the deviatoric (shear)
+tangent contribution separately from the volumetric one, to check
+whether the WHOLE tangent (not just the chain part) degenerates, was
+inconclusive with the perturbation directions tried (they weren't
+cleanly isochoric, so volumetric and deviatoric effects were mixed) --
+this remains open, not claimed as confirmed.
+
+**Made testable rather than guessed further**: added a diagnostic to
+`_build_chunked_hyperelastic_plane_strain_class` (`torchfem_comparison.
+py`) that checks, at negligible cost (one comparison over a tensor
+already being computed), how many quadrature points in each real solve
+call are at or past the chain-locking clamp, and prints a count + the
+worst `I1_bar` value whenever any are -- silent otherwise. Verified on
+CPU: (1) bit-identical to the unchunked class on a 137-point random
+regression case (0.0 max abs diff in both P and ddsdde, confirming the
+new diagnostic code doesn't change the actual computation), and (2)
+correctly fires with the right count when points are deliberately
+pushed past a small locking limit (2/10 points detected, correct
+`I1_bar`/limit values printed). Also added surfacing of `err.__cause__`
+in `cell_resolution_matched_break_even_all_cases.py`'s own except-block
+-- torch-fem's own Newton loop discards the real underlying exception
+before re-raising its generic "did not converge" message, so this is
+the only way to see what actually failed underneath.
+
+**Next real GPU run of this notebook will tell us, for the first
+time, with real numbers**: if the diagnostic print appears (points
+found at the clamp) AND/OR `err.__cause__` reveals a non-memory error
+(e.g. a singular-matrix or linear-solve failure rather than
+`OutOfMemoryError`), that confirms this hypothesis and points at a
+concrete fix (replace the hard clamp with a smooth saturating function
+that keeps a finite, well-conditioned tangent instead of an exactly
+flat one). If the diagnostic never fires, this hypothesis is wrong and
+the search continues elsewhere. Nothing here is claimed as fixed yet --
+only investigated further and made verifiable, per Omar's explicit
+request not to silently accept the earlier "limitation" framing.
+
+Regenerated `Round6_ResolutionMatchedBreakEven_AllCases.ipynb`, verified
+via `ast.parse`. Not yet re-run on real GPU.
+
+Previous update, 2026-09-15 (**✅ CLOSED FOR REAL THIS TIME: Timon's
 round-8 point 6 (richer MMS family + energy norm, not the scalar
 internal-energy value) -- Timon told Omar directly it was "still
 open," and he was right: the 2026-09-09 "fix" only ever reached a
