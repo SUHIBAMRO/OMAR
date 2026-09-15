@@ -164,13 +164,38 @@ run([sys.executable, '-u', '-m', 'omar_pfem.resolution_invariance_zeroshot', 'tr
      '--out_dir', OUT])
 
 # ---- Step 2: train (same protocol as the multi-res checkpoint, single resolution) ----
+#
+# BATCH SIZE FIX (2026-09-15, found on a real GPU run of this exact cell):
+# --batch_size 8 (the multi-res checkpoint's own value, fine up to N=201)
+# OOM'd immediately on the very first forward pass at N=1401 --
+# torch.OutOfMemoryError trying to allocate 14.98 GiB with only 2.95 GiB
+# free out of 79.25 GiB total (A100). Root cause, confirmed by the numbers
+# themselves: generate_grid_Q4(Lx, Ly, 1401, 1401) builds a FULL 1402x1402
+# grid, i.e. ~1.966 MILLION nodes per sample -- N=1401 is a per-edge count,
+# not a node count. A single (batch, n_nodes, n_hidden) activation tensor
+# at batch=8, n_hidden=256 is 1,965,604 * 8 * 256 * 4 bytes ~= 15.0 GiB --
+# matches the failing allocation almost exactly, and that is only ONE such
+# tensor near the very start of the model (the embedding stage); TRAINING
+# (unlike the inference-only accuracy/timing checks already done at
+# N=1401) additionally needs every intermediate activation kept alive for
+# backward, so the real requirement is many times that single number. This
+# is not a memory-cleanup bug (no leftover cache from generation carries
+# over -- this is a fresh subprocess) -- it is simply that batch_size=8 at
+# this node count cannot fit on one 80GB GPU with gradients retained.
+# Fixed by dropping to batch_size=1 (untested at N=1401 until this run
+# happens -- if 1 still OOMs, the next thing to try is gradient
+# checkpointing inside the model, not a smaller-still batch, since 1 is
+# already the floor). Expect training to be much slower per epoch than
+# the multi-res checkpoint's own protocol as a direct consequence; the
+# already-generated samples_cache.pt is untouched and is reused as-is,
+# so this only re-runs the training step, not the 9-hour generation.
 _train_started = time.time()
 run([sys.executable, '-u', '-m', 'omar_pfem.resolution_invariance_zeroshot', 'train',
      '--geometry', 'B1', '--material', 'neo_hookean',
      '--train_resolutions', '1401',
      '--n_train_per_res', str(N_TRAIN), '--n_val_per_res', str(N_VAL),
      '--fast_solver', '1', '--nsteps', str(NSTEPS),
-     '--epochs', '2000', '--validate_every', '25', '--batch_size', '8',
+     '--epochs', '2000', '--validate_every', '25', '--batch_size', '1',
      '--early_stop_patience', '8', '--lr', '2e-3',
      '--out_dir', OUT])
 _train_wall_clock = time.time() - _train_started

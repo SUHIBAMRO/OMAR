@@ -117,7 +117,55 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**REAL RESULT at N=201 (100 timed steps,
+Last updated: 2026-09-15 (**🚨 REAL CRASH on task #24 (direct-N1401 training
+ablation, unrelated to the TF32 investigation): `B1_NeoHookean_Direct_
+N1401_Ablation.ipynb` finished its ~9h9m data-generation phase cleanly
+(120 samples, nsteps=3, all converged, resumed correctly from a partial
+30/100), then OOM'd immediately on the very first training forward pass
+-- `--batch_size 8` (copied from the multi-res checkpoint's own recipe,
+fine up to N=201) cannot fit at N=1401. FIXED: `--batch_size 1`. The
+9-hour `samples_cache.pt` is untouched and will be reused as-is on
+retry -- only the training step needs to re-run.**).
+
+Root cause, confirmed by the numbers themselves, not guessed:
+`generate_grid_Q4(Lx, Ly, 1401, 1401)` builds a FULL 1402x1402 grid --
+**N=1401 is a per-edge element count, not a node count** -- giving
+~1.966 MILLION nodes per sample. A single (batch, n_nodes, n_hidden)
+activation tensor at batch=8, n_hidden=256 is
+`1,965,604 * 8 * 256 * 4 bytes ~= 15.0 GiB`, matching the failing
+allocation (`Tried to allocate 14.98 GiB`) almost exactly -- and that
+was only ONE tensor near the very start of the model's embedding stage.
+TRAINING additionally needs every intermediate activation retained for
+backward (unlike the inference-only accuracy/timing checks already done
+at N=1401, which never hit this because they only run a no-grad forward
+pass), so the real requirement at batch=8 is many times that single
+number -- confirmed by the error itself: 76.29 GiB already in use with
+only 2.95 GiB free out of 79.25 GiB total (A100) at the moment of
+failure. This is NOT a memory-cleanup bug (no leftover cache from the
+generation phase carries over -- generation and training are separate
+subprocess invocations, each with its own fresh CUDA context) -- it is
+simply that batch_size=8 at this real node count cannot fit on one 80GB
+GPU once gradients are retained. This is also the reason no earlier job
+hit this: every previous multi-res retrain trained at N up to 201 only
+(~40,804 nodes, ~50x fewer than N=1401), and every prior N=1401
+appearance in this project (accuracy sweeps, inference timing) was
+inference-only, never training with a live backward graph.
+
+Fixed in both `cell_train_b1_nh_direct_n1401.py` (the actual training
+subprocess command) and its generator's own markdown description
+(`make_train_b1_nh_direct_n1401_notebook.py`), regenerated
+`B1_NeoHookean_Direct_N1401_Ablation.ipynb`, verified via `ast.parse`.
+**Untested at N=1401 until the next real run** -- if batch_size=1 still
+OOMs, the next thing to try is gradient checkpointing inside the model
+(Transolver's own attention/MLP blocks), not a smaller-still batch,
+since 1 is already the floor. Expect training to be much slower per
+epoch than the multi-res checkpoint's own protocol as a direct, expected
+consequence of batch_size dropping from 8 to 1, and possibly noisier
+convergence (may need to watch whether `--lr 2e-3`, tuned for batch=8,
+still behaves well at batch=1 -- left unchanged for the first retry
+rather than guessing a second change at once).
+
+Previous update, 2026-09-15 (**REAL RESULT at N=201 (100 timed steps,
 `Test_TF32_Speed_N201.ipynb`): a REAL 2.10x per-step speedup (547.0ms
 fp32 vs 260.5ms TF32) -- N=201 is the LARGEST resolution in the
 multi-res set, so this is where a substantial time saving (likely much
