@@ -117,7 +117,33 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**🚨 REAL CRASH on task #24 (direct-N1401 training
+Last updated: 2026-09-15 (**🎉 B1×Mooney-Rivlin multi-resolution retrain
+FULLY DONE too -- `B1_MooneyRivlin_MultiRes_Retrain.ipynb`'s Cell 4
+comparison finished cleanly on a real A100 (33m49s), same tradeoff
+pattern already seen for Neo-Hookean and Arruda-Boyce: slightly worse
+near the OLD checkpoint's narrow training range (N=13-101), clearly and
+increasingly better everywhere it actually degraded (N=201 upward). At
+the target N=1401: **39.20% -> 15.04%** (a ~62% relative reduction, the
+largest proportional improvement of the three materials so far). All
+three B1 materials (Neo-Hookean, Arruda-Boyce, Mooney-Rivlin) now have
+completed multi-res retrains. GPU session freed.**).
+
+Real result table (disp_rel_L2, OLD 21,33-only vs. NEW 21,33,101,201):
+
+| N | OLD | NEW | better? |
+|---|---|---|---|
+| 13-101 | 0.0652-0.1314 | 0.1232-0.2100 | no (worse near old training res, as expected) |
+| 201 | 0.1145 | 0.0983 | YES |
+| 401 | 0.2015 | 0.0703 | YES |
+| 701 | 0.2845 | 0.0844 | YES |
+| 1001 | 0.3396 | 0.1168 | YES |
+| **1401** | **0.3920** | **0.1504** | **YES -- the target resolution** |
+
+All 16 resolutions, both checkpoints, converged cleanly
+(relative_residual ~1e-11, converged_likely=True everywhere) -- no
+cuDSSError, the memory-cleanup fix (`12cad97`) held here too.
+
+Previous update, 2026-09-15 (**🚨 REAL CRASH on task #24 (direct-N1401 training
 ablation, unrelated to the TF32 investigation): `B1_NeoHookean_Direct_
 N1401_Ablation.ipynb` finished its ~9h9m data-generation phase cleanly
 (120 samples, nsteps=3, all converged, resumed correctly from a partial
