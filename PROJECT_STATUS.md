@@ -117,7 +117,34 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**❌ REAL GPU RESULT: TF32 matmul precision is NOT
+Last updated: 2026-09-15 (**🧪 FOLLOW-UP diagnostic built (not yet run):
+Omar asked whether TF32-for-training can be salvaged given even a
+modest (~1 hour on a long job) real speedup would be worth it. Realized
+the first test's decision rule (loss-TRAJECTORY matching) is arguably
+too strict for stochastic optimization -- two fp32 runs with different
+seeds also diverge in trajectory while reaching similar final accuracy,
+so trajectory mismatch alone doesn't prove harm. Built
+`Test_TF32_Training_Convergence.ipynb`: a proper 3-way controlled
+experiment (fp32/seed1234, fp32/seed5678, TF32/seed1234) comparing
+FINAL VALIDATION ACCURACY against the natural fp32-vs-fp32 seed-to-seed
+noise floor, not intermediate loss values. Waiting on a real GPU run.**).
+
+Design: 3000 real training steps (up from the first test's 200, so the
+validation-error comparison means something), N=21, same finished
+`zeroshot_B1_neo_hookean_multires` cache, read-only. Run A (fp32,
+seed=1234) is the original baseline; Run B (fp32, seed=5678) is the
+SAME precision with a different seed -- this measures how much two
+ordinary fp32 runs already differ by, with no TF32 involved at all
+(the honest noise floor); Run C (TF32, seed=1234) isolates TF32's own
+effect by sharing A's seed. Decision rule: TF32 counts as safe if
+|val(A)-val(C)| is not meaningfully larger than |val(A)-val(B)| (ratio
+<= 2.0) -- i.e. TF32 is no worse than the noise two honest fp32 runs
+already have. If TF32's deviation is much larger than that natural
+noise floor, the original rejection stands. Generator:
+`make_test_tf32_training_convergence_notebook.py`; cell script:
+`cell_test_tf32_training_convergence.py`. Not yet run on a real GPU.
+
+Previous update, 2026-09-15 (**❌ REAL GPU RESULT: TF32 matmul precision is NOT
 safe for training, REJECTED -- `Test_TF32_Training.ipynb` ran on a real
 A100. Speedup was modest (1.12x, nowhere near inference's 4.67x) AND the
 loss trajectory diverged hard (mean relative difference 121% across 200
