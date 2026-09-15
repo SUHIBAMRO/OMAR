@@ -209,7 +209,34 @@ para('The underlying richer-family solves were already computed and verified ear
      'documents are attached.')
 para('')
 
-section('2. Currently in progress')
+section('2. Item for your input — Arruda-Boyce vs. torch-fem, break-even comparison')
+para('')
+para('The resolution-matched break-even comparison against torch-fem (our operator vs. '
+     'torch-fem, both at N=1401) succeeds for Neo-Hookean and Mooney-Rivlin, both '
+     'geometries, but torch-fem itself fails to converge for Arruda-Boyce at N=1401: '
+     '"Newton-Raphson did not converge in increment N after 10 cutbacks."')
+para('')
+para('Two fix attempts were made on our side. The first suspected the per-point Hessian '
+     'computation inside torch-fem’s own material class, which computes the full '
+     'batch’s stress and tangent in a single call; a chunked version was written and '
+     'verified to avoid any out-of-memory error in that computation (confirmed down to '
+     'chunks of 390 points, well below the point where the routine would give up). '
+     'Despite that, the overall Newton-Raphson solve still fails with the identical '
+     'message. Reading torch-fem’s own solver loop shows it wraps every Newton '
+     'iteration in a generic exception handler that discards the underlying error before '
+     're-raising this message, so the true cause — memory elsewhere in torch-fem’s '
+     'own global assembly, or a genuine numerical difficulty with this material at this '
+     'resolution — cannot currently be distinguished from the outside.')
+para('')
+para('This does not affect the operator’s own accuracy results for Arruda-Boyce, '
+     'which are complete and reported independently of this comparison. The open '
+     'question is whether it is worth further time isolating the exact cause inside '
+     'torch-fem, or whether reporting this case as N/A in the break-even comparison, '
+     'with the above noted as a limitation of the baseline tool rather than of either '
+     'solver in this study, is an acceptable resolution.')
+para('')
+
+section('3. Currently in progress')
 para('')
 bold_lead('B1 × Mooney-Rivlin and B1 × Arruda-Boyce, multi-resolution '
           'retraining. ',
@@ -227,7 +254,7 @@ bold_lead('B1 × Neo-Hookean, direct training at N=1401 (ablation). ',
           'N=1401 is in progress; training follows once it completes.')
 para('')
 
-section('3. Queued next')
+section('4. Queued next')
 para('')
 bold_lead('B2 × Neo-Hookean and B2 × Mooney-Rivlin, multi-resolution '
           'retraining. ',
