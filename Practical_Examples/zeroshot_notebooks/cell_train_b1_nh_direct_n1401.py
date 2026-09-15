@@ -182,13 +182,27 @@ run([sys.executable, '-u', '-m', 'omar_pfem.resolution_invariance_zeroshot', 'tr
 # is not a memory-cleanup bug (no leftover cache from generation carries
 # over -- this is a fresh subprocess) -- it is simply that batch_size=8 at
 # this node count cannot fit on one 80GB GPU with gradients retained.
-# Fixed by dropping to batch_size=1 (untested at N=1401 until this run
-# happens -- if 1 still OOMs, the next thing to try is gradient
-# checkpointing inside the model, not a smaller-still batch, since 1 is
-# already the floor). Expect training to be much slower per epoch than
-# the multi-res checkpoint's own protocol as a direct consequence; the
-# already-generated samples_cache.pt is untouched and is reused as-is,
-# so this only re-runs the training step, not the 9-hour generation.
+# Dropping to batch_size=1 (real GPU run, 2026-09-15) was NOT enough on
+# its own -- OOM'd again, deeper in the model (inside the 2nd
+# transformer block's MLP/GELU), trying to allocate 3.74 GiB with 77.49
+# GiB already in use. Confirms the earlier prediction: even ONE sample's
+# worth of activations, kept alive across all n_layers=4 blocks for
+# backward, is too much at N=1401's ~1.966M nodes -- an MLP hidden
+# tensor alone (n_hidden*mlp_ratio = 512) is
+# 1,965,604 * 512 * 4 bytes ~= 4.0 GiB, matching the failing allocation,
+# and there are several such tensors PER block, times 4 blocks, all
+# retained simultaneously in the naive (no-checkpoint) backward graph.
+# batch_size=1 was already the floor, so the real fix is GRADIENT
+# CHECKPOINTING (added to Model/Transolver_Irregular_Mesh.py and wired
+# through as --grad_checkpoint, default 0/off everywhere else): trades
+# recompute for memory by NOT keeping each block's activations alive,
+# recomputing them during backward instead. This does not change the
+# computed gradients (checkpoint reproduces the exact same forward
+# exactly, it is not an approximation) -- only memory and step time
+# (expect roughly 1.3-2x slower per step from the extra recompute, on
+# top of the batch_size=1 slowdown already expected). Untested at
+# N=1401 until this run happens; the already-generated samples_cache.pt
+# is untouched and reused as-is, so this only re-runs the training step.
 _train_started = time.time()
 run([sys.executable, '-u', '-m', 'omar_pfem.resolution_invariance_zeroshot', 'train',
      '--geometry', 'B1', '--material', 'neo_hookean',
@@ -196,6 +210,7 @@ run([sys.executable, '-u', '-m', 'omar_pfem.resolution_invariance_zeroshot', 'tr
      '--n_train_per_res', str(N_TRAIN), '--n_val_per_res', str(N_VAL),
      '--fast_solver', '1', '--nsteps', str(NSTEPS),
      '--epochs', '2000', '--validate_every', '25', '--batch_size', '1',
+     '--grad_checkpoint', '1',
      '--early_stop_patience', '8', '--lr', '2e-3',
      '--out_dir', OUT])
 _train_wall_clock = time.time() - _train_started

@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.utils.checkpoint
 from timm.models.layers import trunc_normal_
 from omar_pfem.model.Embedding import timestep_embedding
 import numpy as np
@@ -148,7 +149,8 @@ class Model(nn.Module):
                  out_dim=1,
                  slice_num=32,
                  ref=8,
-                 unified_pos=False, B = False, bc_dim = 1
+                 unified_pos=False, B = False, bc_dim = 1,
+                 grad_checkpoint=False,
                  ):
         super(Model, self).__init__()
         self.__name__ = 'Transolver_1D'
@@ -157,6 +159,19 @@ class Model(nn.Module):
         self.Time_Input = Time_Input
         self.n_hidden = n_hidden
         self.space_dim = space_dim
+        # Opt-in (default off, so every existing checkpoint/result is
+        # reproduced identically): trade recompute for memory across the
+        # transformer blocks via torch.utils.checkpoint. Added 2026-09-15
+        # after a real OOM training directly at N=1401 (~1.966M nodes/
+        # sample): even batch_size=1 exhausted an 80GB A100, because every
+        # (1, n_nodes, hidden*mlp_ratio) activation across all n_layers
+        # blocks must be kept alive for backward otherwise -- one such
+        # tensor alone is ~4GB at N=1401's node count. This does not change
+        # the computed gradients (checkpoint recomputes the exact same
+        # forward during backward, it is not an approximation), only the
+        # memory/compute tradeoff, so it is safe to enable for any run
+        # tight on memory and leave off (the default) everywhere else.
+        self.grad_checkpoint = grad_checkpoint
         if self.unified_pos:
             self.preprocess = MLP(fun_dim + self.ref * self.ref, n_hidden * 2, n_hidden, n_layers=0, res=False, act=act)
         else:
@@ -231,17 +246,25 @@ class Model(nn.Module):
             Time_emb = self.time_fc(Time_emb)
             fx = fx + Time_emb
 
+        use_ckpt = self.grad_checkpoint and self.training and torch.is_grad_enabled()
+
         if bc is not None:
             bfx = torch.cat((bc, bfx), -1)
             bfx = self.preprocess_bc(bfx)
             bfx = bfx + self.placeholder_bc[None, None, :]
             key_bc, value_bc = self.blocks_b(self.ln_bc(bfx)) # 特征提取
             for block in self.blocks:
-                fx = block(fx, key_bc, value_bc)
-            return fx          
+                if use_ckpt:
+                    fx = torch.utils.checkpoint.checkpoint(block, fx, key_bc, value_bc, use_reentrant=False)
+                else:
+                    fx = block(fx, key_bc, value_bc)
+            return fx
         else:
             for block in self.blocks:
-                fx = block(fx)
+                if use_ckpt:
+                    fx = torch.utils.checkpoint.checkpoint(block, fx, use_reentrant=False)
+                else:
+                    fx = block(fx)
             return fx
 
 

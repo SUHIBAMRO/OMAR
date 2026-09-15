@@ -218,6 +218,7 @@ def build_model(args, device):
         space_dim=2, n_layers=args.n_layers, n_hidden=args.n_hidden, dropout=args.dropout,
         n_head=args.n_heads, Time_Input=False, mlp_ratio=args.mlp_ratio, fun_dim=args.fun_dim,
         out_dim=2, slice_num=args.slice_num, ref=args.ref, unified_pos=args.unified_pos,
+        grad_checkpoint=bool(int(getattr(args, "grad_checkpoint", 0))),
     ).to(device)
 
 
@@ -1009,6 +1010,15 @@ def add_common_args(p):
     p.add_argument("--Ly", type=float, default=1.0)
     p.add_argument("--R_out", type=float, default=2.0)
     p.add_argument("--cpu", action="store_true")
+    # Opt-in, default off so every existing run/checkpoint is reproduced
+    # identically: trades recompute for memory via torch.utils.checkpoint
+    # across the model's transformer blocks. Added for training directly
+    # at N=1401 (~1.966M nodes/sample), where even batch_size=1 OOM'd on
+    # an 80GB A100 without it -- see model/Transolver_Irregular_Mesh.py's
+    # own comment for the full explanation. Does not change the computed
+    # gradients (checkpoint recomputes the exact same forward exactly
+    # during backward), only the memory/compute tradeoff.
+    p.add_argument("--grad_checkpoint", type=int, default=0)
 
 
 def main():

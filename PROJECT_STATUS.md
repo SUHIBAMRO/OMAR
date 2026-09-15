@@ -117,7 +117,81 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**🎉 B1×Mooney-Rivlin multi-resolution retrain
+Last updated: 2026-09-15 (**🚨 SECOND real OOM on task #24, batch_size=1
+alone was NOT enough -- fixed properly this time with GRADIENT
+CHECKPOINTING, added as a new opt-in, default-off model feature and
+CPU-verified bit-identical (0.0 diff, forward AND every gradient) before
+trusting it. Untested at N=1401 itself until the next real GPU run.**).
+
+After the batch_size 8->1 fix (previous entry), a real GPU retry still
+OOM'd -- this time deeper in the model (inside the 2nd transformer
+block's MLP/GELU), `Tried to allocate 3.74 GiB` with `77.49 GiB already
+in use` out of 79.25 GiB. Confirms the earlier analysis: even ONE
+sample's activations must be kept alive across all `n_layers=4` blocks
+for backward -- one MLP hidden tensor alone at N=1401's ~1.966M nodes
+is `1,965,604 * (256*2) * 4 bytes ~= 4.0 GiB` (n_hidden=256,
+mlp_ratio=2), matching the failing allocation, and there are several
+such tensors per block, all retained simultaneously without
+checkpointing. batch_size=1 was already the floor -- the real fix had
+to change HOW backward keeps memory, not shrink the batch further.
+
+**Added gradient checkpointing** to `omar_pfem/model/
+Transolver_Irregular_Mesh.py`'s `Model` class: new `grad_checkpoint`
+constructor arg (default `False`, so every existing checkpoint/result
+is reproduced identically), used in `forward()`'s block loop via
+`torch.utils.checkpoint.checkpoint(block, fx, use_reentrant=False)`
+only when `self.training and torch.is_grad_enabled()` -- recomputes
+each block's forward during backward instead of retaining its
+activations, cutting the dominant memory cost roughly by n_layers at
+the cost of extra compute (recomputing the forward once more per
+block). This is NOT an approximation -- checkpointing reproduces the
+exact same forward computation during backward, so gradients are
+mathematically identical, not merely close.
+
+**Verified on CPU before trusting it** (no GPU available in this
+session to test on): built two identical models (same seed, same
+architecture) with `grad_checkpoint=False` vs `=True`, ran the same
+forward+backward with dropout=0 -- 0.0 max difference in both the
+output and every parameter's gradient. Repeated with dropout=0.3 (same
+RNG seed reset before each call, matching `torch.utils.checkpoint`'s
+own `preserve_rng_state=True` default) -- also 0.0 difference, so
+dropout masks are correctly reproduced across the recompute. Also
+confirmed `model.eval()` never triggers checkpointing (guarded by
+`self.training`), so every existing inference/accuracy-check code path
+is completely unaffected.
+
+Wired through as `--grad_checkpoint` (default `0`) in
+`add_common_args`/`build_model` (`resolution_invariance_zeroshot.py`),
+and enabled specifically for the direct-N1401 job via
+`--grad_checkpoint 1` in `cell_train_b1_nh_direct_n1401.py` (only this
+one job opts in; every other existing/pending run, including the
+already-running or already-planned multi-res retrains and the TF32
+diagnostics, is completely unaffected since the default is off and no
+other caller passes this argument). Regenerated
+`B1_NeoHookean_Direct_N1401_Ablation.ipynb`, verified via `ast.parse`.
+**Not yet confirmed on a real GPU at N=1401 itself** -- if this still
+OOMs, the next thing to try is reducing `n_hidden`/`slice_num`
+specifically for this ablation (which would weaken the direct
+architectural comparison against the multi-res checkpoint, so it is the
+next-to-last resort) or processing the mesh in spatial chunks (a bigger
+change, last resort). Expect training to be noticeably slower than the
+multi-res checkpoint's own protocol from BOTH batch_size=1 and the
+checkpointing recompute overhead (~1.3-2x extra per step on top of
+that) -- a real, expected cost of training directly at this resolution,
+not a regression to be fixed.
+
+Also note for anyone reading this cold: a stale, already-open Colab tab
+does NOT pick up a fix pushed to GitHub after it was opened, even though
+the cell's own `git pull` updates the cloned repo `omar_pfem` package --
+the notebook CELL'S OWN CODE (the `run([...])` subprocess commands
+themselves) is a static snapshot baked into the `.ipynb` at generation
+time, not re-fetched at runtime. A real repeat of the exact old
+batch_size=8 crash happened here for exactly this reason (same known
+issue documented earlier under item #13). Always open a FRESH tab on
+the `colab.research.google.com/github/.../blob/<branch>/<path>.ipynb`
+link after any fix lands, never reuse an already-open tab.
+
+Previous update, 2026-09-15 (**🎉 B1×Mooney-Rivlin multi-resolution retrain
 FULLY DONE too -- `B1_MooneyRivlin_MultiRes_Retrain.ipynb`'s Cell 4
 comparison finished cleanly on a real A100 (33m49s), same tradeoff
 pattern already seen for Neo-Hookean and Arruda-Boyce: slightly worse
