@@ -1,0 +1,171 @@
+{
+  "cases": [
+    "B1_mooney_rivlin",
+    "B1_arruda_boyce",
+    "B2_neo_hookean",
+    "B2_mooney_rivlin",
+    "B2_arruda_boyce"
+  ],
+  "resolutions": [
+    13,
+    17,
+    21,
+    25,
+    29,
+    33,
+    37,
+    41,
+    45,
+    49,
+    101,
+    201,
+    401,
+    701,
+    1001,
+    1401
+  ],
+  "results": {
+    "B1_mooney_rivlin": {
+      "acc_json": "/content/drive/MyDrive/pfem_run/no_accuracy_degradation_sweep_B1_mooney_rivlin.json",
+      "peak_json": "/content/drive/MyDrive/pfem_run/no_peak_stress_fixed_location_B1_mooney_rivlin.json"
+    },
+    "B1_arruda_boyce": {
+      "acc_json": "/content/drive/MyDrive/pfem_run/no_accuracy_degradation_sweep_B1_arruda_boyce.json",
+      "peak_json": "/content/drive/MyDrive/pfem_run/no_peak_stress_fixed_location_B1_arruda_boyce.json"
+    },
+    "B2_neo_hookean": {
+      "acc_json": "/content/drive/MyDrive/pfem_run/no_accuracy_degradation_sweep_B2_neo_hookean.json",
+      "peak_json": "/content/drive/MyDrive/pfem_run/no_peak_stress_fixed_location_B2_neo_hookean.json"
+    },
+    "B2_mooney_rivlin": {
+      "acc_json": "/content/drive/MyDrive/pfem_run/no_accuracy_degradation_sweep_B2_mooney_rivlin.json",
+      "peak_json": "/content/drive/MyDrive/pfem_run/no_peak_stress_fixed_location_B2_mooney_rivlin.json"
+    },
+    "B2_arruda_boyce": {
+      "acc_json": "/content/drive/MyDrive/pfem_run/no_accuracy_degradation_sweep_B2_arruda_boyce.json",
+      "peak_json": "/content/drive/MyDrive/pfem_run/no_peak_stress_fixed_location_B2_arruda_boyce.json"
+    }
+  },
+  "summary_at_N1401": [
+    {
+      "geometry": "B1",
+      "material": "mooney_rivlin",
+      "N": 1401,
+      "disp_rel_L2": 0.3919968860484728,
+      "L2_rel": 0.3364770254543917,
+      "peak_row": {
+        "N": 1401,
+        "peak_stress_pred": 10.806634722662082,
+        "peak_stress_ref": 49.23464996900557,
+        "peak_stress_abs_err": 38.428015246343485,
+        "peak_stress_rel_err": 0.7805075342372673,
+        "peak_stress_loc": [
+          0.00015094633243227648,
+          0.00015094633243227648
+        ],
+        "stress_field_l2_abs": 3.0798389880382246,
+        "stress_field_l2_rel": 0.4568686755230835,
+        "P11_field_l2_rel": 1.0143951960268816,
+        "P12_field_l2_rel": 1.0272500177376533,
+        "P21_field_l2_rel": 1.1252209722900803,
+        "P22_field_l2_rel": 0.43372726518595767
+      }
+    },
+    {
+      "geometry": "B1",
+      "material": "arruda_boyce",
+      "N": 1401,
+      "disp_rel_L2": 0.4562103062605815,
+      "L2_rel": 0.44568024771761494,
+      "peak_row": {
+        "N": 1401,
+        "peak_stress_pred": 7.652616574106251,
+        "peak_stress_ref": 35.17653146368287,
+        "peak_stress_abs_err": 27.52391488957662,
+        "peak_stress_rel_err": 0.7824510758825951,
+        "peak_stress_loc": [
+          0.00015094633243227648,
+          0.00015094633243227648
+        ],
+        "stress_field_l2_abs": 3.366044803606487,
+        "stress_field_l2_rel": 0.5005801848138302,
+        "P11_field_l2_rel": 0.6573452123789313,
+        "P12_field_l2_rel": 1.7419178572461524,
+        "P21_field_l2_rel": 1.8430773283146287,
+        "P22_field_l2_rel": 0.4804947033786251
+      }
+    },
+    {
+      "geometry": "B2",
+      "material": "neo_hookean",
+      "N": 1401,
+      "disp_rel_L2": 0.46366308404052703,
+      "L2_rel": 0.5602875306545341,
+      "peak_row": {
+        "N": 1401,
+        "peak_stress_pred": 3.874443038284895,
+        "peak_stress_ref": 7.668717651769933,
+        "peak_stress_abs_err": 3.794274613485038,
+        "peak_stress_rel_err": 0.494773022789452,
+        "peak_stress_loc": [
+          0.7618227005325038,
+          0.6480184245271735
+        ],
+        "stress_field_l2_abs": 2.950043039008484,
+        "stress_field_l2_rel": 0.5016102088942315,
+        "P11_field_l2_rel": 0.4816188777032964,
+        "P12_field_l2_rel": 0.438689838753528,
+        "P21_field_l2_rel": 0.4398975190553495,
+        "P22_field_l2_rel": 0.5893993269179868
+      }
+    },
+    {
+      "geometry": "B2",
+      "material": "mooney_rivlin",
+      "N": 1401,
+      "disp_rel_L2": 0.49472643890761026,
+      "L2_rel": 0.5783312578777402,
+      "peak_row": {
+        "N": 1401,
+        "peak_stress_pred": 3.97816246572304,
+        "peak_stress_ref": 7.6690414748169635,
+        "peak_stress_abs_err": 3.6908790090939236,
+        "peak_stress_rel_err": 0.4812699241768038,
+        "peak_stress_loc": [
+          0.7676085330686442,
+          0.6411543071160961
+        ],
+        "stress_field_l2_abs": 3.126488399468893,
+        "stress_field_l2_rel": 0.5315758801779394,
+        "P11_field_l2_rel": 0.48865753726177863,
+        "P12_field_l2_rel": 0.4678495481989584,
+        "P21_field_l2_rel": 0.4684984743263404,
+        "P22_field_l2_rel": 0.6371726523149552
+      }
+    },
+    {
+      "geometry": "B2",
+      "material": "arruda_boyce",
+      "N": 1401,
+      "disp_rel_L2": 0.39725781335840404,
+      "L2_rel": 0.4150096046475228,
+      "peak_row": {
+        "N": 1401,
+        "peak_stress_pred": 4.600592996478568,
+        "peak_stress_ref": 7.6644510307161475,
+        "peak_stress_abs_err": 3.0638580342375796,
+        "peak_stress_rel_err": 0.3997491825518651,
+        "peak_stress_loc": [
+          0.758175367480889,
+          0.652282020897098
+        ],
+        "stress_field_l2_abs": 2.39528249141585,
+        "stress_field_l2_rel": 0.4072832252846617,
+        "P11_field_l2_rel": 0.3815167118929599,
+        "P12_field_l2_rel": 0.3887654127632509,
+        "P21_field_l2_rel": 0.38926742995947083,
+        "P22_field_l2_rel": 0.4509756858388127
+      }
+    }
+  ]
+}

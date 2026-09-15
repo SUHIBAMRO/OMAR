@@ -117,7 +117,54 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**Real speedup CONFIRMED and APPLIED: task
+Last updated: 2026-09-15 (**🎉 TASK #22 (ACCURACY/QoI HALF) FULLY DONE:
+`Round6_N1401_AllRemainingCases.ipynb` finished cleanly for all 5
+remaining cases, real numbers committed**).
+
+Full accuracy sweep (N=13...1401, 16 resolutions) + peak-stress
+crossover completed for every one of the 5 remaining cases (B1×NH
+already had its own separate result): B1×Mooney-Rivlin, B1×Arruda-
+Boyce, B2×Neo-Hookean, B2×Mooney-Rivlin, B2×Arruda-Boyce. Real, final
+QoI summary at N=1401, all 5 cases (`n1401_all_remaining_cases_
+summary.json`, fetched byte-identical from Drive and committed):
+
+| case | disp_rel_L2 @N1401 | peak_stress_rel_err @N1401 |
+|---|---|---|
+| B1 x mooney_rivlin | 0.3920 | 0.7805 |
+| B1 x arruda_boyce | 0.4562 | 0.7825 |
+| B2 x neo_hookean | 0.4637 | 0.4948 |
+| B2 x mooney_rivlin | 0.4947 | 0.4813 |
+| B2 x arruda_boyce | 0.3973 | 0.3997 |
+
+**Real pattern found, not assumed**: every B1 case's peak-stress error
+at N=1401 is much worse (~0.78-0.78) than every B2 case's (~0.40-0.49)
+-- consistent with B1's own already-known reference peak stress being
+a sharp, highly localized singular point (x_star at the corner,
+`[0.00015, 0.00015]`, essentially the loaded corner itself) that a
+16-resolution accuracy sweep's own fixed-location QoI is intrinsically
+harder to resolve there than at B2's own smoother interior peak
+location. Also note B2×Arruda-Boyce has the best peak-stress accuracy
+of the entire 6-case set (0.3997) despite Arruda-Boyce being the
+material that fails outright in the SEPARATE torch-fem break-even
+comparison (a genuinely different, unrelated failure mode -- that one
+is a memory/Hessian-computation limit in torch-fem itself, not an
+accuracy limit in the neural operator).
+
+Per-case full accuracy-sweep and peak-stress JSONs (16 rows each) also
+exist on Drive (`no_accuracy_degradation_sweep_*.json`, `no_peak_
+stress_fixed_location_*.json` for each of the 5 cases) -- not
+individually committed here (the combined summary is the artifact
+Timon's round-11 point 2 actually needs), paths recorded inside the
+committed summary JSON itself for traceability.
+
+**Task #22 status**: the accuracy/QoI half is now DONE for all 6 cases
+(B1×NH from its own earlier result + these 5). The break-even half
+still needs the resolution-matched break-even notebook re-run on a
+real A100 with the Arruda-Boyce chunked-Hessian fix (`ea53b15`) to
+confirm whether B1/B2×Arruda-Boyce's break-even can finally be computed
+too -- not yet done as of this entry.
+
+Previous update, 2026-09-15 (**Real speedup CONFIRMED and APPLIED: task
 #24's data generation now uses nsteps=3, verified 1.64x faster and MORE
 accurate than nsteps=10 on a real A100 run**).
 
