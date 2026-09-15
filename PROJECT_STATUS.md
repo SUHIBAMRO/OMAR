@@ -117,7 +117,62 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**Fixed a real `cuDSSError: ALLOC_FAILED (2)`
+Last updated: 2026-09-15 (**🚨 REVISED DIAGNOSIS: the `cuDSSError:
+ALLOC_FAILED` crash was likely NOT (only) a memory-cleanup bug --
+real Drive evidence shows Colab silently downgraded the B1×Mooney-
+Rivlin multi-res session from an A100 to a Tesla T4 mid-run after a
+~10h disconnect, the exact same "T4 mixup" failure mode already seen
+once before in this project**).
+
+Investigated Omar's direct question ("I didn't stop anything, I was
+asleep") about why B1×Mooney-Rivlin's training halted before natural
+early-stop. Checked real Drive file metadata/timestamps (not guessed):
+
+- Data generation (Cell 2) ran `2026-09-15T01:54:46Z` -> `05:05:18Z`
+  on host `01eba41b5797`, **GPU confirmed A100-SXM4-80GB** in that
+  run's own `run_manifest.json` entry.
+- Training then ran continuously; `model_best.pt` (epoch 500, best
+  val_error=0.0781) last modified `10:33:18Z` -- this checkpoint was
+  saved on the real A100, well before anything questionable happened,
+  so **it stays fully trustworthy**.
+- Training continued logging past epoch 500 with no improvement
+  (525/550/575/600/625/650 all `is_best=false`) -- 6 non-improving
+  validation events, one short of patience=8's stopping point. Epoch
+  650's val_error suddenly spiked to 0.437 (near early-training
+  magnitude) from 0.089 at epoch 625 -- **a discontinuity, not organic
+  drift**.
+- **The real finding**: `run_manifest.json` has a SECOND entry,
+  `started_at_utc: 11:57:27Z` (~10h03m after the original session
+  began), on a DIFFERENT host (`d25e7d3d7a21`) with a **downgraded
+  Tesla T4 GPU** -- a brand-new runtime is exactly what Colab hands
+  back after the original session gets preempted/disconnected
+  (compute-unit exhaustion or a session-length limit, most likely,
+  given A100 sessions are frequently capped well under 12h). This
+  matches the SAME T4-instead-of-A100 failure mode already documented
+  once before in this project (the resolution-matched break-even
+  notebook accidentally run on a T4).
+
+**Why this matters for the `cuDSSError: ALLOC_FAILED` crash**: if the
+post-reconnect session (including whatever ran Cell 3's remaining
+epochs and/or Cell 4's comparison) was actually on a 16GB T4 rather
+than an 80GB A100, then the sparse direct solve at N=1001 (~2M DOF)
+may simply not fit **regardless of any GPU-memory cleanup** -- the
+`gc.collect()`/`torch.cuda.empty_cache()` fix already committed
+(`12cad97`) is still correct practice and worth keeping, but it may
+not be the actual, complete root cause. **Not yet confirmed which GPU
+Cell 4's crash itself actually ran on** -- the pasted crash log Omar
+sent does not show Cell 1's GPU-name print for that specific run.
+
+**Action needed before trusting any re-run of this notebook**: check
+the `GPU: NVIDIA ...` line printed by Cell 1 BEFORE trusting Cell 3/4
+results -- if it ever shows `Tesla T4`, stop and use
+`Runtime > Disconnect and delete runtime` then reconnect to try for a
+real A100, same advice already given once before for the break-even
+notebook mixup. The currently-stopped/crashed tab has deliberately
+been left untouched by Omar (confirmed) -- do not restart it until
+this GPU-check step is done.
+
+Previous update, 2026-09-15 (**Fixed a real `cuDSSError: ALLOC_FAILED (2)`
 crash in the B1×Mooney-Rivlin/Arruda-Boyce multi-res retrain notebooks'
 Cell 4, found on Omar's real GPU run -- GPU memory not freed between
 training and comparison**).
