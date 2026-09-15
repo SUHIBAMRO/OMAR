@@ -117,7 +117,54 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**🎉 TASK #22 (ACCURACY/QoI HALF) FULLY DONE:
+Last updated: 2026-09-15 (**Fixed a real `cuDSSError: ALLOC_FAILED (2)`
+crash in the B1×Mooney-Rivlin/Arruda-Boyce multi-res retrain notebooks'
+Cell 4, found on Omar's real GPU run -- GPU memory not freed between
+training and comparison**).
+
+Omar's B1×Mooney-Rivlin multi-res retrain notebook (Cell 3 training,
+same Colab kernel/session, ~625 epochs deep) moved into Cell 4 (direct
+comparison of OLD vs. NEW checkpoint accuracy at 16 resolutions) and
+crashed at N=1001 with `cuDSSError: ALLOC_FAILED (2)` inside the sparse
+direct solver (`torch_sla`'s `spsolve` -> `SparseLinearSolveCuDSSLU` ->
+`nvmath_backend.lu()` -> `cudss.execute(..., Phase.ANALYSIS...)`).
+
+**Root cause, confirmed by reading Cell 4's actual generated code**:
+no GPU memory cleanup anywhere -- not between Cell 3 (training) and
+Cell 4 (comparison) in the same kernel, and not between the two
+sequential `run_one()` calls within Cell 4 itself (OLD checkpoint then
+NEW checkpoint), each of which builds a fresh `model = build_model(...)`
+without freeing the previous one first. Training leaves its own
+model/optimizer state and cached activations resident on the GPU; Cell
+4's sparse factorization at N=1001 (~2M DOF) then can't get the
+contiguous allocation it needs. Same category of bug as the ALREADY-
+FIXED PyTorch caching-allocator fragmentation issue in the break-even
+notebook (fixed there with `gc.collect()`/`torch.cuda.empty_cache()`
+between cases) -- this time between a training cell and a later
+comparison cell, plus between two model loads in the same cell.
+
+**Fixed** in `make_b1_mr_ab_multires_retrain_notebooks.py` (shared
+generator for both `B1_MooneyRivlin_MultiRes_Retrain.ipynb` and
+`B1_ArrudaBoyce_MultiRes_Retrain.ipynb`): added `gc.collect()` +
+`torch.cuda.empty_cache()` + `torch.cuda.reset_peak_memory_stats()`
+(with a free/total memory printout) at the very start of Cell 4, before
+`run_one()` is ever called; wrapped `run_one()`'s body in a
+`try`/`finally` that deletes its own `model` and clears the cache
+before returning; and added another `gc.collect()`/`empty_cache()`
+between the OLD and NEW `run_one()` calls. Regenerated both notebooks,
+verified every code cell (skipping shell-magic `!python` cells) parses
+cleanly via `ast.parse` before committing. **Not yet re-run on real
+GPU** -- next step is Omar re-running Cell 4 (or the whole notebook if
+he prefers a clean kernel) to confirm the crash is actually gone.
+
+Still open from before this crash: whether Omar intentionally
+interrupted B1×Mooney-Rivlin's training at epoch 625 (best epoch 500,
+val_error=0.078) before natural early-stop (patience 8, only 5 of 8
+non-improving events reached) -- asked, no reply yet. This does not
+block Cell 4: `model_best.pt` (epoch 500's weights) is what Cell 4
+compares regardless of whether training was cut short after that point.
+
+Previous update, 2026-09-15 (**🎉 TASK #22 (ACCURACY/QoI HALF) FULLY DONE:
 `Round6_N1401_AllRemainingCases.ipynb` finished cleanly for all 5
 remaining cases, real numbers committed**).
 
