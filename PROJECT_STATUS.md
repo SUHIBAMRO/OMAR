@@ -117,7 +117,57 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**🔬 REOPENED Arruda-Boyce/torch-fem investigation
+Last updated: 2026-09-15 (**⚠️ Confirmed by reading the code: OUR OWN
+ground-truth solver shares the exact same chain-locking clamp as
+torch-fem's Arruda-Boyce implementation -- same risk in principle, not
+something we're immune to. Deliberately did NOT add a live diagnostic
+to our own production solver (too risky to touch while 3 real jobs
+depend on it) -- documented the exposure and the reasoning instead.**).
+
+Omar asked directly whether our own solver has the same problem torch-
+fem does, given both use materially the same physics. Checked by
+reading the actual imports, not assuming: `omar_pfem/gpu_fem_solver.py`
+and `omar_pfem/assembled_direct_solver.py` (the real modules behind
+`solve_b1_fast_gpu`/`solve_assembled_direct` -- i.e. every training-data
+generation and accuracy check this project has ever run) both import
+`get_material_fns` from `omar_pfem/materials_torch.py`, whose own
+`arruda_boyce_energy_density_vectorized` has the identical
+`torch.clamp(I1_bar, max=3.0*N_ab-1e-3)` found in torch-fem's
+comparison-only copy (`torchfem_comparison.py`'s `arruda_boyce_psi_3d`).
+`N_ab` is a fixed project-wide constant (`E_nu_to_arruda_boyce`'s own
+default, =5.0), not randomly sampled, so both code paths share the
+exact same locking limit (I1_bar=15) too.
+
+**What this does NOT mean**: it does not mean our own solver is
+broken, or that our published Arruda-Boyce accuracy numbers (task #22,
+real and already committed) are wrong -- those solves already completed
+successfully for both B1 and B2 at N=1401, with no crash, so whatever
+theoretical exposure exists, it did not prevent convergence for the
+samples actually computed. Reasons this could differ from torch-fem's
+own failure: our own solver's specific incremental loading schedule
+and direct (cuDSS) linear solve may simply behave more robustly here,
+or the specific random material/load samples we've solved may not have
+reached the same local strain regime that whatever torch-fem run failed
+on did.
+
+**Deliberate decision NOT to add a live diagnostic to our own solver
+right now**, unlike the one added to `torchfem_comparison.py`'s
+isolated, comparison-only chunked class: `materials_torch.py`'s
+Arruda-Boyce function is called from inside genuinely vmapped code
+paths elsewhere in this pipeline (`matrix_free_solver.py`'s
+`vmap(local_hess_fn, ...)` for per-element Hessians), unlike the
+torch-fem copy's simpler, non-nested vmap usage -- a print-based
+diagnostic here would need real GPU testing to confirm it behaves
+correctly under that nesting before trusting it, and this file is
+relied on by all 3 currently-running production jobs. Added it to the
+isolated, comparison-only file where the risk of getting it wrong was
+low and verifiable on CPU; did NOT add it here where a mistake could
+destabilize live jobs and where CPU-only verification of the vmap
+interaction isn't straightforward. If more certainty is wanted later,
+the right time is once the current jobs finish and this can be tested
+in isolation first.
+
+Previous update, 2026-09-15 (**🔬 REOPENED Arruda-Boyce/torch-fem investigation
 per Omar's explicit instruction ("keep digging until it actually works,
 don't just ask Timon and accept it") -- found a real, CPU-verified
 candidate root cause: the chain-locking safety clamp in
