@@ -75,6 +75,22 @@
 #  here anyway since it costs nothing and removes any risk.
 import os
 os.environ['JAX_PLATFORMS'] = 'cpu'
+# Third real OOM fix attempt (2026-09-15), cheap and zero-risk: even after
+# batch_size=1 + grad_checkpoint=1, a real GPU run still OOM'd, but got
+# much further this time -- all the way through the full forward pass and
+# into loss.backward() itself, failing needing 7.49 GiB with "7.42 GiB
+# free" reported yet only 71.81/79.25 GiB actually in use. That gap (a
+# request smaller than the reported free amount still failing) is the
+# classic signature of allocator FRAGMENTATION, not genuine exhaustion --
+# the error message itself names the fix: PYTORCH_CUDA_ALLOC_CONF=
+# expandable_segments:True lets the CUDA caching allocator grow existing
+# reserved segments instead of demanding a fresh contiguous block, which
+# is exactly what a request that size, that close to the fragmented
+# reserved-but-unallocated 11.09 GiB, needs. Pure allocator strategy, no
+# effect on computed values -- must be set before the child subprocess's
+# own `import torch`, which is why it's set on THIS process's environ
+# here: subprocess.Popen (used by run() below) inherits it automatically.
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
 
 import json
 import subprocess

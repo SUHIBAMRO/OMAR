@@ -117,7 +117,60 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**✅ TF32-for-training CONFIRMED and APPLIED: the
+Last updated: 2026-09-15 (**🚨 THIRD real OOM on task #24 -- real progress
+this time (got all the way through the full forward pass and into
+`loss.backward()` itself before failing), fixed with a cheap,
+zero-risk allocator config change: `PYTORCH_CUDA_ALLOC_CONF=
+expandable_segments:True`. Untested at N=1401 until the next real GPU
+run.**).
+
+After batch_size=1 + grad_checkpoint=1 (previous two fixes), a real GPU
+retry got much further -- the entire forward pass completed (confirming
+gradient checkpointing IS reducing the transformer-block memory as
+intended) and training reached `loss.backward()` itself before OOM'ing:
+`Tried to allocate 7.49 GiB` while the error reported `7.42 GiB free`
+and only `71.81 GiB` of the 79.25 GiB total actually in use. A request
+smaller than the reported free amount still failing is the classic
+signature of allocator FRAGMENTATION (11.09 GiB was reserved by
+PyTorch but unallocated at the time of failure, evidently split into
+pieces too small individually to satisfy one 7.49 GiB request), not
+genuine memory exhaustion -- confirmed by the error message itself,
+which names `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` as
+PyTorch's own suggested remedy for exactly this pattern (lets the
+caching allocator grow existing reserved segments instead of demanding
+a fresh contiguous block). Set on the notebook cell's own process
+before the training subprocess launches (inherited automatically via
+`subprocess.Popen`'s default env), so it takes effect before the child
+process's own `import torch`. Pure allocator strategy -- zero effect on
+any computed value, no correctness risk, unlike the two changes before
+it (which were both real code changes, verified before trusting them).
+
+Confirmed the earlier double-backward concern was unfounded before
+reaching for this fix: read `total_potential_energy_Q4_hyperelastic`
+(train_B1.py) and confirmed it contains NO `create_graph=True` /
+`autograd.grad` call -- the physics loss is a standard FEM shape-
+function assembly applied to the model's own OUTPUT displacement field
+(`uv`), not a differentiation through the model with respect to its
+input coordinates, so this is an ordinary single backward pass, not a
+double-backward -- ruling out one candidate complication before
+assuming a simpler (and correct, per PyTorch's own diagnosis) cause.
+
+Regenerated `B1_NeoHookean_Direct_N1401_Ablation.ipynb`, verified via
+`ast.parse`. **Not yet confirmed on a real GPU** -- if this still OOMs,
+the FEM energy assembly itself (`compute_hyperelastic_energy_Q4`,
+train_B1.py) builds several `(n_elements≈1.966M, ...)` intermediate
+tensors per Gauss point (4 points) that are NOT covered by the model's
+own gradient checkpointing, and would be the next thing to
+chunk/checkpoint -- a bigger, riskier change to a function every B1
+training run depends on, so deliberately not attempted preemptively
+before confirming the cheaper allocator fix isn't already enough.
+
+As before: this is the THIRD fix to this notebook today, so the
+standing reminder applies again -- always open a completely FRESH
+`colab.research.google.com/github/.../blob/<branch>/<path>.ipynb` tab
+before retrying, never reuse an already-open one.
+
+Previous update, 2026-09-15 (**✅ TF32-for-training CONFIRMED and APPLIED: the
 N=201 convergence test (`Test_TF32_Training_Convergence_N201.ipynb`,
 1200 real steps, real A100) came back clean -- TF32's own deviation from
 the same-seed fp32 run (|A-C|=3.05e-4) is ~58x SMALLER than two
