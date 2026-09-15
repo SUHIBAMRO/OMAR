@@ -226,22 +226,32 @@ for geometry, material, ckpt, model_args in CASES:
             nodes, elements, *elem_params, fext_full=fext_full, fixed_dofs=fixed_dofs,
             material=material, dtype=torch.float64, device=device, tol=1e-8)
     except RuntimeError as e:
-        # Real OOM caught here on a live run (2026-09-14): the actual exception
-        # that propagates out of model.solve() is torchfem's own RuntimeError
-        # ("Newton-Raphson did not converge ... after N cutbacks"), NOT a bare
-        # torch.cuda.OutOfMemoryError -- torchfem's own try/except around each
-        # Newton iteration treats an OOM as just another failed-to-converge
-        # step and retries with cutbacks (which cannot fix an OOM, so it always
-        # exhausts them and raises its own wrapped RuntimeError instead).
-        # torch.cuda.OutOfMemoryError IS a RuntimeError subclass, so this also
-        # catches the rarer case where OOM escapes uncaught.
+        # torchfem's own Newton-Raphson loop (base.py) wraps every Newton
+        # iteration in a bare "except RuntimeError", retries with cutbacks,
+        # and after max_cutbacks re-raises a NEW, generic RuntimeError
+        # ("Newton-Raphson did not converge ... after N cutbacks") that does
+        # NOT include the original error's text in str(e) -- so this catch
+        # can never actually confirm whether the underlying cause was OOM,
+        # a singular matrix, or something else. Two real fix attempts for
+        # Arruda-Boyce specifically (a per-element N=401 pre-check, then a
+        # chunked-Hessian rewrite that DID succeed at avoiding OOM inside
+        # its own chunk loop down to 390 points/chunk with no crash) both
+        # still hit this exact same generic failure -- confirming the real
+        # bottleneck is elsewhere in torch-fem's own pipeline (most likely
+        # its un-chunked global stiffness assembly) or a genuine numerical
+        # non-convergence, not conclusively memory. Omar's own explicit
+        # decision (2026-09-15), given two failed fix attempts and this
+        # being a secondary comparison baseline (not the neural operator's
+        # own accuracy story, which already succeeds for this material
+        # independently): accept this as a torch-fem limitation for
+        # Arruda-Boyce at this N and move on, rather than keep chasing it.
         is_oom = 'out of memory' in str(e).lower() or 'did not converge' in str(e).lower()
         if not is_oom:
             raise
-        print(f'  *** {case_id} failed (likely OOM at N={N} inside torch-fem\'s own Hessian -- '
-              f'"{e}") after a fresh-memory reset. Skipping this case rather than crashing the '
-              f'whole sweep; see PROJECT_STATUS.md for real fix options (e.g. a smaller N for '
-              f'this specific case). ***')
+        print(f'  *** {case_id} failed at N={N} -- torch-fem\'s own Newton-Raphson solve did '
+              f'not converge ("{e}"). Root cause not conclusively memory (see PROJECT_STATUS.md, '
+              f'2026-09-15 entry) -- accepted as a torch-fem limitation for this material/size, '
+              f'not pursued further. Skipping this case rather than crashing the whole sweep. ***')
         # Free whatever partial allocation remains from the failed attempt before continuing.
         gc.collect()
         if device.type == 'cuda':

@@ -117,7 +117,42 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**Arruda-Boyce chunked-Hessian fix (`ae2810b`)
+Last updated: 2026-09-15 (**✅ CLOSED: Omar's explicit decision --
+Arruda-Boyce's torch-fem break-even failure is accepted as a
+permanent torch-fem limitation, not pursued further. Comparison
+sweep's own error message corrected to stop asserting "likely OOM"
+now that we know that was never actually confirmed.**).
+
+Given the chunked-Hessian fix (`ae2810b`) confirmed-failed a second
+time (see entry just below) with no clear path to isolating the real
+root cause without more dev+GPU time, Omar chose explicitly (asked via
+AskUserQuestion): **accept this as a torch-fem limitation and move
+on**, rather than keep chasing it. Rationale that made this the right
+call, not just the easy one: this is a secondary comparison baseline
+(how does our operator compare to torch-fem's own solve cost), not the
+neural operator's own accuracy story -- which already succeeds for
+Arruda-Boyce independently and is fully documented (task #22). Two
+real fix attempts is a reasonable stopping point for a baseline
+comparison.
+
+**Fixed the misleading message this produced** in
+`cell_resolution_matched_break_even_all_cases.py`'s own except-block:
+it used to print "likely OOM" whenever it caught this failure, but
+that was never actually confirmed (torch-fem's own generic "did not
+converge" RuntimeError discards the real underlying error's text --
+see the finding below). Corrected to state plainly that the root cause
+is not conclusively memory and that this is an accepted limitation,
+not re-assert a specific cause with no evidence for it. Regenerated
+`Round6_ResolutionMatchedBreakEven_AllCases.ipynb`, verified via
+`ast.parse`, committed.
+
+**Net result for the break-even table**: Arruda-Boyce (both B1 and B2)
+stays "N/A -- torch-fem cannot solve this case at N=1401" in the
+break-even comparison. Neo-Hookean and Mooney-Rivlin (both geometries)
+already have real, working break-even numbers from the earlier
+successful run -- that data is untouched by this decision.
+
+Previous update, 2026-09-15 (**Arruda-Boyce chunked-Hessian fix (`ae2810b`)
 CONFIRMED FAILED on real GPU, second time -- chunking itself worked
 (found valid chunk sizes down to 390 points with no crash), but
 torch-fem's own Newton-Raphson solve still fails identically to
