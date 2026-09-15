@@ -117,7 +117,55 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**✅ nsteps=3 speedup CONFIRMED SAFE for B2 too
+Last updated: 2026-09-15 (**🧪 NEW diagnostic built (not yet run): does TF32
+matmul precision help TRAINING, not just inference? Omar's explicit
+request -- he is stopping his own running B2 notebook to free a GPU slot
+and test this. Waiting on a real GPU run of `Test_TF32_Training.ipynb`.**).
+
+TF32 (`torch.set_float32_matmul_precision('high')`) was already confirmed
+for INFERENCE ONLY (`no_inference_torch_compile.py`): 4.67x speedup alone
+at N=1401, correctness-checked via output relative difference against a
+strict-fp32 eager baseline. Never tested on the TRAINING loop itself --
+a single inference forward pass is a much weaker correctness check than
+~hundreds of real Adam steps, where small per-step numerical differences
+from lower-precision matmuls could in principle compound into a
+different optimization trajectory (not just a slightly-different single
+output).
+
+Built `cell_test_tf32_training.py` / `Test_TF32_Training.ipynb`
+(generator: `make_test_tf32_training_notebook.py`). Design, chosen so the
+comparison is fair, cheap, and cannot interfere with anything currently
+running:
+- reads real training samples READ-ONLY from a job that is **fully
+  finished** (`zeroshot_B1_neo_hookean_multires/samples_cache.pt`, task
+  #23/24's own completed multi-res retrain) -- writes nothing back, so it
+  cannot touch or corrupt any notebook still in progress.
+- uses only the N=21 samples from that cache (cheapest resolution
+  present), running 200 real steps of the SAME `loss_and_pred` ->
+  `backward` -> `Adam.step()` sequence `cmd_train` itself uses, batch_size=8,
+  matching production's B1 neo-Hookean architecture/hyperparameters
+  exactly (n_hidden=256, n_layers=4, n_heads=8, lr=2e-3, etc.).
+- runs this TWICE (baseline float32, then TF32-enabled), resetting
+  torch/numpy/random seeds to the identical value immediately before
+  EACH run -- fixes model init, dropout masks, and batch shuffling order
+  identically across both runs, so TF32 is the only variable that
+  differs between them.
+- reports wall-clock speedup AND the full loss-trajectory relative
+  difference (mean/max/final, plus every-20-steps printout), not just a
+  single number -- correctness for training needs the whole trajectory
+  checked, not one forward pass.
+- explicit decision rule printed by the cell itself: SAFE only if (a) no
+  NaN/Inf in either trajectory, and (b) mean per-step relative loss
+  difference stays under 5% across the whole run.
+
+**Not yet run on a real GPU** -- Omar said he would stop his current B2
+notebook to make room for this test. If it comes back SAFE, the plan is
+to add the same one-line `torch.set_float32_matmul_precision("high")`
+call near the top of `cmd_train` (or the notebook cell, before training
+starts) -- same mechanism already used for inference, nothing
+architectural.
+
+Previous update, 2026-09-15 (**✅ nsteps=3 speedup CONFIRMED SAFE for B2 too
 and APPLIED to production -- real A100 run of
 `Test_FewerLoadSteps_B2_MultiRes.ipynb`: all 72 solves (2 materials ×
 4 resolutions × 3 nsteps × 3 seeds) converged, `nsteps=3` gives a real
