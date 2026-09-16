@@ -117,7 +117,49 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-16 (**🎉 B2×Mooney-Rivlin multi-resolution retrain
+Last updated: 2026-09-16 (**📄 real gap found and fixed: the completed
+multi-res retrain results (B1×Mooney-Rivlin, B1×Arruda-Boyce,
+B2×Mooney-Rivlin) had only ever been recorded HERE, never actually
+transcribed into the real deliverable documents sent to Timon
+(`PFEM_Transolver_Report_*.docx` / `PFEM_Work_Summary_*.docx`) -- only
+the original B1×Neo-Hookean retrain (round-10) had made it into those.
+Fixed: both documents now have the missing three cases' tables, the
+exact multi-resolution training protocol (answers round-11 point 3),
+a combined summary table, and a new figure. New versions:
+`PFEM_Transolver_Report_2026-09-16.docx`, `PFEM_Work_Summary_2026-09-16.docx`
+(both committed).**).
+
+Also fixed the same day: the Report/Summary `.docx` files themselves
+were discovered living ONLY in the session's ephemeral scratchpad
+directory (`/tmp/.../scratchpad/deliverables/`), never committed
+anywhere -- a real data-loss risk, since that directory does not
+survive a container reclaim between sessions. Rescued the existing
+2026-09-15 versions into `advisor_feedback/` and committed them before
+adding anything new, so the base this session edited from is itself
+now safe. **Going forward, every Report/Summary edit must save its
+`.docx` output directly into `advisor_feedback/` in this repo, not the
+scratchpad `DELIV` path the older `report_builders/*.py` scripts still
+hardcode** -- those older scripts were NOT changed (would risk
+corrupting their own logic for no benefit), but the two NEW scripts
+added today (`add_multires_retrain_extension_to_report.py`,
+`add_multires_retrain_extension_to_summary.py`) both already write to
+`advisor_feedback/` directly, and every future report-editing script
+should follow that same convention.
+
+Editing method, for anything added to the Report/Summary from here on:
+follow the exact pattern already established by
+`add_richer_mms_to_report.py` (python-docx, find an anchor paragraph by
+EXACT text match, insert new paragraphs/tables/figures immediately
+after it via low-level XML `addnext` calls that copy the anchor's own
+styling) -- never free-hand-edit the `.docx`. Verify every edit before
+committing: diff old vs. new paragraph-by-paragraph up to the insertion
+point (must be identical), confirm the paragraph/table/image count
+deltas match exactly what the script should have added, and spot-check
+new table contents against their source numbers. Today's two scripts
+were verified this way (zero mismatches before the anchor, deltas
+exactly as expected, table contents spot-checked) before committing.
+
+Previous update, same day (**🎉 B2×Mooney-Rivlin multi-resolution retrain
 FULLY DONE -- real GPU completion, no crash, genuine accuracy fix at
 N=1401. Same tradeoff pattern already seen for every other multi-res
 retrain (B1×Neo-Hookean, B1×Arruda-Boyce): slightly worse at the
