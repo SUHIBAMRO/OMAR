@@ -117,7 +117,45 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-16 (**📄 all three remaining audit gaps closed +
+Last updated: 2026-09-16 (**🔧 built the round-11 point 2 notebook
+(`Round11_QoI_Crossover_RemainingCases.ipynb`) -- QoI crossover for the
+5 cases beyond B1xNeo-Hookean, the one real not-yet-started task the
+audit flagged. NOT YET RUN on GPU.**).
+
+**Real bug found and fixed while building it**: `run_qoi_study`
+(`torchfem_comparison.py`) accepts a `geometry` parameter but every
+existing call site across this whole project only ever used the
+default (B1) -- so a real bug never surfaced: its own `E_fn`/`nu_fn`
+were hardcoded to `AnalyticFieldB1` regardless of `geometry`, which
+would have silently sampled B1's own unit-square material field at
+polar (theta, r) points meant for B2's ring, producing wrong numbers
+with no error for any B2 case. Fixed to select `AnalyticFieldB1`/
+`AnalyticFieldB2` by geometry, and to skip the reaction-resultant QoI
+for B2 (`compute_reaction_resultant_error` is explicitly "B1 only" per
+its own docstring -- B2's fixed boundary is two edges each constraining
+one DOF component, no established reaction convention for it
+elsewhere in this project, same omission `_score_prediction_b2`
+already makes deliberately). **Verified on real CPU compute at N=7 for
+both geometries before trusting it**: B1's own numbers unchanged
+(regression check), B2 now produces sane, non-crashing values
+(l2_rel=1.5%, h1=13.5%, energy=6.8%, peak_stress=5.1%, reaction
+correctly omitted as `None`).
+
+**What the new notebook reuses unchanged**: each of the 5 cases' own
+NO accuracy sweep at N=1401 (already computed, task #22, already on
+Drive) -- no operator-side recomputation. Only new work: torch-fem's
+own QoI sweep at the same low-N range (3-49) B1xNeo-Hookean's own
+published crossover (Table 18-R10e) used, now that `run_qoi_study` is
+safe for B2. Expected cost: cheap, under 15-20 minutes total (each
+individual solve at these low N is smaller than the N=1401 solves the
+break-even sweep already measured at 134-208s each).
+
+**Files**: `cell_qoi_crossover_remaining_cases.py`,
+`make_qoi_crossover_remaining_cases_notebook.py`,
+`Round11_QoI_Crossover_RemainingCases.ipynb`. Colab link for Omar:
+https://colab.research.google.com/github/SUHIBAMRO/OMAR/blob/claude/claude-code-question-d307wp/Practical_Examples/zeroshot_notebooks/Round11_QoI_Crossover_RemainingCases.ipynb
+
+Previous update, same day (**📄 all three remaining audit gaps closed +
 task #24's real result added to the Report/Summary. Current files:
 `PFEM_Transolver_Report_2026-09-16e.docx`, `PFEM_Work_Summary_2026-09-16e.docx`.**).
 
