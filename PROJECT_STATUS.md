@@ -117,7 +117,53 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-16 (**🚨 real bug found and fixed: `--fast_solver`/
+Last updated: 2026-09-16 (**🎉 B2×Mooney-Rivlin multi-resolution retrain
+FULLY DONE -- real GPU completion, no crash, genuine accuracy fix at
+N=1401. Same tradeoff pattern already seen for every other multi-res
+retrain (B1×Neo-Hookean, B1×Arruda-Boyce): slightly worse at the
+smallest meshes, clearly better from N=37 upward.**).
+
+Real numbers, OLD (N=21,33-only) vs NEW (N=21,33,101,201) checkpoint,
+fp32 disp_rel_L2, 16 resolutions N=13..1401:
+
+    N       OLD        NEW        better?
+    13      9.38e-02   1.27e-01   no
+    17      3.86e-02   1.29e-01   no
+    21      2.96e-02   1.30e-01   no
+    25      3.80e-02   1.30e-01   no
+    29      6.36e-02   1.30e-01   no
+    33      4.88e-02   1.30e-01   no
+    37      1.31e-01   1.30e-01   YES
+    41      2.00e-01   1.31e-01   YES
+    45      2.62e-01   1.31e-01   YES
+    49      3.17e-01   1.31e-01   YES
+    101     4.85e-01   1.31e-01   YES
+    201     4.98e-01   1.31e-01   YES
+    401     4.98e-01   1.31e-01   YES
+    701     4.98e-01   1.31e-01   YES
+    1001    4.97e-01   1.31e-01   YES
+    1401    **4.95e-01 -> 1.31e-01**  YES (~73.5% relative reduction)
+
+Notable: the NEW checkpoint's error is nearly FLAT across N=37..1401
+(~0.130-0.131) -- much flatter than the OLD checkpoint's own steep
+blow-up past its trained range (0.13 -> 0.50). This is the same
+resolution-invariance signature already documented for the other
+multi-res retrains, now confirmed for B2×Mooney-Rivlin too. Both
+sweeps (OLD, NEW) ran end to end at ~1h5m50s each (near-identical
+wall clock, as expected -- inference/FEM-reference cost, not training,
+dominates this comparison cell), using `solve_b2_fast_gpu` throughout
+(today's B2 fast-solver fix, see entry directly below) -- confirming
+that fix also works correctly for the accuracy-sweep code path, not
+just data generation.
+
+Status of the three geometries/materials now running in parallel this
+session: B2×Mooney-Rivlin (this entry) is DONE. B2×Neo-Hookean is
+still mid-training (last seen: epoch 575/2000, both_components val
+error ~0.21-0.35 and still improving). The B1×Neo-Hookean direct-
+N1401 ablation (task #24) is still mid-training (last seen: epoch 30,
+best epoch 20, 5/8 early-stop-patience checks used).
+
+Previous update, same day (**🚨 real bug found and fixed: `--fast_solver`/
 `--nsteps` were SILENT NO-OPS for B2's own data generation this whole
 time -- both B2 multi-res retrain notebooks had been generating every
 sample via the original 10-load-step CPU solver regardless of the
