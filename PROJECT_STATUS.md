@@ -117,7 +117,49 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-16 (**🎉 TASK #24 FULLY DONE -- B1×Neo-Hookean
+Last updated: 2026-09-16 (**📄 all three remaining audit gaps closed +
+task #24's real result added to the Report/Summary. Current files:
+`PFEM_Transolver_Report_2026-09-16e.docx`, `PFEM_Work_Summary_2026-09-16e.docx`.**).
+
+- **Task #24's real result** (8.00h direct training vs. 11.63h
+  multi-res, 36.65% vs. 5.85% disp_rel_L2 @ N=1401, ~identical
+  inference cost) replaced the stale "still mid-training" placeholder
+  in both documents -- the one script in this batch that edits an
+  existing paragraph's text in place rather than only appending,
+  verified via full diff that only that one paragraph changed.
+- **Gap 2 closed**: peak-stress QoI table (task #22), the five cases
+  beyond B1xNeo-Hookean, added to both documents with an explicit
+  checkpoint-version caveat (three of the five rows reflect
+  ORIGINAL/pre-retrain checkpoints, since this measurement predates
+  this week's own retrains for those three cases).
+- **Gap 3 closed**: the MMS body-force fairness clarification (direct
+  per-node input field, not via alpha/beta) added to both documents'
+  own MMS sections.
+- **Memory-cleanup bug FIXED IN CODE** (not just worked around in the
+  docs): the real root cause was `real_cause = e.__cause__` in
+  `cell_resolution_matched_break_even_all_cases.py`'s except block --
+  a reference to the OOM exception independent of the `except ... as
+  e` binding Python auto-deletes, whose own `__traceback__` chain pins
+  every local tensor from the failed solve. `gc.collect()`/
+  `empty_cache()` were already present but had nothing to reclaim
+  since the reference was never dropped. Fixed by explicitly deleting
+  both `real_cause` and `e` before those calls.
+  `Round6_ResolutionMatchedBreakEven_AllCases.ipynb` regenerated,
+  verified via `ast.parse`, **NOT yet re-run on real GPU** -- the fix
+  itself is standard, well-understood Python/PyTorch semantics
+  (reasoned through, not guessed), but has not been independently
+  confirmed to actually resolve the B2xNeo-Hookean cascade failure on
+  a real run yet. Worth a clean re-run once B2xNeo-Hookean's own
+  multi-res retrain (currently running) finishes and frees a GPU slot.
+
+**Genuinely nothing else outstanding from the 2026-09-16 audit or its
+follow-ups** except: B2xNeo-Hookean's own multi-res retrain (still
+running, last seen ~epoch 1025/2000, just hit a new best val error
+0.087, patience reset to 0) and round-11 point 2's own still-unstarted
+per-case QoI-crossover analysis for the 5 cases beyond B1xNeo-Hookean
+(a real, not-yet-begun task, distinct from the QoI table just added).
+
+Previous update, same day (**🎉 TASK #24 FULLY DONE -- B1×Neo-Hookean
 direct-N1401 training ablation (Timon's own round-11 point 4) completed
 end to end on real A100, all 5 steps (generate/train/accuracy-check/
 inference-timing/comparison) ran in one job, no crash, after the five
