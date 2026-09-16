@@ -262,17 +262,34 @@ for geometry, material, ckpt, model_args in CASES:
         # discards the real underlying error before re-raising this generic
         # message, so err.__cause__ is the only way to see it -- surfaced below.
         real_cause = getattr(e, '__cause__', None)
+        e_str = str(e)  # captured now: the exception itself is deleted below, before any GPU cleanup can run
         print(f'  *** {case_id} failed at N={N} -- torch-fem\'s own Newton-Raphson solve did '
-              f'not converge ("{e}"). Real underlying error (via __cause__): '
+              f'not converge ("{e_str}"). Real underlying error (via __cause__): '
               f'{type(real_cause).__name__ if real_cause else "none captured"}: {real_cause}. '
               f'Check the chunked-hyperelastic print above for chain-locking-clamp hits -- see '
               f'PROJECT_STATUS.md, 2026-09-15 entry for the full investigation. Skipping this '
               f'case rather than crashing the whole sweep. ***')
+        # Real memory-cleanup bug found 2026-09-16 (a fresh re-run's B2xNeo-Hookean
+        # case OOM'd with 81.27GB already allocated before it even started, right
+        # after this exact except block ran for the preceding Arruda-Boyce
+        # failure): Python auto-deletes the `except ... as e` binding at the end
+        # of this block, but `real_cause` above is a SEPARATE reference to the
+        # same exception object (e.__cause__) that Python does NOT auto-delete --
+        # and that OOM exception's own __traceback__ chain pins every local
+        # tensor from solve_theirs's failed call (including large intermediates
+        # from partway through its vmap(jacrev(jacrev(psi))) Hessian, built
+        # before the actual OOM point), keeping them allocated indefinitely.
+        # gc.collect()/empty_cache() alone cannot free memory a live reference
+        # still points to -- the reference itself must go first. Deleting both
+        # names explicitly before collecting fixes this at the source, rather
+        # than only working around it (as the Report/Summary docx currently do)
+        # by substituting an earlier clean measurement for the affected case.
+        del real_cause, e
         # Free whatever partial allocation remains from the failed attempt before continuing.
         gc.collect()
         if device.type == 'cuda':
             torch.cuda.empty_cache()
-        results.append({'geometry': geometry, 'material': material, 'N': N, 'failed': str(e)})
+        results.append({'geometry': geometry, 'material': material, 'N': N, 'failed': e_str})
         continue
     # Explicitly drop the large mesh/solution arrays for this case before moving on,
     # rather than letting them survive (referenced by the loop variable) until the
