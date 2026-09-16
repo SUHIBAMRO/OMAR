@@ -117,7 +117,60 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-15 (**🐢 Task #24's allocator-config fix WORKED
+Last updated: 2026-09-16 (**🚨 FOURTH real OOM on task #24, but real
+progress: TRAINING itself now works (batch_size=1 + grad_checkpoint +
+allocator config all held for real training steps, confirmed by the
+error site moving to a totally different code path) -- the OOM is now
+inside VALIDATION, a bug in `evaluate_resolution` that has nothing to
+do with any of the three fixes already made. Fixed generally, with a
+new `--eval_chunk_size` option, CPU-verified to produce bit-identical
+results across chunk sizes before trusting it.**).
+
+Real traceback this time: `cmd_train` -> `evaluate_resolution` ->
+`loss_and_pred` -> the model's own GELU layer, `Tried to allocate 74.88
+GiB`. Root cause, confirmed by the numbers: `evaluate_resolution`
+(called only at validation events) has ALWAYS stacked EVERY sample in
+the validation set into ONE batch for a single forward pass -- entirely
+independent of `--batch_size`, which only controls TRAINING batches.
+At N=1401 with `n_val_per_res=20`, that means one (20, ~1.966M nodes,
+n_hidden*mlp_ratio=512) tensor: `20 * 1,965,604 * 512 * 4 bytes ~= 80.5
+GiB`, matching the failing 74.88 GiB allocation. This bug existed the
+whole time and is completely unrelated to the batch_size/grad_checkpoint
+/allocator fixes already made for TRAINING -- it simply never triggered
+before because no other job in this project has ever validated at a
+resolution anywhere close to N=1401 (every multi-res retrain validates
+up to N=201 only, ~40,804 nodes, where a 20-sample validation batch is
+cheap).
+
+**Fixed generally, not as a one-off patch**: added `eval_chunk_size`
+(default `None`, exactly preserving the original one-batch behavior for
+every existing job) to `evaluate_resolution` itself -- when set, splits
+the validation samples into chunks, runs `loss_and_pred` once per chunk,
+and concatenates each chunk's `uv_pred` back into the full-size tensor
+before computing the SAME metrics exactly as before. This is an EXACT
+equivalence, not an approximation, because inference here has no
+cross-sample interaction (batch is pure parallelism) -- **verified on
+CPU** before trusting it: built a tiny 3-sample B1 validation set and a
+tiny model, confirmed `eval_chunk_size=None` (all-at-once),
+`eval_chunk_size=1`, and `eval_chunk_size=2` all return the EXACT SAME
+`(per_component, combined)` tuple, bit-for-bit (`12.670185089111328,
+6.678821563720703` in all three cases). Wired through as
+`--eval_chunk_size` (default `0`, meaning off) next to
+`--grad_checkpoint`/`--tf32` in `add_common_args`, and enabled here via
+`--eval_chunk_size 1`. Regenerated
+`B1_NeoHookean_Direct_N1401_Ablation.ipynb`, verified via `ast.parse`.
+
+This is the FIFTH fix to this notebook in two days (batch_size,
+grad_checkpoint, allocator config, validate_every, now eval_chunk_size)
+-- as always, needs a completely fresh Colab tab to pick up. Given
+training itself was confirmed working before this crash (real epochs
+completed, no OOM in the training loop), there is now real reason to
+expect this configuration is close to fully stable -- the remaining
+unknown is simply whether any further code path (e.g. the model-best
+checkpoint save, or the post-training accuracy/timing sweep in Step 3)
+has a similar untested-at-this-scale assumption.
+
+Previous update, 2026-09-15 (**🐢 Task #24's allocator-config fix WORKED
 (no crash this time) but Omar caught a real usability problem: the run
 sat completely silent, with `--validate_every 25` inherited unchanged
 from the multi-res checkpoints' own recipe, meaning the FIRST print

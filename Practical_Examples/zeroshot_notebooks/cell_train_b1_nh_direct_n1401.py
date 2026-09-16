@@ -235,6 +235,20 @@ run([sys.executable, '-u', '-m', 'omar_pfem.resolution_invariance_zeroshot', 'tr
 # visible. early_stop_patience=8 is left unchanged, now counted in units
 # of "every 2 epochs" instead of "every 25", i.e. slightly more responsive
 # early stopping too, not just faster feedback.
+#
+# FIFTH real fix, same day: --validate_every 2 above WORKED for getting
+# training itself moving (batch_size=1 + grad_checkpoint + the allocator
+# fix all held for real training steps) -- but the run then OOM'd inside
+# VALIDATION instead: `Tried to allocate 74.88 GiB`. Root cause is a
+# DIFFERENT code path: evaluate_resolution (called only at validation)
+# always stacked ALL n_val_per_res samples into ONE batch for a single
+# forward pass, completely independent of --batch_size -- at N=1401 with
+# n_val_per_res=20, that is a (20, ~1.966M nodes, ...) forward, far
+# beyond what even fits at training's own batch_size=1. Fixed generally
+# in evaluate_resolution itself (new --eval_chunk_size, chunks the
+# validation batch and concatenates results -- an EXACT equivalence, not
+# an approximation, verified bit-identical on CPU across chunk sizes
+# 1/2/all before trusting it) and enabled here via --eval_chunk_size 1.
 _train_started = time.time()
 run([sys.executable, '-u', '-m', 'omar_pfem.resolution_invariance_zeroshot', 'train',
      '--geometry', 'B1', '--material', 'neo_hookean',
@@ -242,7 +256,7 @@ run([sys.executable, '-u', '-m', 'omar_pfem.resolution_invariance_zeroshot', 'tr
      '--n_train_per_res', str(N_TRAIN), '--n_val_per_res', str(N_VAL),
      '--fast_solver', '1', '--nsteps', str(NSTEPS),
      '--epochs', '2000', '--validate_every', '2', '--batch_size', '1',
-     '--grad_checkpoint', '1',
+     '--grad_checkpoint', '1', '--eval_chunk_size', '1',
      '--early_stop_patience', '8', '--lr', '2e-3',
      '--out_dir', OUT])
 _train_wall_clock = time.time() - _train_started

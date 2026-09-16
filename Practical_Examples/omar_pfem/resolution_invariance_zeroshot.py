@@ -255,7 +255,7 @@ def mesh_tensors_of(geometry, sample, device, dtype):
 
 @torch.no_grad()
 def evaluate_resolution(geometry, samples, mesh_tensors, model, args, device, dtype,
-                        both=False):
+                        both=False, eval_chunk_size=None):
     """Validation error. Returns the per-component metric, or both metrics
     when `both` is set.
 
@@ -288,6 +288,24 @@ def evaluate_resolution(geometry, samples, mesh_tensors, model, args, device, dt
     computed with, so it stays the reported one and stays first in the
     return. What changed is that selection no longer depends on it: see
     --selection_metric.
+
+    `eval_chunk_size`, added 2026-09-16 (default `None`, exactly
+    preserving prior behavior for every existing job): this function
+    always stacked EVERY sample in `samples` into ONE batch for a single
+    forward pass, independent of the training `--batch_size` -- fine up
+    to N=201, but a real OOM at N=1401 (`Tried to allocate 74.88 GiB`,
+    n_val_per_res=20) showed this doesn't scale to that resolution even
+    when training itself already fits at batch_size=1. When set, this
+    splits `samples` into chunks of that size and runs `loss_and_pred`
+    once per chunk under the SAME `torch.no_grad()` this whole function
+    already runs under, concatenating each chunk's `uv_pred` back into
+    the exact same full-size tensor before computing the metrics exactly
+    as before -- since inference here has no cross-sample interaction
+    (batch is pure parallelism, not attention across samples), this is
+    an EXACT equivalence, not an approximation: chunk_size=len(samples)
+    (the default) is bit-identical to the single call used before, by
+    construction (same loss_and_pred call, just with an outer loop of
+    length 1).
     """
     if len(samples) == 0:
         return (None, None) if both else None
@@ -297,7 +315,15 @@ def evaluate_resolution(geometry, samples, mesh_tensors, model, args, device, dt
     force_batch = torch.tensor(np.stack([s["node_forces"] for s in samples]), device=device, dtype=dtype)
     uv_exact = torch.tensor(np.stack([s["uv_exact"] for s in samples]), device=device, dtype=dtype)
 
-    _, _, _, uv_pred, _ = loss_and_pred(geometry, mesh_tensors, model, E_batch, nu_batch, force_batch, args, dtype)
+    chunk = eval_chunk_size if eval_chunk_size else len(samples)
+    uv_pred_chunks = []
+    for i0 in range(0, len(samples), chunk):
+        i1 = min(i0 + chunk, len(samples))
+        _, _, _, uv_pred_c, _ = loss_and_pred(geometry, mesh_tensors, model,
+                                               E_batch[i0:i1], nu_batch[i0:i1],
+                                               force_batch[i0:i1], args, dtype)
+        uv_pred_chunks.append(uv_pred_c)
+    uv_pred = torch.cat(uv_pred_chunks, dim=0)
     err = uv_pred - uv_exact
     l2_u = torch.sqrt(torch.mean(err[:, :, 0] ** 2, dim=1))
     l2_v = torch.sqrt(torch.mean(err[:, :, 1] ** 2, dim=1))
@@ -627,10 +653,12 @@ def cmd_train(args):
 
         if epoch % args.validate_every == 0:
             per_res_val, per_res_comb = {}, {}
+            eval_chunk = int(getattr(args, "eval_chunk_size", 0)) or None
             for N in train_resolutions:
                 per_res_val[N], per_res_comb[N] = evaluate_resolution(
                     args.geometry, val_samples[N], mesh_tensors[N],
-                    model, args, device, dtype, both=True)
+                    model, args, device, dtype, both=True,
+                    eval_chunk_size=eval_chunk)
             combined_val = float(np.mean(list(per_res_val.values())))
             bothcomp_val = float(np.mean(list(per_res_comb.values())))
             # WHICH NUMBER DRIVES SELECTION. The per-component metric is what
@@ -1046,6 +1074,15 @@ def add_common_args(p):
     # no measurable speedup at N=21, so mainly worth it when the largest
     # resolution in --train_resolutions is 101+.
     p.add_argument("--tf32", type=int, default=0)
+    # Opt-in, default 0 (0 means "no chunking", exactly the old
+    # all-samples-in-one-batch behavior). See evaluate_resolution's own
+    # docstring: validation always stacked every val sample into ONE
+    # batch regardless of --batch_size, which OOM'd at N=1401 even
+    # though training itself fit at batch_size=1 (2026-09-16, real
+    # `Tried to allocate 74.88 GiB` with n_val_per_res=20). Setting this
+    # runs validation in chunks of this many samples instead -- exact,
+    # not approximate (see the function's own comment for why).
+    p.add_argument("--eval_chunk_size", type=int, default=0)
 
 
 def main():
