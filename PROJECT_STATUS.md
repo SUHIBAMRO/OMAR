@@ -117,7 +117,54 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-16 (**📄 ran a full audit (subagent) of every
+Last updated: 2026-09-16 (**🎉 TASK #24 FULLY DONE -- B1×Neo-Hookean
+direct-N1401 training ablation (Timon's own round-11 point 4) completed
+end to end on real A100, all 5 steps (generate/train/accuracy-check/
+inference-timing/comparison) ran in one job, no crash, after the five
+earlier same-day OOM/feedback fixes finally held together for a full
+run. This is the headline result of the whole ablation.**).
+
+Real numbers (`direct_n1401_vs_multires_comparison.json`):
+
+    metric                    direct-N1401        multi-res (zero-shot)
+    training wall-clock       28,791.9s (8.00h)   41,881.28s (11.63h)
+    disp_rel_L2 @ N=1401      36.65%              5.85%
+    inference (eager fp32)    2318.8ms/sample     2292.1ms/sample
+
+Training itself: early-stopped at epoch 36 (best epoch 20,
+both_components_val=0.2728, combined_val=0.4540), exactly
+early_stop_patience=8 validation events with no improvement, i.e. the
+run stopped itself rather than being cut off -- same discipline check
+already applied to every other retrain in this project.
+
+**Interpretation, stated plainly since this is the direct answer to
+Timon's own question**: training directly at the target resolution is
+CHEAPER (8.00h vs 11.63h, ~30% less GPU time) but produces a model
+**6.3x LESS ACCURATE** (36.65% vs 5.85% relative L2 error) than
+training on four cheaper resolutions (N=21,33,101,201) and zero-shot
+generalizing to N=1401 -- despite the direct model never having to
+generalize across resolutions at all, only fit the one resolution it
+was evaluated on. Inference cost is identical either way (~2.3s/sample,
+same architecture, same parameter count -- the training data's
+resolution range does not change the deployed model's own inference
+cost). This is a strong, clean result in favour of the multi-resolution
+training strategy: not just "it also works zero-shot," but "it produces
+a substantially better model than direct training at the target
+resolution, for less than 50% more training time." Likely explanation
+(not yet independently confirmed, stated as a hypothesis): 100 training
+samples at N=1401 alone (this ablation's own budget, chosen for cost
+reasons) is a much smaller and less diverse effective training set than
+400 samples spread across four resolutions, so the direct model may
+simply be more prone to overfitting/underfitting its narrow single-
+resolution training distribution -- a genuine open question for the
+report to flag rather than resolve unstated.
+
+**Task #24 marked COMPLETE.** Still pending: fold this result into the
+Report/Summary documents (the existing "still mid-training, not
+included" note for this ablation, added 2026-09-16, needs to be
+replaced with the real result above) -- not yet done as of this entry.
+
+Previous update, same day (**📄 ran a full audit (subagent) of every
 completed task against the real Report/Summary docx, per Omar's own
 explicit request after the multi-res-retrain gap below was found --
 confirmed TWO more real gaps and fixed the first one. Current files:
