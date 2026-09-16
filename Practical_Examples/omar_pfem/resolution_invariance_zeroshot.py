@@ -208,6 +208,45 @@ def build_sample_b2(N, seed, material, R_in=1.0, R_out=2.0, solve_fem=True):
     }, (E_fn, nu_fn, p_fn)
 
 
+def build_sample_b2_fast(N, seed, material, device, dtype=torch.float64, R_in=1.0, R_out=2.0,
+                          solve_fem=True, nsteps=1):
+    """B2 analog of build_sample_b1_fast (see its own docstring) -- same
+    sample as build_sample_b2 (identical xy/quad/E_node/nu_node/
+    node_forces, reused via solve_fem=False), but the FEM solve itself
+    goes through solve_b2_fast_gpu instead of the original CPU-only
+    solve_hyperelastic_TL_ring.
+
+    Found missing 2026-09-16: solve_b2_fast_gpu has existed since
+    2026-09-14 (built for the N=1401 accuracy pipeline) and was already
+    verified safe at fewer load steps (Test_FewerLoadSteps_B2_MultiRes.ipynb,
+    real A100 run, nsteps=3 converges cleanly at every (material,
+    resolution) combination in this study) -- but nothing ever called it
+    from cmd_train's own data-generation path for geometry=B2. That path
+    (build_sample_b2, solve_fem=True) always called the original CPU-only
+    solve_hyperelastic_TL_ring with nsteps HARD-CODED to 10, so
+    --fast_solver/--nsteps were silent no-ops for B2 the whole time the B2
+    multi-res retrain notebooks believed they were using them -- confirmed
+    by real Colab logs still printing [step X/10] after --nsteps 3 had
+    supposedly been applied. This function, plus the matching branch added
+    to cmd_train below, is the actual fix.
+
+    Existing checkpoints/results are UNTOUCHED: this is a new function, not
+    a change to build_sample_b2, and is opt-in via the same --fast_solver
+    CLI flag B1 already uses."""
+    sample, fns = build_sample_b2(N, seed, material, R_in, R_out, solve_fem=False)
+    if solve_fem:
+        from omar_pfem.no_ground_truth_fast import solve_b2_fast_gpu
+        u_flat, nodes_gt, elems_gt, _ = solve_b2_fast_gpu(
+            N, seed, material, device, dtype, R_in=R_in, R_out=R_out, nsteps=nsteps)
+        assert np.allclose(sample["xy"].astype(np.float64), nodes_gt) and \
+            np.array_equal(sample["quad"], elems_gt), (
+                f"build_sample_b2_fast: mesh mismatch between build_sample_b2 and "
+                f"solve_b2_fast_gpu at N={N} -- the two must solve the identical mesh "
+                f"for uv_exact to be a valid ground truth for this sample's own xy/quad.")
+        sample["uv_exact"] = u_flat.reshape(-1, 2).astype(np.float32)
+    return sample, fns
+
+
 # ============================================================
 # Model + loss (thin re-exports so this module has one obvious source per
 # geometry, matching train_B1.py / train_B2.py's own signatures exactly)
@@ -440,21 +479,29 @@ def cmd_train(args):
     np.random.seed(args.seed); random.seed(args.seed); torch.manual_seed(args.seed)
 
     train_resolutions = [int(n) for n in args.train_resolutions.split(",") if n.strip()]
-    if args.geometry == "B1" and int(getattr(args, "fast_solver", 0)):
+    if int(getattr(args, "fast_solver", 0)):
         # Opt-in (default off, so every existing checkpoint/result is
-        # reproduced identically): solve_b1_fast_gpu instead of the original
-        # CPU-only solve_hyperelastic_TL_spatial, verified bit-identical at
-        # N=13 (relative L2 diff 0.0) and ~4.7x faster even on CPU alone --
-        # see build_sample_b1_fast's own docstring for why this exists
-        # (the old path was measured at 7.3 HOURS to generate N=21's own 500
+        # reproduced identically): solve_b{1,2}_fast_gpu instead of the
+        # original CPU-only solvers -- see build_sample_b1_fast's /
+        # build_sample_b2_fast's own docstrings for why this exists (the
+        # old B1 path was measured at 7.3 HOURS to generate N=21's own 500
         # samples, making any resolution wider than the original 21/33
-        # impractical without this).
+        # impractical without this; B2's own CPU path has the same shape
+        # of cost). The B2 branch was ADDED 2026-09-16 -- until then,
+        # --fast_solver/--nsteps were silent no-ops for geometry=B2 (see
+        # build_sample_b2_fast's docstring for how this was found).
         import functools
         fast_device = torch.device("cuda" if torch.cuda.is_available() and not args.cpu else "cpu")
-        build_fn = functools.partial(build_sample_b1_fast, device=fast_device, dtype=torch.float64,
-                                      nsteps=int(getattr(args, "nsteps", 10)))
-        print(f"[fast_solver] generating training/val samples via solve_b1_fast_gpu "
-              f"on {fast_device} instead of the original CPU solver, nsteps={int(getattr(args, 'nsteps', 10))}")
+        if args.geometry == "B1":
+            build_fn = functools.partial(build_sample_b1_fast, device=fast_device, dtype=torch.float64,
+                                          nsteps=int(getattr(args, "nsteps", 10)))
+            print(f"[fast_solver] generating training/val samples via solve_b1_fast_gpu "
+                  f"on {fast_device} instead of the original CPU solver, nsteps={int(getattr(args, 'nsteps', 10))}")
+        else:
+            build_fn = functools.partial(build_sample_b2_fast, device=fast_device, dtype=torch.float64,
+                                          nsteps=int(getattr(args, "nsteps", 10)))
+            print(f"[fast_solver] generating training/val samples via solve_b2_fast_gpu "
+                  f"on {fast_device} instead of the original CPU solver, nsteps={int(getattr(args, 'nsteps', 10))}")
     else:
         build_fn = build_sample_b1 if args.geometry == "B1" else build_sample_b2
 
@@ -1095,28 +1142,31 @@ def main():
     p_train.add_argument("--n_train_per_res", type=int, default=400)
     p_train.add_argument("--n_val_per_res", type=int, default=100)
     p_train.add_argument("--fast_solver", type=int, default=0,
-                          help="B1 only: generate training/val FEM samples via "
-                               "solve_b1_fast_gpu (verified bit-identical to the original "
-                               "solve_hyperelastic_TL_spatial at N=13) instead of the original "
-                               "CPU-only path, which was measured at 7.3 HOURS for N=21 alone. "
+                          help="Generate training/val FEM samples via solve_b1_fast_gpu (B1) "
+                               "or solve_b2_fast_gpu (B2) instead of the original CPU-only "
+                               "path (measured at 7.3 HOURS for B1's own N=21 alone). B1's "
+                               "path verified bit-identical to solve_hyperelastic_TL_spatial "
+                               "at N=13; B2's verified via _correctness_check_b2 and the "
+                               "nsteps sweep in Test_FewerLoadSteps_B2_MultiRes.ipynb. "
                                "Default 0 (off) so every existing checkpoint reproduces "
-                               "identically; turn on to make wider train_resolutions practical.")
+                               "identically; turn on to make wider train_resolutions practical. "
+                               "(Added B2 support 2026-09-16 -- before this, --fast_solver/"
+                               "--nsteps were silent no-ops for geometry=B2.)")
     p_train.add_argument("--gen_chunk", type=int, default=25,
                           help="FEM samples generated between on-disk saves. Smaller = less "
                                "lost to an interrupted Colab session, at the cost of more "
                                "frequent (cheap) writes.")
     p_train.add_argument("--nsteps", type=int, default=10,
                           help="fast_solver only: incremental load steps per sample "
-                               "(solve_b1_fast_gpu). Default 10, unchanged from every "
-                               "existing result -- a real 2026-09-12 finding showed nsteps=1 "
-                               "(single-shot) does NOT converge at N=1401 with random "
-                               "material fields. Whether fewer steps than 10 (e.g. 5) still "
-                               "converges reliably at N=1401 has NOT been tested; each "
-                               "load step currently converges to a relative residual "
-                               "1e2-1e3x tighter than the required tolerance (see console "
-                               "output), suggesting -- but not proving -- that larger steps "
-                               "might still work. Verify on a small trial before trusting a "
-                               "lower value for any real data generation.")
+                               "(solve_b1_fast_gpu / solve_b2_fast_gpu). Default 10, "
+                               "unchanged from every existing result -- a real 2026-09-12 "
+                               "finding showed nsteps=1 (single-shot) does NOT converge at "
+                               "B1 N=1401 with random material fields. Whether fewer steps "
+                               "than 10 (e.g. 5, 3) still converges reliably has NOT been "
+                               "tested at every resolution/geometry -- verify on a small "
+                               "trial (see Test_FewerLoadSteps_*.ipynb for the established "
+                               "pattern) before trusting a lower value for any real data "
+                               "generation.")
     p_train.add_argument("--stop_after_generation", action="store_true",
                           help="Generate (or finish generating) the FEM samples, write the "
                                "cache, and exit WITHOUT training. Lets the multi-hour data "

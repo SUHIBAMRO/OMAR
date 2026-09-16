@@ -117,7 +117,51 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-16 (**🚨 FOURTH real OOM on task #24, but real
+Last updated: 2026-09-16 (**🚨 real bug found and fixed: `--fast_solver`/
+`--nsteps` were SILENT NO-OPS for B2's own data generation this whole
+time -- both B2 multi-res retrain notebooks had been generating every
+sample via the original 10-load-step CPU solver regardless of the
+`--nsteps 3` on their own command line. Fixed by adding
+`build_sample_b2_fast` (mirrors `build_sample_b1_fast`, uses the
+already-existing `solve_b2_fast_gpu`) and wiring it into `cmd_train`'s
+dispatch for `geometry == B2`. Verified on CPU before trusting it: at
+N=11 (nsteps=10 both paths) the fast path is BIT-IDENTICAL to the slow
+CPU reference (relative diff 0.0); at N=21 with nsteps=3 (fast) vs
+nsteps=10 (slow), both materials, relative diff ~1e-8/1e-9 (expected
+from the different load-stepping, not an error) -- and already ~23x
+faster on CPU alone (15.44s -> 0.66s per sample, Neo-Hookean N=21); a
+real GPU should widen this further, matching B1's own fast-path
+pattern (hours -> seconds).**).
+
+Real story of how this was found: two B2 multi-res retrain notebooks
+were restarted TWICE believing the problem was a stale Colab tab/
+runtime (both real, separate bugs already fixed earlier this same
+day -- see below) -- but a freshly-connected runtime, running the
+verified-latest commit, STILL printed `[step X/10]` instead of the
+expected `[step X/3]`. Reading `cmd_train`'s own dispatch logic
+(`resolution_invariance_zeroshot.py`) showed why: the fast-solver
+branch was gated on `args.geometry == "B1"` only -- for B2 it always
+fell through to plain `build_sample_b2`, which calls
+`data_generate_B2.solve_hyperelastic_TL_ring` with `nsteps=10`
+hardcoded directly in the call, never reading `args.nsteps` at all.
+The GPU fast solver for B2 (`solve_b2_fast_gpu`) already existed
+(built 2026-09-14 for the N=1401 accuracy pipeline) and had already
+been validated at nsteps=3 in a standalone diagnostic
+(`Test_FewerLoadSteps_B2_MultiRes.ipynb`) -- that diagnostic called
+`solve_b2_fast_gpu` directly, so its own real GPU result (1.46x
+speedup, 100% convergence) was genuine, but nothing ever wired it into
+the actual production data-generation path, so the "fix" applied to
+both B2 notebooks on 2026-09-15 never took effect. **Neither of the
+two previous restarts (stale-tab, stale-runtime) was wasted or
+wrong-headed given the information available at the time** -- both
+were real, independently-confirmed bugs -- but this THIRD root cause
+is why the symptom persisted through both fixes. `--fast_solver 1
+--nsteps 3` was already on both notebooks' Cell 2 command line before
+today, unchanged; only the code that reads those flags for B2 needed
+to be added, so no notebook cell text needed to change, only its
+markdown documenting what actually happens now.
+
+Previous update, same day (**🚨 FOURTH real OOM on task #24, but real
 progress: TRAINING itself now works (batch_size=1 + grad_checkpoint +
 allocator config all held for real training steps, confirmed by the
 error site moving to a totally different code path) -- the OOM is now
