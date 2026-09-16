@@ -87,7 +87,7 @@ if "pyvista" not in sys.modules:
         sys.modules["pyvista.plotting"] = _pyvista_stub.plotting
 
 from omar_pfem.high_dof_convergence_study import (
-    build_mesh_and_bcs, AnalyticFieldB1, solve_one, compute_l2_h1_errors,
+    build_mesh_and_bcs, AnalyticFieldB1, AnalyticFieldB2, solve_one, compute_l2_h1_errors,
     fit_convergence_rate, compute_tangent_energy_error, find_fine_peak_stress,
     compute_peak_stress_error, pk1_component_errors_at_point,
     compute_reaction_resultant_error)
@@ -924,8 +924,21 @@ def run_qoi_study(resolutions, out_json, geometry="B1", material="neo_hookean",
                       cg_tol=1e-8, newton_tol=1e-8, checkpoint_path=fine_ckpt)
     print(f'  fine reference ready: n_dof={fine["n_dof"]}, wall_clock_s={fine["wall_clock_s"]:.1f}')
 
-    E_fn = AnalyticFieldB1("E")
-    nu_fn = AnalyticFieldB1("nu")
+    # Real bug found 2026-09-16 (round-11 point 2, first time this function was ever
+    # pointed at geometry=B2): E_fn/nu_fn were hardcoded to AnalyticFieldB1 regardless
+    # of the `geometry` argument -- every call site so far (cell_torchfem_full_qoi_
+    # low_N.py, cell_torchfem_qoi_reaction_pk1_components.py, cell_torchfem_all_qois_
+    # large_dof.py) only ever used the default geometry="B1", so this never surfaced.
+    # _material_query_pts (used throughout this function via find_fine_peak_stress/
+    # compute_peak_stress_error/pk1_component_errors_at_point) already converts query
+    # points to polar (theta, r) for B2, but that conversion is only correct if the
+    # field being queried is ITSELF a B2 field (AnalyticFieldB2, calibrated on the
+    # ring's own theta range) -- feeding it B1's field (calibrated on the unit
+    # square's own x,y range) would silently sample the wrong material values at
+    # every point for a B2 case.
+    field_cls = AnalyticFieldB1 if geometry == "B1" else AnalyticFieldB2
+    E_fn = field_cls("E")
+    nu_fn = field_cls("nu")
     print('Locating fine reference\'s own peak-stress point...')
     x_star, peak_ref = find_fine_peak_stress(fine, order, geometry, material, E_fn, nu_fn,
                                               device, dtype)
@@ -963,8 +976,16 @@ def run_qoi_study(resolutions, out_json, geometry="B1", material="neo_hookean",
         # here checked reactions at all before now.
         pk1_comp = pk1_component_errors_at_point(x_star, coarse, fine, order, geometry, material,
                                                   E_fn, nu_fn, device, dtype, **geom_kwargs)
-        reaction = compute_reaction_resultant_error(coarse, fine, geometry, material, E_fn, nu_fn,
-                                                      device, dtype, order=order)
+        # compute_reaction_resultant_error is explicitly "B1 only" per its own
+        # docstring (hardcodes the fixed boundary as B1's own bottom edge, y=0,
+        # both DOF components) -- B2's own fixed boundary is two separate
+        # symmetry edges, each fixing only ONE DOF component, with no established
+        # reaction-resultant convention in this project (same omission already
+        # made deliberately in _score_prediction_b2, no_accuracy_at_n1401.py).
+        # Omitted for B2 rather than computed against the wrong boundary.
+        reaction = (compute_reaction_resultant_error(coarse, fine, geometry, material, E_fn, nu_fn,
+                                                       device, dtype, order=order)
+                    if geometry == "B1" else None)
 
         row = {"N": N, "n_dof": int(2 * nodes.shape[0]), "tol": tol,
                "torchfem_wall_clock_s": elapsed, "torchfem_peak_mem_mb": peak_mb,
@@ -982,13 +1003,15 @@ def run_qoi_study(resolutions, out_json, geometry="B1", material="neo_hookean",
                "P12_at_peak_rel_err": pk1_comp["P12_at_peak_rel_err"],
                "P21_at_peak_rel_err": pk1_comp["P21_at_peak_rel_err"],
                "P22_at_peak_rel_err": pk1_comp["P22_at_peak_rel_err"],
-               "reaction_resultant_pred": reaction["reaction_resultant_pred"],
-               "reaction_resultant_ref": reaction["reaction_resultant_ref"],
-               "reaction_resultant_rel_err": reaction["reaction_resultant_rel_err"]}
+               "reaction_resultant_pred": reaction["reaction_resultant_pred"] if reaction else None,
+               "reaction_resultant_ref": reaction["reaction_resultant_ref"] if reaction else None,
+               "reaction_resultant_rel_err": reaction["reaction_resultant_rel_err"] if reaction else None}
+        reaction_str = (f'{row["reaction_resultant_rel_err"]:.3e}' if reaction
+                        else 'n/a (B2, no established convention)')
         print(f'  N={N}: l2_rel={row["l2_rel"]:.3e} h1_semi_rel={row["h1_semi_rel"]:.3e} '
               f'energy_norm_rel={row["energy_norm_rel"]:.3e} '
               f'peak_stress_rel_err={row["peak_stress_rel_err"]:.3e} '
-              f'reaction_resultant_rel_err={row["reaction_resultant_rel_err"]:.3e}')
+              f'reaction_resultant_rel_err={reaction_str}')
         rows.append(row)
         rows.sort(key=lambda r: r["N"])
         if out_json:
