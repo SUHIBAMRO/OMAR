@@ -117,7 +117,59 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-16 (**📄 real gap found and fixed: the completed
+Last updated: 2026-09-16 (**📄 ran a full audit (subagent) of every
+completed task against the real Report/Summary docx, per Omar's own
+explicit request after the multi-res-retrain gap below was found --
+confirmed TWO more real gaps and fixed the first one. Current files:
+`PFEM_Transolver_Report_2026-09-16b.docx`, `PFEM_Work_Summary_2026-09-16b.docx`.**).
+
+**Gap found and FIXED this update**: the resolution-matched break-even
+(operator vs. torch-fem, BOTH at N=1401 -- Timon's round-11 point 1,
+"keep both break-even comparisons... expecting the resolution-matched
+one to look much more favourable") was computed with real GPU numbers
+(task #21) but never made it into either document. Added now, all six
+cases: 57-89x speedup even in default eager mode (vs. the
+accuracy-matched comparison, where default mode does not break even at
+all) -- both Arruda-Boyce cases genuinely fail (torch-fem's own Newton
+solve OOMs inside its own Hessian assembly, real and already
+root-caused). **Real, separate bug found while re-running this sweep
+for fresh numbers**: the fresh re-run's own B2×Neo-Hookean case failed
+with a CUDA OOM, but the sweep's own memory printout shows 81.27 GB
+already allocated on a 79.25 GB device BEFORE that case's own forward
+pass started -- leftover memory from the immediately preceding
+B1×Arruda-Boyce failure, never released before the next case began.
+This is a memory-cleanup gap in `Round6_ResolutionMatchedBreakEven_
+AllCases.ipynb`'s own sweep script (no `torch.cuda.empty_cache()`/reset
+between cases after a failure) -- **NOT YET FIXED IN CODE**, only
+worked around in the documents by using an earlier clean measurement
+for that one cell with the caveat stated explicitly. The code fix
+itself (and a clean re-run of just B2×Neo-Hookean afterward) is still
+pending -- Omar asked about it but the conversation moved to "just add
+the data" before confirming the code fix; ask before doing more GPU
+runs for it.
+
+**Gap found, NOT YET fixed**: peak-stress QoI numbers (task #22) for
+the 5 cases beyond B1×Neo-Hookean (78.05%, 78.25%, 49.48%, 48.13%,
+39.97% peak_stress_rel_err) exist in this file's own 2026-09-15 entry
+but are not in either document, nor is the real finding that B1's
+peak-stress error is structurally worse than B2's (corner-singularity
+reference point) or that B2×Arruda-Boyce has the best peak-stress
+accuracy of all six cases despite failing the break-even above for an
+unrelated reason. Also flagged, smaller: a clarifying sentence for the
+Report's MMS section (§8.10) on how the manufactured body-force field
+reaches the operator (direct per-node input channel, not via the
+family's own alpha/beta parameters) -- discussed with Timon this
+session but not yet written into the Report itself.
+
+**Separately flagged by the audit, NOT a documentation gap but an
+actual unfinished task**: Timon's round-11 point 2 (which QoI/norm
+determines the accuracy-matched FEM resolution, for all six cases) has
+only ever been computed for B1×Neo-Hookean (N=11) -- the other five
+cases were never analyzed this way at all, not just left out of the
+write-up. Worth surfacing to Omar as still outstanding from round-11,
+independent of the Report/Summary transcription work.
+
+Previous update, same day (**📄 real gap found and fixed: the completed
 multi-res retrain results (B1×Mooney-Rivlin, B1×Arruda-Boyce,
 B2×Mooney-Rivlin) had only ever been recorded HERE, never actually
 transcribed into the real deliverable documents sent to Timon
