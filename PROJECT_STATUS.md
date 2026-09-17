@@ -117,7 +117,31 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-17 (**🚨 SECOND real bug in the same notebook, caught
+Last updated: 2026-09-17 (**✅ B2xNeo-Hookean's own multi-resolution
+retrain FINISHED on real GPU -- the last open case from this week's
+retrain round.** Result: 46.37% -> 36.05% at N=1401 (~22.3% relative
+reduction), the smallest of the five completed cases (range ~22-87%
+across all five). Unlike B2xMooney-Rivlin's genuinely flat new-
+checkpoint curve, this one's error is lowest right at its own trained
+resolutions (12.98% at N=101) and rises again beyond them to 36-40% by
+N=1401 -- still clearly better than the original checkpoint's 46.4-
+46.7% there, but not as resolution-invariant. All 32 solves (16
+resolutions x 2 checkpoints) converged cleanly, ~1h5m wall-clock each.
+Added to both real deliverables, replacing the "still mid-training"
+placeholder: full 16-resolution table (Report's new Table 18-R10l),
+the cross-case summary table's 5th row (Table 18-R10i / Summary's Table
+R10-2), and an updated 5-case summary figure (drafted, shown to Omar,
+approved before embedding -- same PRIMARY/SECONDARY-adjacent red/green
+palette the figure already used, just extended to 5 bars). Verified via
+the usual before/after paragraph diff: Report +1 paragraph net (matches
+exactly what the edit should add), zero unexpected mismatches; Summary
+byte-identical outside the one intended paragraph and the new table
+row. Current files: `PFEM_Transolver_Report_2026-09-17d.docx`,
+`PFEM_Work_Summary_2026-09-17d.docx`. **This closes out every
+multi-resolution retrain case that was ever going to be retrained**
+(B2xArruda-Boyce has no retrain planned, per the Report's own text).**).
+
+Previous update, same day (**🚨 SECOND real bug in the same notebook, caught
 live on the re-run right after the fine_N fix above**:
 `cell_qoi_crossover_remaining_cases.py`'s crossover check did
 `no_row.get(no_key)` directly on the NO accuracy sweep's top-level row,
