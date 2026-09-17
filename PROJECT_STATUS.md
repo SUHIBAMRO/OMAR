@@ -117,7 +117,35 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-17 (**🚨 real bug caught and fixed before it burned
+Last updated: 2026-09-17 (**🚨 SECOND real bug in the same notebook, caught
+live on the re-run right after the fine_N fix above**:
+`cell_qoi_crossover_remaining_cases.py`'s crossover check did
+`no_row.get(no_key)` directly on the NO accuracy sweep's top-level row,
+but the real JSON schema (confirmed against the committed
+`no_accuracy_degradation_sweep_B1_neo_hookean.json`) nests every metric
+one level down, under its own precision key
+(`row['fp32']['L2_rel']`, not `row['L2_rel']`) -- the already-published
+B1xNeo-Hookean crossover (`cell_no_peak_stress_fixed_location.py`)
+already does this correctly (`no_rows[N]['fp32'].get(no_key)`); this
+new cell was missing the `['fp32']` indirection, so every no_val came
+back None and B1xMooney-Rivlin (the first case to finish) silently
+printed "no crossover found" for every single metric instead of the
+real comparison -- caught immediately since the log showed zero
+"NO=... -> ..." lines before that conclusion, which shouldn't happen if
+even one metric had a real value. **No wasted GPU time from this one**
+-- it only affects how the already-computed torch-fem numbers get
+compared, not the computation itself, so nothing needed to be stopped
+or re-solved; confirmed by hand against the real N=1401 row (`L2_rel`
+0.395, `H1_semi_rel` 0.612, etc. -- all real numbers, not None) that
+`no_row['fp32'].get(no_key)` resolves correctly. Fixed, notebook
+rebuilt, re-verified 89/89. **Still needs a full GPU re-run** once the
+current in-progress run (which is using the OLD buggy crossover logic,
+though its underlying torch-fem numbers are fine) finishes all 5
+cases -- re-running afterward will reuse every already-computed fine
+reference and low-N row instantly (nothing to re-solve) and just
+recompute the final crossover summary correctly.**).
+
+Previous update, same day (**🚨 real bug caught and fixed before it burned
 massive GPU time: `Round11_QoI_Crossover_RemainingCases.ipynb`
 (point 2, the 5 remaining cases) was started on Colab and immediately
 began solving a from-scratch fine reference at N=2236 (~10M DOF) for

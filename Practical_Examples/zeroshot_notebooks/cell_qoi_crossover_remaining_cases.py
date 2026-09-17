@@ -172,7 +172,19 @@ for geometry, material, no_json in CASES:
     if geometry == 'B1':
         metric_pairs.append(METRIC_PAIR_REACTION)
 
-    no_row = no_rows[1401]
+    # REAL BUG (caught 2026-09-17 on the live Colab run, B1xMooney-Rivlin):
+    # the NO accuracy sweep JSON nests every metric under its own
+    # precision key (row['fp32']['L2_rel'], NOT row['L2_rel'] directly --
+    # see no_accuracy_degradation_sweep_B1_neo_hookean.json) -- the
+    # already-published B1xNeo-Hookean crossover (cell_no_peak_stress_
+    # fixed_location.py) already does this correctly
+    # (`no_rows[N]['fp32'].get(no_key)`); this cell was missing the
+    # ['fp32'] indirection, so every no_val came back None and every
+    # case silently reported "no crossover found" regardless of the
+    # real numbers. Fixed to match the established precedent -- fp32 is
+    # the production precision used throughout this project, bf16 is a
+    # separate, already-published ablation.
+    no_row = no_rows[1401]['fp32']
     print(f'\n  NO at N=1401 ({case_id}):')
     per_metric_crossover = {}
     for no_key, fem_key, label in metric_pairs:
