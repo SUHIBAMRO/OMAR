@@ -117,7 +117,33 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-17 (**✅ Round-11 point 2 (task from item #2 in
+Last updated: 2026-09-17 (**📧 Timon replied with two quick technical
+questions** (`advisor_feedback/2026-09-17_timon_mms_questions.md`,
+verbatim), both about the MMS-operator study: (1) is the body-force
+input normalization fixed from the training set, not sample-wise; (2)
+if MMS is later used to test coarse-to-fine resolution generalization,
+the network's own spatial input must be the CONTINUOUS body-force
+field, not the resolution-dependent consistent nodal force vector
+(which should stay in the energy loss's work term only) -- otherwise
+changing resolution changes the input's own numerical representation,
+not just the discretization. **Checked both directly against the real
+code, not answered from memory**: point 1 is already exactly right
+(`mms_operator.py` lines 221-227 compute mean/std once from the
+training family, reuse identically for eval -- confirmed by reading the
+code, not assumed); point 2 does not affect anything already published
+either, confirmed by reading `cell_mms_operator_rate.py` -- every
+MMS-operator result so far (including Table 24a's own three-mesh
+convergence rate) trains a SEPARATE network per fixed N (three
+independent `python -m omar_pfem.mms_operator --N X` runs, rate fitted
+externally after), never one model evaluated zero-shot across
+resolutions, so this is forward-looking guidance for an MMS zero-shot
+study that doesn't exist yet, not a bug in what's published. **Reply
+drafted, NOT sent** (`advisor_feedback/2026-09-17_reply_to_timon_mms_questions.md`)
+-- confirms both points, and commits to the continuous-field-as-input /
+nodal-vector-in-loss-only split if such an MMS extension is ever built.
+Waiting on Omar to review before sending.**).
+
+Previous update, same day (**✅ Round-11 point 2 (task from item #2 in
 this session's list of prior findings) is now ANSWERED WITH REAL DATA
 and written into both real deliverables: does the same QoI/norm
 determine the coarsest-suitable-FEM crossover for every case, or does
