@@ -117,7 +117,34 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-17 (**🖼️ closed the last documentation loose end:
+Last updated: 2026-09-17 (**🚨 real bug caught and fixed before it burned
+massive GPU time: `Round11_QoI_Crossover_RemainingCases.ipynb`
+(point 2, the 5 remaining cases) was started on Colab and immediately
+began solving a from-scratch fine reference at N=2236 (~10M DOF) for
+B1xMooney-Rivlin -- the single most expensive class of solve in the
+whole project, and NONE of these 5 cases has ever had one computed
+before (only B1xNeo-Hookean's `fine_B1_neo_hookean_Q4_N2236.pt` already
+exists on Drive). The cell's own "cheap, under 15 min" cost comment only
+ever accounted for the 16-point low-N sweep (N=3-49) -- it silently
+inherited `run_qoi_study`'s own `fine_N=2236` default without
+reconsidering it, meaning each of the 5 cases would have required its
+own fresh ~10M-DOF solve. Extrapolating from N=1401's real fresh-solve
+time (27257.4s / ~7.6h) scaled by DOF, N=2236 would plausibly cost
+30-48h PER CASE -- roughly 150-240h total across 5 cases, which Colab
+cannot even run in one session. Omar caught this by asking about the
+log output rather than letting it run; told him to stop the Colab run
+immediately. **Fixed same day**: this cell's low-N sweep only goes up
+to N=49, and this project's own established safety margin (fine_N >=
+4x the largest N under test) only requires fine_N>=196 here -- so
+fine_N=201 (already used and timed elsewhere in this project, ~15 min
+class) is comfortably sufficient, at a tiny fraction of 2236's cost.
+Changed the `run_qoi_study(...)` call to pass `fine_N=201` explicitly
+instead of the function's own `fine_N=2236` default, rebuilt the
+notebook, re-verified 89/89 via `check_notebooks.py`, committed and
+pushed. **Not yet re-run on GPU** -- Omar needs to restart the Colab
+run with this corrected notebook.**).
+
+Previous update, same day (**🖼️ closed the last documentation loose end:
 every result table added this week now has its own figure. Added
 three new figures total today: resolution-matched break-even (all six
 cases), direct-N1401 ablation (cost+accuracy), and peak-stress QoI

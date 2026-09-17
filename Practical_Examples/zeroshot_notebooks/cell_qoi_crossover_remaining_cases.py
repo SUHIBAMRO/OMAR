@@ -29,10 +29,25 @@
 #  before this cell was ever pointed at a real GPU sweep: B1's own
 #  numbers unchanged, B2's are sane and non-crashing.
 #
-#  COST: cheap. 16 low-N resolutions x 5 cases, each individual solve
-#  smaller than the ones the resolution-matched break-even cell already
-#  ran at N=1401 in well under 15 minutes total -- expect a broadly
-#  similar order of magnitude here, not hours.
+#  COST: the 16-point low-N sweep itself is cheap (each solve smaller
+#  than the ones the resolution-matched break-even cell already ran at
+#  N=1401) -- but each of these 5 cases ALSO needs its own fresh fine
+#  reference (none of these 5 materials/geometries has ever had one
+#  computed before; only B1xNeo-Hookean's fine_B1_neo_hookean_Q4_N2236.pt
+#  already exists on Drive). The default fine_N=2236 used elsewhere in
+#  this project (Table 6a's own ~10M-DOF reference) is drastically
+#  oversized for what this cell actually needs: the low-N sweep only
+#  goes up to N=49, and this project's own established safety margin is
+#  fine_N >= 4x the largest N under test (4*49=196) -- so fine_N=201 is
+#  already comfortably past that margin, at a small fraction of
+#  N=2236's cost (~15 min class per Table 6a's own recorded N=201
+#  timing, vs. an estimated 30-48h for a FRESH N=2236 solve, extrapo-
+#  lated from N=1401's real fresh-solve time of 27257.4s / ~7.6h scaled
+#  by DOF). REAL BUG CAUGHT before any of the 5 cases got past the
+#  first Newton iteration of their fine solve (Omar noticed the run had
+#  started a from-scratch N=2236 solve and asked about it): fixed here
+#  by using fine_N=201 instead of the function's own fine_N=2236
+#  default. Expect low tens of minutes per case, not tens of hours.
 # =====================================================================
 import os
 os.environ['JAX_PLATFORMS'] = 'cpu'  # same defensive fix as every other cell here
@@ -132,8 +147,12 @@ for geometry, material, no_json in CASES:
     print('#' * 78)
 
     out_json = f'{R}/torchfem_full_qoi_low_N_{case_id}.json'
+    # fine_N=201, not the function's own fine_N=2236 default -- see the
+    # cost note at the top of this file for why 201 is already well past
+    # this project's own 4x-safety-margin rule for a LOW_N sweep topping
+    # out at 49, at a small fraction of 2236's cost.
     fem_rows = run_qoi_study(LOW_N, out_json, geometry=geometry, material=material,
-                              checkpoint_dir=CHECKPOINT_DIR, fine_N=2236)
+                              checkpoint_dir=CHECKPOINT_DIR, fine_N=201)
 
     if not os.path.exists(no_json):
         print(f'  *** {case_id}: NO accuracy sweep not found at {no_json} -- '
