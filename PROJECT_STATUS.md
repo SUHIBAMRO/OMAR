@@ -117,7 +117,31 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-17 (**✅ B2xNeo-Hookean's own multi-resolution
+Last updated: 2026-09-17 (**✅ Round-11 point 2 (task from item #2 in
+this session's list of prior findings) is now ANSWERED WITH REAL DATA
+and written into both real deliverables: does the same QoI/norm
+determine the coarsest-suitable-FEM crossover for every case, or does
+it vary? `Round11_QoI_Crossover_RemainingCases.ipynb` re-run on real
+GPU after the fp32-indexing fix -- finished in 1m24s this time (every
+fine reference and low-N sweep was already cached from the first, slow
+run). Real answer: MIXED, not uniform. All three B2 materials
+(Neo-Hookean, Mooney-Rivlin, Arruda-Boyce) share the exact same binding
+metric as the already-published B1xNeo-Hookean result -- tangent
+energy. But B1's other two materials (Mooney-Rivlin, Arruda-Boyce)
+cross on EVERY metric simultaneously (L2, H1, energy, peak stress,
+reaction) at N=3, the coarsest mesh tested -- a consequence of how poor
+their (pre-retrain) operator accuracy is at N=1401, not a new kind of
+finding. Explicit checkpoint-version caveat carried over from Table
+18-R10k, since this reuses task #22's own pre-retrain NO-accuracy data
+for 4 of the 5 rows. Added to the Report (new Table 18-R10m + two
+paragraphs, right after the peak-stress QoI discussion) and Summary
+(Table R10-7 + two paragraphs), verified via the usual before/after
+diff (+3 paragraphs / +1 table in each, zero unexpected mismatches).
+Current files: `PFEM_Transolver_Report_2026-09-17e.docx`,
+`PFEM_Work_Summary_2026-09-17e.docx`. **Round-11 point 2 is now fully
+closed with real numbers, no longer just a built-but-unrun notebook.**).
+
+Previous update, same day (**✅ B2xNeo-Hookean's own multi-resolution
 retrain FINISHED on real GPU -- the last open case from this week's
 retrain round.** Result: 46.37% -> 36.05% at N=1401 (~22.3% relative
 reduction), the smallest of the five completed cases (range ~22-87%
