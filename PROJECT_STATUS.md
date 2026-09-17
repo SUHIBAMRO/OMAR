@@ -117,7 +117,36 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-16 (**🔧 built the round-11 point 2 notebook
+Last updated: 2026-09-17 (**✅ memory-cleanup fix CONFIRMED on real GPU:
+`Round6_ResolutionMatchedBreakEven_AllCases.ipynb` re-run cleanly end
+to end, all 6 cases, no cascade failure this time -- B2xNeo-Hookean
+(the case that failed in the previous re-run due to leftover memory
+from the preceding Arruda-Boyce failure) now succeeds cleanly:
+205.14s torch-fem, 2351.1ms operator, 87.3x speedup. No more workaround
+needed in the Report/Summary -- both Arruda-Boyce cases still fail for
+their own, already-root-caused, genuine reason (torch-fem's own Newton
+solve OOMs inside its own Hessian assembly), unrelated to the fix.**).
+
+Real numbers, single clean run, all from `run_manifest.json` (2026-09-17):
+
+    Case                 torch-fem     Operator      Speedup   Break-even
+    B1 x Neo-Hookean     135.00s       2292.1ms      58.9x     316 samples
+    B1 x Mooney-Rivlin   133.92s       2361.9ms      56.7x     training cost unknown
+    B1 x Arruda-Boyce    FAILED (torch-fem Newton/Hessian OOM, genuine)
+    B2 x Neo-Hookean     205.14s       2351.1ms      87.3x     training cost unknown
+    B2 x Mooney-Rivlin   207.21s       2356.0ms      88.0x     training cost unknown
+    B2 x Arruda-Boyce    FAILED (torch-fem Newton/Hessian OOM, genuine)
+
+Numbers are all within ordinary run-to-run timing noise of the earlier
+(partially-corrupted) run's own numbers for the cases that succeeded
+both times (e.g. B1xNeo-Hookean 58.9x here vs. 59.0x before). **Report/
+Summary tables need updating** to replace the asterisked B2xNeo-
+Hookean substitution (and its footnote explaining the workaround) with
+this clean run's own numbers throughout, and to state plainly that the
+memory-cleanup fix is now GPU-confirmed, not just reasoned through --
+not yet done as of this entry.
+
+Previous update, same day (**🔧 built the round-11 point 2 notebook
 (`Round11_QoI_Crossover_RemainingCases.ipynb`) -- QoI crossover for the
 5 cases beyond B1xNeo-Hookean, the one real not-yet-started task the
 audit flagged. NOT YET RUN on GPU.**).
