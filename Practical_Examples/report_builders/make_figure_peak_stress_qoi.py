@@ -16,13 +16,14 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
-from plot_style import add_bar_labels
+from plot_style import PRIMARY, SECONDARY, add_bar_labels
 
-# Two consistent colors for the QoI being compared -- teal/purple pair,
-# distinct from the direct-N1401 ablation figure's own palette so the two
-# figures are never visually confused for showing the same comparison.
-L2_COLOR = '#3B7EA1'
-PEAK_STRESS_COLOR = '#D4A017'
+# Back to this project's own established two-series palette (plot_style.py's
+# PRIMARY/SECONDARY), after the ad-hoc blue/gold draft did not read as
+# appropriate for a scientific report -- same palette every other
+# two-series comparison figure in this report already uses.
+L2_COLOR = PRIMARY
+PEAK_STRESS_COLOR = SECONDARY
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'figures')
 os.makedirs(OUT, exist_ok=True)

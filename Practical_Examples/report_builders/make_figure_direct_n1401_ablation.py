@@ -12,13 +12,14 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
-from plot_style import add_bar_labels
+from plot_style import PRIMARY, SECONDARY, add_bar_labels
 
-# Two consistent colors for the METHOD, used the same way in both panels
-# (not "good/bad" coloring, which would flip meaning between the cost
-# panel, where direct is cheaper, and the accuracy panel, where it is worse).
-DIRECT_COLOR = '#8E44AD'    # purple
-MULTIRES_COLOR = '#16A085'  # teal
+# Back to this project's own established two-series palette (plot_style.py's
+# PRIMARY/SECONDARY, already used the same way -- "ours vs. theirs" -- in
+# every other two-series figure in this report), after the ad-hoc
+# purple/teal draft did not read as appropriate for a scientific report.
+DIRECT_COLOR = SECONDARY
+MULTIRES_COLOR = PRIMARY
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'figures')
 os.makedirs(OUT, exist_ok=True)
