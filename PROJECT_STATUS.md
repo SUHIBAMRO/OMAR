@@ -117,7 +117,32 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-17 (**🔍 Omar asked for a full pre-send accuracy
+Last updated: 2026-09-17 (**✂️ Two more pre-send fixes, per Omar's own
+explicit instructions**: (1) Report's Executive Summary updated -- it
+still said "addresses all seven points you raised in your last
+feedback" (round-9 only), with zero mention of round-10 or round-11's
+own work despite that material being in the body for a while. Added one
+paragraph recapping both rounds (checkpoint bug fix, multi-res retrain,
+N=1401 analysis extended to all six cases, direct-N1401 ablation, both
+break-even comparisons, point 4 still open) -- pure addition, verified
++1 paragraph / 0 other changes. (2) **Work Summary trimmed to contain
+ONLY the round-10/11 section**, per Omar's explicit instruction ("ما بدي
+اشي من القديم" -- I don't want anything old): removed the round-9
+response section AND the long separate "Summary of what was done and
+what came out" narrative (which restated the whole project history in
+prose, not organized around any currently-active feedback round)
+entirely, down to the body-XML level so no orphaned tables/images from
+those sections survive. Verified the surviving round-10/11 section is
+byte-identical to before this cut (48/48 paragraphs match exactly, all
+7 figures survive with their captions) -- this was a pure deletion, no
+content in what remains was touched. Summary went from 346 paragraphs/
+68 tables/50 images down to 51 paragraphs/9 tables/7 images. Reworded
+only the top-of-document intro sentence to match the new single-section
+scope. **Final, ready-to-send files**:
+`PFEM_Transolver_Report_2026-09-17g.docx`,
+`PFEM_Work_Summary_2026-09-17h.docx`.**).
+
+Previous update, same day (**🔍 Omar asked for a full pre-send accuracy
 audit of Report/Summary before mailing them to Timon** -- found and
 fixed two real issues, not just cosmetic ones: (1) Table 18-R10k/R10-6
 (peak-stress QoI): B2xNeo-Hookean's row was internally self-consistent
