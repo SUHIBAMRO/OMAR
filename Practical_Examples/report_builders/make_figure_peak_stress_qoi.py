@@ -16,7 +16,13 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
-from plot_style import PRIMARY, SECONDARY, add_bar_labels
+from plot_style import add_bar_labels
+
+# Two consistent colors for the QoI being compared -- teal/purple pair,
+# distinct from the direct-N1401 ablation figure's own palette so the two
+# figures are never visually confused for showing the same comparison.
+L2_COLOR = '#3B7EA1'
+PEAK_STRESS_COLOR = '#D4A017'
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'figures')
 os.makedirs(OUT, exist_ok=True)
@@ -30,8 +36,8 @@ x = np.arange(len(CASES))
 width = 0.35
 
 fig, ax = plt.subplots(figsize=(9.5, 5.5), dpi=200)
-bars0 = ax.bar(x - width / 2, DISP_L2, width, label='disp_rel_L2', color=PRIMARY)
-bars1 = ax.bar(x + width / 2, PEAK_STRESS, width, label='peak_stress_rel_err', color=SECONDARY)
+bars0 = ax.bar(x - width / 2, DISP_L2, width, label='disp_rel_L2', color=L2_COLOR)
+bars1 = ax.bar(x + width / 2, PEAK_STRESS, width, label='peak_stress_rel_err', color=PEAK_STRESS_COLOR)
 
 add_bar_labels(ax, bars0, fmt='{:.1f}', fontsize=8)
 add_bar_labels(ax, bars1, fmt='{:.1f}', fontsize=8)
