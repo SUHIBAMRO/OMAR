@@ -117,7 +117,32 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-17 (**📧 Timon replied with two quick technical
+Last updated: 2026-09-17 (**🔍 Omar asked for a full pre-send accuracy
+audit of Report/Summary before mailing them to Timon** -- found and
+fixed two real issues, not just cosmetic ones: (1) Table 18-R10k/R10-6
+(peak-stress QoI): B2xNeo-Hookean's row was internally self-consistent
+but missing the "(original checkpoint)" annotation the other 3 caveated
+rows carry, and the surrounding paragraph still called its retrain
+"still mid-training" -- stale now that it finished and is published
+elsewhere in the same document; a reader would have reasonably assumed
+this row used the new checkpoint. Fixed the annotation + caveat text in
+BOTH documents (correctly 4 of 5 rows caveated now, not 3). (2)
+Round-11 points 1 and 3 were answered correctly in the body but never
+carried an explicit "Round-11 point N" label the way points 2 and 4
+already did, and the Summary's own round-10/11 intro never mentioned
+round-11 at all -- added explicit labels + a new intro paragraph
+recapping all four round-11 points and their status. Verified via
+before/after diff on every file (zero unexpected changes beyond the
+targeted paragraphs/cells). **Current, ready-to-send files**:
+`PFEM_Transolver_Report_2026-09-17f.docx`,
+`PFEM_Work_Summary_2026-09-17g.docx`. **One structural item flagged to
+Omar but NOT fixed (his call)**: the Report's own "Executive Summary"
+(top of document) still says "addresses all seven points you raised in
+your last feedback" -- stale from round-9, never updated to mention
+round-10/11 at all. Left as-is pending Omar's decision on whether to
+rewrite it before sending.**).
+
+Previous update, same day (**📧 Timon replied with two quick technical
 questions** (`advisor_feedback/2026-09-17_timon_mms_questions.md`,
 verbatim), both about the MMS-operator study: (1) is the body-force
 input normalization fixed from the training set, not sample-wise; (2)
