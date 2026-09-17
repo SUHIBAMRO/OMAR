@@ -117,7 +117,19 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-17 (**✅ memory-cleanup fix CONFIRMED on real GPU:
+Last updated: 2026-09-17 (**🖼️ closed the last documentation loose end:
+every result table added this week now has its own figure. Added
+three new figures total today: resolution-matched break-even (all six
+cases), direct-N1401 ablation (cost+accuracy), and peak-stress QoI
+(five cases) -- each drafted, shown to Omar for approval BEFORE being
+written into either document (per his own explicit request), revised
+twice on his color feedback (rejected two ad-hoc palettes before
+settling back on this project's own established PRIMARY/SECONDARY
+blue/orange, already used by every other two-series figure in the
+Report). Current files: `PFEM_Transolver_Report_2026-09-17c.docx`,
+`PFEM_Work_Summary_2026-09-17c.docx`.**).
+
+Previous update, same day (**✅ memory-cleanup fix CONFIRMED on real GPU:
 `Round6_ResolutionMatchedBreakEven_AllCases.ipynb` re-run cleanly end
 to end, all 6 cases, no cascade failure this time -- B2xNeo-Hookean
 (the case that failed in the previous re-run due to leftover memory
