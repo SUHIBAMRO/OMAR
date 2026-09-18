@@ -711,6 +711,165 @@ def pk1_component_errors_at_point(x_star, coarse, fine, order, geometry, materia
     return out
 
 
+def _cauchy_stress_at(grad_u_np, E_np_or_t, nu_np_or_t, material, device, dtype):
+    """Cauchy stress sigma = J^-1 * P * F^T, the standard push-forward
+    from the first Piola-Kirchhoff stress P (same autograd recipe
+    _pk1_stress_at already validated) to the true (spatial) stress --
+    the advisor's own round-12 request to report Cauchy stress rather
+    than PK1 as the main engineering quantity: PK1 is a two-point
+    tensor (force per unit REFERENCE area) with no direct physical
+    reading as a stress acting on the deformed body, unlike Cauchy
+    stress (force per unit CURRENT area).
+
+    F = I + grad(u) and P = dPsi/dF come from the exact same forward/
+    backward pass _pk1_stress_at uses (not a second, separately-built F
+    that could silently drift from the one P was computed against).
+    """
+    energy_density_fn, E_nu_to_params_fn = get_material_fns_torch(material)
+    E_t = torch.as_tensor(E_np_or_t, dtype=dtype, device=device)
+    nu_t = torch.as_tensor(nu_np_or_t, dtype=dtype, device=device)
+    params = E_nu_to_params_fn(E_t, nu_t)
+    Q = grad_u_np.shape[0]
+    F = torch.eye(2, dtype=dtype, device=device).expand(Q, 2, 2).clone()
+    F = F + torch.tensor(grad_u_np, dtype=dtype, device=device)
+    F = F.detach().clone().requires_grad_(True)
+    W = energy_density_fn(F, *params, dtype=dtype)
+    P, = torch.autograd.grad(W.sum(), F)
+    P = P.detach()
+    F = F.detach()
+    J = torch.linalg.det(F)
+    # sigma_ik = J^-1 * P_ij * F_kj  (P @ F^T, then scale by 1/J)
+    sigma = torch.einsum('qij,qkj->qik', P, F) / J[:, None, None]
+    return sigma.cpu().numpy()
+
+
+def select_fixed_region(fine, order, x_star, radius):
+    """Selects the fine reference's own dense Gauss points within a
+    FIXED physical radius of x_star (the peak-stress point
+    find_fine_peak_stress already locates) -- the advisor's own explicit
+    round-12 requirement that "the region must remain fixed in physical
+    space across resolutions". This selection is made ONCE from the fine
+    reference, independent of which coarse resolution or NO prediction
+    is later scored, so every row of a sweep queries the exact same
+    physical locations with the exact same fine-mesh Gauss weights --
+    the coarse/NO field is evaluated AT these fixed points (via
+    evaluate_fe_field_and_gradient's own exact point-location FE
+    evaluation, the same routine already used for the full-domain
+    stress-field comparison above), never the reverse, so no coarse
+    mesh's own point density can influence which physical locations get
+    sampled.
+
+    Returns (region_pts, region_weights): weights are detJ*w from the
+    fine mesh's own quadrature, directly usable as area/volume weights
+    for a weighted average or percentile within the region.
+    """
+    nodes_f, elements_f = fine["nodes"], fine["elements"]
+    pts_f, detJs_f, ws_f, Ns_f, dN_dXs_f, elem_idx_f = gauss_points_and_weights_physical(
+        nodes_f, elements_f, order)
+    dist = np.linalg.norm(pts_f - x_star, axis=1)
+    mask = dist <= radius
+    assert mask.sum() >= 4, (
+        f"only {int(mask.sum())} fine Gauss points fall within radius={radius} of "
+        f"x_star={x_star.tolist()} -- radius is too small relative to the fine "
+        f"mesh spacing for a meaningful region average/percentile")
+    return pts_f[mask], (detJs_f * ws_f)[mask]
+
+
+def _weighted_percentile(values, weights, q):
+    """q in [0, 100]. Hazen-style weighted percentile: sorts by value,
+    places each point at the midpoint of its own cumulative weight
+    interval, then linearly interpolates -- reduces to the usual
+    unweighted percentile when every weight is equal."""
+    order_idx = np.argsort(values)
+    v_sorted = values[order_idx]
+    w_sorted = weights[order_idx]
+    cum = np.cumsum(w_sorted) - 0.5 * w_sorted
+    cum = cum / np.sum(w_sorted)
+    return float(np.interp(q / 100.0, cum, v_sorted))
+
+
+def _weighted_top_fraction_mean(values, weights, frac):
+    """Weighted mean of the top `frac` (e.g. 0.01 for the top 1%) of
+    `values` by cumulative weight -- the "average of the highest 1%"
+    alternative the advisor named alongside a percentile."""
+    order_idx = np.argsort(values)[::-1]
+    v_sorted = values[order_idx]
+    w_sorted = weights[order_idx]
+    cum_w = np.cumsum(w_sorted)
+    target = frac * np.sum(w_sorted)
+    cutoff = int(np.searchsorted(cum_w, target))
+    idx = slice(0, cutoff + 1)
+    return float(np.sum(v_sorted[idx] * w_sorted[idx]) / np.sum(w_sorted[idx]))
+
+
+def compute_region_cauchy_stress_error(coarse, fine, region_pts, region_weights, order,
+                                        geometry, material, E_fn, nu_fn, device, dtype,
+                                        percentile=99.0, **geom_kwargs):
+    """Round-12 point 1: a robust, resolution-fair alternative to a bare
+    pointwise stress maximum, which the advisor explicitly warned can be
+    singular and mesh-dependent at corners/kinks even for FEM. Evaluates
+    Frobenius-norm Cauchy stress at the SAME fixed set of physical
+    points (region_pts/region_weights, from select_fixed_region --
+    always the fine reference's own points, regardless of which coarse
+    mesh or NO prediction is being scored) for both the coarse/NO field
+    and the fine reference, then reports:
+      - a weighted-L2 Cauchy-stress field error over the region (same
+        convention as the full-domain stress_field_l2_rel already
+        computed elsewhere, restricted to this region's own weights)
+      - a genuine area/volume-weighted average of the Frobenius-norm
+        Cauchy stress (not a plain arithmetic mean over an arbitrary
+        point count)
+      - a weighted percentile (default 99th) and the weighted mean of
+        the top 1% by weight -- both are the "robust local quantity"
+        the advisor asked for as an alternative to the raw pointwise max
+      - the true pointwise max within the region too, reported
+        separately, exactly as the advisor said it still could be
+    """
+    u_c_at_pts, grad_u_c = evaluate_fe_field_and_gradient(region_pts, coarse, order, geometry,
+                                                          **geom_kwargs)
+    u_f_at_pts, grad_u_f = evaluate_fe_field_and_gradient(region_pts, fine, order, geometry,
+                                                          **geom_kwargs)
+    E_at_pts = E_fn(_material_query_pts(region_pts, geometry))
+    nu_at_pts = nu_fn(_material_query_pts(region_pts, geometry))
+
+    sigma_c = _cauchy_stress_at(grad_u_c, E_at_pts, nu_at_pts, material, device, dtype)
+    sigma_f = _cauchy_stress_at(grad_u_f, E_at_pts, nu_at_pts, material, device, dtype)
+
+    fro_c = np.sqrt(np.sum(sigma_c ** 2, axis=(1, 2)))
+    fro_f = np.sqrt(np.sum(sigma_f ** 2, axis=(1, 2)))
+
+    w = region_weights
+    w_sum = float(np.sum(w))
+
+    field_l2_num = float(np.sqrt(np.sum(w * np.sum((sigma_c - sigma_f) ** 2, axis=(1, 2)))))
+    field_l2_den = float(np.sqrt(np.sum(w * np.sum(sigma_f ** 2, axis=(1, 2))))) + 1e-30
+
+    avg_c = float(np.sum(w * fro_c) / w_sum)
+    avg_f = float(np.sum(w * fro_f) / w_sum)
+
+    pctl_c = _weighted_percentile(fro_c, w, percentile)
+    pctl_f = _weighted_percentile(fro_f, w, percentile)
+    top1_c = _weighted_top_fraction_mean(fro_c, w, 0.01)
+    top1_f = _weighted_top_fraction_mean(fro_f, w, 0.01)
+
+    max_c = float(np.max(fro_c))
+    max_f = float(np.max(fro_f))
+
+    p = int(percentile)
+    return {
+        "region_n_points": int(len(region_pts)),
+        "region_cauchy_field_l2_rel": field_l2_num / field_l2_den,
+        "region_cauchy_avg_pred": avg_c, "region_cauchy_avg_ref": avg_f,
+        "region_cauchy_avg_rel_err": abs(avg_c - avg_f) / (abs(avg_f) + 1e-30),
+        f"region_cauchy_p{p}_pred": pctl_c, f"region_cauchy_p{p}_ref": pctl_f,
+        f"region_cauchy_p{p}_rel_err": abs(pctl_c - pctl_f) / (abs(pctl_f) + 1e-30),
+        "region_cauchy_top1pct_pred": top1_c, "region_cauchy_top1pct_ref": top1_f,
+        "region_cauchy_top1pct_rel_err": abs(top1_c - top1_f) / (abs(top1_f) + 1e-30),
+        "region_cauchy_max_pred": max_c, "region_cauchy_max_ref": max_f,
+        "region_cauchy_max_rel_err": abs(max_c - max_f) / (abs(max_f) + 1e-30),
+    }
+
+
 def compute_reaction_resultant_error(coarse, fine, geometry, material, E_fn, nu_fn, device, dtype,
                                       order="Q4"):
     """Total reaction-force resultant on the fixed boundary, compared
