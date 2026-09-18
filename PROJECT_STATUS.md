@@ -5,6 +5,25 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
+> ⚠️ **STANDING POLICY CHANGE, Omar's own explicit instruction (2026-09-18):
+> the Summary (`PFEM_Work_Summary_*.docx`) is NO LONGER cumulative.**
+> Starting with round 12, each new Summary covers ONLY the round just
+> completed — the points that were "just worked on and finished" — not
+> the project's whole history. The Report (`PFEM_Transolver_Report_*.docx`)
+> stays the single cumulative record of everything ever done; that part
+> is unchanged. When a round finishes: (1) write the full result into the
+> Report as always (cumulative, in place); (2) build a FRESH Summary
+> containing only that round's points, copied verbatim out of the
+> now-updated Report (do not edit the previous Summary in place, and do
+> not carry its old content forward) — see
+> `report_builders/build_new_summary_2026-09-18.py` for the working
+> pattern (XML-level copy from the Report, images re-linked, verified
+> against the Report before sending). The old cumulative
+> `PFEM_Work_Summary_2026-09-18.docx` (round-10/11/12 all together) is
+> kept on disk as the last cumulative snapshot but is superseded by
+> `PFEM_Work_Summary_2026-09-18b.docx` (round-12 only) as the one to
+> actually send from now on.
+
 > ⚠️ **STANDING REMINDER, Omar's own explicit instruction (repeated, most
 > recently 2026-09-18): every email/reply draft to the advisor MUST open
 > "Dear Professor Rabczuk," -- NEVER "Dear Timon,". This has slipped into
@@ -125,7 +144,19 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-18 (**✅ B1xNeo-Hookean gap CLOSED for real --
+Last updated: 2026-09-18 (**📌 New Summary policy applied for real: built
+`PFEM_Work_Summary_2026-09-18b.docx`**, round-12-only (points 1/2/3),
+superseding the cumulative `PFEM_Work_Summary_2026-09-18.docx` as the one
+to send. Built by `report_builders/build_new_summary_2026-09-18.py`
+(adapted from the round-12 side-doc builder): copies the exact XML
+elements for all three points straight out of the Report -- text, table
+data, and images (relationships re-linked) -- rather than re-deriving or
+re-typing anything. Verified: 34 paragraphs, 7 tables, 3 images, both
+figures byte-identical (sha256) to the source PNGs, all table cell
+values spot-checked against the Report. See the standing policy note at
+the top of this file for the reasoning and the going-forward process.**).
+
+Previous update, same day (**✅ B1xNeo-Hookean gap CLOSED for real --
 `B1NH_FinalCheckpoint_LowN_Accuracy.ipynb` ran clean on the first try**
 (46s of real GPU compute, 2m18s total including manifest overhead --
 even cheaper than the "low minutes" estimate given to Omar beforehand).
