@@ -117,7 +117,64 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-18 (**📧 Timon's round-12 feedback received**
+Last updated: 2026-09-18 (**🛠️ All three round-12 notebooks BUILT
+(none run yet -- Omar's turn on GPU).**
+
+**Point 1 (Cauchy stress in a fixed region, new code, verified on
+CPU first)**: `high_dof_convergence_study.py` gained `_cauchy_stress_at`
+(push-forward sigma=J^-1*P*F^T from the already-validated PK1 recipe),
+`select_fixed_region` (fine reference's own Gauss points within a fixed
+physical radius of the already-located peak-stress point -- fixed in
+physical space across every resolution, exactly as Timon required),
+`_weighted_percentile`/`_weighted_top_fraction_mean`, and
+`compute_region_cauchy_stress_error` (field L2 + weighted average +
+weighted 99th percentile + top-1% mean + true max, all within that
+fixed region). **5 CPU checks all passed** before any GPU time was
+spent: percentile helpers match numpy at large n and satisfy exact
+boundary conditions; Cauchy stress converges to PK1 at small strain
+(ratio ~2e-6); Cauchy stress is symmetric to machine precision (3.5e-15)
+while PK1 is genuinely asymmetric (proves the push-forward, not
+coincidence); identity check on a real B1 mesh gives exactly 0 for
+every relative error; non-identity smoke test gives finite, nonzero
+errors. Wired into `run_qoi_study` (FEM side) and two new functions
+`run_no_region_cauchy_fixed_location[_b2]` (NO side, mirroring the
+already-established `run_no_peak_stress_fixed_location` pattern
+exactly). **Notebook built**: `Round12_FinalAccuracy_Cauchy_AllCases.ipynb`
+-- all 6 cases, each case's own FINAL (retrained where applicable)
+checkpoint, L2/H1/energy/reaction/region-Cauchy, FEM vs NO, same fine
+reference. **Explicit scope note in the notebook itself**: uses the
+already-cost-verified LOW_N range (3-49) with fine_N=201, NOT extended
+to N=1401 -- that would need a fresh, expensive fine_N=2236 reference
+for 5 cases that never had one (the same class of mistake caught and
+fixed earlier this week for a different notebook). 90/90 verified via
+check_notebooks.py.
+
+**Points 2+3, combined into one notebook**
+(`Round12_TrainingMetadata_CompileTF32.ipynb`): point 2's EASY half
+(training-cost summary: resolutions/samples/epochs/wall-clock/cost-per-
+sample, read from each case's own already-saved `metrics_history.json`
+on Drive, nothing retrained) -- explicitly does NOT attempt the
+controlled re-run (matched sample counts between direct-N1401 and
+multi-res) Timon also mentioned, since he himself said not to spend
+time on that for this problem ("we should not waste time on the fine
+resolution training here... only for a complex geometry problem").
+Peak GPU memory during training was never instrumented for any run --
+reported honestly as "not measured," not guessed. Point 3: new
+`profile_with_torch_compile_b2` (the existing `profile_with_torch_compile`
+was B1-only, hardcoded to `train_B1`'s own predict function) extends
+real compile+TF32 inference timing to all 6 cases using each one's own
+final checkpoint, not just the B1xNeo-Hookean flagship. 91/91 verified.
+
+**Not yet done**: once these 3 notebooks are run and their real numbers
+come back, the actual Report/Summary text edits (new Cauchy-stress
+table replacing the PK1 peak-stress framing; the training-cost table;
+updating the resolution-matched break-even table with real per-case
+compile+TF32 numbers instead of eager) still need to happen -- that is
+the next session's/next turn's work once GPU results exist. Task #16
+(the "realistic case," which Timon said to move to only after these
+three points) remains blocked until then.**).
+
+Previous update, same day (**📧 Timon's round-12 feedback received**
 (`advisor_feedback/2026-09-18_round12_timon.md`, verbatim) after the
 round-11 + MMS replies were sent. Three concrete asks, plus a
 methodological note that reshapes task #16:
