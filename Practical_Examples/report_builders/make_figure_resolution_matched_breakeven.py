@@ -1,8 +1,13 @@
 """Bar chart for Table 18-R10e' / Table R10-4' (resolution-matched
-break-even, operator vs. torch-fem, both at N=1401, all six cases) --
-built for review before deciding whether to add it to the Report/
-Summary. Numbers are the clean, GPU-confirmed 2026-09-17 re-run (see
-update_resolution_matched_breakeven_confirmed.py).
+break-even, operator vs. torch-fem, both at N=1401, all six cases).
+
+Updated 2026-09-18 (round-12 point 3): the operator side now uses the
+compile+TF32-optimized timing (394 ms/sample, ~case-independent) instead
+of the earlier default eager fp32 number, per the advisor's own request
+to use the optimized number for the paper. torch-fem's own N=1401
+numbers are unchanged (still the clean 2026-09-17 re-run, see
+update_resolution_matched_breakeven_confirmed.py) -- only the operator
+side and the resulting speedups changed.
 
 Both Arruda-Boyce cases are shown as 0x with a "FAILED" label rather
 than omitted, so the chart does not silently imply six successful
@@ -20,7 +25,7 @@ os.makedirs(OUT, exist_ok=True)
 
 CASES = ['B1 x\nNeo-Hookean', 'B1 x\nMooney-Rivlin', 'B1 x\nArruda-Boyce',
          'B2 x\nNeo-Hookean', 'B2 x\nMooney-Rivlin', 'B2 x\nArruda-Boyce']
-SPEEDUPS = [58.9, 56.7, 0, 87.3, 88.0, 0]
+SPEEDUPS = [342.6, 339.7, 0, 520.9, 525.5, 0]
 FAILED = [False, False, True, False, False, True]
 COLORS = ['#2E86AB' if not f else '#C0392B' for f in FAILED]
 
@@ -40,7 +45,7 @@ for xi, (v, f) in zip(x, zip(SPEEDUPS, FAILED)):
 ax.set_xticks(x)
 ax.set_xticklabels(CASES, fontsize=9)
 ax.set_ylabel('Speedup vs. torch-fem (operator faster by)')
-ax.set_title('Resolution-matched comparison at N=1401 (operator vs. torch-fem, same N)')
+ax.set_title('Resolution-matched comparison at N=1401 (operator, compile+TF32, vs. torch-fem, same N)')
 ax.set_ylim(top=max(SPEEDUPS) * 1.2)
 ax.grid(True, axis='y', alpha=0.25)
 

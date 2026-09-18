@@ -117,7 +117,43 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-18 (**✅ Round12_TrainingMetadata_CompileTF32.ipynb
+Last updated: 2026-09-18 (**✅ Round-12 points 2+3 WRITTEN into the real
+Report/Summary docx files** -- `PFEM_Transolver_Report_2026-09-18.docx`
+and `PFEM_Work_Summary_2026-09-18.docx`
+(`Practical_Examples/report_builders/apply_round12_points2_3.py`).
+
+Four edits in each document: (1) Table 18-R10e'/R10-4' (resolution-matched
+break-even) switched from eager fp32 to compile+TF32 operator timing,
+speedups recomputed (342.6x/339.7x/520.9x/525.5x), and break-even filled
+in for all four non-Arruda-Boyce cases (311/399/193/31 samples -- no more
+"training cost unknown"); (2) the paragraph introducing that table and its
+own footnote reworded so the two break-even tables are no longer
+contrasted as "eager vs. optimized" -- both now use the identical
+compile+TF32 number, and the only remaining difference is which FEM
+baseline resolution is used (N=11 accuracy-matched vs. N=1401
+resolution-matched), per Timon's own point-3 framing request; (3) the
+resolution-matched break-even bar chart
+(`report_builders/figures/fig_resolution_matched_breakeven.png`)
+regenerated with the new speedups and swapped in at the same anchor,
+same caption text, verified byte-identical (sha256) in both docs; (4) a
+new Table 18-R10n / R10-8 (training-cost summary, all seven completed
+training runs, from round-12 point 2's real data) inserted right after
+the direct-N1401 ablation discussion, before the multi-resolution retrain
+summary table.
+
+Verified via the standard before/after diff: Report +2 paragraphs/+1
+table/+0 net images (587,83,50 -> 589,84,50); Summary +2/+1/+0
+(51,9,7 -> 53,10,7). No stale "training cost unknown"/"57x-89x"/"eager
+fp32" text remains anywhere in either document (grepped after the edit).
+
+**Not yet done**: round-12 point 1 (Cauchy stress in a fixed region) is
+still not written into either document -- only 1 of 6 cases (FEM side
+only) has completed on GPU so far (`Round12_FinalAccuracy_Cauchy_
+AllCases.ipynb`, now fixed but not yet re-run to completion by Omar).
+Task #16 (the "realistic case") remains blocked on all three round-12
+points finishing first, per Timon's own instruction.**).
+
+Previous update, same day (**✅ Round12_TrainingMetadata_CompileTF32.ipynb
 FINISHED on real GPU (2h 1m 43s) -- real numbers for round-12 points 2
 and 3, raw data recorded here before any doc edits.**
 
@@ -170,8 +206,8 @@ break-evens using the real training-cost data above**:
 | B2xMR | 207.21s | 525.5x | 31 samples |
 (B1xAB/B2xAB still FAILED on torch-fem's own side, unrelated, unchanged.)
 
-**Not yet written into the Report/Summary docx files** -- that edit is
-next.**).
+Written into the Report/Summary docx files in the following update above
+(2026-09-18, `apply_round12_points2_3.py`).**).
 
 Previous update, same day (**📈 Omar asked for a real GPU-memory-over-
 time line chart** (not just a single peak number) -- new
