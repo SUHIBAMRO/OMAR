@@ -117,7 +117,22 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-18 (**🛠️ All three round-12 notebooks BUILT
+Last updated: 2026-09-18 (**📈 Omar asked for a real GPU-memory-over-
+time line chart** (not just a single peak number) -- new
+`omar_pfem/gpu_memory_monitor.py`: `GPUMemoryMonitor` samples
+`torch.cuda.mem_get_info()` (same total-minus-free quantity nvidia-smi
+itself shows) on a background thread, produces a real line chart with
+device-total and observed-peak lines plus per-case boundary marks.
+Confirmed by reading the code that neither real round-12 training loop
+tracks memory during training (only the older single-resolution
+train_B1.py path does) -- unrecoverable without re-running training,
+which Timon said not to bother with -- so wired into both round-12
+notebooks' own real GPU work instead (the Cauchy sweep and the
+compile+TF32 profiling), which will capture it for real on their next
+run. Verified on CPU (flat zero line, correct structure); both
+notebooks rebuilt, 91/91 verified.**).
+
+Previous update, same day (**🛠️ All three round-12 notebooks BUILT
 (none run yet -- Omar's turn on GPU).**
 
 **Point 1 (Cauchy stress in a fixed region, new code, verified on
