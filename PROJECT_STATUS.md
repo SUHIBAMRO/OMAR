@@ -188,10 +188,23 @@ re-derived from the now-corrected Report via the same XML-copy mechanism
 (anchor texts updated to match the corrected wording); both verified to
 carry the same corrected numbers.
 
-**This finding has not yet been read out to Omar in chat** -- report it
-plainly (this is exactly the kind of numeric discrepancy this project's own
-discipline says must never be silently absorbed) before treating round-12
-point 1 as finished and ready to send.)
+**Independently re-verified 2026-09-18, on Omar's own explicit request**
+(he wasn't satisfied with cross-referencing existing Drive files as proof):
+built `Verify_B2_NeoHookean_Independent.ipynb`
+(`cell_verify_b2_neo_hookean_independent.py`) -- writes to a BRAND-NEW
+output file so nothing is resumed/skipped, forcing a genuine from-scratch
+recompute of all sixteen resolutions against the same final checkpoint.
+Omar ran it (A100, ~2m09s real compute): checkpoint fingerprint matched
+(`dd2e244d...`), and EVERY one of the sixteen freshly recomputed values
+matched the Report's own table exactly, including the disputed N=13 point
+(53.33%, not 12.71%). Three independent computations now agree exactly:
+the 2026-09-17 post-retrain sanity sweep (found on Drive, not run by us),
+today's earlier Remaining5_LowN_Accuracy.ipynb run, and this from-scratch
+verification run. The 53.33% figure is confirmed beyond reasonable doubt.
+
+**This finding has been read out to Omar in chat and independently
+confirmed at his request** -- round-12 point 1's classical-QoI tables are
+now fully trustworthy and ready to send.)
 
 Previous update, same day (**🐛🛠️ Two more real catches from Omar's own
 review, both addressed.**
