@@ -88,6 +88,7 @@ from omar_pfem.torchfem_comparison import run_qoi_study
 from omar_pfem.no_accuracy_at_n1401 import (
     run_no_region_cauchy_fixed_location, run_no_region_cauchy_fixed_location_b2)
 from omar_pfem.measure_inference_latency import build_model
+from omar_pfem.gpu_memory_monitor import GPUMemoryMonitor
 import argparse
 
 R = '/content/drive/MyDrive/pfem_run'
@@ -113,8 +114,11 @@ BASE_ARGS = dict(model='Transolver_Irregular_Mesh', n_hidden=256, n_layers=4, n_
                   use_soft_dirichlet=1, Lx=1.0, Ly=1.0, R_in=1.0, R_out=2.0)
 
 all_results = {}
+gpu_monitor = GPUMemoryMonitor(device, interval_s=1.0)
+gpu_monitor.__enter__()
 for geometry, material, ckpt_path in CASES:
     case_id = f'{geometry}_{material}'
+    gpu_monitor.mark(case_id)
     print('\n' + '#' * 78)
     print(f'# {case_id}  (checkpoint: {ckpt_path})')
     print('#' * 78)
@@ -187,14 +191,21 @@ for geometry, material, ckpt_path in CASES:
                    'fine_N': FINE_N, 'rows': combined}, f, indent=2)
     print(f'Saved: {out_combined}')
 
+gpu_monitor.__exit__(None, None, None)
+GPU_MEM_FIG = f'{R}/round12_final_accuracy_cauchy_gpu_memory.png'
+gpu_monitor.save_plot(GPU_MEM_FIG, title='GPU memory over time -- Round 12 final accuracy + Cauchy sweep, all 6 cases')
+
 OUT_SUMMARY = f'{R}/round12_final_accuracy_cauchy_summary.json'
 with open(OUT_SUMMARY, 'w') as f:
-    json.dump({'low_N': LOW_N, 'fine_N': FINE_N, 'cases': all_results}, f, indent=2)
+    json.dump({'low_N': LOW_N, 'fine_N': FINE_N, 'cases': all_results,
+               'gpu_memory_peak_mb': gpu_monitor.peak_mb(),
+               'gpu_memory_device_total_mb': gpu_monitor.device_total_mb}, f, indent=2)
 
 try:
     from omar_pfem.run_manifest import write_manifest
     write_manifest(R, kind='round12_final_accuracy_cauchy', args={'low_N': LOW_N, 'fine_N': FINE_N},
-                    started_at=_started, results={'cases': list(all_results)}, outputs=[OUT_SUMMARY],
+                    started_at=_started, results={'cases': list(all_results)},
+                    outputs=[OUT_SUMMARY, GPU_MEM_FIG],
                     notes="Timon round-12 point 1: final accuracy-vs-resolution table, FEM+NO, "
                           "using each case's own final (retrained where applicable) checkpoint, "
                           "with the new fixed-region Cauchy-stress QoI replacing a bare pointwise "

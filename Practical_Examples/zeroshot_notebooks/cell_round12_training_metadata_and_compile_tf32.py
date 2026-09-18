@@ -144,6 +144,7 @@ from omar_pfem.measure_inference_latency import build_model
 from omar_pfem.resolution_invariance_zeroshot import build_sample_b1, build_sample_b2
 from omar_pfem.no_inference_torch_compile import (
     profile_with_torch_compile, profile_with_torch_compile_b2)
+from omar_pfem.gpu_memory_monitor import GPUMemoryMonitor
 import argparse
 
 CHECKPOINTS = [
@@ -160,8 +161,11 @@ BASE_ARGS = dict(model='Transolver_Irregular_Mesh', n_hidden=256, n_layers=4, n_
 N_TEST = 1401
 
 inference_summary = []
+gpu_monitor = GPUMemoryMonitor(device, interval_s=0.5)
+gpu_monitor.__enter__()
 for geometry, material, ckpt_path in CHECKPOINTS:
     case_id = f'{geometry}_{material}'
+    gpu_monitor.mark(case_id)
     print(f'\n--- {case_id} ---')
     if not os.path.exists(ckpt_path):
         print(f'  *** checkpoint not found: {ckpt_path} -- skipped ***')
@@ -197,9 +201,14 @@ for geometry, material, ckpt_path in CHECKPOINTS:
     with open(out_json_case, 'w') as f:
         json.dump(row, f, indent=2)
 
+gpu_monitor.__exit__(None, None, None)
+GPU_MEM_FIG = f'{R}/round12_compile_tf32_gpu_memory.png'
+gpu_monitor.save_plot(GPU_MEM_FIG, title='GPU memory over time -- compile+TF32 profiling, all 6 cases')
+
 OUT_INFERENCE = f'{R}/round12_compile_tf32_summary.json'
 with open(OUT_INFERENCE, 'w') as f:
-    json.dump({'runs': inference_summary}, f, indent=2)
+    json.dump({'runs': inference_summary, 'gpu_memory_peak_mb': gpu_monitor.peak_mb(),
+               'gpu_memory_device_total_mb': gpu_monitor.device_total_mb}, f, indent=2)
 print('\nSaved:', OUT_INFERENCE)
 
 try:
@@ -207,7 +216,7 @@ try:
     write_manifest(R, kind='round12_training_metadata_and_compile_tf32', args={'N_TEST': N_TEST},
                     started_at=_started,
                     results={'training_runs': len(training_summary), 'inference_runs': len(inference_summary)},
-                    outputs=[OUT_TRAINING, OUT_INFERENCE],
+                    outputs=[OUT_TRAINING, OUT_INFERENCE, GPU_MEM_FIG],
                     notes="Timon round-12 points 2 (training-cost summary, existing data only, "
                           "NOT the controlled re-run he himself deprioritized) and 3 "
                           "(compile+TF32 inference, extended from B1xNeo-Hookean-only to all six cases).")
