@@ -12,12 +12,15 @@ All three points are done, with real GPU results throughout.
 1. Cauchy stress, fixed region: implemented (region-weighted average,
 99th percentile, and true max, region fixed in physical space across
 resolutions), verified on CPU before spending any GPU time, then run
-for all six cases against the final checkpoints. One clear finding: the
-true max converges far more slowly than the region average for both
-FEM and the operator -- e.g. FEM's own max is still 26-63% across
+for all six cases against the final checkpoints, FEM and the operator
+both scored against the same fine reference on the same input field.
+One clear finding: the true max converges far more slowly than the
+region average -- e.g. FEM's own max is still 26.6-64.5% across
 N=3-49 while its displacement error is already under 0.1% there --
 exactly the effect your own caution about the pointwise maximum
-predicted.
+predicted. A second finding worth flagging: the operator's own accuracy
+is not always monotonic in resolution (two cases get worse again past
+N=29), unlike FEM, which converges smoothly everywhere.
 
 2. Training-cost table added (all seven runs: resolutions, samples,
 epochs, wall-clock, cost/sample). Peak memory during training was never
