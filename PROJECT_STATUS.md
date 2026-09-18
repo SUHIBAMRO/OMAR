@@ -287,18 +287,55 @@ doesn't fix the actual comparison Timon asked for.
   reused from an old cache, plus the Cauchy computation runs for both
   sides now).
 
-**Once this run finishes**: rebuild Tables 18-R10o..z (all twelve, both
-classical AND Cauchy, all six cases) from this single new, self-consistent
-JSON source -- the current Report tables' Cauchy columns ALSO inherit the
-same field-mismatch problem (FEM's Cauchy numbers came from
-`run_qoi_study`'s AnalyticField pipeline, the operator's from
-`run_no_region_cauchy_fixed_location[_b2]`'s ParametricField pipeline), so
-this is a full twelve-table rebuild, not just the five classical tables
-touched earlier today. Then re-derive the Summary and side-doc from the
-corrected Report as before, update this file again, commit, push, and
-report the real before/after numbers to Omar honestly -- some may move
-substantially, exactly like B2xNeo-Hookean's 12.71%->53.33% move did
-earlier today.)
+**Run finished 2026-09-18 (36m32s total, A100, all six cases) -- all
+six checkpoint fingerprints matched previously-known values, every case
+converged.** Fetched and fingerprint-verified all six
+`round12_consistent_field_qoi_<case>.json` files from Drive. Rebuilt all
+twelve tables (18-R10o..z, classical AND Cauchy, all six cases) from this
+single, self-consistent source
+(`report_builders/rebuild_round12_point1_consistent_field.py`) --
+verified paragraph/table/image counts unchanged (612/96/51, a pure
+content swap) and spot-checked cell values directly against the JSON.
+Rewrote the GAP_NOTE paragraph to disclose BOTH bugs found this round
+(same-N-not-fine-reference, then the field mismatch) and the CLOSING_
+DISCUSSION paragraph with the new, correct numbers.
+
+**Real findings from the corrected data, stated plainly:**
+- B2xNeo-Hookean's own operator L2 at N=3 is **210.82%** against the
+  properly-matched fine reference -- compare against the THREE
+  different, all-now-superseded earlier numbers for this same cell:
+  12.71% (original stale-checkpoint cache), 53.33% (checkpoint fixed but
+  still same-N-not-fine-reference and field-mismatched), 260.62%
+  (intermediate, only the same-N bug fixed, field mismatch still
+  present). Every earlier number was wrong in a DIFFERENT way; only this
+  one is traceable to one single, self-consistent GPU run.
+- B1xNeo-Hookean's own FEM true max at N=3 moved from 62.8% (old,
+  AnalyticField-based) to 64.5% (new, ParametricField-based, matching
+  what the operator was actually evaluated against) -- a small but real
+  shift, expected since it's now genuinely the same physical problem as
+  the operator's own row.
+- A genuinely new, real finding only visible once the comparison is
+  correct: the operator's own accuracy is NON-monotonic with resolution
+  for two cases (B2xNeo-Hookean: L2 rises from 3.87% at N=29 back up to
+  18.92% at N=49; B2xArruda-Boyce: 4.79% at N=29 back up to 38.86% at
+  N=49) while FEM converges smoothly and monotonically at every N for
+  every case -- a real property of this checkpoint's own zero-shot
+  generalization outside a well-behaved middle range, not a data
+  artefact (both cases' own fine reference and FEM sweep are clean at
+  every N checked). This was invisible in every earlier, buggy version
+  of this table.
+
+Re-derived `PFEM_Work_Summary_2026-09-18b.docx` and
+`Round12_Reply_to_Timon_Points_2026-09-18.docx` from the corrected
+Report (same XML-copy mechanism, anchor text updated to match the new
+GAP_NOTE/CLOSING_DISCUSSION wording) -- verified identical structure
+counts (47 paragraphs/16 tables/3 images, unchanged) and spot-checked
+the corrected numbers landed in both. All three deliverables committed
+and pushed. **This three-layer finding (stale checkpoint -> same-N-not-
+fine-reference -> FEM/operator field mismatch) was read out to Omar in
+full at each stage, matching this project's own standing discipline of
+never silently absorbing a numeric discrepancy.** Round-12 point 1 is
+now genuinely, fully correct and ready to send.)
 
 Previous update, same day (**🐛🛠️ Two more real catches from Omar's own
 review, both addressed.**
