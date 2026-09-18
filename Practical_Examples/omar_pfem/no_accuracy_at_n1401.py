@@ -522,6 +522,208 @@ def run_no_peak_stress_fixed_location(model, args, resolutions, out_json, device
     return rows
 
 
+def run_no_region_cauchy_fixed_location(model, args, resolutions, out_json, device,
+                                         seed=0, material="neo_hookean", fine_N_for_peak=1401,
+                                         region_radius=0.15):
+    """B1 analog of torchfem_comparison.run_qoi_study's new region-Cauchy
+    metric, but for the NO's own predictions -- round-12 point 1: the
+    advisor asked to avoid a bare pointwise stress maximum (singular/
+    mesh-dependent even for FEM at corners) as the main design QoI, and
+    instead report Cauchy stress (not PK1) in a FIXED physical region
+    around the same stress-concentration point, with a robust local
+    statistic (weighted average / 95th-99th percentile / mean of the top
+    1%) plus the true max reported separately.
+
+    Exactly the same structure as run_no_peak_stress_fixed_location
+    (fine ground truth solved once via solve_b1_fast_gpu, x_star/region
+    located once from it, every resolution's own NO prediction packaged
+    into the same {"nodes","elements","u","N"} dict format
+    compute_region_cauchy_stress_error already accepts) -- only the
+    metric function itself differs."""
+    import os
+    import time
+
+    from omar_pfem.high_dof_convergence_study import (
+        find_fine_peak_stress, select_fixed_region, compute_region_cauchy_stress_error)
+    from omar_pfem.train_B1 import total_potential_energy_Q4_hyperelastic
+
+    started = time.time()
+    geom_kwargs = {"Lx": args.Lx, "Ly": args.Ly}
+
+    print(f"Solving fine ground truth (N={fine_N_for_peak}) to locate the stress-concentration region...")
+    u_fine_flat, nodes_fine, elems_fine, _ = solve_b1_fast_gpu(
+        fine_N_for_peak, seed, material, device, torch.float64, Lx=args.Lx, Ly=args.Ly, nsteps=10)
+    fine = {"nodes": nodes_fine, "elements": elems_fine,
+            "u": u_fine_flat.reshape(-1, 2), "N": fine_N_for_peak}
+
+    E_fn = ParametricFieldB1("E", seed)
+    nu_fn = ParametricFieldB1("nu", seed)
+    x_star, peak_ref = find_fine_peak_stress(fine, "Q4", "B1", material, E_fn, nu_fn,
+                                              device, torch.float64)
+    region_pts, region_weights = select_fixed_region(fine, "Q4", x_star, region_radius)
+    print(f"  x_star={x_star}, region: {len(region_pts)} points within radius {region_radius}")
+
+    done = {}
+    if out_json and os.path.exists(out_json):
+        with open(out_json) as f:
+            done = {r["N"]: r for r in json.load(f).get("rows", [])}
+    rows = list(done.values())
+
+    for N in resolutions:
+        if N in done:
+            print(f"  N={N} already in {out_json}, skipping")
+            continue
+        sample, _ = build_sample_b1(N, seed=seed, material=material, Lx=args.Lx, Ly=args.Ly,
+                                     solve_fem=False)
+        nodes_np, elems_np = sample["xy"], sample["quad"]
+
+        torch.set_default_dtype(torch.float32)
+        xy = torch.tensor(nodes_np, device=device, dtype=torch.float32)
+        quad = torch.tensor(elems_np, device=device, dtype=torch.long)
+        top_edges = torch.tensor(sample["top_edges"], device=device, dtype=torch.long)
+        bottom_nodes = torch.tensor(sample["bottom_nodes"], device=device, dtype=torch.long)
+        E_b = torch.tensor(sample["E_node"][None], device=device, dtype=torch.float32)
+        nu_b = torch.tensor(sample["nu_node"][None], device=device, dtype=torch.float32)
+        f_b = torch.tensor(sample["node_forces"][None], device=device, dtype=torch.float32)
+
+        model.eval()
+        with torch.no_grad():
+            _, _, _, uv_pred, _ = total_potential_energy_Q4_hyperelastic(
+                xy, quad, top_edges, bottom_nodes, model, E_b, nu_b, f_b,
+                use_soft_dirichlet=bool(args.use_soft_dirichlet), mode="plane_strain",
+                dtype=torch.float32, fun_dim=args.fun_dim, material=material, Ly=args.Ly,
+            )
+        u_pred = uv_pred[0].float().double().cpu().numpy()
+
+        coarse = {"nodes": nodes_np.astype(np.float64), "elements": elems_np, "u": u_pred, "N": N}
+        region_err = compute_region_cauchy_stress_error(
+            coarse, fine, region_pts, region_weights, "Q4", "B1", material,
+            E_fn, nu_fn, device, torch.float64, **geom_kwargs)
+        row = {"N": N, **region_err}
+        print(f"  N={N}: region_cauchy_avg_rel_err={row['region_cauchy_avg_rel_err']:.3e} "
+              f"region_cauchy_p99_rel_err={row['region_cauchy_p99_rel_err']:.3e} "
+              f"region_cauchy_max_rel_err={row['region_cauchy_max_rel_err']:.3e}")
+        rows.append(row)
+        rows.sort(key=lambda r: r["N"])
+        if out_json:
+            with open(out_json, "w") as f:
+                json.dump({"seed": seed, "material": material, "fine_N_for_peak": fine_N_for_peak,
+                           "region_radius": region_radius, "x_star": x_star[0].tolist(),
+                           "rows": rows}, f, indent=2)
+
+    if out_json:
+        try:
+            from omar_pfem.run_manifest import write_manifest
+            write_manifest(
+                os.path.dirname(os.path.abspath(out_json)) or ".",
+                kind="no_region_cauchy_fixed_location",
+                args={"resolutions": resolutions, "seed": seed, "material": material,
+                      "fine_N_for_peak": fine_N_for_peak, "region_radius": region_radius},
+                started_at=started, results={"x_star": x_star[0].tolist(), "rows": rows},
+                outputs=[out_json],
+                notes="Timon round-12 point 1: Cauchy stress in a fixed physical region, "
+                      "robust local statistic instead of a bare pointwise maximum.")
+        except Exception as e:
+            print(f"[manifest] not recorded: {e}")
+    return rows
+
+
+def run_no_region_cauchy_fixed_location_b2(model, args, resolutions, out_json, device,
+                                            seed=0, material="neo_hookean", fine_N_for_peak=1401,
+                                            region_radius=0.15):
+    """B2 analog of run_no_region_cauchy_fixed_location. See that
+    function's own docstring for the full rationale."""
+    import os
+    import time
+
+    from omar_pfem.high_dof_convergence_study import (
+        find_fine_peak_stress, select_fixed_region, compute_region_cauchy_stress_error)
+    from omar_pfem.no_ground_truth_fast import solve_b2_fast_gpu
+    from omar_pfem.resolution_invariance_zeroshot import build_sample_b2
+    from omar_pfem.train_B2 import total_potential_energy_Q4_hyperelastic as tpe_b2
+
+    started = time.time()
+    R_in, R_out = getattr(args, "R_in", 1.0), getattr(args, "R_out", 2.0)
+    geom_kwargs = {"R_in": R_in, "R_out": R_out}
+
+    print(f"Solving fine ground truth (N={fine_N_for_peak}, B2) to locate the stress-concentration region...")
+    u_fine_flat, nodes_fine, elems_fine, _ = solve_b2_fast_gpu(
+        fine_N_for_peak, seed, material, device, torch.float64, R_in=R_in, R_out=R_out, nsteps=10)
+    fine = {"nodes": nodes_fine, "elements": elems_fine,
+            "u": u_fine_flat.reshape(-1, 2), "N": fine_N_for_peak}
+
+    E_fn = ParametricFieldB2("E", seed)
+    nu_fn = ParametricFieldB2("nu", seed)
+    x_star, peak_ref = find_fine_peak_stress(fine, "Q4", "B2", material, E_fn, nu_fn,
+                                              device, torch.float64)
+    region_pts, region_weights = select_fixed_region(fine, "Q4", x_star, region_radius)
+    print(f"  x_star={x_star}, region: {len(region_pts)} points within radius {region_radius}")
+
+    done = {}
+    if out_json and os.path.exists(out_json):
+        with open(out_json) as f:
+            done = {r["N"]: r for r in json.load(f).get("rows", [])}
+    rows = list(done.values())
+
+    for N in resolutions:
+        if N in done:
+            print(f"  N={N} already in {out_json}, skipping")
+            continue
+        sample, _ = build_sample_b2(N, seed=seed, material=material, R_in=R_in, R_out=R_out,
+                                     solve_fem=False)
+        nodes_np, elems_np = sample["xy"], sample["quad"]
+
+        torch.set_default_dtype(torch.float32)
+        xy = torch.tensor(nodes_np, device=device, dtype=torch.float32)
+        quad = torch.tensor(elems_np, device=device, dtype=torch.long)
+        inner_edges = torch.tensor(sample["inner_edges"], device=device, dtype=torch.long)
+        theta0_nodes = torch.tensor(sample["theta0_nodes"], device=device, dtype=torch.long)
+        thetahalfpi_nodes = torch.tensor(sample["thetahalfpi_nodes"], device=device, dtype=torch.long)
+        E_b = torch.tensor(sample["E_node"][None], device=device, dtype=torch.float32)
+        nu_b = torch.tensor(sample["nu_node"][None], device=device, dtype=torch.float32)
+        f_b = torch.tensor(sample["node_forces"][None], device=device, dtype=torch.float32)
+
+        model.eval()
+        with torch.no_grad():
+            _, _, _, uv_pred, _ = tpe_b2(
+                xy, quad, inner_edges, theta0_nodes, thetahalfpi_nodes, model, E_b, nu_b, f_b,
+                use_soft_dirichlet=bool(getattr(args, "use_soft_dirichlet", 1)), R_out=R_out,
+                mode="plane_strain", dtype=torch.float32, fun_dim=args.fun_dim, material=material,
+            )
+        u_pred = uv_pred[0].float().double().cpu().numpy()
+
+        coarse = {"nodes": nodes_np.astype(np.float64), "elements": elems_np, "u": u_pred, "N": N}
+        region_err = compute_region_cauchy_stress_error(
+            coarse, fine, region_pts, region_weights, "Q4", "B2", material,
+            E_fn, nu_fn, device, torch.float64, **geom_kwargs)
+        row = {"N": N, **region_err}
+        print(f"  N={N}: region_cauchy_avg_rel_err={row['region_cauchy_avg_rel_err']:.3e} "
+              f"region_cauchy_p99_rel_err={row['region_cauchy_p99_rel_err']:.3e} "
+              f"region_cauchy_max_rel_err={row['region_cauchy_max_rel_err']:.3e}")
+        rows.append(row)
+        rows.sort(key=lambda r: r["N"])
+        if out_json:
+            with open(out_json, "w") as f:
+                json.dump({"seed": seed, "material": material, "fine_N_for_peak": fine_N_for_peak,
+                           "region_radius": region_radius, "x_star": x_star[0].tolist(),
+                           "rows": rows}, f, indent=2)
+
+    if out_json:
+        try:
+            from omar_pfem.run_manifest import write_manifest
+            write_manifest(
+                os.path.dirname(os.path.abspath(out_json)) or ".",
+                kind="no_region_cauchy_fixed_location_b2",
+                args={"resolutions": resolutions, "seed": seed, "material": material,
+                      "fine_N_for_peak": fine_N_for_peak, "region_radius": region_radius},
+                started_at=started, results={"x_star": x_star[0].tolist(), "rows": rows},
+                outputs=[out_json],
+                notes="Timon round-12 point 1, B2: Cauchy stress in a fixed physical region.")
+        except Exception as e:
+            print(f"[manifest] not recorded: {e}")
+    return rows
+
+
 def run_no_peak_stress_fixed_location_b2(model, args, resolutions, out_json, device,
                                           seed=0, material="neo_hookean", fine_N_for_peak=1401):
     """B2 analog of run_no_peak_stress_fixed_location. See that function's

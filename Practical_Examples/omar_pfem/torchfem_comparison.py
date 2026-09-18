@@ -90,7 +90,7 @@ from omar_pfem.high_dof_convergence_study import (
     build_mesh_and_bcs, AnalyticFieldB1, AnalyticFieldB2, solve_one, compute_l2_h1_errors,
     fit_convergence_rate, compute_tangent_energy_error, find_fine_peak_stress,
     compute_peak_stress_error, pk1_component_errors_at_point,
-    compute_reaction_resultant_error)
+    compute_reaction_resultant_error, select_fixed_region, compute_region_cauchy_stress_error)
 from omar_pfem.matrix_free_solver import solve_matrix_free
 
 
@@ -894,7 +894,7 @@ def run_convergence_study(resolutions, out_json, geometry="B1", material="neo_ho
 
 def run_qoi_study(resolutions, out_json, geometry="B1", material="neo_hookean",
                    order="Q4", fine_N=2236, checkpoint_dir=None, device=None,
-                   tol=1e-8, dtype=torch.float64):
+                   tol=1e-8, dtype=torch.float64, region_radius=0.15):
     """Timon round-9 item 9 (2026-09-10): "What about all QoIs,
     particularly for large DOFs?" -- extends run_convergence_study's
     L2/H1 comparison with the energy norm and peak-stress QoIs
@@ -944,6 +944,17 @@ def run_qoi_study(resolutions, out_json, geometry="B1", material="neo_hookean",
                                               device, dtype)
     print(f'  x_star={x_star}, peak_ref={peak_ref:.4f}')
 
+    # Round-12 point 1: the advisor asked to avoid a bare pointwise stress
+    # maximum as the main design QoI (singular/mesh-dependent at corners
+    # even for FEM) and instead report Cauchy stress (not PK1) in a FIXED
+    # physical region around the same concentration point, with a robust
+    # local statistic. select_fixed_region is called ONCE here, from the
+    # fine reference, exactly like x_star/peak_ref above -- the same
+    # region is then reused for every resolution in this sweep.
+    region_pts, region_weights = select_fixed_region(fine, order, x_star, region_radius)
+    print(f'  fixed Cauchy-stress region: {len(region_pts)} points within radius '
+          f'{region_radius} of x_star')
+
     done = {}
     if out_json and os.path.exists(out_json):
         with open(out_json) as f:
@@ -986,6 +997,9 @@ def run_qoi_study(resolutions, out_json, geometry="B1", material="neo_hookean",
         reaction = (compute_reaction_resultant_error(coarse, fine, geometry, material, E_fn, nu_fn,
                                                        device, dtype, order=order)
                     if geometry == "B1" else None)
+        region_cauchy = compute_region_cauchy_stress_error(
+            coarse, fine, region_pts, region_weights, order, geometry, material,
+            E_fn, nu_fn, device, dtype, **geom_kwargs)
 
         row = {"N": N, "n_dof": int(2 * nodes.shape[0]), "tol": tol,
                "torchfem_wall_clock_s": elapsed, "torchfem_peak_mem_mb": peak_mb,
@@ -1005,13 +1019,16 @@ def run_qoi_study(resolutions, out_json, geometry="B1", material="neo_hookean",
                "P22_at_peak_rel_err": pk1_comp["P22_at_peak_rel_err"],
                "reaction_resultant_pred": reaction["reaction_resultant_pred"] if reaction else None,
                "reaction_resultant_ref": reaction["reaction_resultant_ref"] if reaction else None,
-               "reaction_resultant_rel_err": reaction["reaction_resultant_rel_err"] if reaction else None}
+               "reaction_resultant_rel_err": reaction["reaction_resultant_rel_err"] if reaction else None,
+               **region_cauchy}
         reaction_str = (f'{row["reaction_resultant_rel_err"]:.3e}' if reaction
                         else 'n/a (B2, no established convention)')
         print(f'  N={N}: l2_rel={row["l2_rel"]:.3e} h1_semi_rel={row["h1_semi_rel"]:.3e} '
               f'energy_norm_rel={row["energy_norm_rel"]:.3e} '
               f'peak_stress_rel_err={row["peak_stress_rel_err"]:.3e} '
-              f'reaction_resultant_rel_err={reaction_str}')
+              f'reaction_resultant_rel_err={reaction_str} '
+              f'region_cauchy_avg_rel_err={row["region_cauchy_avg_rel_err"]:.3e} '
+              f'region_cauchy_p99_rel_err={row["region_cauchy_p99_rel_err"]:.3e}')
         rows.append(row)
         rows.sort(key=lambda r: r["N"])
         if out_json:
@@ -1019,7 +1036,9 @@ def run_qoi_study(resolutions, out_json, geometry="B1", material="neo_hookean",
                 json.dump({"geometry": geometry, "material": material, "order": order,
                            "fine_N": fine_N, "device": str(device), "tol": tol,
                            "peak_stress_x_star": [float(x) for x in np.ravel(x_star)],
-                           "peak_stress_ref": float(peak_ref), "rows": rows}, f, indent=2)
+                           "peak_stress_ref": float(peak_ref),
+                           "region_radius": region_radius, "region_n_points": len(region_pts),
+                           "rows": rows}, f, indent=2)
     return rows
 
 
