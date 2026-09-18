@@ -144,7 +144,38 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-18 (**🐛 Omar caught a real gap in round-12 point 1
+Last updated: 2026-09-18 (**🐛🛠️ Two more real catches from Omar's own
+review, both addressed.**
+
+(1) The remaining gap in round-12 point 1 -- operator classical QoIs
+(L2/H1/energy/reaction) still "n/a" at N=3,4,5,6,9,11 for the five cases
+beyond B1xNeo-Hookean -- is genuinely closeable per his own read of
+Timon's literal wording ("for EACH resolution ... compare FEM and NO"),
+and is cheap (pure evaluation against each case's own already-trained
+final checkpoint, no new training, no fine-reference re-solve). New
+notebook built: `Remaining5_LowN_Accuracy.ipynb`
+(`cell_no_accuracy_degradation_sweep_remaining5_lowN.py`) -- loops the
+same `run_accuracy_degradation_sweep`/`_b2` used for B1xNeo-Hookean's own
+follow-up over the other five cases, passing the FULL LOW_N list so the
+resumable sweep skips each case's own already-present N=13..49 rows and
+computes only the six missing, cheap ones. 93/93 notebooks verified.
+**Not yet run** -- waiting on Omar's turn on GPU; once done, the "n/a"
+cells in Tables 18-R10q/s/u/w/y (Report) get filled the same way
+B1xNeo-Hookean's own row already was.
+
+(2) Real textual inconsistency in round-12 point 2's own intro paragraph:
+it said "six multi-resolution retrains plus the direct-N1401 ablation"
+(seven runs), but the very same table's own caption right next to it
+correctly says B2xArruda-Boyce has NO multi-resolution retrain at all --
+only FIVE cases were actually retrained on the multi-resolution recipe.
+Fixed to "five multi-resolution retrains, one original B2 x Arruda-Boyce
+run, ... and the direct-N1401 ablation" in all three documents that
+carry this paragraph verbatim (Report, round-12-only Summary, side
+document) via `fix_point2_wording.py`. Verified paragraph/table/image
+counts unchanged in all three (pure text edit) and no stale "six
+multi-resolution retrains" phrasing remains anywhere.**).
+
+Previous update, same day (**🐛 Omar caught a real gap in round-12 point 1
 before sending, now FIXED: Timon's own wording was "for EACH resolution
 ... L2, H1/energy norm, reaction force and stress" -- the previous
 Tables 18-R10o/p/q did not actually do that.** They gave the full
