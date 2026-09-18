@@ -5,7 +5,7 @@ standing convention (never send a reply without his review first).
 
 ---
 
-Dear Timon,
+Dear Professor Rabczuk,
 
 All three points are done, with real GPU results throughout.
 

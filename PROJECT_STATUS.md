@@ -5,6 +5,14 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
+> ⚠️ **STANDING REMINDER, Omar's own explicit instruction (repeated, most
+> recently 2026-09-18): every email/reply draft to the advisor MUST open
+> "Dear Professor Rabczuk," -- NEVER "Dear Timon,". This has slipped into
+> a first-name salutation more than once (drafts dated 2026-09-13,
+> 2026-09-17, and initially 2026-09-18 all had to be corrected). Check
+> the salutation line explicitly before presenting any reply draft, every
+> time, not just when reminded.**
+
 > ⚠️ **STANDING REMINDER, Omar's own explicit instruction (2026-09-10):
 > before the cached-Hessian speedup (`hvp_method="cached_hessian"` in
 > `matrix_free_solver.py`/`solve_matrix_free`) is finalized, applied
