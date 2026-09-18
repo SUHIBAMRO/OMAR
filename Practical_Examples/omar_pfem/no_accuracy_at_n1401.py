@@ -915,6 +915,311 @@ def run_accuracy_degradation_sweep(model, args, resolutions, out_json, device,
     return rows
 
 
+def run_qoi_study_consistent_field_b1(model, args, resolutions, out_json, device,
+                                       seed=0, material="neo_hookean", fine_N=201,
+                                       region_radius=0.15, checkpoint_fingerprint=None):
+    """Round-12 point 1, PROPERLY fixed (2026-09-18, Omar's own catch,
+    verified twice over before he accepted it: first the stale-checkpoint
+    finding, then this deeper one after he pushed back with "بدي تحسب
+    الحسبة بشكل صحيح" rather than accept a text caveat).
+
+    The ORIGINAL round-12 point-1 table's "FEM" column (from run_qoi_study
+    in torchfem_comparison.py) and "Op." column (from
+    evaluate_no_accuracy_at_n1401 above) were computed on TWO DIFFERENT
+    PHYSICAL PROBLEMS: FEM's own numbers used AnalyticFieldB1 (the fixed,
+    deterministic field build_mesh_and_bcs has always hardcoded, built for
+    the separate Table-6a-style FEM-vs-FEM mesh-convergence study), while
+    the operator's own numbers used ParametricFieldB1(seed) (the field
+    family the operator was actually trained/tested on). Same table, same
+    row, same N -- but a different (E, nu, load) realization entirely, not
+    merely a different mesh resolution of the same one. On top of that,
+    the operator's own "ground truth" was FEM solved AT THE SAME LOW N,
+    not a genuine fine reference -- so neither the resolution NOR the
+    physical problem matched what the FEM column was actually measuring.
+
+    This function fixes BOTH problems at once: FEM and the operator are
+    now solved on the EXACT SAME ParametricFieldB1(seed) realization (the
+    operator's own native distribution -- reusing build_sample_b1's own
+    returned (E_fn, nu_fn, ty_fn), not reconstructing separate instances),
+    and BOTH are compared against ONE real fine reference solved once at
+    fine_N (default 201, matching the fine reference already established
+    for this project's own low-N crossover study) -- for L2, H1
+    semi-norm, tangent-energy norm (now using the SAME field for its own
+    Hessian too, via build_mesh_and_bcs's new field_fns override), the
+    reaction-force resultant, and the region-Cauchy stress QoI already
+    computed correctly this way for the Cauchy-only table. Every number
+    this produces is a genuine, apples-to-apples "same physical problem,
+    same fine reference" comparison -- literally what Timon asked for,
+    not merely something that reads like it.
+
+    Resumable and checkpoint-fingerprint-safe like every other sweep in
+    this project."""
+    import os
+    import time
+
+    from omar_pfem.high_dof_convergence_study import (
+        compute_l2_h1_errors, compute_reaction_resultant_error,
+        compute_region_cauchy_stress_error, find_fine_peak_stress, select_fixed_region)
+    from omar_pfem.train_B1 import total_potential_energy_Q4_hyperelastic
+
+    started = time.time()
+    geom_kwargs = {"Lx": args.Lx, "Ly": args.Ly}
+
+    sample_fine, (E_fn, nu_fn, ty_fn) = build_sample_b1(
+        fine_N, seed=seed, material=material, Lx=args.Lx, Ly=args.Ly, solve_fem=False)
+    field_fns = {"E": E_fn, "nu": nu_fn, "ty": ty_fn}
+
+    print(f"Solving fine reference (N={fine_N}, ParametricFieldB1 seed={seed}) -- the SAME "
+          f"field family the operator itself was evaluated on, not AnalyticFieldB1...")
+    u_fine_flat, nodes_fine, elems_fine, _ = solve_b1_fast_gpu(
+        fine_N, seed, material, device, torch.float64, nsteps=10)
+    fine = {"nodes": nodes_fine, "elements": elems_fine,
+            "u": u_fine_flat.reshape(-1, 2), "N": fine_N}
+
+    x_star, peak_ref = find_fine_peak_stress(fine, "Q4", "B1", material, E_fn, nu_fn,
+                                              device, torch.float64)
+    region_pts, region_weights = select_fixed_region(fine, "Q4", x_star, region_radius)
+    print(f"  x_star={x_star}, region: {len(region_pts)} points within radius {region_radius}")
+
+    done = {}
+    if out_json and os.path.exists(out_json):
+        with open(out_json) as f:
+            prev = json.load(f)
+        prev_fp = prev.get("checkpoint_fingerprint")
+        if checkpoint_fingerprint is not None and prev_fp is not None and prev_fp != checkpoint_fingerprint:
+            print(f"*** {out_json} was computed with a DIFFERENT checkpoint -- discarding all "
+                  f"{len(prev.get('rows', []))} existing row(s) and recomputing. ***")
+        elif checkpoint_fingerprint is not None and prev_fp is None:
+            print(f"*** {out_json} has rows with no recorded checkpoint fingerprint -- "
+                  f"discarding and recomputing from scratch to be safe. ***")
+        else:
+            done = {r["N"]: r for r in prev.get("rows", [])}
+    rows = list(done.values())
+
+    def _score(coarse):
+        l2h1 = compute_l2_h1_errors(coarse, fine, "Q4", "B1", **geom_kwargs)
+        energy = compute_tangent_energy_error(coarse, fine, "Q4", "Q4", "B1", material, device,
+                                               torch.float64, field_fns=field_fns, **geom_kwargs)
+        reaction = compute_reaction_resultant_error(coarse, fine, "B1", material, E_fn, nu_fn,
+                                                     device, torch.float64, order="Q4")
+        cauchy = compute_region_cauchy_stress_error(coarse, fine, region_pts, region_weights,
+                                                     "Q4", "B1", material, E_fn, nu_fn, device,
+                                                     torch.float64, **geom_kwargs)
+        return {
+            "l2_rel": l2h1["l2_rel"], "h1_semi_rel": l2h1["h1_semi_rel"],
+            "energy_rel": energy["tangent_energy_rel"],
+            "reaction_resultant_rel_err": reaction["reaction_resultant_rel_err"],
+            "cauchy_avg_rel_err": cauchy["region_cauchy_avg_rel_err"],
+            "cauchy_p99_rel_err": cauchy["region_cauchy_p99_rel_err"],
+            "cauchy_max_rel_err": cauchy["region_cauchy_max_rel_err"],
+        }
+
+    for N in resolutions:
+        if N in done:
+            print(f"  N={N} already in {out_json}, skipping")
+            continue
+        print(f"\n=== N={N} ===")
+
+        print(f"  Solving FEM(N={N}), same ParametricFieldB1(seed={seed}) realization as the fine "
+              f"reference above (NOT the operator's own ground truth -- both FEM and the operator "
+              f"are now scored against the SAME fine reference instead)...")
+        u_fem_flat, nodes_np, elems_np, _ = solve_b1_fast_gpu(
+            N, seed, material, device, torch.float64, nsteps=10)
+        u_fem = u_fem_flat.reshape(-1, 2)
+
+        sample, _ = build_sample_b1(N, seed=seed, material=material, Lx=args.Lx, Ly=args.Ly,
+                                     solve_fem=False)
+        assert np.allclose(nodes_np, sample["xy"]) and np.array_equal(elems_np, sample["quad"])
+
+        torch.set_default_dtype(torch.float32)
+        xy = torch.tensor(nodes_np, device=device, dtype=torch.float32)
+        quad = torch.tensor(elems_np, device=device, dtype=torch.long)
+        top_edges = torch.tensor(sample["top_edges"], device=device, dtype=torch.long)
+        bottom_nodes = torch.tensor(sample["bottom_nodes"], device=device, dtype=torch.long)
+        E_b = torch.tensor(sample["E_node"][None], device=device, dtype=torch.float32)
+        nu_b = torch.tensor(sample["nu_node"][None], device=device, dtype=torch.float32)
+        f_b = torch.tensor(sample["node_forces"][None], device=device, dtype=torch.float32)
+        model.eval()
+        with torch.no_grad():
+            _, _, _, uv_pred, _ = total_potential_energy_Q4_hyperelastic(
+                xy, quad, top_edges, bottom_nodes, model, E_b, nu_b, f_b,
+                use_soft_dirichlet=bool(args.use_soft_dirichlet), mode="plane_strain",
+                dtype=torch.float32, fun_dim=args.fun_dim, material=material, Ly=args.Ly,
+            )
+        u_op = uv_pred[0].float().double().cpu().numpy()
+
+        fem_coarse = {"nodes": nodes_np.astype(np.float64), "elements": elems_np, "u": u_fem, "N": N}
+        op_coarse = {"nodes": nodes_np.astype(np.float64), "elements": elems_np, "u": u_op, "N": N}
+
+        fem_score = _score(fem_coarse)
+        op_score = _score(op_coarse)
+        row = {"N": N, "fem": fem_score, "no": op_score}
+        print(f"  N={N}: FEM L2={fem_score['l2_rel']*100:.2f}%  Op L2={op_score['l2_rel']*100:.2f}%  "
+              f"FEM cauchy_avg={fem_score['cauchy_avg_rel_err']*100:.2f}%  "
+              f"Op cauchy_avg={op_score['cauchy_avg_rel_err']*100:.2f}%")
+        rows.append(row)
+        rows.sort(key=lambda r: r["N"])
+        if out_json:
+            with open(out_json, "w") as f:
+                json.dump({"seed": seed, "material": material, "fine_N": fine_N,
+                           "checkpoint_fingerprint": checkpoint_fingerprint,
+                           "x_star": x_star[0].tolist(), "rows": rows}, f, indent=2)
+
+    if out_json:
+        try:
+            from omar_pfem.run_manifest import write_manifest
+            write_manifest(
+                os.path.dirname(os.path.abspath(out_json)) or ".",
+                kind="qoi_study_consistent_field_b1",
+                args={"resolutions": resolutions, "seed": seed, "material": material,
+                      "fine_N": fine_N, "checkpoint_fingerprint": checkpoint_fingerprint},
+                started_at=started, results={"n_rows": len(rows)}, outputs=[out_json],
+                notes="Round-12 point 1, properly fixed: FEM and the operator scored on the "
+                      "SAME ParametricFieldB1(seed) realization, both against ONE real fine "
+                      "reference (fine_N), replacing the earlier version's field-mismatch and "
+                      "same-N-not-fine-reference bugs.")
+        except Exception as e:
+            print(f"[manifest] not recorded: {e}")
+    return rows
+
+
+def run_qoi_study_consistent_field_b2(model, args, resolutions, out_json, device,
+                                       seed=0, material="neo_hookean", fine_N=201,
+                                       region_radius=0.15, checkpoint_fingerprint=None):
+    """B2 analog of run_qoi_study_consistent_field_b1 -- see that function's
+    own docstring for the full rationale. No reaction-resultant QoI here,
+    same established omission as everywhere else in this project (B2's own
+    fixed boundary has no established reaction-resultant convention)."""
+    import os
+    import time
+
+    from omar_pfem.data.data_generate_B2 import assemble_traction_inner_curved  # noqa: F401  (kept for parity/reference)
+    from omar_pfem.high_dof_convergence_study import (
+        compute_l2_h1_errors, compute_region_cauchy_stress_error,
+        find_fine_peak_stress, select_fixed_region)
+    from omar_pfem.no_ground_truth_fast import solve_b2_fast_gpu
+    from omar_pfem.resolution_invariance_zeroshot import build_sample_b2
+    from omar_pfem.train_B2 import total_potential_energy_Q4_hyperelastic as tpe_b2
+
+    started = time.time()
+    R_in, R_out = getattr(args, "R_in", 1.0), getattr(args, "R_out", 2.0)
+    geom_kwargs = {"R_in": R_in, "R_out": R_out}
+
+    sample_fine, (E_fn, nu_fn, p_fn) = build_sample_b2(
+        fine_N, seed=seed, material=material, R_in=R_in, R_out=R_out, solve_fem=False)
+    field_fns = {"E": E_fn, "nu": nu_fn, "p": p_fn}
+
+    print(f"Solving fine reference (N={fine_N}, ParametricFieldB2 seed={seed}) -- the SAME "
+          f"field family the operator itself was evaluated on, not AnalyticFieldB2...")
+    u_fine_flat, nodes_fine, elems_fine, _ = solve_b2_fast_gpu(
+        fine_N, seed, material, device, torch.float64, R_in=R_in, R_out=R_out, nsteps=10)
+    fine = {"nodes": nodes_fine, "elements": elems_fine,
+            "u": u_fine_flat.reshape(-1, 2), "N": fine_N}
+
+    x_star, peak_ref = find_fine_peak_stress(fine, "Q4", "B2", material, E_fn, nu_fn,
+                                              device, torch.float64)
+    region_pts, region_weights = select_fixed_region(fine, "Q4", x_star, region_radius)
+    print(f"  x_star={x_star}, region: {len(region_pts)} points within radius {region_radius}")
+
+    done = {}
+    if out_json and os.path.exists(out_json):
+        with open(out_json) as f:
+            prev = json.load(f)
+        prev_fp = prev.get("checkpoint_fingerprint")
+        if checkpoint_fingerprint is not None and prev_fp is not None and prev_fp != checkpoint_fingerprint:
+            print(f"*** {out_json} was computed with a DIFFERENT checkpoint -- discarding all "
+                  f"{len(prev.get('rows', []))} existing row(s) and recomputing. ***")
+        elif checkpoint_fingerprint is not None and prev_fp is None:
+            print(f"*** {out_json} has rows with no recorded checkpoint fingerprint -- "
+                  f"discarding and recomputing from scratch to be safe. ***")
+        else:
+            done = {r["N"]: r for r in prev.get("rows", [])}
+    rows = list(done.values())
+
+    def _score(coarse):
+        l2h1 = compute_l2_h1_errors(coarse, fine, "Q4", "B2", **geom_kwargs)
+        energy = compute_tangent_energy_error(coarse, fine, "Q4", "Q4", "B2", material, device,
+                                               torch.float64, field_fns=field_fns, **geom_kwargs)
+        cauchy = compute_region_cauchy_stress_error(coarse, fine, region_pts, region_weights,
+                                                     "Q4", "B2", material, E_fn, nu_fn, device,
+                                                     torch.float64, **geom_kwargs)
+        return {
+            "l2_rel": l2h1["l2_rel"], "h1_semi_rel": l2h1["h1_semi_rel"],
+            "energy_rel": energy["tangent_energy_rel"],
+            "reaction_resultant_rel_err": None,
+            "cauchy_avg_rel_err": cauchy["region_cauchy_avg_rel_err"],
+            "cauchy_p99_rel_err": cauchy["region_cauchy_p99_rel_err"],
+            "cauchy_max_rel_err": cauchy["region_cauchy_max_rel_err"],
+        }
+
+    for N in resolutions:
+        if N in done:
+            print(f"  N={N} already in {out_json}, skipping")
+            continue
+        print(f"\n=== N={N} ===")
+
+        print(f"  Solving FEM(N={N}), same ParametricFieldB2(seed={seed}) realization as the fine "
+              f"reference above...")
+        u_fem_flat, nodes_np, elems_np, _ = solve_b2_fast_gpu(
+            N, seed, material, device, torch.float64, R_in=R_in, R_out=R_out, nsteps=10)
+        u_fem = u_fem_flat.reshape(-1, 2)
+
+        sample, _ = build_sample_b2(N, seed=seed, material=material, R_in=R_in, R_out=R_out,
+                                     solve_fem=False)
+        assert np.allclose(nodes_np, sample["xy"]) and np.array_equal(elems_np, sample["quad"])
+
+        torch.set_default_dtype(torch.float32)
+        xy = torch.tensor(nodes_np, device=device, dtype=torch.float32)
+        quad = torch.tensor(elems_np, device=device, dtype=torch.long)
+        inner_edges = torch.tensor(sample["inner_edges"], device=device, dtype=torch.long)
+        theta0_nodes = torch.tensor(sample["theta0_nodes"], device=device, dtype=torch.long)
+        thetahalfpi_nodes = torch.tensor(sample["thetahalfpi_nodes"], device=device, dtype=torch.long)
+        E_b = torch.tensor(sample["E_node"][None], device=device, dtype=torch.float32)
+        nu_b = torch.tensor(sample["nu_node"][None], device=device, dtype=torch.float32)
+        f_b = torch.tensor(sample["node_forces"][None], device=device, dtype=torch.float32)
+        model.eval()
+        with torch.no_grad():
+            _, _, _, uv_pred, _ = tpe_b2(
+                xy, quad, inner_edges, theta0_nodes, thetahalfpi_nodes, model, E_b, nu_b, f_b,
+                use_soft_dirichlet=bool(getattr(args, "use_soft_dirichlet", 1)), R_out=R_out,
+                mode="plane_strain", dtype=torch.float32, fun_dim=args.fun_dim, material=material,
+            )
+        u_op = uv_pred[0].float().double().cpu().numpy()
+
+        fem_coarse = {"nodes": nodes_np.astype(np.float64), "elements": elems_np, "u": u_fem, "N": N}
+        op_coarse = {"nodes": nodes_np.astype(np.float64), "elements": elems_np, "u": u_op, "N": N}
+
+        fem_score = _score(fem_coarse)
+        op_score = _score(op_coarse)
+        row = {"N": N, "fem": fem_score, "no": op_score}
+        print(f"  N={N}: FEM L2={fem_score['l2_rel']*100:.2f}%  Op L2={op_score['l2_rel']*100:.2f}%  "
+              f"FEM cauchy_avg={fem_score['cauchy_avg_rel_err']*100:.2f}%  "
+              f"Op cauchy_avg={op_score['cauchy_avg_rel_err']*100:.2f}%")
+        rows.append(row)
+        rows.sort(key=lambda r: r["N"])
+        if out_json:
+            with open(out_json, "w") as f:
+                json.dump({"seed": seed, "material": material, "fine_N": fine_N,
+                           "checkpoint_fingerprint": checkpoint_fingerprint,
+                           "x_star": x_star[0].tolist(), "rows": rows}, f, indent=2)
+
+    if out_json:
+        try:
+            from omar_pfem.run_manifest import write_manifest
+            write_manifest(
+                os.path.dirname(os.path.abspath(out_json)) or ".",
+                kind="qoi_study_consistent_field_b2",
+                args={"resolutions": resolutions, "seed": seed, "material": material,
+                      "fine_N": fine_N, "checkpoint_fingerprint": checkpoint_fingerprint},
+                started_at=started, results={"n_rows": len(rows)}, outputs=[out_json],
+                notes="Round-12 point 1, properly fixed (B2): FEM and the operator scored on "
+                      "the SAME ParametricFieldB2(seed) realization, both against ONE real fine "
+                      "reference (fine_N).")
+        except Exception as e:
+            print(f"[manifest] not recorded: {e}")
+    return rows
+
+
 if __name__ == "__main__":
     import argparse
 

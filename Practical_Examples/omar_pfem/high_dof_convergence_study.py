@@ -195,10 +195,25 @@ def assemble_traction_inner_generic(nodes, elements, R_in, p_interp, order, tol=
     return Fext
 
 
-def build_mesh_and_bcs(geometry, order, N, material, device, dtype):
+def build_mesh_and_bcs(geometry, order, N, material, device, dtype, field_fns=None):
+    """field_fns: optional {"E":..., "nu":..., "ty" or "p":...} override,
+    defaulting to None (the original AnalyticFieldB1/B2 behaviour, used by
+    every existing caller -- the Table-6a-style FEM-vs-FEM mesh-convergence
+    studies this module's own docstring says are "against the SAME fixed
+    analytic (E, nu, load) field"). Added 2026-09-18 so round-12 point 1's
+    energy-norm QoI can instead be computed against the SAME
+    ParametricFieldB1/B2(seed) realization the operator itself was
+    evaluated on -- see run_qoi_study_consistent_field_b1/b2 in
+    no_accuracy_at_n1401.py for why this distinction matters (FEM's own
+    accuracy and the operator's own accuracy were previously being measured
+    on two DIFFERENT physical problems, not just two different mesh
+    resolutions of the same one)."""
     if geometry == "B1":
         Lx = Ly = 1.0
-        E_fn, nu_fn, ty_fn = AnalyticFieldB1("E"), AnalyticFieldB1("nu"), AnalyticFieldB1("ty")
+        if field_fns is not None:
+            E_fn, nu_fn, ty_fn = field_fns["E"], field_fns["nu"], field_fns["ty"]
+        else:
+            E_fn, nu_fn, ty_fn = AnalyticFieldB1("E"), AnalyticFieldB1("nu"), AnalyticFieldB1("ty")
         if order == "Q4":
             from omar_pfem.data.data_generate_B1 import generate_grid_Q4
             nodes, elements = generate_grid_Q4(Lx, Ly, N, N)
@@ -212,7 +227,10 @@ def build_mesh_and_bcs(geometry, order, N, material, device, dtype):
         elem_params = precompute_params(nodes, elements, E_fn, nu_fn, material)
     else:
         R_in, R_out = 1.0, 2.0
-        E_fn, nu_fn, p_fn = AnalyticFieldB2("E"), AnalyticFieldB2("nu"), AnalyticFieldB2("p")
+        if field_fns is not None:
+            E_fn, nu_fn, p_fn = field_fns["E"], field_fns["nu"], field_fns["p"]
+        else:
+            E_fn, nu_fn, p_fn = AnalyticFieldB2("E"), AnalyticFieldB2("nu"), AnalyticFieldB2("p")
         if order == "Q4":
             from omar_pfem.data.data_generate_B2 import generate_grid_Q4_ring
             nodes, elements = generate_grid_Q4_ring(R_in, R_out, N, N)
@@ -433,7 +451,7 @@ def evaluate_fe_field_and_gradient(query_pts, fine, order, geometry, **geom_kwar
 
 
 def compute_tangent_energy_error(coarse, fine, coarse_order, fine_order, geometry, material,
-                                  device, dtype, **geom_kwargs):
+                                  device, dtype, field_fns=None, **geom_kwargs):
     """Advisor-confirmed energy norm ('the tangent/incremental energy norm;
     relative errors are enough'): ||e||_E = sqrt(e^T K(u_fine) e), the norm
     induced by the FINE solution's own tangent stiffness K = Hessian of the
@@ -461,7 +479,7 @@ def compute_tangent_energy_error(coarse, fine, coarse_order, fine_order, geometr
     e_full = (u_coarse_at_fine_nodes - u_f).reshape(-1)
 
     _, _, free_dofs_np, _, elem_params_np = build_mesh_and_bcs(
-        geometry, fine_order, N_fine, material, device, dtype)
+        geometry, fine_order, N_fine, material, device, dtype, field_fns=field_fns)
 
     xy_t = torch.tensor(nodes_f, dtype=dtype, device=device)
     quad_t = torch.tensor(elements_f, dtype=torch.long, device=device)

@@ -204,7 +204,101 @@ verification run. The 53.33% figure is confirmed beyond reasonable doubt.
 
 **This finding has been read out to Omar in chat and independently
 confirmed at his request** -- round-12 point 1's classical-QoI tables are
-now fully trustworthy and ready to send.)
+now fully trustworthy and ready to send.
+
+🚨 **THEN a DEEPER, more fundamental bug was found the same day, while
+double-checking the fix above before building more code on top of it (not
+prompted by a new GPU run this time -- caught by re-reading the actual
+computation code, which is exactly what Omar asked for when he said "بدي
+تحسب الحسبة بشكل صحيح" after rejecting a proposal to just add a text
+caveat instead of fixing the code).**
+
+The round-12 point-1 table's "FEM" column (`run_qoi_study`,
+torchfem_comparison.py) and "Op." column (`evaluate_no_accuracy_at_n1401`/
+`_b2`, no_accuracy_at_n1401.py) were computed on TWO DIFFERENT PHYSICAL
+PROBLEMS: FEM used `AnalyticFieldB1`/`B2` (the fixed, deterministic field
+`build_mesh_and_bcs` has always hardcoded, built for the separate Table-6a-
+style FEM-vs-FEM mesh-convergence study, which this module's own docstring
+explicitly says is "against the SAME fixed analytic field" -- a
+deliberate, correct design choice FOR THAT STUDY), while the operator used
+`ParametricFieldB1`/`B2(seed)` (the field family it was actually trained/
+tested on). Same table, same row, same N -- but a different (E, nu, load)
+realization entirely, not merely a different mesh resolution of the same
+one. This is on top of (not instead of) the already-fixed same-N-vs-
+fine-reference bug: even a corrected "operator vs. a genuine fine
+reference" comparison would still have used a DIFFERENT fine reference
+field than FEM's own column.
+
+**This exact category of Analytic-vs-Parametric mismatch has a real
+precedent already accepted elsewhere in this project** (the peak-stress
+QoI's own docstring, `run_no_peak_stress_fixed_location`, explicitly
+states the same distinction and calls it "the same KIND of metric... not
+an identical physical problem"). Proposed adding the same kind of honest
+caveat here instead of a full recompute. **Omar rejected this explicitly**
+("بدنا نصلح الداله والكود ونعمل التحليل عشان ما نصرح بالنص عشان نعمل
+الاشي الصحيح") -- the right call: a caveat documents a shortcut, it
+doesn't fix the actual comparison Timon asked for.
+
+**Real fix, code-level (2026-09-18)**:
+- `build_mesh_and_bcs` and `compute_tangent_energy_error`
+  (`high_dof_convergence_study.py`) gained an optional `field_fns=None`
+  override parameter -- `None` preserves the EXACT original
+  AnalyticField behaviour (verified byte-identical on CPU: same nodes,
+  elements, fext, elem_params as before the change, for every existing
+  caller, none of which pass this new parameter), while a real
+  `{"E":..., "nu":..., "ty"/"p":...}` dict now lets the energy-norm
+  Hessian be computed against the ACTUAL field the displacement fields
+  were solved under, instead of always silently substituting
+  AnalyticField's own material properties.
+- Two new functions in `no_accuracy_at_n1401.py`:
+  `run_qoi_study_consistent_field_b1`/`_b2`. For each case: solve ONE
+  real fine reference (fine_N=201) under `ParametricFieldB1`/`B2(seed)`
+  (reusing `build_sample_b1`/`b2`'s own returned field-function triple,
+  not reconstructing separate instances); for each low N, solve FEM
+  AND run the operator on the EXACT SAME field/seed/mesh, then score
+  BOTH against that ONE fine reference for L2, H1 semi-norm, tangent-
+  energy norm (now field-consistent via the override above), reaction
+  resultant (B1 only), and the region-Cauchy stress QoI (reusing the
+  already-correct `find_fine_peak_stress`/`select_fixed_region`/
+  `compute_region_cauchy_stress_error` machinery the Cauchy-only table
+  already used correctly).
+- **Verified on CPU before any GPU time was spent**, per this project's
+  own standing discipline: (1) regression check -- `field_fns=None`
+  gives byte-identical mesh/elem_params/fext to the un-patched function;
+  (2) effect check -- passing a real ParametricField `field_fns` dict
+  measurably changes `elem_params`/`fext` vs. the AnalyticField default,
+  confirming the override actually takes effect, not silently ignored;
+  (3) full-pipeline identity check -- `compute_l2_h1_errors`/
+  `compute_tangent_energy_error` (with `field_fns`)/
+  `compute_reaction_resultant_error`/`compute_region_cauchy_stress_error`
+  run coarse==fine on a real (CPU-solved, tiny N) B1 problem: L2_rel,
+  energy_rel, and reaction_rel_err all come back EXACTLY 0.0 (not just
+  small); (4) a real coarse(N=4)-vs-fine(N=9) CPU pair gives sane,
+  finite, non-degenerate errors (L2 2.9%, H1 15.9%, energy 10.4%,
+  reaction 5.1%, Cauchy avg 3.6%/p99 11.6%) -- no crashes, no NaNs, no
+  degenerate zeros.
+- New notebook `Round12_ConsistentField_QoI_AllCases.ipynb`
+  (`cell_round12_consistent_field_all_cases.py`,
+  `make_round12_consistent_field_notebook.py`) runs this for all six
+  cases, writing `round12_consistent_field_qoi_<case>.json`. 95/95
+  notebooks verified via `check_notebooks.py`. **NOT YET RUN** -- waiting
+  on Omar's turn on GPU. Expected cost 15-30 minutes total (more than
+  Remaining5's 6m30s since FEM is now solved fresh at every N too, not
+  reused from an old cache, plus the Cauchy computation runs for both
+  sides now).
+
+**Once this run finishes**: rebuild Tables 18-R10o..z (all twelve, both
+classical AND Cauchy, all six cases) from this single new, self-consistent
+JSON source -- the current Report tables' Cauchy columns ALSO inherit the
+same field-mismatch problem (FEM's Cauchy numbers came from
+`run_qoi_study`'s AnalyticField pipeline, the operator's from
+`run_no_region_cauchy_fixed_location[_b2]`'s ParametricField pipeline), so
+this is a full twelve-table rebuild, not just the five classical tables
+touched earlier today. Then re-derive the Summary and side-doc from the
+corrected Report as before, update this file again, commit, push, and
+report the real before/after numbers to Omar honestly -- some may move
+substantially, exactly like B2xNeo-Hookean's 12.71%->53.33% move did
+earlier today.)
 
 Previous update, same day (**🐛🛠️ Two more real catches from Omar's own
 review, both addressed.**
