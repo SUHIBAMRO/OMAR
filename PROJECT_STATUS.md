@@ -144,7 +144,56 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-18 (**🐛🛠️ Two more real catches from Omar's own
+Last updated: 2026-09-18 (**🚨🛠️ REAL DATA-STALENESS BUG FOUND AND FIXED:
+the classical-QoI ("Op." L2/H1/Energy/Reaction) columns for FIVE of the six
+cases in Tables 18-R10q/s/u/w/y were computed against a STALE, pre-final-
+retrain checkpoint -- the exact same class of bug already caught and fixed
+for B1xNeo-Hookean earlier in this project.**
+
+**How it surfaced**: running `Remaining5_LowN_Accuracy.ipynb` to close the
+N=3,4,5,6,9,11 gap (see the "Previous update" entry just below) triggered
+`run_accuracy_degradation_sweep`'s own checkpoint-fingerprint safety net for
+ALL FIVE cases -- their existing cached
+`no_accuracy_degradation_sweep_<case>.json` files had NO recorded
+fingerprint at all (they predated this safety check entirely), so the
+function discarded every existing row and recomputed all sixteen
+resolutions fresh against the current final checkpoint. The freshly
+recomputed N=13 value for B1xMooney-Rivlin (10.48%) did not match what was
+already written in the Report (7.39%, from the stale cache) -- caught by
+comparing the two, not by Omar flagging it a second time.
+
+**Verified against all 5 fresh, fingerprint-checked files** (fetched from
+Drive, each fingerprint asserted against the run log before use):
+B1xMooney-Rivlin, B1xArruda-Boyce, B2xNeo-Hookean, B2xMooney-Rivlin,
+B2xArruda-Boyce. N=13 "Op. L2" changes (stale cache -> fresh, verified):
+- B1xMooney-Rivlin: 7.39% -> 10.48%
+- B1xArruda-Boyce: 10.34% -> 9.30%
+- B2xNeo-Hookean: 12.71% -> **53.33%** (the largest discrepancy by far)
+- B2xMooney-Rivlin: 10.46% -> 12.22%
+- B2xArruda-Boyce: 21.60% -> 21.60% (unchanged -- this one's stale cache
+  happened to already match the final checkpoint)
+
+**Fix** (`report_builders/fix_stale_classical_qoi.py`): replaced the "Op."
+L2/H1/Energy/Reaction columns for ALL sixteen resolutions (not just the six
+that were previously "n/a") in all five affected tables, using the fresh
+fingerprint-verified data. FEM columns and every Cauchy-stress column were
+never sourced from these stale files and are untouched. Also rewrote the
+GAP_NOTE paragraph (now correctly says the gap is fully closed for every
+case, discloses the staleness bug plainly) and the one numeric callout in
+the closing discussion (B1xMooney-Rivlin N=13 L2: 7.39% -> 10.48%).
+Report's paragraph/table/image counts unchanged (612/96/51) -- pure
+cell-value and text edits, no structural change. `PFEM_Work_Summary_
+2026-09-18b.docx` and `Round12_Reply_to_Timon_Points_2026-09-18.docx`
+re-derived from the now-corrected Report via the same XML-copy mechanism
+(anchor texts updated to match the corrected wording); both verified to
+carry the same corrected numbers.
+
+**This finding has not yet been read out to Omar in chat** -- report it
+plainly (this is exactly the kind of numeric discrepancy this project's own
+discipline says must never be silently absorbed) before treating round-12
+point 1 as finished and ready to send.)
+
+Previous update, same day (**🐛🛠️ Two more real catches from Omar's own
 review, both addressed.**
 
 (1) The remaining gap in round-12 point 1 -- operator classical QoIs
