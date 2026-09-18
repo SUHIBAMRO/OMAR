@@ -117,7 +117,39 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-18 (**🛠️ New notebook built to fill the B1xNeo-
+Last updated: 2026-09-18 (**✅ B1xNeo-Hookean gap CLOSED for real --
+`B1NH_FinalCheckpoint_LowN_Accuracy.ipynb` ran clean on the first try**
+(46s of real GPU compute, 2m18s total including manifest overhead --
+even cheaper than the "low minutes" estimate given to Omar beforehand).
+Checkpoint fingerprint confirmed `cb318c4694d820152d018bcb3a2caa6be4528f3654a59cc8aa2482e9cd495f86`
+-- verified different from the old pre-retrain fingerprint (86030f4f...)
+by the notebook's own runtime assertion, and ground truth converged at
+every one of the 16 resolutions tested (N=3..49).
+
+**Real N=13 numbers now in the Report/Summary** (`fill_b1nh_qoi_gap.py`,
+values read straight from the downloaded result JSON, never
+hand-transcribed): B1xNeo-Hookean's own operator-side L2/H1/energy/
+reaction at N=13 are 6.14% / 19.98% / 10.51% / 7.41% respectively (FEM's
+own numbers there, already published, are 0.35% / 4.85% / 4.07% / 0.22%
+-- the operator is meaningfully less accurate than FEM at this
+resolution on every one of these QoIs, consistent with N=13 being well
+below this case's own trained/zero-shot-validated range). Table 18-R10p
+(Report) / R10-10 (Summary) B1xNeo-Hookean row updated from all-"n/a" to
+these real values; the three surrounding paragraphs that described this
+as an open gap (Table 18-R10o's own caption, the cross-case snapshot's
+intro, Table 18-R10p's own caption) reworded to say it was found and
+closed, not left stale. Verified via before/after diff: paragraph/table/
+image counts UNCHANGED in both documents (599,87,51 and 63,13,8 -- this
+was a pure in-place text/cell edit, no new content added), and grepped
+for the old "entirely missing from Drive" / "own gap, noted above"
+phrasing to confirm zero stale copies remain in either document.
+
+**Round-12 point 1 is now completely closed, no remaining gaps.** Task
+#16 (the "realistic case") and Timon's own promised follow-up email
+about IGA-geometry ideas are the two open items before the next reply to
+Timon goes out.**).
+
+Previous update, same day (**🛠️ New notebook built to fill the B1xNeo-
 Hookean L2/H1/energy/reaction gap** found in round-12 point 1 (see the
 entry just below): `B1NH_FinalCheckpoint_LowN_Accuracy.ipynb` (cell:
 `cell_no_accuracy_degradation_sweep_b1nh_final_lowN.py`, generator:
