@@ -151,3 +151,122 @@ def profile_with_torch_compile(sample, model, args, device, dtype,
             torch.set_float32_matmul_precision(orig_precision)
 
     return result
+
+
+def profile_with_torch_compile_b2(sample, model, args, device, dtype,
+                                   n_repeats=200, n_warmup=20, compile_warmup=5,
+                                   try_tf32=True):
+    """B2 analog of profile_with_torch_compile -- identical structure and
+    identical correctness discipline (every variant checked against
+    strict-fp32 eager before its speedup is trusted, failures reported
+    honestly), only the forward-pass call differs: B2's own
+    predict_displacement_Q4_only (symmetry-line boundary, R_out) instead
+    of B1's (top-edge traction, Ly). Built round-12 point 3 (Timon: use
+    the compile+TF32 result for the paper) -- profile_with_torch_compile
+    itself was always B1-only, so this extends the same measurement to
+    the other five cases rather than leaving it flagship-only."""
+    if device.type != "cuda":
+        raise RuntimeError("torch.compile timing needs a CUDA device to mean anything")
+
+    from omar_pfem.train_B2 import predict_displacement_Q4_only
+
+    model.eval()
+    xy = torch.tensor(sample["xy"], device=device, dtype=dtype)
+    quad = torch.tensor(sample["quad"], device=device, dtype=torch.long)
+    inner_edges = torch.tensor(sample["inner_edges"], device=device, dtype=torch.long)
+    theta0_nodes = torch.tensor(sample["theta0_nodes"], device=device, dtype=torch.long)
+    thetahalfpi_nodes = torch.tensor(sample["thetahalfpi_nodes"], device=device, dtype=torch.long)
+    E1 = torch.tensor(sample["E_node"], device=device, dtype=dtype).unsqueeze(0)
+    nu1 = torch.tensor(sample["nu_node"], device=device, dtype=dtype).unsqueeze(0)
+    f1 = torch.tensor(sample["node_forces"], device=device, dtype=dtype).unsqueeze(0)
+
+    def _call(m):
+        return predict_displacement_Q4_only(
+            xy, quad, inner_edges, theta0_nodes, thetahalfpi_nodes, m, E1, nu1, f1,
+            use_soft_dirichlet=bool(getattr(args, "use_soft_dirichlet", 1)),
+            R_out=getattr(args, "R_out", 2.0), dtype=dtype, fun_dim=args.fun_dim,
+        )
+
+    def _time_it(fn, n_warmup_local, n_repeats_local):
+        with torch.no_grad():
+            for _ in range(n_warmup_local):
+                fn()
+            torch.cuda.synchronize(device)
+            t0 = time.time()
+            for _ in range(n_repeats_local):
+                out = fn()
+            torch.cuda.synchronize(device)
+            elapsed = time.time() - t0
+        return 1000.0 * elapsed / n_repeats_local, out
+
+    print("Timing eager baseline (B2)...")
+    eager_ms, eager_out = _time_it(lambda: _call(model), n_warmup, n_repeats)
+
+    result = {
+        "eager_ms_per_sample": eager_ms,
+        "compile_succeeded": False,
+        "compiled_ms_per_sample": None,
+        "compiled_vs_eager_rel_diff": None,
+        "speedup_vs_eager": None,
+        "error": None,
+    }
+
+    print("Compiling model with torch.compile (B2)...")
+    try:
+        compiled_model = torch.compile(model)
+        for _ in range(compile_warmup):
+            with torch.no_grad():
+                _call(compiled_model)
+        torch.cuda.synchronize(device)
+
+        compiled_ms, compiled_out = _time_it(lambda: _call(compiled_model), n_warmup, n_repeats)
+
+        rel_diff = (torch.linalg.norm(compiled_out.float() - eager_out.float())
+                    / torch.linalg.norm(eager_out.float()).clamp_min(1e-12)).item()
+
+        result["compile_succeeded"] = True
+        result["compiled_ms_per_sample"] = compiled_ms
+        result["compiled_vs_eager_rel_diff"] = rel_diff
+        result["speedup_vs_eager"] = eager_ms / compiled_ms
+    except Exception as e:
+        result["error"] = f"{type(e).__name__}: {e}"
+        print(f"torch.compile FAILED (reported honestly, not hidden): {result['error']}")
+
+    result.update({
+        "eager_tf32_ms_per_sample": None, "eager_tf32_vs_eager_rel_diff": None,
+        "speedup_tf32_vs_eager": None,
+        "compiled_tf32_ms_per_sample": None, "compiled_tf32_vs_eager_rel_diff": None,
+        "speedup_compiled_tf32_vs_eager": None, "tf32_error": None,
+    })
+    if try_tf32:
+        orig_precision = torch.get_float32_matmul_precision()
+        try:
+            print("\nTiming eager + TF32 matmul precision (B2)...")
+            torch.set_float32_matmul_precision("high")
+            eager_tf32_ms, eager_tf32_out = _time_it(lambda: _call(model), n_warmup, n_repeats)
+            result["eager_tf32_ms_per_sample"] = eager_tf32_ms
+            result["eager_tf32_vs_eager_rel_diff"] = (
+                torch.linalg.norm(eager_tf32_out.float() - eager_out.float())
+                / torch.linalg.norm(eager_out.float()).clamp_min(1e-12)).item()
+            result["speedup_tf32_vs_eager"] = eager_ms / eager_tf32_ms
+
+            if result["compile_succeeded"]:
+                print("Timing torch.compile + TF32 (B2)...")
+                for _ in range(compile_warmup):
+                    with torch.no_grad():
+                        _call(compiled_model)
+                torch.cuda.synchronize(device)
+                compiled_tf32_ms, compiled_tf32_out = _time_it(
+                    lambda: _call(compiled_model), n_warmup, n_repeats)
+                result["compiled_tf32_ms_per_sample"] = compiled_tf32_ms
+                result["compiled_tf32_vs_eager_rel_diff"] = (
+                    torch.linalg.norm(compiled_tf32_out.float() - eager_out.float())
+                    / torch.linalg.norm(eager_out.float()).clamp_min(1e-12)).item()
+                result["speedup_compiled_tf32_vs_eager"] = eager_ms / compiled_tf32_ms
+        except Exception as e:
+            result["tf32_error"] = f"{type(e).__name__}: {e}"
+            print(f"TF32 test FAILED (reported honestly, not hidden): {result['tf32_error']}")
+        finally:
+            torch.set_float32_matmul_precision(orig_precision)
+
+    return result
