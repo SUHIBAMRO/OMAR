@@ -117,7 +117,50 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-18 (**✅ Round-12 point 1 (Cauchy-stress fixed-region
+Last updated: 2026-09-18 (**🛠️ New notebook built to fill the B1xNeo-
+Hookean L2/H1/energy/reaction gap** found in round-12 point 1 (see the
+entry just below): `B1NH_FinalCheckpoint_LowN_Accuracy.ipynb` (cell:
+`cell_no_accuracy_degradation_sweep_b1nh_final_lowN.py`, generator:
+`make_b1nh_final_lowN_accuracy_notebook.py`). Reruns the SAME
+`run_accuracy_degradation_sweep` code path used for the other 5 cases
+(unchanged), but against the CURRENT retrained checkpoint
+(`zeroshot_B1_neo_hookean_multires/model_best.pt`, loaded directly, NOT
+via `resolve_b1_neo_hookean_checkpoint` which checks the WRONG, old
+fingerprint), at LOW_N=[3..49] (same range as the round-12 Cauchy sweep,
+not the old sweep's wider N=13..1401), saving to the exact filename
+(`no_accuracy_degradation_sweep_B1_neo_hookean.json`) round-12's own
+Cauchy cell already checks for. Includes an explicit runtime assertion
+that the loaded checkpoint's own sha256 fingerprint does NOT match the
+OLD pre-retrain checkpoint's fingerprint (86030f4f...), so this can never
+silently reproduce the stale numbers it exists to replace.
+
+**Real cost estimate given to Omar before building this** (grounded in
+this project's own `run_manifest.json` history, not guessed): the
+existing `no_accuracy_degradation_sweep` runs (N=13..1401, 6 historical
+runs) took 27-34 minutes each on a real A100 -- but that's dominated by
+the expensive N=101-1401 tail. This cell's own LOW_N<=49 range should be
+far cheaper: the round-12 Cauchy sweep's own FEM-side computation over
+the identical LOW_N range completed in 13-25 SECONDS per case. Estimated
+here: low minutes of real GPU compute, ~10-15 minutes total including
+Colab boilerplate (git clone, pip installs, checkpoint load).
+
+**Root cause of the original gap, now confirmed** (not just "missing" --
+actively checked): a file with almost the right name
+(`no_accuracy_degradation_sweep.json`, no case suffix) DOES exist on
+Drive, from 2026-09-12/13 (`cell_no_accuracy_degradation_sweep.py`'s own
+output) -- but its own stored checkpoint_fingerprint and its N=1401
+disp_rel_L2 (~39-45%, wildly inconsistent with the retrained checkpoint's
+published 5.85%) confirm it is from the OLD, pre-retrain checkpoint,
+predating the later multi-resolution retrain fix. Deliberately NOT
+reused here -- doing so would have silently mixed two different model
+versions into the same "final checkpoint" table Timon asked for.
+
+**Not yet run** -- notebook built and verified (92/92 via
+check_notebooks.py), waiting on Omar's turn on GPU. Once it completes,
+the real B1xNeo-Hookean L2/H1/energy/reaction numbers replace the "n/a"
+cells in Table 18-R10p (Report) / R10-10 (Summary).**).
+
+Previous update, same day (**✅ Round-12 point 1 (Cauchy-stress fixed-region
 QoI) also WRITTEN into the real Report/Summary docx files**, completing
 all three round-12 points. `Round12_FinalAccuracy_Cauchy_AllCases.ipynb`
 finished on real GPU for all six cases (FEM + operator sides, 12m10s).
