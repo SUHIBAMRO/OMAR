@@ -23,6 +23,19 @@ finishes or a new one starts.
 > kept on disk as the last cumulative snapshot but is superseded by
 > `PFEM_Work_Summary_2026-09-18b.docx` (round-12 only) as the one to
 > actually send from now on.
+>
+> **Standing deliverable count, Omar's own explicit correction (2026-09-18,
+> later same day): exactly TWO files, never three.** A separate "side
+> document" (`Round12_Reply_to_Timon_Points_2026-09-18.docx`,
+> `report_builders/build_round12_only_sidedoc.py`) was built earlier this
+> round to hold "just Timon's points" -- but once the Summary itself
+> became non-cumulative (see above), the Summary already IS exactly that
+> (the Report has everything, the Summary has only the latest round's
+> points), making the side document a pure duplicate. Omar caught this
+> and asked for it deleted. Both the file and its builder script were
+> removed; do not recreate this pattern -- the deliverable set for any
+> future round is the Report + the (non-cumulative) Summary, nothing
+> else, unless Omar explicitly asks for a third file again.
 
 > ⚠️ **STANDING REMINDER, Omar's own explicit instruction (repeated, most
 > recently 2026-09-18): every email/reply draft to the advisor MUST open
