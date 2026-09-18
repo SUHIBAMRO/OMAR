@@ -117,7 +117,60 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-17 (**✂️ Two more pre-send fixes, per Omar's own
+Last updated: 2026-09-18 (**📧 Timon's round-12 feedback received**
+(`advisor_feedback/2026-09-18_round12_timon.md`, verbatim) after the
+round-11 + MMS replies were sent. Three concrete asks, plus a
+methodological note that reshapes task #16:
+
+1. **New final accuracy-vs-resolution table, FINAL retrained checkpoints
+   only**: FEM vs. NO vs. the same fine reference, per resolution, in
+   displacement L2, H1/energy norm, reaction force, AND stress -- but
+   for stress he now wants **Cauchy stress, not PK1** as the main
+   engineering quantity, and explicitly rejects pointwise max stress as
+   the primary QoI (mesh-dependent/singular at corners even for FEM).
+   Wants a FIXED physical region around the stress concentration
+   (fixed across resolutions) reporting: the Cauchy-stress field error
+   in that region, plus a robust local statistic (volume/area-weighted
+   average, or a 95th/99th percentile / average of the top 1%) --
+   true pointwise max can still be reported separately, just not as
+   the headline number. **This needs new code** (Cauchy stress isn't
+   computed anywhere in this project yet -- only PK1 -- and the
+   fixed-region/percentile logic doesn't exist either) and likely a
+   fresh GPU run.
+2. **Controlled training-cost ablation table**: points out the direct-
+   N1401 (8h, 100 samples) vs. multi-res (11.63h, 400/res) ablation
+   uses very different sample counts, so it doesn't cleanly isolate the
+   effect of training resolution. Wants a table: resolutions, sample
+   counts, epochs/steps, wall-clock, cost per sample/step, peak memory
+   -- ideally with sample-count/budget actually controlled. **BUT
+   Timon himself says not to spend more time on this for the CURRENT
+   toy problem** ("I think we should not waste time on the fine
+   resolution training here but only for a complex geometry problem
+   where resolution might matter") -- the simple summary table is easy
+   (numbers already exist), the CONTROLLED re-run is explicitly
+   deprioritized by Timon himself. He also shared real DEM-vs-FEM
+   TensorMesh timing data (3D torsion, DEM beats FEM by keeping a
+   small fixed network and only increasing integration resolution) as
+   context for why NO's own lack of this same advantage matters, and
+   floated (for a LATER separate email, not now) a coarse-but-exact
+   IGA-geometry route to try to recover it.
+3. **Inference timing for the paper**: use the compile+TF32 optimized
+   number, and explicitly separate the same-resolution comparison from
+   the accuracy-matched one. Simple presentation fix, no new
+   computation.
+
+**Then**: "move to the realistic case" -- task #16 (complex-geometry
+example), now with an explicit design bar from Timon himself: FEM's own
+high resolution must be GENUINELY required there by the geometry/
+physics/QoIs (unlike B1/B2 where NO's own accuracy already can't beat
+even a very coarse FEM mesh).
+
+**Not yet started on any of these** -- flagged to Omar for
+prioritization given the size (point 1 needs real new code + GPU time;
+point 2's simple table is cheap; the controlled re-run point 2 asks for
+is explicitly de-prioritized by Timon's own words).**).
+
+Previous update, same day (**✂️ Two more pre-send fixes, per Omar's own
 explicit instructions**: (1) Report's Executive Summary updated -- it
 still said "addresses all seven points you raised in your last
 feedback" (round-9 only), with zero mention of round-10 or round-11's
