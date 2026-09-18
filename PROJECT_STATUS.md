@@ -144,7 +144,57 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-18 (**📌 New Summary policy applied for real: built
+Last updated: 2026-09-18 (**🐛 Omar caught a real gap in round-12 point 1
+before sending, now FIXED: Timon's own wording was "for EACH resolution
+... L2, H1/energy norm, reaction force and stress" -- the previous
+Tables 18-R10o/p/q did not actually do that.** They gave the full
+16-resolution sweep for ONE case (B1xNeo-Hookean) but ONLY the
+Cauchy-stress metric there, and gave the other five cases only a
+SINGLE-resolution snapshot (N=13) for both metric groups -- not "for
+each resolution," and not for every case. A justified, correct catch,
+not a nitpick.
+
+**Rebuilt properly** (`report_builders/rebuild_round12_point1_full.py`):
+twelve tables now, replacing the previous three -- for EACH of the six
+cases, one classical-QoI table (L2, H1, energy, reaction, all sixteen
+resolutions N=3..49) and one Cauchy-stress table (region average, 99th
+percentile, true max, same sixteen resolutions), genuinely "for each
+resolution," every case, every metric group asked for. Table numbering
+now runs 18-R10o through 18-R10z (two letters per case, classical then
+Cauchy, in case order B1xNH/B1xMR/B1xAB/B2xNH/B2xMR/B2xAB).
+B1xNeo-Hookean's own Cauchy table reuses the exact figure already built
+(fig_round12_cauchy_flagship.png) -- its content didn't change, only its
+label moved from 18-R10o to 18-R10p to keep the per-case pairing
+consistent.
+
+**One real, disclosed gap remains, stated explicitly in the Report's own
+new gap-note paragraph, not hidden**: the operator's own classical QoIs
+(L2/H1/energy/reaction) were never evaluated below N=13 for ANY case
+before this round -- its own zero-shot-validated range has always
+started there. B1xNeo-Hookean's own follow-up run (see the earlier
+entry below) closed this specifically for the flagship case, giving it
+full N=3..49 coverage; the other five cases still show "n/a" for the
+operator at N=3,4,5,6,9,11 in their own classical tables -- an honest,
+unfilled gap, not a guess. The Cauchy-stress metric, by contrast, is
+complete for every case at every resolution, since it was computed
+fresh in this round's own sweep regardless of any older cache.
+
+Verified via before/after diff: Report went from 599→612 paragraphs,
+87→96 tables, 51→51 images (net: -10 old point-1 paragraphs/-3 old
+tables/-1 old image-paragraph, +23 new paragraphs/+12 new tables/+1
+figure re-added — exactly the expected arithmetic); spot-checked
+several tables' row-0 (N=3) and row-15 (N=49) cell values directly
+against the merged source JSON; confirmed the flagship figure is still
+byte-identical (sha256) to the source PNG; grepped for any dangling
+reference to the old table labels (none found, one live cross-reference
+correctly updated to the new label). The round-12-only Summary
+(`PFEM_Work_Summary_2026-09-18b.docx`) and the side document
+(`Round12_Reply_to_Timon_Points_2026-09-18.docx`) were both rebuilt from
+this corrected Report (same copy-from-Report mechanism as before, just
+updated anchor text) and re-verified (47 paragraphs, 16 tables, 3 images
+each, matching arithmetic).**).
+
+Previous update, same day (**📌 New Summary policy applied for real: built
 `PFEM_Work_Summary_2026-09-18b.docx`**, round-12-only (points 1/2/3),
 superseding the cumulative `PFEM_Work_Summary_2026-09-18.docx` as the one
 to send. Built by `report_builders/build_new_summary_2026-09-18.py`
