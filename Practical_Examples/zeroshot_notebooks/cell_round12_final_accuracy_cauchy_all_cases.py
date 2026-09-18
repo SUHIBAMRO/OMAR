@@ -30,8 +30,10 @@
 #  ask that should be scoped and cost-estimated on its own before
 #  running, not silently bundled into this cell.
 # =====================================================================
-import json
 import os
+os.environ['JAX_PLATFORMS'] = 'cpu'  # same defensive fix as every other cell here
+
+import json
 import subprocess
 import sys
 import time
