@@ -65,6 +65,13 @@ else:
     run(['git', '-C', REPO, 'reset', '--hard', 'origin/claude/claude-code-question-d307wp'])
 
 run([sys.executable, '-m', 'pip', 'install', '-q', 'torch-fem'])
+# no_accuracy_at_n1401 (imported below, for the NO-side region-Cauchy functions)
+# pulls in no_ground_truth_fast -> assembled_direct_solver -> torch_sla at
+# module load time, exactly like every other cell that imports from
+# no_accuracy_at_n1401.py (cell_no_accuracy_at_n1401.py,
+# cell_no_peak_stress_fixed_location.py, etc.) -- same two installs required.
+run([sys.executable, '-m', 'pip', 'install', '-q', 'torch-sla'])
+run([sys.executable, '-m', 'pip', 'install', '-q', 'nvmath-python[cu12]==0.9.0'])
 
 WORK = f'{REPO}/Practical_Examples'
 os.chdir(WORK)
@@ -85,6 +92,16 @@ assert all(d.platform == 'cpu' for d in jax_devices), (
     f'JAX resolved to a non-CPU backend ({jax_devices}) -- refusing to proceed, '
     f'see cell_resolution_matched_break_even_all_cases.py for why this matters.')
 print('JAX confirmed CPU-only -- safe to proceed with the full GPU for torch-fem.')
+
+from torch_sla.backends import is_cudss_available
+if not is_cudss_available():
+    raise RuntimeError(
+        "cuDSS is NOT available after installing nvmath-python[cu12] -- the NO-side "
+        "fine-reference solve (solve_b1_fast_gpu/solve_b2_fast_gpu, used by "
+        "run_no_region_cauchy_fixed_location[_b2]) would silently fall back to an "
+        "iterative solver, not the direct one it is meant to use. Check the pip "
+        "install output above for the real error.")
+print('cuDSS (real direct solver on CUDA) is available.')
 
 from omar_pfem.torchfem_comparison import run_qoi_study
 from omar_pfem.no_accuracy_at_n1401 import (
