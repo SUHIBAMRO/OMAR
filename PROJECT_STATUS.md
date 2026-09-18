@@ -117,7 +117,63 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-18 (**📈 Omar asked for a real GPU-memory-over-
+Last updated: 2026-09-18 (**✅ Round12_TrainingMetadata_CompileTF32.ipynb
+FINISHED on real GPU (2h 1m 43s) -- real numbers for round-12 points 2
+and 3, raw data recorded here before any doc edits.**
+
+**Point 2 (training-cost summary, all 7 runs, read from each case's own
+`metrics_history.json`)**:
+| case | resolutions | samples | epoch | opt_steps | wall_clock | cost/sample | cost/step |
+|---|---|---|---|---|---|---|---|
+| B1xNH multi-res | 21,33,101,201 | 1600 | 1075 | 215000 | 11.63h | 26.18s | 0.1948s |
+| B1xNH direct-N1401 | 1401 | 100 | 36 | 3600 | 8.19h | 294.85s | 8.1904s |
+| B1xMR multi-res | 21,33,101,201 | 1600 | 1350 | 270000 | 14.81h | 33.31s | 0.1974s |
+| B1xAB multi-res | 21,33,101,201 | 1600 | 975 | 195000 | 10.83h | 24.36s | 0.1999s |
+| B2xNH multi-res | 21,33,101,201 | 1600 | 1875 | 375000 | 10.99h | 24.73s | 0.1055s |
+| B2xMR multi-res | 21,33,101,201 | 1600 | 300 | 60000 | 1.76h | 3.95s | 0.1053s |
+| B2xAB (no retrain) | 21,33 | 800 | 2200 | 220000 | 2.24h | 10.06s | 0.0366s |
+
+Peak GPU memory during TRAINING remains unmeasured for every one of
+these (confirmed by code inspection, not guessed -- see the previous
+entry). Real, notable finding: direct-N1401's own cost per SAMPLE
+(294.85s) is ~9-12x higher than any multi-res case's per-sample cost
+(24-33s) -- training directly at N=1401 is not just "cheaper in total
+hours" in a vacuum, its own sample generation cost is what actually
+dominates, exactly the confound Timon's own point 2 flagged.
+
+**Point 3 (compile+TF32, all 6 cases, final checkpoints)** -- GPU memory
+monitor also worked for real this time (peak=34,957.4 MB / 85,094.8 MB,
+14,280 samples, chart saved):
+| case | eager (ms) | compile (ms) | compile+TF32 (ms) |
+|---|---|---|---|
+| B1xNH | 2285.23 | 2142.19 | 394.09 |
+| B1xMR | 2298.38 | 2141.56 | 394.19 |
+| B1xAB | 2286.51 | 2142.07 | 394.21 |
+| B2xNH | 2281.09 | 2142.07 | 393.80 |
+| B2xMR | 2281.73 | 2141.90 | 394.34 |
+| B2xAB | 2282.79 | 2142.39 | 394.73 |
+
+Real finding: compile+TF32 timing is essentially case-independent
+(393.8-394.7ms across all 6, a <0.25% spread) -- confirms the
+already-published flagship number (394.0ms) genuinely generalizes,
+exactly as this project's own checkpoint-independence checks elsewhere
+already suggested for other timing variants.
+
+**Recomputed resolution-matched break-even (Table 18-R10e'/R10-4') with
+compile+TF32 instead of eager, and filled in 3 previously-"unknown"
+break-evens using the real training-cost data above**:
+| case | torch-fem@N=1401 | speedup | break-even |
+|---|---|---|---|
+| B1xNH | 135.00s | 342.6x | 311 samples |
+| B1xMR | 133.92s | 339.7x | 399 samples |
+| B2xNH | 205.14s | 520.9x | 193 samples |
+| B2xMR | 207.21s | 525.5x | 31 samples |
+(B1xAB/B2xAB still FAILED on torch-fem's own side, unrelated, unchanged.)
+
+**Not yet written into the Report/Summary docx files** -- that edit is
+next.**).
+
+Previous update, same day (**📈 Omar asked for a real GPU-memory-over-
 time line chart** (not just a single peak number) -- new
 `omar_pfem/gpu_memory_monitor.py`: `GPUMemoryMonitor` samples
 `torch.cuda.mem_get_info()` (same total-minus-free quantity nvidia-smi
