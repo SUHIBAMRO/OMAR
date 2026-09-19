@@ -157,7 +157,93 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-19 (**Item 4 (new 3D "realistic case") STARTED --
+Last updated: 2026-09-19 (**Item 4 geometry CORRECTED after Omar's own
+explicit rejection of the first draft, then re-verified end to end on
+CPU. Recorded honestly, not smoothed over, per this project's own
+standing discipline.**
+
+**What was wrong**: the first B3 draft (see the entry below) was a
+finite-thickness square PLATE with a circular through-hole, loaded in
+uniaxial tension. Omar rejected it on two independent grounds: (1) "شو
+لوح! احنا ما اتفقنا لوح!" -- a thin plate is not what was agreed on
+(the earlier AskUserQuestion answer said "كتلة" (a block/mass), not a
+plate); (2) "هادا مش معقد حسب ما طلب تيمون" -- a plate-with-a-hole under
+simple tension is a textbook benchmark, not the "rubber mount" character
+Timon actually asked for. A second, more careful written instruction
+from Omar then set the exact bar: follow Timon's own wording as
+literally as possible (a genuinely 3D hyperelastic RUBBER MOUNT with a
+SMOOTH finite-radius stress concentration), keep the geometry as simple
+as the physics allows, single material, mesh-convergence FIRST, then
+compare FEM vs. the operator on the established QoI set -- and
+explicitly: do not turn it into a thin plate or a trivial extrusion of
+the earlier 2D cases.
+
+**Corrected design**: a real elastomeric bushing/engine-mount -- a
+hollow rubber cylinder (annulus cross-section, R_in to R_out, height Lz)
+bonded to a RIGID INNER CORE at r=R_in and a RIGID OUTER HOUSING at
+r=R_out (fixed). The core is given a prescribed ROCKING (tilting)
+displacement in x, linear in z from -delta0 at z=0 to +delta0 at z=Lz
+(zero net translation, a pure tilt about its own mid-height) -- a
+completely standard bushing duty cycle. **Why this is genuinely 3D, not
+a trivial extrusion of B2** (the second, harder half of Omar's
+objection): B2's own loading (uniform internal pressure) is z-
+independent, so its solution is identical at every z -- a real extrusion
+in every meaningful sense. Here the boundary displacement itself varies
+with z, forcing nonzero out-of-plane shear strain components that
+CANNOT exist in any z-independent model at all -- a property of the
+physics (the BC), not an assumed one, and checkable (the very next step
+is a real mesh-convergence study to confirm it empirically rather than
+just argue it). The stress concentration sits at the bonded inner
+surface -- a SMOOTH circular surface (curvature radius R_in, literally
+Timon's own "finite-radius" wording), concentrated near the rocking
+direction and whichever end the core pulls away from the housing.
+Single material throughout (Neo-Hookean).
+
+**Mesh**: B2's OWN `generate_grid_Q4_ring` reused completely unchanged
+(no new 2D mesh-generation code at all this time), with `theta_max=pi`
+(a HALF ring, exploiting the one real mirror symmetry this loading has
+about the xz-plane -- there is no second symmetry plane, unlike B2's
+fully axisymmetric pressure). Extruded to HEX8 with the same
+`extrude_to_hex8` helper as the rejected draft (the extrusion mechanics
+were never the problem -- only the 2D cross-section and the loading
+were). Rejected `mesh_convergence_B3.py` script (plate-based) deleted
+before it was ever committed, rather than leaving stale/wrong code in
+the tree.
+
+**Structural verification** (`data_generate_B3.py`, run directly): 546
+nodes / 360 elements at a modest test resolution, correct BC-set sizes
+(inner_core=outer_housing=Ntheta*Nz, symmetry_y0=2*Nr*Nz for the two
+theta=0/pi rows), zero inverted elements (5-tet signed-volume check).
+
+**Real solve smoke test** (`smoke_test_B3.py`, CPU): this is also the
+FIRST time this project applies a real non-homogeneous (nonzero)
+Dirichlet displacement BC through torch-fem, not only Neumann forces --
+itself a new capability check, not just a geometry check. Converged
+cleanly (Newton residual ~1.4e-13, 2 iterations/increment after the
+first). Verified: the inner core's own prescribed displacement is
+respected exactly at both ends (z=0: -1.5e-2, z=Lz: +1.5e-2, matching
+the target to solver precision); the outer housing stays exactly fixed
+(<1e-10 in all 3 components); and -- the key check for "not a trivial
+extrusion" -- interior u_y and u_z are genuinely non-degenerate
+(ranges [-2.47e-3,2.57e-3] and [-3.74e-3,3.74e-3]), which would NOT be
+true if the mesh/BCs had accidentally decoupled into independent
+z-slices.
+
+**Not yet done, next in order (per Omar's own explicit sequencing)**:
+(1) a real mesh-convergence study (increasing Ntheta/Nr/Nz, tracking a
+region-Cauchy-stress QoI near the bonded inner surface) to CONFIRM --
+not just argue -- that this geometry genuinely needs finer 3D
+resolution than B1/B2 ever did; (2) only after that is confirmed: a
+proper random material/load-field family for training-data variety
+(the rocking amplitude and/or material parameters becoming the random
+per-sample field, matching B1/B2's own random-field convention); (3)
+batch data generation; (4) the Transolver `space_dim=3`/`out_dim=3`
+architecture change and real training runs; (5) evaluation against the
+GPU-native FEM solver on the established QoI set (displacement,
+reaction, energy, fixed-region Cauchy stress), per Timon's own
+literal request.
+
+Previous update, same day (**Item 4 (new 3D "realistic case") STARTED --
 geometry chosen, mesh generator built and structurally verified, and a
 real 3D hyperelastic Newton solve converges cleanly on CPU. This is
 genuinely new work, not a continuation of B7.**

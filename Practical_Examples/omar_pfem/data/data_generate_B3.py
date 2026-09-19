@@ -1,77 +1,61 @@
-"""B3: the new 3D "realistic case" (Timon's newest email, item 4).
+"""B3: the new 3D "realistic case" (Timon's newest email, item 4) --
+CORRECTED DESIGN (2026-09-19, after Omar's explicit rejection of an
+earlier "plate with a hole" draft: "شو لوح! احنا ما اتفقنا لوح!" -- wrong
+shape category, and not what Timon asked for).
 
-Geometry: a quarter-symmetry model of a finite-thickness square plate of
-side 2*Lx (occupying x,y in [0,Lx]x[0,Ly], Lx==Ly by convention) and
-thickness Lz, with a circular through-hole of radius R centered on the
-z-axis (hole axis parallel to z), loaded by a face traction in +x on the
-x=Lx face. This is the classic "plate with a circular hole under
-uniaxial tension" stress-concentration benchmark, extended to finite
-thickness -- unlike B7 (this project's earlier 2D ring+notch "realistic
-case," see PROJECT_STATUS.md), the z=0/z=Lz faces are genuinely
-traction-free surfaces, so the through-thickness stress state is NOT a
-simple extrusion of a 2D solution (2D plane-strain has nonzero sigma_zz
-everywhere; here sigma_zz must vanish at the free surfaces and only
-approaches the plane-strain value deep in the interior) -- a real,
-well-known 3D effect that only a genuine 3D solve captures, which is
-also why this case naturally needs a finer mesh (through-thickness
-resolution, not just in-plane resolution) than B1/B2 ever did.
+Geometry, following Timon's own wording as literally as possible ("a 3D
+hyperelastic rubber mount with a finite-radius stress concentration"),
+kept as simple as the physics allows: a hollow rubber cylinder (annulus
+in cross-section, radius R_in to R_out, height Lz) bonded to a RIGID
+INNER CORE at r=R_in and a RIGID OUTER HOUSING at r=R_out -- exactly an
+elastomeric bushing/engine-mount, the standard real-world meaning of
+"rubber mount". The outer housing is fixed; the inner core is given a
+prescribed ROCKING (tilting) displacement in x that varies LINEARLY
+along z, from -delta0 at z=0 to +delta0 at z=Lz, with zero net
+translation (a pure tilt about its own mid-height) -- a completely
+standard duty cycle for a real bushing (shafts routinely rock/tilt
+relative to their housing, not just translate).
 
-Single material model (Neo-Hookean, per the advisor's own request to
-keep this one case to one material) -- reuses `neo_hookean_psi_3d` from
-torchfem_comparison.py UNCHANGED (already GPU-validated at N=1401 for
-this project's own 2D cases; it is written for a genuine 3x3 F all
-along, so it needs no modification for real 3D use).
+WHY THIS IS GENUINELY 3D, NOT A TRIVIAL EXTRUSION OF B2 (Omar's second
+explicit requirement): B2's own loading (uniform internal pressure) is
+z-independent, so its solution is the SAME at every z -- an extrusion of
+a 2D solution in every meaningful sense. Here the boundary displacement
+itself varies with z, which forces nonzero out-of-plane shear strain
+components (du_x/dz, du_z/dr etc.) that CANNOT exist in any 2D or
+z-independent model at all -- the deformation gradient F genuinely
+couples different z-slices through the material's own stiffness, not
+just through matching end conditions. This is a property of the PHYSICS
+(the boundary condition), not an assumption -- checked empirically by
+the mesh-convergence study below (mesh_convergence_B3.py), which must
+show real z-resolution sensitivity for this claim to be more than a
+plausible-sounding argument.
 
-Mesh: a "mapped" (transfinite) quarter-annulus, structured in
-(theta, r-like parameter t) exactly like B2's own generate_grid_Q4_ring
-(reused pattern, not a new mesh-generation idea), except the OUTER
-boundary at t=1 is not a fixed radius but the point where the ray at
-angle theta meets the square's own two straight edges (x=Lx or y=Ly) --
-this makes the 2D cross-section a proper "plate with hole", not a ring.
-Extruded along z into HEX8 (Hexa1) elements by stacking Nz layers; the
-extrusion adds no new mesh-generation risk since Hexa1's own bottom-face
-node order (torchfem.elements.Hexa1) is identical to Q4's own
-(-1,-1),(1,-1),(1,1),(-1,1) convention, so B2's already-CCW quad
-connectivity is reused unchanged as each hex's bottom face, with the
-top face being the same 2D connectivity at the next z-layer.
+WHERE THE STRESS CONCENTRATION IS: at the bonded inner surface (r=R_in,
+a SMOOTH circular surface, no sharp corner -- satisfying Timon's own
+"smooth finite-radius" wording literally, the radius of curvature R_in
+itself being the "finite radius"), concentrated near the locations
+(theta, z) where the core's local motion compresses the rubber gap the
+most -- near theta=0/pi (the rocking direction) and near whichever end
+(z=0 or Lz) the core is displaced away from the housing at that side.
+
+Single material model throughout (Neo-Hookean), reusing
+`neo_hookean_psi_3d` from torchfem_comparison.py completely unchanged
+(a genuine 3x3-F energy function, already GPU-validated at N=1401 for
+this project's 2D cases -- no new physics code needed for B3 either).
+
+Mesh: B2's OWN ring generator (`generate_grid_Q4_ring`), reused
+unchanged with theta_max=pi (a HALF ring, not a quarter -- exploiting
+the one mirror symmetry this loading actually has, about the xz-plane,
+since a pure x-direction rocking is symmetric under y -> -y; there is
+no second symmetry plane here, unlike B2's own fully axisymmetric
+pressure loading, since the core's rocking is NOT axisymmetric).
+Extruded to HEX8 exactly as before (`extrude_to_hex8`, unchanged from
+the rejected draft -- the EXTRUSION MECHANICS were never the problem,
+only the 2D cross-section and the loading were).
 """
 import numpy as np
 
-
-def generate_grid_Q4_plate_with_hole(Lx, Ly, R, Ntheta, Nr, r_grading=1.0, theta_max=np.pi / 2):
-    """Quarter-plane (x,y >= 0) square domain [0,Lx]x[0,Ly] minus the
-    quarter-disk of radius R at the origin. theta=0 row lies exactly on
-    y=0 (the symmetry-y0 boundary); theta=theta_max row lies exactly on
-    x=0 (the symmetry-x0 boundary); the i=0 (t=0) column is the hole
-    boundary (r=R, traction-free); the i=Nr-1 (t=1) column is the
-    outer boundary, lying on x=Lx for theta below the corner angle
-    atan2(Ly,Lx) and on y=Ly above it (identify the loaded x=Lx face by
-    node COORDINATE, not by this parametrization, since it is robust to
-    any Ntheta)."""
-    thetas = np.linspace(0.0, theta_max, Ntheta)
-    cos_t, sin_t = np.cos(thetas), np.sin(thetas)
-    eps = 1e-12
-    s_x = np.where(cos_t > eps, Lx / np.maximum(cos_t, eps), np.inf)
-    s_y = np.where(sin_t > eps, Ly / np.maximum(sin_t, eps), np.inf)
-    s = np.minimum(s_x, s_y)  # ray-to-square-boundary distance, per theta
-
-    t = np.linspace(0.0, 1.0, Nr)
-    tt = t ** r_grading
-    Rr = R + np.outer(s - R, tt)  # (Ntheta, Nr): radius(theta_j, t_i)
-    TH = np.outer(thetas, np.ones(Nr))
-    X = Rr * np.cos(TH)
-    Y = Rr * np.sin(TH)
-    nodes = np.vstack([X.ravel(), Y.ravel()]).T
-
-    elements = []
-    for j in range(Ntheta - 1):
-        for i in range(Nr - 1):
-            n1 = j * Nr + i
-            n2 = n1 + 1
-            n3 = (j + 1) * Nr + i + 1
-            n4 = (j + 1) * Nr + i
-            elements.append([n1, n2, n3, n4])
-    return nodes, np.array(elements, dtype=int)
+from omar_pfem.data.data_generate_B2 import generate_grid_Q4_ring
 
 
 def extrude_to_hex8(nodes2d, elements2d, Lz, Nz):
@@ -97,60 +81,55 @@ def extrude_to_hex8(nodes2d, elements2d, Lz, Nz):
     return nodes3d, np.array(elements3d, dtype=int)
 
 
-def generate_grid_hex8_plate_with_hole(Lx, Ly, Lz, R, Ntheta, Nr, Nz, r_grading=1.0):
-    nodes2d, elements2d = generate_grid_Q4_plate_with_hole(Lx, Ly, R, Ntheta, Nr, r_grading)
+def generate_grid_hex8_bushing(R_in, R_out, Lz, Ntheta, Nr, Nz, r_grading=1.0):
+    """Half-ring (theta in [0,pi]) cross-section, B2's own generator,
+    extruded along z. theta=0 and theta=pi rows both lie exactly on
+    y=0 (the mirror-symmetry plane for x-direction rocking)."""
+    nodes2d, elements2d = generate_grid_Q4_ring(R_in, R_out, Ntheta, Nr,
+                                                 theta_max=np.pi, r_grading=r_grading)
     return extrude_to_hex8(nodes2d, elements2d, Lz, Nz)
 
 
-def boundary_node_sets(nodes, Lx, Ly, tol=1e-9):
-    """Returns (symmetry_y0, symmetry_x0, loaded_x_face, free_y_face,
-    hole_nodes) -- boolean masks over `nodes` (N,3). symmetry_y0: y=0
-    plane (u_y=0). symmetry_x0: x=0 plane (u_x=0). loaded_x_face: x=Lx
-    face (traction applied here, +x direction). free_y_face: y=Ly face
-    (left traction-free, NOT a symmetry plane -- it is the plate's own
-    real, physical free edge, far from the hole). hole_nodes: r=R
-    surface (traction-free), returned for reference/plotting only, no
-    BC needed there beyond the natural (already traction-free) condition."""
+def boundary_node_sets(nodes, R_in, R_out, tol=1e-9):
+    """Returns (inner_core, outer_housing, symmetry_y0) boolean masks.
+    inner_core: r=R_in surface, bonded to the rigid rocking core.
+    outer_housing: r=R_out surface, bonded to the fixed rigid housing.
+    symmetry_y0: y=0 plane (both theta=0 and theta=pi rows), u_y=0.
+    z=0/z=Lz faces need NO constraint -- they are the rubber's own real,
+    physically free (unbonded) end faces."""
     x, y = nodes[:, 0], nodes[:, 1]
     r = np.sqrt(x ** 2 + y ** 2)
+    inner_core = np.abs(r - R_in) < tol
+    outer_housing = np.abs(r - R_out) < tol
     symmetry_y0 = np.abs(y) < tol
-    symmetry_x0 = np.abs(x) < tol
-    loaded_x_face = np.abs(x - Lx) < tol
-    free_y_face = np.abs(y - Ly) < tol
-    R_guess = r[np.abs(r - r.min()) < tol].min() if len(nodes) else None
-    hole_nodes = np.abs(r - R_guess) < tol if R_guess is not None else np.zeros(len(nodes), dtype=bool)
-    return symmetry_y0, symmetry_x0, loaded_x_face, free_y_face, hole_nodes
+    return inner_core, outer_housing, symmetry_y0
+
+
+def rocking_displacement_x(nodes, Lz, delta0):
+    """Prescribed x-displacement for the inner core: linear in z, from
+    -delta0 at z=0 to +delta0 at z=Lz (zero at mid-height) -- a pure
+    tilt, no net translation. Same value for every theta at a given z
+    (the core is rigid: every point on it at height z moves together)."""
+    z = nodes[:, 2]
+    return delta0 * (2.0 * z / Lz - 1.0)
 
 
 if __name__ == "__main__":
-    # Cheap structural smoke test (mesh only, no solve) -- run this file
-    # directly to sanity-check node/element counts and BC-set sizes
-    # before spending any solver time.
-    Lx = Ly = 1.0
-    Lz = 0.3
-    R = 0.2
-    Ntheta, Nr, Nz = 9, 7, 4
-    nodes, elements = generate_grid_hex8_plate_with_hole(Lx, Ly, Lz, R, Ntheta, Nr, Nz)
+    # Cheap structural smoke test (mesh only, no solve).
+    R_in, R_out, Lz = 0.5, 1.0, 1.0
+    Ntheta, Nr, Nz = 13, 6, 7
+    nodes, elements = generate_grid_hex8_bushing(R_in, R_out, Lz, Ntheta, Nr, Nz)
     print(f"nodes: {nodes.shape}, elements: {elements.shape}")
     assert nodes.shape == (Ntheta * Nr * Nz, 3)
     assert elements.shape == ((Ntheta - 1) * (Nr - 1) * (Nz - 1), 8)
 
-    sym_y0, sym_x0, loaded, free_y, hole = boundary_node_sets(nodes, Lx, Ly)
-    print(f"symmetry_y0: {sym_y0.sum()}, symmetry_x0: {sym_x0.sum()}, "
-          f"loaded_x_face: {loaded.sum()}, free_y_face: {free_y.sum()}, hole: {hole.sum()}")
-    assert sym_y0.sum() == Nr * Nz  # one full (r,z) grid on the y=0 plane
-    assert sym_x0.sum() == Nr * Nz  # one full (r,z) grid on the x=0 plane
-    assert loaded.sum() > 0 and free_y.sum() > 0
-    assert hole.sum() == Ntheta * Nz  # one full (theta,z) grid on the hole surface
+    inner, outer, sym = boundary_node_sets(nodes, R_in, R_out)
+    print(f"inner_core: {inner.sum()}, outer_housing: {outer.sum()}, symmetry_y0: {sym.sum()}")
+    assert inner.sum() == Ntheta * Nz
+    assert outer.sum() == Ntheta * Nz
+    assert sym.sum() == 2 * Nr * Nz  # theta=0 row + theta=pi row, each a full (r,z) grid
 
-    # Jacobian sign check on every hex, at the element centroid, via the
-    # standard trilinear shape-function derivative -- catches an inverted
-    # (negative-volume) element from a node-ordering bug BEFORE any GPU
-    # time is spent on a real solve.
     def hex_signed_volume(pts):
-        # Split into 6 tets from node 0 (valid for a convex-ish hex; a
-        # near-degenerate/inverted element will still show up as a sign
-        # flip in at least one tet).
         tets = [(0, 1, 3, 4), (1, 2, 3, 6), (1, 3, 4, 6),
                 (3, 4, 6, 7), (1, 4, 5, 6)]
         vol = 0.0
@@ -158,11 +137,7 @@ if __name__ == "__main__":
             vol += np.linalg.det(np.array([pts[b] - pts[a], pts[c] - pts[a], pts[d] - pts[a]])) / 6.0
         return vol
 
-    bad = 0
-    for el in elements:
-        v = hex_signed_volume(nodes[el])
-        if v <= 0:
-            bad += 1
+    bad = sum(1 for el in elements if hex_signed_volume(nodes[el]) <= 0)
     print(f"inverted/degenerate elements: {bad} / {len(elements)}")
     assert bad == 0, "mesh has inverted elements -- fix node ordering before any solve"
     print("Mesh structural checks OK.")
