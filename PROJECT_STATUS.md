@@ -157,7 +157,105 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-19 (**Item 2 DONE too, and round-13 Summary built --
+Last updated: 2026-09-19 (**Item 4 (new 3D "realistic case") STARTED --
+geometry chosen, mesh generator built and structurally verified, and a
+real 3D hyperelastic Newton solve converges cleanly on CPU. This is
+genuinely new work, not a continuation of B7.**
+
+**Geometry decision, made with Omar directly (AskUserQuestion, two
+rounds)**: B7 (2D ring+notch, this project's earlier "realistic case")
+is a preliminary 2D study only -- explicitly NOT to be presented as, or
+confused with, this new case, though its methodology (finite-radius
+stress concentration, mesh-convergence/QoI conventions) carries over.
+The new case: a finite-thickness square plate with a circular
+through-hole (axis along z), loaded by +x traction on the x=Lx face --
+the classic "plate with a hole under uniaxial tension" stress-
+concentration benchmark, generalized to finite thickness. Chosen over a
+literal rubber-mount/bushing shape and over a straight extrusion of B7
+for a concrete, disclosed reason: the z=0/z=Lz faces are genuinely
+traction-free surfaces here, so sigma_zz must vanish there and only
+approaches the plane-strain interior value away from the free surfaces
+-- a real 3D effect (through-thickness stress variation) that cannot be
+captured by any 2D model or a trivial extrusion of one, and is exactly
+why this case needs finer resolution (through-thickness, not just
+in-plane) than B1/B2 ever did -- satisfying the advisor's own "naturally
+higher N" requirement for a real, disclosed reason, not by construction.
+Single material model (Neo-Hookean), per the advisor's own explicit
+request to keep this one case to one material.
+
+**Codebase survey (background research agent, before any design
+decision) found**: (1) no 3D FEM capability exists anywhere in
+`omar_pfem/` -- `fem_core.py`/`materials.py` hardcode 2x2 deformation
+gradients (plane-strain only), not reusable for 3D. (2) `torch-fem`
+(already used in this project for 2D comparisons) has full,
+already-installed 3D support: a `Solid` class with `Hexa1`/`Tetra1`
+elements and a generic `Hyperelastic3D` material class. (3) Best of all:
+`torchfem_comparison.py` ALREADY has genuine 3x3-F hyperelastic energy
+functions (`neo_hookean_psi_3d`, `mooney_rivlin_psi_3d`,
+`arruda_boyce_psi_3d`) -- written in 2026-09-14 for a different reason
+(feeding torch-fem's `HyperelasticPlaneStrain`, which pads 2x2 to 3x3
+internally) but mathematically genuine 3D energy densities all along,
+already GPU-validated at N=1401 for the 2D cases. This means B3's own
+material physics needs ZERO new code -- `neo_hookean_psi_3d` is reused
+completely unchanged. (4) Transolver's own model class
+(`Transolver_Irregular_Mesh.py`) is NOT hardcoded to 2D -- `space_dim` is
+a free constructor parameter (currently passed as 2), so a 3D operator
+needs `space_dim=3`/`out_dim=3` and a reworked `fun_dim`, not an
+architecture rewrite.
+
+**New mesh generator** (`omar_pfem/data/data_generate_B3.py`):
+`generate_grid_Q4_plate_with_hole` -- a "mapped" quarter-annulus mesh
+reusing B2's own `generate_grid_Q4_ring` pattern exactly (same
+theta x r-parameter loop, same CCW quad connectivity), except the outer
+boundary at t=1 is not a fixed radius but the ray-to-square-boundary
+intersection point (x=Lx or y=Ly, whichever the ray at angle theta hits
+first) -- turning the ring into a proper "plate with hole" cross-section
+with almost no new code. `extrude_to_hex8` stacks this 2D mesh into HEX8
+elements along z (Hexa1's own node order, confirmed from `torchfem.
+elements.Hexa1`'s docstring, is bottom-face-then-top-face with the SAME
+CCW convention as Q4 -- so B2's already-valid quad connectivity is
+reused unchanged as each hex's bottom face). `boundary_node_sets`
+identifies the symmetry-y0, symmetry-x0, loaded-x-face, free-y-face, and
+hole-surface node sets by coordinate (robust to any Ntheta/Nr/Nz).
+
+**Structural verification (run directly, before any solve)**: node/
+element counts match exactly; every one of 144 test elements has
+positive signed volume (a 5-tet decomposition check) -- zero inverted
+elements, ruling out a node-ordering bug before any solver time was
+spent.
+
+**Real solve smoke test** (`omar_pfem/data/smoke_test_B3.py`, CPU,
+`Ntheta=9,Nr=7,Nz=4`, 252 nodes/144 elements): built `torchfem.Solid` +
+`Hyperelastic3D(psi=neo_hookean_psi_3d, ...)`, applied the symmetry BCs
+(u_y=0 on y=0, u_x=0 on x=0, u_z=0 on z=0 only to remove the z
+rigid-body mode) and a small +x force on the loaded face, solved with
+10 load increments. **Converged cleanly** (Newton residual ~3.4e-11,
+well under the 1e-8 tolerance, every increment 1-2 Newton iterations).
+Result is physically sane, not just "did not crash": the loaded face
+moves in +x as expected; a real Poisson-type y-contraction appears
+(min u_y = -2.0e-3); u_z ranges over [-1.37e-3, 0] -- non-degenerate,
+confirming the deformation is genuinely 3D (a bug that accidentally
+reduced this to a 2D/plane-strain-equivalent solve would show u_z
+identically zero everywhere).
+
+**Not yet done** (the real remaining scope, roughly in order): (1) a
+proper consistent nodal-force assembly for a spatially-varying x-traction
+field (current smoke test just splits a uniform force evenly -- a
+stand-in, not the real per-sample loading convention B1/B2 use);
+(2) a 3D random material/load field generator (Gaussian random field
+extended to (x,y,z), matching B1/B2's own random-field family
+convention) for actual training-data variety; (3) a mesh-convergence
+check confirming this case's own stress concentration genuinely needs
+finer N (the disclosed reason this case was chosen, not yet empirically
+confirmed the way B7's own convergence check confirmed IT); (4) batch
+data generation (many random samples, parallel/GPU); (5) the Transolver
+architecture change (`space_dim=3`, `out_dim=3`, reworked `fun_dim`) and
+actual training runs; (6) evaluation with the established QoI set
+(L2/H1/energy/reaction/region-Cauchy) on this new geometry, mirroring
+B1/B2's own convention. This is a genuinely large remaining undertaking,
+not a near-finished task.
+
+Previous update, same day (**Item 2 DONE too, and round-13 Summary built --
 items 1 and 2 of the advisor's newest email are now both closed.**
 
 Item 2 ("use your most efficient validated GPU-native FEM solver as the "
