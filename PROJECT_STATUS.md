@@ -157,7 +157,70 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-19 (**Timon's newest email ("let's wrap up the
+Last updated: 2026-09-19 (**Item 1 DONE: new QoI-accuracy-threshold vs.
+required-FEM-resolution vs. break-even table, all six cases, real GPU
+data throughout.**
+
+The missing FEM-timing piece (see previous update below) came back from
+Omar's real A100 run: `GPU_FEM_Timing_LowN_AllCases.ipynb`, 26m34s total,
+all 6 cases x all 16 LOW_N, no failures. Fetched and spot-verified the
+6 result JSONs from Drive (B1xNeo-Hookean's full JSON byte-cross-checked
+against the printed run log -- exact match -- before trusting the other
+five cases' own log values).
+
+Combined this with round 12's own already-fingerprint-verified
+consistent-field accuracy data (`round12_consistent_field_qoi_<case>.json`)
+and the already-published compile+TF32 NO timing (~394ms, essentially
+case-independent, Table 18-R10h) + each case's own real training
+wall-clock (Table 18-R10 training-cost table) to compute, per case per
+QoI (L2, H1, energy, reaction (B1 only), region-Cauchy avg) per threshold
+(1%/2%/5%, the advisor's own examples): the minimum FEM N reaching that
+threshold (FEM converges monotonically -- established 2026-09-18 -- so
+"first N reaching it" is exact, not an approximation), that N's own real
+GPU-FEM cost, and the break-even point against the operator.
+
+**Omar's own call on format** (asked directly, since this is a brand-new
+table type, not a numeric correction to an existing one): one table per
+case (6 new tables, matching the existing per-case pattern), not one
+combined summary table.
+
+**New script** `report_builders/add_round13_qoi_threshold_breakeven.py`
+computes the threshold/break-even logic inline (reading directly from
+the round-12 accuracy JSON and the new timing JSON, same pattern as
+`rebuild_round12_point1_consistent_field.py`) and inserts 6 new tables
+(18-R11a..f) right after round-12 point 1's own closing discussion.
+Verified before/after: paragraphs 612->626 (+14, exactly the expected
+intro+label+caption x6+closing), tables 96->102 (+6 exactly), images
+51->51 (unchanged). Spot-checked two of the six tables' actual cell
+values directly against the computed JSON (B1xNeo-Hookean and
+B2xMooney-Rivlin) -- exact match.
+
+**Two real findings, stated in the Report's own new closing paragraph**:
+(1) FEM never becomes cheaper than the operator at any tested resolution
+or threshold (its own per-sample cost stays in the 1.6-13s range vs. the
+operator's ~394ms), so break-even always exists and is always finite --
+but the six cases' break-even sample counts differ almost entirely by
+each case's own TRAINING cost, not by its accuracy (B1xMooney-Rivlin
+~34,500 samples at L2@2%, driven by its 14.81h training run, vs.
+B2xMooney-Rivlin's ~4,000 samples at the SAME threshold, driven by its
+own 1.76h run). (2) H1 semi-norm and tangent energy never reach the 1%
+threshold anywhere in N=3..49 for any of the six cases -- consistent
+with, not contradicting, this project's established finding that
+energy/H1-type norms converge more slowly than L2; disclosed as a real
+gap rather than silently omitted.
+
+New Report saved as `PFEM_Transolver_Report_2026-09-19.docx`. **Summary
+NOT yet re-derived** -- holding off until item 2's small text
+clarification (see below) is also done, so round 13's Summary covers
+both in one pass rather than needing a second non-cumulative update the
+same round.
+
+**Item 1 is now fully done.** Next: item 2 (small text clarification
+naming `gpu_fem_solver.py` explicitly as the primary GPU-native baseline
+in Table 18-R10e's own discussion -- structure already correct, low
+priority), per Omar's own confirmed order (1 -> 2 -> 3).
+
+Previous update, same day (**Timon's newest email ("let's wrap up the
 benchmark work") -- work started, task order confirmed by Omar as
 1 -> 2 -> 3 -> (paper):**
 
