@@ -157,7 +157,39 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-19 (**Item 1 DONE: new QoI-accuracy-threshold vs.
+Last updated: 2026-09-19 (**Item 2 DONE too, and round-13 Summary built --
+items 1 and 2 of the advisor's newest email are now both closed.**
+
+Item 2 ("use your most efficient validated GPU-native FEM solver as the "
+primary timing baseline") needed no computation change -- confirmed via
+direct code inspection that Table 18-R10e's own finite-element number
+already comes from `gpu_fem_benchmark.py` -> `gpu_fem_solver.py` (our own
+GPU-native solver), not torch-fem. Made this explicit in the Report text:
+`report_builders/clarify_gpu_native_baseline.py` edits exactly two
+paragraphs (Table 18-R10e's own discussion and its caption) to name
+`gpu_fem_solver.py` directly and note that torch-fem is only used in the
+separate resolution-matched table (18-R10e'). Pure text edit, verified
+structure unchanged (626/102/51 -> 626/102/51 paragraphs/tables/images,
+asserted in the script itself). New Report: `PFEM_Transolver_Report_
+2026-09-19b.docx`.
+
+**Round-13 Summary built**: `PFEM_Work_Summary_2026-09-19.docx`
+(`report_builders/build_new_summary_2026-09-19.py`, same verbatim-XML-copy
+mechanism as every Summary since 2026-09-18) -- covers items 1 and 2 only,
+copied out of the now-updated Report. 23 paragraphs, 7 tables (the six new
+18-R11a..f threshold tables + Table 18-R10e for item 2), 0 images (none
+involved) -- spot-checked paragraph list directly, correct order and
+content. Item 3 (drop IGA/NURBS) needed no report content (confirmed
+future-work-only). Item 4 (new 3D example) explicitly deferred to its own
+future round, per Omar's own confirmed order.
+
+**Both deliverables committed and pushed. Items 1 and 2 of round 13 are
+now fully done.** Next: item 4, the new, harder 3D "realistic case"
+example -- a much larger undertaking (new geometry, mesh generation,
+training data, training runs) -- per Omar's own confirmed order
+(1 -> 2 -> 3(done, no-op) -> 4).
+
+Previous update, same day (**Item 1 DONE: new QoI-accuracy-threshold vs.
 required-FEM-resolution vs. break-even table, all six cases, real GPU
 data throughout.**
 
