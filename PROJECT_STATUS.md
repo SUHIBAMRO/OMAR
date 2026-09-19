@@ -157,7 +157,93 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-19 (**Item 4 geometry CORRECTED after Omar's own
+Last updated: 2026-09-19 (**Item 4: fillet added after Omar's own sharp
+follow-up question, then a real mesh-convergence study run -- confirms
+(does not just assume) that this case genuinely needs finer 3D
+resolution, exactly the condition Omar set before any training may
+start.**
+
+**Omar's question, and why it mattered**: after the rocking-bushing fix
+above, Omar asked directly whether the stress concentration was actually
+produced by an explicit smooth finite-radius feature, or merely by the
+SHARP corner where the bonded cylindrical core surface (r=R_in, constant)
+meets the flat free end face (z=0 or Lz) -- a genuine zero-radius edge,
+the classic "bonded-joint free-edge" singularity in bonded-joint
+mechanics, not a controlled feature at all. Re-examining the design: yes
+-- that sharp corner was almost certainly what the earlier smoke test's
+own concentration was really picking up, not R_in's own (circumferential
+only) curvature, which was the earlier (now corrected) docstring's
+mistaken claim.
+
+**Fix**: the core is no longer bonded all the way to z=0/Lz. Over
+z in [0,r_fillet] and [Lz-r_fillet,Lz], the rubber's own inner surface
+smoothly flares from r=R_in out to r=R_in+r_fillet via an explicit
+quarter-circle fillet (tangent to the straight bonded wall at one end,
+tangent to the flat free end face at the other) -- a real, disclosed,
+fixed physical length (r_fillet), with no sharp corner left anywhere.
+This is also realistic, not an artificial addition: real rubber-to-metal
+bonds are routinely terminated short of a part's physical end via
+exactly this kind of fillet, specifically to avoid tearing at what would
+otherwise be a stress-singular edge. The fillet region itself is now a
+genuinely FREE surface (unbonded); only the straight middle section
+(z in [r_fillet, Lz-r_fillet]) is bonded to the core. Implementation:
+`data_generate_B3.py`'s `generate_grid_hex8_bushing` now builds each
+z-layer's own ring cross-section with an effective inner radius
+`_fillet_R_in(z)` (constant R_in in the middle, the quarter-circle
+profile near each end) instead of a single 2D cross-section extruded
+uniformly -- still built entirely from B2's own `generate_grid_Q4_ring`,
+just called once per z-layer with a different R_in. `boundary_node_sets`
+now restricts `inner_core` (the bonded, constrained set) to the straight
+middle section only.
+
+**Re-verified end to end**: structural check (858 nodes/600 elements at
+a modest test resolution, zero inverted elements even with the flared
+fillet geometry). Real solve smoke test updated and re-run: still
+converges cleanly (residual ~1.3e-13); the prescribed rocking BC is
+respected exactly at the EDGE of the straight section (z=r_fillet,
+z=Lz-r_fillet), not at z=0/Lz anymore; the outer housing stays exactly
+fixed; and a new check confirms the fillet region is genuinely free
+(its own computed displacement differs meaningfully from the rigid
+core's own prescribed profile, ruling out an accidental double-
+constraint bug).
+
+**Real mesh-convergence study** (`mesh_convergence_B3.py`, new,
+CPU): tracks region-averaged Cauchy stress (sigma_xx) in a FIXED
+PHYSICAL region (radius = 2*r_fillet, chosen so even the coarsest mesh
+tested has at least one element centroid inside it) centered on a
+representative point on the fillet surface itself (45 degrees around
+its own quarter-circle profile, at theta=0) -- Cauchy stress derived
+from the (P,F) pair `.solve()` returns via the SAME push-forward formula
+this project's 2D code already uses (sigma = (1/detF) P F^T), now on
+genuine 3x3 tensors. Five resolutions tested (144 to 5,808 elements,
+1.3s to 13.0s each on CPU):
+
+| Ntheta,Nr,Nz | elements | region elements | avg sigma_xx |
+|---|---|---|---|
+| 9,4,7 | 144 | 1 | 23.68 |
+| 13,6,11 | 600 | 4 | 36.67 |
+| 17,8,15 | 1,568 | 11 | 24.29 |
+| 21,10,19 | 3,240 | 19 | 31.09 |
+| 25,12,23 | 5,808 | 39 | 23.89 |
+
+Relative change between successive resolutions: 54.9% -> 33.8% -> 28.0%
+-> 23.2% -- shrinking, but NOT plateaued even at the finest resolution
+tested (~5,800 elements). **This directly satisfies Omar's own stated
+condition**: the case genuinely requires finer 3D resolution than what
+was tested here, confirmed empirically rather than assumed. Stated
+honestly: part of why the region average is still noisy is that the
+fixed physical QoI region contains very few elements at these coarse
+meshes (1 to 39) -- itself further evidence that finer resolution is
+needed, not just for accuracy of any one element but for the region
+average itself to be well-defined/stable.
+
+**Per Omar's own explicit instruction, training does NOT start yet.**
+Next: extend this same convergence study to noticeably finer meshes
+(GPU, since CPU cost is already ~13s at the current top end and grows
+fast) to find the resolution range where this genuinely plateaus, before
+any random-field/data-generation work begins.
+
+Previous update, same day (**Item 4 geometry CORRECTED after Omar's own
 explicit rejection of the first draft, then re-verified end to end on
 CPU. Recorded honestly, not smoothed over, per this project's own
 standing discipline.**

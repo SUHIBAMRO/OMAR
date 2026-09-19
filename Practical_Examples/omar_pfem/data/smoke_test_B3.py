@@ -26,10 +26,12 @@ def main():
     device = torch.device("cpu")
 
     R_in, R_out, Lz = 0.5, 1.0, 1.0
-    Ntheta, Nr, Nz = 13, 6, 7
-    nodes, elements = generate_grid_hex8_bushing(R_in, R_out, Lz, Ntheta, Nr, Nz)
-    inner, outer, sym = boundary_node_sets(nodes, R_in, R_out)
-    print(f"nodes={nodes.shape[0]}, elements={elements.shape[0]}")
+    r_fillet = 0.1
+    Ntheta, Nr, Nz = 13, 6, 11
+    nodes, elements = generate_grid_hex8_bushing(R_in, R_out, Lz, Ntheta, Nr, Nz, r_fillet)
+    inner, outer, sym = boundary_node_sets(nodes, R_in, R_out, Lz, r_fillet)
+    print(f"nodes={nodes.shape[0]}, elements={elements.shape[0]}, "
+          f"inner_core(bonded)={inner.sum()}, outer_housing={outer.sum()}")
 
     from torchfem import Solid
     from torchfem.materials import Hyperelastic3D
@@ -92,16 +94,35 @@ def main():
     ux, uy, uz = u_np[:, 0], u_np[:, 1], u_np[:, 2]
 
     # The prescribed BC must be respected exactly (up to solver tolerance)
-    # at the constrained nodes.
-    z0_inner = inner & (np.abs(nodes[:, 2]) < 1e-9)
-    zL_inner = inner & (np.abs(nodes[:, 2] - Lz) < 1e-9)
-    print(f"inner core ux at z=0: mean={ux[z0_inner].mean():.6e} (expect ~{-delta0:.6e})")
-    print(f"inner core ux at z=Lz: mean={ux[zL_inner].mean():.6e} (expect ~{+delta0:.6e})")
-    assert abs(ux[z0_inner].mean() - (-delta0)) < 1e-6
-    assert abs(ux[zL_inner].mean() - delta0) < 1e-6
+    # at the constrained (bonded, straight-section) nodes -- the fillet
+    # region is now free, so we check at the EDGE of the straight
+    # section (z=r_fillet, z=Lz-r_fillet), not at z=0/Lz.
+    z_lo_inner = inner & (np.abs(nodes[:, 2] - r_fillet) < 1e-9)
+    z_hi_inner = inner & (np.abs(nodes[:, 2] - (Lz - r_fillet)) < 1e-9)
+    expect_lo = rocking_displacement_x(np.array([[0, 0, r_fillet]]), Lz, delta0)[0]
+    expect_hi = rocking_displacement_x(np.array([[0, 0, Lz - r_fillet]]), Lz, delta0)[0]
+    print(f"inner core ux at z=r_fillet: mean={ux[z_lo_inner].mean():.6e} (expect ~{expect_lo:.6e})")
+    print(f"inner core ux at z=Lz-r_fillet: mean={ux[z_hi_inner].mean():.6e} (expect ~{expect_hi:.6e})")
+    assert abs(ux[z_lo_inner].mean() - expect_lo) < 1e-6
+    assert abs(ux[z_hi_inner].mean() - expect_hi) < 1e-6
     assert np.abs(ux[outer]).max() < 1e-10, "outer housing should stay exactly fixed"
     assert np.abs(uy[outer]).max() < 1e-10
     assert np.abs(uz[outer]).max() < 1e-10
+
+    # The fillet region (free surface, z<r_fillet or z>Lz-r_fillet, at
+    # r close to R_in) must NOT be pinned to the rocking profile -- it
+    # is free, its own displacement is whatever the solve gives it, not
+    # a prescribed value. A bug that accidentally still constrained it
+    # would make it track the rigid profile exactly; checking it does
+    # NOT confirms the fillet is genuinely unbonded.
+    r_all = np.sqrt(nodes[:, 0] ** 2 + nodes[:, 1] ** 2)
+    fillet_region = (np.abs(r_all - R_in) < 0.02) & (nodes[:, 2] < r_fillet) & (nodes[:, 2] > 1e-9)
+    if fillet_region.sum() > 0:
+        rigid_profile = rocking_displacement_x(nodes[fillet_region], Lz, delta0)
+        diff = np.abs(ux[fillet_region] - rigid_profile)
+        print(f"fillet-region ux vs. rigid-core profile, max diff: {diff.max():.3e} "
+              f"(should be MEANINGFULLY nonzero -- confirms this surface is free, not bonded)")
+        assert diff.max() > 1e-6, "fillet region appears bonded, not free -- BC bug"
 
     # Genuinely 3D check: uy and uz should be non-degenerate (not
     # identically zero) somewhere in the INTERIOR of the domain -- a bug
@@ -114,8 +135,9 @@ def main():
     assert uy[interior].max() - uy[interior].min() > 1e-9
     assert uz[interior].max() - uz[interior].min() > 1e-9
 
-    print("\nSMOKE TEST PASSED: rocking rubber-mount bushing solves cleanly, "
-          "respects its own prescribed BC, and gives a genuinely non-degenerate "
+    print("\nSMOKE TEST PASSED: rocking rubber-mount bushing WITH the corrective "
+          "fillet solves cleanly, respects its own prescribed BC at the bonded "
+          "section, leaves the fillet genuinely free, and gives a non-degenerate "
           "3D deformation field.")
 
 
