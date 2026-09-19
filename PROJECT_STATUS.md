@@ -157,7 +157,79 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-18 (**🚨🛠️ REAL DATA-STALENESS BUG FOUND AND FIXED:
+Last updated: 2026-09-19 (**Timon's newest email ("let's wrap up the
+benchmark work") -- work started, task order confirmed by Omar as
+1 -> 2 -> 3 -> (paper):**
+
+1. Finalize the low-N accuracy comparison (drop N=1401 for B1/B2) + add a
+   NEW table: for a few QoI-accuracy thresholds (e.g. 1%/2%/5%), per QoI
+   (displacement L2, H1/energy, reaction, region-Cauchy avg), the minimum
+   FEM resolution N required and the operator's own break-even point
+   there.
+2. Use "your most efficient validated GPU-native FEM solver" as the
+   PRIMARY timing baseline (torch-fem/TensorMesh secondary); keep the
+   existing same-N comparison separately.
+3. Drop IGA/NURBS entirely for this paper (explicit future work only --
+   confirmed via code inspection that no NURBS/IGA capability exists
+   anywhere in this project's stack right now, and via free research that
+   no such Python package is installed either; moot regardless since
+   Timon said not to pursue it now).
+4. One new, harder 3D "realistic case" example (single material, natural
+   higher N, same QoI set as B1/B2) -- ordered explicitly AFTER 1 and 2
+   since those are quick wins built on already-existing data (Omar's own
+   reasoning: "لأن أول اثنين غالبًا مبنيين على البيانات الموجودة").
+5. Then write the paper.
+
+**Correction from Omar, recorded so it isn't repeated**: I had connected
+item 2 to the OLD standing reminder above (cached-Hessian needs Timon's
+sign-off before finalizing). Omar corrected this -- that reminder was his
+OWN earlier personal caution, never something Timon mandated, and is
+anyway moot since cached-Hessian already failed as an experiment (grep
+confirms: "did NOT reach the goal even", never adopted). Item 2 just
+means: identify whichever GPU-native solver is validated + measured and
+fastest, no special permission-seeking needed.
+
+**Investigated item 2 via direct code inspection (not assumption)**:
+`gpu_fem_solver.py` is our own GPU-native Total-Lagrangian Newton solver
+(built earlier, explicitly per an advisor request for a GPU-native FEM
+comparison), completely independent of torch-fem. The existing
+accuracy-matched break-even table (Table 18-R10e, via
+`cell_break_even_accuracy_matched.py` -> `omar_pfem.gpu_fem_benchmark` ->
+`omar_pfem.gpu_fem_solver`) ALREADY uses it as the primary baseline --
+despite that cell's own `print()` statements informally (and misleadingly)
+labeling the result "torch-fem @ N=11", which is a raw-cell-output
+artifact only, not a mislabeling in the actual Report text (which says
+generically "finite-element solver"). Table 18-R10e' (resolution-matched,
+N=1401) genuinely and correctly uses torch-fem, matching Timon's own
+request to "keep the same-N comparison separately." **Conclusion: item 2
+is structurally already satisfied** -- no computation needs to change
+there, at most a small explicit text clarification later.
+
+**Item 1's real missing piece, now built**: the QoI-accuracy-threshold
+table needs FEM's own per-sample wall-clock cost at EVERY LOW_N value
+(previously only measured once, at N=11, for one case, in the existing
+break-even cell) -- not just the one accuracy-matched N. New cell +
+notebook built: `cell_gpu_fem_timing_lowN_all_cases.py` /
+`GPU_FEM_Timing_LowN_AllCases.ipynb` (96/96 notebooks verified via
+`check_notebooks.py`) -- loops all six cases x the full LOW_N=[3..49]
+sweep, reusing `gpu_fem_benchmark.py`'s OWN already-validated
+`build_batch_b1/b2` + timing convention directly (no subprocess-per-N),
+batch_size=1, 1 warm-up + 3 timed repeats per (case, N). Saves
+`gpu_fem_timing_lowN_<case_id>.json` per case under
+`pfem_run/break_even/`. **Verified on CPU first** (this project's own
+standing discipline) with a real dry run (B1xNeo-Hookean N=4, B2xMooney-
+Rivlin N=4, B1xArruda-Boyce N=6 all solved without crashing, sane
+node counts/timings) before handing to Omar for the real GPU run.
+**NOT YET RUN on GPU** -- waiting on Omar's turn, expected a few minutes
+(384 small solves, all N<=49).
+
+Once this runs: combine its per-N FEM timing with the already-verified
+`round12_consistent_field_qoi_<case>.json` accuracy data to build the new
+threshold/break-even table (task after this one), then move to item 2's
+small text clarification, then item 4's new 3D example, per Omar's
+confirmed order.
+
+Previous update, 2026-09-18 (**🚨🛠️ REAL DATA-STALENESS BUG FOUND AND FIXED:
 the classical-QoI ("Op." L2/H1/Energy/Reaction) columns for FIVE of the six
 cases in Tables 18-R10q/s/u/w/y were computed against a STALE, pre-final-
 retrain checkpoint -- the exact same class of bug already caught and fixed
