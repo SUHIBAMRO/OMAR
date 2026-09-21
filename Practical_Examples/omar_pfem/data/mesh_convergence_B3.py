@@ -146,10 +146,11 @@ def solve_case(Ntheta, Nr, Nz, dtype=torch.float64, device=None, verbose=False):
     # missing reaction contribution -- both were caught by this exact
     # check during development, at >10% imbalance) without false-failing
     # on ordinary iterative-solver noise.
-    assert np.linalg.norm(total_force) / force_scale < 1e-6, \
-        f"global force equilibrium violated: {total_force}"
-    assert abs(total_moment_y) / moment_scale < 1e-2, \
-        f"global moment equilibrium violated: {total_moment_y} (relative {abs(total_moment_y)/moment_scale:.4f})"
+    force_rel_residual = float(np.linalg.norm(total_force) / force_scale)
+    moment_rel_residual = float(abs(total_moment_y) / moment_scale)
+    assert force_rel_residual < 1e-6, f"global force equilibrium violated: {total_force}"
+    assert moment_rel_residual < 1e-2, \
+        f"global moment equilibrium violated: {total_moment_y} (relative {moment_rel_residual:.4f})"
 
     # ---- total tangent (stored strain) energy: sum psi(F)*volume ----
     F_np = F.cpu().numpy()
@@ -187,6 +188,7 @@ def solve_case(Ntheta, Nr, Nz, dtype=torch.float64, device=None, verbose=False):
         "region_true_max_sigma_xx": region_true_max,
         "total_energy": total_energy,
         "reaction_force": reaction_force.tolist(), "reaction_moment_y": reaction_moment_y,
+        "force_rel_residual": force_rel_residual, "moment_rel_residual": moment_rel_residual,
         "max_disp": float(np.linalg.norm(u_np, axis=1).max()),
         "elapsed_s": elapsed,
         # raw fields kept for the cross-mesh L2/H1 comparison, discarded
@@ -276,6 +278,66 @@ def compare_to_reference(case, ref):
     return l2_rel, h1_rel
 
 
+QOI_KEYS = [
+    ("disp_l2_rel", "Displacement L2"),
+    ("grad_h1_rel", "H1 (gradient) semi-norm"),
+    ("energy_rel", "Tangent energy"),
+    ("force_rel", "Reaction force"),
+    ("moment_rel", "Reaction moment"),
+    ("region_avg_rel", "Region-Cauchy avg"),
+    ("region_p99_rel", "Region-Cauchy p99"),
+]
+THRESHOLDS = [0.05, 0.02, 0.01]
+
+
+def scalar_qoi_rel_errors(rows, ref):
+    """Adds relative-error keys (vs. `ref`) for every scalar QoI besides
+    the field-based disp_l2_rel/grad_h1_rel (which compare_to_reference
+    already fills in) -- energy, reaction force magnitude, reaction
+    moment, and region Cauchy avg/p99. True max is intentionally NOT
+    included here (secondary QoI only, per the established convention
+    with Timon -- never used for a required-resolution threshold)."""
+    ref_force_mag = float(np.linalg.norm(ref["reaction_force"]))
+    for r in rows:
+        r["energy_rel"] = abs(r["total_energy"] - ref["total_energy"]) / abs(ref["total_energy"])
+        r["force_rel"] = abs(np.linalg.norm(r["reaction_force"]) - ref_force_mag) / max(ref_force_mag, 1e-12)
+        r["moment_rel"] = abs(r["reaction_moment_y"] - ref["reaction_moment_y"]) / abs(ref["reaction_moment_y"])
+        r["region_avg_rel"] = (abs(r["region_avg_sigma_xx"] - ref["region_avg_sigma_xx"])
+                                / abs(ref["region_avg_sigma_xx"]))
+        r["region_p99_rel"] = (abs(r["region_p99_sigma_xx"] - ref["region_p99_sigma_xx"])
+                                / abs(ref["region_p99_sigma_xx"]))
+    return rows
+
+
+def find_required_resolutions(rows):
+    """rows must already carry every *_rel key (scalar_qoi_rel_errors +
+    compare_to_reference). For each QoI x threshold, returns the
+    SMALLEST-element-count resolution (ascending order) whose own
+    relative error vs. the reference is <= that threshold, or None if
+    no tested resolution reaches it."""
+    rows_sorted = sorted(rows, key=lambda r: r["n_elements"])
+    results = {}
+    for key, label in QOI_KEYS:
+        for thr in THRESHOLDS:
+            hit = next((r for r in rows_sorted if r[key] <= thr), None)
+            results[(label, thr)] = hit
+    return results
+
+
+def print_threshold_table(results):
+    print("\n" + "=" * 90)
+    print("Required-resolution table (first tested mesh reaching each threshold):")
+    print(f"{'QoI':<26}{'Threshold':<12}{'Resolution':<16}{'n_elements':<12}{'Actual rel. err.'}")
+    for (label, thr), hit in results.items():
+        if hit is None:
+            print(f"{label:<26}{thr*100:>4.0f}%{'':<7}{'not reached by any tested resolution'}")
+        else:
+            key = next(k for k, lbl in QOI_KEYS if lbl == label)
+            print(f"{label:<26}{thr*100:>4.0f}%{'':<7}"
+                  f"({hit['Ntheta']},{hit['Nr']},{hit['Nz']})".ljust(16) +
+                  f"{hit['n_elements']:<12}{hit[key]*100:.3f}%")
+
+
 def main():
     resolutions = [(9, 4, 7), (13, 6, 11), (17, 8, 15), (21, 10, 19)]
     fine_resolution = (29, 14, 27)
@@ -297,6 +359,10 @@ def main():
         print(f"  reaction_force={np.array(r['reaction_force'])}  reaction_moment_y={r['reaction_moment_y']:.6e}")
         print(f"  region(n={r['n_region']}): avg_sigma_xx={r['region_avg_sigma_xx']:.4f}  "
               f"p99={r['region_p99_sigma_xx']:.4f}  (true_max={r['region_true_max_sigma_xx']:.4f}, secondary)")
+        print(f"  equilibrium: force_rel_residual={r['force_rel_residual']:.2e}  "
+              f"moment_rel_residual={r['moment_rel_residual']:.2e}  "
+              f"(each normalized by this row's own reaction-force / reaction-moment magnitude, "
+              f"NOT a fixed absolute threshold -- Omar's own 2026-09-21 request)")
 
     print("\n" + "=" * 90)
     print("Summary across resolutions (relative change vs. fine reference / previous row):")
@@ -304,18 +370,40 @@ def main():
         print(f"  ({r['Ntheta']:>2},{r['Nr']:>2},{r['Nz']:>2})  n_elem={r['n_elements']:>5}  "
               f"disp_L2={r['disp_l2_rel']*100:6.2f}%  gradF_H1={r['grad_h1_rel']*100:6.2f}%  "
               f"region_avg_sxx={r['region_avg_sigma_xx']:8.3f}  region_p99_sxx={r['region_p99_sigma_xx']:8.3f}  "
-              f"moment_y={r['reaction_moment_y']:.4e}  energy={r['total_energy']:.4e}")
+              f"moment_y={r['reaction_moment_y']:.4e}  energy={r['total_energy']:.4e}  "
+              f"force_res={r['force_rel_residual']:.1e}  moment_res={r['moment_rel_residual']:.1e}")
 
     print("\nAll physics sanity checks passed inline for every row above (zero "
-          "inverted elements, det(F)>0 everywhere, force+moment equilibrium "
-          "within 1e-6 relative, Newton converged to 1e-8). Geometry/loading "
-          "physical parameters (R_in0, R_out, Lz, groove depth/width, phi) were "
-          "IDENTICAL across every resolution tested -- only Ntheta/Nr/Nz changed.")
+          "inverted elements, det(F)>0 everywhere, Newton converged to 1e-8). "
+          "Force/moment equilibrium residuals are reported ABOVE per row, each "
+          "NORMALIZED by that row's own reaction-force/reaction-moment "
+          "magnitude (not a fixed absolute number, and not assumed acceptable "
+          "just because it is below some threshold -- Omar's own explicit "
+          "correction, 2026-09-21: report the normalized relative residual "
+          "plainly rather than only pass/fail an internal threshold). Geometry/"
+          "loading physical parameters (R_in0, R_out, Lz, groove depth/width, "
+          "phi) were IDENTICAL across every resolution tested -- only "
+          "Ntheta/Nr/Nz changed.")
     print("\nPer Omar's own explicit instruction: proceed to data generation/"
           "training only once disp_L2_rel and gradF_H1_rel (and the region "
           "stress) show real convergence (a clear decreasing trend, ideally "
           "reaching a few percent) at a resolution still cheap enough to be a "
           "useful training-data mesh.")
+
+    scalar_qoi_rel_errors(rows, ref)
+    results = find_required_resolutions(rows)
+    print_threshold_table(results)
+    print("\n*** PRELIMINARY ONLY *** -- this table is computed against the "
+          f"CPU-scale {fine_resolution} / {ref['n_elements']}-element reference, "
+          "which is NOT yet validated as converged for the region-Cauchy-stress "
+          "QoI specifically (region_avg_sigma_xx is still moving between the "
+          "last two rows tested above -- see the combined-refinement summary). "
+          "Per Omar's own explicit instruction (2026-09-21): do NOT treat this "
+          "reference, or this threshold table, as final until a GPU run extends "
+          "the resolution ladder far enough that region_avg/region_p99 stop "
+          "changing meaningfully between successive rows -- only THEN should a "
+          "genuine final reference be designated and this table recomputed "
+          "against it (see the Colab notebook for that GPU extension).")
 
     directional_study(ref)
 

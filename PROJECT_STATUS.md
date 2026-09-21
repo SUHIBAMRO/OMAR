@@ -157,7 +157,67 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-21 (**Item 4: full QoI set + directional mesh
+Last updated: 2026-09-21 (**Item 4: B3 GPU mesh-convergence notebook
+built and ready, per Omar's own detailed follow-up instructions --
+sequenced work, NOT yet run.**
+
+Omar's own explicit sequencing, confirmed and being followed exactly:
+(1) finish B3's mesh convergence on GPU to higher resolutions FIRST --
+the CPU study's own region-Cauchy-stress QoI was still rising at its
+largest tested mesh (3,240 elements: 1.56 -> 2.30 -> 2.53 -> 2.75), so
+the 9,464-element reference used so far is explicitly NOT validated as
+converged for that QoI, only provisionally used; (2) only once that
+plateaus, designate a genuine final fine reference; (3) then build the
+same 5%/2%/1% required-resolution table used for B1/B2, for ALL seven
+QoIs (L2, H1, energy, reaction force, reaction moment, region-Cauchy
+avg, region-Cauchy p99 -- true max never thresholded, secondary only);
+(4) keep the directional (per-axis) study, summarized concisely; (5) fix
+the physics-check reporting to show the NORMALIZED RELATIVE residual
+explicitly for both force and moment (not just an internal pass/fail
+threshold) since a bare number means nothing without knowing the
+problem's own scale; (6) only after B3 is closed out this way, prepare
+the tire as a second, lightweight preliminary candidate (geometry+BC+
+smoke+basic convergence, no training) and present BOTH to Timon before
+any expensive training commitment.
+
+**Code changes (`mesh_convergence_B3.py`)**: `solve_case` now returns
+`force_rel_residual`/`moment_rel_residual` explicitly (previously only
+asserted internally, not reported) -- printed per row and in the
+summary table, always normalized by that row's own reaction-force/
+reaction-moment magnitude, per Omar's own correction that a bare
+absolute number "ممكن يكون ممتاز أو سيئ حسب وحدات وحجم المسألة." New
+`scalar_qoi_rel_errors`/`find_required_resolutions`/
+`print_threshold_table` implement the same required-resolution-table
+logic as B1/B2 (`add_round13_qoi_threshold_breakeven.py`), generalized
+to all seven B3 QoIs. Re-ran the CPU study with this machinery as a
+correctness check on the existing (144-3,240 element) data -- table
+prints correctly and, exactly as expected, several QoIs ("H1 semi-norm
+2%/1%", "Reaction force any threshold", "Region-Cauchy avg any
+threshold") are honestly reported as "not reached by any tested
+resolution" rather than papered over -- explicitly labeled PRELIMINARY
+ONLY in the script's own output, pending the GPU extension below.
+
+**New GPU notebook**: `B3_GPU_MeshConvergence.ipynb`
+(`cell_b3_gpu_mesh_convergence.py`, `make_b3_gpu_mesh_convergence_
+notebook.py`, 97/97 notebooks verified via `check_notebooks.py`) --
+reuses `mesh_convergence_B3.py`'s own already-verified functions
+UNCHANGED (no new physics/geometry/BC code, only a longer resolution
+ladder and `device='cuda'`), extending from 600 up to a 243,360-element
+fine reference (81,40,79). Explicitly prints the region-Cauchy relative
+change between EVERY successive resolution (including the jump to the
+fine reference) BEFORE printing any threshold table, with an explicit
+warning if it has not yet dropped to a few percent by the last row --
+so the notebook's own output makes it impossible to silently treat an
+unconverged reference as final. **NOT YET RUN** -- waiting on Omar's
+turn on GPU; expected cost minutes, not hours (this project's own 2D
+notebooks have already solved far larger meshes on the same hardware).
+
+**Training/dataset generation for B3 still does not start**, and the
+tire candidate is not started either, until this GPU run comes back and
+the region-stress QoI is shown to have genuinely plateaued -- per
+Omar's own explicit, repeated instruction.
+
+Previous update, same day (**Item 4: full QoI set + directional mesh
 study, after a second real design fix (groove replaces fillet) --
 this is now a genuinely rigorous, comprehensive B3 mesh-convergence
 result.**
