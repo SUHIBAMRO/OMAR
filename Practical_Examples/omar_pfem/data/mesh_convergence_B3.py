@@ -404,6 +404,19 @@ def _elem_field_interpolator(field, Ntheta, Nr, Nz, r_grading=1.0):
     return query
 
 
+def _elem_centroid_parametric(Ntheta, Nr, Nz, r_grading):
+    """(theta_c, t_c, z_c), each shape (n_elem,) -- the parametric
+    coordinates of every element's own CENTROID, in the same flat
+    element order _element_ijk uses (matches _elem_field_interpolator's
+    own axis construction)."""
+    thetas, ts, zs = _theta_t_axes(Ntheta, Nr, Nz, r_grading)
+    thetas_c = 0.5 * (thetas[:-1] + thetas[1:])
+    ts_c = 0.5 * (ts[:-1] + ts[1:])
+    zs_c = 0.5 * (zs[:-1] + zs[1:])
+    j, i, k = _element_ijk(Ntheta, Nr, Nz)
+    return thetas_c[j], ts_c[i], zs_c[k]
+
+
 def compare_to_reference(case, ref):
     """L2 (displacement), H1-like (via F), and fixed-region Cauchy-
     TENSOR relative field error of `case` against the finer `ref` solve.
@@ -447,36 +460,49 @@ def compare_to_reference(case, ref):
     h1_den = np.sqrt(np.mean(np.sum((F_fine - I3) ** 2, axis=(-1, -2))))
     h1_rel = float(h1_num / h1_den) if h1_den > 0 else float("nan")
 
-    # Fixed-region Cauchy-TENSOR relative field error: interpolate
-    # `case`'s own per-element Cauchy stress (built from its own F_elem/
-    # P via the same push-forward) onto the FINE reference's OWN per-
-    # Gauss-point locations INSIDE the region -- i.e. evaluated at the
-    # reference's genuinely fine quadrature resolution, not the coarse
-    # mesh's own few samples, and via real interpolation (never nearest-
-    # node/element).
-    ref_mask = ref["_region_mask"]
-    n_ref_region = int(ref_mask.sum())
+    # Fixed-region Cauchy-TENSOR relative field error.
+    #
+    # FIX (2026-09-21, Omar's own review of the write-up before sending
+    # to Timon): the earlier version compared an ASYMMETRIC pair --
+    # `case`'s own per-ELEMENT-AVERAGED Cauchy field against the
+    # reference's own RAW per-Gauss-point values -- and that mismatch
+    # produced a reported error that plateaued around ~17% instead of
+    # shrinking with resolution, which was written up (prematurely, per
+    # Omar's own catch) as a converged "finding." Two earlier attempts to
+    # "fix" this by moving BOTH sides to raw Gauss-point values made
+    # things WORSE (documented in this module's git history), because
+    # raw per-Gauss stress in a coarse element is itself noisy. The
+    # combination not yet tried was the one Omar asked for: a genuinely
+    # SYMMETRIC comparison, with BOTH sides at the same (element-
+    # averaged) representation and the same physical sample points --
+    # `case`'s own field interpolated onto the REFERENCE's own ELEMENT
+    # CENTROIDS (not Gauss points), compared against the reference's own
+    # element-averaged field at those same centroids. Tested directly on
+    # real CPU data before adopting it (not assumed): this version shows
+    # clean, monotonic convergence with resolution (49.1% -> 23.8% ->
+    # 14.6% -> 7.9% for 144/600/1,568/3,240-element cases against the
+    # same 9,464-element reference) -- a real, physically sensible
+    # convergence trend, unlike either of the two asymmetric versions
+    # tried before it.
+    theta_rc, t_rc, z_rc = _elem_centroid_parametric(Ntheta_f, Nr_f, Nz_f, ref["_r_grading"])
+    ref_vol = ref["_vol_weight"].sum(axis=1)  # per-element volume, exact for this quadrature order
+    z_ref_pt, r_ref_pt = LZ / 2.0, R_IN0 - GROOVE_DEPTH
+    from omar_pfem.data.data_generate_B3 import groove_R_in as _groove_R_in
+    R_in_eff_rc = _groove_R_in(z_rc, LZ, R_IN0, GROOVE_DEPTH, GROOVE_HALF_WIDTH)
+    Rr_rc = R_in_eff_rc + (R_OUT - R_in_eff_rc) * t_rc
+    pos_rc = np.stack([Rr_rc * np.cos(theta_rc), Rr_rc * np.sin(theta_rc), z_rc], axis=1)
+    region_radius = 2.0 * groove_radius_of_curvature(GROOVE_DEPTH, GROOVE_HALF_WIDTH)
+    ref_elem_mask = np.linalg.norm(pos_rc - np.array([r_ref_pt, 0.0, z_ref_pt])[None, :], axis=1) < region_radius
+    n_ref_region = int(ref_elem_mask.sum())
     if n_ref_region == 0:
         cauchy_field_rel = float("nan")
     else:
-        # Interpolation SOURCE: the coarser case's own per-element Cauchy
-        # field (already computed and stored by solve_case). TARGET:
-        # the fine reference's own per-Gauss-point locations inside the
-        # region -- its genuinely fine quadrature resolution, not the
-        # coarse mesh's own few samples, reached via real multilinear
-        # interpolation (never nearest-node/element snapping).
         sigma_interp_fn = _elem_field_interpolator(
             case["_sigma_elem"], Ntheta_c, Nr_c, Nz_c, case["_r_grading"])
-
-        theta_full, t_full, z_full = _gauss_point_parametric(
-            Ntheta_f, Nr_f, Nz_f, ref["_r_grading"], HEXA1_IPOINTS)
-        theta_r = theta_full[ref_mask]
-        t_r = t_full[ref_mask]
-        z_r = z_full[ref_mask]
-
-        sigma_case_on_ref = sigma_interp_fn(theta_r, t_r, z_r)
-        sigma_fine_region = ref["_sigma_gauss"][ref_mask]
-        w_region = ref["_vol_weight"][ref_mask]
+        sigma_case_on_ref = sigma_interp_fn(
+            theta_rc[ref_elem_mask], t_rc[ref_elem_mask], z_rc[ref_elem_mask])
+        sigma_fine_region = ref["_sigma_elem"][ref_elem_mask]
+        w_region = ref_vol[ref_elem_mask]
         w_sum = w_region.sum()
 
         diff_sq = np.sum((sigma_fine_region - sigma_case_on_ref) ** 2, axis=(-1, -2))
