@@ -6,11 +6,13 @@ the original rationale/mechanism, reused unchanged here).
 Round 14 = Timon's item 4 (a new, harder 3D example): first status
 report on both candidates (B3 rubber-mount bushing, tire sector),
 Omar's own detailed 11-point technical review of both, the real GPU
-mesh-convergence result that followed, and the field-error methodology
-fix (found via Omar's own second, line-by-line review before sending to
-Timon -- see PFEM_Transolver_Report_2026-09-21c.docx's own module
-docstring in add_round14_b3_tire_candidates_to_report.py for the full
-seven-point list of what changed between the first and second draft).
+mesh-convergence result that followed, the field-error methodology fix
+(found via Omar's own second, line-by-line review before sending to
+Timon -- see add_round14_b3_tire_candidates_to_report.py's own module
+docstring for the full seven-point list of what changed between the
+first and second draft), and the GPU re-run Omar asked for (2026-09-21d)
+that confirms the fix with a real full-tensor field error of 0.662%
+between the two finest references, not just the earlier CPU-scale test.
 """
 import copy
 import os
@@ -20,8 +22,8 @@ from docx.opc.constants import RELATIONSHIP_TYPE as RT
 from docx.oxml.ns import qn
 
 DELIV = '/home/user/OMAR/advisor_feedback'
-REPORT = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-09-21c.docx')
-OUT = os.path.join(DELIV, 'PFEM_Work_Summary_2026-09-21c.docx')
+REPORT = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-09-21d.docx')
+OUT = os.path.join(DELIV, 'PFEM_Work_Summary_2026-09-21d.docx')
 
 src = Document(REPORT)
 
@@ -92,11 +94,12 @@ p.add_run(
     "realistic 3D example). Two candidates were prepared in parallel; Omar's "
     "own detailed 11-point technical review of both was carried out before "
     "this write-up, and this Summary also covers the real GPU result that "
-    "followed and a methodology fix to the Cauchy-tensor field-error metric "
+    "followed, a methodology fix to the Cauchy-tensor field-error metric "
     "(found via a second, line-by-line review of the first draft, before it "
-    "was shown to Timon). As with previous rounds, everything below is "
-    "copied verbatim (same tables, same text) out of the now-updated "
-    "cumulative Report (PFEM_Transolver_Report_2026-09-21c.docx) -- nothing "
+    "was shown to Timon), and the GPU re-run confirming that fix with a "
+    "real reference-scale number. As with previous rounds, everything below "
+    "is copied verbatim (same tables, same text) out of the now-updated "
+    "cumulative Report (PFEM_Transolver_Report_2026-09-21d.docx) -- nothing "
     "summarized or re-derived. Neither candidate's dataset generation or "
     "neural-operator training has started; that step is gated on Timon's "
     "choice between them."

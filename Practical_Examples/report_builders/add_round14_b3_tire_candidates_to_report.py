@@ -25,9 +25,7 @@ real issues, five of them called necessary:
      23.3% -> 14.3% -> 7.7% for 144/600/1,568/3,240-element cases
      against the same 9,464-element reference), confirming the earlier
      asymmetric comparison -- not a genuine physical limit -- produced
-     the plateau. This section is rewritten around that corrected
-     result; a GPU-scale re-confirmation at the 243k/424k reference
-     pair has not been re-run yet and the text says so plainly.
+     the plateau.
   5. Overclaimed language ("mostly discretization noise, not physical
      signal") and an unqualified single-cause claim for the region-
      shrinking test are both softened to what the evidence actually
@@ -40,6 +38,16 @@ real issues, five of them called necessary:
      ambiguous "tread"), and a sentence is added noting the sector-cut
      treatment will be revisited if this candidate is ever selected.
 
+REVISED 2026-09-21d -- the GPU re-run point 4 asked for is now IN: with
+the corrected, symmetric methodology, the full Cauchy-tensor field
+error between the two finest references (243,360 vs. 424,128 elements)
+is 0.662% -- confirming the fix, not just at CPU scale. The whole
+resolution ladder now converges cleanly and monotonically (28.442% at
+600 elements down to 1.510% at 123,008 elements, 0.662% between the two
+references), essentially the same well-behaved shape as the region-
+average statistic. 11.2's table and 11.2.1's own text are updated with
+these real numbers; nothing about this QoI is provisional any more.
+
 Appended as a new top-level section (11.) after the existing Section 10
 (Conclusion and Next Steps) -- this work started after that conclusion
 was written and is its own, still-in-progress deliverable, not a
@@ -51,7 +59,7 @@ from docx import Document
 
 DELIV = '/home/user/OMAR/advisor_feedback'
 REPORT_SRC = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-09-19b.docx')
-REPORT_DST = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-09-21c.docx')
+REPORT_DST = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-09-21d.docx')
 
 doc = Document(REPORT_SRC)
 
@@ -186,8 +194,12 @@ table(
          "(123,008 elements gives 1.28%); the two fine references differ "
          "by only 0.506%, supporting convergence of the reference itself"],
         ["Region-Cauchy 99th percentile", "not reached", "not reached", "not reached"],
-        ["Region-Cauchy full-tensor field error", "not reached", "not reached",
-         "not reached -- methodology corrected 2026-09-21, GPU-scale number pending (see 11.2.1)"],
+        ["Region-Cauchy full-tensor field error", "38,808 el.", "123,008 el.",
+         "not reached by any non-reference mesh in the tested ladder "
+         "(123,008 elements gives 1.51%); the two fine references differ "
+         "by only 0.662%, supporting convergence of the reference itself "
+         "(see 11.2.1 for the methodology correction that produced this "
+         "cleanly converging result)"],
     ],
 )
 
@@ -204,7 +216,7 @@ para(
 )
 
 h2("11.2.1 The Cauchy-tensor field-error metric: a methodology bug "
-   "found, fixed, and re-tested -- GPU confirmation still pending")
+   "found, fixed, and confirmed on real GPU data")
 
 para(
     "An earlier draft of this section reported the full Cauchy-TENSOR "
@@ -258,14 +270,21 @@ para(
 )
 
 para(
-    "This fix has been validated at CPU scale only. The GPU-scale "
-    "reference pair (243,360 vs. 424,128 elements) has NOT yet been "
-    "re-solved with the corrected comparison, so no final full-tensor "
-    "field-error number is reported here yet -- the required-resolution "
-    "table above correctly still shows \"not reached\" for this QoI, "
-    "pending that re-run. The volume-weighted region-average Cauchy stress "
-    "(11.2 above, confirmed converged to 0.506% at GPU scale) remains "
-    "unaffected by this fix and is unchanged.",
+    "This fix has now been confirmed on real GPU data, not just at CPU "
+    "scale. Re-running the same A100 reference pair (243,360 vs. 424,128 "
+    "elements) with the corrected, symmetric comparison gives a full "
+    "Cauchy-tensor field error of 0.662% between the two references -- "
+    "and the WHOLE resolution ladder now converges cleanly and "
+    "monotonically against the finer reference: 28.442% (600 elements), "
+    "15.130% (3,240), 8.609% (9,464), 5.567% (20,808), 3.762% (38,808), "
+    "2.599% (65,000), 1.510% (123,008), down to 0.662% between the two "
+    "references -- essentially the same well-behaved shape as the "
+    "region-average statistic (11.2 above), and a world away from the "
+    "earlier ~17.3% plateau. This QoI is no longer provisional: the "
+    "required-resolution table above now reports real 5%/2% thresholds "
+    "for it, with 1% not yet reached by any single non-reference mesh but "
+    "well-supported by the reference's own 0.662% stability, exactly "
+    "mirroring how the region-average statistic's own 1% row is read.",
     italic=True,
 )
 

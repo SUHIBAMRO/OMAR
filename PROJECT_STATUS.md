@@ -157,7 +157,28 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-21 (**The "scientifically closed" conclusion just
+Last updated: 2026-09-21 (**The fix confirmed on REAL GPU DATA, not just
+CPU -- Omar's own explicit ask ("خود الرقم النهائي من جيبيو"). Re-ran
+the exact same A100 reference pair (243,360 vs. 424,128 elements) with
+the corrected, symmetric comparison: full Cauchy-tensor field error is
+0.662% between the two references, and the WHOLE resolution ladder
+converges cleanly and monotonically (28.442% at 600 elements down to
+1.510% at 123,008 elements) -- essentially the same well-behaved shape
+as the region-average statistic, a world away from the earlier ~17.3%
+plateau. This QoI is no longer provisional in any of the three
+deliverable files. Report/Summary/email rebuilt as their "d" versions;
+still NOT sent to Timon, pending Omar's final review.**
+
+**Full real ladder, against the 424,128-element reference** (for the
+record): 600 el=28.442%, 3,240 el=15.130%, 9,464 el=8.609%, 20,808
+el=5.567%, 38,808 el=3.762%, 65,000 el=2.599%, 123,008 el=1.510%,
+243,360-vs-424,128-element references=0.662%. Required-resolution
+table now reports real thresholds for this QoI: 5% at 38,808 elements,
+2% at 123,008 elements, 1% not reached by any single non-reference mesh
+but well-supported by the reference's own 0.662% stability -- read
+exactly the same way as the region-average statistic's own 1% row.
+
+Previous update, same day (**The "scientifically closed" conclusion just
 below (that the ~17% Cauchy-field-error plateau is a genuine, fixable-
 proof property) was ITSELF WRONG, caught by Omar's own second, line-by-
 line review of the draft Report/Summary/email before anything went to

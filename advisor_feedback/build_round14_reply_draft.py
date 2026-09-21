@@ -16,10 +16,17 @@ corrected, CPU-validated result instead, and a sentence is added making
 explicit that the FEM-vs-operator comparison itself has not started for
 either candidate, so Timon does not read the 3D item as further along
 than it actually is.
+
+REVISED 2026-09-21d: Omar asked for the real GPU number rather than
+sending "pending" -- the same A100 reference pair was re-run with the
+corrected comparison and gives a real, confirmed 0.662% field error
+between the two references, converging cleanly across the whole
+resolution ladder. Paragraph 4(A) is updated to state this as a
+finished result, not a re-confirmation still in progress.
 """
 from docx import Document
 
-OUT = '/home/user/OMAR/advisor_feedback/2026-09-21c_reply_to_round13_candidate_choice_draft.docx'
+OUT = '/home/user/OMAR/advisor_feedback/2026-09-21d_reply_to_round13_candidate_choice_draft.docx'
 
 doc = Document()
 
@@ -37,11 +44,13 @@ def para(text):
 note("DRAFT reply to Timon's round-13 email -- NOT YET SENT. Review before sending.")
 note(
     "Items 1-3 are complete and reported in the attached Report/Summary. Item 4's "
-    "mesh-convergence half is also complete for the rubber-mount bushing (B3). What "
-    "is genuinely NOT done yet is the dataset generation, operator training, and "
-    "FEM-vs-operator comparison item 4 also asks for -- that is gated on Timon "
-    "confirming which geometry to proceed with, which this draft asks directly "
-    "rather than assuming."
+    "mesh-convergence half is also complete for the rubber-mount bushing (B3), "
+    "including a real GPU-confirmed number for the full Cauchy-tensor field-error "
+    "QoI (0.66% between the two finest references) after a methodology bug found "
+    "during Omar's own review was fixed. What is genuinely NOT done yet is the "
+    "dataset generation, operator training, and FEM-vs-operator comparison item 4 "
+    "also asks for -- that is gated on Timon confirming which geometry to proceed "
+    "with, which this draft asks directly rather than assuming."
 )
 para("")
 para("Subject: Round-13 items 1-3 complete; item 4 -- two candidates prepared, your call on which one to take forward")
@@ -81,12 +90,13 @@ para(
     "0.5-0.7% convergence band), and a full required-resolution table exists for "
     "displacement, H1, energy, reaction force/moment, and the regional Cauchy "
     "stress. A stricter, full-tensor pointwise version of the Cauchy-stress field "
-    "error initially appeared to plateau around 17%; on closer review this turned "
-    "out to be a real bug in how the comparison was built (comparing two different "
-    "representations of the field, not a fair test), now fixed and re-tested -- the "
-    "corrected version shows clean, physically sensible convergence at CPU scale, "
-    "and we're re-confirming it at the same GPU reference scale as the average "
-    "statistic before finalizing the number."
+    "error initially appeared to plateau around 17%; this turned out to be a real "
+    "bug in how the comparison was built (comparing two different representations "
+    "of the field, not a fair test). Fixed and re-confirmed on the same A100 "
+    "reference pair: the corrected metric now converges cleanly across the whole "
+    "resolution ladder (28.4% at 600 elements down to 1.5% at 123,000 elements) "
+    "and differs by only 0.66% between the two finest references -- essentially "
+    "the same well-behaved convergence as the average statistic above."
 )
 para(
     "(B) A tire sector -- a real torus segment, not an extrusion -- prepared only "
