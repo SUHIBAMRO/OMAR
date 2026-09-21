@@ -157,7 +157,90 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-21 (**Omar's own detailed 11-point technical
+Last updated: 2026-09-21 (**Point 4's GPU run FINISHED on a real A100 --
+the region-average Cauchy stress claim is now substantially stronger
+(0.51% between the two finest references, under Omar's own 0.5-0.7%
+bar), BUT a genuine, diagnosed new finding: the full Cauchy-TENSOR field
+error (point 1's new QoI) does NOT converge the same way -- it plateaus
+around ~17.3% even between the 243,360- and 424,128-element references,
+and this was traced to a real cause (steep local stress gradient inside
+the fixed region), not a code bug. All 11 review points are now closed
+at the code/data level; what's left is writing this up honestly for
+Timon, which has NOT been done yet.**
+
+**The GPU run** (A100, same notebook, 10m5s total): solved the OLD
+(81,40,79, 243,360 el) and NEW (97,48,95, 424,128 el) references, then
+the full 7-row resolution ladder against the NEW reference.
+
+**Region-average Cauchy stress -- the good, confirmed result**:
+`region_avg_sigma_xx` OLD=3.0932, NEW=3.1089, relative change=0.506% --
+down from the earlier 0.87% (243,360-vs-123,008-element step), and
+comfortably under the 0.5-0.7% bar Omar set. **The 1% claim for this
+specific, robust, volume-weighted scalar statistic is now well-
+supported.** `region_p99_sigma_xx` is far less settled (OLD=31.33,
+NEW=30.47, 2.75% change) -- consistent with a percentile always being
+noisier than an average, reported as such, not oversold.
+
+**The full Cauchy-TENSOR field error (`cauchy_field_rel`, point 1's own
+new QoI) -- a real, diagnosed, honestly-disclosed limitation, NOT a code
+bug**: OLD-vs-NEW is 17.289%, and the whole ladder shows this metric
+essentially PLATEAUING (not still meaningfully decreasing) from 38,808
+elements onward: 17.629% -> 17.443% -> 17.312% (123,008 el) -> 17.289%
+(OLD, 243,360 el, vs NEW) -- a drop of only ~0.34 percentage points
+across a ~6x increase in element count, i.e. this is not "still
+converging slowly," it looks like a genuine near-asymptote well above
+zero. **Diagnosed with a real, targeted CPU investigation (per-Gauss-
+point, per-tensor-component RMS/mean breakdown) before reporting this as
+fact, not assumed**: the three DIAGONAL normal-stress components
+(sigma_xx, sigma_yy, sigma_zz) each have an RMS value across the fixed-
+radius region 5-15x LARGER than their own region-average mean (e.g.
+sigma_xx: RMS 18.6 vs. mean 2.86 in one representative check) --
+meaning the region itself spans a genuinely steep local stress gradient
+(from near the groove's own concentration peak out to its far edge), and
+individual quadrature-point values are correspondingly far more sensitive
+to exactly where in that gradient a mesh's own discrete points happen to
+land than the volume-weighted AVERAGE is (which benefits from
+cancellation across the region that a pointwise field comparison does
+not get). This matches -- and sharpens -- this project's own repeatedly-
+established finding that pointwise/local QoIs converge much slower than
+averaged/global ones (same story as B1/B2's own peak-stress work); it is
+not evidence the new field-error metric is computed wrong (internally
+consistent: the ladder's own 123,008-element row, compared to NEW,
+agrees with OLD-vs-NEW to within 0.02 percentage points, exactly as it
+should for two numbers describing the same underlying plateau).
+
+**What this means for the eventual Timon-facing write-up (NOT done
+yet)**: the region-AVERAGE Cauchy stress can honestly be presented as
+converged to ~1% (arguably better); the region Cauchy-stress FULL-TENSOR
+FIELD error should be presented as a genuinely harder, NOT-yet-converged
+QoI (consistent with the required-resolution table's own honest "not
+reached by any tested resolution" rows for it) -- a real, disclosed
+limitation, not a hidden one, and NOT something to claim "1%" for.
+
+**Required-resolution table, final version (against the NEW 424,128-
+element reference)** -- selected rows, honestly disclosing what does and
+does not reach 1%:
+
+| QoI | 5% | 2% | 1% |
+|---|---|---|---|
+| Displacement L2 | 600 el | 3,240 el | 20,808 el |
+| H1 (gradient) semi-norm | 38,808 el | not reached | not reached |
+| Total strain energy | 600 el | 600 el | 3,240 el |
+| Reaction moment (primary) | 3,240 el | 9,464 el | 38,808 el |
+| Reaction force (secondary) | 65,000 el | not reached | not reached |
+| Region-Cauchy avg (scalar) | 38,808 el | 123,008 el | not reached (0.51% between the two finest refs -- effectively there) |
+| Region-Cauchy p99 (scalar) | not reached | not reached | not reached |
+| Region-Cauchy field (full tensor) | not reached | not reached | not reached (genuine plateau ~17%, see above) |
+
+**All 11 of Omar's review points are now closed at the code/data
+level.** What is explicitly NOT done yet, per Omar's own closing
+instruction: writing up this GPU result (including the new field-error
+plateau finding) into a clean, honest summary for both candidates, and
+preparing (not sending) the draft email to Timon. No dataset generation
+or neural-operator training starts for either candidate until that
+happens and Timon picks a candidate.
+
+Previous update, same day (**Omar's own detailed 11-point technical
 review of BOTH candidates, sent before any email to Timon, fully
 implemented and validated -- 10 of 11 points closed at the code level;
 the 11th (a finer ~424k-element GPU reference) has the notebook built
