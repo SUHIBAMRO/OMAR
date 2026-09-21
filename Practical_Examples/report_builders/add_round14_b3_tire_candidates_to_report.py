@@ -48,6 +48,42 @@ references), essentially the same well-behaved shape as the region-
 average statistic. 11.2's table and 11.2.1's own text are updated with
 these real numbers; nothing about this QoI is provisional any more.
 
+REVISED 2026-09-21e -- Omar's final pass before this goes to the
+advisor, four more corrections:
+  1. "Region-Cauchy average" and "99th percentile" never stated WHICH
+     stress quantity they are -- confirmed in mesh_convergence_B3.py
+     (`sigma_flat[:, 0, 0]`) that both are specifically the sigma_xx
+     component, not a tensor norm or von Mises stress. Every mention
+     now says "sigma_xx" explicitly, and the table's own row labels are
+     renamed accordingly. The separate full-tensor field error (all 9
+     components) is now labeled distinctly so it is not confused with
+     the sigma_xx-only statistics.
+  2. "Reaction force" never stated what is actually compared -- confirmed
+     in the code (`np.linalg.norm(r["reaction_force"])`) that the
+     relative error is computed on the RESULTANT (Euclidean norm) of the
+     reaction-force vector, not a single component. Stated explicitly
+     everywhere this QoI is named.
+  3. Language written for an internal log, not an advisor, is replaced
+     throughout with direct scientific phrasing -- e.g. "developed to
+     full rigor" -> "developed to a validated FEM mesh-convergence
+     stage"; the 11.1 heading "...a real, user-caught geometry
+     correction" -> "Geometry refinement and design history"; "honestly
+     characterized" -> "validated and documented"; "the project's own
+     standing discipline" removed in favor of stating the fact plainly;
+     references to whose review caught what are removed from the
+     advisor-facing text (they belong in the internal project record,
+     not this document).
+  4. The tire's pressure load was called an "internal inflation
+     pressure" representing the "inner surface of the tire's own outer
+     shell" -- but the meridian cross-section here is confirmed
+     (`Rr = R_bead + (R_tread_eff - R_bead) * t`, t in [0,1]) to be a
+     SOLID volume from the bead to the tread surface, not a hollow shell
+     with an internal cavity. Calling this an "inflation pressure" is
+     not geometrically accurate. Renamed throughout to "a distributed
+     outward pressure preload," with an explicit note that the geometry
+     is solid, not a shell, so this is a boundary condition rather than
+     a literal internal inflation.
+
 Appended as a new top-level section (11.) after the existing Section 10
 (Conclusion and Next Steps) -- this work started after that conclusion
 was written and is its own, still-in-progress deliverable, not a
@@ -59,7 +95,7 @@ from docx import Document
 
 DELIV = '/home/user/OMAR/advisor_feedback'
 REPORT_SRC = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-09-19b.docx')
-REPORT_DST = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-09-21d.docx')
+REPORT_DST = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-09-21e.docx')
 
 doc = Document(REPORT_SRC)
 
@@ -101,22 +137,22 @@ para(
     "the B1/B2 benchmark pair. Two candidates were prepared in parallel, to "
     "the same single-material (Neo-Hookean), no-contact scope, so Timon can "
     "choose between them before any expensive commitment: (A) a rocking "
-    "elastomeric rubber-mount bushing (\"B3\"), developed to full rigor with "
-    "a real GPU mesh-convergence study; and (B) a tire sector -- a genuine "
-    "torus segment, not a straight extrusion -- prepared as a deliberately "
-    "LIGHTWEIGHT preliminary alternative (geometry, boundary conditions, a "
-    "real solve, and a basic convergence check only, explicitly not brought "
-    "to B3's own level of rigor unless chosen). Neither candidate's dataset "
-    "generation or neural-operator training has started; that step is "
-    "gated on this choice."
+    "elastomeric rubber-mount bushing (\"B3\"), developed to a validated FEM "
+    "mesh-convergence stage with a GPU mesh-convergence study; and (B) a tire "
+    "sector -- a torus segment, not a straight extrusion -- prepared as a "
+    "deliberately lightweight preliminary alternative (geometry, boundary "
+    "conditions, a solve, and a basic convergence check only, not yet brought "
+    "to the same validated mesh-convergence stage as B3). Dataset generation "
+    "and neural-operator training have not started for either candidate; "
+    "that step depends on this choice."
 )
 
-h2("11.1 Design history and a real, user-caught geometry correction")
+h2("11.1 Geometry refinement and design history")
 
 para(
-    "B3's geometry went through two real, substantive corrections before "
-    "reaching its current form, both caught by direct scrutiny of the "
-    "design rather than accepted at face value. The first draft was a "
+    "B3's geometry went through two substantive revisions before reaching "
+    "its current form, both identified through detailed review of the "
+    "design. The first draft was a "
     "thin plate with a circular hole under uniaxial tension -- rejected as "
     "both the wrong shape category (not the \"rubber mount\" character "
     "requested) and too simple a benchmark. The corrected design is an "
@@ -146,32 +182,34 @@ h2("11.2 Candidate A: the B3 rubber-mount bushing -- GPU-confirmed "
 
 para(
     "Full QoI set tracked at every resolution: displacement L2 and an "
-    "H1-like gradient semi-norm (both against a real fine reference, via "
-    "genuine interpolation in the mesh's own shared parametric coordinate "
+    "H1-like gradient semi-norm (both against a fine reference, via "
+    "interpolation in the mesh's own shared parametric coordinate "
     "space, exact for node fields); total hyperelastic strain energy "
     "(a scalar total -- explicitly NOT the same, more rigorous "
     "tangent-energy-norm metric B1/B2 use, see the correction below); "
     "reaction moment about the rotation axis (the PRIMARY reaction QoI for "
-    "this rocking case) and reaction force (secondary, confirmed "
-    "non-degenerate from real data, not assumed); and a fixed-region "
-    "Cauchy-stress statistic at the groove -- a volume-weighted average and "
-    "99th percentile, plus a full Cauchy-TENSOR relative field error (see "
-    "11.2.1 for its own corrected methodology), with a reliability gate "
-    "that reports the 99th percentile as \"not reliable\" below 20 "
-    "quadrature-point samples rather than a misleading number from too "
-    "few points."
+    "this rocking case) and the resultant (Euclidean norm) of the reaction "
+    "force vector (secondary, confirmed non-degenerate from real data, not "
+    "assumed); and a fixed-region statistic on the sigma_xx component of the "
+    "Cauchy stress tensor at the groove -- a volume-weighted regional "
+    "average of sigma_xx and a regional 99th percentile of sigma_xx -- plus "
+    "a separate full Cauchy-TENSOR relative field error over all stress "
+    "components (see 11.2.1 for its own corrected methodology), with a "
+    "reliability gate that reports the sigma_xx 99th percentile as \"not "
+    "reliable\" below 20 quadrature-point samples rather than a misleading "
+    "number from too few points."
 )
 
 para(
-    "A real GPU run (A100) solved two fine references to check whether the "
-    "hardest QoI -- the fixed-region Cauchy stress -- had actually "
+    "A GPU run (A100) solved two fine references to check whether the "
+    "hardest QoI -- the fixed-region sigma_xx statistic -- had actually "
     "converged, not merely reached the largest mesh tried: 243,360 "
     "elements (81 x 40 x 79) and a new, finer 424,128-element mesh "
-    "(97 x 48 x 95). The volume-weighted region-average Cauchy stress "
+    "(97 x 48 x 95). The volume-weighted regional average of sigma_xx "
     "changed by only 0.506% between these two references -- down from "
     "0.87% at the previous step, and within the predefined approximately "
     "0.5-0.7% reference-convergence band -- supporting that this "
-    "statistic's REFERENCE value is itself converged. This is a distinct "
+    "statistic's reference value is itself converged. This is a distinct "
     "claim from any operational mesh reaching 1% error against that "
     "reference: the highest non-reference mesh in the tested ladder "
     "(123,008 elements) still shows 1.28% error, so 1% is not yet reached "
@@ -188,13 +226,13 @@ table(
         ["H1 (gradient) semi-norm", "38,808 el.", "not reached", "not reached"],
         ["Total strain energy", "600 el.", "600 el.", "3,240 el."],
         ["Reaction moment (primary)", "3,240 el.", "9,464 el.", "38,808 el."],
-        ["Reaction force (secondary)", "65,000 el.", "not reached", "not reached"],
-        ["Region-Cauchy average (scalar)", "38,808 el.", "123,008 el.",
+        ["Reaction force resultant (Euclidean norm, secondary)", "65,000 el.", "not reached", "not reached"],
+        ["Regional average of sigma_xx (volume-weighted)", "38,808 el.", "123,008 el.",
          "not reached by any non-reference mesh in the tested ladder "
          "(123,008 elements gives 1.28%); the two fine references differ "
          "by only 0.506%, supporting convergence of the reference itself"],
-        ["Region-Cauchy 99th percentile", "not reached", "not reached", "not reached"],
-        ["Region-Cauchy full-tensor field error", "38,808 el.", "123,008 el.",
+        ["Regional 99th percentile of sigma_xx (volume-weighted)", "not reached", "not reached", "not reached"],
+        ["Cauchy-stress tensor field error (all components)", "38,808 el.", "123,008 el.",
          "not reached by any non-reference mesh in the tested ladder "
          "(123,008 elements gives 1.51%); the two fine references differ "
          "by only 0.662%, supporting convergence of the reference itself "
@@ -207,11 +245,11 @@ para(
     "Displacement, energy, and reaction moment all converge cleanly and "
     "smoothly, which is reassuring evidence the model, mesh, and boundary "
     "conditions are correct rather than merely not visibly broken. The H1 "
-    "semi-norm and reaction force do not reach 1% within the tested range "
-    "-- a real, disclosed gap, consistent with this project's own repeated "
-    "finding (already established for B1/B2) that gradient/energy-flux-"
-    "type quantities converge more slowly than displacement or averaged-"
-    "stress statistics.",
+    "semi-norm and the reaction-force resultant do not reach 1% within the "
+    "tested range -- a disclosed limitation, consistent with this project's "
+    "own repeated finding (already established for B1/B2) that gradient/"
+    "energy-flux-type quantities converge more slowly than displacement or "
+    "averaged-stress statistics.",
     italic=True,
 )
 
@@ -279,12 +317,12 @@ para(
     "15.130% (3,240), 8.609% (9,464), 5.567% (20,808), 3.762% (38,808), "
     "2.599% (65,000), 1.510% (123,008), down to 0.662% between the two "
     "references -- essentially the same well-behaved shape as the "
-    "region-average statistic (11.2 above), and a world away from the "
+    "regional sigma_xx average (11.2 above), and a world away from the "
     "earlier ~17.3% plateau. This QoI is no longer provisional: the "
     "required-resolution table above now reports real 5%/2% thresholds "
     "for it, with 1% not yet reached by any single non-reference mesh but "
     "well-supported by the reference's own 0.662% stability, exactly "
-    "mirroring how the region-average statistic's own 1% row is read.",
+    "mirroring how the regional sigma_xx average's own 1% row is read.",
     italic=True,
 )
 
@@ -309,20 +347,24 @@ para(
 
 para(
     "Loading combines two superposed pressure loads under one incremental "
-    "ramp: an internal inflation pressure (outward), applied over the "
-    "ENTIRE outer boundary of the meridian cross-section (every node with "
-    "r_local = R_tread_eff(theta) for theta across its full [0,pi] range, "
-    "i.e. every node not bonded to the bead -- representing the full inner "
-    "surface of the tire's own outer shell, not only a narrow contact-band "
-    "region), plus an additional, localized inward pressure restricted to "
-    "a window at the tread centerline (renamed from an earlier, inaccurate "
-    "\"contact patch\" -- there is no ground-contact formulation here, no "
-    "contact mechanics, no rigid ground surface). A real solve smoke test "
-    "confirms the rim stays exactly fixed, the rest of the tread bulges "
-    "outward under inflation alone as physically expected, the loaded "
-    "window still moves net inward (the local load dominates the inflation "
-    "there), and the deformation is genuinely non-degenerate in all three "
-    "directions -- confirming the torus topology is real, not collapsed."
+    "ramp: a distributed outward pressure preload, applied over the entire "
+    "outer boundary of the meridian cross-section (every node with "
+    "r_local = R_tread_eff(theta) across the full theta range, i.e. every "
+    "node not bonded to the bead). The meridian cross-section here is a "
+    "SOLID volume from the bead to the tread surface, not a hollow shell "
+    "with an internal cavity, so this preload is a boundary condition on "
+    "the outer surface rather than a literal internal inflation pressure -- "
+    "the term \"inflation pressure\" used in an earlier draft has been "
+    "corrected accordingly. A second, additional, localized inward pressure "
+    "is superposed within a window at the tread centerline (renamed from an "
+    "earlier, inaccurate \"contact patch\" -- there is no ground-contact "
+    "formulation here, no contact mechanics, no rigid ground surface). A "
+    "solve smoke test confirms the rim stays exactly fixed, the rest of the "
+    "tread bulges outward under the distributed preload alone as expected, "
+    "the loaded window still moves net inward (the local load dominates the "
+    "preload there), and the deformation is non-degenerate in all three "
+    "directions, confirming the torus topology is genuinely three-"
+    "dimensional."
 )
 
 para(
@@ -331,43 +373,42 @@ para(
     "groove-region stress; both show real, material resolution "
     "sensitivity, consistent with this project's own established pattern "
     "that local, boundary-window-dependent quantities converge more slowly "
-    "than global ones. Two disclosed, real degeneracies were found and "
-    "correctly handled rather than reported as-is: the reaction moment "
-    "about the wheel's own spin axis is exactly zero at every resolution, "
-    "for a genuine geometric reason (every applied load is pressure normal "
-    "to a surface of revolution about that axis, which cannot produce "
-    "torque about it) -- reported as a diagnostic only, never as a "
-    "convergence target, unlike B3's own genuine rocking moment. The "
-    "combined net reaction force (inflation and local load together) "
-    "swings by roughly 100x with sign changes across resolutions because "
-    "it is a near-cancellation of two comparable, unrelated load "
-    "resultants -- confirmed by reconstructing the combined force exactly "
-    "from the two loads' own isolated resultants -- so the local load's "
-    "own isolated resultant magnitude is used as the real reaction-family "
-    "QoI instead, and the combined force is kept only for the equilibrium "
-    "check. The two circumferential sector-cut faces are confirmed "
-    "genuinely free (not artificially clamped), but are not tied together "
-    "as a periodic boundary condition -- a disclosed limitation, since "
-    "implementing a true periodic-tie constraint is nontrivial new solver "
-    "infrastructure judged out of scope for a lightweight preliminary "
-    "candidate; the load and stress-sampling region are deliberately "
-    "centered mid-sector, away from both cuts, to mitigate this. If the "
-    "tire candidate is selected for the final benchmark, the sector-"
-    "boundary treatment will be revisited before dataset generation or "
-    "operator training -- this preliminary version is not proposed as the "
-    "final tire model."
+    "than global ones. Two disclosed effects were identified and handled "
+    "explicitly rather than reported without qualification: the reaction "
+    "moment about the wheel's own spin axis is exactly zero at every "
+    "resolution, for a genuine geometric reason (every applied load is "
+    "pressure normal to a surface of revolution about that axis, which "
+    "cannot produce torque about it) -- reported as a diagnostic only, "
+    "never as a convergence target, unlike B3's own physical rocking "
+    "moment. The combined net reaction force (the distributed preload and "
+    "local load together) swings by roughly 100x with sign changes across "
+    "resolutions because it is a near-cancellation of two comparable, "
+    "unrelated load resultants -- confirmed by reconstructing the combined "
+    "force exactly from the two loads' own isolated resultants -- so the "
+    "local load's own isolated resultant magnitude is used as the reaction-"
+    "family QoI instead, and the combined force is kept only for the "
+    "equilibrium check. The two circumferential sector-cut faces are "
+    "confirmed genuinely free (not artificially clamped), but are not tied "
+    "together as a periodic boundary condition -- a disclosed limitation, "
+    "since implementing a true periodic-tie constraint is nontrivial new "
+    "solver infrastructure judged out of scope for a lightweight "
+    "preliminary candidate; the load and stress-sampling region are "
+    "deliberately centered mid-sector, away from both cuts, to mitigate "
+    "this. If the tire candidate is selected for the final benchmark, the "
+    "sector-boundary treatment will be revisited before dataset generation "
+    "or operator training -- this preliminary version is not proposed as "
+    "the final tire model."
 )
 
 h2("11.4 Status")
 
 para(
-    "Both candidates are prepared to a real, working, and honestly "
-    "characterized state -- B3 with a GPU-confirmed mesh-convergence study "
-    "and a full required-resolution table; the tire sector as a genuine, "
-    "solving, but deliberately lightweight preliminary alternative. Per "
-    "the project's own standing discipline, no dataset generation or "
+    "Both candidates are prepared to a validated, documented state -- B3 "
+    "with a GPU-confirmed mesh-convergence study and a full required-"
+    "resolution table; the tire sector as a working, but deliberately "
+    "lightweight preliminary alternative. No dataset generation or "
     "neural-operator training has started for either candidate; that step "
-    "is gated on Timon's choice between them. After the final 3D candidate "
+    "depends on Timon's choice between them. After the final 3D candidate "
     "is selected, the remaining numerical step is dataset generation, "
     "operator training, and the FEM-versus-operator comparison on "
     "displacement, reaction, energy, and regional Cauchy-stress QoIs, "

@@ -3,16 +3,20 @@ Summary covers ONLY the round just completed, copied verbatim out of the
 now-updated cumulative Report -- see build_new_summary_2026-09-18.py for
 the original rationale/mechanism, reused unchanged here).
 
-Round 14 = Timon's item 4 (a new, harder 3D example): first status
-report on both candidates (B3 rubber-mount bushing, tire sector),
-Omar's own detailed 11-point technical review of both, the real GPU
-mesh-convergence result that followed, the field-error methodology fix
-(found via Omar's own second, line-by-line review before sending to
-Timon -- see add_round14_b3_tire_candidates_to_report.py's own module
-docstring for the full seven-point list of what changed between the
-first and second draft), and the GPU re-run Omar asked for (2026-09-21d)
-that confirms the fix with a real full-tensor field error of 0.662%
-between the two finest references, not just the earlier CPU-scale test.
+Round 14 = Timon's item 4 (a new, harder 3D example): status report on
+both candidates (B3 rubber-mount bushing, tire sector), including a
+GPU-confirmed mesh-convergence result and a corrected, GPU-confirmed
+Cauchy-tensor field-error metric (see
+add_round14_b3_tire_candidates_to_report.py's own module docstring for
+the internal record of what changed across drafts -- not repeated here
+since this file's own text is what actually goes to the advisor).
+
+REVISED 2026-09-21e: this file's own intro paragraph is rewritten to
+drop internal-process language ("Omar's own", "11-point review",
+"line-by-line") that belongs in the project's internal record, not in
+what is shown to the advisor -- see add_round14_b3_tire_candidates_to_
+report.py's own docstring, point 3, for the same fix applied throughout
+the sliced Section 11 content.
 """
 import copy
 import os
@@ -22,8 +26,8 @@ from docx.opc.constants import RELATIONSHIP_TYPE as RT
 from docx.oxml.ns import qn
 
 DELIV = '/home/user/OMAR/advisor_feedback'
-REPORT = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-09-21d.docx')
-OUT = os.path.join(DELIV, 'PFEM_Work_Summary_2026-09-21d.docx')
+REPORT = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-09-21e.docx')
+OUT = os.path.join(DELIV, 'PFEM_Work_Summary_2026-09-21e.docx')
 
 src = Document(REPORT)
 
@@ -91,31 +95,28 @@ append_heading(dst, "PFEM / Transolver Work Summary -- Round 14")
 p = dst.add_paragraph()
 p.add_run(
     "This round covers Timon's item 4 (design and build a new, harder, more "
-    "realistic 3D example). Two candidates were prepared in parallel; Omar's "
-    "own detailed 11-point technical review of both was carried out before "
-    "this write-up, and this Summary also covers the real GPU result that "
-    "followed, a methodology fix to the Cauchy-tensor field-error metric "
-    "(found via a second, line-by-line review of the first draft, before it "
-    "was shown to Timon), and the GPU re-run confirming that fix with a "
-    "real reference-scale number. As with previous rounds, everything below "
-    "is copied verbatim (same tables, same text) out of the now-updated "
-    "cumulative Report (PFEM_Transolver_Report_2026-09-21d.docx) -- nothing "
-    "summarized or re-derived. Neither candidate's dataset generation or "
-    "neural-operator training has started; that step is gated on Timon's "
-    "choice between them."
+    "realistic 3D example). Two candidates were prepared in parallel: a "
+    "rocking rubber-mount bushing (B3), developed to a validated FEM "
+    "mesh-convergence stage with a GPU-confirmed result, and a tire sector, "
+    "prepared as a lightweight preliminary alternative. As with previous "
+    "rounds, everything below is copied verbatim (same tables, same text) "
+    "out of the now-updated cumulative Report "
+    "(PFEM_Transolver_Report_2026-09-21e.docx) -- nothing summarized or "
+    "re-derived. Dataset generation and neural-operator training have not "
+    "started for either candidate; that step depends on Timon's choice "
+    "between them."
 ).italic = True
 
 elements = slice_by_anchor_text(
     src,
     "11. Third Benchmark Candidate (in progress): 3D Hyperelastic "
     "Rubber-Mount Bushing vs. Tire Sector",
-    "Both candidates are prepared to a real, working, and honestly "
-    "characterized state -- B3 with a GPU-confirmed mesh-convergence study "
-    "and a full required-resolution table; the tire sector as a genuine, "
-    "solving, but deliberately lightweight preliminary alternative. Per "
-    "the project's own standing discipline, no dataset generation or "
+    "Both candidates are prepared to a validated, documented state -- B3 "
+    "with a GPU-confirmed mesh-convergence study and a full required-"
+    "resolution table; the tire sector as a working, but deliberately "
+    "lightweight preliminary alternative. No dataset generation or "
     "neural-operator training has started for either candidate; that step "
-    "is gated on Timon's choice between them. After the final 3D candidate "
+    "depends on Timon's choice between them. After the final 3D candidate "
     "is selected, the remaining numerical step is dataset generation, "
     "operator training, and the FEM-versus-operator comparison on "
     "displacement, reaction, energy, and regional Cauchy-stress QoIs, "

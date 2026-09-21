@@ -157,7 +157,33 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-21 (**The fix confirmed on REAL GPU DATA, not just
+Last updated: 2026-09-21 (**Final advisor-facing polish pass before
+sending, Omar's own four last corrections -- all applied to the Report/
+Summary/email, now "e" versions.** (1) "Region-Cauchy average"/"99th
+percentile" never stated which stress quantity they are -- confirmed in
+code (`sigma_flat[:, 0, 0]`) both are specifically sigma_xx, not a
+tensor norm or von Mises stress; every mention and the table's own row
+labels now say "sigma_xx" explicitly, distinct from the separate full-
+tensor field error (all 9 components). (2) "Reaction force" never
+stated what is compared -- confirmed in code
+(`np.linalg.norm(r["reaction_force"])`) the relative error is on the
+RESULTANT (Euclidean norm) of the vector, not a component -- now stated
+everywhere. (3) Internal-log language ("Omar's own", "11-point review",
+"developed to full rigor", "a real, user-caught geometry correction",
+"honestly characterized", "the project's own standing discipline")
+replaced throughout with direct scientific phrasing suitable for the
+advisor -- e.g. "developed to a validated FEM mesh-convergence stage,"
+11.1 retitled "Geometry refinement and design history," "validated and
+documented." (4) The tire's pressure load was called an "internal
+inflation pressure" over the "inner surface of the tire's own outer
+shell" -- but the meridian cross-section is confirmed
+(`Rr = R_bead + (R_tread_eff - R_bead) * t`, solid for all t in [0,1])
+to be a SOLID volume, not a hollow shell with a cavity, so "inflation"
+was not geometrically accurate. Renamed to "a distributed outward
+pressure preload" with an explicit note that the geometry is solid, not
+a shell.
+
+Previous update, same day (**The fix confirmed on REAL GPU DATA, not just
 CPU -- Omar's own explicit ask ("خود الرقم النهائي من جيبيو"). Re-ran
 the exact same A100 reference pair (243,360 vs. 424,128 elements) with
 the corrected, symmetric comparison: full Cauchy-tensor field error is
