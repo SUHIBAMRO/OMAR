@@ -157,7 +157,72 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-21 (**B3 mesh convergence CLOSED -- real GPU run,
+Last updated: 2026-09-21 (**Tire-sector second candidate built and
+smoke-tested (CPU), per Omar's own explicit "lightweight, preliminary
+only" scope -- both candidates are now ready to present to Timon.**
+
+**Geometry** (`omar_pfem/data/data_generate_tire.py`): a genuine TORUS
+SEGMENT, not a straight extrusion (that would just be B3 again) -- the
+same (theta,r) meridian half-ring parametrization B2/B3 already use
+(reused unchanged) is swept through a limited circumferential sector
+angle Phi around a big wheel axis (R_big=3.0), instead of extruded along
+a straight line. r_local=R_bead (theta=0..pi, all Phi) is bonded to a
+FIXED rigid rim; r_local=R_tread_eff(theta) is the tread, with a smooth
+C1 raised-cosine GROOVE at the tread centerline (theta=pi/2) -- same
+construction as B3's own groove, applied to the outer boundary instead,
+radius of curvature computed and disclosed (0.0912 for the tested
+parameters, same value as B3's own by coincidence of using the same
+depth/half-width numbers).
+
+**Real bug caught and fixed during development**: the initial torus
+sweep mapping ((R_big+y_local)*cos(Phi), x_local, (R_big+y_local)*sin(Phi))
+produced NEGATIVE signed volume for every single element (checked
+directly, not assumed) -- a systematic parity flip relative to B3's own
+(radius*cos, radius*sin, z) placement, since swapping which local
+coordinate maps to which global axis changes handedness. Fixed by
+reversing the 2D quad's own node winding (n1,n4,n3,n2 instead of
+n1,n2,n3,n4) before the sweep -- re-verified zero inverted elements
+afterward. A second real bug (`boundary_node_sets` inverting local
+(x_local,y_local) from global coordinates): swapped which recovered
+quantity was x_local vs. y_local, making the contact-patch selection
+always come up empty; fixed by tracing through the forward mapping
+formula carefully rather than guessing.
+
+**Load**: a normal PRESSURE over a limited "contact patch" angular
+window near the tread centerline, via torch-fem's own
+`integrate_surface_load` -- a genuinely NEW load type for this project
+(B3 used only prescribed displacement); hit the same float32-default
+dtype bug documented in `torchfem_comparison.py` (torch-fem's own
+`_scatter`/`index_add_` picks up whatever the GLOBAL default dtype is),
+fixed the same way (`torch.set_default_dtype` wrapped around the call).
+Explicitly NOT a solved contact problem, per Omar's own instruction --
+Timon's call whether real contact modeling is worth the scope if this
+candidate is chosen.
+
+**Real CPU solve smoke test passed**: converges cleanly (residual
+~4.7e-11); rim stays exactly fixed; the contact patch moves INWARD under
+the inward pressure (the physically correct direction, checked directly
+rather than assumed); all three displacement components are genuinely
+non-degenerate (confirms the torus topology is real, not collapsed).
+
+**Preliminary (deliberately lightweight, NOT B3-level) mesh-convergence
+check** (`mesh_convergence_tire.py`, CPU, 4 resolutions, 96 to 2,880
+elements): max displacement and a groove-region Cauchy-stress average
+both show real, material resolution sensitivity (region stress relative
+change: 34% -> 37% -> 15%, still far from converged at this scale) --
+enough to confirm genuine 3D sensitivity exists, matching this project's
+own established "local stress converges slower than displacement"
+pattern, without attempting the full 7-QoI/GPU-scale treatment B3
+received (explicitly out of scope unless Timon picks this candidate).
+
+**Both candidates are now ready to present to Timon**: B3 (the rocking
+rubber-mount bushing) with its full, GPU-confirmed convergence study and
+final 5%/2%/1% required-resolution table; the tire sector as a real,
+working, but deliberately lightweight preliminary alternative. Per
+Omar's own explicit instruction, no dataset generation or training
+starts for EITHER candidate until Timon picks one.
+
+Previous update, same day (**B3 mesh convergence CLOSED -- real GPU run,
 region-Cauchy stress genuinely plateaus, final 5%/2%/1% table produced.
 This is the result Omar's whole sequencing (2026-09-21) was gating on.**
 
