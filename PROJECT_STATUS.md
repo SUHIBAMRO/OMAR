@@ -157,7 +157,68 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-21 (**Point 4's GPU run FINISHED on a real A100 --
+Last updated: 2026-09-21 (**Omar asked directly how to FIX the ~17%
+Cauchy-tensor-field-error plateau, not just disclose it. Two genuine
+code fixes were tried and TESTED (not just proposed) -- both made the
+error WORSE, for understood, verifiable reasons -- so both were
+reverted. This is now a scientifically closed question: the plateau is
+a real, inherent property of comparing pointwise stress fields, not a
+fixable bug, and the robust volume-weighted AVERAGE (already confirmed
+converged to 0.51%) remains the right statistic to report.**
+
+**Attempt 1 -- per-Gauss-point interpolation instead of per-element-
+averaged** (the natural first guess: the field-error comparison
+interpolated the coarser case's own per-ELEMENT-AVERAGED Cauchy field,
+while the reference side used its own RAW per-Gauss-point values --
+looked like an apples-to-oranges mismatch worth fixing). Implemented a
+new `_gauss_field_interpolator` using each element's own individual
+Gauss-point values directly (valid: for r_grading=1.0, used everywhere
+in this module, every element's Gauss points sit at the same fixed
+fractional offset within a uniform-width cell, so their union forms a
+genuine tensor-product grid, exact for `RegularGridInterpolator`).
+**Tested directly on real data before trusting it**: made the error
+SUBSTANTIALLY WORSE, not better (600-element case: 32.97% -> 84.08%;
+3,240-element case: 22.80% -> 59.51%). **Diagnosed why, with real
+numbers, not just reverted blindly**: within ONE coarse element,
+sigma_xx varies by up to 250.9 between its own 8 Gauss points --
+comparable to or larger than the ENTIRE element-averaged mesh's own
+sigma_xx range (-134.8 to 130.8) end to end. Raw per-Gauss stress in a
+coarse element is mostly noise, not signal (a well-known FEM fact:
+stress is only piecewise-continuous, derived from a gradient of a
+piecewise-continuous displacement field, so it genuinely jumps at
+element boundaries -- accurate stress needs a recovery/smoothing step,
+e.g. nodal averaging or superconvergent patch recovery, not raw
+values). The per-element-averaged source was already smoothing over
+this noise; feeding raw values in made the comparison strictly noisier.
+**Reverted** (`git checkout` back to the committed version, re-verified
+the reverted file reproduces the exact original numbers).
+
+**Attempt 2 -- shrink the fixed region radius** (if the region spans too
+steep a gradient, sample a smaller, more local zone). Quick-tested at
+half and quarter the current radius (region_radius = 2.0x groove
+curvature radius): shrinking to 1.0x made the field error WORSE, not
+better (48.78% -> 58.04%, at matched resolutions) -- because a smaller
+region also means far fewer quadrature-point samples (478->64 for the
+reference, 164->20 for the coarser case), and with fewer samples the
+RMS field-error statistic no longer benefits from averaging out
+individual-point noise. **Not adopted** (also would have needed
+re-validating the `n_region>=20` reliability gate at every already-
+tested resolution).
+
+**Conclusion, given to Omar directly rather than silently kept as a
+caveat**: the region-averaged Cauchy stress (volume-weighted, already
+confirmed at 0.51% between the two finest GPU references) is the
+correct, trustworthy statistic to report as converged. The full-tensor
+POINTWISE field-error QoI is genuinely harder and does not have a cheap
+fix -- a real fix would mean implementing actual FEM stress recovery
+(nodal averaging / SPR-style smoothing), a substantial, separately-
+scoped piece of new work, not something to rush into this round. Until/
+unless Omar wants to invest in that, this QoI should be presented to
+Timon as "not yet converged, by design harder than the averaged
+statistic" -- exactly what the required-resolution table already, and
+correctly, reports ("not reached by any tested resolution").
+
+Previous update, same day (**Point 4's GPU run FINISHED on a real A100 --
 the region-average Cauchy stress claim is now substantially stronger
 (0.51% between the two finest references, under Omar's own 0.5-0.7%
 bar), BUT a genuine, diagnosed new finding: the full Cauchy-TENSOR field
