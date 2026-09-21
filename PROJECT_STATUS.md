@@ -157,7 +157,175 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-21 (**Tire-sector second candidate built and
+Last updated: 2026-09-21 (**Omar's own detailed 11-point technical
+review of BOTH candidates, sent before any email to Timon, fully
+implemented and validated -- 10 of 11 points closed at the code level;
+the 11th (a finer ~424k-element GPU reference) has the notebook built
+and ready but NOT YET RUN, since it needs a real GPU. Per Omar's own
+explicit closing instruction, no dataset generation or training starts
+for either candidate, and no email is drafted, until this review is
+fully closed out.**
+
+**B3 (rubber-mount bushing), points 1/2/3/5/6/7 -- all implemented in a
+substantial rewrite of `mesh_convergence_B3.py`, then validated with a
+fresh CPU run (fine reference 9,464 elements + 4 test resolutions +
+directional study, all physics checks passing, no NaNs/crashes)**:
+  1. **Full Cauchy-tensor field error** (`cauchy_field_rel`), not just
+     `sigma_xx`: interpolates the coarser case's own per-element Cauchy
+     field onto the FINE reference's own per-Gauss-point locations
+     inside the fixed region, then a volume-weighted RMS Frobenius-norm
+     relative error. The old scalar avg/p99 stats are KEPT as
+     additional, secondary QoIs (per Omar's own instruction), not
+     removed; true pointwise max stays secondary only, as before.
+  2. **Volume-weighted, quadrature-point-based region sampling**,
+     replacing element-centroid sampling: region membership is now
+     tested at each element's 8 Gauss points (8x richer than centroids
+     alone), weighted by `iweight*|detJ|` (a genuine volume weight,
+     not a plain average). A new reliability gate
+     (`MIN_RELIABLE_N_P99=20`) reports p99 as `NaN`/"NOT RELIABLE" below
+     20 quadrature-point samples instead of a misleading percentile from
+     too few points (the old `n_region=2` problem) --
+     `find_required_resolutions` was also fixed to never count a NaN as
+     "reaching" a threshold.
+  3. **Reference reaction-force magnitude checked with real data, not
+     assumed**: fetched the actual GPU run JSON from Drive and decoded
+     it -- the fine reference's own `reaction_force` Y-component is
+     ~-1.49 (converging smoothly across the whole resolution ladder,
+     1.99->...->1.491), genuinely non-zero, not a near-zero artifact.
+     So review point 3's degeneracy concern does NOT apply to B3's own
+     data as originally worried -- `force_rel` values are legitimate.
+     Reaction MOMENT is still framed as the PRIMARY reaction QoI (more
+     physically natural for a rocking case) with force kept as a
+     verified-non-degenerate secondary, per Omar's own preferred
+     framing either way.
+  5. **Verified/documented proper interpolation**: confirmed (not just
+     assumed) that every B3 mesh at every resolution shares the exact
+     same parametric domain `[0,pi]x[0,1]x[0,Lz]` regardless of physical
+     node positions, so `scipy.interpolate.RegularGridInterpolator` is
+     genuine multilinear interpolation, never nearest-node snapping --
+     now also queried at individual GAUSS-POINT locations (not just
+     nodes) for the new Cauchy-field comparison in point 1.
+  6. **Force/moment equilibrium residuals now explicitly printed with
+     their own dimensionally-correct scales** (already correct
+     internally, just not surfaced before): `force_rel_residual`
+     normalized by a FORCE scale, `moment_rel_residual` by a MOMENT
+     scale -- verified these are genuinely separate denominators, not
+     shared.
+  7. **"Tangent energy" renamed to "Total strain energy"** everywhere
+     (code, QoI labels, printed output) since what's actually computed
+     is `sum(psi(F)*volume)`, a scalar total -- NOT B1/B2's own
+     `compute_tangent_energy_error` metric (`sqrt(e^T K(u_fine) e)`, the
+     norm of the error field under the fine solution's own tangent
+     stiffness), which is a genuinely different, more rigorous
+     quantity. Replicating B1/B2's true metric for torch-fem's `Solid`
+     was judged out of scope given the effort involved; the weaker
+     metric is now honestly labeled instead of misrepresented.
+
+  **A real, non-obvious bug found and fixed while implementing the
+  above** (not just a documentation fix): torch-fem's own
+  `.solve(aggregate_integration_points=False)` returns `P`/`F` with
+  shape `(n_gauss, n_elem, 3, 3)` -- GAUSS AXIS FIRST, contrary to the
+  natural assumption -- verified empirically via a standalone
+  interactive test (built a small `Solid` model, printed the actual
+  shapes) rather than guessing from the docstring. Same axis order
+  applies to `eval_shape_functions`'s own `detJ`. Fixed via
+  `.transpose(0,1)` immediately after each call; caught before it could
+  ship via a `ValueError: operands could not be broadcast together with
+  shapes (8,) (9464,)` in the energy computation during the validation
+  run.
+
+**Tire sector, points 8/9/10/11 -- `data_generate_tire.py`,
+`smoke_test_tire.py`, and `mesh_convergence_tire.py` all updated and
+re-validated (CPU smoke test + convergence sweep both re-run clean)**:
+  9. **"Contact patch" renamed to "tread load region"/"localized tread
+     loading region" everywhere** (variables, docstrings, printed
+     output) -- there is no actual ground-contact formulation here (no
+     contact mechanics, no rigid ground surface), so the old name
+     overstated what this is.
+  8. **Sector-cut BC verified and documented, not code-changed**:
+     confirmed directly (not assumed) that the two circumferential cut
+     faces (Phi=0, Phi=Phi_max) are never constrained anywhere in this
+     module -- genuinely FREE, not "artificially clamped." Genuine
+     periodic BCs (tying the two cut faces together) are judged real,
+     nontrivial new solver infrastructure (torch-fem's constraint API
+     is Dirichlet-only, no periodic-tie mechanism) and explicitly kept
+     out of scope for a lightweight preliminary candidate -- this
+     limitation is now spelled out in the module's own docstring, with
+     the mitigation that the load/QoI region are deliberately centered
+     mid-sector, away from both cuts.
+  10. **Internal inflation pressure added**: `boundary_node_sets` now
+      returns a THIRD mask, `full_tread` (the entire tread surface),
+      alongside `rim` and the renamed `tread_load_region`. Both
+      `smoke_test_tire.py` and `mesh_convergence_tire.py` now apply TWO
+      superposed `integrate_surface_load` calls under one incremental
+      ramp -- a positive (outward) inflation pressure over the WHOLE
+      tread, plus the existing negative (inward) localized tread load
+      restricted to `tread_load_region` -- disclosed as one simplified
+      combined ramp, not two truly sequential load stages (torch-fem's
+      `.solve(increments=...)` scales all forces by the same scalar per
+      step). Smoke test re-verified: the rest of the tread (inflation
+      only) bulges OUTWARD as expected; the load region (inflation +
+      dominant local load) still moves net INWARD; all checks pass.
+  11. **Region-Cauchy QoI placement unchanged** (already centered at the
+      groove's own deepest point, mid-sector, away from cuts and rim --
+      satisfied this point already); `mesh_convergence_tire.py` now ALSO
+      tracks total strain energy and a reaction/force-family QoI
+      alongside displacement and the groove-region stress, sampled at
+      Gauss-point resolution like B3.
+
+  **Two real, non-obvious findings made and correctly handled while
+  validating the tire's reaction-QoI addition (verified analytically,
+  not assumed, and NOT just disclosed away without understanding them
+  first)**: (a) the reaction MOMENT about the wheel's own spin axis
+  (global Y) is exactly zero at every resolution (~1e-12 to 1e-13) for
+  a real geometric reason -- every applied load here is pressure NORMAL
+  to a surface of revolution about that axis, and such a normal-
+  direction force has zero component in the surface's own local
+  circumferential direction, so it can never produce torque about that
+  axis, regardless of mesh or how much of the sector is loaded. Unlike
+  B3's genuine rocking bushing (where moment IS the primary physical
+  QoI), this tire sector has no analogous rocking DOF, so moment is
+  reported as a diagnostic only, never as a converging QoI. (b) The
+  COMBINED net reaction force (inflation + local load together) swings
+  by ~100x with sign flips across resolutions -- verified by isolating
+  each load's own unit-pressure resultant separately and reconstructing
+  the combined force exactly from the two (matches to 5+ significant
+  figures), proving this is a near-CANCELLATION of two comparable-
+  magnitude, unrelated quantities (2.0x inflation's own resultant
+  against 5.0x the local load's own, itself carrying real ~50% mesh-
+  quantization noise from its hard theta-window boundary), NOT a code
+  bug. The primary force-family QoI tracked is therefore the LOCAL
+  load's own isolated resultant magnitude (`local_load_force_norm`,
+  non-degenerate, shows real disclosed mesh sensitivity of its own);
+  the combined net force is kept only for the equilibrium-residual
+  check, exactly the same resolution principle as B3's own review point
+  3 ("use a genuinely nonzero component, don't threshold a near-
+  cancelling one"), applied here for cancellation rather than symmetry.
+
+**Point 4 (finer ~424k-element GPU reference) -- notebook built, NOT
+YET RUN**: `B3_GPU_MeshConvergence.ipynb`
+(`cell_b3_gpu_mesh_convergence.py`, `make_b3_gpu_mesh_convergence_
+notebook.py`, regenerated and re-verified 97/97 via `check_notebooks.py`)
+now solves TWO fine references on GPU -- the earlier 243,360-element one
+(81,40,79) AND a new, finer one at (97,48,95) (~424,128 elements) --
+compares their own region-Cauchy-stress values directly (relative
+change in `region_avg_sigma_xx`, and in `region_p99_sigma_xx` if
+reliable, plus the new full Cauchy-tensor field error between them)
+BEFORE anything else, explicitly checking whether that change has
+dropped below 0.5-0.7% as Omar asked; if not, the cell itself prints
+"1% not reached / provisional" rather than silently keeping the earlier
+1% claim. The new, finer reference then becomes the "official" one for
+the required-resolution table. **Waiting on Omar's turn on a real GPU**
+-- this is the one item of the 11 not yet closed at the code level (it
+cannot be, since it needs an actual A100/GPU run, not more code).
+
+**Everything else in this review (10 of 11 points) is done, validated,
+and committed.** Per Omar's own explicit closing instruction, no
+dataset generation or neural-operator training starts for either
+candidate, and no clean summary or draft email to Timon is prepared,
+until the GPU run above comes back.
+
+Previous update, same day (**Tire-sector second candidate built and
 smoke-tested (CPU), per Omar's own explicit "lightweight, preliminary
 only" scope -- both candidates are now ready to present to Timon.**
 

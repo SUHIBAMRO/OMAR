@@ -7,6 +7,50 @@ rigor (geometry+BC+one material+smoke solve+preliminary convergence
 only, NO full QoI/threshold table, NO training) so both candidates can
 be shown to Timon before any expensive commitment.
 
+REVISED 2026-09-21 (Omar's own technical review, before any email to
+Timon): four real corrections, not smoothed over:
+  1. Terminology: the loading region is renamed from "contact patch" to
+     "localized tread loading region" throughout -- there is no actual
+     ground-contact formulation here (no contact mechanics, no rigid
+     ground surface), so "contact patch" overstated what this is.
+  2. Sector cuts: VERIFIED (not just assumed) that the two
+     circumferential cut faces (Phi=0, Phi=Phi_max) are never
+     constrained anywhere in this module -- they are genuinely FREE,
+     not "artificially clamped." Genuine PERIODIC boundary conditions
+     (tying the two cut faces' displacements together, the physically
+     correct treatment for "a segment of a full ring") are NOT
+     implemented -- torch-fem's own Dirichlet-only constraint API has no
+     built-in multi-point/periodic-tie mechanism, and adding one is a
+     real, nontrivial piece of new solver infrastructure, explicitly out
+     of scope for a LIGHTWEIGHT preliminary candidate. This is a real,
+     disclosed limitation: the free-cut sector is only a reasonable
+     approximation to a periodic ring near the sector's own middle
+     (which is where the tread loading and the region-Cauchy QoI are
+     both centered, deliberately, per point 4 below), not at or near the
+     cuts themselves.
+  3. An internal inflation pressure is now applied FIRST, over the
+     WHOLE tread surface (not just the localized window), superposed
+     with the localized tread load (which adds extra, inward pressure
+     only within its own window) -- both scaled together through the
+     same incremental solve (a real simplification for this lightweight
+     candidate: two genuinely SEQUENTIAL load stages, inflate-then-load,
+     would need either two separate .solve() calls or a per-load
+     increment schedule torch-fem's own API does not expose directly;
+     superposing both loads under one incremental ramp still represents
+     "an inflated tire under an added local tread load," just not as two
+     strictly separate physical stages). This makes the geometry
+     meaningfully closer to an actual tire than a plain compressed
+     rubber torus, per Omar's own request.
+  4. The region-Cauchy-stress QoI stays fixed in physical space, at the
+     tread groove's own deepest point (theta=pi/2) and mid-sector
+     (Phi=Phi_max/2) -- away from BOTH sector cuts and the rim's own
+     bonded/free transition. It sits at the CENTER of the localized
+     load window (matching the groove's own location, by design, since
+     both represent the same physical tread centerline), not at that
+     window's own edge (where the pressure boundary condition itself is
+     discontinuous and would contaminate the measurement the same way
+     B3's original bonded/free edge did).
+
 Geometry: a TIRE SECTOR -- a genuine torus segment, not a straight
 extrusion (that would just be B3 again). A meridian cross-section (the
 same (theta,r) half-ring parametrization B2/B3 already use, reused
@@ -25,24 +69,6 @@ simplified stand-in for a real tire's circumferential tread groove
 (constant around the tire's circumference by construction, since it only
 depends on theta, not on the sweep angle Phi). Its own radius of
 curvature is computed and disclosed exactly as B3's groove is.
-
-Load: a normal PRESSURE over a limited angular "contact patch" window
-around the tread centerline (theta near pi/2), applied via torch-fem's
-own `integrate_surface_load` (a scalar pressure acting along the
-outward normal) -- a simplified stand-in for a real ground-contact
-load, explicitly NOT a solved contact problem (Timon's own call whether
-real contact modeling is worth the extra scope if this candidate is the
-one chosen).
-
-Explicit, disclosed simplifications for this LIGHTWEIGHT candidate
-(would need revisiting if Timon picks the tire over the bushing):
-  - The two circumferential cut faces (Phi=0, Phi=Phi_max) are left
-    FREE (not periodic) -- a genuine approximation, valid only for a
-    small sector "far" from needing a fully periodic solution.
-  - The bead sits on a rounded (half-circle) profile rather than a
-    flat ring, and no separate belt/ply reinforcement layers are
-    modeled -- single homogeneous hyperelastic material throughout,
-    per the same "one material model" instruction as B3.
 
 Single material model (Neo-Hookean), reusing `neo_hookean_psi_3d`
 unchanged, exactly as B3 does.
@@ -83,7 +109,11 @@ def generate_grid_hex8_tire_sector(R_bead, R_tread0, R_big, Phi_max, Ntheta, Nr,
     outer radius, swept through sector angle Phi_max around a big wheel
     axis of radius R_big -- a genuine torus segment. theta=0 and
     theta=pi rows are the tire's two flat sidewall-facing lines (see
-    module docstring); theta=pi/2 is the tread centerline."""
+    module docstring); theta=pi/2 is the tread centerline. The two
+    circumferential cut faces (Phi=0, Phi=Phi_max) are NEVER constrained
+    by this module (see boundary_node_sets) -- genuinely free, not
+    artificially clamped, though also not periodic (a real, disclosed
+    limitation for a lightweight candidate -- see module docstring)."""
     assert groove_half_theta <= np.pi / 2, "groove too wide: reaches theta=0 or pi"
     assert groove_depth < R_tread0 - R_bead, "groove too deep: would exceed the bead radius"
 
@@ -133,17 +163,18 @@ def generate_grid_hex8_tire_sector(R_bead, R_tread0, R_big, Phi_max, Ntheta, Nr,
 
 
 def boundary_node_sets(nodes, R_bead, R_tread0, R_big, groove_depth, groove_half_theta,
-                        contact_half_theta, tol=1e-9):
-    """Returns (rim, contact_patch) boolean masks, computed from each
-    node's own LOCAL (theta, r_local) recovered from its global
-    position (inverting the sweep -- y_local=x_global's own axial
-    coordinate is stored directly as the global Y, and r_local follows
-    from the global radial distance minus R_big).
+                        tread_load_half_theta, tol=1e-9):
+    """Returns (rim, full_tread, tread_load_region) boolean masks,
+    computed from each node's own LOCAL (theta, r_local) recovered from
+    its global position (inverting the sweep).
     rim: r_local=R_bead (bonded to the fixed rigid rim, every Phi).
-    contact_patch: r_local=R_tread_eff(theta) AND theta within
-    contact_half_theta of the tread centerline (theta=pi/2) -- the
-    normal-pressure load region, every Phi (the load spans the whole
-    modeled sector, a simplification -- see module docstring)."""
+    full_tread: the ENTIRE tread surface r_local=R_tread_eff(theta), all
+    theta and Phi -- target of the internal inflation pressure.
+    tread_load_region: the SAME tread surface but restricted to theta
+    within tread_load_half_theta of the tread centerline (theta=pi/2) --
+    the additional LOCALIZED TREAD LOADING REGION (renamed from the
+    earlier, inaccurate "contact patch" -- there is no ground-contact
+    formulation here, see module docstring point 1)."""
     # Invert the forward sweep mapping (generate_grid_hex8_tire_sector):
     #   X_global = (R_big + y_local) * cos(phi), Y_global = x_local,
     #   Z_global = (R_big + y_local) * sin(phi)
@@ -158,10 +189,10 @@ def boundary_node_sets(nodes, R_bead, R_tread0, R_big, groove_depth, groove_half
 
     rim = np.abs(r_local - R_bead) < tol
     r_tread_eff = tread_groove_R_out(theta_local, np.pi, R_tread0, groove_depth, groove_half_theta)
-    on_tread = np.abs(r_local - r_tread_eff) < 1e-6
+    full_tread = np.abs(r_local - r_tread_eff) < 1e-6
     theta_c = np.pi / 2.0
-    contact_patch = on_tread & (np.abs(theta_local - theta_c) < contact_half_theta)
-    return rim, contact_patch
+    tread_load_region = full_tread & (np.abs(theta_local - theta_c) < tread_load_half_theta)
+    return rim, full_tread, tread_load_region
 
 
 if __name__ == "__main__":
@@ -169,7 +200,7 @@ if __name__ == "__main__":
     R_bead, R_tread0, R_big = 0.5, 1.0, 3.0
     Phi_max = np.pi / 6  # 30-degree sector
     groove_depth, groove_half_theta = 0.05, 0.15
-    contact_half_theta = 0.3
+    tread_load_half_theta = 0.3
     Ntheta, Nr, Nphi = 13, 6, 9
     nodes, elements = generate_grid_hex8_tire_sector(
         R_bead, R_tread0, R_big, Phi_max, Ntheta, Nr, Nphi, groove_depth, groove_half_theta)
@@ -179,11 +210,14 @@ if __name__ == "__main__":
     assert nodes.shape == (Ntheta * Nr * Nphi, 3)
     assert elements.shape == ((Ntheta - 1) * (Nr - 1) * (Nphi - 1), 8)
 
-    rim, contact_patch = boundary_node_sets(
-        nodes, R_bead, R_tread0, R_big, groove_depth, groove_half_theta, contact_half_theta)
-    print(f"rim: {rim.sum()}, contact_patch: {contact_patch.sum()}")
+    rim, full_tread, tread_load_region = boundary_node_sets(
+        nodes, R_bead, R_tread0, R_big, groove_depth, groove_half_theta, tread_load_half_theta)
+    print(f"rim: {rim.sum()}, full_tread: {full_tread.sum()}, "
+          f"tread_load_region: {tread_load_region.sum()}")
     assert rim.sum() == Ntheta * Nphi
-    assert contact_patch.sum() > 0, "contact patch is empty -- widen contact_half_theta or check theta indexing"
+    assert full_tread.sum() == Ntheta * Nphi
+    assert tread_load_region.sum() > 0, \
+        "tread load region is empty -- widen tread_load_half_theta or check theta indexing"
 
     def hex_signed_volume(pts):
         tets = [(0, 1, 3, 4), (1, 2, 3, 6), (1, 3, 4, 6), (3, 4, 6, 7), (1, 4, 5, 6)]
