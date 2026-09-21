@@ -95,7 +95,7 @@ from docx import Document
 
 DELIV = '/home/user/OMAR/advisor_feedback'
 REPORT_SRC = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-09-19b.docx')
-REPORT_DST = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-09-21e.docx')
+REPORT_DST = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-09-21f.docx')
 
 doc = Document(REPORT_SRC)
 
@@ -133,10 +133,11 @@ h1("11. Third Benchmark Candidate (in progress): 3D Hyperelastic "
    "Rubber-Mount Bushing vs. Tire Sector")
 
 para(
-    "Timon's item 4 asked for a new, harder, more realistic 3D example beyond "
-    "the B1/B2 benchmark pair. Two candidates were prepared in parallel, to "
-    "the same single-material (Neo-Hookean), no-contact scope, so Timon can "
-    "choose between them before any expensive commitment: (A) a rocking "
+    "Item 4 of the previous round requested a new, harder, more realistic 3D "
+    "example beyond the B1/B2 benchmark pair. Two candidates were prepared in "
+    "parallel, to the same single-material (Neo-Hookean), no-contact scope, "
+    "so that a choice can be made between them before any expensive "
+    "commitment: (A) a rocking "
     "elastomeric rubber-mount bushing (\"B3\"), developed to a validated FEM "
     "mesh-convergence stage with a GPU mesh-convergence study; and (B) a tire "
     "sector -- a torus segment, not a straight extrusion -- prepared as a "
@@ -408,7 +409,7 @@ para(
     "resolution table; the tire sector as a working, but deliberately "
     "lightweight preliminary alternative. No dataset generation or "
     "neural-operator training has started for either candidate; that step "
-    "depends on Timon's choice between them. After the final 3D candidate "
+    "depends on the choice made between them. After the final 3D candidate "
     "is selected, the remaining numerical step is dataset generation, "
     "operator training, and the FEM-versus-operator comparison on "
     "displacement, reaction, energy, and regional Cauchy-stress QoIs, "

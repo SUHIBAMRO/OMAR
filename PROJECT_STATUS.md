@@ -38,12 +38,46 @@ finishes or a new one starts.
 > else, unless Omar explicitly asks for a third file again.
 
 > ⚠️ **STANDING REMINDER, Omar's own explicit instruction (repeated, most
-> recently 2026-09-18): every email/reply draft to the advisor MUST open
-> "Dear Professor Rabczuk," -- NEVER "Dear Timon,". This has slipped into
-> a first-name salutation more than once (drafts dated 2026-09-13,
-> 2026-09-17, and initially 2026-09-18 all had to be corrected). Check
-> the salutation line explicitly before presenting any reply draft, every
-> time, not just when reminded.**
+> recently 2026-09-21): NEVER refer to the advisor by his first name
+> ANYWHERE in text that will reach him -- not just the salutation line.
+> "Dear Professor Rabczuk," -- NEVER "Dear Timon,", but this is not
+> enough on its own: the round-14 email itself used the correct
+> salutation, yet Section 11's own body text (in both the Report and the
+> Summary that went out as attachments) said "Timon's item 4 asked..."
+> and "so Timon can choose..." -- first-name references inside the
+> document body itself, sent to Prof. Rabczuk before this was caught.
+> This has now slipped multiple times (drafts dated 2026-09-13,
+> 2026-09-17, initially 2026-09-18, and now the round-14 body text on
+> 2026-09-21) despite the salutation-only version of this rule already
+> being in force. Going forward: read through the ENTIRE body of any
+> document that will reach the advisor -- email, Report additions,
+> Summary -- and confirm there is no "Timon" anywhere in it, not just
+> checking the greeting line. Use "the advisor," "Professor Rabczuk," or
+> rephrase to avoid needing to name him at all (e.g. "item 4 of the
+> previous round requested..." instead of "Timon's item 4 asked...").
+> This check must happen BEFORE the document is shown for review, not
+> after Omar catches it -- by the time this specific mistake was caught
+> on 2026-09-21, the documents had already been sent.**
+
+> ⚠️ **STANDING REMINDER, Omar's own explicit instruction (2026-09-21):
+> every notebook built from now on, for any future analysis, MUST
+> generate and save figures, not just JSON/printed numbers. Specifically:
+> (1) generate plots DURING the analysis where there's something
+> meaningful to show as it runs (e.g. one plot per resolution/case, a
+> running convergence curve); (2) generate at least one final SUMMARY
+> figure at the end of the analysis (e.g. the whole convergence trend,
+> or the headline comparison the notebook exists to produce); (3) SAVE
+> every figure to Drive (same directory pattern already used for JSON
+> results, e.g. `{R}/<case>/*.png`) so it survives the Colab session;
+> (4) also DISPLAY every figure inline in the notebook's own output
+> (plt.show() or an un-suppressed last-expression render) so Omar sees
+> them immediately when he runs it in Colab, not only after separately
+> fetching the saved files from Drive. This applies to every future
+> notebook this project builds, unconditionally -- not something to ask
+> about case by case. (No notebook has been built yet since this
+> instruction was given; apply it starting with the very next one,
+> including whatever GPU dataset-generation/training notebook eventually
+> gets built for B3 or the tire once Timon picks a candidate.)**
 
 > ⚠️ **STANDING REMINDER, Omar's own explicit instruction (2026-09-10):
 > before the cached-Hessian speedup (`hvp_method="cached_hessian"` in
@@ -157,7 +191,24 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-21 (**Final advisor-facing polish pass before
+Last updated: 2026-09-21 (**The round-14 email + Report + Summary were
+SENT to Prof. Rabczuk. Immediately after, Omar caught a real mistake:
+Section 11's own body text (not just checked for the salutation) used
+"Timon" by first name multiple times ("Timon's item 4 asked...", "so
+Timon can choose...") -- already sent, cannot be unsent, but the local
+files are corrected to "f" versions (rephrased to avoid naming him at
+all: "item 4 of the previous round requested...") so this doesn't get
+copied forward into a future round's text. The existing salutation-only
+standing rule is expanded above into a whole-body check. Omar also gave
+a NEW, permanent standing rule: every future notebook must generate and
+save figures (during the analysis and a final summary figure), and
+display them inline in the notebook's own output, not just print
+numbers/save JSON -- see the new standing-rule block above, applies
+starting with the next notebook this project builds (most likely the
+eventual B3/tire dataset-generation or training notebook once Timon
+picks a candidate).**
+
+Previous update, same day (**Final advisor-facing polish pass before
 sending, Omar's own four last corrections -- all applied to the Report/
 Summary/email, now "e" versions.** (1) "Region-Cauchy average"/"99th
 percentile" never stated which stress quantity they are -- confirmed in

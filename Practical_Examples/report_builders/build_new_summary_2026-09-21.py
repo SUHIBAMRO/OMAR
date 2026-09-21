@@ -26,8 +26,8 @@ from docx.opc.constants import RELATIONSHIP_TYPE as RT
 from docx.oxml.ns import qn
 
 DELIV = '/home/user/OMAR/advisor_feedback'
-REPORT = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-09-21e.docx')
-OUT = os.path.join(DELIV, 'PFEM_Work_Summary_2026-09-21e.docx')
+REPORT = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-09-21f.docx')
+OUT = os.path.join(DELIV, 'PFEM_Work_Summary_2026-09-21f.docx')
 
 src = Document(REPORT)
 
@@ -94,16 +94,16 @@ if src.tables:
 append_heading(dst, "PFEM / Transolver Work Summary -- Round 14")
 p = dst.add_paragraph()
 p.add_run(
-    "This round covers Timon's item 4 (design and build a new, harder, more "
-    "realistic 3D example). Two candidates were prepared in parallel: a "
-    "rocking rubber-mount bushing (B3), developed to a validated FEM "
-    "mesh-convergence stage with a GPU-confirmed result, and a tire sector, "
-    "prepared as a lightweight preliminary alternative. As with previous "
-    "rounds, everything below is copied verbatim (same tables, same text) "
-    "out of the now-updated cumulative Report "
-    "(PFEM_Transolver_Report_2026-09-21e.docx) -- nothing summarized or "
+    "This round covers item 4 of the previous round (design and build a new, "
+    "harder, more realistic 3D example). Two candidates were prepared in "
+    "parallel: a rocking rubber-mount bushing (B3), developed to a validated "
+    "FEM mesh-convergence stage with a GPU-confirmed result, and a tire "
+    "sector, prepared as a lightweight preliminary alternative. As with "
+    "previous rounds, everything below is copied verbatim (same tables, same "
+    "text) out of the now-updated cumulative Report "
+    "(PFEM_Transolver_Report_2026-09-21f.docx) -- nothing summarized or "
     "re-derived. Dataset generation and neural-operator training have not "
-    "started for either candidate; that step depends on Timon's choice "
+    "started for either candidate; that step depends on the choice made "
     "between them."
 ).italic = True
 
@@ -116,7 +116,7 @@ elements = slice_by_anchor_text(
     "resolution table; the tire sector as a working, but deliberately "
     "lightweight preliminary alternative. No dataset generation or "
     "neural-operator training has started for either candidate; that step "
-    "depends on Timon's choice between them. After the final 3D candidate "
+    "depends on the choice made between them. After the final 3D candidate "
     "is selected, the remaining numerical step is dataset generation, "
     "operator training, and the FEM-versus-operator comparison on "
     "displacement, reaction, energy, and regional Cauchy-stress QoIs, "
