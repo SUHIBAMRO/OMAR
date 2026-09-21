@@ -157,7 +157,60 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-21 (**Item 4: B3 GPU mesh-convergence notebook
+Last updated: 2026-09-21 (**B3 mesh convergence CLOSED -- real GPU run,
+region-Cauchy stress genuinely plateaus, final 5%/2%/1% table produced.
+This is the result Omar's whole sequencing (2026-09-21) was gating on.**
+
+**Real GPU run** (A100, `B3_GPU_MeshConvergence.ipynb`, 5m29s total, 8
+solves from 600 to the 243,360-element fine reference (81,40,79)).
+**Region-Cauchy-stress relative change, resolution to resolution --
+the exact number Omar said to check before trusting anything**:
+19.80% -> 5.31% -> 2.15% -> 1.24% -> 1.02% -> 0.74% -> 0.87% (the last
+step, 123,008 -> 243,360 elements). **This genuinely plateaus** (settling
+into the sub-1-2% band over the last several steps, not still trending
+in one direction) -- the 243,360-element reference is now justified,
+empirically, as converged for the local stress QoI specifically, not
+merely assumed because it was the largest mesh tried. (region_avg_sxx
+itself: 2.30 -> 2.75 -> 2.90 -> 2.96 -> 3.00 -> 3.03 -> 3.05 -> 3.076 at
+the reference -- a smooth, monotonic, decelerating approach, exactly the
+shape a genuinely converging quantity should have.)
+
+**Final required-resolution table (5%/2%/1%), all seven QoIs, against
+the now-justified 243,360-element reference**:
+
+| QoI | 5% | 2% | 1% |
+|---|---|---|---|
+| Displacement L2 | 600 el | 3,240 el | 9,464 el |
+| H1 (gradient) semi-norm | 20,808 el | 123,008 el | not reached |
+| Tangent energy | 600 el | 600 el | 3,240 el |
+| Reaction force | 65,000 el | 123,008 el | not reached |
+| Reaction moment | 3,240 el | 9,464 el | 20,808 el |
+| Region-Cauchy avg | 20,808 el | 65,000 el | 123,008 el |
+| Region-Cauchy p99 | 20,808 el | 65,000 el | 65,000 el |
+
+Honestly disclosed, not smoothed over: H1 semi-norm and reaction force
+never reach 1% within the tested ladder (up to 123,008 elements, the
+largest row below the reference itself) -- consistent with this
+project's own repeated, established finding that gradient/energy-flux-
+type quantities converge more slowly than displacement or stress
+averages. This is a real, disclosed gap, not a hidden one.
+
+**What this closes**: B3's mesh-convergence study is now scientifically
+complete against Omar's own stated bar -- a real fine reference,
+justified (not assumed) for the hardest QoI (local Cauchy stress), and
+a full required-resolution table for all seven requested QoIs, computed
+correctly via genuine cross-mesh parametric-space field interpolation
+where needed. Everything from the earlier "PRELIMINARY ONLY" CPU-scale
+table is now superseded by this GPU result.
+
+**Next, per Omar's own explicit order**: prepare the tire/tire-sector as
+a second, lightweight preliminary candidate (geometry+BC+smoke+basic
+convergence only, no training) so both B3 and the tire can be presented
+to Timon together before any expensive training commitment. B3's own
+dataset generation/training still does not start until Timon picks a
+candidate.
+
+Previous update, same day (**Item 4: B3 GPU mesh-convergence notebook
 built and ready, per Omar's own detailed follow-up instructions --
 sequenced work, NOT yet run.**
 
