@@ -1,23 +1,24 @@
-"""CPU-only smoke test for the CORRECTED B3 design (rocking rubber
-bushing, see data_generate_B3.py's own docstring for the full
-rationale): solve one small mesh with torch-fem's real 3D hyperelastic
+"""CPU-only smoke test for the CURRENT B3 design (continuously-bonded
+core with a smooth groove feature + true rigid-rotation kinematics --
+see data_generate_B3.py's own docstring for the full design history and
+rationale). Solve one small mesh with torch-fem's real 3D hyperelastic
 solid element (Solid + Hyperelastic3D + neo_hookean_psi_3d, unchanged
 from torchfem_comparison.py) before spending any GPU time or building
 the full data-generation pipeline.
 
 Checks: Newton converges with a real, non-homogeneous Dirichlet BC (the
-rocking core, not just a force -- this is the first time this project
-applies a nonzero prescribed-displacement BC via torch-fem, not only
-Neumann forces, so this is itself a real capability check); the inner
-core's own applied displacement is respected at both ends (z=0: -delta0,
-z=Lz: +delta0); the outer housing stays fixed; the deformation genuinely
-varies with z, not just following the core linearly (i.e. real material
-response, not a rigid rotation of everything)."""
+rotating core); the core's own prescribed rotation is respected exactly
+at every bonded node (not just at two ends -- the core is now bonded at
+EVERY z); the outer housing stays fixed; the deformation is genuinely
+3D (nonzero u_y, u_z in the interior); and -- new for this design --
+the core's own u_z is nonzero (confirming the TRUE rotation kinematics
+are in effect, not the old z-motion-free linear approximation)."""
 import numpy as np
 import torch
 
 from omar_pfem.data.data_generate_B3 import (
-    generate_grid_hex8_bushing, boundary_node_sets, rocking_displacement_x)
+    generate_grid_hex8_bushing, boundary_node_sets, rigid_rotation_displacement,
+    groove_radius_of_curvature)
 from omar_pfem.torchfem_comparison import neo_hookean_psi_3d
 
 
@@ -25,13 +26,15 @@ def main():
     dtype = torch.float64
     device = torch.device("cpu")
 
-    R_in, R_out, Lz = 0.5, 1.0, 1.0
-    r_fillet = 0.1
-    Ntheta, Nr, Nz = 13, 6, 11
-    nodes, elements = generate_grid_hex8_bushing(R_in, R_out, Lz, Ntheta, Nr, Nz, r_fillet)
-    inner, outer, sym = boundary_node_sets(nodes, R_in, R_out, Lz, r_fillet)
+    R_in0, R_out, Lz = 0.5, 1.0, 1.0
+    groove_depth, groove_half_width = 0.05, 0.15
+    Ntheta, Nr, Nz = 13, 6, 15
+    nodes, elements = generate_grid_hex8_bushing(
+        R_in0, R_out, Lz, Ntheta, Nr, Nz, groove_depth, groove_half_width)
+    inner, outer, sym = boundary_node_sets(nodes, R_in0, R_out, Lz, groove_depth, groove_half_width)
     print(f"nodes={nodes.shape[0]}, elements={elements.shape[0]}, "
-          f"inner_core(bonded)={inner.sum()}, outer_housing={outer.sum()}")
+          f"inner_core(bonded, ALL z)={inner.sum()}, outer_housing={outer.sum()}")
+    print(f"groove radius of curvature: {groove_radius_of_curvature(groove_depth, groove_half_width):.4f}")
 
     from torchfem import Solid
     from torchfem.materials import Hyperelastic3D
@@ -39,7 +42,7 @@ def main():
     nodes_t = torch.tensor(nodes, dtype=dtype, device=device)
     elements_t = torch.tensor(elements, dtype=torch.long, device=device)
 
-    E, nu = 1000.0, 0.45  # rubber-like, same convention as B1/B2
+    E, nu = 1000.0, 0.45
     mu = E / (2 * (1 + nu))
     lam = E * nu / ((1 + nu) * (1 - 2 * nu))
     params = torch.tensor([mu, lam], dtype=dtype, device=device)
@@ -53,26 +56,16 @@ def main():
     constraints = torch.zeros(n_nodes, 3, dtype=torch.bool, device=device)
     displacements = torch.zeros(n_nodes, 3, dtype=dtype, device=device)
 
-    # Rigid outer housing: fixed in all 3 components.
-    constraints[outer, :] = True
+    constraints[outer, :] = True  # fixed housing
 
-    # Rigid inner core: rocks in x only (its own rigid-body radial/z
-    # motion is zero -- a pure tilt), free... but the core is RIGID, so
-    # its own y and z displacement at the bonded surface must also be
-    # prescribed (zero, since the core does not translate in y or z, and
-    # does not expand/contract -- it is rigid). Constrain all 3
-    # components on the inner surface: x per the rocking profile, y=z=0.
-    delta0 = 0.03 * (R_out - R_in)  # small tilt amplitude, a fraction of the gap width
+    phi = 0.05  # rotation angle, radians (~2.9 degrees) -- small but finite
+    ux, uy, uz = rigid_rotation_displacement(nodes[inner], Lz, phi)
     constraints[inner, :] = True
-    displacements[inner, 0] = torch.tensor(
-        rocking_displacement_x(nodes[inner], Lz, delta0), dtype=dtype, device=device)
-    # displacements[inner, 1] and [..., 2] stay 0 (no y/z rigid motion)
+    displacements[inner, 0] = torch.tensor(ux, dtype=dtype, device=device)
+    displacements[inner, 1] = torch.tensor(uy, dtype=dtype, device=device)
+    displacements[inner, 2] = torch.tensor(uz, dtype=dtype, device=device)
 
-    # Symmetry (y=0 plane, both theta=0 and theta=pi rows): u_y = 0.
-    # (Already implied by inner/outer at those rows since y=0 there too,
-    # but the INTERIOR nodes at theta=0/pi, r strictly between R_in and
-    # R_out, are not otherwise constrained and need this explicitly.)
-    constraints[sym, 1] = True
+    constraints[sym, 1] = True  # symmetry plane, u_y=0
 
     model.constraints = constraints
     model.displacements = displacements
@@ -90,55 +83,34 @@ def main():
 
     u_np = u.cpu().numpy()
     assert np.isfinite(u_np).all(), "NaN/Inf in the solution"
+    ux_sol, uy_sol, uz_sol = u_np[:, 0], u_np[:, 1], u_np[:, 2]
 
-    ux, uy, uz = u_np[:, 0], u_np[:, 1], u_np[:, 2]
+    # BC respected exactly at every bonded core node (all z now, not just
+    # two ends).
+    expected_ux, expected_uy, expected_uz = rigid_rotation_displacement(nodes[inner], Lz, phi)
+    assert np.allclose(ux_sol[inner], expected_ux, atol=1e-6)
+    assert np.allclose(uy_sol[inner], expected_uy, atol=1e-6)
+    assert np.allclose(uz_sol[inner], expected_uz, atol=1e-6)
+    print(f"core BC respected: max |ux err|={np.abs(ux_sol[inner]-expected_ux).max():.2e}, "
+          f"max |uz err|={np.abs(uz_sol[inner]-expected_uz).max():.2e}")
+    assert np.abs(uz_sol[inner]).max() > 1e-4, (
+        "core's own uz should be meaningfully nonzero -- confirms TRUE rotation "
+        "kinematics are active, not the old z-motion-free linear approximation")
 
-    # The prescribed BC must be respected exactly (up to solver tolerance)
-    # at the constrained (bonded, straight-section) nodes -- the fillet
-    # region is now free, so we check at the EDGE of the straight
-    # section (z=r_fillet, z=Lz-r_fillet), not at z=0/Lz.
-    z_lo_inner = inner & (np.abs(nodes[:, 2] - r_fillet) < 1e-9)
-    z_hi_inner = inner & (np.abs(nodes[:, 2] - (Lz - r_fillet)) < 1e-9)
-    expect_lo = rocking_displacement_x(np.array([[0, 0, r_fillet]]), Lz, delta0)[0]
-    expect_hi = rocking_displacement_x(np.array([[0, 0, Lz - r_fillet]]), Lz, delta0)[0]
-    print(f"inner core ux at z=r_fillet: mean={ux[z_lo_inner].mean():.6e} (expect ~{expect_lo:.6e})")
-    print(f"inner core ux at z=Lz-r_fillet: mean={ux[z_hi_inner].mean():.6e} (expect ~{expect_hi:.6e})")
-    assert abs(ux[z_lo_inner].mean() - expect_lo) < 1e-6
-    assert abs(ux[z_hi_inner].mean() - expect_hi) < 1e-6
-    assert np.abs(ux[outer]).max() < 1e-10, "outer housing should stay exactly fixed"
-    assert np.abs(uy[outer]).max() < 1e-10
-    assert np.abs(uz[outer]).max() < 1e-10
+    assert np.abs(ux_sol[outer]).max() < 1e-10, "outer housing should stay exactly fixed"
+    assert np.abs(uy_sol[outer]).max() < 1e-10
+    assert np.abs(uz_sol[outer]).max() < 1e-10
 
-    # The fillet region (free surface, z<r_fillet or z>Lz-r_fillet, at
-    # r close to R_in) must NOT be pinned to the rocking profile -- it
-    # is free, its own displacement is whatever the solve gives it, not
-    # a prescribed value. A bug that accidentally still constrained it
-    # would make it track the rigid profile exactly; checking it does
-    # NOT confirms the fillet is genuinely unbonded.
-    r_all = np.sqrt(nodes[:, 0] ** 2 + nodes[:, 1] ** 2)
-    fillet_region = (np.abs(r_all - R_in) < 0.02) & (nodes[:, 2] < r_fillet) & (nodes[:, 2] > 1e-9)
-    if fillet_region.sum() > 0:
-        rigid_profile = rocking_displacement_x(nodes[fillet_region], Lz, delta0)
-        diff = np.abs(ux[fillet_region] - rigid_profile)
-        print(f"fillet-region ux vs. rigid-core profile, max diff: {diff.max():.3e} "
-              f"(should be MEANINGFULLY nonzero -- confirms this surface is free, not bonded)")
-        assert diff.max() > 1e-6, "fillet region appears bonded, not free -- BC bug"
-
-    # Genuinely 3D check: uy and uz should be non-degenerate (not
-    # identically zero) somewhere in the INTERIOR of the domain -- a bug
-    # that accidentally decoupled z-slices (e.g. a mesh/BC error making
-    # this behave like independent 2D rings) would still show pure x
-    # motion with uy, uz basically zero everywhere except by symmetry.
     interior = ~(inner | outer | sym)
-    print(f"interior uy range: [{uy[interior].min():.3e}, {uy[interior].max():.3e}]")
-    print(f"interior uz range: [{uz[interior].min():.3e}, {uz[interior].max():.3e}]")
-    assert uy[interior].max() - uy[interior].min() > 1e-9
-    assert uz[interior].max() - uz[interior].min() > 1e-9
+    print(f"interior uy range: [{uy_sol[interior].min():.3e}, {uy_sol[interior].max():.3e}]")
+    print(f"interior uz range: [{uz_sol[interior].min():.3e}, {uz_sol[interior].max():.3e}]")
+    assert uy_sol[interior].max() - uy_sol[interior].min() > 1e-9
+    assert uz_sol[interior].max() - uz_sol[interior].min() > 1e-9
 
-    print("\nSMOKE TEST PASSED: rocking rubber-mount bushing WITH the corrective "
-          "fillet solves cleanly, respects its own prescribed BC at the bonded "
-          "section, leaves the fillet genuinely free, and gives a non-degenerate "
-          "3D deformation field.")
+    print("\nSMOKE TEST PASSED: continuously-bonded groove bushing with true "
+          "rigid-rotation kinematics solves cleanly, respects its own BC "
+          "everywhere on the core, and gives a genuinely non-degenerate 3D "
+          "deformation field.")
 
 
 if __name__ == "__main__":

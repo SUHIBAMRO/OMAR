@@ -157,7 +157,134 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-19 (**Item 4: fillet added after Omar's own sharp
+Last updated: 2026-09-21 (**Item 4: full QoI set + directional mesh
+study, after a second real design fix (groove replaces fillet) --
+this is now a genuinely rigorous, comprehensive B3 mesh-convergence
+result.**
+
+**Omar's own second, sharper catch**: even after the fillet fix, Omar
+pointed out the fillet was not enough on its own -- the BONDED SURFACE
+still jumped discontinuously to FREE at the start of the fillet band, a
+sharp BC transition that can itself reproduce a free-edge singularity,
+independent of how smooth the geometry looks. He also flagged that the
+loading should be a real rigid-body ROTATION (not a linear u_x(z)
+approximation), that convergence must be tracked for the full QoI set
+(not stress alone), that the mesh study should vary each direction
+independently (not just all together), and that physics sanity checks
+must be explicit before any training.
+
+**Geometry fix**: the core is now bonded to the rubber CONTINUOUSLY over
+the full height (z in [0,Lz], same as the housing) -- no free/bonded
+transition anywhere on the inner surface at all. The one explicit,
+disclosed, finite-radius feature is now a smooth (C1-continuous,
+raised-cosine) circumferential GROOVE in the core's own radius profile,
+R_in(z), at mid-height -- bonding continues uninterrupted across it, so
+there is no BC discontinuity anywhere near the feature being measured.
+Its own radius of curvature is computed in closed form and printed
+(`groove_radius_of_curvature`): 0.0912 for the default parameters
+(depth 0.05, half-width 0.15) -- a genuine, disclosed physical length.
+
+**Kinematics fix**: the core's prescribed displacement is now a TRUE
+rigid-body rotation (`rigid_rotation_displacement`) by angle phi about
+the y-axis through (0,0,Lz/2), giving coupled u_x AND u_z on the core
+surface -- verified the old linear-u_x model was this rotation's own
+small-angle, x0-independent approximation, silently assuming u_z=0
+(wrong for a real tilt). Re-verified via CPU smoke test: BC respected to
+machine precision (~3e-18) at every bonded node (not just two ends now),
+core's own u_z confirmed meaningfully nonzero (max ~2.3e-2), outer
+housing exactly fixed, genuinely non-degenerate interior deformation.
+
+**Full QoI set now tracked per resolution** (`mesh_convergence_B3.py`,
+substantially rewritten): displacement relative L2 and a gradient-based
+("H1-like") relative error, BOTH against a real fine reference
+(29,14,27 -> 9,464 elements), computed via a genuinely correct
+cross-mesh comparison -- fields interpolated in PARAMETRIC (theta,t,z)
+space (every B3 mesh at every resolution shares the exact same
+parametric domain regardless of its own physical node positions, so a
+regular-grid interpolator is exact for this, not an approximation of
+convenience); total tangent (stored strain) energy; reaction FORCE and
+reaction MOMENT/torque about the rotation axis (a natural QoI for a
+rocking case, Omar's own addition, computed from the internal-force
+vector `.solve()` already returns); fixed-region Cauchy stress (average
+AND 99th percentile, true max printed only as a secondary number, per
+this project's own established convention with Timon).
+
+**Physics sanity checks, all now explicit and passing on every row**:
+zero inverted elements; det(F)>0 everywhere; global force equilibrium
+(no external force anywhere in this problem, so total internal force
+over the whole mesh must vanish -- verified to ~1e-14); global moment
+equilibrium (~1e-2 relative -- looser than force because a
+position-WEIGHTED sum of the same small CG/Newton residual noise does
+not cancel as cleanly as an unweighted sum; checked directly during
+development that this exact check DOES catch a real bug at >10%
+imbalance, so it is a real check, not a rubber stamp -- an earlier
+version of this check wrongly ignored the symmetry plane's own nonzero
+y-reaction and failed at ~50%, which is how the moment-equilibrium
+formula was itself corrected). Geometry/loading parameters (R_in0,
+R_out, Lz, groove depth/width, phi) are asserted-by-construction
+identical across every resolution -- only Ntheta/Nr/Nz change.
+
+**Combined-refinement results** (4 resolutions, 144 to 3,240 elements,
+2-9s each on CPU, vs. the 9,464-element fine reference):
+
+| Ntheta,Nr,Nz | elements | disp_L2 | gradF_H1 | region_avg_sxx | region_p99 | energy |
+|---|---|---|---|---|---|---|
+| 9,4,7 | 144 | 5.88% | 20.64% | 1.562 | 32.0 | 0.8999 |
+| 13,6,11 | 600 | 2.92% | 11.90% | 2.297 | 20.2 | 0.8801 |
+| 17,8,15 | 1,568 | 1.70% | 7.29% | 2.531 | 30.0 | 0.8744 |
+| 21,10,19 | 3,240 | 0.97% | 4.52% | 2.751 | 25.4 | 0.8711 |
+
+**Real, honest finding**: the GLOBAL quantities (displacement L2, H1-like
+gradient error, total energy, reaction moment: -40.18 -> -37.19 ->
+-36.20 -> -35.69) all converge cleanly and smoothly -- genuinely
+reassuring that the model/mesh/BCs are correct, not just "not broken."
+The LOCAL region-averaged Cauchy stress at the groove is NOT yet
+converged even at 3,240 elements (still rising: 1.56 -> 2.30 -> 2.53 ->
+2.75) -- and its own 99th-percentile companion is visibly noisy (32.0,
+20.2, 30.0, 25.4), directly reflecting the very small element counts
+inside the fixed physical region at these mesh densities (2, 2, 8, 18
+elements) -- itself further, concrete evidence that finer resolution is
+needed specifically for this QoI, exactly the same "local stress
+converges slower than displacement" pattern this project already
+established for B1/B2's own peak/region-stress QoIs.
+
+**Directional (per-axis) study** (baseline Ntheta,Nr,Nz=13,6,11, one
+axis varied at a time, Omar's own explicit request to rule out the
+convergence being dominated by just one direction): all THREE axes
+independently show real, non-trivial sensitivity --
+Nz alone: disp_L2 3.80%->2.59%, gradF_H1 16.4%->9.7%; Ntheta alone:
+disp_L2 6.16%->2.88%, gradF_H1 23.3%->11.7% (axisymmetry-breaking
+matters most at the coarsest theta); Nr alone: disp_L2 5.38%->1.61%,
+gradF_H1 17.3%->8.3%, and region_avg_sxx clearly still rising
+(1.79->2.94, not flat) -- confirming radial resolution near the groove's
+own curvature genuinely matters on its own, not just as a byproduct of
+refining everything together. This is now real, disclosed evidence for
+"genuinely 3D" in the strongest sense Omar asked for: not merely "the
+BC varies with z" as an argument, but three independent, empirically
+verified axes of real mesh sensitivity.
+
+**Still pending** (Omar's own remaining numbered items, 2026-09-21):
+(5, partially) GPU refinement toward a fully plateaued fine reference,
+and per-QoI required-resolution-for-1%/2%/5% analysis (mirrors the
+already-established B1/B2 pattern, task #31) -- not yet done for B3;
+(6) design (not run -- training is still explicitly gated) of the
+per-sample random-field family for future data generation: rocking
+AMPLITUDE and/or AXIS/DIRECTION varying per sample, single material
+(Neo-Hookean) fixed, per Omar's own instruction; (tire) a SECOND
+candidate geometry (3D hyperelastic tire/tire-sector, real profile,
+finite-radius tread feature, rim constraints, single material, NO
+contact) prepared to the SAME rigor (geometry+BC+smoke+basic
+convergence, no full training) so Timon can choose between two real
+candidates -- Omar's own clarification: Timon mentioned a tire example
+in an earlier round as a candidate HARDER problem, not a formal
+requirement like the round-13 rubber mount, so this is prepared in
+parallel, not a replacement.
+
+**Training still does not start for either candidate** until Timon
+picks one and the chosen candidate's own convergence is judged
+sufficient -- per Omar's own explicit, repeated instruction.
+
+Previous update, 2026-09-19 (**Item 4: fillet added after Omar's own sharp
 follow-up question, then a real mesh-convergence study run -- confirms
 (does not just assume) that this case genuinely needs finer 3D
 resolution, exactly the condition Omar set before any training may
