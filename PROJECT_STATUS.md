@@ -157,7 +157,93 @@ finishes or a new one starts.
 > the real numbers below before this is fully closed out -- do that
 > before removing this block entirely.
 
-Last updated: 2026-09-21 (**Omar asked directly how to FIX the ~17%
+Last updated: 2026-09-21 (**The "scientifically closed" conclusion just
+below (that the ~17% Cauchy-field-error plateau is a genuine, fixable-
+proof property) was ITSELF WRONG, caught by Omar's own second, line-by-
+line review of the draft Report/Summary/email before anything went to
+Timon -- exactly the kind of check this project depends on. The real
+fix (a genuinely SYMMETRIC comparison, which had NOT actually been
+tried) was found, implemented, and tested: it converges cleanly. Also:
+a table wording bug (conflating reference-convergence with an
+operational mesh reaching 1%), an imprecise "under 0.5-0.7%" claim
+(0.506% is INSIDE that band, not under it), overclaimed language about
+Gauss-point stresses being "not physical signal," a missing units/
+nondimensional statement on the groove's radius of curvature, and an
+ambiguous description of which tire surface receives the inflation
+pressure -- five more real issues, all fixed. Nothing has been sent to
+Timon yet; this is the second draft.**
+
+**The missed test, and why it matters**: the two earlier "fix attempts"
+(both raw Gauss-point values; a smaller region) both varied ONE side of
+an already-asymmetric comparison (coarse = element-averaged, reference
+= raw Gauss-point) without ever testing the genuinely symmetric
+combination Omar specifically asked for: BOTH sides at the SAME
+(element-averaged) representation, compared at the SAME physical points
+(the reference's own element centroids, not Gauss points). Implemented
+as a real code change in `mesh_convergence_B3.py` (`compare_to_reference`
+now interpolates `case`'s own element-averaged field onto the
+reference's own element centroids and compares against the reference's
+own element-averaged field there, volume-weighted by real per-element
+volume derived from the existing quadrature weights) -- not just a
+diagnostic script. **Tested directly on real CPU data before writing
+anything down**: 48.5%, 23.3%, 14.3%, 7.7% for the 144-, 600-, 1,568-,
+and 3,240-element cases against the same 9,464-element reference -- a
+clean, monotonic, physically sensible convergence trend, a completely
+different behavior from the earlier ~17% plateau. This confirms the
+earlier "conclusion" (that the plateau reflected a genuine, inherent
+limit of pointwise stress-field comparison) was itself a symptom of the
+SAME underlying bug that produced the plateau, not an independent
+scientific finding -- a useful reminder that "we tried two fixes and
+both failed" is not the same as "no fix exists," especially when the
+two attempts share an unexamined assumption. **GPU-scale confirmation
+at the 243,360-vs-424,128-element reference pair has NOT been re-run
+with this fix yet** -- the CPU-scale trend is strong evidence the fix is
+real, but the actual number to quote to Timon for this specific QoI is
+still pending that re-run.
+
+**Five more real corrections, all from the same review**, applied to
+the Report/Summary/email draft (not code changes, except where noted):
+(1) 11.4 now states explicitly that after a candidate is chosen, the
+REMAINING numerical step is dataset generation + operator training +
+the FEM-vs-operator comparison itself -- so nothing above is read as
+"the 3D item is done." (2) The required-resolution table's own
+"Region-Cauchy average, 1%" cell no longer conflates two different
+claims -- it now separately states that no non-reference mesh tested
+reaches 1% (123,008 elements gives 1.28%) AND that the two references
+agree to 0.506% (supporting the reference's own convergence, not an
+operational mesh's). (3) "changed by only 0.506% ... under a strict
+0.5-0.7% bar" corrected to "within the predefined approximately
+0.5-0.7% reference-convergence band" (0.506% is inside that band, not
+below it -- a real arithmetic/wording error). (5) "Raw per-Gauss stress
+... is mostly discretization noise, not physical signal" (an overclaim
+not fully supported by the evidence) replaced with "Raw Gauss-point
+stresses are generally discontinuous across element boundaries and can
+be highly mesh-sensitive in regions with steep stress gradients"; the
+region-shrinking test's error increase is no longer attributed to a
+single confirmed cause (fewer samples) without qualification. (6) The
+groove's radius of curvature (0.0912) now explicitly stated as being in
+"the same nondimensional length units used throughout this benchmark
+(R_in0=0.5, R_out=1.0, Lz=1.0)," not a bare, unitless number. (7) The
+tire's inflation pressure surface is now stated explicitly (the entire
+outer boundary of the meridian cross-section, every node not bonded to
+the bead -- not an ambiguous "tread"), and a new sentence notes the
+sector-boundary treatment will be revisited if the tire candidate is
+ever selected, so this preliminary version is not mistaken for the
+final tire model.
+
+**New file versions** (old, now-superseded ones deleted from the repo
+rather than left stale, per this project's own standing discipline):
+`PFEM_Transolver_Report_2026-09-21c.docx`,
+`PFEM_Work_Summary_2026-09-21c.docx`,
+`2026-09-21c_reply_to_round13_candidate_choice_draft.docx` (still NOT
+sent -- Omar's own explicit instruction remains that the candidate must
+be chosen WITH Timon first, before any dataset generation, training, or
+FEM-vs-operator comparison starts).
+
+Previous update, same day (**this entry's own headline conclusion was
+itself found to be wrong -- see the corrected entry above. Kept here
+only as a record of what was believed before the second review, not as
+current guidance.** Omar asked directly how to FIX the ~17%
 Cauchy-tensor-field-error plateau, not just disclose it. Two genuine
 code fixes were tried and TESTED (not just proposed) -- both made the
 error WORSE, for understood, verifiable reasons -- so both were

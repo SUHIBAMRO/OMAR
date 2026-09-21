@@ -4,28 +4,54 @@ parallel (B3, a rocking rubber-mount bushing; and a tire sector, a
 deliberately lightweight preliminary alternative), including Omar's own
 detailed 11-point technical review of both before this write-up, the
 real GPU mesh-convergence result that followed, and an honest account of
-two genuine fix attempts for a newly-found QoI limitation that were
-tried, tested, and reverted because they made things worse.
+the field-error methodology fix.
+
+REVISED 2026-09-21b -- Omar's own line-by-line review of the first
+draft of this section, before it goes anywhere near Timon, caught seven
+real issues, five of them called necessary:
+  1. 11.4 did not say explicitly what remains AFTER the candidate is
+     picked (dataset generation, training, and the FEM-vs-operator
+     comparison itself) -- added.
+  2/3. The required-resolution table's own "1%" cell for the region-
+     Cauchy average conflated two different things (reference-to-
+     reference convergence vs. an operational mesh actually reaching
+     1%) and the prose called 0.506% "under" a 0.5-0.7% band when it is
+     inside it -- both corrected with Omar's own suggested wording.
+  4. THE important one: the ~17.3% "plateau" in 11.2.1 was written up
+     as a finding before the one symmetric comparison Omar had asked
+     for (element-averaged on BOTH sides, not just one) had actually
+     been tried. It has now been implemented in mesh_convergence_B3.py
+     and tested directly on real data: it converges cleanly (48.5% ->
+     23.3% -> 14.3% -> 7.7% for 144/600/1,568/3,240-element cases
+     against the same 9,464-element reference), confirming the earlier
+     asymmetric comparison -- not a genuine physical limit -- produced
+     the plateau. This section is rewritten around that corrected
+     result; a GPU-scale re-confirmation at the 243k/424k reference
+     pair has not been re-run yet and the text says so plainly.
+  5. Overclaimed language ("mostly discretization noise, not physical
+     signal") and an unqualified single-cause claim for the region-
+     shrinking test are both softened to what the evidence actually
+     supports.
+  6. The groove's radius of curvature (0.0912) had no stated units --
+     now explicit that this is in the same nondimensional length units
+     used throughout the benchmark.
+  7. The tire's inflation-pressure surface is now stated explicitly
+     (the entire outer boundary of the meridian cross-section, not an
+     ambiguous "tread"), and a sentence is added noting the sector-cut
+     treatment will be revisited if this candidate is ever selected.
 
 Appended as a new top-level section (11.) after the existing Section 10
 (Conclusion and Next Steps) -- this work started after that conclusion
 was written and is its own, still-in-progress deliverable, not a
 retroactive edit to the existing six-case study.
-
-Nothing here is re-derived or approximated: every number is copied from
-the real CPU/GPU runs already committed to PROJECT_STATUS.md this round
-(mesh_convergence_B3.py's own validated output, the real A100 GPU run
-of B3_GPU_MeshConvergence.ipynb, and the two field-error fix-attempt
-diagnostics run directly against the real solver).
 """
 import os
 
 from docx import Document
-from docx.shared import Pt
 
 DELIV = '/home/user/OMAR/advisor_feedback'
 REPORT_SRC = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-09-19b.docx')
-REPORT_DST = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-09-21.docx')
+REPORT_DST = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-09-21c.docx')
 
 doc = Document(REPORT_SRC)
 
@@ -98,10 +124,13 @@ para(
     "surface; the one explicit, disclosed, finite-radius feature is a "
     "smooth (C1-continuous, raised-cosine) circumferential GROOVE in the "
     "core's own radius profile at mid-height, with a closed-form radius of "
-    "curvature (0.0912 for the tested parameters). The core's prescribed "
-    "motion is a true rigid-body rotation (coupled u_x and u_z), not a "
-    "linear small-angle approximation, which was verified to silently "
-    "assume zero axial displacement -- wrong for a real tilt."
+    "curvature of 0.0912 in the same nondimensional length units used "
+    "throughout this benchmark (R_in0=0.5, R_out=1.0, Lz=1.0 -- consistent "
+    "with this project's own dimensionless geometry/material convention "
+    "already used for B1/B2, not tied to a specific physical unit). The "
+    "core's prescribed motion is a true rigid-body rotation (coupled u_x "
+    "and u_z), not a linear small-angle approximation, which was verified "
+    "to silently assume zero axial displacement -- wrong for a real tilt."
 )
 
 h2("11.2 Candidate A: the B3 rubber-mount bushing -- GPU-confirmed "
@@ -118,11 +147,11 @@ para(
     "this rocking case) and reaction force (secondary, confirmed "
     "non-degenerate from real data, not assumed); and a fixed-region "
     "Cauchy-stress statistic at the groove -- a volume-weighted average and "
-    "99th percentile, plus a new full Cauchy-TENSOR relative field error, "
-    "all sampled at the mesh's own quadrature (Gauss) points rather than "
-    "element centroids, with a reliability gate that reports the 99th "
-    "percentile as \"not reliable\" below 20 quadrature-point samples "
-    "rather than a misleading number from too few points."
+    "99th percentile, plus a full Cauchy-TENSOR relative field error (see "
+    "11.2.1 for its own corrected methodology), with a reliability gate "
+    "that reports the 99th percentile as \"not reliable\" below 20 "
+    "quadrature-point samples rather than a misleading number from too "
+    "few points."
 )
 
 para(
@@ -131,11 +160,17 @@ para(
     "converged, not merely reached the largest mesh tried: 243,360 "
     "elements (81 x 40 x 79) and a new, finer 424,128-element mesh "
     "(97 x 48 x 95). The volume-weighted region-average Cauchy stress "
-    "changed by only 0.51% between these two references -- down from 0.87% "
-    "at the previous step, and now under a strict 0.5-0.7% bar -- "
-    "confirming this statistic is genuinely converged, not merely assumed "
-    "so because it was the largest mesh solved. The required-resolution "
-    "table below is computed against the newer, finer reference."
+    "changed by only 0.506% between these two references -- down from "
+    "0.87% at the previous step, and within the predefined approximately "
+    "0.5-0.7% reference-convergence band -- supporting that this "
+    "statistic's REFERENCE value is itself converged. This is a distinct "
+    "claim from any operational mesh reaching 1% error against that "
+    "reference: the highest non-reference mesh in the tested ladder "
+    "(123,008 elements) still shows 1.28% error, so 1% is not yet reached "
+    "by any mesh actually tested, only supported as a reasonable target "
+    "by the reference's own demonstrated stability. The required-"
+    "resolution table below is computed against the newer, finer "
+    "reference."
 )
 
 table(
@@ -147,9 +182,12 @@ table(
         ["Reaction moment (primary)", "3,240 el.", "9,464 el.", "38,808 el."],
         ["Reaction force (secondary)", "65,000 el.", "not reached", "not reached"],
         ["Region-Cauchy average (scalar)", "38,808 el.", "123,008 el.",
-         "not reached by any tested mesh (0.51% between the two finest references -- effectively there)"],
+         "not reached by any non-reference mesh in the tested ladder "
+         "(123,008 elements gives 1.28%); the two fine references differ "
+         "by only 0.506%, supporting convergence of the reference itself"],
         ["Region-Cauchy 99th percentile", "not reached", "not reached", "not reached"],
-        ["Region-Cauchy full-tensor field error", "not reached", "not reached", "not reached (see 11.2.1)"],
+        ["Region-Cauchy full-tensor field error", "not reached", "not reached",
+         "not reached -- methodology corrected 2026-09-21, GPU-scale number pending (see 11.2.1)"],
     ],
 )
 
@@ -165,64 +203,69 @@ para(
     italic=True,
 )
 
-h2("11.2.1 A newly found QoI limitation, investigated and fixed where "
-   "possible -- not smoothed over")
+h2("11.2.1 The Cauchy-tensor field-error metric: a methodology bug "
+   "found, fixed, and re-tested -- GPU confirmation still pending")
 
 para(
-    "Introducing the full Cauchy-TENSOR relative field error (comparing "
-    "the whole stress tensor pointwise, at every quadrature point in the "
-    "fixed region, rather than a single averaged scalar) surfaced a real "
-    "finding: this metric does not converge the same way the region "
-    "average does. It plateaus around 17.3% even between the two finest "
-    "GPU references (243,360 vs. 424,128 elements) -- essentially flat "
-    "across a roughly 6x increase in element count from 65,000 elements "
-    "onward, not still meaningfully decreasing."
+    "An earlier draft of this section reported the full Cauchy-TENSOR "
+    "relative field error (comparing the whole stress tensor pointwise, at "
+    "every quadrature point in the fixed region, rather than a single "
+    "averaged scalar) as plateauing around 17.3% between the two finest GPU "
+    "references, and treated that as a converged finding. On review, this "
+    "was premature: the comparison itself was ASYMMETRIC -- the coarser "
+    "mesh's own per-ELEMENT-AVERAGED Cauchy field was compared against the "
+    "reference's own RAW per-Gauss-point values, two different "
+    "representations of the same field, not a fair apples-to-apples test."
 )
 
 para(
-    "Two genuine code fixes were attempted and TESTED directly against the "
-    "real solver, not merely proposed, once this was raised as something "
-    "to actually fix rather than only disclose. (1) The field-error "
-    "comparison had interpolated the coarser mesh's own per-ELEMENT-"
-    "AVERAGED Cauchy field while comparing it against the reference's own "
-    "RAW per-Gauss-point values -- an apples-to-oranges mismatch that "
-    "looked worth correcting. Replacing the coarse side with its own raw "
-    "per-Gauss-point field (using a genuine, verified tensor-product grid "
-    "of Gauss-point locations) made the reported error substantially "
-    "WORSE, not better (a 600-element case moved from 32.97% to 84.08%; a "
-    "3,240-element case from 22.80% to 59.51%). The reason, confirmed "
-    "directly rather than assumed: within a single coarse element, the "
-    "stress at its own 8 Gauss points varies by up to 250.9 -- comparable "
-    "to or larger than the ENTIRE mesh's own element-averaged stress range "
-    "end to end. Raw per-Gauss stress at this resolution is mostly "
-    "discretization noise, not physical signal (a standard fact in finite-"
-    "element analysis: stress is only piecewise-continuous, so accurate "
-    "stress recovery normally requires a smoothing step such as nodal "
-    "averaging or superconvergent patch recovery, not raw quadrature "
-    "values); the existing per-element average was already providing that "
-    "smoothing, and removing it made the comparison strictly noisier. This "
-    "change was reverted. (2) Shrinking the fixed sampling region (on the "
-    "reasoning that a smaller region might avoid spanning as steep a local "
-    "gradient) was also tested at half and quarter the current radius: the "
-    "error got WORSE at every step (48.78% to 58.04% to 59.73%), because a "
-    "smaller region also means far fewer quadrature-point samples to "
-    "average over, reintroducing the very small-sample problem this "
-    "round's own review had just fixed for the percentile statistic. This "
-    "was also not adopted."
+    "Two fixes were tried before the correct one was found, all tested "
+    "directly against the real solver rather than assumed to work. (1) "
+    "Moving BOTH sides to raw per-Gauss-point values made the reported "
+    "error substantially WORSE (a 600-element case moved from 32.97% to "
+    "84.08%; a 3,240-element case from 22.80% to 59.51%), traced to a real, "
+    "checkable cause: within a single coarse element, the stress at its own "
+    "8 Gauss points varies by up to 250.9 -- comparable to or larger than "
+    "the entire mesh's own element-averaged stress range end to end. Raw "
+    "Gauss-point stresses are generally discontinuous across element "
+    "boundaries and can be highly mesh-sensitive in regions with steep "
+    "stress gradients, so comparing raw values on both sides amplified "
+    "that sensitivity rather than removing it. (2) Shrinking the fixed "
+    "sampling region (to test whether a smaller zone would avoid spanning "
+    "as steep a gradient) was tried at half and quarter the original "
+    "radius: the reported error increased at every step tested (48.78% to "
+    "58.04% to 59.73%) rather than improving. A smaller region also means "
+    "fewer quadrature-point samples available to average over, which may "
+    "contribute to this, though that was not isolated as the single "
+    "confirmed cause. Neither (1) nor (2) was adopted."
 )
 
 para(
-    "Conclusion: the volume-weighted region-average Cauchy stress "
-    "(confirmed converged to 0.51%, see 11.2 above) remains the correct, "
-    "trustworthy scalar statistic for this feature. The full-tensor "
-    "pointwise field-error QoI is a genuinely harder quantity that does "
-    "not have a cheap fix; a real fix would mean implementing actual "
-    "finite-element stress recovery (nodal averaging or a superconvergent "
-    "patch-recovery scheme), a substantial, separately-scoped piece of new "
-    "work rather than a quick correction. Until that is judged worth "
-    "the investment, this QoI is reported to Timon as \"not yet converged, "
-    "genuinely harder than the averaged statistic\" -- exactly what the "
-    "required-resolution table above already, and correctly, states.",
+    "The combination not yet tried at that point was the genuinely "
+    "SYMMETRIC one: both sides at the SAME (element-averaged) "
+    "representation, compared at the SAME physical sample points -- the "
+    "coarser case's own field interpolated onto the reference's own "
+    "ELEMENT CENTROIDS (not Gauss points), compared against the "
+    "reference's own element-averaged field at those same centroids, "
+    "volume-weighted. This has now been implemented in "
+    "mesh_convergence_B3.py and tested directly on real CPU data: it shows "
+    "clean, monotonic convergence with resolution -- 48.5%, 23.3%, 14.3%, "
+    "and 7.7% for the 144-, 600-, 1,568-, and 3,240-element cases, all "
+    "against the same 9,464-element reference. This is a real, physically "
+    "sensible convergence trend, unlike either asymmetric version tried "
+    "before it, and supports that the earlier ~17.3% plateau was a "
+    "methodology artifact rather than a genuine physical limit of this QoI."
+)
+
+para(
+    "This fix has been validated at CPU scale only. The GPU-scale "
+    "reference pair (243,360 vs. 424,128 elements) has NOT yet been "
+    "re-solved with the corrected comparison, so no final full-tensor "
+    "field-error number is reported here yet -- the required-resolution "
+    "table above correctly still shows \"not reached\" for this QoI, "
+    "pending that re-run. The volume-weighted region-average Cauchy stress "
+    "(11.2 above, confirmed converged to 0.506% at GPU scale) remains "
+    "unaffected by this fix and is unchanged.",
     italic=True,
 )
 
@@ -247,16 +290,20 @@ para(
 
 para(
     "Loading combines two superposed pressure loads under one incremental "
-    "ramp: an internal inflation pressure (outward) over the entire tread, "
-    "plus an additional, localized inward pressure restricted to a window "
-    "at the tread centerline (renamed from an earlier, inaccurate \"contact "
-    "patch\" -- there is no ground-contact formulation here, no contact "
-    "mechanics, no rigid ground surface). A real solve smoke test confirms "
-    "the rim stays exactly fixed, the rest of the tread bulges outward "
-    "under inflation alone as physically expected, the loaded window still "
-    "moves net inward (the local load dominates the inflation there), and "
-    "the deformation is genuinely non-degenerate in all three directions -- "
-    "confirming the torus topology is real, not collapsed."
+    "ramp: an internal inflation pressure (outward), applied over the "
+    "ENTIRE outer boundary of the meridian cross-section (every node with "
+    "r_local = R_tread_eff(theta) for theta across its full [0,pi] range, "
+    "i.e. every node not bonded to the bead -- representing the full inner "
+    "surface of the tire's own outer shell, not only a narrow contact-band "
+    "region), plus an additional, localized inward pressure restricted to "
+    "a window at the tread centerline (renamed from an earlier, inaccurate "
+    "\"contact patch\" -- there is no ground-contact formulation here, no "
+    "contact mechanics, no rigid ground surface). A real solve smoke test "
+    "confirms the rim stays exactly fixed, the rest of the tread bulges "
+    "outward under inflation alone as physically expected, the loaded "
+    "window still moves net inward (the local load dominates the inflation "
+    "there), and the deformation is genuinely non-degenerate in all three "
+    "directions -- confirming the torus topology is real, not collapsed."
 )
 
 para(
@@ -285,7 +332,11 @@ para(
     "implementing a true periodic-tie constraint is nontrivial new solver "
     "infrastructure judged out of scope for a lightweight preliminary "
     "candidate; the load and stress-sampling region are deliberately "
-    "centered mid-sector, away from both cuts, to mitigate this."
+    "centered mid-sector, away from both cuts, to mitigate this. If the "
+    "tire candidate is selected for the final benchmark, the sector-"
+    "boundary treatment will be revisited before dataset generation or "
+    "operator training -- this preliminary version is not proposed as the "
+    "final tire model."
 )
 
 h2("11.4 Status")
@@ -297,7 +348,12 @@ para(
     "solving, but deliberately lightweight preliminary alternative. Per "
     "the project's own standing discipline, no dataset generation or "
     "neural-operator training has started for either candidate; that step "
-    "is gated on Timon's choice between them."
+    "is gated on Timon's choice between them. After the final 3D candidate "
+    "is selected, the remaining numerical step is dataset generation, "
+    "operator training, and the FEM-versus-operator comparison on "
+    "displacement, reaction, energy, and regional Cauchy-stress QoIs, "
+    "exactly as done for B1 and B2 -- that comparison has not started for "
+    "either candidate and is not implied to be complete by anything above."
 )
 
 doc.save(REPORT_DST)

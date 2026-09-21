@@ -4,10 +4,22 @@ training, and the FEM-vs-operator comparison begin. Omar's own explicit
 instruction (2026-09-21): the candidate must be chosen WITH Timon first;
 nothing downstream (dataset design, training, comparison) starts before
 his answer.
+
+REVISED 2026-09-21c: Omar's own second, line-by-line review of the
+first draft caught that this email still described the Cauchy-tensor
+field-error metric's earlier ~17% "plateau" as a settled finding, when
+it was actually a methodology bug (an asymmetric comparison) found and
+fixed after that draft was written -- see
+add_round14_b3_tire_candidates_to_report.py's own module docstring for
+the full seven-point list. Paragraph 4(A) below is rewritten around the
+corrected, CPU-validated result instead, and a sentence is added making
+explicit that the FEM-vs-operator comparison itself has not started for
+either candidate, so Timon does not read the 3D item as further along
+than it actually is.
 """
 from docx import Document
 
-OUT = '/home/user/OMAR/advisor_feedback/2026-09-21_reply_to_round13_candidate_choice_draft.docx'
+OUT = '/home/user/OMAR/advisor_feedback/2026-09-21c_reply_to_round13_candidate_choice_draft.docx'
 
 doc = Document()
 
@@ -65,14 +77,16 @@ para(
     "stress concentration -- essentially the geometry you suggested. This one has "
     "been taken to full rigor already: mesh convergence is confirmed on a real "
     "A100 run (the fixed-region Cauchy stress -- the hardest QoI here -- changes by "
-    "only 0.51% between a 243k- and a 424k-element reference), and a full required-"
-    "resolution table exists for displacement, H1, energy, reaction force/moment, "
-    "and the regional Cauchy stress. One honestly disclosed finding along the way: "
-    "a stricter, full-tensor pointwise version of the Cauchy-stress field error "
-    "does not converge the same way the averaged statistic does (it plateaus "
-    "around 17%); we tried two real fixes for this, both made it worse for "
-    "understood reasons, and concluded the averaged statistic is the right one to "
-    "report, with the pointwise version disclosed as a genuinely harder QoI."
+    "only 0.506% between a 243k- and a 424k-element reference, within the intended "
+    "0.5-0.7% convergence band), and a full required-resolution table exists for "
+    "displacement, H1, energy, reaction force/moment, and the regional Cauchy "
+    "stress. A stricter, full-tensor pointwise version of the Cauchy-stress field "
+    "error initially appeared to plateau around 17%; on closer review this turned "
+    "out to be a real bug in how the comparison was built (comparing two different "
+    "representations of the field, not a fair test), now fixed and re-tested -- the "
+    "corrected version shows clean, physically sensible convergence at CPU scale, "
+    "and we're re-confirming it at the same GPU reference scale as the average "
+    "statistic before finalizing the number."
 )
 para(
     "(B) A tire sector -- a real torus segment, not an extrusion -- prepared only "
@@ -82,15 +96,19 @@ para(
     "own level of rigor unless you'd prefer it."
 )
 para(
-    "Both are described in full in the attached Summary. Before we generate a "
-    "dataset, train the operator, and run the FEM-vs-operator comparison item 4 "
-    "also asks for, could you confirm which of the two you'd like us to take "
-    "forward -- the bushing, the tire sector, or something else you have in mind?"
+    "Both are described in full in the attached Summary. To be clear about where "
+    "this stands: only the geometry, mesh convergence, and a real solve are done "
+    "for either candidate -- no dataset has been generated, no operator trained, "
+    "and no FEM-vs-operator comparison run yet. Before we start that (dataset "
+    "generation, operator training, and the displacement/reaction/energy/"
+    "regional-Cauchy-stress comparison item 4 asks for), could you confirm which "
+    "of the two you'd like us to take forward -- the bushing, the tire sector, or "
+    "something else you have in mind?"
 )
 para(
     "Once you confirm, we'll generate the dataset, train the operator, and report "
-    "back with the same displacement/reaction/energy/regional-Cauchy-stress "
-    "comparison used for the other two cases -- and then start writing the paper."
+    "back with that same comparison used for the other two cases -- and then start "
+    "writing the paper."
 )
 para("Best regards,")
 para("Omar")

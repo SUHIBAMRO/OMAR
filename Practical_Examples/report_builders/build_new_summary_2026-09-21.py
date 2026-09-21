@@ -6,8 +6,11 @@ the original rationale/mechanism, reused unchanged here).
 Round 14 = Timon's item 4 (a new, harder 3D example): first status
 report on both candidates (B3 rubber-mount bushing, tire sector),
 Omar's own detailed 11-point technical review of both, the real GPU
-mesh-convergence result that followed, and two genuine field-error fix
-attempts that were tried, tested, and reverted.
+mesh-convergence result that followed, and the field-error methodology
+fix (found via Omar's own second, line-by-line review before sending to
+Timon -- see PFEM_Transolver_Report_2026-09-21c.docx's own module
+docstring in add_round14_b3_tire_candidates_to_report.py for the full
+seven-point list of what changed between the first and second draft).
 """
 import copy
 import os
@@ -17,8 +20,8 @@ from docx.opc.constants import RELATIONSHIP_TYPE as RT
 from docx.oxml.ns import qn
 
 DELIV = '/home/user/OMAR/advisor_feedback'
-REPORT = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-09-21.docx')
-OUT = os.path.join(DELIV, 'PFEM_Work_Summary_2026-09-21.docx')
+REPORT = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-09-21c.docx')
+OUT = os.path.join(DELIV, 'PFEM_Work_Summary_2026-09-21c.docx')
 
 src = Document(REPORT)
 
@@ -89,10 +92,11 @@ p.add_run(
     "realistic 3D example). Two candidates were prepared in parallel; Omar's "
     "own detailed 11-point technical review of both was carried out before "
     "this write-up, and this Summary also covers the real GPU result that "
-    "followed and an honest account of two genuine fix attempts for a "
-    "newly-found QoI limitation. As with previous rounds, everything below "
-    "is copied verbatim (same tables, same text) out of the now-updated "
-    "cumulative Report (PFEM_Transolver_Report_2026-09-21.docx) -- nothing "
+    "followed and a methodology fix to the Cauchy-tensor field-error metric "
+    "(found via a second, line-by-line review of the first draft, before it "
+    "was shown to Timon). As with previous rounds, everything below is "
+    "copied verbatim (same tables, same text) out of the now-updated "
+    "cumulative Report (PFEM_Transolver_Report_2026-09-21c.docx) -- nothing "
     "summarized or re-derived. Neither candidate's dataset generation or "
     "neural-operator training has started; that step is gated on Timon's "
     "choice between them."
@@ -108,7 +112,12 @@ elements = slice_by_anchor_text(
     "solving, but deliberately lightweight preliminary alternative. Per "
     "the project's own standing discipline, no dataset generation or "
     "neural-operator training has started for either candidate; that step "
-    "is gated on Timon's choice between them.",
+    "is gated on Timon's choice between them. After the final 3D candidate "
+    "is selected, the remaining numerical step is dataset generation, "
+    "operator training, and the FEM-versus-operator comparison on "
+    "displacement, reaction, energy, and regional Cauchy-stress QoIs, "
+    "exactly as done for B1 and B2 -- that comparison has not started for "
+    "either candidate and is not implied to be complete by anything above.",
 )
 copy_elements(dst, src, elements)
 
