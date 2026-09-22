@@ -113,7 +113,17 @@ def solve_case(Ntheta, Nr, Nz, groove_depth, groove_half_width, r_grading=1.0,
     torch.set_default_dtype(dtype)
     t0 = time.time()
     try:
-        with torch.device(device):
+        # torch.no_grad(): confirmed directly via a real GPU OOM on B8's own
+        # notebook (not theorized) that torchfem's NewtonRaphsonAdjoint.
+        # forward calls ctx.save_for_backward on EVERY increment (its own
+        # implicit-adjoint gradient support); without no_grad, autograd
+        # keeps each increment's graph alive, so GPU memory grows with
+        # n_increments (21 here), not just mesh size -- exactly why the
+        # OLD reference OOM'd at only 1.05M elements on an 80GB A100. This
+        # solve never needs gradients, so no_grad is the correct fix,
+        # verified to leave every returned number bit-identical on CPU
+        # before relying on it.
+        with torch.device(device), torch.no_grad():
             u, f, P, F, state = model.solve(
                 increments=increments, max_iter=30, rtol=1e-8, atol=1e-8, stol=1e-8,
                 method=method, preconditioner=preconditioner, nlgeom=True, verbose=verbose,

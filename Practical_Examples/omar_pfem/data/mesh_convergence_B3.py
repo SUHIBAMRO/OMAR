@@ -186,12 +186,25 @@ def solve_case(Ntheta, Nr, Nz, dtype=torch.float64, device=None, verbose=False, 
     torch.set_default_dtype(dtype)
     t0 = time.time()
     try:
-        with torch.device(device):
-            # aggregate_integration_points=False: keep the per-Gauss-point
-            # flux(P)/grad(F)/state, not just the per-element mean torch-fem
-            # would otherwise hand back -- needed for genuinely quadrature-
-            # based, volume-weighted region statistics (Omar's own point 2,
-            # 2026-09-21), not an approximation of convenience.
+        # aggregate_integration_points=False: keep the per-Gauss-point
+        # flux(P)/grad(F)/state, not just the per-element mean torch-fem
+        # would otherwise hand back -- needed for genuinely quadrature-
+        # based, volume-weighted region statistics (Omar's own point 2,
+        # 2026-09-21), not an approximation of convenience.
+        #
+        # torch.no_grad() (added later, 2026-09-22): confirmed directly via
+        # a real GPU OOM on this module's own B8/groove-sharpness siblings
+        # (not theorized here) that torchfem's NewtonRaphsonAdjoint.forward
+        # calls ctx.save_for_backward on EVERY increment (its own implicit-
+        # adjoint gradient support); without no_grad, autograd keeps each
+        # increment's graph alive, so GPU memory grows with n_increments,
+        # not just mesh size. This module's own past GPU runs (up to
+        # 424,128 elements) happened not to hit this ceiling, but the same
+        # latent inefficiency was present -- fixed here too, for
+        # consistency and headroom on any future, larger reference. Verified
+        # to leave every returned number bit-identical on CPU before relying
+        # on it (this solve never needs gradients).
+        with torch.device(device), torch.no_grad():
             u, f, P, F, state = model.solve(
                 increments=increments, max_iter=30, rtol=1e-8, atol=1e-8, stol=1e-8,
                 method="cg", preconditioner="jacobi", nlgeom=True, verbose=verbose,

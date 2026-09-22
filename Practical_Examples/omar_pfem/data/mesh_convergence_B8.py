@@ -159,7 +159,18 @@ def solve_case(Ntheta, Nr, n_rubber_layers=N_RUBBER_LAYERS, nz_per_rubber=3, nz_
     torch.set_default_dtype(dtype)
     t0 = time.time()
     try:
-        with torch.device(device):
+        # torch.no_grad(): confirmed directly (real GPU OOM, not theorized)
+        # that torchfem's NewtonRaphsonAdjoint.forward calls
+        # ctx.save_for_backward(K, du, ...) on EVERY increment (for its own
+        # implicit-adjoint gradient support) -- without no_grad, autograd
+        # keeps that whole per-increment graph alive for the life of the
+        # returned tensors, so GPU memory grows with n_increments, not just
+        # mesh size. This solve never needs gradients (a pure forward
+        # analysis), so no_grad is the correct, real fix, not a workaround
+        # -- verified to leave every returned number bit-identical on CPU
+        # before relying on it (see mesh_convergence_B8.py's own commit
+        # history for the before/after comparison).
+        with torch.device(device), torch.no_grad():
             u, f, P, F, state = model.solve(
                 increments=increments, max_iter=30, rtol=1e-8, atol=1e-8, stol=1e-8,
                 method=method, preconditioner=preconditioner, nlgeom=True, verbose=verbose,
