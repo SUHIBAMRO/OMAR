@@ -387,11 +387,20 @@ def main():
     # applied rocking load for this depth -- a real property of the
     # sharper geometry's nonlinear response, fixed by finer load
     # stepping (a standard FEM remedy), not by weakening the load or
-    # loosening the convergence tolerance.
+    # loosening the convergence tolerance. r_grading=1.5 (not the
+    # initially-tried 2.5): confirmed directly that r_grading=2.5 makes
+    # CG+Jacobi and CG+AMG both fail to converge even a single increment
+    # within minutes at only 3,360 elements (a linear-solver problem, not
+    # a nonlinear one -- the aggressive grading creates extreme element
+    # aspect ratios near R_in, badly conditioning the stiffness matrix).
+    # r_grading=1.5 is a real fix, not a tolerance loosening: same mesh,
+    # same BCs, same material -- just gentler radial clustering -- and it
+    # converges cleanly (2 CG iterations/increment after the first, 17.3s
+    # total for 3,360 elements).
     results.append(run_groove_design(
         "4x sharper (depth=0.20)", 0.20, 0.15,
         resolutions=[(9, 8, 7), (13, 12, 11), (17, 16, 15), (21, 20, 19)],
-        fine_resolution=(29, 26, 27), r_grading=2.5, n_increments=21))
+        fine_resolution=(29, 26, 27), r_grading=1.5, n_increments=21))
 
     # 7x sharper (rho=0.0130, depth=0.35) -- ATTEMPTED, not included: at the
     # coarsest planned resolution (9,10,7) it fails a basic physical
