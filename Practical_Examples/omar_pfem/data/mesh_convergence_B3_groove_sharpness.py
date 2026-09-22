@@ -54,7 +54,8 @@ HEXA1_IPOINTS = np.array([
 
 
 def solve_case(Ntheta, Nr, Nz, groove_depth, groove_half_width, r_grading=1.0,
-               dtype=torch.float64, device=None, verbose=False, n_increments=11):
+               dtype=torch.float64, device=None, verbose=False, n_increments=11,
+               method="cg", preconditioner="jacobi"):
     """Identical physics/BCs/solve procedure to mesh_convergence_B3.solve_case
     -- groove_depth/groove_half_width are now parameters (were module
     constants there) so multiple groove designs can share this one,
@@ -64,7 +65,17 @@ def solve_case(Ntheta, Nr, Nz, groove_depth, groove_half_width, r_grading=1.0,
     at (17,10,15) failed Newton-Raphson convergence at only 20% of the
     applied rocking load with the default 11 increments), and finer load
     stepping is the standard, legitimate FEM remedy for that -- not a
-    workaround, a real requirement of the sharper geometry itself."""
+    workaround, a real requirement of the sharper geometry itself.
+
+    method/preconditioner are also exposed: at depth=0.35 (7x sharper),
+    CG+Jacobi was confirmed directly to be extremely slow to converge
+    even at a small (1,560-element) mesh -- consistent with the r_grading
+    needed to resolve that groove producing a badly ill-conditioned
+    linear system for an iterative solver. torch-fem's own direct solver
+    is a standard, exact alternative for the SAME linear system (not an
+    approximation, not a different physics/BC/material setup) -- using it
+    for ill-conditioned cases changes only how the linear system is
+    solved, not what is being solved."""
     device = device or torch.device("cpu")
     nodes, elements = generate_grid_hex8_bushing(
         R_IN0, R_OUT, LZ, Ntheta, Nr, Nz, groove_depth, groove_half_width, r_grading=r_grading)
@@ -105,7 +116,7 @@ def solve_case(Ntheta, Nr, Nz, groove_depth, groove_half_width, r_grading=1.0,
         with torch.device(device):
             u, f, P, F, state = model.solve(
                 increments=increments, max_iter=30, rtol=1e-8, atol=1e-8, stol=1e-8,
-                method="cg", preconditioner="jacobi", nlgeom=True, verbose=verbose,
+                method=method, preconditioner=preconditioner, nlgeom=True, verbose=verbose,
                 aggregate_integration_points=False)
     finally:
         torch.set_default_dtype(old_default_dtype)
