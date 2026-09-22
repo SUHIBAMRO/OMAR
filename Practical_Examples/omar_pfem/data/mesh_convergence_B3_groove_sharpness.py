@@ -393,11 +393,22 @@ def main():
         resolutions=[(9, 8, 7), (13, 12, 11), (17, 16, 15), (21, 20, 19)],
         fine_resolution=(29, 26, 27), r_grading=2.5, n_increments=21))
 
-    # 7x sharper (rho=0.0130 vs baseline's 0.0912), same half_width=0.15.
-    results.append(run_groove_design(
-        "7x sharper (depth=0.35)", 0.35, 0.15,
-        resolutions=[(9, 10, 7), (13, 14, 11), (17, 18, 15), (21, 24, 19)],
-        fine_resolution=(29, 32, 27), r_grading=3.0, n_increments=21))
+    # 7x sharper (rho=0.0130, depth=0.35) -- ATTEMPTED, not included: at the
+    # coarsest planned resolution (9,10,7) it fails a basic physical
+    # validity check (non-positive det(F) under load -- element inversion),
+    # confirmed directly. At the next resolution (13,14,11), CONFIRMED
+    # directly that BOTH CG+Jacobi (>900s, no convergence) AND a direct
+    # solve (>300s, no result) fail to finish in a practical time even on
+    # this small (1,560-element) mesh -- i.e. this is not a linear-solver
+    # ill-conditioning problem fixable by switching solver method, but a
+    # genuinely fragile nonlinear geometry at this depth/half_width
+    # combination under the SAME phi=0.05 rocking amplitude used
+    # throughout. Real finding, reported honestly rather than hidden or
+    # forced to a number: depth=0.35 is not safely testable within this
+    # project's CPU budget without further geometry/loading redesign
+    # (e.g. a smaller rocking amplitude for this specific groove, or a
+    # different depth/half_width combination) -- out of scope for this
+    # round. depth=0.20 (below) is the honest result for Option A.
 
     print("\n" + "=" * 90)
     print("SUMMARY -- all groove designs, same methodology, same code path:")
