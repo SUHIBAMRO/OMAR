@@ -79,6 +79,74 @@ finishes or a new one starts.
 > including whatever GPU dataset-generation/training notebook eventually
 > gets built for B3 or the tire once Timon picks a candidate.)**
 
+> 📊 **Option A (sharper B3 groove) vs. Option B (new laminated seismic
+> bearing) -- Timon's newest follow-up (2026-09-22) confirmed "physics
+> informed Transolver" and said he's "not sure what geometry would need
+> 10^5-10^6 elements for 5-10% QoI error... I am quite open." Per Omar's
+> explicit instruction, this is no longer a "which do you prefer" question
+> back to Timon (a full round-trip costs ~1 week; he already delegated the
+> decision) -- Claude decides technically and reports real, verified
+> results. Real CPU testing done 2026-09-22
+> (`omar_pfem/data/mesh_convergence_B3_groove_sharpness.py`, reuses
+> mesh_convergence_B3.py's exact methodology, groove_depth/half_width as
+> parameters, no shortcuts):**
+>
+> - **Sharpening method**: increase `groove_depth` at FIXED
+>   `groove_half_width=0.15` (not narrowing half_width) -- checked
+>   directly that z-meshing has no grading option in this codebase (only
+>   radial does), so narrowing half_width would need new grading code;
+>   deepening sharpens curvature (`rho = 2w^2/(d*pi^2)`) while keeping the
+>   Z-extent the existing `r_grading` can already resolve.
+> - **depth=0.20 (4x sharper, rho=0.0228)**: real numerical difficulties
+>   found and FIXED with real code (not workarounds): (1) default 11 load
+>   increments fails Newton convergence at 20% load -- fixed with 21
+>   increments (confirmed converges); (2) initial r_grading=2.5 makes
+>   CG+Jacobi AND CG+AMG both fail to converge even ONE increment within
+>   minutes at only 3,360 elements -- a linear-solver conditioning
+>   problem from extreme element aspect ratios, NOT fixed by switching
+>   solver, fixed by using r_grading=1.5 instead (same mesh/BCs/material,
+>   converges cleanly, 2 CG iters/increment). Full real ladder obtained:
+>   disp_L2 converges cleanly and at almost the SAME rate as baseline
+>   (4.13%->2.52%->1.79%->0.99% vs baseline's 5.88%->2.92%->1.70%->0.97%
+>   at matched element counts) -- global accuracy is NOT much harder.
+>   BUT the region-Cauchy-field error (the LOCAL QoI Timon's target is
+>   about) is NOT reliably measurable at CPU scale for this design: n_region
+>   (quadrature-point samples inside the measurement region) stayed at
+>   0/6/8/18 across the tested ladder vs. baseline's rich 8/34/80/164 at
+>   the SAME element counts -- because region_radius shrinks with rho
+>   (2x sharper feature = 2x smaller region), so the same global mesh
+>   density samples it far more sparsely. Result: cauchy_field_rel was
+>   NOISY and NON-monotonic (289%->81%->209%->110%, not a real
+>   convergence curve) -- an honest finding, not hidden: CPU-feasible
+>   resolutions cannot yet give a trustworthy region-Cauchy convergence
+>   number for this design, mirroring exactly what happened with the
+>   ORIGINAL B3 design's own region-Cauchy QoI before its GPU run.
+> - **depth=0.35 (7x sharper, rho=0.0130)**: NOT safely testable --
+>   confirmed directly: fails a basic physical validity check (element
+>   inversion under load) at the coarsest planned resolution; at the next
+>   resolution up, BOTH CG+Jacobi (>900s) and a direct solve (>300s) fail
+>   to finish even on a small 1,560-element mesh -- ruling out
+>   linear-solver choice as the cause. Genuinely fragile nonlinear
+>   geometry at this depth under the project's fixed phi=0.05 rocking
+>   amplitude. Dropped from the study, documented honestly rather than
+>   forced to a number.
+> - **Conclusion so far**: Option A's premise (a sharper feature needs
+>   disproportionately more LOCAL mesh density) is directionally
+>   confirmed by real data (region sampling collapses relative to
+>   baseline at matched global element counts), but a clean quantitative
+>   "does depth=0.20 actually land in Timon's 10^5-10^6-element / 5-10%
+>   band" number requires pushing resolution well beyond CPU-feasible
+>   scale -- the same GPU step the original B3 design needed to resolve
+>   its own region-Cauchy plateau. **Not yet run.** depth=0.35 is ruled
+>   out as impractical; depth=0.20 is the only sharper-groove design
+>   confirmed both correct (converges, physically valid) and worth a GPU
+>   follow-up.
+> - **Option B (laminated seismic bearing)**: not yet started. Omar's
+>   instruction (2026-09-22): design the COMPLETE code (geometry, BCs,
+>   material, norms/QoIs, equations) and present the full technical setup
+>   to Timon for confirmation BEFORE starting real data-generation/GPU
+>   work -- not a preference question, a technical review checkpoint.
+
 > ⚠️ **STANDING REMINDER, Omar's own explicit instruction (2026-09-10):
 > before the cached-Hessian speedup (`hvp_method="cached_hessian"` in
 > `matrix_free_solver.py`/`solve_matrix_free`) is finalized, applied
