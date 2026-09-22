@@ -131,6 +131,40 @@ def layer_bands(n_rubber_layers, nz_per_rubber, nz_per_shim, t_rubber, t_shim):
     return np.array(z_boundaries), band_is_shim, band_nz
 
 
+def build_z_axis(n_rubber_layers, nz_per_rubber, nz_per_shim, t_rubber, t_shim):
+    """Single source of truth for the z-grid: node z-coordinates (zs) and,
+    per z-element-layer (index k, 0..Nz-2), whether that layer is a shim
+    layer (layer_is_shim). Used by BOTH the geometry generator below and
+    mesh_convergence_B8.py's cross-mesh interpolation, so the two can never
+    silently drift apart."""
+    z_boundaries, band_is_shim, band_nz = layer_bands(
+        n_rubber_layers, nz_per_rubber, nz_per_shim, t_rubber, t_shim)
+    zs = [z_boundaries[0]]
+    for b in range(len(band_nz)):
+        z0, z1 = z_boundaries[b], z_boundaries[b + 1]
+        sub = np.linspace(z0, z1, band_nz[b] + 1)[1:]  # skip z0 (already added)
+        zs.extend(sub.tolist())
+    zs = np.array(zs)
+    layer_is_shim = []
+    for b in range(len(band_nz)):
+        layer_is_shim.extend([band_is_shim[b]] * band_nz[b])
+    assert len(layer_is_shim) == len(zs) - 1
+    return zs, layer_is_shim
+
+
+def first_internal_shim_mid_z(n_rubber_layers, nz_per_rubber, nz_per_shim, t_rubber, t_shim):
+    """z-coordinate of the mid-height of the FIRST internal shim band --
+    the reference point for this benchmark's region-Cauchy QoI (an
+    internal rubber-shim interface, away from the top/bottom boundary
+    conditions, where the free-edge stress concentration this design is
+    about actually occurs). Uses the SAME z-axis as the mesh itself
+    (build_z_axis), so it is always a genuine mesh point regardless of
+    resolution."""
+    zs, layer_is_shim = build_z_axis(n_rubber_layers, nz_per_rubber, nz_per_shim, t_rubber, t_shim)
+    first_shim_layer = layer_is_shim.index(True)
+    return 0.5 * (zs[first_shim_layer] + zs[first_shim_layer + 1])
+
+
 def generate_grid_hex8_laminated_bearing(R_in, R_out, Ntheta, Nr,
                                           n_rubber_layers=N_RUBBER_LAYERS,
                                           nz_per_rubber=NZ_PER_RUBBER,
@@ -143,33 +177,18 @@ def generate_grid_hex8_laminated_bearing(R_in, R_out, Ntheta, Nr,
     (n_elem,8) hex8 connectivity (same winding/ordering convention as
     data_generate_B3.generate_grid_hex8_bushing), element_is_shim (n_elem,)
     bool mask, Lz total height."""
-    z_boundaries, band_is_shim, band_nz = layer_bands(
-        n_rubber_layers, nz_per_rubber, nz_per_shim, t_rubber, t_shim)
-    Lz = float(z_boundaries[-1])
+    zs, layer_is_shim = build_z_axis(n_rubber_layers, nz_per_rubber, nz_per_shim, t_rubber, t_shim)
+    Lz = float(zs[-1])
+    Nz = len(zs)
 
     nodes2d, elements2d = generate_grid_Q4_ring(R_in, R_out, Ntheta, Nr,
                                                  theta_max=theta_max, r_grading=r_grading)
     n2d = Ntheta * Nr
 
-    zs = [z_boundaries[0]]
-    for b in range(len(band_nz)):
-        z0, z1 = z_boundaries[b], z_boundaries[b + 1]
-        sub = np.linspace(z0, z1, band_nz[b] + 1)[1:]  # skip z0 (already added)
-        zs.extend(sub.tolist())
-    zs = np.array(zs)
-    Nz = len(zs)
-
     nodes3d = np.zeros((n2d * Nz, 3))
     for k, z in enumerate(zs):
         nodes3d[k * n2d:(k + 1) * n2d, 0:2] = nodes2d
         nodes3d[k * n2d:(k + 1) * n2d, 2] = z
-
-    # Per-z-LAYER (element layer index k, 0..Nz-2) shim flag, expanded from
-    # per-band flags via each band's own element-layer count.
-    layer_is_shim = []
-    for b in range(len(band_nz)):
-        layer_is_shim.extend([band_is_shim[b]] * band_nz[b])
-    assert len(layer_is_shim) == Nz - 1
 
     elements3d = []
     element_is_shim = []
