@@ -41,28 +41,33 @@ def para(text):
 
 note("DRAFT reply to Timon's round-14 follow-up email -- NOT YET SENT. Review before sending.")
 note(
-    "Covers only points 1 and 2 of that email (naming, and what varies per "
-    "training sample). The geometry figure he asked for was already sent "
-    "separately. The resolution/tolerance points (123k/424k 'fairly modest,' "
-    "10^5-10^6 elements, neglecting 1%/2%) are intentionally NOT addressed "
-    "here -- Omar's own instruction was to hold those for a separate decision "
-    "on how much more GPU time to commit."
+    "Covers points 1 and 2 of that email (naming, and what varies per "
+    "training sample), plus the geometry figure he asked for (now described "
+    "in the email body itself, not just sent as an unexplained attachment). "
+    "The resolution/tolerance points (123k/424k 'fairly modest,' 10^5-10^6 "
+    "elements, neglecting 1%/2%) are intentionally NOT addressed here -- "
+    "Omar's own instruction was to hold those for a separate decision on how "
+    "much more GPU time to commit."
 )
 para("")
-para("Subject: Re: B3 follow-up -- operator naming and training-sample design")
+para("Subject: Re: B3 follow-up -- operator naming, training-sample design, and geometry figure")
 para("")
 para("Dear Professor Rabczuk,")
 para(
-    "Two quick clarifications on your questions."
+    "Thank you for the feedback -- a few clarifications and the geometry "
+    "figure you asked for."
 )
 para(
-    "1. The operator we train and report on throughout this project is "
-    "Transolver (Transolver_Irregular_Mesh), not VINO -- VINO is a separate, "
-    "third-party codebase we kept vendored only for reference and to "
-    "cross-check two material-model formulas early on; it is not the "
-    "architecture used for any of our own results. Happy to use whichever "
-    "name is clearer going forward, just wanted to flag the distinction in "
-    "case VINO was meant generically."
+    "1. This project's pipeline follows PFEM (\"Pretrain Finite Element "
+    "Method,\" Yizheng Wang et al., JMPS 2026) combined with the Transolver "
+    "architecture -- that is the operator we actually train and report "
+    "results for throughout. VINO was an early prototype tried in the "
+    "project's very first week and abandoned; it survives in the repository "
+    "only as a vendored, unmodified third-party reference, used once to "
+    "cross-check two material-model formulas for correctness. It is not the "
+    "architecture behind any of our own trained results. Happy to use "
+    "whichever name is clearer going forward -- just wanted to flag the "
+    "distinction in case VINO was meant generically."
 )
 para(
     "2. For the training dataset, the parameter that would vary per sample "
@@ -82,9 +87,23 @@ para(
     "too, in which case we'd treat it as a separate, explicit extension."
 )
 para(
-    "We'll hold the resolution/tolerance points from your email for a "
-    "separate follow-up once we've worked out how much additional GPU time "
-    "makes sense."
+    "3. Geometry figure (attached, B3_geometry.png). Three panels: (left) "
+    "the undeformed geometry -- the outer housing (fixed, blue) and the "
+    "inner core (red) that receives the rocking rotation; (middle) the same "
+    "geometry after the rocking rotation is applied, at the same amplitude "
+    "(0.05 rad) used throughout the mesh-convergence study -- this shows "
+    "the true rigid-body tilt, not a small-angle approximation; (right) a "
+    "zoomed meridian cross-section showing the groove -- the one explicit, "
+    "smooth, finite-radius feature where the stress concentration is "
+    "measured, with its radius of curvature (0.0912, in the same "
+    "nondimensional units as the rest of the geometry) marked directly on "
+    "the plot."
+)
+para(
+    "We'll hold your resolution/tolerance points (the 123k/424k "
+    "discretization, the 10^5-10^6 element target, and neglecting the "
+    "1%/2% tolerances) for a separate follow-up once we've worked out how "
+    "much additional GPU time makes sense."
 )
 para("Best regards,")
 para("Omar")
