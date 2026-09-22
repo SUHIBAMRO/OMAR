@@ -187,14 +187,45 @@ finishes or a new one starts.
 >   error converges cleanly and MONOTONICALLY (29.2% -> 21.2% -> 14.1% ->
 >   7.0%) -- a real, clean convergence trend, same quality as B3's own
 >   fixed methodology. Peak stress near the free edge is still RISING with
->   resolution (296 -> 302 -> 468 -> 506), unlike B3's groove (which
->   plateaued quickly at comparable element counts, true_max ~60-80) --
->   a genuine early sign this design is numerically harder, though CPU
->   -scale and GPU-unconfirmed, same standing discipline as B3's own study.
->   **Next**: present this complete technical setup (geometry, BCs,
->   material, real CPU convergence numbers) to Timon for confirmation
->   (per Omar's instruction, a review checkpoint, not a preference
->   question) before starting any GPU work.
+>   resolution (296 -> 302 -> 468 -> 506).
+>
+>   **CORRECTION (same day, explicit instruction after the CPU study):
+>   do NOT call the 5,184-element mesh a "converged reference," and do
+>   NOT use the rising true_max as evidence B8 is harder than B3** -- a
+>   rising raw peak with resolution is equally consistent with "not yet
+>   converged" as with "a genuinely sharp feature," and cannot be told
+>   apart from a single rising number alone (the same reason true_max
+>   has always been diagnostic-only, never a threshold QoI, for
+>   B1/B2/B3). Corrected going forward: region-Cauchy FIELD error is the
+>   primary local QoI; true_max is printed as a diagnostic only.
+>
+>   **GPU study built, not yet run** (Omar has no GPU in this session --
+>   same pattern as every other GPU run in this project, Omar runs it
+>   in Colab): `zeroshot_notebooks/cell_b8_gpu_mesh_convergence.py` +
+>   `make_b8_gpu_mesh_convergence_notebook.py` -> `B8_GPU_MeshConvergence
+>   .ipynb` (99/99 notebooks pass `check_notebooks.py`; the full non-
+>   Colab-specific logic -- reference comparison, ladder loop, figure
+>   generation, JSON report -- was dry-run end-to-end on CPU at tiny
+>   resolutions first to catch bugs before spending real GPU time).
+>   Design: the stress-evaluation region (r=R_out, theta=0, mid-height
+>   of the first internal shim, radius=6x shim thickness) is now FIXED
+>   and does not change with resolution. Ladder extends the existing CPU
+>   rows (576-5,184 el) with five new rows into the advisor's 10^5-10^6
+>   target range (19,074 / 50,688 / 136,408 / 373,248 / 791,864
+>   elements), compared against a NEW ~2,912,256-element reference,
+>   itself checked against an OLD ~1,054,272-element reference via a
+>   direct reference-to-reference region-Cauchy-field comparison before
+>   either is trusted -- exactly the same check already done for B3.
+>   Verified before committing GPU time: region sampling scales in
+>   healthily at every planned resolution (35 samples at 19k elements up
+>   to 5,178 at 2.9M) -- the fixed region will not degenerate at scale.
+>   **Target question this run answers**: does the region-Cauchy field
+>   error stay approximately 5-10% within the 10^5-10^6-element range?
+>   **Next**: Omar runs this notebook in Colab; once real GPU numbers
+>   are in, THEN present the complete technical setup (geometry, BCs,
+>   material, real GPU-confirmed convergence numbers) to Timon for
+>   confirmation (a review checkpoint, not a preference question) before
+>   starting any further work.
 
 > ⚠️ **STANDING REMINDER, Omar's own explicit instruction (2026-09-10):
 > before the cached-Hessian speedup (`hvp_method="cached_hessian"` in
