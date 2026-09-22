@@ -137,10 +137,35 @@ finishes or a new one starts.
 >   "does depth=0.20 actually land in Timon's 10^5-10^6-element / 5-10%
 >   band" number requires pushing resolution well beyond CPU-feasible
 >   scale -- the same GPU step the original B3 design needed to resolve
->   its own region-Cauchy plateau. **Not yet run.** depth=0.35 is ruled
->   out as impractical; depth=0.20 is the only sharper-groove design
->   confirmed both correct (converges, physically valid) and worth a GPU
+>   its own region-Cauchy plateau. depth=0.35 is ruled out as
+>   impractical; depth=0.20 is the only sharper-groove design confirmed
+>   both correct (converges, physically valid) and worth a GPU
 >   follow-up.
+>
+>   **GPU study built, not yet run** (Omar caught that only B8's GPU
+>   notebook had been built at first -- this one was missing):
+>   `zeroshot_notebooks/cell_b3_groove_gpu_mesh_convergence.py` +
+>   `make_b3_groove_gpu_mesh_convergence_notebook.py` ->
+>   `B3_Groove_Sharp_GPU_MeshConvergence.ipynb` (100/100 notebooks pass
+>   `check_notebooks.py`; full logic dry-run on CPU at tiny resolutions
+>   first). Same corrected discipline as B8's GPU study: no "converged
+>   reference" claims until reference-to-reference comparison supports
+>   it; true_max diagnostic-only, never evidence of difficulty;
+>   region-Cauchy field error is the primary local QoI; stress-
+>   evaluation region (2x the groove's own radius of curvature) is fixed
+>   by the fixed groove geometry itself, unaffected by resolution.
+>   Reuses `mesh_convergence_B3_groove_sharpness.py`'s solve_case/
+>   compare_to_reference unchanged at the CPU-confirmed settings
+>   (groove_depth=0.20, half_width=0.15, r_grading=1.5, n_increments=21).
+>   Ladder: existing CPU rows (336-18,200 el) + three new GPU rows
+>   (79,464 / 201,780 / 480,320 elements) inside the advisor's target
+>   range, vs. a NEW ~2,213,376-element reference checked against an OLD
+>   ~1,071,200-element reference via direct comparison. Region sampling
+>   verified to scale in healthily (196 samples at 79k el up to 5,370 at
+>   2.2M) before committing GPU time. **Next**: Omar runs this in Colab
+>   (alongside B8's own GPU notebook) -- once both are back, present
+>   BOTH complete technical setups with real GPU-confirmed numbers to
+>   Timon.
 > - **Option B (laminated seismic bearing) -- code complete and verified
 >   runnable, 2026-09-22** (`omar_pfem/data/data_generate_B8.py`,
 >   `omar_pfem/data/mesh_convergence_B8.py`): annular ring cross-section
