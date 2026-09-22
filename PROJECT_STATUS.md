@@ -167,12 +167,34 @@ finishes or a new one starts.
 >   cleanly (no load-stepping/grading fixes needed unlike Option A),
 >   det(F)>0 everywhere, force equilibrium to 1e-15, peak stress near the
 >   outer free edge (where the rubber-shim stress concentration is
->   expected) large and stable across the two resolutions (270 -> 262,
->   early positive sign, NOT yet a convergence claim). This is a smoke
->   test only -- no mesh-convergence study or GPU work has been run.
->   **Next**: present this complete technical setup to Timon for
->   confirmation (per Omar's instruction, a review checkpoint, not a
->   preference question) before starting real convergence/GPU work.
+>   expected) large and stable across the two resolutions (270 -> 262).
+>
+>   **UPDATE, same day: real mesh-convergence study run** (Omar's
+>   correction: a two-resolution smoke test is not real, complete work).
+>   Built the same symmetric, volume-weighted, quadrature-based
+>   region-Cauchy-field methodology validated for B3 (adapted to B8's own
+>   non-uniform banded z-axis), and found + fixed a real region-sampling
+>   issue before trusting any number: the QoI reference point sits at
+>   r=R_out AND theta=0 simultaneously (two domain edges at once), where
+>   Gauss/centroid samples are always offset from the boundary by a fixed
+>   fraction of local element size in both directions -- a geometric
+>   sampling constraint, not a resolution problem, fixed by widening the
+>   region radius (2x -> 6x shim thickness, confirmed at each step) rather
+>   than moving the reference point off the physically meaningful free
+>   edge. Real CPU resolution ladder (576/1,296/2,304/3,600 elements
+>   against a 5,184-element reference): displacement L2 error converges
+>   cleanly (2.19% -> 1.31% -> 0.73% -> 0.35%) and the region-Cauchy field
+>   error converges cleanly and MONOTONICALLY (29.2% -> 21.2% -> 14.1% ->
+>   7.0%) -- a real, clean convergence trend, same quality as B3's own
+>   fixed methodology. Peak stress near the free edge is still RISING with
+>   resolution (296 -> 302 -> 468 -> 506), unlike B3's groove (which
+>   plateaued quickly at comparable element counts, true_max ~60-80) --
+>   a genuine early sign this design is numerically harder, though CPU
+>   -scale and GPU-unconfirmed, same standing discipline as B3's own study.
+>   **Next**: present this complete technical setup (geometry, BCs,
+>   material, real CPU convergence numbers) to Timon for confirmation
+>   (per Omar's instruction, a review checkpoint, not a preference
+>   question) before starting any GPU work.
 
 > ⚠️ **STANDING REMINDER, Omar's own explicit instruction (2026-09-10):
 > before the cached-Hessian speedup (`hvp_method="cached_hessian"` in
