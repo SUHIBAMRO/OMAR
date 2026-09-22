@@ -141,11 +141,38 @@ finishes or a new one starts.
 >   out as impractical; depth=0.20 is the only sharper-groove design
 >   confirmed both correct (converges, physically valid) and worth a GPU
 >   follow-up.
-> - **Option B (laminated seismic bearing)**: not yet started. Omar's
->   instruction (2026-09-22): design the COMPLETE code (geometry, BCs,
->   material, norms/QoIs, equations) and present the full technical setup
->   to Timon for confirmation BEFORE starting real data-generation/GPU
->   work -- not a preference question, a technical review checkpoint.
+> - **Option B (laminated seismic bearing) -- code complete and verified
+>   runnable, 2026-09-22** (`omar_pfem/data/data_generate_B8.py`,
+>   `omar_pfem/data/mesh_convergence_B8.py`): annular ring cross-section
+>   (real central hole) extruded through alternating rubber/shim bands
+>   (rubber, shim, rubber, ..., rubber), half-cylinder mesh (theta in
+>   [0,pi], same mirror-symmetry argument as B3 -- combined top-plate
+>   shear+compression+optional rocking about y keeps uy=0 on y=0). Bottom
+>   face fixed (foundation); top face gets a PRESCRIBED RIGID displacement
+>   (compression + shear + optional rocking) -- a boundary condition, not
+>   a meshed body, same convention as B3's own rigid core. Shim modeling:
+>   checked directly against torch-fem's own API before deciding --
+>   `Hyperelastic3D` supports genuinely per-element (vectorized)
+>   [mu,lambda], but `Solid`'s Dirichlet-BC-based constraints have no
+>   general rigid multi-point-constraint mechanism, and `torchfem/
+>   laminate.py`'s `Laminate` class is classical lamination theory for
+>   SHELLS (not applicable to through-thickness 3D solid layers). Real,
+>   implementable choice: shims meshed in the SAME connected mesh with the
+>   SAME Neo-Hookean psi function, per-element vectorized params -- a
+>   much higher but FINITE modulus (100x rubber's, a documented, tunable
+>   choice, not the real ~1e5 steel/rubber ratio, which would likely
+>   reproduce the CG ill-conditioning already found for aggressive mesh
+>   grading in the B3 groove-sharpness study). Verified runnable at two
+>   resolutions (576 and 1,296 elements): mesh valid, Newton converges
+>   cleanly (no load-stepping/grading fixes needed unlike Option A),
+>   det(F)>0 everywhere, force equilibrium to 1e-15, peak stress near the
+>   outer free edge (where the rubber-shim stress concentration is
+>   expected) large and stable across the two resolutions (270 -> 262,
+>   early positive sign, NOT yet a convergence claim). This is a smoke
+>   test only -- no mesh-convergence study or GPU work has been run.
+>   **Next**: present this complete technical setup to Timon for
+>   confirmation (per Omar's instruction, a review checkpoint, not a
+>   preference question) before starting real convergence/GPU work.
 
 > ⚠️ **STANDING REMINDER, Omar's own explicit instruction (2026-09-10):
 > before the cached-Hessian speedup (`hvp_method="cached_hessian"` in
