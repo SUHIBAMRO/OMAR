@@ -54,11 +54,17 @@ HEXA1_IPOINTS = np.array([
 
 
 def solve_case(Ntheta, Nr, Nz, groove_depth, groove_half_width, r_grading=1.0,
-               dtype=torch.float64, device=None, verbose=False):
+               dtype=torch.float64, device=None, verbose=False, n_increments=11):
     """Identical physics/BCs/solve procedure to mesh_convergence_B3.solve_case
     -- groove_depth/groove_half_width are now parameters (were module
     constants there) so multiple groove designs can share this one,
-    unmodified code path."""
+    unmodified code path. n_increments (default 11, matching
+    mesh_convergence_B3.py exactly) is also exposed: a deeper groove is a
+    genuinely harder nonlinear problem (confirmed directly -- depth=0.20
+    at (17,10,15) failed Newton-Raphson convergence at only 20% of the
+    applied rocking load with the default 11 increments), and finer load
+    stepping is the standard, legitimate FEM remedy for that -- not a
+    workaround, a real requirement of the sharper geometry itself."""
     device = device or torch.device("cpu")
     nodes, elements = generate_grid_hex8_bushing(
         R_IN0, R_OUT, LZ, Ntheta, Nr, Nz, groove_depth, groove_half_width, r_grading=r_grading)
@@ -91,7 +97,7 @@ def solve_case(Ntheta, Nr, Nz, groove_depth, groove_half_width, r_grading=1.0,
     model.constraints = constraints
     model.displacements = displacements
 
-    increments = torch.linspace(0.0, 1.0, 11, dtype=dtype, device=device)
+    increments = torch.linspace(0.0, 1.0, n_increments, dtype=dtype, device=device)
     old_default_dtype = torch.get_default_dtype()
     torch.set_default_dtype(dtype)
     t0 = time.time()
@@ -296,22 +302,24 @@ def compare_to_reference(case, ref, groove_depth, groove_half_width):
 
 
 def run_groove_design(label, groove_depth, groove_half_width, resolutions, fine_resolution,
-                       r_grading=1.0):
+                       r_grading=1.0, n_increments=11):
     rho = groove_radius_of_curvature(groove_depth, groove_half_width)
     print("\n" + "#" * 90)
     print(f"# Groove design: {label}  (depth={groove_depth}, half_width={groove_half_width}, "
-          f"rho={rho:.6f}, r_grading={r_grading})")
+          f"rho={rho:.6f}, r_grading={r_grading}, n_increments={n_increments})")
     print("#" * 90)
 
     print(f"Solving fine reference {fine_resolution} ...")
-    ref = solve_case(*fine_resolution, groove_depth, groove_half_width, r_grading=r_grading)
+    ref = solve_case(*fine_resolution, groove_depth, groove_half_width, r_grading=r_grading,
+                      n_increments=n_increments)
     print(f"  fine ref: n_elements={ref['n_elements']}  time={ref['elapsed_s']:.1f}s  "
           f"n_region={ref['n_region']}  p99_reliable={ref['region_p99_reliable']}  "
           f"region_avg_sxx={ref['region_avg_sigma_xx']:.4f}  true_max={ref['region_true_max_sigma_xx']:.4f}")
 
     rows = []
     for Ntheta, Nr, Nz in resolutions:
-        r = solve_case(Ntheta, Nr, Nz, groove_depth, groove_half_width, r_grading=r_grading)
+        r = solve_case(Ntheta, Nr, Nz, groove_depth, groove_half_width, r_grading=r_grading,
+                        n_increments=n_increments)
         l2_rel, h1_rel, cauchy_field_rel, n_ref_region = compare_to_reference(
             r, ref, groove_depth, groove_half_width)
         r["disp_l2_rel"] = l2_rel
@@ -363,16 +371,22 @@ def main():
         fine_resolution=(29, 14, 27)))
 
     # 4x sharper (rho=0.0228 vs baseline's 0.0912), same half_width=0.15.
+    # n_increments=21: confirmed directly (not assumed) that the DEFAULT
+    # 11 increments fails Newton-Raphson convergence at only 20% of the
+    # applied rocking load for this depth -- a real property of the
+    # sharper geometry's nonlinear response, fixed by finer load
+    # stepping (a standard FEM remedy), not by weakening the load or
+    # loosening the convergence tolerance.
     results.append(run_groove_design(
         "4x sharper (depth=0.20)", 0.20, 0.15,
         resolutions=[(9, 8, 7), (13, 12, 11), (17, 16, 15), (21, 20, 19)],
-        fine_resolution=(29, 26, 27), r_grading=2.5))
+        fine_resolution=(29, 26, 27), r_grading=2.5, n_increments=21))
 
     # 7x sharper (rho=0.0130 vs baseline's 0.0912), same half_width=0.15.
     results.append(run_groove_design(
         "7x sharper (depth=0.35)", 0.35, 0.15,
         resolutions=[(9, 10, 7), (13, 14, 11), (17, 18, 15), (21, 24, 19)],
-        fine_resolution=(29, 32, 27), r_grading=3.0))
+        fine_resolution=(29, 32, 27), r_grading=3.0, n_increments=21))
 
     print("\n" + "=" * 90)
     print("SUMMARY -- all groove designs, same methodology, same code path:")
