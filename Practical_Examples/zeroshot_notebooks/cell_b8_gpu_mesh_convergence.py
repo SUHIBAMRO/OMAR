@@ -80,6 +80,29 @@ import torch
 assert torch.cuda.is_available(), 'this cell needs a real GPU'
 print('GPU:', torch.cuda.get_device_name(0))
 
+# Real fix, not defensive boilerplate: confirmed directly that re-running
+# this cell in the SAME Colab kernel after an earlier OOM does NOT free
+# that earlier crash's GPU memory, even with gc.collect()/empty_cache()
+# elsewhere in this cell -- because Jupyter/IPython automatically stores
+# the last exception's full traceback (accessible as sys.last_traceback),
+# and every local variable in every frame of that traceback (including
+# the large GPU tensors alive at the moment of the crash) stays reachable
+# -- and therefore un-collectable -- until that stored traceback itself
+# is cleared. A true Runtime > Restart session clears it as a side effect
+# of killing the process; simply re-running this cell does not. Clearing
+# it explicitly here means a plain cell re-run recovers on its own.
+import gc
+import sys
+for _attr in ('last_traceback', 'last_value', 'last_type'):
+    if hasattr(sys, _attr):
+        delattr(sys, _attr)
+gc.collect()
+torch.cuda.empty_cache()
+print(f'GPU memory at start: {torch.cuda.memory_allocated()/1e9:.2f} GB allocated, '
+      f'{torch.cuda.memory_reserved()/1e9:.2f} GB reserved (should be ~0 either way -- '
+      f'if not, the runtime was not actually restarted and still holds an earlier '
+      f'crash alive; use Runtime > Restart session, not just re-running this cell)')
+
 from omar_pfem.data.mesh_convergence_B8 import solve_case, compare_to_reference
 
 device = torch.device('cuda')
@@ -136,7 +159,6 @@ print(f"  OLD reference: {ref_old['n_elements']} elements, {ref_old['elapsed_s']
 # across its own load increments, but not retention ACROSS separate
 # solve_case() calls. gc.collect()+empty_cache() here is the standard,
 # safe fix for that (frees memory, does not change any numbers).
-import gc
 gc.collect()
 torch.cuda.empty_cache()
 print(f'GPU memory after cleanup: {torch.cuda.memory_allocated()/1e9:.2f} GB allocated, '
