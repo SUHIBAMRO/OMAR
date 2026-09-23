@@ -150,8 +150,28 @@ print(f'Groove: depth={GROOVE_DEPTH}, half_width={GROOVE_HALF_WIDTH}, rho={rho:.
 # CPU-scale rows already reported (re-solved here on GPU for a consistent
 # per-row time basis), then a new GPU-scale ladder into the advisor's
 # 10^5-10^6-element target range.
+#
+# Real incident, 2026-09-23: a live Colab run reached (81,80,77)=480,320
+# elements cleanly (CG iteration count grew only mildly and smoothly,
+# 21->25, across a 1000x range in element count -- real evidence the
+# r_grading=1.0 conditioning fix genuinely works), then attempted
+# OLD_FINE_RESOLUTION=(105,104,101)=1,071,200 elements directly and sat
+# there for OVER TEN HOURS with zero output -- not a crash (CG has no
+# early bailout besides a 10*dof iteration cap, astronomically large,
+# and torchfem never prints per-CG-iteration progress, so a genuinely
+# huge iteration count looks identical to a hang from the outside).
+# Jumping from a proven-safe 480,320 straight to an untested 1,071,200
+# was itself the mistake -- a >2x jump with no real data in between.
+# Fixed by inserting five real, individually-tested intermediate sizes
+# BETWEEN the proven-safe 480,320 and the historically-failing
+# 1,071,200, so if a real wall exists somewhere in this range, it is
+# found and reported at the smallest size that hits it, not discovered
+# again as another silent multi-hour stall on the same untested jump.
 CPU_SCALE_RESOLUTIONS = [(9, 8, 7), (13, 12, 11), (17, 16, 15), (21, 20, 19), (29, 26, 27)]
-GPU_RESOLUTIONS = [(45, 44, 43), (61, 60, 58), (81, 80, 77)]
+GPU_RESOLUTIONS = [
+    (45, 44, 43), (61, 60, 58), (81, 80, 77),   # already confirmed working live, 2026-09-23
+    (85, 84, 81), (89, 88, 85), (93, 92, 89), (97, 96, 93), (101, 100, 97),  # NEW: real intermediate steps
+]
 RESOLUTIONS = CPU_SCALE_RESOLUTIONS + GPU_RESOLUTIONS
 OLD_FINE_RESOLUTION = (105, 104, 101)   # ~1,071,200 elements -- just above the target range
 # NEW_FINE_RESOLUTION history, both sizes ruled out using REAL numbers
