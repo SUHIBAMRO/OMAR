@@ -603,10 +603,40 @@ finishes or a new one starts.
 >   two largest, already-converged rows -- (97,96,93)=839,040 and
 >   (101,100,97)=950,400 elements -- extracted directly from the already-
 >   solved `rows` list instead of re-solved, at zero additional GPU cost.
->   Rebuilt, re-verified (104/104 `check_notebooks.py`), pushed. **Not
->   yet done**: Omar has not yet re-run this fixed notebook, so the real
->   region-Cauchy field error trend for Option A's ladder (the whole
->   point of this fix) has still never actually been reported.
+>   Rebuilt, re-verified (104/104 `check_notebooks.py`), pushed.
+>
+>   **🎉 Option A (B3, 4x sharper groove) GPU RUN COMPLETE AND
+>   SUCCESSFUL, 2026-09-23 -- LANDMARK REAL RESULT, mirrors B8's own:
+>   satisfies the advisor's stated target.** Omar's real re-run went
+>   through the WHOLE ladder cleanly (336 through 950,400 elements, CG
+>   iterations growing only mildly and smoothly, 21->28, across a
+>   ~2,830x range in element count -- the r_grading=1.0 fix genuinely
+>   holds at scale) in 40m41s total, with NO separate large reference
+>   solve needed (per the fix above). OLD (839,040) vs NEW (950,400)
+>   reference check: region-Cauchy field error 0.858%, region_avg
+>   relative change 0.623% -- both comfortably under the 10% bar, OLD
+>   reference accepted as converged. Full real ladder (region-Cauchy
+>   FIELD error, PRIMARY QoI, disp_L2 in parentheses): 336 el = 1222.93%
+>   (5.91%), 1,320 el = 318.42% (3.35%), 3,360 el = 1262.82% (3.43%,
+>   non-monotonic blip, small-n_region artifact, not a bug), 6,840 el =
+>   807.48% (2.30%), 18,200 el = 382.26% (1.53%), 79,464 el = 81.05%
+>   (0.70%), 201,780 el = 24.60% (0.34%, OUTSIDE the 5-10% band, still
+>   too coarse), **480,320 el = 5.69% (0.12%, WITHIN THE 5-10% BAND)**,
+>   557,760 el = 3.76% (0.09%), 643,104 el = 2.25% (0.06%), 736,736 el =
+>   1.02% (0.05%), 839,040 el = 0.00% (0.00%, trivial -- IS the
+>   reference), 950,400 el = 1.41% (0.05%). **Conclusion: Option A (B3
+>   with a 4x sharper groove) also genuinely satisfies the advisor's
+>   stated requirement** -- the region-Cauchy-stress error lands inside
+>   5-10% at ~480,320 elements, squarely inside the requested 10^5-10^6-
+>   element range (near its lower-middle portion, unlike B8's own
+>   crossing near the upper end at ~792k) -- while disp_L2 is already
+>   tiny (0.12%) at that same resolution, the same fast-global/slow-
+>   local convergence gap this project's whole QoI methodology is built
+>   around. **Both candidate 3D geometries (Option A and Option B) now
+>   have a real, GPU-confirmed resolution satisfying the advisor's exact
+>   target** -- this is the real, complete answer to present to Prof.
+>   Rabczuk next, not a provisional one. Full results/figures saved to
+>   Drive (`pfem_run/b3_groove_sharp/`).
 
 > ⚠️ **STANDING REMINDER, Omar's own explicit instruction (2026-09-10):
 > before the cached-Hessian speedup (`hvp_method="cached_hessian"` in
