@@ -126,13 +126,22 @@ CPU_SCALE_RESOLUTIONS = [(9, 8, 7), (13, 12, 11), (17, 16, 15), (21, 20, 19), (2
 GPU_RESOLUTIONS = [(45, 44, 43), (61, 60, 58), (81, 80, 77)]
 RESOLUTIONS = CPU_SCALE_RESOLUTIONS + GPU_RESOLUTIONS
 OLD_FINE_RESOLUTION = (105, 104, 101)   # ~1,071,200 elements -- just above the target range
-# NEW_FINE_RESOLUTION was originally (133,132,129, ~2,213,376 el) --
-# confirmed directly on B8's own sibling notebook (same solve mechanism)
-# that a ~2x-2.8x jump from a ~1M-element OLD reference can OOM even an
-# 80GB A100 during basic setup, independent of the torch.no_grad() fix
-# below. Dialed back to a more conservative size (~1,656,480 el, ~1.55x
-# OLD) that leaves real margin.
-NEW_FINE_RESOLUTION = (121, 120, 117)   # ~1,656,480 elements -- meaningfully finer, for the reference check
+# NEW_FINE_RESOLUTION history, both sizes ruled out using REAL numbers
+# from B8's own sibling notebook (same solve mechanism -- same hex8
+# element, 8 Gauss points, 24 local dof, float64 -- so the same memory
+# model applies regardless of geometry): (133,132,129, ~2,213,376 el)
+# was already dialed back once on a rough safety margin; then B8's own
+# real GPU OOM at (157,79, ~1,569,672 el) gave the actual numbers
+# needed to compute this properly instead of guessing again -- one
+# intermediate tensor per Newton iteration (the local element stiffness
+# contribution, shape (n_elem, 8 gauss, 24, 24) in float64) scales as
+# n_elements * 3.6864e-5 GB, and backing out B8's failure (total
+# attempted ~84.4GB, ~57.9GB of which was this one tensor) gives
+# ~26.5GB for everything else (K matrix, CG buffers, mesh tensors).
+# Targeting a safe ~71GB total gives a real, computed ceiling of
+# ~1.2M elements -- NEW_FINE_RESOLUTION below (1,201,824 el) is chosen
+# just under that, not another guess.
+NEW_FINE_RESOLUTION = (109, 108, 105)   # ~1,201,824 elements -- meaningfully finer, for the reference check
 
 figs_saved = []
 
@@ -173,7 +182,7 @@ torch.cuda.empty_cache()
 print(f'GPU memory after cleanup: {torch.cuda.memory_allocated()/1e9:.2f} GB allocated, '
       f'{torch.cuda.memory_reserved()/1e9:.2f} GB reserved')
 
-print(f'\nSolving the NEW, finer reference {NEW_FINE_RESOLUTION} (~1,656,480 elements) -- '
+print(f'\nSolving the NEW, finer reference {NEW_FINE_RESOLUTION} (~1,201,824 elements) -- '
       'the check for whether the OLD reference is actually converged...')
 ref_new = solve(*NEW_FINE_RESOLUTION, verbose=True)
 print(f"  NEW reference: {ref_new['n_elements']} elements, {ref_new['elapsed_s']:.2f}s, "

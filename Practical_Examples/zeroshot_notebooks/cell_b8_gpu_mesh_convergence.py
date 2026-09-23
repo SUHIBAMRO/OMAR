@@ -126,13 +126,24 @@ NZ_PARAMS = {
 }
 OLD_FINE_RESOLUTION = (137, 69)   # ~1,054,272 elements -- just above the 10^5-10^6 target range
 OLD_FINE_NZ = (21, 10)
-# NEW_FINE_RESOLUTION was originally (193,97, ~2,912,256 el) -- confirmed
-# directly on a real 80GB A100 that this OOMs even during basic shape-
-# function setup (before any Newton iteration), independent of the
-# torch.no_grad() memory fix below. Dialed back to a real, more
-# conservative size (~1,569,672 el, ~1.5x OLD) that leaves real margin.
-NEW_FINE_RESOLUTION = (157, 79)   # ~1,569,672 elements -- meaningfully finer, for the reference check
-NEW_FINE_NZ = (24, 11)
+# NEW_FINE_RESOLUTION history, both confirmed directly on a real 80GB
+# A100 (not theorized): (193,97, ~2,912,256 el) OOM'd during basic
+# shape-function setup; (157,79, ~1,569,672 el) OOM'd later, during the
+# first Newton iteration's stiffness assembly, needing ~6.7GB more when
+# ~77.6GB was already in use -- the OLD-vs-NEW cleanup between solves
+# was confirmed WORKING this time (memory returned to baseline after
+# OLD), so this second failure is a genuinely different, simpler cause:
+# one intermediate tensor per Newton iteration (the local element
+# stiffness contribution, shape (n_elem, n_gauss=8, 24, 24) in float64)
+# scales as n_elements * 3.6864e-5 GB -- ~57.9GB by itself at 1,569,672
+# elements. Backing out the real numbers from that failure (total
+# attempted ~84.4GB, of which ~57.9GB was this one tensor) gives ~26.5GB
+# for everything else (K matrix, CG buffers, mesh tensors); targeting a
+# safe ~72GB total gives a real, computed ceiling of ~1.23M elements --
+# NEW_FINE_RESOLUTION below (1,254,528 el) is chosen just under that,
+# not another guess.
+NEW_FINE_RESOLUTION = (145, 73)   # ~1,254,528 elements -- meaningfully finer, for the reference check
+NEW_FINE_NZ = (22, 11)
 
 figs_saved = []
 
@@ -164,7 +175,7 @@ torch.cuda.empty_cache()
 print(f'GPU memory after cleanup: {torch.cuda.memory_allocated()/1e9:.2f} GB allocated, '
       f'{torch.cuda.memory_reserved()/1e9:.2f} GB reserved')
 
-print(f'\nSolving the NEW, finer reference {NEW_FINE_RESOLUTION} (~1,569,672 elements) -- '
+print(f'\nSolving the NEW, finer reference {NEW_FINE_RESOLUTION} (~1,254,528 elements) -- '
       'this is the check for whether the OLD reference is actually converged...')
 ref_new = solve_case(*NEW_FINE_RESOLUTION, nz_per_rubber=NEW_FINE_NZ[0], nz_per_shim=NEW_FINE_NZ[1], device=device, verbose=True)
 print(f"  NEW reference: {ref_new['n_elements']} elements, {ref_new['elapsed_s']:.2f}s, "
