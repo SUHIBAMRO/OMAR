@@ -480,6 +480,133 @@ finishes or a new one starts.
 >   material, real GPU-confirmed convergence numbers) to Timon for
 >   confirmation (a review checkpoint, not a preference question) before
 >   starting any further work.
+>
+> - **UPDATE 2026-09-23, later same day: B8-final's deformable-steel model
+>   FAILS to converge at 105,456 elements -- real, GPU-confirmed, proven
+>   NOT to be a solver-choice problem.** Omar's real Colab run hit
+>   `ConvergenceError` with the default Jacobi-preconditioned CG (`CG did
+>   not reach 1e-08 within iteration limit`, then `Newton-Raphson did not
+>   converge in increment 4 after 10 cutbacks`). Per Omar's own explicit
+>   direction ("ابنيها" -- build it), NVIDIA AmgX was built genuinely
+>   FROM SOURCE on a real A100 (`zeroshot_notebooks/cell_build_amgx.py` /
+>   `AmgX_Build_And_Test.ipynb`; no pip wheel exists for torch-fem's AmgX
+>   backend) -- build succeeded cleanly (`available_backends: ['scipy',
+>   'amgx']`), but the actual AMG solve at the SAME 105,456-element case
+>   ALSO failed: `ConvergenceError: AmgX solve did not converge
+>   (NOT_CONVERGED) in 1000 iterations`, then Newton failed at increment 1
+>   (worse than Jacobi's own increment-4 failure). **Conclusion, backed by
+>   both the weakest and strongest available solvers failing at the
+>   identical resolution**: the real steel/rubber stiffness ratio itself
+>   (E_steel/G_rubber ~ 294,000:1) is the cause, not solver choice --
+>   confirms this is NOT fixable by tolerance/solver tuning, and per
+>   standing instruction the real material parameters are not to be
+>   altered to work around it.
+>
+>   **Real, external environment issues found and fixed while building
+>   AmgX** (kept separate from the physics finding above): (1) the first
+>   build script assumed torchfem/omar_pfem were already importable from
+>   another notebook's kernel -- real `ModuleNotFoundError` on a fresh
+>   Colab kernel; fixed by making the script fully self-contained (own
+>   git clone + pip install). (2) A live, currently-active PyPI issue
+>   (2026-09-23): pyvista 0.49+ unconditionally imports
+>   `IPython.core.guarded_eval`, which only exists from IPython>=8.8 --
+>   Colab ships 7.34 -- fixed with `pip install "pyvista<0.49"` before
+>   `torch-fem`, applied to EVERY GPU cell in the whole project (not just
+>   this one). (3) Pinning pyvista on disk does NOT fix a kernel that
+>   already suffered the broken import once in the same session -- the
+>   partially-initialized module stays cached in `sys.modules['pyvista']`
+>   -- fixed by adding `pyvista`/`pyvista.`-prefixed entries to every
+>   `sys.modules`-clearing loop across all GPU cells project-wide.
+>
+>   **NEW rigid-shim kinematic model designed, implemented, and validated,
+>   per Omar's own detailed explicit instruction** (verbatim: each
+>   internal steel shim must be an EXACT rigid body -- translation and
+>   rotation UNKNOWN, determined by equilibrium, not prescribed and not a
+>   stiffness-ratio proxy -- validated against the deformable-steel model
+>   at 15,600 elements across displacement L2, reaction resultants, total
+>   strain energy, and especially the rubber-only regional Cauchy-stress
+>   field, only adopted for production if comfortably inside the 5-10%
+>   QoI band, and explicitly NOT assuming shim stiffness is the only
+>   possible source of conditioning trouble -- near-incompressible rubber
+>   + displacement-based HEX8 could independently cause volumetric
+>   locking, to be investigated next if the rigid-shim model itself
+>   struggles at scale, not a reason to alter real material parameters).
+>   New modules, both new files: `omar_pfem/data/rigid_shim_kinematics.py`
+>   (pure kinematics: exact SO(3) rotation via `torch.linalg.matrix_exp`,
+>   not a hand-derived Rodrigues formula; Jacobian via `torch.func.
+>   jacrev`, verified against finite differences to ~1e-9/1e-10) and
+>   `omar_pfem/data/rigid_shim_solver.py` (the actual Newton loop: a
+>   `Solid` model containing ONLY rubber elements -- shim elements are
+>   dropped entirely, since a shim's material choice becomes irrelevant
+>   once its nodes are exactly rigidly constrained -- unknowns are free
+>   rubber DOFs plus 3 DOF per shim; a real structural fix was needed and
+>   found: a generic 6-DOF-per-shim parameterization caused explosive
+>   Newton divergence, traced to the half-cylinder mesh's y=0
+>   mirror-symmetry requirement being violated at symmetry-plane nodes
+>   shared with shims -- fixed by restricting each shim to the SAME
+>   3-DOF symmetric subspace already used for the top-plate BC
+>   (t_x, t_z, theta_y), which gives uy=0 exactly by construction;
+>   kinematic condensation via `K_reduced = J^T K J`, `R_reduced = J^T R`,
+>   solved directly with SciPy's `spsolve`, not iteratively). **Real,
+>   verified validation result at Omar's own requested 15,600-element
+>   resolution**: displacement L2 error 2.09%, region-Cauchy field error
+>   (the primary QoI) 1.63%, reaction force difference 1.36% vs. the
+>   deformable-steel model -- all comfortably inside the 5-10% QoI band --
+>   AND 6x FASTER (49.2s vs. 292.8s at the same resolution). Several real
+>   implementation bugs were found and fixed via actual execution along
+>   the way (missing `model.K` init, dtype mismatch, a `requires_grad`
+>   tensor blocking `.numpy()`, a double-transpose indexing bug, a
+>   full-mesh vs. rubber-only array-length mismatch for downstream
+>   comparison) -- see the code's own history for detail; none altered
+>   the physics, all confirmed bit-for-bit safe on already-passing cases
+>   before being trusted.
+>
+>   **Medium-scale validation notebook, before any full production run**
+>   (same "never jump straight to a large untested size" discipline this
+>   whole project already enforces): `zeroshot_notebooks/
+>   cell_rigid_shim_medium_test.py` / `B8_RigidShim_MediumTest.ipynb`,
+>   ladder (37,19)=50,544 / (45,23)=75,504 / (53,27)=105,456 elements --
+>   the last being the EXACT resolution that failed for the deformable
+>   model, for a direct, meaningful comparison. Omar's first live run hit
+>   a real GPU-only device-placement bug (`RuntimeError: ... cuda:0 and
+>   cpu!`) inside torch-fem's own lazily-cached `char_lengths` property --
+>   the `with torch.device(device):` wrap only covered the `Solid(...)`
+>   construction line, not the whole Newton loop where `integrate_
+>   material` first triggers that cache, so on CUDA the first access
+>   happened outside any device context and permanently cached CPU-
+>   resident tensors. Fixed by widening the wrap to cover the WHOLE
+>   function body (matches the deformable model's own exact pattern);
+>   verified bit-identical CPU results before/after. Omar's own CPU-only
+>   sandbox run at 50,544 elements (not yet the full ladder) confirms
+>   clean convergence: 653.5s, `force_rel_residual=2.67e-15`,
+>   `max_disp=6.008mm`. **Not yet done**: Omar re-running the fixed
+>   notebook on real GPU through the full ladder, especially the
+>   105,456-element row -- this is the immediate next real result needed
+>   before deciding whether to proceed to a full 10^5-10^6-element
+>   production run for the rigid-shim model, or (per the explicit
+>   caution above) investigate near-incompressibility/volumetric locking
+>   if it degrades at scale instead.
+>
+>   **Option A's own GPU cell fixed for real, 2026-09-23, after a SECOND
+>   independent confirmation of the same wall**: the separate
+>   `OLD_FINE_RESOLUTION=(105,104,101)` (~1,071,200-element) reference
+>   solve hung a SECOND time (2.5+ hours, confirmed via screenshot) after
+>   the intermediate-steps fix let the ladder itself succeed cleanly
+>   through 950,400 elements -- a combined ~12.5 hours of GPU time spent
+>   on that one specific resolution with zero result, while the ladder's
+>   own largest rows already sit inside the advisor's 10^5-10^6 target
+>   range. Per Omar's own catch ("بالنسبه ل ب 3 كان ضايل عنا اخر مرجع
+>   للتقارب ما انعمل صح؟" -- wasn't the reference-to-reference comparison
+>   never actually completed for B3?), fixed `cell_b3_groove_gpu_mesh_
+>   convergence.py` (commit `80d7e31`) to stop chasing that number:
+>   `OLD_FINE_RESOLUTION`/`NEW_FINE_RESOLUTION` are now the ladder's own
+>   two largest, already-converged rows -- (97,96,93)=839,040 and
+>   (101,100,97)=950,400 elements -- extracted directly from the already-
+>   solved `rows` list instead of re-solved, at zero additional GPU cost.
+>   Rebuilt, re-verified (104/104 `check_notebooks.py`), pushed. **Not
+>   yet done**: Omar has not yet re-run this fixed notebook, so the real
+>   region-Cauchy field error trend for Option A's ladder (the whole
+>   point of this fix) has still never actually been reported.
 
 > ⚠️ **STANDING REMINDER, Omar's own explicit instruction (2026-09-10):
 > before the cached-Hessian speedup (`hvp_method="cached_hessian"` in
