@@ -23,26 +23,31 @@
 #
 #  SECOND UPDATE, same day, real GPU evidence again: 'cg' is CORRECT at
 #  50,544 elements -- bit-identical to 'direct' (max_disp rel diff
-#  1.6e-15) and 4.3x FASTER (126.66s vs 546.11s) -- but genuinely BREAKS
-#  DOWN at 75,504 elements, and WORSE than 'direct's mere slowness: CG's
-#  own iteration count exploded (4,275 -> 6,673 -> 13,129 iterations
-#  across successive Newton iterations of increment 1 alone), the
-#  Newton residual DIVERGED instead of converging (1.19e5 -> 2.27e6 ->
-#  1.23e9), and the run crashed with `AssertionError: non-positive
-#  diagonal in K_reduced` -- the tangent stiffness itself became invalid,
-#  almost certainly because a bad/inaccurate CG step (plain Jacobi
-#  preconditioning is known to be weak when a system mixes very
-#  different physical DOF scales, here free rubber translations vs.
-#  each shim's 3-dof rigid block) pushed the deformation state somewhere
-#  physically invalid. This is exactly the standing caution already
-#  written into this module: rubber is also near-incompressible, and
-#  displacement-based HEX8 elements can suffer their own volumetric-
-#  locking-related conditioning problems, independent of the (now-
-#  removed) shim stiffness contrast -- plain-Jacobi CG is not yet a safe
-#  choice at this scale, so 'direct' is used again for (45,23)/(53,27)
-#  below (slow but numerically robust, unlike CG's outright divergence
-#  here) while a stronger preconditioner for CG is investigated
-#  separately, offline, before being tried again at this scale.
+#  1.6e-15) and 4.3x FASTER (126.66s vs 546.11s) -- but 'cg' AND 'direct'
+#  BOTH broke down at 75,504 elements, with the IDENTICAL diverging
+#  Newton residual trajectory (1.187e5 -> 2.274e6 -> 1.227e9 for BOTH
+#  solvers, to 3+ significant figures) -- proof this was never a
+#  linear-solver-accuracy problem at all (an earlier hypothesis blaming
+#  CG's Jacobi preconditioning was WRONG, corrected here).
+#
+#  THIRD UPDATE, real root cause found and fixed: this module's custom
+#  Newton loop (torch-fem has no rigid-MPC support, so it is
+#  hand-written here) had NO load-step cutback -- unlike the deformable-
+#  steel model, which gets automatic step-halving for free from
+#  torch-fem's own `model.solve()` (its "did not converge... after N
+#  cutbacks" messages ARE that mechanism). A single 10%-per-increment
+#  Newton step happened to survive at 50,544 elements but was simply too
+#  large at 75,504, regardless of which linear solver computed the
+#  (accurate) step. Added automatic load-step halving (up to
+#  `max_cutbacks=10`) to `rigid_shim_solver.solve_case` -- verified
+#  correct with a deliberate stress test (forcing a single 100%-load
+#  jump at a small, already-solved resolution): the cutback path
+#  automatically subdivided (0->0.25 ok, 0.25->1.0 failed and
+#  subdivided again into 0.25->0.625->1.0) and reached the SAME
+#  converged answer (max_disp/strain_energy match to ~1e-6) as the
+#  normal 11-increment run. Since the real root cause was Newton
+#  robustness, not linear-solver choice, 'cg' is tried again for
+#  (45,23)/(53,27) below -- now protected by cutback either way.
 #
 #  Ladder: (37,19)=50,544 / (45,23)=75,504 / (53,27)=105,456 elements --
 #  the last one is the EXACT resolution that failed for the deformable
@@ -130,18 +135,22 @@ print(f"\n  direct vs cg: max_disp rel diff={disp_rel_diff:.2e}  "
       f"not an approximation)")
 print(f"  time: direct={r_direct['elapsed_s']:.2f}s vs cg={r_cg['elapsed_s']:.2f}s")
 
-# 'direct' is used for the rest of the ladder: 'cg' with plain Jacobi
-# preconditioning is not yet safe at this scale (see the SECOND UPDATE
-# above -- it diverged and crashed, not just slow). Slower but robust.
-rows = [r_direct]
+# 'cg' is tried again for the rest of the ladder: the real root cause of
+# the earlier divergence was missing Newton load-step cutback (now
+# fixed, see the THIRD UPDATE above), not linear-solver accuracy --
+# 'direct' and 'cg' produced the IDENTICAL diverging trajectory before
+# the fix, so there is no remaining reason to expect 'cg' to fail where
+# 'direct' would not. 'cg' is also 4.3x faster (confirmed at 50,544 el
+# above), so it is the one worth spending GPU time on now.
+rows = [r_cg]
 errors = []
 
 for Ntheta, Nr in RESOLUTIONS[1:]:
-    print(f'\n{"=" * 90}\nSolving rigid-shim model at ({Ntheta},{Nr}) with linear_solver=\'direct\' '
-          f'(\'cg\' with plain Jacobi is known to diverge at this scale -- see the module docstring; '
-          f'\'direct\' is slower but numerically robust)...', flush=True)
+    print(f'\n{"=" * 90}\nSolving rigid-shim model at ({Ntheta},{Nr}) with linear_solver=\'cg\' '
+          f'(now protected by automatic load-step cutback -- the real fix for the earlier '
+          f'divergence, see the module docstring)...', flush=True)
     try:
-        r = solve_rigid_shim(Ntheta, Nr, device=device, verbose=True, linear_solver='direct')
+        r = solve_rigid_shim(Ntheta, Nr, device=device, verbose=True, linear_solver='cg')
     except Exception as e:
         print(f"\n  FAILED at ({Ntheta},{Nr}): {type(e).__name__}: {e}", flush=True)
         errors.append((Ntheta, Nr, str(e)))
@@ -153,7 +162,7 @@ for Ntheta, Nr in RESOLUTIONS[1:]:
     print(f"  reaction_force_bottom={r['reaction_force_bottom']}")
 
 print(f'\n{"=" * 90}\nSummary across the ladder (row 1 has both direct/cg numbers above; '
-      f'the rest solved with linear_solver=\'direct\'):')
+      f'the rest solved with linear_solver=\'cg\', now cutback-protected):')
 for r in rows:
     print(f"  ({r['Ntheta']},{r['Nr']})  n_elem={r['n_elements']:>9,}  time={r['elapsed_s']:>8.2f}s  "
           f"force_rel_residual={r['force_rel_residual']:.2e}  max_disp={r['max_disp']:.4f}mm")

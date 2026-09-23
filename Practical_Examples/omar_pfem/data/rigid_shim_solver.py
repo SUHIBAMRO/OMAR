@@ -171,14 +171,28 @@ def _solve_reduced(K_reduced, R_reduced, method="direct", cg_rtol=1e-10, cg_maxi
 def solve_case(Ntheta, Nr, n_rubber_layers=N_RUBBER_LAYERS, nz_per_rubber=2, nz_per_shim=2,
                r_grading=1.0, n_increments=11, dtype=torch.float64, device=None,
                verbose=False, max_iter=30, rtol=1e-8, atol=1e-8,
-               linear_solver="direct", cg_rtol=1e-10, cg_maxiter=None):
+               linear_solver="direct", cg_rtol=1e-10, cg_maxiter=None, max_cutbacks=10):
     """Same signature/return-dict conventions as
     mesh_convergence_B8.solve_case (the deformable-steel model), for a
     direct, apples-to-apples comparison via that module's own
     compare_to_reference. `linear_solver`: 'direct' (SciPy sparse LU,
     default, matches every result already reported for this model) or
     'cg' (Jacobi-preconditioned CG -- see module docstring for why this
-    was added and how it is validated before being trusted at scale)."""
+    was added and how it is validated before being trusted at scale).
+
+    `max_cutbacks`: automatic load-step halving on Newton failure, same
+    mechanism the deformable-steel model gets for free from torch-fem's
+    own `model.solve()` (its own log messages say "did not converge...
+    after N cutbacks" -- that IS this mechanism). This custom Newton
+    loop reimplements Newton by hand (torch-fem has no rigid-MPC
+    support), so it never inherited that robustness feature -- a real,
+    confirmed root cause (2026-09-23): at 75,504 elements, BOTH
+    linear_solver='direct' (exact) and 'cg' produced the IDENTICAL
+    diverging residual trajectory (1.187e5 -> 2.274e6 -> 1.227e9),
+    proving the failure was never about linear-solver accuracy at all --
+    a plain, single-shot Newton step per increment is simply too fragile
+    at this scale, exactly the kind of failure load-step cutback exists
+    to fix."""
     device = device or torch.device("cpu")
     nodes, elements, is_shim, Lz = generate_grid_hex8_laminated_bearing(
         R_IN, R_OUT, Ntheta, Nr, n_rubber_layers=n_rubber_layers,
@@ -306,19 +320,19 @@ def solve_case(Ntheta, Nr, n_rubber_layers=N_RUBBER_LAYERS, nz_per_rubber=2, nz_
             de0 = model.ext_strain.to(dtype=dtype, device=device)
             model.K = torch.empty(0)  # torch-fem's own solve() does this before its loop too
 
-            increments = torch.linspace(0.0, 1.0, n_increments, dtype=dtype, device=device)
-            q = torch.zeros(n_reduced, dtype=dtype, device=device)
-            lam = 0.0
-            shim_state_history = []
-            t0 = time.time()
-            for n in range(1, n_increments):
-                target = float(increments[n])
-                step = target - lam
+            def newton_attempt(lam0, target, q0, label):
+                """ONE Newton solve for the load step [lam0, target],
+                starting from the converged reduced state q0. Does NOT
+                touch u_cur/grad_cur/flux_cur/state_cur (those stay the
+                last COMMITTED state until the caller commits a
+                converged attempt). Returns (converged, q_new, du_full,
+                it_final, res_norm)."""
+                step = target - lam0
                 DU_step = step * DU_target_full
-
-                converged = False
+                q_local = q0.clone()
+                res_norm = None
                 for it in range(max_iter):
-                    du_full, J = q_to_full_du_and_J(q)
+                    du_full, J = q_to_full_du_and_J(q_local)
                     du_full = du_full.clone()
                     du_full[con] = DU_step[con]
 
@@ -335,29 +349,49 @@ def solve_case(Ntheta, Nr, n_rubber_layers=N_RUBBER_LAYERS, nz_per_rubber=2, nz_
                     if it == 0:
                         res0 = max(res_norm, 1e-30)
                     if verbose:
-                        print(f"  increment {n} iter {it}: |R_reduced|={res_norm:.3e}")
+                        print(f"  {label} iter {it}: |R_reduced|={res_norm:.3e}")
                     if res_norm < atol or res_norm < rtol * res0:
-                        converged = True
-                        break
+                        return True, q_local, du_full, it, res_norm
 
                     K_full_sp = _csr_torch_to_scipy(K_full)
                     K_reduced = (J.T @ K_full_sp @ J).tocsc()
                     dq_np = _solve_reduced(K_reduced, R_reduced, method=linear_solver,
                                             cg_rtol=cg_rtol, cg_maxiter=cg_maxiter, verbose=verbose,
-                                            tag=f"increment {n} iter {it} ")
-                    q = q + torch.tensor(dq_np, dtype=dtype, device=device)
+                                            tag=f"{label} iter {it} ")
+                    q_local = q_local + torch.tensor(dq_np, dtype=dtype, device=device)
+                return False, q_local, None, None, res_norm
 
-                if not converged:
-                    raise RuntimeError(f"rigid-shim Newton did not converge in increment {n} "
-                                        f"after {max_iter} iterations (final |R_reduced|={res_norm:.3e})")
-
-                du_full, J = q_to_full_du_and_J(q)
-                du_full = du_full.clone()
-                du_full[con] = DU_step[con]
-                _, f_i, grad_cur, flux_cur, state_cur = model.integrate_material(
-                    u_cur, grad_cur, flux_cur, state_cur, du_full, de0, it, True, compute_stiffness=False)
-                u_cur = u_cur + du_full.view(-1, 3)
-                lam = target
+            increments = torch.linspace(0.0, 1.0, n_increments, dtype=dtype, device=device)
+            q = torch.zeros(n_reduced, dtype=dtype, device=device)
+            lam = 0.0
+            shim_state_history = []
+            t0 = time.time()
+            for n in range(1, n_increments):
+                target = float(increments[n])
+                sub_target = target
+                n_cutbacks = 0
+                while True:
+                    label = f"increment {n} (lam={lam:.4f}->{sub_target:.4f})"
+                    converged, q_new, du_full, it, res_norm = newton_attempt(lam, sub_target, q, label)
+                    if converged:
+                        _, f_i, grad_cur, flux_cur, state_cur = model.integrate_material(
+                            u_cur, grad_cur, flux_cur, state_cur, du_full, de0, it, True,
+                            compute_stiffness=False)
+                        u_cur = u_cur + du_full.view(-1, 3)
+                        q = q_new
+                        lam = sub_target
+                        if sub_target >= target - 1e-12:
+                            break
+                        sub_target = target  # try to leap back to the full remaining step
+                        continue
+                    n_cutbacks += 1
+                    if n_cutbacks > max_cutbacks:
+                        raise RuntimeError(f"rigid-shim Newton did not converge in increment {n} "
+                                            f"after {max_cutbacks} cutbacks (final |R_reduced|={res_norm:.3e})")
+                    sub_target = lam + (sub_target - lam) / 2.0
+                    if verbose:
+                        print(f"  [cutback {n_cutbacks}] increment {n}: Newton failed, "
+                              f"retrying with a smaller step up to lam={sub_target:.4f}")
 
                 shim_q_this = []
                 offset = n_free
