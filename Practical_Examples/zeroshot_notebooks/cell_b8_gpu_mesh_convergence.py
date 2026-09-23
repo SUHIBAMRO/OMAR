@@ -1,33 +1,57 @@
 # =====================================================================
-#  CELL -- B8 (3D laminated annular elastomeric seismic bearing, Option
-#  B) mesh convergence, extended to GPU resolutions into and above the
-#  10^5-10^6-element range the advisor asked about.
+#  CELL -- B8-FINAL (3D laminated annular elastomeric seismic bearing,
+#  Option B) mesh convergence, extended to GPU resolutions into and
+#  above the 10^5-10^6-element range the advisor asked about.
 #
-#  Per the explicit instructions for this run (given after the CPU-only
-#  study): (1) do NOT describe any mesh here as a "converged reference"
-#  until a reference-to-reference comparison actually supports that;
-#  (2) do NOT use a rising true (raw) peak stress as evidence that this
-#  design is "harder" than B3 -- an increasing raw max with resolution
-#  is exactly as consistent with "still refining, not yet converged" as
-#  with "a genuinely sharp feature," and cannot be told apart from a
-#  single rising number alone (this is exactly why B1/B2/B3 already
-#  treat true_max as diagnostic-only, never a threshold QoI -- the same
-#  discipline applies here); (3) the region-Cauchy-stress FIELD ERROR
-#  (volume-weighted, quadrature-based, symmetric element-centroid
-#  methodology already validated for B3) is the PRIMARY local QoI,
-#  true_max is printed only as a secondary diagnostic; (4) the physical
-#  stress-evaluation region (r=R_out, theta=0, z=first internal shim's
-#  mid-height, region_radius=6*T_SHIM) is now FIXED and must not change
-#  again as resolution increases; (5) extend the ladder into
-#  approximately 10^5-10^6 elements, use an even finer mesh above that
-#  range as the reference, and INCLUDE a reference-to-reference
-#  comparison (old vs new fine reference) to show the chosen reference
-#  is actually converged -- exactly the same check already done for
-#  B3's own GPU study (cell_b3_gpu_mesh_convergence.py), reused here
-#  verbatim in structure.
+#  This REPLACES the B8-prototype notebook (frozen, unmodified, at
+#  cell_b8_prototype_gpu_mesh_convergence.py -- its real GPU-confirmed
+#  result, 7.53% region-Cauchy field error at 791,864 elements, stays
+#  valid and is kept, not discarded). B8-final differs in three real
+#  ways, per a 2026-09-23 technical review of the prototype:
+#  (1) real geometry/materials from a published source (Kalantari &
+#  Rofooei, 10th Canadian Conference on Earthquake Engineering, 2010):
+#  R_IN=15mm, R_OUT=76mm, 20 rubber layers x 3mm, 19 steel shims x 3mm;
+#  rubber G=0.68 MPa/K=2000 MPa; steel E=200 GPa/nu=0.3 (real linear-
+#  elastic steel via a St. Venant-Kirchhoff psi branch, replacing the
+#  prototype's SHIM_STIFFNESS_RATIO=100 Neo-Hookean proxy entirely);
+#  (2) the stress-QoI region is now scoped to rubber-layer-1 elements
+#  ONLY, near the rubber/shim-1 interface, with a runtime assertion
+#  guarding against any shim element ever entering it (the prototype's
+#  region spanned both materials with interpolation crossing that
+#  discontinuity); (3) a CPU sanity check (mesh validity, det(F)>0,
+#  equilibrium, shim-vs-rubber strain self-consistency, and a small
+#  3-point convergence trend at 2,496/5,616/9,984 elements against a
+#  15,600-element reference: cauchy_field = 4.85%/2.19%/0.67%, clean
+#  and monotonic) was run BEFORE this GPU cell was built, per the
+#  reviewer's own explicit sequencing.
+#
+#  Real, geometry-dependent conditioning check done before committing
+#  GPU time: the real steel/rubber stiffness ratio here (~294,000:1,
+#  E_steel/G_rubber = 200,000/0.68) is far more extreme than the
+#  prototype's 100:1 proxy, and this project separately found (same
+#  day, in the sibling Option-A/B3-groove-sharpness notebook) that a
+#  bare Jacobi-preconditioned CG solver CAN struggle badly at large
+#  scale for a geometry with a sharp, localized feature. B8's own
+#  annular-laminate geometry has no such feature (the material
+#  discontinuity is a full, regular layer, not a local singularity),
+#  and a direct CPU test at 15,600 elements WITH the real steel/rubber
+#  contrast converged with the same healthy pattern as every other
+#  successful case in this project (5 iterations then a flat 2 per
+#  increment, 23 total over 10 increments) -- real evidence, not an
+#  assumption, that this specific risk does not carry over to B8.
+#
+#  Real lesson applied from the SAME day's Option-A incident: that
+#  notebook attempted its large OLD/NEW references FIRST, so a stuck
+#  large solve blocked every smaller, safer ladder row behind it,
+#  wasting GPU time with nothing to show for it. This cell solves the
+#  ladder FIRST (smallest to largest, up to and including the main
+#  reference) and only THEN attempts the separate, finer reference
+#  ladder-CHECK resolution -- so if the very largest size is ever slow
+#  or fails, the full ladder's real numbers are already printed, saved
+#  to Drive, and safe.
 #
 #  Per the 2026-09-21 standing rule: generates figures during the
-#  analysis AND a final summary figure, saves all of them to Drive, and
+#  analysis AND a final summary figure, saves them to Drive, and
 #  displays them inline in this notebook's own output.
 # =====================================================================
 import os
@@ -80,17 +104,19 @@ import torch
 assert torch.cuda.is_available(), 'this cell needs a real GPU'
 print('GPU:', torch.cuda.get_device_name(0))
 
-# Real fix, not defensive boilerplate: confirmed directly that re-running
-# this cell in the SAME Colab kernel after an earlier OOM does NOT free
-# that earlier crash's GPU memory, even with gc.collect()/empty_cache()
-# elsewhere in this cell -- because Jupyter/IPython automatically stores
-# the last exception's full traceback (accessible as sys.last_traceback),
-# and every local variable in every frame of that traceback (including
-# the large GPU tensors alive at the moment of the crash) stays reachable
+# Real fix, not defensive boilerplate: confirmed directly (on this
+# notebook's own B8-prototype/B3-groove siblings) that re-running this
+# cell in the SAME Colab kernel after an earlier crash does NOT free
+# that crash's GPU memory, even with gc.collect()/empty_cache()
+# elsewhere in this cell -- because Jupyter/IPython automatically
+# stores the last exception's full traceback (sys.last_traceback), and
+# every local variable in every frame of that traceback (including the
+# large GPU tensors alive at the moment of the crash) stays reachable
 # -- and therefore un-collectable -- until that stored traceback itself
-# is cleared. A true Runtime > Restart session clears it as a side effect
-# of killing the process; simply re-running this cell does not. Clearing
-# it explicitly here means a plain cell re-run recovers on its own.
+# is cleared. A true Runtime > Restart session clears it as a side
+# effect of killing the process; simply re-running this cell does not.
+# Clearing it explicitly here means a plain cell re-run recovers on its
+# own.
 import gc
 import sys
 for _attr in ('last_traceback', 'last_value', 'last_type'):
@@ -108,138 +134,132 @@ from omar_pfem.data.mesh_convergence_B8 import solve_case, compare_to_reference
 device = torch.device('cuda')
 
 R = '/content/drive/MyDrive/pfem_run'
-os.makedirs(f'{R}/b8', exist_ok=True)
+os.makedirs(f'{R}/b8_final', exist_ok=True)
 
-# CPU-scale rows already solved and reported locally (kept in the ladder
-# so the full trend, low-to-high resolution, stays visible in one plot) --
-# resolutions only, re-solved here on GPU for a consistent per-row time
-# basis, not reused from the earlier CPU run.
-CPU_SCALE_RESOLUTIONS = [(9, 5), (13, 7), (17, 9), (21, 11), (25, 13)]
-# GPU-scale ladder into the 10^5-10^6-element range the advisor asked about.
-GPU_RESOLUTIONS = [(35, 18), (49, 25), (69, 35), (97, 49), (125, 63)]
+# Real element counts, computed directly from generate_grid_hex8_
+# laminated_bearing (not guessed) -- B8-final's real geometry (20
+# rubber layers x 3mm, 19 shims x 3mm = 78 total z-element-layers at
+# nz_per_rubber=nz_per_shim=2) gives a different (Ntheta,Nr) -> n_elem
+# mapping than the prototype's (4 rubber layers, 18 z-element-layers),
+# so this ladder was recomputed from scratch, not reused.
+CPU_SCALE_RESOLUTIONS = [(9, 5), (13, 7), (17, 9), (21, 11)]
+# GPU-scale ladder into the 10^5-10^6-element range the advisor asked
+# about, spaced roughly log-uniformly: 105k / 225k / 390k / 639k / 901k.
+GPU_RESOLUTIONS = [(53, 27), (77, 39), (101, 51), (129, 65), (153, 77)]
 RESOLUTIONS = CPU_SCALE_RESOLUTIONS + GPU_RESOLUTIONS
-# nz_per_rubber/nz_per_shim scaled together with Ntheta/Nr so the mesh
-# refines roughly proportionally in every direction, not just in-plane.
-NZ_PARAMS = {
-    (9, 5): (3, 2), (13, 7): (4, 2), (17, 9): (3, 2), (21, 11): (4, 2), (25, 13): (4, 2),
-    (35, 18): (6, 3), (49, 25): (8, 4), (69, 35): (11, 5), (97, 49): (15, 7), (125, 63): (19, 9),
-}
-OLD_FINE_RESOLUTION = (137, 69)   # ~1,054,272 elements -- just above the 10^5-10^6 target range
-OLD_FINE_NZ = (21, 10)
-# NEW_FINE_RESOLUTION history, both confirmed directly on a real 80GB
-# A100 (not theorized): (193,97, ~2,912,256 el) OOM'd during basic
-# shape-function setup; (157,79, ~1,569,672 el) OOM'd later, during the
-# first Newton iteration's stiffness assembly, needing ~6.7GB more when
-# ~77.6GB was already in use -- the OLD-vs-NEW cleanup between solves
-# was confirmed WORKING this time (memory returned to baseline after
-# OLD), so this second failure is a genuinely different, simpler cause:
-# one intermediate tensor per Newton iteration (the local element
-# stiffness contribution, shape (n_elem, n_gauss=8, 24, 24) in float64)
-# scales as n_elements * 3.6864e-5 GB -- ~57.9GB by itself at 1,569,672
-# elements. Backing out the real numbers from that failure (total
-# attempted ~84.4GB, of which ~57.9GB was this one tensor) gives ~26.5GB
-# for everything else (K matrix, CG buffers, mesh tensors); targeting a
-# safe ~72GB total gives a real, computed ceiling of ~1.23M elements --
-# NEW_FINE_RESOLUTION below (1,254,528 el) is chosen just under that,
-# not another guess.
-NEW_FINE_RESOLUTION = (145, 73)   # ~1,254,528 elements -- meaningfully finer, for the reference check
-NEW_FINE_NZ = (22, 11)
+# MAIN reference: (165,83) -> 1,048,944 elements, ~1.05M -- matches the
+# reviewer's own explicit suggestion for where to put the reference
+# ("reference around ~1.05M"), computed directly, not rounded to it by
+# coincidence. Memory ceiling check (same real, computed-not-guessed
+# formula established this project for B3/B8-prototype: one Newton
+# iteration's local-stiffness tensor scales as n_elements*3.6864e-5 GB
+# in float64): 1,048,944 el -> ~38.7GB for that tensor alone, safely
+# under the ~71-72GB total ceiling found from B8-prototype's own real
+# OOM data.
+MAIN_REFERENCE = (165, 83)   # ~1,048,944 elements
+# CHECK reference: (177,89) -> 1,208,064 elements, ~44.5GB for the same
+# tensor -- right at the computed-safe ceiling, same margin used for
+# B8-prototype's own NEW reference (1,254,528 el) and Option A's NEW
+# reference (1,201,824 el). This is the reference-to-reference check
+# that shows MAIN_REFERENCE is itself sufficiently converged, per the
+# advisor's explicit request -- not skipped.
+CHECK_REFERENCE = (177, 89)  # ~1,208,064 elements
 
 figs_saved = []
 
 
 def save_and_show(fig, name):
-    path = f'{R}/b8/{name}.png'
+    path = f'{R}/b8_final/{name}.png'
     fig.savefig(path, dpi=150, bbox_inches='tight')
     figs_saved.append(path)
     print('Saved figure:', path)
     plt.show()
 
 
-print('\nSolving the OLD fine reference (137,69, ~1,054,272 elements)...')
-ref_old = solve_case(*OLD_FINE_RESOLUTION, nz_per_rubber=OLD_FINE_NZ[0], nz_per_shim=OLD_FINE_NZ[1], device=device, verbose=True)
-print(f"  OLD reference: {ref_old['n_elements']} elements, {ref_old['elapsed_s']:.2f}s, "
-      f"n_region={ref_old['n_region']}, region_avg_sigma_xx={ref_old['region_avg_sigma_xx']:.4f} "
-      f"(true_max={ref_old['region_true_max_sigma_xx']:.4f}, diagnostic only)")
-
-# Confirmed directly on a real 80GB A100: GPU memory from the OLD solve
-# above was NOT released before the next large solve started (the
-# CUDA OOM report showed ~77GB still "allocated," not just cached, right
-# before a NEW solve's own tiny first allocation) -- torch.no_grad() (in
-# mesh_convergence_B8.py's own solve_case) fixes growth WITHIN one solve
-# across its own load increments, but not retention ACROSS separate
-# solve_case() calls. gc.collect()+empty_cache() here is the standard,
-# safe fix for that (frees memory, does not change any numbers).
-gc.collect()
-torch.cuda.empty_cache()
-print(f'GPU memory after cleanup: {torch.cuda.memory_allocated()/1e9:.2f} GB allocated, '
-      f'{torch.cuda.memory_reserved()/1e9:.2f} GB reserved')
-
-print(f'\nSolving the NEW, finer reference {NEW_FINE_RESOLUTION} (~1,254,528 elements) -- '
-      'this is the check for whether the OLD reference is actually converged...')
-ref_new = solve_case(*NEW_FINE_RESOLUTION, nz_per_rubber=NEW_FINE_NZ[0], nz_per_shim=NEW_FINE_NZ[1], device=device, verbose=True)
-print(f"  NEW reference: {ref_new['n_elements']} elements, {ref_new['elapsed_s']:.2f}s, "
-      f"n_region={ref_new['n_region']}, region_avg_sigma_xx={ref_new['region_avg_sigma_xx']:.4f} "
-      f"(true_max={ref_new['region_true_max_sigma_xx']:.4f}, diagnostic only)")
-
-print('\n' + '=' * 90)
-print('OLD vs NEW reference -- the check for whether the chosen reference is '
-      'actually converged (region-Cauchy field error is the PRIMARY comparison; '
-      'region_avg relative change is a secondary scalar cross-check):')
-d_avg = abs(ref_new['region_avg_sigma_xx'] - ref_old['region_avg_sigma_xx']) / abs(ref_old['region_avg_sigma_xx'])
-print(f"  region_avg_sigma_xx: OLD={ref_old['region_avg_sigma_xx']:.4f}  "
-      f"NEW={ref_new['region_avg_sigma_xx']:.4f}  relative change={d_avg*100:.3f}%")
-_, cauchy_field_old_vs_new, _ = compare_to_reference(ref_old, ref_new)
-print(f"  region-Cauchy FIELD error (OLD relative to NEW, PRIMARY QoI): "
-      f"{cauchy_field_old_vs_new*100:.3f}%")
-print(f"  (diagnostic only, NOT evidence either way) true_max_sigma_xx: "
-      f"OLD={ref_old['region_true_max_sigma_xx']:.4f}  NEW={ref_new['region_true_max_sigma_xx']:.4f}")
-
-if cauchy_field_old_vs_new < 0.10:
-    print(f"\n  ==> OLD-vs-NEW region-Cauchy field error ({cauchy_field_old_vs_new*100:.3f}%) "
-          f"is below 10% -- the NEW reference is reasonably converged for this "
-          f"comparison; treated as the fine reference below.")
-else:
-    print(f"\n  ==> OLD-vs-NEW region-Cauchy field error ({cauchy_field_old_vs_new*100:.3f}%) "
-          f"is still above 10% -- the reference is NOT yet demonstrated converged. "
-          f"Results below against this reference should be treated as provisional, "
-          f"not final, exactly as instructed.")
-
-fig1, ax1 = plt.subplots(figsize=(6, 5))
-labels = ['OLD ref\n(%s el)' % f"{ref_old['n_elements']:,}", 'NEW ref\n(%s el)' % f"{ref_new['n_elements']:,}"]
-ax1.bar(labels, [ref_old['region_avg_sigma_xx'], ref_new['region_avg_sigma_xx']], color=['tab:orange', 'tab:blue'])
-ax1.set_ylabel('region_avg_sigma_xx (PRIMARY scalar QoI)')
-ax1.set_title(f'B8 reference-to-reference check\nregion-Cauchy field error: {cauchy_field_old_vs_new*100:.2f}%')
-fig1.tight_layout()
-save_and_show(fig1, 'B8_reference_check')
-
-ref = ref_new
-FINE_RESOLUTION = NEW_FINE_RESOLUTION
-
+# Real lesson from the same day's Option-A incident (see module
+# docstring above): solve the WHOLE ladder, including the main
+# reference, BEFORE attempting the separate finer check-reference --
+# so a slow/stuck check-reference solve can never erase or block the
+# ladder's own real results.
+print(f'\nSolving the resolution ladder, smallest to the main reference {MAIN_REFERENCE} '
+      f'(~1,048,944 elements)...')
 rows = []
 for Ntheta, Nr in RESOLUTIONS:
-    nzr, nzs = NZ_PARAMS[(Ntheta, Nr)]
-    r = solve_case(Ntheta, Nr, nz_per_rubber=nzr, nz_per_shim=nzs, device=device)
-    l2_rel, cauchy_field_rel, n_ref_region = compare_to_reference(r, ref)
-    r['disp_l2_rel'] = l2_rel
-    r['cauchy_field_rel'] = cauchy_field_rel
+    r = solve_case(Ntheta, Nr, device=device, verbose=True)
     rows.append(r)
-    print(f"\n({Ntheta},{Nr})  elements={r['n_elements']:,}  time={r['elapsed_s']:.2f}s")
-    print(f"  disp_L2_rel={l2_rel*100:.3f}%  "
-          f"region-Cauchy FIELD error (PRIMARY)={cauchy_field_rel*100:.3f}%")
-    print(f"  region(n={r['n_region']} quadrature points): "
-          f"avg_sigma_xx={r['region_avg_sigma_xx']:.4f}  "
-          f"(true_max={r['region_true_max_sigma_xx']:.4f}, diagnostic only, NOT used to judge convergence)")
-    print(f"  equilibrium: force_rel_residual={r['force_rel_residual']:.2e}")
+    print(f"  ({Ntheta},{Nr})  elements={r['n_elements']:,}  time={r['elapsed_s']:.2f}s  "
+          f"force_rel_residual={r['force_rel_residual']:.2e}")
     gc.collect()
     torch.cuda.empty_cache()
+
+print(f'\nSolving the MAIN reference {MAIN_REFERENCE} (~1,048,944 elements)...')
+ref_main = solve_case(*MAIN_REFERENCE, device=device, verbose=True)
+print(f"  MAIN reference: {ref_main['n_elements']} elements, {ref_main['elapsed_s']:.2f}s, "
+      f"n_region={ref_main['n_region']}, region_avg_sigma_xx={ref_main['region_avg_sigma_xx']:.4f} "
+      f"(true_max={ref_main['region_true_max_sigma_xx']:.4f}, diagnostic only)")
+gc.collect()
+torch.cuda.empty_cache()
+
+# Compare every ladder row to the MAIN reference now, before touching
+# the check-reference, so these numbers exist on disk even if the
+# check-reference below is ever slow or fails.
+for r in rows:
+    l2_rel, cauchy_field_rel, n_ref_region = compare_to_reference(r, ref_main)
+    r['disp_l2_rel'] = l2_rel
+    r['cauchy_field_rel'] = cauchy_field_rel
+    r['n_ref_region'] = n_ref_region
+    print(f"\n({r['Ntheta']},{r['Nr']})  elements={r['n_elements']:,}")
+    print(f"  disp_L2_rel={l2_rel*100:.3f}%  "
+          f"region-Cauchy FIELD error (PRIMARY)={cauchy_field_rel*100:.3f}%  "
+          f"n_ref_region={n_ref_region}")
+
+print('\n' + '=' * 90)
+print(f'Solving the CHECK reference {CHECK_REFERENCE} (~1,208,064 elements) -- '
+      'this is the check for whether MAIN_REFERENCE is actually converged...')
+ref_check = solve_case(*CHECK_REFERENCE, device=device, verbose=True)
+print(f"  CHECK reference: {ref_check['n_elements']} elements, {ref_check['elapsed_s']:.2f}s, "
+      f"n_region={ref_check['n_region']}, region_avg_sigma_xx={ref_check['region_avg_sigma_xx']:.4f} "
+      f"(true_max={ref_check['region_true_max_sigma_xx']:.4f}, diagnostic only)")
+gc.collect()
+torch.cuda.empty_cache()
+
+print('\n' + '=' * 90)
+print('MAIN vs CHECK reference -- the check for whether the chosen reference is '
+      'actually converged (region-Cauchy field error is the PRIMARY comparison; '
+      'region_avg relative change is a secondary scalar cross-check):')
+d_avg = abs(ref_check['region_avg_sigma_xx'] - ref_main['region_avg_sigma_xx']) / abs(ref_main['region_avg_sigma_xx'])
+print(f"  region_avg_sigma_xx: MAIN={ref_main['region_avg_sigma_xx']:.4f}  "
+      f"CHECK={ref_check['region_avg_sigma_xx']:.4f}  relative change={d_avg*100:.3f}%")
+_, cauchy_field_main_vs_check, _ = compare_to_reference(ref_main, ref_check)
+print(f"  region-Cauchy FIELD error (MAIN relative to CHECK, PRIMARY QoI): "
+      f"{cauchy_field_main_vs_check*100:.3f}%")
+print(f"  (diagnostic only, NOT evidence either way) true_max_sigma_xx: "
+      f"MAIN={ref_main['region_true_max_sigma_xx']:.4f}  CHECK={ref_check['region_true_max_sigma_xx']:.4f}")
+
+if cauchy_field_main_vs_check < 0.10:
+    print(f"\n  ==> MAIN-vs-CHECK region-Cauchy field error ({cauchy_field_main_vs_check*100:.3f}%) "
+          f"is below 10% -- MAIN_REFERENCE is reasonably converged; the ladder comparison "
+          f"above (already computed against MAIN_REFERENCE) stands.")
+else:
+    print(f"\n  ==> MAIN-vs-CHECK region-Cauchy field error ({cauchy_field_main_vs_check*100:.3f}%) "
+          f"is still above 10% -- MAIN_REFERENCE is NOT yet demonstrated converged. "
+          f"The ladder numbers above should be treated as provisional, not final.")
+
+fig1, ax1 = plt.subplots(figsize=(6, 5))
+labels = ['MAIN ref\n(%s el)' % f"{ref_main['n_elements']:,}", 'CHECK ref\n(%s el)' % f"{ref_check['n_elements']:,}"]
+ax1.bar(labels, [ref_main['region_avg_sigma_xx'], ref_check['region_avg_sigma_xx']], color=['tab:orange', 'tab:blue'])
+ax1.set_ylabel('region_avg_sigma_xx (secondary scalar QoI)')
+ax1.set_title(f'B8-final reference-to-reference check\n'
+              f'region-Cauchy field error: {cauchy_field_main_vs_check*100:.2f}%')
+fig1.tight_layout()
+save_and_show(fig1, 'B8_final_reference_check')
 
 print('\n' + '=' * 90)
 print('Region-Cauchy-FIELD-error convergence across the WHOLE ladder (PRIMARY QoI):')
 for r in rows:
     print(f"  n_elem={r['n_elements']:>9,}  disp_L2={r['disp_l2_rel']*100:6.2f}%  "
           f"cauchy_field={r['cauchy_field_rel']*100:6.2f}%  "
-          f"true_max_sxx={r['region_true_max_sigma_xx']:>10.3f} (diagnostic)")
+          f"true_max_sxx={r['region_true_max_sigma_xx']:>10.4f} (diagnostic)")
 
 print('\n' + '=' * 90)
 print("TARGET CHECK: does the region-Cauchy field error stay ~5-10% within the "
@@ -254,19 +274,17 @@ if not in_target_range:
           "ladder above/figure below for the surrounding trend)")
 
 fig2, (ax2a, ax2b) = plt.subplots(1, 2, figsize=(13, 5.5))
-n_elem_all = [r['n_elements'] for r in rows] + [ref_old['n_elements'], ref_new['n_elements']]
-cauchy_all = [r['cauchy_field_rel'] * 100 for r in rows] + [0.0, 0.0]  # references have no self-error
 ax2a.loglog([r['n_elements'] for r in rows], [r['cauchy_field_rel'] * 100 for r in rows],
             'o-', color='tab:blue', label='region-Cauchy field error (PRIMARY)')
 ax2a.loglog([r['n_elements'] for r in rows], [r['disp_l2_rel'] * 100 for r in rows],
             's--', color='tab:green', label='displacement L2 error')
 ax2a.axhspan(5, 10, color='gold', alpha=0.25, label='advisor target band (5-10%)')
 ax2a.axvspan(1e5, 1e6, color='gray', alpha=0.12, label='advisor target range (10^5-10^6 el)')
-ax2a.axvline(ref_old['n_elements'], color='tab:orange', ls=':', label='OLD reference')
-ax2a.axvline(ref_new['n_elements'], color='tab:red', ls=':', label='NEW reference')
+ax2a.axvline(ref_main['n_elements'], color='tab:orange', ls=':', label='MAIN reference')
+ax2a.axvline(ref_check['n_elements'], color='tab:red', ls=':', label='CHECK reference')
 ax2a.set_xlabel('number of elements')
 ax2a.set_ylabel('relative error (%)')
-ax2a.set_title('B8: PRIMARY QoI convergence vs. mesh resolution')
+ax2a.set_title('B8-final: PRIMARY QoI convergence vs. mesh resolution')
 ax2a.legend(fontsize=8)
 ax2a.grid(True, which='both', alpha=0.3)
 
@@ -278,39 +296,43 @@ ax2b.set_ylabel('true_max_sigma_xx (raw peak)')
 ax2b.set_title('DIAGNOSTIC ONLY -- true peak stress\n(NOT used to judge convergence or difficulty)')
 ax2b.grid(True, which='both', alpha=0.3)
 
-fig2.suptitle('B8 (laminated seismic bearing) -- GPU mesh-convergence summary', fontsize=13)
+fig2.suptitle('B8-final (real published-source laminated seismic bearing) -- '
+              'GPU mesh-convergence summary', fontsize=13)
 fig2.tight_layout()
-save_and_show(fig2, 'B8_gpu_convergence_summary')
+save_and_show(fig2, 'B8_final_gpu_convergence_summary')
 
 report = {
     'resolutions': RESOLUTIONS,
-    'old_fine_resolution': OLD_FINE_RESOLUTION, 'new_fine_resolution': NEW_FINE_RESOLUTION,
-    'old_vs_new_region_avg_rel_change': d_avg,
-    'old_vs_new_cauchy_field_rel': cauchy_field_old_vs_new,
+    'main_reference': MAIN_REFERENCE, 'check_reference': CHECK_REFERENCE,
+    'main_vs_check_region_avg_rel_change': d_avg,
+    'main_vs_check_cauchy_field_rel': cauchy_field_main_vs_check,
     'rows': [{k: v for k, v in r.items() if not k.startswith('_')} for r in rows],
-    'old_fine_reference': {k: v for k, v in ref_old.items() if not k.startswith('_')},
-    'new_fine_reference': {k: v for k, v in ref_new.items() if not k.startswith('_')},
+    'main_reference_result': {k: v for k, v in ref_main.items() if not k.startswith('_')},
+    'check_reference_result': {k: v for k, v in ref_check.items() if not k.startswith('_')},
     'figures_saved': figs_saved,
 }
-out_json = f'{R}/b8/mesh_convergence_extended.json'
+out_json = f'{R}/b8_final/mesh_convergence_extended.json'
 with open(out_json, 'w') as f:
     json.dump(report, f, indent=2, default=lambda x: x.tolist() if hasattr(x, 'tolist') else str(x))
 print('\nSaved:', out_json)
 
 try:
     from omar_pfem.run_manifest import write_manifest
-    write_manifest(f'{R}/b8', kind='b8_gpu_mesh_convergence',
-                    args={'resolutions': RESOLUTIONS, 'old_fine_resolution': OLD_FINE_RESOLUTION,
-                          'new_fine_resolution': NEW_FINE_RESOLUTION},
+    write_manifest(f'{R}/b8_final', kind='b8_final_gpu_mesh_convergence',
+                    args={'resolutions': RESOLUTIONS, 'main_reference': MAIN_REFERENCE,
+                          'check_reference': CHECK_REFERENCE},
                     started_at=_started,
-                    results={'n_rows': len(rows), 'old_vs_new_cauchy_field_rel': cauchy_field_old_vs_new},
+                    results={'n_rows': len(rows), 'main_vs_check_cauchy_field_rel': cauchy_field_main_vs_check},
                     outputs=[out_json] + figs_saved,
-                    notes="B8 (laminated seismic bearing) GPU mesh-convergence study: real "
-                          "resolution ladder into the 10^5-10^6-element range, with a "
-                          "reference-to-reference check (OLD ~1.05M vs NEW ~2.9M elements) "
-                          "before trusting either as a fine reference. Region-Cauchy FIELD "
+                    notes="B8-final (real published-source laminated seismic bearing, real "
+                          "geometry/materials, rubber-only QoI region) GPU mesh-convergence "
+                          "study: real resolution ladder into the 10^5-10^6-element range, "
+                          "with a reference-to-reference check (MAIN ~1.05M vs CHECK ~1.21M "
+                          "elements) before trusting MAIN as converged. Region-Cauchy FIELD "
                           "error is the primary local QoI throughout; true_max is diagnostic "
-                          "only and was NOT used to argue this design is harder than B3.")
+                          "only. Ladder solved and compared BEFORE the check-reference, so a "
+                          "slow/stuck check-reference can never erase the ladder's own "
+                          "results (lesson from the same day's Option-A GPU incident).")
 except Exception as e:
     print(f'[manifest] not recorded: {e}')
 

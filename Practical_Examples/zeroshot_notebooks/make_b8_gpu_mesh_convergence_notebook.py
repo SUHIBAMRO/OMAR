@@ -1,12 +1,20 @@
-"""Builds ONE notebook: B8's (laminated annular seismic bearing, Option B)
-mesh-convergence study extended to GPU resolutions into and above the
-10^5-10^6-element range the advisor asked about, per explicit
-instructions given after the CPU-only study: do not call the CPU
-5,184-element mesh a converged reference, do not use rising true peak
-stress as evidence of difficulty, keep the region-Cauchy field error as
-the primary local QoI with true_max diagnostic-only, and include a
-reference-to-reference comparison. See cell_b8_gpu_mesh_convergence.py
-for the full rationale.
+"""Builds ONE notebook: B8-FINAL's (laminated annular seismic bearing,
+Option B, real published-source geometry/materials) mesh-convergence
+study extended to GPU resolutions into and above the 10^5-10^6-element
+range the advisor asked about.
+
+This replaces the earlier B8-prototype notebook (frozen, kept as-is at
+B8_Prototype_GPU_MeshConvergence.ipynb -- its real result, 7.53% region-
+Cauchy field error at 791,864 elements, stays valid and is not
+discarded). B8-final differs in three real ways, per a 2026-09-23
+technical review: real geometry/materials from a published source
+(Kalantari & Rofooei 2010) replacing arbitrary numbers; a rubber-only
+stress-QoI region (no more interpolation across the rubber/steel
+discontinuity); and real linear-elastic steel (E=200 GPa) via a St.
+Venant-Kirchhoff psi branch, replacing the prototype's
+SHIM_STIFFNESS_RATIO=100 Neo-Hookean proxy. See
+cell_b8_gpu_mesh_convergence.py for the full rationale and the real CPU
+evidence gathered before this GPU cell was built.
 """
 import json
 
@@ -36,43 +44,56 @@ def build():
         },
         "cells": [
             md(
-                "# B8 (الـlaminated seismic bearing): تقارب الشبكة على GPU "
-                "-- داخل نطاق 10^5-10^6 عنصر",
+                "# B8-FINAL (الوسادة الزلزالية الحقيقية): تقارب الشبكة على "
+                "GPU -- داخل نطاق 10^5-10^6 عنصر",
                 "",
-                "دراسة CPU السابقة أعطت تقارب حقيقي ونظيف (29.2%->21.2%->"
-                "14.1%->7.0% لخطأ حقل Cauchy المحلي عند 576-3600 عنصر)، بس "
-                "المرجع (5,184 عنصر) **مش مؤكد إنه متقارب** -- هاي الخلية "
-                "بتكمل صح: بتحل مرجعين حقيقيين (القديم ~1.05 مليون عنصر، "
-                "الجديد الأدق ~2.9 مليون عنصر) وبتقارنهم مباشرة **قبل** ما "
-                "تعتبر أي وحدة منهم مرجع نهائي موثوق -- بالضبط نفس الفحص "
-                "يلي انعمل لـB3.",
+                "هاي النسخة **النهائية** من B8، مبنية على مصدر منشور حقيقي "
+                "(Kalantari & Rofooei, 2010) -- مو أرقام تقريبية متل النسخة "
+                "الأولى (B8-prototype، محفوظة لحالها وما انحذفت، ونتيجتها "
+                "الحقيقية 7.53% عند 791,864 عنصر لسا صحيحة وموثقة).",
                 "",
-                "**تعليمات صريحة انلتزم فيها هون**:",
-                "1. ما منسمي أي شبكة \"مرجع متقارب\" لحد ما فحص المرجع-مقابل"
-                "-المرجع يثبت هيك فعليًا.",
-                "2. ما منستخدم ارتفاع أعلى إجهاد حقيقي (true_max) كدليل "
-                "إنو B8 أصعب من B3 -- رقم بيرتفع مع الدقة ممكن يعني \"لسا "
-                "الشبكة ناقصة\" بنفس قد ما يعني \"فيه ميزة حادة فعلاً\"، "
-                "وما فيه طريقة تفرق بينهم من رقم واحد بس. true_max بيبقى "
-                "تشخيصي بس، متل ما هو الحال دائمًا بـB1/B2/B3.",
-                "3. منطقة قياس الإجهاد (r=R_out, theta=0, منتصف أول شيم "
-                "داخلي، نصف قطر المنطقة=6×سماكة الشيم) **ثابتة من هلق "
-                "وطالعة**، ما بتتغير مع الدقة.",
-                "4. خطأ حقل Cauchy الإقليمي (region-Cauchy field error) هو "
-                "الـQoI المحلي **الأساسي**، مش avg ولا true_max.",
+                "**شو تغيّر عن النسخة الأولى**:",
+                "1. **الهندسة والمواد حقيقية 100%**: القطر الداخلي/الخارجي "
+                "30mm/152mm، 20 طبقة مطاط × 3mm، 19 شيم فولاذ × 3mm. "
+                "المطاط: G=0.68 MPa (تصحيح لرقم قديم غير موثق كان 0.86)، "
+                "K=2000 MPa. الفولاذ: E=200 GPa حقيقي (بدل أي تقريب).",
+                "2. **الفولاذ فولاذ حقيقي فعليًا**: تم إلغاء "
+                "\"SHIM_STIFFNESS_RATIO=100\" (كان يمثل الفولاذ كمطاط أقوى "
+                "100 مرة بس) -- الفولاذ هلأ عنده معادلة مادة خاصة فيه "
+                "(St. Venant-Kirchhoff) موازية للمطاط (Neo-Hookean) بنفس "
+                "الموديل، محسوبة ومتحقق منها رياضيًا قبل الاستخدام.",
+                "3. **منطقة قياس الإجهاد صارت على المطاط بس**: النسخة "
+                "الأولى كانت تقيس عند منتصف الشيم (تخلط مطاط وفولاذ). "
+                "هلأ المنطقة محصورة داخل طبقة المطاط الأولى فقط، جنب "
+                "السطح البيني مع الشيم -- بضمانة برمجية (assertion) إنه "
+                "ولا عنصر فولاذ يدخل الحساب أبدًا.",
                 "",
-                "**السلّم**: نفس دقات الـCPU (576 لـ5,184 عنصر) + دقات GPU "
-                "جديدة توصل لنطاق 10^5-10^6 (19k, 51k, 136k, 373k, 792k "
-                "عنصر)، مقارنة بالمرجع الأدق (~2.9 مليون).",
+                "**فحص حقيقي انعمل قبل هاي الخلية**: نسبة صلابة الفولاذ "
+                "للمطاط الحقيقية (~294,000:1) أعلى بكتير من نسبة الـ100:1 "
+                "المستخدمة سابقًا -- فحصنا هل هاد بيسبب مشكلة تقارب "
+                "(conditioning) بالحل الرياضي متل يلي صار بنموذج تاني "
+                "بنفس اليوم. النتيجة: لأ -- حل حقيقي على الكمبيوتر بـ15,600 "
+                "عنصر بالمواد الحقيقية تقارب بنفس النمط الصحي المعتاد "
+                "(5 تكرارات بالخطوة الأولى، بعدين 2 بس لكل خطوة، 23 "
+                "بالمجموع). المشكلة يلي صارت بالنموذج التاني كانت مرتبطة "
+                "بميزة هندسية حادة (أخدود)، مش موجودة بهندسة B8 الملساء.",
                 "",
-                "**الهدف المحدد**: هل خطأ الـQoI الإقليمي بيضل تقريبًا "
-                "5-10% داخل نطاق 10^5-10^6 عنصر؟ (متطلب تيمون بالضبط).",
+                "**تعليمات دائمة انلتزم فيها**: منطقة القياس ثابتة بالمكان "
+                "الفيزيائي (ما بتتغير مع الدقة)؛ region-Cauchy field error "
+                "هو الـQoI الأساسي؛ true_max تشخيصي بس؛ لازم فحص مرجع-مقابل"
+                "-مرجع قبل اعتماد أي مرجع كمتقارب.",
                 "",
-                "**الكلفة المتوقعة**: 12 حل (10 بالسلّم + مرجعين)، أكبرهم "
-                "~2.9 مليون عنصر -- أكبر بكتير من أكبر شبكة حُلّت لـB3 "
-                "(424 ألف)، فمتوقع ياخد وقت أطول بكتير (ممكن ساعات على "
-                "GPU عادي) -- إذا صار في مشكلة ذاكرة أو وقت، أول شي نجرب "
-                "تصغير NEW_FINE_RESOLUTION بالخلية.",
+                "**درس مستفاد من نفس اليوم (نوتبوك B3/الأخدود)**: هاي "
+                "الخلية بتحل السلّم كامل (بما فيه المرجع الرئيسي) **قبل** "
+                "ما تحاول مرجع الفحص الأدق -- هيك إذا صار أي تعليق أو بطء "
+                "بأكبر حجم، نتائج السلّم الحقيقية محفوظة عالـDrive أصلًا "
+                "وما بتنضاع.",
+                "",
+                "**السلّم**: (9,5) لـ(21,11) على الـCPU-scale، بعدين "
+                "(53,27)/(77,39)/(101,51)/(129,65)/(153,77) على الـGPU "
+                "توصل لنطاق 10^5-10^6 (105k-901k عنصر)، مقارنة بمرجع "
+                "رئيسي ~1.05 مليون عنصر (165,83) وفحص مرجع أدق ~1.21 "
+                "مليون عنصر (177,89).",
                 "",
                 "بالنسبة لقاعدة عمر الدائمة (2026-09-21): هاي الخلية بتولّد "
                 "صورتين (فحص المرجعين، وملخص التقارب الكامل)، بتحفظهم على "
