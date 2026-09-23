@@ -14,10 +14,12 @@
 #  from and in addition to however long the actual solve takes
 #  afterward.
 #
-#  Paste into a NEW cell in the SAME Colab runtime as
-#  B8_GPU_MeshConvergence.ipynb, after its main cell has already run
-#  once (so torch/torchfem/omar_pfem are already importable). Requires
-#  a GPU runtime (checks torch.cuda.is_available() below).
+#  Standalone -- this notebook does its own repo clone/pip install, it
+#  does NOT depend on B8_GPU_MeshConvergence.ipynb having run first in
+#  the same kernel (a real oversight in an earlier version of this
+#  cell: it assumed torchfem was already importable and failed with
+#  ModuleNotFoundError on a fresh runtime that only ran this notebook).
+#  Requires a GPU runtime (checks torch.cuda.is_available() below).
 # =====================================================================
 import os
 import subprocess
@@ -25,6 +27,42 @@ import sys
 
 import torch
 assert torch.cuda.is_available(), 'this cell needs a real GPU'
+
+from google.colab import drive
+drive.mount('/content/drive')
+
+REPO = '/content/OMAR'
+
+
+def _run_setup(cmd):
+    print('$', ' '.join(str(c) for c in cmd), flush=True)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                          stderr=subprocess.STDOUT, text=True, bufsize=1)
+    for line in p.stdout:
+        print(line, end='', flush=True)
+    p.wait()
+    if p.returncode != 0:
+        raise subprocess.CalledProcessError(p.returncode, cmd)
+
+
+if not os.path.isdir(REPO):
+    _run_setup(['git', 'clone', '-b', 'claude/claude-code-question-d307wp',
+                'https://github.com/SUHIBAMRO/OMAR.git', REPO])
+else:
+    _run_setup(['git', '-C', REPO, 'fetch', 'origin', 'claude/claude-code-question-d307wp'])
+    _run_setup(['git', '-C', REPO, 'checkout', 'claude/claude-code-question-d307wp'])
+    _run_setup(['git', '-C', REPO, 'reset', '--hard', 'origin/claude/claude-code-question-d307wp'])
+
+_run_setup([sys.executable, '-m', 'pip', 'install', '-q', 'torch-fem'])
+
+WORK = f'{REPO}/Practical_Examples'
+os.chdir(WORK)
+sys.path.insert(0, WORK)
+
+for _mod in list(sys.modules):
+    if (_mod == 'torchfem' or _mod.startswith('torchfem.')
+            or _mod == 'omar_pfem' or _mod.startswith('omar_pfem.')):
+        del sys.modules[_mod]
 
 
 def run(cmd, cwd=None, check=True):
