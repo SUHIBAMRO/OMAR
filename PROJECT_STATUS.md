@@ -162,10 +162,41 @@ finishes or a new one starts.
 >   range, vs. a NEW ~2,213,376-element reference checked against an OLD
 >   ~1,071,200-element reference via direct comparison. Region sampling
 >   verified to scale in healthily (196 samples at 79k el up to 5,370 at
->   2.2M) before committing GPU time. **Next**: Omar runs this in Colab
->   (alongside B8's own GPU notebook) -- once both are back, present
->   BOTH complete technical setups with real GPU-confirmed numbers to
->   Timon.
+>   2.2M) before committing GPU time.
+>
+>   **REAL GPU BUGS FOUND AND FIXED, 2026-09-23, from Omar's actual run
+>   of the B8 notebook (not theorized)**: (1) `OutOfMemoryError` on an
+>   80GB A100 at only 1,054,272 elements, failing mid-solve at increment
+>   6 of 21 -- traced to torchfem's `NewtonRaphsonAdjoint.forward`
+>   (torchfem/sparse.py) calling `ctx.save_for_backward(K, du, ...)` on
+>   EVERY increment for its own implicit-adjoint gradient support; since
+>   none of this project's solves ever call `.backward()` and none
+>   wrapped the solve in `torch.no_grad()`, autograd was retaining every
+>   increment's graph, so GPU memory grew with n_increments, not just
+>   mesh size. Fixed with `torch.no_grad()` around the `model.solve(...)`
+>   call in ALL THREE solve modules (`mesh_convergence_B3.py`,
+>   `mesh_convergence_B3_groove_sharpness.py`, `mesh_convergence_B8.py`)
+>   -- verified bit-identical results before/after on CPU for each one
+>   (pure memory fix, no numbers change; B3's own past 424,128-element
+>   GPU results stay valid, it just never hit this ceiling by margin).
+>   (2) Re-running confirmed the fix worked for that reference (now
+>   completes cleanly, 284.95s) but exposed a SECOND, distinct issue:
+>   the NEXT (bigger) reference solve then OOM'd immediately, with the
+>   CUDA error showing ~77.45GB still "allocated" (not just cached)
+>   before that solve's own first, tiny allocation -- i.e. GPU memory
+>   from the FIRST solve was never released before the SECOND one
+>   started. Fixed with explicit `gc.collect()` + `torch.cuda.
+>   empty_cache()` between the two reference solves and after each
+>   ladder row, in both GPU cells. Also dialed back both notebooks'
+>   riskiest reference size as a safety margin (B8: 2,912,256 ->
+>   1,569,672 el; Option A: 2,213,376 -> 1,656,480 el) since the cleanup
+>   fix hasn't itself been GPU-confirmed yet. Both notebooks rebuilt,
+>   re-verified (100/100 `check_notebooks.py`), and re-sent to Omar.
+>
+>   **Next**: Omar re-runs both notebooks in Colab (fresh runtime, to
+>   pick up the fixed code) -- once both are back with real numbers,
+>   present BOTH complete technical setups with real GPU-confirmed
+>   numbers to Timon.
 > - **Option B (laminated seismic bearing) -- code complete and verified
 >   runnable, 2026-09-22** (`omar_pfem/data/data_generate_B8.py`,
 >   `omar_pfem/data/mesh_convergence_B8.py`): annular ring cross-section
