@@ -113,8 +113,36 @@ R = '/content/drive/MyDrive/pfem_run'
 os.makedirs(f'{R}/b3_groove_sharp', exist_ok=True)
 
 GROOVE_DEPTH, GROOVE_HALF_WIDTH = 0.20, 0.15   # FIXED geometry -- 4x sharper than baseline
-R_GRADING = 1.5                                # FIXED -- confirmed on CPU to avoid ill-conditioning
-N_INCREMENTS = 21                              # FIXED -- confirmed on CPU necessary for convergence
+# R_GRADING/N_INCREMENTS: REVISED 2026-09-23, real GPU + CPU evidence,
+# not another guess. The earlier choice (r_grading=1.5, n_increments=21)
+# was confirmed WORKING at CPU scale (up to 18,200 elements) but a real
+# GPU run at production scale (1,071,200 elements) never completed even
+# ONE increment in 28+ minutes, with GPU memory climbing continuously --
+# and a parallel CPU test at 79,464 elements (never tested before) showed
+# increment 1 needing 12 CG iterations and 152-163s (reproduced twice),
+# versus 5-6 iterations and ~1-3s at 6,840 elements: the radial grading
+# itself gets MORE aggressive (a wider spread of element sizes) as
+# Ntheta/Nr grow at a FIXED power-law exponent, so a grading that was
+# fine at CPU scale genuinely worsens conditioning at production scale --
+# not something CPU-scale testing could have caught. Confirmed directly
+# (not assumed) that removing the grading entirely (r_grading=1.0,
+# matching B8's own successful, ungraded approach) fixes this: the SAME
+# 79,464-element case needed only 5 CG iterations and 49.87s for
+# increment 1, and 2 iterations for increment 2 (the same healthy
+# pattern every other successful case in this project shows) -- and
+# with the grading removed, the default 11 increments (not 21) also
+# converged cleanly, since the earlier need for finer load stepping was
+# itself very likely an artifact of the aggressive grading, not the
+# sharper geometry alone (increment 2, at 20% of the load -- exactly
+# where 11 increments used to fail -- converged fine here). Region
+# sampling at r_grading=1.0 is healthy at every GPU-scale resolution
+# (68 to 996 samples from 79,464 to 1,201,824 elements); only the two
+# smallest CPU-scale rows (336, 1,320 elements) have too few samples
+# (0, 2) for a reliable field-error number there -- reported honestly as
+# unreliable/NaN by the existing code, not hidden, same convention as
+# the rest of this project.
+R_GRADING = 1.0
+N_INCREMENTS = 11
 rho = groove_radius_of_curvature(GROOVE_DEPTH, GROOVE_HALF_WIDTH)
 print(f'Groove: depth={GROOVE_DEPTH}, half_width={GROOVE_HALF_WIDTH}, rho={rho:.5f}, '
       f'region_radius={2*rho:.5f} (FIXED in physical space -- unaffected by mesh resolution)')
