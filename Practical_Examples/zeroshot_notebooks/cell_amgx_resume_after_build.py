@@ -54,8 +54,20 @@ WORK = f'{REPO}/Practical_Examples'
 os.chdir(WORK)
 sys.path.insert(0, WORK)
 
+# Clearing 'pyvista' too, not just torchfem/omar_pfem: a FAILED pyvista
+# import (this exact ModuleNotFoundError) can leave a partially-
+# initialized 'pyvista' entry cached in sys.modules for the rest of
+# this kernel's life, so simply pip-installing a fixed version on disk
+# afterward does NOT retroactively fix an already-broken cached import
+# in the SAME running kernel -- confirmed directly: a live run pinned
+# pyvista<0.49 successfully on disk, then hit the EXACT same
+# ModuleNotFoundError again, because the earlier failed import was
+# still cached. A genuine Runtime > Restart also clears this; deleting
+# it here means a plain cell re-run recovers on its own too.
 for _mod in list(sys.modules):
-    if _mod == 'torchfem' or _mod.startswith('torchfem.') or _mod == 'omar_pfem' or _mod.startswith('omar_pfem.'):
+    if (_mod == 'torchfem' or _mod.startswith('torchfem.')
+            or _mod == 'omar_pfem' or _mod.startswith('omar_pfem.')
+            or _mod == 'pyvista' or _mod.startswith('pyvista.')):
         del sys.modules[_mod]
 
 AMGX_SO = '/content/AMGX/build/libamgxsh.so'

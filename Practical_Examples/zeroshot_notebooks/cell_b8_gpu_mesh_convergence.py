@@ -104,7 +104,9 @@ os.chdir(WORK)
 sys.path.insert(0, WORK)
 
 for _mod_name in list(sys.modules):
-    if _mod_name == 'omar_pfem' or _mod_name.startswith('omar_pfem.'):
+    if (_mod_name == 'omar_pfem' or _mod_name.startswith('omar_pfem.')
+            or _mod_name == 'torchfem' or _mod_name.startswith('torchfem.')
+            or _mod_name == 'pyvista' or _mod_name.startswith('pyvista.')):
         del sys.modules[_mod_name]
 
 import numpy as np

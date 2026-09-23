@@ -71,7 +71,8 @@ sys.path.insert(0, WORK)
 
 for _mod in list(sys.modules):
     if (_mod == 'torchfem' or _mod.startswith('torchfem.')
-            or _mod == 'omar_pfem' or _mod.startswith('omar_pfem.')):
+            or _mod == 'omar_pfem' or _mod.startswith('omar_pfem.')
+            or _mod == 'pyvista' or _mod.startswith('pyvista.')):
         del sys.modules[_mod]
 
 
@@ -144,9 +145,13 @@ print(f'\nFound: {amgx_so}')
 os.environ['AMGX_DLL'] = amgx_so
 
 # Re-import torchfem's sparse module fresh so it re-checks AMGX_DLL and
-# available_backends now that the library exists.
+# available_backends now that the library exists. Clearing pyvista too:
+# a failed pyvista import earlier in this SAME kernel run would leave a
+# partially-initialized module cached in sys.modules, and re-importing
+# torchfem would just hit that same cached failure again.
 for _mod in list(sys.modules):
-    if _mod == 'torchfem' or _mod.startswith('torchfem.'):
+    if (_mod == 'torchfem' or _mod.startswith('torchfem.')
+            or _mod == 'pyvista' or _mod.startswith('pyvista.')):
         del sys.modules[_mod]
 
 from torchfem.sparse import available_backends
