@@ -193,6 +193,29 @@ finishes or a new one starts.
 >   fix hasn't itself been GPU-confirmed yet. Both notebooks rebuilt,
 >   re-verified (100/100 `check_notebooks.py`), and re-sent to Omar.
 >
+>   **THIRD real GPU issue found and fixed, same day, from Omar's actual
+>   re-run**: a "fresh" git checkout (new fetch/reset to the fixed code)
+>   in the SAME Colab kernel as an earlier crash STILL OOM'd immediately
+>   -- this time during basic `Solid` model construction, before any
+>   solve at all, with ~78.41GB already "in use" at the very start. Sign
+>   it was the same kernel: "Drive already mounted" and no pip-install
+>   progress bars in the log (i.e. Omar re-ran the cell without actually
+>   restarting the runtime). Root cause: Jupyter/IPython automatically
+>   stores the last exception's full traceback (`sys.last_traceback`),
+>   and every local variable in every frame of it -- including the large
+>   GPU tensors alive at the moment of a crash -- stays reachable, and
+>   therefore un-collectable by `gc.collect()`, until that traceback is
+>   itself cleared. Only a true Runtime > Restart session clears it (as
+>   a side effect of killing the process); re-running the cell alone
+>   does not, regardless of cleanup code inside it. Fixed by explicitly
+>   clearing `sys.last_traceback`/`last_value`/`last_type` at the very
+>   top of both GPU cells, before anything else runs, then
+>   `gc.collect()`+`empty_cache()`, printing starting GPU memory so it's
+>   visible whether cleanup worked -- makes a plain cell re-run self-
+>   recovering, without relying on Omar remembering to restart the
+>   runtime every time. Rebuilt and re-verified both notebooks (100/100
+>   `check_notebooks.py`), re-sent to Omar.
+>
 >   **Next**: Omar re-runs both notebooks in Colab (fresh runtime, to
 >   pick up the fixed code) -- once both are back with real numbers,
 >   present BOTH complete technical setups with real GPU-confirmed
