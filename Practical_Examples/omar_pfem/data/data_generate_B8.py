@@ -1,110 +1,121 @@
-"""FEM geometry/BC generator for B8: a 3D laminated annular elastomeric
-seismic bearing -- Option B from the 2026-09-22 candidate-direction
-discussion, proposed as a genuinely harder 3D benchmark than B3 for
-Timon's stated target (10^5-10^6 elements, 5-10% QoI error).
+"""FEM geometry/BC/material generator for B8-FINAL: a 3D laminated
+annular elastomeric seismic bearing -- Option B, rebuilt 2026-09-23 from
+a real published bearing design after real limitations in the earlier
+prototype (data_generate_B8_prototype.py, archived unmodified) were
+caught in review:
 
-PHYSICAL DESIGN: a real seismic isolation bearing is a stack of thin
-rubber layers bonded between steel shim plates, with a central hole
-(often housing a lead core for energy dissipation, not modeled here).
-The shims force the rubber's near-incompressible bulging into a thin,
-laterally-confined shape under vertical load, while the whole stack
-stays flexible in horizontal shear -- both effects are well documented
-in the literature as genuinely hard for FEM: near-incompressibility
-(this project already uses NU=0.45 for rubber, mild but present) and a
-FREE-EDGE stress concentration at the outer radius, where each shim
-ends abruptly and the rubber is free to bulge -- a much sharper,
-naturally-occurring feature than B3's deliberately smoothed groove.
+1. GEOMETRY was nondimensional/made-up, not a real published design.
+   Fixed: real bearing dimensions from Kalantari & Rofooei, 10th
+   Canadian Conference on Earthquake Engineering, 2010 (caee.ca/
+   10CCEEpdf/2010EQConf-000137.pdf) -- outer diameter 152 mm, inner
+   (central hole) diameter 30 mm, 20 rubber layers x 3 mm each, 19
+   steel shims x 3 mm each (20 rubber bands, 19 internal shim bands --
+   this project's own existing rubber/shim/rubber/.../rubber band
+   pattern, from layer_bands() below, already matches this exactly).
+   All lengths here are in millimeters (a real, intentional departure
+   from B1/B2/B3's own nondimensional convention -- justified because
+   this design is now matched to a specific real, cited structure, not
+   an arbitrary nondimensional benchmark).
 
-MODELING CHOICE FOR THE SHIMS (real constraint, not a shortcut): the
-originally-discussed idea was "shims as a rigid boundary condition, not
-a second deformable material," to keep a single-material-model scope.
-Checked directly against torch-fem's own API before writing this code:
-`Hyperelastic3D.__init__` accepts `params: list | Tensor` and sets
-`is_vectorized = params.dim() > 1` (torchfem/materials.py) -- i.e.
-torch-fem supports genuinely PER-ELEMENT material parameters within the
-SAME Neo-Hookean model, but has no general rigid multi-point-constraint
-mechanism in its Dirichlet-BC-based `Solid.constraints`/`displacements`
-API (only per-node prescribed values, not "these N nodes share one
-unknown rigid motion"). A true floating rigid MPC for the internal
-shims would need Lagrange multipliers or constraint elimination this
-project's FEM stack does not have. `torchfem/laminate.py`'s `Laminate`
-class was also checked directly and is NOT applicable: it implements
-classical lamination theory for SHELL elements (thin plate/shell
-plane-stress plies), not through-thickness 3D solid layers -- it cannot
-represent the real 3D bulging/near-incompressibility behavior this
-benchmark is specifically about.
+2. MATERIALS were an arbitrary 100x rubber-stiffness shim proxy, not
+   real materials. Fixed: real Neo-Hookean rubber (same source) --
+   G=0.68 MPa, C10=0.34 MPa, D1=0.00099 MPa^-1, K=2000 MPa (checked
+   directly: C10=G/2 and K=2/D1=2020 MPa both consistent with the
+   quoted G, K to within the source's own rounding) -- and REAL
+   linear-elastic steel, E=200 GPa, nu=0.3 (this source's own value;
+   standard structural steel). Corrects an earlier, wrongly-remembered
+   G=0.86 MPa figure that was never actually checked against a source.
 
-REVISED, IMPLEMENTABLE CHOICE: mesh the shims as hex8 elements in the
-SAME connected mesh as the rubber (no interface treatment needed --
-node-sharing already enforces displacement/traction continuity), using
-the SAME Neo-Hookean psi function with per-element (vectorized) params:
-a much higher modulus for shim elements than rubber elements. This is a
-standard, realistic FEM idealization of "near-rigid steel shim" (a
-large but FINITE stiffness contrast, not an artificial infinite-rigid
-constraint) -- and it is honestly still "one material model throughout"
-in the sense Omar's scope constraint cared about (same psi, same
-constitutive law), just with spatially-varying parameters, which
-Hyperelastic3D already supports natively. The stiffness ratio is a
-tunable, documented modeling choice (see SHIM_STIFFNESS_RATIO below),
-not the full real steel/rubber ratio (~1e5), which would very likely
-reproduce the same catastrophic linear-solver ill-conditioning already
-confirmed directly in mesh_convergence_B3_groove_sharpness.py's r_grading
-experiments -- start moderate, verified to actually solve, and revisit
-only if a harder problem is later needed.
+3. The SHIM MATERIAL MODEL was itself wrong in kind, not just in
+   magnitude: real steel is linear-elastic, not "very stiff Neo-
+   Hookean." Fixed: checked directly against torch-fem's own API
+   (Hyperelastic3D supports per-element VECTORIZED PARAMETERS of one
+   psi function, not per-element different psi functions/material
+   classes; Solid takes exactly one material object) before deciding
+   how to represent this -- mixing torchfem.materials.
+   IsotropicElasticity3D (real linear elasticity) with Hyperelastic3D
+   rubber in one Solid model is not directly supported. Real,
+   implementable fix: omar_pfem.torchfem_comparison.
+   neo_hookean_or_stvk_psi_3d dispatches PER ELEMENT (via a flag baked
+   into the same per-element vectorized params Hyperelastic3D already
+   supports) between real compressible Neo-Hookean (rubber) and real
+   St. Venant-Kirchhoff (steel) -- St. Venant-Kirchhoff is the standard
+   way to get genuinely linear-elastic material behavior (same mu,
+   lambda as classical linear elasticity, verified directly to match a
+   small-strain reference to 8e-5 relative) inside a large-rotation-
+   capable hyperelastic framework, which is exactly what a shim
+   undergoing large rigid-body-like rotation but negligible internal
+   strain needs. See that function's own docstring for the full
+   derivation and the finite-Hessian-at-F=I check.
 
-GEOMETRY: annular ring cross-section (R_in > 0, a real central hole,
-matching "annular" in the design name) extruded along z through
+MODELING CHOICE KEPT FROM THE PROTOTYPE (still correct, not revisited):
+shims are meshed as real hex8 elements in the SAME connected mesh as
+the rubber (node-sharing enforces displacement/traction continuity
+automatically) rather than a rigid multi-point constraint -- confirmed
+in the prototype's own review that torch-fem has no general rigid MPC
+mechanism, and this remains the right, implementable choice regardless
+of which material law the shim elements use.
+
+GEOMETRY STRUCTURE (unchanged from the prototype): annular ring
+cross-section (R_in > 0, a real central hole) extruded along z through
 alternating bands: rubber, shim, rubber, shim, ..., rubber
 (n_rubber_layers rubber bands, n_rubber_layers-1 internal shim bands).
 Reuses data_generate_B2.generate_grid_Q4_ring exactly (same node/element
 index convention as B2/B3) for the ring cross-section, stacked per
 z-layer exactly as data_generate_B3.generate_grid_hex8_bushing does.
 theta in [0, pi] (half-cylinder): valid by the SAME mirror-symmetry
-argument B3 uses -- the combined top-plate load below (shear along x,
-compression along z, optional rocking about the y-axis) has ux, uz
-depending only on (x0, z0) and uy=0 identically, so the y=0 plane is a
-genuine symmetry plane (checked by the same reasoning as B3's
-rigid_rotation_displacement, not re-derived from scratch: a rotation
-about y and a translation confined to the x-z plane both leave y=0
-invariant).
+argument B3 uses.
 
-BOUNDARY CONDITIONS: bottom face (z=0, bottom of the first rubber
-layer) fully fixed (bonded to the foundation) -- like B3's outer
-housing. Top face (z=Lz, top of the last rubber layer) gets a
-PRESCRIBED RIGID-BODY displacement (vertical compression + horizontal
-shear + optional small rocking about y) -- like B3's inner core, i.e.
-the top mounting plate itself is not meshed as a deformable body, its
-motion is a boundary condition, exactly the same simplification B3
-already uses for its own rigid core. Central hole (r=R_in) and outer
-surface (r=R_out) are both genuine free surfaces -- the outer surface
-at each internal rubber-shim interface is where the free-edge stress
-concentration this benchmark is about actually occurs.
+BOUNDARY CONDITIONS (unchanged): bottom face (z=0) fully fixed (bonded
+to the foundation). Top face (z=Lz) gets a PRESCRIBED RIGID-BODY
+displacement (vertical compression + horizontal shear + optional small
+rocking about y) -- a boundary condition, not a meshed body, matching
+the source's own 25mm-thick end plates being effectively rigid compared
+to the rubber (not meshed here, same simplification B3 uses for its own
+rigid core).
+
+STRESS-QOI REGION (REVISED, real fix, not the prototype's): the
+prototype centered its region at the shim's own mid-height, spanning
+BOTH rubber and steel, and its cross-mesh comparison interpolated a
+field ACROSS that material discontinuity -- not a clean QoI definition.
+`first_rubber_layer_interface_z` below instead gives the z-coordinate
+of the rubber/shim-1 interface itself; mesh_convergence_B8.py's own
+region mask is built to sample ONLY rubber elements strictly inside
+rubber layer 1 (near that interface, at the outer free edge), with the
+cross-mesh comparison interpolator scoped to rubber layer 1's own
+element range only -- never crossing into shim elements.
 """
 import numpy as np
 
 from omar_pfem.data.data_generate_B2 import generate_grid_Q4_ring
 
-# ---- default physical parameters (nondimensional, same convention as
-# B1/B2/B3) ----
-R_IN, R_OUT = 0.3, 1.0
-N_RUBBER_LAYERS = 4
-T_RUBBER = 0.10     # thickness of each rubber layer
-T_SHIM = 0.02       # thickness of each internal shim layer (5:1 ratio)
-NZ_PER_RUBBER = 3   # element layers through each rubber band's thickness
-NZ_PER_SHIM = 2      # element layers through each shim band's thickness (thin)
+# ---- real bearing geometry (mm), Kalantari & Rofooei 2010 ----
+R_IN, R_OUT = 15.0, 76.0             # inner hole / outer radius, mm (30mm/152mm diameters)
+N_RUBBER_LAYERS = 20
+T_RUBBER = 3.0                       # mm, per rubber layer
+T_SHIM = 3.0                         # mm, per steel shim
+NZ_PER_RUBBER = 2                    # element layers through each rubber band's thickness
+NZ_PER_SHIM = 2                      # element layers through each shim band's thickness
 
-# Rubber: SAME Neo-Hookean parameters used throughout this project's B1/B2/B3.
-E_RUBBER, NU_RUBBER = 1000.0, 0.45
-# Shim: same Neo-Hookean psi, much higher modulus -- a documented, moderate
-# stiffness-contrast idealization of near-rigid steel, NOT the full real
-# steel/rubber ratio (~1e5), which is expected to reproduce the same
-# CG ill-conditioning already found and documented for aggressive mesh
-# grading in mesh_convergence_B3_groove_sharpness.py. Start here; only
-# increase if solver behavior at this ratio is confirmed acceptable AND a
-# harder problem is later wanted.
-SHIM_STIFFNESS_RATIO = 100.0
-E_SHIM = E_RUBBER * SHIM_STIFFNESS_RATIO
-NU_SHIM = 0.30  # generic near-rigid-solid Poisson ratio, not tuned to real steel
+# ---- real materials, same source ----
+# Rubber: compressible Neo-Hookean. G=0.68 MPa (=2*C10=2*0.34, checked
+# directly against the source), K=2000 MPa (=2/D1=2/0.00099=2020 MPa,
+# consistent with the source's own rounding). mu=G exactly; lam from the
+# standard small-strain relation K=lam+(2/3)*mu (the same relation this
+# project's own E,NU->mu,lam helper elsewhere already relies on for how
+# this exact hyperelastic form behaves near the reference state).
+G_RUBBER = 0.68     # MPa
+K_RUBBER = 2000.0   # MPa
+MU_RUBBER = G_RUBBER
+LAM_RUBBER = K_RUBBER - (2.0 / 3.0) * MU_RUBBER
+
+# Steel: real linear-elastic (via St. Venant-Kirchhoff, see
+# omar_pfem.torchfem_comparison.neo_hookean_or_stvk_psi_3d), standard
+# Lame relations from E, nu.
+E_STEEL = 200_000.0   # MPa (200 GPa)
+NU_STEEL = 0.30
+MU_STEEL = E_STEEL / (2 * (1 + NU_STEEL))
+LAM_STEEL = E_STEEL * NU_STEEL / ((1 + NU_STEEL) * (1 - 2 * NU_STEEL))
 
 
 def layer_bands(n_rubber_layers, nz_per_rubber, nz_per_shim, t_rubber, t_shim):
@@ -152,17 +163,19 @@ def build_z_axis(n_rubber_layers, nz_per_rubber, nz_per_shim, t_rubber, t_shim):
     return zs, layer_is_shim
 
 
-def first_internal_shim_mid_z(n_rubber_layers, nz_per_rubber, nz_per_shim, t_rubber, t_shim):
-    """z-coordinate of the mid-height of the FIRST internal shim band --
-    the reference point for this benchmark's region-Cauchy QoI (an
-    internal rubber-shim interface, away from the top/bottom boundary
-    conditions, where the free-edge stress concentration this design is
-    about actually occurs). Uses the SAME z-axis as the mesh itself
-    (build_z_axis), so it is always a genuine mesh point regardless of
-    resolution."""
+def first_rubber_layer_z_range(n_rubber_layers, nz_per_rubber, nz_per_shim, t_rubber, t_shim):
+    """(z0, z1, k0, k1): the z-range and element-layer-index range of the
+    FIRST rubber band (z0=0 at the fixed foundation, z1=t_rubber at the
+    rubber/shim-1 interface), and [k0,k1) the z-element-layer indices
+    belonging to it. Used to scope BOTH the region-Cauchy QoI (a point
+    near this band's own outer free edge, close to its z1 interface) and
+    the cross-mesh comparison interpolator to rubber elements ONLY,
+    never crossing into the adjacent shim band's own different material
+    response."""
     zs, layer_is_shim = build_z_axis(n_rubber_layers, nz_per_rubber, nz_per_shim, t_rubber, t_shim)
-    first_shim_layer = layer_is_shim.index(True)
-    return 0.5 * (zs[first_shim_layer] + zs[first_shim_layer + 1])
+    k0 = 0
+    k1 = layer_is_shim.index(True)  # first shim layer index == end of first rubber band
+    return float(zs[k0]), float(zs[k1]), k0, k1
 
 
 def generate_grid_hex8_laminated_bearing(R_in, R_out, Ntheta, Nr,
@@ -223,16 +236,15 @@ def rigid_top_plate_displacement(nodes_top, Lz, compression, shear_x, phi_y=0.0)
     """Prescribed RIGID displacement for the top mounting plate (a boundary
     condition, not a meshed deformable body -- same simplification
     data_generate_B3.rigid_rotation_displacement uses for its own rigid
-    core): uniform vertical compression (uz = -compression, a fraction of
-    Lz, e.g. compression=0.02*Lz for 2% nominal compressive strain),
-    uniform horizontal shear (ux = shear_x, representing lateral seismic
-    drift), and an optional small rigid rotation phi_y about the y-axis
-    (combined shear + rocking, matching the seismic-bearing design brief).
-    Since the rotation is about y and uy stays 0 identically (checked
-    directly, same reasoning as B3's own rigid_rotation_displacement:
-    x' = x*cos(phi)+z*sin(phi), z' = -x*sin(phi)+z*cos(phi), y'=y), the
-    y=0 plane remains a genuine mirror-symmetry plane for this combined
-    load, exactly as it does for B3's pure rocking."""
+    core, and consistent with the source's own 25mm end plates being
+    effectively rigid next to the rubber): uniform vertical compression
+    (uz = -compression, e.g. compression=0.02*Lz for 2% nominal
+    compressive strain), uniform horizontal shear (ux = shear_x,
+    representing lateral seismic drift), and an optional small rigid
+    rotation phi_y about the y-axis. Since the rotation is about y and uy
+    stays 0 identically (checked directly, same reasoning as B3's own
+    rigid_rotation_displacement), the y=0 plane remains a genuine
+    mirror-symmetry plane for this combined load."""
     x0, y0, z0 = nodes_top[:, 0], nodes_top[:, 1], nodes_top[:, 2]
     x_rot = x0 * np.cos(phi_y) + z0 * np.sin(phi_y) - x0
     z_rot = -x0 * np.sin(phi_y) + z0 * np.cos(phi_y) - z0
@@ -242,17 +254,19 @@ def rigid_top_plate_displacement(nodes_top, Lz, compression, shear_x, phi_y=0.0)
     return ux, uy, uz
 
 
-def build_vectorized_neo_hookean_params(element_is_shim,
-                                         E_rubber=E_RUBBER, NU_rubber=NU_RUBBER,
-                                         E_shim=E_SHIM, NU_shim=NU_SHIM):
-    """Per-element [mu, lambda] pairs (n_elem, 2), for Hyperelastic3D's own
-    vectorized-material path (params.dim() > 1 -> is_vectorized=True,
-    confirmed directly against torchfem/materials.py before writing this
-    module). SAME psi (neo_hookean_psi_3d) is used for every element
-    regardless of rubber/shim -- only the two scalar parameters differ."""
-    mu_r = E_rubber / (2 * (1 + NU_rubber))
-    lam_r = E_rubber * NU_rubber / ((1 + NU_rubber) * (1 - 2 * NU_rubber))
-    mu_s = E_shim / (2 * (1 + NU_shim))
-    lam_s = E_shim * NU_shim / ((1 + NU_shim) * (1 - 2 * NU_shim))
-    params = np.where(element_is_shim[:, None], np.array([mu_s, lam_s]), np.array([mu_r, lam_r]))
+def build_vectorized_material_params(element_is_shim,
+                                      mu_rubber=MU_RUBBER, lam_rubber=LAM_RUBBER,
+                                      mu_steel=MU_STEEL, lam_steel=LAM_STEEL):
+    """Per-element [mu, lambda, is_shim] triples (n_elem, 3), for
+    omar_pfem.torchfem_comparison.neo_hookean_or_stvk_psi_3d's own
+    per-element MATERIAL dispatch (real Neo-Hookean rubber vs. real
+    St. Venant-Kirchhoff steel -- see that function's own docstring),
+    via Hyperelastic3D's existing vectorized-parameter support
+    (params.dim() > 1 -> is_vectorized=True, confirmed directly against
+    torchfem/materials.py). Real material constants throughout -- no
+    stiffness-ratio shortcut."""
+    params = np.where(
+        element_is_shim[:, None],
+        np.array([mu_steel, lam_steel, 1.0]),
+        np.array([mu_rubber, lam_rubber, 0.0]))
     return params

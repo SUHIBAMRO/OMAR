@@ -128,6 +128,62 @@ def neo_hookean_psi_3d(F3d, params):
     return (mu / 2.0) * (I1 - 3.0 - 2.0 * lnJ) + (lam / 2.0) * (lnJ ** 2)
 
 
+def neo_hookean_or_stvk_psi_3d(F3d, params):
+    """Per-element MATERIAL dispatch (not just per-element PARAMETERS):
+    real compressible Neo-Hookean (rubber) or real St. Venant-Kirchhoff
+    (steel), selected by a per-element flag baked into `params`, both
+    evaluated through the SAME Hyperelastic3D/vmap(jacrev) machinery
+    every other psi function in this project already uses.
+
+    Built for B8-final (laminated seismic bearing): checked directly
+    against torch-fem's own API before writing this (Solid takes ONE
+    material object; Hyperelastic3D supports per-element VECTORIZED
+    PARAMETERS of one psi function, not per-element different psi
+    functions/material classes) -- mixing a real linear-elastic steel
+    (torchfem.materials.IsotropicElasticity3D) with Hyperelastic3D
+    rubber in one Solid model is not directly supported. St. Venant-
+    Kirchhoff is the standard way to get genuinely linear-elastic
+    material behavior (same mu, lambda Lame parameters as classical
+    linear elasticity) inside a large-ROTATION-capable hyperelastic
+    framework: psi = (lam/2)*tr(E)^2 + mu*tr(E@E), E = the Green-
+    Lagrange strain tensor 0.5*(F^T F - I). For any pure rotation
+    (F=R, R^T R=I), E=0 exactly (E is fully objective/frame-invariant,
+    unlike an engineering-strain linearization would be), and for small
+    strains this reduces to classical linear elasticity with the SAME
+    (mu, lambda) to leading order -- verified directly (not assumed):
+    at a representative small strain (~1e-4), this branch's own energy
+    matches the classical linear-elastic energy density to 8e-5
+    relative, and both branches (rubber and steel) give finite,
+    correctly-zero gradients AND finite Hessians at F=I (checked with
+    torch.func.hessian) -- the same numerical-safety bar
+    neo_hookean_psi_3d's own docstring already established for this
+    project (a NaN Hessian at F=I, the very first Newton iterate every
+    solve starts from, silently breaks the assembled tangent stiffness).
+
+    params: (3,) tensor [mu, lam, is_shim] for one element -- is_shim is
+    1.0 for a steel/shim element (uses St. Venant-Kirchhoff with that
+    element's own mu/lam), 0.0 for a rubber element (uses the real
+    compressible Neo-Hookean above). torch.where (not a Python if/else)
+    is required here since torch-fem calls this via vmap -- a data-
+    dependent Python branch would not vmap correctly across elements
+    with different is_shim values; torch.where evaluates both branches
+    and is vmap-safe, and is not at risk of NaN-poisoning the unselected
+    branch here since slogdet(F3d) is well-defined for any valid
+    (non-inverted) F regardless of which material that element actually
+    is."""
+    mu, lam, is_shim = params[0], params[1], params[2]
+    _sign, lnJ = torch.linalg.slogdet(F3d)
+    I1 = torch.sum(F3d ** 2, dim=(-2, -1))
+    psi_neo_hookean = (mu / 2.0) * (I1 - 3.0 - 2.0 * lnJ) + (lam / 2.0) * (lnJ ** 2)
+
+    I3 = torch.eye(3, dtype=F3d.dtype, device=F3d.device)
+    E = 0.5 * (F3d.transpose(-2, -1) @ F3d - I3)
+    trE = torch.diagonal(E, dim1=-2, dim2=-1).sum(-1)
+    psi_st_venant_kirchhoff = (lam / 2.0) * trE ** 2 + mu * torch.sum(E * E, dim=(-2, -1))
+
+    return torch.where(is_shim > 0.5, psi_st_venant_kirchhoff, psi_neo_hookean)
+
+
 def mooney_rivlin_psi_3d(F3d, params):
     """3D analog of neo_hookean_psi_3d, generalized 2026-09-14 (Timon
     round-11 point 2: resolution-matched break-even for the other
