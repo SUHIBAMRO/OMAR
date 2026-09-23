@@ -143,7 +143,18 @@ def solve_case(Ntheta, Nr, n_rubber_layers=N_RUBBER_LAYERS, nz_per_rubber=2, nz_
     old_default_dtype = torch.get_default_dtype()
     torch.set_default_dtype(dtype)
     try:
-        with torch.no_grad():
+        # Real bug, confirmed directly on a live Colab run: torchfem's
+        # `char_lengths` is a LAZILY-CACHED property, first computed
+        # whichever moment integrate_material first calls it (inside
+        # this custom Newton loop, not at Solid construction) -- so it
+        # is only correctly placed on `device` if the WHOLE loop runs
+        # inside `with torch.device(device):`, not just the `Solid(...)`
+        # construction line. The deformable-steel model's own solve_case
+        # wraps its entire `model.solve(...)` call in exactly this same
+        # context for the same reason; this loop needs the same
+        # wrapping, just spelled out manually since there is no single
+        # `model.solve()` call here to wrap.
+        with torch.device(device), torch.no_grad():
             from torchfem import Solid
             from torchfem.materials import Hyperelastic3D
 
