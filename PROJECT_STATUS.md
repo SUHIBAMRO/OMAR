@@ -249,9 +249,28 @@ finishes or a new one starts.
 >   152.19s -- versus 5-6 iterations and ~1-3s at 6,840 elements. This is
 >   real, measured evidence that r_grading=1.5's conditioning may degrade
 >   as resolution grows well beyond what was CPU-tested, separate from
->   the memory issues above. Not yet conclusive (need to see whether
->   later increments settle down, as they warm-start from a converged
->   state, or stay bad) -- investigation continuing.
+>   the memory issues above.
+>
+>   **CONFIRMED and FIXED, same day**: Omar's actual GPU run of the OLD
+>   reference (1,071,200 elements) never completed a single increment in
+>   28+ minutes on an A100, with GPU memory climbing continuously --
+>   confirming this is a real, severe conditioning collapse at
+>   production scale, not just "slower." Real fix, confirmed directly:
+>   removing the radial grading entirely (r_grading=1.0, matching B8's
+>   own successful, ungraded approach) fixes it -- the same 79,464-
+>   element case needed only 5 CG iterations for increment 1 (49.87s,
+>   down from 152-163s) and settled into the healthy 2-iterations/
+>   increment pattern for all 10 increments (verified live). Also
+>   dropped n_increments from 21 back to the project's standard 11 --
+>   increment 2 (20% load, exactly where 11 increments used to fail)
+>   converged cleanly, meaning the earlier need for finer load stepping
+>   was itself very likely an artifact of the aggressive grading, not
+>   the sharper geometry alone. Region sampling at r_grading=1.0 stays
+>   healthy at every GPU-scale resolution (68-996 samples); only the two
+>   smallest CPU-scale rows (336, 1,320 el) have too few samples for a
+>   reliable number there -- already handled honestly as NaN by the
+>   existing code. Notebook rebuilt, re-verified (100/100
+>   `check_notebooks.py`), re-sent to Omar for a fresh run.
 >
 >   **🎉 B8 (Option B) GPU RUN COMPLETE AND SUCCESSFUL, 2026-09-23 --
 >   LANDMARK REAL RESULT: satisfies the advisor's stated target.** OLD
