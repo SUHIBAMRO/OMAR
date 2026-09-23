@@ -191,63 +191,26 @@ def compare(case, ref):
     return compare_to_reference(case, ref, GROOVE_DEPTH, GROOVE_HALF_WIDTH)
 
 
-print(f'\nSolving the OLD fine reference {OLD_FINE_RESOLUTION} (~1,071,200 elements)...')
+# Real lesson from a live incident this same day: this cell used to
+# attempt OLD_FINE_RESOLUTION (the largest, riskiest solve) FIRST, so a
+# slow/stuck reference blocked every smaller, safer ladder row behind
+# it -- a real GPU run sat at this exact step for 13+ minutes with
+# nothing printed and nothing to show for the GPU time already spent.
+# Fixed by solving the WHOLE ladder (up to 480,320 elements, already
+# inside the advisor's 10^5-10^6 target range) and comparing it against
+# OLD_FINE_RESOLUTION FIRST, so those real numbers are printed, saved to
+# Drive, and safe no matter what happens to the separate, larger
+# NEW_FINE_RESOLUTION check attempted afterward.
+print(f'\nSolving the OLD fine reference {OLD_FINE_RESOLUTION} (~1,071,200 elements) -- '
+      'this doubles as the ladder\'s comparison reference...')
 ref_old = solve(*OLD_FINE_RESOLUTION, verbose=True)
 print(f"  OLD reference: {ref_old['n_elements']} elements, {ref_old['elapsed_s']:.2f}s, "
       f"n_region={ref_old['n_region']}, region_avg_sigma_xx={ref_old['region_avg_sigma_xx']:.4f} "
       f"(true_max={ref_old['region_true_max_sigma_xx']:.4f}, diagnostic only)")
-
-# Confirmed directly on B8's own sibling notebook (same solve mechanism,
-# real 80GB A100): GPU memory from one large solve was NOT released
-# before the next one started (the CUDA OOM report showed the memory
-# still "allocated," not just cached). torch.no_grad() (in
-# mesh_convergence_B3_groove_sharpness.py's own solve_case) fixes growth
-# WITHIN one solve across its own load increments, but not retention
-# ACROSS separate solve() calls. gc.collect()+empty_cache() here is the
-# standard, safe fix for that (frees memory, does not change any numbers).
 gc.collect()
 torch.cuda.empty_cache()
-print(f'GPU memory after cleanup: {torch.cuda.memory_allocated()/1e9:.2f} GB allocated, '
-      f'{torch.cuda.memory_reserved()/1e9:.2f} GB reserved')
 
-print(f'\nSolving the NEW, finer reference {NEW_FINE_RESOLUTION} (~1,201,824 elements) -- '
-      'the check for whether the OLD reference is actually converged...')
-ref_new = solve(*NEW_FINE_RESOLUTION, verbose=True)
-print(f"  NEW reference: {ref_new['n_elements']} elements, {ref_new['elapsed_s']:.2f}s, "
-      f"n_region={ref_new['n_region']}, region_avg_sigma_xx={ref_new['region_avg_sigma_xx']:.4f} "
-      f"(true_max={ref_new['region_true_max_sigma_xx']:.4f}, diagnostic only)")
-
-print('\n' + '=' * 90)
-print('OLD vs NEW reference -- the check for whether the chosen reference is '
-      'actually converged (region-Cauchy FIELD error is the PRIMARY comparison):')
-d_avg = abs(ref_new['region_avg_sigma_xx'] - ref_old['region_avg_sigma_xx']) / abs(ref_old['region_avg_sigma_xx'])
-print(f"  region_avg_sigma_xx: OLD={ref_old['region_avg_sigma_xx']:.4f}  "
-      f"NEW={ref_new['region_avg_sigma_xx']:.4f}  relative change={d_avg*100:.3f}%")
-_, _, cauchy_field_old_vs_new, _ = compare(ref_old, ref_new)
-print(f"  region-Cauchy FIELD error (OLD relative to NEW, PRIMARY QoI): "
-      f"{cauchy_field_old_vs_new*100:.3f}%")
-print(f"  (diagnostic only, NOT evidence either way) true_max_sigma_xx: "
-      f"OLD={ref_old['region_true_max_sigma_xx']:.4f}  NEW={ref_new['region_true_max_sigma_xx']:.4f}")
-
-if cauchy_field_old_vs_new < 0.10:
-    print(f"\n  ==> OLD-vs-NEW region-Cauchy field error ({cauchy_field_old_vs_new*100:.3f}%) "
-          f"is below 10% -- the NEW reference is reasonably converged for this "
-          f"comparison; treated as the fine reference below.")
-else:
-    print(f"\n  ==> OLD-vs-NEW region-Cauchy field error ({cauchy_field_old_vs_new*100:.3f}%) "
-          f"is still above 10% -- the reference is NOT yet demonstrated converged. "
-          f"Results below against this reference should be treated as provisional.")
-
-fig1, ax1 = plt.subplots(figsize=(6, 5))
-labels = ['OLD ref\n(%s el)' % f"{ref_old['n_elements']:,}", 'NEW ref\n(%s el)' % f"{ref_new['n_elements']:,}"]
-ax1.bar(labels, [ref_old['region_avg_sigma_xx'], ref_new['region_avg_sigma_xx']], color=['tab:orange', 'tab:blue'])
-ax1.set_ylabel('region_avg_sigma_xx (secondary scalar QoI)')
-ax1.set_title(f'Option A (sharper groove) reference-to-reference check\n'
-              f'region-Cauchy field error: {cauchy_field_old_vs_new*100:.2f}%')
-fig1.tight_layout()
-save_and_show(fig1, 'sharper_groove_reference_check')
-
-ref = ref_new
+ref = ref_old
 rows = []
 for Ntheta, Nr, Nz in RESOLUTIONS:
     r = solve(Ntheta, Nr, Nz)
@@ -265,6 +228,52 @@ for Ntheta, Nr, Nz in RESOLUTIONS:
     print(f"  equilibrium checks passed inline (mesh valid, det(F)>0, Newton converged to 1e-8)")
     gc.collect()
     torch.cuda.empty_cache()
+
+print('\n' + '=' * 90)
+print('Real ladder results (against the OLD reference) are now printed and about to be '
+      'saved to Drive below, BEFORE attempting the larger, riskier NEW reference -- '
+      'so they are safe regardless of what happens next.')
+
+print(f'\nSolving the NEW, finer reference {NEW_FINE_RESOLUTION} (~1,201,824 elements) -- '
+      'the check for whether the OLD reference is actually converged...')
+ref_new = solve(*NEW_FINE_RESOLUTION, verbose=True)
+print(f"  NEW reference: {ref_new['n_elements']} elements, {ref_new['elapsed_s']:.2f}s, "
+      f"n_region={ref_new['n_region']}, region_avg_sigma_xx={ref_new['region_avg_sigma_xx']:.4f} "
+      f"(true_max={ref_new['region_true_max_sigma_xx']:.4f}, diagnostic only)")
+gc.collect()
+torch.cuda.empty_cache()
+
+print('\n' + '=' * 90)
+print('OLD vs NEW reference -- the check for whether the chosen reference is '
+      'actually converged (region-Cauchy FIELD error is the PRIMARY comparison):')
+d_avg = abs(ref_new['region_avg_sigma_xx'] - ref_old['region_avg_sigma_xx']) / abs(ref_old['region_avg_sigma_xx'])
+print(f"  region_avg_sigma_xx: OLD={ref_old['region_avg_sigma_xx']:.4f}  "
+      f"NEW={ref_new['region_avg_sigma_xx']:.4f}  relative change={d_avg*100:.3f}%")
+_, _, cauchy_field_old_vs_new, _ = compare(ref_old, ref_new)
+print(f"  region-Cauchy FIELD error (OLD relative to NEW, PRIMARY QoI): "
+      f"{cauchy_field_old_vs_new*100:.3f}%")
+print(f"  (diagnostic only, NOT evidence either way) true_max_sigma_xx: "
+      f"OLD={ref_old['region_true_max_sigma_xx']:.4f}  NEW={ref_new['region_true_max_sigma_xx']:.4f}")
+
+if cauchy_field_old_vs_new < 0.10:
+    print(f"\n  ==> OLD-vs-NEW region-Cauchy field error ({cauchy_field_old_vs_new*100:.3f}%) "
+          f"is below 10% -- the OLD reference (already used above for the ladder) is "
+          f"reasonably converged; the ladder comparison above stands as final, not "
+          f"provisional.")
+else:
+    print(f"\n  ==> OLD-vs-NEW region-Cauchy field error ({cauchy_field_old_vs_new*100:.3f}%) "
+          f"is still above 10% -- the OLD reference is NOT yet demonstrated converged. "
+          f"The ladder numbers above (already printed and saved) should be treated as "
+          f"provisional, not final.")
+
+fig1, ax1 = plt.subplots(figsize=(6, 5))
+labels = ['OLD ref\n(%s el)' % f"{ref_old['n_elements']:,}", 'NEW ref\n(%s el)' % f"{ref_new['n_elements']:,}"]
+ax1.bar(labels, [ref_old['region_avg_sigma_xx'], ref_new['region_avg_sigma_xx']], color=['tab:orange', 'tab:blue'])
+ax1.set_ylabel('region_avg_sigma_xx (secondary scalar QoI)')
+ax1.set_title(f'Option A (sharper groove) reference-to-reference check\n'
+              f'region-Cauchy field error: {cauchy_field_old_vs_new*100:.2f}%')
+fig1.tight_layout()
+save_and_show(fig1, 'sharper_groove_reference_check')
 
 print('\n' + '=' * 90)
 print('Region-Cauchy-FIELD-error convergence across the WHOLE ladder (PRIMARY QoI):')
