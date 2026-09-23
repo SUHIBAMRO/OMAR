@@ -14,12 +14,18 @@
 #  from and in addition to however long the actual solve takes
 #  afterward.
 #
-#  Standalone -- this notebook does its own repo clone/pip install, it
-#  does NOT depend on B8_GPU_MeshConvergence.ipynb having run first in
-#  the same kernel (a real oversight in an earlier version of this
-#  cell: it assumed torchfem was already importable and failed with
-#  ModuleNotFoundError on a fresh runtime that only ran this notebook).
-#  Requires a GPU runtime (checks torch.cuda.is_available() below).
+#  Standalone and idempotent -- does its own repo clone/pip install (no
+#  dependency on another notebook having run first in the same
+#  kernel), pins pyvista<0.49 (a live, external PyPI break: 0.49+
+#  unconditionally imports IPython.core.guarded_eval, which only
+#  exists from IPython>=8.8, but Colab ships 7.34) and clears any
+#  already-cached pyvista/torchfem entries from sys.modules (a failed
+#  import earlier in the SAME kernel leaves a broken cached module that
+#  a fresh pip install on disk does not retroactively fix). If a
+#  previous run already built libamgxsh.so on this VM's disk, this
+#  skips straight to using it instead of rebuilding -- safe to just
+#  re-run this same cell after a Runtime > Restart or a mid-way
+#  failure. Requires a GPU runtime (checks torch.cuda.is_available()).
 # =====================================================================
 import os
 import subprocess
@@ -99,49 +105,65 @@ print(f'GPU: {torch.cuda.get_device_name(0)}  compute capability: {cc_major}.{cc
 run(['nvcc', '--version'])
 
 AMGX_SRC = '/content/AMGX'
-if not os.path.isdir(AMGX_SRC):
-    run(['git', 'clone', '--depth', '1', '--recursive',
-         'https://github.com/NVIDIA/AMGX.git', AMGX_SRC])
 
-BUILD_DIR = f'{AMGX_SRC}/build'
-os.makedirs(BUILD_DIR, exist_ok=True)
-
-cmake_cmd = [
-    'cmake', '..',
-    '-DCMAKE_C_COMPILER=gcc', '-DCMAKE_CXX_COMPILER=g++',
-    '-DCMAKE_BUILD_TYPE=Release', f'-DCUDA_ARCH={cuda_arch}',
-]
-rc = run(cmake_cmd, cwd=BUILD_DIR, check=False)
-if rc != 0:
-    raise RuntimeError(f'cmake configure failed with exit code {rc} -- see output above')
-
-rc = run(['make', '-j', str(os.cpu_count())], cwd=BUILD_DIR, check=False)
-if rc != 0:
-    print('\nStandard build failed -- retrying with explicit OpenMP link flags '
-          '(a documented AMGX build issue: the linker sometimes does not pull '
-          'in libgomp automatically, github.com/NVIDIA/AMGX issue #214).')
-    run(['cmake', '..',
-         '-DCMAKE_C_COMPILER=gcc', '-DCMAKE_CXX_COMPILER=g++',
-         '-DCMAKE_BUILD_TYPE=Release', f'-DCUDA_ARCH={cuda_arch}',
-         '-DCMAKE_EXE_LINKER_FLAGS=-lgomp',
-         '-DCMAKE_SHARED_LINKER_FLAGS=-lgomp'],
-        cwd=BUILD_DIR)
-    run(['make', '-j', str(os.cpu_count())], cwd=BUILD_DIR)
-
-# Find whatever the build actually produced -- don't assume the exact
-# path, search for it, since AMGX's own CMake layout can place build
-# artifacts in different subdirectories across versions.
+# Idempotent: if a previous run in this same VM/disk already built
+# libamgxsh.so, reuse it instead of repeating a 15-40 minute build.
+# This matters because Colab's disk (unlike its Python process memory)
+# can survive a Runtime > Restart -- so a restart taken to clear a
+# stale pyvista import (see below) does not throw away real build work.
 found = subprocess.run(
     ['find', AMGX_SRC, '-iname', 'libamgxsh.so'],
     capture_output=True, text=True,
-).stdout.strip().splitlines()
-if not found:
-    raise RuntimeError(
-        'Build finished but libamgxsh.so was not found anywhere under '
-        f'{AMGX_SRC} -- check the make output above for what libraries it '
-        'actually produced.')
-amgx_so = found[0]
-print(f'\nFound: {amgx_so}')
+).stdout.strip().splitlines() if os.path.isdir(AMGX_SRC) else []
+
+if found:
+    amgx_so = found[0]
+    print(f'Found an existing build: {amgx_so} -- skipping the build, reusing it.')
+else:
+    if not os.path.isdir(AMGX_SRC):
+        run(['git', 'clone', '--depth', '1', '--recursive',
+             'https://github.com/NVIDIA/AMGX.git', AMGX_SRC])
+
+    BUILD_DIR = f'{AMGX_SRC}/build'
+    os.makedirs(BUILD_DIR, exist_ok=True)
+
+    cmake_cmd = [
+        'cmake', '..',
+        '-DCMAKE_C_COMPILER=gcc', '-DCMAKE_CXX_COMPILER=g++',
+        '-DCMAKE_BUILD_TYPE=Release', f'-DCUDA_ARCH={cuda_arch}',
+    ]
+    rc = run(cmake_cmd, cwd=BUILD_DIR, check=False)
+    if rc != 0:
+        raise RuntimeError(f'cmake configure failed with exit code {rc} -- see output above')
+
+    rc = run(['make', '-j', str(os.cpu_count())], cwd=BUILD_DIR, check=False)
+    if rc != 0:
+        print('\nStandard build failed -- retrying with explicit OpenMP link flags '
+              '(a documented AMGX build issue: the linker sometimes does not pull '
+              'in libgomp automatically, github.com/NVIDIA/AMGX issue #214).')
+        run(['cmake', '..',
+             '-DCMAKE_C_COMPILER=gcc', '-DCMAKE_CXX_COMPILER=g++',
+             '-DCMAKE_BUILD_TYPE=Release', f'-DCUDA_ARCH={cuda_arch}',
+             '-DCMAKE_EXE_LINKER_FLAGS=-lgomp',
+             '-DCMAKE_SHARED_LINKER_FLAGS=-lgomp'],
+            cwd=BUILD_DIR)
+        run(['make', '-j', str(os.cpu_count())], cwd=BUILD_DIR)
+
+    # Find whatever the build actually produced -- don't assume the exact
+    # path, search for it, since AMGX's own CMake layout can place build
+    # artifacts in different subdirectories across versions.
+    found = subprocess.run(
+        ['find', AMGX_SRC, '-iname', 'libamgxsh.so'],
+        capture_output=True, text=True,
+    ).stdout.strip().splitlines()
+    if not found:
+        raise RuntimeError(
+            'Build finished but libamgxsh.so was not found anywhere under '
+            f'{AMGX_SRC} -- check the make output above for what libraries it '
+            'actually produced.')
+    amgx_so = found[0]
+    print(f'\nFound: {amgx_so}')
+
 os.environ['AMGX_DLL'] = amgx_so
 
 # Re-import torchfem's sparse module fresh so it re-checks AMGX_DLL and
