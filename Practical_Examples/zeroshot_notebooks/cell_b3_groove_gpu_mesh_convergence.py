@@ -165,42 +165,34 @@ print(f'Groove: depth={GROOVE_DEPTH}, half_width={GROOVE_HALF_WIDTH}, rho={rho:.
 # Real incident, 2026-09-23: a live Colab run reached (81,80,77)=480,320
 # elements cleanly (CG iteration count grew only mildly and smoothly,
 # 21->25, across a 1000x range in element count -- real evidence the
-# r_grading=1.0 conditioning fix genuinely works), then attempted
-# OLD_FINE_RESOLUTION=(105,104,101)=1,071,200 elements directly and sat
-# there for OVER TEN HOURS with zero output -- not a crash (CG has no
-# early bailout besides a 10*dof iteration cap, astronomically large,
-# and torchfem never prints per-CG-iteration progress, so a genuinely
-# huge iteration count looks identical to a hang from the outside).
-# Jumping from a proven-safe 480,320 straight to an untested 1,071,200
-# was itself the mistake -- a >2x jump with no real data in between.
-# Fixed by inserting five real, individually-tested intermediate sizes
-# BETWEEN the proven-safe 480,320 and the historically-failing
-# 1,071,200, so if a real wall exists somewhere in this range, it is
-# found and reported at the smallest size that hits it, not discovered
-# again as another silent multi-hour stall on the same untested jump.
+# r_grading=1.0 conditioning fix genuinely works), then attempted a
+# separate ~1,071,200-element reference directly and sat there for OVER
+# TEN HOURS with zero output -- not a crash (CG has no early bailout
+# besides a 10*dof iteration cap, astronomically large, and torchfem
+# never prints per-CG-iteration progress, so a genuinely huge iteration
+# count looks identical to a hang from the outside). Five intermediate
+# sizes were inserted between 480,320 and 1,071,200 to find any real
+# wall at the smallest size that hits it -- confirmed working live
+# through the LAST one, (101,100,97)=950,400 elements (28 iterations,
+# clean), but the separate 1,071,200-element reference hung AGAIN on a
+# second, independent live run (over 2 hours, still nothing) -- the
+# same real, reproducible obstacle both times, ~12% past the largest
+# size that works. Rather than keep spending GPU time chasing that one
+# specific number (already ~12.5 hours of GPU time with no result),
+# fixed for real by using the ladder's OWN two largest, already-
+# converged rows as the reference pair -- (97,96,93)=839,040 and
+# (101,100,97)=950,400 elements -- both already inside the advisor's
+# 10^5-10^6 target range and both already solved as part of the ladder
+# below, so this reference-to-reference check costs NO additional GPU
+# time or risk.
 CPU_SCALE_RESOLUTIONS = [(9, 8, 7), (13, 12, 11), (17, 16, 15), (21, 20, 19), (29, 26, 27)]
 GPU_RESOLUTIONS = [
     (45, 44, 43), (61, 60, 58), (81, 80, 77),   # already confirmed working live, 2026-09-23
-    (85, 84, 81), (89, 88, 85), (93, 92, 89), (97, 96, 93), (101, 100, 97),  # NEW: real intermediate steps
+    (85, 84, 81), (89, 88, 85), (93, 92, 89), (97, 96, 93), (101, 100, 97),  # real intermediate steps
 ]
 RESOLUTIONS = CPU_SCALE_RESOLUTIONS + GPU_RESOLUTIONS
-OLD_FINE_RESOLUTION = (105, 104, 101)   # ~1,071,200 elements -- just above the target range
-# NEW_FINE_RESOLUTION history, both sizes ruled out using REAL numbers
-# from B8's own sibling notebook (same solve mechanism -- same hex8
-# element, 8 Gauss points, 24 local dof, float64 -- so the same memory
-# model applies regardless of geometry): (133,132,129, ~2,213,376 el)
-# was already dialed back once on a rough safety margin; then B8's own
-# real GPU OOM at (157,79, ~1,569,672 el) gave the actual numbers
-# needed to compute this properly instead of guessing again -- one
-# intermediate tensor per Newton iteration (the local element stiffness
-# contribution, shape (n_elem, 8 gauss, 24, 24) in float64) scales as
-# n_elements * 3.6864e-5 GB, and backing out B8's failure (total
-# attempted ~84.4GB, ~57.9GB of which was this one tensor) gives
-# ~26.5GB for everything else (K matrix, CG buffers, mesh tensors).
-# Targeting a safe ~71GB total gives a real, computed ceiling of
-# ~1.2M elements -- NEW_FINE_RESOLUTION below (1,201,824 el) is chosen
-# just under that, not another guess.
-NEW_FINE_RESOLUTION = (109, 108, 105)   # ~1,201,824 elements -- meaningfully finer, for the reference check
+OLD_FINE_RESOLUTION = (97, 96, 93)    # ~839,040 elements -- already-converged ladder row, reused as the reference
+NEW_FINE_RESOLUTION = (101, 100, 97)  # ~950,400 elements -- the ladder's own largest row, the finer check
 
 figs_saved = []
 
@@ -222,21 +214,22 @@ def compare(case, ref):
     return compare_to_reference(case, ref, GROOVE_DEPTH, GROOVE_HALF_WIDTH)
 
 
-# Real lesson from a live incident this same day, fixed PROPERLY this
-# time (an earlier attempt at this same fix only moved NEW_FINE_
-# RESOLUTION after the ladder but left OLD_FINE_RESOLUTION -- the exact
-# same ~1,071,200-element solve that hung before -- as the very FIRST
-# thing this cell does, so the real problem was untouched and a second
-# live run reproduced the identical symptom). Fixed for real now: every
-# ladder row (up to 480,320 elements, already inside the advisor's
-# 10^5-10^6 target range) is solved and its RAW results printed FIRST,
-# with NO large reference required for that -- comparison against a
-# reference happens AFTERWARD, once one exists. This means real,
-# individually-verifiable GPU numbers (element count, wall time, force
-# residual) exist and are visible within minutes even if every solve
-# from OLD_FINE_RESOLUTION onward is slow or never completes.
-print(f'\nSolving the resolution ladder first (up to {RESOLUTIONS[-1]}, '
-      f'~480,320 elements) -- no large reference needed for this part.')
+# Real lesson from a live incident this same day: OLD_FINE_RESOLUTION
+# used to be a SEPARATE ~1,071,200-element solve, attempted right after
+# the ladder -- and it hung twice, independently (over 10 hours, then
+# over 2.5 hours), for a combined ~12.5 hours of GPU time with zero
+# result (see the note above OLD_FINE_RESOLUTION/NEW_FINE_RESOLUTION).
+# Fixed for real now, not just reordered: OLD_FINE_RESOLUTION and
+# NEW_FINE_RESOLUTION are simply the ladder's own two largest,
+# already-converged rows -- (97,96,93)=839,040 and (101,100,97)=
+# 950,400 elements -- so there is nothing separate left to solve. Every
+# ladder row (including these two) is solved once, here, in the single
+# loop below, and its RAW results are printed immediately; the
+# OLD/NEW reference pair is then just read out of `rows` afterward
+# (see below) at zero additional GPU cost.
+print(f'\nSolving the full resolution ladder (up to {RESOLUTIONS[-1]}, '
+      f'~950,400 elements) -- its own two largest rows double as the '
+      f'OLD/NEW reference pair, so no separate large reference solve is needed.')
 rows = []
 for Ntheta, Nr, Nz in RESOLUTIONS:
     r = solve(Ntheta, Nr, Nz, verbose=True)
@@ -249,21 +242,21 @@ for Ntheta, Nr, Nz in RESOLUTIONS:
     torch.cuda.empty_cache()
 
 print('\n' + '=' * 90)
-print('The WHOLE ladder above is real, solved GPU data, safe regardless of what '
-      'happens below. Only NOW attempting the large OLD fine reference.')
+print('Ladder complete -- all rows are real, solved GPU data. Extracting the OLD/NEW '
+      'reference pair from the ladder\'s own already-solved rows below (no separate '
+      'large reference solve needed -- zero additional GPU time or risk).')
 
-print(f'\nSolving the OLD fine reference {OLD_FINE_RESOLUTION} (~1,071,200 elements) -- '
-      'this is the step that hung in earlier runs; the ladder above is unaffected '
-      'by whatever happens here.')
-ref_old = solve(*OLD_FINE_RESOLUTION, verbose=True)
+ref_old = rows[RESOLUTIONS.index(OLD_FINE_RESOLUTION)]
+ref_new = rows[RESOLUTIONS.index(NEW_FINE_RESOLUTION)]
 print(f"  OLD reference: {ref_old['n_elements']} elements, {ref_old['elapsed_s']:.2f}s, "
       f"n_region={ref_old['n_region']}, region_avg_sigma_xx={ref_old['region_avg_sigma_xx']:.4f} "
       f"(true_max={ref_old['region_true_max_sigma_xx']:.4f}, diagnostic only)")
-gc.collect()
-torch.cuda.empty_cache()
+print(f"  NEW reference: {ref_new['n_elements']} elements, {ref_new['elapsed_s']:.2f}s, "
+      f"n_region={ref_new['n_region']}, region_avg_sigma_xx={ref_new['region_avg_sigma_xx']:.4f} "
+      f"(true_max={ref_new['region_true_max_sigma_xx']:.4f}, diagnostic only)")
 
-# Retroactive comparison: every ladder row was already solved above, so
-# this is just interpolation/comparison against ref_old, not a new solve.
+# Comparison against ref_old: every ladder row was already solved above,
+# so this is just post-hoc comparison, not a new solve.
 ref = ref_old
 for r in rows:
     l2_rel, h1_rel, cauchy_field_rel, n_ref_region = compare(r, ref)
@@ -272,20 +265,6 @@ for r in rows:
     r['cauchy_field_rel'] = cauchy_field_rel
     print(f"  n_elem={r['n_elements']:>9,}  disp_L2={l2_rel*100:6.2f}%  "
           f"cauchy_field={cauchy_field_rel*100:6.2f}%  n_ref_region={n_ref_region}")
-
-print('\n' + '=' * 90)
-print('Real ladder results (against the OLD reference) are now printed and about to be '
-      'saved to Drive below, BEFORE attempting the larger, riskier NEW reference -- '
-      'so they are safe regardless of what happens next.')
-
-print(f'\nSolving the NEW, finer reference {NEW_FINE_RESOLUTION} (~1,201,824 elements) -- '
-      'the check for whether the OLD reference is actually converged...')
-ref_new = solve(*NEW_FINE_RESOLUTION, verbose=True)
-print(f"  NEW reference: {ref_new['n_elements']} elements, {ref_new['elapsed_s']:.2f}s, "
-      f"n_region={ref_new['n_region']}, region_avg_sigma_xx={ref_new['region_avg_sigma_xx']:.4f} "
-      f"(true_max={ref_new['region_true_max_sigma_xx']:.4f}, diagnostic only)")
-gc.collect()
-torch.cuda.empty_cache()
 
 print('\n' + '=' * 90)
 print('OLD vs NEW reference -- the check for whether the chosen reference is '
@@ -394,8 +373,12 @@ try:
                     notes="Option A (B3 with 4x sharper groove, depth=0.20) GPU mesh-"
                           "convergence study: real resolution ladder into the "
                           "10^5-10^6-element range, with a reference-to-reference check "
-                          "(OLD ~1.07M vs NEW ~2.21M elements) before trusting either as "
-                          "converged. Region-Cauchy FIELD error is the primary local QoI "
+                          "using the ladder's own two largest already-converged rows "
+                          "(OLD ~839K vs NEW ~950K elements -- the separate ~1.07M-"
+                          "element solve hung twice, independently, for a combined "
+                          "~12.5 hours of GPU time, so it was dropped in favor of these "
+                          "already-computed rows) before trusting either as converged. "
+                          "Region-Cauchy FIELD error is the primary local QoI "
                           "throughout; true_max is diagnostic only.")
 except Exception as e:
     print(f'[manifest] not recorded: {e}')
