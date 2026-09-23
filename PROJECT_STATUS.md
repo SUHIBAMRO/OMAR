@@ -357,9 +357,20 @@ finishes or a new one starts.
 >     region_avg_sigma_xx=-26.77 MPa. A `compare_to_reference` check
 >     between two small resolutions ran without the shim-exclusion
 >     assert firing (l2=3.75%, cauchy_field=2.50%).
->   - **Not yet done**: a real multi-point CPU convergence trend for
->     B8-final (beyond the single two-point check above) and any GPU
->     run. Per the reviewer's own explicit closing instruction --
+>   - **Real multi-point CPU convergence trend, obtained 2026-09-23**
+>     (against a 15,600-element (Ntheta=21,Nr=11) reference, 182.3s to
+>     solve): 2,496 el = l2 6.95% / cauchy_field 4.85%, 5,616 el = l2
+>     3.51% / cauchy_field 2.19%, 9,984 el = l2 1.34% / cauchy_field
+>     0.67% (n_ref_region=8 at every row -- stable, non-degenerate
+>     sampling). Clean, monotonic convergence in both QoIs at this small
+>     scale -- confirms the rewritten rubber-only region and the new
+>     material-dispatcher psi are numerically well-behaved, same
+>     trend-quality as the prototype's own CPU ladder before it. This is
+>     still CPU-scale only (a 15,600-element reference is not the kind
+>     of converged reference the advisor's target range calls for) --
+>     it is a sanity/trend check, not the production ladder.
+>   - Still not yet done: any GPU run for B8-final. Per the reviewer's
+>     own explicit closing instruction --
 >     "the next step now is to modify B8 itself, not run it again" --
 >     no GPU notebook has been built or touched for B8-final; the
 >     existing `cell_b8_gpu_mesh_convergence.py` /
