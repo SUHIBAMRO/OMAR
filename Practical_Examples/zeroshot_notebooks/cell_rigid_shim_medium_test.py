@@ -17,29 +17,32 @@
 #  became highly disproportionately slow at 75,504 elements (confirmed
 #  alive, not hung, via `top`: the python process sat at 100% CPU for
 #  20+ minutes on a single Newton iteration that should cost seconds).
-#  This is a known, structural property of DIRECT sparse solvers on 3D
-#  FEM systems (fill-in scales far worse than linearly with problem size
-#  in 3D) -- exactly why the rest of this project always uses an
-#  ITERATIVE solver (CG) for large 3D meshes instead. Added
-#  `linear_solver='cg'` to `rigid_shim_solver.solve_case` (Jacobi-
+#  Added `linear_solver='cg'` to `rigid_shim_solver.solve_case` (Jacobi-
 #  preconditioned CG, WITH per-iteration progress printing so a slow
-#  solve is never mistaken for a silent hang again). Validated for real,
-#  offline, before trusting it here: at 2,496 and 15,600 elements, 'cg'
-#  reproduces 'direct's own max_disp/total_strain_energy to ~1e-15
-#  relative difference (bit-identical, not approximate), and is already
-#  as fast or faster (44.06s vs 50.88s at 15,600 elements). This cell now
-#  runs BOTH solvers side by side at (37,19) -- the one resolution with
-#  an already-confirmed-good real GPU 'direct' number -- for a live,
-#  real GPU confirmation of the same equivalence, then uses 'cg' alone
-#  for (45,23)/(53,27), where 'direct' is already known to struggle.
+#  solve is never mistaken for a silent hang again).
 #
-#  A real caution from the same review that requested this model,
-#  regardless of solver choice: rubber is also near-incompressible, and
+#  SECOND UPDATE, same day, real GPU evidence again: 'cg' is CORRECT at
+#  50,544 elements -- bit-identical to 'direct' (max_disp rel diff
+#  1.6e-15) and 4.3x FASTER (126.66s vs 546.11s) -- but genuinely BREAKS
+#  DOWN at 75,504 elements, and WORSE than 'direct's mere slowness: CG's
+#  own iteration count exploded (4,275 -> 6,673 -> 13,129 iterations
+#  across successive Newton iterations of increment 1 alone), the
+#  Newton residual DIVERGED instead of converging (1.19e5 -> 2.27e6 ->
+#  1.23e9), and the run crashed with `AssertionError: non-positive
+#  diagonal in K_reduced` -- the tangent stiffness itself became invalid,
+#  almost certainly because a bad/inaccurate CG step (plain Jacobi
+#  preconditioning is known to be weak when a system mixes very
+#  different physical DOF scales, here free rubber translations vs.
+#  each shim's 3-dof rigid block) pushed the deformation state somewhere
+#  physically invalid. This is exactly the standing caution already
+#  written into this module: rubber is also near-incompressible, and
 #  displacement-based HEX8 elements can suffer their own volumetric-
 #  locking-related conditioning problems, independent of the (now-
-#  removed) shim stiffness contrast -- if 'cg' ALSO struggles at scale,
-#  that is the next real thing to investigate, not a reason to alter the
-#  real material parameters.
+#  removed) shim stiffness contrast -- plain-Jacobi CG is not yet a safe
+#  choice at this scale, so 'direct' is used again for (45,23)/(53,27)
+#  below (slow but numerically robust, unlike CG's outright divergence
+#  here) while a stronger preconditioner for CG is investigated
+#  separately, offline, before being tried again at this scale.
 #
 #  Ladder: (37,19)=50,544 / (45,23)=75,504 / (53,27)=105,456 elements --
 #  the last one is the EXACT resolution that failed for the deformable
@@ -127,23 +130,37 @@ print(f"\n  direct vs cg: max_disp rel diff={disp_rel_diff:.2e}  "
       f"not an approximation)")
 print(f"  time: direct={r_direct['elapsed_s']:.2f}s vs cg={r_cg['elapsed_s']:.2f}s")
 
-rows = [r_cg]  # 'cg' is the production choice going forward -- use it consistently in the ladder
+# 'direct' is used for the rest of the ladder: 'cg' with plain Jacobi
+# preconditioning is not yet safe at this scale (see the SECOND UPDATE
+# above -- it diverged and crashed, not just slow). Slower but robust.
+rows = [r_direct]
+errors = []
 
 for Ntheta, Nr in RESOLUTIONS[1:]:
-    print(f'\n{"=" * 90}\nSolving rigid-shim model at ({Ntheta},{Nr}) with linear_solver=\'cg\' '
-          f'(\'direct\' already known to struggle badly at this size -- no need to re-confirm '
-          f'that, see the module docstring)...', flush=True)
-    r = solve_rigid_shim(Ntheta, Nr, device=device, verbose=True, linear_solver='cg')
+    print(f'\n{"=" * 90}\nSolving rigid-shim model at ({Ntheta},{Nr}) with linear_solver=\'direct\' '
+          f'(\'cg\' with plain Jacobi is known to diverge at this scale -- see the module docstring; '
+          f'\'direct\' is slower but numerically robust)...', flush=True)
+    try:
+        r = solve_rigid_shim(Ntheta, Nr, device=device, verbose=True, linear_solver='direct')
+    except Exception as e:
+        print(f"\n  FAILED at ({Ntheta},{Nr}): {type(e).__name__}: {e}", flush=True)
+        errors.append((Ntheta, Nr, str(e)))
+        continue
     rows.append(r)
     print(f"\n  n_elements={r['n_elements']:,}  time={r['elapsed_s']:.2f}s  "
           f"force_rel_residual={r['force_rel_residual']:.2e}")
     print(f"  max_disp={r['max_disp']:.4f}mm  total_strain_energy={r['total_strain_energy']:.4f}")
     print(f"  reaction_force_bottom={r['reaction_force_bottom']}")
 
-print(f'\n{"=" * 90}\nSummary across the ladder (all solved with linear_solver=\'cg\'):')
-for (Ntheta, Nr), r in zip(RESOLUTIONS, rows):
-    print(f"  ({Ntheta},{Nr})  n_elem={r['n_elements']:>9,}  time={r['elapsed_s']:>8.2f}s  "
+print(f'\n{"=" * 90}\nSummary across the ladder (row 1 has both direct/cg numbers above; '
+      f'the rest solved with linear_solver=\'direct\'):')
+for r in rows:
+    print(f"  ({r['Ntheta']},{r['Nr']})  n_elem={r['n_elements']:>9,}  time={r['elapsed_s']:>8.2f}s  "
           f"force_rel_residual={r['force_rel_residual']:.2e}  max_disp={r['max_disp']:.4f}mm")
+if errors:
+    print(f'\n  {len(errors)} resolution(s) FAILED (real, reported honestly, not hidden):')
+    for Ntheta, Nr, msg in errors:
+        print(f"    ({Ntheta},{Nr}): {msg}")
 
 print('\nDone. If (53,27)=105,456 elements converged cleanly and in reasonable '
       'time here (the exact resolution that failed for the deformable-steel '
