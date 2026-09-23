@@ -191,18 +191,39 @@ def compare(case, ref):
     return compare_to_reference(case, ref, GROOVE_DEPTH, GROOVE_HALF_WIDTH)
 
 
-# Real lesson from a live incident this same day: this cell used to
-# attempt OLD_FINE_RESOLUTION (the largest, riskiest solve) FIRST, so a
-# slow/stuck reference blocked every smaller, safer ladder row behind
-# it -- a real GPU run sat at this exact step for 13+ minutes with
-# nothing printed and nothing to show for the GPU time already spent.
-# Fixed by solving the WHOLE ladder (up to 480,320 elements, already
-# inside the advisor's 10^5-10^6 target range) and comparing it against
-# OLD_FINE_RESOLUTION FIRST, so those real numbers are printed, saved to
-# Drive, and safe no matter what happens to the separate, larger
-# NEW_FINE_RESOLUTION check attempted afterward.
+# Real lesson from a live incident this same day, fixed PROPERLY this
+# time (an earlier attempt at this same fix only moved NEW_FINE_
+# RESOLUTION after the ladder but left OLD_FINE_RESOLUTION -- the exact
+# same ~1,071,200-element solve that hung before -- as the very FIRST
+# thing this cell does, so the real problem was untouched and a second
+# live run reproduced the identical symptom). Fixed for real now: every
+# ladder row (up to 480,320 elements, already inside the advisor's
+# 10^5-10^6 target range) is solved and its RAW results printed FIRST,
+# with NO large reference required for that -- comparison against a
+# reference happens AFTERWARD, once one exists. This means real,
+# individually-verifiable GPU numbers (element count, wall time, force
+# residual) exist and are visible within minutes even if every solve
+# from OLD_FINE_RESOLUTION onward is slow or never completes.
+print(f'\nSolving the resolution ladder first (up to {RESOLUTIONS[-1]}, '
+      f'~480,320 elements) -- no large reference needed for this part.')
+rows = []
+for Ntheta, Nr, Nz in RESOLUTIONS:
+    r = solve(Ntheta, Nr, Nz, verbose=True)
+    rows.append(r)
+    print(f"\n({Ntheta},{Nr},{Nz})  elements={r['n_elements']:,}  time={r['elapsed_s']:.2f}s  "
+          f"force_rel_residual={r['force_rel_residual']:.2e}  "
+          f"region_avg_sigma_xx={r['region_avg_sigma_xx']:.4f} "
+          f"(true_max={r['region_true_max_sigma_xx']:.4f}, diagnostic only)")
+    gc.collect()
+    torch.cuda.empty_cache()
+
+print('\n' + '=' * 90)
+print('The WHOLE ladder above is real, solved GPU data, safe regardless of what '
+      'happens below. Only NOW attempting the large OLD fine reference.')
+
 print(f'\nSolving the OLD fine reference {OLD_FINE_RESOLUTION} (~1,071,200 elements) -- '
-      'this doubles as the ladder\'s comparison reference...')
+      'this is the step that hung in earlier runs; the ladder above is unaffected '
+      'by whatever happens here.')
 ref_old = solve(*OLD_FINE_RESOLUTION, verbose=True)
 print(f"  OLD reference: {ref_old['n_elements']} elements, {ref_old['elapsed_s']:.2f}s, "
       f"n_region={ref_old['n_region']}, region_avg_sigma_xx={ref_old['region_avg_sigma_xx']:.4f} "
@@ -210,24 +231,16 @@ print(f"  OLD reference: {ref_old['n_elements']} elements, {ref_old['elapsed_s']
 gc.collect()
 torch.cuda.empty_cache()
 
+# Retroactive comparison: every ladder row was already solved above, so
+# this is just interpolation/comparison against ref_old, not a new solve.
 ref = ref_old
-rows = []
-for Ntheta, Nr, Nz in RESOLUTIONS:
-    r = solve(Ntheta, Nr, Nz)
+for r in rows:
     l2_rel, h1_rel, cauchy_field_rel, n_ref_region = compare(r, ref)
     r['disp_l2_rel'] = l2_rel
     r['grad_h1_rel'] = h1_rel
     r['cauchy_field_rel'] = cauchy_field_rel
-    rows.append(r)
-    print(f"\n({Ntheta},{Nr},{Nz})  elements={r['n_elements']:,}  time={r['elapsed_s']:.2f}s")
-    print(f"  disp_L2_rel={l2_rel*100:.3f}%  "
-          f"region-Cauchy FIELD error (PRIMARY)={cauchy_field_rel*100:.3f}%")
-    print(f"  region(n={r['n_region']} quadrature points): "
-          f"avg_sigma_xx={r['region_avg_sigma_xx']:.4f}  "
-          f"(true_max={r['region_true_max_sigma_xx']:.4f}, diagnostic only, NOT used to judge convergence)")
-    print(f"  equilibrium checks passed inline (mesh valid, det(F)>0, Newton converged to 1e-8)")
-    gc.collect()
-    torch.cuda.empty_cache()
+    print(f"  n_elem={r['n_elements']:>9,}  disp_L2={l2_rel*100:6.2f}%  "
+          f"cauchy_field={cauchy_field_rel*100:6.2f}%  n_ref_region={n_ref_region}")
 
 print('\n' + '=' * 90)
 print('Real ladder results (against the OLD reference) are now printed and about to be '
