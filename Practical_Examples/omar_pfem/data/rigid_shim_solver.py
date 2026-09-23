@@ -68,17 +68,38 @@ net force AND moment the rubber exerts on each rigid shim about its own
 reference point, i.e., "rigid translation and rotation determined by
 equilibrium", not prescribed).
 
-The reduced linear solve uses SciPy's sparse direct solver (not
-torch-fem's own CG/Jacobi/AMG path): the reduced system's condition
-number is set by the well-scaled rubber+6-dof-per-shim system, not by
-the raw stiffness contrast, so a plain sparse LU is expected to be
-adequate at the validation scale this module targets; if that changes
-at production scale, that is itself a real, reportable finding (see
-mesh_convergence_B8.py's own docstring for the standing caution: rubber
-is also near-incompressible, and displacement-based HEX8 elements can
-suffer volumetric-locking-related conditioning problems independent of
-the shim material question -- do not assume the shim fix is the only
-possible source of a future conditioning problem at scale).
+The reduced linear solve supports two methods via `linear_solver`
+(2026-09-23 addition, real evidence-driven, not speculative): 'direct'
+(SciPy sparse LU, `spsolve`, the original and still the default) and
+'cg' (Jacobi-preconditioned CG via SciPy, WITH per-iteration progress
+printing -- unlike torch-fem's own CG, which has no early bailout and
+never prints progress, making a genuinely slow solve indistinguishable
+from a silent hang; this project already paid for that lesson once with
+Option A's ~12.5 wasted GPU-hours, so this wrapper does not repeat it).
+Real motivation for adding 'cg': a live Colab run at 75,504 elements
+showed the direct solve taking a highly disproportionate amount of time
+relative to its own cost at 50,544 elements (confirmed via `top`: the
+python process was genuinely at 100% CPU, not hung, just very slow) --
+a known, structural property of sparse DIRECT solvers on 3D FEM systems
+(fill-in scales much worse than linearly with problem size in 3D, which
+is exactly why the REST of this project always uses an iterative CG
+solver for large 3D meshes instead of a direct solve). There is also a
+real, principled reason to expect CG to behave WELL here specifically:
+the shim stiffness contrast that made the DEFORMABLE model's own CG
+fail at 105,456 elements is structurally absent from this reduced
+system (shims are exact rigid constraints, not elements in the
+assembled K at all), so the reduced system's conditioning is not
+expected to inherit that problem. 'cg' is validated against 'direct' at
+an already fully solved, real resolution (50,544 elements) before being
+trusted at any larger, previously-untested size -- same discipline as
+every other change in this project (see rigid_shim_solver_verify_cg.py).
+If that changes at production scale regardless of solver choice, that
+is itself a real, reportable finding (see mesh_convergence_B8.py's own
+docstring for the standing caution: rubber is also near-incompressible,
+and displacement-based HEX8 elements can suffer volumetric-locking-
+related conditioning problems independent of the shim material question
+-- do not assume the shim fix is the only possible source of a future
+conditioning problem at scale).
 """
 import time
 
@@ -108,15 +129,56 @@ def _csr_torch_to_scipy(K_torch):
     return sp.csr_matrix((val, col, crow), shape=(n, n))
 
 
+def _solve_reduced(K_reduced, R_reduced, method="direct", cg_rtol=1e-10, cg_maxiter=None,
+                    verbose=False, tag=""):
+    """Solves K_reduced @ dq = -R_reduced. method='direct': SciPy sparse
+    LU. method='cg': Jacobi-preconditioned CG -- WITH progress printing
+    every iteration (small systems) or every 20th (large), so a slow
+    solve is visibly distinguishable from a hang, unlike torch-fem's own
+    CG (see module docstring)."""
+    if method == "direct":
+        return spla.spsolve(K_reduced, -R_reduced)
+    elif method == "cg":
+        # Real assembled tangents are symmetric only up to floating-point
+        # roundoff (conservative hyperelastic internal forces); CG
+        # assumes exact symmetry, so enforce it explicitly rather than
+        # trust roundoff to be negligible.
+        K_sym = 0.5 * (K_reduced + K_reduced.T)
+        diag = K_sym.diagonal()
+        assert np.all(diag > 0), "non-positive diagonal in K_reduced -- Jacobi preconditioner invalid"
+        M = spla.LinearOperator(K_sym.shape, matvec=lambda x: x / diag)
+        n = K_sym.shape[0]
+        maxiter = cg_maxiter or (10 * n)
+        it_counter = [0]
+
+        def callback(xk):
+            it_counter[0] += 1
+            if verbose and (it_counter[0] <= 10 or it_counter[0] % 20 == 0):
+                r = -R_reduced - K_sym @ xk
+                print(f"    {tag}CG iter {it_counter[0]}: |r_cg|={np.linalg.norm(r):.3e}", flush=True)
+
+        dq, info = spla.cg(K_sym, -R_reduced, rtol=cg_rtol, maxiter=maxiter, M=M, callback=callback)
+        if info != 0:
+            raise RuntimeError(f"CG did not converge for the reduced system "
+                                f"(info={info}, {it_counter[0]}/{maxiter} iterations attempted)")
+        if verbose:
+            print(f"    {tag}CG converged in {it_counter[0]} iterations", flush=True)
+        return dq
+    else:
+        raise ValueError(f"unknown linear_solver {method!r}")
+
+
 def solve_case(Ntheta, Nr, n_rubber_layers=N_RUBBER_LAYERS, nz_per_rubber=2, nz_per_shim=2,
                r_grading=1.0, n_increments=11, dtype=torch.float64, device=None,
-               verbose=False, max_iter=30, rtol=1e-8, atol=1e-8):
+               verbose=False, max_iter=30, rtol=1e-8, atol=1e-8,
+               linear_solver="direct", cg_rtol=1e-10, cg_maxiter=None):
     """Same signature/return-dict conventions as
     mesh_convergence_B8.solve_case (the deformable-steel model), for a
     direct, apples-to-apples comparison via that module's own
-    compare_to_reference. `preconditioner`/`method` are intentionally
-    absent: the reduced system uses a direct sparse solve (see module
-    docstring)."""
+    compare_to_reference. `linear_solver`: 'direct' (SciPy sparse LU,
+    default, matches every result already reported for this model) or
+    'cg' (Jacobi-preconditioned CG -- see module docstring for why this
+    was added and how it is validated before being trusted at scale)."""
     device = device or torch.device("cpu")
     nodes, elements, is_shim, Lz = generate_grid_hex8_laminated_bearing(
         R_IN, R_OUT, Ntheta, Nr, n_rubber_layers=n_rubber_layers,
@@ -280,7 +342,9 @@ def solve_case(Ntheta, Nr, n_rubber_layers=N_RUBBER_LAYERS, nz_per_rubber=2, nz_
 
                     K_full_sp = _csr_torch_to_scipy(K_full)
                     K_reduced = (J.T @ K_full_sp @ J).tocsc()
-                    dq_np = spla.spsolve(K_reduced, -R_reduced)
+                    dq_np = _solve_reduced(K_reduced, R_reduced, method=linear_solver,
+                                            cg_rtol=cg_rtol, cg_maxiter=cg_maxiter, verbose=verbose,
+                                            tag=f"increment {n} iter {it} ")
                     q = q + torch.tensor(dq_np, dtype=dtype, device=device)
 
                 if not converged:
