@@ -216,6 +216,43 @@ finishes or a new one starts.
 >   runtime every time. Rebuilt and re-verified both notebooks (100/100
 >   `check_notebooks.py`), re-sent to Omar.
 >
+>   **FOURTH real GPU issue found and fixed, same day, from Omar's actual
+>   re-run of B8**: this time the OLD-vs-NEW cleanup fix (third finding
+>   above) was CONFIRMED WORKING -- GPU memory returned to the exact same
+>   baseline after OLD's solve as at the very start. But the NEW
+>   reference (1,569,672 elements, the previous safety-margin guess)
+>   still OOM'd, this time during the first Newton iteration's stiffness
+>   assembly, needing ~6.7GB more when ~77.6GB was already in use.
+>   Diagnosed the real cause from these numbers instead of guessing
+>   again: one intermediate tensor per Newton iteration (the local
+>   element stiffness contribution, shape (n_elem, 8 Gauss points, 24,
+>   24) in float64) scales as `n_elements * 3.6864e-5 GB` -- ~57.9GB by
+>   itself at 1,569,672 elements. Backing out the failure (total
+>   attempted ~84.4GB, ~57.9GB of which was this one tensor) gives
+>   ~26.5GB for everything else. This scaling depends only on element
+>   type (hex8, 8 Gauss points, 24 local dof) and dtype (float64), not
+>   geometry, so it applies identically to both notebooks. Computed real,
+>   safe sizes from this model (~71-72GB total target): B8's NEW
+>   reference 1,569,672 -> 1,254,528 elements; Option A's NEW reference
+>   (not yet run, but using the same oversized guess) 1,656,480 ->
+>   1,201,824 elements, fixed proactively before it hit the same wall.
+>   Region sampling verified healthy at both new sizes. Rebuilt and
+>   re-verified both notebooks (100/100 `check_notebooks.py`).
+>
+>   **Separately, real evidence Option A's conditioning may worsen at
+>   scale (under active investigation, not yet conclusive)**: while
+>   Option A's OLD reference was mid-solve on Colab (increment 1 alone
+>   took ~50s+ for ~1M elements, still well within plausible range), a
+>   parallel CPU test at 79,464 elements (matching the exact same
+>   r_grading=1.5/depth=0.20 settings already confirmed clean up to
+>   18,200 elements) showed increment 1 needing 12 CG iterations and
+>   152.19s -- versus 5-6 iterations and ~1-3s at 6,840 elements. This is
+>   real, measured evidence that r_grading=1.5's conditioning may degrade
+>   as resolution grows well beyond what was CPU-tested, separate from
+>   the memory issues above. Not yet conclusive (need to see whether
+>   later increments settle down, as they warm-start from a converged
+>   state, or stay bad) -- investigation continuing.
+>
 >   **Next**: Omar re-runs both notebooks in Colab (fresh runtime, to
 >   pick up the fixed code) -- once both are back with real numbers,
 >   present BOTH complete technical setups with real GPU-confirmed
