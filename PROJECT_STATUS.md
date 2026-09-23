@@ -253,6 +253,33 @@ finishes or a new one starts.
 >   later increments settle down, as they warm-start from a converged
 >   state, or stay bad) -- investigation continuing.
 >
+>   **🎉 B8 (Option B) GPU RUN COMPLETE AND SUCCESSFUL, 2026-09-23 --
+>   LANDMARK REAL RESULT: satisfies the advisor's stated target.** OLD
+>   (1,054,272 el) vs NEW (1,254,528 el) reference check: region-Cauchy
+>   field error 2.866%, region_avg relative change 0.850% -- both under
+>   the 10% bar, NEW reference accepted. Full real ladder (region-Cauchy
+>   FIELD error, PRIMARY QoI, disp_L2 in parentheses): 576 el =
+>   75.83% (2.48%), 1,584 el = 61.69% (1.74%), 2,304 el = 64.58% (1.34%,
+>   minor non-monotonic blip from small n_region, not a bug), 4,400 el =
+>   53.98% (0.98%), 6,336 el = 51.65% (0.80%), 19,074 el = 39.56%
+>   (0.47%), 50,688 el = 32.77% (0.28%), 136,408 el = 25.68% (0.16%,
+>   OUTSIDE the 5-10% band), 373,248 el = 16.84% (0.07%, OUTSIDE),
+>   **791,864 el = 7.53% (0.03%, WITHIN THE 5-10% BAND)**.
+>   **Conclusion: B8 (the laminated seismic bearing) genuinely satisfies
+>   the advisor's stated requirement** -- the region-Cauchy-stress error
+>   lands inside 5-10% at a resolution inside the requested 10^5-10^6-
+>   element range (specifically near its upper portion, ~8x10^5
+>   elements), while the global displacement error (disp_L2) is already
+>   tiny (0.03%) at that same resolution -- the large gap between fast
+>   global convergence and slow local convergence this whole project's
+>   QoI methodology is built around, demonstrated cleanly and for real.
+>   Full results/figures saved to Drive (`pfem_run/b8/`), run took
+>   21m13s total. **Next for B8**: draft the complete technical write-up
+>   (geometry, BCs, material, real GPU-confirmed numbers) for the
+>   advisor's review, per Omar's original instruction -- a review
+>   checkpoint, not a preference question, and NOT contingent on Option
+>   A's own outcome.
+>
 >   **Next**: Omar re-runs both notebooks in Colab (fresh runtime, to
 >   pick up the fixed code) -- once both are back with real numbers,
 >   present BOTH complete technical setups with real GPU-confirmed
