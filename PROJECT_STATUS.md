@@ -293,16 +293,97 @@ finishes or a new one starts.
 >   global convergence and slow local convergence this whole project's
 >   QoI methodology is built around, demonstrated cleanly and for real.
 >   Full results/figures saved to Drive (`pfem_run/b8/`), run took
->   21m13s total. **Next for B8**: draft the complete technical write-up
->   (geometry, BCs, material, real GPU-confirmed numbers) for the
->   advisor's review, per Omar's original instruction -- a review
->   checkpoint, not a preference question, and NOT contingent on Option
->   A's own outcome.
+>   21m13s total.
+>
+>   **REVIEW + REBUILD, 2026-09-23: B8 pilot archived as "B8-prototype,"
+>   B8-final rebuilt on a real published source, before any more GPU
+>   time is spent.** A technical review of the pilot (5 explicit points)
+>   found the pilot's geometry/materials were arbitrary (not cited) and
+>   its QoI region mixed rubber+steel with interpolation crossing that
+>   material discontinuity -- not trustworthy as a final result even
+>   though the 7.53%-at-792k-elements number is real. Per the reviewer's
+>   explicit instruction, the 7.53% pilot result was NOT discarded: it
+>   was archived byte-for-byte as `*_prototype.py` / `*_prototype*.ipynb`
+>   (own frozen imports, verified to still run standalone) in commit
+>   `6d44a7d`, and stays valid as proof the modeling approach can reach
+>   the target. **B8-final** (commit `7c03e80`) then rebuilt the live
+>   `data_generate_B8.py` / `mesh_convergence_B8.py` on:
+>   - **Real geometry/materials**, no invented numbers: Kalantari &
+>     Rofooei, 10th Canadian Conference on Earthquake Engineering, 2010
+>     (`caee.ca/10CCEEpdf/2010EQConf-000137.pdf`) -- R_IN=15mm,
+>     R_OUT=76mm, 20 rubber layers x 3mm, 19 steel shims x 3mm
+>     (Lz=117mm, verified against 20x3+19x3). Rubber Neo-Hookean:
+>     G=0.68 MPa, K=2000 MPa (mu=0.68, lam=1999.546667 MPa) --
+>     **corrects the pilot's unverified G=0.86 MPa**. Steel: real
+>     E=200 GPa, nu=0.3 (mu=76923.08, lam=115384.62 MPa) linear-
+>     elastic, replacing the pilot's `SHIM_STIFFNESS_RATIO=100` Neo-
+>     Hookean proxy, which is now removed entirely.
+>   - **Mixed-material psi function**: torch-fem's `Hyperelastic3D`
+>     supports per-element vectorized PARAMETERS of one psi, not
+>     per-element different psi functions -- so a genuine dispatcher,
+>     `neo_hookean_or_stvk_psi_3d(F3d, params)`, was added to
+>     `torchfem_comparison.py`: real Neo-Hookean for rubber OR real
+>     St. Venant-Kirchhoff for steel (`E=0.5*(F^T F - I)`, same
+>     (mu,lam) reduces to classical linear elasticity at small strain),
+>     selected per element via `torch.where` on an `is_shim` flag
+>     (vmap-safe, both branches always evaluated). Verified before use:
+>     StVK matches linear-elastic energy density to 8.19e-05 rel. at
+>     strain~1e-4; both branches give finite gradients AND Hessians at
+>     F=I (rubber max|H|=2.001e+03, steel max|H|=2.692e+05) -- the same
+>     numerical-safety bar already established for the plain Neo-Hookean
+>     psi (a NaN Hessian at F=I silently breaks the assembled tangent).
+>   - **QoI region fixed to rubber-only**: the pilot's region centered
+>     on the shim's own mid-height and spanned both materials with
+>     interpolation crossing the discontinuity -- not a clean
+>     comparison. B8-final's region is a FIXED physical location
+>     strictly inside rubber-layer-1, near the rubber/shim-1 interface;
+>     a new `_elem_field_interpolator_rubber1` slices the element grid
+>     to rubber-layer-1's own z-range BEFORE interpolating (structurally
+>     cannot return a shim-influenced value), and a runtime assertion on
+>     both the case and reference region masks guards against any shim
+>     element ever entering the region. `true_max` stays diagnostic
+>     only, unchanged from the existing rule.
+>   - **CPU sanity check, real and verified** (2,496 elements,
+>     Ntheta=9, Nr=5): mesh valid (0 inverted elements), Lz=117.0mm
+>     correct, Newton converged (33.03s), force_rel_residual=1.91e-15,
+>     max_disp=4.98mm. Key self-consistency check the reviewer asked
+>     for: **max_strain_shim=3.36e-04 vs max_strain_rubber=4.50e-01** --
+>     steel strain is genuinely tiny despite large rotation, confirming
+>     the St. Venant-Kirchhoff/linear-elastic assumption for the shims
+>     is physically self-consistent, not just asserted. Region (after
+>     widening REGION_RADIUS from 2x to 6x shim thickness -- the same
+>     r=R_out/theta=0 double-edge sampling constraint already found once
+>     for the prototype, same fix): n_region=8,
+>     region_avg_sigma_xx=-26.77 MPa. A `compare_to_reference` check
+>     between two small resolutions ran without the shim-exclusion
+>     assert firing (l2=3.75%, cauchy_field=2.50%).
+>   - **Not yet done**: a real multi-point CPU convergence trend for
+>     B8-final (beyond the single two-point check above) and any GPU
+>     run. Per the reviewer's own explicit closing instruction --
+>     "the next step now is to modify B8 itself, not run it again" --
+>     no GPU notebook has been built or touched for B8-final; the
+>     existing `cell_b8_gpu_mesh_convergence.py` /
+>     `B8_GPU_MeshConvergence.ipynb` now point at the rewritten
+>     (B8-final) module code if run as-is and must be rebuilt/verified
+>     against B8-final specifically before any further GPU time, per
+>     the reviewer's point 5 (CPU sanity first; then restart the GPU
+>     ladder within 10^5-10^6 elements, reference around ~1.05M with a
+>     reference-check above that as memory allows -- do not jump
+>     straight back to the pilot's largest sizes).
+>
+>   **Next for B8**: finish a real CPU-scale convergence trend for
+>   B8-final (a small ladder, several resolutions vs. a CPU reference)
+>   to see the real trend before any GPU time; only after that looks
+>   right, build a new GPU notebook for B8-final specifically and have
+>   Omar run it in Colab; only then draft the complete technical
+>   write-up (geometry, BCs, materials, real GPU-confirmed numbers) for
+>   the advisor's review.
 >
 >   **Next**: Omar re-runs both notebooks in Colab (fresh runtime, to
 >   pick up the fixed code) -- once both are back with real numbers,
 >   present BOTH complete technical setups with real GPU-confirmed
->   numbers to Timon.
+>   numbers to Timon. (Note: for B8 specifically, this now means the
+>   NEW B8-final GPU notebook, once built, not the archived prototype.)
 > - **Option B (laminated seismic bearing) -- code complete and verified
 >   runnable, 2026-09-22** (`omar_pfem/data/data_generate_B8.py`,
 >   `omar_pfem/data/mesh_convergence_B8.py`): annular ring cross-section
