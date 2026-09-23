@@ -53,6 +53,16 @@ else:
     _run_setup(['git', '-C', REPO, 'checkout', 'claude/claude-code-question-d307wp'])
     _run_setup(['git', '-C', REPO, 'reset', '--hard', 'origin/claude/claude-code-question-d307wp'])
 
+# Real, external, currently-active PyPI issue (2026-09-23): pyvista
+# 0.49+ unconditionally imports IPython.core.guarded_eval, a module
+# that only exists from IPython>=8.8 -- Colab ships IPython 7.34, so a
+# fresh `pip install torch-fem` (which pulls in whatever pyvista is
+# "latest" at install time, unpinned) can suddenly start failing with
+# ModuleNotFoundError as soon as PyPI's latest pyvista crosses 0.49 --
+# confirmed directly: the AmgX build itself succeeded cleanly, but the
+# following `from torchfem.sparse import ...` failed with exactly this
+# error. Pinning below 0.49 avoids the broken import path entirely.
+_run_setup([sys.executable, '-m', 'pip', 'install', '-q', 'pyvista<0.49'])
 _run_setup([sys.executable, '-m', 'pip', 'install', '-q', 'torch-fem'])
 
 WORK = f'{REPO}/Practical_Examples'
