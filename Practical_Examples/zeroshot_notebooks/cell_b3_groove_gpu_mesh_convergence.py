@@ -102,7 +102,13 @@ CPU_SCALE_RESOLUTIONS = [(9, 8, 7), (13, 12, 11), (17, 16, 15), (21, 20, 19), (2
 GPU_RESOLUTIONS = [(45, 44, 43), (61, 60, 58), (81, 80, 77)]
 RESOLUTIONS = CPU_SCALE_RESOLUTIONS + GPU_RESOLUTIONS
 OLD_FINE_RESOLUTION = (105, 104, 101)   # ~1,071,200 elements -- just above the target range
-NEW_FINE_RESOLUTION = (133, 132, 129)   # ~2,213,376 elements -- meaningfully finer, for the reference check
+# NEW_FINE_RESOLUTION was originally (133,132,129, ~2,213,376 el) --
+# confirmed directly on B8's own sibling notebook (same solve mechanism)
+# that a ~2x-2.8x jump from a ~1M-element OLD reference can OOM even an
+# 80GB A100 during basic setup, independent of the torch.no_grad() fix
+# below. Dialed back to a more conservative size (~1,656,480 el, ~1.55x
+# OLD) that leaves real margin.
+NEW_FINE_RESOLUTION = (121, 120, 117)   # ~1,656,480 elements -- meaningfully finer, for the reference check
 
 figs_saved = []
 
@@ -130,7 +136,21 @@ print(f"  OLD reference: {ref_old['n_elements']} elements, {ref_old['elapsed_s']
       f"n_region={ref_old['n_region']}, region_avg_sigma_xx={ref_old['region_avg_sigma_xx']:.4f} "
       f"(true_max={ref_old['region_true_max_sigma_xx']:.4f}, diagnostic only)")
 
-print(f'\nSolving the NEW, finer reference {NEW_FINE_RESOLUTION} (~2,213,376 elements) -- '
+# Confirmed directly on B8's own sibling notebook (same solve mechanism,
+# real 80GB A100): GPU memory from one large solve was NOT released
+# before the next one started (the CUDA OOM report showed the memory
+# still "allocated," not just cached). torch.no_grad() (in
+# mesh_convergence_B3_groove_sharpness.py's own solve_case) fixes growth
+# WITHIN one solve across its own load increments, but not retention
+# ACROSS separate solve() calls. gc.collect()+empty_cache() here is the
+# standard, safe fix for that (frees memory, does not change any numbers).
+import gc
+gc.collect()
+torch.cuda.empty_cache()
+print(f'GPU memory after cleanup: {torch.cuda.memory_allocated()/1e9:.2f} GB allocated, '
+      f'{torch.cuda.memory_reserved()/1e9:.2f} GB reserved')
+
+print(f'\nSolving the NEW, finer reference {NEW_FINE_RESOLUTION} (~1,656,480 elements) -- '
       'the check for whether the OLD reference is actually converged...')
 ref_new = solve(*NEW_FINE_RESOLUTION, verbose=True)
 print(f"  NEW reference: {ref_new['n_elements']} elements, {ref_new['elapsed_s']:.2f}s, "
@@ -183,6 +203,8 @@ for Ntheta, Nr, Nz in RESOLUTIONS:
           f"avg_sigma_xx={r['region_avg_sigma_xx']:.4f}  "
           f"(true_max={r['region_true_max_sigma_xx']:.4f}, diagnostic only, NOT used to judge convergence)")
     print(f"  equilibrium checks passed inline (mesh valid, det(F)>0, Newton converged to 1e-8)")
+    gc.collect()
+    torch.cuda.empty_cache()
 
 print('\n' + '=' * 90)
 print('Region-Cauchy-FIELD-error convergence across the WHOLE ladder (PRIMARY QoI):')
