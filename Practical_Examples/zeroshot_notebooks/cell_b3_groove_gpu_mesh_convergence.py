@@ -29,6 +29,19 @@
 #  Per the 2026-09-21 standing rule: generates figures during the
 #  analysis AND a final summary figure, saves them to Drive, and
 #  displays them inline in this notebook's own output.
+#
+#  REVISED 2026-09-24 -- Prof. Rabczuk chose this candidate (B3, sharper
+#  groove) for the final FEM-vs-VINO comparison and explicitly asked for
+#  "the FEM time/memory at the relevant resolutions". The ladder already
+#  tracked per-row wall-clock time, but had NO GPU memory tracking
+#  anywhere except a single sanity-check print at the very start (before
+#  any solve) -- a real gap, not a formality, so this run also adds real
+#  peak-GPU-memory tracking per resolution (torch.cuda.reset_peak_memory_
+#  stats/max_memory_allocated/max_memory_reserved around each solve,
+#  matching the pattern already used in train_B2.py and reported in
+#  torchfem_convergence_vs_fine_reference.json elsewhere in this
+#  project), plus a dedicated time/memory summary table printed at the
+#  end for direct use in the report/reply to the advisor.
 # =====================================================================
 import os
 os.environ['JAX_PLATFORMS'] = 'cpu'
@@ -232,9 +245,14 @@ print(f'\nSolving the full resolution ladder (up to {RESOLUTIONS[-1]}, '
       f'OLD/NEW reference pair, so no separate large reference solve is needed.')
 rows = []
 for Ntheta, Nr, Nz in RESOLUTIONS:
+    torch.cuda.reset_peak_memory_stats(device)
     r = solve(Ntheta, Nr, Nz, verbose=True)
+    r['gpu_peak_mem_alloc_mb'] = torch.cuda.max_memory_allocated(device) / 1e6
+    r['gpu_peak_mem_reserved_mb'] = torch.cuda.max_memory_reserved(device) / 1e6
     rows.append(r)
     print(f"\n({Ntheta},{Nr},{Nz})  elements={r['n_elements']:,}  time={r['elapsed_s']:.2f}s  "
+          f"gpu_peak_mem_alloc={r['gpu_peak_mem_alloc_mb']:.1f}MB  "
+          f"gpu_peak_mem_reserved={r['gpu_peak_mem_reserved_mb']:.1f}MB  "
           f"force_rel_residual={r['force_rel_residual']:.2e}  "
           f"region_avg_sigma_xx={r['region_avg_sigma_xx']:.4f} "
           f"(true_max={r['region_true_max_sigma_xx']:.4f}, diagnostic only)")
@@ -306,6 +324,18 @@ for r in rows:
           f"true_max_sxx={r['region_true_max_sigma_xx']:>10.3f} (diagnostic)")
 
 print('\n' + '=' * 90)
+print('FEM time/memory at every resolution -- for the advisor\'s reply, verbatim: '
+      '"reporting the FEM time/memory at the relevant resolutions". Real per-row GPU '
+      'peak memory, tracked via torch.cuda.reset_peak_memory_stats/max_memory_allocated/'
+      'max_memory_reserved around each solve -- NOT reconstructed after the fact, since '
+      'that is not possible once a solve has finished.')
+for r in rows:
+    ref_tag = '  <- REFERENCE (950,400 el, per Prof. Rabczuk\'s choice)' if (r is ref_new) else ''
+    print(f"  n_elem={r['n_elements']:>9,}  time={r['elapsed_s']:>8.2f}s  "
+          f"gpu_peak_alloc={r['gpu_peak_mem_alloc_mb']:>9.1f}MB  "
+          f"gpu_peak_reserved={r['gpu_peak_mem_reserved_mb']:>9.1f}MB{ref_tag}")
+
+print('\n' + '=' * 90)
 print("TARGET CHECK: does the region-Cauchy field error stay ~5-10% within the "
       "10^5-10^6-element range?")
 in_target_range = [r for r in rows if 1e5 <= r['n_elements'] <= 1e6]
@@ -370,7 +400,7 @@ try:
                     started_at=_started,
                     results={'n_rows': len(rows), 'old_vs_new_cauchy_field_rel': cauchy_field_old_vs_new},
                     outputs=[out_json] + figs_saved,
-                    notes="Option A (B3 with 4x sharper groove, depth=0.20) GPU mesh-"
+                    notes="Option A (B3 with a sharper groove, depth=0.20) GPU mesh-"
                           "convergence study: real resolution ladder into the "
                           "10^5-10^6-element range, with a reference-to-reference check "
                           "using the ladder's own two largest already-converged rows "
@@ -379,7 +409,12 @@ try:
                           "~12.5 hours of GPU time, so it was dropped in favor of these "
                           "already-computed rows) before trusting either as converged. "
                           "Region-Cauchy FIELD error is the primary local QoI "
-                          "throughout; true_max is diagnostic only.")
+                          "throughout; true_max is diagnostic only. REVISED 2026-09-24: "
+                          "Prof. Rabczuk chose this candidate and the 950,400-element "
+                          "row as the common reference going forward; this run adds "
+                          "real per-row GPU peak-memory tracking (previously only time "
+                          "was tracked per row) so the FEM time/memory table he asked "
+                          "for can be reported directly from real data.")
 except Exception as e:
     print(f'[manifest] not recorded: {e}')
 
