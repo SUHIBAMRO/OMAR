@@ -34,14 +34,39 @@
 #  largest, already-solved rows -- never a separate large solve.
 #
 #  Real cost/risk note, stated honestly rather than silently assumed:
-#  (53,27)=105,456 elements took 728.24s on a live A100. This ladder
-#  reaches ~7x that many elements at its top row -- per-row time is
-#  expected to grow substantially (CG iteration counts and per-iteration
-#  cost both increase with problem size), so this cell can plausibly run
-#  for multiple hours total. Each row's own real numbers are printed
-#  immediately as it finishes (not only at the end), so a mid-run
-#  disconnect still leaves real, useable results in the cell's own
-#  output even if the final save step is never reached.
+#  (53,27)=105,456 elements took 728.24s on a live A100. A live run of
+#  this cell's FIRST version showed per-row time growing much worse than
+#  linearly past that point -- 180,336 elements took 1552.95s, 302,016
+#  took 3483.50s, and the NEXT row (489,216 elements) was still running
+#  after 6+ more hours with no sign of finishing, a real, structural
+#  consequence of the reduced system's linear solve running entirely on
+#  CPU via SciPy (not GPU-accelerated at all -- a fact that was in this
+#  module's own docstring from the start but was never translated into
+#  an explicit cost warning before this ladder was designed; that gap is
+#  fixed here, not repeated).
+#
+#  A SECOND real mistake, found the same day and fixed here: the first
+#  version of this cell deferred ALL region-Cauchy-field comparisons
+#  (compare_to_reference) to AFTER the whole ladder loop finished, using
+#  the ladder's own two largest rows as the OLD/NEW reference pair (the
+#  pattern that worked well for Option A/B3). When the run above had to
+#  be interrupted mid-ladder (the 7th row never finishing), the six
+#  already-solved rows' raw dicts were lost with it (a Colab restart, or
+#  even a plain "Interrupt execution" once a fresh kernel is needed,
+#  wipes the notebook's Python namespace) -- meaning six real GPU solves
+#  produced NO usable region-Cauchy-field number at all, only the raw
+#  scalars (time, residual, max_disp) already visible in the printed
+#  log. Fixed for real, not just reordered: this version solves ONE
+#  reference resolution FIRST (chosen to be affordable, not the ladder's
+#  largest), then computes and PRINTS each row's full comparison
+#  (disp_L2, region-Cauchy field error) immediately as that row itself
+#  finishes -- nothing is ever deferred to a later step that could be
+#  lost. A genuine limitation, stated honestly: this reference is NOT
+#  independently checked against an even finer one (that would cost
+#  exactly the kind of multi-hour tail this fix is trying to avoid) --
+#  treat these results as a real first trend, to be confirmed with a
+#  finer reference later only if the crossing point looks close to this
+#  reference's own resolution.
 # =====================================================================
 import os
 os.environ['JAX_PLATFORMS'] = 'cpu'
@@ -145,27 +170,24 @@ os.makedirs(f'{R}/b8_rigid_shim_production', exist_ok=True)
 # bands) -- confirmed directly against the three already-solved real
 # GPU rows below (50,544 / 75,504 / 105,456), not assumed.
 #
-# Ladder design: (21,11)=15,600 matches the ORIGINAL small-scale
-# validation point (design/validation session, rigid-shim vs. deformable
-# agreement ~2%) -- included here fresh so it sits on the SAME ladder
-# and QoI methodology as everything else, not quoted from a separate,
-# differently-computed run. (37,19)/(45,23)/(53,27) are the three rows
-# already confirmed live on GPU today. Growth beyond that is a
-# deliberately moderate ~1.3-1.7x per step (less cautious than Option
-# A's near-the-wall 1.05x steps, since the divergence-detection +
-# cutback mechanism has now been proven, live, to correctly handle even
-# a 35x single-step residual blowup at 105,456 elements) up to
-# ~1,036,000 elements, just past the advisor's target range.
-RESOLUTIONS = [
-    (21, 11), (37, 19), (45, 23), (53, 27),
-    (69, 35), (89, 45), (113, 57), (141, 71), (163, 83),
-]
-OLD_FINE_RESOLUTION = (141, 71)  # 764,400 elements -- ladder's own second-largest row
-NEW_FINE_RESOLUTION = (163, 83)  # 1,036,152 elements -- ladder's own largest row
+# REF_RESOLUTION is solved FIRST and used as the reference for every
+# other row's comparison, printed immediately as each row finishes (see
+# the module docstring for why -- the deferred-comparison design used
+# earlier lost six real GPU solves' worth of QoI data to an interrupt).
+# Chosen to be the largest resolution already confirmed AFFORDABLE on
+# real GPU today (302,016 elements, 3483.50s ~= 58 minutes) rather than
+# the ladder's largest possible row -- NOT independently checked against
+# an even finer reference (that would reintroduce the exact multi-hour
+# tail this fix exists to avoid). (21,11)=15,600 matches the ORIGINAL
+# small-scale validation point, re-solved fresh here on the same
+# methodology. (37,19)/(45,23)/(53,27)/(69,35) are real rows already
+# confirmed live on GPU today.
+REF_RESOLUTION = (89, 45)  # 302,016 elements
+RESOLUTIONS = [(21, 11), (37, 19), (45, 23), (53, 27), (69, 35), REF_RESOLUTION]
 
 for Ntheta, Nr in RESOLUTIONS:
     n_check = (Ntheta - 1) * (Nr - 1) * 78
-    print(f'  ({Ntheta},{Nr}) -> {n_check:,} elements')
+    print(f'  ({Ntheta},{Nr}) -> {n_check:,} elements' + ('  <- REFERENCE' if (Ntheta, Nr) == REF_RESOLUTION else ''))
 
 figs_saved = []
 
@@ -186,24 +208,41 @@ def compare(case, ref):
     return compare_to_reference(case, ref)
 
 
-print(f'\nSolving the full resolution ladder (up to {RESOLUTIONS[-1]}, '
-      f'~1,036,152 elements) -- its own two largest rows double as the '
-      f'OLD/NEW reference pair, so no separate large reference solve is '
-      f'needed (the real lesson from Option A\'s own ~12.5 wasted GPU-hours).')
-rows = []
+print(f'\nSolving the reference resolution {REF_RESOLUTION} FIRST -- every other row\'s '
+      f'comparison is computed and printed immediately once IT solves, so nothing is '
+      f'ever deferred to a later step that could be lost on an interrupt.')
+ref = solve(*REF_RESOLUTION, verbose=False)
+print(f"\nREFERENCE ({REF_RESOLUTION[0]},{REF_RESOLUTION[1]})  elements={ref['n_elements']:,}  "
+      f"time={ref['elapsed_s']:.2f}s  force_rel_residual={ref['force_rel_residual']:.2e}  "
+      f"max_disp={ref['max_disp']:.4f}mm")
+gc.collect()
+torch.cuda.empty_cache()
+
+rows = [ref]
+ref['disp_l2_rel'] = 0.0
+ref['cauchy_field_rel'] = 0.0
 errors = []
 for Ntheta, Nr in RESOLUTIONS:
+    if (Ntheta, Nr) == REF_RESOLUTION:
+        continue  # already solved above, as the reference itself
     try:
         r = solve(Ntheta, Nr, verbose=False)
     except Exception as e:
         print(f"\n  FAILED at ({Ntheta},{Nr}): {type(e).__name__}: {e}", flush=True)
         errors.append((Ntheta, Nr, str(e)))
         continue
+    l2_rel, cauchy_field_rel, n_ref_region = compare(r, ref)
+    r['disp_l2_rel'] = l2_rel
+    r['cauchy_field_rel'] = cauchy_field_rel
     rows.append(r)
     print(f"\n({Ntheta},{Nr})  elements={r['n_elements']:,}  time={r['elapsed_s']:.2f}s  "
-          f"force_rel_residual={r['force_rel_residual']:.2e}  max_disp={r['max_disp']:.4f}mm")
+          f"force_rel_residual={r['force_rel_residual']:.2e}  max_disp={r['max_disp']:.4f}mm  "
+          f"disp_L2={l2_rel*100:.2f}%  cauchy_field={cauchy_field_rel*100:.2f}%  "
+          f"n_ref_region={n_ref_region}")
     gc.collect()
     torch.cuda.empty_cache()
+
+rows.sort(key=lambda r: r['n_elements'])
 
 if errors:
     print(f'\n{len(errors)} resolution(s) FAILED (real, reported honestly, not hidden):')
@@ -211,54 +250,9 @@ if errors:
         print(f"  ({Ntheta},{Nr}): {msg}")
 
 print('\n' + '=' * 90)
-print('Ladder complete -- all rows are real, solved GPU data. Extracting the OLD/NEW '
-      'reference pair from the ladder\'s own already-solved rows below (no separate '
-      'large reference solve needed -- zero additional GPU time or risk).')
-
-ref_old = next(r for r in rows if (r['Ntheta'], r['Nr']) == OLD_FINE_RESOLUTION)
-ref_new = next(r for r in rows if (r['Ntheta'], r['Nr']) == NEW_FINE_RESOLUTION)
-print(f"  OLD reference: {ref_old['n_elements']:,} elements, {ref_old['elapsed_s']:.2f}s, "
-      f"max_disp={ref_old['max_disp']:.4f}mm")
-print(f"  NEW reference: {ref_new['n_elements']:,} elements, {ref_new['elapsed_s']:.2f}s, "
-      f"max_disp={ref_new['max_disp']:.4f}mm")
-
-ref = ref_old
-for r in rows:
-    l2_rel, cauchy_field_rel, n_ref_region = compare(r, ref)
-    r['disp_l2_rel'] = l2_rel
-    r['cauchy_field_rel'] = cauchy_field_rel
-    print(f"  n_elem={r['n_elements']:>10,}  disp_L2={l2_rel*100:6.2f}%  "
-          f"cauchy_field={cauchy_field_rel*100:6.2f}%  n_ref_region={n_ref_region}")
-
-print('\n' + '=' * 90)
-print('OLD vs NEW reference -- the check for whether the chosen reference is '
-      'actually converged (region-Cauchy FIELD error is the PRIMARY comparison):')
-d_disp = abs(ref_new['max_disp'] - ref_old['max_disp']) / abs(ref_old['max_disp'])
-print(f"  max_disp: OLD={ref_old['max_disp']:.4f}mm  NEW={ref_new['max_disp']:.4f}mm  "
-      f"relative change={d_disp*100:.3f}%")
-_, cauchy_field_old_vs_new, _ = compare(ref_old, ref_new)
-print(f"  region-Cauchy FIELD error (OLD relative to NEW, PRIMARY QoI): "
-      f"{cauchy_field_old_vs_new*100:.3f}%")
-
-if cauchy_field_old_vs_new < 0.10:
-    print(f"\n  ==> OLD-vs-NEW region-Cauchy field error ({cauchy_field_old_vs_new*100:.3f}%) "
-          f"is below 10% -- the OLD reference is reasonably converged; the ladder "
-          f"comparison above stands as final, not provisional.")
-else:
-    print(f"\n  ==> OLD-vs-NEW region-Cauchy field error ({cauchy_field_old_vs_new*100:.3f}%) "
-          f"is still above 10% -- the OLD reference is NOT yet demonstrated converged. "
-          f"The ladder numbers above should be treated as provisional, not final.")
-
-fig1, ax1 = plt.subplots(figsize=(6, 5))
-labels = ['OLD ref\n(%s el)' % f"{ref_old['n_elements']:,}", 'NEW ref\n(%s el)' % f"{ref_new['n_elements']:,}"]
-ax1.bar(labels, [ref_old['max_disp'], ref_new['max_disp']], color=['tab:orange', 'tab:blue'])
-ax1.set_ylabel('max_disp (mm, secondary scalar QoI)')
-ax1.set_title(f'Option B (rigid-shim) reference-to-reference check\n'
-              f'region-Cauchy field error: {cauchy_field_old_vs_new*100:.2f}%')
-fig1.tight_layout()
-save_and_show(fig1, 'rigid_shim_reference_check')
-
-print('\n' + '=' * 90)
+print(f'Ladder complete -- reference is {ref["n_elements"]:,} elements '
+      f'(NOT independently checked against a finer reference -- see module docstring '
+      f'for why that was deliberately skipped this time).')
 print('Region-Cauchy-FIELD-error convergence across the WHOLE ladder (PRIMARY QoI):')
 for r in rows:
     print(f"  n_elem={r['n_elements']:>10,}  disp_L2={r['disp_l2_rel']*100:6.2f}%  "
@@ -283,8 +277,7 @@ ax2.loglog([r['n_elements'] for r in rows], [r['disp_l2_rel'] * 100 for r in row
            's--', color='tab:green', label='displacement L2 error')
 ax2.axhspan(5, 10, color='gold', alpha=0.25, label='advisor target band (5-10%)')
 ax2.axvspan(1e5, 1e6, color='gray', alpha=0.12, label='advisor target range (10^5-10^6 el)')
-ax2.axvline(ref_old['n_elements'], color='tab:orange', ls=':', label='OLD reference')
-ax2.axvline(ref_new['n_elements'], color='tab:red', ls=':', label='NEW reference')
+ax2.axvline(ref['n_elements'], color='tab:red', ls=':', label='reference (not finer-checked)')
 ax2.set_xlabel('number of elements')
 ax2.set_ylabel('relative error (%)')
 ax2.set_title('Option B (rigid-shim): PRIMARY QoI convergence vs. mesh resolution')
@@ -294,10 +287,7 @@ fig2.tight_layout()
 save_and_show(fig2, 'rigid_shim_gpu_convergence_summary')
 
 report = {
-    'resolutions': RESOLUTIONS,
-    'old_fine_resolution': OLD_FINE_RESOLUTION, 'new_fine_resolution': NEW_FINE_RESOLUTION,
-    'old_vs_new_max_disp_rel_change': d_disp,
-    'old_vs_new_cauchy_field_rel': cauchy_field_old_vs_new,
+    'resolutions': RESOLUTIONS, 'ref_resolution': REF_RESOLUTION,
     'rows': [{k: v for k, v in r.items() if not k.startswith('_')} for r in rows],
     'errors': errors,
     'figures_saved': figs_saved,
@@ -310,21 +300,23 @@ print('\nSaved:', out_json)
 try:
     from omar_pfem.run_manifest import write_manifest
     write_manifest(f'{R}/b8_rigid_shim_production', kind='b8_rigid_shim_gpu_mesh_convergence',
-                    args={'resolutions': RESOLUTIONS, 'old_fine_resolution': OLD_FINE_RESOLUTION,
-                          'new_fine_resolution': NEW_FINE_RESOLUTION},
+                    args={'resolutions': RESOLUTIONS, 'ref_resolution': REF_RESOLUTION},
                     started_at=_started,
-                    results={'n_rows': len(rows), 'old_vs_new_cauchy_field_rel': cauchy_field_old_vs_new},
+                    results={'n_rows': len(rows)},
                     outputs=[out_json] + figs_saved,
                     notes="Option B (B8-final rigid-shim model) GPU mesh-convergence "
-                          "study: real resolution ladder from 15,600 up to ~1,036,000 "
-                          "elements, with a reference-to-reference check using the "
-                          "ladder's own two largest already-converged rows (OLD ~764K "
-                          "vs NEW ~1.04M elements) before trusting either as converged. "
-                          "Region-Cauchy FIELD error is the primary local QoI throughout. "
-                          "This is the rigid-shim model's OWN production study -- the "
-                          "earlier ~791,864-element landmark quoted for B8 was measured "
-                          "on the deformable-steel model, before it was found to fail at "
-                          "scale, and is not reused here without re-verification.")
+                          "study, SECOND version after the first was lost mid-run to an "
+                          "interrupt (deferred-comparison design flaw, fixed here: every "
+                          "row's comparison against a single reference solved FIRST is "
+                          "computed and printed immediately, nothing deferred). Reference "
+                          "is 302,016 elements, NOT independently checked against a finer "
+                          "one (deliberately skipped to avoid the multi-hour CPU-CG tail "
+                          "found live past ~300K elements). Region-Cauchy FIELD error is "
+                          "the primary local QoI throughout. This is the rigid-shim "
+                          "model's OWN production study -- the earlier ~791,864-element "
+                          "landmark quoted for B8 was measured on the deformable-steel "
+                          "model, before it was found to fail at scale, and is not reused "
+                          "here without re-verification.")
 except Exception as e:
     print(f'[manifest] not recorded: {e}')
 
