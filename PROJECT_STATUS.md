@@ -579,13 +579,81 @@ finishes or a new one starts.
 >   verified bit-identical CPU results before/after. Omar's own CPU-only
 >   sandbox run at 50,544 elements (not yet the full ladder) confirms
 >   clean convergence: 653.5s, `force_rel_residual=2.67e-15`,
->   `max_disp=6.008mm`. **Not yet done**: Omar re-running the fixed
->   notebook on real GPU through the full ladder, especially the
->   105,456-element row -- this is the immediate next real result needed
->   before deciding whether to proceed to a full 10^5-10^6-element
->   production run for the rigid-shim model, or (per the explicit
->   caution above) investigate near-incompressibility/volumetric locking
->   if it degrades at scale instead.
+>   `max_disp=6.008mm`.
+>
+>   **Real GPU ladder run, 2026-09-23/24 -- (45,23)/(53,27) diverge,
+>   root cause chased through THREE real fixes so far, still not fully
+>   resolved.** Omar's first live full-ladder run: (37,19)=50,544
+>   converged (`direct`=546.72s, `cg`=122.37s, matching to 1.18e-15 rel
+>   diff -- `cg` validated as correct AND 4.5x faster), but (45,23)
+>   diverged with BOTH `linear_solver='direct'` (exact) and `'cg'`
+>   producing the IDENTICAL diverging Newton residual trajectory
+>   (1.187e5 -> 2.274e6 -> 1.227e9, matching to 3+ sig figs) -- proof the
+>   failure was never about linear-solver accuracy (an earlier hypothesis
+>   blaming CG's Jacobi preconditioning was wrong, corrected here). **Real
+>   root cause**: this module's hand-written Newton loop (needed because
+>   torch-fem has no rigid-MPC support) never implemented load-step
+>   cutback, the robustness feature the deformable-steel model gets for
+>   free from torch-fem's own `model.solve()`. Fixed (`07c6862`): added
+>   `max_cutbacks=10` automatic step-halving, verified via a deliberate
+>   local stress test (forcing a single 100%-load jump at a small,
+>   already-solved resolution: cutback correctly subdivided 0->0.25 ok,
+>   0.25->1.0 failed and re-subdivided into 0.25->0.625->1.0, reaching the
+>   same converged answer, diff ~1.6e-6, as the normal 11-increment path).
+>
+>   A SECOND real bug then surfaced from Omar's next live run: the exact
+>   failure mode cutback was built to catch (`AssertionError: non-positive
+>   diagonal in K_reduced`, raised inside `_solve_reduced` when an
+>   overshooting Newton step produces an invalid tangent) was propagating
+>   straight past the whole cutback `while True` loop -- which only ever
+>   checked a `converged: bool` return value, never caught exceptions --
+>   crashing `solve_case` instead of triggering a retry. Fixed (`f052493`):
+>   wrapped the linear-solve call in `try/except (AssertionError,
+>   RuntimeError)`, converting any such failure into the same
+>   not-converged signal the cutback loop already handles. Verified via
+>   regression (`solve_case(9, 5, linear_solver='cg')` unchanged:
+>   `max_disp=4.991520`, `strain_energy=302092.178895`).
+>
+>   Separately, a real, currently-active Google Colab A100 bug was hit
+>   and worked around (`129ce5d`): `RuntimeError: ... failed to open
+>   libnvrtc-builtins.so.13.0`, raised inside `torch.linalg.det` via a
+>   JIT-compiled CUDA kernel -- confirmed via WebSearch as a genuine, open
+>   Colab bug (`googlecolab/colabtools#6111`/`#6112`, opened 2026-09-23,
+>   unrelated to this project's own code, other users hit it the same
+>   day). Fixed by preloading the missing `.so` via `ctypes.CDLL`
+>   (glob-based path search, robust to Colab's varying Python version),
+>   confirmed working by Omar's live run. **Not yet applied project-wide**
+>   to the ~75 other GPU cell scripts -- still a real, pending gap.
+>
+>   Even after BOTH cutback fixes, Omar's next live run STILL showed
+>   (45,23) and (53,27) failing with the identical `AssertionError`, with
+>   no `[cutback N]` message visible anywhere in the pasted log despite
+>   `verbose=True` throughout. Code review confirmed the `f052493` fix is
+>   structurally correct (the try/except wraps exactly the right call).
+>   Real evidence pointed to the actual explanation instead: a doomed
+>   Newton iteration was still spending a full, expensive linear solve on
+>   an already-diverging state before finally hitting the invalid-tangent
+>   assertion -- CG needed up to 27,363 iterations in a single such solve
+>   at 105,456 elements -- producing a huge volume of CG progress output
+>   that Colab silently truncates, most likely swallowing the `[cutback]`
+>   line along with it. Fixed (`6d9a175`): added an early-divergence check
+>   in `newton_attempt` -- if `|R_reduced|` grows more than 10x in a
+>   single Newton iteration (real trajectory showed 19x-540x one-step
+>   jumps), bail out immediately without attempting the linear solve on
+>   that state, letting cutback retry right away. Verified locally: the
+>   same forced-100%-load-jump stress test now triggers divergence
+>   detection at iter 1 each time (30.3x/33.1x/19.9x growth caught) instead
+>   of grinding through the full `max_iter=30` before giving up, reaches
+>   the identical converged answer (diff 1.6e-6, unchanged), and the
+>   normal non-diverging path is bit-identical to before.
+>
+>   **Not yet done**: Omar re-running the fixed notebook on real GPU
+>   through the full ladder, especially the 105,456-element row -- this
+>   is the immediate next real result needed before deciding whether to
+>   proceed to a full 10^5-10^6-element production run for the rigid-shim
+>   model, or (per the explicit caution above) investigate
+>   near-incompressibility/volumetric locking if it degrades at scale
+>   instead of a Newton-robustness issue.
 >
 >   **Option A's own GPU cell fixed for real, 2026-09-23, after a SECOND
 >   independent confirmation of the same wall**: the separate
