@@ -153,7 +153,17 @@ def _solve_reduced(K_reduced, R_reduced, method="direct", cg_rtol=1e-10, cg_maxi
 
         def callback(xk):
             it_counter[0] += 1
-            if verbose and (it_counter[0] <= 10 or it_counter[0] % 20 == 0):
+            # Real evidence (2026-09-24, live GPU run): even the SMALL,
+            # already-validated 50,544-element case needs thousands of CG
+            # iterations per Newton step (cheap per-iteration, so wall time
+            # stays fine, but printing every 20th iteration alone produces
+            # an enormous log well before reaching any of the larger,
+            # actually-interesting resolutions -- the same kind of output
+            # volume already suspected of causing Colab to silently
+            # truncate output (see newton_attempt's own divergence-check
+            # comment). Printing every 200th instead keeps the trend
+            # visible without flooding the log.
+            if verbose and (it_counter[0] <= 5 or it_counter[0] % 200 == 0):
                 r = -R_reduced - K_sym @ xk
                 print(f"    {tag}CG iter {it_counter[0]}: |r_cg|={np.linalg.norm(r):.3e}", flush=True)
 
