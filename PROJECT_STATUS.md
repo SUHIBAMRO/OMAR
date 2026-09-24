@@ -914,6 +914,39 @@ finishes or a new one starts.
 >   2026-09-24b.docx` (656 paragraphs, 104 tables, structure verified via
 >   python-docx reload before committing). Pushed.
 >
+>   **🎉 Action item (1) COMPLETE, 2026-09-24: real GPU time/memory data
+>   in hand.** Omar re-ran the instrumented notebook on a real A100.
+>   Region-Cauchy field error and displacement L2 at every resolution are
+>   IDENTICAL to the original run (336 through 950,400 elements) --
+>   confirmed by direct comparison before trusting anything new, not
+>   assumed. Real per-row numbers (time in s / GPU peak allocated MB /
+>   GPU peak reserved MB): 336=5.21/32.8/52.4, 1,320=4.01/79.1/109.1,
+>   3,360=4.45/174.7/213.9, 6,840=4.86/338.7/419.4, 18,200=5.86/866.4/
+>   1,050.7, 79,464=13.52/3,689.4/4,538.2, 201,780=30.46/9,299.0/
+>   11,395.9, 480,320=76.06/22,073.0/27,086.8, 557,760=89.40/25,631.4/
+>   31,436.3, 643,104=107.71/29,550.1/36,251.4, 736,736=125.89/33,841.8/
+>   41,517.3, 839,040=149.56/38,529.2/47,271.9, 950,400 (the chosen
+>   reference)=176.90/43,637.5/53,540.3. Both time and memory grow
+>   substantially faster than linearly with element count. Full ladder:
+>   41m17s total (vs. the original run's 40m41s -- ordinary run-to-run
+>   variation, not a regression). Action item (2) (the report table) is
+>   now trivial and done alongside this -- see below.
+>
+>   **Report updated with real time/memory, 2026-09-24 (commits
+>   `5fed7f6`)**: `add_round18_real_fem_time_memory_to_report.py`
+>   replaced 11.5's "not yet available" placeholder with the real 13-row
+>   table above, regenerated from the pre-Section-11 base (11.1-11.4
+>   unchanged). Since this regeneration doesn't carry round 17's in-place
+>   Executive-Summary/Conclusion cross-link fix forward on its own,
+>   `add_round19_reapply_crosslinks_after_memory_data.py` re-applied that
+>   same fix on top. Final report: `PFEM_Transolver_Report_2026-09-24e.
+>   docx` (658 paragraphs, 105 tables). Work Summary regenerated to match
+>   (`build_new_summary_2026-09-24.py`, re-pointed at the final report):
+>   `PFEM_Work_Summary_2026-09-24b.docx`. All three of Prof. Rabczuk's
+>   next-step items are now addressed except the exact E/nu/phi sampling
+>   ranges, which remain a deliberately separate, undecided step. Both
+>   files given to Omar via SendUserFile.
+>
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
 >   Summary and then confirm everything real is reflected in the report
