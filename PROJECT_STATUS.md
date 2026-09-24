@@ -647,13 +647,31 @@ finishes or a new one starts.
 >   the identical converged answer (diff 1.6e-6, unchanged), and the
 >   normal non-diverging path is bit-identical to before.
 >
->   **Not yet done**: Omar re-running the fixed notebook on real GPU
->   through the full ladder, especially the 105,456-element row -- this
->   is the immediate next real result needed before deciding whether to
->   proceed to a full 10^5-10^6-element production run for the rigid-shim
->   model, or (per the explicit caution above) investigate
->   near-incompressibility/volumetric locking if it degrades at scale
->   instead of a Newton-robustness issue.
+>   **🎉 FULL LADDER COMPLETE AND SUCCESSFUL, 2026-09-24 -- rigid-shim
+>   model is now a confirmed candidate for production.** Omar's real GPU
+>   run (with the divergence-detection fix, `6d9a175`) went through all
+>   three rows cleanly:
+>   `(37,19) n_elem=50,544  time=124.98s  force_rel_residual=1.09e-14  max_disp=6.0079mm`
+>   `(45,23) n_elem=75,504  time=290.00s  force_rel_residual=4.54e-14  max_disp=6.0605mm`
+>   `(53,27) n_elem=105,456 time=728.24s  force_rel_residual=1.45e-14  max_disp=6.0931mm`
+>   **(53,27)=105,456 elements is the EXACT resolution that failed for the
+>   deformable-steel model** (both Jacobi CG and real GPU AmgX) -- the
+>   rigid-shim model now converges there cleanly, confirming the
+>   root-cause diagnosis was correct: the failure was the steel/rubber
+>   stiffness ratio itself, and removing it via exact rigid-body
+>   kinematics genuinely fixes the underlying conditioning problem, not
+>   just papering over a Newton-robustness symptom. Both (45,23) and
+>   (53,27) needed one automatic cutback each in their first load
+>   increment (residual jumped 19x-35x in a single Newton step, caught by
+>   the divergence-detection check before wasting a linear solve, then
+>   successfully subdivided) -- direct, real evidence the cutback
+>   mechanism is doing exactly its job at production-relevant scale, not
+>   just in the small deliberate stress test. **Next**: proceed to a full
+>   10^5-10^6-element production study for the rigid-shim model (using a
+>   proper intermediate ladder, per the standing "never jump straight to
+>   an untested large size" discipline), then present both candidate 3D
+>   geometries (Option A's B3 landmark result and this one) to Prof.
+>   Rabczuk together.
 >
 >   **Option A's own GPU cell fixed for real, 2026-09-23, after a SECOND
 >   independent confirmation of the same wall**: the separate
