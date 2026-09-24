@@ -805,6 +805,44 @@ finishes or a new one starts.
 >   guessing whether both files need the same treatment before writing
 >   anything.
 >
+>   **🎉 FINAL CANDIDATE DECISION, 2026-09-24 -- Prof. Rabczuk has chosen
+>   B3 (Option A, sharper groove) for the final FEM-vs-VINO comparison.**
+>   His reply, verbatim on the key points: "B3 now looks suitable. Let
+>   us just use the 950k-element solution as the common reference,
+>   reporting the FEM time/memory at the relevant resolutions, and then
+>   defining clearly which geometry/material/loading parameters will
+>   vary in VINO... 5-10% stress accuracy is sufficient... let's proceed
+>   with B3 for the final FEM-VINO comparison." This closes the open
+>   question raised above about Candidate B (rigid-shim)'s own early-
+>   convergence finding -- it is now moot for candidate selection, since
+>   B3 was chosen; the rigid-shim work is not being discarded (it is a
+>   real, GPU-confirmed result, kept in Section 11.3 as historical/
+>   comparative record), but no further resolution work on it is needed
+>   for the project to proceed. Task #33 (Timon item 4, 3D realistic
+>   case) can be considered DECIDED on the candidate-selection front;
+>   the remaining scope is now dataset generation + VINO training + the
+>   FEM-vs-VINO comparison, using B3 exclusively.
+>
+>   **Concrete next-phase action items from this reply, not yet started**:
+>   (1) adopt the 950,400-element B3 solution as the single common
+>   reference going forward (note: this is a DELIBERATE choice by the
+>   advisor of the ladder's largest mesh, not the 839,040-element mesh
+>   this project's own reference-validation check had settled on as
+>   "converged" -- both are real, already-solved rows in the existing
+>   ladder, so this requires no new GPU run, just picking which already-
+>   computed row to treat as the reference); (2) report FEM wall-clock
+>   time and GPU memory at the relevant resolutions (partially already
+>   in hand from the mesh-convergence run itself -- needs to be pulled
+>   together into a clear table, not re-measured from scratch); (3)
+>   define, explicitly and in writing, which geometry/material/loading
+>   parameters will vary across the VINO dataset (groove depth/half-
+>   width? material constants? rocking angle/load magnitude? mesh
+>   resolution itself, as B1/B2 did?) -- this has NOT been decided yet
+>   and is a real open design question, not a formality. Per Omar's own
+>   "let's finish this now, then we'll start [the next phase]" -- this
+>   next-phase work has not been started; it is recorded here so it is
+>   not lost, not because any of it has been done.
+>
 >   **Option A's own GPU cell fixed for real, 2026-09-23, after a SECOND
 >   independent confirmation of the same wall**: the separate
 >   `OLD_FINE_RESOLUTION=(105,104,101)` (~1,071,200-element) reference
