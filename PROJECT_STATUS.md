@@ -699,6 +699,35 @@ finishes or a new one starts.
 >   deformable-steel model, a materially different physical
 >   representation) -- it must come from this real run.
 >
+>   **Real incident, 2026-09-24, same day: the run above had to be
+>   interrupted, and the first design lost the data -- fixed for
+>   real.** Omar's live run: 6 rows completed cleanly (15,600 through
+>   302,016 elements, growing time 33s->3483s), but the 7th row
+>   (489,216 elements) ran 6+ hours with no sign of finishing -- the
+>   linear solve for the reduced system runs entirely on CPU via SciPy
+>   (documented in the module's own docstring since it was first added,
+>   but never explicitly translated into a GPU-rental-cost warning
+>   before this ladder was designed -- a real communication gap, owned
+>   directly). Worse: the first cell design deferred EVERY region-
+>   Cauchy-field comparison to after the whole ladder finished, using
+>   the ladder's own two largest rows as OLD/NEW reference (the pattern
+>   that worked for Option A/B3) -- so interrupting mid-ladder wiped the
+>   Python namespace and lost all six completed rows' comparison
+>   potential; only the raw scalars survived in the printed log, not
+>   the field data `compare_to_reference` needs. Fixed (commit
+>   `adcd73d`): the cell now solves ONE reference resolution (302,016
+>   elements, already confirmed affordable at 58 minutes) FIRST, then
+>   computes and PRINTS each subsequent row's full comparison
+>   immediately as it finishes -- nothing deferred, nothing an interrupt
+>   can destroy. Verified end-to-end locally (CPU, small sizes) before
+>   trusting it for another GPU run. Explicit trade-off: this reference
+>   is NOT independently checked against a finer one, to avoid
+>   reintroducing the exact multi-hour CPU-CG tail this fix exists to
+>   avoid -- if the real trend that comes back looks close to the 5-10%
+>   band near 302,016 elements, a finer independent check should be
+>   added as a deliberate follow-up, not assumed unnecessary. **Not yet
+>   done**: Omar re-running this fixed version on real GPU.
+>
 >   **Option A's own GPU cell fixed for real, 2026-09-23, after a SECOND
 >   independent confirmation of the same wall**: the separate
 >   `OLD_FINE_RESOLUTION=(105,104,101)` (~1,071,200-element) reference
