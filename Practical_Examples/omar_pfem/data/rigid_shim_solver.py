@@ -355,9 +355,28 @@ def solve_case(Ntheta, Nr, n_rubber_layers=N_RUBBER_LAYERS, nz_per_rubber=2, nz_
 
                     K_full_sp = _csr_torch_to_scipy(K_full)
                     K_reduced = (J.T @ K_full_sp @ J).tocsc()
-                    dq_np = _solve_reduced(K_reduced, R_reduced, method=linear_solver,
-                                            cg_rtol=cg_rtol, cg_maxiter=cg_maxiter, verbose=verbose,
-                                            tag=f"{label} iter {it} ")
+                    # Real bug found and fixed (2026-09-24): a bad linear
+                    # solve (CG failing to converge, or the reduced
+                    # tangent becoming genuinely invalid after an
+                    # overshooting Newton step -- e.g. `_solve_reduced`'s
+                    # own "non-positive diagonal" assertion) used to
+                    # propagate straight out of this function, past the
+                    # cutback loop entirely, crashing the whole solve
+                    # instead of triggering a cutback. Confirmed live:
+                    # cutback never fired even though the exact failure
+                    # mode it exists for occurred. Treating any such
+                    # failure as "this attempt did not converge" lets the
+                    # caller's cutback loop retry with a smaller step,
+                    # which is what should have happened all along.
+                    try:
+                        dq_np = _solve_reduced(K_reduced, R_reduced, method=linear_solver,
+                                                cg_rtol=cg_rtol, cg_maxiter=cg_maxiter, verbose=verbose,
+                                                tag=f"{label} iter {it} ")
+                    except (AssertionError, RuntimeError) as e:
+                        if verbose:
+                            print(f"  {label} iter {it}: linear solve failed "
+                                  f"({type(e).__name__}: {e}) -- triggering cutback", flush=True)
+                        return False, q_local, None, None, res_norm
                     q_local = q_local + torch.tensor(dq_np, dtype=dtype, device=device)
                 return False, q_local, None, None, res_norm
 
