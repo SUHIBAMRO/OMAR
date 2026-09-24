@@ -666,12 +666,38 @@ finishes or a new one starts.
 >   the divergence-detection check before wasting a linear solve, then
 >   successfully subdivided) -- direct, real evidence the cutback
 >   mechanism is doing exactly its job at production-relevant scale, not
->   just in the small deliberate stress test. **Next**: proceed to a full
->   10^5-10^6-element production study for the rigid-shim model (using a
->   proper intermediate ladder, per the standing "never jump straight to
->   an untested large size" discipline), then present both candidate 3D
->   geometries (Option A's B3 landmark result and this one) to Prof.
->   Rabczuk together.
+>   just in the small deliberate stress test.
+>
+>   **Production mesh-convergence study built, 2026-09-24, NOT yet run**:
+>   `zeroshot_notebooks/cell_rigid_shim_gpu_mesh_convergence.py` /
+>   `B8_RigidShim_GPU_MeshConvergence.ipynb` (commit `b317934`), mirroring
+>   Option A's (B3) own study exactly. Ladder: (21,11)=15,600 (the
+>   original design/validation point, re-solved fresh here on the same
+>   methodology) through (37,19)/(45,23)/(53,27) (already confirmed live
+>   today) up to (163,83)=1,036,152 elements, with growth ~1.3-1.7x per
+>   step (more aggressive than Option A's near-the-wall 1.05x steps,
+>   justified by today's live proof that cutback+divergence-detection
+>   correctly handles even a 35x single-step residual blowup). Reuses
+>   `mesh_convergence_B8.compare_to_reference` directly against
+>   `rigid_shim_solver.solve_case`'s own output dict (both already share
+>   the exact same private `_`-prefixed fields) -- verified this actually
+>   works with a real local CPU run (2,496 vs 5,616 elements:
+>   disp_L2=3.807%, cauchy_field=2.720%, n_ref_region=4, no crash) before
+>   trusting it for a multi-hour GPU run. OLD/NEW reference pair is again
+>   the ladder's own two largest rows (764,400 / 1,036,152 elements) --
+>   no separate large reference solve, per Option A's own hard lesson.
+>   **Explicit, honest cost warning left in the cell itself**: at
+>   728.24s for 105,456 elements, the top row (~10x more elements) could
+>   plausibly take multiple hours; each row prints its real result
+>   immediately so a mid-run disconnect still leaves usable data. **Not
+>   yet done**: Omar running this notebook on real GPU -- this is the
+>   one remaining real result needed before both candidate 3D geometries
+>   (Option A's B3 and Option B's rigid-shim) are ready to present to
+>   Prof. Rabczuk together. The rigid-shim model's own region-Cauchy
+>   field error crossing point is NOT assumed to match the old
+>   ~791,864-element number (that was measured on the now-abandoned
+>   deformable-steel model, a materially different physical
+>   representation) -- it must come from this real run.
 >
 >   **Option A's own GPU cell fixed for real, 2026-09-23, after a SECOND
 >   independent confirmation of the same wall**: the separate
