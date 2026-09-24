@@ -861,11 +861,43 @@ finishes or a new one starts.
 >   re-running this notebook once on real GPU (same ~41-minute ladder as
 >   before, not an expensive re-run) to get the actual memory numbers --
 >   nothing above is real data yet, only the instrumentation is in
->   place. Action items (2) (pulling time+memory into a report table --
->   trivial once (1)'s real numbers exist) and (3) (defining which
->   geometry/material/loading parameters vary in the VINO dataset -- a
->   design decision, not a GPU task, not yet even drafted) are both
->   still fully open.
+>   place. Action item (2) (pulling time+memory into a report table --
+>   trivial once (1)'s real numbers exist) is still fully open.
+>
+>   **Action item (3) DECIDED, 2026-09-24: what varies in the B3 VINO
+>   dataset.** Omar did not initially understand what this decision even
+>   meant ("مش فاهم شو الفكره هون") -- explained plainly: VINO needs many
+>   solved examples to learn from, so something has to differ between
+>   examples, and this decision is exactly which thing that is. Checked
+>   B1/B2's own real dataset-generation code (`data_generate_B2.py`,
+>   `generate_random_sample_ring`) before proposing anything, rather than
+>   inventing a new scheme: B1/B2 vary spatial material fields (E(theta,
+>   r), nu(theta,r) via Gaussian random fields) and a spatially-varying
+>   boundary load, while geometry (R_in, R_out) stays FIXED across every
+>   sample -- changing geometry per sample would require a different mesh
+>   per sample, something this project has never done and was judged out
+>   of scope to introduce now. Also checked what B3 currently uses:
+>   `mesh_convergence_B3.py` fixes E=1000.0, NU=0.45, PHI=0.05 (rotation
+>   angle) as single constants across every resolution tested -- there is
+>   no existing mean/std range for any of them, since none was ever
+>   needed before dataset generation. Omar's own final decision, closing
+>   this action item: geometry stays fixed (consistent with B1/B2); the
+>   spatial material fields E and nu vary between samples (matching B1/
+>   B2's own GRF-field methodology, extended to 3D); the loading varies
+>   through the rigid-core rocking angle phi (a single scalar per sample,
+>   not a spatial field, since the load here is a rigid-body rotation
+>   amplitude, not a distributed pressure). **Explicitly deferred, not
+>   yet decided**: the exact sampling ranges/distributions (mean/std for
+>   E, nu, phi) -- Omar's own words, these "will be defined and checked
+>   before generating the final dataset," not assumed now. An earlier
+>   proposal in this session (E_mean=1000/E_std=200 matching B2's own
+>   defaults; nu_mean=0.45/nu_std=0.02 clipped to (0.40, 0.49) to respect
+>   B3's existing incompressible-rubber choice and avoid volumetric
+>   locking; PHI_mean=0.05/PHI_std=0.02 mirroring B2's ~40% relative load
+>   variation) is a candidate starting point for that later step, not a
+>   locked-in value. All three action items from Prof. Rabczuk's reply
+>   are now either done, in progress, or explicitly scoped -- dataset
+>   generation itself has not started.
 >
 >   **Option A's own GPU cell fixed for real, 2026-09-23, after a SECOND
 >   independent confirmation of the same wall**: the separate
