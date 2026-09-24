@@ -331,6 +331,7 @@ def solve_case(Ntheta, Nr, n_rubber_layers=N_RUBBER_LAYERS, nz_per_rubber=2, nz_
                 DU_step = step * DU_target_full
                 q_local = q0.clone()
                 res_norm = None
+                prev_res_norm = None
                 for it in range(max_iter):
                     du_full, J = q_to_full_du_and_J(q_local)
                     du_full = du_full.clone()
@@ -352,6 +353,30 @@ def solve_case(Ntheta, Nr, n_rubber_layers=N_RUBBER_LAYERS, nz_per_rubber=2, nz_
                         print(f"  {label} iter {it}: |R_reduced|={res_norm:.3e}")
                     if res_norm < atol or res_norm < rtol * res0:
                         return True, q_local, du_full, it, res_norm
+                    # Real bug found and fixed (2026-09-24), same live Colab
+                    # run as the try/except fix above: once a Newton step
+                    # overshoots, the residual can blow up 10-500x in a
+                    # SINGLE iteration (confirmed: 1.187e5 -> 2.274e6 ->
+                    # 1.227e9 at 75,504 elements) -- but this loop used to
+                    # still spend a full, expensive linear solve on that
+                    # already-diverging state before giving up (CG needing
+                    # up to 27,363 iterations on one such solve, confirmed
+                    # live at 105,456 elements). That wastes real GPU time
+                    # AND floods the log with CG progress lines, likely why
+                    # Omar's own pasted log never showed the "[cutback]"
+                    # message even though the try/except fix WAS active --
+                    # Colab silently truncates huge cell output, most
+                    # likely dropping exactly that line. Detecting the
+                    # blowup from the residual alone (before attempting the
+                    # linear solve) triggers cutback immediately instead.
+                    if prev_res_norm is not None and res_norm > 10.0 * prev_res_norm:
+                        if verbose:
+                            print(f"  {label} iter {it}: |R_reduced| grew "
+                                  f"{res_norm / prev_res_norm:.1f}x in one iteration -- "
+                                  f"Newton diverging, triggering cutback without wasting "
+                                  f"a linear solve on this state")
+                        return False, q_local, None, None, res_norm
+                    prev_res_norm = res_norm
 
                     K_full_sp = _csr_torch_to_scipy(K_full)
                     K_reduced = (J.T @ K_full_sp @ J).tocsc()
