@@ -110,6 +110,26 @@ if IN_COLAB:
 device = torch.device('cuda') if (IN_COLAB and torch.cuda.is_available()) else torch.device('cpu')
 print(f'device = {device}' + (f'  ({torch.cuda.get_device_name(0)})' if device.type == 'cuda' else ''))
 
+if device.type == 'cuda':
+    # Real, currently-active external bug (opened 2026-09-23, no official fix
+    # yet): googlecolab/colabtools#6111 / #6112 -- Colab's A100 GPU image
+    # ships libnvrtc-builtins.so.13.0 but nvrtc can't find it on its own
+    # search path, breaking any CUDA op that triggers a JIT-compiled
+    # reduction kernel (e.g. torch.linalg.det, hit directly by torch-fem's
+    # own eval_shape_functions) with "failed to open libnvrtc-builtins.so
+    # .13.0". Preloading the .so explicitly works around the missing path
+    # (confirmed by other users hitting the identical error the same day).
+    import ctypes
+    import glob
+    for _p in glob.glob('/usr/local/lib/python3*/dist-packages/nvidia/cu13/lib/libnvrtc-builtins.so.13.0'):
+        try:
+            ctypes.CDLL(_p)
+            print(f'Preloaded {_p} (works around a live Colab A100 nvrtc bug, '
+                  f'googlecolab/colabtools#6111 -- unrelated to our own code)')
+            break
+        except OSError as e:
+            print(f'Could not preload {_p}: {e}')
+
 from omar_pfem.data.rigid_shim_solver import solve_case as solve_rigid_shim
 
 RESOLUTIONS = [(37, 19), (45, 23), (53, 27)]  # 50,544 / 75,504 / 105,456 elements
