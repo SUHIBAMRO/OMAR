@@ -899,6 +899,21 @@ finishes or a new one starts.
 >   are now either done, in progress, or explicitly scoped -- dataset
 >   generation itself has not started.
 >
+>   **Report updated with the final decision, 2026-09-24 (commit
+>   `c71dddf`)**: per Omar's explicit request to push what needs pushing
+>   to the report, `add_round16_final_decision_and_vino_scope_to_
+>   report.py` regenerated Section 11 again from the same pre-Section-11
+>   base as round 15 (11.1-11.3 reproduced unchanged -- still accurate),
+>   revised 11.4 (which had left candidate selection as an open question)
+>   to state the decision plainly, and added a new 11.5 covering: the
+>   advisor's verbatim decision quote; the 950,400-element reference
+>   adoption; an explicit, honest statement that FEM time is already
+>   reported but GPU memory is NOT yet available (instrumentation added,
+>   not yet re-run -- no invented numbers); and the full VINO parameter-
+>   variation scope decided above. Saved as `PFEM_Transolver_Report_
+>   2026-09-24b.docx` (656 paragraphs, 104 tables, structure verified via
+>   python-docx reload before committing). Pushed.
+>
 >   **Option A's own GPU cell fixed for real, 2026-09-23, after a SECOND
 >   independent confirmation of the same wall**: the separate
 >   `OLD_FINE_RESOLUTION=(105,104,101)` (~1,071,200-element) reference
