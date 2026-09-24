@@ -843,6 +843,30 @@ finishes or a new one starts.
 >   next-phase work has not been started; it is recorded here so it is
 >   not lost, not because any of it has been done.
 >
+>   **Action item (1) started, 2026-09-24: GPU memory tracking added to
+>   the B3 mesh-convergence cell (commit `d1ca402`), not yet re-run.**
+>   Omar asked directly whether everything was ready to write the report
+>   before checking; real answer was no -- the B3 ladder cell tracked
+>   per-row wall-clock `elapsed_s` but had NO per-resolution GPU memory
+>   tracking anywhere (only a single before-any-solve sanity print),
+>   despite Prof. Rabczuk's reply explicitly asking for "FEM time/memory
+>   at the relevant resolutions". Fixed in
+>   `cell_b3_groove_gpu_mesh_convergence.py`: `torch.cuda.reset_peak_
+>   memory_stats`/`max_memory_allocated`/`max_memory_reserved` added
+>   around each solve (matching the existing pattern in `train_B2.py`),
+>   plus a dedicated time/memory summary table printed at the end,
+>   tagging the 950,400-element row explicitly as the advisor's chosen
+>   reference. Compiles cleanly, notebook rebuilt and re-verified
+>   (105/105 `check_notebooks.py`), pushed. **Not yet done**: Omar
+>   re-running this notebook once on real GPU (same ~41-minute ladder as
+>   before, not an expensive re-run) to get the actual memory numbers --
+>   nothing above is real data yet, only the instrumentation is in
+>   place. Action items (2) (pulling time+memory into a report table --
+>   trivial once (1)'s real numbers exist) and (3) (defining which
+>   geometry/material/loading parameters vary in the VINO dataset -- a
+>   design decision, not a GPU task, not yet even drafted) are both
+>   still fully open.
+>
 >   **Option A's own GPU cell fixed for real, 2026-09-23, after a SECOND
 >   independent confirmation of the same wall**: the separate
 >   `OLD_FINE_RESOLUTION=(105,104,101)` (~1,071,200-element) reference
