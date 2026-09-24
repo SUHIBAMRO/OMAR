@@ -762,6 +762,49 @@ finishes or a new one starts.
 >   **Not yet done**: that decision, and any follow-up small-resolution
 >   run it implies.
 >
+>   **Report Section 11 fully rewritten, 2026-09-24, with the final GPU
+>   result for both candidates.** Per Omar's instruction to start writing
+>   the actual report now and adjust as needed rather than gate on every
+>   open question first, `add_round15_final_3d_candidates_to_report.py`
+>   (commit `56eae07`) regenerated Section 11 from the pre-Section-11 base
+>   (`PFEM_Transolver_Report_2026-09-19b.docx`), replacing round 14's
+>   version (which had Candidate B as the tire sector, and only B3's
+>   earlier, smaller-groove/small-GPU-scale data) with: 11.2 = Candidate A
+>   (B3, sharper groove)'s full 13-point ladder and 480,320-element
+>   crossing point; 11.3 = Candidate B (rigid-shim)'s full 6-point ladder
+>   and the honestly-disclosed open question (true crossing point not
+>   located, likely well under 15,600 elements); 11.1 updated to explain
+>   the steel/rubber-conditioning failure that led to the rigid-shim fix,
+>   and to keep the tire sector as a documented but superseded design-
+>   history step rather than deleting it. Also folded in every correction
+>   Omar caught in his own line-by-line review of an earlier informal
+>   (email-style) draft of the B3 result: dropped the unproven "4x
+>   sharper" claim in favor of the exact rho ratio (rho is inversely
+>   proportional to groove depth at fixed half-width, so the ratio is
+>   exact by construction); corrected "11 increments" to "10 actual load
+>   increments" (11 grid points including the trivial zero-load state);
+>   stopped asserting an unconfirmed cause for the 3,360-element non-
+>   monotonic point; dropped "necessary and sufficient" for 480,320
+>   elements being the crossing point (the 201,780-480,320 gap was never
+>   sampled); made explicit that the OLD-vs-NEW reference-validation
+>   number (0.858%) and the 950,400-element ladder-table entry (1.41%)
+>   are the same two meshes compared with reference/case roles swapped,
+>   not a typo; and replaced "well-conditioned" (a specific numerical
+>   claim never measured) with "stable, robust nonlinear convergence".
+>   Generated docx verified structurally (`python-docx` reload: 651
+>   paragraphs, 104 tables, both new tables' contents spot-checked
+>   against PROJECT_STATUS.md's own real numbers) before committing.
+>   Saved as a new dated file, `PFEM_Transolver_Report_2026-09-24.docx`,
+>   not an in-place edit of `2026-09-21f.docx` (python-docx has no
+>   in-place "replace this section" operation; the established project
+>   pattern is to regenerate from the last base that predates the
+>   section being rewritten). **Not yet done**: the equivalent update to
+>   `PFEM_Work_Summary_*.docx` (the shorter status-update file) -- scope
+>   was deliberately limited to the main report first, per Omar's own
+>   "let's start, we'll adjust as we go" instruction, rather than second-
+>   guessing whether both files need the same treatment before writing
+>   anything.
+>
 >   **Option A's own GPU cell fixed for real, 2026-09-23, after a SECOND
 >   independent confirmation of the same wall**: the separate
 >   `OLD_FINE_RESOLUTION=(105,104,101)` (~1,071,200-element) reference
