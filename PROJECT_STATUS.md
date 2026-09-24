@@ -914,6 +914,31 @@ finishes or a new one starts.
 >   2026-09-24b.docx` (656 paragraphs, 104 tables, structure verified via
 >   python-docx reload before committing). Pushed.
 >
+>   **Work Summary regenerated + report audited for completeness gaps,
+>   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
+>   Summary and then confirm everything real is reflected in the report
+>   and matches correctly. `build_new_summary_2026-09-24.py` sliced
+>   Section 11 (11.1-11.5) verbatim out of the report, same mechanism as
+>   every prior round -- saved as `PFEM_Work_Summary_2026-09-24.docx`.
+>   The audit itself found a real gap, not a contradiction: Section 11
+>   (now a complete, decided piece of work) was invisible from both of
+>   the report's own status-tracking locations -- the Executive
+>   Summary's 8-row feedback-tracking table and Section 10's 6-item
+>   "remaining items" list, both written before this 3D-candidate effort
+>   started and never updated (a deliberate choice at the time, per
+>   round 14's own docstring, reasonable while item 4 was still open --
+>   no longer complete now that a decision exists). Fixed in place (this
+>   edit is NOT a Section-11 regeneration -- it directly edits the
+>   already-complete `2026-09-24b.docx`, since there is no earlier
+>   "pre-Section-10" base to regenerate from):
+>   `add_round17_executive_summary_and_conclusion_crosslinks.py` adds a
+>   9th tracking-table row and a 7th "remaining items" bullet, both
+>   pointing to Section 11, matching existing formatting exactly. Saved
+>   as `PFEM_Transolver_Report_2026-09-24c.docx` -- this is now the
+>   current, most complete report file -- verified to reopen cleanly
+>   (657 paragraphs, 104 tables, table 0 now 10 rows) before committing.
+>   Both files given to Omar via SendUserFile.
+>
 >   **Option A's own GPU cell fixed for real, 2026-09-23, after a SECOND
 >   independent confirmation of the same wall**: the separate
 >   `OLD_FINE_RESOLUTION=(105,104,101)` (~1,071,200-element) reference
