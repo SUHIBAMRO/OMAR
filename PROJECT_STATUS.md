@@ -728,6 +728,40 @@ finishes or a new one starts.
 >   added as a deliberate follow-up, not assumed unnecessary. **Not yet
 >   done**: Omar re-running this fixed version on real GPU.
 >
+>   **🎉 Option B (rigid-shim) production ladder COMPLETE, 2026-09-24,
+>   ref-first design (`adcd73d`) worked exactly as intended -- full run
+>   finished in 1h44m37s with every row's comparison already printed, no
+>   data lost.** Real numbers (region-Cauchy field error is PRIMARY QoI,
+>   disp_L2 in parentheses), all compared against the 302,016-element
+>   reference (itself NOT independently checked against a finer mesh --
+>   documented trade-off, see above):
+>   15,600 el = 1.98% (3.22%), 50,544 el = 0.64% (1.08%), 75,504 el =
+>   0.38% (0.69%), 105,456 el = 0.24% (0.42%), 180,336 el = 0.08%
+>   (0.15%), 302,016 el = 0.00% (0.00%, reference itself). Monotonic,
+>   smooth decrease at every single point -- no non-monotonic blips
+>   anywhere in this ladder, unlike Option A/B3's coarse-mesh behavior.
+>
+>   **Real, surprising finding, confirmed not guessed**: the region-
+>   Cauchy field error is already BELOW the advisor's 5-10% band at the
+>   SMALLEST tested resolution (1.98% at 15,600 elements, versus the
+>   band's own 5% floor) and only gets smaller from there. The cell's own
+>   `TARGET CHECK` block reports this explicitly: every resolution in the
+>   10^5-10^6 range (105,456 / 180,336 / 302,016 elements) is flagged
+>   "OUTSIDE 5-10% band" -- but outside on the LOW side (too accurate),
+>   not the high side (too coarse), the opposite of what Option A/B3
+>   shows. **This means the rigid-shim geometry, as currently built, does
+>   not actually need 10^5-10^6 elements to reach the advisor's target
+>   accuracy** -- its true crossing point into the 5-10% band is almost
+>   certainly well below 15,600 elements, meaning it has not yet been
+>   located by this ladder at all. Per Omar's own plan (2026-09-24), this
+>   will be raised with Prof. Rabczuk separately from the Option A/B3
+>   write-up, once he decides whether to (a) report it as-is (Option B
+>   converges "too easily" to demonstrate the need for fine 3D meshes) or
+>   (b) run additional small-resolution rows (e.g. 1,000-10,000 elements)
+>   first to actually locate the true crossing point before reporting.
+>   **Not yet done**: that decision, and any follow-up small-resolution
+>   run it implies.
+>
 >   **Option A's own GPU cell fixed for real, 2026-09-23, after a SECOND
 >   independent confirmation of the same wall**: the separate
 >   `OLD_FINE_RESOLUTION=(105,104,101)` (~1,071,200-element) reference
