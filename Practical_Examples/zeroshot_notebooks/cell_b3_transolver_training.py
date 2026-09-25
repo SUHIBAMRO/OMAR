@@ -1,29 +1,34 @@
 # =====================================================================
-#  CELL -- B3 (sharper groove) Transolver training: the FIRST real GPU
-#  run of train_B3.py's Deep Energy Method training loop.
+#  CELL -- B3 (sharper groove) Transolver training: SECOND real GPU run,
+#  after the FIRST one found and this fix resolved a real instability.
 #
-#  Verified locally (CPU) before this, not assumed: a full train() call
-#  ran end to end with no shape errors, and a separate fixed-batch
-#  overfitting test (200 iterations, same sampled batch every step)
-#  showed the energy loss decrease monotonically from 130.7 to a stable
-#  plateau around 2.25 -- real confirmation gradients flow correctly
-#  through the whole pipeline. This cell is the first time the ACTUAL
-#  training loop (a new random batch every iteration, not a fixed one)
-#  runs at GPU scale, at the real (21,20,19)=6,840-element mesh.
+#  REAL INCIDENT, 2026-09-25: the first GPU run of this cell (2000
+#  iterations, production mesh/model) showed the energy loss climbing
+#  from ~13,700 to a peak over 163,000 -- not ordinary batch-to-batch
+#  noise. A controlled fixed-batch diagnostic (same 8 samples every
+#  step, no sampling noise) at the same production scale reproduced the
+#  identical climbing pattern (1,048 -> 13,095 over 25 steps), confirming
+#  a real optimization instability. Root cause, found by direct
+#  measurement: the untrained network's raw output (mean abs ~0.31) was
+#  5-50x larger than the real, physically-expected displacement
+#  magnitude (~0.01-0.06, from the already-generated FEM dataset),
+#  pushing element deformation gradients into the steep, singular region
+#  of the Neo-Hookean energy near det(F)->0. Fixed in train_B3.py
+#  (`OUTPUT_SCALE = 0.02`, applied in `apply_dirichlet_b3`) -- see that
+#  module's own docstring for the full incident record. The SAME
+#  fixed-batch diagnostic, re-run at the SAME production scale with this
+#  fix, now settles quickly to a stable plateau (~2.55-2.6) instead of
+#  climbing without bound -- confirmed before trusting this second GPU
+#  run, not assumed fixed.
 #
-#  Real CPU timing measured directly beforehand: ~20-22s/iteration at
-#  batch_size=8 (steady state, after the first iteration's one-time
-#  model/geometry setup cost). GPU should be substantially faster, but
-#  this specific pipeline has never been timed on GPU before -- watch
-#  the first several printed iterations closely for the real number
-#  before assuming the rest of the 2000 iterations will finish quickly.
+#  The checkpoint(s) from the FIRST run (before this fix) should be
+#  treated as invalid/diverged -- do not use them.
 #
-#  Because every iteration draws a NEW random material/load batch (by
-#  design -- Deep Energy Method training needs no fixed dataset), the
-#  printed loss is NOT expected to decrease monotonically iteration to
-#  iteration the way it does on a fixed batch: different batches have
-#  different absolute energy scales. Watch the TREND over many logged
-#  rows, not single-step changes.
+#  Because every iteration still draws a NEW random material/load batch
+#  (by design), the printed loss is still not expected to decrease
+#  monotonically iteration to iteration the way it does on a fixed
+#  batch -- watch the TREND over many logged rows, and specifically
+#  watch that it does NOT repeat the first run's runaway climb.
 # =====================================================================
 import os
 os.environ['JAX_PLATFORMS'] = 'cpu'
