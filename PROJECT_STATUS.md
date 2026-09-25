@@ -1148,10 +1148,33 @@ finishes or a new one starts.
 >   (~2.57-2.71) over the remaining iterations -- matching the earlier
 >   standalone-copy result almost exactly. The fix is fully confirmed
 >   through the real call path, not just a mathematically-equivalent
->   stand-in. **Not yet done**: Omar re-running the actual training
->   notebook on real GPU a second time with the fix, and then comparing
->   the resulting checkpoint against the 100-sample FEM validation
->   dataset.
+>   stand-in.
+>
+>   **🎉 SECOND GPU RUN SUCCEEDED, 2026-09-25**: Omar re-ran the actual
+>   `B3_Transolver_Training.ipynb` notebook on real GPU with the
+>   `OUTPUT_SCALE=0.02` fix in place (2000 iterations, batch_size=8,
+>   resolution (21,20,19)=6,840 elements, same as the dataset). Result:
+>   loss stayed in a healthy, stable range throughout **all** 2000
+>   iterations (~1.6 to ~5.1, mostly 2-4) -- it never once climbed to the
+>   thousands/hundreds-of-thousands the first (broken) run showed. Ended
+>   at loss=1.56. Total time 280.0s (0.140s/iteration average, in line
+>   with the first run's 283.1s/0.142s-per-iter, so the fix added no real
+>   overhead). GPU peak memory: 12048.8MB allocated / 13434.4MB reserved.
+>   `checkpoint_2000.pt` (saved under
+>   `/content/drive/MyDrive/pfem_run/b3_training/`) is now the first
+>   genuinely trustworthy trained B3 Transolver checkpoint. The first
+>   run's checkpoints remain invalid/diverged and must not be used for
+>   anything.
+>
+>   **Not yet done**: no evaluation code exists yet. Still needed: (1)
+>   load `checkpoint_2000.pt` and run inference on the 100 FEM-validated
+>   samples already generated (`dataset.h5`), (2) compute displacement L2
+>   error against real FEM ground truth, matching B1/B2's own accuracy
+>   methodology, (3) measure Transolver inference latency vs. FEM solve
+>   time for a break-even comparison, again matching B1/B2. Only after
+>   those real numbers exist can Section 11 record B3's actual accuracy
+>   -- do not assume the healthy loss curve alone implies acceptable
+>   accuracy.
 >
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
