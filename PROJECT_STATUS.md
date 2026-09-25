@@ -1035,8 +1035,31 @@ finishes or a new one starts.
 >   wall time, per-sample average, and GPU peak memory. Explicitly flags
 >   in its own output that this is the first real GPU run of this
 >   pipeline and the first several rows should be watched closely.
->   Rebuilt and verified (106/106 `check_notebooks.py`). **Not yet
->   done**: Omar actually running this on real GPU.
+>   Rebuilt and verified (106/106 `check_notebooks.py`).
+>
+>   **🎉 FIRST REAL B3 TRAINING DATASET GENERATED, 2026-09-25 -- 100/100
+>   samples succeeded, 0 failed.** Omar's real GPU run (A100): total
+>   9m41s (526.5s), 5.26s/sample average -- matching the pre-run estimate
+>   (5-8s/sample) closely, confirming the per-element-varying-material
+>   code path costs about the same as the fixed-material mesh-convergence
+>   version at the same resolution (4.86s/case), as expected since Newton/
+>   CG iteration count is not meaningfully affected by material varying
+>   per element. Every single sample converged with a force-equilibrium
+>   residual at machine precision (1e-14 to 1e-16 range, no exceptions
+>   across all 100) -- real, direct evidence the sampling ranges decided
+>   earlier (E_std=200, nu in (0.40,0.49), phi in (0.01,0.15)) do not
+>   push the solver into failure at this resolution. max_disp varied
+>   genuinely across samples (0.0147 to 0.0589, a real ~4x spread) --
+>   confirms the dataset has real, non-degenerate variation, not samples
+>   that collapsed to near-identical solutions. GPU peak memory: only
+>   337.5MB allocated / 427.8MB reserved for the whole run -- very
+>   lightweight, meaning there is real headroom to scale up resolution or
+>   sample count later without a GPU-memory concern. Saved to
+>   `/content/drive/MyDrive/pfem_run/b3_dataset/dataset.h5` (100 samples:
+>   displacements, E_node, nu_node, phi, force_rel_residual, elapsed_s
+>   per sample) and `run_manifest.json`. **This is a real, usable, first
+>   training dataset for B3's Transolver** -- not yet used for anything;
+>   training code (a 3D analogue of `train_B2.py`) has not been written.
 >
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
