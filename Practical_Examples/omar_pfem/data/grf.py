@@ -48,6 +48,48 @@ def generate_gaussian_random_field_2d(Lx, Ly, Nx, Ny, mean, std, correlation_len
     return field, x, y
 
 
+def generate_gaussian_random_field_3d(Lx, Ly, Lz, Nx, Ny, Nz, mean, std, correlation_length, seed=None):
+    """3D extension of generate_gaussian_random_field_2d, for B3's material
+    fields E(theta,r,z)/nu(theta,r,z) over the 3D bushing. Uses a simpler,
+    exactly-correct construction than the 2D version's manual phase/
+    symmetry bookkeeping: real white noise's own FFT is already exactly
+    Hermitian-symmetric, so filtering it by a real, isotropic amplitude
+    filter (sqrt of the exponential-covariance power spectrum, generalized
+    to 3D: (1+(kL)^2)^-2, vs. the 2D case's (1+(kL)^2)^-1.5) preserves that
+    symmetry and its inverse FFT is real up to floating-point roundoff --
+    no per-index conjugate-symmetry loop needed. The overall normalization
+    constant of the filter does not matter, since the field is rescaled to
+    the exact target std/mean afterward either way, same as the 2D version.
+    """
+    if seed is not None:
+        np.random.seed(seed)
+
+    x = np.linspace(0, Lx, Nx)
+    y = np.linspace(0, Ly, Ny)
+    z = np.linspace(0, Lz, Nz)
+
+    kx = 2 * np.pi * np.fft.fftfreq(Nx, d=x[1] - x[0])
+    ky = 2 * np.pi * np.fft.fftfreq(Ny, d=y[1] - y[0])
+    kz = 2 * np.pi * np.fft.fftfreq(Nz, d=z[1] - z[0])
+    KX, KY, KZ = np.meshgrid(kx, ky, kz, indexing='ij')
+    K = np.sqrt(KX**2 + KY**2 + KZ**2)
+
+    L = correlation_length
+    amp_filter = 1.0 / (1 + (K * L)**2)**2.0
+
+    amp_filter[0, 0, 0] = 0.0  # remove the DC/mean term, same as the 2D version's amplitudes[0, 0] = 0
+
+    noise = np.random.randn(Nx, Ny, Nz)
+    field_hat = np.fft.fftn(noise) * amp_filter
+    field = np.fft.ifftn(field_hat).real
+
+    field_std = np.std(field)
+    field = (field / field_std) * std
+    field = mean + field
+
+    return field, x, y, z
+
+
 def generate_gaussian_random_field_1d(Lx, Nx, mean, std, correlation_length, seed=None):
     if seed is not None:
         np.random.seed(seed)
