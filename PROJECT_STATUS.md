@@ -1094,6 +1094,24 @@ finishes or a new one starts.
 >   comparison of a trained checkpoint against the 100-sample FEM
 >   validation dataset already generated.
 >
+>   **Colab notebook built, 2026-09-25 (commit `ba577ec`):
+>   `B3_Transolver_Training.ipynb`.** Packages `train_B3.py` into the
+>   standard cell_/make_notebook.py pattern: 2000 iterations,
+>   batch_size=8, at the same (21,20,19)=6,840-element mesh used for
+>   dataset generation, checkpoints every 200 iterations to
+>   `/content/drive/MyDrive/pfem_run/b3_training/`. Real CPU timing
+>   measured directly beforehand (~20-22s/iteration steady state, after
+>   the first iteration's one-time setup cost) is included in the cell's
+>   own text as an honest baseline before the real GPU number is known.
+>   Explicitly flags in its own output/markdown that this is the first
+>   GPU run of the ACTUAL training loop (a new random batch every
+>   iteration, unlike the fixed-batch verification test) and that the
+>   printed loss is therefore not expected to decrease monotonically
+>   step-to-step. Rebuilt and verified (107/107 `check_notebooks.py`).
+>   **Not yet done**: Omar actually running this on real GPU, and any
+>   accuracy comparison of the resulting checkpoint against the
+>   100-sample FEM validation dataset.
+>
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
 >   Summary and then confirm everything real is reflected in the report
