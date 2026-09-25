@@ -1012,6 +1012,20 @@ finishes or a new one starts.
 >   matching B2's own eventual multiprocessing upgrade path rather than
 >   assuming it's needed before ever running this for real).
 >
+>   **Default dataset resolution decided, 2026-09-25 (commit `3b5320f`):
+>   (21, 20, 19), 6,840 elements.** Omar deferred this choice ("same as
+>   before, I don't know"), so it follows real precedent rather than an
+>   arbitrary pick: B2's own dataset generator defaults to Ntheta=Nr=21,
+>   and (21,20,19) is an existing, already-tested rung from B3's own
+>   mesh-convergence ladder (~5s/case at the fixed-material setting).
+>   Verified directly with the real spatially-varying-material code path
+>   (not assumed to still work just because the fixed-material version
+>   did): converges cleanly, force_rel_residual ~1.75e-15. Set as
+>   `DEFAULT_RESOLUTION` in `data_generate_B3_dataset.py`. **Still not
+>   done**: an actual GPU production run generating the real dataset --
+>   everything above is local CPU verification of the pipeline's
+>   correctness, not a real dataset yet.
+>
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
 >   Summary and then confirm everything real is reflected in the report
