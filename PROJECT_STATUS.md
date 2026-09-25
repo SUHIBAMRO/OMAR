@@ -947,6 +947,35 @@ finishes or a new one starts.
 >   ranges, which remain a deliberately separate, undecided step. Both
 >   files given to Omar via SendUserFile.
 >
+>   **🎉 RESOLVED, 2026-09-25: "VINO" confirmed to mean this project's own
+>   Transolver, not the separately published VINO architecture; journal
+>   target given as Computers & Structures.** Omar emailed Prof. Rabczuk
+>   directly: "Just to confirm, by VINO here you mean the physics-
+>   informed Transolver we have been developing, correct?" His reply,
+>   verbatim: "Yes, sorry :)". This closes the real, substantive
+>   ambiguity raised earlier in this session (VINO_README.md in this
+>   repo documents a genuinely different, real, published architecture
+>   -- Eshaghi et al., CMAME 2025, energy-minimizing, no labeled data --
+>   that Prof. Rabczuk co-authored, so the question was not pedantic).
+>   Practical consequence: NO architecture change and NO training-
+>   paradigm change are needed -- "VINO" in his usage is just his own
+>   name for the Transolver + Deep Energy Method pipeline already built
+>   and used throughout this whole project (Section 5.1/5.2). The final
+>   comparison is FEM vs. this project's own Transolver, exactly as
+>   already planned; the actual VINO paper (arXiv/CMAME 2025, already
+>   in the round-24 reference list as item A2) remains citable as
+>   related work, not as a method to implement.
+>   **Journal**: in the same reply (to Omar's earlier structure/journal
+>   question), Prof. Rabczuk said "I'd aim for C&S [Computers &
+>   Structures] but we can decide once the paper is done" -- a real
+>   signal for reference-style/structure conventions to lean toward
+>   going forward, but explicitly not a final, locked decision.
+>   **Unblocks**: the previously-deferred exact E/nu/phi sampling-range
+>   decision and the B3 dataset-generation code (both were left open
+>   pending this exact clarification, since a real architecture/
+>   training-paradigm change would have changed what needed deciding)
+>   can now proceed on the originally-planned basis.
+>
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
 >   Summary and then confirm everything real is reflected in the report
