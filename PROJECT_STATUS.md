@@ -1166,15 +1166,45 @@ finishes or a new one starts.
 >   run's checkpoints remain invalid/diverged and must not be used for
 >   anything.
 >
->   **Not yet done**: no evaluation code exists yet. Still needed: (1)
->   load `checkpoint_2000.pt` and run inference on the 100 FEM-validated
->   samples already generated (`dataset.h5`), (2) compute displacement L2
->   error against real FEM ground truth, matching B1/B2's own accuracy
->   methodology, (3) measure Transolver inference latency vs. FEM solve
->   time for a break-even comparison, again matching B1/B2. Only after
->   those real numbers exist can Section 11 record B3's actual accuracy
->   -- do not assume the healthy loss curve alone implies acceptable
->   accuracy.
+>   **Evaluation code written, 2026-09-25**: `evaluate_B3.py` (new file)
+>   loads a trained checkpoint, runs inference on the real FEM dataset
+>   (`dataset.h5`, never seen during training -- true held-out
+>   comparison), and computes per-component (ux,uy,uz) + combined
+>   relative-L2 error, matching B1/B2's own
+>   `evaluate_dataset_hyperelastic_Q4` methodology exactly (per-sample
+>   sqrt(mean(err^2))/sqrt(mean(exact^2)), then mean+std across samples).
+>   Also benchmarks pure forward-pass inference latency (batch_size=1,
+>   20 warmup + 200 timed calls), matching
+>   `benchmark_inference_latency_Q4`'s protocol, and compares it directly
+>   against the dataset's own recorded FEM `elapsed_s` for a speedup
+>   number. Packaged as `B3_Evaluate.ipynb`
+>   (`cell_b3_evaluate.py`/`make_b3_evaluate_notebook.py`), verified
+>   108/108 via `check_notebooks.py`.
+>
+>   **Verified locally before trusting it on the real GPU
+>   checkpoint/dataset** (no GPU in this session, so verified for real on
+>   CPU instead of just assumed correct): ran the actual production code
+>   path end-to-end at toy scale -- `data_generate_B3_dataset.
+>   generate_dataset` solved 4 real FEM samples at a tiny resolution
+>   (6,5,4), `train_B3.train` trained a tiny model (n_hidden=16,
+>   n_layers=1) for 20 iterations on that same resolution, then
+>   `evaluate_B3.py` ran against that real checkpoint + real dataset with
+>   no errors: produced per-component relative L2 (ux=0.26, uy=1.00,
+>   uz=0.43 -- uy near 1.0 makes sense, a 20-iteration toy model has
+>   barely learned anything) and a latency comparison (0.67ms/sample vs
+>   1808ms/sample FEM, 2685x -- a toy-scale sanity number only, not a
+>   claim about real speedup at production scale). This confirms the
+>   shapes/dtypes/checkpoint-loading/dataset-loading all wire together
+>   correctly through the real functions, not a mocked stand-in.
+>
+>   **Not yet done**: Omar needs to run `B3_Evaluate.ipynb` on GPU against
+>   the real `checkpoint_2000.pt` + the real 100-sample `dataset.h5` to
+>   get the actual production accuracy/latency numbers. Only after those
+>   real numbers exist can Section 11 record B3's actual accuracy -- the
+>   healthy training loss curve alone does not imply acceptable accuracy.
+>   If the relative-L2 error turns out too high, the next step is
+>   re-tuning hyperparameters (more iterations, different lr/model size)
+>   and retraining, not assuming the current checkpoint is final.
 >
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
