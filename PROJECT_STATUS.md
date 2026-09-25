@@ -1026,6 +1026,18 @@ finishes or a new one starts.
 >   everything above is local CPU verification of the pipeline's
 >   correctness, not a real dataset yet.
 >
+>   **Colab notebook built, 2026-09-25 (commit `f9d8383`):
+>   `B3_Dataset_Generation.ipynb`.** Packages the already-verified
+>   `data_generate_B3_dataset.py` into the standard cell_/make_notebook.py
+>   pattern. Generates 100 samples (matching B2's own dataset-generator
+>   default sample count, not a new number) at (21,20,19)=6,840 elements,
+>   saves to `/content/drive/MyDrive/pfem_run/b3_dataset/`, reports total
+>   wall time, per-sample average, and GPU peak memory. Explicitly flags
+>   in its own output that this is the first real GPU run of this
+>   pipeline and the first several rows should be watched closely.
+>   Rebuilt and verified (106/106 `check_notebooks.py`). **Not yet
+>   done**: Omar actually running this on real GPU.
+>
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
 >   Summary and then confirm everything real is reflected in the report
