@@ -1139,11 +1139,19 @@ finishes or a new one starts.
 >   now reproduced at full scale (commit `dd56e9f`). **Any checkpoint
 >   from the first GPU run is invalid and must not be used** -- the
 >   notebook/cell markdown now documents this incident explicitly and
->   warns against those old checkpoints. **Not yet done**: a final
->   confirmation run using the exact integrated `apply_dirichlet_b3`
->   function (a standalone diagnostic copy with identical math was used
->   above; this is a low-risk but not-yet-closed loop), and then Omar
->   re-running the actual training notebook a second time with the fix.
+>   warns against those old checkpoints.
+>   **🎉 CLOSED, 2026-09-25: final confirmation done, using the exact
+>   integrated `apply_dirichlet_b3` (not a standalone diagnostic copy).**
+>   Same fixed-batch diagnostic, same production mesh/model scale, real
+>   code path Omar's notebook actually calls: loss starts at 2.70, has
+>   one normal early spike to 11.36, then settles into a tight plateau
+>   (~2.57-2.71) over the remaining iterations -- matching the earlier
+>   standalone-copy result almost exactly. The fix is fully confirmed
+>   through the real call path, not just a mathematically-equivalent
+>   stand-in. **Not yet done**: Omar re-running the actual training
+>   notebook on real GPU a second time with the fix, and then comparing
+>   the resulting checkpoint against the 100-sample FEM validation
+>   dataset.
 >
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
