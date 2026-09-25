@@ -1112,6 +1112,39 @@ finishes or a new one starts.
 >   accuracy comparison of the resulting checkpoint against the
 >   100-sample FEM validation dataset.
 >
+>   **🚨 Real incident, 2026-09-25: the first GPU training run diverged --
+>   found, root-caused, and fixed, not hand-waved.** Omar's real run
+>   (2000 iterations, production mesh/model) showed the energy loss
+>   climbing from ~13,700 to a peak over 163,000, ending at 31,589 --
+>   completed in only 283.1s (0.142s/iteration, far faster than the
+>   ~20-22s/iteration CPU estimate given beforehand). This was NOT
+>   assumed to be ordinary batch-to-batch noise: a controlled fixed-batch
+>   diagnostic (same 8 samples every step, zero sampling noise) at the
+>   SAME production mesh/model size reproduced the identical climbing
+>   pattern (1,048 -> 13,095 over just 25 steps) at both lr=2e-3 and
+>   lr=2e-4, confirming a real optimization instability. **Root cause,
+>   found by direct measurement**: the untrained network's raw output
+>   (mean abs ~0.31, max ~0.56) is 5-50x larger than the real,
+>   physically-expected displacement magnitude (~0.01-0.06, known
+>   directly from the 100-sample FEM dataset already generated) --
+>   pushing element deformation gradients into the steep, singular region
+>   of the Neo-Hookean energy density near det(F)->0 (both the -2mu*lnJ
+>   and lam*lnJ^2 terms diverge there). **Fixed**: `train_B3.py`'s
+>   `apply_dirichlet_b3` now scales the network's raw contribution by a
+>   new `OUTPUT_SCALE=0.02` constant before combining it with the
+>   Dirichlet ansatz. Verified directly on the same fixed-batch
+>   diagnostic, at the same production scale: loss now settles quickly to
+>   a stable plateau (~2.55-2.6) instead of climbing without bound -- the
+>   same healthy shape the original small-scale verification test showed,
+>   now reproduced at full scale (commit `dd56e9f`). **Any checkpoint
+>   from the first GPU run is invalid and must not be used** -- the
+>   notebook/cell markdown now documents this incident explicitly and
+>   warns against those old checkpoints. **Not yet done**: a final
+>   confirmation run using the exact integrated `apply_dirichlet_b3`
+>   function (a standalone diagnostic copy with identical math was used
+>   above; this is a low-risk but not-yet-closed loop), and then Omar
+>   re-running the actual training notebook a second time with the fix.
+>
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
 >   Summary and then confirm everything real is reflected in the report
