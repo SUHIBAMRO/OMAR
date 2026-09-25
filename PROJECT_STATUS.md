@@ -1061,6 +1061,39 @@ finishes or a new one starts.
 >   training dataset for B3's Transolver** -- not yet used for anything;
 >   training code (a 3D analogue of `train_B2.py`) has not been written.
 >
+>   **🎉 `train_B3.py` written and verified locally, 2026-09-25 (commit
+>   `c478453`): Deep Energy Method training for the 3D Transolver.** Real
+>   difference from `train_B1.py`/`train_B2.py`, not a copy-paste: B3's
+>   loading is entirely prescribed-DISPLACEMENT (the rigid core rotation),
+>   not prescribed-force, so the loss is Pi=U (no external-work term W),
+>   and all three Dirichlet conditions (inner: exact rigid rotation;
+>   outer: exactly fixed; symmetry: u_y=0 at theta=0,pi) are enforced
+>   EXACTLY via a hard multiplicative/additive construction on the
+>   network's raw output (`apply_dirichlet_b3`) -- no soft penalty term
+>   anywhere, matching B1/B2's own preference for hard enforcement when
+>   feasible. Reuses torch-fem's own `Solid.eval_shape_functions` for the
+>   reference-configuration shape-function-gradient/Jacobian machinery
+>   (confirmed directly against a real small mesh, not assumed: N (8,8),
+>   B (8,n_elem,3,8), detJ (8,n_elem)) -- computed ONCE since the mesh is
+>   fixed, no custom shape-function code written from scratch. The
+>   batched Neo-Hookean energy density is the exact formula
+>   `torchfem_comparison.neo_hookean_psi_3d` uses, vectorized via
+>   `torch.linalg.slogdet`'s own native batching.
+>   **Real local verification (CPU)**: a full `train()` call (5
+>   iterations, tiny model, 336-element mesh) ran end to end with no
+>   shape errors. A separate, more rigorous **fixed-batch overfitting
+>   test** (same sampled batch every step, 200 iterations) showed the
+>   energy loss decrease monotonically from 130.7 to a stable plateau
+>   around 2.25 -- real, direct confirmation that gradients flow
+>   correctly through the whole pipeline (energy -> displacement ->
+>   network output -> parameters) and the optimizer genuinely minimizes
+>   physical potential energy, not a disconnected or silently-broken
+>   loop. **Not yet done**: an actual GPU training run at production
+>   scale (n_iters/batch_size not yet decided), packaging into the
+>   standard Colab cell_/make_notebook.py pattern, and any accuracy
+>   comparison of a trained checkpoint against the 100-sample FEM
+>   validation dataset already generated.
+>
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
 >   Summary and then confirm everything real is reflected in the report
