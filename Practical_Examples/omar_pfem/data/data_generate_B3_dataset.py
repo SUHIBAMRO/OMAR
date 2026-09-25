@@ -42,6 +42,18 @@ session's earlier discussion -- NOT independently re-verified against
 new physical evidence, and should be treated as a starting point, not a
 locked-in choice, until checked against real solved samples at
 production scale.
+
+DEFAULT_RESOLUTION = (21, 20, 19) (6,840 elements) -- Omar deferred this
+choice ("same as before, I don't know"), so it follows the closest real
+precedent rather than picking an arbitrary new number: B2's own dataset
+generator (data_generate_B2.py) defaults to Ntheta=Nr=21 for ITS
+production dataset, and (21, 20, 19) is an EXISTING, already-tested rung
+from B3's own mesh-convergence ladder (mesh_convergence_B3_groove_
+sharpness.py's CPU_SCALE_RESOLUTIONS) -- confirmed there to solve cleanly
+in ~5s per case at the FIXED-material setting. Verified directly in this
+session with the real per-sample spatially-varying-material code path
+too (not assumed to still work just because the fixed-material version
+did): converges cleanly, force_rel_residual ~1.75e-15.
 """
 import json
 import os
@@ -60,6 +72,7 @@ from omar_pfem.torchfem_comparison import neo_hookean_psi_3d
 
 GROOVE_DEPTH, GROOVE_HALF_WIDTH = 0.20, 0.15  # FIXED, matching Section 11.2's chosen production geometry
 R_GRADING = 1.0
+DEFAULT_RESOLUTION = (21, 20, 19)  # 6,840 elements -- see module docstring for why
 
 
 def sample_material_and_load(
@@ -177,7 +190,8 @@ def solve_one_sample(
 
 
 def generate_dataset(
-    num_samples, output_dir, Ntheta, Nr, Nz, seed=0, device=None,
+    num_samples, output_dir, Ntheta=DEFAULT_RESOLUTION[0], Nr=DEFAULT_RESOLUTION[1],
+    Nz=DEFAULT_RESOLUTION[2], seed=0, device=None,
     dist_kwargs=None, verbose_every=10,
 ):
     """Serial dataset generation with a resumable JSON manifest (simpler
