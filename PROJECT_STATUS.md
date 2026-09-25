@@ -976,6 +976,42 @@ finishes or a new one starts.
 >   training-paradigm change would have changed what needed deciding)
 >   can now proceed on the originally-planned basis.
 >
+>   **🎉 B3 dataset-generation code written and verified, 2026-09-25
+>   (commit `785cfe3`).** New file `data_generate_B3_dataset.py`
+>   implements the decided scope directly: geometry fixed at Section
+>   11.2's production settings; E/nu vary spatially per sample via a
+>   new `generate_gaussian_random_field_3d` (added to `grf.py`,
+>   extending the existing 2D/1D samplers -- correct 3D Hermitian
+>   symmetry via filtering real white noise's own already-symmetric FFT
+>   by a real isotropic filter, simpler than the 2D version's manual
+>   per-index conjugate bookkeeping); phi varies as a scalar per sample.
+>   Per-node fields are generated directly on the mesh's own structured
+>   (theta,r,z) grid and mapped to node order via
+>   `generate_grid_hex8_bushing`'s own verified indexing convention
+>   (node = k*(Ntheta*Nr)+j*Nr+i) -- no interpolation needed, unlike
+>   B1/B2. Confirmed directly (not assumed) that torch-fem 0.11.0's own
+>   `Hyperelastic3D` natively vectorizes per-element when `params.dim()
+>   > 1`, so no custom solver code was needed -- each element's (mu,
+>   lambda) comes from the mean of its own 8 nodes' sampled E/nu.
+>   **Real local verification** (CPU, 336-element mesh): GRF fields have
+>   correct mean/std/correlation-length behavior/seed-reproducibility;
+>   4 different seeds all solve cleanly with force-equilibrium residuals
+>   at machine precision (1e-15 to 1e-14); an out-of-range phi (1.2 rad,
+>   deliberately outside the phi_clip=(0.01,0.15) safety bound) fails
+>   with a real Newton-divergence RuntimeError, confirming the failure
+>   path works rather than silently producing garbage. **Found and fixed
+>   a real bug** in the resumable HDF5 pipeline: resuming a
+>   partially-done run tried to re-`create_dataset` on already-existing
+>   HDF5 datasets and crashed -- fixed by reading `n_nodes_ref` from the
+>   existing file when present; verified the fix by actually deleting an
+>   entry from a manifest and confirming resume only re-solved that one
+>   sample, leaving the others untouched. **Not yet done**: an actual
+>   production-scale run (needs GPU, and a decided target mesh
+>   resolution for the training set -- not yet chosen), and
+>   multiprocessing (the current pipeline is serial, correctness-first,
+>   matching B2's own eventual multiprocessing upgrade path rather than
+>   assuming it's needed before ever running this for real).
+>
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
 >   Summary and then confirm everything real is reflected in the report
