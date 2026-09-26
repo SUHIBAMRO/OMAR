@@ -6,7 +6,18 @@ standing convention (never send a reply without his review first).
 Every number below is from a real run (GPU training logs, real FEM
 solves, or the controlled local diagnostics listed), not estimated --
 see PROJECT_STATUS.md's 2026-09-26 entries for the full detail behind
-each one, including the exact scripts used.
+each one, including the exact scripts used. The two accuracy-table rows
+were cross-checked directly against the raw result files on Drive
+(`pfem_run/b3_training/eval_B3.json` and `eval_B3_50000.json`), not just
+transcribed from a training log.
+
+**On attachments/figures**: no plot of this specific finding exists yet
+(these diagnostics were run and logged as numbers, not visualized) --
+the tables below are the full result. `pfem_run/b3/B3_geometry.png` on
+Drive shows the B3 bushing geometry itself (undeformed/deformed
+configuration, groove detail) if a visual of the case is wanted alongside
+this email; it is not a results plot. Say if a proper accuracy/training
+figure would help and I will make one before sending.
 
 ---
 
@@ -25,30 +36,30 @@ and fixed that, and confirmed the fix with a second run -- stable loss
 throughout.
 
 **The issue**: evaluating that checkpoint against 100 held-out real FEM
-samples showed the stable loss curve did not mean good accuracy. The
-relative L2 error is very uneven across the three displacement
-components: ~30% for the two components in the bushing's main rocking
-plane (ux, uz), but the third (out-of-plane) component, uy, is stuck at
-essentially 100% error -- no better than the network simply predicting
-zero. Training 25x longer (2,000 to 50,000 real gradient steps) did not
-close this gap and made uy slightly worse.
+samples (never used in training) showed the stable loss curve did not
+mean good accuracy, and training 25x longer did not fix it:
+
+| Run | Gradient steps | ux rel. L2 | uy rel. L2 | uz rel. L2 | Combined | Inference speed vs. FEM |
+|---|---|---|---|---|---|---|
+| 2 (stability fix confirmed) | 2,000 | 32.0% | 99.9% | 36.8% | 35.7% | 823x |
+| 3 (25x longer) | 50,000 | 29.4% | **106.1%** | 30.2% | 30.6% | 823x |
+
+uy is stuck at essentially 100% error in both runs -- no better than the
+network predicting zero everywhere -- and got slightly *worse*, not
+better, with 25x more training. Inference speed is unaffected either way
+and stays excellent.
 
 Before assuming this needed more compute, I ran five separate controlled
-diagnostics, each isolating one candidate cause:
-1. Step count -- ruled out by the 50,000-step run itself.
-2. A vanishing/weak gradient specific to uy in the energy assembly --
-   ruled out by measuring the actual gradient magnitude directly (it is
-   comparable to ux/uz's).
-3. Insufficient training diversity -- ruled out by a pure memorization
-   test on a fixed pool of 8 samples (uy still failed to converge even
-   with nothing new to generalize to).
-4. The output-scaling constant added for the instability fix being too
-   restrictive for uy specifically -- ruled out by testing a much larger
-   and a separately-learnable scale for just that component; neither
-   helped, and the optimizer simply shrank its own output further to
-   compensate.
-5. A curriculum schedule (train ux/uz first with uy frozen at zero, then
-   unfreeze it) -- ruled out; uy collapsed back to ~100% error anyway.
+diagnostics on a small fixed problem (fast to iterate on locally), each
+isolating one candidate cause:
+
+| # | Hypothesis tested | Method | Result |
+|---|---|---|---|
+| 1 | Just needs more training steps | The 50,000-step run itself (table above) | Ruled out -- uy got worse, not better |
+| 2 | Vanishing/weak gradient for uy in the energy assembly | Measured d(energy)/d(u_net) directly via autograd, by component | Ruled out -- uy's gradient magnitude is comparable to ux/uz's (0.75x-1.0x) |
+| 3 | Not enough training data diversity | Trained on a FIXED pool of 8 samples, repeated every step (pure memorization test) | Ruled out -- uy never converges below ~99-100% error even with nothing new to generalize to |
+| 4 | Output-scaling constant (added for the stability fix) too small for uy | Tried the same scale, 10x larger, and a separately learnable scale, isolated to uy only | Ruled out -- final uy error stayed ~99.9-100.8% regardless; the network just shrinks its own raw output to compensate for a larger scale |
+| 5 | Needs a training curriculum (ux/uz first, uy unfrozen after) | Trained ux/uz to their normal plateau with uy forced to exactly zero, then unfroze uy and continued | Ruled out -- uy collapsed straight back to ~99.8% error |
 
 The pattern across all five: uy's true physical magnitude is genuinely
 small relative to ux/uz (about 8-12x smaller, confirmed against a real
