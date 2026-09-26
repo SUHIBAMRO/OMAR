@@ -1286,15 +1286,42 @@ finishes or a new one starts.
 >   `checkpoint_50000.pt` saved under
 >   `/content/drive/MyDrive/pfem_run/b3_training/`.
 >
->   **Not yet done**: Omar needs to run `B3_Evaluate.ipynb` (already
->   pointed at `checkpoint_50000.pt`) to get the real accuracy numbers.
->   The healthy loss curve again says nothing about accuracy by itself --
->   this is the same lesson from run 2, not assumed fixed just because
->   training finished cleanly. If uy is still stuck near 100% error after
->   25x more training (2,000 -> 50,000 steps), that would point away from
->   "just needs more steps" and toward a real design issue specific to
->   uy's Dirichlet-BC construction (it has no particular/BC term at all,
->   unlike ux/uz) needing a genuine fix, not just more iterations.
+>   **🚨 REAL EVALUATION RESULT: "just needs more steps" is FALSIFIED,
+>   2026-09-26.** Omar ran `B3_Evaluate.ipynb` against `checkpoint_50000.pt`.
+>   Relative L2: ux=29.4%, **uy=106.1%**, uz=30.2%, combined=30.6%.
+>   ux/uz improved only modestly over run 2 (32.0%->29.4%, 36.8%->30.2%)
+>   despite 25x more training. **uy got WORSE, and is now worse than the
+>   trivial "always predict zero" baseline** (which would score exactly
+>   100%) -- speed is still excellent (823x FEM, unchanged). 25x more
+>   training did not close the gap and made the worst component worse,
+>   ruling out step-count as the (sole) real cause.
+>
+>   **Decisive diagnostic, not another guess**: two real controlled tests
+>   run locally before proposing any further GPU time.
+>   1. `diagnose_uy_gradient_signal.py`: measured d(loss)/d(u_net) via
+>      autograd on the real `total_potential_energy_B3`, at the real
+>      production mesh, for a random u_net at realistic scale. Gradient
+>      magnitude for the y-component is **comparable** to x/z (ratios
+>      0.75x and 1.01x) -- ruling out a simple "vanishing gradient in the
+>      energy assembly" bug.
+>   2. `diagnose_fixed_pool_uy.py`: trained a model on a **FIXED pool of
+>      just 8 real FEM samples, repeated every iteration** (pure
+>      memorization/overfitting test -- the easiest possible case, no
+>      generalization required at all, closer to how B1/B2 actually
+>      train: revisiting the same small sample set for tens of thousands
+>      of epochs). Result: **uy never dropped below ~0.999-1.0 relative
+>      error across 3000 iterations**, while ux/uz did improve somewhat.
+>      The metrics froze at an identical value for the last 900+
+>      iterations logged (2100-3000), suggesting the y-output pathway
+>      got stuck at some degenerate point, not merely "slow to converge."
+>      **This proves the problem is not about training diversity or
+>      total step count** -- even trivial memorization of 8 fixed samples
+>      fails for uy specifically.
+>
+>   **Confirmatory check running now**: same fixed-8-sample test but with
+>   the REAL production model size (n_hidden=256, n_layers=4, n_heads=8,
+>   not the earlier toy model) to rule out this being a toy-model-only
+>   artifact, via `diagnose_fixed_pool_uy_prodmodel.py`.
 >
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
