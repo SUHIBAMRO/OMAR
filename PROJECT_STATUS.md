@@ -1318,10 +1318,30 @@ finishes or a new one starts.
 >      total step count** -- even trivial memorization of 8 fixed samples
 >      fails for uy specifically.
 >
->   **Confirmatory check running now**: same fixed-8-sample test but with
->   the REAL production model size (n_hidden=256, n_layers=4, n_heads=8,
->   not the earlier toy model) to rule out this being a toy-model-only
->   artifact, via `diagnose_fixed_pool_uy_prodmodel.py`.
+>   **Confirmed with the REAL production model size, not just the toy
+>   model**: `diagnose_fixed_pool_uy_prodmodel.py` reran the same
+>   8-fixed-sample test with `n_hidden=256, n_layers=4, n_heads=8` (the
+>   exact architecture the real GPU runs use). Same result: uy stuck at
+>   0.995-1.00 relative error across all 1500 iterations logged, never
+>   improving, while ux went 1.31->0.25 and uz 0.51->0.40 over the same
+>   run. **The revealing number**: `mean|u_net_y|` (the network's own raw
+>   y-channel output magnitude, before any scale/BC construction) started
+>   at 0.19 and *shrank* to ~0.01-0.02 within the first 150 iterations,
+>   staying there -- the optimizer is actively driving the y-output
+>   toward zero, not merely failing to grow it from zero. This looks like
+>   a genuine local-minimum / energy-landscape issue in how uy enters the
+>   Deep Energy Method loss (setting uy=0 is a locally low-energy escape
+>   given ux/uz's still-imperfect state), not a step-count, data-diversity,
+>   or simple gradient-magnitude bug -- all three of those were directly
+>   ruled out by real tests above.
+>
+>   **New hypothesis being tested now, not yet confirmed**: earlier scale
+>   tests (`diagnose_output_scale_ceiling.py`) only varied a SINGLE scalar
+>   shared across all 3 components together. `diagnose_separate_y_scale.py`
+>   tests whether DECOUPLING uy's own output scale from ux/uz's (keeping
+>   ux/uz at 0.02, trying y_scale in {0.02, 0.1, 0.5}) lets the optimizer
+>   escape the zero-suppression trap, since ux/uz do show real (if
+>   incomplete) progress while sharing the same scale constant uy uses.
 >
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
