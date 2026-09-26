@@ -1507,6 +1507,44 @@ finishes or a new one starts.
 >   reaction/energy), not just displacement; (6) only then consider
 >   resolution/integration-fidelity effects or a physics-objective change.
 >
+>   **🎯 Steps 1-2 done, real GPU results, 2026-09-26 -- Omar's suspicion
+>   confirmed directly.** Clean held-out set generated for real
+>   (`B3_Dataset_Clean_Holdout.ipynb`, 100/100 succeeded, 512.2s,
+>   matches the local CPU dry run's numbers exactly). Then
+>   `B3_Checkpoint_Sweep.ipynb` evaluated all 10 saved checkpoints
+>   (5000-50000) against it:
+>
+>   | iter | ux | uy | uz | combined |
+>   |---|---|---|---|---|
+>   | 5000 | 0.340 | 1.002 | 0.367 | 0.363 |
+>   | 10000 | 0.272 | 0.791 | 0.252 | 0.267 |
+>   | 15000 | 0.338 | 1.001 | 0.370 | 0.364 |
+>   | 20000 | 0.319 | 0.799 | 0.244 | 0.280 |
+>   | 25000 | 0.294 | 0.901 | 0.385 | 0.363 |
+>   | 30000 | 0.235 | 1.002 | 0.365 | 0.336 |
+>   | **35000** | **0.252** | **0.936** | **0.248** | **0.262** |
+>   | 40000 | 0.319 | 0.917 | 0.310 | 0.317 |
+>   | 45000 | 0.250 | 1.010 | 0.292 | 0.287 |
+>   | 50000 | 0.310 | 1.113 | 0.328 | 0.329 |
+>
+>   **checkpoint_50000.pt (the final one, used for every number reported
+>   so far) is NOT the best -- checkpoint_35000.pt is**, and 50000 is
+>   actually one of the WORSE checkpoints (uy=1.113, its single worst
+>   value across the whole sweep). uy swings non-monotonically between
+>   0.79 and 1.11 across the 10 checkpoints with no trend tied to
+>   training length -- direct confirmation, on real GPU data now instead
+>   of just the CPU toy-scale test, that this is a training-stability
+>   problem across the WHOLE run, not a one-off dip. Inference speed is
+>   checkpoint-independent as expected: 6.33ms/sample, 800x FEM, on the
+>   real clean dataset. This fully validates the methodology review --
+>   picking the final checkpoint blindly would have reported a worse
+>   result than what the same training run actually produced partway
+>   through, exactly the B2-precedent failure mode Omar flagged.
+>
+>   **Remaining from the revised plan**: (3) phi-only control run, (4)
+>   input normalization, (5) real QoIs (stress/reaction/energy) on
+>   checkpoint_35000.pt specifically, not checkpoint_50000.pt.
+>
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
 >   Summary and then confirm everything real is reflected in the report
