@@ -1418,13 +1418,94 @@ finishes or a new one starts.
 >   so pure energy minimization has very little gradient pressure to fix
 >   uy while ux/uz remain this far from converged.
 >
->   **Follow-up test running now**: if the theory is right, uy's share of
->   the energy gap should grow once ux/uz get much closer to converged.
->   `diagnose_long_fixed_pool.py` extends the fixed-8-sample overfitting
->   test to 8,000 iterations (vs. 1,500-3,000 tried before) on the
->   easiest possible sub-problem, to see how low ux/uz can actually go
->   with much more optimization, and whether uy starts moving once they
->   do.
+>   **🚨 REVISION, 2026-09-26: the 8,000-iteration follow-up test shows
+>   real (if unstable) progress -- "step count ruled out" needs
+>   qualifying.** `diagnose_long_fixed_pool.py` ran 8,000 iterations on
+>   the fixed 8-sample pool (5.3x longer than the longest fixed-pool test
+>   tried before, 1,500). uy did NOT stay stuck near 1.0 throughout:
+>   it oscillated -- dropping to 0.55-0.65 around iterations 1600, 3600-
+>   4000, and 7200-8000, then climbing back to ~1.0 around 2000, 4400,
+>   6000, 6400 -- and the FINAL state (iteration 8000) is genuinely much
+>   better than anything seen before: **ux=0.117, uy=0.585, uz=0.138,
+>   combined=0.135** (vs. ~0.25-0.36 combined at 1,500-3,000 iterations
+>   in the earlier, shorter tests). This means the earlier five
+>   diagnostics' "step count ruled out" conclusion was only tested up to
+>   1,200-3,000 iterations on this fixed pool -- real, substantial
+>   (if unstable) improvement was there all along, just further out than
+>   any test before this one looked. The oscillation pattern (repeatedly
+>   escaping toward ~0.55-0.65 then falling back to ~1.0) looks like a
+>   real optimization-stability issue, not a fixed energy-landscape
+>   attractor -- consistent with Timon's own earlier, general warning
+>   (documented in this project's own history for B1/B2) that late
+>   training deterioration can come from optimization instability or the
+>   learning-rate schedule, not necessarily the physics or data.
+>
+>   **Omar's review of this whole investigation, 2026-09-26 -- caught
+>   real issues before any conclusion or email went out:**
+>   1. **Real bug, confirmed by direct computation**: the "100 held-out
+>      FEM samples" are NOT cleanly held out. `data_generate_B3_dataset.py`
+>      generated them with `seed=0` (sample_seed = i, i=0..99).
+>      `train_B3.py`'s `sample_batch` uses `seed = it*batch_size + b`,
+>      which for it=1..12, batch_size=8 sweeps seeds 8-103 -- **92 of the
+>      100 "held-out" samples' exact (E,nu,phi) were also used as real
+>      training inputs**, within the first 12 iterations of EVERY run
+>      (run 2 and run 3 both). The draft email's "never used in training"
+>      claim is factually wrong and must not be sent as written. Fix in
+>      progress: `generate_clean_holdout.py` generates a genuinely
+>      disjoint 100-sample set (seed=99999, sample_seed range
+>      999990-1000089, unreachable by any training run so far), running
+>      locally on CPU (no GPU needed for this).
+>   2. **Real gap, confirmed by direct code inspection**: `train_B2.py`
+>      has an established, working input-normalization mechanism
+>      (`compute_input_norm`/`_apply_input_norm`/
+>      `install_input_norm_for_checkpoint`, fixed from a reference set,
+>      not per-sample -- matching the project's own stated convention).
+>      `train_B3.py` feeds `fun_material` (E~1000, nu~0.45, phi~0.05)
+>      completely raw, with no normalization at all. A real deviation
+>      from established practice, not yet tested as a cause.
+>   3. **Real, highly relevant historical precedent surfaced while
+>      checking Omar's claims**: a past B2 zero-shot investigation
+>      (documented earlier in this file, now superseded) spent weeks on
+>      sophisticated diagnostics -- roughness metrics, GRF-vs-Fourier-
+>      harmonic data-family comparisons, joint-vs-single-resolution
+>      training arms -- all pointing toward "the parametric family" or
+>      "the training protocol" as a structural problem, while B2 sat at
+>      ~1.0 relative error (predicting zero). The ACTUAL cause, found
+>      later: a checkpoint-selection/early-stopping metric bug that
+>      mathematically inverted while the model improved, so every B2 run
+>      stopped itself after only 25-225 epochs, always reporting an
+>      undertrained model. Once fixed, B2 reached 3.3% error. This is a
+>      direct precedent for exactly the situation now: elaborate
+>      diagnostics concluding "structural DEM limitation" while a more
+>      mundane methodological issue (in B3's case: no checkpoint
+>      selection/validation tracking during training AT ALL, unlike
+>      B1/B2's model_best.pt mechanism) remains unexamined.
+>   4. **Real gap, confirmed**: `evaluate_B3.py` only computes
+>      displacement relative L2 -- never the QoIs Timon actually named as
+>      the real success criteria (regional Cauchy stress, reaction
+>      force/moment, energy), despite B3 already having that QoI code
+>      built for the FEM side (mesh_convergence_B3/torchfem_comparison).
+>      uy's poor displacement accuracy may or may not translate into poor
+>      stress/reaction/energy accuracy -- genuinely not known yet.
+>   5. **Real precedent confirmed** (44.65%->5.85% multi-res retraining,
+>      7.6x improvement) but the mechanism differs from B3's current
+>      situation: that was zero-shot generalization ACROSS resolutions
+>      (train at N=21/33, evaluate at N=1401), not accuracy AT the
+>      training resolution itself. Still relevant given B3's own mesh-
+>      convergence study shows regional stress needs ~480k elements while
+>      training currently integrates the energy on only 6,840 -- worth
+>      testing after the cheaper items below, not first.
+>
+>   **Revised action plan, in order, before any "DEM limitation" email
+>   goes to Timon**: (1) clean held-out set [in progress]; (2) evaluate
+>   the already-saved checkpoint_5000.pt through checkpoint_50000.pt
+>   against it to find the REAL best checkpoint, not assume 50000; (3) a
+>   phi-only control run (fixed E,nu, only phi varies) to separate "DEM
+>   itself" from "the parametric family we ourselves expanded beyond the
+>   original single-scalar-load design"; (4) add input normalization
+>   matching B1/B2's own convention; (5) compute the real QoIs (stress/
+>   reaction/energy), not just displacement; (6) only then consider
+>   resolution/integration-fidelity effects or a physics-objective change.
 >
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
