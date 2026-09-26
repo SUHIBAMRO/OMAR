@@ -1335,13 +1335,36 @@ finishes or a new one starts.
 >   or simple gradient-magnitude bug -- all three of those were directly
 >   ruled out by real tests above.
 >
->   **New hypothesis being tested now, not yet confirmed**: earlier scale
->   tests (`diagnose_output_scale_ceiling.py`) only varied a SINGLE scalar
->   shared across all 3 components together. `diagnose_separate_y_scale.py`
->   tests whether DECOUPLING uy's own output scale from ux/uz's (keeping
->   ux/uz at 0.02, trying y_scale in {0.02, 0.1, 0.5}) lets the optimizer
->   escape the zero-suppression trap, since ux/uz do show real (if
->   incomplete) progress while sharing the same scale constant uy uses.
+>   **Separate-y-scale hypothesis also FALSIFIED, 2026-09-26**:
+>   `diagnose_separate_y_scale.py` decoupled uy's own output scale from
+>   ux/uz's (kept ux/uz at 0.02, tried y_scale in {0.02, 0.1, 0.5}, same
+>   fixed-8-sample production-model test). Result: **final uy relative L2
+>   was 0.9986, 0.9997 and 1.0083 respectively -- essentially identical
+>   regardless of scale.** More strikingly, `mean|u_net_y|` (the network's
+>   own raw output before scaling) ended at ~0.029, ~0.0018 and ~0.002 for
+>   the three scales -- **the optimizer compensates for a larger scale by
+>   shrinking its own raw output proportionally more**, converging to
+>   roughly the SAME small effective uy magnitude every time. This is not
+>   a capacity/scale ceiling at all -- it is a genuine, scale-independent
+>   ATTRACTOR near uy=0 in the joint (ux,uy,uz) energy landscape.
+>
+>   **Where this leaves the diagnosis**: four real, controlled experiments
+>   have now each ruled out a distinct hypothesis -- (1) step count
+>   [50,000 vs 2,000 real GPU run], (2) simple vanishing gradient
+>   [autograd magnitude check], (3) training data diversity [fixed-8-pool
+>   memorization test], (4) output-scale capacity, both shared and
+>   uy-only [this test]. What remains is that near-zero uy appears to be
+>   a real local minimum of the Deep Energy Method's own loss landscape
+>   GIVEN the current, still-imperfect ux/uz trajectory -- i.e. a coupled
+>   optimization problem, not a uy-specific representational one. Fixing
+>   this looks like it needs a genuine methodological change (e.g. a
+>   staged/curriculum schedule that trains ux/uz first with uy frozen at
+>   zero, then unfreezes uy once ux/uz are well-converged; a light
+>   supervised regularizer on a handful of labeled FEM samples, departing
+>   from the project's pure-physics-informed design; or a different
+>   optimizer/LR schedule), not another scale or step-count knob -- a
+>   decision to make with Omar (and eventually Timon) rather than picking
+>   one unilaterally.
 >
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
