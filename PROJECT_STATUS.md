@@ -1366,6 +1366,43 @@ finishes or a new one starts.
 >   decision to make with Omar (and eventually Timon) rather than picking
 >   one unilaterally.
 >
+>   **Curriculum hypothesis ALSO falsified, 2026-09-26**:
+>   `diagnose_curriculum_uy.py` tested the staged-training idea directly --
+>   phase 1 trained ux/uz for 600 iterations with uy forced to exactly
+>   zero (ux/uz converged to their normal ~0.25/~0.29 plateau, as good as
+>   this fixed-pool setup gets), THEN phase 2 unfroze uy and trained all
+>   three together for 1200 more iterations. Result: **uy still collapsed
+>   right back to ~1.00 relative error** -- giving ux/uz a real head start
+>   before uy ever got a nonzero contribution did not help at all.
+>
+>   **Five independent real experiments have now each ruled out a
+>   different hypothesis**: step count, vanishing gradient, training data
+>   diversity, output-scale capacity, and curriculum/staged training. The
+>   pattern that best fits all five results together: uy's TRUE physical
+>   magnitude is genuinely small relative to ux/uz (rms ~1.0e-3 vs
+>   ~8.0e-3/~1.19e-2, confirmed earlier against a real local FEM solve --
+>   about 8-12x smaller). Pure energy minimization (Deep Energy Method,
+>   no labeled data anywhere in the loss) has no reason to prioritize
+>   fixing a small-magnitude component's LARGE RELATIVE error over a
+>   large-magnitude component's still-substantial ~25-30% error, since
+>   the ABSOLUTE energy contribution of correcting uy is small compared
+>   to what's still on the table for ux/uz -- this is not a bug in the
+>   code, it is very likely a structural limitation of using a pure,
+>   unweighted physics-informed loss on a vector field whose components
+>   differ this much in natural scale.
+>
+>   **Two honest options going forward, presented to Omar for a decision
+>   (not picked unilaterally, since either affects the report's
+>   methodology claims)**: (1) add a light supervised term using the
+>   100 real FEM samples already generated (currently held out for
+>   evaluation only) specifically to help uy, a real and common fix for
+>   this kind of imbalance in the PINN/DEM literature, but a genuine
+>   departure from this project's "pure physics-informed, no labels"
+>   framing that needs sign-off; or (2) report this honestly as a real,
+>   evidence-backed limitation of the pure-DEM approach for this specific
+>   geometry (secondary out-of-plane field much smaller than the primary
+>   rocking-plane fields), rather than forcing a fix.
+>
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
 >   Summary and then confirm everything real is reflected in the report
