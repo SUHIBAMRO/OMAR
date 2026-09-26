@@ -60,12 +60,14 @@ print('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'n
 R = '/content/drive/MyDrive/pfem_run'
 # checkpoint_2000.pt (run 2) evaluated poorly (combined rel L2 35.7%, uy
 # 99.95% -- see PROJECT_STATUS.md 2026-09-26 entry). Run 3 retrains for
-# 20000 iterations (10x) to test whether more gradient steps closes the
-# gap, following a real controlled test that ruled out OUTPUT_SCALE
-# itself as the cause. Pointing this at run 3's checkpoint.
-CHECKPOINT = f'{R}/b3_training/checkpoint_20000.pt'
+# 50000 iterations (25x, close to this project's own real B1/B2
+# precedent of 57,500-275,000 steps at their best checkpoints) to test
+# whether more gradient steps closes the gap, following a real
+# controlled test that ruled out OUTPUT_SCALE itself as the cause.
+# Pointing this at run 3's checkpoint.
+CHECKPOINT = f'{R}/b3_training/checkpoint_50000.pt'
 DATASET = f'{R}/b3_dataset/dataset.h5'
-OUT_JSON = f'{R}/b3_training/eval_B3_20000.json'
+OUT_JSON = f'{R}/b3_training/eval_B3_50000.json'
 
 assert os.path.exists(CHECKPOINT), f'checkpoint not found: {CHECKPOINT}'
 assert os.path.exists(DATASET), f'dataset not found: {DATASET}'

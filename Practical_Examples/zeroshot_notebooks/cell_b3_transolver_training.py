@@ -29,17 +29,17 @@
 #  real controlled test, not assumed. OUTPUT_SCALE stays at 0.02
 #  unchanged.
 #
-#  The much more likely real cause, found by direct comparison with the
-#  project's own working precedent: B2's own successful training
-#  (train_B2.py's defaults, --epochs 10000 x --ntrain 35 x --batch_size
-#  1) runs roughly 350,000 real gradient steps. The first two B3 runs
-#  used only 2000 -- about 175x fewer. This run raises n_iters to 20000
-#  (10x the second run, still ~17x short of B2's own precedent, chosen
-#  as a first real checkpoint on the way there rather than committing a
-#  full ~8-hour run blind) to test whether simply training longer, with
-#  nothing else changed, closes most of the accuracy gap -- a real,
-#  cheap-to-test hypothesis, backed by a real precedent number, tried
-#  before any architecture change.
+#  REAL PRECEDENT NUMBERS, from this project's own actually-recorded B1/B2
+#  runs (point7a_results/*.json, not the argparse defaults): B1's three
+#  cases reached their best checkpoint at 57,500 (mooney_rivlin), 65,000
+#  (neo_hookean) and 70,000 (arruda_boyce) gradient steps, at ~5-10%
+#  per-component error. B2's neo_hookean case reached 3.3% per-component
+#  error only at 275,000 steps. B3's first two runs used just 2000 steps
+#  -- nowhere close. Omar's call (2026-09-26): skip an intermediate
+#  20,000-step checkpoint and go straight to 50,000 -- still short of
+#  every real precedent above, but the largest single run worth
+#  committing to before re-diagnosing, rather than spending two separate
+#  GPU sessions to get there in stages.
 #
 #  The checkpoint from the FIRST run (before the OUTPUT_SCALE fix)
 #  remains invalid/diverged. The SECOND run's checkpoint_2000.pt is
@@ -123,19 +123,20 @@ OUTPUT_DIR = f'{R}/b3_training'
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 args = get_args([
-    '--n_iters', '20000',
+    '--n_iters', '50000',
     '--batch_size', '8',
-    '--log_every', '200',
-    '--ckpt_every', '2000',
+    '--log_every', '500',
+    '--ckpt_every', '5000',
     '--output_dir', OUTPUT_DIR,
 ])
 print(f'\nTraining at {DEFAULT_RESOLUTION} -> '
       f'{(DEFAULT_RESOLUTION[0]-1)*(DEFAULT_RESOLUTION[1]-1)*(DEFAULT_RESOLUTION[2]-1)} elements, '
       f'{args.n_iters} iterations, batch_size={args.batch_size}, checkpoints -> {OUTPUT_DIR}')
-print('This is the THIRD real GPU run -- same stable loop as run 2, 10x longer, testing '
-      'whether more gradient steps (still short of B2\'s own ~350,000-step precedent) '
-      'closes the accuracy gap found by evaluating run 2\'s checkpoint. Expect roughly '
-      '10x run 2\'s wall-clock time (run 2: 280s for 2000 iters).')
+print('This is the THIRD real GPU run -- same stable loop as run 2, 25x longer. Testing '
+      'whether more gradient steps closes the accuracy gap found by evaluating run 2\'s '
+      'checkpoint, at a budget close to (though still short of) this project\'s own real '
+      'B1/B2 precedent (57,500-275,000 steps at their best checkpoints). Expect roughly '
+      '25x run 2\'s wall-clock time (run 2: 280s for 2000 iters -> ~2 hours).')
 
 torch.cuda.reset_peak_memory_stats(device)
 t0 = time.time()
@@ -159,16 +160,20 @@ try:
                     outputs=[f'{OUTPUT_DIR}/checkpoint_{args.n_iters}.pt'],
                     notes="Third real GPU run of train_B3.py's Deep Energy Method training "
                           "loop -- same stable loop as run 2 (OUTPUT_SCALE=0.02 fix in "
-                          "place), 10x more iterations (20000 vs 2000). Run 2's checkpoint "
-                          "was numerically stable but evaluated poorly against real FEM "
-                          "ground truth (evaluate_B3.py: combined rel L2 35.7%, uy 99.95%). "
-                          "A controlled toy-scale diagnostic falsified the hypothesis that "
-                          "OUTPUT_SCALE itself was capping accuracy (a 10x larger and a "
-                          "learnable scale both failed to help, and slightly hurt ux/uz), "
-                          "so this run instead tests the much more likely cause found by "
-                          "direct comparison with train_B2.py's own precedent: B2's default "
-                          "training runs ~350,000 gradient steps, B3's first two runs used "
-                          "only 2000 -- about 175x fewer.")
+                          "place), 25x more iterations (50000 vs 2000, skipping an "
+                          "intermediate 20000-step checkpoint per Omar's call to avoid two "
+                          "separate GPU sessions). Run 2's checkpoint was numerically stable "
+                          "but evaluated poorly against real FEM ground truth "
+                          "(evaluate_B3.py: combined rel L2 35.7%, uy 99.95%). A controlled "
+                          "toy-scale diagnostic falsified the hypothesis that OUTPUT_SCALE "
+                          "itself was capping accuracy (a 10x larger and a learnable scale "
+                          "both failed to help, and slightly hurt ux/uz), so this run "
+                          "instead tests the much more likely cause found by direct "
+                          "comparison with this project's own real B1/B2 training records "
+                          "(point7a_results/*.json): B1's three cases reached their best "
+                          "checkpoint at 57,500-70,000 steps (~5-10% error), B2's "
+                          "neo_hookean case at 275,000 steps (3.3% error) -- B3's first two "
+                          "runs used only 2000 steps.")
 except Exception as e:
     print(f'[manifest] not recorded: {e}')
 

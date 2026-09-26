@@ -1245,21 +1245,41 @@ finishes or a new one starts.
 >   **Action taken**: `cell_b3_transolver_training.py` /
 >   `B3_Transolver_Training.ipynb` updated for a THIRD real GPU run --
 >   same stable loop (`OUTPUT_SCALE=0.02` unchanged), `n_iters` raised
->   from 2000 to **20,000** (10x, still ~17x short of B2's own
->   precedent -- a first real checkpoint on the way there, not a blind
->   commitment to an ~8-hour run), `log_every`/`ckpt_every` adjusted
->   (200/2000) to keep the longer run's output manageable. Expected
->   wall-clock: ~47 minutes (10x run 2's 280s, same 0.14s/iteration).
->   `cell_b3_evaluate.py`/`B3_Evaluate.ipynb` updated to point at
->   `checkpoint_20000.pt` (new run's output). Both notebooks rebuilt and
+>   from 2000 to 20,000 initially.
+>
+>   **Correction + real precedent numbers, 2026-09-26 (before any GPU
+>   time was spent on the 20,000-iteration plan)**: the "~350,000 steps"
+>   figure used above for B2 was from `train_B2.py`'s argparse *default*
+>   (`--epochs 10000 x --ntrain 35 x --batch_size 1`), not a verified
+>   real run. Checked this project's own actually-recorded results
+>   instead (`point7a_results/*.json`, `opt_steps_at_best` field, not
+>   assumed): **B1's three real cases reached their best checkpoint at
+>   57,500 (mooney_rivlin), 65,000 (neo_hookean) and 70,000
+>   (arruda_boyce) gradient steps, at ~5-10% per-component error. B2's
+>   neo_hookean case reached 3.3% per-component error (2.14% both-
+>   components) only at 275,000 steps** (it did reach 350,000 total
+>   before early-stopping, matching the earlier default-based guess by
+>   coincidence, but 275,000 is the actual best-checkpoint number). B3's
+>   first two runs used only 2,000 steps -- about 29x short of even the
+>   *weakest* successful precedent (B1 x mooney_rivlin).
+>
+>   **Omar's call**: skip the intermediate 20,000-iteration checkpoint
+>   (avoid spending two separate ~1-hour+ GPU sessions to get there in
+>   stages) and commit directly to **50,000 iterations** -- still short
+>   of every real precedent above, but the largest single run worth
+>   committing to before re-diagnosing. `cell_b3_transolver_training.py`
+>   updated: `n_iters=50000`, `log_every=500`, `ckpt_every=5000` (10
+>   checkpoints, evenly divides 50000). Expected wall-clock: ~2 hours
+>   (25x run 2's 280s, same ~0.14s/iteration). `cell_b3_evaluate.py`
+>   updated to point at `checkpoint_50000.pt`. Both notebooks rebuilt and
 >   verified 108/108 via `check_notebooks.py`.
 >
 >   **Not yet done**: Omar needs to run the updated
->   `B3_Transolver_Training.ipynb` (20,000 iterations, ~47 min) and then
->   the updated `B3_Evaluate.ipynb` against `checkpoint_20000.pt`. If
->   uy is still stuck near 100% error after 10x more training, that
->   would point away from "just needs more steps" and toward a real
->   design issue specific to uy's Dirichlet-BC construction (it has no
+>   `B3_Transolver_Training.ipynb` (50,000 iterations, ~2h) and then the
+>   updated `B3_Evaluate.ipynb` against `checkpoint_50000.pt`. If uy is
+>   still stuck near 100% error after 25x more training, that would
+>   point away from "just needs more steps" and toward a real design
+>   issue specific to uy's Dirichlet-BC construction (it has no
 >   particular/BC term at all, unlike ux/uz) needing a genuine fix, not
 >   just more iterations.
 >
