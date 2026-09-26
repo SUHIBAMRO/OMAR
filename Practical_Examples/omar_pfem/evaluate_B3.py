@@ -39,6 +39,7 @@ import numpy as np
 import torch
 
 from omar_pfem.train_B3 import build_fixed_geometry, apply_dirichlet_b3, build_model
+from omar_pfem.train_B1 import _apply_input_norm, install_input_norm_for_checkpoint
 from omar_pfem.data.data_generate_B3_dataset import DEFAULT_RESOLUTION
 
 
@@ -63,6 +64,7 @@ def evaluate_accuracy(model, geom, E_node, nu_node, phi, u_exact, device, dtype,
 
         fun_material = torch.stack(
             [E_batch, nu_batch, phi_batch[:, None].expand(-1, geom["n_nodes"])], dim=2)
+        fun_material = _apply_input_norm(fun_material)
         xyz_batch = xyz.unsqueeze(0).expand(b, -1, -1)
         u_net = model(xyz_batch, fun_material)
         u_pred = apply_dirichlet_b3(u_net, geom, phi_batch)
@@ -96,6 +98,7 @@ def benchmark_inference_latency_B3(model, geom, E_node, nu_node, phi, device, dt
     nu1 = nu_node[0:1].to(device=device, dtype=dtype)
     phi1 = phi[0:1].to(device=device, dtype=dtype)
     fun_material = torch.stack([E1, nu1, phi1[:, None].expand(-1, geom["n_nodes"])], dim=2)
+    fun_material = _apply_input_norm(fun_material)
 
     def _one_call():
         u_net = model(xyz, fun_material)
@@ -153,6 +156,8 @@ def main():
           f"(must match the resolution the checkpoint was trained at)...")
     geom = build_fixed_geometry(Ntheta, Nr, Nz, device, dtype=dtype)
     print(f"  {geom['n_elements']} elements, {geom['n_nodes']} nodes")
+
+    install_input_norm_for_checkpoint(args.checkpoint)
 
     model = build_model(ckpt_args, device).to(dtype)
     model.load_state_dict(ckpt["model_state"])

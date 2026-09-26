@@ -35,6 +35,7 @@ native batching, rather than that function's own per-element/vmap form.
 No custom shape-function or Jacobian code was written from scratch.
 """
 import argparse
+import json
 import os
 import time
 
@@ -48,6 +49,14 @@ from omar_pfem.data.data_generate_B3_dataset import (
 )
 from omar_pfem.data.mesh_convergence_B3 import R_IN0, R_OUT, LZ
 from omar_pfem.model_dict import get_model
+# Input-channel standardization: same generic, channel-agnostic mechanism
+# B1/B2 already use (one module-level state, no-op unless installed) --
+# reused as-is rather than reimplemented. B3's own compute_input_norm_b3
+# below builds the stats dict in the same {"mean","std",...} format from
+# a large reference batch of the sampling distribution, since B3 (unlike
+# B1/B2) has no fixed finite training-sample list to compute over.
+from omar_pfem.train_B1 import (  # noqa: F401  (re-exported for callers)
+    _apply_input_norm, get_input_norm, install_input_norm_for_checkpoint, set_input_norm)
 
 
 def build_fixed_geometry(Ntheta, Nr, Nz, device, dtype=torch.float64):
@@ -266,6 +275,37 @@ def sample_batch(batch_size, Ntheta, Nr, Nz, seed_offset, dtype, device,
     return E_node, nu_node, phi
 
 
+def compute_input_norm_b3(Ntheta, Nr, Nz, n_reference_samples, dtype, device,
+                           seed_offset=10_000_000):
+    """Per-channel mean/std over a large reference batch drawn from the
+    exact same sampling distribution sample_batch() uses for training --
+    B3 has no fixed finite training-sample list to compute over (unlike
+    B1/B2's Train_samples), so this is the closest equivalent: a large
+    seed_offset (numpy RandomState requires non-negative seeds, so this
+    can't just be negative), far above the real training seeds (at most
+    ~400,007 for a 50,000-iteration run at batch_size=8) and the held-out
+    FEM datasets' seeds (0-99 and 999990-1000089), so computing these
+    statistics never touches either.
+    Returns the same {"mean","std",...} dict format
+    install_input_norm_for_checkpoint/_apply_input_norm expect."""
+    E_node, nu_node, phi = sample_batch(n_reference_samples, Ntheta, Nr, Nz,
+                                         seed_offset=seed_offset, dtype=dtype, device=device)
+    E = E_node.reshape(-1).cpu().numpy()
+    nu = nu_node.reshape(-1).cpu().numpy()
+    phi_np = phi.cpu().numpy()
+    cols = [E, nu, phi_np]
+    names = ["E", "nu", "phi"]
+    mean = [float(c.mean()) for c in cols]
+    std = [float(c.std()) for c in cols]
+    constant = []
+    for i, s in enumerate(std):
+        if s <= 1e-12 * max(1.0, abs(mean[i])):
+            constant.append(names[i])
+            mean[i], std[i] = 0.0, 1.0
+    return {"mean": mean, "std": std, "n_samples": n_reference_samples,
+            "fun_dim": 3, "channels": names, "constant_channels_passed_through": constant}
+
+
 def train(args, device, dtype=torch.float64, resolution=None):
     Ntheta, Nr, Nz = resolution or DEFAULT_RESOLUTION
     geom = build_fixed_geometry(Ntheta, Nr, Nz, device, dtype=dtype)
@@ -277,12 +317,38 @@ def train(args, device, dtype=torch.float64, resolution=None):
     xyz = geom["nodes"]  # (N,3), reference coordinates, shared across the batch
 
     os.makedirs(args.output_dir, exist_ok=True)
+
+    # Input normalization -- see compute_input_norm_b3's own docstring for
+    # why the reference batch uses a disjoint negative seed range. Installed
+    # BEFORE the training loop so every forward pass (training and any
+    # later evaluation that calls install_input_norm_for_checkpoint) sees
+    # the same transform.
+    norm_path = os.path.join(args.output_dir, "input_norm.json")
+    if int(getattr(args, "normalize_inputs", 0)):
+        if os.path.exists(norm_path):
+            with open(norm_path) as f:
+                norm_stats = json.load(f)
+            print(f"[input-norm] reusing {norm_path} from an earlier run")
+        else:
+            norm_stats = compute_input_norm_b3(Ntheta, Nr, Nz, n_reference_samples=200,
+                                                dtype=dtype, device=device)
+            with open(norm_path, "w") as f:
+                json.dump(norm_stats, f, indent=1)
+            print(f"[input-norm] computed from {norm_stats['n_samples']} reference "
+                  f"samples and written to {norm_path}")
+        set_input_norm(norm_stats)
+        for c, m, s in zip(norm_stats["channels"], norm_stats["mean"], norm_stats["std"]):
+            print(f"[input-norm]   {c:>3}: mean={m:12.5f}  std={s:12.5f}")
+    else:
+        set_input_norm(None)
+
     t0 = time.time()
     for it in range(1, args.n_iters + 1):
         E_node, nu_node, phi = sample_batch(args.batch_size, Ntheta, Nr, Nz,
                                              seed_offset=it * args.batch_size,
                                              dtype=dtype, device=device)
         fun_material = torch.stack([E_node, nu_node, phi[:, None].expand(-1, geom["n_nodes"])], dim=2)
+        fun_material = _apply_input_norm(fun_material)
 
         xyz_batch = xyz.unsqueeze(0).expand(args.batch_size, -1, -1)
         u_net = model(xyz_batch, fun_material)
@@ -325,6 +391,14 @@ def get_args(argv=None):
     p.add_argument("--log_every", type=int, default=50)
     p.add_argument("--ckpt_every", type=int, default=500)
     p.add_argument("--output_dir", type=str, default="b3_training_output")
+    p.add_argument("--normalize_inputs", type=int, default=0,
+                    help="Standardize E/nu/phi (each to mean 0, std 1) before feeding the "
+                         "network, using stats from a reference batch of the sampling "
+                         "distribution (see compute_input_norm_b3). Off by default, matching "
+                         "train_B1.py/train_B2.py's own convention -- every B3 result to date "
+                         "was produced without it. Saved to input_norm.json in --output_dir; "
+                         "evaluation scripts must call install_input_norm_for_checkpoint on "
+                         "that checkpoint's own directory before running inference.")
     return p.parse_args(argv)
 
 

@@ -36,6 +36,7 @@ import numpy as np
 import torch
 
 from omar_pfem.train_B3 import build_fixed_geometry, build_model
+from omar_pfem.train_B1 import install_input_norm_for_checkpoint
 from omar_pfem.data.data_generate_B3_dataset import DEFAULT_RESOLUTION
 from omar_pfem.evaluate_B3 import evaluate_accuracy, benchmark_inference_latency_B3
 
@@ -86,6 +87,7 @@ def main():
         if not os.path.exists(ckpt_path):
             print(f"[{it}] SKIPPED -- not found: {ckpt_path}")
             continue
+        install_input_norm_for_checkpoint(ckpt_path)
         ckpt = torch.load(ckpt_path, map_location=device)
         ckpt_args = argparse.Namespace(**ckpt["args"])
         model = build_model(ckpt_args, device).to(dtype)
@@ -116,6 +118,7 @@ def main():
 
     print("\nRunning inference-latency benchmark on the best checkpoint...")
     best_ckpt_path = os.path.join(args.checkpoint_dir, f"checkpoint_{best['iter']}.pt")
+    install_input_norm_for_checkpoint(best_ckpt_path)
     ckpt = torch.load(best_ckpt_path, map_location=device)
     ckpt_args = argparse.Namespace(**ckpt["args"])
     model = build_model(ckpt_args, device).to(dtype)
