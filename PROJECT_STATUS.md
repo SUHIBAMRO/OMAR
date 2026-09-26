@@ -1403,6 +1403,29 @@ finishes or a new one starts.
 >   geometry (secondary out-of-plane field much smaller than the primary
 >   rocking-plane fields), rather than forcing a fix.
 >
+>   **Sixth diagnostic -- quantified the mechanism directly, 2026-09-26**:
+>   `diagnose_energy_contribution.py` measures the actual ENERGY GAP each
+>   error source costs, using the real FEM ground truth directly (no
+>   trained network at all, so this is a property of the loss landscape
+>   itself, not of any optimizer run). At the real production loss
+>   function: zeroing uy completely while keeping ux/uz EXACT costs a
+>   mean energy gap of 4.41e-2 (range 3.1-7.0% of the corrupted-ux/uz gap
+>   across 8 real samples); corrupting ux/uz by ~30% (matching the real
+>   evaluate_B3.py numbers) while uy stays zero costs 1.08 -- **about 24x
+>   more**. This is a direct, quantitative confirmation of the theory:
+>   even in the best case (perfect ux/uz), dropping uy entirely costs
+>   only ~4% of what the network's own actual ux/uz error already costs,
+>   so pure energy minimization has very little gradient pressure to fix
+>   uy while ux/uz remain this far from converged.
+>
+>   **Follow-up test running now**: if the theory is right, uy's share of
+>   the energy gap should grow once ux/uz get much closer to converged.
+>   `diagnose_long_fixed_pool.py` extends the fixed-8-sample overfitting
+>   test to 8,000 iterations (vs. 1,500-3,000 tried before) on the
+>   easiest possible sub-problem, to see how low ux/uz can actually go
+>   with much more optimization, and whether uy starts moving once they
+>   do.
+>
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
 >   Summary and then confirm everything real is reflected in the report
