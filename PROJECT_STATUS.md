@@ -1274,14 +1274,27 @@ finishes or a new one starts.
 >   updated to point at `checkpoint_50000.pt`. Both notebooks rebuilt and
 >   verified 108/108 via `check_notebooks.py`.
 >
->   **Not yet done**: Omar needs to run the updated
->   `B3_Transolver_Training.ipynb` (50,000 iterations, ~2h) and then the
->   updated `B3_Evaluate.ipynb` against `checkpoint_50000.pt`. If uy is
->   still stuck near 100% error after 25x more training, that would
->   point away from "just needs more steps" and toward a real design
->   issue specific to uy's Dirichlet-BC construction (it has no
->   particular/BC term at all, unlike ux/uz) needing a genuine fix, not
->   just more iterations.
+>   **🎉 THIRD RUN SUCCEEDED, 2026-09-26**: Omar ran the 50,000-iteration
+>   `B3_Transolver_Training.ipynb` for real on GPU. Loss stayed healthy
+>   throughout all 50,000 iterations (roughly 0.83-4.9, no runaway climb
+>   at any point, matching run 2's stability pattern), ending at 1.48.
+>   Total time **6911.2s (1h 55m 20s)**, 0.138s/iteration -- essentially
+>   identical per-iteration cost to run 2's 0.140s/iteration, confirming
+>   the 25x longer run scales linearly with no slowdown. GPU peak memory
+>   12099.4MB allocated / 13484.7MB reserved (same as run 2, as
+>   expected -- more iterations, not more memory per iteration).
+>   `checkpoint_50000.pt` saved under
+>   `/content/drive/MyDrive/pfem_run/b3_training/`.
+>
+>   **Not yet done**: Omar needs to run `B3_Evaluate.ipynb` (already
+>   pointed at `checkpoint_50000.pt`) to get the real accuracy numbers.
+>   The healthy loss curve again says nothing about accuracy by itself --
+>   this is the same lesson from run 2, not assumed fixed just because
+>   training finished cleanly. If uy is still stuck near 100% error after
+>   25x more training (2,000 -> 50,000 steps), that would point away from
+>   "just needs more steps" and toward a real design issue specific to
+>   uy's Dirichlet-BC construction (it has no particular/BC term at all,
+>   unlike ux/uz) needing a genuine fix, not just more iterations.
 >
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
