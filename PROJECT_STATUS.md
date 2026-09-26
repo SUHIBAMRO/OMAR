@@ -1197,14 +1197,71 @@ finishes or a new one starts.
 >   shapes/dtypes/checkpoint-loading/dataset-loading all wire together
 >   correctly through the real functions, not a mocked stand-in.
 >
->   **Not yet done**: Omar needs to run `B3_Evaluate.ipynb` on GPU against
->   the real `checkpoint_2000.pt` + the real 100-sample `dataset.h5` to
->   get the actual production accuracy/latency numbers. Only after those
->   real numbers exist can Section 11 record B3's actual accuracy -- the
->   healthy training loss curve alone does not imply acceptable accuracy.
->   If the relative-L2 error turns out too high, the next step is
->   re-tuning hyperparameters (more iterations, different lr/model size)
->   and retraining, not assuming the current checkpoint is final.
+>   **🚨 REAL GPU EVALUATION RESULT, 2026-09-26: accuracy is poor.**
+>   Omar ran `B3_Evaluate.ipynb` on GPU against `checkpoint_2000.pt`
+>   (run 2) and the real 100-sample `dataset.h5`. Confirms the standing
+>   warning above: the healthy training loss curve said nothing about
+>   accuracy. Real relative L2 error: **ux=32.0%, uy=99.95%, uz=36.8%,
+>   combined=35.7%**. Inference speed is genuinely good (6.32ms/sample
+>   vs FEM's 5204ms/sample, 823x) but the displacement field itself is
+>   not close to the true FEM solution -- these numbers are far too high
+>   to report as a validated result. uy in particular is essentially
+>   zero-predicted (relative error ~1.0 = prediction uncorrelated with
+>   the true field).
+>
+>   **Diagnostic before changing anything, not a guess**: verified
+>   locally (real torch-fem solve, production resolution, CPU) that the
+>   true uy field is NOT supposed to be near zero -- it's a real,
+>   smaller-magnitude secondary field (rms ~1.0e-3 vs ux's ~8.0e-3 and
+>   uz's ~1.19e-2, about 8-12x smaller, from the groove's angular
+>   asymmetry), so the 99.95% error is a genuine prediction failure, not
+>   a metric artifact from a target that's actually zero.
+>
+>   **Falsified hypothesis (real controlled test, 2026-09-26)**: tested
+>   whether the frozen `OUTPUT_SCALE=0.02` constant (added for the
+>   run-1 instability fix) was capping achievable accuracy for all 3
+>   components, since uy's entire value comes from the network's own
+>   ramp-scaled output with no particular/BC term to carry it (unlike
+>   ux/uz). Toy-scale diagnostic
+>   (`/tmp/.../scratchpad/diagnose_output_scale_ceiling.py`, real FEM
+>   validation set, real training loop, 500 iterations each, same
+>   seed): (A) frozen 0.02 -> combined rel L2 0.306; (B) frozen 0.2 (10x
+>   larger) -> 0.354; (C) learnable scale initialized at 0.02 -> 0.371.
+>   **uy stayed stuck near 1.0 in all three variants**, and the
+>   larger/learnable scale made ux/uz slightly WORSE, not better. This
+>   hypothesis is FALSIFIED by a real experiment -- `OUTPUT_SCALE` was
+>   left unchanged at 0.02 in `train_B3.py`.
+>
+>   **More likely real cause, found by direct comparison with this
+>   project's own working precedent**: `train_B2.py`'s own successful
+>   training runs `--epochs 10000` over `--ntrain 35` samples at
+>   `--batch_size 1` -- roughly **350,000 real gradient steps**. B3's
+>   first two runs used only **2000** -- about **175x fewer**. This gap
+>   is large enough on its own to plausibly explain both the moderate
+>   ux/uz error and uy's near-total failure (a smaller-magnitude
+>   secondary field plausibly needs more steps to resolve against the
+>   dominant ux/uz field in an unsupervised energy-minimization loss).
+>
+>   **Action taken**: `cell_b3_transolver_training.py` /
+>   `B3_Transolver_Training.ipynb` updated for a THIRD real GPU run --
+>   same stable loop (`OUTPUT_SCALE=0.02` unchanged), `n_iters` raised
+>   from 2000 to **20,000** (10x, still ~17x short of B2's own
+>   precedent -- a first real checkpoint on the way there, not a blind
+>   commitment to an ~8-hour run), `log_every`/`ckpt_every` adjusted
+>   (200/2000) to keep the longer run's output manageable. Expected
+>   wall-clock: ~47 minutes (10x run 2's 280s, same 0.14s/iteration).
+>   `cell_b3_evaluate.py`/`B3_Evaluate.ipynb` updated to point at
+>   `checkpoint_20000.pt` (new run's output). Both notebooks rebuilt and
+>   verified 108/108 via `check_notebooks.py`.
+>
+>   **Not yet done**: Omar needs to run the updated
+>   `B3_Transolver_Training.ipynb` (20,000 iterations, ~47 min) and then
+>   the updated `B3_Evaluate.ipynb` against `checkpoint_20000.pt`. If
+>   uy is still stuck near 100% error after 10x more training, that
+>   would point away from "just needs more steps" and toward a real
+>   design issue specific to uy's Dirichlet-BC construction (it has no
+>   particular/BC term at all, unlike ux/uz) needing a genuine fix, not
+>   just more iterations.
 >
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the

@@ -1,34 +1,55 @@
 # =====================================================================
-#  CELL -- B3 (sharper groove) Transolver training: SECOND real GPU run,
-#  after the FIRST one found and this fix resolved a real instability.
+#  CELL -- B3 (sharper groove) Transolver training: THIRD real GPU run --
+#  same stable training loop as the second run, just MUCH longer.
 #
-#  REAL INCIDENT, 2026-09-25: the first GPU run of this cell (2000
-#  iterations, production mesh/model) showed the energy loss climbing
-#  from ~13,700 to a peak over 163,000 -- not ordinary batch-to-batch
-#  noise. A controlled fixed-batch diagnostic (same 8 samples every
-#  step, no sampling noise) at the same production scale reproduced the
-#  identical climbing pattern (1,048 -> 13,095 over 25 steps), confirming
-#  a real optimization instability. Root cause, found by direct
-#  measurement: the untrained network's raw output (mean abs ~0.31) was
-#  5-50x larger than the real, physically-expected displacement
-#  magnitude (~0.01-0.06, from the already-generated FEM dataset),
-#  pushing element deformation gradients into the steep, singular region
-#  of the Neo-Hookean energy near det(F)->0. Fixed in train_B3.py
-#  (`OUTPUT_SCALE = 0.02`, applied in `apply_dirichlet_b3`) -- see that
-#  module's own docstring for the full incident record. The SAME
-#  fixed-batch diagnostic, re-run at the SAME production scale with this
-#  fix, now settles quickly to a stable plateau (~2.55-2.6) instead of
-#  climbing without bound -- confirmed before trusting this second GPU
-#  run, not assumed fixed.
+#  REAL INCIDENT, 2026-09-25 (first run): loss climbed from ~13,700 to a
+#  peak over 163,000 -- a real optimization instability, root-caused to
+#  the untrained network's raw output (~0.31) being 5-50x larger than
+#  the true displacement scale (~0.01-0.06), pushing element deformation
+#  gradients into the singular region of the Neo-Hookean energy near
+#  det(F)->0. Fixed via `OUTPUT_SCALE = 0.02` in train_B3.py's
+#  `apply_dirichlet_b3` -- see that module's docstring for the full
+#  record. The second run (2000 iterations, with the fix) was stable
+#  throughout (loss ~1.6-5.1, ending 1.56) -- confirmed the instability
+#  was gone.
 #
-#  The checkpoint(s) from the FIRST run (before this fix) should be
-#  treated as invalid/diverged -- do not use them.
+#  REAL FINDING, 2026-09-26 (second run's ACCURACY, not stability):
+#  evaluating checkpoint_2000.pt against the 100 real FEM samples
+#  (evaluate_B3.py / B3_Evaluate.ipynb) showed the loss curve being
+#  healthy said nothing about accuracy -- relative L2 error was 32.0%
+#  (ux), 99.95% (uy), 36.8% (uz), 35.7% (combined). Before assuming this
+#  needed an architecture change, a controlled toy-scale diagnostic
+#  tested whether the FROZEN OUTPUT_SCALE=0.02 was capping accuracy: a
+#  10x larger frozen scale (0.2) and a LEARNABLE scale (init 0.02, in
+#  the optimizer) were both tried at the same toy iteration budget.
+#  Neither helped -- uy stayed stuck near 100% error in every variant,
+#  and the larger/learnable scale actually made ux/uz slightly WORSE
+#  (combined rel L2 0.306 at scale=0.02 vs 0.354 at scale=0.2 vs 0.371
+#  learnable) -- so this hypothesis was FALSIFIED, not confirmed, by a
+#  real controlled test, not assumed. OUTPUT_SCALE stays at 0.02
+#  unchanged.
+#
+#  The much more likely real cause, found by direct comparison with the
+#  project's own working precedent: B2's own successful training
+#  (train_B2.py's defaults, --epochs 10000 x --ntrain 35 x --batch_size
+#  1) runs roughly 350,000 real gradient steps. The first two B3 runs
+#  used only 2000 -- about 175x fewer. This run raises n_iters to 20000
+#  (10x the second run, still ~17x short of B2's own precedent, chosen
+#  as a first real checkpoint on the way there rather than committing a
+#  full ~8-hour run blind) to test whether simply training longer, with
+#  nothing else changed, closes most of the accuracy gap -- a real,
+#  cheap-to-test hypothesis, backed by a real precedent number, tried
+#  before any architecture change.
+#
+#  The checkpoint from the FIRST run (before the OUTPUT_SCALE fix)
+#  remains invalid/diverged. The SECOND run's checkpoint_2000.pt is
+#  numerically valid (stable loss) but its accuracy is poor per the
+#  finding above -- do not treat it as a final result.
 #
 #  Because every iteration still draws a NEW random material/load batch
 #  (by design), the printed loss is still not expected to decrease
 #  monotonically iteration to iteration the way it does on a fixed
-#  batch -- watch the TREND over many logged rows, and specifically
-#  watch that it does NOT repeat the first run's runaway climb.
+#  batch -- watch the TREND over many logged rows.
 # =====================================================================
 import os
 os.environ['JAX_PLATFORMS'] = 'cpu'
@@ -102,17 +123,19 @@ OUTPUT_DIR = f'{R}/b3_training'
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 args = get_args([
-    '--n_iters', '2000',
+    '--n_iters', '20000',
     '--batch_size', '8',
-    '--log_every', '20',
-    '--ckpt_every', '200',
+    '--log_every', '200',
+    '--ckpt_every', '2000',
     '--output_dir', OUTPUT_DIR,
 ])
 print(f'\nTraining at {DEFAULT_RESOLUTION} -> '
       f'{(DEFAULT_RESOLUTION[0]-1)*(DEFAULT_RESOLUTION[1]-1)*(DEFAULT_RESOLUTION[2]-1)} elements, '
       f'{args.n_iters} iterations, batch_size={args.batch_size}, checkpoints -> {OUTPUT_DIR}')
-print('This is the FIRST real GPU run of the actual (non-fixed-batch) training loop -- '
-      'watch the first several rows closely before assuming the rest will behave the same way.')
+print('This is the THIRD real GPU run -- same stable loop as run 2, 10x longer, testing '
+      'whether more gradient steps (still short of B2\'s own ~350,000-step precedent) '
+      'closes the accuracy gap found by evaluating run 2\'s checkpoint. Expect roughly '
+      '10x run 2\'s wall-clock time (run 2: 280s for 2000 iters).')
 
 torch.cuda.reset_peak_memory_stats(device)
 t0 = time.time()
@@ -134,14 +157,18 @@ try:
                     results={'elapsed_total_s': elapsed_total,
                              's_per_iter': elapsed_total / args.n_iters},
                     outputs=[f'{OUTPUT_DIR}/checkpoint_{args.n_iters}.pt'],
-                    notes="First real GPU run of train_B3.py's actual (non-fixed-batch) "
-                          "Deep Energy Method training loop for the 3D Transolver. "
-                          "Verified locally beforehand: a full train() call ran end to "
-                          "end with no shape errors, and a fixed-batch overfitting test "
-                          "showed the energy loss decrease monotonically and plateau -- "
-                          "real confirmation the pipeline is correctly wired -- but this "
-                          "is the first time actual training (new random batch every "
-                          "iteration) has run at GPU scale.")
+                    notes="Third real GPU run of train_B3.py's Deep Energy Method training "
+                          "loop -- same stable loop as run 2 (OUTPUT_SCALE=0.02 fix in "
+                          "place), 10x more iterations (20000 vs 2000). Run 2's checkpoint "
+                          "was numerically stable but evaluated poorly against real FEM "
+                          "ground truth (evaluate_B3.py: combined rel L2 35.7%, uy 99.95%). "
+                          "A controlled toy-scale diagnostic falsified the hypothesis that "
+                          "OUTPUT_SCALE itself was capping accuracy (a 10x larger and a "
+                          "learnable scale both failed to help, and slightly hurt ux/uz), "
+                          "so this run instead tests the much more likely cause found by "
+                          "direct comparison with train_B2.py's own precedent: B2's default "
+                          "training runs ~350,000 gradient steps, B3's first two runs used "
+                          "only 2000 -- about 175x fewer.")
 except Exception as e:
     print(f'[manifest] not recorded: {e}')
 
