@@ -69,9 +69,12 @@ import torch
 print('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'none (CPU)')
 
 R = '/content/drive/MyDrive/pfem_run'
-CHECKPOINT_DIR = f'{R}/b3_training'
+# b3_training_normalized = run 4 (--normalize_inputs 1, the real fix found
+# 2026-09-26/27). Point back at b3_training for run 3's own (unnormalized)
+# checkpoints if ever needed again.
+CHECKPOINT_DIR = f'{R}/b3_training_normalized'
 DATASET = f'{R}/b3_dataset_clean_holdout/dataset.h5'
-OUT_JSON = f'{R}/b3_training/checkpoint_sweep.json'
+OUT_JSON = f'{CHECKPOINT_DIR}/checkpoint_sweep.json'
 
 assert os.path.exists(DATASET), (
     f'clean held-out dataset not found: {DATASET} -- run '
