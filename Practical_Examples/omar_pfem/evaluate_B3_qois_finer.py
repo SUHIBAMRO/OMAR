@@ -71,7 +71,9 @@ from omar_pfem.data.data_generate_B3_dataset import (
     DEFAULT_RESOLUTION, R_GRADING, solve_one_sample,
 )
 from omar_pfem.data.mesh_convergence_B3 import MIN_RELIABLE_N_P99, _theta_t_axes, _field_interpolator
-from omar_pfem.evaluate_B3_qois import build_region_mask, compute_region_cauchy_field_rel
+from omar_pfem.evaluate_B3_qois import (
+    build_region_mask, compute_region_cauchy_field_rel, compute_region_sigma_xx,
+)
 
 
 def interpolate_node_field_to_finer_mesh(field_coarse, Ntheta_c, Nr_c, Nz_c,
@@ -179,13 +181,28 @@ def main():
         field_rel_fine = compute_region_cauchy_field_rel(
             u_true_f, u_pred_f, E_f_t, nu_f_t, geom_fine, region_mask_fine_torch)
 
+        # Raw region_avg_sigma_xx (true and pred) at the FINE resolution --
+        # reusing the already-verified compute_region_sigma_xx unmodified,
+        # not new math. Needed to directly check, against this SAME
+        # sample's own coarse-resolution (6-point) true value already in
+        # qois_50000.json, whether the TRUE region-stress reference itself
+        # shifts substantially between 6,840 and this finer resolution --
+        # the key question for interpreting why region_cauchy_field_rel_fine
+        # came out higher, not lower, than at production resolution.
+        avg_true_f, _, _ = compute_region_sigma_xx(u_true_f, E_f_t, nu_f_t, geom_fine, region_mask_fine_torch)
+        avg_pred_f, _, _ = compute_region_sigma_xx(u_pred_f, E_f_t, nu_f_t, geom_fine, region_mask_fine_torch)
+
         rows.append({
             "sample_index": idx, "phi": phi,
             "force_rel_residual_fine_solve": r["force_rel_residual"],
             "region_cauchy_field_rel_fine": float(field_rel_fine[0].item()),
+            "region_avg_sigma_xx_true_fine": float(avg_true_f[0].item()),
+            "region_avg_sigma_xx_pred_fine": float(avg_pred_f[0].item()),
         })
         print(f"  [{idx + 1}/{n_samples}] fine solve force_rel_residual={r['force_rel_residual']:.2e}  "
-              f"region_cauchy_field_rel_fine={field_rel_fine[0].item():.4f}")
+              f"region_cauchy_field_rel_fine={field_rel_fine[0].item():.4f}  "
+              f"region_avg_sigma_xx_true_fine={avg_true_f[0].item():.4f}  "
+              f"region_avg_sigma_xx_pred_fine={avg_pred_f[0].item():.4f}")
 
     vals = np.array([row["region_cauchy_field_rel_fine"] for row in rows])
     vals_valid = vals[~np.isnan(vals)]
