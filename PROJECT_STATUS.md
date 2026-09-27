@@ -1753,14 +1753,45 @@ finishes or a new one starts.
 >   n_region=2) -- new stats compute without error alongside the
 >   existing ones.
 >
->   **Net honest status on QoIs**: energy and reaction moment (global/
->   boundary quantities) are accurate at run 4's checkpoint. Region
->   Cauchy stress (a local quantity, undersampled by the training mesh)
->   is not -- a real, now well-quantified gap, not a measurement
->   artifact. Per Omar's original 6-step plan, the next honest options
->   are: accept this as a documented limitation of the current training
->   resolution for this one local QoI, or pursue finer-integration
->   training (the plan's own last-resort item) -- not yet decided.
+>   **Correction, 2026-09-27 (Omar caught a second real methodology
+>   problem in the metric itself before accepting the 1683%/311% numbers
+>   above as final)**: `region_avg_sigma_xx`'s relative error -- even
+>   the robust pooled-RMS version -- divides one SIGNED, volume-weighted
+>   average against another. If the true stress field has both
+>   tension and compression within the 6-Gauss-point region, the signed
+>   average can pass near zero for reasons that have nothing to do with
+>   prediction quality (this is EXACTLY the failure mode
+>   `mesh_convergence_B3.py` already hit and fixed once before, on
+>   2026-09-21, for the FEM-vs-FEM case -- documented in that file's own
+>   code comments). Added `compute_region_cauchy_field_rel` to
+>   `evaluate_B3_qois.py`: the same fix, ported to the network-vs-FEM
+>   case -- a volume-weighted, FULL-TENSOR (not just sigma_xx) relative
+>   FIELD error, squaring each Gauss point's contribution before
+>   summing, so a near-zero signed average cannot collapse the
+>   denominator. **Verified with a real identity check before trusting
+>   it**: feeding the same field in as both "true" and "pred" gives
+>   exactly 0.0 (not just "small") for all samples -- proves no
+>   indexing/normalization bug, not just plausible-looking output.
+>   Wired into `evaluate_B3_qois.py`'s per-sample loop and summary
+>   (`region_cauchy_field_rel`, plus its mean/median/std), and into
+>   `B3_QoIs.ipynb` (rebuilt, verified 111/111 via `check_notebooks.py`).
+>   **Not yet run on the real GPU checkpoint/dataset** -- this is a new
+>   metric added to the same script, needs a fresh Colab run to get the
+>   real number.
+>
+>   **Net honest status on QoIs, pending that re-run**: energy and
+>   reaction moment (global/boundary quantities) are confirmed accurate
+>   at run 4's checkpoint. Region Cauchy stress's SCALAR metric
+>   (region_avg_sigma_xx) shows a real, large error even after removing
+>   the near-zero-denominator artifact (pooled RMS 311%, sign agreement
+>   23% -- worse than chance) -- but that scalar metric itself has the
+>   same signed-cancellation vulnerability this project already
+>   documented once before, so the honest, final read on region-stress
+>   accuracy is deferred until `region_cauchy_field_rel` (immune to that
+>   specific artifact) is measured on the real checkpoint. Do NOT retrain
+>   or change normalization before that -- displacement/energy/reaction
+>   are all confirmed strong, and this is purely a measurement-method
+>   question for one remaining QoI.
 >
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the

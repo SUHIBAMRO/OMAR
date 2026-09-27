@@ -33,15 +33,30 @@ mesh_convergence_B3.py already established for B3's FEM-side QoI study:
     physically valid -- confirmed directly (2026-09-27) to hold at
     machine precision (~1e-15) for both fields tested.
   - Fixed-region Cauchy stress (volume-weighted average + 99th
-    percentile of sigma_xx): same physical region (near the groove's
-    deepest point, continuously bonded, no BC-transition contamination)
-    and Gauss-point parametric mapping mesh_convergence_B3.py uses,
-    built ONCE (purely geometric, independent of material/displacement)
-    and reused for every sample. Deformation gradient F at each Gauss
-    point reuses the same B_op/detJ construction
-    total_potential_energy_B3 already assembles; first Piola-Kirchhoff
-    stress P = d(psi)/d(F) via autograd (exact for Neo-Hookean, no
-    closed-form transcription risk), then sigma = (1/det F) P F^T.
+    percentile of sigma_xx, AND a volume-weighted full-tensor relative
+    FIELD error): same physical region (near the groove's deepest
+    point, continuously bonded, no BC-transition contamination) and
+    Gauss-point parametric mapping mesh_convergence_B3.py uses, built
+    ONCE (purely geometric, independent of material/displacement) and
+    reused for every sample. Deformation gradient F at each Gauss point
+    reuses the same B_op/detJ construction total_potential_energy_B3
+    already assembles; first Piola-Kirchhoff stress P = d(psi)/d(F) via
+    autograd (exact for Neo-Hookean, no closed-form transcription
+    risk), then sigma = (1/det F) P F^T.
+
+    IMPORTANT (found 2026-09-27, on the real GPU result):
+    region_avg_sigma_xx's naive relative error (|pred-true|/(|true|+eps)
+    on a per-sample SIGNED average) can blow up arbitrarily when
+    tension/compression partially cancel within the region, making the
+    true signed average pass near zero for some samples -- exactly the
+    failure mode mesh_convergence_B3.py's own `cauchy_field_rel` was
+    already introduced to fix for the FEM-vs-FEM case (see that file's
+    2026-09-21 note). `compute_region_cauchy_field_rel` applies the
+    same fix here, for the network-vs-FEM case: a volume-weighted
+    full-TENSOR relative field error, squaring each Gauss point's
+    contribution before summing, so a near-zero SIGNED average cannot
+    collapse the denominator. Verified against a real true=0 identity
+    check (u_pred=u_true gives exactly 0.0, not just "small").
 
 Usage:
   python -m omar_pfem.evaluate_B3_qois \
@@ -186,6 +201,75 @@ def compute_region_sigma_xx(u, E_node, nu_node, geom, region_mask_torch):
     return region_avg, region_p99, n_region
 
 
+def compute_region_sigma_full(u, E_node, nu_node, geom, region_mask_torch):
+    """Same per-Gauss F/P/sigma construction as compute_region_sigma_xx,
+    but keeps the FULL Cauchy tensor (not just the xx component),
+    restricted to the fixed region: returns (B, n_region, 3, 3) plus the
+    region's volume weights (n_region,). Needed for the volume-weighted,
+    full-tensor relative FIELD error below -- a purely geometric
+    (material-independent) weight, so it is identical for every sample."""
+    elements = geom["elements"]
+    B_op, detJ, iweights = geom["B"], geom["detJ"], geom["iweights"]
+    n_gauss = B_op.shape[0]
+
+    ue = u[:, elements, :].permute(0, 1, 3, 2)  # (B, n_elem, 3, 8)
+    E_elem = E_node[:, elements].mean(dim=2)
+    nu_elem = nu_node[:, elements].mean(dim=2)
+    mu_elem = E_elem / (2 * (1 + nu_elem))
+    lam_elem = E_elem * nu_elem / ((1 + nu_elem) * (1 - 2 * nu_elem))
+    eye = torch.eye(3, device=u.device, dtype=u.dtype).view(1, 1, 3, 3)
+
+    sigma_per_gauss = []
+    vol_weight_per_gauss = []
+    for g in range(n_gauss):
+        H = torch.einsum("bedq,ecq->bedc", ue, B_op[g])
+        F = (eye + H).detach().requires_grad_(True)  # (B, n_elem, 3, 3)
+        psi = neo_hookean_energy_density_batched(F, mu_elem, lam_elem)
+        P, = torch.autograd.grad(psi.sum(), F, create_graph=False)
+        detF = torch.linalg.det(F).detach()
+        sigma = torch.matmul(P.detach(), F.detach().transpose(-1, -2)) / detF[..., None, None]
+        sigma_per_gauss.append(sigma)  # (B, n_elem, 3, 3)
+        vol_weight_per_gauss.append(iweights[g] * detJ[g].abs())  # (n_elem,)
+
+    sigma_all = torch.stack(sigma_per_gauss, dim=2)      # (B, n_elem, n_gauss, 3, 3)
+    vol_weight = torch.stack(vol_weight_per_gauss, dim=1)  # (n_elem, n_gauss)
+
+    sigma_region = sigma_all[:, region_mask_torch]  # (B, n_region, 3, 3)
+    w_region = vol_weight[region_mask_torch]        # (n_region,)
+    return sigma_region, w_region
+
+
+def compute_region_cauchy_field_rel(u_true, u_pred, E_node, nu_node, geom, region_mask_torch):
+    """Volume-weighted, FULL-TENSOR relative field error of Cauchy
+    stress within the fixed region:
+      sqrt(sum(w * ||sigma_pred - sigma_true||_F^2) / sum(w))
+      / sqrt(sum(w * ||sigma_true||_F^2) / sum(w))
+    per sample -- the same convention mesh_convergence_B3.py's own
+    `cauchy_field_rel` already established (after Omar's review there
+    caught an earlier signed-scalar-ratio version producing a
+    misleading, non-converging number: comparing a per-sample SIGNED
+    average against itself lets tension/compression cancel in the
+    denominator, which region_avg_sigma_xx's naive relative error above
+    is vulnerable to in exactly the same way). Squaring each Gauss
+    point's contribution before summing means a near-zero SIGNED
+    average cannot make the denominator collapse -- the denominator
+    here is a sum of squared norms, not a signed sum."""
+    sigma_true, w = compute_region_sigma_full(u_true, E_node, nu_node, geom, region_mask_torch)
+    sigma_pred, _ = compute_region_sigma_full(u_pred, E_node, nu_node, geom, region_mask_torch)
+    Batch = u_true.shape[0]
+    w_sum = w.sum()
+    if w.shape[0] == 0 or w_sum <= 0:
+        return torch.full((Batch,), float("nan"), dtype=u_true.dtype, device=u_true.device)
+
+    diff_sq = torch.sum((sigma_pred - sigma_true) ** 2, dim=(-1, -2))  # (B, n_region)
+    true_sq = torch.sum(sigma_true ** 2, dim=(-1, -2))                  # (B, n_region)
+    num = torch.sqrt((diff_sq * w[None, :]).sum(dim=1) / w_sum)
+    den = torch.sqrt((true_sq * w[None, :]).sum(dim=1) / w_sum)
+    rel = torch.where(den > 0, num / den.clamp_min(1e-300),
+                       torch.full_like(num, float("nan")))
+    return rel
+
+
 def main():
     parser = argparse.ArgumentParser(
         "Compute real physical QoIs (energy, reaction, region Cauchy stress) for a B3 checkpoint.")
@@ -253,6 +337,8 @@ def main():
         avg_true, p99_true, _ = compute_region_sigma_xx(u_true, E_b, nu_b, geom, region_mask_torch)
         avg_pred, p99_pred, _ = compute_region_sigma_xx(u_pred, E_b, nu_b, geom, region_mask_torch)
 
+        cauchy_field_rel = compute_region_cauchy_field_rel(u_true, u_pred, E_b, nu_b, geom, region_mask_torch)
+
         for i in range(end - start):
             rows.append({
                 "energy_true": U_true[i].item(), "energy_pred": U_pred[i].item(),
@@ -261,6 +347,7 @@ def main():
                 "equilibrium_residual_true": eq_true[i].item(), "equilibrium_residual_pred": eq_pred[i].item(),
                 "region_avg_sigma_xx_true": avg_true[i].item(), "region_avg_sigma_xx_pred": avg_pred[i].item(),
                 "region_p99_sigma_xx_true": p99_true[i].item(), "region_p99_sigma_xx_pred": p99_pred[i].item(),
+                "region_cauchy_field_rel": cauchy_field_rel[i].item(),
             })
         print(f"  [{end}/{n_samples}] done")
 
@@ -313,6 +400,25 @@ def main():
         print(f"  {name}: mean rel err = {mean_e:.4f} (std={std_e:.4f})  "
               f"median={median_rel:.4f}  pooled_rms={pooled_rms_rel:.4f}  "
               f"corr={corr:.4f}  sign_agree={sign_agree:.2f}")
+
+    # region_cauchy_field_rel is already a per-sample normalized ratio
+    # (volume-weighted full-tensor field error, NOT a signed-average
+    # ratio -- see compute_region_cauchy_field_rel's docstring for why
+    # this one is not vulnerable to the near-zero-denominator blowup
+    # region_avg_sigma_xx's naive relative error above is), so it is
+    # summarized directly rather than through rel_err/robust_stats.
+    cfr = np.array([r["region_cauchy_field_rel"] for r in rows])
+    cfr_valid = cfr[~np.isnan(cfr)]
+    summary["mean_region_cauchy_field_rel"] = float(np.mean(cfr_valid)) if len(cfr_valid) else float("nan")
+    summary["median_region_cauchy_field_rel"] = float(np.median(cfr_valid)) if len(cfr_valid) else float("nan")
+    summary["std_region_cauchy_field_rel"] = float(np.std(cfr_valid)) if len(cfr_valid) else float("nan")
+    summary["n_valid_region_cauchy_field_rel"] = int(len(cfr_valid))
+    print(f"  region_cauchy_field_rel (full-tensor, volume-weighted, "
+          f"NOT vulnerable to near-zero signed-average denominators): "
+          f"mean={summary['mean_region_cauchy_field_rel']:.4f}  "
+          f"median={summary['median_region_cauchy_field_rel']:.4f}  "
+          f"std={summary['std_region_cauchy_field_rel']:.4f}  "
+          f"(n_valid={summary['n_valid_region_cauchy_field_rel']}/{n_samples})")
 
     eq_true_mean = float(np.mean([r["equilibrium_residual_true"] for r in rows]))
     eq_pred_mean = float(np.mean([r["equilibrium_residual_pred"] for r in rows]))
