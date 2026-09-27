@@ -1689,14 +1689,20 @@ finishes or a new one starts.
 >   region -- far below this project's own `MIN_RELIABLE_N_P99=20`
 >   threshold (`mesh_convergence_B3.py`), so `region_p99_sigma_xx` will
 >   correctly come back NaN and `region_avg_sigma_xx` itself is a
->   statistically thin (n=6) sample. This directly confirms Omar's own
->   concern from earlier in this investigation: training integrates the
->   energy on a mesh far coarser than what B3's own mesh-convergence
->   study showed region-stress needs (~480k elements) to converge to
->   5-10% accuracy. The energy and reaction-force/moment QoIs are NOT
->   affected by this (they are global/boundary quantities, not local
->   region samples) -- only the region-stress numbers should be read
->   with this caveat in mind.
+>   statistically thin (n=6) sample. **This directly proves the
+>   region-stress EVALUATION at this resolution is insufficient to
+>   judge the 5-10% regional-Cauchy-stress target** -- it does NOT by
+>   itself prove training must move to a finer mesh (~480k elements,
+>   the resolution B3's own mesh-convergence study needed for FEM-side
+>   stress to converge). Two distinct fixes are possible: evaluate
+>   stress at a finer resolution without retraining, or retrain with
+>   finer/multi-resolution physics -- these have not yet been separated
+>   experimentally, and doing so is the honest next step (Omar's
+>   correction, 2026-09-27, of an earlier overclaim here that
+>   conflated the two). The energy and reaction-force/moment QoIs are
+>   NOT affected by this (they are global/boundary quantities, not
+>   local region samples) -- only the region-stress numbers should be
+>   read with this caveat in mind.
 >
 >   Packaged as `B3_QoIs.ipynb`, verified 111/111 via `check_notebooks.py`.
 >   Points at `checkpoint_50000.pt` (run 4) and the clean held-out set.
@@ -1792,6 +1798,41 @@ finishes or a new one starts.
 >   or change normalization before that -- displacement/energy/reaction
 >   are all confirmed strong, and this is purely a measurement-method
 >   question for one remaining QoI.
+>
+>   **Second correction, 2026-09-27 (Omar's own careful reading of
+>   `B3_QoIs.ipynb`'s markdown cell, catching two remaining overclaims
+>   before they got repeated anywhere else)**:
+>   1. The notebook's own markdown (unlike the already-correct
+>      `evaluate_B3_qois.py` docstring) still said the translation-
+>      invariance check "confirms the reaction calculation is
+>      mathematically correct." Fixed to say what is actually true: it
+>      is a sanity check against indexing/broadcasting bugs in the
+>      reaction-force code, NOT a proof of equilibrium and NOT a full
+>      correctness proof for the reaction calculation.
+>   2. The "only 6 Gauss points in the region" finding was written up as
+>      directly confirming that TRAINING itself needs a finer mesh
+>      (~480k elements). Corrected: it only proves the region-stress
+>      EVALUATION at 6,840 elements is too coarse to judge the 5-10%
+>      target -- it does NOT by itself distinguish "evaluate stress
+>      finer without retraining" from "retrain with finer/multi-
+>      resolution physics." These two explanations have not yet been
+>      separated experimentally; Omar's explicit framing (kept
+>      verbatim as the standing honest summary): *"The normalized
+>      Transolver already reproduces displacement, total strain energy,
+>      and reaction moment with high accuracy at the 6,840-element
+>      resolution. However, the prescribed groove stress region contains
+>      only six Gauss points at this resolution, below the project's
+>      established minimum for reliable percentile statistics.
+>      Therefore, the current coarse-resolution stress result is
+>      insufficient for assessing the 5-10% regional Cauchy-stress
+>      target. A finer-resolution stress evaluation, followed by a
+>      controlled test of whether finer or multi-resolution physics
+>      training is also required, is necessary."* In short: this is not
+>      a new model problem -- displacement/energy/reaction are all
+>      confirmed strong -- it is a resolution problem in the stress
+>      TEST that has to be resolved before any verdict on stress itself.
+>      Both the notebook markdown (`make_b3_qois_notebook.py`) and this
+>      file's own earlier entries above were corrected to match.
 >
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
