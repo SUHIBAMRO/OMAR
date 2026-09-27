@@ -1973,6 +1973,51 @@ finishes or a new one starts.
 >   term, a real architecture/training change, out of scope for a quick
 >   fix).
 >
+>   **Third correction, 2026-09-27 (Omar's own review of the above
+>   conclusion, before accepting "likely a DEM supervision-signal
+>   limitation" as established)**: pushed back on "the network learned
+>   to ignore the region" as a stated fact -- the accurate claim is
+>   narrower: the 6,840-element mesh AND the global-energy objective
+>   together did not give enough resolution for local stress gradients
+>   in the groove region. The cause could be resolution, could be the
+>   region's negligible weight within the total energy integral, or
+>   both -- not yet separated experimentally. Designed a clean pilot to
+>   test this directly, with an explicit decision criterion (not
+>   training loss): **`region_cauchy_field_rel`**, measured on an
+>   INDEPENDENT FEM held-out set solved fresh at the pilot's own
+>   resolution. Same architecture/normalization/distributions/
+>   hyperparameters as run 4, only resolution (-> 41,36,32, 43,400
+>   elements, 36 region points) and iteration budget (5,000, not 50,000)
+>   change. A clear drop toward 20-30% -> resolution is a real lever,
+>   worth a longer/multi-resolution run. Staying at 60-80% -> the
+>   objective itself (not mesh size) is the likely bottleneck, and 8
+>   hours should not be spent on the same idea. Explicitly NOT proposing
+>   43,400 elements as a final resolution for the paper -- the
+>   established FEM-only convergence study needs ~480k elements for the
+>   real 5-10% target.
+>
+>   **Built as `B3_Pilot_Finer_Training.ipynb`**, reusing every piece of
+>   physics/metric code unmodified (`generate_dataset`,
+>   `train`/`get_args`'s existing `resolution=` kwarg,
+>   `evaluate_B3_qois.main`'s existing `--resolution`/`--dataset`
+>   parametrization) -- only new orchestration. Registered, verified
+>   113/113 via `check_notebooks.py`. **Verified locally on CPU at toy
+>   scale end to end before any GPU time**: (1) a tiny "run 4 stand-in"
+>   checkpoint produces a real `input_norm.json`; (2) an independent
+>   held-out set solves cleanly at the finer resolution (force_rel_
+>   residual ~1.4e-14); (3) the pilot training run genuinely REUSES the
+>   copied `input_norm.json` byte-for-byte rather than recomputing it
+>   (explicitly asserted, not assumed); (4) `evaluate_B3_qois.main`
+>   evaluates the resulting checkpoint against the independent held-out
+>   set with no errors, correctly reporting `region_cauchy_field_rel`
+>   (values themselves are meaningless at this toy/15-iteration scale --
+>   only the absence of errors is the point). This same CPU run also
+>   exercised the `region_p99` code path (n_region=20, right at
+>   `MIN_RELIABLE_N_P99`) that crashed on CUDA earlier today -- runs
+>   clean on CPU as expected, though this does not re-test the CUDA
+>   device-mismatch fix itself (CPU has no device to mismatch). Not yet
+>   run on real GPU data.
+>
 >   **Second correction, 2026-09-27 (Omar's own careful reading of
 >   `B3_QoIs.ipynb`'s markdown cell, catching two remaining overclaims
 >   before they got repeated anywhere else)**:
