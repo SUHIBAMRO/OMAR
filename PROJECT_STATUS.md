@@ -1799,6 +1799,26 @@ finishes or a new one starts.
 >   are all confirmed strong, and this is purely a measurement-method
 >   question for one remaining QoI.
 >
+>   **`region_cauchy_field_rel` REAL RESULT, 2026-09-27 (same
+>   `qois_50000.json` re-run)**: mean **71.77%**, median **68.45%**
+>   (std 19.90%, n_valid=100/100). This confirms the earlier reading was
+>   right on both counts at once: (1) a large chunk of the 1683%/311%
+>   scalar numbers WAS a metric artifact -- the artifact-free full-
+>   tensor field metric is ~4x lower than even the robust pooled-RMS
+>   scalar version; (2) but ~70% is still FAR above the 5-10% target,
+>   and this metric is immune to both known artifacts (cross-sample
+>   near-zero denominators AND within-sample signed cancellation), so
+>   this remaining gap is a real signal, not (only) a measurement
+>   problem. **Important caveat this specific metric does NOT resolve**:
+>   `region_cauchy_field_rel` still compares true vs. predicted stress
+>   at the SAME 6 Gauss points (training-mesh resolution) -- it fixes
+>   how the two fields are COMPARED, not whether 6 points is enough to
+>   SAMPLE the region in the first place. So it does not yet distinguish
+>   Omar's two remaining hypotheses (evaluation-resolution artifact vs.
+>   a genuine, resolution-independent network accuracy gap) -- that
+>   still needs the finer-resolution stress evaluation Omar's own plan
+>   already named as the next step, not yet built.
+>
 >   **Second correction, 2026-09-27 (Omar's own careful reading of
 >   `B3_QoIs.ipynb`'s markdown cell, catching two remaining overclaims
 >   before they got repeated anywhere else)**:
