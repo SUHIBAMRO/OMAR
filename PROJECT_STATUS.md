@@ -1545,6 +1545,52 @@ finishes or a new one starts.
 >   input normalization, (5) real QoIs (stress/reaction/energy) on
 >   checkpoint_35000.pt specifically, not checkpoint_50000.pt.
 >
+>   **🎉 Item (4) implemented AND verified decisive, 2026-09-26/27 --
+>   the real fix, found by following through on Omar's own instinct that
+>   the numbers were "too high" and something correct/rigorous was
+>   missing, not just needing more compute.** Added `--normalize_inputs`
+>   to `train_B3.py` (off by default, matching B1/B2's own convention):
+>   standardizes E/nu/phi to mean 0/std 1 using a large reference batch
+>   from the sampling distribution (B3 has no fixed training-sample list
+>   to compute over, unlike B1/B2), reusing `train_B1.py`'s existing
+>   generic `_apply_input_norm`/`set_input_norm`/
+>   `install_input_norm_for_checkpoint` mechanism rather than
+>   reimplementing it. Wired into `evaluate_B3.py` and
+>   `evaluate_B3_checkpoint_sweep.py` so evaluation always matches
+>   whatever a checkpoint was trained under. Verified locally end to end
+>   before trusting it: stats are physically sane, a full train+evaluate
+>   round trip saves and correctly reloads the exact same stats, and
+>   existing non-normalized checkpoints still evaluate correctly
+>   (backward compatible).
+>
+>   **Then tested for real effect, not just correctness, before
+>   proposing any GPU time**: reran the exact fixed-8-sample production-
+>   model overfitting test that showed the 0.55-1.0 uy oscillation
+>   (`diagnose_long_fixed_pool.py`'s own setup), this time A/B --
+>   raw inputs vs. normalized, same seed, same 4000 iterations each.
+>
+>   | variant | ux | uy | uz | combined |
+>   |---|---|---|---|---|
+>   | A: raw (baseline) | 9.3% | 54.1% | 10.6% | 10.7% |
+>   | **B: normalized** | **0.83%** | **4.0%** | **1.2%** | **1.1%** |
+>
+>   **~10x lower combined error, and uy dropped from 54% to 4%.** Just
+>   as striking: variant B's loss curve is completely smooth and
+>   monotonic (settles at ~0.907 by iteration ~800 and stays there) --
+>   none of variant A's oscillation between healthy and ~1.0-error
+>   states appears at all. This is the clearest, most decisive result of
+>   the whole B3 investigation: three orders of magnitude of raw-input
+>   scale mismatch (E~1000, nu~0.45, phi~0.05) feeding directly into the
+>   network was very likely driving the training instability documented
+>   across five earlier diagnostics.
+>
+>   **Caveat, stated plainly**: this is still a memorization test (fixed
+>   8-sample pool, not the real streaming/generalization setting) -- a
+>   real GPU retrain with `--normalize_inputs 1`, evaluated on the clean
+>   held-out set, is the test that actually matters and has not been run
+>   yet. Proposed to Omar as the clear next step given how decisive and
+>   clean this result is.
+>
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
 >   Summary and then confirm everything real is reflected in the report
