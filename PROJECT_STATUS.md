@@ -1612,6 +1612,53 @@ finishes or a new one starts.
 >   not itself proof the fixed-pool A/B result (10.7%->1.1% combined,
 >   54.1%->4.0% uy) generalizes to the real streaming/held-out setting.
 >
+>   **🎉🎉 CONFIRMED FOR REAL, 2026-09-27: the fix generalizes.**
+>   `B3_Checkpoint_Sweep.ipynb` evaluated all 10 run-4 checkpoints
+>   against the genuinely clean held-out set (real GPU data, not a
+>   memorization test):
+>
+>   | iter | ux | uy | uz | combined |
+>   |---|---|---|---|---|
+>   | 5000 | 2.94% | 21.07% | 1.93% | 2.64% |
+>   | 10000 | 2.77% | 22.46% | 1.91% | 2.61% |
+>   | 15000 | 2.52% | 20.58% | 1.62% | 2.32% |
+>   | 20000 | 6.58% | 28.35% | 5.99% | 6.42% |
+>   | 25000 | 2.64% | 20.29% | 1.88% | 2.50% |
+>   | 30000 | 2.57% | 21.50% | 1.77% | 2.43% |
+>   | 35000 | 2.52% | 20.08% | 1.53% | 2.28% |
+>   | 40000 | 2.43% | 20.06% | 1.52% | 2.23% |
+>   | 45000 | 2.26% | 19.31% | 1.43% | 2.09% |
+>   | **50000** | **1.94%** | **16.16%** | **1.42%** | **1.88%** |
+>
+>   **checkpoint_50000.pt (the final one) is now genuinely the best**,
+>   with a clean, mostly-monotonic downward trend across training (one
+>   mild hiccup at 20000, nothing like run 3's wild swings) -- exactly
+>   the "train longer is better" behavior that was completely absent
+>   before. Compared directly to run 3's best (checkpoint_35000.pt,
+>   unnormalized): combined rel L2 **26.2% -> 1.88% (14x better)**, ux
+>   **25.2% -> 1.94% (13x better)**, uz **24.8% -> 1.42% (17x better)**,
+>   uy **93.6% -> 16.16% (5.8x better)**. Inference speed unchanged
+>   (6.32ms/sample, 800.7x FEM).
+>
+>   **uy remains the weakest component (16.2%)** -- genuinely learning
+>   real signal now (down from complete failure at ~100%), but still the
+>   least accurate of the three by a wide margin, consistent with it
+>   being the smallest-magnitude, hardest-to-prioritize component under
+>   pure energy minimization (per the earlier real energy-contribution
+>   measurement: correcting it contributes ~24x less to the loss than
+>   the other two components' own errors already did). Whether 16% uy /
+>   1.88% combined is accurate enough depends on Timon's real QoIs
+>   (stress/reaction/energy), not raw displacement alone -- not yet
+>   computed for this checkpoint.
+>
+>   **Where this leaves the investigation**: input normalization was the
+>   real, root-cause fix -- not a training-protocol bug (unlike the B2
+>   precedent), not a fundamental DEM limitation, not needing labeled
+>   supervision. The "DEM limitation" email to Timon was correctly never
+>   sent. Remaining from the original revised plan: (3) phi-only control
+>   run (now lower priority given this result, but still cheap and
+>   informative), (5) real QoIs on checkpoint_50000.pt.
+>
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
 >   Summary and then confirm everything real is reflected in the report
