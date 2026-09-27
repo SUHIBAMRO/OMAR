@@ -265,9 +265,35 @@ def main():
         print(f"  [{end}/{n_samples}] done")
 
     def rel_err(key_true, key_pred):
+        """Naive mean-of-ratios relative error. Kept for continuity with
+        B1/B2's own established convention, but this metric blows up
+        arbitrarily when |true| is near zero for some samples (a single
+        sample with true~0.004 and pred~-2.4 can dominate the mean even
+        if every other sample is accurate) -- exactly the failure mode
+        this project already documented for B2's checkpoint-selection
+        metric. See the pooled/median/correlation stats below, which are
+        NOT vulnerable to this and should be read together with this
+        one, not instead of it."""
         t = np.array([r[key_true] for r in rows])
         p = np.array([r[key_pred] for r in rows])
         return float(np.mean(np.abs(p - t) / (np.abs(t) + 1e-12))), float(np.std(np.abs(p - t) / (np.abs(t) + 1e-12)))
+
+    def robust_stats(key_true, key_pred):
+        """Metrics that stay meaningful even when some true values are
+        near zero: median of the per-sample ratio (robust to a few huge
+        outliers), a pooled RMS-based relative error
+        sqrt(mean(err^2))/sqrt(mean(true^2)) (one global ratio, no
+        per-sample division by a near-zero value), Pearson correlation,
+        and sign-agreement fraction (whether the network even gets the
+        sign of the quantity right)."""
+        t = np.array([r[key_true] for r in rows])
+        p = np.array([r[key_pred] for r in rows])
+        abs_err = np.abs(p - t)
+        median_rel = float(np.median(abs_err / (np.abs(t) + 1e-12)))
+        pooled_rms_rel = float(np.sqrt(np.mean(abs_err ** 2)) / np.sqrt(np.mean(t ** 2)))
+        corr = float(np.corrcoef(t, p)[0, 1]) if np.std(t) > 0 and np.std(p) > 0 else float("nan")
+        sign_agree = float(np.mean(np.sign(t) == np.sign(p)))
+        return median_rel, pooled_rms_rel, corr, sign_agree
 
     summary = {}
     for name, (kt, kp) in {
@@ -277,9 +303,16 @@ def main():
         "region_p99_sigma_xx": ("region_p99_sigma_xx_true", "region_p99_sigma_xx_pred"),
     }.items():
         mean_e, std_e = rel_err(kt, kp)
+        median_rel, pooled_rms_rel, corr, sign_agree = robust_stats(kt, kp)
         summary[f"mean_rel_err_{name}"] = mean_e
         summary[f"std_rel_err_{name}"] = std_e
-        print(f"  {name}: mean rel err = {mean_e:.4f} (std={std_e:.4f})")
+        summary[f"median_rel_err_{name}"] = median_rel
+        summary[f"pooled_rms_rel_err_{name}"] = pooled_rms_rel
+        summary[f"corr_{name}"] = corr
+        summary[f"sign_agree_{name}"] = sign_agree
+        print(f"  {name}: mean rel err = {mean_e:.4f} (std={std_e:.4f})  "
+              f"median={median_rel:.4f}  pooled_rms={pooled_rms_rel:.4f}  "
+              f"corr={corr:.4f}  sign_agree={sign_agree:.2f}")
 
     eq_true_mean = float(np.mean([r["equilibrium_residual_true"] for r in rows]))
     eq_pred_mean = float(np.mean([r["equilibrium_residual_pred"] for r in rows]))

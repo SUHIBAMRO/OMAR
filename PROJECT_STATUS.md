@@ -1700,7 +1700,67 @@ finishes or a new one starts.
 >
 >   Packaged as `B3_QoIs.ipynb`, verified 111/111 via `check_notebooks.py`.
 >   Points at `checkpoint_50000.pt` (run 4) and the clean held-out set.
->   Not yet run on the real GPU checkpoint/dataset.
+>
+>   **REAL GPU RUN, 2026-09-27**: Omar ran `B3_QoIs.ipynb` against
+>   `checkpoint_50000.pt` and the 100-sample clean held-out set. Result
+>   (`qois_50000.json`, all 100 samples):
+>   - `energy`: mean rel err **0.30%** (std 0.20%) -- excellent.
+>   - `reaction_moment_y`: mean rel err **2.67%** (std 2.77%) -- good.
+>   - `region_avg_sigma_xx`: mean rel err **1683.6%** (std 5828%) --
+>     catastrophic-looking. `region_p99_sigma_xx`: NaN (correctly, n=6 <
+>     `MIN_RELIABLE_N_P99=20`).
+>
+>   Given this project's own B2 checkpoint-selection precedent (a badly
+>   -behaved metric formula once produced a misleadingly catastrophic
+>   number while the real cause was mundane), the 1683% figure was NOT
+>   taken at face value. Downloaded the full 100-row `qois_50000.json`
+>   from Drive (the MCP download tool truncates large files to a local
+>   base64-in-JSON blob -- had to `base64.b64decode(raw['content'])`
+>   before `json.loads`, not parse `raw['content']` directly) and ran a
+>   real statistical breakdown of `region_avg_sigma_xx_true` vs `_pred`
+>   (n=100):
+>   - True values: range [-0.55, 1.98], mean 0.33, std 0.40 -- 10/100
+>     samples have `|true| < 0.05` (near-zero denominators genuinely
+>     present and do inflate the naive mean-of-ratios metric: median of
+>     the same per-sample ratios is 383%, and a denominator-free pooled
+>     metric `sqrt(mean(err^2))/sqrt(mean(true^2))` is 311% -- both far
+>     lower than the 1684% mean, confirming the naive metric IS
+>     partly a statistical artifact, same failure mode as B2's old
+>     selection metric).
+>   - **But even the robust 311% pooled-RMS number is still catastrophic
+>     -- this is a real accuracy failure, not just a metric artifact.**
+>     Pred values: range [-4.05, 5.15], mean **-0.95**, std 1.10 -- the
+>     network's region-stress predictions are both much larger in
+>     magnitude and strongly negatively biased relative to the true
+>     values. Correlation(true, pred) = **0.44** (weak). Sign agreement
+>     = **23%** -- WORSE than chance (50%): the network gets the sign of
+>     the region-averaged stress wrong most of the time.
+>   - **Conclusion: region-stress accuracy is genuinely poor, not an
+>     artifact of a bad metric formula** (unlike the B2 precedent) --
+>     though the metric itself WAS also misleading and has been fixed
+>     (see below). This is consistent with, and now gives real numeric
+>     teeth to, Omar's own mesh-coarseness concern: only 6 Gauss points
+>     in the region at training resolution means the energy-only DEM
+>     loss has almost no training signal there, and no explicit stress
+>     term anywhere in the loss to compensate.
+>
+>   **`evaluate_B3_qois.py`'s `rel_err()` fixed to also report median,
+>   pooled-RMS relative error, correlation, and sign-agreement for every
+>   QoI** (not just the naive mean-of-ratios), so this exact
+>   artifact-vs-real-failure question can be answered directly from the
+>   JSON next time, without a manual Drive download + ad-hoc analysis.
+>   Verified via the existing local CPU e2e test (toy resolution,
+>   n_region=2) -- new stats compute without error alongside the
+>   existing ones.
+>
+>   **Net honest status on QoIs**: energy and reaction moment (global/
+>   boundary quantities) are accurate at run 4's checkpoint. Region
+>   Cauchy stress (a local quantity, undersampled by the training mesh)
+>   is not -- a real, now well-quantified gap, not a measurement
+>   artifact. Per Omar's original 6-step plan, the next honest options
+>   are: accept this as a documented limitation of the current training
+>   resolution for this one local QoI, or pursue finer-integration
+>   training (the plan's own last-resort item) -- not yet decided.
 >
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
