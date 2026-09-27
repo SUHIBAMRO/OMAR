@@ -194,7 +194,7 @@ def compute_region_sigma_xx(u, E_node, nu_node, geom, region_mask_torch):
         sorted_w = w_flat[order]
         cum_w = torch.cumsum(sorted_w, dim=1) / w_sum
         for b in range(Batch):
-            idx99 = int(torch.searchsorted(cum_w[b], torch.tensor(0.99, dtype=u.dtype)).item())
+            idx99 = int(torch.searchsorted(cum_w[b], torch.tensor(0.99, dtype=u.dtype, device=u.device)).item())
             idx99 = min(idx99, sorted_vals.shape[1] - 1)
             region_p99[b] = sorted_vals[b, idx99]
 
