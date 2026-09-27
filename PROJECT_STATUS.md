@@ -1819,6 +1819,67 @@ finishes or a new one starts.
 >   still needs the finer-resolution stress evaluation Omar's own plan
 >   already named as the next step, not yet built.
 >
+>   **Finer-resolution stress evaluation: BUILT, 2026-09-27
+>   (`evaluate_B3_qois_finer.py`)**. Per Omar's "تفضل" go-ahead. For a
+>   chosen subset of the existing 100-sample held-out set, WITHOUT
+>   retraining: (1) interpolate that sample's already-generated
+>   (21,20,19) E/nu fields onto a much finer mesh's own node positions,
+>   reusing `mesh_convergence_B3.py`'s own `_field_interpolator`
+>   (genuine multilinear interpolation -- the SAME machinery this
+>   project already uses to compare resolutions for the FEM-vs-FEM
+>   case, now applied one level earlier, to the material field itself);
+>   (2) solve a REAL new FEM problem at the finer mesh with this
+>   interpolated field and the same phi, reusing
+>   `data_generate_B3_dataset.solve_one_sample` directly (no new solver
+>   code); (3) query the SAME trained network zero-shot at the finer
+>   mesh's node positions (same kind of cross-resolution generalization
+>   this project's B1/B2 work already relies on); (4) compute
+>   `region_cauchy_field_rel` (already resolution-agnostic, reused
+>   unmodified) at the finer mesh's own region mask -- e.g. 36 Gauss
+>   points at (41,36,32) vs. 6 at production resolution.
+>
+>   **Known, deliberate limitation of this design**: interpolating the
+>   coarse-grid GRF sample onto a finer mesh does not recover a
+>   genuinely finer physical realization -- the underlying spectral GRF
+>   generator (`grf.generate_gaussian_random_field_3d`) ties its white
+>   noise directly to the target grid shape, so the same seed at a
+>   different resolution is a DIFFERENT random field, not a refinement
+>   of the same one (confirmed by reading `grf.py` directly before
+>   assuming interpolation was even the right approach). Interpolating
+>   the already-generated coarse sample is the correct way to hold the
+>   physical problem FIXED while only refining the mesh/evaluation
+>   sampling -- exactly the question being asked here -- but it means
+>   this test isolates "does finer sampling change the measured
+>   accuracy for this fixed field," not "would training on genuinely
+>   finer-resolution physics data change the network's own predictions."
+>
+>   **Verified locally on CPU before any GPU run, in three real steps**
+>   (not assumed): (1) an IDENTITY check -- interpolating a field back
+>   onto its OWN coarse grid reproduces it exactly (max abs diff =
+>   0.0), proving the interpolation/query-point construction has no
+>   indexing bug; (2) a bounds check -- interpolating onto a finer grid
+>   keeps E and nu within their original (already-clipped-to-physical)
+>   range, since multilinear interpolation is a convex combination and
+>   cannot overshoot; (3) a full toy-scale end-to-end run (tiny coarse
+>   dataset -> brief toy training -> finer-resolution re-solve ->
+>   zero-shot network query -> `region_cauchy_field_rel`) exercising
+>   every real code path, not a stub -- passed for real: the finer
+>   toy-scale FEM re-solves converged cleanly (force_rel_residual
+>   3.2e-15 and 7.7e-14), and the finer-mesh `region_cauchy_field_rel`
+>   came back finite and sane for both toy samples (18.30, 24.38 --
+>   meaningless as a NUMBER since the toy model there is only 30
+>   iterations in, but this confirms the pipeline itself runs with no
+>   errors end to end).
+>
+>   Packaged as `B3_QoIs_Finer_Resolution.ipynb` (defaults:
+>   `--fine_resolution 41 36 32` = 43,400 elements / 36 region Gauss
+>   points, vs. 6 at production resolution; `--n_samples 10`), verified
+>   112/112 via `check_notebooks.py`. **Real per-sample GPU cost is not
+>   yet known** -- each sample needs a genuinely new nonlinear FEM solve
+>   at 6.3x the production element count, not yet timed on real
+>   hardware. Notebook's own markdown tells Omar to interrupt and retry
+>   with a smaller `--n_samples` if it is taking too long. Not yet run.
+>
 >   **Second correction, 2026-09-27 (Omar's own careful reading of
 >   `B3_QoIs.ipynb`'s markdown cell, catching two remaining overclaims
 >   before they got repeated anywhere else)**:
