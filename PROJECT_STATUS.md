@@ -1659,6 +1659,49 @@ finishes or a new one starts.
 >   run (now lower priority given this result, but still cheap and
 >   informative), (5) real QoIs on checkpoint_50000.pt.
 >
+>   **Item (5) built and verified, 2026-09-27**: `evaluate_B3_qois.py`
+>   computes Timon's actual named success criteria (total strain energy,
+>   reaction force/moment, region Cauchy stress) directly from a KNOWN
+>   displacement field (true FEM or the network's prediction) via the
+>   exact same `total_potential_energy_B3` functional training already
+>   uses -- no new FEM solve needed. Reaction force/moment at the fixed
+>   outer housing = d(energy)/d(u) via autograd there (the same
+>   variational argument any FEM solver uses internally); region Cauchy
+>   stress reuses `mesh_convergence_B3.py`'s own Gauss-point/region-mask
+>   machinery, with P=d(psi)/d(F) via autograd (no hand-transcribed
+>   closed form).
+>
+>   **Verified locally in two real steps before trusting it**: (1) a
+>   translation-invariance identity (hyperelastic energy can't see a
+>   uniform rigid translation of u, so summing d(energy)/d(u) over every
+>   node must be ~0 for ANY field, equilibrium or not) comes out at
+>   machine precision (~1e-15) on a real solved FEM field -- confirms no
+>   indexing bug in the reaction-force code, explicitly NOT a claim that
+>   this proves solution quality (a wrong first draft of this docstring
+>   said it did; corrected before committing). (2) the region-stress
+>   code path was exercised for real (not just its NaN fallback) at a
+>   resolution with a small nonzero region count, giving finite,
+>   physically sane values with no errors.
+>
+>   **Real finding from that same verification, before any GPU run**:
+>   at B3's actual production resolution (21,20,19 = 6,840 elements),
+>   only **6 Gauss points** fall in the fixed groove-neighborhood
+>   region -- far below this project's own `MIN_RELIABLE_N_P99=20`
+>   threshold (`mesh_convergence_B3.py`), so `region_p99_sigma_xx` will
+>   correctly come back NaN and `region_avg_sigma_xx` itself is a
+>   statistically thin (n=6) sample. This directly confirms Omar's own
+>   concern from earlier in this investigation: training integrates the
+>   energy on a mesh far coarser than what B3's own mesh-convergence
+>   study showed region-stress needs (~480k elements) to converge to
+>   5-10% accuracy. The energy and reaction-force/moment QoIs are NOT
+>   affected by this (they are global/boundary quantities, not local
+>   region samples) -- only the region-stress numbers should be read
+>   with this caveat in mind.
+>
+>   Packaged as `B3_QoIs.ipynb`, verified 111/111 via `check_notebooks.py`.
+>   Points at `checkpoint_50000.pt` (run 4) and the clean held-out set.
+>   Not yet run on the real GPU checkpoint/dataset.
+>
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
 >   Summary and then confirm everything real is reflected in the report
