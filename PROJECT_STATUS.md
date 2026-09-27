@@ -1880,6 +1880,99 @@ finishes or a new one starts.
 >   hardware. Notebook's own markdown tells Omar to interrupt and retry
 >   with a smaller `--n_samples` if it is taking too long. Not yet run.
 >
+>   **REAL GPU RUN 1, 2026-09-27**: `region_cauchy_field_rel` came back
+>   **HIGHER**, not lower, at the finer resolution: mean=**505.1%**,
+>   median=512.6% (36 region points, 10 samples) vs. 71.77%/68.45% at
+>   production resolution (6 points) -- the OPPOSITE of what the "6
+>   points is too few, so the number is inflated" hypothesis predicted.
+>   Ruled out a code bug in the new field-error math itself (the
+>   already-verified `compute_region_cauchy_field_rel` was reused
+>   unmodified). Added logging of the RAW `region_avg_sigma_xx` (true
+>   and pred) at the fine resolution too, to check directly against a
+>   real, independent, already-established piece of project evidence:
+>   `mesh_convergence_B3.py`'s own 2026-09-21 FEM-only convergence table
+>   found region-Cauchy-avg needs ~20,808 elements for 5% accuracy --
+>   B3's TRAINING resolution (6,840 elements) is below that bar even for
+>   the "ground truth" side, not just for network accuracy.
+>
+>   **Found a real CUDA-only bug while getting that data**:
+>   `compute_region_sigma_xx`'s p99 branch (`torch.tensor(0.99,
+>   dtype=u.dtype)` with no `device=`) only runs when
+>   `n_region >= MIN_RELIABLE_N_P99=20` -- never true before at B3's
+>   fixed 6-point production region, so this code path had never
+>   actually executed on GPU until this exact notebook. Crashed with a
+>   device-mismatch error on Omar's real run; local verification never
+>   caught it because it was CPU-only, where there is no device to
+>   mismatch. **Real lesson for this project's own verification
+>   discipline**: CPU-only local testing cannot catch CUDA-only device-
+>   placement bugs -- worth remembering for future new code paths that
+>   only get exercised at a resolution/scale not previously reached on
+>   GPU. Fixed with one line (`device=u.device`, matching the pattern
+>   already used one line above in the same function); re-verified via
+>   the existing toy end-to-end test (still CPU, so still cannot
+>   directly re-trigger the CUDA bug, but confirms no regression) before
+>   pushing.
+>
+>   **REAL GPU RUN 2, 2026-09-27 (with raw values logged)** --
+>   **decisive finding**: comparing the SAME 10 samples' TRUE
+>   `region_avg_sigma_xx` at 6,840 vs. 43,400 elements directly:
+>
+>   | sample | coarse true (6,840 el) | fine true (43,400 el) | ratio |
+>   |---|---|---|---|
+>   | 0 | 0.3090 | 0.5844 | 1.89x |
+>   | 1 | 0.2262 | 0.4690 | 2.07x |
+>   | 2 | 0.0993 | 0.2755 | 2.77x |
+>   | 3 | 0.1235 | 0.2155 | 1.74x |
+>   | 4 | 0.0069 | 0.5424 | **78.6x** |
+>   | 5 | 0.3058 | 0.5845 | 1.91x |
+>   | 6 | 0.5035 | 0.9431 | 1.87x |
+>   | 7 | -0.1052 | 0.2984 | **SIGN FLIP** |
+>   | 8 | 0.0443 | 0.9071 | **20.5x** |
+>   | 9 | 0.1838 | 0.3605 | 1.96x |
+>
+>   The TRUE region-stress reference itself is NOT a stable, reliable
+>   number at 6,840 elements -- it shifts by ~2x for most samples and by
+>   20-79x (even flipping sign) for samples where the coarse value
+>   happened to be near zero. This is real, direct, GRF-sample evidence
+>   (not just the older constant-material convergence table) that the
+>   original 71.77% field-rel number was partly comparing the network
+>   against an unreliable, non-converged target -- consistent with, and
+>   now more dramatic than, the historical convergence table's own
+>   finding.
+>
+>   **But this does NOT rescue the network** -- the opposite, if
+>   anything: the network's OWN prediction stays in a fairly consistent,
+>   large-magnitude, mostly-NEGATIVE range across both resolutions
+>   (coarse pred mean=-0.87, fine pred mean=-0.87 -- barely moves),
+>   while the TRUE value is small in magnitude and changes SIGN across
+>   samples and resolutions (consistent with real tension/compression
+>   cancellation in this specific region) -- true value mean(abs)=0.19
+>   (coarse) vs. 0.52 (fine), pred mean=-0.96 (coarse) vs. -0.87 (fine).
+>   The network is not tracking
+>   the true (small, sign-variable) local signal at either resolution --
+>   it is producing a comparatively fixed, systematically-negative
+>   output regardless. This is consistent with a genuine limitation of
+>   the Deep Energy Method's own supervision signal here: the training
+>   loss is a GLOBAL energy integral, which gives essentially no
+>   gradient signal to get a small, sign-changing LOCAL quantity right,
+>   since it contributes negligibly to the global integral either way.
+>
+>   **Honest net conclusion**: region-stress accuracy is a real, now
+>   well-evidenced gap, but its likely ROOT CAUSE is not primarily mesh
+>   resolution (training or evaluation) -- it looks more like a genuine
+>   supervision-signal limitation of energy-only DEM training for a
+>   small, locally sign-variable QoI. Refining the training mesh would
+>   likely make the TRUE target less noisy, but there is no reason to
+>   expect it alone would give the network a gradient signal it
+>   currently lacks. This reframes Omar's own two remaining hypotheses:
+>   not primarily "evaluation artifact" vs. "training resolution," but a
+>   probable third explanation -- the loss function itself doesn't
+>   constrain this specific QoI. Not yet discussed with Omar; needs his
+>   read before deciding whether this is accepted as a documented
+>   limitation or pursued further (e.g. an explicit local-stress loss
+>   term, a real architecture/training change, out of scope for a quick
+>   fix).
+>
 >   **Second correction, 2026-09-27 (Omar's own careful reading of
 >   `B3_QoIs.ipynb`'s markdown cell, catching two remaining overclaims
 >   before they got repeated anywhere else)**:
