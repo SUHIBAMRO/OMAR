@@ -1591,6 +1591,27 @@ finishes or a new one starts.
 >   yet. Proposed to Omar as the clear next step given how decisive and
 >   clean this result is.
 >
+>   **🎉 RUN 4 SUCCEEDED, 2026-09-27**: Omar ran
+>   `B3_Transolver_Training.ipynb` (50,000 iterations, `--normalize_inputs
+>   1`, real GPU). Input-norm stats computed and saved as expected
+>   (E: mean=1000.0/std=200.0, nu: mean=0.45/std=0.020,
+>   phi: mean=0.0504/std=0.0184 -- match the sampling distribution
+>   exactly). Loss stayed in a visibly TIGHTER, healthier range than run
+>   3's own unnormalized loss (run 4: roughly 0.5-1.8 throughout; run 3:
+>   0.83-4.9) -- consistent with, though not yet direct proof of, the
+>   stabilizing effect confirmed on the fixed-pool test. Total time
+>   6980.3s (1h 57m 20s), 0.140s/iteration -- essentially identical
+>   per-iteration cost to run 3, confirming normalization adds no real
+>   overhead. GPU peak memory 12018.9MB allocated/13935.6MB reserved
+>   (same as run 3). Saved to
+>   `/content/drive/MyDrive/pfem_run/b3_training_normalized/`.
+>
+>   **Not yet done**: run `B3_Checkpoint_Sweep.ipynb` (already pointed at
+>   `b3_training_normalized/`) against the clean held-out set to get the
+>   real accuracy numbers -- a tighter loss range is encouraging but is
+>   not itself proof the fixed-pool A/B result (10.7%->1.1% combined,
+>   54.1%->4.0% uy) generalizes to the real streaming/held-out setting.
+>
 >   **Work Summary regenerated + report audited for completeness gaps,
 >   2026-09-24 (commit `7b25ca1`)**: per Omar's request to update the
 >   Summary and then confirm everything real is reflected in the report
