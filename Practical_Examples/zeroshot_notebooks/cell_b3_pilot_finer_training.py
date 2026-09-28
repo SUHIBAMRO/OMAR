@@ -73,7 +73,15 @@ def run(cmd):
 
 
 from google.colab import drive
-drive.mount('/content/drive')
+# Idempotent: mount() raises "Mountpoint must not already contain files"
+# if the mountpoint still holds FUSE content from an earlier mount in
+# this same (still-alive) runtime -- e.g. re-running this cell after an
+# earlier failure, without restarting the runtime. Skip re-mounting if
+# Drive is already reachable, rather than assuming a fresh mount.
+if os.path.isdir('/content/drive/MyDrive'):
+    print('Drive already mounted at /content/drive.')
+else:
+    drive.mount('/content/drive')
 
 REPO = '/content/OMAR'
 if not os.path.isdir(REPO):

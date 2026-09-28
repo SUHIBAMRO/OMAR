@@ -53,7 +53,12 @@ def run(cmd):
 
 
 from google.colab import drive
-drive.mount('/content/drive')
+# Idempotent: mount() raises "Mountpoint must not already contain files"
+# if re-run in a still-alive runtime that already mounted Drive.
+if os.path.isdir('/content/drive/MyDrive'):
+    print('Drive already mounted at /content/drive.')
+else:
+    drive.mount('/content/drive')
 
 REPO = '/content/OMAR'
 if not os.path.isdir(REPO):
