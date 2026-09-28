@@ -143,7 +143,28 @@ from omar_pfem.train_B3 import get_args, train
 
 norm_src = f'{RUN4_DIR}/input_norm.json'
 norm_dst = f'{PILOT_DIR}/input_norm.json'
-assert os.path.exists(norm_src), f'run 4 input_norm.json not found: {norm_src}'
+
+# Colab's Drive FUSE mount can miss a file that genuinely exists if the
+# containing directory hasn't been listed/synced yet in this session
+# (a known Drive-mount quirk, confirmed here: the file was verified to
+# exist directly via the Drive API before this retry logic was added --
+# this is not a wrong path). Listing the directory first, with a couple
+# of short retries, resolves it without masking a REAL missing-file case
+# (which still fails loudly below, with the actual directory contents
+# shown, instead of a bare "not found").
+for _attempt in range(3):
+    try:
+        _listing = os.listdir(RUN4_DIR)
+    except FileNotFoundError:
+        _listing = []
+    if 'input_norm.json' in _listing:
+        break
+    print(f'  [attempt {_attempt + 1}/3] input_norm.json not visible yet in {RUN4_DIR} '
+          f'(Drive mount sync) -- contents so far: {_listing}')
+    time.sleep(3)
+assert os.path.exists(norm_src), (
+    f'run 4 input_norm.json genuinely not found after retries: {norm_src}\n'
+    f'directory contents: {os.listdir(RUN4_DIR) if os.path.isdir(RUN4_DIR) else "(directory itself missing)"}')
 shutil.copy(norm_src, norm_dst)
 print(f'\nReused run 4\'s own input_norm.json unchanged (copied to {norm_dst}) -- '
       f'"SAME normalization" per Omar\'s own diagnostic requirement, not recomputed.')
