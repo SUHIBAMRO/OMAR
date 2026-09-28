@@ -2018,6 +2018,49 @@ finishes or a new one starts.
 >   device-mismatch fix itself (CPU has no device to mismatch). Not yet
 >   run on real GPU data.
 >
+>   **Two real runtime issues hit on the first real GPU attempt, both
+>   fixed same day, neither a physics/code-correctness bug**: (1)
+>   `input_norm.json` genuinely exists at the expected path (confirmed
+>   directly via the Google Drive API -- same folder, same content as
+>   run 4's known values) but `os.path.exists()` missed it, a known
+>   Colab Drive-mount sync quirk once a folder holds many files; fixed
+>   with a short listing-based retry. (2) `drive.mount()` raised
+>   "Mountpoint must not already contain files" on a cell re-run within
+>   a still-alive runtime; fixed by skipping the mount call when Drive
+>   is already reachable. Both fixes applied to all three actively-used
+>   B3 notebooks (`B3_QoIs`, `B3_QoIs_Finer_Resolution`,
+>   `B3_Pilot_Finer_Training`), not the other ~100 unrelated notebook
+>   cells in the repo.
+>
+>   **REAL PILOT RESULT, 2026-09-28 (A100, real 20-sample independent
+>   held-out set solved fresh at 43,400 elements, real 5,000-iteration
+>   training run)**: measured cost **0.7840s/iteration** (vs. 0.1396s/
+>   iteration at production resolution -- a real ~5.6x slowdown,
+>   roughly matching the ~6.3x element-count ratio). Total pilot
+>   training: 3919.8s (~65 min). Evaluation on the independent held-out
+>   set: energy **1.22%**, reaction_moment_y **3.57%** -- both already
+>   excellent at just 5,000 iterations. But `region_cauchy_field_rel`
+>   (the decision metric) came back **mean=233.72%, median=246.49%**
+>   (n=20/20) -- WORSE than production resolution's 71.77%/68.45%, not
+>   better, and far outside either of Omar's two anticipated outcomes
+>   (drop toward 20-30%, or stay flat at 60-80%).
+>
+>   **This does NOT cleanly test the resolution hypothesis as designed,
+>   and should NOT be read as "resolution doesn't help"**: the pilot
+>   changed TWO things at once relative to run 4's checkpoint, not one
+>   -- resolution (6,840 -> 43,400 elements) AND training budget (50,000
+>   -> 5,000 iterations, a 10x cut). The loss curve itself (still
+>   bouncing between ~0.6 and ~1.8 at iteration 5000, no clear plateau)
+>   shows this checkpoint is genuinely undertrained, not converged --
+>   consistent with the region-stress QoI (a harder, more locally-
+>   sensitive target) simply not having had enough optimization steps
+>   yet, independent of whether finer resolution helps in the end. A
+>   full 50,000-iteration run at this resolution would cost an estimated
+>   **~10.9 hours** at the measured per-iteration rate (0.784s x 50,000)
+>   -- not yet committed to; needs Omar's read on how to interpret this
+>   confounded result and whether to extend the pilot's iteration budget
+>   (still far cheaper than a full run) before deciding.
+>
 >   **Second correction, 2026-09-27 (Omar's own careful reading of
 >   `B3_QoIs.ipynb`'s markdown cell, catching two remaining overclaims
 >   before they got repeated anywhere else)**:
