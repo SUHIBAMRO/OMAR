@@ -2172,7 +2172,43 @@ finishes or a new one starts.
 >      decide on this if the region-stress gap survives it.
 >   Rebuilt `B3_Region_Local_Refine.ipynb` (sweep-based), re-verified
 >   end to end on CPU (toy scale) with the new sweep API, no errors.
->   Not yet run on real GPU/production data.
+>
+>   **REAL GPU RESULT, 2026-09-29 -- DECISIVE, converges cleanly**: full
+>   sweep on the real checkpoint / 100-sample held-out set:
+>
+>   | n_sub | n_region_fine | pooled Frobenius rel. error | change from previous |
+>   |---|---|---|---|
+>   | 2 | 6 | 64.04% | -- |
+>   | 4 | 36 | 60.32% | 5.81% |
+>   | 6 | 124 | 62.39% | 3.44% |
+>   | 8 | 292 | 62.30% | **0.14%** |
+>   | 10 | 566 | 62.21% | **0.15%** |
+>   | 12 | 994 | 62.32% | **0.18%** |
+>
+>   **Stabilizes from n_sub=8 onward** (successive changes <0.2%),
+>   settling at **~62.2-62.3%** -- far above the 5-10% target. Per
+>   Timon's own stated decision criterion: this is a REAL gap, NOT a
+>   local-integration-count artifact (a true artifact would keep
+>   drifting toward 0 or keep changing as points are added; instead it
+>   converges and stays elevated). Per-component breakdown directly
+>   answers Timon's "small component inflating the error" concern: the
+>   error is dominated by the large-magnitude NORMAL stresses (sigma_xx/
+>   yy/zz, true RMS ~14-18, rel. error 0.60-0.67), not by the much
+>   smaller shear components (sigma_xy/yz/xz, true RMS ~0.11-2.6, rel.
+>   error 0.29-0.43) -- so this is not an artifact of a negligible
+>   component dominating a combined metric either.
+>
+>   **Net status**: item 1 of Timon's own staged plan (six-component
+>   audit + common Frobenius normalization + local-integration-
+>   refinement convergence check, all WITHOUT retraining) is now
+>   complete, with a clean, converged, decisive answer. Per Timon's own
+>   explicit sequencing, the next step he named is NOT multi-resolution
+>   training or a groove-specific loss term (both explicitly deferred)
+>   -- it is "a more general physics-objective extension, such as a
+>   stronger equilibrium or gradient control, in a separate ablation
+>   study." Not yet designed or discussed further with Timon -- his own
+>   phrasing was not specific enough to build from without his
+>   clarification on what exactly that ablation should test.
 >
 >   **Second correction, 2026-09-27 (Omar's own careful reading of
 >   `B3_QoIs.ipynb`'s markdown cell, catching two remaining overclaims
