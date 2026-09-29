@@ -83,6 +83,23 @@ from omar_pfem.data.data_generate_B3 import groove_R_in, groove_radius_of_curvat
 
 STRESS_COMPONENT_NAMES = ["xx", "yy", "zz", "xy", "yz", "xz"]
 
+# Cauchy stress is symmetric: the full 3x3 tensor's Frobenius norm sums
+# ALL 9 entries, which counts each off-diagonal (shear) entry TWICE
+# (sigma_xy appears at both [0,1] and [1,0], equal by symmetry). When
+# combining the SIX INDEPENDENT components into a tensor-norm-style
+# quantity, the shear components must be weighted by 2 to reproduce the
+# true ||sigma||_F^2 = xx^2+yy^2+zz^2 + 2*(xy^2+yz^2+xz^2) -- omitting
+# this (summing the six components unweighted, as an earlier version of
+# this file did) understates the true tensor norm and was caught as a
+# real bug during review (2026-09-29), before it reached any reported
+# number: the OLD full-3x3-tensor code elsewhere in this project
+# (evaluate_B3_qois.compute_region_cauchy_field_rel) already gets this
+# right automatically, since summing over a full 3x3 tensor's 9 entries
+# naturally double-counts the symmetric off-diagonal pair -- this
+# weight vector reproduces that same behavior from the reduced
+# 6-component representation.
+FROB_WEIGHTS = torch.tensor([1.0, 1.0, 1.0, 2.0, 2.0, 2.0])
+
 
 def fine_quadrature_3d(n_sub):
     """n_sub^3-point tensor-product Gauss-Legendre rule on [-1,1]^3,
@@ -205,19 +222,112 @@ def total_element_volume_check(model_sf, elements, fine_xi, fine_w, coarse_B_op,
     return vol_fine, vol_coarse
 
 
+def evaluate_at_n_sub(n_sub, u_true_all, u_pred_all, E_node_all, nu_node_all,
+                       model_sf, elements, region_ref_point, region_radius,
+                       eval_batch_size, device, dtype):
+    """One local-refinement level: returns n_region_fine, the per-
+    component report (RMS + median-abs magnitude, pooled relative
+    error, CORRECTLY Frobenius-weighted -- shear components count
+    double, matching the true symmetric-tensor norm), the single
+    dataset-wide pooled Frobenius-norm relative error, and the
+    per-sample field-relative error list."""
+    fine_xi, fine_w = fine_quadrature_3d(n_sub)
+    n_samples = u_true_all.shape[0]
+    frob_w = FROB_WEIGHTS.to(device=device, dtype=dtype)
+
+    per_sample_field_rel = []
+    sigma_true_sum_c = torch.zeros(6, dtype=dtype)
+    sigma_pred_sum_c = torch.zeros(6, dtype=dtype)
+    diff_sum_c = torch.zeros(6, dtype=dtype)
+    true_abs_all_c = [[] for _ in range(6)]  # for median|true| per component
+    pooled_w_sum = 0.0
+    n_region_fine_reported = None
+
+    for start in range(0, n_samples, eval_batch_size):
+        end = min(start + eval_batch_size, n_samples)
+        E_b = E_node_all[start:end].to(device=device, dtype=dtype)
+        nu_b = nu_node_all[start:end].to(device=device, dtype=dtype)
+        u_true = u_true_all[start:end].to(device=device, dtype=dtype)
+        u_pred = u_pred_all[start:end].to(device=device, dtype=dtype)
+
+        sigma_true, w, n_region_fine = compute_region_local_refined(
+            u_true, E_b, nu_b, model_sf, elements, fine_xi, fine_w,
+            region_ref_point, region_radius)
+        sigma_pred, _, _ = compute_region_local_refined(
+            u_pred, E_b, nu_b, model_sf, elements, fine_xi, fine_w,
+            region_ref_point, region_radius)
+        n_region_fine_reported = n_region_fine
+
+        w_sum = w.sum().item()
+        diff = sigma_pred - sigma_true  # (b, n_region_fine, 6)
+        # Frobenius-norm-style combination: shear components (indices
+        # 3,4,5 = xy,yz,xz) weighted by 2, per the true symmetric-tensor
+        # norm -- see FROB_WEIGHTS's own docstring.
+        diff_sq_sample = (diff ** 2 * frob_w).sum(dim=-1)          # (b, n_region_fine)
+        true_sq_sample = (sigma_true ** 2 * frob_w).sum(dim=-1)    # (b, n_region_fine)
+        num_sample = torch.sqrt((diff_sq_sample * w[None, :]).sum(dim=1) / w_sum)
+        den_sample = torch.sqrt((true_sq_sample * w[None, :]).sum(dim=1) / w_sum)
+        per_sample_field_rel.extend((num_sample / den_sample.clamp_min(1e-300)).tolist())
+
+        for c in range(6):
+            sigma_true_sum_c[c] += (sigma_true[..., c] ** 2 * w[None, :]).sum().item()
+            sigma_pred_sum_c[c] += (sigma_pred[..., c] ** 2 * w[None, :]).sum().item()
+            diff_sum_c[c] += ((sigma_pred[..., c] - sigma_true[..., c]) ** 2 * w[None, :]).sum().item()
+            true_abs_all_c[c].extend(sigma_true[..., c].abs().reshape(-1).tolist())
+        pooled_w_sum += w_sum * (end - start)
+
+    component_report = {}
+    for c, name in enumerate(STRESS_COMPONENT_NAMES):
+        mag_true_rms = float(np.sqrt(sigma_true_sum_c[c].item() / pooled_w_sum))
+        mag_pred_rms = float(np.sqrt(sigma_pred_sum_c[c].item() / pooled_w_sum))
+        mag_true_median_abs = float(np.median(true_abs_all_c[c]))
+        err = float(np.sqrt(diff_sum_c[c].item() / pooled_w_sum) / max(mag_true_rms, 1e-300))
+        component_report[f"sigma_{name}"] = {
+            "true_rms_magnitude": mag_true_rms, "pred_rms_magnitude": mag_pred_rms,
+            "true_median_abs_magnitude": mag_true_median_abs,
+            "pooled_rel_error": err,
+        }
+
+    # ONE common Frobenius-norm normalization across the WHOLE dataset
+    # (not per-sample) -- Timon's explicit request, so an individual
+    # sample's small region-stress magnitude cannot inflate the number.
+    # Correctly Frobenius-weighted (shear counted twice), unlike an
+    # earlier version of this file that summed the six components
+    # unweighted (caught in review before it reached any real number).
+    diff_sum_frob = (diff_sum_c * FROB_WEIGHTS.to(dtype=dtype)).sum().item()
+    true_sum_frob = (sigma_true_sum_c * FROB_WEIGHTS.to(dtype=dtype)).sum().item()
+    pooled_num = float(np.sqrt(diff_sum_frob / pooled_w_sum))
+    pooled_den = float(np.sqrt(true_sum_frob / pooled_w_sum))
+    pooled_frobenius_rel = pooled_num / max(pooled_den, 1e-300)
+
+    field_rel_arr = np.array(per_sample_field_rel)
+    return {
+        "n_region_fine": n_region_fine_reported,
+        "component_report": component_report,
+        "pooled_frobenius_rel_error": pooled_frobenius_rel,
+        "mean_field_rel_error": float(field_rel_arr.mean()),
+        "median_field_rel_error": float(np.median(field_rel_arr)),
+        "std_field_rel_error": float(field_rel_arr.std()),
+        "per_sample_field_rel_error": per_sample_field_rel,
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(
-        "Local integration refinement for B3's region-stress QoI (Timon's request, 2026-09-28): "
-        "SAME coarse mesh/operator discretization, only the QUADRATURE used to sample/integrate "
-        "the groove region is refined -- no new FEM solve, no new network query beyond the "
-        "existing coarse-mesh evaluation.")
+        "Local integration refinement CONVERGENCE study for B3's region-stress QoI "
+        "(Timon's request, 2026-09-28/29): SAME coarse mesh/operator discretization, "
+        "only the QUADRATURE used to sample/integrate the groove region is refined -- "
+        "no new FEM solve, no new network query. Sweeps n_sub to check whether the "
+        "tensor error STABILIZES (converges) as more region points are added, rather "
+        "than reporting one arbitrary refinement level.")
     parser.add_argument("--checkpoint", type=str, required=True)
     parser.add_argument("--dataset", type=str, required=True)
     parser.add_argument("--out_json", type=str, required=True)
-    parser.add_argument("--n_sub", type=int, default=10,
-                         help="Gauss-Legendre points per axis for the LOCAL refinement "
-                              "(n_sub**3 per element) -- 10 gives 566 region points at "
-                              "production resolution, vs. 6 with the default 2-point rule.")
+    parser.add_argument("--n_sub_sweep", type=int, nargs="+", default=[2, 4, 6, 8, 10, 12],
+                         help="Gauss-Legendre points per axis (n_sub**3 per element) at each "
+                              "step of the convergence sweep. Default gives region point "
+                              "counts of roughly 6, 36, 124, 292, 566, 994 at production "
+                              "resolution (n_sub=2 matches the original default 2-point rule).")
     parser.add_argument("--eval_batch_size", type=int, default=16)
     parser.add_argument("--cpu", action="store_true")
     parser.add_argument("--resolution", type=int, nargs=3, default=None, metavar=("NTHETA", "NR", "NZ"))
@@ -227,14 +337,11 @@ def main():
     dtype = torch.float64
 
     Ntheta, Nr, Nz = tuple(args.resolution) if args.resolution else DEFAULT_RESOLUTION
-    print(f"Coarse mesh (operator's own discretization, UNCHANGED): "
-          f"({Ntheta},{Nr},{Nz})")
+    print(f"Coarse mesh (operator's own discretization, UNCHANGED): ({Ntheta},{Nr},{Nz})")
     geom = build_fixed_geometry(Ntheta, Nr, Nz, device, dtype=dtype)
     print(f"  {geom['n_elements']} elements, {geom['n_nodes']} nodes")
 
     model_sf = build_shape_function_evaluator(Ntheta, Nr, Nz, device, dtype)
-    fine_xi, fine_w = fine_quadrature_3d(args.n_sub)
-    print(f"Local quadrature refinement: n_sub={args.n_sub} ({args.n_sub ** 3} points/element)")
 
     region_ref_point = torch.tensor(
         [R_IN0 - GROOVE_DEPTH, 0.0, LZ / 2.0], dtype=dtype, device=device)
@@ -257,96 +364,64 @@ def main():
     n_samples = E_node_all.shape[0]
     print(f"  {n_samples} FEM samples")
 
-    per_sample_field_rel = []
-    sigma_true_sum_c = torch.zeros(6, dtype=dtype)  # pooled sum(w*true_c^2)
-    sigma_pred_sum_c = torch.zeros(6, dtype=dtype)  # pooled sum(w*pred_c^2)
-    diff_sum_c = torch.zeros(6, dtype=dtype)        # pooled sum(w*(pred_c-true_c)^2)
-    pooled_w_sum = 0.0
-    n_region_fine_reported = None
-
+    # Network inference does NOT depend on n_sub (same coarse mesh,
+    # same nodes, every time) -- computed ONCE here and reused for
+    # every level of the convergence sweep, not re-run per level.
+    print("Running network inference once (reused for every sweep level)...")
+    u_pred_chunks = []
     for start in range(0, n_samples, args.eval_batch_size):
         end = min(start + args.eval_batch_size, n_samples)
         E_b = E_node_all[start:end].to(device=device, dtype=dtype)
         nu_b = nu_node_all[start:end].to(device=device, dtype=dtype)
         phi_b = phi_all[start:end].to(device=device, dtype=dtype)
-        u_true = u_true_all[start:end].to(device=device, dtype=dtype)
-
         with torch.no_grad():
             fun_material = torch.stack([E_b, nu_b, phi_b[:, None].expand(-1, geom["n_nodes"])], dim=2)
             fun_material = _apply_input_norm(fun_material)
             xyz_batch = geom["nodes"].unsqueeze(0).expand(end - start, -1, -1)
             u_net = model(xyz_batch, fun_material)
             u_pred = apply_dirichlet_b3(u_net, geom, phi_b)
+        u_pred_chunks.append(u_pred.cpu())
+    u_pred_all = torch.cat(u_pred_chunks, dim=0)
 
-        sigma_true, w, n_region_fine = compute_region_local_refined(
-            u_true, E_b, nu_b, model_sf, geom["elements"], fine_xi, fine_w,
-            region_ref_point, region_radius)
-        sigma_pred, _, _ = compute_region_local_refined(
-            u_pred, E_b, nu_b, model_sf, geom["elements"], fine_xi, fine_w,
-            region_ref_point, region_radius)
-        n_region_fine_reported = n_region_fine
+    sweep_results = []
+    prev_pooled = None
+    for n_sub in args.n_sub_sweep:
+        print(f"\n=== n_sub={n_sub} ({n_sub ** 3} points/element) ===")
+        r = evaluate_at_n_sub(n_sub, u_true_all, u_pred_all, E_node_all, nu_node_all,
+                               model_sf, geom["elements"], region_ref_point, region_radius,
+                               args.eval_batch_size, device, dtype)
+        rel_change = (abs(r["pooled_frobenius_rel_error"] - prev_pooled) / prev_pooled
+                      if prev_pooled is not None else None)
+        prev_pooled = r["pooled_frobenius_rel_error"]
+        r["n_sub"] = n_sub
+        r["rel_change_from_previous_level"] = rel_change
+        sweep_results.append(r)
 
-        w_sum = w.sum().item()
-        diff = sigma_pred - sigma_true  # (b, n_region_fine, 6)
-        diff_sq_sample = (diff ** 2).sum(dim=-1)          # (b, n_region_fine)
-        true_sq_sample = (sigma_true ** 2).sum(dim=-1)    # (b, n_region_fine)
-        num_sample = torch.sqrt((diff_sq_sample * w[None, :]).sum(dim=1) / w_sum)
-        den_sample = torch.sqrt((true_sq_sample * w[None, :]).sum(dim=1) / w_sum)
-        field_rel = (num_sample / den_sample.clamp_min(1e-300)).tolist()
-        per_sample_field_rel.extend(field_rel)
+        print(f"  n_region_fine={r['n_region_fine']}  "
+              f"pooled_frobenius_rel_error={r['pooled_frobenius_rel_error']:.4f}"
+              + (f"  (change from previous level: {rel_change:.2%})" if rel_change is not None else ""))
+        for name, d in r["component_report"].items():
+            print(f"    {name}: true_RMS={d['true_rms_magnitude']:.4f}  "
+                  f"true_median_abs={d['true_median_abs_magnitude']:.4f}  "
+                  f"pred_RMS={d['pred_rms_magnitude']:.4f}  "
+                  f"pooled_rel_error={d['pooled_rel_error']:.4f}")
 
-        for c in range(6):
-            sigma_true_sum_c[c] += (sigma_true[..., c] ** 2 * w[None, :]).sum().item()
-            sigma_pred_sum_c[c] += (sigma_pred[..., c] ** 2 * w[None, :]).sum().item()
-            diff_sum_c[c] += ((sigma_pred[..., c] - sigma_true[..., c]) ** 2 * w[None, :]).sum().item()
-        pooled_w_sum += w_sum * (end - start)
-
-        print(f"  [{end}/{n_samples}] done")
-
-    print(f"\nn_region_fine (local refinement, n_sub={args.n_sub}): {n_region_fine_reported} "
-          f"(vs. 6 at production resolution with the default 2-point rule)")
-
-    print("\nPer-component report (pooled RMS magnitude, volume-weighted, over all "
-          f"{n_samples} samples and {n_region_fine_reported} region points each):")
-    component_report = {}
-    for c, name in enumerate(STRESS_COMPONENT_NAMES):
-        mag_true = float(np.sqrt(sigma_true_sum_c[c].item() / pooled_w_sum))
-        mag_pred = float(np.sqrt(sigma_pred_sum_c[c].item() / pooled_w_sum))
-        err = float(np.sqrt(diff_sum_c[c].item() / pooled_w_sum) / max(mag_true, 1e-300))
-        component_report[f"sigma_{name}"] = {
-            "true_rms_magnitude": mag_true, "pred_rms_magnitude": mag_pred,
-            "pooled_rel_error": err,
-        }
-        print(f"  sigma_{name}: true_RMS={mag_true:.4f}  pred_RMS={mag_pred:.4f}  "
-              f"pooled_rel_error={err:.4f}")
-
-    # ONE common Frobenius-norm normalization across the WHOLE dataset
-    # (not per-sample) -- Timon's explicit request, so an individual
-    # sample's small region-stress magnitude cannot inflate the number.
-    pooled_num = float(np.sqrt(diff_sum_c.sum().item() / pooled_w_sum))
-    pooled_den = float(np.sqrt(sigma_true_sum_c.sum().item() / pooled_w_sum))
-    pooled_frobenius_rel = pooled_num / max(pooled_den, 1e-300)
-
-    field_rel_arr = np.array(per_sample_field_rel)
-    print(f"\nPer-sample full-tensor field-relative error (local refinement): "
-          f"mean={field_rel_arr.mean():.4f}  median={np.median(field_rel_arr):.4f}  "
-          f"std={field_rel_arr.std():.4f}")
-    print(f"SINGLE pooled Frobenius-norm relative error (one dataset-wide normalization, "
-          f"per Timon's request): {pooled_frobenius_rel:.4f}")
+    print(f"\n{'=' * 90}")
+    print("CONVERGENCE SUMMARY (pooled Frobenius-norm relative error vs. n_sub):")
+    for r in sweep_results:
+        change_str = f"{r['rel_change_from_previous_level']:.2%}" if r["rel_change_from_previous_level"] is not None else "--"
+        print(f"  n_sub={r['n_sub']:3d}  n_region_fine={r['n_region_fine']:5d}  "
+              f"pooled_frobenius_rel_error={r['pooled_frobenius_rel_error']:.4f}  "
+              f"change={change_str}")
+    print("If this stabilizes (small relative change between the last few levels) and stays "
+          "elevated, the region-stress gap is real, not a local-integration-count artifact.")
 
     result = {
         "checkpoint": args.checkpoint, "checkpoint_iter": ckpt["iter"],
         "dataset": args.dataset, "n_samples": n_samples,
         "coarse_resolution": [Ntheta, Nr, Nz],
-        "n_sub_local_refine": args.n_sub,
-        "n_region_fine": n_region_fine_reported,
         "n_region_coarse_default": 6,
-        "component_report": component_report,
-        "pooled_frobenius_rel_error": pooled_frobenius_rel,
-        "mean_field_rel_error": float(field_rel_arr.mean()),
-        "median_field_rel_error": float(np.median(field_rel_arr)),
-        "std_field_rel_error": float(field_rel_arr.std()),
-        "per_sample_field_rel_error": per_sample_field_rel,
+        "sweep": sweep_results,
     }
     with open(args.out_json, "w") as f:
         json.dump(result, f, indent=2)
