@@ -150,6 +150,88 @@ def region_membership(pos, region_ref_point, region_radius):
     return dist < region_radius
 
 
+def identify_region_elements(model_sf, elements, fine_xi, region_ref_point, region_radius):
+    """Which COARSE elements have at least one FINE-quadrature point
+    within the physical region -- purely geometric (independent of any
+    material/displacement), computed ONCE and reused for every training
+    batch. These elements get their energy contribution computed via
+    the FINE quadrature during training (see
+    total_potential_energy_B3_locally_refined); every other element
+    keeps the standard coarse 8-point rule, completely unchanged. Uses
+    the SAME region-membership test/fine grid as the evaluation-side
+    convergence sweep, so "which elements count as region elements" is
+    consistent between training and evaluation."""
+    dtype, device = model_sf.nodes.dtype, model_sf.nodes.device
+    fine_xi_t = torch.tensor(fine_xi, dtype=dtype, device=device)
+    N, _, _ = model_sf.eval_shape_functions(fine_xi_t)
+    nodes_elem = model_sf.nodes[elements]  # (n_elem, 8, 3)
+    pos = torch.einsum("pn,enk->epk", N, nodes_elem).permute(1, 0, 2)  # (nf, n_elem, 3)
+    in_region = region_membership(pos, region_ref_point, region_radius)  # (nf, n_elem)
+    return in_region.any(dim=0)  # (n_elem,) bool
+
+
+def total_potential_energy_B3_locally_refined(u, E_node, nu_node, geom, model_sf,
+                                               region_elem_mask, fine_xi, fine_w):
+    """Same physics and same total_potential_energy_B3 formula, but
+    elements in region_elem_mask (touching the groove) have their own
+    energy contribution integrated with a FINER quadrature (fine_xi/
+    fine_w, n_sub^3 points) instead of the standard 8-point rule --
+    every other element is completely unchanged. This is Timon's actual
+    request (2026-09-28/29): decouple the OPERATOR's own discretization
+    (geom['nodes']/geom['elements'], untouched here) from the DEM
+    background-integration mesh, refining ONLY the latter, and ONLY
+    where it matters physically. No element's volume is double-counted
+    or dropped: each element contributes via EXACTLY ONE of the two
+    quadrature rules (fine XOR coarse), verified directly by a
+    volume-consistency check (see the module's own test suite) against
+    the standard total_potential_energy_B3 at n_sub=2.
+
+    Differentiable end-to-end through ordinary autograd (u already
+    requires_grad from the network during training) -- no special
+    autograd.grad handling needed here, unlike the stress-extraction
+    functions elsewhere in this file, since this returns the energy
+    itself, not a derived stress."""
+    elements = geom["elements"]
+    non_region_mask = ~region_elem_mask
+    Batch = u.shape[0]
+
+    ue = u[:, elements, :].permute(0, 1, 3, 2)  # (B, n_elem, 3, 8)
+    E_elem = E_node[:, elements].mean(dim=2)
+    nu_elem = nu_node[:, elements].mean(dim=2)
+    mu_elem = E_elem / (2 * (1 + nu_elem))
+    lam_elem = E_elem * nu_elem / ((1 + nu_elem) * (1 - 2 * nu_elem))
+    eye = torch.eye(3, device=u.device, dtype=u.dtype).view(1, 1, 3, 3)
+
+    U = torch.zeros(Batch, device=u.device, dtype=u.dtype)
+
+    # Standard coarse quadrature, restricted to non-region elements only.
+    B_op, detJ, iweights = geom["B"], geom["detJ"], geom["iweights"]
+    ue_nr = ue[:, non_region_mask]
+    mu_nr = mu_elem[:, non_region_mask]
+    lam_nr = lam_elem[:, non_region_mask]
+    for g in range(B_op.shape[0]):
+        H = torch.einsum("bedq,ecq->bedc", ue_nr, B_op[g, non_region_mask])
+        F = eye + H
+        psi = neo_hookean_energy_density_batched(F, mu_nr, lam_nr)
+        U = U + torch.sum(psi * detJ[g, non_region_mask][None, :] * iweights[g], dim=1)
+
+    # Finer quadrature, restricted to region elements only.
+    if region_elem_mask.any():
+        fine_xi_t = torch.tensor(fine_xi, dtype=u.dtype, device=u.device)
+        fine_w_t = torch.tensor(fine_w, dtype=u.dtype, device=u.device)
+        N_f, B_f, detJ_f = model_sf.eval_shape_functions(fine_xi_t)
+        ue_r = ue[:, region_elem_mask]
+        mu_r = mu_elem[:, region_elem_mask]
+        lam_r = lam_elem[:, region_elem_mask]
+        for p in range(fine_xi.shape[0]):
+            H = torch.einsum("bedq,ecq->bedc", ue_r, B_f[p, region_elem_mask])
+            F = eye + H
+            psi = neo_hookean_energy_density_batched(F, mu_r, lam_r)
+            U = U + torch.sum(psi * detJ_f[p, region_elem_mask][None, :] * fine_w_t[p], dim=1)
+
+    return U
+
+
 def compute_region_local_refined(u, E_node, nu_node, model_sf, elements, fine_xi, fine_w,
                                   region_ref_point, region_radius):
     """Full six-component Cauchy stress at a LOCALLY REFINED quadrature

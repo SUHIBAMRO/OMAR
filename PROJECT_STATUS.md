@@ -2210,6 +2210,63 @@ finishes or a new one starts.
 >   phrasing was not specific enough to build from without his
 >   clarification on what exactly that ablation should test.
 >
+>   **Omar's decision, 2026-09-29: proceed with item 1 ("Local refined
+>   DEM training integration"), hold item 2 (equilibrium/gradient
+>   ablation) until item 1's result is in.** Built and verified the real
+>   training-time counterpart to the evaluation-side local refinement:
+>   `total_potential_energy_B3_locally_refined` (added to
+>   `evaluate_B3_region_local_refine.py`, imported by `train_B3.py`) --
+>   elements touching the groove region get their own energy-integral
+>   quadrature refined (the SAME `eval_shape_functions`-at-arbitrary-
+>   points mechanism already verified for evaluation), while every other
+>   element keeps the standard 8-point rule completely unchanged. The
+>   OPERATOR's own mesh/discretization (`geom['nodes']`/`geom['elements']`)
+>   is untouched -- only the DEM background-integration quadrature for a
+>   small subset of elements changes, exactly decoupling the two things
+>   Timon asked to separate. Wired into `train_B3.py` via two new CLI
+>   flags, both off by default (`--local_refine_region`,
+>   `--local_refine_n_sub`, default 10 -- the level this project's own
+>   convergence sweep already found stable), so no existing behavior
+>   changes unless explicitly requested.
+>
+>   **Verified locally on CPU in four real steps before any GPU run**:
+>   (1) IDENTITY -- at n_sub=2 (matching the standard rule's own order),
+>   the locally-refined energy reproduces `total_potential_energy_B3`
+>   exactly (~1e-12), for ANY region-element mask, including a
+>   deliberately oversized half-the-mesh mask (~1e-10) -- proving the
+>   "exactly one rule per element, never both, never neither" logic is
+>   correct regardless of how many elements are marked as "region"; (2)
+>   a real refinement check -- at n_sub=4/8, the region elements'
+>   contribution changes by a small, sane amount (<0.1% of total
+>   energy), not a blow-up or collapse; (3) a gradient/backward check --
+>   finite, nonzero gradients flow through via ordinary autograd (no
+>   special `autograd.grad` handling needed, unlike the stress-
+>   extraction functions elsewhere in this file, since this returns
+>   differentiable energy directly); (4) a full real toy-scale end-to-
+>   end run through the ACTUAL training loop (`train_B3.train` with
+>   `--local_refine_region 1`, real FEM data, real checkpoint), then
+>   evaluated with the existing convergence-sweep tool -- no errors
+>   anywhere in the pipeline.
+>
+>   **Why this should NOT need the ~11 GPU-hours the earlier (confounded)
+>   resolution-increase pilot needed**: element/node count never changes
+>   here -- only a handful of elements near the groove (2/2184 at toy
+>   scale) get extra internal quadrature points, so per-iteration cost
+>   should stay close to run 4's own ~0.14s/iteration, not the
+>   0.784s/iteration the full 43,400-element resolution increase
+>   required. This means the FULL 50,000-iteration budget can be used
+>   directly (not a truncated pilot), avoiding the training-budget
+>   confound that made the earlier finer-resolution pilot inconclusive.
+>
+>   Packaged as `B3_Local_Refine_Training.ipynb`: same architecture,
+>   same (reused, not recomputed) normalization as run 4, same
+>   distributions, same 50,000-iteration budget, `--local_refine_region 1
+>   --local_refine_n_sub 10` as the only difference, evaluated afterward
+>   with the exact same convergence-sweep tool used for run 4's
+>   established ~62.2-62.3% baseline, for a direct, clean comparison.
+>   Verified 115/115 via `check_notebooks.py`. Not yet run on real GPU
+>   data.
+>
 >   **Second correction, 2026-09-27 (Omar's own careful reading of
 >   `B3_QoIs.ipynb`'s markdown cell, catching two remaining overclaims
 >   before they got repeated anywhere else)**:

@@ -311,6 +311,35 @@ def train(args, device, dtype=torch.float64, resolution=None):
     geom = build_fixed_geometry(Ntheta, Nr, Nz, device, dtype=dtype)
     print(f"Fixed geometry: {geom['n_elements']} elements, {geom['n_nodes']} nodes")
 
+    # Local DEM-integration refinement near the groove region (Timon's
+    # request, 2026-09-28/29): the OPERATOR's own mesh/discretization
+    # (geom above) is completely UNCHANGED -- only the QUADRATURE used to
+    # integrate the energy for elements touching the groove is refined,
+    # decoupling "how many points the network sees" from "how accurately
+    # the loss integrates the region that matters." See
+    # evaluate_B3_region_local_refine.py's own module docstring for the
+    # full derivation and verification (identity/volume/gradient checks).
+    local_refine_region = int(getattr(args, "local_refine_region", 0))
+    if local_refine_region:
+        from omar_pfem.evaluate_B3_region_local_refine import (
+            build_shape_function_evaluator, fine_quadrature_3d, identify_region_elements,
+            total_potential_energy_B3_locally_refined,
+        )
+        from omar_pfem.data.data_generate_B3_dataset import GROOVE_DEPTH, GROOVE_HALF_WIDTH
+        from omar_pfem.data.mesh_convergence_B3 import R_IN0, LZ
+        from omar_pfem.data.data_generate_B3 import groove_radius_of_curvature
+
+        n_sub = int(getattr(args, "local_refine_n_sub", 10))
+        model_sf = build_shape_function_evaluator(Ntheta, Nr, Nz, device, dtype)
+        fine_xi, fine_w = fine_quadrature_3d(n_sub)
+        region_ref_point = torch.tensor(
+            [R_IN0 - GROOVE_DEPTH, 0.0, LZ / 2.0], dtype=dtype, device=device)
+        region_radius = 2.0 * groove_radius_of_curvature(GROOVE_DEPTH, GROOVE_HALF_WIDTH)
+        region_elem_mask = identify_region_elements(
+            model_sf, geom["elements"], fine_xi, region_ref_point, region_radius)
+        print(f"[local-refine] n_sub={n_sub} ({n_sub ** 3} points/element), "
+              f"{int(region_elem_mask.sum().item())}/{geom['n_elements']} region elements refined")
+
     model = build_model(args, device).to(dtype)
     opt = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
@@ -354,7 +383,11 @@ def train(args, device, dtype=torch.float64, resolution=None):
         u_net = model(xyz_batch, fun_material)
         u = apply_dirichlet_b3(u_net, geom, phi)
 
-        U = total_potential_energy_B3(u, E_node, nu_node, geom)
+        if local_refine_region:
+            U = total_potential_energy_B3_locally_refined(
+                u, E_node, nu_node, geom, model_sf, region_elem_mask, fine_xi, fine_w)
+        else:
+            U = total_potential_energy_B3(u, E_node, nu_node, geom)
         loss = U.mean()
 
         opt.zero_grad(set_to_none=True)
@@ -399,6 +432,18 @@ def get_args(argv=None):
                          "was produced without it. Saved to input_norm.json in --output_dir; "
                          "evaluation scripts must call install_input_norm_for_checkpoint on "
                          "that checkpoint's own directory before running inference.")
+    p.add_argument("--local_refine_region", type=int, default=0,
+                    help="Refine the DEM energy-integration quadrature for elements touching "
+                         "the groove region (Timon's request, 2026-09-28/29), keeping the "
+                         "operator's own mesh/discretization completely unchanged -- decouples "
+                         "'how many points the network sees' from 'how accurately the loss "
+                         "integrates the region that matters.' Off by default; see "
+                         "evaluate_B3_region_local_refine.py for the full derivation.")
+    p.add_argument("--local_refine_n_sub", type=int, default=10,
+                    help="Gauss-Legendre points per axis (n_sub**3 per element) for the region "
+                         "elements when --local_refine_region is set. 10 gives 566 region "
+                         "points at production resolution (the level this project's own "
+                         "convergence sweep found already stable).")
     return p.parse_args(argv)
 
 
