@@ -2129,6 +2129,51 @@ finishes or a new one starts.
 >   checkpoint, expected to run in well under a minute. Not yet run on
 >   real GPU/production data.
 >
+>   **Third correction, 2026-09-29 (Omar's own review, relaying a
+>   detailed technical critique before any real run)**: two real issues
+>   in the plan/code, neither yet reflected in a reported number:
+>   1. **A real Frobenius-norm bug**: Cauchy stress is symmetric, so the
+>      true tensor norm double-counts shear:
+>      `||sigma||_F^2 = xx^2+yy^2+zz^2 + 2*(xy^2+yz^2+xz^2)`. The first
+>      version of this file's six-component combination (per-sample
+>      field-rel, pooled Frobenius error) summed all six components
+>      UNWEIGHTED -- understating the true tensor norm. This was NOT
+>      caught by the earlier n_sub=2 consistency check, since that check
+>      only compared a single scalar component (region_avg_sigma_xx),
+>      never exercising the tensor-combination logic at all -- a real
+>      gap in that verification's own coverage. Fixed with an explicit
+>      `FROB_WEIGHTS=[1,1,1,2,2,2]` vector, applied only where components
+>      combine into a tensor-norm quantity (never to per-component
+>      reporting, which stays as each component's own true value).
+>      **Verified directly**: a new test comparing against the existing,
+>      already-verified full-3x3-tensor `compute_region_cauchy_field_rel`
+>      on a real solved FEM field showed the OLD (buggy) version
+>      disagreeing by up to 18%, while the FIXED version matches to
+>      ~1e-14.
+>   2. **A conceptual gap**: one arbitrary refinement level (n_sub=10)
+>      only shows "does the number change," not "does it converge."
+>      Restructured `main()` into a genuine convergence sweep
+>      (n_sub=2,4,6,8,10,12 by default, ~6/36/124/292/566/994 region
+>      points), reporting the relative change between successive levels
+>      -- matching this project's own established mesh-convergence-table
+>      convention. Network inference now runs ONCE and is reused across
+>      every sweep level, not repeated. Also added
+>      `true_median_abs_magnitude` per component alongside the existing
+>      RMS magnitude (Omar's request).
+>   3. **Longer-term point, not yet acted on**: even a converged local-
+>      integration result only improves the MEASUREMENT of the existing
+>      checkpoint's accuracy -- to test Timon's hypothesis that finer
+>      integration would change what the network LEARNS, the same
+>      locally-refined quadrature would eventually need to feed the DEM
+>      training loss itself (keeping the operator's own 6,840-element
+>      node/mesh resolution unchanged, only refining the ENERGY
+>      INTEGRAL's quadrature near the groove). Explicitly deferred --
+>      Omar's instruction is to run the convergence audit first and only
+>      decide on this if the region-stress gap survives it.
+>   Rebuilt `B3_Region_Local_Refine.ipynb` (sweep-based), re-verified
+>   end to end on CPU (toy scale) with the new sweep API, no errors.
+>   Not yet run on real GPU/production data.
+>
 >   **Second correction, 2026-09-27 (Omar's own careful reading of
 >   `B3_QoIs.ipynb`'s markdown cell, catching two remaining overclaims
 >   before they got repeated anywhere else)**:

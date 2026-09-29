@@ -15,27 +15,41 @@
 #  No new FEM solve, no new network query -- this is pure, cheap
 #  post-processing, so it should run in well under a minute, not hours.
 #
-#  Reports (all requested explicitly by Timon):
-#   - n_region_fine: how many quadrature points now sample the region
-#     (566 at n_sub=10, vs. 6 with the default rule, at production
-#     resolution) -- this is what "test a priori local integration
-#     refinement there" produces.
+#  Runs a CONVERGENCE SWEEP (n_sub = 2,4,6,8,10,12, i.e. roughly
+#  6/36/124/292/566/994 region points at production resolution), per
+#  Omar and Timon's own follow-up refinement of the plan (2026-09-29):
+#  a single refinement level only answers "does it change," not "does it
+#  stabilize" -- the sweep's own relative-change-between-levels is what
+#  decides whether the region-stress gap is real (converges and stays
+#  elevated) or a local-integration-count artifact (keeps changing).
+#  Network inference runs ONCE and is reused across every sweep level.
+#
+#  Reports, at EACH sweep level (all requested explicitly by Timon):
+#   - n_region_fine: how many quadrature points now sample the region.
 #   - All SIX independent Cauchy stress components separately (their own
-#     pooled RMS magnitude and pooled relative error), so a naturally
-#     small component cannot silently dominate a combined number.
+#     pooled RMS magnitude, median absolute magnitude, and pooled
+#     relative error), so a naturally small component cannot silently
+#     dominate a combined number.
 #   - A SINGLE, dataset-wide Frobenius-norm relative error (one
 #     normalization constant across all samples and points, not
-#     per-sample), directly addressing the "make sure small components/
-#     samples aren't inflating the relative error" concern.
+#     per-sample), CORRECTLY double-counting the shear components
+#     (sigma_xy, sigma_yz, sigma_xz) as a true symmetric-tensor
+#     Frobenius norm requires -- ||sigma||_F^2 = xx^2+yy^2+zz^2 +
+#     2*(xy^2+yz^2+xz^2).
 #
-#  Verified locally on CPU first, in three real steps (not assumed): (1)
+#  Verified locally on CPU first, in four real steps (not assumed): (1)
 #  a volume-integral check -- the fine quadrature reproduces each
 #  element's own volume the coarse quadrature already gives, to ~1e-15
 #  relative precision; (2) a consistency check -- at n_sub=2 (matching
 #  the coarse rule's own order), this independently-written computation
 #  agrees with the existing, already-verified region-stress code to
-#  ~1e-13 relative precision on a real solved FEM field; (3) a full
-#  toy-scale end-to-end run through this exact CLI path, no errors.
+#  ~1e-13 relative precision on a real solved FEM field; (3) a DIRECT
+#  check of the shear-doubling fix itself -- an earlier version of this
+#  file summed the six components unweighted, which disagreed with the
+#  existing full-tensor computation by up to 18% on a real field; the
+#  corrected (Frobenius-weighted) version matches it to ~1e-14; (4) a
+#  full toy-scale end-to-end run through this exact sweep-based CLI
+#  path, no errors.
 #
 #  A real bug was caught during verification (before it reached this
 #  cell): GROOVE_DEPTH/GROOVE_HALF_WIDTH were first imported from the
@@ -96,7 +110,7 @@ print('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'n
 R = '/content/drive/MyDrive/pfem_run'
 CHECKPOINT = f'{R}/b3_training_normalized/checkpoint_50000.pt'
 DATASET = f'{R}/b3_dataset_clean_holdout/dataset.h5'
-OUT_JSON = f'{R}/b3_training_normalized/region_local_refine_n10.json'
+OUT_JSON = f'{R}/b3_training_normalized/region_local_refine_convergence.json'
 
 assert os.path.exists(CHECKPOINT), f'checkpoint not found: {CHECKPOINT}'
 assert os.path.exists(DATASET), f'clean held-out dataset not found: {DATASET}'
@@ -106,7 +120,7 @@ sys.argv = [
     '--checkpoint', CHECKPOINT,
     '--dataset', DATASET,
     '--out_json', OUT_JSON,
-    '--n_sub', '10',
+    '--n_sub_sweep', '2', '4', '6', '8', '10', '12',
 ]
 from omar_pfem.evaluate_B3_region_local_refine import main
 main()
