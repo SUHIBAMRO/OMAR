@@ -2061,6 +2061,74 @@ finishes or a new one starts.
 >   confounded result and whether to extend the pilot's iteration budget
 >   (still far cheaper than a full run) before deciding.
 >
+>   **Sent to Timon, real reply received, 2026-09-28**: drafted and sent
+>   a detailed report (`advisor_feedback/2026-09-28_b3_stress_qoi_full_report.md`)
+>   covering the setup, exact QoI methodology, the metric-artifact fix,
+>   the full results table, both follow-up diagnostics, and an open
+>   question (invest ~11 GPU-hours in a clean finer-resolution retrain,
+>   or treat this as a documented limitation?). **Timon's real reply
+>   redirected the investigation before any retrain**: (1) asked for the
+>   exact computation of `region_cauchy_field_rel` to be clarified; (2)
+>   asked for all SIX independent Cauchy stress components reported
+>   separately with their typical magnitudes, plus a tensor error using
+>   ONE common Frobenius-norm normalization -- to rule out a small
+>   component inflating the aggregate; (3) confirmed 43,400 is the DEM/
+>   background integration mesh; (4) the key redirect -- **refine the
+>   INTEGRATION locally around the groove, INDEPENDENTLY of the
+>   operator's own discretization**, and test that FIRST, before any
+>   resolution-changing retrain or loss-function change; (5) explicitly
+>   deferred both a groove-specific loss term and multi-resolution
+>   training until the region is properly resolved; (6) wants the
+>   single-resolution model + zero-shot finer-EVALUATION test (Diagnostic
+>   A) kept as the primary discretization-invariance check, not
+>   superseded by retraining (Diagnostic B, the confounded pilot).
+>
+>   **Built and verified, same day: `evaluate_B3_region_local_refine.py`**,
+>   directly implementing Timon's request. torch-fem's own
+>   `Solid.eval_shape_functions(xi)` accepts ARBITRARY local coordinates
+>   (confirmed by reading its source, not assumed), so passing a finer
+>   Gauss-Legendre grid (n_sub^3 points per element instead of the
+>   default 8) re-samples the SAME already-known coarse element's own
+>   trilinear displacement field (true FEM, or the network's own
+>   coarse-mesh prediction) at many more internal points -- no new FEM
+>   solve, no new network query, no change whatsoever to the operator's
+>   own 6,840-element discretization. At n_sub=10 this gives **566
+>   region points at production resolution, vs. 6** with the default
+>   rule -- confirmed directly (cheap, purely geometric check, no solve
+>   needed). Reports all six independent stress components separately
+>   (pooled RMS magnitude + pooled relative error per component) and a
+>   single dataset-wide Frobenius-norm relative error (one normalization
+>   constant across the whole evaluation, not per-sample) -- both
+>   directly answering Timon's explicit requests.
+>
+>   **A real bug caught during verification, before it reached any
+>   real number**: first imported `GROOVE_DEPTH`/`GROOVE_HALF_WIDTH`
+>   from `mesh_convergence_B3` (its own STALE module-level defaults,
+>   0.05/0.15, from an earlier groove candidate -- a pitfall this
+>   project already documented once before) instead of
+>   `data_generate_B3_dataset` (0.20/0.15, the real production groove).
+>   Caught by a volume-consistency check failing (fine vs. coarse
+>   quadrature integrating the same element to ~16-40% different
+>   volumes) rather than assumed correct -- fixed by importing from the
+>   right module.
+>
+>   **Verified locally on CPU in three real steps before any GPU run**:
+>   (1) volume check -- the fine quadrature reproduces each element's own
+>   volume the coarse (default) quadrature already gives, to ~1e-15
+>   relative precision, at n_sub=2, 4, and 8; (2) consistency check -- at
+>   n_sub=2 (matching the coarse rule's own order), this independently
+>   written computation agrees with the existing, already-verified
+>   `compute_region_sigma_xx` to ~1e-13 relative precision on a real
+>   solved FEM field; (3) a full toy-scale end-to-end run through the
+>   actual CLI (`main()`), no errors, reporting all six components and
+>   the pooled Frobenius error correctly (values themselves meaningless
+>   at 30-iteration toy scale -- only the absence of errors is the
+>   point). Packaged as `B3_Region_Local_Refine.ipynb`, verified 114/114
+>   via `check_notebooks.py`. **This does NOT retrain and does NOT need
+>   GPU hours** -- pure post-processing of the already-trained
+>   checkpoint, expected to run in well under a minute. Not yet run on
+>   real GPU/production data.
+>
 >   **Second correction, 2026-09-27 (Omar's own careful reading of
 >   `B3_QoIs.ipynb`'s markdown cell, catching two remaining overclaims
 >   before they got repeated anywhere else)**:
