@@ -2264,8 +2264,51 @@ finishes or a new one starts.
 >   --local_refine_n_sub 10` as the only difference, evaluated afterward
 >   with the exact same convergence-sweep tool used for run 4's
 >   established ~62.2-62.3% baseline, for a direct, clean comparison.
->   Verified 115/115 via `check_notebooks.py`. Not yet run on real GPU
->   data.
+>   Verified 115/115 via `check_notebooks.py`.
+>
+>   **REAL GPU ATTEMPT #1, 2026-09-29 -- a real ~12x performance bug
+>   found and fixed, before any wasted training time**: Omar's real run
+>   showed 1.685s/iteration (23,588s for 14,000 iterations) -- WORSE
+>   than even the full 43,400-element resolution increase's 0.784s/
+>   iteration, projecting to ~23 hours for the full budget. Omar
+>   interrupted the run per the notebook's own instruction. Root cause,
+>   found by re-reading the code rather than guessing: the "local"
+>   refinement was recomputing shape functions for the FULL 6,840-element
+>   mesh (via `model_sf.eval_shape_functions`, which has no element-
+>   subset argument) at 1,000 fine points, on EVERY SINGLE training
+>   iteration, even though only ~4 elements' results were ever used --
+>   plus a second, compounding issue: the fine-point combination was an
+>   unvectorized Python loop over all 1,000 points, also run every
+>   iteration. Both defeat the entire purpose of a LOCAL refinement.
+>
+>   **Fixed with two changes**: (1) `precompute_region_fine_quadrature`
+>   builds a torch-fem `Solid` model from ONLY the region elements' own
+>   node connectivity (a tiny subset), so shape functions are computed
+>   for just that handful of elements, ONCE, before training starts
+>   (purely geometric, independent of material/displacement) -- never
+>   recomputed inside the loop; (2) the fine-point combination is now a
+>   single vectorized batched einsum over all points at once, not a
+>   Python loop. `total_potential_energy_B3_locally_refined`'s own
+>   signature changed to accept these precomputed tensors directly.
+>
+>   **Verified the fix directly, not just trusted**: (1)-(3) re-ran the
+>   same identity/refinement/gradient checks as before with the new
+>   API, all still pass (identity ~1e-13, oversized-mask identity
+>   ~1e-10, gradient finite/nonzero); (4) a REAL timing comparison,
+>   reconstructing the OLD (buggy) implementation exactly and timing it
+>   against the NEW one at n_sub=10 (the real production setting) on the
+>   same toy mesh: **OLD=849.38ms/call, NEW=26.13ms/call -- a 32.5x
+>   speedup**, with both giving the IDENTICAL energy value (agreement
+>   to ~3e-12), proving the fix changes performance only, not physics.
+>   Re-ran the full toy-scale end-to-end training test with the fixed
+>   code, no errors. Given the real bug was measured at the SAME n_sub
+>   (10) used in production, and the speedup was measured on the exact
+>   same code path that caused the original 1.685s/iteration, this is
+>   expected to bring training back close to run 4's own ~0.14s/
+>   iteration rate -- but per Omar's own instinct to verify rather than
+>   trust a predicted number twice in a row, the next real GPU attempt
+>   should confirm the actual rate on a short run before committing to
+>   the full 50,000-iteration budget.
 >
 >   **Second correction, 2026-09-27 (Omar's own careful reading of
 >   `B3_QoIs.ipynb`'s markdown cell, catching two remaining overclaims

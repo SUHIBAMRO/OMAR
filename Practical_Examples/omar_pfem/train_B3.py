@@ -323,7 +323,7 @@ def train(args, device, dtype=torch.float64, resolution=None):
     if local_refine_region:
         from omar_pfem.evaluate_B3_region_local_refine import (
             build_shape_function_evaluator, fine_quadrature_3d, identify_region_elements,
-            total_potential_energy_B3_locally_refined,
+            precompute_region_fine_quadrature, total_potential_energy_B3_locally_refined,
         )
         from omar_pfem.data.data_generate_B3_dataset import GROOVE_DEPTH, GROOVE_HALF_WIDTH
         from omar_pfem.data.mesh_convergence_B3 import R_IN0, LZ
@@ -339,6 +339,13 @@ def train(args, device, dtype=torch.float64, resolution=None):
             model_sf, geom["elements"], fine_xi, region_ref_point, region_radius)
         print(f"[local-refine] n_sub={n_sub} ({n_sub ** 3} points/element), "
               f"{int(region_elem_mask.sum().item())}/{geom['n_elements']} region elements refined")
+        # Purely geometric (independent of material/displacement/network)
+        # -- computed ONCE here, reused every training iteration. A real
+        # ~12x slowdown was found and fixed by moving this out of the
+        # per-iteration path (see precompute_region_fine_quadrature's own
+        # docstring for the full story).
+        B_f_region, detJ_f_region, fine_w_t = precompute_region_fine_quadrature(
+            geom["nodes"], geom["elements"], region_elem_mask, fine_xi, fine_w, device, dtype)
 
     model = build_model(args, device).to(dtype)
     opt = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
@@ -385,7 +392,7 @@ def train(args, device, dtype=torch.float64, resolution=None):
 
         if local_refine_region:
             U = total_potential_energy_B3_locally_refined(
-                u, E_node, nu_node, geom, model_sf, region_elem_mask, fine_xi, fine_w)
+                u, E_node, nu_node, geom, region_elem_mask, B_f_region, detJ_f_region, fine_w_t)
         else:
             U = total_potential_energy_B3(u, E_node, nu_node, geom)
         loss = U.mean()

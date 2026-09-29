@@ -170,21 +170,80 @@ def identify_region_elements(model_sf, elements, fine_xi, region_ref_point, regi
     return in_region.any(dim=0)  # (n_elem,) bool
 
 
-def total_potential_energy_B3_locally_refined(u, E_node, nu_node, geom, model_sf,
-                                               region_elem_mask, fine_xi, fine_w):
+def precompute_region_fine_quadrature(nodes_t, elements_t, region_elem_mask, fine_xi, fine_w,
+                                       device, dtype):
+    """Precomputes the FINE quadrature's shape-function gradient
+    operator (B_f_region) and Jacobian determinant (detJ_f_region) for
+    ONLY the region elements (a small subset of the full mesh) -- purely
+    geometric, independent of material/displacement/network, so this is
+    computed ONCE before training starts and reused every iteration,
+    never recomputed inside the training loop.
+
+    REAL BUG FOUND ON GPU (2026-09-29): the first version of
+    total_potential_energy_B3_locally_refined called
+    model_sf.eval_shape_functions INSIDE itself, on model_sf's FULL
+    element set (all 6,840, since torch-fem's Solid.eval_shape_functions
+    has no element-subset argument) -- recomputing B/detJ at 1000 fine
+    points for the ENTIRE mesh on EVERY SINGLE training iteration, 50,000
+    times, even though only ~4 elements' results were ever used. Real
+    measured cost on an A100: 1.685s/iteration (14,000 iterations in
+    23,588s), ~12x slower than expected and even slower than fully
+    re-meshing at 43,400 elements (0.784s/iteration) -- defeating the
+    entire point of a LOCAL refinement. Fixed by building a torch-fem
+    Solid model from ONLY the region elements' own node connectivity
+    (elements_t[region_elem_mask]), so eval_shape_functions computes
+    B/detJ for just that handful of elements, and by moving this call
+    outside the training loop entirely (see the second fix in
+    total_potential_energy_B3_locally_refined's own docstring for the
+    other half of this same real performance bug: an unvectorized
+    Python loop over all 1000 fine points, run every iteration)."""
+    from torchfem import Solid
+    from torchfem.materials import Hyperelastic3D
+    from omar_pfem.torchfem_comparison import neo_hookean_psi_3d
+
+    region_elements = elements_t[region_elem_mask]  # (n_region_elem, 8)
+    old_default_dtype = torch.get_default_dtype()
+    torch.set_default_dtype(dtype)
+    try:
+        dummy_params = torch.tensor([1.0, 1.0], dtype=dtype, device=device)
+        material = Hyperelastic3D(psi=neo_hookean_psi_3d, params=dummy_params)
+        with torch.device(device):
+            model_region = Solid(nodes_t, region_elements, material)
+        fine_xi_t = torch.tensor(fine_xi, dtype=dtype, device=device)
+        _, B_f_region, detJ_f_region = model_region.eval_shape_functions(fine_xi_t)
+    finally:
+        torch.set_default_dtype(old_default_dtype)
+    fine_w_t = torch.tensor(fine_w, dtype=dtype, device=device)
+    return B_f_region, detJ_f_region, fine_w_t
+
+
+def total_potential_energy_B3_locally_refined(u, E_node, nu_node, geom, region_elem_mask,
+                                               B_f_region, detJ_f_region, fine_w_t):
     """Same physics and same total_potential_energy_B3 formula, but
     elements in region_elem_mask (touching the groove) have their own
-    energy contribution integrated with a FINER quadrature (fine_xi/
-    fine_w, n_sub^3 points) instead of the standard 8-point rule --
-    every other element is completely unchanged. This is Timon's actual
-    request (2026-09-28/29): decouple the OPERATOR's own discretization
+    energy contribution integrated with a FINER quadrature (n_sub^3
+    points, precomputed by precompute_region_fine_quadrature -- see its
+    own docstring for a real performance bug this signature change
+    fixes) instead of the standard 8-point rule -- every other element
+    is completely unchanged. This is Timon's actual request
+    (2026-09-28/29): decouple the OPERATOR's own discretization
     (geom['nodes']/geom['elements'], untouched here) from the DEM
     background-integration mesh, refining ONLY the latter, and ONLY
     where it matters physically. No element's volume is double-counted
     or dropped: each element contributes via EXACTLY ONE of the two
     quadrature rules (fine XOR coarse), verified directly by a
-    volume-consistency check (see the module's own test suite) against
-    the standard total_potential_energy_B3 at n_sub=2.
+    volume-consistency check against the standard total_potential_energy_B3
+    at n_sub=2.
+
+    The region contribution is fully VECTORIZED over the fine-point
+    dimension (a single batched einsum), not a Python loop over each of
+    the (potentially 1000+) fine points -- the second half of the same
+    real performance bug found on GPU 2026-09-29 (an unvectorized loop,
+    run every training iteration, cost real wall-clock time even after
+    the redundant-shape-function-recomputation half of the bug was
+    fixed). The existing coarse-quadrature loop (8 points) is untouched
+    -- it is cheap enough and already the established, working pattern
+    used everywhere else in this project.
 
     Differentiable end-to-end through ordinary autograd (u already
     requires_grad from the network during training) -- no special
@@ -204,7 +263,8 @@ def total_potential_energy_B3_locally_refined(u, E_node, nu_node, geom, model_sf
 
     U = torch.zeros(Batch, device=u.device, dtype=u.dtype)
 
-    # Standard coarse quadrature, restricted to non-region elements only.
+    # Standard coarse quadrature, restricted to non-region elements only
+    # -- unchanged, existing, established pattern.
     B_op, detJ, iweights = geom["B"], geom["detJ"], geom["iweights"]
     ue_nr = ue[:, non_region_mask]
     mu_nr = mu_elem[:, non_region_mask]
@@ -215,19 +275,19 @@ def total_potential_energy_B3_locally_refined(u, E_node, nu_node, geom, model_sf
         psi = neo_hookean_energy_density_batched(F, mu_nr, lam_nr)
         U = U + torch.sum(psi * detJ[g, non_region_mask][None, :] * iweights[g], dim=1)
 
-    # Finer quadrature, restricted to region elements only.
+    # Finer quadrature, restricted to region elements only -- fully
+    # vectorized over the fine-point dimension, precomputed B_f_region/
+    # detJ_f_region reused as-is (not recomputed here).
     if region_elem_mask.any():
-        fine_xi_t = torch.tensor(fine_xi, dtype=u.dtype, device=u.device)
-        fine_w_t = torch.tensor(fine_w, dtype=u.dtype, device=u.device)
-        N_f, B_f, detJ_f = model_sf.eval_shape_functions(fine_xi_t)
-        ue_r = ue[:, region_elem_mask]
-        mu_r = mu_elem[:, region_elem_mask]
+        ue_r = ue[:, region_elem_mask]            # (B, n_region_elem, 3, 8)
+        mu_r = mu_elem[:, region_elem_mask]        # (B, n_region_elem)
         lam_r = lam_elem[:, region_elem_mask]
-        for p in range(fine_xi.shape[0]):
-            H = torch.einsum("bedq,ecq->bedc", ue_r, B_f[p, region_elem_mask])
-            F = eye + H
-            psi = neo_hookean_energy_density_batched(F, mu_r, lam_r)
-            U = U + torch.sum(psi * detJ_f[p, region_elem_mask][None, :] * fine_w_t[p], dim=1)
+        eye5 = eye.unsqueeze(1)                    # (1, 1, 1, 3, 3)
+        H_all = torch.einsum("bedq,pecq->bpedc", ue_r, B_f_region)  # (B, nf, n_region_elem, 3, 3)
+        F_all = eye5 + H_all
+        psi_all = neo_hookean_energy_density_batched(
+            F_all, mu_r.unsqueeze(1), lam_r.unsqueeze(1))            # (B, nf, n_region_elem)
+        U = U + (psi_all * detJ_f_region.abs()[None, :, :] * fine_w_t[None, :, None]).sum(dim=(1, 2))
 
     return U
 
