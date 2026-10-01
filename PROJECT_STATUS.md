@@ -2310,6 +2310,64 @@ finishes or a new one starts.
 >   should confirm the actual rate on a short run before committing to
 >   the full 50,000-iteration budget.
 >
+>   **🎉 REAL GPU RESULT, 2026-09-30 -- local-refinement training
+>   completed successfully and roughly HALVES the region-stress error,
+>   confirming the performance fix held at full production scale and
+>   validating the advisor's original hypothesis.** Omar re-ran
+>   `B3_Local_Refine_Training.ipynb` after the fix above. He first
+>   watched the rate on a short run per his own standing instinct (the
+>   first prediction this round had been wrong once already): 500
+>   iterations in 76.0s = 0.152s/iteration, essentially matching run 4's
+>   own 0.1396s/iteration baseline -- confirming the fix, not just the
+>   isolated toy-scale timing test, holds on real GPU data at production
+>   resolution (6,840 elements, `n_sub=10`, 1,000 points/element on the
+>   ~4 region elements touching the groove). He then let the full
+>   50,000-iteration budget run to completion: **7,627.5s total
+>   (~2h7m), 0.1525s/iteration average** -- in line with run 4, not the
+>   earlier 1.685s/iteration failure.
+>
+>   Evaluated the resulting checkpoint with the same convergence-sweep
+>   tool (`evaluate_B3_region_local_refine.py`) used for run 4's own
+>   baseline, same six `n_sub` levels:
+>   ```
+>   n_sub= 2  n_region_fine=  6    pooled_frobenius_rel_error=0.2705  change=--
+>   n_sub= 4  n_region_fine= 36    pooled_frobenius_rel_error=0.2909  change=7.54%
+>   n_sub= 6  n_region_fine=124    pooled_frobenius_rel_error=0.2963  change=1.86%
+>   n_sub= 8  n_region_fine=292    pooled_frobenius_rel_error=0.2974  change=0.35%
+>   n_sub=10  n_region_fine=566    pooled_frobenius_rel_error=0.2977  change=0.12%
+>   n_sub=12  n_region_fine=994    pooled_frobenius_rel_error=0.2985  change=0.26%
+>   ```
+>   Converges cleanly from `n_sub=8` onward (changes under 0.4%), same
+>   convergence pattern used to validate run 4's own 62.2-62.3% number --
+>   stabilizing here at **~29.7-29.9%**, compared to run 4's established
+>   baseline of **~62.2-62.3%**. Per-component breakdown (converged,
+>   `n_sub=10`, before -> after):
+>
+>   | Component | run 4 (baseline) | local-refine training |
+>   |---|---|---|
+>   | sigma_xx | 67.0% | 32.2% |
+>   | sigma_yy | 63.1% | 29.9% |
+>   | sigma_zz | 59.6% | 28.4% |
+>   | sigma_xy, sigma_yz, sigma_xz | (small-magnitude, noisier) | mixed, less decisive -- dominated by near-zero true shear in this groove geometry, consistent with the project's earlier near-zero-denominator lesson |
+>
+>   The large-magnitude normal components (xx/yy/zz, which dominate the
+>   pooled Frobenius norm) all improved by roughly half, consistently.
+>   This is a real, decisive, positive result: refining ONLY the DEM
+>   background-integration quadrature in the groove region during
+>   training -- without touching the operator's own mesh/node/element
+>   count at all -- measurably and substantially improves local stress
+>   accuracy, directly confirming the advisor's hypothesis that the
+>   operator's discretization and the DEM integration resolution were
+>   conflated in the original setup.
+>
+>   **Honest caveat, stated plainly and not glossed over**: 29.8% is
+>   still well above the advisor's stated 5-10% target for the regional
+>   Cauchy-stress QoI. This is substantial, measured progress -- not a
+>   complete resolution of the open item. Whether further tuning of this
+>   same technique (larger `n_sub`, a larger region radius) can close the
+>   remaining gap, or whether it plateaus and needs a different
+>   technique on top, is not yet known and has not yet been tested.
+>
 >   **Second correction, 2026-09-27 (Omar's own careful reading of
 >   `B3_QoIs.ipynb`'s markdown cell, catching two remaining overclaims
 >   before they got repeated anywhere else)**:
