@@ -2,11 +2,19 @@
 B3's best checkpoint (run 4, normalized inputs), to separate an
 evaluation-resolution artifact from a genuine network accuracy gap.
 See cell_b3_qois_finer.py for the full rationale.
+
+Extended 2026-10-01 with a second cell (cell_b3_break_even.py) that runs
+break_even_B3.py against this run's own output -- per Timon's "finish
+the paper" request, completing the accuracy-matched FEM/VINO comparison
+and break-even analysis for displacement/energy/reaction (region stress
+is reported separately, as a documented limitation, per Timon's
+2026-10-01 reply -- NOT part of this break-even analysis).
 """
 import json
 
 HERE = "/home/user/OMAR/Practical_Examples/zeroshot_notebooks"
 CELL_FILE = f"{HERE}/cell_b3_qois_finer.py"
+BREAK_EVEN_CELL_FILE = f"{HERE}/cell_b3_break_even.py"
 
 
 def md(*lines):
@@ -21,6 +29,8 @@ def code(*lines):
 def build():
     with open(CELL_FILE) as f:
         cell_src = f.read()
+    with open(BREAK_EVEN_CELL_FILE) as f:
+        break_even_cell_src = f.read()
     return {
         "nbformat": 4, "nbformat_minor": 0,
         "metadata": {
@@ -83,8 +93,31 @@ def build():
                 "43,400 عنصر (بدل 6,840). لو الوقت طويل جدًا، وقف "
                 "وشغّل بعدد عينات أقل (حتى 3-5 عينات بتعطي إشارة حقيقية، "
                 "بس أضجّ شوي).",
+                "",
+                "**تحديث 2026-10-01**: هاد الدفتر هلأ كمان بيحسب دقة "
+                "الإزاحة والطاقة ورد الفعل (مش بس إجهاد المنطقة) مقابل "
+                "نفس المرجع الأنعم -- مطلوبة لمقارنة accuracy-matched "
+                "يلي طلبها تيمون (رقم الشبكة NO مقابل أرخص FEM بنفس "
+                "دقتها، مو مقابل شبكة التدريب 6,840 عنصر).",
             ),
             code(*cell_src.splitlines()),
+            md(
+                "## break-even (resolution-matched + accuracy-matched)",
+                "",
+                "بعد ما الخلية فوق تخلّص (بتنتج `qois_finer_resolution.json` "
+                "بالأرقام الجديدة)، هاي الخلية بتحسب:",
+                "1. **resolution-matched**: NO وFEM عند نفس دقة التدريب "
+                "(6,840 عنصر) -- جاهز فورًا، أرقام حقيقية موجودة أصلاً.",
+                "2. **accuracy-matched**: أرخص شبكة FEM بنفس دقة NO على "
+                "الأقل (الاثنين مقابل نفس المرجع الأنعم 243,360 عنصر) "
+                "-- بتستخدم جدول التقارب الحقيقي الموجود أصلاً "
+                "(`mesh_convergence_extended.json`, 2026-09-21).",
+                "",
+                "إجهاد المنطقة (region stress) ما داخل بهالمقارنة عمدًا "
+                "-- تيمون قرر نبلّغه كـ limitation موثّقة، مش جزء من "
+                "مقارنة break-even.",
+            ),
+            code(*break_even_cell_src.splitlines()),
         ],
     }
 

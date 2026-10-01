@@ -1,8 +1,31 @@
-"""Finer-resolution region-stress evaluation for B3, to separate two
-hypotheses `region_cauchy_field_rel`'s real result (71.77% mean, 68.45%
-median on the 100-sample held-out set, at the 6,840-element TRAINING
-resolution) could not distinguish on its own (see evaluate_B3_qois.py's
-own docstring and this project's PROJECT_STATUS.md, 2026-09-27 entries):
+"""Finer-resolution evaluation for B3: region-stress (original purpose)
+PLUS displacement/energy/reaction (added 2026-10-01, for the
+accuracy-matched FEM/VINO comparison Timon asked for once the paper is
+being finished -- see PROJECT_STATUS.md's 2026-10-01 entry).
+
+Why displacement/energy/reaction needed adding here, not just reusing
+evaluate_B3_qois.py: that script's own accuracy numbers (combined disp
+rel L2 = 1.88%, energy rel err = 0.30%, reaction_moment_y rel err =
+2.67%) are the network's error against the SAME 6,840-element FEM mesh
+it was trained on -- not against an independent finer reference. B1/B2's
+own "accuracy-matched" break-even compares the network's error against a
+FINE reference to the error a CHEAP FEM mesh has against that SAME fine
+reference -- an apples-to-apples comparison this project's existing B3
+numbers cannot answer on their own, since the 6,840-element mesh itself
+still carries some of its own discretization error (per the required-
+resolution table: 9,464 elements needed for 1% displacement accuracy,
+so 6,840 is not fully converged either). Re-solving a subset of the
+held-out set at the (41,36,32)=43,400-element mesh (this project's
+already-established "fine" evaluation resolution, ~5x past the 1%
+displacement-accuracy threshold) and comparing the SAME checkpoint's
+prediction against THAT reference gives the genuinely apples-to-apples
+number needed.
+
+This script tests two separate hypotheses `region_cauchy_field_rel`'s
+real result (71.77% mean, 68.45% median on the 100-sample held-out set,
+at the 6,840-element TRAINING resolution) could not distinguish on its
+own (see evaluate_B3_qois.py's own docstring and this project's
+PROJECT_STATUS.md, 2026-09-27 entries):
 
   (a) an EVALUATION-resolution artifact: only 6 Gauss points fall in the
       fixed groove-neighborhood region at 6,840 elements, far below this
@@ -73,6 +96,7 @@ from omar_pfem.data.data_generate_B3_dataset import (
 from omar_pfem.data.mesh_convergence_B3 import MIN_RELIABLE_N_P99, _theta_t_axes, _field_interpolator
 from omar_pfem.evaluate_B3_qois import (
     build_region_mask, compute_region_cauchy_field_rel, compute_region_sigma_xx,
+    compute_energy, compute_reaction,
 )
 
 
@@ -192,17 +216,42 @@ def main():
         avg_true_f, _, _ = compute_region_sigma_xx(u_true_f, E_f_t, nu_f_t, geom_fine, region_mask_fine_torch)
         avg_pred_f, _, _ = compute_region_sigma_xx(u_pred_f, E_f_t, nu_f_t, geom_fine, region_mask_fine_torch)
 
+        # Displacement rel L2 directly at the fine mesh -- same formula as
+        # evaluate_B3.py's evaluate_accuracy, but against the FINE FEM
+        # solve as ground truth, not the 6,840-element training mesh.
+        err = u_pred_f - u_true_f
+        disp_rel_l2 = {}
+        for k, comp in enumerate(("ux", "uy", "uz")):
+            l2 = torch.sqrt(torch.mean(err[:, :, k] ** 2))
+            ref = torch.sqrt(torch.mean(u_true_f[:, :, k] ** 2)) + 1e-12
+            disp_rel_l2[comp] = float((l2 / ref).item())
+        l2_all = torch.sqrt(torch.mean(torch.sum(err ** 2, dim=2)))
+        ref_all = torch.sqrt(torch.mean(torch.sum(u_true_f ** 2, dim=2))) + 1e-12
+        disp_rel_l2["combined"] = float((l2_all / ref_all).item())
+
+        energy_true_f = compute_energy(u_true_f, E_f_t, nu_f_t, geom_fine)
+        energy_pred_f = compute_energy(u_pred_f, E_f_t, nu_f_t, geom_fine)
+        Fr_true_f, Mr_true_f, _ = compute_reaction(u_true_f, E_f_t, nu_f_t, geom_fine)
+        Fr_pred_f, Mr_pred_f, _ = compute_reaction(u_pred_f, E_f_t, nu_f_t, geom_fine)
+
         rows.append({
             "sample_index": idx, "phi": phi,
             "force_rel_residual_fine_solve": r["force_rel_residual"],
+            "fine_fem_solve_elapsed_s": r["elapsed_s"],
             "region_cauchy_field_rel_fine": float(field_rel_fine[0].item()),
             "region_avg_sigma_xx_true_fine": float(avg_true_f[0].item()),
             "region_avg_sigma_xx_pred_fine": float(avg_pred_f[0].item()),
+            "disp_rel_l2_fine": disp_rel_l2,
+            "energy_true_fine": float(energy_true_f[0].item()),
+            "energy_pred_fine": float(energy_pred_f[0].item()),
+            "reaction_moment_y_true_fine": float(Mr_true_f[0].item()),
+            "reaction_moment_y_pred_fine": float(Mr_pred_f[0].item()),
         })
-        print(f"  [{idx + 1}/{n_samples}] fine solve force_rel_residual={r['force_rel_residual']:.2e}  "
-              f"region_cauchy_field_rel_fine={field_rel_fine[0].item():.4f}  "
-              f"region_avg_sigma_xx_true_fine={avg_true_f[0].item():.4f}  "
-              f"region_avg_sigma_xx_pred_fine={avg_pred_f[0].item():.4f}")
+        print(f"  [{idx + 1}/{n_samples}] fine solve elapsed_s={r['elapsed_s']:.2f}s "
+              f"force_rel_residual={r['force_rel_residual']:.2e}  "
+              f"disp_rel_l2_combined_fine={disp_rel_l2['combined']:.4f}  "
+              f"energy rel_err={abs(energy_pred_f[0].item() - energy_true_f[0].item()) / (abs(energy_true_f[0].item()) + 1e-12):.4f}  "
+              f"region_cauchy_field_rel_fine={field_rel_fine[0].item():.4f}")
 
     vals = np.array([row["region_cauchy_field_rel_fine"] for row in rows])
     vals_valid = vals[~np.isnan(vals)]
@@ -215,11 +264,46 @@ def main():
     }
     print(f"\nSummary over {n_samples} samples at ({Ntheta_f},{Nr_f},{Nz_f}) "
           f"({n_region_fine} region Gauss points):")
-    print(f"  mean={summary['mean_region_cauchy_field_rel_fine']:.4f}  "
+    print(f"  region_cauchy_field_rel_fine: mean={summary['mean_region_cauchy_field_rel_fine']:.4f}  "
           f"median={summary['median_region_cauchy_field_rel_fine']:.4f}  "
           f"std={summary['std_region_cauchy_field_rel_fine']:.4f}")
     print("  Compare against the SAME samples' coarse-resolution (6-point) "
           "region_cauchy_field_rel in qois_50000.json's per_sample rows.")
+
+    # Displacement/energy/reaction at the fine mesh -- the genuinely
+    # apples-to-apples "accuracy-matched" numbers for the paper (network
+    # error vs. the SAME fine reference a cheap FEM mesh would also be
+    # judged against), not the network's error vs. its own 6,840-element
+    # training mesh (already reported in evaluate_B3_qois.py / qois_50000.json).
+    for comp in ("ux", "uy", "uz", "combined"):
+        vals_c = np.array([row["disp_rel_l2_fine"][comp] for row in rows])
+        summary[f"mean_disp_rel_l2_fine_{comp}"] = float(np.mean(vals_c))
+        summary[f"std_disp_rel_l2_fine_{comp}"] = float(np.std(vals_c))
+
+    def _rel_err_fine(key_true, key_pred):
+        t = np.array([row[key_true] for row in rows])
+        p = np.array([row[key_pred] for row in rows])
+        pooled_rms_rel = float(np.sqrt(np.mean((p - t) ** 2)) / np.sqrt(np.mean(t ** 2)))
+        mean_rel = float(np.mean(np.abs(p - t) / (np.abs(t) + 1e-12)))
+        return mean_rel, pooled_rms_rel
+
+    mean_e, pooled_e = _rel_err_fine("energy_true_fine", "energy_pred_fine")
+    summary["mean_rel_err_energy_fine"] = mean_e
+    summary["pooled_rms_rel_err_energy_fine"] = pooled_e
+    mean_m, pooled_m = _rel_err_fine("reaction_moment_y_true_fine", "reaction_moment_y_pred_fine")
+    summary["mean_rel_err_reaction_moment_y_fine"] = mean_m
+    summary["pooled_rms_rel_err_reaction_moment_y_fine"] = pooled_m
+
+    summary["mean_fine_fem_solve_elapsed_s"] = float(np.mean([row["fine_fem_solve_elapsed_s"] for row in rows]))
+
+    print(f"  disp_rel_l2_fine: combined={summary['mean_disp_rel_l2_fine_combined']:.4f}  "
+          f"ux={summary['mean_disp_rel_l2_fine_ux']:.4f}  "
+          f"uy={summary['mean_disp_rel_l2_fine_uy']:.4f}  "
+          f"uz={summary['mean_disp_rel_l2_fine_uz']:.4f}")
+    print(f"  energy rel err (fine): mean={mean_e:.4f}  pooled_rms={pooled_e:.4f}")
+    print(f"  reaction_moment_y rel err (fine): mean={mean_m:.4f}  pooled_rms={pooled_m:.4f}")
+    print(f"  mean fine FEM solve time: {summary['mean_fine_fem_solve_elapsed_s']:.2f}s/sample "
+          f"(needed for the accuracy-matched break-even comparison)")
 
     result = {
         "checkpoint": args.checkpoint, "checkpoint_iter": ckpt["iter"],

@@ -2419,6 +2419,108 @@ finishes or a new one starts.
 >   still missing for B3 specifically vs. already done for the other
 >   cases before starting any new work.
 >
+>   **Scoping audit done, 2026-10-01 (read the actual code, not just this
+>   file) -- most inputs already exist; two real gaps identified and
+>   closed with new code (not yet run on GPU).** Checked
+>   `resolution_matched_break_even_all_cases.json` directly: the existing
+>   "6 cases" are B1/B2 x 3 materials, 2D only -- B3 has NO break-even
+>   analysis yet, confirming this is genuinely new work, not something
+>   to just look up.
+>
+>   **Already real and reusable, no new GPU time needed**: displacement
+>   rel L2 (combined 1.88%, ux 1.94%, uy 16.16%, uz 1.42%,
+>   checkpoint_50000.pt vs. its own 6,840-element training-resolution
+>   FEM), energy rel err (0.30%), reaction_moment_y rel err (2.67%) --
+>   all from `qois_50000.json` (2026-09-27); NO inference 6.32ms/sample,
+>   800.7x vs. FEM at the same resolution (`evaluate_B3.py`); training
+>   wall-clock 6980.3s, real GPU (`B3_Transolver_Training.ipynb` run 4);
+>   the 5%/2%/1% required-resolution table (task done earlier).
+>
+>   **Real gap #1 -- a genuine methodological one, not just missing
+>   code**: the accuracy numbers above are the NO's error against the
+>   SAME 6,840-element FEM mesh it trained on, not against an
+>   independent fine reference -- not apples-to-apples with B1/B2's own
+>   "accuracy-matched" convention (NO's error vs. a fine reference,
+>   compared to a cheap FEM's error vs. that SAME fine reference), since
+>   6,840 elements itself still carries real discretization error (the
+>   required-resolution table needs 9,464 elements for 1% displacement
+>   accuracy). **Fixed by extending `evaluate_B3_qois_finer.py`**
+>   (previously region-stress only) to also compute displacement rel L2,
+>   energy rel err, and reaction_moment_y rel err at the SAME
+>   (41,36,32)=43,400-element fine mesh it already re-solves for region
+>   stress, reusing `compute_energy`/`compute_reaction` from
+>   `evaluate_B3_qois.py` unmodified, plus recording the fine FEM solve's
+>   own `elapsed_s` (needed for the accuracy-matched break-even's own
+>   FEM timing). No new solve added -- the fine FEM solve this script
+>   already does is now read for four QoIs instead of one.
+>
+>   **Real gap #2 -- the break-even SCRIPT itself**: `break_even_analysis.py`/
+>   `break_even_resolution_matched.py` are B1/B2-specific (hardcoded
+>   numbers for those cases). Built `break_even_B3.py`, both comparisons
+>   together: (1) resolution-matched (NO vs. FEM both at 6,840 elements)
+>   -- computable immediately with the real numbers above, no new GPU
+>   run, gives **800.7x speedup, break-even at 1,381 samples**; (2)
+>   accuracy-matched (cheapest FEM at least as accurate as the NO, both
+>   vs. the fine reference) -- needs the NEW fields from gap #1's fix
+>   (not yet run on GPU), looked up against a real, already-verified
+>   FEM-vs-fine-reference convergence ladder (`mesh_convergence_extended.json`,
+>   2026-09-21, element counts 600 to 123,008, real elapsed_s per row --
+>   copied into the script with its Drive file id as provenance, no new
+>   GPU time needed for the table itself).
+>
+>   **A real, unrelated but urgent bug found and fixed while verifying
+>   this locally, before it could block Omar's next fresh Colab run**:
+>   `torch-fem`'s latest PyPI release (0.13.0) removed the `Solid.solve(...,
+>   nlgeom=True)` keyword entirely (confirmed by downloading and
+>   inspecting 0.12.1 vs. 0.13.0's source directly, not guessed) --
+>   geometric nonlinearity is now read off `material.finite_strain`
+>   instead, and `Hyperelastic3D.finite_strain` is `True` by class
+>   default (confirmed directly), so dropping the kwarg is behaviorally
+>   IDENTICAL, not a physics change. Since every notebook's own
+>   convention is a FRESH `pip install torch-fem` (no version pin
+>   anywhere in this repo, confirmed by grep), the NEXT Colab session
+>   that installs torch-fem will get 0.13.0 and `data_generate_B3_dataset.py`'s
+>   `solve_one_sample` would hard-crash with `TypeError: Solid.solve()
+>   got an unexpected keyword argument 'nlgeom'` on the very first FEM
+>   solve -- this would have blocked ANY fresh B3 dataset generation or
+>   training run, not just this task. Fixed (`nlgeom=True` removed, one
+>   line, with a comment explaining why). The SAME `nlgeom=` pattern
+>   exists in 8 other files (`torchfem_comparison.py`,
+>   `mesh_convergence_B3.py`, `mesh_convergence_B3_groove_sharpness.py`,
+>   `mesh_convergence_B8.py`, `mesh_convergence_B8_prototype.py`,
+>   `mesh_convergence_tire.py`, `smoke_test_B3.py`, `smoke_test_tire.py`)
+>   -- NOT yet fixed (out of scope for this task, each needs its own
+>   material-class check before assuming the same safe removal), flagged
+>   here so it is not forgotten: any of these will also break on a fresh
+>   Colab install until fixed.
+>
+>   **Verified locally (CPU, real end-to-end, not stubs) before trusting
+>   either change**: a real tiny FEM dataset (3 samples, (9,8,7)
+>   resolution) generated successfully after the `nlgeom` fix (previously
+>   failed outright with the new torch-fem); a brief real toy training
+>   run; then the actual `evaluate_B3_qois_finer.main()` CLI run against
+>   that checkpoint at a (25,22,19) "fine" toy resolution -- all four new
+>   fields (`disp_rel_l2_fine`, `energy_true/pred_fine`,
+>   `reaction_moment_y_true/pred_fine`, `fine_fem_solve_elapsed_s`)
+>   present, finite, no errors (numbers themselves meaningless at this
+>   20-iteration toy scale, as expected -- only the absence of errors is
+>   the point). `break_even_B3.py` then run twice: once with no
+>   `--fine_qois_json` (resolution-matched only, real numbers, matches
+>   the hand-computed 800.7x/1,381-sample figures above) and once
+>   pointing at the toy run's own output (exercises the accuracy-matched
+>   lookup/matching logic end to end, toy numbers as expected, zero
+>   errors).
+>
+>   Packaged as an update to `B3_QoIs_Finer_Resolution.ipynb` (added a
+>   second cell, `cell_b3_break_even.py`, that runs `break_even_B3.py`
+>   against the first cell's own output) -- verified 115/115 via
+>   `check_notebooks.py`. **Not yet run on real GPU data** -- this is
+>   the next real step: Omar needs to run this updated notebook (still
+>   points at `checkpoint_50000.pt` / the clean held-out set / the
+>   established 43,400-element fine resolution, `--n_samples 10`) to get
+>   the real displacement/energy/reaction-vs-fine-reference numbers and
+>   the real accuracy-matched break-even result.
+>
 >   **Second correction, 2026-09-27 (Omar's own careful reading of
 >   `B3_QoIs.ipynb`'s markdown cell, catching two remaining overclaims
 >   before they got repeated anywhere else)**:

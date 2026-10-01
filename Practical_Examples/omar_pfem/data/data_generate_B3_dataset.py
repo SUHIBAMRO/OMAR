@@ -158,10 +158,17 @@ def solve_one_sample(
     torch.set_default_dtype(dtype)
     t0 = time.time()
     try:
+        # torch-fem >=0.13.0 removed the explicit nlgeom= kwarg (Solid.solve
+        # now reads geometric nonlinearity off material.finite_strain
+        # instead) -- Hyperelastic3D.finite_strain is True by class default,
+        # so dropping nlgeom=True here is behaviorally identical, not a
+        # physics change. A fresh `pip install torch-fem` (every notebook's
+        # own convention) always pulls the latest release, so this project
+        # must track the current API, not an older one.
         with torch.device(device), torch.no_grad():
             u, f, P, F, state = model.solve(
                 increments=increments, max_iter=30, rtol=1e-8, atol=1e-8, stol=1e-8,
-                method=method, preconditioner=preconditioner, nlgeom=True, verbose=verbose,
+                method=method, preconditioner=preconditioner, verbose=verbose,
                 aggregate_integration_points=False)
     finally:
         torch.set_default_dtype(old_default_dtype)
