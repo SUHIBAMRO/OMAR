@@ -2368,6 +2368,57 @@ finishes or a new one starts.
 >   remaining gap, or whether it plateaus and needs a different
 >   technique on top, is not yet known and has not yet been tested.
 >
+>   **🎉 Sent to Timon, decisive reply received, 2026-10-01 -- B3
+>   regional-stress investigation CLOSED for this paper; shift to
+>   finishing the paper itself.** Sent the point-by-point reply above
+>   (exact computation, six-component table with real magnitudes,
+>   43,400-element clarification, the full local-refinement result,
+>   and an explicit question on which physics-objective extension to
+>   try for the ablation). Timon's real reply, in full:
+>
+>   > "Interesting results :). Let's finish the paper and complete the
+>   > accuracy-matched FEM/VINO comparison and break-even analysis for
+>   > the QoIs that are reproduced well, i.e. displacement, energy and
+>   > reaction. We then report the regional stress as is, i.e. local
+>   > integration refinement improves the results substantially from
+>   > about 62% to about 30%, but this error is still insufficient. So,
+>   > we would report it as limitation. For the future, we should
+>   > discuss how to improve local stress accuracy. Possible directions
+>   > are stress/equilibrium-aware physics losses, mixed
+>   > displacement-stress formulations, PINO-type residual enforcement,
+>   > local/hierarchical representations with more capacity in
+>   > stress-critical regions, data-driven stress supervision, or
+>   > hybrid approaches combining physics-informed and supervised
+>   > terms. The local integration result also suggests that separating
+>   > physics-integration resolution from operator resolution is worth
+>   > studying further. However, we should first finish now the paper.
+>   > Very well done and interestingly, this directly leads to a next
+>   > publication :)."
+>
+>   **Net decision, binding for the paper**: (1) the B3 regional
+>   Cauchy-stress QoI is DONE being investigated for this paper -- report
+>   the real, decisive number (62.2-62.3% -> 29.7-29.9% after local
+>   integration refinement, still above the 5-10% target) honestly AS A
+>   DOCUMENTED LIMITATION, not as something still being chased; (2) do
+>   NOT build the equilibrium/gradient ablation or any of the six future
+>   directions Timon listed (stress/equilibrium-aware physics losses,
+>   mixed displacement-stress formulations, PINO-type residual
+>   enforcement, local/hierarchical higher-capacity representations,
+>   data-driven stress supervision, hybrid physics+supervised terms) --
+>   these are explicitly next-PUBLICATION material, not this paper; (3)
+>   the only confirmed next technical direction worth flagging for later
+>   is Timon's own observation that separating DEM-integration
+>   resolution from operator resolution "is worth studying further" --
+>   noted, not started; (4) the active task now shifts to finishing the
+>   paper itself -- specifically the accuracy-matched FEM/VINO
+>   comparison and break-even analysis for the three B3 QoIs that ARE
+>   reproduced well (displacement, energy, reaction), matching the same
+>   methodology this project already built for B1/B2 (N=1401
+>   accuracy-matched comparison, break-even tables). Not yet scoped
+>   in detail with Omar -- next session should confirm exactly what is
+>   still missing for B3 specifically vs. already done for the other
+>   cases before starting any new work.
+>
 >   **Second correction, 2026-09-27 (Omar's own careful reading of
 >   `B3_QoIs.ipynb`'s markdown cell, catching two remaining overclaims
 >   before they got repeated anywhere else)**:
