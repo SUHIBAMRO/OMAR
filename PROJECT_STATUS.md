@@ -2571,6 +2571,34 @@ finishes or a new one starts.
 >   trusted -- not just assumed correct because the code ran without
 >   errors.
 >
+>   **Report updated, 2026-10-04 (Omar's explicit request: "add everything
+>   not yet added to the report")**: Section 11 of
+>   `PFEM_Transolver_Report_2026-09-24e.docx` ended at 11.5 with candidate
+>   selection decided but explicitly stated no dataset generation or
+>   training had started -- confirmed by directly inspecting the actual
+>   .docx with python-docx (not assumed from memory) that NONE of the
+>   training/evaluation/local-refinement/break-even work above had ever
+>   been written into the report itself, only into this file. Added five
+>   new subsections (`add_b3_training_evaluation_local_refinement_and_
+>   breakeven.py`), continuing directly from 11.5: 11.6 (dataset
+>   generation + the input-normalization fix), 11.7 (displacement/energy/
+>   reaction accuracy), 11.8 (the region-stress metric investigation,
+>   the advisor's six-point redirect, the evaluation- and training-side
+>   local integration refinement with the real ~12x performance bug fix,
+>   the 62.2%->29.8% result with full per-component table, and the
+>   advisor's decision to report it as a documented limitation), 11.9
+>   (the accuracy-matched FEM/VINO comparison and break-even analysis),
+>   11.10 (closing status). Also proactively updated the Executive
+>   Summary's feedback-tracking table (row 9) and Section 10's remaining-
+>   items bullet -- the same consistency cross-link this project has
+>   twice already had to retrofit after the fact (rounds 15-17), done
+>   this time without waiting to be caught. Every number is copied from
+>   this file's own already-verified sources, no new computation. Saved
+>   as `PFEM_Transolver_Report_2026-10-04.docx`, verified to reopen
+>   cleanly (682 paragraphs, up from 658; 110 tables, up from 105; all
+>   five new headings present and in order) before committing. Given to
+>   Omar via SendUserFile.
+>
 >   **Second correction, 2026-09-27 (Omar's own careful reading of
 >   `B3_QoIs.ipynb`'s markdown cell, catching two remaining overclaims
 >   before they got repeated anywhere else)**:
