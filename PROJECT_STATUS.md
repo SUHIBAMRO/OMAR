@@ -15856,11 +15856,93 @@ undefined/multiply-defined references. Commit `6dade99`.
 **Still open, not yet done**: the Acknowledgments section is a literal
 empty heading in the compiled PDF (`%% TODO.` is an invisible LaTeX
 comment) — need to ask Omar what to put there, or remove the section
-until there's real text. The full section-by-section numeric audit Omar
-explicitly asked for ("تأكد منهم قسم قسم تأكيد دقيق جدا جدا") has not
-been done yet — this pass fixed structural/layout/citation problems, not
-a verified-every-number pass against the underlying JSON/checkpoint data.
-That is the next, larger task.
+until there's real text.
+
+### Full Report-vs-paper structural audit and gap-filling, 2026-10-05
+
+Omar escalated twice more ("فيه لسا جداول وصور واشياء ناقصه", "ضيف الي
+ناقص وصلح كل الفجوات وكل النقص ورتب الامور"), making clear the earlier
+margin/figure/reference fixes were necessary but not sufficient — he
+wanted the Report itself re-checked for content that was simply never
+carried into the paper, not just formatting problems.
+
+Ran this as a real audit, not a guess: a background agent opened the
+actual Report docx with python-docx and extracted, in true document
+order, every heading (70), every table's caption+header row (110, via the
+project's established `iter_block_items()` document-order walker, since
+captions follow their tables here not precede them), and every figure
+caption (59, including 8 unlabeled "Round-10/11/12" ones recovered by
+context search) — then cross-checked against `paper/main.tex`'s own
+sections/tables/figures. Headline finding: **all 59 Report figures
+already had a paper counterpart** (many legitimately consolidated, e.g.
+6 near-duplicate OOD field-grids into one `figure*`) — no figure-level
+gap existed. The real gaps were in headings (whole Report subsections
+with no paper counterpart) and tables (specific numeric breakdowns
+reduced to qualitative figures/prose, or dropped outright).
+
+A second agent pass extracted the FULL verbatim content (not just
+captions) of every flagged gap, so nothing added to the paper was
+fabricated or recalled from memory. Then triaged and integrated by hand,
+case by case, into `paper/main.tex` (commit `c29d832`):
+
+- **Table 3 equivalent (new)**: full Transolver hyperparameter
+  configuration + trainable-parameter count (2,010,914 ≈ 2.01M) — was
+  completely undocumented in the paper before, a real reproducibility gap
+  for an ML paper.
+- **Table 9 equivalent (new)**: GPU-native vs.\ CPU-reference solver
+  correctness, all six cases — the paper already claimed the GPU solver
+  was "validated node-by-node" but showed no numbers; now shows the real
+  round-off-level agreement (1e-13 to 1e-16).
+- **Table 4a/4b equivalent (new)**: native CPU reference-solver cost
+  breakdown (assembly/solve/total, all six cases) and per-material FLOP
+  count.
+- **Tables 18a-e equivalent (new)**: previously only B1×Neo-Hookean had
+  its per-quantity required-resolution numbers in prose; built a 6-row
+  summary table (coarsest mesh reaching 5% error, all five QoIs, all six
+  cases, using one consistent threshold throughout rather than the
+  Report's own inconsistent mix across different rounds) — surfaced a
+  genuine case-by-case finding not stated anywhere before: the $H^1$
+  semi-norm is the binding (hardest-to-satisfy) quantity in every one of
+  the six cases, not only the one case previously shown.
+- **Table 12c equivalent (new)**: B2 zero-shot resolution invariance, full
+  per-material breakdown (NH/MR/AB × 7 resolutions) — Mooney-Rivlin/
+  Arruda-Boyce numbers were previously visible only inside a figure's
+  curves, never stated.
+- **Section 11.1/11.3/11.5 content (new paragraph)**: the grooved B3
+  design was one of two 3D candidates carried to a full GPU
+  mesh-convergence study — the other, a laminated rigid-shim bushing,
+  converged faster in element count but was bottlenecked by a CPU-only
+  rigid-body linear solve. This was **entirely absent** from the paper
+  before (confirmed by the audit, not assumed) — it read as though only
+  one 3D design had ever existed. Added a concise paragraph in the
+  Benchmark Geometries section stating both candidates, their headline
+  convergence results, and the advisor's decision, without reproducing
+  the Report's own debugging/implementation narrative for either.
+
+**Deliberately NOT added, with reasons** (the point of the audit was to
+stop silent omission, not to switch to indiscriminate padding):
+- The B3 Candidate A/B full per-resolution convergence ladders (13 and 6
+  rows each) — their headline crossing points are already stated in
+  prose; the Report's own full ladders are internal detail that doesn't
+  change any claim the paper makes.
+- The manufactured-solutions richer-family Q4/Q9 convergence-rate table
+  (Report Tables 22c/d/e, 23b, all three materials) — checked against
+  the paper's existing Figure 28a and found it already shows exactly this
+  data graphically for all three materials; adding a redundant text table
+  of the same 24 numbers would be duplication, not a fix.
+- An 18-row raw-vs-normalized-input OOD ablation table — could not
+  confidently re-establish which specific benchmark case it was run on
+  from the extracted data alone; left out rather than guess at case
+  attribution for a secondary/preliminary methodological check.
+
+Every new table verified to render within its column, not overflowing
+(the two-column layout bug from the previous pass made this a real risk,
+checked by rendering pages to PNG again, not assumed). Recompiled clean:
+20 pages, zero errors, zero undefined/multiply-defined references. Table
+count in the paper: 4 → 9.
+
+**Still open**: the Acknowledgments section (see above). An updated PDF
+has not yet been sent to Omar for this specific pass.
 
 ---
 
