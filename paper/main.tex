@@ -672,16 +672,47 @@ matched comparison was needed (Table~\ref{tab:cost} and the break-even
 figures above).
 
 \subsection{Out-of-distribution generalization}
-A separate 200-sample-per-case out-of-distribution (OOD) set, with mean
-Young's modulus raised $50\%$ and mean loading raised correspondingly,
-evaluated on each case's existing checkpoint with no retraining, degrades
-error by a consistent $4$--$5\times$ for B1 and $3.9$--$5.6\times$ for B2.
-Separating the two shifted factors (B1$\times$Neo-Hookean, a progressive
-sweep by standard-deviation multiples) shows the loading shift alone
-produces no measurable degradation ($0.99$--$1.07\times$, within sample
-noise), while the material-stiffness shift alone accounts for essentially
-all of it ($1.63\times$ at $0.5\sigma$ to $5.90\times$ at $3\sigma$),
-accumulating smoothly with no threshold or cliff.
+To check how each network behaves outside its training distribution, a
+separate OOD validation set of 200 samples per case was generated with
+both material stiffness and loading magnitude shifted well away from the
+training distribution: mean Young's modulus raised from 1000 to 1500 (a
+$2.5\sigma$ shift), B1's mean top-edge traction magnitude raised from 5.0
+to 9.0, and B2's mean internal pressure raised from 5.0 to 9.0 (both
+roughly a $2\sigma$ shift). Each case's own existing checkpoint is
+evaluated, unchanged, on both its in-distribution held-out validation set
+and this new OOD set; no retraining or fine-tuning is performed. With both
+columns evaluated consistently on the corrected (loss-normalized) B2
+checkpoints, B1 and B2 show broadly comparable sensitivity to this shift:
+degradation factors of $4.11$--$4.61\times$ for B1 and $3.94$--$5.58\times$
+for B2 -- no geometry is meaningfully more or less robust than the other
+under this test.
+
+Table 11's combined shift cannot say which of the two factors -- material
+or loading -- is responsible, nor whether the damage appears gradually or
+at a threshold. Each shift was therefore separated and swept independently
+in half-sigma steps, $k=0$ to $k=3$, on B1$\times$Neo-Hookean. The
+separation is unambiguous: shifting the loading produces no measurable
+degradation anywhere in the sweep (the error stays between $0.99\times$
+and $1.07\times$ of its in-distribution value across the full three-sigma
+range, sample noise rather than a trend), while shifting the material
+carries all of it, from $1.63\times$ at half a sigma to $5.90\times$ at
+three. The damage accumulates smoothly -- degradation increments per half
+sigma are $0.77,0.80,0.83,0.90,0.98$, monotonically increasing, with no
+threshold and no cliff -- so the operator has no stated domain of
+validity, only a rate at which it degrades outside the one it was trained
+on. The same isolation, run for the remaining five geometry--material
+combinations at the $k{=}3\sigma$ endpoint, shows the pattern holding
+without exception: shifting the loading magnitude alone produces at most
+mild degradation ($0.81$--$1.35\times$), while shifting the material
+stiffness alone is the dominant driver in every case ($2.27$--$5.90\times$),
+an order of magnitude worse than the corresponding loading shift
+throughout; the two shifts do not compound, with the combined column
+below the material-only column in five of six cases. Material sensitivity
+is itself material-dependent: Mooney-Rivlin is the most fragile of the
+three materials on both geometries ($4.71\times$ on B1, $5.47\times$ on
+B2), and Arruda-Boyce is consistently the most robust ($4.85\times$ on
+B1, only $2.27\times$ on B2 -- the mildest degradation measured anywhere
+in this study).
 
 \begin{figure}[htb]
 \centering
@@ -712,21 +743,68 @@ accumulating smoothly with no threshold or cliff.
 
 \subsection{Zero-shot resolution invariance}
 \label{sec:resolution-invariance}
-A single network, jointly trained at two mesh resolutions ($N{=}21$ and
-$N{=}33$), was evaluated with no retraining or fine-tuning at seven further
-resolutions never seen during training ($N=13,17,25,29,37,41,49$, spanning
-coarser and finer than either training mesh), each scored against a common
-fine-mesh reference ($N{=}101$). Across all three B1 materials and all seven
-unseen resolutions, error stays in the $5.0$--$10.6\%$ range with no
-retraining anywhere -- the resolution-invariance property expected of
-operator-learning methods. B2 shows the same qualitative behavior with a
-wider spread ($7.1$--$26.9\%$ depending on material and resolution), once
-evaluated under a corrected checkpoint-selection criterion (the
-per-component validation metric originally used divides by each
-displacement component's own magnitude, which on B2's geometry
-systematically penalizes the smaller component; switching to the combined
-$\|\mathbf{e}\|/\|\mathbf{u}\|$ norm for checkpoint selection recovers
-normal accuracy).
+A single network trained jointly on two meshes (B1$\times$Neo-Hookean at
+$N{=}21$ and $N{=}33$) is evaluated, with no retraining or fine-tuning,
+directly on seven mesh resolutions never seen during training
+($N=13,17,25,29,37,41,49$, two of them coarser than either training mesh
+and five finer). Because the network was never shown these resolutions,
+this tests genuine zero-shot generalization across discretization density,
+which the Transolver architecture supports natively: it operates on the
+nodes it is given, without a fixed input dimensionality tied to a
+particular mesh. Each test resolution is compared against a common
+fine-mesh finite-element reference ($N{=}101$, 10,201 nodes). Across all
+three materials and all seven unseen resolutions the error stays between
+$5.0\%$ and $10.6\%$, with no retraining anywhere -- that is the
+resolution-invariance property claimed for operator-learning methods.
+
+Reading down the columns rather than across them shows that zero-shot
+transfer to meshes much finer than the training ones is not free: two of
+the three materials reach their best accuracy near $N{=}21$--$33$ and then
+get worse on the finest meshes (Neo-Hookean bottoms out at $N{=}29$ and
+rises $28.7\%$ by $N{=}49$; Arruda-Boyce bottoms out at $N{=}37$ and rises
+$11.6\%$), while Mooney-Rivlin alone keeps improving all the way to the
+finest mesh tested. The three B2 cases needed a real fix before a valid
+zero-shot result existed for them at all: the per-component validation
+metric used for checkpoint selection divides each displacement component
+by its own magnitude, and on B2's geometry the resulting quantity rises
+over an interval where the field is in fact getting closer to the
+reference, so early stopping fired within the first one or two validation
+events on every B2 run and every subsequent measurement was made on models
+trained for a few dozen epochs. Switching the selection criterion to the
+combined norm $\|\mathbf{e}\|/\|\mathbf{u}\|$ and re-running fixed this:
+B2$\times$Neo-Hookean's validation error fell from $0.9986$ to $0.0330$ on
+the same per-component metric that had condemned it. With this fix, B2
+does work -- $7.1\%$ to $26.9\%$ across seven unseen meshes, comparable to
+B1 in the middle of the range but markedly worse at both ends, so its
+error varies by a factor of $3.8$ across the sweep where the worst B1 case
+varies by $2.1$: B2's resolution invariance is real and weaker than B1's.
+One methodological point is worth stating plainly: the superseded
+(uncorrected) B2 model's error was almost flat across the mesh, which
+could easily be misread as the strongest resolution invariance in the
+study -- it is the opposite. A model whose output barely responds to its
+input produces nearly the same field, and therefore nearly the same
+error, on every mesh; insensitivity and invariance are indistinguishable
+in that column, and flatness of the error across resolutions is not, on
+its own, evidence of the property this section is testing.
+
+Placing the operator and the finite-element solver on a single
+accuracy-cost plot (both methods scored against the same common $N{=}101$
+reference, on the same 20 problem instances) settles that the two methods
+do not compete on accuracy at all: the finite-element solver at its
+coarsest setting ($N{=}13$, 169 nodes, 8.9~s) reaches $0.608\%$, already
+$6.1\times$ more accurate than the operator at its best ($3.69\%$ at
+$N{=}37$) -- there is no mesh in this sweep at which the operator matches
+even the cheapest finite-element solve. The operator's case rests instead
+on how cost scales: its inference cost is essentially flat in mesh size
+($4.584$--$5.563$~ms from 169 to 2,401 nodes, a fourteenfold increase in
+problem size for no measurable increase in cost), so the speed-up climbs
+from $1{,}630\times$ to $25{,}676\times$ across the sweep -- that trend is
+the substantive result, not a speed-up quoted at one resolution. This
+flatness does not extrapolate indefinitely: measured directly at $N{=}1401$
+($1{,}962{,}801$ nodes, far outside this sweep's own range), inference cost
+rises to $2{,}286.7$~ms/sample, roughly $500\times$ the cost at the
+smallest node count tested, though still $59\times$ faster than torch-fem's
+own matched-precision solve at that same $N$ ($133.83$~s).
 
 \begin{figure}[htb]
 \centering
@@ -745,27 +823,40 @@ normal accuracy).
 \label{fig:37}
 \end{figure}
 
-A single trained operator's accuracy is not the whole picture at a
-deployment resolution far outside its training range. Checked directly
-against finite-element ground truth (not only inferred from inference speed)
-for B1$\times$Neo-Hookean at $N{=}1401$ ($\sim\!2$ million mesh nodes), the
-operator trained only at $N=21,33$ degrades to $44.7\%$ relative $L^2$ error
-(Figure~\ref{fig:ood-n1401-degrade}).
-Retraining the same architecture jointly on four resolutions
-($N=21,33,101,201$) instead of two, with equal sample weighting across
-resolutions, reduces this to $5.85\%$ at $N{=}1401$ -- a $7.6\times$
-reduction -- and, instructively, a network trained \emph{directly} at
-$N{=}1401$ (no zero-shot generalization required) is actually $6.3\times$
-\emph{less} accurate ($36.65\%$) at $21\%$ lower training cost, an ablation
-confirming that generalizing zero-shot from a well-chosen multi-resolution
-training set outperforms direct training at the target resolution for this
-architecture and objective. At this deployment resolution, the trained
-operator (with \texttt{torch.compile} and TF32 matmul precision, a
-$5.82\times$ inference speed-up over eager FP32 at a $\sim\!3\times10^{-3}$
-relative accuracy cost) is $340$--$526\times$ faster than a resolution-matched
-native finite-element solve, and, judged against the cheapest finite-element
-mesh that matches its own $N{=}1401$ accuracy ($N{=}11$), repays its $\sim$11.6-hour
-training cost after a few thousand further inferences.
+A single trained operator's accuracy at the sweep above is not the whole
+picture at a deployment resolution far outside its training range. With
+the correct checkpoint (an earlier round of this measurement had silently
+evaluated the wrong model, due to a checkpoint-loading path that never
+existed and fell back to a different checkpoint -- fixed by resolving
+checkpoints by content hash rather than a hardcoded path), the operator's
+own accuracy at $N{=}1401$, checked directly against real finite-element
+ground truth there for the first time, is $44.65\%$ relative $L^2$ in
+displacement, degrading smoothly and monotonically away from the two
+training resolutions. A new checkpoint trained on a wider spread of
+resolutions ($N=21,33,101,201$ instead of only $21,33$) continues
+improving to about $N{=}45$--$49$ and then plateaus around $5.8$--$5.9\%$
+instead of climbing further -- a $7.6$-fold reduction in error at
+$N{=}1401$. A direct-$N{=}1401$-training ablation (no zero-shot
+generalization required) is cheaper to train ($21\%$ less GPU time) but
+$6.3\times$ \emph{less} accurate ($36.65\%$), confirming that generalizing
+zero-shot from a well-chosen multi-resolution training set outperforms
+direct training at the target resolution for this architecture and
+objective. The same multi-resolution fix, applied to every other
+(geometry, material) case showing the same degradation signature, gives
+relative error reductions at $N{=}1401$ of $62\%$ (B1$\times$Mooney-Rivlin,
+$39.20\%\to15.04\%$), nearly halving the error for B1$\times$Arruda-Boyce
+($45.62\%\to25.05\%$), and $73.5\%$ for B2$\times$Mooney-Rivlin
+($49.47\%\to13.10\%$, whose retrained error is also nearly flat from
+$N{=}37$ through $N{=}1401$ -- the clearest single illustration that the
+fix buys genuine resolution invariance, not just a smaller error at one
+target resolution). At this deployment resolution, the trained operator
+(with \texttt{torch.compile} and TF32 matmul precision, a $5.82\times$
+inference speed-up over eager FP32 at a $\sim\!3\times10^{-3}$ relative
+accuracy cost) is $340$--$526\times$ faster than a resolution-matched
+native finite-element solve, and, judged against the cheapest
+finite-element mesh that matches its own $N{=}1401$ accuracy ($N{=}11$),
+repays its $\sim$11.6-hour training cost after a few thousand further
+inferences.
 
 \begin{figure}[htb]
 \centering
@@ -932,23 +1023,50 @@ network's own optimization gap roughly where it was, on an enlarged problem.
 
 \subsection{B2 accuracy regression: root cause and resolution}
 \label{sec:discussion-b2}
-An early version of B2's external-work term used a boundary-force
-convention carried over unchanged from B1's flat loaded edge -- correct on a
-straight boundary but not the consistent nodal force on B2's curved inner
-arc. Simply substituting the geometrically correct force made results
-markedly worse (error rising to $94\%$, since the corrected external-work
-term's gradient with respect to the radial displacement component vanishes
-to leading order at the undeformed state). The adopted fix instead
-normalizes the training objective's \emph{scale}: each sample's $\Pi=U-W$ is
-divided by that sample's own mean boundary-force magnitude, a positive
-constant independent of the network output, which leaves the true energy
-minimizer -- and therefore the physics being solved -- unchanged, since
-$\arg\min_\theta[c\cdot f(\theta)] = \arg\min_\theta f(\theta)$ for any
-constant $c>0$. This reduced B2$\times$Neo-Hookean's error from an original,
-force-inconsistent $32.46\%$ to $9.11\%$, confirming that B2's earlier gap
-was a fixable training-objective defect specific to its boundary-force
-convention, not a harder operator-learning target intrinsic to the curved
-geometry.
+B1 cases achieved significantly lower validation errors than B2 cases
+under the same architecture, training protocol, and mesh resolution. This
+gap was initially attributed to geometry -- B2's curved mesh and its
+polar-to-Cartesian mapping -- but is instead traced to a specific, fixable
+defect in B2's boundary-force training input, unrelated to the curved
+geometry itself.
+
+The per-node boundary force originally used for B2's external-work loss
+term ($W$, in $\Pi=U-W$) was a raw pressure value times each inner node's
+own exact radial direction, with no edge-length or quadrature weighting --
+a convention carried over unchanged from B1's flat, straight-edge loaded
+boundary. On B2's curved inner arc this is not the force the ground-truth
+finite-element solve actually equilibrates against; the correct,
+FEM-consistent nodal force is $13$--$16\times$ smaller in magnitude at the
+study's standard mesh resolution. Substituting the correct, consistent
+force alone made results markedly worse, not better: mean relative $L^2$
+error rose from $32.46\%$ (the original, force-inconsistent baseline) to
+$94.08\%$, close to the error of predicting no displacement at all. The
+cause is that $\partial U/\partial u_v$ vanishes at the undeformed state to
+leading order, so the external-work term's gradient is the only signal
+pulling the network away from the trivial zero-displacement solution; the
+smaller, correct force weakens exactly that signal, and training stalls
+near the trivial solution instead of converging to the true equilibrium.
+
+The fix normalizes the training objective's \emph{scale} rather than its
+physics: each sample's $\Pi=U-W$ is divided by that sample's own mean
+boundary-force magnitude, a fixed, network-output-independent positive
+constant. Because $\arg\min_\theta[c\cdot f(\theta)] = \arg\min_\theta f(\theta)$
+for any constant $c>0$, this leaves the true energy minimizer -- and
+therefore the physics being fit -- completely unchanged; it only restores
+a well-conditioned gradient magnitude for the optimizer. Applying this
+corrected recipe reduced B2$\times$Neo-Hookean's validation error to
+$9.11\%$, comparable to and in fact marginally better than
+B1$\times$Neo-Hookean's own $9.59\%$, confirming that B2's high error was
+not primarily geometry related -- though convergence was substantially
+slower (best checkpoint at epoch 850 vs.\ 625 for the uncorrected recipe,
+roughly $10\times$ the wall-clock time). The corrected recipe was then
+applied to all three B2 materials: Mooney-Rivlin cleared a self-imposed
+$9.00\%$ target on the first trial ($7.28\%$); Arruda-Boyce's first trial
+reached $9.81\%$, narrowly missing the target, and an automatic search
+over alternate recipes (higher learning rate, then a graded mesh) made
+results markedly worse instead of better, so the first trial's $9.81\%$
+was adopted as the final result rather than continuing to chase the
+threshold.
 
 \begin{figure}[htb]
 \centering
@@ -1121,28 +1239,47 @@ every one of the three quantities of interest reproduced well.
 \section{Discussion}
 \label{sec:discussion}
 
-The screening-and-early-stopping protocol of Section~\ref{sec:results-2d}
-reached its best validation performance within $375$--$1{,}050$ epochs
-across all six 2D cases, with a consistent efficiency picture: a
-GPU-native but still-iterative finite-element solver is roughly two orders
-of magnitude faster than the CPU reference once well batched, the trained
-operator's amortized training cost is below one native solve for five of
-six cases, and -- once trained -- inference is three to four further orders
-of magnitude cheaper still. The out-of-distribution evaluation is the
-clearest evidence that the network has learned a fit specific to its
-training distribution rather than an extrapolable representation of the
-underlying physics: a $2$--$2.5\sigma$ combined stiffness/load shift
-degrades accuracy by $4$--$5\times$, driven entirely by the material-stiffness
-component of the shift. The zero-shot resolution-invariance study and the
-$N{=}1401$ deployment-resolution finding together show a complementary
-point: a single operator generalizes well across unseen \emph{nearby}
-resolutions without retraining, but accuracy at a resolution far outside
-the training range depends strongly on which resolutions were seen during
-training, not merely on how many optimizer steps were spent -- a
-multi-resolution training set that includes resolutions closer to the
-deployment target outperforms both a single-resolution-trained zero-shot
-model and, surprisingly, direct training at the deployment resolution
-itself.
+The screening and early-stopping protocol reached the best validation
+performance within $375$--$1{,}050$ epochs across all six benchmark cases
+(Table~\ref{tab:final-results}), substantially reducing the training
+budget compared with a naive fixed-epoch setting. Taken together with the
+GPU-native FEM benchmark (Section~\ref{sec:gpu-fem}) and the training-cost
+comparison (Table~\ref{tab:cost}), a consistent efficiency picture
+emerges: a GPU-native but still-iterative FEM solver is $71.7$--$171.5\times$
+faster than the CPU reference once well batched ($\mathrm{bs}{=}128$); the
+trained operator's amortized training cost per sample ranges from about
+$0.64\times$ (i.e.\ more expensive, for the corrected
+B2$\times$Neo-Hookean recipe) to roughly $15\times$ cheaper than a single
+CPU FEM solve, case-dependent; and its post-training inference cost is a
+further two-to-three orders of magnitude cheaper still
+($\sim$$5{,}387$--$12{,}575\times$ vs.\ CPU), because inference replaces an
+iterative nonlinear solve with a single forward pass.
+
+The out-of-distribution evaluation is the clearest evidence in this study
+that the network has learned a fit specific to its training distribution
+rather than the underlying physics in a way that extrapolates: B1's
+accuracy degrades by a consistent $4$--$5\times$ under a combined
+stiffness/load shift of only $2$--$2.5$ standard deviations; B2's smaller
+measured degradation is best read considering its already much higher and
+more variable in-distribution error, not as evidence that the curved
+geometry generalizes better. The resolution-invariance study and the
+reference-solver mesh-convergence study of Section~\ref{sec:discretization}
+address complementary halves of the same underlying concern about the
+fixed operating mesh used throughout this study: the finite-element
+reference itself is already well converged there, so the ground truth used
+throughout is trustworthy, while the operator trained and evaluated at
+that same resolution sits within a band that is representative of a wide
+range of nearby resolutions, rather than being a fortunate one-off result
+at a single arbitrary mesh size. The zero-shot resolution-invariance study
+and the $N{=}1401$ deployment-resolution finding together show a
+complementary point beyond that: a single operator generalizes well across
+unseen \emph{nearby} resolutions without retraining, but accuracy at a
+resolution far outside the training range depends strongly on which
+resolutions were seen during training, not merely on how many optimizer
+steps were spent -- a multi-resolution training set that includes
+resolutions closer to the deployment target outperforms both a
+single-resolution-trained zero-shot model and, surprisingly, direct
+training at the deployment resolution itself.
 
 A preliminary comparison suggests this resolution-generalization behavior
 is not specific to physics-informed training: a data-driven operator
