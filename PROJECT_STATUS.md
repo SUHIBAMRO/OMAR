@@ -16206,6 +16206,125 @@ either -- confirmed redundant with the paper's own existing Tables 1/3/7,
 which already cover this. Recompiled clean: 25 pages (up from 24), zero
 errors, 26 tables (up from 24).
 
+### Report-driven revision batch using the 2026-10-04 report as source of truth, 2026-10-05
+
+Omar gave an explicit 20-point instruction list (source of truth:
+`advisor_feedback/PFEM_Transolver_Report_2026-10-04.docx`; "do not invent,
+reconstruct, or estimate any values") covering 5 new tables, 2 missing
+methodology statements, several verification-only items already satisfied
+by prior work, and end-matter completion. Worked through all 20 points;
+every new number was pulled directly from the report via python-docx
+(table-captions-follow-tables convention, confirmed via raw XML) or from
+numbers already verified and integrated in the paper -- nothing
+estimated, interpolated, or read off a plot.
+
+**New tables added** (29 total now, up from 26):
+- `tab:q4-vs-q9-rates` (Table 7): the real Q4-vs-Q9 fitted convergence-rate
+  comparison (6 shared coarser resolutions N=6..41) as a companion to the
+  existing 7-point Q4-only sweep -- explicitly captioned to flag that the
+  two tables fit different resolution ranges and their Q4 rates are not
+  interchangeable (confirmed via the report: Table 6a's own rates are
+  L2=1.57/H1=0.73/energy=0.86 over N=51-1401, Table 6b's are
+  L2=1.39/H1=0.72/energy=0.71 over N=6-41).
+- `tab:dd-coarse-fine` (Table 28): the real 7-row Report Table 26 data
+  (coarse-N=13 vs.\ fine-N=33 data-driven training-resolution comparison,
+  all 7 requested test points N=13,17,25,29,37,41,49 present in the
+  source, none missing), added next to the existing Figure 33 discussion.
+- `tab:gpu-fem-matched` (Table 15): torch-fem's real per-resolution peak
+  GPU memory (5.7/17.3/35.3/69.2 GB at N=401/701/1001/1401, from the
+  report's own round-9 follow-up text) plus the one resolution
+  (N=1401) where both solvers' exact wall-clock times exist as printed
+  numbers (this project's matrix-free solver: 11.0h; torch-fem: 133.83s;
+  ratio 296x, consistent with the paper's own already-stated 204-306x
+  range). Explicitly did NOT fabricate a full per-N wall-clock table for
+  N=401/701/1001 -- those are reported in the source only as a figure
+  (not exact printed values), and reading precise numbers off a plot
+  would itself be a form of estimating, which was out of scope.
+- `tab:accuracy-matched-cost` (Table 21): a new 6-case accuracy-matched
+  FEM-vs-operator cost/break-even table, built by cross-referencing two
+  independently-consistent pieces of real data: the existing
+  `tab:required-n` table's own H1-semi-norm coarsest-N values (confirmed
+  H1 is binding for all six cases, exactly matching that table's own
+  prior finding) with the matching FEM per-sample cost and break-even at
+  that exact N from the report's round-13 finalization tables
+  (`Table 18-R11a` through `-R11f`, the 5% threshold row for whichever
+  QoI required the largest N per case -- which turned out to be H1 in
+  every case, independently confirming `tab:required-n`'s own result)
+  and the operator's own already-published inference cost
+  (`tab:cost`). Deliberately did NOT merge this with the different
+  N=1401-deployment-resolution crossover tables found elsewhere in the
+  report (`Table 18-R10m`/`-R10e`/`-R10e'`), since those use a
+  continuously-searched crossover against the operator's own actual
+  measured error rather than the fixed 1%/2%/5% threshold grid used by
+  the R11 tables -- merging the two would have meant interpolating
+  between genuinely different criteria, which is exactly the kind of
+  reconstruction Omar's instructions ruled out.
+- `tab:mesh-conv-six`'s caption tightened to explicitly state $N{=}51$ is
+  the finest resolution tested in every one of the six sweeps (confirmed
+  by a report check) and to explain, rather than silently omit, why
+  absolute peak-displacement/energy values aren't tabulated for 5 of the
+  6 cases (the report itself only reports them in full for B1xNH; the
+  other five report only step-to-step relative change, by the report's
+  own design, confirmed via raw table-cell XML inspection -- not a
+  parsing artifact).
+
+**Two new methodology paragraphs added** (both using real, report-verified
+figures, not generic boilerplate): a "Timing methodology" paragraph
+(FP64 throughout, disk I/O excluded, CUDA-synchronization-bracketed GPU
+regions, untimed warm-up before every GPU timing, 5-repeat median for
+native FEM cost, 10-warm-up/50-repeat median for matched-batch inference
+latency) and a "Computational environment" paragraph (Python 3.12.13,
+NumPy 2.0.2, SciPy 1.16.3, PyTorch 2.11.0+cu128/CUDA 12.8, Intel Xeon
+12-logical-core CPU, NVIDIA A100-SXM4-80GB) -- both pulled verbatim from
+the report's own \S4.2 methodology note. Also added an explicit scope
+statement after the GPU-FEM solver-scaling subsection stating plainly
+that the entire N=401-1401 torch-fem/TensorMesh large-DOF comparison is
+B1xNeo-Hookean only, not repeated for the other five cases, and that all
+absolute timings are specific to the single A100 used.
+
+**Three real inconsistencies Omar found on his own re-read, all fixed**:
+1. Table 25 (the per-component regional-stress table) still called its
+   100-sample set "held-out" while Section 7.1 and Table 24 already
+   correctly call it a "validation set" (it's used for methodology/
+   checkpoint decisions throughout Section 7, so by definition it isn't
+   a held-out test set) -- both occurrences fixed for consistency.
+2. Section 7.4 described the 950,400-element mesh as "the reference used
+   for the regional-stress convergence ladder," which conflates it with
+   the 839,040-element mesh the ladder is actually scored against.
+   Rewrote the paragraph to state all three B3 references explicitly and
+   separately: 839,040 (what the 13-point ladder is scored against),
+   950,400 (one step finer, independently solved to confirm agreement,
+   subsequently adopted as the common downstream reference), and 43,400
+   (a separate independent fine reference used only for the
+   displacement/energy/reaction accuracy-matched analysis) -- so a
+   reviewer can't conflate the three.
+3. An explicit limitation sentence was missing stating that B3's
+   training-seed variability was never quantified; added immediately
+   after the regional-stress open-limitation paragraph (not left
+   implicit, per Omar's own explicit fourth point).
+
+**Real LaTeX overflow bugs found and fixed during recompilation** (not
+part of the 20-point list, but found while verifying it): `torch.cuda.
+synchronize()` and `camlab-ethz/TensorMesh` were overflowing into the
+right margin as unbreakable `\texttt` tokens with no space for LaTeX to
+wrap at -- fixed by switching to `\url{}` (which breaks at `.`/`/`) or,
+where that still didn't fit, rewording to avoid the literal token
+entirely. The Data-and-Code-Availability paragraph's branch name
+(`claude/claude-code-question-d307wp`) overflowed the same way even
+inside `\url{}`; fixed by dropping the branch name from the sentence
+entirely (the commit hash alone is sufficient for reproducibility, and
+is more durable than a feature-branch name that will be merged away).
+Three single-column tables (`tab:candidates`, `tab:dataset-composition`,
+`tab:b3-training-config`) were also overflowing their column slightly;
+fixed by switching their font from `\small` to `\footnotesize`. All
+fixes verified by rendering the actual affected pages to PNG and visually
+inspecting, not assumed from a clean compile log. Recompiled clean: 27
+pages (up from 25), zero LaTeX errors, 29 tables (up from 26). Two
+pre-existing `Overfull \hbox` warnings remain in the compile log (an
+inline-math line in Section 2 and the B3-candidates table) but were
+visually confirmed harmless -- no text actually crosses the column
+boundary in either case.
+
 ---
 
 ## Environment / tooling notes

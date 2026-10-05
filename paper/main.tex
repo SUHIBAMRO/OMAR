@@ -338,7 +338,7 @@ laminated alternative's own GPU mesh-convergence ladder in full.
 \caption{B3 candidate comparison: both geometries' GPU mesh-convergence
   studies on the same regional Cauchy-stress field-error metric.}
 \label{tab:candidates}
-\small
+\footnotesize
 \begin{tabular}{lcc}
 \toprule
  & Candidate A (grooved) & Candidate B (laminated) \\
@@ -359,7 +359,7 @@ Decision & \textbf{adopted} & not developed further \\
   ladder: regional Cauchy-stress field error and displacement $L^2$ error
   vs.\ element count, scored against the $302{,}016$-element row.}
 \label{tab:candidate-b-ladder}
-\small
+\footnotesize
 \begin{tabular}{lcc}
 \toprule
 Elements & Regional Cauchy-stress error & Displacement $L^2$ error \\
@@ -401,7 +401,26 @@ this study (training, the GPU-native solver, and the evaluation scripts)
 run on a single NVIDIA A100 (80~GB) via Google Colab; library versions
 (PyTorch, torch-fem, JAX) were not pinned and reflect whatever was
 current on PyPI at the time each experiment ran, consistent with this
-project's own development practice throughout. Table~\ref{tab:fem-cost}
+project's own development practice throughout.
+
+\textbf{Timing methodology.} All timings reported in this paper use
+float64 (FP64) precision throughout, on both CPU and GPU. Disk I/O is
+excluded from every timed figure -- only in-memory field generation and
+the solve (or forward pass) itself are timed. Every GPU-timed region is
+bracketed by an explicit CUDA synchronization call on both sides, since
+kernel launches are otherwise asynchronous and would be undercounted; one
+full untimed solve precedes any GPU timing to absorb CUDA context creation
+and kernel/autotuning overhead. Native (CPU) finite-element cost figures
+are the median of five repeated measurements per case; matched-batch
+operator-vs-FEM inference latency (Table~\ref{tab:cost} and
+Section~\ref{sec:gpu-fem}) uses 10 untimed warm-up calls followed by
+the median over 50 repeated timed runs at each batch size.
+
+\textbf{Computational environment.} All experiments ran on Python
+3.12.13, NumPy 2.0.2, SciPy 1.16.3, and PyTorch 2.11.0+cu128 (CUDA 12.8),
+on an Intel Xeon CPU (2.20~GHz, 12 logical cores) and a single NVIDIA
+A100-SXM4-80GB GPU.
+Table~\ref{tab:fem-cost}
 reports its per-sample cost breakdown (direct sparse LU via SciPy's
 \texttt{spsolve}, Newton tolerance $10^{-7}$, 10 load steps, all six
 geometry/material cases): assembly dominates total cost by two to three
@@ -486,7 +505,13 @@ study.
 \centering
 \caption{Reference-solver mesh convergence, all six cases: relative
   change per refinement step in peak displacement and total strain
-  energy, at the $N{=}21$ operating mesh and at $N{=}51$.}
+  energy, at the $N{=}21$ operating mesh and at $N{=}51$, the finest
+  resolution tested in each sweep -- both already below $0.2\%$ at the
+  operating mesh itself, confirming $N{=}21$ is already in the
+  asymptotic convergence regime for every case (absolute peak-displacement
+  and energy values at $N{=}51$ are not tabulated here since the source
+  study reports them in full only for B1$\times$Neo-Hookean, and only the
+  per-step relative change for the other five cases).}
 \label{tab:mesh-conv-six}
 \small
 \begin{tabular}{lcccc}
@@ -548,6 +573,24 @@ $N$ & DOF & $L^2$ & $H^1$ & Energy & Wall-clock \\
 701  & 982{,}802   & $1.01\mathrm{e}{-5}$ & $2.85\mathrm{e}{-3}$ & $1.91\mathrm{e}{-3}$ & $7{,}205.4$~s \\
 1001 & 2{,}004{,}002 & $5.15\mathrm{e}{-6}$ & $1.85\mathrm{e}{-3}$ & $1.27\mathrm{e}{-3}$ & $17{,}314.8$~s \\
 1401 & 3{,}925{,}602 & $2.29\mathrm{e}{-6}$ & $1.63\mathrm{e}{-3}$ & $7.82\mathrm{e}{-4}$ & $27{,}257.4$~s \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Fitted convergence rates, Q4 vs.\ Q9 (B1$\times$Neo-Hookean, six
+  shared resolutions $N{=}6,11,16,21,31,41$ -- a coarser, disjoint range
+  from Table~\ref{tab:high-dof-q4}'s own seven-point fit, so the two
+  tables' Q4 rates differ and are not interchangeable).}
+\label{tab:q4-vs-q9-rates}
+\small
+\begin{tabular}{lccc}
+\toprule
+Element order & $L^2$ rate & $H^1$ rate & Energy rate \\
+\midrule
+Q4 & $1.39$ & $0.72$ & $0.71$ \\
+Q9 & $1.57$ & $0.76$ & $0.75$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -649,7 +692,7 @@ output manifest in the code repository, not reproduced here.
 \centering
 \caption{Dataset composition, all three benchmarks.}
 \label{tab:dataset-composition}
-\small
+\footnotesize
 \begin{tabular}{lccc}
 \toprule
 Benchmark & Training & Held-out/validation & OOD \\
@@ -718,7 +761,7 @@ precision differ.
 \caption{B3 training configuration (shared hyperparameters as
   Table~\ref{tab:hyperparams}; only the rows below differ from B1/B2).}
 \label{tab:b3-training-config}
-\small
+\footnotesize
 \begin{tabular}{lc}
 \toprule
 Setting & Value \\
@@ -1040,6 +1083,35 @@ discretized solution. At this matched precision torch-fem is still
 $204$--$306\times$ faster in wall-clock ($N{=}401$--$1401$) -- roughly
 half the unmatched-precision gap, but a real, defensible advantage, not
 an artifact of comparing a tight FP64 tolerance against a loose FP32 one.
+Table~\ref{tab:gpu-fem-matched} reports torch-fem's own peak GPU memory at
+each of the four resolutions tested, together with the one resolution at
+which both solvers' exact wall-clock times are available as printed
+numbers rather than read off a figure: at $N{=}1401$, this project's own
+matrix-free solver takes $11.0$~hours against torch-fem's $133.83$~s
+($\approx296\times$, within the $204$--$306\times$ range above); the
+per-resolution wall-clock breakdown at $N{=}401,701,1001$ is reported in
+the source material only as a figure, not as exact tabulated values, and
+is not reconstructed here from a plot.
+
+\begin{table}[h]
+\centering
+\caption{GPU-native solver vs.\ torch-fem at matched precision
+  (B1$\times$Neo-Hookean): torch-fem's peak GPU memory at each resolution
+  tested, and the one resolution with an exact wall-clock anchor for both
+  solvers.}
+\label{tab:gpu-fem-matched}
+\footnotesize
+\begin{tabular}{lccc}
+\toprule
+$N$ & DOF & torch-fem peak mem. & torch-fem time \\
+\midrule
+401  & 321{,}602    & $5.7$~GB  & -- \\
+701  & 982{,}802    & $17.3$~GB & -- \\
+1001 & 2{,}004{,}002 & $35.3$~GB & -- \\
+1401 & 3{,}925{,}602 & $69.2$~GB & $133.83$~s \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{figure}[htb]
 \centering
@@ -1088,7 +1160,7 @@ tightest.
 \label{fig:43}
 \end{figure}
 
-A second established library, TensorMesh (\texttt{camlab-ethz/TensorMesh}),
+A second established library, TensorMesh (\url{camlab-ethz/TensorMesh}),
 was also tested directly, using a genuine Newton-type solve with a direct
 sparse solver (cuDSS) rather than the energy-minimization approach its own
 example code uses. $L^2$ error again agrees with torch-fem to every printed
@@ -1118,6 +1190,18 @@ at the sizes tested here for the ability to reach substantially larger
 problems than an explicitly-assembled approach can hold in GPU memory at
 all -- both properties worth stating plainly, not one to the exclusion of
 the other.
+
+This entire large-DOF scaling and library comparison -- the matrix-free
+solver's own scaling study, the matched-precision torch-fem comparison,
+and the TensorMesh comparison, all at $N{=}401$--$1401$ -- is carried out
+for B1$\times$Neo-Hookean only; it is not repeated for the other five
+(geometry, material) cases, and the speed-up/timing figures above should
+not be read as generalizing automatically to them. All absolute wall-clock
+and memory figures in this subsection are specific to the single A100
+(80~GB) GPU and the library versions used at the time each benchmark ran
+(Section~\ref{sec:discretization}); relative comparisons between solvers
+on the same hardware are the portable finding, not the absolute numbers
+themselves.
 
 \subsection{Out-of-distribution generalization}
 To check how each network behaves outside its training distribution, a
@@ -1377,6 +1461,37 @@ B1 $\times$ AB & 4 & 13 & 11 & 5 & 3 \\
 B2 $\times$ NH & 6 & 17 & 17 & -- & 6 \\
 B2 $\times$ MR & 6 & 17 & 17 & -- & 6 \\
 B2 $\times$ AB & 6 & 17 & 17 & -- & 6 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:accuracy-matched-cost} extends this with the accuracy-matched
+cost comparison on each case's own binding quantity ($H^1$ semi-norm,
+$5\%$ target): the coarsest FEM mesh reaching that target, its own
+directly measured per-sample cost there, and the resulting break-even
+against the operator's own inference cost (Table~\ref{tab:cost}) --
+complementary to the resolution-matched comparison above, which holds
+FEM at the fixed $N{=}21$ training mesh rather than at each case's own
+accuracy-matched mesh.
+
+\begin{table}[h]
+\centering
+\caption{Accuracy-matched FEM/operator comparison, all six cases, on each
+  case's own binding quantity ($H^1$ semi-norm, $5\%$ target): coarsest
+  FEM mesh reaching that target, FEM cost there, operator's own inference
+  cost (Table~\ref{tab:cost}), and the resulting break-even.}
+\label{tab:accuracy-matched-cost}
+\footnotesize
+\begin{tabular}{lcccc}
+\toprule
+Case & $N$ ($H^1$, $5\%$) & FEM (ms) & Operator (ms) & Break-even \\
+\midrule
+B1 $\times$ NH & 17 & 1{,}700.3 & 4.586 & 32{,}063 \\
+B1 $\times$ MR & 17 & 1{,}994.5 & 4.693 & 33{,}317 \\
+B1 $\times$ AB & 13 & 2{,}677.1 & 4.745 & 17{,}078 \\
+B2 $\times$ NH & 17 & 1{,}728.9 & 4.809 & 29{,}633 \\
+B2 $\times$ MR & 17 & 2{,}040.4 & 4.908 & 3{,}849 \\
+B2 $\times$ AB & 17 & 2{,}666.0 & 4.984 & 3{,}551 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1948,7 +2063,7 @@ the tensor relative field error over the $N_q$ region quadrature points is
   {\sum_{q=1}^{N_q} w_q \lVert \boldsymbol{\sigma}^{\text{true}}_q \rVert_F^2}\right)^{1/2},
   \label{eq:region-field-error}
 \end{equation}
-pooled across the held-out set by summing numerator and denominator
+pooled across the validation set by summing numerator and denominator
 across samples before taking the square root (so a single ratio is
 reported, not an average of ratios), where $w_q$ are the quadrature
 weights and the Frobenius norm of the symmetric stress tensor double-counts
@@ -2064,7 +2179,7 @@ tuning to pass.
 \centering
 \caption{Regional Cauchy-stress accuracy, per component, before and after
   local integration refinement during training ($n_{\text{sub}}{=}10$,
-  $566$ region quadrature points, 100-sample held-out set). The last
+  $566$ region quadrature points, 100-sample validation set). The last
   column is each component's own share of the pooled Frobenius-error
   numerator (Eq.~\eqref{eq:region-field-error}, local-refinement model),
   reconstructed from the component RMS and relative-error columns.}
@@ -2100,19 +2215,31 @@ within the region, while not meaningfully moving the pooled metric. The
 remaining $29.8\%$ gap is reported here as an open limitation
 (Section~\ref{sec:discussion}), not a fully resolved result.
 
+All B3 results above come from a single training run per checkpoint
+configuration (one weight-initialization seed each for the baseline and
+local-integration-refinement checkpoints, Section~\ref{sec:discussion});
+training-seed-to-seed variability for B3 has not been separately
+quantified and is reported here as a limitation of the present study,
+not as a claim that the specific numbers above are seed-independent.
+
 \subsection{Accuracy-matched comparison and break-even}
 \label{sec:b3-breakeven}
 A genuinely apples-to-apples accuracy-matched comparison requires the
 operator's error to be measured against an independent fine reference, not
 the same mesh it trained on, which itself carries non-negligible
-discretization error. This fine reference ($43{,}400$ elements) was
-established independently, for this accuracy-matched comparison
-specifically, and is distinct from the $950{,}400$-element reference used
-for the regional-stress convergence ladder of
-Section~\ref{sec:discretization} and \ref{sec:b3-stress} -- the two serve
-different purposes (a displacement/energy/reaction accuracy baseline here,
-versus a background-integration-resolution convergence study there) and
-are not required to coincide. Ten held-out samples were re-solved at this
+discretization error. This fine reference ($43{,}400$ elements) was established independently,
+for this accuracy-matched comparison specifically, and is distinct from
+both references used in the mesh-convergence ladder of
+Section~\ref{sec:discretization}: the $839{,}040$-element mesh the
+13-point ladder (Table~\ref{tab:b3-ladder}) is itself scored against, and
+the $950{,}400$-element mesh -- one step finer still, independently
+solved to confirm agreement with the $839{,}040$-element solution within
+the ladder's own reproducibility -- subsequently adopted as the common,
+downstream high-resolution reference used elsewhere in
+Section~\ref{sec:b3-stress}. All three serve different purposes (a
+displacement/energy/reaction accuracy baseline here, a mesh-convergence
+score there, and a shared downstream reference elsewhere) and are not
+required to coincide. Ten held-out samples were re-solved at this
 $43{,}400$-element fine reference, and the same checkpoint
 queried zero-shot at that finer mesh's node positions, giving: displacement
 $2.03\%$, energy $2.30\%$ (pooled RMS), reaction moment $2.22\%$ (pooled
@@ -2214,7 +2341,32 @@ farthest unseen mesh tested, while one trained on a finer mesh ($N{=}33$)
 trades some peak accuracy for materially better generalization to unseen
 resolutions -- the same qualitative coarse-vs-fine training-resolution
 trade-off observed for the physics-informed operator above, now
-demonstrated for a supervised baseline as well.
+demonstrated for a supervised baseline as well. Table~\ref{tab:dd-coarse-fine}
+reports the full seven-resolution comparison.
+
+\begin{table}[h]
+\centering
+\caption{Data-driven B1$\times$Neo-Hookean, zero-shot mean relative $L^2$
+  error (per-component, against the common $N{=}101$ reference) at seven
+  unseen resolutions, for two otherwise-identical models differing only
+  in their training-label mesh ($N{=}13$ vs.\ $N{=}33$; neither training
+  resolution is itself among the seven test points).}
+\label{tab:dd-coarse-fine}
+\small
+\begin{tabular}{lcc}
+\toprule
+Test $N$ & Coarse-trained ($N{=}13$) & Fine-trained ($N{=}33$) \\
+\midrule
+13 & $10.52\%$ & $13.72\%$ \\
+17 & $11.73\%$ & $12.82\%$ \\
+25 & $15.41\%$ & $11.82\%$ \\
+29 & $17.36\%$ & $11.50\%$ \\
+37 & $21.05\%$ & $11.10\%$ \\
+41 & $22.77\%$ & $10.99\%$ \\
+49 & $25.90\%$ & $10.90\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{figure*}[htb]
 \centering
@@ -2325,8 +2477,7 @@ influence the work reported in this paper.
 \section*{Data and Code Availability}
 All code (dataset generation, training, evaluation, and the GPU-native
 finite-element solver) is available at
-\url{https://github.com/suhibamro/omar}, branch
-\texttt{claude/claude-code-question-d307wp}, commit
+\url{https://github.com/suhibamro/omar}, commit
 \texttt{1e4df04}. Trained checkpoints and generated datasets are
 available from the corresponding author on reasonable request.
 
