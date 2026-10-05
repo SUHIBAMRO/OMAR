@@ -978,19 +978,53 @@ directly-checked accuracy cost noted there.
 \end{figure}
 
 \subsection{Error in derived physical quantities}
-Every accuracy figure above is a displacement error, the most forgiving
-quantity available. Evaluated on 50 held-out samples per case against the
-same checkpoints, the $H^1$ semi-norm error is $1.3$--$2.3\times$ the
-displacement error (largest on B1), the aggregate first Piola--Kirchhoff
-stress error is $13.3$--$18.1\%$ ($1.3$--$2.0\times$ the displacement error
-in every case), and the reaction-force resultant on the constrained
-boundaries -- a quantity obtained by \emph{integrating} pointwise stress --
-is the best-behaved derived quantity, at $4.7$--$12.6\%$, comparable to or
-better than the displacement error itself. Every field-derivative quantity
-(the $H^1$ semi-norm, tangent energy, aggregate stress) exceeds the
-displacement error in all six cases without exception; only the two
-non-pointwise, integrated quantities (reaction force, and peak stress on
-B2 specifically) can beat it.
+Every operator error reported above is a displacement error -- the most
+forgiving quantity that could be asked about: it is the primary unknown,
+what the network is trained to produce, and smoother than its own
+derivatives. Stress depends on the displacement gradient and so loses an
+order of accuracy; reaction forces are an integral of that stress over the
+supports. A $9\%$ displacement error therefore does not imply a $9\%$
+stress error, and the size of that gap has to be measured, not inferred.
+Each case is evaluated on 50 held-out samples (following the 800 used for
+training) against the same checkpoints behind the results above, in FP64
+(derived quantities are far more sensitive to round-off than displacement
+is, although the network itself was trained in FP32); first
+Piola--Kirchhoff stress is obtained as $\mathbf{P}=\partial\psi/\partial\mathbf{F}$
+by automatic differentiation of the same strain-energy density the solver
+and the training objective use.
+
+The $H^1$ semi-norm behaves as theory predicts: on B1 it is roughly twice
+the displacement error ($22.71$--$24.20\%$ against $10.34$--$11.71\%$),
+the expected penalty for differentiating a field the network was never
+asked to differentiate; on B2 the penalty is markedly smaller
+($10.47$--$13.30\%$ against $7.21$--$10.47\%$). The aggregate stress error
+(quadrature-weighted relative $L^2$ error of the full tensor in the
+Frobenius norm) is $13.32$--$18.14\%$ across all six cases -- $1.3$ to
+$2.0$ times the displacement error of the same case, and the number to
+quote for stress accuracy; per-component stress errors are treacherous,
+since a relative error divides by that component's own reference norm and
+some components are near zero almost everywhere, while the Frobenius
+column is unaffected by this small-denominator problem. Peak stress (the
+maximum of $\|\mathbf{P}\|_F$ over the mesh) separates the two benchmarks
+sharply: on B2 it is the most accurate quantity measured, $5.38$--$5.99\%$,
+better than the displacement error itself; on B1 it is $19.87$--$47.53\%$
+and highly variable from sample to sample, with the predicted peak
+exceeding the reference peak in all three B1 cases -- no cause has been
+isolated for this overshoot, and it is reported as measured. Reaction
+forces are the best-behaved derived quantity measured: $4.66$--$12.61\%$
+in the resultant and $7.10$--$12.86\%$ in the nodal distribution, the same
+order as the displacement error and far better than the pointwise stress
+it is assembled from, since the resultant sums Gauss-point stresses over
+the whole support and the pointwise errors partially cancel. The three
+field measures that involve a derivative of the displacement ($H^1$
+semi-norm, tangent energy, aggregate stress) exceed the displacement
+error in every one of the six cases without exception; the two quantities
+that can beat it are the ones that are not pointwise fields -- the
+reaction resultant and, on B2 specifically, the peak stress. A
+displacement error quoted alone is therefore a lower bound on what a
+downstream engineering quantity would see, not a reliable predictor of
+it: across the quantities measured here that ratio spans $0.45\times$ to
+$4.06\times$.
 
 \begin{figure}[htb]
 \centering
@@ -1021,18 +1055,38 @@ the error at the true peak.
 
 \subsection{Physics-informed vs. data-driven training, at matched cost}
 \label{sec:pi-vs-dd}
-The same architecture and mesh were also fitted directly to finite-element
-displacement labels (a standard data-driven, supervised loss) on
-B1$\times$Neo-Hookean, under two optimizer settings. Reading down either the
-Adam or the AdamW+OneCycleLR column alone, one training principle wins by
-$27$--$34\%$ over the other -- but the ranking reverses between columns, so
-neither principle is unconditionally better; only the complete two-loss,
-two-optimizer grid reveals this. One asymmetry survives the reversal and is
-not an accuracy figure: the data-driven model requires 800 labeled
-finite-element solves ($5.65$ CPU-hours at the measured per-sample cost,
-Table~\ref{tab:cost}) before training can even begin, a fixed cost the
-physics-informed model never pays, since its loss is the energy of its own
-prediction.
+Every operator above is trained by minimizing total potential energy, with
+no reference solutions in the loss. The obvious question is whether that
+principle earns its keep: the same architecture on the same mesh could
+instead be fitted to finite-element displacements directly. Changing the
+loss usually means changing the optimizer that was tuned for it, which
+would confound the two effects, so the comparison was run as a
+two-by-two: both losses under both recipes (Adam; AdamW with a one-cycle
+schedule), all four at the same 75,000 optimizer steps, on
+B1$\times$Neo-Hookean. Reading down the Adam column, the physics-informed
+loss wins by $27\%$; reading down the AdamW+OneCycleLR column, the
+data-driven loss wins by $34\%$. The ranking reverses, so neither training
+principle is better than the other in any unconditional sense on this
+problem -- a finding only the complete grid can support, since either
+column alone would have licensed a confident and opposite conclusion. The
+mechanism is that the optimizer does not treat the two losses alike:
+switching from Adam to AdamW with a one-cycle schedule makes the
+physics-informed model $30\%$ worse and the data-driven model $37\%$
+better, so a learning-rate schedule tuned against one objective is not
+neutral ground for the other.
+
+One asymmetry survives the reversal and is not an accuracy figure: the
+data-driven model needs a labelled dataset -- 800 finite-element solves,
+$5.65$ CPU-hours at the measured cost -- before training can even begin,
+a fixed cost the physics-informed model never pays, since its loss is the
+energy of its own prediction. The data-driven model is more expensive by
+this fixed amount ($18{,}924$~s under matched Adam, $18{,}694$~s under
+matched AdamW+OneCycleLR) for every number of future inferences, not just
+below some threshold: the two checkpoints' inference cost is effectively
+identical ($4.625$ vs.\ $4.586$~ms/sample, a $0.8\%$ difference,
+consistent with sharing the identical architecture), so the per-inference
+term cancels and what remains is the label-generation cost, which
+dominates by more than an order of magnitude in both pairings.
 
 \begin{figure}[htb]
 \centering
@@ -1043,21 +1097,76 @@ prediction.
 \end{figure}
 
 \subsection{Verification against manufactured solutions}
-A method-of-manufactured-solutions check (a chosen displacement field, with
-the consistent body force solved backwards from it by nested automatic
-differentiation) verifies the finite-element implementation independently of
-any comparison to itself: observed convergence rates for Q4 and Q9 match
-their theoretical values ($1$ and $2$ in $L^2$ semi-norms respectively) to
-within fitting precision, across all three constitutive models. Applying the
-same manufactured family to the trained operator gives a qualitatively
-different, and informative, result: the operator's $L^2$ error against the
-manufactured solution \emph{increases} with mesh refinement (fitted rate
-$-0.28$ to $-0.59$, versus Q4's $+1.99$), while its $H^1$-semi-norm and
-stress errors improve modestly ($+0.74$ to $+0.78$). This is consistent with
-the operator's error being dominated by optimization error under a fixed
-training budget rather than by discretization error: refining the mesh
-shrinks the finite-element error that limits Q4, while leaving the trained
-network's own optimization gap roughly where it was, on an enlarged problem.
+Every accuracy figure reported so far is measured against a finite-element
+solution, which makes the finite-element method the one component of the
+pipeline that is never itself graded: it defines the reference, so it
+cannot be scored against it. A manufactured solution removes that
+circularity by supplying an exact answer known in closed form. A
+displacement field is chosen first and the governing equations are then
+solved backwards for the body force that would produce it, vanishing on
+the entire boundary so that homogeneous Dirichlet conditions are the
+exact boundary condition and no solver change is required; the body force
+is obtained by nested automatic differentiation of the strain-energy
+density and checked against a central finite difference before any mesh
+is built. Observed convergence rates for Q4 and Q9, fitted by least
+squares on $\log h$, land on their theoretical values across all three
+constitutive models -- a body force wrong by a sign or a factor would
+make the discrete solution converge to the wrong function and these rates
+would collapse. Because both orders are scored against the same exact
+solution, they can be compared at equal cost rather than equal mesh
+spacing: Q9 is more accurate at every matched degree-of-freedom count
+($4.0\times$ at 162 DOF, $8.2\times$ at 578 DOF in $L^2$), and its margin
+widens with refinement, exactly as its higher rate predicts.
+
+A separate operator -- same architecture, same Q4 mesh, minimizing the
+same discrete potential energy, scored by the same routine as the two
+solvers, trained on a 64-member family of manufactured solutions with no
+labels (the exact solution enters only the scoring, never the loss) --
+makes the comparison three-way. The operator minimizes the same discrete
+functional over the same Q4 space that the Q4 solver solves, so no field
+it produces attains a lower discrete potential energy than Q4 does; but
+that ceiling is a statement about $\Pi$, not about the $L^2$ error against
+$u^\ast$, which is a different functional and does not inherit the
+guarantee. At $N{=}17$ the operator is $2.42\times$ the Q4 error in
+$L^2$, but the four norms do not agree on how far it is: in the $H^1$
+semi-norm the ratio is $1.03\times$ and in stress $1.03\times$, both
+effectively at the Q4 optimum, while $L^2$ sits at $2.42\times$ and energy
+at $3.11\times$ -- an ordering inverted relative to the usual one, in
+which $L^2$ is the forgiving norm and the derivative-based norms are the
+strict ones. The inversion is consistent with what the training principle
+optimizes: the energy functional is built from the deformation gradient,
+so the strain and stress fields are the quantities the loss sees directly
+and constrains hardest, while displacement is only pinned down through
+them. For a physics-informed operator, an $L^2$ displacement error
+overstates how wrong the mechanics are. The same derivation and mesh
+sequence were repeated for Mooney-Rivlin and Arruda-Boyce; all rows land
+on their theoretical rate, so the verification holds for every
+constitutive model this study trains an operator on, not only the one
+exercised above.
+
+Two further operators, trained at $N{=}9$ and $N{=}33$ under the identical
+protocol, give the operator its own convergence rate for the first time.
+The operator does not converge: its $L^2$ error \emph{rises} with
+refinement ($5.035\times10^{-3}$ at $N{=}9$ to $1.136\times10^{-2}$ at
+$N{=}33$, a fitted rate of $-0.59$, where Q4 on the same three meshes is
+$+1.99$); the $H^1$ semi-norm does improve, at $+0.78$ against Q4's
+$+1.00$, so the picture is not that nothing improves, only that it does
+so more slowly than the discretization it sits on. The explanation is
+that the operator's error is dominated by optimization error, not
+discretization error, and the two respond to refinement in opposite
+ways: refining the mesh reduces the error that limits Q4 while leaving
+the network's own optimization gap roughly where it was, on an enlarged
+problem. Repeating the comparison on a 16-member family rather than a
+single manufactured instance sharpens the same finding: the operator's
+family-mean $L^2$ error rises $1.47\times$ from $N{=}9$ to $N{=}33$ while
+Q4's falls $15.8\times$ over the same refinement (fitted rates: Q4
+$1.99$, Q9 $3.01$, operator $-0.28$, negative on each refinement interval
+separately), while $H^1$ and stress diverge far more mildly ($+0.74$ and
+$+0.77$) -- the same ceiling-proximity effect visible in per-member
+reliability as well as in the mean: the operator's coefficient of
+variation across the family is two orders of magnitude larger than Q4's
+in $L^2$ and energy, but close to Q4's own at the coarsest mesh in $H^1$
+and stress.
 
 \begin{figure}[htb]
 \centering
