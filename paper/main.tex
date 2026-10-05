@@ -1272,10 +1272,12 @@ axial component $u_y$ (the smallest-magnitude component, driven by the
 rocking rotation) at $93.6\%$ -- worse than an all-zero prediction. The root
 cause was isolated rather than assumed: the raw inputs span three orders of
 magnitude ($E\!\sim\!1000$, $\nu\!\sim\!0.45$, $\phi\!\sim\!0.05$), and a
-controlled fixed-sample ablation (identical seed and iteration budget, raw
-vs.\ standardized-to-mean-0/std-1 inputs) showed combined error dropping
-from $10.7\%$ to $1.1\%$ under input normalization alone, with a
-correspondingly smoother, monotonic loss curve. A full retrain with input
+controlled fixed-8-sample A/B test (identical seed, identical $4{,}000$
+iterations, raw inputs versus standardized-to-mean-0/std-1 inputs) showed
+combined error dropping from $10.7\%$ to $1.1\%$ and $u_y$ specifically
+from $54.1\%$ to $4.0\%$ under normalization alone, with a visibly
+smoother, monotonic loss curve replacing the earlier run's oscillation
+between healthy and near-unit-error states. A full retrain with input
 normalization enabled, on the genuinely disjoint held-out set, confirmed
 this generalizes: combined displacement error $1.88\%$ ($u_x$ $1.94\%$,
 $u_y$ $16.16\%$, $u_z$ $1.42\%$), in $6{,}980.3$~s of GPU wall-clock time.

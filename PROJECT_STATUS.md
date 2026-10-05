@@ -15704,6 +15704,100 @@ user if it becomes worth fixing.
 
 ---
 
+## Paper (`paper/main.tex`): critical correction and the verbatim-fidelity rewrite, 2026-10-05
+
+After the first full paper draft (Abstract through Conclusion, 54 figures
+added from the Report's own `word/media/`) was complete and recompiling
+clean, Omar caught that the whole approach was wrong: *"صديقي احنا شكلنا
+اشتغلنا غلط... انا ما بدي اكتب ورقه من اول وجديد لا بدي الملف الي عنا بشكل
+صحيح يصير ورقه هيك طلب تيمون"* — the task was never "write a new paper
+summarizing the Report," it was "take the existing ~110-page Report and
+turn it into a paper by cutting the non-essential parts, keeping the real
+technical content in its own original wording." His own example: instead
+of my own phrasing for the B2 regression ("An early version of B2's
+external-work term used..."), use the Report's own literal paragraph for
+the same point, only cutting the parts about who caught the bug and how.
+Confirmed via AskUserQuestion ("صح بالضبط") before resuming; format stays
+LaTeX (already decided earlier, re-confirmed).
+
+**Methodology adopted for the rewrite**: for each section, re-fetch the
+FULL untruncated paragraph text from the actual `.docx` via `python-docx`
+(not rely on the first draft's paraphrase), keep real technical sentences
+near-verbatim, cut narrative/debugging/internal-dialogue asides ("an
+earlier revision...", "Omar caught...", most near-duplicate per-case
+table repeats), recompile and check the log for real errors before every
+commit.
+
+Three commits landed this pass, each independently recompiled clean
+before pushing:
+- `9aeefc6` — OOD generalization, zero-shot resolution invariance (incl.
+  the B2 checkpoint-selection-metric bug and the N=1401 multi-resolution
+  finding), B2 accuracy-regression root cause, Discussion opening. Caught
+  and fixed its own bug: a duplicate figure/paragraph block left over from
+  the edit (`fig:24`/`fig:37` multiply-defined warning in the log) —
+  found by reading the compile log, not assumed clean.
+- `e601d64` — training protocol/final accuracy, training cost/native-FEM/
+  break-even, GPU-native-solver subsection (upgraded with the real
+  matched-precision 204–306× figure).
+- `33ba746` — error in derived physical quantities, physics-informed-vs-
+  data-driven training, verification against manufactured solutions (this
+  last one substantially expanded — the operator-does-not-converge-with-
+  mesh-refinement finding is one of the Report's most scientifically
+  interesting results and was judged to deserve closer-to-full treatment).
+
+**This session**: continued the same plan (training protocol → GPU solver
+→ derived quantities → PI-vs-DD → manufactured solutions → verify B3 →
+Conclusion) to its stated end.
+- **Results: B3 section** (`\label{sec:results-3d}`): checked against the
+  actual source — `Practical_Examples/report_builders/
+  add_b3_training_evaluation_local_refinement_and_breakeven.py`, which is
+  itself the script that wrote the real Report's Sections 11.6–11.10 on
+  2026-10-04 — paragraph by paragraph. Already close to verbatim (it was
+  derived from the same real numbers/prose I wrote into the actual Report),
+  needed only one tightening edit: the input-normalization ablation
+  sentence now says "controlled fixed-8-sample A/B test (identical seed,
+  identical 4,000 iterations...)" and includes the $u_y$-specific
+  54.1%→4.0% number, matching the Report's own wording exactly instead of
+  a looser paraphrase ("fixed-sample ablation... identical seed and
+  iteration budget").
+- **Governing Equations section**: checked against `sec2_full.txt` — the
+  surrounding prose (not the equations themselves, which are OMML and not
+  text-extractable) already tracks the Report's own sentences closely;
+  no changes needed.
+- **Conclusion section**: checked against the real Report Section 10
+  ("10. Conclusion and Next Steps," paragraphs 614–627) and found it is
+  NOT a transferable source for a paper conclusion — it is a project-
+  status/remaining-items list specific to the Report ("this item is
+  closed," "tracked down and confirmed directly with Omar," a numbered
+  TODO list), not a scientific synthesis. Two of its sentences (paragraphs
+  612–613, the OOD-generalization and resolution-invariance framing) ARE
+  real, reusable scientific claims, but both already appear verbatim in
+  the Discussion section from the `9aeefc6` pass. The paper's Conclusion
+  is therefore left as its own original synthesis (restating the real,
+  already-verbatim-sourced findings from the body at a higher level) —
+  this is the one section where writing fresh is the correct call, not an
+  oversight.
+
+Recompiled clean after this pass: `pdflatex`→`bibtex`→`pdflatex`→
+`pdflatex`, 48 pages, zero `!`-prefixed errors, zero undefined/multiply-
+defined references.
+
+**Still pending** (lower priority, flagged to Omar as the plan's last
+item): a final re-check of the Abstract/Introduction/Benchmark-Geometries
+sections against the verbatim standard (Benchmark Geometries already spot-
+checked as fine; Abstract/Introduction were written early and are
+summary-register text with no 1:1 Report paragraph to source from, same
+situation as the Conclusion). Also still open: which of the Report's 110
+tables (beyond the paper's current 4) are worth reproducing as real
+tables — Omar asked for this review before the verbatim correction
+superseded it; not yet revisited. B3 has zero figures in the Report
+(confirmed) — would need new plots generated from Drive data if ever
+wanted; not started. An updated PDF has not yet been sent to Omar for this
+pass — per the stated plan, send one once this remaining chunk is
+substantially complete, not after every commit.
+
+---
+
 ## Environment / tooling notes
 
 - Repo: `suhibamro/omar` (GitHub), branch `claude/claude-code-question-d307wp`.
