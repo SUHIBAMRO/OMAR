@@ -51,8 +51,11 @@ instability, after which the regional-stress error is traced, in part, to
 an under-resolved background numerical integration rather than the
 network's own capacity, and a local integration refinement -- applied to
 only the few mesh elements touching the region of interest, independently
-of the operator's own discretization -- roughly halves the error (from
-62\% to 30\%). The remaining gap is reported as an open limitation, with
+of the operator's own discretization, via a separately trained checkpoint
+of the same architecture (the displacement/energy/reaction figures above
+are from the baseline checkpoint, not this one) -- roughly halves the
+error (from 62\% to 30\%). The remaining gap is reported as an open
+limitation, with
 several concrete directions (stress/equilibrium-aware physics losses,
 mixed displacement--stress formulations, local/hierarchical representations)
 identified for future work.
@@ -617,6 +620,48 @@ Trainable parameters & $2{,}010{,}914$ ($\approx2.01$M) \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+Table~\ref{tab:b3-training-config} reports the corresponding B3-specific
+configuration: the shared hyperparameters above (hidden width, layers,
+heads, MLP ratio, slice tokens, dropout, positional encoding) are
+unchanged, only the input/output dimensions, training budget, and
+precision differ.
+
+\begin{table}[h]
+\centering
+\caption{B3 training configuration (shared hyperparameters as
+  Table~\ref{tab:hyperparams}; only the rows below differ from B1/B2).}
+\label{tab:b3-training-config}
+\small
+\begin{tabular}{lc}
+\toprule
+Setting & Value \\
+\midrule
+Input coordinate dim.\ (space\_dim) & 3 ($x,y,z$) \\
+Condition channels (fun\_dim) & 3 ($E,\nu,\phi$) \\
+Output dim.\ (out\_dim) & 3 ($u_x,u_y,u_z$) \\
+Trainable parameters & $2{,}011{,}171$ ($\approx2.01$M) \\
+Learning rate & $2\times10^{-3}$ \\
+Batch size & 8 \\
+Training iterations & $50{,}000$ \\
+Input normalization & on (mean-0/std-1, Section~\ref{sec:results-3d}) \\
+Training precision & FP64 \\
+Local integration refinement & off (baseline); $n_{\text{sub}}{=}10$, \\
+ & 566 region points (local-refinement run) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The material and loading fields are sampled as independent Gaussian
+random fields over the mesh's own parametric $(\theta,t,z)$ coordinates
+($\theta\in[0,\pi]$, $t\in[0,1]$ the radial fraction, $z\in[0,L_z]$,
+$L_z{=}1$), using an exponential-covariance power spectrum with
+correlation length $0.5$ (an absolute value in this parametric space,
+applied identically to all three axes): $E\sim\mathcal{N}(1000,200^2)$
+with no clipping; $\nu\sim\mathcal{N}(0.45,0.02^2)$ clipped to
+$[0.40,0.49]$; the scalar rocking angle
+$\phi\sim\mathcal{N}(0.05,0.02^2)$ clipped to $[0.01,0.15]$ per sample
+(not a spatial field).
 
 \subsection{Physics-informed training objective (Deep Energy Method)}
 The network is trained by directly minimizing the discretized total
@@ -1277,7 +1322,15 @@ training resolutions. A new checkpoint trained on a wider spread of
 resolutions ($N=21,33,101,201$ instead of only $21,33$) continues
 improving to about $N{=}45$--$49$ and then plateaus around $5.8$--$5.9\%$
 instead of climbing further -- a $7.6$-fold reduction in error at
-$N{=}1401$. A direct-$N{=}1401$-training ablation (no zero-shot
+$N{=}1401$. The multi-resolution training protocol samples 400 training
+and 100 validation instances independently at each of the four
+resolutions; every individual batch is resolution-homogeneous (all
+samples at the same $N$), but batches are interleaved in a shuffled order
+spanning all four resolutions within each epoch, so no single resolution
+dominates consecutive optimizer steps, and the early-stopping validation
+score is an unweighted mean of the four resolutions' own validation
+errors (each resolution contributes equally regardless of its own sample
+count). A direct-$N{=}1401$-training ablation (no zero-shot
 generalization required) is cheaper to train ($21\%$ less GPU time) but
 $6.3\times$ \emph{less} accurate ($36.65\%$), confirming that generalizing
 zero-shot from a well-chosen multi-resolution training set outperforms
@@ -1877,9 +1930,11 @@ to $2.40\%$, driven mostly by $u_y$ ($16.16\%\to21.10\%$, the already
 least-accurate component getting proportionally worse still), and the
 pooled-RMS energy error roughly from $0.28\%$ to $0.42\%$; the reaction
 moment is the one quantity that does not degrade ($2.99\%\to2.72\%$).
-Every number in this paragraph is well within the accuracy band already
-established for this benchmark, so the trade-off is real but modest, not
-a case of trading away one quantity entirely for another.
+The global aggregate QoIs remain accurate overall, although the
+small-magnitude $u_y$ component specifically degrades further, from an
+already-elevated $16.16\%$ to $21.10\%$ -- the trade-off is real and
+concentrated in the single component the operator was already least
+accurate on, not a uniform cost spread evenly across every quantity.
 Table~\ref{tab:b3-breakeven}'s break-even analysis nonetheless uses the
 baseline checkpoint throughout and explicitly excludes regional stress,
 rather than mixing the two checkpoints' results together.
