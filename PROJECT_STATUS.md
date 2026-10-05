@@ -16105,6 +16105,107 @@ table. Recompiled clean, 23 pages. Table count now 22. **Only the
 multi-seed training-uncertainty experiment remains open**, deferred per
 Omar's own prioritization until he decides it's worth the GPU time.
 
+### Multi-seed notebooks split for parallel execution, 2026-10-05
+
+Omar corrected a mistake: the first multi-seed notebook
+(`B3_Multiseed_Uncertainty.ipynb`) ran both new seeds sequentially in one
+notebook (~4h14m), but he'd been told he'd get two notebooks to run in
+parallel. Deleted that file (repo + Drive) and replaced it with three
+notebooks (commit `d0d6420`): `B3_Multiseed_Seed2.ipynb` and
+`B3_Multiseed_Seed3.ipynb` (each self-contained: mounts Drive, clones the
+repo, installs deps with the `pyvista<0.49`-before-`torch-fem` pin, trains
+one local-refinement run with `torch.manual_seed(2)`/`torch.manual_seed(3)`
+baked in -- confirmed via grep that `train_B3.py` has no `--seed` CLI arg
+and never calls `torch.manual_seed` itself, so this is the correct
+injection point -- identical in every other setting: 50,000 iters,
+`local_refine_n_sub=10`, reused `input_norm.json` from the baseline run),
+run at the same time in two Colab tabs, plus `B3_Multiseed_Aggregate.ipynb`
+to run afterward (reads all 3 seeds' JSON outputs -- seed 1 is the
+existing `b3_training_local_refine` run, seeds 2/3 are the new ones --
+and prints mean+-std for regional stress, displacement, energy, reaction).
+Caught and fixed one copy-paste bug while splitting: the Seed3 notebook's
+markdown cell still said `torch.manual_seed(2)` after an automated
+find-replace missed that literal string in prose. URLs: Seed2
+https://colab.research.google.com/drive/1S865X4TN9koF6Jcdg9DmMEjObOfCHjjR,
+Seed3 https://colab.research.google.com/drive/17tQhkk75eJiZrWSYlAv5C4QXNNtD3q7E,
+Aggregate https://colab.research.google.com/drive/1HFDWYr5-7qwGgh1ooIyDgoZazX9YCpyR.
+**Not yet run by Omar** -- this is the one real GPU experiment still
+outstanding as of this entry.
+
+### Reproducibility/end-matter content + 3 more reference fixes, 2026-10-05
+
+Added (commit `1e4df04`), all verified against source code or Omar's own
+direct answers to an explicit question (not invented): B3's full training
+configuration table (FP64, no fixed seed for weight init, 2,011,171
+trainable params -- verified by direct model instantiation, vs B1/B2's
+2,010,914), B3's GRF generation details (correlation_length=0.5 in the
+mesh's own parametric space, nu_clip=(0.40,0.49), phi_clip=(0.01,0.15), E
+unclipped), the multi-resolution training protocol (400 train + 100
+validation samples independently per resolution, resolution-homogeneous
+batches interleaved in shuffled order each epoch, early-stopping score =
+unweighted mean across per-resolution validation errors -- all confirmed
+against `resolution_invariance_zeroshot.py`), and a dataset-composition
+table. Added full end-matter: Data and Code Availability (repo URL,
+branch, commit hash), Funding ("no specific funding" -- Omar's own
+answer), Declaration of Competing Interest ("none declared"), a CRediT
+section with roles marked TODO pending Timon's confirmation, and a
+software-environment note. Left the corresponding-author email and
+Acknowledgments text as explicit LaTeX TODO comments (genuinely unknown,
+not guessed). Also fixed 2 real overclaims flagged by a reviewer pass
+(Section 7.3's "every number...is well within the accuracy band already
+established," directly contradicted by its own preceding $u_y=21.10\%$
+sentence; an Abstract ambiguity that could read as if the 589-739x
+speed-up figures and the 62%->30% stress result came from the same
+checkpoint, when they're two separate training runs) and 3 more real
+`references.bib` bugs: `liu2021oodsurvey` was missing its author field
+entirely (added the real 7-author list from arXiv:2108.13624, verified
+via live WebFetch); `kovachki2023neuraloperator` had glued
+"ResearchArXiv:2108..." text where the journal fields should be (fixed
+with the real JMLR volume=24/number=89/pages=4061--4157, verified via
+WebFetch); `wang2026review` had the same glued-text bug plus an invalid
+mid-list "and others" -- converted to `@misc` with the real 12-author
+list from arXiv:2410.19843 (confirmed still an unpublished preprint via
+WebFetch).
+
+### Float-ordering bugs (figures/tables drifting across sections) and 2 more tables, 2026-10-05
+
+Omar reviewed the compiled PDF page by page (23 pages) and found three
+real float-placement bugs: Figure 33 had drifted all the way into the
+middle of the References list; the B3-geometry figure and its
+accompanying table were appearing after Section 4's heading instead of
+before it; and a figure meant to close out Section 6 was instead
+appearing after Section 7's heading had already started. Root cause:
+LaTeX's default `[h]/[ht]/[htb]` float placement in a figure/table-dense
+two-column (`elsarticle[final,5p,times]`) document lets floats drift
+arbitrarily far from their source paragraph when there's no room on the
+current page. Fixed (commit `2add0a4`) with `\usepackage{placeins}` +
+`\FloatBarrier` before every `\section{...}` (9 instances). First tried
+barriers before every `\subsection` too -- this also fixed the ordering
+but introduced large blank-space page gaps (24->30 pages), so reverted to
+section-level-only barriers (25 pages, no blank-space regression).
+Verified by re-rendering the actual affected PDF pages to PNG and
+visually inspecting (not assumed from a clean compile log, which doesn't
+warn on this): Figure 33 now sits one page after the Discussion paragraph
+that introduces it, nowhere near the References; the B3-geometry figure
+and table now correctly appear before Section 4's heading; the Section-6
+closing figure now appears on the same page as Section 7's heading,
+above it, correctly closing out Section 6 first.
+
+Also added 2 more real tables Omar asked for, and explicitly declined to
+fabricate the other 2 after a background extraction agent confirmed they
+don't exist as real standalone data in the source: added `tab:mesh-conv-six`
+(a six-case reference-solver mesh-convergence summary at N=21/N=51,
+built from real N=21/N=51 anchor rows the agent found across 6 separate
+full-sweep Report tables) and `tab:high-dof-q4` (the full real 7-row
+High-DOF Q4 convergence sweep for B1 x Neo-Hookean, N=51 to N=1401).
+Did NOT build a GPU-hardware-matched-at-precision per-resolution
+breakdown table -- the agent confirmed only an aggregate 204-306x range
+exists in the Report's prose, no real per-N breakdown to tabulate. Did
+NOT build an all-six-cases accuracy-matched cost/speed-up summary table
+either -- confirmed redundant with the paper's own existing Tables 1/3/7,
+which already cover this. Recompiled clean: 25 pages (up from 24), zero
+errors, 26 tables (up from 24).
+
 ---
 
 ## Environment / tooling notes
