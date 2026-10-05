@@ -321,6 +321,50 @@ therefore adopted as the single geometry carried forward to dataset
 generation and operator training, with the $5$--$10\%$ regional-stress
 accuracy band taken as sufficient for the FEM-operator comparison; the
 laminated alternative is not developed further in this paper.
+Table~\ref{tab:candidates} summarizes both candidates' convergence
+studies side by side, and Table~\ref{tab:candidate-b-ladder} reports the
+laminated alternative's own GPU mesh-convergence ladder in full.
+
+\begin{table}[h]
+\centering
+\caption{B3 candidate comparison: both geometries' GPU mesh-convergence
+  studies on the same regional Cauchy-stress field-error metric.}
+\label{tab:candidates}
+\small
+\begin{tabular}{lcc}
+\toprule
+ & Candidate A (grooved) & Candidate B (laminated) \\
+\midrule
+Resolution range tested & 336--950,400 el. & 15,600--302,016 el. \\
+Enters $5$--$10\%$ band & 480,320 el. & 50,544 el. \\
+Reference resolution & 839,040 el. & 302,016 el. \\
+Computational limitation & none identified & CPU-only rigid-body \\
+ & & solve, sub-linear scaling \\
+Decision & \textbf{adopted} & not developed further \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Candidate B (laminated rigid-shim bushing) GPU mesh-convergence
+  ladder: regional Cauchy-stress field error and displacement $L^2$ error
+  vs.\ element count, scored against the $302{,}016$-element row.}
+\label{tab:candidate-b-ladder}
+\small
+\begin{tabular}{lcc}
+\toprule
+Elements & Regional Cauchy-stress error & Displacement $L^2$ error \\
+\midrule
+15{,}600  & $1.98\%$ & $3.22\%$ \\
+50{,}544  & $0.64\%$ & $1.08\%$ \\
+75{,}504  & $0.38\%$ & $0.69\%$ \\
+105{,}456 & $0.24\%$ & $0.42\%$ \\
+180{,}336 & $0.08\%$ & $0.15\%$ \\
+302{,}016 & $0.00\%$ (reference) & $0.00\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{figure*}[htb]
 \centering
@@ -460,7 +504,74 @@ For B3, an analogous GPU mesh-convergence ladder (336 to
 950,400 elements) located the first resolution at which the regional
 Cauchy-stress field error (Section~\ref{sec:results-3d}) enters a $5$--$10\%$
 target band at 480,320 elements, within the $10^5$--$10^6$-element
-range adopted for this benchmark.
+range adopted for this benchmark. Table~\ref{tab:b3-ladder} reports the
+full ladder, scored against the $839{,}040$-element row as the fixed
+reference (the $950{,}400$-element row -- one step finer still, confirmed
+to agree with the $839{,}040$-element solution to within the ladder's own
+reproducibility, Section~\ref{sec:b3-stress} -- is adopted as the common
+reference used throughout Section~\ref{sec:results-3d} proper, so its own
+self-comparison reads $0\%$ by construction below).
+
+\begin{table*}[ht]
+\centering
+\caption{B3 (Candidate A, grooved design) GPU mesh-convergence ladder:
+  regional Cauchy-stress field error and displacement $L^2$ error vs.\
+  element count, scored against the $839{,}040$-element row.}
+\label{tab:b3-ladder}
+\small
+\begin{tabular}{lcc}
+\toprule
+Elements & Regional Cauchy-stress error & Displacement $L^2$ error \\
+\midrule
+336      & $1{,}222.93\%$ & $5.91\%$ \\
+1{,}320    & $318.42\%$   & $3.35\%$ \\
+3{,}360    & $1{,}262.82\%$ & $3.43\%$ \\
+6{,}840    & $807.48\%$   & $2.30\%$ \\
+18{,}200   & $382.26\%$   & $1.53\%$ \\
+79{,}464   & $81.05\%$    & $0.70\%$ \\
+201{,}780  & $24.60\%$    & $0.34\%$ \\
+480{,}320  & $5.69\%$     & $0.12\%$ \\
+557{,}760  & $3.76\%$     & $0.09\%$ \\
+643{,}104  & $2.25\%$     & $0.06\%$ \\
+736{,}736  & $1.02\%$     & $0.05\%$ \\
+839{,}040  & $0.00\%$ (reference) & $0.00\%$ \\
+950{,}400  & $1.41\%$     & $0.05\%$ \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Table~\ref{tab:b3-ladder-time} reports the corresponding wall-clock time
+and peak GPU memory for each resolution on a single A100, confirming both
+grow substantially faster than linearly with element count (the $950{,}400$-
+element row alone uses $43.6$~GB peak reserved, roughly half the card's
+$80$~GB).
+
+\begin{table*}[ht]
+\centering
+\caption{B3 (Candidate A) GPU mesh-convergence ladder: wall-clock time
+  and peak GPU memory vs.\ element count.}
+\label{tab:b3-ladder-time}
+\small
+\begin{tabular}{lccc}
+\toprule
+Elements & Time (s) & Peak alloc.\ (MB) & Peak reserved (MB) \\
+\midrule
+336      & 5.21   & 32.8    & 52.4 \\
+1{,}320    & 4.01   & 79.1    & 109.1 \\
+3{,}360    & 4.45   & 174.7   & 213.9 \\
+6{,}840    & 4.86   & 338.7   & 419.4 \\
+18{,}200   & 5.86   & 866.4   & 1{,}050.7 \\
+79{,}464   & 13.52  & 3{,}689.4 & 4{,}538.2 \\
+201{,}780  & 30.46  & 9{,}299.0 & 11{,}395.9 \\
+480{,}320  & 76.06  & 22{,}073.0 & 27{,}086.8 \\
+557{,}760  & 89.40  & 25{,}631.4 & 31{,}436.3 \\
+643{,}104  & 107.71 & 29{,}550.1 & 36{,}251.4 \\
+736{,}736  & 125.89 & 33{,}841.8 & 41{,}517.3 \\
+839{,}040  & 149.56 & 38{,}529.2 & 47{,}271.9 \\
+950{,}400  & 176.90 & 43{,}637.5 & 53{,}540.3 \\
+\bottomrule
+\end{tabular}
+\end{table*}
 
 \section{Neural Operator Architecture and Training Objective}
 \label{sec:architecture}
@@ -1107,13 +1218,34 @@ zero-shot from a well-chosen multi-resolution training set outperforms
 direct training at the target resolution for this architecture and
 objective. The same multi-resolution fix, applied to every other
 (geometry, material) case showing the same degradation signature, gives
-relative error reductions at $N{=}1401$ of $62\%$ (B1$\times$Mooney-Rivlin,
-$39.20\%\to15.04\%$), nearly halving the error for B1$\times$Arruda-Boyce
-($45.62\%\to25.05\%$), and $73.5\%$ for B2$\times$Mooney-Rivlin
-($49.47\%\to13.10\%$, whose retrained error is also nearly flat from
-$N{=}37$ through $N{=}1401$ -- the clearest single illustration that the
-fix buys genuine resolution invariance, not just a smaller error at one
-target resolution). At this deployment resolution, the trained operator
+relative error reductions at $N{=}1401$ summarized in
+Table~\ref{tab:multires-n1401} -- most sharply for B2$\times$Mooney-Rivlin
+($73.5\%$ reduction, whose retrained error is also nearly flat from
+$N{=}37$ through $N{=}1401$, the clearest single illustration that the fix
+buys genuine resolution invariance, not just a smaller error at one
+target resolution).
+
+\begin{table}[h]
+\centering
+\caption{Multi-resolution-training fix: zero-shot relative $L^2$ error at
+  the $N{=}1401$ deployment resolution, before and after retraining on a
+  wider spread of resolutions, for every case showing the original
+  two-resolution checkpoint's degradation signature.}
+\label{tab:multires-n1401}
+\small
+\begin{tabular}{lccc}
+\toprule
+Case & Original & Multi-resolution & Reduction \\
+\midrule
+B1 $\times$ NH & $44.65\%$ & $5.8$--$5.9\%$ & $7.6\times$ \\
+B1 $\times$ MR & $39.20\%$ & $15.04\%$ & $62\%$ \\
+B1 $\times$ AB & $45.62\%$ & $25.05\%$ & $45\%$ \\
+B2 $\times$ MR & $49.47\%$ & $13.10\%$ & $73.5\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+At this deployment resolution, the trained operator
 (with \texttt{torch.compile} and TF32 matmul precision, a $5.82\times$
 inference speed-up over eager FP32 at a $\sim\!3\times10^{-3}$ relative
 accuracy cost) is $340$--$526\times$ faster than a resolution-matched
@@ -1288,7 +1420,29 @@ mechanism is that the optimizer does not treat the two losses alike:
 switching from Adam to AdamW with a one-cycle schedule makes the
 physics-informed model $30\%$ worse and the data-driven model $37\%$
 better, so a learning-rate schedule tuned against one objective is not
-neutral ground for the other.
+neutral ground for the other. Table~\ref{tab:pi-vs-dd} summarizes the
+full $2\times2$ grid and the associated pre-inference cost.
+
+\begin{table*}[ht]
+\centering
+\caption{Physics-informed vs.\ data-driven training, $2\times2$ grid
+  (B1$\times$Neo-Hookean, 75,000 optimizer steps both losses): relative
+  accuracy outcome and total pre-inference cost. The physics-informed
+  loss pays no label-generation cost; the data-driven loss pays
+  $5.65$~CPU-hours ($20{,}340$~s) regardless of optimizer.}
+\label{tab:pi-vs-dd}
+\small
+\begin{tabular}{llcc}
+\toprule
+Loss & Optimizer & Accuracy outcome & Total cost (s) \\
+\midrule
+Physics-informed & Adam             & wins by $27\%$          & -- \\
+Physics-informed & AdamW+OneCycle   & $30\%$ worse than Adam  & -- \\
+Data-driven       & Adam             & loses by $27\%$        & $18{,}924$ \\
+Data-driven       & AdamW+OneCycle   & wins by $34\%$         & $18{,}694$ \\
+\bottomrule
+\end{tabular}
+\end{table*}
 
 One asymmetry survives the reversal and is not an accuracy figure: the
 data-driven model needs a labelled dataset -- 800 finite-element solves,
@@ -1398,6 +1552,27 @@ and stress.
   convergence rates in the energy norm, all three materials, Q4 and Q9.}
 \label{fig:28a}
 \end{figure}
+
+\begin{table}[h]
+\centering
+\caption{Method of manufactured solutions, richer multi-mode family:
+  fitted convergence rates by material and element order (theory: Q4
+  $L^2{=}2$, others${=}1$; Q9 $L^2{=}3$, others${=}2$).}
+\label{tab:mms-rates}
+\small
+\begin{tabular}{llcccc}
+\toprule
+Material & Order & $L^2$ & $H^1$ & Stress & Energy \\
+\midrule
+Neo-Hookean    & Q4 & 1.99 & 0.99 & 0.99 & 0.99 \\
+Neo-Hookean    & Q9 & 2.96 & 1.98 & 1.99 & 1.98 \\
+Mooney-Rivlin  & Q4 & 1.98 & 0.99 & 0.99 & 0.99 \\
+Mooney-Rivlin  & Q9 & 2.96 & 1.98 & 1.99 & 1.98 \\
+Arruda-Boyce   & Q4 & 1.98 & 0.99 & 0.97 & 0.99 \\
+Arruda-Boyce   & Q9 & 2.96 & 1.98 & 2.00 & 1.99 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{B2 accuracy regression: root cause and resolution}
 \label{sec:discussion-b2}
@@ -1565,9 +1740,32 @@ the operator's own mesh discretization. On the \emph{evaluation} side
 local coordinates, so a finer internal Gauss--Legendre grid re-samples the
 same, already-known coarse-element displacement field at up to $994$
 region points (versus $6$ by default), with the $6{,}840$-element operator
-discretization completely unchanged. The error stabilizes from $292$
-region points onward (successive changes under $0.2\%$), settling at
-$62.2$--$62.3\%$ -- a real, converged gap, not an under-sampling artifact.
+discretization completely unchanged (Table~\ref{tab:b3-quad-convergence}).
+The error stabilizes from $292$ region points onward (successive changes
+under $0.2\%$), settling at $62.2$--$62.3\%$ -- a real, converged gap, not
+an under-sampling artifact.
+
+\begin{table}[h]
+\centering
+\caption{Evaluation-side local-integration convergence (no retraining):
+  pooled Frobenius regional-stress error vs.\ refinement level, baseline
+  checkpoint.}
+\label{tab:b3-quad-convergence}
+\small
+\begin{tabular}{lccc}
+\toprule
+Points/axis & Region quad.\ pts & Pooled error & Change \\
+\midrule
+2  & 6   & $64.04\%$ & -- \\
+4  & 36  & $60.32\%$ & $5.81\%$ \\
+6  & 124 & $62.39\%$ & $3.44\%$ \\
+8  & 292 & $62.30\%$ & $0.14\%$ \\
+10 & 566 & $62.21\%$ & $0.15\%$ \\
+12 & 994 & $62.32\%$ & $0.18\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 This motivated a matching change on the \emph{training} side: the DEM
 background-integration quadrature was locally refined to
 $10\times10\times10$ points, for only the four elements (of $6{,}840$) that
