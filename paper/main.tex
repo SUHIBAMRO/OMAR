@@ -56,7 +56,9 @@ only the few mesh elements touching the region of interest, independently
 of the operator's own discretization, via a separately trained checkpoint
 of the same architecture (the displacement/energy/reaction figures above
 are from the baseline checkpoint, not this one) -- roughly halves the
-error (from 62\% to 30\%). The remaining gap is reported as an open
+error on average (from 62\% to a 3-seed mean of $31\%\pm12\%$, a wide
+seed-to-seed spread reported explicitly rather than smoothed over). The
+remaining gap is reported as an open
 limitation, with
 several concrete directions (stress/equilibrium-aware physics losses,
 mixed displacement--stress formulations, local/hierarchical representations)
@@ -2122,55 +2124,78 @@ element count left otherwise unchanged. Retraining with this change for the
 same iteration budget ($7{,}627.5$~s, a separate training run from the
 baseline checkpoint used in Sections~\ref{sec:b3-geometry}--\ref{sec:b3-breakeven}
 above) reduced the converged regional-stress error from $62.2$--$62.3\%$ to
-$29.7$--$29.9\%$ (Table~\ref{tab:b3-stress}) -- roughly halving it, and
-confirming that part of the original gap was attributable to
-under-resolved background integration rather than the network's own
-representational capacity. This local-integration-refinement checkpoint's
-own displacement, energy, and reaction accuracy were separately
-re-measured (Table~\ref{tab:b3-global-before-after}): the regional-stress
-improvement is not free. Combined displacement error rises from $1.88\%$
-to $2.40\%$, driven mostly by $u_y$ ($16.16\%\to21.10\%$, the already
-least-accurate component getting proportionally worse still), and the
-pooled-RMS energy error roughly from $0.28\%$ to $0.42\%$; the reaction
+$29.7$--$29.9\%$ in this first training run (Table~\ref{tab:b3-stress}) --
+roughly halving it, and confirming that part of the original gap was
+attributable to under-resolved background integration rather than the
+network's own representational capacity. This local-integration-refinement
+checkpoint's own displacement, energy, and reaction accuracy were
+separately re-measured (Table~\ref{tab:b3-global-before-after}): the
+regional-stress improvement is not free. Combined displacement error rises
+from $1.88\%$ to $2.40\%$, driven mostly by $u_y$ ($16.16\%\to21.10\%$, the
+already least-accurate component getting proportionally worse still), and
+the pooled-RMS energy error roughly from $0.28\%$ to $0.42\%$; the reaction
 moment is the one quantity that does not degrade ($2.99\%\to2.72\%$).
-The global aggregate QoIs remain accurate overall, although the
-small-magnitude $u_y$ component specifically degrades further, from an
-already-elevated $16.16\%$ to $21.10\%$ -- the trade-off is real and
-concentrated in the single component the operator was already least
-accurate on, not a uniform cost spread evenly across every quantity.
+
+Because this entire comparison so far rests on a single trained
+checkpoint, two further independent local-integration-refinement training
+runs (seeds 2 and 3, identical configuration, only the weight-initialization
+seed differing) were trained to quantify how much of the above depends on
+training-seed luck rather than the method itself. The answer is a
+genuinely wide spread: across all 3 seeds, the converged regional-stress
+error ranges $16.95\%$--$47.33\%$ (mean $31.35\%\pm12.45\%$, standard
+deviation, i.e.\ roughly $40\%$ of the mean) -- the original run's
+$29.8\%$ turns out to sit almost exactly at the 3-seed mean, but the true
+range is far wider than a single run suggests. $u_y$ shows the same
+pattern (combined displacement $1.82\%\pm0.54\%$, $u_y$ specifically
+$14.64\%\pm6.23\%$); energy ($0.27\%\pm0.12\%$) and reaction
+($2.40\%\pm0.27\%$) are comparatively more stable relative to their own
+means. Table~\ref{tab:b3-global-before-after} reports the per-seed values
+and the resulting mean$\pm$std. This variance does not undermine the
+deformation-validity conclusion below, which is robust across all 3
+seeds, but it does mean the single-run $62\%\to29.8\%$ point estimate
+understates the true uncertainty in the regional-stress result, and
+should be read as mean$\pm$std, not as a fixed number.
 Table~\ref{tab:b3-breakeven}'s break-even analysis nonetheless uses the
 baseline checkpoint throughout and explicitly excludes regional stress,
 rather than mixing the two checkpoints' results together.
 
-\begin{table}[h]
+\begin{table*}[ht]
 \centering
-\caption{Global QoIs, baseline vs.\ local-integration-refinement
-  checkpoint (same 100-sample validation set). Energy and reaction are
-  pooled-RMS relative error.}
+\caption{Global QoIs, baseline (single run) vs.\ local-integration-refinement
+  (``LR'') checkpoint, per seed and mean$\pm$std across 3 independent
+  training runs (same 100-sample validation set, same config, only the
+  weight-init seed differs). Energy and reaction are pooled-RMS relative
+  error.}
 \label{tab:b3-global-before-after}
 \small
-\begin{tabular}{lcc}
+\begin{tabular}{lccccc}
 \toprule
-Quantity & Baseline & Local refinement \\
+Quantity & Baseline & LR seed 1 & LR seed 2 & LR seed 3 & LR mean$\pm$std \\
 \midrule
-$u_x$                & $1.94\%$  & $2.52\%$  \\
-$u_y$                & $16.16\%$ & $21.10\%$ \\
-$u_z$                & $1.42\%$  & $1.74\%$  \\
-Displacement (combined) & $1.88\%$  & $2.40\%$  \\
-Energy               & $0.28\%$  & $0.42\%$  \\
-Reaction moment      & $2.99\%$  & $2.72\%$  \\
+$u_x$                   & $1.94\%$  & $2.52\%$  & $1.02\%$  & $2.06\%$  & $1.87\%\pm0.63\%$ \\
+$u_y$                   & $16.16\%$ & $21.10\%$ & $6.22\%$  & $16.59\%$ & $14.64\%\pm6.23\%$ \\
+$u_z$                   & $1.42\%$  & $1.74\%$  & $1.03\%$  & $1.45\%$  & $1.41\%\pm0.29\%$ \\
+Displacement (combined) & $1.88\%$  & $2.40\%$  & $1.10\%$  & $1.96\%$  & $1.82\%\pm0.54\%$ \\
+Energy                  & $0.28\%$  & $0.42\%$  & $0.115\%$ & $0.278\%$ & $0.27\%\pm0.12\%$ \\
+Reaction moment         & $2.99\%$  & $2.72\%$  & $2.06\%$  & $2.42\%$  & $2.40\%\pm0.27\%$ \\
+Regional stress (pooled)& $62.4\%$  & $29.8\%$  & $16.95\%$ & $47.33\%$ & $31.35\%\pm12.45\%$ \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 A deformation-validity check ($J=\det\mathbf{F}$, over every element and
 Gauss point in the mesh, not only the fixed stress region) was also run
-for both checkpoints: the true FEM field itself has $\min J=0.801$, 1st
-percentile $0.977$, median $0.9999$, and zero points with $J\leq0$ across
-$5{,}472{,}000$ sampled points; both the baseline and local-refinement
-predictions match this closely ($\min J=0.816$ and $0.803$ respectively,
-1st percentile $0.977$ both, zero points with $J\leq0$ either way). Every
-field evaluated is therefore comfortably inside the physically valid,
+for both checkpoints, across all 3 local-refinement seeds: the true FEM
+field itself has $\min J=0.801$, 1st percentile $0.977$, median $0.9999$,
+and zero points with $J\leq0$ across $5{,}472{,}000$ sampled points
+(identical across seeds, since it is the same ground truth every time);
+the baseline prediction matches this closely ($\min J=0.816$), and the
+3 local-refinement seeds' own predicted $\min J$ stays in a tight
+$0.803$--$0.817$ band ($0.809\pm0.006$) regardless of seed, with 1st
+percentile $0.977$ and zero points with $J\leq0$ in every one of the 3
+runs. Unlike the regional-stress result above, deformation validity is
+therefore robust to training-seed variation: every field evaluated, in
+every seed, is comfortably inside the physically valid,
 orientation-preserving domain the $\ln J$ terms in the constitutive
 energies require -- not a close call, and not a quantity that needed
 tuning to pass.
@@ -2179,10 +2204,13 @@ tuning to pass.
 \centering
 \caption{Regional Cauchy-stress accuracy, per component, before and after
   local integration refinement during training ($n_{\text{sub}}{=}10$,
-  $566$ region quadrature points, 100-sample validation set). The last
+  $566$ region quadrature points, 100-sample validation set, local-refinement
+  seed 1 of 3 -- see Table~\ref{tab:b3-global-before-after} for the
+  pooled Frobenius norm's full 3-seed range, $31.35\%\pm12.45\%$). The last
   column is each component's own share of the pooled Frobenius-error
-  numerator (Eq.~\eqref{eq:region-field-error}, local-refinement model),
-  reconstructed from the component RMS and relative-error columns.}
+  numerator (Eq.~\eqref{eq:region-field-error}, local-refinement model,
+  seed 1), reconstructed from the component RMS and relative-error
+  columns.}
 \label{tab:b3-stress}
 \small
 \begin{tabular}{lcccc}
@@ -2212,15 +2240,21 @@ improve by roughly half; the two smallest-magnitude
 shear components ($\sigma_{xy}$, $\sigma_{yz}$) instead worsen in relative
 terms, consistent with their values being close to zero and sign-changing
 within the region, while not meaningfully moving the pooled metric. The
-remaining $29.8\%$ gap is reported here as an open limitation
-(Section~\ref{sec:discussion}), not a fully resolved result.
+remaining $29.8\%$ gap (seed 1; $31.35\%\pm12.45\%$ across all 3 seeds,
+Table~\ref{tab:b3-global-before-after}) is reported here as an open
+limitation (Section~\ref{sec:discussion}), not a fully resolved result.
 
-All B3 results above come from a single training run per checkpoint
-configuration (one weight-initialization seed each for the baseline and
-local-integration-refinement checkpoints, Section~\ref{sec:discussion});
-training-seed-to-seed variability for B3 has not been separately
-quantified and is reported here as a limitation of the present study,
-not as a claim that the specific numbers above are seed-independent.
+The baseline checkpoint above -- which supplies the displacement/energy/
+reaction/break-even figures used throughout Sections~\ref{sec:b3-geometry}--\ref{sec:b3-breakeven}
+except where the 3-seed local-integration-refinement range is explicitly
+cited -- comes from a single training run (one weight-initialization
+seed); its own training-seed-to-seed variability has not been quantified
+and is reported here as a limitation of the present study, not as a claim
+that its specific numbers are seed-independent. The
+local-integration-refinement checkpoint's own seed variability, by
+contrast, has now been directly measured (3 independent seeds,
+Table~\ref{tab:b3-global-before-after}) and is substantial for regional
+stress and $u_y$ specifically, as discussed above.
 
 \subsection{Accuracy-matched comparison and break-even}
 \label{sec:b3-breakeven}

@@ -16325,9 +16325,64 @@ inline-math line in Section 2 and the B3-candidates table) but were
 visually confirmed harmless -- no text actually crosses the column
 boundary in either case.
 
----
+### Multi-seed experiment complete: all 3 seeds in, large real variance found, 2026-10-05
 
-## Environment / tooling notes
+Omar ran both `B3_Multiseed_Seed2.ipynb` and `B3_Multiseed_Seed3.ipynb` on
+Colab; both finished clean (seed 2: 50,000 iters, 7,976.6s; seed 3: 50,000
+iters, 7,942.1s; both consistent with seed 1/baseline's 7,627.5s). Real
+results saved to `b3_training_local_refine_seed{2,3}/
+{region_local_refine_convergence.json, global_qois_and_jacobian.json}` on
+Drive. All three independent local-integration-refinement training runs
+(same config throughout, only the weight-init seed differs) now exist;
+mean+-std computed two ways: Omar ran the actual
+`B3_Multiseed_Aggregate.ipynb` notebook on Colab, which uses numpy's
+default `.std()` (population std, ddof=0) -- its real printed output is
+the authoritative source used below and in the paper (not my own
+first-pass manual recomputation, which had used sample std/ddof=1 and is
+superseded):
+
+| Quantity | Seed 1 (orig.) | Seed 2 | Seed 3 | Mean $\pm$ std (population) |
+|---|---|---|---|---|
+| Regional stress (pooled Frob., $n_{\text{sub}}{=}10$) | 29.77\% | 16.95\% | 47.33\% | **31.35\% $\pm$ 12.45\%** |
+| Displacement (combined) | 2.40\% | 1.10\% | 1.96\% | **1.82\% $\pm$ 0.54\%** |
+| $u_x$ | 2.52\% | 1.02\% | 2.06\% | 1.87\% $\pm$ 0.63\% |
+| $u_y$ | 21.10\% | 6.22\% | 16.59\% | **14.64\% $\pm$ 6.23\%** |
+| $u_z$ | 1.74\% | 1.03\% | 1.45\% | 1.41\% $\pm$ 0.29\% |
+| Energy (pooled RMS) | 0.42\% | 0.115\% | 0.278\% | 0.27\% $\pm$ 0.12\% |
+| Reaction moment (pooled RMS) | 2.72\% | 2.06\% | 2.42\% | 2.40\% $\pm$ 0.27\% |
+| Predicted min $J$ | 0.803 | 0.8063 | 0.8169 | 0.809 $\pm$ 0.006 (true FEM min $J=0.8007$ identical across seeds, as expected -- it's the same ground truth every time) |
+
+(Regional stress/displacement/energy/reaction mean$\pm$std confirmed
+directly from Omar's own pasted notebook output: "Regional Cauchy-stress
+(n_sub=10): 31.35% +/- 12.45%", "Displacement (combined): 1.82% +/-
+0.54%", "Energy (pooled RMS): 0.27% +/- 0.12%", "Reaction moment (pooled
+RMS): 2.40% +/- 0.27%"; the per-axis $u_x/u_y/u_z$ and min-$J$ rows were
+not computed by that notebook, so computed here by hand with the same
+population-std convention for consistency.)
+
+**This is a real, substantial finding, not a minor caveat**: the
+headline "$62\%\to29.8\%$" regional-stress improvement from local
+integration refinement is itself seed-dependent -- across 3 independent
+training runs it actually ranges $16.95\%$--$47.33\%$ (mean $31.35\%$,
+std $12.45$ percentage points, i.e.\ about $40\%$ of the mean). $u_y$
+shows the same pattern (std $6.2$ points on a mean of $14.6\%$). Energy
+and reaction, by contrast, are comparatively stable (std $<50\%$ relative
+to their own means). Jacobian validity is robust across all 3 seeds -- no
+$J\leq0$ points in any seed, predicted min $J$ stays in a tight
+$0.803$--$0.817$ band regardless of seed, so the deformation-validity
+conclusion is NOT undermined by this variance, only the specific
+regional-stress point estimate is. **Done**: the paper's Abstract,
+Section 7.3/7.4 narrative, and Table 27 (formerly `tab:b3-global-before-after`,
+now a `table*` spanning both columns to fit the 3-seed + mean$\pm$std
+columns) were all updated to report mean$\pm$std across these 3 seeds,
+with the wide regional-stress variance stated explicitly as a finding,
+not smoothed over; Table 28 (the per-component stress breakdown, still
+seed-1-only since recomputing its full per-component contribution
+analysis for 3 seeds was out of scope for this pass) now cross-references
+Table 27's full 3-seed range in its own caption so a reader isn't misled
+by the single-seed breakdown. Recompiled clean, 27 pages, zero errors.
+This closes the one previously-outstanding real experiment from this
+project (item 19 of Omar's 20-point list).
 
 - Repo: `suhibamro/omar` (GitHub), branch `claude/claude-code-question-d307wp`.
   Local clone: `/home/user/OMAR`.
