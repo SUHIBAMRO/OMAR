@@ -16384,6 +16384,24 @@ by the single-seed breakdown. Recompiled clean, 27 pages, zero errors.
 This closes the one previously-outstanding real experiment from this
 project (item 19 of Omar's 20-point list).
 
+### Multi-seed uncertainty also added to the Report (docx), 2026-10-05
+
+Omar asked for the same multi-seed results to go into the Report, not
+just the paper ("حطهم برضو بالريبورت"). Followed this project's own
+established report-builder convention exactly (see
+`add_b3_training_evaluation_local_refinement_and_breakeven.py`, the
+script that originally added the single-seed local-refinement result):
+wrote `Practical_Examples/report_builders/add_b3_multiseed_uncertainty_to_report.py`,
+reading `advisor_feedback/PFEM_Transolver_Report_2026-10-04.docx` and
+writing a new dated `..._2026-10-05.docx`. Adds one new subsection,
+"11.11 Multi-Seed Training Uncertainty" (same 3-seed table and framing as
+the paper's Table 27 -- regional stress $31.35\%\pm12.45\%$, the wide
+spread stated plainly, Jacobian validity confirmed robust across seeds),
+and updates the Executive Summary's row-9 cross-link so it no longer
+reads as if $29.8\%$ were a fixed, seed-independent number. Verified by
+reopening the saved docx and checking the new heading, table, and updated
+row-9 text all landed correctly. No other report content touched.
+
 - Repo: `suhibamro/omar` (GitHub), branch `claude/claude-code-question-d307wp`.
   Local clone: `/home/user/OMAR`.
 - Colab pattern used throughout: `pip install -q einops timm h5py jax tqdm`
