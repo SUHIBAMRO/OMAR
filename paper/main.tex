@@ -43,7 +43,7 @@ bushing with a stress-concentrating groove. The operator reproduces
 displacement, strain energy, and reaction moment accurately (combined
 displacement error 1.9\%, energy error 0.3\%, reaction-moment error 2.7\%),
 and, judged against the cheapest finite-element mesh that matches its own
-accuracy, remains 589--800$\times$ faster per sample while repaying its
+accuracy, remains 589--739$\times$ faster per sample while repaying its
 one-off training cost within fewer than 1{,}900 solves. The one quantity
 that does not reach the same standard is the regional Cauchy-stress field
 near the groove: an input-normalization fix first resolves a training
@@ -122,7 +122,12 @@ groove in its rigid inner core (B3). An independent Newton--Raphson
 Total-Lagrangian finite-element solver, built on top of
 torch-fem~\cite{meyer2024torchfem} and
 PyTorch~\cite{paszke2019pytorch,baydin2018automatic}, generates
-ground-truth samples used only for validation, never for training.
+ground-truth samples. For the physics-informed models that are this
+study's primary subject, these samples are used only for evaluation; the
+supervised, data-driven baseline introduced for comparison in
+Section~\ref{sec:pi-vs-dd} uses finite-element-labeled samples for
+training by construction, since training on labels is the point of that
+comparison.
 
 The remainder of this paper is organized as follows. Section~\ref{sec:governing}
 states the Total Lagrangian hyperelastic potential-energy formulation and the
@@ -141,6 +146,13 @@ limitations, and Section~\ref{sec:conclusion} concludes.
 
 \subsection{Total Lagrangian hyperelasticity}
 \label{sec:total-lagrangian}
+
+All quantities in this study are reported in a consistent, dimensionless
+unit system (no specific physical units are attached to $E$, lengths, or
+tractions/pressures); results are directly interpretable after
+substituting any self-consistent unit system. The 2D benchmarks (B1, B2)
+are treated as plane strain throughout, the default convention used by
+every solver, training, and evaluation script in this study.
 
 Let $\Omega_0 \subset \mathbb{R}^d$ ($d=2$ for B1/B2, $d=3$ for B3) denote the
 known, undeformed reference configuration of the body, and let
@@ -219,8 +231,9 @@ of the 8-chain model,
   \label{eq:arruda-boyce}
 \end{equation}
 with $(c_1,\dots,c_5) = (\tfrac12,\tfrac{1}{20},\tfrac{11}{1050},\tfrac{19}{7000},\tfrac{519}{673750})$
-and the chain-locking stretch $\lambda_m$ fixed for every sample in this
-study (not sampled per instance).
+and the chain-locking stretch $\lambda_m=\sqrt{N}$, $N=5$ (so
+$\lambda_m\approx2.236$), fixed for every sample in this study (not
+sampled per instance).
 
 For all three constitutive models the first Piola--Kirchhoff stress is
 $\mathbf{P} = \partial\psi/\partial\mathbf{F}$ and the consistent material
@@ -235,9 +248,13 @@ relations $\mu = E/[2(1+\nu)]$, $\lambda = E\nu/[(1+\nu)(1-2\nu)]$; this
 reproduces the target linear-elastic moduli exactly for Neo-Hookean, gives an
 effective shear modulus of $1.5\mu$ for the $3{:}1$ Mooney--Rivlin split, and
 reproduces the target shear modulus to within a few percent for Arruda--Boyce
-(a known consequence of the truncated Pad\'e series) -- all three are
-nonetheless calibrated from identical $(E,\nu)$ realizations and directly
-comparable across materials.
+(a known consequence of the truncated Pad\'e series). All three models are
+parameterized from identical sampled $(E,\nu)$ realizations, but their
+effective small-strain responses are not exactly stiffness-matched as a
+result -- Mooney--Rivlin's $1.5\mu$ split in particular means its three
+cases are not directly interchangeable with Neo-Hookean's at the same
+nominal $(E,\nu)$, a difference to bear in mind when comparing accuracy
+figures across materials rather than across the shared random fields.
 
 \section{Benchmark Geometries}
 \label{sec:geometries}
@@ -299,12 +316,11 @@ $5$--$10\%$ target band at $480{,}320$ elements (Section~\ref{sec:discretization
 while the laminated alternative converges considerably faster in element
 count (below $10\%$ already at $50{,}544$ elements, fully converged by
 $302{,}016$) but is bottlenecked by a CPU-only rigid-body linear solve that
-scales worse than linearly with mesh size. The advisor's decision, after
-reviewing both convergence studies, adopted the grooved design (``B3'') as
-the single geometry carried forward to dataset generation and operator
-training, with the $5$--$10\%$ regional-stress accuracy band confirmed
-sufficient for the FEM-operator comparison; the laminated alternative is
-not developed further in this paper.
+scales worse than linearly with mesh size. The grooved design (``B3'') was
+therefore adopted as the single geometry carried forward to dataset
+generation and operator training, with the $5$--$10\%$ regional-stress
+accuracy band taken as sufficient for the FEM-operator comparison; the
+laminated alternative is not developed further in this paper.
 
 \begin{figure*}[htb]
 \centering
@@ -418,7 +434,7 @@ resolution used throughout this study.
 A deeper check, against a genuine
 $\sim$$10^7$-DOF numerical reference (B1$\times$Neo-Hookean, Q4, $N{=}2236$)
 rather than an analytical field, confirmed an $L^2$ displacement error below
-the requested $10^{-4}$ target already at $N{=}201$, while the $H^1$
+the prescribed $10^{-4}$ target already at $N{=}201$, while the $H^1$
 semi-norm and the tangent-energy norm (induced by the reference solution's
 own tangent stiffness) converge more slowly and do not reach that target
 even at $N{=}1401$ -- consistent with the lower fitted convergence rates for
@@ -427,7 +443,7 @@ energy: $0.86$) than for the displacement field itself. A parallel
 biquadratic (Q9) reference at the same resolution converges faster in every
 norm, as expected from finite-element theory, and the two element orders'
 own fine solutions agree to within $2\times10^{-6}$ in $L^2$ (though not
-fully to the requested $10^{-5}$ criterion in $H^1$/energy, attributed to
+fully to the prescribed $10^{-5}$ criterion in $H^1$/energy, attributed to
 residual discretization error in the Q4 reference relative to Q9's faster
 convergence).
 
@@ -443,10 +459,8 @@ convergence).
 For B3, an analogous GPU mesh-convergence ladder (336 to
 950,400 elements) located the first resolution at which the regional
 Cauchy-stress field error (Section~\ref{sec:results-3d}) enters a $5$--$10\%$
-target band at 480,320 elements, within the requested $10^5$--$10^6$-element
-range; a per-quantity required-resolution table (thresholds of $5\%/2\%/1\%$
-relative error for displacement, energy, reaction, and regional stress) is
-used throughout Section~\ref{sec:results-3d}.
+target band at 480,320 elements, within the $10^5$--$10^6$-element
+range adopted for this benchmark.
 
 \section{Neural Operator Architecture and Training Objective}
 \label{sec:architecture}
@@ -537,11 +551,14 @@ proceeds to a maximum of 2000 epochs with early stopping enabled
 (terminating if validation error fails to improve by at least $10^{-4}$
 over eight consecutive validation events, 200 epochs); this continuation
 also serves as the final training run for the representative case. The
-training protocol established this way is subsequently applied without
-modification to the remaining five cases, with no case-specific
-hyperparameter tuning. All six cases completed training under this
-identical protocol, each terminating by early stopping (no case reached
-the 2000-epoch upper bound; Table~\ref{tab:final-results}).
+same architecture, optimizer, and screening-selected protocol (batch
+size, maximum epochs, early-stopping rule) is subsequently applied
+without modification to the remaining five cases, with no case-specific
+hyperparameter tuning; B2's three cases additionally use the loss-scale
+rescaling of Section~\ref{sec:discussion-b2}, required for the raw
+objective to train at all on that geometry. All six cases completed
+training under this common framework, each terminating by early stopping
+(no case reached the 2000-epoch upper bound; Table~\ref{tab:final-results}).
 
 Every validation/test-set error reported in this study is a per-sample,
 per-displacement-component relative error, defined for the $u$-component
@@ -1073,12 +1090,10 @@ B2 $\times$ AB & 6 & 17 & 17 & -- & 6 \\
 \end{figure}
 
 A single trained operator's accuracy at the sweep above is not the whole
-picture at a deployment resolution far outside its training range. With
-the correct checkpoint (an earlier round of this measurement had silently
-evaluated the wrong model, due to a checkpoint-loading path that never
-existed and fell back to a different checkpoint -- fixed by resolving
-checkpoints by content hash rather than a hardcoded path), the operator's
-own accuracy at $N{=}1401$, checked directly against real finite-element
+picture at a deployment resolution far outside its training range.
+Checkpoint identity is verified by content hash rather than by a
+configuration path for every number reported in this subsection. The
+operator's own accuracy at $N{=}1401$, checked directly against real finite-element
 ground truth there for the first time, is $44.65\%$ relative $L^2$ in
 displacement, degrading smoothly and monotonically away from the two
 training resolutions. A new checkpoint trained on a wider spread of
@@ -1189,9 +1204,13 @@ by automatic differentiation of the same strain-energy density the solver
 and the training objective use.
 
 The $H^1$ semi-norm behaves as theory predicts: on B1 it is roughly twice
-the displacement error ($22.71$--$24.20\%$ against $10.34$--$11.71\%$),
-the expected penalty for differentiating a field the network was never
-asked to differentiate; on B2 the penalty is markedly smaller
+the displacement error ($22.71$--$24.20\%$ against $10.34$--$11.71\%$).
+Although the deformation gradient enters the energy objective directly
+(Eq.~\eqref{eq:discrete-energy} is built from $\mathbf{F}$, not from
+$\mathbf{u}$ alone), it is not supervised pointwise the way displacement
+effectively is at the Dirichlet boundary, which is consistent with the
+gradient-based norm carrying a larger error here; on B2 the penalty is
+markedly smaller
 ($10.47$--$13.30\%$ against $7.21$--$10.47\%$). The aggregate stress error
 (quadrature-weighted relative $L^2$ error of the full tensor in the
 Frobenius norm) is $13.32$--$18.14\%$ across all six cases -- $1.3$ to
@@ -1419,8 +1438,7 @@ B1$\times$Neo-Hookean's own $9.59\%$, confirming that B2's high error was
 not primarily geometry related -- though convergence was substantially
 slower (best checkpoint at epoch 850 vs.\ 625 for the uncorrected recipe,
 roughly $10\times$ the wall-clock time). The corrected recipe was then
-applied to all three B2 materials: Mooney-Rivlin cleared a self-imposed
-$9.00\%$ target on the first trial ($7.28\%$); Arruda-Boyce's first trial
+applied to all three B2 materials: Mooney-Rivlin cleared a $9.00\%$ target on the first trial ($7.28\%$); Arruda-Boyce's first trial
 reached $9.81\%$, narrowly missing the target, and an automatic search
 over alternate recipes (higher learning rate, then a graded mesh) made
 results markedly worse instead of better, so the first trial's $9.81\%$
@@ -1461,12 +1479,23 @@ threshold.
 \subsection{Training and displacement accuracy}
 A Deep Energy Method Transolver operator was trained for B3 at the fixed
 production resolution (6,840 elements, 7,980 nodes) described in
-Section~\ref{sec:discretization}. An initial training run, with the raw
+Section~\ref{sec:discretization}. One 100-sample set, disjoint from
+training by seed, is used throughout this section for every checkpoint
+comparison and methodology decision below (the input-normalization fix,
+the evaluation-side and training-side integration refinements, and the
+accuracy-matched comparison of Section~\ref{sec:b3-breakeven}); it
+therefore functions as a validation set in the conventional sense, not a
+test set consulted only once, and the accuracy figures reported should be
+read accordingly. An initial training run, with the raw
 $E,\nu,\phi$ values fed directly to the network, was unstable: the best
-checkpoint reached only $26.2\%$ combined displacement error, with the
-axial component $u_y$ (the smallest-magnitude component, driven by the
-rocking rotation) at $93.6\%$ -- worse than an all-zero prediction. The root
-cause was isolated rather than assumed: the raw inputs span three orders of
+checkpoint reached only $26.2\%$ combined displacement error, with
+$u_y$ (the smallest-magnitude displacement component -- the rocking
+rotation couples $u_x$ and $u_z$ about the $y$-axis and leaves the rigid
+core's own $u_y$ exactly zero by construction, so any $u_y$ in the
+surrounding rubber is a secondary elastic response, not a direct
+kinematic consequence of the prescribed rotation) at $93.6\%$ -- worse
+than an all-zero prediction. A major source of the instability was
+isolated: the raw inputs span three orders of
 magnitude ($E\!\sim\!1000$, $\nu\!\sim\!0.45$, $\phi\!\sim\!0.05$), and a
 controlled fixed-8-sample A/B test (identical seed, identical $4{,}000$
 iterations, raw inputs versus standardized-to-mean-0/std-1 inputs) showed
@@ -1474,8 +1503,8 @@ combined error dropping from $10.7\%$ to $1.1\%$ and $u_y$ specifically
 from $54.1\%$ to $4.0\%$ under normalization alone, with a visibly
 smoother, monotonic loss curve replacing the earlier run's oscillation
 between healthy and near-unit-error states. A full retrain with input
-normalization enabled, on the genuinely disjoint held-out set, confirmed
-this generalizes: combined displacement error $1.88\%$ ($u_x$ $1.94\%$,
+normalization enabled, on a 100-sample set disjoint from training by
+seed, confirmed this generalizes: combined displacement error $1.88\%$ ($u_x$ $1.94\%$,
 $u_y$ $16.16\%$, $u_z$ $1.42\%$), in $6{,}980.3$~s of GPU wall-clock time.
 $u_y$ remains the least accurate component, consistent with its smaller
 magnitude contributing proportionally less to a pure energy-minimization
@@ -1484,15 +1513,42 @@ loss.
 \subsection{Energy and reaction accuracy}
 Total strain energy and the reaction moment about the rocking axis are
 computed directly from a known displacement field via the same potential-energy
-functional used in training, with no new finite-element solve (the reaction
-at a constrained node is the derivative of total potential energy with
-respect to displacement there, by the same variational argument any
-finite-element solver uses internally). Both are well reproduced: mean
-relative error $0.30\%$ for strain energy and $2.67\%$ for the reaction
-moment.
+functional used in training, with no new finite-element solve: the
+reaction at a Dirichlet-constrained degree of freedom $c$ is
+\begin{equation}
+  R_c = -\frac{\partial \Pi}{\partial u_c},
+  \label{eq:reaction}
+\end{equation}
+by the same variational argument any finite-element solver uses
+internally to report reactions, with the rocking moment $M_y$ obtained by
+summing the moment of each constrained node's reaction about the
+rotation axis. Both are well reproduced: mean relative error $0.30\%$ for
+strain energy and $2.67\%$ for the reaction moment.
 
 \subsection{Regional Cauchy stress: metric methodology and local integration refinement}
 \label{sec:b3-stress}
+The Cauchy stress is obtained from the first Piola--Kirchhoff stress by
+the standard push-forward $\boldsymbol{\sigma} = J^{-1}\mathbf{P}\mathbf{F}^{\mathsf T}$.
+The region of interest is a sphere of radius $2\rho$ ($\rho\approx0.0228$,
+Section~\ref{sec:b3-geometry}) centered on the deepest point of the
+groove at its meridian plane, $(r,\theta,z) = (R_{\text{in}}-\text{depth},\,
+0,\,L_z/2) = (0.3,\,0,\,0.5)$; a Gauss point belongs to the region if its
+Euclidean distance to that center is below $2\rho$. For a single sample,
+the tensor relative field error over the $N_q$ region quadrature points is
+\begin{equation}
+  e = \left(\frac{\sum_{q=1}^{N_q} w_q \lVert \boldsymbol{\sigma}^{\text{pred}}_q - \boldsymbol{\sigma}^{\text{true}}_q \rVert_F^2}
+  {\sum_{q=1}^{N_q} w_q \lVert \boldsymbol{\sigma}^{\text{true}}_q \rVert_F^2}\right)^{1/2},
+  \label{eq:region-field-error}
+\end{equation}
+pooled across the held-out set by summing numerator and denominator
+across samples before taking the square root (so a single ratio is
+reported, not an average of ratios), where $w_q$ are the quadrature
+weights and the Frobenius norm of the symmetric stress tensor double-counts
+the off-diagonal shear terms,
+$\lVert\boldsymbol{\sigma}\rVert_F^2 = \sigma_{xx}^2+\sigma_{yy}^2+\sigma_{zz}^2
++2(\sigma_{xy}^2+\sigma_{yz}^2+\sigma_{xz}^2)$ -- the convention used
+throughout Table~\ref{tab:b3-stress}'s ``pooled Frobenius norm'' row.
+
 A naive relative error on the signed per-sample average of $\sigma_{xx}$
 within a fixed region near the groove gave an unusable $1{,}683.6\%$ mean
 error, traced to near-zero denominators when tension and compression
@@ -1517,37 +1573,52 @@ background-integration quadrature was locally refined to
 $10\times10\times10$ points, for only the four elements (of $6{,}840$) that
 intersect the fixed region, with the operator's mesh, node count, and
 element count left otherwise unchanged. Retraining with this change for the
-same iteration budget reduced the converged regional-stress error from
-$62.2$--$62.3\%$ to $29.7$--$29.9\%$ (Table~\ref{tab:b3-stress}) -- roughly
-halving it, and confirming that part of the original gap was attributable to
+same iteration budget ($7{,}627.5$~s, a separate training run from the
+baseline checkpoint used in Sections~\ref{sec:b3-geometry}--\ref{sec:b3-breakeven}
+above) reduced the converged regional-stress error from $62.2$--$62.3\%$ to
+$29.7$--$29.9\%$ (Table~\ref{tab:b3-stress}) -- roughly halving it, and
+confirming that part of the original gap was attributable to
 under-resolved background integration rather than the network's own
-representational capacity.
+representational capacity. This local-integration-refinement checkpoint's
+own displacement, energy, and reaction accuracy were not separately
+re-measured; Table~\ref{tab:b3-breakeven}'s break-even analysis therefore
+uses the baseline checkpoint throughout and explicitly excludes regional
+stress, rather than mixing the two checkpoints' results together.
 
 \begin{table*}[ht]
 \centering
 \caption{Regional Cauchy-stress accuracy, per component, before and after
   local integration refinement during training ($n_{\text{sub}}{=}10$,
-  $566$ region quadrature points, 100-sample held-out set).}
+  $566$ region quadrature points, 100-sample held-out set). The last
+  column is each component's own share of the pooled Frobenius-error
+  numerator (Eq.~\eqref{eq:region-field-error}, local-refinement model),
+  reconstructed from the component RMS and relative-error columns.}
 \label{tab:b3-stress}
 \small
 \begin{tabular}{lcccc}
 \toprule
-Component & True RMS & Baseline & Local refinement & \\
+Component & True RMS & Baseline & Local refinement & Contribution \\
 \midrule
-$\sigma_{xx}$ & 14.02 & 67.0\% & 32.2\% & \\
-$\sigma_{yy}$ & 14.94 & 63.1\% & 29.9\% & \\
-$\sigma_{zz}$ & 18.24 & 59.6\% & 28.4\% & \\
-$\sigma_{xy}$ & 0.113 & 42.9\% & 100.9\% & \\
-$\sigma_{yz}$ & 0.205 & 33.7\% & 43.1\% & \\
-$\sigma_{xz}$ & 2.603 & 28.7\% & 21.0\% & \\
+$\sigma_{xx}$ & 14.02 & 67.0\% & 32.2\% & $30.1\%$ \\
+$\sigma_{yy}$ & 14.94 & 63.1\% & 29.9\% & $29.4\%$ \\
+$\sigma_{zz}$ & 18.24 & 59.6\% & 28.4\% & $39.6\%$ \\
+$\sigma_{xy}$ & 0.113 & 42.9\% & 100.9\% & $0.04\%$ \\
+$\sigma_{yz}$ & 0.205 & 33.7\% & 43.1\% & $0.02\%$ \\
+$\sigma_{xz}$ & 2.603 & 28.7\% & 21.0\% & $0.88\%$ \\
 \midrule
-Pooled Frobenius norm & -- & 62.4\% & 29.8\% & \\
+Pooled Frobenius norm & -- & 62.4\% & 29.8\% & $100\%$ \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-The three large-magnitude normal stresses, which dominate the pooled
-Frobenius norm, all improve by roughly half; the two smallest-magnitude
+Despite $\sigma_{xy}$'s relative error rising to $100.9\%$ after local
+refinement, its contribution to the pooled numerator is $0.04\%$ -- three
+orders of magnitude below the three normal stresses -- because its own
+true magnitude is two orders of magnitude smaller; the apparent
+regression in that one component cannot be moving the pooled $29.8\%$
+figure in any material way. The three large-magnitude normal stresses,
+which together account for $99\%$ of the pooled Frobenius norm, all
+improve by roughly half; the two smallest-magnitude
 shear components ($\sigma_{xy}$, $\sigma_{yz}$) instead worsen in relative
 terms, consistent with their values being close to zero and sign-changing
 within the region, while not meaningfully moving the pooled metric. The
@@ -1559,8 +1630,15 @@ remaining $29.8\%$ gap is reported here as an open limitation
 A genuinely apples-to-apples accuracy-matched comparison requires the
 operator's error to be measured against an independent fine reference, not
 the same mesh it trained on, which itself carries non-negligible
-discretization error. Ten held-out samples were re-solved at an
-established $43{,}400$-element fine reference, and the same checkpoint
+discretization error. This fine reference ($43{,}400$ elements) was
+established independently, for this accuracy-matched comparison
+specifically, and is distinct from the $950{,}400$-element reference used
+for the regional-stress convergence ladder of
+Section~\ref{sec:discretization} and \ref{sec:b3-stress} -- the two serve
+different purposes (a displacement/energy/reaction accuracy baseline here,
+versus a background-integration-resolution convergence study there) and
+are not required to coincide. Ten held-out samples were re-solved at this
+$43{,}400$-element fine reference, and the same checkpoint
 queried zero-shot at that finer mesh's node positions, giving: displacement
 $2.03\%$, energy $2.30\%$ (pooled RMS), reaction moment $2.22\%$ (pooled
 RMS) -- all close to the training-resolution figures above, confirming the
@@ -1620,12 +1698,12 @@ The out-of-distribution evaluation -- a broadly recognized weakness of
 deep-learning models in general~\cite{liu2021oodsurvey} -- is the clearest
 evidence in this study that the network has learned a fit specific to its
 training distribution rather than the underlying physics in a way that
-extrapolates: B1's
-accuracy degrades by a consistent $4$--$5\times$ under a combined
-stiffness/load shift of only $2$--$2.5$ standard deviations; B2's smaller
-measured degradation is best read considering its already much higher and
-more variable in-distribution error, not as evidence that the curved
-geometry generalizes better. The resolution-invariance study and the
+extrapolates: with the corrected, loss-normalized B2 checkpoints, both
+geometries degrade by a comparable factor under a combined stiffness/load
+shift of only $2$--$2.5$ standard deviations ($4.11$--$4.61\times$ for B1,
+$3.94$--$5.58\times$ for B2; Section~\ref{sec:results-2d}) -- no geometry
+is meaningfully more or less robust than the other under this test. The
+resolution-invariance study and the
 reference-solver mesh-convergence study of Section~\ref{sec:discretization}
 address complementary halves of the same underlying concern about the
 fixed operating mesh used throughout this study: the finite-element
@@ -1725,7 +1803,7 @@ demanding 3D benchmark -- a rocking rubber-mount bushing with a
 stress-concentrating groove -- where it reproduces displacement ($1.9\%$),
 total strain energy ($0.3\%$), and reaction moment ($2.7\%$) accurately,
 and, judged against the cheapest finite-element mesh matching its own
-accuracy, remains $589$--$800\times$ faster per sample across all studied
+accuracy, remains $589$--$739\times$ faster per sample across all studied
 comparisons while repaying its training cost within a few thousand solves
 at most.
 
