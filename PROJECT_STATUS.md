@@ -16526,9 +16526,54 @@ ablation, full per-norm MMS operator-vs-Q4/Q9 tables (24a-24e -- already
 fully extracted this session, see below), Q4-vs-Q9 PASS/FAIL fine-reference
 table (6c -- already fully extracted earlier this session), and GPU
 training-memory breakdown (allocated/reserved/device-level, six cases).
-**In progress**: MMS data for the compact Main table already extracted
-and verified (Tables 24/24a/24b/24c/24d/24e full real values); building
-the Main-table addition and the Supplement document next.
+**Done.** Added the compact MMS table to Main (`main.tex`, commit
+`99b06fa`: operator-vs-Q4 single-member absolute errors at the 3 fitting
+meshes + 16-member family operator/Q4 ratio summary, all 4 norms -- Main
+is now 27 pages, 31 tables). Built `paper/supplement.tex` as a new,
+self-contained document (separate PDF, 14 pages, sections S1-S10, own
+"S"-prefixed table/figure numbering) covering all remaining categories
+from Omar's list, every number pulled directly from the report via two
+parallel background-agent extractions plus direct extraction for the
+smaller categories, cross-checked where possible against numbers Omar
+himself had already quoted:
+- S1: full matched-batch GPU-FEM-vs-operator comparison, all six cases x
+  4 batch sizes (Tables 10/10a/10b/10c/10d) -- confirms the GPU
+  break-even range (1,133-95,038) the main paper only gives as an
+  aggregate.
+- S2: full 16-resolution six-case FEM-vs-operator QoI sweeps (12 tables:
+  2 per case x 6 cases, displacement/H1/energy/reaction and fixed-region
+  stress avg/p99/max) -- by far the largest extraction, confirms the
+  operator's error is non-monotone in N for several quantities
+  (especially B2), consistent with the main paper's own
+  optimization-error-dominated explanation.
+- S3: full 1%/2%/5% threshold tables, all six cases (R11a-f) -- the
+  5%-only row already used in Main's Table 21.
+- S4: multi-resolution vs.\ direct-N1401 training-cost breakdown (R10n)
+  -- caught and fixed one real mistake while writing this section: the
+  main paper's "21% cheaper" direct-N1401 claim is specifically about
+  B1xNeo-Hookean (Section 6.5), not B3 as I first assumed; corrected the
+  supplement's own framing before it went out.
+- S5: throughput/memory ceiling (R10c): operator 8,192 max batch/4,203.79
+  samples/s vs.\ FEM 256 max batch/2.86 samples/s, confirming the
+  ~1,470x gap Section 6.3 states in prose.
+- S6: inference-optimization breakdown (R10d), including each variant's
+  numerical output difference vs.\ eager FP32 (confirming compile+TF32's
+  394ms is numerically benign, not just fast).
+- S7: progressive OOD sweep (0.5sigma-3sigma, material/loading/both
+  isolated, B1xNeo-Hookean) plus the raw-vs-normalized-input OOD
+  ablation -- confirmed this uses a different input normalization from
+  B3's own fix (Section 7.1) and corrected text that had wrongly implied
+  a connection between the two.
+- S8: full per-norm MMS operator-vs-Q4/Q9 tables (24/24b/24c/24e).
+- S9: Q4-vs-Q9 fine-reference PASS/FAIL table (6c).
+- S10: GPU training-memory footprint, all six cases, three levels
+  (allocated/reserved/device-level).
+Recompiled clean: 0 LaTeX errors, 0 undefined references, 0 significant
+overfull-hbox warnings (fixed 3 real ones found during review: an
+unbreakable math-mode resolution list that was overflowing off the
+physical page -- a real content-visibility bug, not just cosmetic --
+plus two tables with labels too wide for the supplement's single-column,
+narrower-than-Main page width).
 
 - Repo: `suhibamro/omar` (GitHub), branch `claude/claude-code-question-d307wp`.
   Local clone: `/home/user/OMAR`.
