@@ -21,6 +21,7 @@
 \author[rub]{Omar Amro}
 \author[rub]{Timon Rabczuk\corref{cor1}}
 \cortext[cor1]{Corresponding author.}
+%% TODO: \ead{email@uni-weimar.de} -- corresponding author email, not yet filled in.
 \address[rub]{Chair of Computational Mechanics, Bauhaus-Universit\"at Weimar}
 
 \begin{abstract}
@@ -390,7 +391,12 @@ preserving the structured Q4 topology. B3 is discretized with a structured
 $21\times20\times19$ mesh of trilinear hexahedra (6,840 elements, 7,980
 nodes). An independent Newton--Raphson Total-Lagrangian finite-element
 solver (built on torch-fem~\cite{meyer2024torchfem}) generates the
-ground-truth samples used only for validation. Table~\ref{tab:fem-cost}
+ground-truth samples used only for validation. All GPU experiments in
+this study (training, the GPU-native solver, and the evaluation scripts)
+run on a single NVIDIA A100 (80~GB) via Google Colab; library versions
+(PyTorch, torch-fem, JAX) were not pinned and reflect whatever was
+current on PyPI at the time each experiment ran, consistent with this
+project's own development practice throughout. Table~\ref{tab:fem-cost}
 reports its per-sample cost breakdown (direct sparse LU via SciPy's
 \texttt{spsolve}, Newton tolerance $10^{-7}$, 10 load steps, all six
 geometry/material cases): assembly dominates total cost by two to three
@@ -575,6 +581,33 @@ Elements & Time (s) & Peak alloc.\ (MB) & Peak reserved (MB) \\
 \bottomrule
 \end{tabular}
 \end{table*}
+
+Table~\ref{tab:dataset-composition} summarizes the dataset composition
+used throughout this study. B1 and B2 draw from a fixed, pre-generated
+dataset (disjoint seed ranges for training, held-out QoI evaluation, and
+out-of-distribution testing); B3's training set is instead sampled
+on-the-fly every iteration, with the per-iteration seed tied
+deterministically to the iteration index (Section~\ref{sec:architecture}),
+so no fixed training-set size applies -- only its held-out validation set
+(used throughout Section~\ref{sec:results-3d}) is a fixed, pre-generated
+dataset. Exact per-split seed values are recorded in each run's own
+output manifest in the code repository, not reproduced here.
+
+\begin{table}[h]
+\centering
+\caption{Dataset composition, all three benchmarks.}
+\label{tab:dataset-composition}
+\small
+\begin{tabular}{lccc}
+\toprule
+Benchmark & Training & Held-out/validation & OOD \\
+\midrule
+B1 & 800 (fixed) & 50 & 200 per case \\
+B2 & 800 (fixed) & 50 & 200 per case \\
+B3 & on-the-fly ($50{,}000\times8$) & 100 (fixed) & not run \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Neural Operator Architecture and Training Objective}
 \label{sec:architecture}
@@ -2215,6 +2248,30 @@ integration in the region of interest, independently of the operator's own
 discretization, recovers roughly half of a large initial error, but closing
 the remainder is left as an open problem with several concrete candidate
 directions identified in Section~\ref{sec:discussion}.
+
+\section*{CRediT Author Contributions}
+%% TODO: confirm contribution roles with Omar/Timon before submission.
+\textbf{Omar Amro}: Software, Formal analysis, Investigation, Data
+curation, Writing -- original draft, Visualization.
+\textbf{Timon Rabczuk}: Conceptualization, Methodology, Supervision,
+Writing -- review \& editing, Funding acquisition.
+
+\section*{Funding}
+This research received no specific grant from any funding agency in the
+public, commercial, or not-for-profit sectors.
+
+\section*{Declaration of Competing Interest}
+The authors declare that they have no known competing financial
+interests or personal relationships that could have appeared to
+influence the work reported in this paper.
+
+\section*{Data and Code Availability}
+All code (dataset generation, training, evaluation, and the GPU-native
+finite-element solver) is available at
+\url{https://github.com/suhibamro/omar}, branch
+\texttt{claude/claude-code-question-d307wp}, commit
+\texttt{1e4df04}. Trained checkpoints and generated datasets are
+available from the corresponding author on reasonable request.
 
 \section*{Acknowledgments}
 %% TODO.
