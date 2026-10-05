@@ -15944,6 +15944,140 @@ count in the paper: 4 → 9.
 **Still open**: the Acknowledgments section (see above). An updated PDF
 has not yet been sent to Omar for this specific pass.
 
+### Independent (ChatGPT-sourced) review, correctness fixes, and major table expansion, 2026-10-05
+
+Omar forwarded three long, detailed reviews from ChatGPT (pasted content
+-- treated as claims to verify, not instructions to apply blindly, per
+standing practice) covering both real factual errors and a long list of
+additional tables/methods-completeness items. Explicitly told to use my
+own judgment on what's correct before changing anything -- did not apply
+any of it uncritically; verified every claim against the actual paper
+text and the real source code/PROJECT_STATUS.md first.
+
+**Real, confirmed correctness bugs found and fixed** (commit `e214e08`):
+- Abstract and Conclusion both said "589-800x" for the B3 accuracy-matched
+  comparison; Table `b3-breakeven` shows 800.7x is actually the
+  RESOLUTION-matched number, accuracy-matched is 589.1-739.3x. Fixed.
+- Discussion's OOD paragraph still said B2 has "already much higher and
+  more variable in-distribution error" than B1 -- stale text from before
+  the B2 loss-normalization fix, directly contradicted by Table 1 (B2:
+  7.28-9.81%, lower than B1's 9.59-11.21%) and by the paper's own
+  corrected Section 6.4 finding ("broadly comparable sensitivity").
+  Rewritten to match.
+- "FEM samples used only for validation, never for training" (Intro) is
+  an absolute claim contradicted by the data-driven baseline (Section
+  6.7), which trains on 800 FEM-labeled solves by construction. Qualified.
+- "the network was never asked to differentiate" (why H1 error exceeds
+  displacement error) is literally false -- the DEM energy objective is
+  built from the deformation gradient. Corrected to the real distinction
+  (gradients enter the loss, aren't supervised pointwise).
+- u_y was called "the axial component...driven by the rocking rotation";
+  checked directly against `data_generate_B3.py`'s
+  `rigid_rotation_displacement` (confirmed: rotation is about the
+  y-axis, so the rigid core's own u_y is EXACTLY ZERO by construction,
+  and z is the real axial direction). Corrected.
+- Added the missing lambda_m value for Arruda-Boyce (sqrt(5)~2.236, from
+  `materials_torch.py`'s N_ab=5.0 default) and an explicit plane-strain /
+  nondimensional-units statement for B1/B2 (confirmed `mode="plane_strain"`
+  is the default everywhere).
+- Softened real overclaims: "the root cause was isolated" -> "a major
+  source...was isolated"; Mooney-Rivlin's "directly comparable" claim
+  qualified (1.5mu effective shear modulus isn't exactly stiffness-matched
+  to the other two materials); "identical protocol" for all six cases
+  qualified to note B2's loss-scale rescaling.
+- Added the exact Cauchy-stress and pooled-Frobenius-error equations to
+  Section 7.3 (previously words only) plus the real groove region's
+  geometric definition (sphere of radius 2*rho centered on the groove's
+  deepest point), pulled from `mesh_convergence_B3.py`'s own
+  `region_radius`/`r_ref` computation, not invented.
+- Added a "contribution to pooled error" column to the regional-stress
+  table, computed from the table's own RMS/error values (verified the
+  reconstruction reproduces the reported 62.4%/29.8% pooled figures):
+  sigma_xy's alarming 100.9% relative error contributes only 0.04% of
+  the pooled numerator -- directly answers "did this one component's
+  regression actually matter."
+- Clarified that the local-integration-refinement checkpoint (7,627.5s,
+  confirmed a SEPARATE training run from the PROJECT_STATUS.md log) is
+  distinct from the baseline checkpoint used for displacement/energy/
+  reaction/break-even -- its own global QoIs were never separately
+  measured. Flagged as a genuine open gap rather than glossed over (see
+  below for the fix in progress).
+- Clarified why Section 4's 950,400-element reference and Section 7.4's
+  43,400-element reference differ (independently established for
+  different purposes), rather than leaving the discrepancy unexplained.
+- Removed a false claim that a per-quantity required-resolution table
+  for B3 "is used throughout Section 7" -- no such table exists and I
+  don't have the real per-QoI B3 threshold data to build one honestly,
+  so the claim was removed rather than fabricated.
+- Fixed real `references.bib` bugs: `wang2026xdem` had "and others"
+  placed mid-author-list before the last named author (invalid BibTeX);
+  `wang2024homogenius` had "Liu, Yinghua" listed twice; `wang2025replay`'s
+  year field (2025) was inconsistent with its own arXiv ID (2605.xxxxx
+  implies 2026) -- corrected.
+- Replaced remaining internal-report register ("the advisor's decision",
+  "silently evaluated the wrong model", "requested target", "self-imposed
+  target") with paper-appropriate phrasing.
+
+**Scope decision, explicitly made by Omar, not assumed**: when I flagged
+that a second review's proposal to expand to 18-22 main-text tables
+directly conflicted with his own earlier "condense it" instruction, Omar
+reviewed the trade-off and explicitly chose to expand rather than keep
+the condensed 9-table version. Commits `c36843e` and `07c6454` added 12
+more tables (9 -> 21), every one built from real data already verified
+either in this project's own prior extraction work or the paper's own
+existing prose (cross-checked for internal consistency before adding,
+e.g. the B1 zero-shot range 9.67-10.64% matches the paper's own
+already-stated "5.0-10.6%" aggregate claim) -- no fabricated numbers:
+B3 Candidate A's full 13-row GPU mesh-convergence ladder + its time/
+memory counterpart, Candidate B's own 6-row ladder + a side-by-side
+Candidate A/B comparison table, the evaluation-side local-integration
+convergence sweep (n_sub=2..12), the manufactured-solutions richer-family
+rate table (all 3 materials x 2 element orders), the multi-resolution-
+training-fix before/after table, the physics-informed-vs-data-driven 2x2
+grid, B1's zero-shot resolution-invariance table (B2's counterpart
+already existed), the six-case OOD table (in-distribution/OOD/degradation
+factor) and the six-case OOD factor-isolation table (fixed a real bug
+along the way -- the Discussion referenced "Table 11's combined shift"
+as a dangling plain-text citation to a table that was never actually in
+the paper), and a six-case engineering-QoI table (displacement/H1/
+energy/stress/peak-stress/reaction, condensed from the Report's three
+separate tables). Every new table re-verified by rendering to PNG after
+each batch (not assumed clean) -- caught and fixed one real overflow
+(Table 13's text column needed `table*`, not `table`, after a column-width
+tweak wasn't enough).
+
+**Two outstanding items confirmed as real gaps, not yet closed**: Omar
+reviewed the "3 new experiments" question and correctly narrowed it --
+only one (multi-seed training-uncertainty) genuinely needs new GPU
+training; the other two are cheap evaluation-only runs against
+already-trained checkpoints. Wrote
+`Practical_Examples/omar_pfem/evaluate_B3_global_qois_and_jacobian.py`
+(commit `07c6454`) to do both in one pass: displacement/energy/reaction
+for the local-integration-refinement checkpoint (never separately
+measured -- built entirely by reusing `evaluate_B3.py`'s
+`evaluate_accuracy` and `evaluate_B3_qois.py`'s `compute_energy`/
+`compute_reaction`, no new methodology) and a deformation-validity
+(J=det F) check -- min/1st-percentile/median J, fraction J<=0, for both
+the true FEM field and the network's prediction, over every element
+(reuses the same F=I+B_op@u construction `compute_region_sigma_xx`
+already has internally, applied mesh-wide rather than only in the fixed
+stress region). **Not yet run** -- this sandbox has no GPU; Omar needs
+to run it on Colab, once per checkpoint:
+```
+python -m omar_pfem.evaluate_B3_global_qois_and_jacobian \
+  --checkpoint /content/drive/MyDrive/pfem_run/b3_training_normalized/checkpoint_50000.pt \
+  --dataset /content/drive/MyDrive/pfem_run/b3_dataset_clean_holdout/dataset.h5 \
+  --out_json /content/drive/MyDrive/pfem_run/b3_training_normalized/global_qois_and_jacobian.json
+```
+then the same command with `b3_training_local_refine` substituted for
+`b3_training_normalized` in all three paths, to get the local-refinement
+checkpoint's own numbers. Once both JSONs exist, add the real before/
+after global-QoI table and J-diagnostic table/sentence to the paper --
+not yet done, waiting on this real GPU run. The multi-seed
+training-uncertainty experiment (genuinely needs new training, 2
+additional seeds at the final local-refinement configuration) is
+deferred until Omar decides it's worth the GPU time.
+
 ---
 
 ## Environment / tooling notes
