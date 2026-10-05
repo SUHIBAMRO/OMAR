@@ -16078,6 +16078,33 @@ training-uncertainty experiment (genuinely needs new training, 2
 additional seeds at the final local-refinement configuration) is
 deferred until Omar decides it's worth the GPU time.
 
+**Colab run completed same day, real results added (commit `045b344`)**.
+First attempt failed with `ModuleNotFoundError: No module named 'torchfem'`
+-- the notebook's install cell was missing torch-fem entirely; fixed
+using this project's own established pattern (pin `pyvista<0.49` before
+`pip install torch-fem`, per `cell_b8_gpu_mesh_convergence.py`'s own
+already-working fix for a real pyvista-0.49/old-Colab-IPython
+incompatibility). Re-ran clean on both checkpoints:
+- **Global QoIs, baseline vs. local-refinement**: combined displacement
+  $1.88\%\to2.40\%$ ($u_y$ $16.16\%\to21.10\%$, $u_x$ $1.94\%\to2.52\%$,
+  $u_z$ $1.42\%\to1.74\%$), energy (pooled RMS) $0.28\%\to0.42\%$,
+  reaction moment $2.99\%\to2.72\%$ (the one quantity that does NOT
+  degrade). Real, modest trade-off -- the 62%->29.8% regional-stress win
+  is not free, but nothing collapses either.
+- **J=det(F) validity, every element/Gauss point (not just the stress
+  region), 5,472,000 points per field**: true FEM min $J=0.801$, 1st
+  percentile $0.977$, median $0.9999$; baseline-predicted min
+  $J=0.816$; local-refinement-predicted min $J=0.803$; zero points with
+  $J\leq0$ in any of the three fields. Clean, unambiguous answer to a
+  real open question (the constitutive energies use $\ln J$) -- not a
+  close call.
+
+Both results added directly to Section 7.3 (`paper/main.tex`), replacing
+the earlier "not yet measured" placeholder text, with a new before/after
+table. Recompiled clean, 23 pages. Table count now 22. **Only the
+multi-seed training-uncertainty experiment remains open**, deferred per
+Omar's own prioritization until he decides it's worth the GPU time.
+
 ---
 
 ## Environment / tooling notes
