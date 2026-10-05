@@ -16620,6 +16620,29 @@ introduced overfull-hbox warnings above 30pt (the only 2 remaining are
 the same pre-existing, visually-confirmed-harmless ones from earlier in
 the session).
 
+### Merged B1/B2 and B3 hyperparameter tables into one master table, 2026-10-05
+
+Omar shared a real Computer Methods in Applied Mechanics and Engineering
+paper co-authored by Timon (WINO, Zhu/Wang/Zhang/Rabczuk) and asked
+whether matching its "way of presenting information" would be a lot of
+work. Took a few rounds to converge on what he actually meant (not the
+elsarticle column layout, not a content/derivation rewrite -- purely a
+presentation-pattern question): WINO's Table 1 is a single master
+hyperparameter/setup table with every benchmark case as its own column,
+rather than one table per case. Confirmed this specific pattern is cheap
+to adopt without inventing or changing any underlying fact: merged
+`tab:hyperparams` (B1/B2) and `tab:b3-training-config` (B3) into one
+`table*` with two columns (B1/B2, B3) and a mid-rule separating shared
+architecture hyperparameters from training-specific settings that
+differ. The one new fact needed (B1/B2's learning rate, never
+previously stated in the paper) was verified against real source code
+(`train_B1.py`'s own `--lr` default, `2e-3` -- identical to B3's,
+confirmed by inspection, not assumed). Converted to `table*` after the
+merge overflowed a single column (173pt overfull). Recompiled clean: 41
+pages (unchanged), 0 errors, 0 undefined refs. This is offered as a
+template for applying the same "single master table, columns = cases"
+pattern elsewhere in the paper if Omar wants it generalized further.
+
 - Repo: `suhibamro/omar` (GitHub), branch `claude/claude-code-question-d307wp`.
   Local clone: `/home/user/OMAR`.
 - Colab pattern used throughout: `pip install -q einops timm h5py jax tqdm`

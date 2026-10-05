@@ -724,66 +724,48 @@ $\mathbf{u}_\theta(\mathbf{x}_i,\mathbf{f}_i)$, with $\theta$ its trainable
 parameters. The same architecture and hyperparameter configuration are used
 for both B1 and B2; B3 uses the same architecture with $d{=}3$ input/output
 dimensions and a correspondingly reworked feature dimension.
-Table~\ref{tab:hyperparams} reports the full hyperparameter configuration
-and the resulting trainable-parameter count (identical for B1 and B2),
-measured by direct instantiation of the model.
+Table~\ref{tab:hyperparams} reports the full configuration for both
+architectures side by side -- shared architectural hyperparameters
+(hidden width, layers, heads, MLP ratio, slice tokens, dropout,
+positional encoding, learning rate, batch size) are identical across
+all three benchmarks; only the input/output dimensions, training
+budget, precision, and B3's local-integration setting differ, as the
+table's own B1/B2 vs.\ B3 columns show directly.
 
-\begin{table}[h]
+\begin{table*}[ht]
 \centering
-\caption{Transolver hyperparameters and trainable-parameter count
-  (B1/B2 configuration).}
+\caption{Transolver configuration and trainable-parameter count, B1/B2
+  vs.\ B3. Shared hyperparameters (hidden width through batch size) are
+  identical across all three benchmarks; B3 differs only in the rows
+  below the first mid-rule.}
 \label{tab:hyperparams}
 \small
-\begin{tabular}{lc}
+\begin{tabular}{lcc}
 \toprule
-Hyperparameter & Value \\
+Setting & B1/B2 & B3 \\
 \midrule
-Input coordinate dim.\ (space\_dim) & 2 ($x,y$) \\
-Condition channels (fun\_dim) & 4 ($E,\nu,f_x,f_y$) \\
-Output dim.\ (out\_dim) & 2 ($u,v$) \\
-Hidden width ($n_{\text{hidden}}$) & 256 \\
-Layers ($n_{\text{layers}}$) & 4 \\
-Attention heads ($n_{\text{heads}}$) & 8 \\
-MLP ratio & 2 \\
-Slice tokens (slice\_num) & 128 \\
-Dropout & 0.1 \\
-Positional encoding (unified\_pos) & off \\
+Input coordinate dim.\ (space\_dim) & 2 ($x,y$) & 3 ($x,y,z$) \\
+Condition channels (fun\_dim) & 4 ($E,\nu,f_x,f_y$) & 3 ($E,\nu,\phi$) \\
+Output dim.\ (out\_dim) & 2 ($u,v$) & 3 ($u_x,u_y,u_z$) \\
+Hidden width ($n_{\text{hidden}}$) & 256 & 256 \\
+Layers ($n_{\text{layers}}$) & 4 & 4 \\
+Attention heads ($n_{\text{heads}}$) & 8 & 8 \\
+MLP ratio & 2 & 2 \\
+Slice tokens (slice\_num) & 128 & 128 \\
+Dropout & 0.1 & 0.1 \\
+Positional encoding (unified\_pos) & off & off \\
+Learning rate & $2\times10^{-3}$ & $2\times10^{-3}$ \\
+Batch size & 8 & 8 \\
+Trainable parameters & $2{,}010{,}914$ ($\approx2.01$M) & $2{,}011{,}171$ ($\approx2.01$M) \\
 \midrule
-Trainable parameters & $2{,}010{,}914$ ($\approx2.01$M) \\
+Training budget & up to 2000 epochs, early stopping & $50{,}000$ iterations \\
+Training precision & FP32 & FP64 \\
+Input normalization & -- (not used) & on (mean-0/std-1, Section~\ref{sec:results-3d}) \\
+Local integration refinement & -- (not applicable) & off (baseline); $n_{\text{sub}}{=}10$, \\
+ & & 566 region points (local-refinement run) \\
 \bottomrule
 \end{tabular}
-\end{table}
-
-Table~\ref{tab:b3-training-config} reports the corresponding B3-specific
-configuration: the shared hyperparameters above (hidden width, layers,
-heads, MLP ratio, slice tokens, dropout, positional encoding) are
-unchanged, only the input/output dimensions, training budget, and
-precision differ.
-
-\begin{table}[h]
-\centering
-\caption{B3 training configuration (shared hyperparameters as
-  Table~\ref{tab:hyperparams}; only the rows below differ from B1/B2).}
-\label{tab:b3-training-config}
-\footnotesize
-\begin{tabular}{lc}
-\toprule
-Setting & Value \\
-\midrule
-Input coordinate dim.\ (space\_dim) & 3 ($x,y,z$) \\
-Condition channels (fun\_dim) & 3 ($E,\nu,\phi$) \\
-Output dim.\ (out\_dim) & 3 ($u_x,u_y,u_z$) \\
-Trainable parameters & $2{,}011{,}171$ ($\approx2.01$M) \\
-Learning rate & $2\times10^{-3}$ \\
-Batch size & 8 \\
-Training iterations & $50{,}000$ \\
-Input normalization & on (mean-0/std-1, Section~\ref{sec:results-3d}) \\
-Training precision & FP64 \\
-Local integration refinement & off (baseline); $n_{\text{sub}}{=}10$, \\
- & 566 region points (local-refinement run) \\
-\bottomrule
-\end{tabular}
-\end{table}
+\end{table*}
 
 The material and loading fields are sampled as independent Gaussian
 random fields over the mesh's own parametric $(\theta,t,z)$ coordinates
