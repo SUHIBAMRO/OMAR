@@ -2679,6 +2679,51 @@ finishes or a new one starts.
 >   final log. Given to Omar as a PDF via SendUserFile for a structure/
 >   style review before the content-writing pass begins.
 >
+>   **Full paper body drafted, 2026-10-05 (Omar: "كمل" -- continue, after
+>   the structure/style checkpoint above)**: every remaining TODO section
+>   written with real content and real numbers, condensed from the
+>   Report's internal "this revision addresses..." register into paper
+>   register (methodology + validated results only, no debugging
+>   narrative, no internal back-and-forth). Equations (Total Lagrangian
+>   hyperelasticity, Neo-Hookean, 2D Mooney-Rivlin -- including the
+>   I2=J^2 2D identity that makes the conventional 3D form inapplicable
+>   -- and Arruda-Boyce 8-chain) were written directly in LaTeX from the
+>   same standard forms this project's own code already implements, NOT
+>   extracted from the Report's own .docx: confirmed its equations are
+>   embedded Office Math objects, invisible to python-docx's `.text`
+>   attribute, before writing new ones rather than guessing why they
+>   looked blank. B1/B2's sampling parameters (E/nu/traction/pressure
+>   means, stds, correlation lengths) were pulled directly from
+>   `data_generate_B1.py`/`data_generate_B2.py`'s own function defaults
+>   by reading the actual code, not estimated or recalled.
+>
+>   **A real, deliberate editorial compression, stated so it isn't
+>   mistaken for an oversight**: the Report's Section 8 alone is ~450
+>   paragraphs covering an extensive GPU-FEM-solver engineering arc
+>   (preconditioner comparisons, matrix-free scaling, an assembled-direct-
+>   solve variant, TensorMesh/torch-fem head-to-heads, a 16-table
+>   multi-resolution-retraining saga). Transcribing all of it would
+>   produce a ~60-page document and is not how a journal paper is
+>   written -- condensed to the headline scientific findings only
+>   (final accuracy, training cost/break-even, GPU-native-FEM speed-up,
+>   OOD, zero-shot resolution invariance + the N=1401 multi-resolution
+>   finding, derived-quantity error, physics-informed-vs-data-driven,
+>   manufactured-solution verification, the B2 root-cause fix), flagging
+>   the deep solver-engineering material as supplementary-material
+>   candidate content rather than silently dropping it.
+>
+>   **A real bug caught by the compile log, not assumed absent**: a
+>   leftover duplicate `\section{Results: B1/B2}\label{sec:results-2d}`
+>   stub from the structure-checkpoint pass produced a genuine
+>   multiply-defined-label warning on rebuild -- found by reading the
+>   LaTeX log, not by eye -- and removed.
+>
+>   **Verified by recompiling, not just writing**: full
+>   `pdflatex`->`bibtex`->`pdflatex`->`pdflatex` cycle, 26 pages, zero
+>   `!`-prefixed errors, zero undefined or multiply-defined citations/
+>   references/labels in the final log. Given to Omar as a PDF via
+>   SendUserFile. Not yet reviewed by Omar or sent to Timon.
+>
 >   **Second correction, 2026-09-27 (Omar's own careful reading of
 >   `B3_QoIs.ipynb`'s markdown cell, catching two remaining overclaims
 >   before they got repeated anywhere else)**:
