@@ -1,0 +1,173 @@
+\documentclass[review]{elsarticle}
+%% review  = one-column, double-spaced, line numbers (typical submission format)
+%% replace with \documentclass[final,5p,times]{elsarticle} for the camera-ready two-column layout later.
+
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\journal{Computers \& Structures}
+
+\bibliographystyle{elsarticle-num}
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{Physics-Informed Neural Operator Learning for Hyperelastic Solids: From 2D Benchmarks to a 3D Rocking Rubber-Mount Bushing}
+
+%% TODO: confirm author list and order with Omar/Timon before submission.
+\author[rub]{Omar Amro}
+\author[rub]{Timon Rabczuk\corref{cor1}}
+\cortext[cor1]{Corresponding author.}
+\address[rub]{Chair of Computational Mechanics, Bauhaus-Universit\"at Weimar}
+
+\begin{abstract}
+%% DRAFT -- placeholder numbers below must be re-checked against
+%% PROJECT_STATUS.md immediately before submission; written for review now.
+We train a physics-informed neural operator (Transolver) to predict the
+displacement field of hyperelastic solids under randomly sampled material
+and loading fields, without any labeled displacement data: the network is
+trained by directly minimizing the discrete total potential energy of the
+body (a Deep Energy Method), following the PFEM pretraining methodology.
+Two 2D benchmark geometries (a unit square under top-edge traction, and a
+quarter ring under internal pressure), each combined with three isotropic
+hyperelastic strain-energy densities (Neo-Hookean, Mooney--Rivlin,
+Arruda--Boyce), are trained to completion, evaluated against an independent
+finite-element reference, and characterized across mesh-resolution
+invariance, out-of-distribution robustness, and break-even cost against both
+a native and a GPU-native finite-element solver. The study is then extended
+to a third, more demanding 3D benchmark: a rocking elastomeric rubber-mount
+bushing with a stress-concentrating groove. The operator reproduces
+displacement, strain energy, and reaction moment accurately (combined
+displacement error 1.9\%, energy error 0.3\%, reaction-moment error 2.7\%),
+and, judged against the cheapest finite-element mesh that matches its own
+accuracy, remains 589--800$\times$ faster per sample while repaying its
+one-off training cost within fewer than 1{,}900 solves. The one quantity
+that does not reach the same standard is the regional Cauchy-stress field
+near the groove: an input-normalization fix first resolves a training
+instability, after which the regional-stress error is traced, in part, to
+an under-resolved background numerical integration rather than the
+network's own capacity, and a local integration refinement -- applied to
+only the few mesh elements touching the region of interest, independently
+of the operator's own discretization -- roughly halves the error (from
+62\% to 30\%). The remaining gap is reported as an open limitation, with
+several concrete directions (stress/equilibrium-aware physics losses,
+mixed displacement--stress formulations, local/hierarchical representations)
+identified for future work.
+\end{abstract}
+
+\begin{keyword}
+physics-informed neural operators \sep deep energy method \sep Transolver \sep hyperelasticity \sep finite element method \sep operator learning
+\end{keyword}
+
+\end{frontmatter}
+
+\section{Introduction}
+\label{sec:intro}
+
+Classical finite-element (FEM) solvers for nonlinear elasticity re-solve a
+new nonlinear system from scratch for every new combination of geometry,
+material field, and loading, each solve requiring a full Newton--Raphson
+iteration to convergence. Operator learning instead trains a single neural
+network to approximate the map from problem data (material field, loading
+field, geometry) directly to the solution field, so that new instances are
+evaluated with a single forward pass~\cite{lu2021deeponet,li2021fno,kovachki2023neuraloperator}.
+Physics-informed variants of this idea remove the need for expensive
+labeled training data entirely, by training the network to satisfy the
+governing equations or minimize a governing energy functional directly,
+rather than to regress against precomputed solutions~\cite{raissi2019pinn,e2018deepritz}.
+
+This work follows the PFEM (\emph{Pretrain Finite Element Method})
+approach~\cite{wang2026pfem}: a Transolver-architecture
+operator~\cite{wu2024transolver}, built on the attention
+mechanism~\cite{vaswani2017attention}, is trained without any labeled
+displacement data, by directly minimizing the discretized total potential
+energy of the elastic body -- a Deep Energy Method (DEM)
+objective~\cite{samaniego2020energy,nguyen2020deep}, closely related to
+the Deep Ritz method~\cite{e2018deepritz} and to the variational
+physics-informed operator framework~\cite{eshaghi2025vino}, rather than a
+supervised regression loss against finite-element solutions. The same
+underlying idea -- minimizing an energy functional with a neural ansatz,
+instead of imposing the strong-form PDE residual as in standard PINNs --
+has previously been developed for finite-deformation
+hyperelasticity~\cite{nguyen2020deep,abueidda2022dlem}, strain-gradient
+elasticity~\cite{nguyen2021parametric}, contact
+problems~\cite{bai2025energy}, and fracture~\cite{goswami2020transfer,wang2026xdem,zhang2026meshfree},
+predominantly at the level of a single geometry/material instance rather
+than as a trained operator generalizing across a distribution of material
+and loading fields.
+
+The present study covers two 2D benchmark geometries -- a unit square
+under top-edge traction (B1) and a quarter ring under internal pressure
+(B2) -- combined with three hyperelastic strain-energy densities
+(Neo-Hookean~\cite{rivlin1948large}, Mooney--Rivlin~\cite{mooney1940theory},
+Arruda--Boyce~\cite{arruda1993threedim}), for six total (geometry,
+material) cases, and a third, substantially more demanding 3D benchmark: a
+rocking elastomeric rubber-mount bushing with a stress-concentrating
+groove in its rigid inner core (B3). An independent Newton--Raphson
+Total-Lagrangian finite-element solver, built on top of
+torch-fem~\cite{meyer2024torchfem} and
+PyTorch~\cite{paszke2019pytorch,baydin2018automatic}, generates
+ground-truth samples used only for validation, never for training.
+
+%% TODO: contribution list / paper outline paragraph.
+
+\section{Governing Equations and Material Models}
+\label{sec:governing}
+%% TODO: port from Report Section 2 (Total Lagrangian hyperelasticity;
+%% Neo-Hookean / Mooney-Rivlin / Arruda-Boyce strain-energy densities),
+%% condensed to paper length.
+
+\section{Benchmark Geometries}
+\label{sec:geometries}
+%% TODO: port from Report Section 3 (B1, B2) + Section 11.1 (B3 geometry
+%% and design history), condensed.
+
+\section{Spatial Discretization and Dataset Generation}
+\label{sec:discretization}
+%% TODO: port from Report Section 4.
+
+\section{Neural Operator Architecture and Training Objective}
+\label{sec:architecture}
+%% TODO: port from Report Section 5 (Transolver; DEM training objective).
+
+\section{Results: B1/B2 (2D Benchmarks)}
+\label{sec:results-2d}
+%% TODO: port from Report Sections 6-10 (training protocol, main results,
+%% GPU-native FEM comparison, OOD, resolution invariance, physics-informed
+%% vs. data-driven, verification against manufactured solutions).
+
+\section{Results: B3 (3D Rocking Rubber-Mount Bushing)}
+\label{sec:results-3d}
+%% TODO: port from Report Section 11.6-11.10 (dataset/training,
+%% displacement/energy/reaction accuracy, the regional Cauchy-stress
+%% investigation and local integration refinement, the accuracy-matched
+%% break-even analysis), condensed to paper length and reframed from
+%% "report" register to "paper" register (no process narrative, results
+%% and methodology only).
+
+\section{Discussion}
+\label{sec:discussion}
+%% TODO: port from Report Section 9, plus the B3 regional-stress
+%% limitation and its future-work directions (physics/equilibrium-aware
+%% losses, mixed formulations, PINO-type residual enforcement,
+%% hierarchical representations, data-driven stress supervision, hybrid
+%% approaches; separating physics-integration resolution from operator
+%% resolution more generally) -- citing
+%% \cite{abueidda2023enhanced,rao2021elastodynamics,abueidda2021meshless,he2023gnn,taghikhani2025neuralnewton,dean2026piginot}
+%% as related attempts, and \cite{prudhomme1999goal,becker2001optimal}
+%% for the goal-oriented-error-estimation framing of "where does a
+%% trained operator's error actually come from."
+
+\section{Conclusion}
+\label{sec:conclusion}
+%% TODO: port from Report Section 10, extended with the B3 conclusion.
+
+\section*{Acknowledgments}
+%% TODO.
+
+\bibliography{references}
+
+\end{document}
