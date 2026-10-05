@@ -287,6 +287,25 @@ distributed pressure. The geometry itself (groove depth/half-width,
 $R_{\text{in}}$, $R_{\text{out}}$, $L_z$) is held fixed across every sample,
 as in B1/B2.
 
+This grooved design was selected from two 3D candidates carried to a full
+GPU mesh-convergence study on the same regional Cauchy-stress field-error
+metric used throughout Section~\ref{sec:results-3d}: the grooved bushing
+above, and a laminated alternative with one or more rigid steel shims
+embedded in the rubber annulus (a construction used in real elastomeric
+mounts to tune stiffness), each shim condensed to 6 rigid-body degrees of
+freedom via a custom kinematic-condensation reduced system. Both reached a
+converged result -- the grooved design's regional-stress error enters the
+$5$--$10\%$ target band at $480{,}320$ elements (Section~\ref{sec:discretization}),
+while the laminated alternative converges considerably faster in element
+count (below $10\%$ already at $50{,}544$ elements, fully converged by
+$302{,}016$) but is bottlenecked by a CPU-only rigid-body linear solve that
+scales worse than linearly with mesh size. The advisor's decision, after
+reviewing both convergence studies, adopted the grooved design (``B3'') as
+the single geometry carried forward to dataset generation and operator
+training, with the $5$--$10\%$ regional-stress accuracy band confirmed
+sufficient for the FEM-operator comparison; the laminated alternative is
+not developed further in this paper.
+
 \begin{figure*}[htb]
 \centering
 \includegraphics[width=\textwidth]{figures/b3_geometry.png}
@@ -308,7 +327,70 @@ preserving the structured Q4 topology. B3 is discretized with a structured
 $21\times20\times19$ mesh of trilinear hexahedra (6,840 elements, 7,980
 nodes). An independent Newton--Raphson Total-Lagrangian finite-element
 solver (built on torch-fem~\cite{meyer2024torchfem}) generates the
-ground-truth samples used only for validation.
+ground-truth samples used only for validation. Table~\ref{tab:fem-cost}
+reports its per-sample cost breakdown (direct sparse LU via SciPy's
+\texttt{spsolve}, Newton tolerance $10^{-7}$, 10 load steps, all six
+geometry/material cases): assembly dominates total cost by two to three
+orders of magnitude over the linear solve itself, and the per-sample FLOP
+count (also reported) is two to three orders of magnitude lower for the
+solve than for assembly, consistent with the small ($441$- or $625$-node)
+problem sizes used throughout B1/B2.
+
+\begin{table}[h]
+\centering
+\caption{Native CPU reference-solver cost breakdown (direct sparse LU,
+  Newton tolerance $10^{-7}$, 10 load steps, all six cases) and per-sample
+  FLOP count (assembly vs.\ linear solve, by material).}
+\label{tab:fem-cost}
+\small
+\begin{tabular}{lccc}
+\toprule
+Case & Assembly (s) & Solve (s) & Total (s) \\
+\midrule
+B1 $\times$ NH & 25.343 & 0.082 & 25.432 \\
+B1 $\times$ MR & 53.647 & 0.082 & 53.735 \\
+B1 $\times$ AB & 52.452 & 0.083 & 52.542 \\
+B2 $\times$ NH & 25.809 & 0.089 & 25.909 \\
+B2 $\times$ MR & 61.613 & 0.089 & 61.712 \\
+B2 $\times$ AB & 60.185 & 0.090 & 60.285 \\
+\midrule
+Material & \multicolumn{2}{c}{Assembly FLOPs} & Solve FLOPs \\
+\midrule
+Neo-Hookean    & \multicolumn{2}{c}{$\approx5.88\times10^{7}$} & $\approx7.9\times10^{5}$ \\
+Mooney-Rivlin  & \multicolumn{2}{c}{$\approx9.72\times10^{7}$} & $\approx7.9\times10^{5}$ \\
+Arruda-Boyce   & \multicolumn{2}{c}{$\approx9.72\times10^{7}$} & $\approx7.9\times10^{5}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The reference solver's own correctness is checked independently of the
+operator comparison: a GPU-native, batched re-implementation of the same
+Newton--Raphson solver (used for the scaling study of
+Section~\ref{sec:gpu-fem}) is validated node-by-node against this CPU
+reference at the operating resolution before any timing is trusted
+(Table~\ref{tab:fem-correctness}) -- agreement is at the level of machine
+round-off ($10^{-13}$--$10^{-16}$) for every one of the six cases, not
+merely close.
+
+\begin{table}[h]
+\centering
+\caption{GPU-native vs.\ CPU-reference solver correctness, all six cases
+  (round-off-level agreement, not an independent accuracy claim).}
+\label{tab:fem-correctness}
+\small
+\begin{tabular}{lcccc}
+\toprule
+Case & $\max|u_{\text{cpu}}|$ & Max abs.\ diff. & Mean rel.\ err. & Max rel.\ err. \\
+\midrule
+B1 $\times$ NH & $2.150\mathrm{e}{-3}$ & $2.60\mathrm{e}{-16}$ & $1.32\mathrm{e}{-13}$ & $7.23\mathrm{e}{-13}$ \\
+B1 $\times$ MR & $1.404\mathrm{e}{-3}$ & $2.23\mathrm{e}{-16}$ & $2.14\mathrm{e}{-13}$ & $1.41\mathrm{e}{-12}$ \\
+B1 $\times$ AB & $2.134\mathrm{e}{-3}$ & $2.46\mathrm{e}{-16}$ & $1.40\mathrm{e}{-13}$ & $9.02\mathrm{e}{-13}$ \\
+B2 $\times$ NH & $1.910\mathrm{e}{-2}$ & $4.13\mathrm{e}{-16}$ & $1.08\mathrm{e}{-14}$ & $3.51\mathrm{e}{-14}$ \\
+B2 $\times$ MR & $1.251\mathrm{e}{-2}$ & $2.75\mathrm{e}{-16}$ & $1.42\mathrm{e}{-14}$ & $4.23\mathrm{e}{-14}$ \\
+B2 $\times$ AB & $1.829\mathrm{e}{-2}$ & $4.70\mathrm{e}{-16}$ & $1.62\mathrm{e}{-14}$ & $4.82\mathrm{e}{-14}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 Because the neural operator and its finite-element reference are compared on
 the same discretization, agreement between the two demonstrates only that
@@ -381,6 +463,35 @@ $\mathbf{u}_\theta(\mathbf{x}_i,\mathbf{f}_i)$, with $\theta$ its trainable
 parameters. The same architecture and hyperparameter configuration are used
 for both B1 and B2; B3 uses the same architecture with $d{=}3$ input/output
 dimensions and a correspondingly reworked feature dimension.
+Table~\ref{tab:hyperparams} reports the full hyperparameter configuration
+and the resulting trainable-parameter count (identical for B1 and B2),
+measured by direct instantiation of the model.
+
+\begin{table}[h]
+\centering
+\caption{Transolver hyperparameters and trainable-parameter count
+  (B1/B2 configuration).}
+\label{tab:hyperparams}
+\small
+\begin{tabular}{lc}
+\toprule
+Hyperparameter & Value \\
+\midrule
+Input coordinate dim.\ (space\_dim) & 2 ($x,y$) \\
+Condition channels (fun\_dim) & 4 ($E,\nu,f_x,f_y$) \\
+Output dim.\ (out\_dim) & 2 ($u,v$) \\
+Hidden width ($n_{\text{hidden}}$) & 256 \\
+Layers ($n_{\text{layers}}$) & 4 \\
+Attention heads ($n_{\text{heads}}$) & 8 \\
+MLP ratio & 2 \\
+Slice tokens (slice\_num) & 128 \\
+Dropout & 0.1 \\
+Positional encoding (unified\_pos) & off \\
+\midrule
+Trainable parameters & $2{,}010{,}914$ ($\approx2.01$M) \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Physics-informed training objective (Deep Energy Method)}
 The network is trained by directly minimizing the discretized total
@@ -863,6 +974,34 @@ input produces nearly the same field, and therefore nearly the same
 error, on every mesh; insensitivity and invariance are indistinguishable
 in that column, and flatness of the error across resolutions is not, on
 its own, evidence of the property this section is testing.
+Table~\ref{tab:b2-zeroshot} reports the complete per-material breakdown:
+Mooney-Rivlin is consistently the most accurate of the three materials
+across the sweep and Arruda-Boyce the least, but all three share the same
+qualitative U-shape (best accuracy in the middle of the resolution range,
+degrading toward both the coarsest and finest unseen meshes), confirming
+the pattern above is not specific to Neo-Hookean.
+
+\begin{table}[h]
+\centering
+\caption{B2 zero-shot resolution invariance, relative $L^2$ error by
+  material, seven unseen resolutions (corrected loss-normalized
+  checkpoints).}
+\label{tab:b2-zeroshot}
+\small
+\begin{tabular}{lcccc}
+\toprule
+$N$ & Nodes & NH & MR & AB \\
+\midrule
+13 & 169   & 23.14\% & 19.46\% & 25.65\% \\
+17 & 289   & 11.42\% & 7.90\%  & 10.31\% \\
+25 & 625   & 7.20\%  & 6.61\%  & 9.40\%  \\
+29 & 841   & 7.11\%  & 7.30\%  & 9.62\%  \\
+37 & 1{,}369 & 8.08\% & 12.20\% & 13.83\% \\
+41 & 1{,}681 & 15.11\% & 19.97\% & 21.57\% \\
+49 & 2{,}401 & 26.91\% & 32.46\% & 34.02\% \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 Placing the operator and the finite-element solver on a single
 accuracy-cost plot (both methods scored against the same common $N{=}101$
@@ -882,6 +1021,39 @@ flatness does not extrapolate indefinitely: measured directly at $N{=}1401$
 rises to $2{,}286.7$~ms/sample, roughly $500\times$ the cost at the
 smallest node count tested, though still $59\times$ faster than torch-fem's
 own matched-precision solve at that same $N$ ($133.83$~s).
+
+B1$\times$Neo-Hookean is used above as a worked example; the same
+per-quantity required-resolution analysis was repeated for the remaining
+five cases (Table~\ref{tab:required-n}), reporting, for each quantity of
+interest and each case, the coarsest finite-element mesh reaching $5\%$
+relative error against the common $N{=}101$ reference. In every one of
+the six cases, the $H^1$ semi-norm is the binding (hardest to satisfy)
+quantity, requiring a substantially finer mesh than displacement, energy,
+or the reaction/region-stress quantities -- the same derivative-based-norms-
+are-harder pattern already established in
+Section~\ref{sec:results-2d} (``Error in derived physical quantities''),
+now shown to hold case-by-case, not only in the pooled statistics there.
+
+\begin{table}[h]
+\centering
+\caption{Coarsest finite-element mesh reaching $5\%$ relative error (vs.\
+  the common $N{=}101$ reference), per quantity of interest, all six
+  cases. B2 has no reaction resultant defined.}
+\label{tab:required-n}
+\small
+\begin{tabular}{lccccc}
+\toprule
+Case & Disp. & $H^1$ & Energy & React. & Region \\
+\midrule
+B1 $\times$ NH & 4 & 17 & 13 & 5 & 3 \\
+B1 $\times$ MR & 4 & 17 & 13 & 4 & 9 \\
+B1 $\times$ AB & 4 & 13 & 11 & 5 & 3 \\
+B2 $\times$ NH & 6 & 17 & 17 & -- & 6 \\
+B2 $\times$ MR & 6 & 17 & 17 & -- & 6 \\
+B2 $\times$ AB & 6 & 17 & 17 & -- & 6 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{figure}[htb]
 \centering
