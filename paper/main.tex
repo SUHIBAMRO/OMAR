@@ -1,4 +1,4 @@
-\documentclass[review]{elsarticle}
+\documentclass[final,5p,times]{elsarticle}
 %% review  = one-column, double-spaced, line numbers (typical submission format)
 %% replace with \documentclass[final,5p,times]{elsarticle} for the camera-ready two-column layout later.
 
@@ -67,21 +67,29 @@ physics-informed neural operators \sep deep energy method \sep Transolver \sep h
 \section{Introduction}
 \label{sec:intro}
 
-Classical finite-element (FEM) solvers for nonlinear elasticity re-solve a
-new nonlinear system from scratch for every new combination of geometry,
-material field, and loading, each solve requiring a full Newton--Raphson
-iteration to convergence. Operator learning instead trains a single neural
+Classical finite-element (FEM) solvers for nonlinear
+elasticity~\cite{bathe1996finite,belytschko2014nonlinear,zienkiewicz2013finite}
+re-solve a new nonlinear system from scratch for every new combination of
+geometry, material field, and loading, each solve requiring a full
+Newton--Raphson iteration to convergence. Operator learning instead trains
+a single neural
 network to approximate the map from problem data (material field, loading
 field, geometry) directly to the solution field, so that new instances are
-evaluated with a single forward pass~\cite{lu2021deeponet,li2021fno,kovachki2023neuraloperator}.
+evaluated with a single forward
+pass~\cite{lu2021deeponet,li2021fno,li2020graphkernel,kovachki2023neuraloperator}.
 Physics-informed variants of this idea remove the need for expensive
 labeled training data entirely, by training the network to satisfy the
-governing equations or minimize a governing energy functional directly,
-rather than to regress against precomputed solutions~\cite{raissi2019pinn,e2018deepritz}.
+governing equations or minimize a governing energy functional
+directly, rather than to regress against precomputed
+solutions~\cite{raissi2019pinn,e2018deepritz,goswami2023pideeponet,boya2024pinto}.
+Recent surveys cover both the broader use of machine learning in
+computational mechanics~\cite{rabczuk2023ml} and, more specifically, the
+growing body of work applying neural operators and PINNs to PDEs arising
+in solid and structural mechanics~\cite{wang2026review}.
 
 This work follows the PFEM (\emph{Pretrain Finite Element Method})
 approach~\cite{wang2026pfem}: a Transolver-architecture
-operator~\cite{wu2024transolver}, built on the attention
+operator~\cite{wu2024transolver,luo2025transolverpp}, built on the attention
 mechanism~\cite{vaswani2017attention}, is trained without any labeled
 displacement data, by directly minimizing the discretized total potential
 energy of the elastic body -- a Deep Energy Method (DEM)
@@ -275,6 +283,17 @@ distributed pressure. The geometry itself (groove depth/half-width,
 $R_{\text{in}}$, $R_{\text{out}}$, $L_z$) is held fixed across every sample,
 as in B1/B2.
 
+\begin{figure*}[htb]
+\centering
+\includegraphics[width=\textwidth]{figures/b3_geometry.png}
+\caption{B3 geometry: undeformed mesh (left), deformed configuration under
+  a representative rigid-body core rotation $\phi=0.05$ (center), and the
+  meridian cross-section showing the stress-concentrating groove (right;
+  depth $0.20$, half-width $0.15$, $\rho\approx0.0228$, matching the
+  production dataset parameters above).}
+\label{fig:b3-geometry}
+\end{figure*}
+
 \section{Spatial Discretization and Dataset Generation}
 \label{sec:discretization}
 
@@ -304,7 +323,7 @@ resolution used throughout this study.
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image17.png}
+\includegraphics[width=0.85\columnwidth]{figures/image17.png}
 \caption{Mesh convergence: strain-energy change per refinement vs.\ $N$,
   B1 and B2, all three materials.}
 \label{fig:17}
@@ -328,7 +347,7 @@ convergence).
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image30.png}
+\includegraphics[width=0.85\columnwidth]{figures/image30.png}
 \caption{Mesh-convergence field grid (B1, Neo-Hookean): predicted
   $|\mathbf{u}|$ across seven resolutions, $N{=}51$--$1401$, one converged
   solution each.}
@@ -423,7 +442,7 @@ in the limit of a uniform node distribution that both B1 and B2's
 structured Q4 meshes closely approximate at the resolution used
 throughout this study.
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
 \includegraphics[width=0.32\textwidth]{figures/image1.png}
 \includegraphics[width=0.32\textwidth]{figures/image2.png}
@@ -432,17 +451,17 @@ throughout this study.
   budget), validation error vs.\ optimizer steps, processed samples, and
   wall-clock time.}
 \label{fig:batch-screening}
-\end{figure}
+\end{figure*}
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image4.png}
+\includegraphics[width=0.85\columnwidth]{figures/image4.png}
 \caption{Validation-error trajectories (log scale) for all six benchmark
   cases, each terminating at its early-stopped final epoch.}
 \label{fig:1}
 \end{figure}
 
-\begin{table}[h]
+\begin{table*}[ht]
 \centering
 \caption{Final validation error, best/final epoch, and training wall-clock
   time, all six (geometry, material) cases. B2's three rows use the
@@ -460,7 +479,7 @@ B2 $\times$ Mooney-Rivlin  & 7.28\%  & 850 & 1{,}050 & 34{,}164.1 \\
 B2 $\times$ Arruda-Boyce   & 9.81\%  & 525 & 725  & 24{,}846.8 \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 All three B2 materials sit in the same $7$--$10\%$ range as the three B1
 materials ($9.6$--$11.2\%$), and B2$\times$Mooney-Rivlin ($7.28\%$) is in
@@ -470,7 +489,7 @@ earlier, uncorrected B2 recipe was a fixable training-objective defect
 specific to B2's boundary-force convention, not a harder
 operator-learning target.
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
 \includegraphics[width=0.32\textwidth]{figures/image5.png}
 \includegraphics[width=0.32\textwidth]{figures/image6.png}
@@ -485,7 +504,7 @@ operator-learning target.
   pointwise absolute error. Top row: B1 Neo-Hookean, Mooney-Rivlin,
   Arruda-Boyce. Bottom row: B2 Neo-Hookean, Mooney-Rivlin, Arruda-Boyce.}
 \label{fig:case-samples}
-\end{figure}
+\end{figure*}
 
 \subsection{Training cost, native-FEM comparison, and break-even}
 Two complementary training-cost metrics are reported, both derived from
@@ -508,7 +527,7 @@ to a CPU-based finite-element solver, since the reference implementation
 used to generate training and validation data does not support GPU
 execution.
 
-\begin{table}[h]
+\begin{table*}[ht]
 \centering
 \caption{Per-sample training cost vs. native FEM cost, resulting speed-up,
   inference latency, and break-even (new instances after which training
@@ -527,7 +546,7 @@ B2 $\times$ MR  & 61.712 & 42.71 & 1.44$\times$  & 4.908 & 554 \\
 B2 $\times$ AB  & 60.285 & 31.06 & 1.94$\times$  & 4.984 & 412 \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 The total training wall-clock time, amortized over the 800 training
 samples used, gives an average of $3.48$--$42.71$~s per training instance
@@ -559,7 +578,7 @@ whether a GPU-native solver is actually available to the practitioner.
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image18.png}
+\includegraphics[width=0.85\columnwidth]{figures/image18.png}
 \caption{Training cost, per-sample inference speed-up, and training memory
   footprint across all six (geometry, material) cases (Table~\ref{tab:cost}).}
 \label{fig:18}
@@ -567,7 +586,7 @@ whether a GPU-native solver is actually available to the practitioner.
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image19.png}
+\includegraphics[width=0.85\columnwidth]{figures/image19.png}
 \caption{GPU-native FEM solver vs.\ trained-operator latency across batch
   sizes, hardware-matched (same GPU, same batch size).}
 \label{fig:19}
@@ -575,7 +594,7 @@ whether a GPU-native solver is actually available to the practitioner.
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image20.png}
+\includegraphics[width=0.85\columnwidth]{figures/image20.png}
 \caption{Break-even, in new problem instances, against the CPU-FEM and
   GPU-native-FEM baselines.}
 \label{fig:20}
@@ -597,7 +616,7 @@ on B1$\times$Neo-Hookean, across eight resolutions up to $N{=}1401$
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image21.png}
+\includegraphics[width=0.85\columnwidth]{figures/image21.png}
 \caption{GPU-native matrix-free solver scaling: wall-clock time and CG
   iteration count vs.\ problem size.}
 \label{fig:21}
@@ -626,7 +645,7 @@ $N{=}1401$ peak memory to within $2.4\%$ out of sample.
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image22.png}
+\includegraphics[width=0.85\columnwidth]{figures/image22.png}
 \caption{GPU-native solver vs.\ torch-fem: solve time and torch-fem peak
   memory across resolutions.}
 \label{fig:22}
@@ -649,7 +668,7 @@ an artifact of comparing a tight FP64 tolerance against a loose FP32 one.
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image40.png}
+\includegraphics[width=0.85\columnwidth]{figures/image40.png}
 \caption{All quantities of interest at large DOF, this project's own
   GPU-native solver vs.\ torch-fem at matched precision ($N{=}1001$,
   $N{=}1401$): $L^2$, energy-norm, and peak-stress relative errors,
@@ -659,7 +678,7 @@ an artifact of comparing a tight FP64 tolerance against a loose FP32 one.
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image44.png}
+\includegraphics[width=0.85\columnwidth]{figures/image44.png}
 \caption{Reaction-force resultant relative error ($N{=}1001$, $N{=}1401$)
   and per-component first Piola--Kirchhoff stress field error ($N{=}1401$),
   this project's solver vs.\ torch-fem.}
@@ -679,7 +698,7 @@ tightest.
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image41.png}
+\includegraphics[width=0.85\columnwidth]{figures/image41.png}
 \caption{torch-fem timing breakdown by phase: assembly vs.\ CG-solve time,
   and peak GPU memory, $N{=}401$--$1401$.}
 \label{fig:42}
@@ -687,7 +706,7 @@ tightest.
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image45.png}
+\includegraphics[width=0.85\columnwidth]{figures/image45.png}
 \caption{torch-fem tolerance sensitivity: $L^2$ relative error and
   wall-clock time at tolerance $10^{-6}/10^{-7}/10^{-8}$, $N{=}401$ and
   $N{=}1401$.}
@@ -703,7 +722,7 @@ resolution tested.
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image46.png}
+\includegraphics[width=0.85\columnwidth]{figures/image46.png}
 \caption{TensorMesh (direct cuDSS solver) vs.\ torch-fem at production
   scale ($N{=}401$--$1401$): $L^2$ relative error identical to every
   printed digit; TensorMesh $1.8$--$2.1\times$ faster at every resolution.}
@@ -770,13 +789,13 @@ in this study).
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image23.png}
+\includegraphics[width=0.85\columnwidth]{figures/image23.png}
 \caption{In-distribution vs.\ out-of-distribution validation error and
   degradation factor, all six cases.}
 \label{fig:23}
 \end{figure}
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
 \includegraphics[width=0.48\textwidth]{figures/image36.png}\hfill
 \includegraphics[width=0.48\textwidth]{figures/image35.png}
@@ -793,7 +812,7 @@ in this study).
   Mooney-Rivlin, Arruda-Boyce (top row, left to right) and B2
   Neo-Hookean, Mooney-Rivlin, Arruda-Boyce (bottom row).}
 \label{fig:ood-grids}
-\end{figure}
+\end{figure*}
 
 \subsection{Zero-shot resolution invariance}
 \label{sec:resolution-invariance}
@@ -862,7 +881,7 @@ own matched-precision solve at that same $N$ ($133.83$~s).
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image24.png}
+\includegraphics[width=0.85\columnwidth]{figures/image24.png}
 \caption{Zero-shot resolution invariance: mean relative $L^2$ error vs.\
   test resolution, B1 and B2, all three materials.}
 \label{fig:24}
@@ -870,7 +889,7 @@ own matched-precision solve at that same $N$ ($133.83$~s).
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image37.png}
+\includegraphics[width=0.85\columnwidth]{figures/image37.png}
 \caption{Zero-shot resolution invariance field grid (B1, Neo-Hookean):
   predicted $|\mathbf{u}|$ at seven unseen resolutions from one trained
   checkpoint.}
@@ -914,7 +933,7 @@ inferences.
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.6\textwidth]{figures/image47.png}
+\includegraphics[width=0.6\columnwidth]{figures/image47.png}
 \caption{Original (two-resolution) checkpoint's accuracy degradation,
   $N{=}49$ to $N{=}1401$, before the multi-resolution retraining fix.}
 \label{fig:ood-n1401-degrade}
@@ -922,13 +941,13 @@ inferences.
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.6\textwidth]{figures/image43.png}
+\includegraphics[width=0.6\columnwidth]{figures/image43.png}
 \caption{Neural-operator inference time vs.\ torch-fem solve time at
   $N{=}1401$: $2.29$~s vs.\ $133.83$~s at matched precision.}
 \label{fig:41}
 \end{figure}
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
 \includegraphics[width=0.48\textwidth]{figures/image55.png}\hfill
 \includegraphics[width=0.48\textwidth]{figures/image53.png}
@@ -943,11 +962,11 @@ inferences.
   fail to converge at this resolution, a torch-fem Newton-convergence
   issue unrelated to the operator).}
 \label{fig:n1401}
-\end{figure}
+\end{figure*}
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image25.png}
+\includegraphics[width=0.85\columnwidth]{figures/image25.png}
 \caption{Operator vs.\ FEM accuracy and speed-up across mesh resolutions,
   all six cases.}
 \label{fig:25}
@@ -967,7 +986,7 @@ matmul precision gives $4.67\times$ alone and $5.82\times$ combined with
 \texttt{torch.compile} (the figure already used above), at the small,
 directly-checked accuracy cost noted there.
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
 \includegraphics[width=0.48\textwidth]{figures/image48.png}\hfill
 \includegraphics[width=0.48\textwidth]{figures/image49.png}
@@ -975,7 +994,7 @@ directly-checked accuracy cost noted there.
   (left), and inference-speed optimization attempts at $N{=}1401$ (right),
   B1$\times$Neo-Hookean.}
 \label{fig:batch-profiling}
-\end{figure}
+\end{figure*}
 
 \subsection{Error in derived physical quantities}
 Every operator error reported above is a displacement error -- the most
@@ -1028,7 +1047,7 @@ $4.06\times$.
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image26.png}
+\includegraphics[width=0.85\columnwidth]{figures/image26.png}
 \caption{Trained-operator displacement, stress, and reaction-force error,
   all six cases.}
 \label{fig:26}
@@ -1043,7 +1062,7 @@ Cauchy stress error was examined on the finite-element side alone for
 B1$\times$Neo-Hookean, to check whether a spatially-averaged QoI understates
 the error at the true peak.
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
 \includegraphics[width=0.48\textwidth]{figures/image54.png}\hfill
 \includegraphics[width=0.48\textwidth]{figures/image57.png}
@@ -1051,7 +1070,7 @@ the error at the true peak.
   B1$\times$Neo-Hookean (left); region-average vs.\ true-maximum Cauchy
   stress error, FEM only, B1$\times$Neo-Hookean (right).}
 \label{fig:peak-stress}
-\end{figure}
+\end{figure*}
 
 \subsection{Physics-informed vs. data-driven training, at matched cost}
 \label{sec:pi-vs-dd}
@@ -1061,7 +1080,8 @@ principle earns its keep: the same architecture on the same mesh could
 instead be fitted to finite-element displacements directly. Changing the
 loss usually means changing the optimizer that was tuned for it, which
 would confound the two effects, so the comparison was run as a
-two-by-two: both losses under both recipes (Adam; AdamW with a one-cycle
+two-by-two: both losses under both recipes (Adam~\cite{kingma2015adam};
+AdamW with a one-cycle
 schedule), all four at the same 75,000 optimizer steps, on
 B1$\times$Neo-Hookean. Reading down the Adam column, the physics-informed
 loss wins by $27\%$; reading down the AdamW+OneCycleLR column, the
@@ -1090,7 +1110,7 @@ dominates by more than an order of magnitude in both pairings.
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image27.png}
+\includegraphics[width=0.85\columnwidth]{figures/image27.png}
 \caption{Physics-informed vs.\ data-driven training: validation error by
   loss and total cost before first inference.}
 \label{fig:27}
@@ -1170,7 +1190,7 @@ and stress.
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image28.png}
+\includegraphics[width=0.85\columnwidth]{figures/image28.png}
 \caption{Method of manufactured solutions: observed convergence rates,
   all three materials, Q4 and Q9.}
 \label{fig:28}
@@ -1178,7 +1198,7 @@ and stress.
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.85\textwidth]{figures/image50.png}
+\includegraphics[width=0.85\columnwidth]{figures/image50.png}
 \caption{Method of manufactured solutions, richer multi-mode family:
   convergence rates in the energy norm, all three materials, Q4 and Q9.}
 \label{fig:28a}
@@ -1233,13 +1253,13 @@ threshold.
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.7\textwidth]{figures/image29.png}
+\includegraphics[width=0.7\columnwidth]{figures/image29.png}
 \caption{B2 fix-attempt history (Neo-Hookean) and final adopted B2 results
   across materials.}
 \label{fig:29}
 \end{figure}
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
 \includegraphics[width=0.48\textwidth]{figures/image11.png}\hfill
 \includegraphics[width=0.48\textwidth]{figures/image12.png}
@@ -1257,7 +1277,7 @@ threshold.
   pointwise absolute error (right column), for Neo-Hookean (top, 9.11\%),
   Mooney-Rivlin (middle, 7.28\%), and Arruda-Boyce (bottom, 9.81\%).}
 \label{fig:b2-worst-case}
-\end{figure}
+\end{figure*}
 
 \section{Results: B3 (3D Rocking Rubber-Mount Bushing)}
 \label{sec:results-3d}
@@ -1327,7 +1347,7 @@ halving it, and confirming that part of the original gap was attributable to
 under-resolved background integration rather than the network's own
 representational capacity.
 
-\begin{table}[h]
+\begin{table*}[ht]
 \centering
 \caption{Regional Cauchy-stress accuracy, per component, before and after
   local integration refinement during training ($n_{\text{sub}}{=}10$,
@@ -1348,7 +1368,7 @@ $\sigma_{xz}$ & 2.603 & 28.7\% & 21.0\% & \\
 Pooled Frobenius norm & -- & 62.4\% & 29.8\% & \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 The three large-magnitude normal stresses, which dominate the pooled
 Frobenius norm, all improve by roughly half; the two smallest-magnitude
@@ -1376,7 +1396,7 @@ an accuracy-matched break-even against the cheapest finite-element mesh
 whose own error against the same fine reference is at least as good as the
 operator's.
 
-\begin{table}[h]
+\begin{table*}[ht]
 \centering
 \caption{B3 break-even analysis: resolution-matched (both methods at
   6,840 elements) and accuracy-matched (cheapest FEM mesh matching the
@@ -1393,7 +1413,7 @@ Accuracy-matched: energy & 2.30\% & 600 el.     & 3{,}723.1 & 589.1$\times$ & 1{
 Accuracy-matched: react. & 2.22\% & 9{,}464 el. & 4{,}672.1 & 739.3$\times$ & 1{,}496 \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 Even judged against the cheapest finite-element mesh that matches its own
 accuracy, not the full production mesh, the trained operator remains
@@ -1420,9 +1440,11 @@ further two-to-three orders of magnitude cheaper still
 ($\sim$$5{,}387$--$12{,}575\times$ vs.\ CPU), because inference replaces an
 iterative nonlinear solve with a single forward pass.
 
-The out-of-distribution evaluation is the clearest evidence in this study
-that the network has learned a fit specific to its training distribution
-rather than the underlying physics in a way that extrapolates: B1's
+The out-of-distribution evaluation -- a broadly recognized weakness of
+deep-learning models in general~\cite{liu2021oodsurvey} -- is the clearest
+evidence in this study that the network has learned a fit specific to its
+training distribution rather than the underlying physics in a way that
+extrapolates: B1's
 accuracy degrades by a consistent $4$--$5\times$ under a combined
 stiffness/load shift of only $2$--$2.5$ standard deviations; B2's smaller
 measured degradation is best read considering its already much higher and
@@ -1444,7 +1466,15 @@ resolutions were seen during training, not merely on how many optimizer
 steps were spent -- a multi-resolution training set that includes
 resolutions closer to the deployment target outperforms both a
 single-resolution-trained zero-shot model and, surprisingly, direct
-training at the deployment resolution itself.
+training at the deployment resolution itself. Framed as a sequential
+learning problem -- adding resolutions one at a time rather than pooling
+them from the start -- this result connects to the broader continual-
+learning literature on catastrophic
+forgetting~\cite{kirkpatrick2017overcoming} and replay-based mitigation
+strategies~\cite{wang2025replay}, which have not yet been tested here but
+are a natural direction if resolutions or geometries were to be added
+incrementally to a deployed operator rather than trained jointly from the
+outset.
 
 A preliminary comparison suggests this resolution-generalization behavior
 is not specific to physics-informed training: a data-driven operator
@@ -1456,7 +1486,7 @@ resolutions -- the same qualitative coarse-vs-fine training-resolution
 trade-off observed for the physics-informed operator above, now
 demonstrated for a supervised baseline as well.
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
 \includegraphics[width=0.48\textwidth]{figures/image39.png}\hfill
 \includegraphics[width=0.48\textwidth]{figures/image38.png}
@@ -1464,7 +1494,7 @@ demonstrated for a supervised baseline as well.
   fine-trained ($N{=}33$, right): predicted $|\mathbf{u}|$ at seven unseen
   resolutions, B1$\times$Neo-Hookean.}
 \label{fig:dd-no}
-\end{figure}
+\end{figure*}
 
 The manufactured-solution verification (Section~\ref{sec:results-2d})
 delivers an important, non-obvious qualification to every accuracy figure
@@ -1489,7 +1519,7 @@ concrete directions are identified for future work, none attempted in this
 paper: a stress- or equilibrium-aware physics loss term, analogous to prior
 energy-based treatments of contact and fracture~\cite{bai2025energy,goswami2020transfer,wang2026xdem};
 a mixed displacement--stress formulation, following complementary-energy
-approaches~\cite{abueidda2023enhanced,rao2021elastodynamics,abueidda2021meshless};
+approaches~\cite{abueidda2023enhanced,rao2021elastodynamics,abueidda2021meshless,wang2024dcem};
 PINO-type residual enforcement or Newton-operator hybrids~\cite{taghikhani2025neuralnewton};
 a local or hierarchical representation with additional capacity in
 stress-critical regions, in the spirit of graph-neural-network and

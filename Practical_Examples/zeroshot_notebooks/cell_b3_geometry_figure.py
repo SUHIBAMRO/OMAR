@@ -6,10 +6,13 @@
 #  geometry-generation code the mesh-convergence study itself uses
 #  (data_generate_B3.py's generate_grid_hex8_bushing / boundary_node_
 #  sets / rigid_rotation_displacement / groove_R_in /
-#  groove_radius_of_curvature) and the SAME physical parameters
-#  (R_in0=0.5, R_out=1.0, Lz=1.0, groove depth=0.05, groove half-
-#  width=0.15, rocking angle phi=0.05 rad -- the one deterministic
-#  configuration the whole convergence study used). Only the mesh
+#  groove_radius_of_curvature) and the SAME physical parameters as the
+#  actual production dataset (data_generate_B3_dataset.py) and the
+#  480,320-element convergence study cited in the report/paper
+#  (R_in0=0.5, R_out=1.0, Lz=1.0, groove depth=0.20 [the "4x sharper
+#  groove", not the original 0.05 pre-sharpening design], groove half-
+#  width=0.15, rocking angle phi=0.05 rad, the phi_mean of the
+#  production sampling distribution). Only the mesh
 #  RESOLUTION here (25,10,23) is different from the study's own
 #  resolutions -- chosen purely for visual clarity, since the fine
 #  convergence meshes would render as an indistinguishable dense point
@@ -69,10 +72,11 @@ from omar_pfem.data.data_generate_B3 import (
     generate_grid_hex8_bushing, boundary_node_sets, rigid_rotation_displacement,
     groove_R_in, groove_radius_of_curvature)
 
-# ---- the SAME physical parameters mesh_convergence_B3.py itself uses ----
+# ---- the SAME physical parameters the production dataset (data_generate_
+# B3_dataset.py) and the cited 480,320-element convergence study use ----
 R_IN0, R_OUT, LZ = 0.5, 1.0, 1.0
-GROOVE_DEPTH, GROOVE_HALF_WIDTH = 0.05, 0.15
-PHI = 0.05  # the single deterministic rocking angle the convergence study used
+GROOVE_DEPTH, GROOVE_HALF_WIDTH = 0.20, 0.15
+PHI = 0.05  # phi_mean of the production rocking-angle sampling distribution
 
 R = '/content/drive/MyDrive/pfem_run'
 os.makedirs(f'{R}/b3', exist_ok=True)
@@ -128,10 +132,10 @@ rho = groove_radius_of_curvature(GROOVE_DEPTH, GROOVE_HALF_WIDTH)
 z_mid = LZ / 2.0
 ax3.annotate(f"groove (depth={GROOVE_DEPTH}, rho={rho:.4f})",
              xy=(z_mid, R_IN0 - GROOVE_DEPTH),
-             xytext=(0.05, R_IN0 - GROOVE_DEPTH - 0.06),
+             xytext=(0.05, R_IN0 - GROOVE_DEPTH - 0.10),
              arrowprops=dict(arrowstyle="->"), fontsize=9)
 ax3.set_xlabel("z (axial)"); ax3.set_ylabel("radius")
-ax3.set_ylim(0.40, 1.05)
+ax3.set_ylim(0.25, 1.05)
 ax3.set_title("Meridian cross-section (theta=0), zoomed\nshowing the groove -- the one explicit\n"
               "finite-radius stress-concentration feature")
 ax3.legend(loc="upper center", fontsize=8, framealpha=0.9)
