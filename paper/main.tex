@@ -998,12 +998,33 @@ roughly a $2\sigma$ shift). Each case's own existing checkpoint is
 evaluated, unchanged, on both its in-distribution held-out validation set
 and this new OOD set; no retraining or fine-tuning is performed. With both
 columns evaluated consistently on the corrected (loss-normalized) B2
-checkpoints, B1 and B2 show broadly comparable sensitivity to this shift:
-degradation factors of $4.11$--$4.61\times$ for B1 and $3.94$--$5.58\times$
-for B2 -- no geometry is meaningfully more or less robust than the other
-under this test.
+checkpoints, B1 and B2 show broadly comparable sensitivity to this shift
+(Table~\ref{tab:ood-six-cases}): degradation factors of $4.11$--$4.61\times$
+for B1 and $3.94$--$5.58\times$ for B2 -- no geometry is meaningfully more
+or less robust than the other under this test.
 
-Table 11's combined shift cannot say which of the two factors -- material
+\begin{table}[h]
+\centering
+\caption{In-distribution vs.\ out-of-distribution validation error and
+  degradation factor, all six cases (corrected loss-normalized B2
+  checkpoints).}
+\label{tab:ood-six-cases}
+\small
+\begin{tabular}{lccc}
+\toprule
+Case & In-distribution & OOD & Degradation \\
+\midrule
+B1 $\times$ NH & $9.59\%$  & $39.39\%$ & $4.11\times$ \\
+B1 $\times$ MR & $11.21\%$ & $47.31\%$ & $4.22\times$ \\
+B1 $\times$ AB & $10.70\%$ & $49.27\%$ & $4.61\times$ \\
+B2 $\times$ NH & $9.11\%$  & $48.25\%$ & $5.30\times$ \\
+B2 $\times$ MR & $7.28\%$  & $40.60\%$ & $5.58\times$ \\
+B2 $\times$ AB & $9.81\%$  & $38.68\%$ & $3.94\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This combined shift cannot say which of the two factors -- material
 or loading -- is responsible, nor whether the damage appears gradually or
 at a threshold. Each shift was therefore separated and swept independently
 in half-sigma steps, $k=0$ to $k=3$, on B1$\times$Neo-Hookean. The
@@ -1028,7 +1049,29 @@ is itself material-dependent: Mooney-Rivlin is the most fragile of the
 three materials on both geometries ($4.71\times$ on B1, $5.47\times$ on
 B2), and Arruda-Boyce is consistently the most robust ($4.85\times$ on
 B1, only $2.27\times$ on B2 -- the mildest degradation measured anywhere
-in this study).
+in this study). Table~\ref{tab:ood-isolation} reports the full per-case
+breakdown at $k{=}3\sigma$.
+
+\begin{table}[h]
+\centering
+\caption{OOD factor isolation at $k{=}3\sigma$, all six cases: loading
+  shift alone, material shift alone, and combined, each as a multiple
+  of that case's own in-distribution baseline.}
+\label{tab:ood-isolation}
+\small
+\begin{tabular}{lccc}
+\toprule
+Case & Loading & Material & Combined \\
+\midrule
+B1 $\times$ NH & $1.07\times$ & $5.90\times$ & $5.31\times$ \\
+B1 $\times$ MR & $1.35\times$ & $4.71\times$ & $6.03\times$ \\
+B1 $\times$ AB & $1.07\times$ & $4.85\times$ & $3.65\times$ \\
+B2 $\times$ NH & $0.99\times$ & $4.75\times$ & $3.65\times$ \\
+B2 $\times$ MR & $1.23\times$ & $5.47\times$ & $4.76\times$ \\
+B2 $\times$ AB & $0.81\times$ & $2.27\times$ & $2.68\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{figure}[htb]
 \centering
@@ -1070,8 +1113,31 @@ nodes it is given, without a fixed input dimensionality tied to a
 particular mesh. Each test resolution is compared against a common
 fine-mesh finite-element reference ($N{=}101$, 10,201 nodes). Across all
 three materials and all seven unseen resolutions the error stays between
-$5.0\%$ and $10.6\%$, with no retraining anywhere -- that is the
-resolution-invariance property claimed for operator-learning methods.
+$5.0\%$ and $10.6\%$ (Table~\ref{tab:b1-zeroshot}), with no retraining
+anywhere -- that is the resolution-invariance property claimed for
+operator-learning methods.
+
+\begin{table}[h]
+\centering
+\caption{B1 zero-shot resolution invariance, relative $L^2$ error by
+  material, seven unseen resolutions (one checkpoint trained jointly at
+  $N{=}21,33$).}
+\label{tab:b1-zeroshot}
+\small
+\begin{tabular}{lcccc}
+\toprule
+$N$ & Nodes & NH & MR & AB \\
+\midrule
+13 & 169   & 9.67\% & 10.64\% & 10.11\% \\
+17 & 289   & 7.91\% & 8.85\%  & 8.32\%  \\
+25 & 625   & 5.74\% & 6.91\%  & 6.47\%  \\
+29 & 841   & 5.21\% & 6.28\%  & 5.97\%  \\
+37 & 1{,}369 & 5.25\% & 5.41\% & 5.64\% \\
+41 & 1{,}681 & 5.62\% & 5.15\% & 5.75\% \\
+49 & 2{,}401 & 6.70\% & 5.04\% & 6.30\% \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 Reading down the columns rather than across them shows that zero-shot
 transfer to meshes much finer than the training ones is not free: two of
@@ -1366,7 +1432,33 @@ field measures that involve a derivative of the displacement ($H^1$
 semi-norm, tangent energy, aggregate stress) exceed the displacement
 error in every one of the six cases without exception; the two quantities
 that can beat it are the ones that are not pointwise fields -- the
-reaction resultant and, on B2 specifically, the peak stress. A
+reaction resultant and, on B2 specifically, the peak stress.
+Table~\ref{tab:engineering-qois} reports the full per-case breakdown for
+every quantity above.
+
+\begin{table*}[ht]
+\centering
+\caption{Engineering QoI accuracy, all six cases, mean relative error (\%)
+  over 50 held-out samples. B2's reaction resultant has two rows (the
+  $\theta{=}0$ and $\theta{=}\pi/2$ constrained edges), shown
+  $\theta{=}0/\theta{=}\pi/2$.}
+\label{tab:engineering-qois}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+Case & Disp.\ & $H^1$ & Energy & Stress $\lVert\mathbf{P}\rVert_F$ & Peak stress & Reaction resultant \\
+\midrule
+B1 $\times$ NH & 10.34 & 22.71 & 13.78 & 15.06 & 32.63 & 4.66 \\
+B1 $\times$ MR & 11.57 & 24.20 & 17.02 & 18.14 & 19.87 & 6.10 \\
+B1 $\times$ AB & 11.71 & 23.02 & 15.05 & 15.53 & 47.53 & 8.41 \\
+B2 $\times$ NH & 8.68  & 11.81 & 11.54 & 14.21 & 5.68  & 9.38/7.82 \\
+B2 $\times$ MR & 7.21  & 10.47 & 11.37 & 14.23 & 5.38  & 10.78/12.61 \\
+B2 $\times$ AB & 10.47 & 13.30 & 11.99 & 13.32 & 5.99  & 6.26/7.17 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+A
 displacement error quoted alone is therefore a lower bound on what a
 downstream engineering quantity would see, not a reliable predictor of
 it: across the quantities measured here that ratio spans $0.45\times$ to
