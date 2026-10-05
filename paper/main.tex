@@ -112,58 +112,703 @@ torch-fem~\cite{meyer2024torchfem} and
 PyTorch~\cite{paszke2019pytorch,baydin2018automatic}, generates
 ground-truth samples used only for validation, never for training.
 
-%% TODO: contribution list / paper outline paragraph.
+The remainder of this paper is organized as follows. Section~\ref{sec:governing}
+states the Total Lagrangian hyperelastic potential-energy formulation and the
+three constitutive models used. Section~\ref{sec:geometries} defines the three
+benchmark geometries. Section~\ref{sec:discretization} describes the spatial
+discretization and the finite-element reference used for validation.
+Section~\ref{sec:architecture} describes the Transolver architecture and the
+Deep Energy Method training objective. Section~\ref{sec:results-2d} reports
+results for the six 2D (geometry, material) cases, and
+Section~\ref{sec:results-3d} extends the study to the 3D rocking-bushing
+benchmark. Section~\ref{sec:discussion} discusses the findings and open
+limitations, and Section~\ref{sec:conclusion} concludes.
 
 \section{Governing Equations and Material Models}
 \label{sec:governing}
-%% TODO: port from Report Section 2 (Total Lagrangian hyperelasticity;
-%% Neo-Hookean / Mooney-Rivlin / Arruda-Boyce strain-energy densities),
-%% condensed to paper length.
+
+\subsection{Total Lagrangian hyperelasticity}
+\label{sec:total-lagrangian}
+
+Let $\Omega_0 \subset \mathbb{R}^d$ ($d=2$ for B1/B2, $d=3$ for B3) denote the
+known, undeformed reference configuration of the body, and let
+$\mathbf{u}:\Omega_0 \to \mathbb{R}^d$ denote the displacement field. The
+deformation gradient and its Jacobian are
+\begin{equation}
+  \mathbf{F} = \mathbf{I} + \nabla_0 \mathbf{u}, \qquad J = \det \mathbf{F}.
+\end{equation}
+For a hyperelastic material with strain-energy density $\psi(\mathbf{F})$, the
+total potential energy of the body under a prescribed traction (or pressure)
+$\mathbf{t}$ on the loaded boundary $\Gamma_t \subset \partial\Omega_0$ is
+\begin{equation}
+  \Pi[\mathbf{u}] = \underbrace{\int_{\Omega_0} \psi(\mathbf{F})\,\mathrm{d}V}_{U[\mathbf{u}]}
+  \;-\; \underbrace{\int_{\Gamma_t} \mathbf{t}\cdot\mathbf{u}\,\mathrm{d}A}_{W[\mathbf{u}]}.
+  \label{eq:potential-energy}
+\end{equation}
+The equilibrium displacement field minimizes the total potential energy,
+\begin{equation}
+  \mathbf{u}^\ast = \arg\min_{\mathbf{u}} \Pi[\mathbf{u}],
+  \label{eq:min-energy}
+\end{equation}
+which is the objective optimized directly by the neural operator
+(Section~\ref{sec:architecture}); no labeled displacement data are required,
+only pointwise evaluation of $\psi$ and of the prescribed boundary traction.
+For B3, the applied load is a prescribed rigid-body rotation of a rigid inner
+core rather than a traction, so $W \equiv 0$ and $\Pi = U$ (Section~\ref{sec:geometries}).
+
+For numerical integration, the body is discretized into elements (bilinear
+quadrilaterals, Q4, for B1/B2; trilinear hexahedra, Hexa1, for B3) with full
+Gauss quadrature. The internal energy is approximated as
+\begin{equation}
+  U_h(\mathbf{u}) = \sum_{e} \sum_{g} \psi(\mathbf{F}_g)\, w_g \, \det \mathbf{J}_g,
+  \label{eq:discrete-energy}
+\end{equation}
+where $g$ indexes the Gauss points of element $e$, $w_g$ are the quadrature
+weights, and the shape-function gradients used to assemble $\mathbf{F}_g$
+depend only on the fixed reference-element geometry; they are computed once
+per mesh and reused for every sample and every training iteration.
+
+\subsection{Neo-Hookean (compressible)}
+With the first invariant $I_1 = \operatorname{tr}(\mathbf{F}^{\mathsf T}\mathbf{F})$,
+the compressible Neo-Hookean strain-energy density is
+\begin{equation}
+  \psi_{\text{NH}} = \frac{\mu}{2}(I_1 - d) - \mu \ln J + \frac{\lambda}{2}(\ln J)^2,
+  \label{eq:neo-hookean}
+\end{equation}
+which yields the first Piola--Kirchhoff stress
+$\mathbf{P} = \partial\psi/\partial\mathbf{F} = \mu(\mathbf{F}-\mathbf{F}^{-\mathsf T}) + \lambda(\ln J)\mathbf{F}^{-\mathsf T}$.
+This expression, and the corresponding consistent material tangent, were
+derived analytically and used in the Newton--Raphson solver that generates
+the reference finite-element solutions.
+
+\subsection{Mooney--Rivlin (2D, compressible)}
+In two dimensions the second invariant $I_2 = \tfrac12\big[(\operatorname{tr}\mathbf{C})^2 - \operatorname{tr}(\mathbf{C}^2)\big]$
+(with $\mathbf{C}=\mathbf{F}^{\mathsf T}\mathbf{F}$) satisfies the identity
+$I_2 \equiv J^2$, a consequence of the Cayley--Hamilton theorem for
+$2\times 2$ matrices; the conventional three-dimensional Mooney--Rivlin form,
+which treats $I_2$ as an independent invariant with reference value $3$, is
+therefore not applicable in 2D. The compressible Mooney--Rivlin density used
+here is instead
+\begin{equation}
+  \psi_{\text{MR}} = c_1(I_1-d) + c_2(J^2-1) - 2(c_1+c_2)\ln J + \frac{\lambda}{2}(\ln J)^2,
+  \label{eq:mooney-rivlin}
+\end{equation}
+with the split between $c_1$ and $c_2$ fixed at a $3{:}1$ ratio of the
+linearized shear modulus ($c_1 = \tfrac34\mu$, $c_2=\tfrac14\mu$) for every
+sample.
+
+\subsection{Arruda--Boyce (8-chain, compressible)}
+With the modified (isochoric) first invariant $\bar I_1 = J^{-2/d} I_1$, the
+Arruda--Boyce density is approximated by the standard five-term Pad\'e series
+of the 8-chain model,
+\begin{equation}
+  \psi_{\text{AB}} = \mu \sum_{i=1}^{5} \frac{c_i}{\lambda_m^{2i-2}}\big(\bar I_1^{\,i} - d^{\,i}\big)
+  + \frac{\lambda}{2}(\ln J)^2,
+  \label{eq:arruda-boyce}
+\end{equation}
+with $(c_1,\dots,c_5) = (\tfrac12,\tfrac{1}{20},\tfrac{11}{1050},\tfrac{19}{7000},\tfrac{519}{673750})$
+and the chain-locking stretch $\lambda_m$ fixed for every sample in this
+study (not sampled per instance).
+
+For all three constitutive models the first Piola--Kirchhoff stress is
+$\mathbf{P} = \partial\psi/\partial\mathbf{F}$ and the consistent material
+tangent is $\mathbb{C} = \partial^2\psi/\partial\mathbf{F}\partial\mathbf{F}$,
+used only inside the reference Newton--Raphson solver. For Neo-Hookean, both
+were derived analytically; for Mooney--Rivlin and Arruda--Boyce they were
+obtained by automatic differentiation (\texttt{jax.grad}, \texttt{jax.jacfwd}),
+avoiding manual derivation of the more complex tangent operators. All three
+models are calibrated from the same sampled Young's modulus $E$ and
+Poisson's ratio $\nu$ fields via the standard isotropic linear-elasticity
+relations $\mu = E/[2(1+\nu)]$, $\lambda = E\nu/[(1+\nu)(1-2\nu)]$; this
+reproduces the target linear-elastic moduli exactly for Neo-Hookean, gives an
+effective shear modulus of $1.5\mu$ for the $3{:}1$ Mooney--Rivlin split, and
+reproduces the target shear modulus to within a few percent for Arruda--Boyce
+(a known consequence of the truncated Pad\'e series) -- all three are
+nonetheless calibrated from identical $(E,\nu)$ realizations and directly
+comparable across materials.
 
 \section{Benchmark Geometries}
 \label{sec:geometries}
-%% TODO: port from Report Section 3 (B1, B2) + Section 11.1 (B3 geometry
-%% and design history), condensed.
+
+\subsection{B1: unit square, top-edge traction}
+The reference domain is the unit square $\Omega_0=(0,1)^2$. The bottom edge
+is fully fixed ($\mathbf{u}=\mathbf{0}$ on $y=0$); a traction field,
+sampled independently per realization as a 1D Gaussian random field
+(mean $-5.0$, standard deviation $2.0$, correlation length $0.5L_x$), is
+applied along the top edge $y=1$; the two vertical edges are traction-free.
+The spatial fields of Young's modulus and Poisson's ratio are independent 2D
+Gaussian random fields with mean/standard deviation $(1000,200)$ for $E$ and
+$(0.3,0.05)$ for $\nu$ (clipped to $[0.2,0.4]$), correlation length $0.5L_x$
+in both cases, so each sample realizes a unique heterogeneous material.
+
+\subsection{B2: quarter ring, internal pressure}
+The reference domain is a quarter annulus, $R_{\text{in}}=1$, $R_{\text{out}}=2$,
+$\theta\in[0,\pi/2]$. A pressure field, acting normal to the reference
+(undeformed) inner boundary, is sampled as a Gaussian random field (mean
+$5.0$, standard deviation $2.0$, correlation length $0.5\theta_{\max}$) along
+the inner arc $r=R_{\text{in}}$; the outer arc is traction-free; symmetry
+boundary conditions are imposed on the two radial edges. $E$ and $\nu$ use
+the same sampling distributions as B1.
+
+\subsection{B3: rocking rubber-mount bushing with a stress-concentrating groove}
+\label{sec:b3-geometry}
+The third, 3D benchmark is an elastomeric rubber-mount bushing: a hollow
+rubber annulus ($R_{\text{in}}=0.5$, $R_{\text{out}}=1.0$, height $L_z=1.0$)
+bonded to a rigid outer housing (fixed) and a rigid inner core given a
+prescribed rigid-body rocking rotation (a true coupled $u_x$--$u_z$ rotation,
+not a linear small-angle approximation). The core is bonded to the rubber
+continuously over its full height, with no free/bonded boundary-condition
+transition anywhere on the inner surface -- an earlier design with a
+fillet-terminated bond was rejected because the bonded-to-free transition
+itself reproduces a free-edge stress singularity independent of the
+surrounding geometry's smoothness. The one explicit, disclosed
+stress-concentrating feature is a smooth ($C^1$-continuous, raised-cosine)
+circumferential groove in the core's radius profile at mid-height, with
+depth $0.20$ and half-width $0.15$ (giving a closed-form radius of curvature
+$\rho = 2w^2/(d\pi^2) \approx 0.0228$). As for B1/B2, $E(\theta,r,z)$ and
+$\nu(\theta,r,z)$ are independent 3D Gaussian random fields (mean/standard
+deviation $(1000,200)$ and $(0.45,0.02)$ respectively); the load varies
+through the core's rocking angle $\phi$, sampled as a single scalar per
+sample (mean $0.0504$, standard deviation $0.0184$) rather than a spatial
+field, since the load here is a rigid-body rotation amplitude rather than a
+distributed pressure. The geometry itself (groove depth/half-width,
+$R_{\text{in}}$, $R_{\text{out}}$, $L_z$) is held fixed across every sample,
+as in B1/B2.
 
 \section{Spatial Discretization and Dataset Generation}
 \label{sec:discretization}
-%% TODO: port from Report Section 4.
+
+B1 and B2 are discretized with a structured $21\times21$ mesh of Q4
+elements (441 nodes, 400 elements, 1,600 Gauss points per sample); for B2
+the mesh is generated in polar coordinates and mapped to Cartesian space,
+preserving the structured Q4 topology. B3 is discretized with a structured
+$21\times20\times19$ mesh of trilinear hexahedra (6,840 elements, 7,980
+nodes). An independent Newton--Raphson Total-Lagrangian finite-element
+solver (built on torch-fem~\cite{meyer2024torchfem}) generates the
+ground-truth samples used only for validation.
+
+Because the neural operator and its finite-element reference are compared on
+the same discretization, agreement between the two demonstrates only that
+the operator has learned that particular discretization; it says nothing
+about whether the discretization itself is fine enough to represent the
+underlying continuum problem. This question was addressed directly, for
+B1/B2, with a mesh-convergence study of the reference solver alone (fixed,
+closed-form analytical material/loading fields evaluable at any resolution,
+independent of the random-field sampler used elsewhere, which is itself
+parameterized by resolution). Across all six (geometry, material)
+combinations, the relative change in peak displacement and total strain
+energy between successive refinements is already below $0.2\%$ per step at
+the $21\times21$ operating mesh, and below $0.02\%$ by $N{=}51$ -- the
+reference solver is solidly in its asymptotic convergence regime at the
+resolution used throughout this study. A deeper check, against a genuine
+$\sim$$10^7$-DOF numerical reference (B1$\times$Neo-Hookean, Q4, $N{=}2236$)
+rather than an analytical field, confirmed an $L^2$ displacement error below
+the requested $10^{-4}$ target already at $N{=}201$, while the $H^1$
+semi-norm and the tangent-energy norm (induced by the reference solution's
+own tangent stiffness) converge more slowly and do not reach that target
+even at $N{=}1401$ -- consistent with the lower fitted convergence rates for
+derivative-based norms (least-squares rates $L^2$: $1.57$, $H^1$: $0.73$,
+energy: $0.86$) than for the displacement field itself. A parallel
+biquadratic (Q9) reference at the same resolution converges faster in every
+norm, as expected from finite-element theory, and the two element orders'
+own fine solutions agree to within $2\times10^{-6}$ in $L^2$ (though not
+fully to the requested $10^{-5}$ criterion in $H^1$/energy, attributed to
+residual discretization error in the Q4 reference relative to Q9's faster
+convergence). For B3, an analogous GPU mesh-convergence ladder (336 to
+950,400 elements) located the first resolution at which the regional
+Cauchy-stress field error (Section~\ref{sec:results-3d}) enters a $5$--$10\%$
+target band at 480,320 elements, within the requested $10^5$--$10^6$-element
+range; a per-quantity required-resolution table (thresholds of $5\%/2\%/1\%$
+relative error for displacement, energy, reaction, and regional stress) is
+used throughout Section~\ref{sec:results-3d}.
 
 \section{Neural Operator Architecture and Training Objective}
 \label{sec:architecture}
-%% TODO: port from Report Section 5 (Transolver; DEM training objective).
+
+\subsection{Transolver}
+The neural operator used throughout is Transolver~\cite{wu2024transolver}, a
+physics-attention transformer for learning solution operators on irregular
+meshes. For each mesh node $i$, the input is the reference coordinate
+$\mathbf{x}_i \in \mathbb{R}^d$ together with a material/loading feature
+vector $\mathbf{f}_i$ (the local $(E,\nu)$ pair, plus the scalar loading
+value for B1/B2 or the scalar rocking angle $\phi$, broadcast to every node,
+for B3); the network predicts the corresponding nodal displacement
+$\mathbf{u}_\theta(\mathbf{x}_i,\mathbf{f}_i)$, with $\theta$ its trainable
+parameters. The same architecture and hyperparameter configuration are used
+for both B1 and B2; B3 uses the same architecture with $d{=}3$ input/output
+dimensions and a correspondingly reworked feature dimension.
+
+\subsection{Physics-informed training objective (Deep Energy Method)}
+The network is trained by directly minimizing the discretized total
+potential energy of Eq.~\eqref{eq:discrete-energy},
+\begin{equation}
+  \theta^\ast = \arg\min_\theta \; \mathbb{E}_{(E,\nu,\mathbf{t})\sim\mathcal{D}}
+  \big[\, \Pi_h\big(\mathbf{u}_\theta(\,\cdot\,;E,\nu,\mathbf{t})\big) \,\big],
+  \label{eq:dem-objective}
+\end{equation}
+over the sampling distribution $\mathcal{D}$ of material and loading fields
+(Section~\ref{sec:geometries}); no labeled displacement data are used during
+optimization. Dirichlet boundary conditions are enforced as a hard
+constraint via an output transformation: the raw network output is
+multiplied by a smooth ramp function that vanishes on the constrained
+boundary and approaches unity away from it, so the prescribed displacement
+is satisfied exactly everywhere with no penalty term or tunable penalty
+weight. Because every sample within a given benchmark case shares an
+identical mesh, the reference-configuration quantities entering
+Eq.~\eqref{eq:discrete-energy} (the Jacobian determinant and shape-function
+gradients at each Gauss point) are computed once per batch and broadcast to
+every sample in it, combined with a fully parallel (not gradient-accumulated)
+forward pass over the batch.
 
 \section{Results: B1/B2 (2D Benchmarks)}
 \label{sec:results-2d}
-%% TODO: port from Report Sections 6-10 (training protocol, main results,
-%% GPU-native FEM comparison, OOD, resolution invariance, physics-informed
-%% vs. data-driven, verification against manufactured solutions).
+
+\subsection{Training protocol and final accuracy}
+A common training protocol was established via a batch-size screening study
+on the representative case B1$\times$Neo-Hookean (batch sizes 4 through 256,
+400-epoch budget, validation every 25 epochs) followed by continuation with
+early stopping (maximum 2000 epochs, terminating if validation error fails
+to improve by $10^{-4}$ over 8 consecutive validation events), and applied
+without modification to the remaining five cases. All six cases completed
+under this identical protocol, each terminating by early stopping well
+before the 2000-epoch budget (Table~\ref{tab:final-results}). Error is
+reported as the sample-averaged, per-node RMS relative $L^2$ error of the
+predicted displacement against the finite-element reference.
+
+\begin{table}[h]
+\centering
+\caption{Final validation error, best/final epoch, and training wall-clock
+  time, all six (geometry, material) cases. B2's three rows use the
+  loss-scale-normalized training recipe of Section~\ref{sec:discussion-b2}.}
+\label{tab:final-results}
+\begin{tabular}{lcccc}
+\toprule
+Case & Val. error & Best epoch & Final epoch & Wall-clock (s) \\
+\midrule
+B1 $\times$ Neo-Hookean    & 9.59\%  & 550 & 750  & 2{,}873.8 \\
+B1 $\times$ Mooney-Rivlin  & 11.21\% & 500 & 700  & 2{,}785.3 \\
+B1 $\times$ Arruda-Boyce   & 10.70\% & 475 & 675  & 2{,}855.6 \\
+B2 $\times$ Neo-Hookean    & 9.11\%  & 850 & 1{,}050 & 32{,}244.0 \\
+B2 $\times$ Mooney-Rivlin  & 7.28\%  & 850 & 1{,}050 & 34{,}164.1 \\
+B2 $\times$ Arruda-Boyce   & 9.81\%  & 525 & 725  & 24{,}846.8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All six cases fall in the $7$--$11\%$ range, with B2$\times$Mooney-Rivlin
+(7.28\%) the single most accurate case in the study -- notable since an
+earlier, uncorrected B2 training recipe had produced errors an order of
+magnitude worse (Section~\ref{sec:discussion-b2}).
+
+\subsection{Training cost, native-FEM comparison, and break-even}
+Table~\ref{tab:cost} reports, for each case, the directly measured native
+(CPU) finite-element cost per sample (five-repeat median, FP64, on an Intel
+Xeon CPU), the amortized training cost per sample ($\text{train}_s$, total
+training wall-clock divided by the 800 training samples), the resulting
+speed-up, and the standalone inference latency (batch size 1, 200 repeats,
+GPU forward pass only, NVIDIA A100).
+
+\begin{table}[h]
+\centering
+\caption{Per-sample training cost vs. native FEM cost, resulting speed-up,
+  inference latency, and break-even (new instances after which training
+  plus inference undercuts repeated native FEM solves).}
+\label{tab:cost}
+\small
+\begin{tabular}{lccccc}
+\toprule
+Case & Native FEM (s) & Train$_s$ (s) & Speed-up & Infer. (ms) & Break-even \\
+\midrule
+B1 $\times$ NH  & 25.432 & 3.59  & 7.08$\times$  & 4.586 & 113 \\
+B1 $\times$ MR  & 53.735 & 3.48  & 15.44$\times$ & 4.693 & 52 \\
+B1 $\times$ AB  & 52.542 & 3.57  & 14.72$\times$ & 4.745 & 54 \\
+B2 $\times$ NH  & 25.909 & 40.31 & 0.64$\times$  & 4.809 & 1{,}245 \\
+B2 $\times$ MR  & 61.712 & 42.71 & 1.44$\times$  & 4.908 & 554 \\
+B2 $\times$ AB  & 60.285 & 31.06 & 1.94$\times$  & 4.984 & 412 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Training is already cheaper than one native FEM solve for five of the six
+cases; B2$\times$Neo-Hookean's corrected recipe (Section~\ref{sec:discussion-b2})
+trains for substantially more optimizer steps and so costs slightly more per
+sample than its own native solve (40.3~s vs.\ 25.9~s), an investment repaid
+only after $\sim$1{,}245 future inferences. Once trained, inference is a
+different order of magnitude altogether: at $4.6$--$5.0$~ms per sample, a
+trained operator evaluates a new instance roughly $5{,}387$--$12{,}575\times$
+faster than its own case's native CPU solve, independent of the training
+recipe. A hardware-matched comparison against a GPU-native, batched
+Newton--Raphson solver (written in PyTorch using \texttt{torch.func}
+automatic differentiation and \texttt{vmap}, validated node-by-node against
+the CPU reference before timing) gives a smaller but still substantial
+speed-up of $1{,}215$--$1{,}297\times$ at matched batch size, with a
+correspondingly larger break-even against this stronger, batched GPU
+baseline ($1{,}133$--$95{,}038$ instances, batch-size-dependent); both
+figures are reported since the practically relevant baseline depends on
+whether a GPU-native solver is actually available to the practitioner.
+
+\subsection{Out-of-distribution generalization}
+A separate 200-sample-per-case out-of-distribution (OOD) set, with mean
+Young's modulus raised $50\%$ and mean loading raised correspondingly,
+evaluated on each case's existing checkpoint with no retraining, degrades
+error by a consistent $4$--$5\times$ for B1 and $3.9$--$5.6\times$ for B2.
+Separating the two shifted factors (B1$\times$Neo-Hookean, a progressive
+sweep by standard-deviation multiples) shows the loading shift alone
+produces no measurable degradation ($0.99$--$1.07\times$, within sample
+noise), while the material-stiffness shift alone accounts for essentially
+all of it ($1.63\times$ at $0.5\sigma$ to $5.90\times$ at $3\sigma$),
+accumulating smoothly with no threshold or cliff.
+
+\subsection{Zero-shot resolution invariance}
+\label{sec:resolution-invariance}
+A single network, jointly trained at two mesh resolutions ($N{=}21$ and
+$N{=}33$), was evaluated with no retraining or fine-tuning at seven further
+resolutions never seen during training ($N=13,17,25,29,37,41,49$, spanning
+coarser and finer than either training mesh), each scored against a common
+fine-mesh reference ($N{=}101$). Across all three B1 materials and all seven
+unseen resolutions, error stays in the $5.0$--$10.6\%$ range with no
+retraining anywhere -- the resolution-invariance property expected of
+operator-learning methods. B2 shows the same qualitative behavior with a
+wider spread ($7.1$--$26.9\%$ depending on material and resolution), once
+evaluated under a corrected checkpoint-selection criterion (the
+per-component validation metric originally used divides by each
+displacement component's own magnitude, which on B2's geometry
+systematically penalizes the smaller component; switching to the combined
+$\|\mathbf{e}\|/\|\mathbf{u}\|$ norm for checkpoint selection recovers
+normal accuracy).
+
+A single trained operator's accuracy is not the whole picture at a
+deployment resolution far outside its training range. Checked directly
+against finite-element ground truth (not only inferred from inference speed)
+for B1$\times$Neo-Hookean at $N{=}1401$ ($\sim\!2$ million mesh nodes), the
+operator trained only at $N=21,33$ degrades to $44.7\%$ relative $L^2$ error.
+Retraining the same architecture jointly on four resolutions
+($N=21,33,101,201$) instead of two, with equal sample weighting across
+resolutions, reduces this to $5.85\%$ at $N{=}1401$ -- a $7.6\times$
+reduction -- and, instructively, a network trained \emph{directly} at
+$N{=}1401$ (no zero-shot generalization required) is actually $6.3\times$
+\emph{less} accurate ($36.65\%$) at $21\%$ lower training cost, an ablation
+confirming that generalizing zero-shot from a well-chosen multi-resolution
+training set outperforms direct training at the target resolution for this
+architecture and objective. At this deployment resolution, the trained
+operator (with \texttt{torch.compile} and TF32 matmul precision, a
+$5.82\times$ inference speed-up over eager FP32 at a $\sim\!3\times10^{-3}$
+relative accuracy cost) is $340$--$526\times$ faster than a resolution-matched
+native finite-element solve, and, judged against the cheapest finite-element
+mesh that matches its own $N{=}1401$ accuracy ($N{=}11$), repays its $\sim$11.6-hour
+training cost after a few thousand further inferences.
+
+\subsection{Error in derived physical quantities}
+Every accuracy figure above is a displacement error, the most forgiving
+quantity available. Evaluated on 50 held-out samples per case against the
+same checkpoints, the $H^1$ semi-norm error is $1.3$--$2.3\times$ the
+displacement error (largest on B1), the aggregate first Piola--Kirchhoff
+stress error is $13.3$--$18.1\%$ ($1.3$--$2.0\times$ the displacement error
+in every case), and the reaction-force resultant on the constrained
+boundaries -- a quantity obtained by \emph{integrating} pointwise stress --
+is the best-behaved derived quantity, at $4.7$--$12.6\%$, comparable to or
+better than the displacement error itself. Every field-derivative quantity
+(the $H^1$ semi-norm, tangent energy, aggregate stress) exceeds the
+displacement error in all six cases without exception; only the two
+non-pointwise, integrated quantities (reaction force, and peak stress on
+B2 specifically) can beat it.
+
+\subsection{Physics-informed vs. data-driven training, at matched cost}
+\label{sec:pi-vs-dd}
+The same architecture and mesh were also fitted directly to finite-element
+displacement labels (a standard data-driven, supervised loss) on
+B1$\times$Neo-Hookean, under two optimizer settings. Reading down either the
+Adam or the AdamW+OneCycleLR column alone, one training principle wins by
+$27$--$34\%$ over the other -- but the ranking reverses between columns, so
+neither principle is unconditionally better; only the complete two-loss,
+two-optimizer grid reveals this. One asymmetry survives the reversal and is
+not an accuracy figure: the data-driven model requires 800 labeled
+finite-element solves ($5.65$ CPU-hours at the measured per-sample cost,
+Table~\ref{tab:cost}) before training can even begin, a fixed cost the
+physics-informed model never pays, since its loss is the energy of its own
+prediction.
+
+\subsection{Verification against manufactured solutions}
+A method-of-manufactured-solutions check (a chosen displacement field, with
+the consistent body force solved backwards from it by nested automatic
+differentiation) verifies the finite-element implementation independently of
+any comparison to itself: observed convergence rates for Q4 and Q9 match
+their theoretical values ($1$ and $2$ in $L^2$ semi-norms respectively) to
+within fitting precision, across all three constitutive models. Applying the
+same manufactured family to the trained operator gives a qualitatively
+different, and informative, result: the operator's $L^2$ error against the
+manufactured solution \emph{increases} with mesh refinement (fitted rate
+$-0.28$ to $-0.59$, versus Q4's $+1.99$), while its $H^1$-semi-norm and
+stress errors improve modestly ($+0.74$ to $+0.78$). This is consistent with
+the operator's error being dominated by optimization error under a fixed
+training budget rather than by discretization error: refining the mesh
+shrinks the finite-element error that limits Q4, while leaving the trained
+network's own optimization gap roughly where it was, on an enlarged problem.
+
+\subsection{B2 accuracy regression: root cause and resolution}
+\label{sec:discussion-b2}
+An early version of B2's external-work term used a boundary-force
+convention carried over unchanged from B1's flat loaded edge -- correct on a
+straight boundary but not the consistent nodal force on B2's curved inner
+arc. Simply substituting the geometrically correct force made results
+markedly worse (error rising to $94\%$, since the corrected external-work
+term's gradient with respect to the radial displacement component vanishes
+to leading order at the undeformed state). The adopted fix instead
+normalizes the training objective's \emph{scale}: each sample's $\Pi=U-W$ is
+divided by that sample's own mean boundary-force magnitude, a positive
+constant independent of the network output, which leaves the true energy
+minimizer -- and therefore the physics being solved -- unchanged, since
+$\arg\min_\theta[c\cdot f(\theta)] = \arg\min_\theta f(\theta)$ for any
+constant $c>0$. This reduced B2$\times$Neo-Hookean's error from an original,
+force-inconsistent $32.46\%$ to $9.11\%$, confirming that B2's earlier gap
+was a fixable training-objective defect specific to its boundary-force
+convention, not a harder operator-learning target intrinsic to the curved
+geometry.
 
 \section{Results: B3 (3D Rocking Rubber-Mount Bushing)}
 \label{sec:results-3d}
-%% TODO: port from Report Section 11.6-11.10 (dataset/training,
-%% displacement/energy/reaction accuracy, the regional Cauchy-stress
-%% investigation and local integration refinement, the accuracy-matched
-%% break-even analysis), condensed to paper length and reframed from
-%% "report" register to "paper" register (no process narrative, results
-%% and methodology only).
+
+\subsection{Training and displacement accuracy}
+A Deep Energy Method Transolver operator was trained for B3 at the fixed
+production resolution (6,840 elements, 7,980 nodes) described in
+Section~\ref{sec:discretization}. An initial training run, with the raw
+$E,\nu,\phi$ values fed directly to the network, was unstable: the best
+checkpoint reached only $26.2\%$ combined displacement error, with the
+axial component $u_y$ (the smallest-magnitude component, driven by the
+rocking rotation) at $93.6\%$ -- worse than an all-zero prediction. The root
+cause was isolated rather than assumed: the raw inputs span three orders of
+magnitude ($E\!\sim\!1000$, $\nu\!\sim\!0.45$, $\phi\!\sim\!0.05$), and a
+controlled fixed-sample ablation (identical seed and iteration budget, raw
+vs.\ standardized-to-mean-0/std-1 inputs) showed combined error dropping
+from $10.7\%$ to $1.1\%$ under input normalization alone, with a
+correspondingly smoother, monotonic loss curve. A full retrain with input
+normalization enabled, on the genuinely disjoint held-out set, confirmed
+this generalizes: combined displacement error $1.88\%$ ($u_x$ $1.94\%$,
+$u_y$ $16.16\%$, $u_z$ $1.42\%$), in $6{,}980.3$~s of GPU wall-clock time.
+$u_y$ remains the least accurate component, consistent with its smaller
+magnitude contributing proportionally less to a pure energy-minimization
+loss.
+
+\subsection{Energy and reaction accuracy}
+Total strain energy and the reaction moment about the rocking axis are
+computed directly from a known displacement field via the same potential-energy
+functional used in training, with no new finite-element solve (the reaction
+at a constrained node is the derivative of total potential energy with
+respect to displacement there, by the same variational argument any
+finite-element solver uses internally). Both are well reproduced: mean
+relative error $0.30\%$ for strain energy and $2.67\%$ for the reaction
+moment.
+
+\subsection{Regional Cauchy stress: metric methodology and local integration refinement}
+\label{sec:b3-stress}
+A naive relative error on the signed per-sample average of $\sigma_{xx}$
+within a fixed region near the groove gave an unusable $1{,}683.6\%$ mean
+error, traced to near-zero denominators when tension and compression
+partially cancel within the region for a given sample. Replacing it with a
+volume-weighted, quadrature-based full stress-\emph{tensor} relative field
+error (which cannot collapse to a near-zero denominator) gave $71.8\%$ mean
+/ $68.4\%$ median -- still far above a $5$--$10\%$ target, and computed from
+only 6 Gauss-quadrature points in the fixed region at the production
+resolution, below a reliable sample-count threshold.
+
+Two numerical-integration refinements were then tested, independently of
+the operator's own mesh discretization. On the \emph{evaluation} side
+(no retraining): torch-fem's shape-function evaluator accepts arbitrary
+local coordinates, so a finer internal Gauss--Legendre grid re-samples the
+same, already-known coarse-element displacement field at up to $994$
+region points (versus $6$ by default), with the $6{,}840$-element operator
+discretization completely unchanged. The error stabilizes from $292$
+region points onward (successive changes under $0.2\%$), settling at
+$62.2$--$62.3\%$ -- a real, converged gap, not an under-sampling artifact.
+This motivated a matching change on the \emph{training} side: the DEM
+background-integration quadrature was locally refined to
+$10\times10\times10$ points, for only the four elements (of $6{,}840$) that
+intersect the fixed region, with the operator's mesh, node count, and
+element count left otherwise unchanged. Retraining with this change for the
+same iteration budget reduced the converged regional-stress error from
+$62.2$--$62.3\%$ to $29.7$--$29.9\%$ (Table~\ref{tab:b3-stress}) -- roughly
+halving it, and confirming that part of the original gap was attributable to
+under-resolved background integration rather than the network's own
+representational capacity.
+
+\begin{table}[h]
+\centering
+\caption{Regional Cauchy-stress accuracy, per component, before and after
+  local integration refinement during training ($n_{\text{sub}}{=}10$,
+  $566$ region quadrature points, 100-sample held-out set).}
+\label{tab:b3-stress}
+\small
+\begin{tabular}{lcccc}
+\toprule
+Component & True RMS & Baseline & Local refinement & \\
+\midrule
+$\sigma_{xx}$ & 14.02 & 67.0\% & 32.2\% & \\
+$\sigma_{yy}$ & 14.94 & 63.1\% & 29.9\% & \\
+$\sigma_{zz}$ & 18.24 & 59.6\% & 28.4\% & \\
+$\sigma_{xy}$ & 0.113 & 42.9\% & 100.9\% & \\
+$\sigma_{yz}$ & 0.205 & 33.7\% & 43.1\% & \\
+$\sigma_{xz}$ & 2.603 & 28.7\% & 21.0\% & \\
+\midrule
+Pooled Frobenius norm & -- & 62.4\% & 29.8\% & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The three large-magnitude normal stresses, which dominate the pooled
+Frobenius norm, all improve by roughly half; the two smallest-magnitude
+shear components ($\sigma_{xy}$, $\sigma_{yz}$) instead worsen in relative
+terms, consistent with their values being close to zero and sign-changing
+within the region, while not meaningfully moving the pooled metric. The
+remaining $29.8\%$ gap is reported here as an open limitation
+(Section~\ref{sec:discussion}), not a fully resolved result.
+
+\subsection{Accuracy-matched comparison and break-even}
+\label{sec:b3-breakeven}
+A genuinely apples-to-apples accuracy-matched comparison requires the
+operator's error to be measured against an independent fine reference, not
+the same mesh it trained on, which itself carries non-negligible
+discretization error. Ten held-out samples were re-solved at an
+established $43{,}400$-element fine reference, and the same checkpoint
+queried zero-shot at that finer mesh's node positions, giving: displacement
+$2.03\%$, energy $2.30\%$ (pooled RMS), reaction moment $2.22\%$ (pooled
+RMS) -- all close to the training-resolution figures above, confirming the
+$6{,}840$-element training mesh was already reasonably converged for these
+three quantities. Table~\ref{tab:b3-breakeven} reports both a
+resolution-matched break-even (operator and finite-element solver both at
+$6{,}840$ elements) and, for each of the three well-reproduced quantities,
+an accuracy-matched break-even against the cheapest finite-element mesh
+whose own error against the same fine reference is at least as good as the
+operator's.
+
+\begin{table}[h]
+\centering
+\caption{B3 break-even analysis: resolution-matched (both methods at
+  6,840 elements) and accuracy-matched (cheapest FEM mesh matching the
+  operator's own accuracy against the 43,400-element fine reference).}
+\label{tab:b3-breakeven}
+\small
+\begin{tabular}{lccccc}
+\toprule
+Comparison & Error & Matched mesh & FEM (ms) & Speed-up & Break-even \\
+\midrule
+Resolution-matched       & --    & 6{,}840 el. & 5{,}060.4 & 800.7$\times$ & 1{,}381 \\
+Accuracy-matched: disp.  & 2.03\% & 3{,}240 el. & 4{,}083.9 & 646.2$\times$ & 1{,}712 \\
+Accuracy-matched: energy & 2.30\% & 600 el.     & 3{,}723.1 & 589.1$\times$ & 1{,}878 \\
+Accuracy-matched: react. & 2.22\% & 9{,}464 el. & 4{,}672.1 & 739.3$\times$ & 1{,}496 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Even judged against the cheapest finite-element mesh that matches its own
+accuracy, not the full production mesh, the trained operator remains
+$589$--$739\times$ faster per sample and repays its one-off training cost
+($6{,}980.3$~s, under 2 GPU-hours) within fewer than $1{,}900$ solves, for
+every one of the three quantities of interest reproduced well.
 
 \section{Discussion}
 \label{sec:discussion}
-%% TODO: port from Report Section 9, plus the B3 regional-stress
-%% limitation and its future-work directions (physics/equilibrium-aware
-%% losses, mixed formulations, PINO-type residual enforcement,
-%% hierarchical representations, data-driven stress supervision, hybrid
-%% approaches; separating physics-integration resolution from operator
-%% resolution more generally) -- citing
-%% \cite{abueidda2023enhanced,rao2021elastodynamics,abueidda2021meshless,he2023gnn,taghikhani2025neuralnewton,dean2026piginot}
-%% as related attempts, and \cite{prudhomme1999goal,becker2001optimal}
-%% for the goal-oriented-error-estimation framing of "where does a
-%% trained operator's error actually come from."
+
+The screening-and-early-stopping protocol of Section~\ref{sec:results-2d}
+reached its best validation performance within $375$--$1{,}050$ epochs
+across all six 2D cases, with a consistent efficiency picture: a
+GPU-native but still-iterative finite-element solver is roughly two orders
+of magnitude faster than the CPU reference once well batched, the trained
+operator's amortized training cost is below one native solve for five of
+six cases, and -- once trained -- inference is three to four further orders
+of magnitude cheaper still. The out-of-distribution evaluation is the
+clearest evidence that the network has learned a fit specific to its
+training distribution rather than an extrapolable representation of the
+underlying physics: a $2$--$2.5\sigma$ combined stiffness/load shift
+degrades accuracy by $4$--$5\times$, driven entirely by the material-stiffness
+component of the shift. The zero-shot resolution-invariance study and the
+$N{=}1401$ deployment-resolution finding together show a complementary
+point: a single operator generalizes well across unseen \emph{nearby}
+resolutions without retraining, but accuracy at a resolution far outside
+the training range depends strongly on which resolutions were seen during
+training, not merely on how many optimizer steps were spent -- a
+multi-resolution training set that includes resolutions closer to the
+deployment target outperforms both a single-resolution-trained zero-shot
+model and, surprisingly, direct training at the deployment resolution
+itself.
+
+The manufactured-solution verification (Section~\ref{sec:results-2d})
+delivers an important, non-obvious qualification to every accuracy figure
+reported: a trained operator's error, unlike a finite element's, does not
+shrink with mesh refinement under a fixed training budget, because it is
+dominated by optimization error on an increasingly large problem rather than
+by discretization error. This is consistent with, and helps explain, the
+broader pattern that every field-derivative quantity (stress, strain
+energy, $H^1$ semi-norm) is harder for the operator than the displacement
+field it is trained to minimize energy over.
+
+B3's regional Cauchy-stress result (Section~\ref{sec:b3-stress}) extends
+this picture to a genuinely 3D, geometrically localized quantity of
+interest. Local integration refinement -- applied only to the handful of
+elements touching a region that matters, independently of the operator's
+own discretization -- recovers roughly half of the gap, directly confirming
+that the region's background numerical integration, not only the network's
+representational capacity, was a real contributor to the original error.
+The remaining $29.8\%$ gap, still above a $5$--$10\%$ practical target, is
+reported here as an open limitation rather than a resolved result. Several
+concrete directions are identified for future work, none attempted in this
+paper: a stress- or equilibrium-aware physics loss term, analogous to prior
+energy-based treatments of contact and fracture~\cite{bai2025energy,goswami2020transfer,wang2026xdem};
+a mixed displacement--stress formulation, following complementary-energy
+approaches~\cite{abueidda2023enhanced,rao2021elastodynamics,abueidda2021meshless};
+PINO-type residual enforcement or Newton-operator hybrids~\cite{taghikhani2025neuralnewton};
+a local or hierarchical representation with additional capacity in
+stress-critical regions, in the spirit of graph-neural-network and
+geometry-conditioned approaches~\cite{he2023gnn,dean2026piginot}; data-driven
+stress supervision; a hybrid physics-informed-plus-supervised objective; and,
+more generally, further study of separating the physics-integration
+resolution from the operator's own resolution, which this result already
+shows to be a productive axis on its own. Goal-oriented error estimation in
+the finite-element sense~\cite{prudhomme1999goal,becker2001optimal} -- which
+localizes a global discretization error to a specific quantity of interest
+via an adjoint problem -- offers a complementary, more principled framing of
+"where does a trained operator's error in a specific local quantity actually
+come from" than the ablation-style diagnosis used here, and is a natural
+direction for relating the two fields more rigorously.
 
 \section{Conclusion}
 \label{sec:conclusion}
-%% TODO: port from Report Section 10, extended with the B3 conclusion.
+
+A physics-informed neural operator, trained by directly minimizing total
+potential energy with no labeled displacement data, reproduces the
+displacement field of six 2D hyperelastic benchmark cases (two geometries,
+three constitutive models) to within $7$--$11\%$ relative error, at a
+training cost below one native finite-element solve for five of six cases
+and an inference cost three to four orders of magnitude below a native
+solve thereafter. The same approach extends to a substantially more
+demanding 3D benchmark -- a rocking rubber-mount bushing with a
+stress-concentrating groove -- where it reproduces displacement ($1.9\%$),
+total strain energy ($0.3\%$), and reaction moment ($2.7\%$) accurately,
+and, judged against the cheapest finite-element mesh matching its own
+accuracy, remains $589$--$800\times$ faster per sample across all studied
+comparisons while repaying its training cost within a few thousand solves
+at most.
+
+Three findings qualify this result and point to concrete future work.
+First, derived physical quantities (stress, energy norms, gradients) are
+systematically harder to reproduce than displacement itself, and a trained
+operator's error in these quantities does not shrink with mesh refinement
+the way a finite element's does, since it is dominated by optimization
+error rather than discretization error -- an operator's accuracy should
+therefore be reported, and targeted, per quantity of interest rather than
+assumed to transfer from displacement accuracy alone. Second,
+generalization -- across both out-of-distribution material/loading shifts
+and deployment resolutions far from the training range -- is not free:
+a single network generalizes well across nearby, unseen resolutions, but
+a deployment resolution far outside the training range requires a
+training set whose resolutions already span toward it, not merely a larger
+optimization budget. Third, a quantity of interest that is both
+geometrically localized and derivative-based -- here, regional Cauchy
+stress near a stress concentrator -- can suffer from a confounded,
+separable deficiency: this paper shows that refining the DEM background
+integration in the region of interest, independently of the operator's own
+discretization, recovers roughly half of a large initial error, but closing
+the remainder is left as an open problem with several concrete candidate
+directions identified in Section~\ref{sec:discussion}.
 
 \section*{Acknowledgments}
 %% TODO.
