@@ -385,21 +385,43 @@ forward pass over the batch.
 \label{sec:results-2d}
 
 \subsection{Training protocol and final accuracy}
-A common training protocol was established via a batch-size screening study
-on the representative case B1$\times$Neo-Hookean (batch sizes 4 through 256,
-400-epoch budget, validation every 25 epochs) followed by continuation with
-early stopping (maximum 2000 epochs, terminating if validation error fails
-to improve by $10^{-4}$ over 8 consecutive validation events), and applied
-without modification to the remaining five cases. Batch size 8 was the
-winner of this screening (lowest best-validation-error among batch sizes 4
-through 256) and is the setting used for all production training below;
+Before training all benchmark cases, a systematic screening study was
+performed on representative case B1 with the Neo-Hookean material model
+to determine a common training protocol. Candidate batch sizes
+(originally 4, 8, 16; extended to 4, 8, 16, 32, 64, 128, 256, as real
+parallel mini-batches rather than gradient accumulation) were evaluated
+using short training runs with frequent validation (a fixed 400-epoch
+budget per batch size, validation every 25 epochs), compared in terms of
+validation accuracy, computational time, GPU memory usage, and optimizer
+steps; the best-performing configuration (batch size 8) was then adopted
+unchanged for all six benchmark cases.
 Figure~\ref{fig:batch-screening} shows the full screened comparison,
 plotted against optimizer steps, total processed samples, and wall-clock
-time. All six
-cases completed under the resulting protocol, each terminating by early
-stopping well before the 2000-epoch budget (Table~\ref{tab:final-results}).
-Error is reported as the sample-averaged, per-node RMS relative $L^2$ error
-of the predicted displacement against the finite-element reference.
+time. The selected configuration is continued from the best checkpoint
+obtained during screening, rather than retrained from scratch: training
+proceeds to a maximum of 2000 epochs with early stopping enabled
+(terminating if validation error fails to improve by at least $10^{-4}$
+over eight consecutive validation events, 200 epochs); this continuation
+also serves as the final training run for the representative case. The
+training protocol established this way is subsequently applied without
+modification to the remaining five cases, with no case-specific
+hyperparameter tuning. All six cases completed training under this
+identical protocol, each terminating by early stopping (no case reached
+the 2000-epoch upper bound; Table~\ref{tab:final-results}).
+
+Every validation/test-set error reported in this study is a per-sample,
+per-displacement-component relative error, defined for the $u$-component
+as $e_u = \|u_{\text{pred}}-u_{\text{exact}}\|/(\|u_{\text{exact}}\|+\epsilon)$
+and identically for $v$, where $\|v\| := (\tfrac1N\sum_i v_i^2)^{1/2}$
+denotes the root-mean-square of a nodal quantity over the $N$ mesh nodes
+of that sample and $\epsilon=10^{-12}$ avoids division by zero. The
+reported error at each epoch or table entry is the sample-average of
+$0.5(e_u+e_v)$ over every sample in the reported set -- a discrete,
+per-node RMS relative error, unweighted over nodes rather than a
+quadrature- or Jacobian-weighted domain integral, though the two coincide
+in the limit of a uniform node distribution that both B1 and B2's
+structured Q4 meshes closely approximate at the resolution used
+throughout this study.
 
 \begin{figure}[htb]
 \centering
@@ -440,10 +462,13 @@ B2 $\times$ Arruda-Boyce   & 9.81\%  & 525 & 725  & 24{,}846.8 \\
 \end{tabular}
 \end{table}
 
-All six cases fall in the $7$--$11\%$ range, with B2$\times$Mooney-Rivlin
-(7.28\%) the single most accurate case in the study -- notable since an
-earlier, uncorrected B2 training recipe had produced errors an order of
-magnitude worse (Section~\ref{sec:discussion-b2}).
+All three B2 materials sit in the same $7$--$10\%$ range as the three B1
+materials ($9.6$--$11.2\%$), and B2$\times$Mooney-Rivlin ($7.28\%$) is in
+fact the single most accurate case in the entire study -- confirming the
+root-cause finding of Section~\ref{sec:discussion-b2}: the gap in an
+earlier, uncorrected B2 recipe was a fixable training-objective defect
+specific to B2's boundary-force convention, not a harder
+operator-learning target.
 
 \begin{figure}[htb]
 \centering
@@ -463,12 +488,25 @@ magnitude worse (Section~\ref{sec:discussion-b2}).
 \end{figure}
 
 \subsection{Training cost, native-FEM comparison, and break-even}
-Table~\ref{tab:cost} reports, for each case, the directly measured native
-(CPU) finite-element cost per sample (five-repeat median, FP64, on an Intel
-Xeon CPU), the amortized training cost per sample ($\text{train}_s$, total
-training wall-clock divided by the 800 training samples), the resulting
-speed-up, and the standalone inference latency (batch size 1, 200 repeats,
-GPU forward pass only, NVIDIA A100).
+Two complementary training-cost metrics are reported, both derived from
+the total training wall-clock time up to the final epoch determined by
+early stopping: the average cost of processing one training sample during
+a single epoch (forward pass, backward pass, and optimizer update
+included), and the total training cost allocated to one sample over the
+entire training process, $\text{train}_s$ -- the metric directly
+comparable to that case's own native finite-element cost, since it
+represents the complete one-time computational investment required to
+train the operator before it can perform inference on new samples at
+negligible additional cost. A third metric, inference latency, is measured
+independently with a dedicated, standalone benchmark: 200 repeated forward
+passes of the trained network (batch size 1, no gradient computation)
+through each case's own best checkpoint, on the same GPU -- what a
+deployed model actually costs to evaluate on a new problem instance,
+decoupled from training. The native FEM cost used throughout is the
+directly measured, five-repeat median value for each case, corresponding
+to a CPU-based finite-element solver, since the reference implementation
+used to generate training and validation data does not support GPU
+execution.
 
 \begin{table}[h]
 \centering
@@ -491,15 +529,25 @@ B2 $\times$ AB  & 60.285 & 31.06 & 1.94$\times$  & 4.984 & 412 \\
 \end{tabular}
 \end{table}
 
-Training is already cheaper than one native FEM solve for five of the six
-cases; B2$\times$Neo-Hookean's corrected recipe (Section~\ref{sec:discussion-b2})
-trains for substantially more optimizer steps and so costs slightly more per
-sample than its own native solve (40.3~s vs.\ 25.9~s), an investment repaid
-only after $\sim$1{,}245 future inferences. Once trained, inference is a
-different order of magnitude altogether: at $4.6$--$5.0$~ms per sample, a
-trained operator evaluates a new instance roughly $5{,}387$--$12{,}575\times$
-faster than its own case's native CPU solve, independent of the training
-recipe. A hardware-matched comparison against a GPU-native, batched
+The total training wall-clock time, amortized over the 800 training
+samples used, gives an average of $3.48$--$42.71$~s per training instance
+-- lower than each case's own native FEM cost ($25.4$--$61.7$~s/sample)
+for five of the six cases, but not for B2$\times$Neo-Hookean, whose
+corrected recipe (Section~\ref{sec:discussion-b2}) costs $40.3$~s/sample,
+slightly more than its own $25.9$~s native FEM solve. A more informative
+measure is the break-even point: dividing each case's total training time
+by its marginal saving per subsequent inference gives a break-even of
+roughly $52$--$1{,}245$ new problem instances (case-dependent), highest
+for B2$\times$Neo-Hookean precisely because its corrected recipe both
+costs more per sample and trains far longer; beyond that many queries,
+the cumulative cost of training plus inference is lower than solving each
+one natively with FEM. Once trained, inference is a different order of
+magnitude altogether: at $4.6$--$5.0$~ms per sample, a trained operator
+evaluates a new problem instance roughly $5{,}387$--$12{,}575\times$
+faster than its own case's native finite-element solve at this mesh
+resolution, unaffected by any training-recipe change since inference cost
+is measured independently of training. A hardware-matched comparison
+against a GPU-native, batched
 Newton--Raphson solver (written in PyTorch using \texttt{torch.func}
 automatic differentiation and \texttt{vmap}, validated node-by-node against
 the CPU reference before timing) gives a smaller but still substantial
@@ -593,7 +641,11 @@ sides, after root-causing and fixing a hardcoded-FP32 blocker in torch-fem's
 own near-null-space construction), every quantity of interest -- $L^2$,
 energy norm, peak first Piola--Kirchhoff stress, and reaction-force
 resultant -- agrees between the two solvers to every printed digit at
-$N{=}1001$ and $N{=}1401$.
+$N{=}1001$ and $N{=}1401$: the two solvers converge to the same
+discretized solution. At this matched precision torch-fem is still
+$204$--$306\times$ faster in wall-clock ($N{=}401$--$1401$) -- roughly
+half the unmatched-precision gap, but a real, defensible advantage, not
+an artifact of comparing a tight FP64 tolerance against a loose FP32 one.
 
 \begin{figure}[htb]
 \centering
@@ -658,18 +710,20 @@ resolution tested.
 \label{fig:45}
 \end{figure}
 
-These results do not read as a defect in the GPU-native solver developed
-for this study to be engineered away: two different architectural choices
-are being compared (a matrix-free iterative solver without an explicitly
-assembled tangent, versus codes that assemble a sparse tangent once per
-Newton iteration and solve it iteratively or directly), and torch-fem's own
-memory footprint at the largest resolution tested is already approaching
-the limits of a single 80~GB accelerator, whereas the matrix-free solver
-used throughout the rest of this study uses $\sim$4\% of it at the same
-problem size. The comparison nonetheless establishes that a reasonably
-efficient GPU finite-element baseline exists and was used where a hardware-
-matched comparison was needed (Table~\ref{tab:cost} and the break-even
-figures above).
+This gap is not read here as a defect to be engineered away. Two
+architectural families are being compared, not two implementations of the
+same one: torch-fem always explicitly assembles a sparse tangent
+stiffness matrix once per Newton iteration and solves that system
+iteratively or directly, while this project's own solver never forms that
+matrix at all, obtaining every Hessian-vector product it needs by
+automatic differentiation instead -- the design this project's
+multi-million-DOF references depend on, since an explicitly assembled
+tangent at that scale would not fit in a single GPU's memory. The honest
+reading is that this project's matrix-free solver trades wall-clock speed
+at the sizes tested here for the ability to reach substantially larger
+problems than an explicitly-assembled approach can hold in GPU memory at
+all -- both properties worth stating plainly, not one to the exclusion of
+the other.
 
 \subsection{Out-of-distribution generalization}
 To check how each network behaves outside its training distribution, a
