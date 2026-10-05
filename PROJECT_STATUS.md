@@ -16575,6 +16575,51 @@ physical page -- a real content-visibility bug, not just cosmetic --
 plus two tables with labels too wide for the supplement's single-column,
 narrower-than-Main page width).
 
+### Merged the Supplement into main.pdf as Appendices A-D, 2026-10-05
+
+Omar asked what the separate `supplement.pdf` was even for, pointed out
+it had zero cross-references from the main text (a real gap -- a reader
+would have no way to discover it exists), and proposed a real published
+Computers \& Structures paper (filename `1-s2.0-S0045782526006298-main`,
+not locally accessible to read directly) as precedent for using in-text
+Appendices instead of a separate file. Agreed this is the better choice
+here -- appendices are reviewed as part of the manuscript, one file can't
+get lost, and this journal clearly accepts long data-heavy appendices --
+and merged all 10 supplement sections into `main.tex` as
+`\appendix` + 4 sections (elsarticle's native `\appendix` command
+handles Table/Figure numbering as A.1, B.1, etc.\ automatically once
+`\setcounter{table}{0}` is added at the start of each):
+- **Appendix A** (GPU/FEM benchmarking): matched-batch comparison (S1),
+  throughput/memory ceiling (S5), inference optimization (S6), training
+  memory (S10).
+- **Appendix B** (accuracy/QoI sweeps): full 16-resolution six-case
+  sweeps (S2, 12 tables), accuracy-threshold tables (S3, 6 tables).
+- **Appendix C** (manufactured-solution): full MMS tables (S8),
+  Q4-vs-Q9 PASS/FAIL (S9).
+- **Appendix D** (OOD/multi-resolution): progressive OOD + raw-vs-norm
+  ablation (S7), multi-resolution training-cost breakdown (S4).
+
+Converted every ported table from single-column (`table`, sized for the
+supplement's wider 1-column article-class page) to double-column
+(`table*`, sized for Main's narrower two-column elsarticle page) --
+without this, nearly every wide table in the appendix overflowed badly
+(confirmed via compile-log Overfull-hbox warnings up to 150pt, then
+visually on rendered pages before the fix). Replaced "main paper Section
+X" cross-references with real `\ref{}`s to existing labels now that
+everything lives in one document, and fixed two `\ref`s to labels that
+only existed in the old standalone supplement (`sec:discretization-b3`,
+`fig:7`) by pointing them at the real existing labels
+(`sec:results-3d`, `fig:18`). Deleted `supplement.tex`/`supplement.pdf`
+entirely -- redundant now, and keeping both would only invite the two
+copies to drift out of sync.
+
+Recompiled clean from a full fresh build (deleted all aux files first):
+41 pages (up from 27), 64 tables total (31 in the main body + 33 in the
+four appendices), 0 LaTeX errors, 0 undefined references, 0 newly
+introduced overfull-hbox warnings above 30pt (the only 2 remaining are
+the same pre-existing, visually-confirmed-harmless ones from earlier in
+the session).
+
 - Repo: `suhibamro/omar` (GitHub), branch `claude/claude-code-question-d307wp`.
   Local clone: `/home/user/OMAR`.
 - Colab pattern used throughout: `pip install -q einops timm h5py jax tqdm`
