@@ -1898,7 +1898,37 @@ $+0.77$) -- the same ceiling-proximity effect visible in per-member
 reliability as well as in the mean: the operator's coefficient of
 variation across the family is two orders of magnitude larger than Q4's
 in $L^2$ and energy, but close to Q4's own at the coarsest mesh in $H^1$
-and stress.
+and stress. Table~\ref{tab:mms-operator-convergence} reports the full
+numerical evidence behind both findings above.
+
+\begin{table}[h]
+\centering
+\caption{Operator convergence against the manufactured solution,
+  B1$\times$Neo-Hookean: single-member absolute errors at the three
+  meshes the operator's own rate is fitted on (top; Q4 shown for
+  reference), and the 16-member family's operator/Q4 error-ratio
+  summary (bottom; values above $1\times$ mean the operator is further
+  from the manufactured solution than Q4 at the same mesh).}
+\label{tab:mms-operator-convergence}
+\footnotesize
+\begin{tabular}{lcccc}
+\toprule
+$N$ & Operator $L^2$ & Q4 $L^2$ & Operator $H^1$ & Q4 $H^1$ \\
+\midrule
+9  & $5.035\mathrm{e}{-3}$ & $1.351\mathrm{e}{-2}$ & $1.141\mathrm{e}{-1}$ & $1.132\mathrm{e}{-1}$ \\
+17 & $8.238\mathrm{e}{-3}$ & $3.403\mathrm{e}{-3}$ & $5.831\mathrm{e}{-2}$ & $5.666\mathrm{e}{-2}$ \\
+33 & $1.136\mathrm{e}{-2}$ & $8.525\mathrm{e}{-4}$ & $3.850\mathrm{e}{-2}$ & $2.834\mathrm{e}{-2}$ \\
+Rate in $h$ & $-0.59$ & $+1.99$ & $+0.78$ & $+1.00$ \\
+\midrule
+\multicolumn{5}{l}{\textit{16-member family, operator/Q4 ratio (mean over family)}} \\
+$N$ & $L^2$ & $H^1$ & Stress & Energy \\
+\midrule
+9  & $0.62\times$  & $1.01\times$ & $1.01\times$ & $0.80\times$ \\
+17 & $2.59\times$  & $1.04\times$ & $1.04\times$ & $3.01\times$ \\
+33 & $14.49\times$ & $1.45\times$ & $1.40\times$ & $8.02\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{figure}[htb]
 \centering
