@@ -15796,6 +15796,72 @@ wanted; not started. An updated PDF has not yet been sent to Omar for this
 pass — per the stated plan, send one once this remaining chunk is
 substantially complete, not after every commit.
 
+### Omar's "something feels missing" review, 2026-10-05: three real, concrete bugs found and fixed
+
+After sending the PDF above, Omar said he couldn't name why but felt the
+paper was incomplete, and separately asked: (1) check Drive for B3
+figures, (2) fix the large page margins, (3) explain why references.bib
+has 47 entries but he remembered ~50. Investigated each rather than
+reassuring him — found three real, fixable problems:
+
+1. **B1/B2 vs. B3 figure imbalance was real, not a feeling**: a word/
+   figure count per section showed B1/B2 at 6,091 words / 50 figures vs.
+   B3 at 1,008 words / **0 figures**. Confirmed via Drive search (not
+   assumed) that essentially no B3 result plots were ever generated —
+   `b3_training_normalized/` (the folder holding the final checkpoint and
+   every QoI/break-even result) contains only JSON files. Found exactly
+   one relevant image, `B3_geometry.png` (2026-09-22) — but its own
+   annotation ("depth=0.05, rho=0.0912") didn't match the paper's stated
+   groove parameters (depth=0.20, rho=0.0228). Checked against the real
+   source before using it: `data_generate_B3_dataset.py` (the actual
+   production dataset) and the 480,320-element convergence study already
+   cited in the paper (PROJECT_STATUS.md line 159) both use depth=0.20,
+   the "4x sharper groove" adopted after the original 0.05 design was
+   found insufficiently sharp. The Drive image predates that decision and
+   would have shown the WRONG geometry if used as-is. Fixed properly: the
+   original plotting script (`cell_b3_geometry_figure.py`, pure numpy, no
+   GPU) still had the stale 0.05 default too — corrected it to 0.20,
+   reran it locally, got rho=0.02280 (matches the paper's stated 0.0228
+   to the digit), and added it as the paper's Figure 1. Also fixed the
+   stale default in the committed script so it won't reproduce the wrong
+   figure again later. Remaining B3 result plots (training curves, stress
+   maps) are real, still-open work, not yet started.
+2. **Page margins**: the paper was using `elsarticle[review]` (draft
+   mode — one column, double-spaced, wide margins for reviewer line
+   numbers), not the actual Computers & Structures two-column house
+   style. Switched to `elsarticle[final,5p,times]` (48 pages to 19). This
+   broke every figure/table width that had been sized for the old wide
+   single column — confirmed by rendering pages to PNG and visually
+   inspecting (not assumed from the LaTeX log, which doesn't warn on
+   this): single images now use `\columnwidth`, multi-image blocks and
+   all 4 data tables converted to `figure*`/`table*` to correctly span
+   both columns. Re-verified ~10 rendered pages after the fix.
+3. **References**: 47 real entries in `references.bib` (not 50), but
+   only 31 were actually `\cite`'d in the paper body — 16 valid,
+   already-vetted entries from the original candidate list had simply
+   never been woven into the prose. Checked each one's topic and added
+   genuine in-context citations for 14 of them (Adam at its one actual
+   mention, FEM textbooks in the Introduction, DCEM alongside the other
+   complementary-energy future-work citations, PINTO/PI-DeepONet/
+   GraphKernel/Rabczuk's review/the AI-for-PDEs review in the literature
+   survey, Transolver++ alongside the base Transolver citation, the OOD
+   survey and catastrophic-forgetting/replay-learning papers in the
+   resolution-generalization discussion). 45/47 now cited; 2
+   (DeepXDE, HomoGenius) have no natural fit and were left out rather
+   than forced in.
+
+Recompiled clean after all three fixes: 19 pages, zero errors, zero
+undefined/multiply-defined references. Commit `6dade99`.
+
+**Still open, not yet done**: the Acknowledgments section is a literal
+empty heading in the compiled PDF (`%% TODO.` is an invisible LaTeX
+comment) — need to ask Omar what to put there, or remove the section
+until there's real text. The full section-by-section numeric audit Omar
+explicitly asked for ("تأكد منهم قسم قسم تأكيد دقيق جدا جدا") has not
+been done yet — this pass fixed structural/layout/citation problems, not
+a verified-every-number pass against the underlying JSON/checkpoint data.
+That is the next, larger task.
+
 ---
 
 ## Environment / tooling notes
