@@ -2632,6 +2632,53 @@ finishes or a new one starts.
 >   closes the item flagged yesterday -- no file in this project will
 >   crash on a fresh `pip install torch-fem` anymore.
 >
+>   **🎉 The actual journal paper started, 2026-10-05 (Omar: "بدنا نبلش
+>   نكتب الورقة العلمية... قائمة المراجع، كيف بدك تعملها بطريقة تيمون؟")**:
+>   two real decisions made with Omar first, not assumed -- (1) LaTeX, not
+>   Word (the report stays Word; the paper is a separate deliverable);
+>   (2) assume Computers & Structures as the target (Timon's own stated
+>   aim, "we can decide once the paper is done" -- not locked, but a
+>   reasonable working assumption) and use its house style: Elsevier's
+>   `elsarticle` class, numbered citations (`elsarticle-num.bst`).
+>
+>   **No LaTeX toolchain existed in this environment at all** (confirmed
+>   by checking, not assumed) -- installed `texlive-latex-base/
+>   -recommended/-extra`, `texlive-publishers` (has `elsarticle.cls`), and
+>   `texlive-bibtex-extra`, confirmed via `kpsewhich` that both
+>   `elsarticle.cls` and `elsarticle-num.bst` are now resolvable.
+>
+>   **`paper/references.bib`**: a direct, mechanical BibTeX transcription
+>   of all 47 already-verified entries from
+>   `advisor_feedback/candidate_references_2026-09-24.md` (item 48, the
+>   GOEE attachment Timon mentioned but never sent, correctly omitted --
+>   that file's own note already flags it as not a real citation yet).
+>   No new literature search was done; every entry in the source list had
+>   already been checked against its own arXiv/journal page when that
+>   list was compiled on 2026-09-24.
+>
+>   **`paper/main.tex`**: full section skeleton mapped from the existing
+>   Report's own structure (Sections 1-11, including the B3 material),
+>   with a genuinely NEW Abstract and Introduction written in paper
+>   register (third person, no "this revision addresses..." framing,
+>   which belongs to the Report, not a journal submission) and wired to
+>   real citations from the new bibliography -- not just placeholder
+>   text, to prove the citation mechanics work end to end. The heavier
+>   content sections (governing equations, benchmark geometries,
+>   discretization, architecture, B1/B2 results, B3 results, discussion,
+>   conclusion) are left as TODO stubs, each one noting exactly which
+>   Report section it will be ported and condensed from -- deliberately
+>   not written yet, pending Omar's review of this structure/style
+>   checkpoint before committing to drafting 10+ sections of prose in one
+>   pass (matching this project's own established discipline: show a
+>   verified, reviewable checkpoint before continuing, rather than a
+>   large blind batch of work).
+>
+>   **Verified by actually compiling it, not just writing it**: full
+>   `pdflatex` -> `bibtex` -> `pdflatex` -> `pdflatex` cycle, 7 pages, zero
+>   `!`-prefixed LaTeX errors, zero undefined citations/references in the
+>   final log. Given to Omar as a PDF via SendUserFile for a structure/
+>   style review before the content-writing pass begins.
+>
 >   **Second correction, 2026-09-27 (Omar's own careful reading of
 >   `B3_QoIs.ipynb`'s markdown cell, catching two remaining overclaims
 >   before they got repeated anywhere else)**:
