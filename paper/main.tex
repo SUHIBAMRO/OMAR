@@ -1,12 +1,11 @@
 \documentclass[final,5p,times]{elsarticle}
-%% review  = one-column, double-spaced, line numbers (typical submission format)
-%% replace with \documentclass[final,5p,times]{elsarticle} for the camera-ready two-column layout later.
 
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{hyperref}
 \usepackage{placeins}
+\usepackage{dblfloatfix}
 
 \journal{Computers \& Structures}
 
@@ -26,8 +25,6 @@
 \address[rub]{Chair of Computational Mechanics, Bauhaus-Universit\"at Weimar}
 
 \begin{abstract}
-%% DRAFT -- placeholder numbers below must be re-checked against
-%% PROJECT_STATUS.md immediately before submission; written for review now.
 We train a physics-informed neural operator (Transolver) to predict the
 displacement field of hyperelastic solids under randomly sampled material
 and loading fields, without any labeled displacement data: the network is
@@ -43,7 +40,7 @@ a native and a GPU-native finite-element solver. The study is then extended
 to a third, more demanding 3D benchmark: a rocking elastomeric rubber-mount
 bushing with a stress-concentrating groove. The operator reproduces
 displacement, strain energy, and reaction moment accurately (combined
-displacement error 1.9\%, energy error 0.3\%, reaction-moment error 2.7\%),
+displacement error 1.9\%, energy error 0.3\%, reaction-moment error 3.0\%),
 and, judged against the cheapest finite-element mesh that matches its own
 accuracy, remains 589--739$\times$ faster per sample while repaying its
 one-off training cost within fewer than 1{,}900 solves. The one quantity
@@ -324,8 +321,11 @@ freedom via a custom kinematic-condensation reduced system. Both reached a
 converged result -- the grooved design's regional-stress error enters the
 $5$--$10\%$ target band at $480{,}320$ elements (Section~\ref{sec:discretization}),
 while the laminated alternative converges considerably faster in element
-count (below $10\%$ already at $50{,}544$ elements, fully converged by
-$302{,}016$) but is bottlenecked by a CPU-only rigid-body linear solve that
+count: it is already below the band's own $5\%$ floor at $15{,}600$
+elements, the coarsest resolution tested, so its true entry point into
+the band lies at some untested, coarser mesh rather than at any resolution
+in its own ladder (Table~\ref{tab:candidate-b-ladder}; fully converged by
+$302{,}016$) -- but it is bottlenecked by a CPU-only rigid-body linear solve that
 scales worse than linearly with mesh size. The grooved design (``B3'') was
 therefore adopted as the single geometry carried forward to dataset
 generation and operator training, with the $5$--$10\%$ regional-stress
@@ -346,7 +346,7 @@ laminated alternative's own GPU mesh-convergence ladder in full.
  & Candidate A (grooved) & Candidate B (laminated) \\
 \midrule
 Resolution range tested & 336--950,400 el. & 15,600--302,016 el. \\
-Enters $5$--$10\%$ band & 480,320 el. & 50,544 el. \\
+Enters $5$--$10\%$ band & 480,320 el. & $<$15,600 el.\ (untested) \\
 Reference resolution & 839,040 el. & 302,016 el. \\
 Computational limitation & none identified & CPU-only rigid-body \\
  & & solve, sub-linear scaling \\
@@ -554,7 +554,9 @@ own fine solutions agree to within $2\times10^{-6}$ in $L^2$ (though not
 fully to the prescribed $10^{-5}$ criterion in $H^1$/energy, attributed to
 residual discretization error in the Q4 reference relative to Q9's faster
 convergence). Table~\ref{tab:high-dof-q4} reports the full seven-point
-sweep underlying these rates.
+sweep underlying these rates, and Table~\ref{tab:q4-vs-q9-rates} reports
+the directly fitted Q4-vs-Q9 rate comparison over six shared, coarser
+resolutions.
 
 \begin{table}[h]
 \centering
@@ -903,7 +905,7 @@ B2 $\times$ Arruda-Boyce   & 9.81\%  & 525 & 725  & 24{,}846.8 \\
 
 All three B2 materials sit in the same $7$--$10\%$ range as the three B1
 materials ($9.6$--$11.2\%$), and B2$\times$Mooney-Rivlin ($7.28\%$) is in
-fact the single most accurate case in the entire study -- confirming the
+fact the single most accurate of all six 2D cases -- confirming the
 root-cause finding of Section~\ref{sec:discussion-b2}: the gap in an
 earlier, uncorrected B2 recipe was a fixable training-objective defect
 specific to B2's boundary-force convention, not a harder
@@ -1162,7 +1164,7 @@ tightest.
 \label{fig:43}
 \end{figure}
 
-A second established library, TensorMesh (\url{camlab-ethz/TensorMesh}),
+A second established library, TensorMesh (\url{https://github.com/camlab-ethz/TensorMesh}),
 was also tested directly, using a genuine Newton-type solve with a direct
 sparse solver (cuDSS) rather than the energy-minimization approach its own
 example code uses. $L^2$ error again agrees with torch-fem to every printed
@@ -1182,12 +1184,12 @@ This gap is not read here as a defect to be engineered away. Two
 architectural families are being compared, not two implementations of the
 same one: torch-fem always explicitly assembles a sparse tangent
 stiffness matrix once per Newton iteration and solves that system
-iteratively or directly, while this project's own solver never forms that
+iteratively or directly, while our solver never forms that
 matrix at all, obtaining every Hessian-vector product it needs by
-automatic differentiation instead -- the design this project's
+automatic differentiation instead -- the design our
 multi-million-DOF references depend on, since an explicitly assembled
 tangent at that scale would not fit in a single GPU's memory. The honest
-reading is that this project's matrix-free solver trades wall-clock speed
+reading is that our matrix-free solver trades wall-clock speed
 at the sizes tested here for the ability to reach substantially larger
 problems than an explicitly-assembled approach can hold in GPU memory at
 all -- both properties worth stating plainly, not one to the exclusion of
@@ -1266,8 +1268,10 @@ below the material-only column in five of six cases. Material sensitivity
 is itself material-dependent: Mooney-Rivlin is the most fragile of the
 three materials on both geometries ($4.71\times$ on B1, $5.47\times$ on
 B2), and Arruda-Boyce is consistently the most robust ($4.85\times$ on
-B1, only $2.27\times$ on B2 -- the mildest degradation measured anywhere
-in this study). Table~\ref{tab:ood-isolation} reports the full per-case
+B1, only $2.27\times$ on B2 -- the mildest material-shift degradation
+measured anywhere in this study, though still an order of magnitude
+above the loading-only values above). Table~\ref{tab:ood-isolation}
+reports the full per-case
 breakdown at $k{=}3\sigma$.
 
 \begin{table}[h]
@@ -1450,7 +1454,12 @@ now shown to hold case-by-case, not only in the pooled statistics there.
 \centering
 \caption{Coarsest finite-element mesh reaching $5\%$ relative error (vs.\
   the common $N{=}101$ reference), per quantity of interest, all six
-  cases. B2 has no reaction resultant defined.}
+  cases. This sweep does not define a single reaction-resultant metric
+  for B2 (unlike B1's single fully-fixed edge, B2's two symmetry edges
+  each constrain only one component, so there is no one natural scalar
+  resultant to track a required resolution against); Table~\ref{tab:engineering-qois}
+  instead reports B2's two per-edge, single-component reaction errors
+  directly, without reducing them to a required-resolution threshold.}
 \label{tab:required-n}
 \small
 \begin{tabular}{lccccc}
@@ -1471,29 +1480,33 @@ Table~\ref{tab:accuracy-matched-cost} extends this with the accuracy-matched
 cost comparison on each case's own binding quantity ($H^1$ semi-norm,
 $5\%$ target): the coarsest FEM mesh reaching that target, its own
 directly measured per-sample cost there, and the resulting break-even
-against the operator's own inference cost (Table~\ref{tab:cost}) --
-complementary to the resolution-matched comparison above, which holds
-FEM at the fixed $N{=}21$ training mesh rather than at each case's own
-accuracy-matched mesh.
+against the operator's own compile+TF32 inference cost at $N{=}1401$,
+its real deployment resolution (essentially case-independent at
+$\approx394$~ms, the same operator baseline used throughout this
+comparison) -- complementary to the resolution-matched comparison above,
+which holds FEM at the fixed $N{=}21$ training mesh rather than at each
+case's own accuracy-matched mesh.
 
 \begin{table}[h]
 \centering
 \caption{Accuracy-matched FEM/operator comparison, all six cases, on each
   case's own binding quantity ($H^1$ semi-norm, $5\%$ target): coarsest
-  FEM mesh reaching that target, FEM cost there, operator's own inference
-  cost (Table~\ref{tab:cost}), and the resulting break-even.}
+  FEM mesh reaching that target, FEM cost there, the operator's
+  compile+TF32 inference cost at its $N{=}1401$ deployment resolution
+  (case-independent, $\approx394$~ms -- not the $N{=}21$ eager cost of
+  Table~\ref{tab:cost}), and the resulting break-even.}
 \label{tab:accuracy-matched-cost}
 \footnotesize
 \begin{tabular}{lcccc}
 \toprule
 Case & $N$ ($H^1$, $5\%$) & FEM (ms) & Operator (ms) & Break-even \\
 \midrule
-B1 $\times$ NH & 17 & 1{,}700.3 & 4.586 & 32{,}063 \\
-B1 $\times$ MR & 17 & 1{,}994.5 & 4.693 & 33{,}317 \\
-B1 $\times$ AB & 13 & 2{,}677.1 & 4.745 & 17{,}078 \\
-B2 $\times$ NH & 17 & 1{,}728.9 & 4.809 & 29{,}633 \\
-B2 $\times$ MR & 17 & 2{,}040.4 & 4.908 & 3{,}849 \\
-B2 $\times$ AB & 17 & 2{,}666.0 & 4.984 & 3{,}551 \\
+B1 $\times$ NH & 17 & 1{,}700.3 & $\approx394$ & 32{,}063 \\
+B1 $\times$ MR & 17 & 1{,}994.5 & $\approx394$ & 33{,}317 \\
+B1 $\times$ AB & 13 & 2{,}677.1 & $\approx394$ & 17{,}078 \\
+B2 $\times$ NH & 17 & 1{,}728.9 & $\approx394$ & 29{,}633 \\
+B2 $\times$ MR & 17 & 2{,}040.4 & $\approx394$ & 3{,}849 \\
+B2 $\times$ AB & 17 & 2{,}666.0 & $\approx394$ & 3{,}551 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1879,7 +1892,8 @@ single manufactured instance sharpens the same finding: the operator's
 family-mean $L^2$ error rises $1.47\times$ from $N{=}9$ to $N{=}33$ while
 Q4's falls $15.8\times$ over the same refinement (fitted rates: Q4
 $1.99$, Q9 $3.01$, operator $-0.28$, negative on each refinement interval
-separately), while $H^1$ and stress diverge far more mildly ($+0.74$ and
+separately -- Table~\ref{tab:mms-rates} reports the full per-material,
+per-order breakdown), while $H^1$ and stress diverge far more mildly ($+0.74$ and
 $+0.77$) -- the same ceiling-proximity effect visible in per-member
 reliability as well as in the mean: the operator's coefficient of
 variation across the family is two orders of magnitude larger than Q4's
@@ -2047,8 +2061,8 @@ reaction at a Dirichlet-constrained degree of freedom $c$ is
 by the same variational argument any finite-element solver uses
 internally to report reactions, with the rocking moment $M_y$ obtained by
 summing the moment of each constrained node's reaction about the
-rotation axis. Both are well reproduced: mean relative error $0.30\%$ for
-strain energy and $2.67\%$ for the reaction moment.
+rotation axis. Both are well reproduced: mean relative error $0.28\%$ for
+strain energy and $2.99\%$ for the reaction moment (Table~\ref{tab:b3-global-before-after}).
 
 \subsection{Regional Cauchy stress: metric methodology and local integration refinement}
 \label{sec:b3-stress}
@@ -2464,11 +2478,11 @@ and an inference cost three to four orders of magnitude below a native
 solve thereafter. The same approach extends to a substantially more
 demanding 3D benchmark -- a rocking rubber-mount bushing with a
 stress-concentrating groove -- where it reproduces displacement ($1.9\%$),
-total strain energy ($0.3\%$), and reaction moment ($2.7\%$) accurately,
+total strain energy ($0.3\%$), and reaction moment ($3.0\%$) accurately,
 and, judged against the cheapest finite-element mesh matching its own
 accuracy, remains $589$--$739\times$ faster per sample across all studied
-comparisons while repaying its training cost within a few thousand solves
-at most.
+comparisons while repaying its training cost within fewer than $1{,}900$
+solves at most.
 
 Three findings qualify this result and point to concrete future work.
 First, derived physical quantities (stress, energy norms, gradients) are

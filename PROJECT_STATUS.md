@@ -16402,6 +16402,134 @@ reads as if $29.8\%$ were a fixed, seed-independent number. Verified by
 reopening the saved docx and checking the new heading, table, and updated
 row-9 text all landed correctly. No other report content touched.
 
+### Fresh-eyes audit pass + 7 real correctness fixes, 2026-10-05
+
+Omar asked explicitly whether everything was verified correct -- no
+gaps, errors, inappropriate sentences, or bad references. Dispatched an
+independent review agent with no priming from this session's edit
+history to re-read the whole compiled 27-page PDF skeptically (plus
+`main.tex` and `references.bib` directly), specifically hunting for
+internal numeric inconsistencies, logical contradictions, register
+slips, and reference problems. It found 7 real, independently-verifiable
+issues (plus several lower-priority style notes), all fixed and
+recompiled clean (27 pages, zero errors):
+
+1. **Reaction-moment error stated as two different numbers for the same
+   baseline checkpoint**: Section 7.2 said "2.67%" while Section 7.3,
+   Table 27, the Abstract, and the Conclusion all used "2.99%"/"3.0%" --
+   2.67% was stale text left over from before this session's real GPU
+   global-QoI run. Fixed all 4 occurrences to the verified 2.99%/3.0%
+   (energy also corrected 0.30%->0.28% in the same sentence).
+2. **B2 reaction-resultant contradiction**: Table 20 (`tab:required-n`)
+   said "B2 has no reaction resultant defined" while Table 23
+   (`tab:engineering-qois`) reports real B2 reaction values two rows per
+   case. Verified against the report itself (both statements are real,
+   from different studies with different conventions: one couldn't
+   reduce B2's two single-component edge reactions to one scalar
+   "required-resolution" metric, the other reports the two edges
+   directly without needing to). Fixed by adding an explanatory
+   cross-reference to Table 20's caption instead of leaving an
+   unexplained apparent contradiction.
+3. **Candidate B mesh-convergence claim contradicted by its own ladder**:
+   main.tex said Candidate B "enters the 5-10% band at 50,544 elements,"
+   but Table 2 (`tab:candidate-b-ladder`) shows its OWN coarsest tested
+   mesh (15,600 elements) already at 1.98%, i.e.\ already below the
+   band. Verified against the report (2026-10-04.docx, para 649): it
+   states explicitly "already below the requested 5-10% target band at
+   the smallest resolution tested... every resolution actually inside
+   the requested range is also below it" -- the true crossing point was
+   never tested. Fixed Table 1 and the surrounding prose to say
+   "$<$15,600 el. (untested)" instead of the wrong "50,544 el."
+4. **Overclaim**: "the mildest degradation measured anywhere in this
+   study" (Arruda-Boyce, material-shift, 2.27x) was contradicted two
+   lines later by the same table's loading-only column (0.81-1.35x,
+   genuinely milder). Scoped the claim to "mildest material-shift
+   degradation."
+5. **Overclaim**: "B2xMooney-Rivlin... the single most accurate case in
+   the entire study" was written before the B3 results (which are far
+   more accurate: 1.9% displacement) and directly contradicted once the
+   reader reaches Section 7. Scoped to "the single most accurate of all
+   six 2D cases."
+6. **Real arithmetic bug in a table I built this session**:
+   `tab:accuracy-matched-cost`'s "Operator (ms)" column used the N=21
+   eager per-case inference costs from Table 14 (4.586-4.984 ms) --
+   but the report's own text for this exact round-13 break-even study
+   (verified directly: "Break-even always uses the operator's own
+   compile+TF32 cost at N=1401... essentially case-independent at
+   ~394ms") confirms the real denominator used in these break-even
+   numbers is ~394ms, not ~4.6-5.0ms. Cross-checked by back-solving two
+   independent rows of the report's own R11a table for implied training
+   wall-clock using each candidate operator cost -- only 394ms gives
+   internally consistent results. Fixed the column to ~394ms and
+   corrected the caption/lead-in text to explain this is the N=1401
+   compile+TF32 deployment cost, not Table 14's N=21 eager cost.
+7. **Conclusion imprecision**: "repaying its training cost within a few
+   thousand solves at most" loosened the exact "fewer than 1,900
+   solves" figure stated precisely twice elsewhere (Abstract, Section
+   7.4). Tightened to match.
+
+Also made 3 minor fixes flagged as lower-priority by the same audit:
+`\url{camlab-ethz/TensorMesh}` lacked the `https://github.com/` prefix
+used by every other such reference in the paper (now fixed for
+consistency); a BibTeX case-protection issue caused reference [44]'s
+"International Journal..." to render as lowercase "international" in
+the compiled bibliography (fixed with `{International}` brace-protection
+in `references.bib`); and "this project's own solver" appeared 3 times
+in 3 consecutive sentences in Section 6.3, read a little diary-like --
+varied to "our solver" in that one cluster (left the remaining,
+more spread-out occurrences alone since they read fine in isolation).
+
+Two items the audit flagged were deliberately NOT changed: the four
+still-open `%% TODO` comments (author order, corresponding-author email,
+CRediT roles, Acknowledgments text) are genuinely pending real
+information from Omar/Timon, not something to fabricate; two bib
+entries' citation keys don't exactly match their own year field
+(`wang2025replay`/2026, `bathe1996finite`/2014) but keys are never
+rendered in the compiled PDF and renaming them risks breaking `\cite`
+references elsewhere for zero visible benefit, so left as-is.
+
+Also independently found and fixed (not from the audit): a mostly-blank
+page (page 20) caused by a large `figure*` (the B2 adopted-recipe 3x2
+image grid) being unable to share a page with the preceding single-column
+figure, a well-known LaTeX two-column float limitation -- attempted
+several fixes (image shrinking, `dblfloatfix`, merging the two figures
+into one) but none resolved the underlying column-synchronization issue,
+so reverted to the original figure sizes/split and documented this as a
+known, cosmetic-only LaTeX limitation rather than continuing to chase it
+with diminishing returns. Two stale/misleading LaTeX source comments
+(an old "DRAFT -- placeholder numbers" abstract note, and a stale
+"replace `[review]` for camera-ready later" note that no longer applied
+since the document already uses the camera-ready class) were also
+removed as part of this pass.
+
+### Scope-expansion request: Supplementary Material + one more Main table, 2026-10-05
+
+Omar did his own detailed comparison of the 2026-10-04 report against
+`main.tex` and found that, while the paper is now strong and has 30
+tables, several numerically-rich report results got compressed down to
+"a sentence + a figure + a one-row summary," losing supporting evidence
+that a careful reviewer would want to see. His explicit plan (agreed):
+keep Main around 30-32 tables (add only the MMS/manufactured-solution
+operator-convergence numbers compactly, since the paper already leans on
+a strong claim built from them -- operator L2 rate -0.59 vs Q4's +1.99 --
+without ever showing the underlying table), and move everything else
+into a new Supplementary Material document (~15-25 tables): full
+matched-batch GPU-vs-GPU comparison (Tables 10/10a-d), full 16-resolution
+six-case FEM-vs-operator QoI sweeps (R10o-z), 1%/2%/5% threshold tables
+per QoI per case (R11a-f -- already fully extracted this session),
+multi-resolution training-cost breakdown (R10n), throughput/memory
+ceiling (R10c), inference-optimization breakdown (R10d -- exact numbers
+already given by Omar: eager FP32 2292.1ms, torch.compile 2145.1ms, TF32
+491.2ms, compile+TF32 394.0ms), progressive OOD sweep (0.5sigma-3sigma,
+not just the 3sigma endpoint already in Main), raw-vs-normalized OOD
+ablation, full per-norm MMS operator-vs-Q4/Q9 tables (24a-24e -- already
+fully extracted this session, see below), Q4-vs-Q9 PASS/FAIL fine-reference
+table (6c -- already fully extracted earlier this session), and GPU
+training-memory breakdown (allocated/reserved/device-level, six cases).
+**In progress**: MMS data for the compact Main table already extracted
+and verified (Tables 24/24a/24b/24c/24d/24e full real values); building
+the Main-table addition and the Supplement document next.
+
 - Repo: `suhibamro/omar` (GitHub), branch `claude/claude-code-question-d307wp`.
   Local clone: `/home/user/OMAR`.
 - Colab pattern used throughout: `pip install -q einops timm h5py jax tqdm`
