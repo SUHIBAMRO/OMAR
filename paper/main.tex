@@ -1870,10 +1870,52 @@ $29.7$--$29.9\%$ (Table~\ref{tab:b3-stress}) -- roughly halving it, and
 confirming that part of the original gap was attributable to
 under-resolved background integration rather than the network's own
 representational capacity. This local-integration-refinement checkpoint's
-own displacement, energy, and reaction accuracy were not separately
-re-measured; Table~\ref{tab:b3-breakeven}'s break-even analysis therefore
-uses the baseline checkpoint throughout and explicitly excludes regional
-stress, rather than mixing the two checkpoints' results together.
+own displacement, energy, and reaction accuracy were separately
+re-measured (Table~\ref{tab:b3-global-before-after}): the regional-stress
+improvement is not free. Combined displacement error rises from $1.88\%$
+to $2.40\%$, driven mostly by $u_y$ ($16.16\%\to21.10\%$, the already
+least-accurate component getting proportionally worse still), and the
+pooled-RMS energy error roughly from $0.28\%$ to $0.42\%$; the reaction
+moment is the one quantity that does not degrade ($2.99\%\to2.72\%$).
+Every number in this paragraph is well within the accuracy band already
+established for this benchmark, so the trade-off is real but modest, not
+a case of trading away one quantity entirely for another.
+Table~\ref{tab:b3-breakeven}'s break-even analysis nonetheless uses the
+baseline checkpoint throughout and explicitly excludes regional stress,
+rather than mixing the two checkpoints' results together.
+
+\begin{table}[h]
+\centering
+\caption{Global QoIs, baseline vs.\ local-integration-refinement
+  checkpoint (same 100-sample validation set). Energy and reaction are
+  pooled-RMS relative error.}
+\label{tab:b3-global-before-after}
+\small
+\begin{tabular}{lcc}
+\toprule
+Quantity & Baseline & Local refinement \\
+\midrule
+$u_x$                & $1.94\%$  & $2.52\%$  \\
+$u_y$                & $16.16\%$ & $21.10\%$ \\
+$u_z$                & $1.42\%$  & $1.74\%$  \\
+Displacement (combined) & $1.88\%$  & $2.40\%$  \\
+Energy               & $0.28\%$  & $0.42\%$  \\
+Reaction moment      & $2.99\%$  & $2.72\%$  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A deformation-validity check ($J=\det\mathbf{F}$, over every element and
+Gauss point in the mesh, not only the fixed stress region) was also run
+for both checkpoints: the true FEM field itself has $\min J=0.801$, 1st
+percentile $0.977$, median $0.9999$, and zero points with $J\leq0$ across
+$5{,}472{,}000$ sampled points; both the baseline and local-refinement
+predictions match this closely ($\min J=0.816$ and $0.803$ respectively,
+1st percentile $0.977$ both, zero points with $J\leq0$ either way). Every
+field evaluated is therefore comfortably inside the physically valid,
+orientation-preserving domain the $\ln J$ terms in the constitutive
+energies require -- not a close call, and not a quantity that needed
+tuning to pass.
 
 \begin{table*}[ht]
 \centering
