@@ -77,15 +77,19 @@ network to approximate the map from problem data (material field, loading
 field, geometry) directly to the solution field, so that new instances are
 evaluated with a single forward
 pass~\cite{lu2021deeponet,li2021fno,li2020graphkernel,kovachki2023neuraloperator}.
-Physics-informed variants of this idea remove the need for expensive
-labeled training data entirely, by training the network to satisfy the
-governing equations or minimize a governing energy functional
-directly, rather than to regress against precomputed
+Open-source libraries such as DeepXDE~\cite{lu2021deepxde} have made this
+class of methods broadly accessible. Physics-informed variants of this
+idea remove the need for expensive labeled training data entirely, by
+training the network to satisfy the governing equations or minimize a
+governing energy functional directly, rather than to regress against
+precomputed
 solutions~\cite{raissi2019pinn,e2018deepritz,goswami2023pideeponet,boya2024pinto}.
 Recent surveys cover both the broader use of machine learning in
 computational mechanics~\cite{rabczuk2023ml} and, more specifically, the
 growing body of work applying neural operators and PINNs to PDEs arising
-in solid and structural mechanics~\cite{wang2026review}.
+in solid and structural mechanics~\cite{wang2026review}, including
+foundation-model-style operators for rapid material-property
+prediction~\cite{wang2024homogenius}.
 
 This work follows the PFEM (\emph{Pretrain Finite Element Method})
 approach~\cite{wang2026pfem}: a Transolver-architecture
