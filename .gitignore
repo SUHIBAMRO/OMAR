@@ -32,6 +32,10 @@
 *.log
 *.npy
 *.zip
+*.aux
+*.bbl
+*.blg
+*.spl
 core.32826
 *.pvd
 *.pkl
