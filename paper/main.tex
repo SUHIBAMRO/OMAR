@@ -6,6 +6,7 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{hyperref}
+\usepackage{placeins}
 
 \journal{Computers \& Structures}
 
@@ -68,6 +69,7 @@ physics-informed neural operators \sep deep energy method \sep Transolver \sep h
 
 \end{frontmatter}
 
+\FloatBarrier
 \section{Introduction}
 \label{sec:intro}
 
@@ -145,6 +147,7 @@ Section~\ref{sec:results-3d} extends the study to the 3D rocking-bushing
 benchmark. Section~\ref{sec:discussion} discusses the findings and open
 limitations, and Section~\ref{sec:conclusion} concludes.
 
+\FloatBarrier
 \section{Governing Equations and Material Models}
 \label{sec:governing}
 
@@ -260,6 +263,7 @@ cases are not directly interchangeable with Neo-Hookean's at the same
 nominal $(E,\nu)$, a difference to bear in mind when comparing accuracy
 figures across materials rather than across the shared random fields.
 
+\FloatBarrier
 \section{Benchmark Geometries}
 \label{sec:geometries}
 
@@ -381,6 +385,7 @@ Elements & Regional Cauchy-stress error & Displacement $L^2$ error \\
 \label{fig:b3-geometry}
 \end{figure*}
 
+\FloatBarrier
 \section{Spatial Discretization and Dataset Generation}
 \label{sec:discretization}
 
@@ -472,9 +477,32 @@ independent of the random-field sampler used elsewhere, which is itself
 parameterized by resolution). Across all six (geometry, material)
 combinations, the relative change in peak displacement and total strain
 energy between successive refinements is already below $0.2\%$ per step at
-the $21\times21$ operating mesh, and below $0.02\%$ by $N{=}51$ -- the
-reference solver is solidly in its asymptotic convergence regime at the
-resolution used throughout this study.
+the $21\times21$ operating mesh, and below $0.02\%$ by $N{=}51$
+(Table~\ref{tab:mesh-conv-six}) -- the reference solver is solidly in its
+asymptotic convergence regime at the resolution used throughout this
+study.
+
+\begin{table}[h]
+\centering
+\caption{Reference-solver mesh convergence, all six cases: relative
+  change per refinement step in peak displacement and total strain
+  energy, at the $N{=}21$ operating mesh and at $N{=}51$.}
+\label{tab:mesh-conv-six}
+\small
+\begin{tabular}{lcccc}
+\toprule
+ & \multicolumn{2}{c}{$N{=}21$} & \multicolumn{2}{c}{$N{=}51$} \\
+Case & $\Delta|\mathbf{u}|_{\max}$ & $\Delta U$ & $\Delta|\mathbf{u}|_{\max}$ & $\Delta U$ \\
+\midrule
+B1 $\times$ NH & $0.149\%$ & $0.046\%$ & $0.011\%$ & $0.009\%$ \\
+B1 $\times$ MR & $0.152\%$ & $0.051\%$ & $0.012\%$ & $0.010\%$ \\
+B1 $\times$ AB & $0.139\%$ & $0.028\%$ & $0.007\%$ & $0.005\%$ \\
+B2 $\times$ NH & $0.165\%$ & $0.162\%$ & $0.013\%$ & $0.019\%$ \\
+B2 $\times$ MR & $0.166\%$ & $0.164\%$ & $0.013\%$ & $0.019\%$ \\
+B2 $\times$ AB & $0.167\%$ & $0.156\%$ & $0.012\%$ & $0.018\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{figure}[htb]
 \centering
@@ -498,7 +526,31 @@ norm, as expected from finite-element theory, and the two element orders'
 own fine solutions agree to within $2\times10^{-6}$ in $L^2$ (though not
 fully to the prescribed $10^{-5}$ criterion in $H^1$/energy, attributed to
 residual discretization error in the Q4 reference relative to Q9's faster
-convergence).
+convergence). Table~\ref{tab:high-dof-q4} reports the full seven-point
+sweep underlying these rates.
+
+\begin{table}[h]
+\centering
+\caption{High-DOF Q4 reference convergence, B1$\times$Neo-Hookean, against
+  the $\sim10^7$-DOF reference solution, using the geometric multigrid
+  preconditioner of Section~\ref{sec:gpu-fem} (every row is a genuinely
+  CG-converged solve).}
+\label{tab:high-dof-q4}
+\small
+\begin{tabular}{lccccc}
+\toprule
+$N$ & DOF & $L^2$ & $H^1$ & Energy & Wall-clock \\
+\midrule
+51   & 5{,}202     & $4.93\mathrm{e}{-4}$ & $1.76\mathrm{e}{-2}$ & $1.52\mathrm{e}{-2}$ & $226.6$~s \\
+101  & 20{,}402    & $1.87\mathrm{e}{-4}$ & $1.10\mathrm{e}{-2}$ & $9.19\mathrm{e}{-3}$ & $445.3$~s \\
+201  & 80{,}802    & $6.99\mathrm{e}{-5}$ & $6.30\mathrm{e}{-3}$ & $5.50\mathrm{e}{-3}$ & $883.9$~s \\
+401  & 321{,}602   & $2.50\mathrm{e}{-5}$ & $3.59\mathrm{e}{-3}$ & $3.14\mathrm{e}{-3}$ & $2{,}615.8$~s \\
+701  & 982{,}802   & $1.01\mathrm{e}{-5}$ & $2.85\mathrm{e}{-3}$ & $1.91\mathrm{e}{-3}$ & $7{,}205.4$~s \\
+1001 & 2{,}004{,}002 & $5.15\mathrm{e}{-6}$ & $1.85\mathrm{e}{-3}$ & $1.27\mathrm{e}{-3}$ & $17{,}314.8$~s \\
+1401 & 3{,}925{,}602 & $2.29\mathrm{e}{-6}$ & $1.63\mathrm{e}{-3}$ & $7.82\mathrm{e}{-4}$ & $27{,}257.4$~s \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{figure}[htb]
 \centering
@@ -609,6 +661,7 @@ B3 & on-the-fly ($50{,}000\times8$) & 100 (fixed) & not run \\
 \end{tabular}
 \end{table}
 
+\FloatBarrier
 \section{Neural Operator Architecture and Training Objective}
 \label{sec:architecture}
 
@@ -718,6 +771,7 @@ gradients at each Gauss point) are computed once per batch and broadcast to
 every sample in it, combined with a fully parallel (not gradient-accumulated)
 forward pass over the batch.
 
+\FloatBarrier
 \section{Results: B1/B2 (2D Benchmarks)}
 \label{sec:results-2d}
 
@@ -1826,6 +1880,7 @@ threshold.
 \label{fig:b2-worst-case}
 \end{figure*}
 
+\FloatBarrier
 \section{Results: B3 (3D Rocking Rubber-Mount Bushing)}
 \label{sec:results-3d}
 
@@ -2095,6 +2150,7 @@ $589$--$739\times$ faster per sample and repays its one-off training cost
 ($6{,}980.3$~s, under 2 GPU-hours) within fewer than $1{,}900$ solves, for
 every one of the three quantities of interest reproduced well.
 
+\FloatBarrier
 \section{Discussion}
 \label{sec:discussion}
 
@@ -2209,6 +2265,7 @@ via an adjoint problem -- offers a complementary, more principled framing of
 come from" than the ablation-style diagnosis used here, and is a natural
 direction for relating the two fields more rigorously.
 
+\FloatBarrier
 \section{Conclusion}
 \label{sec:conclusion}
 
