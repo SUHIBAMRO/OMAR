@@ -15,6 +15,11 @@
 # outputs of report_builders/make_figure_*.py, meant to be tracked.
 !Practical_Examples/report_builders/figures/*.png
 
+# Except the paper's own figures: extracted from the Report's .docx
+# (word/media/*.png) and referenced directly by paper/main.tex -- needed
+# for the paper to actually compile, not generated/regenerable output.
+!paper/figures/*.png
+
 # Ignore file swap
 *.swp
 # Ignore folder idea of pycharm idea
