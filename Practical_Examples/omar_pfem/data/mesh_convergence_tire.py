@@ -117,7 +117,7 @@ def solve_case(Ntheta, Nr, Nphi, dtype=torch.float64, device=None):
         with torch.device(device):
             u, f, P, F, state = model.solve(
                 increments=increments, max_iter=30, rtol=1e-8, atol=1e-8, stol=1e-8,
-                method="cg", preconditioner="jacobi", nlgeom=True, verbose=False,
+                method="cg", preconditioner="jacobi", verbose=False,
                 aggregate_integration_points=False)
     finally:
         torch.set_default_dtype(old_dt)

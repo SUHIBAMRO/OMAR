@@ -557,7 +557,7 @@ def solve_theirs(nodes, elements, *mat_params, fext_full, fixed_dofs, material="
         with torch.device(device):
             u, *_ = model.solve(
                 increments=increments, max_iter=30, rtol=tol, atol=tol, stol=tol,
-                method="cg", preconditioner="jacobi", nlgeom=True, verbose=False)
+                method="cg", preconditioner="jacobi", verbose=False)
     finally:
         torch.set_default_dtype(old_default_dtype)
     if device.type == "cuda":
@@ -654,7 +654,7 @@ def solve_theirs_with_breakdown(nodes, elements, *mat_params, fext_full, fixed_d
         with torch.device(device):
             u, *_ = model.solve(
                 increments=increments, max_iter=30, rtol=tol, atol=tol, stol=tol,
-                method=method, preconditioner=preconditioner, nlgeom=True, verbose=False)
+                method=method, preconditioner=preconditioner, verbose=False)
     finally:
         torch.set_default_dtype(old_default_dtype)
         _tf_sparse.sparse_solve = orig_sparse_solve

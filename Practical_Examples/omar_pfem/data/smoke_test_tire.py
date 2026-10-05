@@ -97,7 +97,7 @@ def main():
         with torch.device(device):
             u, f, P, F, state = model.solve(
                 increments=increments, max_iter=30, rtol=1e-8, atol=1e-8, stol=1e-8,
-                method="cg", preconditioner="jacobi", nlgeom=True, verbose=True)
+                method="cg", preconditioner="jacobi", verbose=True)
     finally:
         torch.set_default_dtype(old_default_dtype)
 

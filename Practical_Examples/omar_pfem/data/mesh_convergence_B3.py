@@ -207,7 +207,7 @@ def solve_case(Ntheta, Nr, Nz, dtype=torch.float64, device=None, verbose=False, 
         with torch.device(device), torch.no_grad():
             u, f, P, F, state = model.solve(
                 increments=increments, max_iter=30, rtol=1e-8, atol=1e-8, stol=1e-8,
-                method="cg", preconditioner="jacobi", nlgeom=True, verbose=verbose,
+                method="cg", preconditioner="jacobi", verbose=verbose,
                 aggregate_integration_points=False)
     finally:
         torch.set_default_dtype(old_default_dtype)

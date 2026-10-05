@@ -2599,6 +2599,39 @@ finishes or a new one starts.
 >   five new headings present and in order) before committing. Given to
 >   Omar via SendUserFile.
 >
+>   **The flagged `nlgeom=True` time bomb fixed in all remaining 8 files,
+>   2026-10-05 (Omar asked what was actually wrong with them)**: checked
+>   each call site directly rather than assuming the same fix applied --
+>   all 9 occurrences (`torchfem_comparison.py` has two) pass the now-
+>   nonexistent `nlgeom=True` kwarg to `Solid.solve()`, which raises a
+>   hard `TypeError` on torch-fem>=0.13.0 regardless of material (the
+>   kwarg is gone from the signature entirely, so this is not a
+>   behavior-change risk, it is an immediate crash). Checked the exact
+>   material class at every one of the two generic call sites in
+>   `torchfem_comparison.py` (not just assumed from the rest of the
+>   file, since that function takes `material` as a parameter and is
+>   called with different material objects in different contexts):
+>   confirmed directly that `HyperelasticPlaneStrain` subclasses
+>   `Hyperelastic3D` in the installed torch-fem (`finite_strain=True` on
+>   both), and every other file uses `Hyperelastic3D` directly -- so
+>   removing the kwarg is behaviorally identical everywhere in this
+>   project, not just in `data_generate_B3_dataset.py`. Fixed all 9
+>   occurrences across `torchfem_comparison.py`,
+>   `data/mesh_convergence_B3.py`,
+>   `data/mesh_convergence_B3_groove_sharpness.py`,
+>   `data/mesh_convergence_B8.py`, `data/mesh_convergence_B8_prototype.py`,
+>   `data/mesh_convergence_tire.py`, `data/smoke_test_B3.py`,
+>   `data/smoke_test_tire.py`. Verified for real, not just syntax-checked:
+>   all 8 files compile cleanly, and `smoke_test_B3.py`/`smoke_test_tire.py`
+>   were actually RUN end to end on the new torch-fem -- both solve
+>   cleanly (residuals ~1e-11 to 1e-13), the solver's own printed
+>   configuration explicitly confirms "finite strain" is still active
+>   (i.e. geometric nonlinearity, the exact behavior `nlgeom=True` used
+>   to request), and both give physically sane, non-degenerate
+>   deformation fields matching their own prior expected ranges. This
+>   closes the item flagged yesterday -- no file in this project will
+>   crash on a fresh `pip install torch-fem` anymore.
+>
 >   **Second correction, 2026-09-27 (Omar's own careful reading of
 >   `B3_QoIs.ipynb`'s markdown cell, catching two remaining overclaims
 >   before they got repeated anywhere else)**:
