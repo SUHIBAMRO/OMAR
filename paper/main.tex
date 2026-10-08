@@ -922,6 +922,80 @@ operator-learning target.
 \label{fig:case-samples}
 \end{figure*}
 
+\subsection{B2 accuracy regression: root cause and resolution}
+\label{sec:discussion-b2}
+B1 cases achieved significantly lower validation errors than B2 cases
+under the same architecture, training protocol, and mesh resolution. This
+gap was initially attributed to geometry -- B2's curved mesh and its
+polar-to-Cartesian mapping -- but is instead traced to a specific, fixable
+defect in B2's boundary-force training input, unrelated to the curved
+geometry itself.
+
+The per-node boundary force originally used for B2's external-work loss
+term ($W$, in $\Pi=U-W$) was a raw pressure value times each inner node's
+own exact radial direction, with no edge-length or quadrature weighting --
+a convention carried over unchanged from B1's flat, straight-edge loaded
+boundary. On B2's curved inner arc this is not the force the ground-truth
+finite-element solve actually equilibrates against; the correct,
+FEM-consistent nodal force is $13$--$16\times$ smaller in magnitude at the
+study's standard mesh resolution. Substituting the correct, consistent
+force alone made results markedly worse, not better: mean relative $L^2$
+error rose from $32.46\%$ (the original, force-inconsistent baseline) to
+$94.08\%$, close to the error of predicting no displacement at all. The
+cause is that $\partial U/\partial u_v$ vanishes at the undeformed state to
+leading order, so the external-work term's gradient is the only signal
+pulling the network away from the trivial zero-displacement solution; the
+smaller, correct force weakens exactly that signal, and training stalls
+near the trivial solution instead of converging to the true equilibrium.
+
+The fix normalizes the training objective's \emph{scale} rather than its
+physics: each sample's $\Pi=U-W$ is divided by that sample's own mean
+boundary-force magnitude, a fixed, network-output-independent positive
+constant. Because $\arg\min_\theta[c\cdot f(\theta)] = \arg\min_\theta f(\theta)$
+for any constant $c>0$, this leaves the true energy minimizer -- and
+therefore the physics being fit -- completely unchanged; it only restores
+a well-conditioned gradient magnitude for the optimizer. Applying this
+corrected recipe reduced B2$\times$Neo-Hookean's validation error to
+$9.11\%$, comparable to and in fact marginally better than
+B1$\times$Neo-Hookean's own $9.59\%$, confirming that B2's high error was
+not primarily geometry related -- though convergence was substantially
+slower (best checkpoint at epoch 850 vs.\ 625 for the uncorrected recipe,
+roughly $10\times$ the wall-clock time). Applying the corrected recipe to
+the remaining two B2 materials, Mooney-Rivlin reached $7.28\%$ on its
+initial run, clearing the $9.00\%$ target; Arruda-Boyce's initial run
+reached $9.81\%$, narrowly missing the target, and a subsequent search
+over alternate recipes (higher learning rate, then a graded mesh)
+produced markedly worse results, so the $9.81\%$ initial-run result was
+retained as final rather than pursued further against the threshold.
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.7\columnwidth]{figures/image29.png}
+\caption{B2 fix-attempt history (Neo-Hookean) and final adopted B2 results
+  across materials.}
+\label{fig:29}
+\end{figure}
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.48\columnwidth]{figures/image11.png}\hfill
+\includegraphics[width=0.48\columnwidth]{figures/image12.png}
+
+\medskip
+\includegraphics[width=0.48\columnwidth]{figures/image13.png}\hfill
+\includegraphics[width=0.48\columnwidth]{figures/image14.png}
+
+\medskip
+\includegraphics[width=0.48\columnwidth]{figures/image15.png}\hfill
+\includegraphics[width=0.48\columnwidth]{figures/image16.png}
+\caption{B2, adopted loss-normalized recipe: per-sample relative $L^2$
+  error vs.\ mean $E$, $\nu$, and load magnitude (left column), and the
+  worst-case held-out sample's predicted vs.\ exact displacement field and
+  pointwise absolute error (right column), for Neo-Hookean (top, 9.11\%),
+  Mooney-Rivlin (middle, 7.28\%), and Arruda-Boyce (bottom, 9.81\%).}
+\label{fig:b2-worst-case}
+\end{figure}
+
 \subsection{Training cost, native-FEM comparison, and break-even}
 Two complementary training-cost metrics are reported, both derived from
 the total training wall-clock time up to the final epoch determined by
@@ -1079,8 +1153,9 @@ resultant -- agrees between the two solvers to every printed digit at
 $N{=}1001$ and $N{=}1401$: the two solvers converge to the same
 discretized solution. At this matched precision torch-fem is still
 $204$--$306\times$ faster in wall-clock ($N{=}401$--$1401$) -- roughly
-half the unmatched-precision gap, but a real, defensible advantage, not
-an artifact of comparing a tight FP64 tolerance against a loose FP32 one.
+half the unmatched-precision gap, but a genuine advantage that holds at
+equal numerical tolerance, not an artifact of comparing a tight FP64
+tolerance against a loose FP32 one.
 Table~\ref{tab:gpu-fem-matched} reports torch-fem's own peak GPU memory at
 each of the four resolutions tested, together with the one resolution at
 which both solvers' exact wall-clock times are available as printed
@@ -1819,6 +1894,53 @@ dominates by more than an order of magnitude in both pairings.
 \label{fig:27}
 \end{figure}
 
+A preliminary comparison suggests the resolution-generalization behavior
+of Section~\ref{sec:resolution-invariance} is not specific to
+physics-informed training: a data-driven operator trained on
+finite-element labels from a
+coarse mesh ($N{=}13$) is most accurate at its own training resolution
+but degrades to $25.9\%$ at the farthest unseen mesh tested, while one
+trained on a finer mesh ($N{=}33$) trades some peak accuracy for
+materially better generalization to unseen resolutions -- the same
+qualitative coarse-vs-fine training-resolution trade-off observed for the
+physics-informed operator, now demonstrated for a supervised baseline as
+well. Table~\ref{tab:dd-coarse-fine} reports the full seven-resolution
+comparison.
+
+\begin{table}[h]
+\centering
+\caption{Data-driven B1$\times$Neo-Hookean, zero-shot mean relative $L^2$
+  error (per-component, against the common $N{=}101$ reference) at seven
+  unseen resolutions, for two otherwise-identical models differing only
+  in their training-label mesh ($N{=}13$ vs.\ $N{=}33$; neither training
+  resolution is itself among the seven test points).}
+\label{tab:dd-coarse-fine}
+\small
+\begin{tabular}{lcc}
+\toprule
+Test $N$ & Coarse-trained ($N{=}13$) & Fine-trained ($N{=}33$) \\
+\midrule
+13 & $10.52\%$ & $13.72\%$ \\
+17 & $11.73\%$ & $12.82\%$ \\
+25 & $15.41\%$ & $11.82\%$ \\
+29 & $17.36\%$ & $11.50\%$ \\
+37 & $21.05\%$ & $11.10\%$ \\
+41 & $22.77\%$ & $10.99\%$ \\
+49 & $25.90\%$ & $10.90\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure*}[htb]
+\centering
+\includegraphics[width=0.48\textwidth]{figures/image39.png}\hfill
+\includegraphics[width=0.48\textwidth]{figures/image38.png}
+\caption{Data-driven operator, coarse-trained ($N{=}13$, left) vs.\
+  fine-trained ($N{=}33$, right): predicted $|\mathbf{u}|$ at seven unseen
+  resolutions, B1$\times$Neo-Hookean.}
+\label{fig:dd-no}
+\end{figure*}
+
 \subsection{Verification against manufactured solutions}
 Every accuracy figure reported so far is measured against a finite-element
 solution, which makes the finite-element method the one component of the
@@ -1958,80 +2080,6 @@ Arruda-Boyce   & Q9 & 2.96 & 1.98 & 2.00 & 1.99 \\
 \bottomrule
 \end{tabular}
 \end{table}
-
-\subsection{B2 accuracy regression: root cause and resolution}
-\label{sec:discussion-b2}
-B1 cases achieved significantly lower validation errors than B2 cases
-under the same architecture, training protocol, and mesh resolution. This
-gap was initially attributed to geometry -- B2's curved mesh and its
-polar-to-Cartesian mapping -- but is instead traced to a specific, fixable
-defect in B2's boundary-force training input, unrelated to the curved
-geometry itself.
-
-The per-node boundary force originally used for B2's external-work loss
-term ($W$, in $\Pi=U-W$) was a raw pressure value times each inner node's
-own exact radial direction, with no edge-length or quadrature weighting --
-a convention carried over unchanged from B1's flat, straight-edge loaded
-boundary. On B2's curved inner arc this is not the force the ground-truth
-finite-element solve actually equilibrates against; the correct,
-FEM-consistent nodal force is $13$--$16\times$ smaller in magnitude at the
-study's standard mesh resolution. Substituting the correct, consistent
-force alone made results markedly worse, not better: mean relative $L^2$
-error rose from $32.46\%$ (the original, force-inconsistent baseline) to
-$94.08\%$, close to the error of predicting no displacement at all. The
-cause is that $\partial U/\partial u_v$ vanishes at the undeformed state to
-leading order, so the external-work term's gradient is the only signal
-pulling the network away from the trivial zero-displacement solution; the
-smaller, correct force weakens exactly that signal, and training stalls
-near the trivial solution instead of converging to the true equilibrium.
-
-The fix normalizes the training objective's \emph{scale} rather than its
-physics: each sample's $\Pi=U-W$ is divided by that sample's own mean
-boundary-force magnitude, a fixed, network-output-independent positive
-constant. Because $\arg\min_\theta[c\cdot f(\theta)] = \arg\min_\theta f(\theta)$
-for any constant $c>0$, this leaves the true energy minimizer -- and
-therefore the physics being fit -- completely unchanged; it only restores
-a well-conditioned gradient magnitude for the optimizer. Applying this
-corrected recipe reduced B2$\times$Neo-Hookean's validation error to
-$9.11\%$, comparable to and in fact marginally better than
-B1$\times$Neo-Hookean's own $9.59\%$, confirming that B2's high error was
-not primarily geometry related -- though convergence was substantially
-slower (best checkpoint at epoch 850 vs.\ 625 for the uncorrected recipe,
-roughly $10\times$ the wall-clock time). The corrected recipe was then
-applied to all three B2 materials: Mooney-Rivlin cleared a $9.00\%$ target on the first trial ($7.28\%$); Arruda-Boyce's first trial
-reached $9.81\%$, narrowly missing the target, and an automatic search
-over alternate recipes (higher learning rate, then a graded mesh) made
-results markedly worse instead of better, so the first trial's $9.81\%$
-was adopted as the final result rather than continuing to pursue the
-threshold.
-
-\begin{figure}[htb]
-\centering
-\includegraphics[width=0.7\columnwidth]{figures/image29.png}
-\caption{B2 fix-attempt history (Neo-Hookean) and final adopted B2 results
-  across materials.}
-\label{fig:29}
-\end{figure}
-
-\begin{figure}[htb]
-\centering
-\includegraphics[width=0.48\columnwidth]{figures/image11.png}\hfill
-\includegraphics[width=0.48\columnwidth]{figures/image12.png}
-
-\medskip
-\includegraphics[width=0.48\columnwidth]{figures/image13.png}\hfill
-\includegraphics[width=0.48\columnwidth]{figures/image14.png}
-
-\medskip
-\includegraphics[width=0.48\columnwidth]{figures/image15.png}\hfill
-\includegraphics[width=0.48\columnwidth]{figures/image16.png}
-\caption{B2, adopted loss-normalized recipe: per-sample relative $L^2$
-  error vs.\ mean $E$, $\nu$, and load magnitude (left column), and the
-  worst-case held-out sample's predicted vs.\ exact displacement field and
-  pointwise absolute error (right column), for Neo-Hookean (top, 9.11\%),
-  Mooney-Rivlin (middle, 7.28\%), and Arruda-Boyce (bottom, 9.81\%).}
-\label{fig:b2-worst-case}
-\end{figure}
 
 \FloatBarrier
 \section{Results: B3 (3D Rocking Rubber-Mount Bushing)}
@@ -2233,8 +2281,8 @@ runs. Unlike the regional-stress result above, deformation validity is
 therefore robust to training-seed variation: every field evaluated, in
 every seed, is comfortably inside the physically valid,
 orientation-preserving domain the $\ln J$ terms in the constitutive
-energies require -- not a close call, and not a quantity that needed
-tuning to pass.
+energies require, by a wide margin, and without requiring any tuning to
+satisfy it.
 
 \begin{table*}[ht]
 \centering
@@ -2294,8 +2342,8 @@ stress and $u_y$ specifically, as discussed above.
 
 \subsection{Accuracy-matched comparison and break-even}
 \label{sec:b3-breakeven}
-A genuinely apples-to-apples accuracy-matched comparison requires the
-operator's error to be measured against an independent fine reference, not
+A genuinely matched accuracy comparison requires the operator's error to
+be measured against an independent fine reference, not
 the same mesh it trained on, which itself carries non-negligible
 discretization error. This fine reference ($43{,}400$ elements) was established independently,
 for this accuracy-matched comparison specifically, and is distinct from
@@ -2402,51 +2450,6 @@ strategies~\cite{wang2025replay}, which have not yet been tested here but
 are a natural direction if resolutions or geometries were to be added
 incrementally to a deployed operator rather than trained jointly from the
 outset.
-
-A preliminary comparison suggests this resolution-generalization behavior
-is not specific to physics-informed training: a data-driven operator
-trained on finite-element labels from a coarse mesh ($N{=}13$) is most
-accurate at its own training resolution but degrades to $25.9\%$ at the
-farthest unseen mesh tested, while one trained on a finer mesh ($N{=}33$)
-trades some peak accuracy for materially better generalization to unseen
-resolutions -- the same qualitative coarse-vs-fine training-resolution
-trade-off observed for the physics-informed operator above, now
-demonstrated for a supervised baseline as well. Table~\ref{tab:dd-coarse-fine}
-reports the full seven-resolution comparison.
-
-\begin{table}[h]
-\centering
-\caption{Data-driven B1$\times$Neo-Hookean, zero-shot mean relative $L^2$
-  error (per-component, against the common $N{=}101$ reference) at seven
-  unseen resolutions, for two otherwise-identical models differing only
-  in their training-label mesh ($N{=}13$ vs.\ $N{=}33$; neither training
-  resolution is itself among the seven test points).}
-\label{tab:dd-coarse-fine}
-\small
-\begin{tabular}{lcc}
-\toprule
-Test $N$ & Coarse-trained ($N{=}13$) & Fine-trained ($N{=}33$) \\
-\midrule
-13 & $10.52\%$ & $13.72\%$ \\
-17 & $11.73\%$ & $12.82\%$ \\
-25 & $15.41\%$ & $11.82\%$ \\
-29 & $17.36\%$ & $11.50\%$ \\
-37 & $21.05\%$ & $11.10\%$ \\
-41 & $22.77\%$ & $10.99\%$ \\
-49 & $25.90\%$ & $10.90\%$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{figure*}[htb]
-\centering
-\includegraphics[width=0.48\textwidth]{figures/image39.png}\hfill
-\includegraphics[width=0.48\textwidth]{figures/image38.png}
-\caption{Data-driven operator, coarse-trained ($N{=}13$, left) vs.\
-  fine-trained ($N{=}33$, right): predicted $|\mathbf{u}|$ at seven unseen
-  resolutions, B1$\times$Neo-Hookean.}
-\label{fig:dd-no}
-\end{figure*}
 
 The manufactured-solution verification (Section~\ref{sec:results-2d})
 delivers an important, non-obvious qualification to every accuracy figure
