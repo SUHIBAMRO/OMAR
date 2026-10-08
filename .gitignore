@@ -20,6 +20,12 @@
 # for the paper to actually compile, not generated/regenerable output.
 !paper/figures/*.png
 
+# paper/main.docx is a pandoc-generated Word copy of paper/main.tex (for
+# sharing/review), regenerated on demand -- a build artifact like
+# paper/main.pdf, not tracked source. Unlike the real report deliverables
+# under advisor_feedback/, which stay tracked.
+paper/main.docx
+
 # Ignore file swap
 *.swp
 # Ignore folder idea of pycharm idea
