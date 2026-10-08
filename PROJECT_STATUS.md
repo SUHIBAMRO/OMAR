@@ -16817,6 +16817,105 @@ final state is 41 pages, 0 LaTeX errors, 0 undefined references/multiply-
 defined labels, same pre-existing max overfull-hbox (25.8pt, body text,
 unrelated to this batch) as before.
 
+### Author-identity correction, appendix single-column rewrite, and a 3-pass language/structure cleanup, 2026-10-08 (continued)
+
+Four more rounds the same day, each triggered by Omar sending real
+screenshots/specifics rather than vague complaints, each verified by
+page-lookup (`pdftotext` + page-number cross-check) rather than visual
+guessing:
+
+1. **Author identity.** Omar's real name is Suhib Amro (matches his email
+   `suhib.amro@uni-weimar.de`), not Omar Amro -- fixed `\author` and the
+   CRediT paragraph; also added Timon's email back (`\ead`) alongside
+   Suhib's corresponding-author one, non-corresponding, per Omar's
+   request to keep both.
+2. **More real layout bugs**, found from zoomed-in screenshots (not just
+   page numbers): page 19 had its right column empty because Figure 32
+   (`fig:b2-worst-case`, 6-panel B2 grid) was a `figure*` that couldn't
+   fit alongside the "Results: B3" heading -- shrunk to single-column
+   (`0.48\columnwidth` instead of `0.48\textwidth`), fixed, 41->40 pages.
+3. **Appendix single-column rewrite** (Omar's own suggestion, and the
+   single biggest structural win this session): added `\onecolumn` right
+   after `\appendix` and `\twocolumn` right before the final
+   `\clearpage`+`\bibliography`. This eliminates the root cause of nearly
+   every remaining blank-space complaint -- every appendix table no
+   longer needs `table*` to get full width, so LaTeX can pack content far
+   more densely without any float-ordering risk. Verified References
+   still render two-column afterward with the earlier `xurl` fix intact.
+   40->39 pages. Then tightened `\arraystretch{0.85}` for the whole
+   appendix (reset to 1 before `\twocolumn`) -- a purely cosmetic,
+   non-reordering tweak that closed the last few lone-table pages (e.g.
+   Table B.18) by shifting page breaks; 39->37 pages. Total appendix
+   page count: down from a two-column 16 pages to a one-column 13 pages
+   despite identical content.
+   - Explicitly tried and reverted (twice) removing the `\FloatBarrier`
+     at an appendix-subsection boundary (B.1->B.2) to see if it would
+     close a remaining gap: both times it let trailing floats from the
+     earlier subsection drift past the next subsection's heading,
+     confirmed via `pdftotext` page-lookup, not just a glance -- the
+     exact class of bug an earlier session already fixed once
+     ("fix real float-ordering bugs" commit). The barriers stay; a couple
+     of pages keep modest trailing white space where a subsection's own
+     content genuinely runs out before the page does.
+4. **Two more internal-language sweeps** (Omar pasted lists of exact
+   phrases both times): round 2 found and fixed 6 instances of
+   self-referential "this project's own ..." framing missed by the
+   original appendix-only sweep (all in the Section 4 torch-fem/
+   TensorMesh comparison, e.g. "this project's own matrix-free solver" ->
+   "our own"), plus "root-causing" -> "diagnosing", "the source material"
+   -> removed, "The honest reading is" -> "The more complete reading is".
+   Round 3, folded into a structural edit (below), fixed "a real,
+   defensible advantage", "not a close call, and not a quantity that
+   needed tuning to pass", "apples-to-apples", and the "first trial ...
+   chase the threshold" phrasing in the B2 fix narration.
+
+### Section 6 restructuring: move the B2 fix earlier, relocate a misplaced Discussion result, 2026-10-08 (continued)
+
+Omar proposed two structural changes and explicitly asked for a sanity
+check before executing -- both were verified against the real source,
+not taken on faith:
+
+1. **Moved "B2 accuracy regression: root cause and resolution"** from
+   6.9 (last subsection of Section 6) to immediately after 6.1, becoming
+   the new 6.2. Confirmed this was a real problem, not just a style
+   preference: `grep` found 4 separate forward-references
+   (`Section~\ref{sec:discussion-b2}`) from subsections 6.1-6.3, meaning
+   a reader hit B2's *corrected* numbers in Table 12 and elsewhere
+   several subsections before the correction itself was ever explained.
+   The `\label` travels with the text, so all 4 references now resolve
+   to "Section 6.2" automatically -- one subsection ahead instead of
+   eight. Verified via `pdftotext` page-lookup that no content drifted
+   into the wrong subsection as a side effect.
+2. **Moved Table 30/Figure 33** (data-driven-baseline coarse-N=13-vs-
+   fine-N=33 resolution-generalization result) from Discussion into
+   Results, appended to 6.7/6.8 ("Physics-informed vs. data-driven
+   training, at matched cost") -- confirmed this is the right home, since
+   that subsection already compares the same two training paradigms on a
+   different axis (matched cost there, resolution generalization here),
+   and the moved content is a genuine new empirical result (new training
+   runs, new table/figure), not discussion/interpretation. Fixed an
+   internal cross-reference inside the moved text to point at the real
+   label (`sec:resolution-invariance`, Section 6.6) instead of a label
+   that no longer existed after the move. Tried a `\FloatBarrier` to stop
+   the figure drifting a page past its own subsection -- this produced an
+   almost entirely blank page (same regression class reverted twice
+   already this session) and was reverted; the figure now lands a page
+   after its cue text, which is ordinary float behavior matching every
+   other figure in this document, not a correctness bug.
+3. Cleaned the remaining flagged phrases from the same message: "a real,
+   defensible advantage" -> "a genuine advantage that holds at equal
+   numerical tolerance"; "not a close call, and not a quantity that
+   needed tuning to pass" -> "by a wide margin, and without requiring any
+   tuning to satisfy it"; "apples-to-apples" -> "genuinely matched"; the
+   "first trial ... chase the threshold" B2 narration reworded without
+   "trial"/"chase".
+
+Recompiled clean: 37 pages (unchanged by this batch -- content moved,
+not added or removed), 0 undefined references, 47/47 citations still
+matched to `references.bib`, no new overfull-hbox. Per Omar: after this
+batch, send directly to Timon -- no further self-review rounds before
+his feedback.
+
 - Repo: `suhibamro/omar` (GitHub), branch `claude/claude-code-question-d307wp`.
   Local clone: `/home/user/OMAR`.
 - Colab pattern used throughout: `pip install -q einops timm h5py jax tqdm`
