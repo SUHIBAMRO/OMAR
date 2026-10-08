@@ -21,7 +21,7 @@
 \author[rub]{Omar Amro}
 \author[rub]{Timon Rabczuk\corref{cor1}}
 \cortext[cor1]{Corresponding author.}
-%% TODO: \ead{email@uni-weimar.de} -- corresponding author email, not yet filled in.
+\ead{timon.rabczuk@uni-weimar.de}
 \address[rub]{Chair of Computational Mechanics, Bauhaus-Universit\"at Weimar}
 
 \begin{abstract}
@@ -405,10 +405,17 @@ run on a single NVIDIA A100 (80~GB) via Google Colab; library versions
 current on PyPI at the time each experiment ran, consistent with this
 project's own development practice throughout.
 
-\textbf{Timing methodology.} All timings reported in this paper use
-float64 (FP64) precision throughout, on both CPU and GPU. Disk I/O is
-excluded from every timed figure -- only in-memory field generation and
-the solve (or forward pass) itself are timed. Every GPU-timed region is
+\textbf{Timing methodology.} Finite-element timing benchmarks (native
+CPU cost, GPU-native solver scaling, and the torch-fem/TensorMesh
+comparisons of Section~\ref{sec:gpu-fem}) use FP64 throughout, on both
+CPU and GPU, unless explicitly stated otherwise. Neural-operator
+training and inference use the precision specified for each experiment
+individually: B1/B2 training uses FP32 (Table~\ref{tab:hyperparams}),
+B3 training uses FP64, and the optimized $N{=}1401$ deployment
+benchmark of Section~\ref{sec:b3-breakeven} uses \texttt{torch.compile}
+with TF32 matmul precision (\ref{app:a}). Disk I/O is excluded
+from every timed figure -- only in-memory field generation and the
+solve (or forward pass) itself are timed. Every GPU-timed region is
 bracketed by an explicit CUDA synchronization call on both sides, since
 kernel launches are otherwise asynchronous and would be undercounted; one
 full untimed solve precedes any GPU timing to absorb CUDA context creation
@@ -418,10 +425,13 @@ operator-vs-FEM inference latency (Table~\ref{tab:cost} and
 Section~\ref{sec:gpu-fem}) uses 10 untimed warm-up calls followed by
 the median over 50 repeated timed runs at each batch size.
 
-\textbf{Computational environment.} All experiments ran on Python
-3.12.13, NumPy 2.0.2, SciPy 1.16.3, and PyTorch 2.11.0+cu128 (CUDA 12.8),
-on an Intel Xeon CPU (2.20~GHz, 12 logical cores) and a single NVIDIA
-A100-SXM4-80GB GPU.
+\textbf{Computational environment.} The native-FEM cost re-measurement
+underlying Table~\ref{tab:fem-cost} ran on Python 3.12.13, NumPy 2.0.2,
+SciPy 1.16.3, and PyTorch 2.11.0+cu128 (CUDA 12.8), on an Intel Xeon CPU
+(2.20~GHz, 12 logical cores); all GPU experiments in this study ran on a
+single NVIDIA A100-SXM4-80GB. Library versions for the remaining
+experiments were not pinned and reflect whatever was current on PyPI at
+the time each one ran, as already noted above.
 Table~\ref{tab:fem-cost}
 reports its per-sample cost breakdown (direct sparse LU via SciPy's
 \texttt{spsolve}, Newton tolerance $10^{-7}$, 10 load steps, all six
@@ -2541,9 +2551,6 @@ finite-element solver) is available at
 \texttt{1e4df04}. Trained checkpoints and generated datasets are
 available from the corresponding author on reasonable request.
 
-\section*{Acknowledgments}
-%% TODO.
-
 \appendix
 
 \section{Full GPU/FEM benchmarking tables}
@@ -2551,7 +2558,7 @@ available from the corresponding author on reasonable request.
 \setcounter{table}{0}
 This appendix reports numerical evidence condensed in the main text to a
 sentence, a figure, and/or a one-row summary. All values are reproduced
-directly from the project's own verified internal report; none are
+directly from the project's archived experiment records; none are
 estimated, interpolated, or reconstructed.
 
 \subsection{Full matched-batch GPU-native-FEM-vs-operator comparison}
@@ -3150,7 +3157,7 @@ optimized under.
 \subsection{Accuracy-threshold tables (1\%/2\%/5\%), all six cases}
 Table~\ref{tab:accuracy-matched-cost} reports only the $5\%$-threshold
 row, on each case's own binding quantity ($H^1$ semi-norm in every case).
-The underlying round-13 analysis tabulates, per quantity of interest and
+The underlying threshold analysis tabulates, per quantity of interest and
 per case, the coarsest GPU-native-FEM resolution reaching each of three
 thresholds (1\%, 2\%, 5\%), that resolution's own measured cost, and the
 resulting break-even against the operator's compile+TF32 cost at its
@@ -3422,13 +3429,13 @@ $N$ & $L^2$ & $H^1$ semi-norm & Stress & Energy \\
 Section~\ref{sec:discretization} states in prose that the Q4 and Q9 fine
 references ``agree to within $2\times10^{-6}$ in $L^2$ (though not fully
 to the prescribed $10^{-5}$ criterion in $H^1$/energy).'' Table~\ref{tab:c5}
-reports the direct PASS/FAIL comparison against the advisor's own stated
-criterion this sentence summarizes.
+reports the direct PASS/FAIL comparison against the prescribed
+$10^{-5}$ criterion this sentence summarizes.
 
 \begin{table*}[ht]
 \centering
 \caption{Direct Q4-vs-Q9 fine-solution comparison (B1$\times$Neo-Hookean,
-  $N{=}2236$, $\approx10$M/40M DOF) against the advisor's explicit
+  $N{=}2236$, $\approx10$M/40M DOF) against the prescribed
   $<10^{-5}$ criterion.}
 \label{tab:c5}
 \small
@@ -3575,6 +3582,7 @@ quotes -- that $21\%$ figure compares total training wall-clock for that
 one case (direct: $8.19$~h vs.\ multi-res: $11.63$~h), not per-sample
 cost, since the direct run uses far fewer total samples.
 
+\clearpage
 \bibliography{references}
 
 \end{document}

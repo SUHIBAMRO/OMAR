@@ -16643,6 +16643,97 @@ pages (unchanged), 0 errors, 0 undefined refs. This is offered as a
 template for applying the same "single master table, columns = cases"
 pattern elsewhere in the paper if Omar wants it generalized further.
 
+### Omar's 5-point critical re-read: contradictions, missing email, empty heading, References/Appendix-D overlap, 2026-10-08
+
+Omar did a second, independent human re-read of the compiled `main.pdf`
+(after the earlier automated-agent audit pass) and found 5 real,
+concrete defects plus internal-process language that shouldn't go to a
+journal verbatim. He explicitly flagged two of the five as "fix these
+before anything else": the FP64 contradiction and the
+References/Appendix-D page overlap. All 5 fixed, plus the language
+cleanup, in `main.tex`:
+
+1. **FP64 timing-methodology contradiction.** The "Timing methodology"
+   paragraph claimed "All timings reported in this paper use float64
+   (FP64) precision throughout," directly contradicted by Table 11
+   (B1/B2 train in FP32) and Appendix A (eager FP32/TF32 inference).
+   Root cause: an earlier-session paraphrase of the report's
+   FEM-specific methodology note got over-generalized to the whole
+   paper. Fixed by scoping the FP64 claim explicitly to FEM timing
+   benchmarks (CPU/GPU solver scaling, torch-fem/TensorMesh comparisons)
+   and adding an explicit per-experiment precision breakdown: B1/B2
+   training FP32 (Table~\ref{tab:hyperparams}), B3 training FP64, and
+   the optimized $N{=}1401$ deployment benchmark using
+   `torch.compile` with TF32 matmul precision (\ref{app:a}).
+2. **Software-versions contradiction.** Adjacent paragraphs claimed both
+   "library versions were not pinned...varied over time" and a single
+   fixed version list for "all experiments." Per Omar's explicit
+   instruction ("ما بنخمن" -- we don't guess), resolved by scope, not
+   invention: the fixed version list (Python 3.12.13, NumPy 2.0.2, SciPy
+   1.16.3, PyTorch 2.11.0+cu128/CUDA 12.8, Intel Xeon CPU + single A100)
+   is scoped explicitly to the one native-FEM cost re-measurement
+   underlying Table~\ref{tab:fem-cost} -- the only experiment that list
+   was ever pulled from (real report docx text, extracted earlier this
+   session) -- while the remaining experiments are restated as genuinely
+   unpinned/varying, consistent with the already-correct earlier
+   sentence. Pure scope/placement bug, not a factual error in the
+   numbers themselves.
+3. **Missing corresponding-author email.** `\cortext[cor1]{Corresponding
+   author.}` had no `\ead{}`. Omar supplied Timon's real email
+   (`timon.rabczuk@uni-weimar.de`, from Timon's own published WINO
+   paper); added via `\ead{timon.rabczuk@uni-weimar.de}`.
+4. **Empty Acknowledgments heading.** `\section*{Acknowledgments}`
+   followed immediately by `%% TODO.` and nothing else, right before
+   `\appendix`. Per Omar's explicit instruction to delete rather than
+   leave an empty heading (no real acknowledgment text has ever been
+   supplied), removed the whole section.
+5. **References/Appendix-D page overlap.** Visually confirmed defect:
+   Appendix D content and the References section were interleaving
+   across pages 39-41 in the two-column layout (Appendix D in the left
+   column, References starting in the right column of the same page).
+   Fixed with a `\clearpage` immediately before `\bibliography{references}`.
+
+Plus internal-process-language cleanup in the Appendices (4 instances,
+all per Omar's explicit flagging + suggested replacements): "the
+project's own verified internal report" → "the project's archived
+experiment records" (Appendix A intro); "the underlying round-13
+analysis" → "the underlying threshold analysis" (Appendix B); "against
+the advisor's own stated criterion" → "against the prescribed
+$10^{-5}$ criterion" and "against the advisor's explicit $<10^{-5}$
+criterion" → "against the prescribed $<10^{-5}$ criterion" (Appendix C,
+prose + table caption). Verified via final grep: no more occurrences of
+"advisor", "round-[0-9]+", "internal note", "internal report", "per
+Omar", "Omar's own", or "Timon's own" anywhere in `main.tex`.
+
+Caught and self-fixed one bug introduced while writing fix #1: initially
+wrote `Appendix~\ref{app:a}`, which rendered as "Appendix Appendix A"
+since elsarticle's native `\appendix` command already bakes the literal
+word "Appendix" into `\thesection` -- caught via `pdftotext` grep before
+Omar saw it, fixed to plain `\ref{app:a}`.
+
+Omar also re-assessed the earlier master-summary-table idea (one
+condensed table at the start of Section 6 covering what's now spread
+across Tables 12/13/22) as no longer a scientific necessity, since Table
+22 already substantially covers it -- left purely optional, at my
+discretion, not required. Not added this round; the paper doesn't need
+it and Section 6 isn't missing anything without it.
+
+Recompiled clean from a full fresh build (deleted all aux files first):
+42 pages (up from 41, from the new `\clearpage`), 0 LaTeX errors, 0
+undefined references/multiply-defined labels, no new overfull-hbox
+warnings beyond the same pre-existing, already-visually-confirmed-harmless
+set. Visually verified via rendered PNGs (`pdftoppm -r 110`) that pages
+39-41 now show: p.39 Appendix D prose only (no table, no overlap), p.40
+Tables D.1/D.2/D.3 rendering correctly, p.41 References starting cleanly
+in both columns with zero Appendix D content bleeding in. Omar's verdict
+per this review: science/content are essentially finished, no new
+experiments needed -- after this batch, remaining work is final
+manuscript polish rather than research.
+
+Still outstanding (not part of this review, not urgent): CRediT
+author-contribution roles still carry a confirm-with-Omar/Timon TODO
+comment from earlier in the session.
+
 - Repo: `suhibamro/omar` (GitHub), branch `claude/claude-code-question-d307wp`.
   Local clone: `/home/user/OMAR`.
 - Colab pattern used throughout: `pip install -q einops timm h5py jax tqdm`
