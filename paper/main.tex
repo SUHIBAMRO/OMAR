@@ -632,7 +632,7 @@ reproducibility, Section~\ref{sec:b3-stress} -- is adopted as the common
 reference used throughout Section~\ref{sec:results-3d} proper, so its own
 self-comparison reads $0\%$ by construction below).
 
-\begin{table*}[ht]
+\begin{table}[ht]
 \centering
 \caption{B3 (Candidate A, grooved design) GPU mesh-convergence ladder:
   regional Cauchy-stress field error and displacement $L^2$ error vs.\
@@ -658,7 +658,7 @@ Elements & Regional Cauchy-stress error & Displacement $L^2$ error \\
 950{,}400  & $1.41\%$     & $0.05\%$ \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}
 
 Table~\ref{tab:b3-ladder-time} reports the corresponding wall-clock time
 and peak GPU memory for each resolution on a single A100, confirming both
@@ -666,7 +666,7 @@ grow substantially faster than linearly with element count (the $950{,}400$-
 element row alone uses $43.6$~GB peak reserved, roughly half the card's
 $80$~GB).
 
-\begin{table*}[ht]
+\begin{table}[ht]
 \centering
 \caption{B3 (Candidate A) GPU mesh-convergence ladder: wall-clock time
   and peak GPU memory vs.\ element count.}
@@ -691,7 +691,7 @@ Elements & Time (s) & Peak alloc.\ (MB) & Peak reserved (MB) \\
 950{,}400  & 176.90 & 43{,}637.5 & 53{,}540.3 \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}
 
 Table~\ref{tab:dataset-composition} summarizes the dataset composition
 used throughout this study. B1 and B2 draw from a fixed, pre-generated
