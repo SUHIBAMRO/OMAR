@@ -404,8 +404,8 @@ ground-truth samples used only for validation. All GPU experiments in
 this study (training, the GPU-native solver, and the evaluation scripts)
 run on a single NVIDIA A100 (80~GB) via Google Colab; library versions
 (PyTorch, torch-fem, JAX) were not pinned and reflect whatever was
-current on PyPI at the time each experiment ran, consistent with this
-project's own development practice throughout.
+current on PyPI at the time each experiment ran, consistent with the
+unpinned-dependency practice followed throughout this study.
 
 \textbf{Timing methodology.} Finite-element timing benchmarks (native
 CPU cost, GPU-native solver scaling, and the torch-fem/TensorMesh
@@ -1072,7 +1072,7 @@ GPU-accelerated finite-element library, on the identical mesh, material
 field, boundary conditions, and load, torch-fem is dramatically faster at
 every resolution tested, by a margin that does not move monotonically with
 $N$. At matched precision (FP64, Newton/CG tolerance $10^{-8}$ on both
-sides, after root-causing and fixing a hardcoded-FP32 blocker in torch-fem's
+sides, after diagnosing and fixing a hardcoded-FP32 constraint in torch-fem's
 own near-null-space construction), every quantity of interest -- $L^2$,
 energy norm, peak first Piola--Kirchhoff stress, and reaction-force
 resultant -- agrees between the two solvers to every printed digit at
@@ -1084,12 +1084,12 @@ an artifact of comparing a tight FP64 tolerance against a loose FP32 one.
 Table~\ref{tab:gpu-fem-matched} reports torch-fem's own peak GPU memory at
 each of the four resolutions tested, together with the one resolution at
 which both solvers' exact wall-clock times are available as printed
-numbers rather than read off a figure: at $N{=}1401$, this project's own
+numbers rather than read off a figure: at $N{=}1401$, our own
 matrix-free solver takes $11.0$~hours against torch-fem's $133.83$~s
 ($\approx296\times$, within the $204$--$306\times$ range above); the
-per-resolution wall-clock breakdown at $N{=}401,701,1001$ is reported in
-the source material only as a figure, not as exact tabulated values, and
-is not reconstructed here from a plot.
+per-resolution wall-clock breakdown at $N{=}401,701,1001$ is available
+only as a plotted figure, not as exact tabulated values, and is not
+reconstructed here from a plot.
 
 \begin{table}[h]
 \centering
@@ -1114,7 +1114,7 @@ $N$ & DOF & torch-fem peak mem. & torch-fem time \\
 \begin{figure}[htb]
 \centering
 \includegraphics[width=0.85\columnwidth]{figures/image40.png}
-\caption{All quantities of interest at large DOF, this project's own
+\caption{All quantities of interest at large DOF, our own
   GPU-native solver vs.\ torch-fem at matched precision ($N{=}1001$,
   $N{=}1401$): $L^2$, energy-norm, and peak-stress relative errors,
   identical to every printed digit on both sides.}
@@ -1126,7 +1126,7 @@ $N$ & DOF & torch-fem peak mem. & torch-fem time \\
 \includegraphics[width=0.85\columnwidth]{figures/image44.png}
 \caption{Reaction-force resultant relative error ($N{=}1001$, $N{=}1401$)
   and per-component first Piola--Kirchhoff stress field error ($N{=}1401$),
-  this project's solver vs.\ torch-fem.}
+  our solver vs.\ torch-fem.}
 \label{fig:44}
 \end{figure}
 
@@ -1182,8 +1182,8 @@ iteratively or directly, while our solver never forms that
 matrix at all, obtaining every Hessian-vector product it needs by
 automatic differentiation instead -- the design our
 multi-million-DOF references depend on, since an explicitly assembled
-tangent at that scale would not fit in a single GPU's memory. The honest
-reading is that our matrix-free solver trades wall-clock speed
+tangent at that scale would not fit in a single GPU's memory. The more
+complete reading is that our matrix-free solver trades wall-clock speed
 at the sizes tested here for the ability to reach substantially larger
 problems than an explicitly-assembled approach can hold in GPU memory at
 all -- both properties worth stating plainly, not one to the exclusion of
@@ -2002,7 +2002,7 @@ applied to all three B2 materials: Mooney-Rivlin cleared a $9.00\%$ target on th
 reached $9.81\%$, narrowly missing the target, and an automatic search
 over alternate recipes (higher learning rate, then a graded mesh) made
 results markedly worse instead of better, so the first trial's $9.81\%$
-was adopted as the final result rather than continuing to chase the
+was adopted as the final result rather than continuing to pursue the
 threshold.
 
 \begin{figure}[htb]
@@ -2561,7 +2561,7 @@ available from the corresponding author on reasonable request.
 \setcounter{table}{0}
 This appendix reports numerical evidence condensed in the main text to a
 sentence, a figure, and/or a one-row summary. All values are reproduced
-directly from the project's archived experiment records; none are
+directly from the underlying archived experiment records; none are
 estimated, interpolated, or reconstructed.
 
 \subsection{Full matched-batch GPU-native-FEM-vs-operator comparison}
