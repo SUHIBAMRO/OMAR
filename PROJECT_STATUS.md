@@ -16734,6 +16734,89 @@ Still outstanding (not part of this review, not urgent): CRediT
 author-contribution roles still carry a confirm-with-Omar/Timon TODO
 comment from earlier in the session.
 
+### Corresponding author swap, Word export, and a real layout-bug sweep, 2026-10-08
+
+Three follow-up requests from Omar after the batch above:
+
+1. **Word export.** Converted `main.tex` to `main.docx` via `pandoc`
+   (`--citeproc --bibliography=references.bib`, custom-patched IEEE CSL
+   style with `collapse` removed and the citation `<layout>` rewrapped so
+   multi-cites render as `[1, 2, 3]` in one bracket, matching the real
+   PDF's natbib-numbers style exactly instead of CSL's default range-
+   compressed `[1]--[3]`). Verified structurally (63 tables, 49 headings,
+   55 images, all matching the PDF) since LibreOffice itself is broken in
+   this sandbox (fails to convert even a trivial pandoc-generated docx --
+   confirmed via strace, not a content problem). `paper/main.docx` is
+   gitignored (scoped to that one path) as a regenerable build artifact,
+   like `main.pdf`.
+2. **Corresponding author.** Omar is the real corresponding author, not
+   Timon (his email: `suhib.amro@uni-weimar.de`). Moved `\cortext`/`\ead`
+   to Omar's `\author` entry. Omar then asked to keep Timon's email too
+   (not drop it) -- added `\ead{timon.rabczuk@uni-weimar.de}` back after
+   Timon's own `\author` entry, non-corresponding. Both now render under
+   the shared affiliation: "Email addresses: suhib.amro@uni-weimar.de
+   (Omar Amro), timon.rabczuk@uni-weimar.de (Timon Rabczuk)".
+3. **Real layout-bug sweep**, prompted by Omar sending actual PDF-viewer
+   screenshots (not just a page number) after noticing bad formatting on
+   several pages:
+   - **Confirmed, fixed:** two long reference URLs (`paszke2019pytorch`,
+     `becker2001optimal`) overflowed the column margin by up to 142pt in
+     `main.bbl` (confirmed via `pdflatex` Overfull-hbox warnings, then
+     visually). Fixed with `\usepackage{xurl}` (after `hyperref`), which
+     lets `\url{}` break at any character. Verified both now wrap
+     cleanly.
+   - **Confirmed, fixed:** Figure 18 ("Out-of-distribution shift field
+     grids") visually did not match its own caption. Caption claims "B1
+     Neo-Hookean/Mooney-Rivlin/Arruda-Boyce (top row)" and "B2 ... (bottom
+     row)", but the code paired images 2-per-row across 3 rows --
+     (image36,image35)/(image34,image33)/(image32,image31) -- so B1's
+     Arruda-Boyce panel sat in the same row as B2's Neo-Hookean panel.
+     Verified the true image-to-material mapping by reading each panel's
+     own embedded title text directly (cropped and read each PNG, not
+     inferred from filenames) -- confirmed image36/35/34 = B1
+     NH/MR/AB and image33/32/31 = B2 NH/MR/AB. Rearranged to 3-per-row (2
+     rows of 3), matching the caption exactly; verified via rendered page.
+   - **Confirmed, fixed:** page 6 had its entire right column empty
+     (Tables 8 and 9, 3-4 narrow numeric columns, were set as `table*`
+     i.e. full double-column width for no reason -- a double-column float
+     can't start mid-page, so LaTeX finished the single-column text and
+     left the rest of page 6's right column blank before starting Table 8
+     at the top of page 7). Converted both to single-column `table`;
+     verified page 6 is now fully packed (Tables 7-10 and the Section 5
+     opening now all fit through page 6-7 with no blank column). Document
+     shrank from 42 to 41 pages as a direct result.
+   - **Found, reverted (real regression, not a fix):** tried the same
+     "remove the `\FloatBarrier` before the next `\section`" approach for
+     two more blank-space spots Omar's screenshots showed (before
+     "8. Discussion", and before "Results: B3"). In both cases this let a
+     trailing float from the *previous* section (Figure 32 / Tables
+     27-28) drift past the new section's heading -- confirmed by
+     `pdftotext`-page-lookup, not just a visual glance -- so the float
+     ended up rendering as if it belonged to the wrong section. Reverted
+     both immediately; this is exactly the class of bug an earlier
+     session's "fix real float-ordering bugs" commit already addressed,
+     so the barriers stay. These two spots keep their existing
+     (correctly-ordered, just not maximally space-packed) layout rather
+     than trade correctness for less white space.
+   - **Still open, not fixed:** Table A.7 (`tab:a4`, Appendix A, "Peak GPU
+     memory during training") lands alone on its own page with a large
+     blank gap, for the same structural reason (a `\FloatBarrier` before
+     Appendix B's `\setcounter{table}{0}`, needed to keep Appendix
+     A/B/C/D's own tables from drifting across appendix-letter
+     boundaries, combined with Appendix A not having quite enough
+     prose/tables to fill the preceding page). Tried converting it to
+     single-column and tightening `\floatsep`/`\textfloatsep` -- neither
+     helped, since the real constraint is total content height, not
+     table width or spacing. A real fix would mean merging/removing an
+     appendix table or accepting a font-size tradeoff; left as a flagged,
+     cosmetic-only open item pending Omar's call.
+
+Recompiled clean after every edit in this batch (full `rm *.aux *.bbl
+*.blg *.log *.out *.spl` + `pdflatex`\(\to\)`bibtex`\(\to\)`pdflatex`\(\to\)`pdflatex`):
+final state is 41 pages, 0 LaTeX errors, 0 undefined references/multiply-
+defined labels, same pre-existing max overfull-hbox (25.8pt, body text,
+unrelated to this batch) as before.
+
 - Repo: `suhibamro/omar` (GitHub), branch `claude/claude-code-question-d307wp`.
   Local clone: `/home/user/OMAR`.
 - Colab pattern used throughout: `pip install -q einops timm h5py jax tqdm`
