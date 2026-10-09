@@ -131,22 +131,9 @@ torch-fem~\cite{meyer2024torchfem} and
 PyTorch~\cite{paszke2019pytorch,baydin2018automatic}, generates
 ground-truth samples. For the physics-informed models that are this
 study's primary subject, these samples are used only for evaluation; the
-supervised, data-driven baseline introduced for comparison in
-Section~\ref{sec:pi-vs-dd} uses finite-element-labeled samples for
-training by construction, since training on labels is the point of that
-comparison.
-
-The remainder of this paper is organized as follows. Section~\ref{sec:governing}
-states the Total Lagrangian hyperelastic potential-energy formulation and the
-three constitutive models used. Section~\ref{sec:geometries} defines the three
-benchmark geometries. Section~\ref{sec:discretization} describes the spatial
-discretization and the finite-element reference used for validation.
-Section~\ref{sec:architecture} describes the Transolver architecture and the
-Deep Energy Method training objective. Section~\ref{sec:results-2d} reports
-results for the six 2D (geometry, material) cases, and
-Section~\ref{sec:results-3d} extends the study to the 3D rocking-bushing
-benchmark. Section~\ref{sec:discussion} discusses the findings and open
-limitations, and Section~\ref{sec:conclusion} concludes.
+supervised, data-driven baseline introduced for comparison uses
+finite-element-labeled samples for training by construction, since
+training on labels is the point of that comparison.
 
 \FloatBarrier
 \section{Governing Equations and Material Models}
@@ -182,11 +169,11 @@ The equilibrium displacement field minimizes the total potential energy,
   \mathbf{u}^\ast = \arg\min_{\mathbf{u}} \Pi[\mathbf{u}],
   \label{eq:min-energy}
 \end{equation}
-which is the objective optimized directly by the neural operator
-(Section~\ref{sec:architecture}); no labeled displacement data are required,
-only pointwise evaluation of $\psi$ and of the prescribed boundary traction.
-For B3, the applied load is a prescribed rigid-body rotation of a rigid inner
-core rather than a traction, so $W \equiv 0$ and $\Pi = U$ (Section~\ref{sec:geometries}).
+which is the objective optimized directly by the neural operator; no
+labeled displacement data are required, only pointwise evaluation of
+$\psi$ and of the prescribed boundary traction. For B3, the applied load
+is a prescribed rigid-body rotation of a rigid inner core rather than a
+traction, so $W \equiv 0$ and $\Pi = U$.
 
 For numerical integration, the body is discretized into elements (bilinear
 quadrilaterals, Q4, for B1/B2; trilinear hexahedra, Hexa1, for B3) with full
@@ -315,14 +302,14 @@ as in B1/B2.
 
 This grooved design was selected from two 3D candidates carried to a full
 GPU mesh-convergence study on the same regional Cauchy-stress field-error
-metric used throughout Section~\ref{sec:results-3d}: the grooved bushing
+metric used throughout the 3D results below: the grooved bushing
 above, and a laminated alternative with one or more rigid steel shims
 embedded in the rubber annulus (a construction used in real elastomeric
 mounts to tune stiffness), each shim condensed to 6 rigid-body degrees of
 freedom via a custom kinematic-condensation reduced system. Both reached a
 converged result -- the grooved design's regional-stress error enters the
-$5$--$10\%$ target band at $480{,}320$ elements (Section~\ref{sec:discretization}),
-while the laminated alternative converges considerably faster in element
+$5$--$10\%$ target band at $480{,}320$ elements, while the laminated
+alternative converges considerably faster in element
 count: it is already below the band's own $5\%$ floor at $15{,}600$
 elements, the coarsest resolution tested, so its true entry point into
 the band lies at some untested, coarser mesh rather than at any resolution
@@ -409,12 +396,11 @@ unpinned-dependency practice followed throughout this study.
 
 \textbf{Timing methodology.} Finite-element timing benchmarks (native
 CPU cost, GPU-native solver scaling, and the torch-fem/TensorMesh
-comparisons of Section~\ref{sec:gpu-fem}) use FP64 throughout, on both
-CPU and GPU, unless explicitly stated otherwise. Neural-operator
-training and inference use the precision specified for each experiment
-individually: B1/B2 training uses FP32 (Table~\ref{tab:hyperparams}),
-B3 training uses FP64, and the optimized $N{=}1401$ deployment
-benchmark of Section~\ref{sec:b3-breakeven} uses \texttt{torch.compile}
+comparisons below) use FP64 throughout, on both CPU and GPU, unless
+explicitly stated otherwise. Neural-operator training and inference use
+the precision specified for each experiment individually: B1/B2 training
+uses FP32 (Table~\ref{tab:hyperparams}), B3 training uses FP64, and the
+optimized $N{=}1401$ deployment benchmark uses \texttt{torch.compile}
 with TF32 matmul precision (\ref{app:a}). Disk I/O is excluded
 from every timed figure -- only in-memory field generation and the
 solve (or forward pass) itself are timed. Every GPU-timed region is
@@ -423,9 +409,9 @@ kernel launches are otherwise asynchronous and would be undercounted; one
 full untimed solve precedes any GPU timing to absorb CUDA context creation
 and kernel/autotuning overhead. Native (CPU) finite-element cost figures
 are the median of five repeated measurements per case; matched-batch
-operator-vs-FEM inference latency (Table~\ref{tab:cost} and
-Section~\ref{sec:gpu-fem}) uses 10 untimed warm-up calls followed by
-the median over 50 repeated timed runs at each batch size.
+operator-vs-FEM inference latency (Table~\ref{tab:cost}) uses 10 untimed
+warm-up calls followed by the median over 50 repeated timed runs at each
+batch size.
 
 \textbf{Computational environment.} The native-FEM cost re-measurement
 underlying Table~\ref{tab:fem-cost} ran on Python 3.12.13, NumPy 2.0.2,
@@ -472,9 +458,9 @@ Arruda-Boyce   & \multicolumn{2}{c}{$\approx9.72\times10^{7}$} & $\approx7.9\tim
 
 The reference solver's own correctness is checked independently of the
 operator comparison: a GPU-native, batched re-implementation of the same
-Newton--Raphson solver (used for the scaling study of
-Section~\ref{sec:gpu-fem}) is validated node-by-node against this CPU
-reference at the operating resolution before any timing is trusted
+Newton--Raphson solver (used for the scaling study below) is validated
+node-by-node against this CPU reference at the operating resolution
+before any timing is trusted
 (Table~\ref{tab:fem-correctness}) -- agreement is at the level of machine
 round-off ($10^{-13}$--$10^{-16}$) for every one of the six cases, not
 merely close.
@@ -574,7 +560,7 @@ resolutions.
 \centering
 \caption{High-DOF Q4 reference convergence, B1$\times$Neo-Hookean, against
   the $\sim10^7$-DOF reference solution, using the geometric multigrid
-  preconditioner of Section~\ref{sec:gpu-fem} (every row is a genuinely
+  preconditioner described below (every row is a genuinely
   CG-converged solve).}
 \label{tab:high-dof-q4}
 \small
@@ -622,15 +608,15 @@ Q9 & $1.57$ & $0.76$ & $0.75$ \\
 
 For B3, an analogous GPU mesh-convergence ladder (336 to
 950,400 elements) located the first resolution at which the regional
-Cauchy-stress field error (Section~\ref{sec:results-3d}) enters a $5$--$10\%$
-target band at 480,320 elements, within the $10^5$--$10^6$-element
+Cauchy-stress field error (defined later for the 3D benchmark) enters a
+$5$--$10\%$ target band at 480,320 elements, within the $10^5$--$10^6$-element
 range adopted for this benchmark. Table~\ref{tab:b3-ladder} reports the
 full ladder, scored against the $839{,}040$-element row as the fixed
 reference (the $950{,}400$-element row -- one step finer still, confirmed
 to agree with the $839{,}040$-element solution to within the ladder's own
-reproducibility, Section~\ref{sec:b3-stress} -- is adopted as the common
-reference used throughout Section~\ref{sec:results-3d} proper, so its own
-self-comparison reads $0\%$ by construction below).
+reproducibility -- is adopted as the common reference used throughout
+the 3D results proper, so its own self-comparison reads $0\%$ by
+construction below).
 
 \begin{table}[ht]
 \centering
@@ -698,11 +684,11 @@ used throughout this study. B1 and B2 draw from a fixed, pre-generated
 dataset (disjoint seed ranges for training, held-out QoI evaluation, and
 out-of-distribution testing); B3's training set is instead sampled
 on-the-fly every iteration, with the per-iteration seed tied
-deterministically to the iteration index (Section~\ref{sec:architecture}),
-so no fixed training-set size applies -- only its held-out validation set
-(used throughout Section~\ref{sec:results-3d}) is a fixed, pre-generated
-dataset. Exact per-split seed values are recorded in each run's own
-output manifest in the code repository, not reproduced here.
+deterministically to the iteration index, so no fixed training-set size
+applies -- only its held-out validation set (used throughout the 3D
+results) is a fixed, pre-generated dataset. Exact per-split seed values
+are recorded in each run's own output manifest in the code repository,
+not reproduced here.
 
 \begin{table}[h]
 \centering
@@ -772,7 +758,7 @@ Trainable parameters & $2{,}010{,}914$ ($\approx2.01$M) & $2{,}011{,}171$ ($\app
 \midrule
 Training budget & up to 2000 epochs, early stopping & $50{,}000$ iterations \\
 Training precision & FP32 & FP64 \\
-Input normalization & -- (not used) & on (mean-0/std-1, Section~\ref{sec:results-3d}) \\
+Input normalization & -- (not used) & on (mean-0/std-1) \\
 Local integration refinement & -- (not applicable) & off (baseline); $n_{\text{sub}}{=}10$, \\
  & & 566 region points (local-refinement run) \\
 \bottomrule
@@ -798,9 +784,9 @@ potential energy of Eq.~\eqref{eq:discrete-energy},
   \big[\, \Pi_h\big(\mathbf{u}_\theta(\,\cdot\,;E,\nu,\mathbf{t})\big) \,\big],
   \label{eq:dem-objective}
 \end{equation}
-over the sampling distribution $\mathcal{D}$ of material and loading fields
-(Section~\ref{sec:geometries}); no labeled displacement data are used during
-optimization. Dirichlet boundary conditions are enforced as a hard
+over the sampling distribution $\mathcal{D}$ of material and loading
+fields; no labeled displacement data are used during optimization.
+Dirichlet boundary conditions are enforced as a hard
 constraint via an output transformation: the raw network output is
 multiplied by a smooth ramp function that vanishes on the constrained
 boundary and approaches unity away from it, so the prescribed displacement
@@ -838,9 +824,9 @@ also serves as the final training run for the representative case. The
 same architecture, optimizer, and screening-selected protocol (batch
 size, maximum epochs, early-stopping rule) is subsequently applied
 without modification to the remaining five cases, with no case-specific
-hyperparameter tuning; B2's three cases additionally use the loss-scale
-rescaling of Section~\ref{sec:discussion-b2}, required for the raw
-objective to train at all on that geometry. All six cases completed
+hyperparameter tuning; B2's three cases additionally use a loss-scale
+rescaling, discussed next, required for the raw objective to train at
+all on that geometry. All six cases completed
 training under this common framework, each terminating by early stopping
 (no case reached the 2000-epoch upper bound; Table~\ref{tab:final-results}).
 
@@ -881,7 +867,7 @@ throughout this study.
 \centering
 \caption{Final validation error, best/final epoch, and training wall-clock
   time, all six (geometry, material) cases. B2's three rows use the
-  loss-scale-normalized training recipe of Section~\ref{sec:discussion-b2}.}
+  loss-scale-normalized training recipe described next.}
 \label{tab:final-results}
 \begin{tabular}{lcccc}
 \toprule
@@ -900,9 +886,9 @@ B2 $\times$ Arruda-Boyce   & 9.81\%  & 525 & 725  & 24{,}846.8 \\
 All three B2 materials sit in the same $7$--$10\%$ range as the three B1
 materials ($9.6$--$11.2\%$), and B2$\times$Mooney-Rivlin ($7.28\%$) is in
 fact the single most accurate of all six 2D cases -- confirming the
-root-cause finding of Section~\ref{sec:discussion-b2}: the gap in an
-earlier, uncorrected B2 recipe was a fixable training-objective defect
-specific to B2's boundary-force convention, not a harder
+root-cause finding discussed next: the gap in an earlier, uncorrected B2
+recipe was a fixable training-objective defect specific to B2's
+boundary-force convention, not a harder
 operator-learning target.
 
 \begin{figure*}[htb]
@@ -1042,8 +1028,8 @@ The total training wall-clock time, amortized over the 800 training
 samples used, gives an average of $3.48$--$42.71$~s per training instance
 -- lower than each case's own native FEM cost ($25.4$--$61.7$~s/sample)
 for five of the six cases, but not for B2$\times$Neo-Hookean, whose
-corrected recipe (Section~\ref{sec:discussion-b2}) costs $40.3$~s/sample,
-slightly more than its own $25.9$~s native FEM solve. A more informative
+corrected recipe costs $40.3$~s/sample, slightly more than its own
+$25.9$~s native FEM solve. A more informative
 measure is the break-even point: dividing each case's total training time
 by its marginal saving per subsequent inference gives a break-even of
 roughly $52$--$1{,}245$ new problem instances (case-dependent), highest
@@ -1093,9 +1079,9 @@ whether a GPU-native solver is actually available to the practitioner.
 \subsection{GPU-native finite-element solver: scaling and comparison to established libraries}
 \label{sec:gpu-fem}
 To check whether the break-even figures above depend on the finite-element
-side being a slow, single-threaded CPU baseline, the GPU-native,
-batched Newton--Raphson solver of Section~\ref{sec:results-2d} was also
-scaled up on its own terms, and compared directly against two established
+side being a slow, single-threaded CPU baseline, the same GPU-native,
+batched Newton--Raphson solver was also scaled up on its own terms, and
+compared directly against two established
 GPU finite-element codes. The solver forms its tangent densely at the
 study's own mesh, which is appropriate at $N{=}21$ but cannot scale (a
 dense $2$-million-by-$2$-million tangent in double precision is
@@ -1271,10 +1257,9 @@ for B1$\times$Neo-Hookean only; it is not repeated for the other five
 (geometry, material) cases, and the speed-up/timing figures above should
 not be read as generalizing automatically to them. All absolute wall-clock
 and memory figures in this subsection are specific to the single A100
-(80~GB) GPU and the library versions used at the time each benchmark ran
-(Section~\ref{sec:discretization}); relative comparisons between solvers
-on the same hardware are the portable finding, not the absolute numbers
-themselves.
+(80~GB) GPU and the library versions used at the time each benchmark ran;
+relative comparisons between solvers on the same hardware are the
+portable finding, not the absolute numbers themselves.
 
 \subsection{Out-of-distribution generalization}
 To check how each network behaves outside its training distribution, a
@@ -1513,9 +1498,9 @@ relative error against the common $N{=}101$ reference. In every one of
 the six cases, the $H^1$ semi-norm is the binding (hardest to satisfy)
 quantity, requiring a substantially finer mesh than displacement, energy,
 or the reaction/region-stress quantities -- the same derivative-based-norms-
-are-harder pattern already established in
-Section~\ref{sec:results-2d} (``Error in derived physical quantities''),
-now shown to hold case-by-case, not only in the pooled statistics there.
+are-harder pattern established later under ``Error in derived physical
+quantities,'' now shown to hold case-by-case, not only in the pooled
+statistics there.
 
 \begin{table}[h]
 \centering
@@ -1895,7 +1880,7 @@ dominates by more than an order of magnitude in both pairings.
 \end{figure}
 
 A preliminary comparison suggests the resolution-generalization behavior
-of Section~\ref{sec:resolution-invariance} is not specific to
+observed above for the zero-shot study is not specific to
 physics-informed training: a data-driven operator trained on
 finite-element labels from a
 coarse mesh ($N{=}13$) is most accurate at its own training resolution
@@ -2087,13 +2072,13 @@ Arruda-Boyce   & Q9 & 2.96 & 1.98 & 2.00 & 1.99 \\
 
 \subsection{Training and displacement accuracy}
 A Deep Energy Method Transolver operator was trained for B3 at the fixed
-production resolution (6,840 elements, 7,980 nodes) described in
-Section~\ref{sec:discretization}. One 100-sample set, disjoint from
-training by seed, is used throughout this section for every checkpoint
-comparison and methodology decision below (the input-normalization fix,
-the evaluation-side and training-side integration refinements, and the
-accuracy-matched comparison of Section~\ref{sec:b3-breakeven}); it
-therefore functions as a validation set in the conventional sense, not a
+production resolution (6,840 elements, 7,980 nodes) described earlier.
+One 100-sample set, disjoint from training by seed, is used throughout
+this section for every checkpoint comparison and methodology decision
+below (the input-normalization fix, the evaluation-side and
+training-side integration refinements, and the accuracy-matched
+comparison below); it therefore functions as a validation set in the
+conventional sense, not a
 test set consulted only once, and the accuracy figures reported should be
 read accordingly. An initial training run, with the raw
 $E,\nu,\phi$ values fed directly to the network, was unstable: the best
@@ -2138,8 +2123,8 @@ strain energy and $2.99\%$ for the reaction moment (Table~\ref{tab:b3-global-bef
 \label{sec:b3-stress}
 The Cauchy stress is obtained from the first Piola--Kirchhoff stress by
 the standard push-forward $\boldsymbol{\sigma} = J^{-1}\mathbf{P}\mathbf{F}^{\mathsf T}$.
-The region of interest is a sphere of radius $2\rho$ ($\rho\approx0.0228$,
-Section~\ref{sec:b3-geometry}) centered on the deepest point of the
+The region of interest is a sphere of radius $2\rho$ ($\rho\approx0.0228$)
+centered on the deepest point of the
 groove at its meridian plane, $(r,\theta,z) = (R_{\text{in}}-\text{depth},\,
 0,\,L_z/2) = (0.3,\,0,\,0.5)$; a Gauss point belongs to the region if its
 Euclidean distance to that center is below $2\rho$. For a single sample,
@@ -2206,8 +2191,8 @@ $10\times10\times10$ points, for only the four elements (of $6{,}840$) that
 intersect the fixed region, with the operator's mesh, node count, and
 element count left otherwise unchanged. Retraining with this change for the
 same iteration budget ($7{,}627.5$~s, a separate training run from the
-baseline checkpoint used in Sections~\ref{sec:b3-geometry}--\ref{sec:b3-breakeven}
-above) reduced the converged regional-stress error from $62.2$--$62.3\%$ to
+baseline checkpoint used throughout this section) reduced the converged
+regional-stress error from $62.2$--$62.3\%$ to
 $29.7$--$29.9\%$ in this first training run (Table~\ref{tab:b3-stress}) --
 roughly halving it, and confirming that part of the original gap was
 attributable to under-resolved background integration rather than the
@@ -2326,10 +2311,10 @@ terms, consistent with their values being close to zero and sign-changing
 within the region, while not meaningfully moving the pooled metric. The
 remaining $29.8\%$ gap (seed 1; $31.35\%\pm12.45\%$ across all 3 seeds,
 Table~\ref{tab:b3-global-before-after}) is reported here as an open
-limitation (Section~\ref{sec:discussion}), not a fully resolved result.
+limitation, discussed further below, not a fully resolved result.
 
 The baseline checkpoint above -- which supplies the displacement/energy/
-reaction/break-even figures used throughout Sections~\ref{sec:b3-geometry}--\ref{sec:b3-breakeven}
+reaction/break-even figures used throughout this section
 except where the 3-seed local-integration-refinement range is explicitly
 cited -- comes from a single training run (one weight-initialization
 seed); its own training-seed-to-seed variability has not been quantified
@@ -2347,14 +2332,13 @@ be measured against an independent fine reference, not
 the same mesh it trained on, which itself carries non-negligible
 discretization error. This fine reference ($43{,}400$ elements) was established independently,
 for this accuracy-matched comparison specifically, and is distinct from
-both references used in the mesh-convergence ladder of
-Section~\ref{sec:discretization}: the $839{,}040$-element mesh the
-13-point ladder (Table~\ref{tab:b3-ladder}) is itself scored against, and
-the $950{,}400$-element mesh -- one step finer still, independently
-solved to confirm agreement with the $839{,}040$-element solution within
-the ladder's own reproducibility -- subsequently adopted as the common,
-downstream high-resolution reference used elsewhere in
-Section~\ref{sec:b3-stress}. All three serve different purposes (a
+both references used in the earlier mesh-convergence ladder: the
+$839{,}040$-element mesh the 13-point ladder (Table~\ref{tab:b3-ladder})
+is itself scored against, and the $950{,}400$-element mesh -- one step
+finer still, independently solved to confirm agreement with the
+$839{,}040$-element solution within the ladder's own reproducibility --
+subsequently adopted as the common, downstream high-resolution reference
+used elsewhere in this section. All three serve different purposes (a
 displacement/energy/reaction accuracy baseline here, a mesh-convergence
 score there, and a shared downstream reference elsewhere) and are not
 required to coincide. Ten held-out samples were re-solved at this
@@ -2403,7 +2387,7 @@ The screening and early-stopping protocol reached the best validation
 performance within $375$--$1{,}050$ epochs across all six benchmark cases
 (Table~\ref{tab:final-results}), substantially reducing the training
 budget compared with a naive fixed-epoch setting. Taken together with the
-GPU-native FEM benchmark (Section~\ref{sec:gpu-fem}) and the training-cost
+GPU-native FEM benchmark above and the training-cost
 comparison (Table~\ref{tab:cost}), a consistent efficiency picture
 emerges: a GPU-native but still-iterative FEM solver is $71.7$--$171.5\times$
 faster than the CPU reference once well batched ($\mathrm{bs}{=}128$); the
@@ -2422,10 +2406,10 @@ training distribution rather than the underlying physics in a way that
 extrapolates: with the corrected, loss-normalized B2 checkpoints, both
 geometries degrade by a comparable factor under a combined stiffness/load
 shift of only $2$--$2.5$ standard deviations ($4.11$--$4.61\times$ for B1,
-$3.94$--$5.58\times$ for B2; Section~\ref{sec:results-2d}) -- no geometry
+$3.94$--$5.58\times$ for B2) -- no geometry
 is meaningfully more or less robust than the other under this test. The
 resolution-invariance study and the
-reference-solver mesh-convergence study of Section~\ref{sec:discretization}
+reference-solver mesh-convergence study described earlier
 address complementary halves of the same underlying concern about the
 fixed operating mesh used throughout this study: the finite-element
 reference itself is already well converged there, so the ground truth used
@@ -2451,8 +2435,8 @@ are a natural direction if resolutions or geometries were to be added
 incrementally to a deployed operator rather than trained jointly from the
 outset.
 
-The manufactured-solution verification (Section~\ref{sec:results-2d})
-delivers an important, non-obvious qualification to every accuracy figure
+The manufactured-solution verification above delivers an important,
+non-obvious qualification to every accuracy figure
 reported: a trained operator's error, unlike a finite element's, does not
 shrink with mesh refinement under a fixed training budget, because it is
 dominated by optimization error on an increasingly large problem rather than
@@ -2461,7 +2445,7 @@ broader pattern that every field-derivative quantity (stress, strain
 energy, $H^1$ semi-norm) is harder for the operator than the displacement
 field it is trained to minimize energy over.
 
-B3's regional Cauchy-stress result (Section~\ref{sec:b3-stress}) extends
+B3's regional Cauchy-stress result extends
 this picture to a genuinely 3D, geometrically localized quantity of
 interest. Local integration refinement -- applied only to the handful of
 elements touching a region that matters, independently of the operator's
@@ -2529,7 +2513,7 @@ separable deficiency: this paper shows that refining the DEM background
 integration in the region of interest, independently of the operator's own
 discretization, recovers roughly half of a large initial error, but closing
 the remainder is left as an open problem with several concrete candidate
-directions identified in Section~\ref{sec:discussion}.
+directions identified above.
 
 \section*{CRediT Author Contributions}
 %% TODO: confirm contribution roles with Suhib/Timon before submission.
@@ -2568,7 +2552,7 @@ directly from the underlying archived experiment records; none are
 estimated, interpolated, or reconstructed.
 
 \subsection{Full matched-batch GPU-native-FEM-vs-operator comparison}
-Section~\ref{sec:gpu-fem} and Section~\ref{sec:results-2d} report only
+The main text reports only
 the aggregate speed-up range ($1{,}215$--$1{,}297\times$ at matched batch
 size) and the resulting break-even range ($1{,}133$--$95{,}038$
 instances) against the GPU-native FEM baseline (Table~\ref{tab:cost}).
@@ -2671,7 +2655,7 @@ entirely on the batch size assumed practical for the deployment
 scenario.
 
 \subsection{Throughput and memory-ceiling comparison}
-Section~\ref{sec:gpu-fem} states the operator's peak throughput exceeds
+The main text states the operator's peak throughput exceeds
 the native finite-element solver's by roughly $1{,}470\times$ at matched
 GPU memory. Table~\ref{tab:a2} reports the full underlying measurement
 (B1$\times$Neo-Hookean, $N{=}21$, same GPU, corrected checkpoint).
@@ -2702,8 +2686,8 @@ gap is $\approx1{,}470\times$ regardless of which memory budget is used
 to cap the comparison.
 
 \subsection{Inference-speed optimization breakdown}
-Section~\ref{sec:b3-breakeven} and the corresponding figure use the
-operator's compile+TF32 inference cost at $N{=}1401$ ($\approx394$~ms) as
+The B3 break-even analysis in the main text and the corresponding figure
+use the operator's compile+TF32 inference cost at $N{=}1401$ ($\approx394$~ms) as
 the baseline for every B3 accuracy-matched break-even figure reported.
 Table~\ref{tab:a3} reports the full optimization-attempt breakdown this
 number comes from, including each variant's numerical output difference
@@ -2768,7 +2752,7 @@ binding constraint for any of the six 2D benchmark cases.
 \setcounter{table}{0}
 
 \subsection{Full 16-resolution six-case FEM-vs-operator QoI sweeps}
-Section~\ref{sec:results-2d} reports only the coarsest finite-element
+The main text reports only the coarsest finite-element
 mesh reaching a fixed $5\%$ threshold per quantity of interest
 (Table~\ref{tab:required-n}) and the binding-quantity accuracy-matched
 cost comparison (Table~\ref{tab:accuracy-matched-cost}). The underlying
@@ -3152,7 +3136,7 @@ A pattern visible across all six cases, stated plainly rather than left
 for the reader to notice: the operator's error is non-monotone in $N$
 for several quantities (most visibly B2's $L^2$/$H^1$/energy columns,
 which plateau or even worsen past $N{\approx}21$ rather than continuing
-to improve), consistent with Section~\ref{sec:results-2d}'s own finding
+to improve), consistent with the main text's own finding
 that the operator's error is dominated by optimization error rather than
 discretization error -- it does not inherit FEM's guarantee of monotone
 convergence under refinement, because refining $N$ only changes the
@@ -3432,7 +3416,7 @@ $N$ & $L^2$ & $H^1$ semi-norm & Stress & Energy \\
 \end{table*}
 
 \subsection{Q4-vs-Q9 fine-reference agreement (PASS/FAIL)}
-Section~\ref{sec:discretization} states in prose that the Q4 and Q9 fine
+The main text states in prose that the Q4 and Q9 fine
 references ``agree to within $2\times10^{-6}$ in $L^2$ (though not fully
 to the prescribed $10^{-5}$ criterion in $H^1$/energy).'' Table~\ref{tab:c5}
 reports the direct PASS/FAIL comparison against the prescribed
@@ -3469,7 +3453,7 @@ actually scored against -- passes the criterion directly.
 \setcounter{table}{0}
 
 \subsection{Progressive out-of-distribution shift}
-Section~\ref{sec:results-2d} reports out-of-distribution degradation
+The main text reports out-of-distribution degradation
 only at the full combined-shift endpoint used throughout the study
 ($2.5\sigma$ material / $2$--$2.5\sigma$ loading). The underlying
 progressive sweep, isolating material and loading shifts separately
@@ -3477,7 +3461,7 @@ across six intermediate shift magnitudes on B1$\times$Neo-Hookean, is
 reported in Table~\ref{tab:d1}, and a companion
 raw-input-vs-normalized-input ablation -- testing whether standardizing
 B1's own four input channels (a separate normalization from the
-B3-specific input-normalization fix of Section~\ref{sec:results-3d},
+B3-specific input-normalization fix described for the 3D benchmark,
 unrelated to it) changes the OOD sensitivity picture -- in
 Table~\ref{tab:d2}.
 
@@ -3549,8 +3533,8 @@ dominates loading in the normalized model), though it does shift the
 absolute sensitivity at the largest material shifts tested.
 
 \subsection{Multi-resolution training-cost breakdown}
-Section~\ref{sec:results-2d} (zero-shot resolution invariance,
-B1$\times$Neo-Hookean) reports that a direct-$N{=}1401$-trained
+The main text's zero-shot resolution-invariance study
+(B1$\times$Neo-Hookean) reports that a direct-$N{=}1401$-trained
 checkpoint is cheaper to train than the multi-resolution checkpoint but
 substantially less accurate at unseen resolutions. Table~\ref{tab:d3}
 reports the underlying per-run training-cost breakdown for all seven
