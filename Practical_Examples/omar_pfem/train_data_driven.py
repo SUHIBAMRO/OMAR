@@ -47,6 +47,41 @@ conclusion may be that the physics-informed model loses. `--loss mse` gives
 the plain alternative; it weights large-displacement samples more heavily
 and generally scores worse on the relative metric.
 
+Two further baselines, added per the advisor's follow-up review asking for
+"a Sobolev-trained DD baseline and possibly a hybrid physics+data baseline
+on the representative case":
+
+  `--loss sobolev`: adds a gradient-matching term to the plain data loss --
+  (1-w)*rel_L2(u_pred, u_fem) + w*rel_L2(grad_u_pred, grad_u_fem), weight
+  `--sobolev_grad_weight` (default 0.5). grad_u here is exactly the
+  deformation-gradient contribution (I + du/dX) at every Gauss point that
+  compute_hyperelastic_energy_Q4 already computes for the energy integral --
+  reused via a differentiable twin of that function (differentiable_grad_u_Q4
+  below; the original stays untouched and keeps returning a detached Fg,
+  since every other caller only ever used it for post-hoc inspection). This
+  is a genuine Sobolev / H1-type loss: matching the field's own derivative,
+  not just its value, to the FEM reference -- the same H1 semi-norm this
+  study already reports as a QoI, now used as a training signal instead of
+  only an evaluation metric.
+
+  `--loss hybrid`: combines the physics-informed objective (Pi = U - W,
+  identical to train_B1/B2's own loss) with the data loss above, both
+  computed from the SAME forward pass (one call to
+  total_potential_energy_Q4_hyperelastic, so both terms see the same
+  dropout mask -- calling the data-only forward and the physics forward
+  separately would silently blend two different stochastic forward passes
+  as if they were one). Pi and the relative-L2 data loss live on
+  incomparable scales (an energy functional vs. a value in roughly [0,1]),
+  so Pi is rescaled by a running estimate of its own magnitude
+  (`--hybrid_phys_norm running`, an exponential moving average of
+  |Pi.mean()|, momentum `--hybrid_phys_norm_momentum`, default 0.99) before
+  being combined at weight `--hybrid_phys_weight` (default 0.5); `--loss
+  hybrid --hybrid_phys_norm none` combines the raw, unnormalized terms
+  instead, for anyone who wants to see what that looks like. Both the raw
+  and the normalized components are logged to history.json at every
+  evaluation step, so the run is auditable even if a different weighting
+  would have been more balanced.
+
 Usage:
   python -m omar_pfem.train_data_driven \
       --geometry B1 --material neo_hookean \
@@ -65,6 +100,7 @@ import torch
 
 from omar_pfem.model_dict import get_model
 from omar_pfem.run_manifest import write_manifest
+from omar_pfem.train_B1 import shape_Q4_torch
 
 # Table 4a's measured native CPU FEM cost per sample, which is what the
 # labels this model trains on actually cost to produce.
@@ -80,12 +116,14 @@ def geometry_api(geometry):
         from omar_pfem.train_B1 import (
             load_fem_dataset_Q4_with_materials_and_random_force as load_ds,
             predict_displacement_Q4_only as predict,
-            evaluate_dataset_hyperelastic_Q4 as evaluate)
+            evaluate_dataset_hyperelastic_Q4 as evaluate,
+            total_potential_energy_Q4_hyperelastic as energy)
     else:
         from omar_pfem.train_B2 import (
             load_fem_dataset_Q4_with_materials_and_random_force as load_ds,
             predict_displacement_Q4_only as predict,
-            evaluate_dataset_hyperelastic_Q4 as evaluate)
+            evaluate_dataset_hyperelastic_Q4 as evaluate,
+            total_potential_energy_Q4_hyperelastic as energy)
     # `predict_displacement_Q4_only` is decorated @torch.no_grad(), which is
     # right for its own callers (the latency benchmark, pareto_analysis) and
     # fatal here: the loss would arrive with no grad_fn and backward() would
@@ -98,7 +136,59 @@ def geometry_api(geometry):
     assert train_predict is not None, (
         "predict_displacement_Q4_only is no longer wrapped in @torch.no_grad(); "
         "check whether it is now differentiable and use it directly")
-    return load_ds, train_predict, evaluate
+    return load_ds, train_predict, evaluate, energy
+
+
+def differentiable_grad_u_Q4(xy, quad, uv, dtype):
+    """A differentiable twin of compute_hyperelastic_energy_Q4's own
+    deformation-gradient computation (train_B1.py/train_B2.py), stripped of
+    the material/energy-density evaluation and, critically, WITHOUT the
+    `.detach()` that function applies to its own Fg output (correct for its
+    actual callers -- the energy loss never needs Fg's gradient, only the
+    network's -- but fatal for a Sobolev loss, which needs gradients to flow
+    back into the network through the deformation gradient itself). Uses the
+    exact same reference-element shape functions and 2x2 Gauss rule, so the
+    quantity being matched here is identical to what compute_hyperelastic_
+    energy_Q4 would have computed, not an approximation of it.
+
+    uv: (B,N,2). Returns (B,Q,2,2), the per-sample, per-Gauss-point
+    deformation gradient F = I + du/dX, differentiable w.r.t. uv."""
+    device = xy.device
+    B = uv.shape[0]
+    Q = quad.shape[0]
+    Xe = xy[quad]        # (Q,4,2)
+    ue = uv[:, quad]     # (B,Q,4,2)
+
+    g = 1.0 / np.sqrt(3.0)
+    gps = [(-g, -g), (g, -g), (g, g), (-g, g)]
+    F_list = []
+    for (xi, eta) in gps:
+        xi_t = torch.tensor(float(xi), device=device, dtype=dtype)
+        eta_t = torch.tensor(float(eta), device=device, dtype=dtype)
+        _, dN_dxi = shape_Q4_torch(xi_t, eta_t, device, dtype)
+
+        J0 = torch.einsum("qai,aj->qij", Xe, dN_dxi)
+        detJ0 = torch.clamp(J0[:, 0, 0] * J0[:, 1, 1] - J0[:, 0, 1] * J0[:, 1, 0], min=1e-12)
+        invJ0 = torch.zeros_like(J0)
+        invJ0[:, 0, 0] = J0[:, 1, 1] / detJ0
+        invJ0[:, 1, 1] = J0[:, 0, 0] / detJ0
+        invJ0[:, 0, 1] = -J0[:, 0, 1] / detJ0
+        invJ0[:, 1, 0] = -J0[:, 1, 0] / detJ0
+        dN_dX = torch.einsum("aj,qjk->qak", dN_dxi, invJ0)
+
+        grad_u = torch.einsum("bqai,qaj->bqij", ue, dN_dX)
+        I = torch.eye(2, device=device, dtype=dtype).reshape(1, 1, 2, 2).expand(B, Q, 2, 2)
+        F_list.append((I + grad_u).unsqueeze(1))  # (B,1,Q,2,2)
+    return torch.cat(F_list, dim=1).reshape(B, 4 * Q, 2, 2)
+
+
+def grad_rel_l2(F_pred, F_exact):
+    """Same relative-L2 shape as data_loss()'s rel_l2 branch, applied to the
+    flattened (B, 4*Q, 2, 2) deformation-gradient tensor instead of (B,N,2)
+    displacement -- the Sobolev loss's derivative term."""
+    num = torch.sqrt(torch.sum((F_pred - F_exact) ** 2, dim=(1, 2, 3)))
+    den = torch.sqrt(torch.sum(F_exact ** 2, dim=(1, 2, 3))) + 1e-12
+    return torch.mean(num / den)
 
 
 def mesh_tensors(geometry, sample, device, dtype):
@@ -121,6 +211,23 @@ def forward(geometry, predict, mesh_t, model, E, nu, f, args, dtype):
     return predict(xy, quad, inner_edges, theta0, thalf, model, E, nu, f,
                    use_soft_dirichlet=args.use_soft_dirichlet, R_out=args.R_out,
                    dtype=dtype, fun_dim=args.fun_dim)
+
+
+def forward_energy(geometry, energy, mesh_t, model, E, nu, f, args, dtype):
+    """Same dispatch as forward(), but through the differentiable energy
+    function (Pi, U, W, uv, Fg) instead of the no-grad-only predict wrapper
+    -- used by `--loss hybrid`, which needs Pi and uv from a SINGLE forward
+    pass (see the module docstring on why two separate forward calls would
+    be wrong whenever dropout is active)."""
+    if geometry == "B1":
+        xy, quad, top_edges, bottom_nodes = mesh_t
+        return energy(xy, quad, top_edges, bottom_nodes, model, E, nu, f,
+                     use_soft_dirichlet=args.use_soft_dirichlet, Ly=args.Ly,
+                     dtype=dtype, fun_dim=args.fun_dim, material=args.material)
+    xy, quad, inner_edges, theta0, thalf = mesh_t
+    return energy(xy, quad, inner_edges, theta0, thalf, model, E, nu, f,
+                 use_soft_dirichlet=args.use_soft_dirichlet, R_out=args.R_out,
+                 dtype=dtype, fun_dim=args.fun_dim, material=args.material)
 
 
 def data_loss(uv_pred, uv_exact, kind):
@@ -160,7 +267,19 @@ def main():
                    help="ntrain/batch_size, so 'epoch' means the same thing in both "
                         "runs and the x0.9-every-1000-epochs decay lands identically")
     p.add_argument("--grad_clip", type=float, default=1.0)
-    p.add_argument("--loss", default="rel_l2", choices=["rel_l2", "mse"])
+    p.add_argument("--loss", default="rel_l2",
+                   choices=["rel_l2", "mse", "sobolev", "hybrid"])
+    p.add_argument("--sobolev_grad_weight", type=float, default=0.5,
+                   help="--loss sobolev: weight on the deformation-gradient "
+                        "term, (1-w)*rel_L2(u) + w*rel_L2(grad_u)")
+    p.add_argument("--hybrid_phys_weight", type=float, default=0.5,
+                   help="--loss hybrid: weight on the (optionally normalized) "
+                        "physics term, w*Pi_term + (1-w)*rel_L2(u)")
+    p.add_argument("--hybrid_phys_norm", default="running", choices=["running", "none"],
+                   help="--loss hybrid: rescale Pi by a running EMA of its own "
+                        "|mean| before combining with the data loss (default), "
+                        "or combine the raw, unnormalized terms ('none')")
+    p.add_argument("--hybrid_phys_norm_momentum", type=float, default=0.99)
     p.add_argument("--eval_every", type=int, default=2000, help="in optimizer steps")
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--cpu", action="store_true")
@@ -191,7 +310,7 @@ def main():
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(args.seed)
 
-    load_ds, predict, evaluate = geometry_api(args.geometry)
+    load_ds, predict, evaluate, energy = geometry_api(args.geometry)
     train, test = load_ds(args.path, args.ntrain, args.ntest)
     print(f"Loaded {len(train)} train / {len(test)} test from {args.path}")
 
@@ -235,6 +354,16 @@ def main():
     nu_all = torch.tensor(np.stack([s["nu_node"] for s in train]), device=device, dtype=dtype)
     f_all = torch.tensor(np.stack([s["node_forces"] for s in train]), device=device, dtype=dtype)
 
+    graduv_all = None
+    if args.loss == "sobolev":
+        xy_mesh, quad_mesh = mesh_t[0], mesh_t[1]
+        with torch.no_grad():
+            graduv_all = differentiable_grad_u_Q4(xy_mesh, quad_mesh, uv_all, dtype)
+        print(f"Sobolev loss: precomputed exact deformation gradient for all "
+              f"{len(train)} training samples, grad weight={args.sobolev_grad_weight}")
+
+    phys_scale_ema = None  # --loss hybrid, --hybrid_phys_norm running
+
     ckpt_path = os.path.join(args.out_dir, "model_best.pt")
     hist_path = os.path.join(args.out_dir, "history.json")
     best = {"step": -1, "val_rel_L2": float("inf")}
@@ -250,9 +379,41 @@ def main():
                 break
             idx = torch.as_tensor(order[s0:s0 + args.batch_size], device=device)
             model.train()
-            uv = forward(args.geometry, predict, mesh_t, model,
-                         E_all[idx], nu_all[idx], f_all[idx], args, dtype)
-            loss = data_loss(uv, uv_all[idx], args.loss)
+            log_extra = {}
+            if args.loss == "hybrid":
+                Pi, _U, _W, uv, _Fg = forward_energy(
+                    args.geometry, energy, mesh_t, model,
+                    E_all[idx], nu_all[idx], f_all[idx], args, dtype)
+                phys_raw = Pi.mean()
+                data_term = data_loss(uv, uv_all[idx], "rel_l2")
+                if args.hybrid_phys_norm == "running":
+                    cur = float(phys_raw.detach().abs().item()) + 1e-12
+                    phys_scale_ema = (cur if phys_scale_ema is None else
+                                      args.hybrid_phys_norm_momentum * phys_scale_ema +
+                                      (1 - args.hybrid_phys_norm_momentum) * cur)
+                    phys_term = phys_raw / phys_scale_ema
+                else:
+                    phys_term = phys_raw
+                w = args.hybrid_phys_weight
+                loss = w * phys_term + (1 - w) * data_term
+                log_extra = {"phys_raw": float(phys_raw.item()),
+                             "phys_term": float(phys_term.item()),
+                             "data_term": float(data_term.item())}
+            elif args.loss == "sobolev":
+                uv = forward(args.geometry, predict, mesh_t, model,
+                             E_all[idx], nu_all[idx], f_all[idx], args, dtype)
+                val_term = data_loss(uv, uv_all[idx], "rel_l2")
+                xy_mesh, quad_mesh = mesh_t[0], mesh_t[1]
+                F_pred = differentiable_grad_u_Q4(xy_mesh, quad_mesh, uv, dtype)
+                grad_term = grad_rel_l2(F_pred, graduv_all[idx])
+                w = args.sobolev_grad_weight
+                loss = (1 - w) * val_term + w * grad_term
+                log_extra = {"val_term": float(val_term.item()),
+                             "grad_term": float(grad_term.item())}
+            else:
+                uv = forward(args.geometry, predict, mesh_t, model,
+                             E_all[idx], nu_all[idx], f_all[idx], args, dtype)
+                loss = data_loss(uv, uv_all[idx], args.loss)
 
             opt.zero_grad(set_to_none=True)
             loss.backward()
@@ -271,7 +432,8 @@ def main():
                 m = evaluate(test, model, args, device, dtype)
                 val = 0.5 * (m["mean_rel_L2_u"] + m["mean_rel_L2_v"])
                 history.append({"step": step, "train_loss": float(loss.item()),
-                                "val_rel_L2": val, "elapsed_s": time.time() - t0})
+                                "val_rel_L2": val, "elapsed_s": time.time() - t0,
+                                **log_extra})
                 flag = ""
                 if val < best["val_rel_L2"]:
                     best = {"step": step, "val_rel_L2": val}
@@ -299,6 +461,10 @@ def main():
         "label_generation_cost_h": label_cost_s / 3600.0,
         "total_cost_including_labels_s": wall + label_cost_s,
         "checkpoint": ckpt_path, "device": device.type,
+        "sobolev_grad_weight": args.sobolev_grad_weight if args.loss == "sobolev" else None,
+        "hybrid_phys_weight": args.hybrid_phys_weight if args.loss == "hybrid" else None,
+        "hybrid_phys_norm": args.hybrid_phys_norm if args.loss == "hybrid" else None,
+        "last_logged_components": history[-1] if history else None,
     }
     out_json = os.path.join(args.out_dir, f"data_driven_{args.geometry}_{args.material}.json")
     with open(out_json, "w") as fh:

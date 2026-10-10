@@ -17163,3 +17163,117 @@ existing files.
 
 Recompiled clean: 42 pages, 0 LaTeX errors, 0 undefined references,
 citations still matched.
+
+## Four "needs-new-GPU-experiments" items: notebooks built, Omar to run, 2026-10-10
+
+Omar asked explicitly ("اكتبهم كلهم واعطيني ياهم كلهم" -- write them all
+and give them to me) for working Colab notebooks for the four items
+flagged above as genuinely needing new GPU runs (Sobolev DD baseline,
+hybrid PI+DD baseline, early-stopping robustness check, B3 assembled+
+direct benchmark), rather than leaving them as flagged-but-undone. None
+of this has been run on a real GPU yet -- that's Omar's next step, not
+done here -- but every script was built by reusing this project's own
+already-trusted functions wherever one existed, and checked as far as
+this (CPU-only, no `torch_sla`) environment allows before being handed
+off.
+
+**1. Sobolev-trained DD baseline + 2. hybrid PI+DD baseline** (`train_
+data_driven.py`, extended in place -- `--loss sobolev` and `--loss
+hybrid` added alongside the existing `rel_l2`/`mse`, nothing about the
+existing two changed):
+- Sobolev: (1-w)*rel_L2(u_pred,u_fem) + w*rel_L2(grad_u_pred,grad_u_fem).
+  The gradient term needed a NEW differentiable deformation-gradient
+  function (`differentiable_grad_u_Q4`) because compute_hyperelastic_
+  energy_Q4's own Fg output is `.detach()`-ed (correct for its real
+  callers, useless for a loss that needs to backprop through it).
+  Verified this new function against compute_hyperelastic_energy_Q4's
+  own (detached) Fg at a hand-built tiny Q4 mesh before using it: bit-
+  identical (max abs diff 0.0), and `loss.backward()` through it gives
+  finite, non-zero gradients.
+- Hybrid: Pi (from total_potential_energy_Q4_hyperelastic, one forward
+  pass so both terms see the same dropout mask) combined with the data
+  loss, Pi rescaled by a running EMA of its own magnitude by default
+  (`--hybrid_phys_norm running`) since it and a relative-L2 error live on
+  incomparable scales; both raw and normalized components are logged to
+  history.json every eval step for auditability.
+- Notebooks: `zeroshot_notebooks/Round15_Sobolev_DD_Baseline.ipynb`,
+  `Round15_Hybrid_PI_DD_Baseline.ipynb`, both on B1xNeo-Hookean (the
+  representative case), following the exact Colab pattern Round6_Data_
+  Driven.ipynb already established.
+
+**3. Early-stopping robustness check** (new `early_stopping_robustness_
+check.py`, pure orchestration -- `train_B1.py`/`train_B2.py` themselves
+are untouched, since `--early_stop_patience` already existed): re-runs
+ONE case at 2-3 different patience values (default 4/8/16 -- 8 is what
+every reported B1/B2 result actually used), same seed/architecture/
+dataset/epoch-ceiling, into separate out_dirs, and reports how much
+best_val_error actually moves. Notebook: `Round15_EarlyStopping_
+Robustness.ipynb` (reads the case's own winning batch size from its real
+training_protocol.json rather than guessing one).
+
+**4. B3 assembled+direct (cuDSS) solver** (new `b3_assembled_direct_
+solver.py`) -- the hardest and riskiest of the four, marked EXPERIMENTAL
+in its own header exactly like assembled_direct_solver.py's own
+precedent, with a hard-coded gate (`run_b3_benchmark` raises unless
+`run_correctness_check` already passed in the same process -- cannot be
+bypassed by a caller flag). Ports the existing 2D assembled+direct
+pattern (local per-element energy, vmap+hessian sparse tangent, cuDSS
+Newton with analysis-reuse) to B3's hex8 mesh, reusing train_B3.py's own
+already-trusted build_fixed_geometry/total_potential_energy_B3 for the
+residual and geometry rather than writing new physics.
+
+Three real bugs were found and fixed by verifying this BEFORE handing it
+off, exactly this project's own standing discipline, not skipped despite
+no GPU being available here:
+- A node/component index-ordering mismatch between the new per-element
+  hex energy function and the sparse assembly's block-slicing (Q4's own
+  established convention is node-major; the first draft used component-
+  major, borrowed from total_potential_energy_B3's own internal einsum
+  convention, which doesn't match). Caught by comparing the assembled
+  sparse Hessian against a dense `torch.autograd.functional.hessian` of
+  the same global energy at a tiny mesh -- off by orders of magnitude
+  before the fix, exact to 1e-16 relative after.
+- A genuine `vmap(torch.func.hessian(...))` + `torch.linalg.slogdet`
+  composition bug: the per-element energy's Hessian was exactly correct
+  when differentiated alone but silently wrong (1e9-1e15x too large) for
+  a subset of elements only when vmapped together. Root-caused by
+  testing one element at a time outside vmap first. Fixed by switching
+  to an explicit cofactor-expansion 3x3 determinant (verified to match
+  slogdet's value to 1e-15 at non-degenerate F) instead of slogdet,
+  mirroring materials_torch.py's own 2D Neo-Hookean density, which
+  already avoids slogdet for exactly this kind of reason even though
+  nobody had previously connected it to this specific failure mode.
+- `geom["inner"]/["outer"]/["sym"]` turned out to be BOOLEAN masks over
+  nodes (`boundary_node_sets`'s own convention), not integer index lists
+  -- `3 * mask + c` on a bool tensor silently does elementwise arithmetic
+  over every node instead of selecting indices, producing a shape
+  mismatch that surfaced immediately rather than silently, but would
+  have silently corrupted the Dirichlet rows if the shapes had happened
+  to coincide. Fixed with an explicit `.nonzero(as_tuple=True)[0]`.
+- Separately (a comparison-setup mistake, not a solver bug): the first
+  full correctness-check run reported a real-looking 3-8% field
+  disagreement against the trusted torch-fem reference. Traced to
+  data/mesh_convergence_B3.py's own GROOVE_DEPTH constant (0.05, an
+  older value) differing from the production dataset's GROOVE_DEPTH
+  (0.20, data_generate_B3_dataset.py) -- train_B3.py's build_fixed_
+  geometry hardcodes the production value, so calling it for the
+  correctness check compared two different geometries. Fixed by adding
+  `build_fixed_geometry_with_groove`, parametrized explicitly, so the
+  check builds the SAME geometry solve_case uses. After this fix: three
+  independent small meshes (12/64/240 elements), all machine-precision
+  agreement with the trusted reference (L2 field relative error 1e-12 to
+  1e-15, 4-5 Newton iterations each).
+  
+  All four of the above were verified via a hand-rolled CPU Newton+dense-
+  linear-solve loop built from this module's own residual_fn/jac_fn
+  (this sandbox has no `torch_sla`/cuDSS, so the real GPU code path
+  itself -- `reuse_analysis=True` -- could not be exercised here); that
+  real GPU path, and the production-resolution (6,840-element) timing
+  number, are what Omar's own run of `Round15_B3_Assembled_Direct_
+  Solver.ipynb` still needs to produce and verify, per the module's own
+  standing constraint (GPU-verify, then show the advisor, before anything
+  from it goes in the paper).
+
+None of these four are in the paper yet -- intentionally. They exist so
+Omar can run them and bring back real numbers; nothing here should be
+treated as a result until he does.
