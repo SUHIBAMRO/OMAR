@@ -1575,25 +1575,49 @@ B2 $\times$ AB & 6 & 17 & 17 & -- & 6 \\
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:accuracy-matched-cost} extends this with the accuracy-matched
+Table~\ref{tab:accuracy-matched-cost} extends this with a fixed-threshold
 cost comparison on each case's own binding quantity ($H^1$ semi-norm,
-$5\%$ target): the coarsest FEM mesh reaching that target, its own
-directly measured per-sample cost there, and the resulting break-even
-against the operator's own compile+TF32 inference cost at $N{=}1401$,
-its real deployment resolution (essentially case-independent at
-$\approx394$~ms, the same operator baseline used throughout this
-comparison) -- complementary to the resolution-matched comparison above,
-which holds FEM at the fixed $N{=}21$ training mesh rather than at each
-case's own accuracy-matched mesh.
+$5\%$ target): the coarsest FEM mesh reaching that target and its own
+directly measured per-sample cost there, set against the operator's own
+compile+TF32 inference cost at $N{=}1401$, its real deployment resolution
+(essentially case-independent at $\approx394$~ms, the same operator
+baseline used throughout this comparison) -- complementary to the
+resolution-matched comparison above, which holds FEM at the fixed
+$N{=}21$ training mesh rather than at each case's own threshold-matched
+mesh. This is \emph{not} an accuracy-matched comparison in the sense of
+Table~\ref{tab:b3-breakeven}'s B3 analysis, which matches FEM to the
+operator's own independently measured error: here, the operator's own
+$H^1$ semi-norm error at $N{=}1401$ has never been directly measured (only
+displacement $L^2$ has, Table~\ref{tab:multires-n1401}, and even there the
+error is $5.8$--$25.05\%$ depending on case after the multi-resolution
+retraining fix, not uniformly at or below $5\%$). The per-resolution
+sweeps of Appendix~\ref{app:b} (every tested resolution from $N{=}3$ to
+$49$, the finest directly measured) show the operator's own $H^1$
+semi-norm error never reaching $5\%$ for any of the six cases, and often
+getting worse rather than better past $N{\approx}21$--$33$: the best
+value observed anywhere in the sweep is $8.82\%$ (B1$\times$NH, at
+$N{=}49$), $12.38\%$ (B1$\times$MR, $N{=}49$), $9.74\%$ (B1$\times$AB,
+$N{=}49$), $10.29\%$ (B2$\times$NH, $N{=}33$, non-monotone --
+$12.74$--$18.96\%$ at other tested $N>21$), never better than
+$\approx34\%$ at any tested resolution (B2$\times$MR), and $8.50\%$
+(B2$\times$AB, $N{=}21$, then degrading again to $24.90\%$ by $N{=}41$).
+The table below should therefore be read as the cost of reaching a
+prescribed $5\%$ engineering target by FEM, compared against the
+operator's real measured inference cost at its deployment resolution --
+not as a comparison at matched accuracy, since the operator's own
+attainment of that target is unconfirmed and the available evidence
+argues against it for the $H^1$ semi-norm specifically.
 
 \begin{table}[h]
 \centering
-\caption{Accuracy-matched FEM/operator comparison, all six cases, on each
-  case's own binding quantity ($H^1$ semi-norm, $5\%$ target): coarsest
-  FEM mesh reaching that target, FEM cost there, the operator's
-  compile+TF32 inference cost at its $N{=}1401$ deployment resolution
-  (case-independent, $\approx394$~ms -- not the $N{=}21$ eager cost of
-  Table~\ref{tab:cost}), and the resulting break-even.}
+\caption{Fixed-threshold FEM cost vs.\ operator inference cost, all six
+  cases, on each case's own binding quantity ($H^1$ semi-norm, $5\%$
+  target): coarsest FEM mesh reaching that target, FEM cost there, the
+  operator's compile+TF32 inference cost at its $N{=}1401$ deployment
+  resolution (case-independent, $\approx394$~ms -- not the $N{=}21$
+  eager cost of Table~\ref{tab:cost}), and the resulting break-even. This
+  is a cost comparison at a prescribed target, not a same-accuracy
+  comparison -- see caveat above.}
 \label{tab:accuracy-matched-cost}
 \footnotesize
 \begin{tabular}{lcccc}
@@ -2851,7 +2875,7 @@ binding constraint for any of the six 2D benchmark cases.
 \subsection{Full 16-resolution six-case FEM-vs-operator QoI sweeps}
 The main text reports only the coarsest finite-element
 mesh reaching a fixed $5\%$ threshold per quantity of interest
-(Table~\ref{tab:required-n}) and the binding-quantity accuracy-matched
+(Table~\ref{tab:required-n}) and the binding-quantity fixed-threshold
 cost comparison (Table~\ref{tab:accuracy-matched-cost}). The underlying
 per-case sweeps cover sixteen resolutions directly
 ($N{=}3$, $4$, $5$, $6$, $9$, $11$, $13$, $17$, $21$, $25$, $29$, $33$,
@@ -3241,7 +3265,7 @@ problem's discretization, not the fixed training budget the network was
 optimized under.
 
 \FloatBarrier
-\subsection{Accuracy-threshold tables (1\%/2\%/5\%), all six cases}
+\subsection{Fixed-threshold tables (1\%/2\%/5\%), all six cases}
 Table~\ref{tab:accuracy-matched-cost} reports only the $5\%$-threshold
 row, on each case's own binding quantity ($H^1$ semi-norm in every case).
 The underlying threshold analysis tabulates, per quantity of interest and
@@ -3252,7 +3276,15 @@ $N{=}1401$ deployment resolution ($\approx394$~ms, case-independent --
 the same baseline used throughout Table~\ref{tab:accuracy-matched-cost}).
 For some quantities the $1\%$ threshold is not reached by $N{=}49$, the
 coarsest-to-finest range tested; those cells are marked n/a, exactly as
-in the source.
+in the source. As noted above Table~\ref{tab:accuracy-matched-cost}, these
+break-even figures compare FEM's real cost of reaching each prescribed
+threshold against the operator's real measured inference cost, not a
+same-accuracy comparison: the operator's own error at $N{=}1401$ has not
+been directly measured for any of these QoIs (only displacement $L^2$
+has, Table~\ref{tab:multires-n1401}), and the $H^1$-semi-norm sweeps
+below (Table~\ref{tab:b1-b1nh-a} onward) show it does not reach even the
+loosest ($5\%$) of these three thresholds at any directly tested
+resolution, for any of the six cases.
 
 \begin{table*}[ht]
 \centering

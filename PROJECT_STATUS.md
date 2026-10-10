@@ -17069,3 +17069,52 @@ matched throughout.
   `/content/drive/MyDrive/pfem_ckpt` or `pfem_run/...` and resumable by
   re-running the exact same command.
 - User's GPU: A100, 80GB (per email to Timon, 2026-08-05).
+
+## Point 2 (accuracy-matched methodology) resolved without new experiments, 2026-10-10
+
+Continuing from the "genuinely needs new data" flag above: re-read all
+six Appendix B per-resolution sweep tables in full (`tab:b1-b1nh-a`,
+`tab:b1-b1mr-a`, `tab:b1-b1ab-a`, `tab:b1-b2nh-a`, and the B2xMR/B2xAB
+equivalents — every one of the 16 tested resolutions, N=3 through 49,
+operator H1 semi-norm column) to directly check Timon's concern: does
+the operator actually reach the 5% H1 target that
+`tab:accuracy-matched-cost` implicitly assumes at N=1401? **It does not,
+anywhere in the measured range, for any of the six cases.** Best
+observed operator H1 values across all 16 resolutions: B1xNH 8.82%
+(N=49), B1xMR 12.38% (N=49), B1xAB 9.74% (N=49), B2xNH 10.29% (N=33,
+non-monotone -- 12.74-18.96% at other N>21), B2xMR never better than
+~34% at any N, B2xAB 8.50% (N=21, then degrading back to 24.90% by
+N=41). Cross-checked against the only real N=1401 operator accuracy
+measurement that does exist (`tab:multires-n1401`, displacement L2 only,
+not H1): 44.65% before the multi-resolution retraining fix, 5.8-25.05%
+after, depending on case -- confirming independently that the 5% H1
+assumption has no support in any data this project has actually
+measured.
+
+Rather than fabricate a new N=1401 H1 measurement (no existing
+checkpoint-reuse path fetches it without a new GPU run, which was out of
+scope for this pass), applied Timon's own literal instruction directly:
+*"Please only call it accuracy-matched if both methods satisfy the same
+prescribed target."* Since the operator's attainment of the 5% H1 target
+is unconfirmed and the existing evidence argues against it, stopped
+calling Table~\ref{tab:accuracy-matched-cost} (and the six per-case
+1%/2%/5% threshold tables in Appendix B.2 that share the same framing)
+"accuracy-matched" -- renamed throughout to "fixed-threshold" /
+"prescribed-threshold" cost comparison, and added an explicit caveat
+paragraph before the main table and before the appendix tables citing
+the real numbers above. The FEM-side numbers in every one of these
+tables were already correct and are untouched (coarsest FEM mesh
+reaching a fixed threshold, and that mesh's own real measured cost) --
+only the claim that the operator meets the same target at its
+deployment resolution was removed. B3's own accuracy-matched comparison
+(`sec:b3-breakeven`, Table~\ref{tab:b3-breakeven}) was checked against
+the same standard and found to already do this correctly -- it matches
+FEM to the operator's own independently measured error against a fine
+reference (2.03% disp./2.30% energy/2.22% reaction), exactly what Timon
+asked for, and already omits any accuracy-matched break-even for stress
+(the one quantity B3's operator doesn't reach target on) -- left
+unchanged.
+
+Recompiled clean: 39 pages, 0 LaTeX errors, 0 undefined references,
+citations still matched. This closes task 9/15 from the advisor's
+review; task 15 (figure/legend sizes) remains open.
