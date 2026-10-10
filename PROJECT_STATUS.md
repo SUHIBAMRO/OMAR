@@ -16916,6 +16916,149 @@ matched to `references.bib`, no new overfull-hbox. Per Omar: after this
 batch, send directly to Timon -- no further self-review rounds before
 his feedback.
 
+### Timon's real first review arrived: 15-point review + corrections + a question, 2026-10-10
+
+Timon (the advisor) sent back real, substantive feedback on the paper --
+exactly the milestone the whole session above was working toward. This
+is engineering-level review (methodology gaps, mislabeled comparisons, a
+baseline that should exist but doesn't), not just wording. Omar's
+explicit direction: start immediately on everything fixable from data
+that already exists in this project, flag clearly whatever genuinely
+needs new GPU experiments rather than guessing or fabricating.
+
+Triaged all 15 points + 2 minor corrections + 1 standalone question
+before touching anything. **11 of 15 fully resolved this session, all
+from real, verified project data** (not invented):
+
+1. **Candidate B removed entirely** (Timon: "mainly part of our internal
+   discussion") -- deleted its comparison table and its own
+   mesh-convergence-ladder table; no other label referenced them.
+2. **B3 mesh-refinement question answered with certainty**: verified
+   directly in `data_generate_B3_dataset.py` (`R_GRADING = 1.0`) -- B3
+   uses a globally uniform mesh, no local element refinement or grading
+   anywhere, including the groove. What exists is a local refinement of
+   the *training objective's background quadrature* near the groove, a
+   different, mesh-independent thing -- stated explicitly where B3's
+   mesh is introduced, plus explicit DOF count (7,980 nodes x 3 ~=
+   23,940).
+3. **"Resolution invariance" renamed to "resolution generalization"**
+   throughout (title, label, every caption, abstract, Discussion,
+   Appendix D) -- B2 demonstrably degrades at finer unseen resolutions,
+   so "invariance" overclaimed. Kept the word only in the one passage
+   arguing flatness-as-invariance can mislead (the point survives the
+   rename).
+4. **Section 5.2 clarified**: the network is the Transolver operator,
+   not a generic DEM ansatz (classically a plain MLP) -- only the
+   training objective is DEM-style.
+5. **"Training cost per sample" defined precisely** (wall-clock / unique
+   training samples) and explained why it doesn't apply to B3
+   (on-the-fly samples, no fixed set) -- B3 reported as wall-clock/
+   iterations instead. Added an explicit Discussion paragraph
+   contrasting the three different training-budget conventions used in
+   this study (B1/B2 early-stopping; B3's fixed 50,000 iterations;
+   PI-vs-DD's fixed 75,000 steps) so they're never silently compared.
+6. **Real PI-vs-DD numbers restored** (Table 21): recovered the actual
+   validation errors behind "wins by 27%/34%" from the authoritative
+   source (report docx table 83, cross-verified against the already-
+   reported percentages): PI-Adam 9.59%, PI-AdamW 12.47%, DD-Adam
+   13.07%, DD-AdamW 8.26%. Replaced the table's old, mislabeled "Total
+   cost" column (actually a derived net-extra-cost figure) with real
+   per-cell training wall-clock, and added the actual total
+   pre-inference cost (training + label-gen) as its own explicit
+   number. Added, per Timon's explicit ask: a best-PI-vs-best-DD direct
+   comparison (DD's best, 8.26%, actually beats PI's best, 9.59%, here),
+   and a GPU-based label-generation cost estimate computed from this
+   study's own existing GPU-native FEM timing (Table A.1) -- ~284s GPU
+   vs. the 20,340s CPU figure actually used, ~72x less, making clear the
+   CPU label-gen cost is a property of the pipeline used, not an
+   architectural requirement of data-driven training.
+7. **Optimized assembled+direct FEM solver added as its own baseline**
+   (this study's strongest measured large-$N$ FEM result, per Timon):
+   this solver was already built and GPU-verified earlier in the
+   project (`EXPERIMENT_LOG.md` commits `d30b320f`/`3c633579`, notebook
+   `Round6_Assembled_Direct_Reuse_Analysis.ipynb`) but had never been
+   added to the paper. Added a new table (wall-clock across 3
+   progressively-added optimizations x 4 resolutions, plus peak memory)
+   and prose explicitly distinguishing all four now-present FEM
+   baselines (matrix-free solver, torch-fem, TensorMesh, assembled+
+   direct) so they are never conflated. Headline: N=1401, 23.68s,
+   17.14GB -- 5.65x faster than torch-fem, 2.66x faster than TensorMesh,
+   ~4.13x less memory than torch-fem. Data/Code Availability updated to
+   mention it, and the hardcoded commit hash (which kept going stale
+   every session) was replaced with just the repository link.
+8. **Table 11's "Speed-up" column disambiguated**: it compares amortized
+   *training* cost against one native *CPU*-FEM solve, not inference,
+   and not the (separately reported) GPU-FEM comparison -- renamed the
+   column and added explicit prose stating this, plus a pointer to the
+   real primary (GPU-FEM-based) comparison immediately after.
+9. **Arruda-Boyce N=1401 failure, root cause corrected**: was described
+   as "a torch-fem Newton-convergence issue unrelated to the operator"
+   -- the surfaced error, not the real cause. Verified against this
+   project's own earlier-traced diagnosis (`torchfem/materials/
+   hyperelasticity.py`): torch-fem's unchunked double-backprop Hessian
+   for Arruda-Boyce's 5-term energy needs more GPU memory than fits in
+   80GB at N=1401, surfacing as a Newton non-convergence error -- a
+   torch-fem implementation limitation specific to this one material,
+   matching Timon's own recollection exactly.
+10. **A real B3/2D inference-cost mix-up found and fixed**: Appendix A.3
+    claimed the B3 break-even analysis uses the 2D deployment study's
+    394ms figure, but N=1401 is a 2D mesh-density parameter that does
+    not apply to B3's fixed 3D mesh. Reverse-solved B3's own break-even
+    table (FEM-ms / speed-up, all 4 rows) and found they converge
+    tightly to ~6.32ms/sample -- a completely different number,
+    confirming the prose's claim was simply wrong, not a style
+    difference. Fixed the attribution and stated B3's real inference
+    cost explicitly instead of leaving it implicit in the table's own
+    arithmetic.
+11. **B3 mesh-convergence ladder's apparent non-monotonicity explained**
+    (950,400-element row reads 1.41%, larger than 736,736's 1.02%):
+    searched for raw per-resolution field data to recompute the whole
+    table against a 950,400 reference as Timon suggested -- not found
+    anywhere in this repository (only the already-printed percentages
+    plus one real two-way check between the two finest meshes, 0.858%/
+    0.623%). Rather than fabricate a full recompute, added an honest
+    explanation using the real data that exists: the apparent increase
+    is an artifact of this relative-error metric normalizing by the
+    *reference* mesh's own magnitude, and the real convergence evidence
+    is the two-way check itself (both directions comfortably small).
+
+**Confirmed already satisfied by existing structure** (no change
+needed): same-N vs. accuracy-matched comparisons are already reported as
+clearly separate, distinctly-captioned tables throughout (Table~11 vs.
+Table~12, B3's resolution-matched vs. accuracy-matched rows).
+
+**Genuinely needs new data/experiments -- not fabricated, flagged for
+Omar**:
+- Point 2 (accuracy-matched methodology): confirmed via search that the
+  operator's H1 semi-norm error has never actually been measured at its
+  N=1401 deployment resolution anywhere in this project's records --
+  Table~\ref{tab:accuracy-matched-cost} implicitly assumes it meets the
+  5% target without verification, exactly Timon's concern. Needs a new
+  (likely cheap, checkpoint-reuse, no retraining) zero-shot evaluation
+  at N=1401 to fix properly, or a methodology reframe using only the
+  already-measured per-N sweep (up to N=49). For B3 stress specifically,
+  Timon's instruction to drop the accuracy-matched break-even (since NO
+  doesn't reach the 5-10% target there) is straightforward once
+  revisited together with this point.
+- Point 4's Sobolev-trained DD baseline and hybrid physics+data
+  baseline: genuinely new training runs, not in this project's history
+  under any name.
+- Point 5's early-stopping robustness check: not found as an existing
+  result.
+- Point 7's B3-at-relevant-resolutions benchmark with the assembled+
+  direct solver: confirmed not run (only the 2D B1xNeo-Hookean sweep
+  exists for this solver).
+- Point 1 (figure/legend sizes, B3 geometry quality): partially
+  addressable in LaTeX (`\includegraphics` width), but genuine
+  enhancement needs the original plotting scripts/notebooks to
+  regenerate source PNGs at higher resolution/larger fonts -- not yet
+  attempted this session.
+
+Recompiled clean after every edit in this batch: 39 pages (up from 37 at
+the start of this round -- new verified content, not structural
+changes), 0 LaTeX errors, 0 undefined references, 47/47 citations
+matched throughout.
+
 - Repo: `suhibamro/omar` (GitHub), branch `claude/claude-code-question-d307wp`.
   Local clone: `/home/user/OMAR`.
 - Colab pattern used throughout: `pip install -q einops timm h5py jax tqdm`
