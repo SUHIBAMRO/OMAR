@@ -17118,3 +17118,48 @@ unchanged.
 Recompiled clean: 39 pages, 0 LaTeX errors, 0 undefined references,
 citations still matched. This closes task 9/15 from the advisor's
 review; task 15 (figure/legend sizes) remains open.
+
+## Point 1 (figure/legend sizes), LaTeX-only portion done, 2026-10-10
+
+Checked real pixel dimensions (`PIL`) of every embedded PNG against the
+document's actual `\columnwidth`/`\textwidth` (522pt/252pt, confirmed by
+compiling a throwaway test file with elsarticle's own `[final,5p,times]`
+options) before touching anything: every figure in the paper has 150-200
+DPI source resolution, giving 300-670 DPI effective print resolution even
+before enlarging -- so every `\includegraphics` width below could be
+safely increased with zero quality loss, confirmed by recompiling and
+diffing the overfull-hbox count before/after (82 in both cases -- the
+enlargement introduced zero new overflow; all 82 are pre-existing text-
+justification warnings unrelated to figures).
+
+Increased every figure width systematically:
+- `0.85\columnwidth` (21 single-column figures) -> `0.98\columnwidth`
+- `0.6\columnwidth` (image47, image43) and `0.7\columnwidth` (image29)
+  -> `0.85\columnwidth`, bringing these undersized outliers up to the
+  rest of the single-column standard
+- `0.48\columnwidth` pairs (6) -> `0.49\columnwidth`
+- `0.48\textwidth` pairs (8) -> `0.49\textwidth`
+- `0.32\textwidth` triples (15) -> `0.33\textwidth`
+- `0.7\textwidth` (image56, standalone bottom panel) -> `0.85\textwidth`
+
+Spot-checked rendered pages at 100 DPI after recompiling (pages 4, 9, 10,
+16, 20 -- covering every width class touched): all figures sit cleanly
+within their margins, no caption overlap, no clipping. Page count grew
+from 39 to 42 as an expected consequence of larger figures taking more
+vertical space -- not a sign anything broke (0 undefined references, 0
+new overfull boxes, citations still matched).
+
+**The one figure Timon specifically named (B3 geometry,
+`fig:b3-geometry`) was already at `width=\textwidth` inside a `figure*`
+spanning both columns** -- the maximum possible in this two-column
+layout, so there is no further LaTeX-only lever for it. Its source PNG
+(2250x900px) renders at a healthy ~311 DPI at that width, so the "too
+small" complaint is about the plot's own internal content (panel/label/
+colorbar size within the image), not the DPI or the LaTeX scale -- fixing
+that needs the original plotting script/notebook that generated
+`figures/b3_geometry.png`, which is not in this repository. Flagged for
+Omar as the one remaining piece of Point 1 that cannot be done from
+existing files.
+
+Recompiled clean: 42 pages, 0 LaTeX errors, 0 undefined references,
+citations still matched.
