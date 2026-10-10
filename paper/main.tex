@@ -1200,11 +1200,61 @@ resolution tested.
 \label{fig:45}
 \end{figure}
 
+A third, distinct GPU baseline was also built and optimized directly:
+an \emph{assembled+direct} solver that, unlike our matrix-free solver
+above, does explicitly assemble the sparse tangent each Newton
+iteration (like torch-fem and TensorMesh), but solves the resulting
+system with cuDSS's direct sparse solver under two further optimizations
+specific to this repeated-solve setting -- reusing cuDSS's symbolic
+\emph{analysis} phase across Newton iterations (since the sparsity
+pattern does not change) rather than repeating it every time, and storing
+the tangent in cuDSS's native symmetric format rather than as a general
+matrix. Table~\ref{tab:assembled-direct} reports its own wall-clock and
+peak-memory scaling across three progressively-added configurations
+(no reuse; $+$analysis reuse; $+$reuse and symmetric storage) at the same
+four resolutions used throughout this comparison. The fully-optimized
+configuration is this study's single strongest measured large-$N$ FEM
+result: at $N{=}1401$, $23.68$~s and $17.14$~GB peak memory --
+$5.65\times$ faster than torch-fem's $133.83$~s at that resolution and
+$2.66\times$ faster than TensorMesh's own direct solve, at roughly
+$4.13\times$ less peak memory than torch-fem's $69.2$~GB. Analysis reuse
+alone accounts for most of the speed-up (e.g.\ $58.54\to24.61$~s at
+$N{=}1401$); adding symmetric storage on top gives a further small but
+consistent wall-clock gain ($1.7$--$3.9\%$, growing with $N$) together
+with a more substantial $\sim$$15.5$--$16.6\%$ peak-memory reduction at
+every resolution tested, bringing memory back down close to the
+unreused baseline's own footprint while keeping the reuse speed-up. This
+assembled+direct solver is a genuinely separate baseline from both the
+matrix-free solver discussed above (which never assembles a tangent at
+all) and from torch-fem/TensorMesh's own unoptimized assembled solves;
+none of these four should be conflated with one another when comparing
+FEM cost figures across this paper.
+
+\begin{table}[h]
+\centering
+\caption{Assembled+direct FEM solver (our own, cuDSS-based direct sparse
+  solve with explicit tangent assembly), B1$\times$Neo-Hookean: wall-clock
+  time (s) across three progressively-added optimizations, and peak GPU
+  memory (MB) for the fully-optimized configuration.}
+\label{tab:assembled-direct}
+\small
+\begin{tabular}{lcccc}
+\toprule
+$N$ & No reuse & $+$Reuse & $+$Reuse$+$symmetric & Peak mem.\ (MB) \\
+\midrule
+401  & 4.75  & 2.36  & 2.32  & 1{,}511.7 \\
+701  & 12.99 & 5.54  & 5.35  & 4{,}303.1 \\
+1001 & 28.42 & 12.02 & 11.61 & 8{,}753.8 \\
+1401 & 58.54 & 24.61 & 23.68 & 17{,}140.7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 This gap is not read here as a defect to be engineered away. Two
 architectural families are being compared, not two implementations of the
 same one: torch-fem always explicitly assembles a sparse tangent
 stiffness matrix once per Newton iteration and solves that system
-iteratively or directly, while our solver never forms that
+iteratively or directly, while our matrix-free solver never forms that
 matrix at all, obtaining every Hessian-vector product it needs by
 automatic differentiation instead -- the design our
 multi-million-DOF references depend on, since an explicitly assembled
@@ -2533,11 +2583,12 @@ interests or personal relationships that could have appeared to
 influence the work reported in this paper.
 
 \section*{Data and Code Availability}
-All code (dataset generation, training, evaluation, and the GPU-native
-finite-element solver) is available at
-\url{https://github.com/suhibamro/omar}, commit
-\texttt{1e4df04}. Trained checkpoints and generated datasets are
-available from the corresponding author on reasonable request.
+All code (dataset generation, training, evaluation, the matrix-free
+GPU-native finite-element solver, and the assembled+direct GPU
+finite-element solver) is publicly available at
+\url{https://github.com/suhibamro/omar}. Trained checkpoints and
+generated datasets are available from the corresponding author on
+reasonable request.
 
 \appendix
 
