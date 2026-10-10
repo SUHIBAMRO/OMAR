@@ -970,14 +970,17 @@ execution.
 
 \begin{table*}[ht]
 \centering
-\caption{Per-sample training cost vs. native FEM cost, resulting speed-up,
-  inference latency, and break-even (new instances after which training
-  plus inference undercuts repeated native FEM solves).}
+\caption{Per-sample amortized \emph{training} cost (Train$_s$) vs.\ one
+  native CPU-FEM solve -- not an inference comparison, and not the
+  GPU-FEM comparison reported separately below -- with the resulting
+  training-cost-vs.-CPU-FEM ratio, trained-operator inference latency,
+  and break-even (new instances after which training plus inference
+  undercuts repeated native CPU-FEM solves).}
 \label{tab:cost}
 \small
 \begin{tabular}{lccccc}
 \toprule
-Case & Native FEM (s) & Train$_s$ (s) & Speed-up & Infer. (ms) & Break-even \\
+Case & Native FEM (s) & Train$_s$ (s) & Train$_s$/FEM & Infer. (ms) & Break-even \\
 \midrule
 B1 $\times$ NH  & 25.432 & 3.59  & 7.08$\times$  & 4.586 & 113 \\
 B1 $\times$ MR  & 53.735 & 3.48  & 15.44$\times$ & 4.693 & 52 \\
@@ -989,24 +992,36 @@ B2 $\times$ AB  & 60.285 & 31.06 & 1.94$\times$  & 4.984 & 412 \\
 \end{tabular}
 \end{table*}
 
-The total training wall-clock time, amortized over the 800 training
-samples used, gives an average of $3.48$--$42.71$~s per training instance
--- lower than each case's own native FEM cost ($25.4$--$61.7$~s/sample)
+To be explicit about what Table~\ref{tab:cost} compares, since
+``speed-up'' figures in this study refer to several genuinely different
+things depending on which two costs are being divided: the
+Train$_s$/FEM column above compares amortized \emph{training} cost
+against one native \emph{CPU}-FEM solve, not inference cost, and not the
+GPU-FEM baseline discussed next. The total training wall-clock time,
+amortized over the 800 training samples used, gives an average of
+$3.48$--$42.71$~s per training instance -- lower than each case's own
+native CPU-FEM cost ($25.4$--$61.7$~s/sample)
 for five of the six cases, but not for B2$\times$Neo-Hookean, whose
 corrected recipe costs $40.3$~s/sample, slightly more than its own
-$25.9$~s native FEM solve. A more informative
+$25.9$~s native CPU-FEM solve. A more informative
 measure is the break-even point: dividing each case's total training time
 by its marginal saving per subsequent inference gives a break-even of
 roughly $52$--$1{,}245$ new problem instances (case-dependent), highest
 for B2$\times$Neo-Hookean precisely because its corrected recipe both
 costs more per sample and trains far longer; beyond that many queries,
 the cumulative cost of training plus inference is lower than solving each
-one natively with FEM. Once trained, inference is a different order of
+one natively with CPU-FEM. Once trained, inference is a different order of
 magnitude altogether: at $4.6$--$5.0$~ms per sample, a trained operator
 evaluates a new problem instance roughly $5{,}387$--$12{,}575\times$
-faster than its own case's native finite-element solve at this mesh
+faster than its own case's native CPU finite-element solve at this mesh
 resolution, unaffected by any training-recipe change since inference cost
-is measured independently of training. A hardware-matched comparison
+is measured independently of training. This CPU-FEM-based comparison is
+not the primary computational comparison this study offers, and is
+included mainly because it is the direct counterpart of the training-cost
+figures above: the practically relevant comparison for anyone with GPU
+access to a finite-element solver is against GPU-FEM instead, reported
+immediately below, which gives smaller but still substantial, and more
+realistic, speed-up and break-even figures. A hardware-matched comparison
 against a GPU-native, batched
 Newton--Raphson solver (written in PyTorch using \texttt{torch.func}
 automatic differentiation and \texttt{vmap}, validated node-by-node against
@@ -1685,8 +1700,12 @@ inferences.
   (left), the direct-$N{=}1401$-training ablation vs.\ the multi-resolution
   zero-shot checkpoint (right), and resolution-matched speed-up against
   torch-fem at $N{=}1401$, all six cases (bottom; both Arruda-Boyce cases
-  fail to converge at this resolution, a torch-fem Newton-convergence
-  issue unrelated to the operator).}
+  fail at this resolution, surfacing as a Newton-Raphson non-convergence
+  error, but traced to torch-fem's own unchunked double-backprop Hessian
+  computation for the 5-term Arruda-Boyce energy density needing more
+  GPU memory than fits in 80~GB at $N{=}1401$ -- a torch-fem
+  implementation limitation specific to this one material, unrelated to
+  the operator or to this study's own solver).}
 \label{fig:n1401}
 \end{figure*}
 
@@ -2394,7 +2413,11 @@ resolution-matched break-even (operator and finite-element solver both at
 $6{,}840$ elements) and, for each of the three well-reproduced quantities,
 an accuracy-matched break-even against the cheapest finite-element mesh
 whose own error against the same fine reference is at least as good as the
-operator's.
+operator's, all computed against the operator's own measured inference
+cost at this production mesh ($\approx6.32$~ms/sample, batch size 1) -- not to
+be confused with the much larger $N{=}1401$ 2D-mesh inference cost
+reported elsewhere for the B1/B2 deployment-resolution study, which does
+not apply to B3's fixed 3D mesh.
 
 \begin{table*}[ht]
 \centering
@@ -2738,13 +2761,18 @@ gap is $\approx1{,}470\times$ regardless of which memory budget is used
 to cap the comparison.
 
 \subsection{Inference-speed optimization breakdown}
-The B3 break-even analysis in the main text and the corresponding figure
-use the operator's compile+TF32 inference cost at $N{=}1401$ ($\approx394$~ms) as
-the baseline for every B3 accuracy-matched break-even figure reported.
-Table~\ref{tab:a3} reports the full optimization-attempt breakdown this
-number comes from, including each variant's numerical output difference
-against the unoptimized eager-FP32 baseline (confirming the
-optimizations are numerically benign, not merely fast).
+The $N{=}1401$ deployment-resolution break-even analysis for the 2D
+benchmarks (B1$\times$Neo-Hookean) in the main text uses the operator's
+compile+TF32 inference cost at that resolution ($\approx394$~ms) as its
+baseline. Table~\ref{tab:a3} reports the full optimization-attempt
+breakdown this number comes from, including each variant's numerical
+output difference against the unoptimized eager-FP32 baseline
+(confirming the optimizations are numerically benign, not merely fast).
+This is unrelated to the separate B3 break-even analysis reported
+earlier, which uses B3's own, much smaller production-mesh inference
+cost ($\approx6.32$~ms/sample at $6{,}840$ elements, implicit in that table's
+own FEM-ms/speed-up ratios -- $N{=}1401$ is a 2D mesh-density parameter
+that does not apply to B3's fixed 3D mesh at all).
 
 \begin{table*}[ht]
 \centering
