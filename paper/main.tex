@@ -1789,52 +1789,79 @@ would confound the two effects, so the comparison was run as a
 two-by-two: both losses under both recipes (Adam~\cite{kingma2015adam};
 AdamW with a one-cycle
 schedule), all four at the same 75,000 optimizer steps, on
-B1$\times$Neo-Hookean. Reading down the Adam column, the physics-informed
-loss wins by $27\%$; reading down the AdamW+OneCycleLR column, the
-data-driven loss wins by $34\%$. The ranking reverses, so neither training
-principle is better than the other in any unconditional sense on this
-problem -- a finding only the complete grid can support, since either
-column alone would have licensed a confident and opposite conclusion. The
-mechanism is that the optimizer does not treat the two losses alike:
-switching from Adam to AdamW with a one-cycle schedule makes the
-physics-informed model $30\%$ worse and the data-driven model $37\%$
-better, so a learning-rate schedule tuned against one objective is not
-neutral ground for the other. Table~\ref{tab:pi-vs-dd} summarizes the
-full $2\times2$ grid and the associated pre-inference cost.
+B1$\times$Neo-Hookean. Reading down the Adam column, physics-informed
+reaches $9.59\%$ validation error against data-driven's $13.07\%$ (a
+$26.6\%$ relative reduction); reading down the AdamW+OneCycleLR column,
+data-driven reaches $8.26\%$ against physics-informed's $12.47\%$ (a
+$33.8\%$ relative reduction the other way). The ranking reverses, so
+neither training principle is better than the other in any unconditional
+sense on this problem -- a finding only the complete grid can support,
+since either column alone would have licensed a confident and opposite
+conclusion. The mechanism is that the optimizer does not treat the two
+losses alike: switching from Adam to AdamW with a one-cycle schedule
+makes the physics-informed model $30.0\%$ worse ($9.59\%\to12.47\%$) and
+the data-driven model $36.8\%$ better ($13.07\%\to8.26\%$), so a
+learning-rate schedule tuned against one objective is not neutral ground
+for the other. Comparing each loss's own best configuration directly
+(physics-informed+Adam, $9.59\%$, vs.\ data-driven+AdamW+OneCycleLR,
+$8.26\%$) rather than reading down either single column, the best
+data-driven configuration found here is in fact more accurate than the
+best physics-informed one on this problem -- a comparison only possible
+because all four cells of the grid were run, not just a matched pair.
+Table~\ref{tab:pi-vs-dd} summarizes the full $2\times2$ grid with the
+actual validation error and training wall-clock for every cell.
 
 \begin{table*}[ht]
 \centering
 \caption{Physics-informed vs.\ data-driven training, $2\times2$ grid
-  (B1$\times$Neo-Hookean, 75,000 optimizer steps both losses): relative
-  accuracy outcome and total pre-inference cost. The physics-informed
-  loss pays no label-generation cost; the data-driven loss pays
-  $5.65$~CPU-hours ($20{,}340$~s) regardless of optimizer.}
+  (B1$\times$Neo-Hookean, 75,000 optimizer steps both losses): actual
+  validation error and training wall-clock for every cell. The
+  physics-informed loss pays no label-generation cost; the data-driven
+  loss additionally pays a fixed $5.65$~CPU-hour ($20{,}340$~s)
+  label-generation cost before training can begin, regardless of
+  optimizer (not included in the wall-clock column below, which is
+  training time only).}
 \label{tab:pi-vs-dd}
 \small
 \begin{tabular}{llcc}
 \toprule
-Loss & Optimizer & Accuracy outcome & Total cost (s) \\
+Loss & Optimizer & Val.\ error & Training wall-clock (s) \\
 \midrule
-Physics-informed & Adam             & wins by $27\%$          & -- \\
-Physics-informed & AdamW+OneCycle   & $30\%$ worse than Adam  & -- \\
-Data-driven       & Adam             & loses by $27\%$        & $18{,}924$ \\
-Data-driven       & AdamW+OneCycle   & wins by $34\%$         & $18{,}694$ \\
+Physics-informed & Adam             & $9.59\%$  & $2{,}873.8$ \\
+Physics-informed & AdamW+OneCycle   & $12.47\%$ & $3{,}108.9$ \\
+Data-driven       & Adam             & $13.07\%$ & $1{,}458.3$ \\
+Data-driven       & AdamW+OneCycle   & $8.26\%$  & $1{,}463.0$ \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
 One asymmetry survives the reversal and is not an accuracy figure: the
 data-driven model needs a labelled dataset -- 800 finite-element solves,
-$5.65$ CPU-hours at the measured cost -- before training can even begin,
-a fixed cost the physics-informed model never pays, since its loss is the
-energy of its own prediction. The data-driven model is more expensive by
-this fixed amount ($18{,}924$~s under matched Adam, $18{,}694$~s under
-matched AdamW+OneCycleLR) for every number of future inferences, not just
-below some threshold: the two checkpoints' inference cost is effectively
-identical ($4.625$ vs.\ $4.586$~ms/sample, a $0.8\%$ difference,
-consistent with sharing the identical architecture), so the per-inference
-term cancels and what remains is the label-generation cost, which
-dominates by more than an order of magnitude in both pairings.
+$5.65$ CPU-hours ($20{,}340$~s) at the measured cost -- before training
+can even begin, a fixed cost the physics-informed model never pays,
+since its loss is the energy of its own prediction. Including this
+label-generation cost, the data-driven model's total pre-inference cost
+is $21{,}798.3$~s under Adam and $21{,}803.0$~s under AdamW+OneCycleLR --
+roughly an order of magnitude more than the corresponding
+physics-informed wall-clock in both pairings (physics-informed's own
+wall-clock above already is its total pre-inference cost, since it pays
+no separate label-generation step). The two checkpoints' inference cost
+is effectively identical ($4.625$ vs.\ $4.586$~ms/sample, a $0.8\%$
+difference, consistent with sharing the identical architecture), so once
+label generation is included the data-driven route is more expensive for
+every number of future inferences, not just below some threshold. This
+label-generation cost is itself CPU-based, the same reference
+finite-element implementation used throughout this study; a GPU-native
+batched re-implementation of the same solver (used elsewhere for the
+large-$N$ scaling study) solves B1$\times$Neo-Hookean at $N{=}21$ in
+$354.6$~ms/sample at batch size 128 (Table~\ref{tab:a1-fem}), which would
+put 800 such solves at approximately $284$~s of GPU time total --
+roughly $72\times$ less than the $20{,}340$~s CPU figure above. A
+GPU-based label-generation pipeline would therefore all but eliminate
+this cost asymmetry rather than merely reduce it; the $5.65$-CPU-hour
+figure above should be read as the cost of the specific (CPU)
+label-generation pipeline actually used for this comparison, not as an
+architectural requirement of the data-driven approach itself.
 
 \begin{figure}[htb]
 \centering
