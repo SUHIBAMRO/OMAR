@@ -37,7 +37,7 @@ quarter ring under internal pressure), each combined with three isotropic
 hyperelastic strain-energy densities (Neo-Hookean, Mooney--Rivlin,
 Arruda--Boyce), are trained to completion, evaluated against an independent
 finite-element reference, and characterized across mesh-resolution
-invariance, out-of-distribution robustness, and break-even cost against both
+generalization, out-of-distribution robustness, and break-even cost against both
 a native and a GPU-native finite-element solver. The study is then extended
 to a third, more demanding 3D benchmark: a rocking elastomeric rubber-mount
 bushing with a stress-concentrating groove. The operator reproduces
@@ -300,70 +300,12 @@ distributed pressure. The geometry itself (groove depth/half-width,
 $R_{\text{in}}$, $R_{\text{out}}$, $L_z$) is held fixed across every sample,
 as in B1/B2.
 
-This grooved design was selected from two 3D candidates carried to a full
-GPU mesh-convergence study on the same regional Cauchy-stress field-error
-metric used throughout the 3D results below: the grooved bushing
-above, and a laminated alternative with one or more rigid steel shims
-embedded in the rubber annulus (a construction used in real elastomeric
-mounts to tune stiffness), each shim condensed to 6 rigid-body degrees of
-freedom via a custom kinematic-condensation reduced system. Both reached a
-converged result -- the grooved design's regional-stress error enters the
-$5$--$10\%$ target band at $480{,}320$ elements, while the laminated
-alternative converges considerably faster in element
-count: it is already below the band's own $5\%$ floor at $15{,}600$
-elements, the coarsest resolution tested, so its true entry point into
-the band lies at some untested, coarser mesh rather than at any resolution
-in its own ladder (Table~\ref{tab:candidate-b-ladder}; fully converged by
-$302{,}016$) -- but it is bottlenecked by a CPU-only rigid-body linear solve that
-scales worse than linearly with mesh size. The grooved design (``B3'') was
-therefore adopted as the single geometry carried forward to dataset
-generation and operator training, with the $5$--$10\%$ regional-stress
-accuracy band taken as sufficient for the FEM-operator comparison; the
-laminated alternative is not developed further in this paper.
-Table~\ref{tab:candidates} summarizes both candidates' convergence
-studies side by side, and Table~\ref{tab:candidate-b-ladder} reports the
-laminated alternative's own GPU mesh-convergence ladder in full.
-
-\begin{table}[h]
-\centering
-\caption{B3 candidate comparison: both geometries' GPU mesh-convergence
-  studies on the same regional Cauchy-stress field-error metric.}
-\label{tab:candidates}
-\footnotesize
-\begin{tabular}{lcc}
-\toprule
- & Candidate A (grooved) & Candidate B (laminated) \\
-\midrule
-Resolution range tested & 336--950,400 el. & 15,600--302,016 el. \\
-Enters $5$--$10\%$ band & 480,320 el. & $<$15,600 el.\ (untested) \\
-Reference resolution & 839,040 el. & 302,016 el. \\
-Computational limitation & none identified & CPU-only rigid-body \\
- & & solve, sub-linear scaling \\
-Decision & \textbf{adopted} & not developed further \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{table}[h]
-\centering
-\caption{Candidate B (laminated rigid-shim bushing) GPU mesh-convergence
-  ladder: regional Cauchy-stress field error and displacement $L^2$ error
-  vs.\ element count, scored against the $302{,}016$-element row.}
-\label{tab:candidate-b-ladder}
-\footnotesize
-\begin{tabular}{lcc}
-\toprule
-Elements & Regional Cauchy-stress error & Displacement $L^2$ error \\
-\midrule
-15{,}600  & $1.98\%$ & $3.22\%$ \\
-50{,}544  & $0.64\%$ & $1.08\%$ \\
-75{,}504  & $0.38\%$ & $0.69\%$ \\
-105{,}456 & $0.24\%$ & $0.42\%$ \\
-180{,}336 & $0.08\%$ & $0.15\%$ \\
-302{,}016 & $0.00\%$ (reference) & $0.00\%$ \\
-\bottomrule
-\end{tabular}
-\end{table}
+This grooved design (``B3'') was carried to a full GPU mesh-convergence
+study on the regional Cauchy-stress field-error metric used throughout
+the 3D results below (details and numbers in the discretization study
+that follows), and adopted as the geometry carried forward to dataset
+generation and operator training, with a $5$--$10\%$ regional-stress
+accuracy band taken as sufficient for the FEM-operator comparison.
 
 \begin{figure*}[htb]
 \centering
@@ -383,9 +325,16 @@ Elements & Regional Cauchy-stress error & Displacement $L^2$ error \\
 B1 and B2 are discretized with a structured $21\times21$ mesh of Q4
 elements (441 nodes, 400 elements, 1,600 Gauss points per sample); for B2
 the mesh is generated in polar coordinates and mapped to Cartesian space,
-preserving the structured Q4 topology. B3 is discretized with a structured
-$21\times20\times19$ mesh of trilinear hexahedra (6,840 elements, 7,980
-nodes). An independent Newton--Raphson Total-Lagrangian finite-element
+preserving the structured Q4 topology. B3 is discretized with a globally
+uniform structured $21\times20\times19$ mesh of trilinear hexahedra
+(6,840 elements, 7,980 nodes, $\approx23{,}940$ displacement DOFs): no
+mesh grading or local element refinement is applied anywhere, including
+around the groove -- element size and density are identical everywhere
+in the domain. (A later subsection separately refines only the
+\emph{numerical-integration quadrature} used in the training objective
+for the handful of elements touching the stress region of interest, a
+distinct, mesh-independent change discussed there.) An independent
+Newton--Raphson Total-Lagrangian finite-element
 solver (built on torch-fem~\cite{meyer2024torchfem}) generates the
 ground-truth samples used only for validation. All GPU experiments in
 this study (training, the GPU-native solver, and the evaluation scripts)
@@ -421,17 +370,21 @@ single NVIDIA A100-SXM4-80GB. Library versions for the remaining
 experiments were not pinned and reflect whatever was current on PyPI at
 the time each one ran, as already noted above.
 Table~\ref{tab:fem-cost}
-reports its per-sample cost breakdown (direct sparse LU via SciPy's
-\texttt{spsolve}, Newton tolerance $10^{-7}$, 10 load steps, all six
-geometry/material cases): assembly dominates total cost by two to three
-orders of magnitude over the linear solve itself, and the per-sample FLOP
-count (also reported) is two to three orders of magnitude lower for the
-solve than for assembly, consistent with the small ($441$- or $625$-node)
-problem sizes used throughout B1/B2.
+reports its per-sample cost breakdown at this small, low-resolution
+operating mesh -- not a high-resolution FEM benchmark; the large-$N$
+GPU-scaling benchmarks are reported separately below -- (direct sparse
+LU via SciPy's \texttt{spsolve}, Newton tolerance $10^{-7}$, 10 load
+steps, all six geometry/material cases): assembly dominates total cost
+by two to three orders of magnitude over the linear solve itself, and
+the per-sample FLOP count (also reported) is two to three orders of
+magnitude lower for the solve than for assembly, consistent with the
+small ($441$- or $625$-node) problem sizes used throughout B1/B2.
 
 \begin{table}[h]
 \centering
-\caption{Native CPU reference-solver cost breakdown (direct sparse LU,
+\caption{Native CPU reference-solver cost breakdown, small 2D operating
+  mesh ($N{=}21$, 441/625 nodes -- not a high-resolution FEM benchmark;
+  see the large-$N$ GPU-scaling study below for that) (direct sparse LU,
   Newton tolerance $10^{-7}$, 10 load steps, all six cases) and per-sample
   FLOP count (assembly vs.\ linear solve, by material).}
 \label{tab:fem-cost}
@@ -776,9 +729,13 @@ $[0.40,0.49]$; the scalar rocking angle
 $\phi\sim\mathcal{N}(0.05,0.02^2)$ clipped to $[0.01,0.15]$ per sample
 (not a spatial field).
 
-\subsection{Physics-informed training objective (Deep Energy Method)}
-The network is trained by directly minimizing the discretized total
-potential energy of Eq.~\eqref{eq:discrete-energy},
+\subsection{Physics-informed training objective (energy-based, Deep-Energy-Method style)}
+To be precise about what is and is not DEM here: the network being
+trained is the Transolver operator introduced above, not a generic DEM
+network ansatz (classically a plain MLP); what is DEM-style is only the
+\emph{training objective} -- the Transolver operator is trained by
+directly minimizing the discretized total potential energy of
+Eq.~\eqref{eq:discrete-energy},
 \begin{equation}
   \theta^\ast = \arg\min_\theta \; \mathbb{E}_{(E,\nu,\mathbf{t})\sim\mathcal{D}}
   \big[\, \Pi_h\big(\mathbf{u}_\theta(\,\cdot\,;E,\nu,\mathbf{t})\big) \,\big],
@@ -988,11 +945,19 @@ the total training wall-clock time up to the final epoch determined by
 early stopping: the average cost of processing one training sample during
 a single epoch (forward pass, backward pass, and optimizer update
 included), and the total training cost allocated to one sample over the
-entire training process, $\text{train}_s$ -- the metric directly
-comparable to that case's own native finite-element cost, since it
-represents the complete one-time computational investment required to
-train the operator before it can perform inference on new samples at
-negligible additional cost. A third metric, inference latency, is measured
+entire training process, $\text{train}_s$ -- defined as total training
+wall-clock divided by the number of \emph{unique} training samples (800
+for B1/B2) -- the metric directly comparable to that case's own native
+finite-element cost, since it represents the complete one-time
+computational investment required to train the operator before it can
+perform inference on new samples at negligible additional cost. This
+per-unique-sample framing assumes a fixed, pre-generated training set, as
+B1/B2 use; it is not meaningful for B3, where training samples are
+instead generated on the fly every iteration with no fixed training-set
+size, so B3's own training cost is reported directly as total wall-clock
+time, optimizer steps, and total processed samples instead (training
+cost, native-FEM comparison, and break-even for B3 are reported
+separately, further below). A third metric, inference latency, is measured
 independently with a dedicated, standalone benchmark: 200 repeated forward
 passes of the trained network (batch size 1, no gradient computation)
 through each case's own best checkpoint, on the same GPU -- what a
@@ -1374,8 +1339,8 @@ B2 $\times$ AB & $0.81\times$ & $2.27\times$ & $2.68\times$ \\
 \label{fig:ood-grids}
 \end{figure*}
 
-\subsection{Zero-shot resolution invariance}
-\label{sec:resolution-invariance}
+\subsection{Zero-shot resolution generalization}
+\label{sec:resolution-generalization}
 A single network trained jointly on two meshes (B1$\times$Neo-Hookean at
 $N{=}21$ and $N{=}33$) is evaluated, with no retraining or fine-tuning,
 directly on seven mesh resolutions never seen during training
@@ -1388,12 +1353,12 @@ particular mesh. Each test resolution is compared against a common
 fine-mesh finite-element reference ($N{=}101$, 10,201 nodes). Across all
 three materials and all seven unseen resolutions the error stays between
 $5.0\%$ and $10.6\%$ (Table~\ref{tab:b1-zeroshot}), with no retraining
-anywhere -- that is the resolution-invariance property claimed for
+anywhere -- that is the resolution-generalization property claimed for
 operator-learning methods.
 
 \begin{table}[h]
 \centering
-\caption{B1 zero-shot resolution invariance, relative $L^2$ error by
+\caption{B1 zero-shot resolution generalization, relative $L^2$ error by
   material, seven unseen resolutions (one checkpoint trained jointly at
   $N{=}21,33$).}
 \label{tab:b1-zeroshot}
@@ -1433,7 +1398,7 @@ the same per-component metric that had condemned it. With this fix, B2
 does work -- $7.1\%$ to $26.9\%$ across seven unseen meshes, comparable to
 B1 in the middle of the range but markedly worse at both ends, so its
 error varies by a factor of $3.8$ across the sweep where the worst B1 case
-varies by $2.1$: B2's resolution invariance is real and weaker than B1's.
+varies by $2.1$: B2 does generalize to unseen resolutions, but less robustly than B1.
 One methodological point is worth stating plainly: the superseded
 (uncorrected) B2 model's error was almost flat across the mesh, which
 could easily be misread as the strongest resolution invariance in the
@@ -1441,7 +1406,7 @@ study -- it is the opposite. A model whose output barely responds to its
 input produces nearly the same field, and therefore nearly the same
 error, on every mesh; insensitivity and invariance are indistinguishable
 in that column, and flatness of the error across resolutions is not, on
-its own, evidence of the property this section is testing.
+its own, evidence of genuine resolution generalization.
 Table~\ref{tab:b2-zeroshot} reports the complete per-material breakdown:
 Mooney-Rivlin is consistently the most accurate of the three materials
 across the sweep and Arruda-Boyce the least, but all three share the same
@@ -1451,7 +1416,7 @@ the pattern above is not specific to Neo-Hookean.
 
 \begin{table}[h]
 \centering
-\caption{B2 zero-shot resolution invariance, relative $L^2$ error by
+\caption{B2 zero-shot resolution generalization, relative $L^2$ error by
   material, seven unseen resolutions (corrected loss-normalized
   checkpoints).}
 \label{tab:b2-zeroshot}
@@ -1566,7 +1531,7 @@ B2 $\times$ AB & 17 & 2{,}666.0 & $\approx394$ & 3{,}551 \\
 \begin{figure}[htb]
 \centering
 \includegraphics[width=0.85\columnwidth]{figures/image24.png}
-\caption{Zero-shot resolution invariance: mean relative $L^2$ error vs.\
+\caption{Zero-shot resolution generalization: mean relative $L^2$ error vs.\
   test resolution, B1 and B2, all three materials.}
 \label{fig:24}
 \end{figure}
@@ -1574,7 +1539,7 @@ B2 $\times$ AB & 17 & 2{,}666.0 & $\approx394$ & 3{,}551 \\
 \begin{figure}[htb]
 \centering
 \includegraphics[width=0.85\columnwidth]{figures/image37.png}
-\caption{Zero-shot resolution invariance field grid (B1, Neo-Hookean):
+\caption{Zero-shot resolution generalization field grid (B1, Neo-Hookean):
   predicted $|\mathbf{u}|$ at seven unseen resolutions from one trained
   checkpoint.}
 \label{fig:37}
@@ -1610,7 +1575,7 @@ relative error reductions at $N{=}1401$ summarized in
 Table~\ref{tab:multires-n1401} -- most sharply for B2$\times$Mooney-Rivlin
 ($73.5\%$ reduction, whose retrained error is also nearly flat from
 $N{=}37$ through $N{=}1401$, the clearest single illustration that the fix
-buys genuine resolution invariance, not just a smaller error at one
+buys genuine resolution generalization, not just a smaller error at one
 target resolution).
 
 \begin{table}[h]
@@ -2386,7 +2351,16 @@ every one of the three quantities of interest reproduced well.
 The screening and early-stopping protocol reached the best validation
 performance within $375$--$1{,}050$ epochs across all six benchmark cases
 (Table~\ref{tab:final-results}), substantially reducing the training
-budget compared with a naive fixed-epoch setting. Taken together with the
+budget compared with a naive fixed-epoch setting. Training budgets are
+not uniform across this study and should not be compared directly across
+experiments without accounting for this: B1/B2 use this early-stopping
+protocol (a variable number of epochs, 375--1,050, selected by
+validation performance); B3 instead trains for a fixed $50{,}000$
+iterations (Table~\ref{tab:hyperparams}), with no early stopping; and
+the physics-informed-vs-data-driven comparison above fixes both losses
+to the same $75{,}000$ optimizer steps specifically so that training
+budget is held constant and cannot confound that comparison. Taken
+together with the
 GPU-native FEM benchmark above and the training-cost
 comparison (Table~\ref{tab:cost}), a consistent efficiency picture
 emerges: a GPU-native but still-iterative FEM solver is $71.7$--$171.5\times$
@@ -2408,7 +2382,7 @@ geometries degrade by a comparable factor under a combined stiffness/load
 shift of only $2$--$2.5$ standard deviations ($4.11$--$4.61\times$ for B1,
 $3.94$--$5.58\times$ for B2) -- no geometry
 is meaningfully more or less robust than the other under this test. The
-resolution-invariance study and the
+resolution-generalization study and the
 reference-solver mesh-convergence study described earlier
 address complementary halves of the same underlying concern about the
 fixed operating mesh used throughout this study: the finite-element
@@ -2416,7 +2390,7 @@ reference itself is already well converged there, so the ground truth used
 throughout is trustworthy, while the operator trained and evaluated at
 that same resolution sits within a band that is representative of a wide
 range of nearby resolutions, rather than being a fortunate one-off result
-at a single arbitrary mesh size. The zero-shot resolution-invariance study
+at a single arbitrary mesh size. The zero-shot resolution-generalization study
 and the $N{=}1401$ deployment-resolution finding together show a
 complementary point beyond that: a single operator generalizes well across
 unseen \emph{nearby} resolutions without retraining, but accuracy at a
@@ -3533,7 +3507,7 @@ dominates loading in the normalized model), though it does shift the
 absolute sensitivity at the largest material shifts tested.
 
 \subsection{Multi-resolution training-cost breakdown}
-The main text's zero-shot resolution-invariance study
+The main text's zero-shot resolution-generalization study
 (B1$\times$Neo-Hookean) reports that a direct-$N{=}1401$-trained
 checkpoint is cheaper to train than the multi-resolution checkpoint but
 substantially less accurate at unseen resolutions. Table~\ref{tab:d3}
