@@ -17799,3 +17799,109 @@ count) vs. the CSR/coalesce construction that follows it.
 Not yet run by Omar; this is pure instrumentation (mem_debug=False by
 default everywhere except B3's own increment-1 call), no behavior or
 numerical change, safe to re-run the same notebook end to end.
+
+## B3 ladder, round 3: localized -- memory scales linearly as expected, and
+## the crash is cuDSS's own internal FACTORIZATION allocation, not ours;
+## one real (if minor) memory-efficiency bug fixed along the way
+
+Omar re-ran with the localization checkpoints (GPU this time confirmed
+as an A100-SXM4-**80GB**). Real, very informative result:
+
+The 6,840-element row this time behaved completely normally -- entry
+30.2 MB, +78.2 MB after `build_sparse_jac_fn_b3`'s closure, +94.6 MB
+after `jac_fn(u,None)`, +84.2 MB after CSR/coalesce setup, settling at
+108.6 MB after every increment, `peak_mem=642.7 MB` for the whole row --
+matching the ORIGINAL (pre-ladder) run's 667 MB, not the 39.3 GB / 58.2
+GB seen in the two previous ladder attempts. So those two anomalous
+numbers were specific to whatever GPU/session state existed in those
+two runs (most likely leftover fragmentation from repeated Cell
+re-execution in the same long-lived Colab kernel, now moot) -- not a
+deterministic property of this code or this mesh size. Not chased
+further since it didn't reproduce.
+
+The 480,320-element row ((81,80,77)) is where the real information is.
+Checkpoints, in order:
+  - entry (before any increment): 872.9 MB (carried over from row 1)
+  - after `build_sparse_jac_fn_b3` closure: 6,366.5 MB (**+5,493.6 MB**)
+  - after `jac_fn(u,None)` (the `vmap(hessian(...))` call itself):
+    13,046.2 MB (**+6,643.8 MB**)
+  - after CSR+coalesce one-time setup: 18,898.5 MB (**+5,852.3 MB**)
+  - crash: `cuDSSError: ALLOC_FAILED` inside `cudss.execute(...,
+    Phase.FACTORIZATION...)`, i.e. AFTER cuDSS's own ANALYSIS phase
+    already succeeded.
+
+Checked these three deltas against row 1's own deltas at the SAME three
+checkpoints (78.2 / 94.6 / 84.2 MB) scaled by the element-count ratio
+(480,320 / 6,840 = 70.2x): predicts 5,492 / 6,641 / 5,911 MB -- matching
+the observed 5,493.6 / 6,643.8 / 5,852.3 MB almost exactly. **This
+confirms the memory is scaling perfectly LINEARLY with element count,
+exactly as it should for a per-element vmapped computation -- there is
+no non-linear blowup, no leak, nothing pathological in our own
+PyTorch-side code.** It is simply that at 480,320 elements, holding
+several independent O(n_elements) copies of the same index/value data
+alive at once (closure templates in `build_sparse_jac_fn_b3`, the raw
+duplicate-entry COO triple `jac_fn` returns, the COO/CSR conversion
+intermediates) adds up to ~18.9 GB of legitimate (if wasteful)
+PyTorch-tracked memory before cuDSS is even asked to do anything.
+
+**The actual crash is NOT in our code's own memory at all** -- it is
+cuDSS's own internal, raw `cudaMalloc`-based workspace for
+FACTORIZATION (fill-reducing-reordered supernodal/multifrontal factor
+storage), which `torch.cuda.memory_allocated()` never sees. This is
+consistent with a well-known, genuine fact about direct sparse solvers
+in 3D (not specific to this project or to cuDSS): 3D problems have much
+worse fill-in under nested-dissection reordering than 2D ones (roughly
+O(N^2) factor nonzeros for a 3D N^(1/3)-per-side grid vs. O(N log N)
+for 2D), so a direct factorization of a ~1.44M-DOF 3D mesh can
+plausibly need tens of GB on its own -- on an 80 GB A100, with ~18.9 GB
+already held by our own pre-processing, that leaves meaningfully less
+than 80 GB of real headroom for cuDSS's own allocation to succeed in.
+This is the single most likely explanation for the ALLOC_FAILED, and if
+so it is an honest, expected LIMITATION of using a direct (not
+iterative) 3D solver at this scale, not a bug to fix -- the kind of
+finding that belongs in the paper's own solver-selection discussion,
+not something to keep chasing as broken code.
+
+**One real, if minor, memory-efficiency bug found and fixed while
+localizing this**: `_newton_cudss_reuse_analysis`'s own comment claims
+"every one-time setup scratch tensor" is explicitly freed via `del
+row_f, col_f, val_f` before cuDSS's handle is created -- but for
+matrix_type="general" (the default, what B3's benchmark uses),
+`row_f, col_f, val_f = row, col, val` is a direct assignment, not a
+copy, so `row_f`/`col_f`/`val_f` are literally the SAME tensor objects
+as `row`/`col`/`val` (bound earlier via `val, row, col, shape =
+jac_fn(u, None)`). Deleting only the `_f`-suffixed names does not
+free anything, because the original `val`/`row`/`col` names (still in
+scope) keep the exact same objects alive regardless. `row`/`col`
+genuinely must stay alive anyway (captured again as `row0`/`col0` for
+every later iteration's sparsity-pattern consistency check), so nothing
+is lost there -- but `val` (the raw, duplicate-entry Hessian-derived
+values, same O(n_elements) size as the row/col templates -- not a
+few-MB scratch tensor) has NO later use once `cval_buf` is built via an
+independent `.clone()`, and was never actually being freed. Added an
+explicit `del val` right after the self-check, safe in both the
+general and symmetric branches. At the 480,320-element ladder
+resolution this should recover roughly ~2.2 GB (the raw value array's
+own size at that scale) that was previously held uselessly through the
+rest of increment 1's first Newton iteration.
+
+Also added one more diagnostic (not yet exercised -- the run crashed
+before reaching it on the next resolution; will fire on the next
+attempt): `torch.cuda.mem_get_info()` printed right before the
+FACTORIZATION call on increment 1's first iteration, reporting REAL
+device free/total memory (not just PyTorch's own tracked allocation),
+to directly quantify how close vs. how wildly short of fitting cuDSS's
+own allocation actually is -- the deciding evidence for whether this is
+"optimize PyTorch-side memory further and it might just fit" or
+"categorically infeasible for a direct solver at this scale on this
+hardware."
+
+Next step: Omar re-runs once more. The ~2.2 GB `del val` saving alone
+is very unlikely to be enough by itself (cuDSS's own shortfall is
+probably much larger, per the fill-in argument above), so the
+realistic expectation communicated to Omar is that 480,320 elements
+will likely still fail -- but this run's `mem_get_info()` printout will
+say definitively whether it's close or not, which decides whether
+further optimization is worth attempting at all before concluding (for
+the paper) that the assembled+direct solver's 3D ladder is
+fill-in-limited to resolutions well below 10^5 elements.

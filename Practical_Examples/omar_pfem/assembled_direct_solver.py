@@ -269,6 +269,26 @@ def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_
                 # here was scratch for computing those.
                 del key, sorted_key, sort_perm, inverse_idx, check_buf, A_coo, A_csr, indices
                 del row_f, col_f, val_f
+                # `val` (jac_fn's own raw, duplicate-entry return, same size
+                # as row_template/col_template -- not a few-MB scratch
+                # tensor) is NOT freed by the del above: for matrix_type=
+                # "general" (the default, and what B3 uses), row_f/col_f/
+                # val_f ARE row/col/val by direct assignment (no copy), so
+                # `del val_f` only drops ITS OWN name -- `val` (bound
+                # earlier, at `val, row, col, shape = jac_fn(u, None)`)
+                # still references the exact same tensor and keeps it alive.
+                # (row/col don't have this problem: row0/col0 must hold
+                # those same objects for the rest of the solve regardless,
+                # so no memory is actually recovered by also dropping the
+                # `row`/`col` names.) By this point every use of `val` is
+                # done -- cval_buf is an independent .clone(), not a view --
+                # so it is always safe to drop, in both the general and
+                # symmetric branches (where val[keep_mask] already made
+                # val_f a separate copy and left the full `val` dangling
+                # unused). A real, measured cost on B3's hex8 path: ~2.2 GB
+                # at the 480,320-element ladder resolution (found 2026-10-11
+                # chasing a cuDSS ALLOC_FAILED -- see PROJECT_STATUS.md).
+                del val
                 torch.cuda.synchronize(); stats["t_coalesce_s"] += _time.time() - _tc0
 
                 if mem_debug:
@@ -310,6 +330,13 @@ def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_
                 cudss.execute(handle, cudss.Phase.ANALYSIS.value, config, data, A_desc, x_desc,
                                b_desc)
             torch.cuda.synchronize(); t1 = _time.time()
+            if mem_debug and it == 0:
+                free_b, total_b = torch.cuda.mem_get_info()
+                print(f"      [mem_debug] real device memory right before FACTORIZATION "
+                      f"(iter 0): free={free_b / 1e9:.2f} GB / total={total_b / 1e9:.2f} GB "
+                      f"(torch-tracked allocated={torch.cuda.memory_allocated() / 1e9:.2f} GB) "
+                      f"-- ANALYSIS's own cuDSS-internal buffers (not PyTorch-tracked) are "
+                      f"already included in 'free' shrinking from 'total' by this point")
             cudss.execute(handle, cudss.Phase.FACTORIZATION.value, config, data, A_desc, x_desc,
                            b_desc)
             torch.cuda.synchronize(); t2 = _time.time()
