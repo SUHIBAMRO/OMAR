@@ -17277,3 +17277,62 @@ no GPU being available here:
 None of these four are in the paper yet -- intentionally. They exist so
 Omar can run them and bring back real numbers; nothing here should be
 treated as a result until he does.
+
+## Two follow-up emails (2026-10-11): title change + GPU-FEM promotion done; licensing audit still pending
+
+Timon sent two more emails (7:53 and 7:59 AM) after the original 15-point
+review. Omar asked to start with the first one (title change + promoting
+the GPU-native FEM work); the licensing-audit email is still open,
+pending Omar's go-ahead.
+
+**Done**: per Timon's own suggested title and framing ("we should
+definitely present and advertise our GPU-native FEM work better and
+highlight it also as a key contribution... We effectively have three
+useful ingredients"):
+- Title changed to "Accuracy- and Hardware-Matched Comparison of
+  GPU-Native Finite Element Solvers and Physics-Informed Neural
+  Operators for Hyperelasticity" (was "Physics-Informed Neural Operator
+  Learning for Hyperelastic Solids: From 2D Benchmarks to a 3D Rocking
+  Rubber-Mount Bushing").
+- Abstract: added 2 sentences naming the three GPU-native solvers
+  (batched / matrix-free-multigrid / assembled-direct-cuDSS) as a
+  contribution in their own right, with the headline number (23.68s,
+  17.1GB at N=1401, down from 58.54s).
+- Introduction: added a full paragraph (end of Section 1, before
+  Governing Equations) spelling out all three solvers, what each is for,
+  the analysis-reuse + symmetric-storage numbers (58.54s -> 24.61s ->
+  23.68s), and the licensing-relevant fact that the assembled/direct
+  solver's assembly code, though first written for the TensorMesh
+  comparison, never actually calls into TensorMesh for anything
+  physics-related and was written to drop that dependency entirely
+  (cites Section~\ref{sec:gpu-fem} where TensorMesh is used purely as a
+  separate third-party comparison baseline).
+- Conclusion: added a paragraph restating the three-solver contribution
+  and headline number, plus Timon's own requested outlook -- an
+  iterative Krylov/algebraic-multigrid solve once the assembled matrix
+  becomes too large to factorize directly, and a multi-GPU,
+  domain-decomposed assembly/solve once a single GPU's memory becomes
+  the binding constraint -- as the natural next steps toward genuinely
+  large-scale problems.
+- Data and Code Availability: reworded to name all three solvers
+  explicitly (previously only named the matrix-free and assembled-direct
+  ones, not the batched solver).
+- Found and fixed one real LaTeX rendering bug introduced by this pass
+  before it was caught: "(Krylov/algebraic-multigrid)" produced a 52pt
+  overfull hbox that visibly clipped/overlapped text in the rendered
+  PDF (caught by rendering the actual page image, not just checking the
+  compile log) -- reworded to "Krylov or algebraic-multigrid" to break
+  cleanly; verified clean in the re-rendered page image.
+
+Recompiled clean: 42 pages (unchanged), 0 LaTeX errors, 0 undefined
+references, citations still matched, overfull-hbox count back to the
+pre-existing baseline level (no other new visual defects after the fix
+above).
+
+**Still pending, needs Omar's go-ahead to start**: the licensing audit
+(email 4, 7:59 AM) -- checking torch-fem's own license, NVIDIA cuDSS's
+license/distribution terms, confirming no TensorMesh dependency remains
+anywhere in the code to be released (not just the assembled/direct
+solver checked above), and the Transolver/neural-operator architecture's
+own licensing provenance, before any of this is released publicly as
+Timon is now proposing.

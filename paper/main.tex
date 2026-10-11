@@ -16,7 +16,7 @@
 
 \begin{frontmatter}
 
-\title{Physics-Informed Neural Operator Learning for Hyperelastic Solids: From 2D Benchmarks to a 3D Rocking Rubber-Mount Bushing}
+\title{Accuracy- and Hardware-Matched Comparison of GPU-Native Finite Element Solvers and Physics-Informed Neural Operators for Hyperelasticity}
 
 %% TODO: confirm author list and order with Suhib/Timon before submission.
 \author[rub]{Suhib Amro\corref{cor1}}
@@ -37,8 +37,17 @@ quarter ring under internal pressure), each combined with three isotropic
 hyperelastic strain-energy densities (Neo-Hookean, Mooney--Rivlin,
 Arruda--Boyce), are trained to completion, evaluated against an independent
 finite-element reference, and characterized across mesh-resolution
-generalization, out-of-distribution robustness, and break-even cost against both
-a native and a GPU-native finite-element solver. The study is then extended
+generalization, out-of-distribution robustness, and break-even cost against
+both a native and a GPU-native finite-element solver. This comparison is
+itself enabled by three GPU-native finite-element solvers developed for
+this study, presented as a contribution in their own right alongside the
+operator: a batched solver for many independent small problems at once, a
+matrix-free/multigrid solver for large meshes under memory constraints,
+and an assembled, direct (cuDSS) solver with analysis-phase reuse and
+symmetric-matrix storage for multi-million-degree-of-freedom problems --
+the last of which solves a 1,962,801-node 2D reference problem in
+$23.68$~s at $17.1$~GB peak memory, down from $58.54$~s unoptimized, our
+strongest measured large-$N$ finite-element result. The study is then extended
 to a third, more demanding 3D benchmark: a rocking elastomeric rubber-mount
 bushing with a stress-concentrating groove. The operator reproduces
 displacement, strain energy, and reaction moment accurately (combined
@@ -134,6 +143,38 @@ study's primary subject, these samples are used only for evaluation; the
 supervised, data-driven baseline introduced for comparison uses
 finite-element-labeled samples for training by construction, since
 training on labels is the point of that comparison.
+
+A fair comparison between a trained operator and finite-element solving
+needs the finite-element side to be genuinely competitive on the same
+hardware, not a slow CPU baseline that makes any GPU-resident operator
+look favorable by default. This study therefore also contributes three
+GPU-native finite-element solvers, developed and benchmarked here
+alongside the operator rather than treated as a single undifferentiated
+baseline: (i) a \emph{batched} solver that solves many independent,
+small problems at once on the GPU, matching the operator's own natural
+inference pattern; (ii) a \emph{matrix-free}, multigrid-preconditioned
+solver that never assembles the global tangent, trading some iteration
+count for a memory footprint that scales to large meshes without
+exhausting GPU memory; and (iii) an \emph{assembled, direct} solver
+(explicit sparse tangent, NVIDIA cuDSS factorization) with two
+optimizations specific to Newton's method's own repeated-solve
+structure -- reusing cuDSS's analysis (fill-reducing reordering) phase
+across Newton iterations, since it depends only on the Jacobian's
+sparsity pattern, and storing only the matrix's symmetric half -- that
+together reduce a $1{,}962{,}801$-node 2D reference solve from $58.54$~s
+to $24.61$~s (analysis reuse alone) and to $23.68$~s (both
+optimizations), at $17.1$~GB peak memory: this study's strongest
+measured large-$N$ finite-element result, and the baseline the
+operator's own break-even numbers are judged most strictly against.
+All three are implemented from scratch in PyTorch, independent of
+TensorMesh (used elsewhere in this study only as a separate third-party
+baseline for comparison, Section~\ref{sec:gpu-fem}): the
+assembled, direct solver's sparse-assembly code was originally written
+for that TensorMesh comparison but, on inspection, never actually calls
+into TensorMesh for anything physics-related, only for a data structure
+this study's own code can construct directly -- so the dependency was
+dropped entirely rather than left in by accident. All three solvers are
+released alongside the operator code (Data and Code Availability).
 
 \FloatBarrier
 \section{Governing Equations and Material Models}
@@ -2608,7 +2649,26 @@ accuracy, remains $589$--$739\times$ faster per sample across all studied
 comparisons while repaying its training cost within fewer than $1{,}900$
 solves at most.
 
-Three findings qualify this result and point to concrete future work.
+Alongside the operator, this study contributes three GPU-native
+finite-element solvers developed and benchmarked on the same hardware as
+the operator itself: a batched solver for many independent small
+problems, a matrix-free multigrid solver for large meshes under memory
+constraints, and an assembled, direct (cuDSS) solver with analysis-phase
+reuse and symmetric-matrix storage, which together push this study's own
+strongest finite-element baseline to $23.68$~s at $17.1$~GB for a
+$1{,}962{,}801$-node reference problem (from $58.54$~s unoptimized) --
+the baseline every break-even figure above is judged against most
+strictly. Scaling this assembled, direct approach to genuinely
+large-scale problems is a natural next step, along the same two axes
+finite-element practice already uses for this purpose: an iterative
+Krylov or algebraic-multigrid linear solve in place of a single direct
+factorization once the assembled matrix itself becomes too large to
+factorize economically, and a multi-GPU, domain-decomposed assembly and
+solve once a single GPU's memory becomes the binding constraint rather
+than solve time.
+
+Three further findings qualify the operator's own result and point to
+concrete future work.
 First, derived physical quantities (stress, energy norms, gradients) are
 systematically harder to reproduce than displacement itself, and a trained
 operator's error in these quantities does not shrink with mesh refinement
@@ -2647,11 +2707,12 @@ interests or personal relationships that could have appeared to
 influence the work reported in this paper.
 
 \section*{Data and Code Availability}
-All code (dataset generation, training, evaluation, the matrix-free
-GPU-native finite-element solver, and the assembled+direct GPU
-finite-element solver) is publicly available at
-\url{https://github.com/suhibamro/omar}. Trained checkpoints and
-generated datasets are available from the corresponding author on
+All code (dataset generation, training, evaluation, and all three
+GPU-native finite-element solvers presented in this study -- the batched
+solver, the matrix-free multigrid solver, and the assembled, direct
+cuDSS solver with analysis-phase reuse and symmetric storage) is publicly
+available at \url{https://github.com/suhibamro/omar}. Trained checkpoints
+and generated datasets are available from the corresponding author on
 reasonable request.
 
 \appendix
