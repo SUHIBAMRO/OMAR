@@ -385,7 +385,20 @@ def solve_b3_assembled_direct(geom, E_node, nu_node, phi, device, dtype=torch.fl
 
         if inc_converged is False:
             converged_all = False
-        increment_stats.append({"alpha": float(alpha), "stats": stats, "converged": inc_converged})
+        mem_after_mb = torch.cuda.memory_allocated(device) / 1e6 if device.type == "cuda" else None
+        increment_stats.append({"alpha": float(alpha), "stats": stats, "converged": inc_converged,
+                                 "mem_allocated_mb_after": mem_after_mb})
+        # Diagnostic only (added after a real 39.3 GB peak_mem_mb was seen for
+        # this same 6,840-element mesh on Omar's A100, see run_b3_benchmark's
+        # own comment) -- prints CURRENT (not peak) allocation after every
+        # increment so a genuine per-increment leak (monotonically growing
+        # mem_after_mb across the loop) can be told apart from one expensive
+        # increment's transient peak that is correctly freed again right
+        # after. Cheap (one sync-free query), left on unconditionally rather
+        # than gated behind a flag no caller has any reason to look for.
+        if device.type == "cuda":
+            print(f"    [increment alpha={float(alpha):.2f}] mem_allocated after solve: "
+                  f"{mem_after_mb:.1f} MB")
 
     u_np = u.reshape(n_nodes, 3).detach().cpu().numpy()
     agg_stats = {"converged": converged_all, "increment_stats": increment_stats,
@@ -487,6 +500,13 @@ def run_correctness_check(Ntheta=7, Nr=6, Nz=6, device=None, dtype=torch.float64
             f"_local_element_energy_hex / build_sparse_jac_fn_b3.")
     global _CORRECTNESS_VERIFIED
     _CORRECTNESS_VERIFIED = True
+    if device.type == "cuda":
+        # Same reasoning as run_b3_benchmark's per-row cleanup: give back
+        # whatever PyTorch's caching allocator reserved for this (tiny)
+        # mesh before run_b3_benchmark starts its own, much bigger
+        # resolutions in the same process -- cheap insurance, not a
+        # response to a measured problem at this mesh size specifically.
+        torch.cuda.empty_cache()
     return max_abs, max_rel, passed
 
 
@@ -547,6 +567,28 @@ def run_b3_benchmark(resolutions, out_json, device=None, dtype=torch.float64,
                   f"{elapsed:.2f}s, peak_mem={peak_mem} (converged={converged})")
         if device.type == "cuda":
             torch.cuda.reset_peak_memory_stats(device)
+            # Real bug found on Omar's A100 (2026-10-11): the FIRST row
+            # (6,840 el., the tiny production mesh) reported peak_mem_mb=
+            # 39,300 (39.3 GB!) -- wildly more than the 667 MB measured for
+            # the identical mesh in an earlier run with no other resolution
+            # queued after it -- and the VERY NEXT row (480,320 el.) then
+            # failed immediately with cuDSS ALLOC_FAILED during its first
+            # FACTORIZATION call. reset_peak_memory_stats above only resets
+            # the TRACKING counter; it does not hand memory back to the
+            # driver. PyTorch's caching allocator keeps whatever it reserved
+            # at that peak (plausible here: vmap(hessian(...))'s forward-
+            # over-reverse-mode double-backward constructs a large number of
+            # parallel per-element x per-direction intermediate buffers) for
+            # its OWN future reuse, but never releases it to the OS -- so it
+            # is invisible to cuDSS's own separate, raw cudaMalloc calls.
+            # One expensive row can therefore permanently starve cuDSS on
+            # every later, larger row in the SAME process, independent of
+            # whether that row's own matrix would have fit in the memory
+            # that's actually free. del + empty_cache() here actually
+            # returns PyTorch's reserved-but-idle memory to the driver
+            # before the next (typically much bigger) resolution starts.
+            del u
+            torch.cuda.empty_cache()
 
         # Written after EVERY row, not just at the end -- a larger
         # resolution later in the list can OOM or hang (direct solvers'

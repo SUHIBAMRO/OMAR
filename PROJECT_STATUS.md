@@ -17680,3 +17680,74 @@ have silently discarded the already-computed, real GPU timings from
 every smaller resolution before it. Now writes `out_json` after every
 row, so partial results survive a failure on a later row. Not yet run
 by Omar; no GPU numbers exist yet for these three sizes.
+
+## B3 ladder run: cuDSS ALLOC_FAILED on the very first larger resolution --
+## real investigation, one real bug fixed, but root magnitude still unexplained
+
+Omar ran the updated notebook. The 6,840-element row completed
+(`elapsed_s=8.59`, matching the earlier run) but reported
+`peak_mem=39300.307968` MB -- **39.3 GB** -- for the SAME mesh that an
+earlier run (before more resolutions were queued after it) measured at
+only 667 MB. The very next row, (81,80,77)=480,320 elements, then
+crashed immediately inside its first `cudss.execute(...,
+Phase.FACTORIZATION...)` call with `cuDSSError: ALLOC_FAILED (2)`.
+
+Investigated `_newton_cudss_reuse_analysis` (assembled_direct_solver.py)
+and `build_sparse_jac_fn_b3`/`solve_b3_assembled_direct`
+(b3_assembled_direct_solver.py) directly rather than guessing. Found:
+cuDSS's own native handle/data/config/matrix descriptors ARE correctly
+destroyed every call (a `try/finally` block, confirmed by reading the
+code -- `cudss.destroy(handle)` etc. always run). So this is not a
+native-handle leak. But `torch.cuda.reset_peak_memory_stats` (already
+called once per resolution row in `run_b3_benchmark`) only resets the
+TRACKING counter -- it does not release anything back to the CUDA
+driver. PyTorch's own caching allocator keeps whatever it reserved at
+its historical peak for its own future reuse and never gives it back
+to the OS unless `torch.cuda.empty_cache()` is called explicitly. cuDSS
+is a separate library doing its own raw `cudaMalloc` calls outside
+PyTorch's allocator, so anything PyTorch is still holding reserved
+(even if internally "freed" and idle) is invisible to it and shrinks
+the memory cuDSS can actually get for the NEXT, much bigger resolution
+in the same process. This is a well-known failure mode when mixing a
+PyTorch-heavy pipeline with an external CUDA library in one process,
+not specific to this module.
+
+**Fixed**: added `torch.cuda.empty_cache()` after every resolution row
+in `run_b3_benchmark` (and once at the end of `run_correctness_check`,
+before Cell 2 ever starts, as cheap extra insurance) so whatever
+PyTorch reserved is actually returned to the driver before attempting
+the next, larger mesh.
+
+**Not yet explained, and NOT claimed fixed**: 39.3 GB itself is an
+alarming number for a 6,840-element / ~24,000-DOF problem regardless of
+caching-allocator behavior -- if that scales roughly linearly with
+element count (5.75 MB/element), 480,320 elements would need ~2.76 TB,
+which no GPU has, and `empty_cache()` between rows would NOT save that
+case; it only prevents one row's leftover reservation from starving a
+LATER row, it cannot shrink what a single row itself needs at its own
+peak. The most likely explanation under investigation (not yet
+confirmed): `build_sparse_jac_fn_b3`'s `vmap(hessian(_local_element_
+energy_hex))` does a forward-over-reverse-mode double-backward,
+effectively running something like (n_elements x 24 forward-mode
+directions) worth of parallel per-element reverse-mode graphs in one
+vmapped call -- hex8's 24 local DOF is 3x Q4's 8, and double-backward
+cost/memory for this pattern does not scale linearly with local DOF
+count, so the already-measured-safe 2D assembled+direct study (Q4,
+N=1401, ~3.9M DOF) gives no guarantee this generalizes to hex8 at
+B3's larger ladder sizes.
+
+Added real diagnostics instead of guessing further: `solve_b3_
+assembled_direct` now prints `torch.cuda.memory_allocated()` (current,
+not peak) after every one of the 11 load increments, so the next real
+run will show directly whether memory is flat across increments (one
+expensive jac_fn call, correctly freed after) or climbing monotonically
+(a genuine per-increment leak inside the increment loop itself, which
+`empty_cache()` between RESOLUTIONS would not catch or explain).
+
+Next step: Omar re-runs the same notebook. If the 480,320-element row
+now succeeds, the caching-allocator theory was the whole story. If it
+still ALLOC_FAILS (or even the 6,840-element row's own per-increment
+memory printout climbs steeply), the vmap+hessian memory-scaling theory
+needs to be checked directly, likely by measuring memory at a few
+intermediate mesh sizes between 6,840 and 480,320 before trying the
+full ladder again blind.
