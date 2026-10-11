@@ -485,6 +485,20 @@ def solve_b3_assembled_direct(geom, E_node, nu_node, phi, device, dtype=torch.fl
                     line_search=True, verbose=False, matrix_type=matrix_type,
                     mem_debug=(i_alpha == 0))
             inc_converged = not any("did not converge" in str(w.message) for w in caught)
+            if not inc_converged:
+                # Real non-convergence seen at B3's 480,320-element ladder
+                # row (2026-10-11) -- the generic "DID NOT CONVERGE" line
+                # run_b3_benchmark prints doesn't say WHICH increment or
+                # the final ||F||, both needed before guessing a fix
+                # (e.g. more load increments) rather than finding the
+                # real cause. _newton_cudss_reuse_analysis's own warning
+                # message already carries ||F|| -- print it immediately,
+                # tagged with this increment's alpha, instead of letting
+                # it get lost among the per-iteration cuDSS timing prints.
+                for w in caught:
+                    if "did not converge" in str(w.message):
+                        print(f"    [increment alpha={float(alpha):.2f}] NON-CONVERGENCE: "
+                              f"{w.message}")
         else:
             from torch_sla import SparseTensor
             ident = torch.arange(n_dof, device=device)
@@ -634,7 +648,7 @@ def run_correctness_check(Ntheta=7, Nr=6, Nz=6, device=None, dtype=torch.float64
 
 def run_b3_benchmark(resolutions, out_json, device=None, dtype=torch.float64,
                       reuse_analysis=True, matrix_type="general", seed=0,
-                      symmetric_bc=False, vmap_chunk_size=None):
+                      symmetric_bc=False, vmap_chunk_size=None, n_increments=11):
     """Benchmarks solve_b3_assembled_direct at the given (Ntheta,Nr,Nz)
     resolutions -- pass DEFAULT_RESOLUTION (the 6,840-element production
     mesh) and/or triples from this project's own mesh-convergence ladder
@@ -664,7 +678,23 @@ def run_b3_benchmark(resolutions, out_json, device=None, dtype=torch.float64,
     solve_b3_assembled_direct / build_sparse_jac_fn_b3 -- see their own
     docstrings. Caps peak memory of the per-iteration vmap(hessian(...))
     computation at the cost of some wall-clock time; mathematically
-    identical output."""
+    identical output.
+
+    n_increments=11 (default, unchanged -- matches the already-trusted
+    reference solver's own convention): with vmap_chunk_size fixing the
+    earlier per-iteration OOM, Omar's run of the 480,320-element row got
+    all the way through the 10-increment loop (no crash) but genuinely
+    FAILED TO CONVERGE on at least one increment, after an alarming 30/30
+    max_iter Newton budget (3,093s total -- vs. the ~3 iterations/
+    increment every smaller case needed). This is a real, separate
+    problem from memory -- the SAME failure mode this module already
+    found and fixed once before (single-shot loading failing on a hard
+    real sampled material/phi at the production mesh scale, see the
+    "production mesh silently did NOT converge" entry in PROJECT_STATUS.
+    md), so more load increments is the well-motivated first thing to
+    try, not a blind guess. Pass a larger value (e.g. 21) to test this
+    hypothesis before assuming something is actually broken in
+    symmetric_bc/vmap_chunk_size themselves."""
     device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if (matrix_type, symmetric_bc) not in _CORRECTNESS_VERIFIED:
         raise RuntimeError(
@@ -695,7 +725,8 @@ def run_b3_benchmark(resolutions, out_json, device=None, dtype=torch.float64,
         u, stats = solve_b3_assembled_direct(
             geom, E_node, nu_node, phi, device, dtype=dtype,
             reuse_analysis=reuse_analysis, matrix_type=matrix_type, return_stats=True,
-            symmetric_bc=symmetric_bc, vmap_chunk_size=vmap_chunk_size)
+            symmetric_bc=symmetric_bc, vmap_chunk_size=vmap_chunk_size,
+            n_increments=n_increments)
         torch.cuda.synchronize() if device.type == "cuda" else None
         elapsed = time.time() - t0
         peak_mem = torch.cuda.max_memory_allocated(device) / 1e6 if device.type == "cuda" else None
@@ -706,6 +737,7 @@ def run_b3_benchmark(resolutions, out_json, device=None, dtype=torch.float64,
                "elapsed_s": elapsed, "peak_mem_mb": peak_mem,
                "reuse_analysis": reuse_analysis, "matrix_type": matrix_type,
                "symmetric_bc": symmetric_bc, "vmap_chunk_size": vmap_chunk_size,
+               "n_increments": n_increments,
                "converged": converged, "newton_stats": stats}
         rows.append(row)
         if converged is False:

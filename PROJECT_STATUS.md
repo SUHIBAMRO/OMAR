@@ -18145,3 +18145,66 @@ Confirms vmap_chunk_size changes nothing about the physics for either
 matrix_type, exactly as expected from torch.func.vmap's own chunking
 contract. Cleared to try on GPU with the 50,000 starting value already
 wired into the notebook -- next real step is Omar's run.
+
+## B3 ladder, round 4: vmap_chunk_size fixed the OOM, but surfaced TWO
+## separate real problems -- non-convergence, and a still-open memory wall
+
+Omar ran the chunked, symmetric notebook across the full ladder
+(6,840 / 480,320 / 839,040 / 950,400 elements). Real, informative
+result, genuinely mixed:
+
+**6,840-element row**: unchanged, correct, 10.25s.
+
+**480,320-element row**: `vmap_chunk_size=50000` worked exactly as
+intended -- all 10 load increments ran to completion with NO OutOfMemory
+error this time (memory settled at a flat ~6.38 GB after the first
+increment, instead of crashing on the second Newton iteration like the
+previous round). But the solve itself reported **`"converged": false`**
+after **3,093 seconds** (51+ minutes) -- a real, separate problem from
+memory. 3,093s for 10 increments implies something burned through close
+to the full 30-iteration Newton budget on at least one increment,
+instead of the ~3 iterations every other case (including this exact
+mesh's earlier general-matrix run) needed. This is NOT evidence that
+symmetric_bc or vmap_chunk_size are wrong -- both are already verified
+bit-correct on CPU -- it is a genuine numerics/robustness finding at
+this specific resolution's real sampled material/phi (seed=0).
+
+**839,040-element row**: hit `cuDSSError: ALLOC_FAILED` again, inside
+FACTORIZATION, same as the very first ladder attempt -- but this time
+with real numbers showing WHY: CSR/coalesce setup cost ~24.7 GB (up from
+~14.1 GB at 480,320 elements -- a 1.745x increase, matching the
+839,040/480,320 = 1.747x element-count ratio almost exactly, confirming
+linear scaling), leaving only 19.10 GB free when FACTORIZATION needed
+more. `vmap_chunk_size` does nothing for this -- it only caps the
+per-iteration Hessian-computation's OWN transient memory, not cuDSS's
+internal ANALYSIS/FACTORIZATION buffers or this module's own CSR
+storage, both of which scale with element count regardless of chunking.
+This is a genuinely unsolved, separate memory ceiling, currently
+somewhere between 480,320 and 839,040 elements for this solver on an
+80 GB A100. The 950,400-element row was never reached (the exception
+from 839,040 propagated up and stopped the whole benchmark loop).
+
+**Diagnosis added, not yet a fix**: `solve_b3_assembled_direct` now
+prints the REAL final `||F||` and increment (alpha) the moment a
+non-convergence warning fires, instead of letting it get lost among the
+per-iteration cuDSS timing prints -- `run_b3_benchmark`'s own generic
+"DID NOT CONVERGE" line never said which increment or how far off the
+residual was, which is needed before guessing a fix. Also added
+`n_increments` as a real parameter on `run_b3_benchmark` (previously
+hardcoded to the default 11 inside `solve_b3_assembled_direct`, with no
+way to override it from the benchmark entry point at all).
+
+**Next experiment, scoped to avoid wasting more GPU time**: notebook's
+Cell 2 now runs ONLY the 480,320-element row (the other two are blocked
+by the separate, unsolved CSR/cuDSS memory ceiling -- no point re-
+running those until that is understood) at `n_increments=21` instead of
+11. Rationale, not a blind guess: this module already found and fixed
+the EXACT same failure mode once before -- single-shot loading failing
+on a hard real sampled material/phi at the production mesh scale (see
+the "production mesh silently did NOT converge" entry above) -- so
+testing whether THIS resolution's particular seed=0 material realization
+simply needs more load steps than 11 is the well-motivated first
+hypothesis, before assuming symmetric_bc or chunking themselves are
+somehow at fault (both already independently verified correct on CPU).
+If this still fails, the new diagnostic print will show the real final
+||F|| and which increment, which is the next thing needed either way.
