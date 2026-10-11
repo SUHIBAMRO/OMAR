@@ -122,7 +122,14 @@ def main():
 
     results = {}
     for patience in patiences:
-        case_out_dir = os.path.join(args.out_dir, f"patience_{patience}")
+        # ntrain is baked into the directory name (not just patience) so a
+        # stale run from a different --ntrain (e.g. a now-fixed bug that
+        # silently used train_B1/B2's own small-scale default) can never be
+        # mistaken for the current, correct one by --skip_existing -- or by
+        # train_B1.py's own independent model_final.pt resume-guard, which
+        # has no knowledge of ntrain at all and would otherwise skip this
+        # run unconditionally just because that file already exists here.
+        case_out_dir = os.path.join(args.out_dir, f"patience_{patience}_ntrain{args.ntrain}")
         result_path = os.path.join(case_out_dir, "best_checkpoint_meta.json")
         if args.skip_existing and os.path.exists(result_path):
             print(f"[patience={patience}] already done -> {case_out_dir}, skipping run.")

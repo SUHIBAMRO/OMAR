@@ -17377,3 +17377,60 @@ the paper, since the real B1xNH operator's behavior at ntrain=35 may not
 transfer to ntrain=800 (different optimization problem, different
 number of batches per epoch, etc.). Asked Omar to re-run the same
 notebook (now fixed) rather than trust the ntrain=35 numbers.
+
+**Second bug, found from Omar's own "re-run" log**: his very next run (same
+notebook, after pulling the ntrain fix) came back with the EXACT SAME
+numbers (0.5479908058419823, best_epoch 475) and a suspiciously short
+total wall_clock_s (6.28s -- a full training run takes ~100-170s per
+patience, not 2s). Every row printed "already done ... skipping." The
+real cause: `--skip_existing` only checked whether `best_checkpoint_meta.
+json` existed in `patience_<p>/`, not whether that cached result came
+from the OLD (ntrain=35) run or a new (ntrain=800) one -- and train_B1.py
+has its own, completely independent resume-guard (skips unconditionally
+if `model_final.pt` already exists in `--out_dir`) that would have
+blocked a real re-run in that same directory regardless of this script's
+own flag. So the "fix" from the previous entry was never actually
+exercised; Omar was just reading back the stale, wrong-dataset-size
+numbers a second time.
+
+Fixed properly this time: `case_out_dir` now bakes `ntrain` into its own
+name (`patience_<p>_ntrain<n>`), so a stale run from a different --ntrain
+can never collide with, or be mistaken for, the current one -- by this
+script's own skip check or by train_B1.py's independent one. Omar's next
+run will write to a brand-new directory and train for real; the old
+`patience_4/8/16/` (ntrain=35) directories are left alone, untouched, in
+case anything there is still wanted.
+
+## Two real GPU results landed: hybrid PI+DD and Sobolev DD, B1xNeo-Hookean, 2026-10-11
+
+Omar ran both new-loss notebooks on the correct dataset (ntrain=800,
+ntest=200, confirmed in the log) end to end, no errors, no bugs found
+this time. Real numbers, comparable directly to Table 5 (PI-Adam: 9.59%)
+and Table 21 (DD-Adam: 13.07%), both at 75,000 optimizer steps, batch
+size 8, B1xNeo-Hookean:
+
+- **Hybrid (Pi + data, phys_weight=0.5, running-EMA-normalized)**:
+  best val rel-L2 = **12.75%** (step 60,000), training wall-clock 2460.9s
+  (~41 min). Beats plain DD (13.07%) by a small margin, but does not
+  reach pure PI's accuracy (9.59%) -- a real, physically sensible middle
+  ground given it is tested with none of the hyperparameter tuning the
+  pure methods received.
+- **Sobolev (value + deformation-gradient, grad_weight=0.5)**: best val
+  rel-L2 = **14.70%** (step 75,000, still improving at the end of the
+  budget -- did not clearly plateau), training wall-clock 1945.2s
+  (~32 min). Slightly WORSE than plain DD (13.07%) at this weight -- the
+  gradient-matching term did not help here, at least not at a 50/50
+  weighting with no tuning. A genuinely negative/neutral result, reported
+  as such, not re-run until a "better" number appears.
+
+Both training wall-clocks are consistent with their relative
+computational cost (hybrid > sobolev > plain DD, since hybrid pays for a
+full Gauss-quadrature energy assembly every step on top of the data
+loss, sobolev pays only for the extra kinematic gradient) -- a sanity
+check that passed, not assumed.
+
+Not yet written into the paper -- waiting to see whether these numbers
+hold up (e.g. whether the early-stopping-robustness-style check matters
+here too, and whether Omar wants to try other weight values) before
+deciding how prominently to feature the hybrid/Sobolev results in
+Table 21's area.
