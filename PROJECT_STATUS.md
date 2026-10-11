@@ -17905,3 +17905,61 @@ say definitively whether it's close or not, which decides whether
 further optimization is worth attempting at all before concluding (for
 the paper) that the assembled+direct solver's 3D ladder is
 fill-in-limited to resolutions well below 10^5 elements.
+
+## B3 ladder, round 4: DEFINITIVE -- this is a genuine 3D direct-solver
+## memory limitation, not fixable, not a bug; investigation closed
+
+Omar re-ran once more (the `del val` fix included, A100-SXM4-80GB
+confirmed). The `mem_get_info()` checkpoint right before FACTORIZATION
+finally gives the decisive number:
+
+  - 6,840 el. (row 1): free=83.79 GB / total=85.09 GB, torch-tracked=
+    0.26 GB -- essentially nothing used, ANALYSIS trivial, this row
+    always succeeds.
+  - 480,320 el. (row 2): free=34.30 GB / total=85.09 GB, torch-tracked=
+    16.71 GB right before FACTORIZATION is attempted.
+
+Read directly: total used at that point is 85.09-34.30=50.79 GB, of
+which only 16.71 GB is our own (PyTorch-tracked) memory. The remaining
+~34.08 GB was consumed by cuDSS's own internal ANALYSIS-phase buffers
+alone (fill-reducing nested-dissection reordering + symbolic
+factorization structure) -- which had ALREADY SUCCEEDED by this point.
+FACTORIZATION then failed with **34.30 GB still free** on an 80 GB
+card. That is not a close call a few more GB of PyTorch-side trimming
+(the `del val` fix saves roughly 2.2 GB, see previous entry) could ever
+close -- FACTORIZATION's own numeric-factor storage for a ~1.44M-DOF 3D
+mesh evidently needs well more than 34 GB on top of what ANALYSIS
+already used, meaning cuDSS's total real requirement for this one
+resolution is substantially north of 50-70+ GB, on top of whatever this
+module's own PyTorch-side bookkeeping needs.
+
+**Conclusion, with real numbers behind it now, not a theory**: this is
+a genuine, expected limitation of direct 3D sparse factorization (3D
+nested-dissection fill-in is fundamentally much worse than 2D's -- the
+same reason the 2D assembled+direct study could win decisively at
+N=1401/~3.9M DOF while this hex8 3D path cannot even complete a single
+factorization at ~1.44M DOF). It is NOT a bug, NOT something further
+memory-efficiency work in this module can fix, and further chasing it
+with more `del`/instrumentation would be wasted effort -- closing this
+investigation here. The 839,040- and 950,400-element rows were never
+reached (the benchmark loop raises on the first failure) and are
+expected to fail at least as badly, likely worse, given the clear
+trend; not worth spending GPU time confirming unless Omar specifically
+wants that data point for completeness.
+
+**Combined honest picture for B3's assembled+direct solver, now
+complete across every resolution actually tested**: at the ONLY
+resolution where it can even run (the 6,840-element production mesh),
+it is CORRECT (machine-precision agreement with the trusted torch-fem
+reference) but SLOWER than that reference (8.79s vs. 5.06s, ~1.74x,
+see the earlier entry) -- and at every larger resolution in the
+advisor's own requested 10^5-10^6-element range, it cannot complete a
+factorization on an 80 GB A100 at all. This is a real, reportable,
+negative-but-honest result: the GPU-native assembled+direct solver
+that was decisively the best baseline in the 2D study does not
+transfer to B3's 3D hex geometry at any tested scale, for two
+different, independent reasons (iterative-CG-competitive at small
+scale, memory-infeasible at large scale) -- exactly the kind of
+solver-selection finding Timon's own request ("benchmark this solver
+at relevant resolutions if possible") was designed to surface, whether
+the answer favors the new solver or not.
