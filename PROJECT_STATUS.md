@@ -17464,3 +17464,19 @@ notebook's own clone/fetch/reset cell. Told Omar to simply re-run the
 same cell again (which worked: the directory-naming fix is confirmed
 correct and already pushed) rather than chase a phantom bug in the git
 commands themselves.
+
+**Second missing dependency, same notebook, same session**: after the
+torch_sla/nvmath fix, Cell 1 got further (installed cleanly, "cuDSS is
+available" printed) but then failed inside `run_correctness_check` with
+`ModuleNotFoundError: No module named 'torchfem'` -- `solve_case`
+(data/mesh_convergence_B3.py, the already-trusted reference this whole
+module is checked against) imports torch-fem directly, and nothing in
+Cell 1 had installed it (the torch_sla/nvmath installs only cover this
+module's OWN new code, not the existing reference solver it verifies
+against). Found the real install pattern already used by this project's
+other B3 GPU notebooks (B3_GPU_MeshConvergence.ipynb and siblings):
+`pip install 'pyvista<0.49'` before `pip install torch-fem` (a real,
+currently-active PyPI issue -- unpinned pyvista 0.49+ imports an
+IPython>=8.8-only module that Colab's own older IPython doesn't have),
+plus clearing `torchfem`/`pyvista` from `sys.modules` afterward. Added
+both lines to Cell 1, same place as the torch_sla/nvmath installs.
