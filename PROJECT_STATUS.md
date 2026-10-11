@@ -17502,3 +17502,73 @@ by `run_correctness_check` (which uses fixed E/NU/PHI constants, not
 this sampler), so the CPU-only verification pass earlier never had a
 chance to catch it. Fixed by unpacking all 5 and discarding the two
 unneeded fields explicitly.
+
+## Fourth, more serious bug: production-mesh solve silently did NOT converge, 2026-10-11
+
+With the two dependency fixes and the unpacking fix in place, Omar's run
+got all the way through: Cell 1's correctness check PASSED on real GPU
+(max_rel=2.446e-10 against the trusted torch-fem reference, at the small
+Ntheta=9/Nr=7/Nz=6 mesh), and Cell 2 completed and wrote a result row for
+the real 6,840-element production mesh -- 18.95s, which looked like a
+clean, usable number. It was not: the run's own last line was easy to
+miss but critical --
+
+  UserWarning: Newton (cuDSS analysis-reuse) did not converge in 30
+  iters: ||F||=4.124e+04
+
+||F||=4.1e4 is enormous (should be ~1e-8 at convergence) -- the solve
+ran out its full 30-iteration budget without converging, and `run_
+b3_benchmark` had no code path that checked for this: it just wrote
+elapsed_s=18.95 into the result JSON as if the field returned were a
+valid solution, with only a generic library UserWarning (easy to scroll
+past) as any signal something was wrong.
+
+Root cause: `solve_b3_assembled_direct` did a SINGLE full-load Newton
+solve straight from the Dirichlet data (phi at its full sampled value
+immediately). The small correctness-check mesh uses fixed, easy material
+constants (E=1000, NU=0.45) and a small, fixed phi=0.05, so single-shot
+convergence there was never a meaningful test of the harder case: the
+production mesh uses a REAL SAMPLED material field (nu up to 0.49 --
+close to incompressible, known to stress Newton convergence for hex8
+elements) and a real sampled phi (up to 0.15 in the clip range). data/
+mesh_convergence_B3.py's own already-trusted solve_case -- the reference
+this whole module is checked against -- never attempts a single-shot
+solve either: it already ramps the load over 11 increments
+(`torch.linspace(0.0, 1.0, 11)`) for exactly this reason, a standard and
+already-established practice in this exact codebase, not a new idea.
+This module's own first version simply didn't replicate that part of the
+reference it was supposed to match.
+
+Fixed: `solve_b3_assembled_direct` now ramps phi over `n_increments=11`
+steps (matching solve_case's own convention), warm-starting each
+increment from the previous one's converged solution, rebuilding the
+Dirichlet data (and therefore the Jacobian's identity rows) fresh each
+increment since only the prescribed VALUES change, not which DOFs are
+free. Also closed the detection gap directly: the function now wraps
+each increment's solve in `warnings.catch_warnings(record=True)`,
+checks for the "did not converge" message explicitly, and returns an
+aggregated `stats["converged"]` flag (False if ANY increment failed) --
+`run_correctness_check` now raises immediately if the correctness-check
+solve itself doesn't converge (rather than letting a meaningless field
+comparison silently "pass"), and `run_b3_benchmark` prints an impossible-
+to-miss "DID NOT CONVERGE -- DO NOT report this row" line and records
+`"converged": false` in the output JSON for any row that fails, instead
+of only the easy-to-miss generic UserWarning.
+
+CPU-verified directly before pushing: at Ntheta=13/Nr=10/Nz=9 (864
+elements, 3,510 DOF -- too large for a dense CPU solve at the full
+6,840-element production mesh within reasonable time, but big enough to
+carry the SAME real sampled material field and phi (seed=0, nu up to
+0.486, phi=0.0847) that caused the original GPU failure) using a hand-
+rolled dense-Newton test harness built from this module's own residual/
+jac_fn (the same verification pattern used throughout this module's
+development): single-shot Newton did NOT converge (30/30 iterations
+used, final ||F||=1.781e3), reproducing the real bug at a smaller scale
+-- then the SAME problem with 10-increment incremental loading converged
+EVERY increment in exactly 3 Newton iterations each, final ||F|| ~2e-13
+(essentially exact) for all ten. Direct, reproducing confirmation that
+incremental loading is both necessary (single-shot genuinely fails on
+this real material/load combination, not a fluke) and sufficient (fixes
+it cleanly, fast). The exact 6,840-element production scale and the real
+GPU-only cuDSS/reuse_analysis=True path still need Omar's own run to
+confirm, per this module's standing EXPERIMENTAL status.

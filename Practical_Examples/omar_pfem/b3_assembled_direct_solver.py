@@ -298,17 +298,41 @@ def _b3_dirichlet(geom, phi, device, dtype):
 
 def solve_b3_assembled_direct(geom, E_node, nu_node, phi, device, dtype=torch.float64,
                                tol=1e-8, max_iter=30, reuse_analysis=True,
-                               matrix_type="general", return_stats=False):
-    """One B3 Newton solve via the assembled+direct (cuDSS) path. Returns
-    (u_np (n_nodes,3), stats) if return_stats else u_np. CUDA-only when
-    reuse_analysis=True (cuDSS has no CPU path -- same constraint as
-    assembled_direct_solver.solve_assembled_direct)."""
+                               matrix_type="general", return_stats=False,
+                               n_increments=11):
+    """B3 Newton solve via the assembled+direct (cuDSS) path, using
+    INCREMENTAL loading (phi ramped 0 -> target over n_increments steps,
+    each warm-started from the previous increment's converged solution)
+    -- NOT a single full-load Newton solve from the Dirichlet data.
+
+    This matters: a first real-GPU run of this function (single-shot,
+    no incremental loading) PASSED the small-mesh correctness check
+    (Ntheta=9,Nr=7,Nz=6, phi=0.05, constant material) but FAILED TO
+    CONVERGE at the production mesh with a real sampled material field
+    and phi (Ntheta=21,Nr=20,Nz=19, ||F||=4.1e4 after the full 30-
+    iteration budget, silently producing a 'successful' timing number
+    for a physically meaningless field). data/mesh_convergence_B3.py's
+    own already-trusted solve_case -- the reference this module is
+    checked against -- never attempts a single-shot full-load solve
+    either: it already uses 11 load increments
+    (`torch.linspace(0.0, 1.0, 11)`) for exactly this reason (standard
+    nonlinear-FEM practice for a large prescribed-displacement BC with
+    real material heterogeneity, not something this module invented).
+    n_increments=11 here matches that convention so the two solvers are
+    compared on equal footing, not a harder-for-no-reason single shot
+    vs. an easier incremental reference.
+
+    Returns (u_np (n_nodes,3), stats) if return_stats else u_np, where
+    stats now also carries "converged" (bool, True only if every
+    increment converged) and "increment_stats" (list, one entry per
+    increment) -- return_stats=True always needed to check this before
+    trusting any timing number. CUDA-only when reuse_analysis=True
+    (cuDSS has no CPU path -- same constraint as assembled_direct_
+    solver.solve_assembled_direct)."""
+    import warnings
+
     n_nodes = geom["n_nodes"]
     n_dof = 3 * n_nodes
-    free_mask_dof, prescribed = _b3_dirichlet(geom, phi, device, dtype)
-
-    jac_fn_full = build_sparse_jac_fn_b3(geom, E_node, nu_node, free_mask_dof, device, dtype)
-
     E_node_b = E_node.unsqueeze(0)   # (1, n_nodes) -- total_potential_energy_B3's own batch convention
     nu_node_b = nu_node.unsqueeze(0)
 
@@ -320,38 +344,59 @@ def solve_b3_assembled_direct(geom, E_node, nu_node, phi, device, dtype=torch.fl
         # training already depends on being correct.
         return total_potential_energy_B3(u_flat.reshape(1, n_nodes, 3), E_node_b, nu_node_b, geom)[0]
 
-    def residual(u_flat, _A, f_ext):
-        # B3 has no external-force term (prescribed-displacement loading
-        # only, train_B3.py's own Pi=U convention) -- f_ext is zero and
-        # kept only so this matches _newton_cudss_reuse_analysis's own
-        # residual_fn(u, A, f_ext) call signature.
-        grad_full = torch.func.grad(total_energy)(u_flat) - f_ext
-        return torch.where(free_mask_dof, grad_full, u_flat - prescribed)
-
-    u0 = prescribed.clone()  # start from the Dirichlet data, not zero -- B3's inner
-                              # boundary is far from u=0, and zero-init plus a large
-                              # rigid rotation risks element inversion on the first
-                              # Newton step (same reasoning as OUTPUT_SCALE in train_B3.py)
     f_ext = torch.zeros(n_dof, dtype=dtype, device=device)
+    u = torch.zeros(n_dof, dtype=dtype, device=device)  # increment 0: phi=0, u=0 is exact
+    increment_stats = []
+    converged_all = True
 
-    if reuse_analysis:
-        if device.type != "cuda":
-            raise RuntimeError("reuse_analysis=True requires CUDA (cuDSS has no CPU path).")
-        u, stats = _newton_cudss_reuse_analysis(
-            residual, jac_fn_full, u0, f_ext, tol=tol, atol=1e-10, max_iter=max_iter,
-            line_search=True, verbose=False, matrix_type=matrix_type)
-    else:
-        from torch_sla import SparseTensor
-        ident = torch.arange(n_dof, device=device)
-        A = SparseTensor(torch.ones(n_dof, dtype=dtype, device=device), ident, ident, (n_dof, n_dof))
-        u = A.nonlinear_solve(residual, u0, f_ext, jac_fn=jac_fn_full, method="newton",
-                              verbose=False, max_iter=max_iter, tol=tol, linear_method="lu",
-                              linear_solver=("cudss" if device.type == "cuda" else "auto"))
-        stats = None
+    alphas = torch.linspace(0.0, 1.0, n_increments, dtype=dtype, device=device)[1:]
+    for alpha in alphas:
+        free_mask_dof, prescribed = _b3_dirichlet(geom, float(alpha) * phi, device, dtype)
+        jac_fn_full = build_sparse_jac_fn_b3(geom, E_node, nu_node, free_mask_dof, device, dtype)
+
+        def residual(u_flat, _A, f_ext, free_mask_dof=free_mask_dof, prescribed=prescribed):
+            # B3 has no external-force term (prescribed-displacement loading
+            # only, train_B3.py's own Pi=U convention) -- f_ext is zero and
+            # kept only so this matches _newton_cudss_reuse_analysis's own
+            # residual_fn(u, A, f_ext) call signature.
+            grad_full = torch.func.grad(total_energy)(u_flat) - f_ext
+            return torch.where(free_mask_dof, grad_full, u_flat - prescribed)
+
+        u0 = u.clone()  # warm-start from the previous (converged) increment
+
+        if reuse_analysis:
+            if device.type != "cuda":
+                raise RuntimeError("reuse_analysis=True requires CUDA (cuDSS has no CPU path).")
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter("always")
+                u, stats = _newton_cudss_reuse_analysis(
+                    residual, jac_fn_full, u0, f_ext, tol=tol, atol=1e-10, max_iter=max_iter,
+                    line_search=True, verbose=False, matrix_type=matrix_type)
+            inc_converged = not any("did not converge" in str(w.message) for w in caught)
+        else:
+            from torch_sla import SparseTensor
+            ident = torch.arange(n_dof, device=device)
+            A = SparseTensor(torch.ones(n_dof, dtype=dtype, device=device), ident, ident, (n_dof, n_dof))
+            u = A.nonlinear_solve(residual, u0, f_ext, jac_fn=jac_fn_full, method="newton",
+                                  verbose=False, max_iter=max_iter, tol=tol, linear_method="lu",
+                                  linear_solver=("cudss" if device.type == "cuda" else "auto"))
+            stats, inc_converged = None, None  # torch_sla's own nonlinear_solve raises internally
+                                                # on non-convergence rather than warning -- no flag to check
+
+        if inc_converged is False:
+            converged_all = False
+        increment_stats.append({"alpha": float(alpha), "stats": stats, "converged": inc_converged})
 
     u_np = u.reshape(n_nodes, 3).detach().cpu().numpy()
+    agg_stats = {"converged": converged_all, "increment_stats": increment_stats,
+                 "n_newton_iters": sum((s["stats"] or {}).get("n_newton_iters", 0) for s in increment_stats)}
+    if not converged_all:
+        warnings.warn(
+            f"B3 assembled+direct solve did NOT converge on at least one load increment "
+            f"(see stats['increment_stats']) -- the returned field and any timing built on "
+            f"it are not physically meaningful and must not be trusted or reported.")
     if return_stats:
-        return u_np, stats
+        return u_np, agg_stats
     return u_np
 
 
@@ -411,11 +456,17 @@ def run_correctness_check(Ntheta=7, Nr=6, Nz=6, device=None, dtype=torch.float64
     nu_node = torch.full((geom["n_nodes"],), NU_CONST, dtype=dtype, device=device)
 
     t0 = time.time()
-    u_new = solve_b3_assembled_direct(
+    u_new, new_stats = solve_b3_assembled_direct(
         geom, E_node, nu_node, PHI_CONST, device, dtype=dtype,
-        reuse_analysis=(device.type == "cuda"), matrix_type="general")
+        reuse_analysis=(device.type == "cuda"), matrix_type="general", return_stats=True)
     print(f"  new (assembled+direct{'+ cuDSS' if device.type == 'cuda' else ' (CPU)'}): "
-          f"{time.time() - t0:.2f}s, max_disp={np.linalg.norm(u_new, axis=1).max():.4f}")
+          f"{time.time() - t0:.2f}s, max_disp={np.linalg.norm(u_new, axis=1).max():.4f}, "
+          f"converged={new_stats.get('converged')}")
+    if new_stats.get("converged") is False:
+        raise RuntimeError(
+            "solve_b3_assembled_direct did not converge even on the small correctness-"
+            "check mesh -- the field-agreement comparison below would be meaningless; "
+            "fix convergence before trusting anything from this module.")
 
     abs_diff = np.abs(u_new - u_ref)
     scale = max(np.abs(u_ref).max(), 1e-12)
@@ -480,14 +531,20 @@ def run_b3_benchmark(resolutions, out_json, device=None, dtype=torch.float64,
         elapsed = time.time() - t0
         peak_mem = torch.cuda.max_memory_allocated(device) / 1e6 if device.type == "cuda" else None
 
+        converged = stats.get("converged") if stats else None
         row = {"Ntheta": Ntheta, "Nr": Nr, "Nz": Nz,
                "n_elements": geom["n_elements"], "n_nodes": geom["n_nodes"],
                "elapsed_s": elapsed, "peak_mem_mb": peak_mem,
                "reuse_analysis": reuse_analysis, "matrix_type": matrix_type,
-               "newton_stats": stats}
+               "converged": converged, "newton_stats": stats}
         rows.append(row)
-        print(f"[Ntheta={Ntheta},Nr={Nr},Nz={Nz}] {geom['n_elements']:,} elements: "
-              f"{elapsed:.2f}s, peak_mem={peak_mem}")
+        if converged is False:
+            print(f"[Ntheta={Ntheta},Nr={Nr},Nz={Nz}] {geom['n_elements']:,} elements: "
+                  f"DID NOT CONVERGE -- elapsed_s={elapsed:.2f}s is NOT a valid timing number, "
+                  f"the returned field is not physically meaningful. DO NOT report this row.")
+        else:
+            print(f"[Ntheta={Ntheta},Nr={Nr},Nz={Nz}] {geom['n_elements']:,} elements: "
+                  f"{elapsed:.2f}s, peak_mem={peak_mem} (converged={converged})")
         if device.type == "cuda":
             torch.cuda.reset_peak_memory_stats(device)
 
