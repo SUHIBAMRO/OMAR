@@ -18131,3 +18131,17 @@ on the same ladder. No chunk_size has been chosen/justified yet based on
 real numbers (e.g. how much the ~6.6 GB per-call cost needs to shrink by
 to fit alongside cuDSS's ~28 GB) -- that's a reasonable next thing to
 work out before picking a number, rather than guessing one.
+
+**Update**: the background end-to-end CPU check referenced above
+finished. Full incremental-Newton solve (Ntheta=9/Nr=7/Nz=6, real
+sampled material/phi, same case used throughout this investigation):
+  - chunk_size=3, matrix_type="general": converged=True, max abs/rel
+    diff vs. chunk_size=None = 0.0 / 0.0 -- bit-exact.
+  - chunk_size=50, symmetric_bc=True: converged=True, max abs/rel diff
+    = 2.854e-12 / 6.469e-11 -- identical to symmetric_bc=True's own
+    already-verified agreement with the general path (pure floating-
+    point noise, not a chunking-induced difference).
+Confirms vmap_chunk_size changes nothing about the physics for either
+matrix_type, exactly as expected from torch.func.vmap's own chunking
+contract. Cleared to try on GPU with the 50,000 starting value already
+wired into the notebook -- next real step is Omar's run.
