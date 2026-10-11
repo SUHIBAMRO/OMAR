@@ -548,8 +548,15 @@ def run_b3_benchmark(resolutions, out_json, device=None, dtype=torch.float64,
         if device.type == "cuda":
             torch.cuda.reset_peak_memory_stats(device)
 
-    with open(out_json, "w") as f:
-        json.dump(rows, f, indent=2)
+        # Written after EVERY row, not just at the end -- a larger
+        # resolution later in the list can OOM or hang (direct solvers'
+        # fill-in grows worse than iterative CG's in 3D, untested at the
+        # bigger ladder sizes), and losing already-computed smaller-mesh
+        # timings to a crash on a later row would silently discard real,
+        # hard-won GPU results for no reason.
+        with open(out_json, "w") as f:
+            json.dump(rows, f, indent=2)
+
     print(f"Written to {out_json}")
     return rows
 

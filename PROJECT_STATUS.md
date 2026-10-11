@@ -17630,3 +17630,53 @@ element counts are not currently hardcoded in `b3_assembled_direct_solver.py`
 and would need to be worked out first. No paper text has been written
 for this result yet; per the module's standing EXPERIMENTAL policy it
 should be shown to Timon before any number from it is quoted anywhere.
+
+## B3 assembled+direct solver: larger ladder resolutions wired in (Timon's
+## own "relevant resolutions" request, not a self-initiated addition)
+
+Confirmed Omar's question: testing larger B3 resolutions is literally
+Timon's own follow-up-review wording, not something added on top of it --
+`b3_assembled_direct_solver.py`'s module docstring already quotes it:
+"The optimized assembled/direct solver MUST be included ... For B3, also
+benchmark this solver at relevant resolutions **if possible**." So the
+6,840-element production-mesh result (previous entry) only satisfies
+half of that request.
+
+Found the exact (Ntheta,Nr,Nz) triples behind the project's already-
+published 10^5-10^6-element ladder (the gap flagged in the previous
+entry): `zeroshot_notebooks/cell_b3_groove_gpu_mesh_convergence.py`'s
+own `GPU_RESOLUTIONS` list already solved, timed, and reported these
+live on GPU:
+  - (81, 80, 77)   -> 480,320 elements
+  - (97, 96, 93)   -> 839,040 elements
+  - (101, 100, 97) -> 950,400 elements
+Confirmed these use the SAME (Ntheta,Nr,Nz) convention as this module's
+own DEFAULT_RESOLUTION: (21,20,19) there is exactly
+`CPU_SCALE_RESOLUTIONS[3]` in that same ladder file, i.e. the identical
+6,840-element mesh. Also confirmed the groove geometry matches:
+`data_generate_B3_dataset.py` (this module's own production geometry,
+GROOVE_DEPTH=0.20, GROOVE_HALF_WIDTH=0.15, "matching Section 11.2's
+chosen production geometry") and `cell_b3_groove_gpu_mesh_convergence.py`
+use the identical groove constants -- so these triples are directly
+usable with `run_b3_benchmark`'s `build_fixed_geometry`, not guessed or
+approximated.
+
+Added `(81,80,77)`, `(97,96,93)`, `(101,100,97)` to
+`Round15_B3_Assembled_Direct_Solver.ipynb`'s Cell 2 `RESOLUTIONS` list
+(now `[DEFAULT_RESOLUTION, (81,80,77), (97,96,93), (101,100,97)]`), with
+an explicit warning cell comment that direct solvers (fill-in-dependent
+factorization) scale worse than the iterative CG this project's FEM
+reference uses in 3D, so these sizes are untested on this solver's own
+analysis+factorization path and may be slow or run out of GPU memory --
+unlike the ladder's own iterative-CG numbers, which already hit a real,
+documented hang once near ~1,071,200 elements (see that file's own
+2026-09-23 incident comment) for an unrelated reason (CG iteration
+count, not memory).
+
+Also fixed a real robustness gap in `run_b3_benchmark` while adding
+this: it only wrote `out_json` once, after the ENTIRE resolutions loop
+finished -- meaning a crash/OOM on a LATER (larger) resolution would
+have silently discarded the already-computed, real GPU timings from
+every smaller resolution before it. Now writes `out_json` after every
+row, so partial results survive a failure on a later row. Not yet run
+by Omar; no GPU numbers exist yet for these three sizes.
