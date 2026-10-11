@@ -17572,3 +17572,61 @@ this real material/load combination, not a fluke) and sufficient (fixes
 it cleanly, fast). The exact 6,840-element production scale and the real
 GPU-only cuDSS/reuse_analysis=True path still need Omar's own run to
 confirm, per this module's standing EXPERIMENTAL status.
+
+## B3 assembled+direct solver: real GPU run, correctness confirmed, but the
+## solver is SLOWER than the existing FEM baseline at B3's production scale
+
+Omar's A100 run of `Round15_B3_Assembled_Direct_Solver.ipynb` (after the
+incremental-loading fix above) is a full success from a correctness
+standpoint and a real, honest negative result on performance.
+
+Cell 1 (mandatory correctness gate, Ntheta=9/Nr=7/Nz=6): PASSED at
+near machine precision -- `max_abs=6.336e-17, max_rel=2.474e-15` against
+`data/mesh_convergence_B3.py`'s trusted torch-fem reference. Cell 2
+(production mesh, Ntheta=21/Nr=20/Nz=19, 6,840 elements, 7,980 nodes):
+`"converged": true`, all 10 load increments converged in exactly 3
+Newton iterations each (||F|| driven to the solver's tol every time,
+matching the CPU-verification prediction above almost exactly),
+`elapsed_s=8.78870701789856`, `peak_mem_mb=667.2`.
+
+The timing itself, however, is a real negative finding: this module's
+own new assembled+direct (cuDSS, analysis-reuse) solver is SLOWER than
+the existing, already-published FEM baseline at B3's production scale,
+not faster.
+
+Apples-to-apples check: `main.tex`'s own `tab:b3-breakeven` table
+(line 2515, "Resolution-matched" row) reports the torch-fem reference
+solver's cost at the SAME 6,840-element mesh as 5,060.4 ms (5.06 s) --
+the table's own caption and the prose above it (main.tex:2493-2494)
+confirm this is "operator and finite-element solver both at 6,840
+elements," i.e. the exact same mesh as Cell 2's run, so the comparison
+is direct and fair, not an artifact of different resolutions. Result:
+
+  - Production mesh (6,840 el.): new solver 8.79 s vs. reference 5.06 s
+    -- new solver is ~1.74x SLOWER.
+  - Tiny correctness-check mesh (Ntheta=9/Nr=7/Nz=6): new solver 6.11 s
+    vs. reference 3.97 s (both in Cell 1's own printed timings) -- new
+    solver is ~1.54x SLOWER there too, so this isn't a one-off at one
+    scale.
+
+No code bug here -- the solver is now provably correct and numerically
+reliable (that was the real bug, now fixed). This is simply the solver
+being the wrong tool at this problem size. Consistent with general
+direct-solver behavior: cuDSS's analysis-reuse + symmetric-storage
+advantages paid off decisively in the 2D study's much larger N=1401
+case (~3.9M DOF), but B3's production mesh is only ~24,000 DOF --
+likely too small for the per-increment analysis/factorization/solve
+overhead (visible in the per-iteration breakdown: ~0.15-0.17s analysis,
+~0.08-0.09s factorization, ~0.006-0.007s solve, ~0.005s coalesce --
+analysis alone dominates every iteration) to be amortized against
+torch-fem's simpler reference pipeline at this scale.
+
+Not yet done, pending Omar's go-ahead: testing at larger B3
+mesh-convergence-ladder resolutions (480,320 / 839,040 / 950,400
+elements, from this project's own existing ladder) to see whether the
+assembled+direct solver's advantage actually shows up once the mesh is
+big enough -- the exact (Ntheta,Nr,Nz) triples behind those published
+element counts are not currently hardcoded in `b3_assembled_direct_solver.py`
+and would need to be worked out first. No paper text has been written
+for this result yet; per the module's standing EXPERIMENTAL policy it
+should be shown to Timon before any number from it is quoted anywhere.
