@@ -17336,3 +17336,44 @@ anywhere in the code to be released (not just the assembled/direct
 solver checked above), and the Transolver/neural-operator architecture's
 own licensing provenance, before any of this is released publicly as
 Timon is now proposing.
+
+## Early-stopping robustness notebook: real bug found from Omar's own first run, fixed, 2026-10-11
+
+Omar ran `Round15_EarlyStopping_Robustness.ipynb` on his A100 (B1xNeo-
+Hookean, patiences 4/8/16) and sent back the full log. The run completed
+cleanly end to end (no crashes, correctness of the orchestration itself
+confirmed), and the actual finding it produced is genuinely clean: all
+three patience values converged to the EXACT SAME best_val_error
+(0.5479908058419823) at the EXACT SAME best_epoch (475) -- only
+stopped_at_epoch (575/675/875) and wall-clock (113.1s/133.3s/171.3s)
+differed, i.e. looser patience only wastes training time here, it does
+not change which checkpoint gets selected. Spread = 0.0 (0.0% of the
+smallest value) -- as clean a robustness result as this kind of check can
+give.
+
+**But the absolute number is unusable, and the bug is mine, not Omar's
+run**: the log shows `Loaded Q4 dataset: ntrain=35, ntest=10` --
+`early_stopping_robustness_check.py`'s own argparse never passed
+`--ntrain`/`--ntest` through to `train_B1.py`, so it silently fell back
+to train_B1.py's own small-scale argparse defaults (35/10) instead of
+this project's real 800/200 training-set size (PFEM_Training_Colab.
+ipynb's NTRAIN/NTEST, used for every other reported B1/B2 result). This
+is why best_val_error came out at ~54.8% -- utterly inconsistent with the
+real B1xNeo-Hookean result elsewhere in this project (9.59%, Table 10) --
+not a sign of anything wrong with the operator or the patience values
+tested, just the wrong dataset size.
+
+Fixed: added explicit `--ntrain` (default 800) / `--ntest` (default 200)
+arguments to `early_stopping_robustness_check.py`, passed through to
+train_B1/B2 explicitly instead of relying on their own argparse
+defaults, and logged into the summary JSON for transparency. The
+notebook itself needed no change (it never set ntrain/ntest either, so
+it now inherits the corrected defaults automatically).
+
+**The robustness FINDING itself (patience doesn't change which
+checkpoint wins) is still a real, honestly-obtained result** -- it just
+needs to be reproduced at the correct dataset size before it's usable in
+the paper, since the real B1xNH operator's behavior at ntrain=35 may not
+transfer to ntrain=800 (different optimization problem, different
+number of batches per epoch, etc.). Asked Omar to re-run the same
+notebook (now fixed) rather than trust the ntrain=35 numbers.

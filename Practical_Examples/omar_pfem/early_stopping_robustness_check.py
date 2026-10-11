@@ -99,6 +99,13 @@ def main():
                         "protocol (training_protocol.json) -- not guessed here, "
                         "since a different batch size would confound the "
                         "comparison with a second changed variable")
+    p.add_argument("--ntrain", type=int, default=800,
+                   help="PFEM's own reference training-set size (PFEM_Training_"
+                        "Colab.ipynb's NTRAIN) -- NOT train_B1/B2.py's own small-"
+                        "scale argparse default (35), which would make this run's "
+                        "val_error incomparable to every reported B1/B2 result")
+    p.add_argument("--ntest", type=int, default=200,
+                   help="PFEM's own reference test-set size (NTEST) -- see --ntrain")
     p.add_argument("--epochs", type=int, default=2000,
                    help="production protocol's own epoch ceiling (CONTINUE_EPOCHS)")
     p.add_argument("--validate_every", type=int, default=25)
@@ -124,6 +131,7 @@ def main():
             run_streaming([
                 sys.executable, "-u", "-m", train_module,
                 "--path", args.path, "--material", args.material,
+                "--ntrain", str(args.ntrain), "--ntest", str(args.ntest),
                 "--batch_size", str(args.batch_size),
                 "--epochs", str(args.epochs),
                 "--validate_every", str(args.validate_every),
@@ -149,7 +157,8 @@ def main():
         "geometry": args.geometry, "material": args.material,
         "patiences_tested": patiences,
         "production_patience": 8,
-        "batch_size": args.batch_size, "epochs_ceiling": args.epochs,
+        "batch_size": args.batch_size, "ntrain": args.ntrain, "ntest": args.ntest,
+        "epochs_ceiling": args.epochs,
         "validate_every": args.validate_every, "seed": args.seed,
         "per_patience": results,
         "best_val_error_spread": spread,
