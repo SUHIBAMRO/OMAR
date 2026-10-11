@@ -52,7 +52,8 @@ from omar_pfem.tensormesh_comparison import build_sparse_jac_fn
 
 
 def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_iter,
-                                  line_search=True, verbose=False, matrix_type="general"):
+                                  line_search=True, verbose=False, matrix_type="general",
+                                  mem_debug=False):
     """Custom Newton loop, bypassing torch_sla's own SparseTensor.
     nonlinear_solve entirely for the linear-solve step -- added 2026-09-11
     after a real, GPU-measured finding (omar_pfem/profile_cudss_analysis_
@@ -146,7 +147,17 @@ def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_
     matrix_type="symmetric" with symmetric_bc=True, and the correctness
     check this whole feature is gated behind (_correctness_check_
     reuse_analysis) is what actually catches a mismatch here, not this
-    docstring."""
+    docstring.
+
+    mem_debug=False (default, zero overhead/output when off, so already-
+    published 2D timings are unaffected): when True, prints torch.cuda.
+    memory_allocated() at three points around the FIRST Newton iteration
+    only (before jac_fn(u, None), right after it, and after the CSR+
+    coalesce one-time setup) -- added 2026-10-11 to localize a real,
+    unexplained ~38 GB jump seen on B3's hex8 path (solve_b3_assembled_
+    direct passes this only for its own first load increment) that does
+    not show up at all in the 2D Q4 path this function was originally
+    measured with."""
     import time as _time
 
     import nvmath.bindings.cudss as cudss
@@ -182,7 +193,13 @@ def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_
                 break
             stats["n_newton_iters"] += 1
 
+            if mem_debug and it == 0:
+                print(f"      [mem_debug] before jac_fn(u,None) (iter 0): "
+                      f"{torch.cuda.memory_allocated() / 1e6:.1f} MB")
             val, row, col, shape = jac_fn(u, None)
+            if mem_debug and it == 0:
+                print(f"      [mem_debug] after jac_fn(u,None), before CSR/coalesce "
+                      f"setup (iter 0): {torch.cuda.memory_allocated() / 1e6:.1f} MB")
             m, n = shape
 
             if handle is None:
@@ -253,6 +270,10 @@ def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_
                 del key, sorted_key, sort_perm, inverse_idx, check_buf, A_coo, A_csr, indices
                 del row_f, col_f, val_f
                 torch.cuda.synchronize(); stats["t_coalesce_s"] += _time.time() - _tc0
+
+                if mem_debug:
+                    print(f"      [mem_debug] after CSR+coalesce one-time setup, before "
+                          f"cudss.create() (iter 0): {torch.cuda.memory_allocated() / 1e6:.1f} MB")
 
                 handle = cudss.create()
                 cudss.set_stream(handle, torch.cuda.current_stream().cuda_stream)

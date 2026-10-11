@@ -17751,3 +17751,51 @@ memory printout climbs steeply), the vmap+hessian memory-scaling theory
 needs to be checked directly, likely by measuring memory at a few
 intermediate mesh sizes between 6,840 and 480,320 before trying the
 full ladder again blind.
+
+## B3 ladder, round 2: empty_cache() fix did NOT help -- confirms this is
+## NOT (only) a caching-allocator issue; added fine-grained localization
+
+Omar re-ran with the empty_cache() fix in place. Real result, more
+informative than hoped: the per-increment diagnostic printout for the
+6,840-element row came back **perfectly flat at exactly 37,916.0 MB
+after EVERY ONE of the 10 increments** (alpha=0.10 through alpha=1.00,
+bit-for-bit identical every time) -- not growing. That rules out a
+classic per-increment accumulation bug inside the 11-increment loop:
+whatever this is, it is allocated once, by the end of increment 1, and
+then neither grows nor (without an explicit empty_cache()) shrinks for
+the rest of that resolution's solve.
+
+The row's own `peak_mem` this time was 58,191 MB (58.2 GB) -- HIGHER
+than the previous run's 39.3 GB for the identical mesh, and the
+480,320-element row still failed immediately with the same `cuDSSError:
+ALLOC_FAILED`. So the empty_cache() fix from the previous entry, while
+still correct/worth keeping (reclaims whatever PyTorch is idly holding
+between resolutions), is NOT the real story here -- a single resolution
+can apparently need tens of GB just for ITS OWN 6,840-element solve,
+which empty_cache() between rows can never fix, since it only helps a
+LATER row reclaim memory an EARLIER row stopped needing.
+
+Added real localization instead of theorizing further (per this
+project's standing practice): `_newton_cudss_reuse_analysis` gained an
+opt-in `mem_debug` flag (default False, zero cost/output on every
+already-published 2D result) printing `torch.cuda.memory_allocated()`
+at three checkpoints around the FIRST Newton iteration only: before
+calling `jac_fn(u, None)`, immediately after it returns, and after the
+CSR-conversion + coalescing-scatter-map one-time setup finishes (right
+before `cudss.create()`). `solve_b3_assembled_direct` also now prints
+memory at three more checkpoints around increment 1 specifically: at
+entry (before the increment loop starts), right before `_b3_dirichlet`/
+`build_sparse_jac_fn_b3` are called, and right after `build_sparse_jac_fn_b3`
+returns (closure construction only -- row/col templates etc., expected
+to be ~70-100 MB based on their known sizes, NOT where the real jump
+should be) but before any Newton iteration runs. Together these six
+checkpoints bracket exactly where inside increment 1 the jump to ~38-58
+GB happens: closure construction vs. the `vmap(hessian(_local_element_
+energy_hex))` call itself (`H_local = batched_hess(...)`, hex8's 24
+local DOF vs. Q4's 8 -- the leading suspect, forward-over-reverse-mode
+double-backward cost/memory does not scale linearly with local DOF
+count) vs. the CSR/coalesce construction that follows it.
+
+Not yet run by Omar; this is pure instrumentation (mem_debug=False by
+default everywhere except B3's own increment-1 call), no behavior or
+numerical change, safe to re-run the same notebook end to end.

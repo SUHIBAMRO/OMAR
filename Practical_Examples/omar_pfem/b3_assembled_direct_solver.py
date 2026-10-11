@@ -349,10 +349,25 @@ def solve_b3_assembled_direct(geom, E_node, nu_node, phi, device, dtype=torch.fl
     increment_stats = []
     converged_all = True
 
+    # Narrowing down the real 2026-10-11 finding (mem_allocated flat at
+    # 37,916 MB after EVERY increment, including the very first -- not a
+    # growing per-increment leak, something is allocated once and held).
+    # These checkpoints localize WHICH step inside increment 1 first jumps
+    # to that level, instead of guessing further.
+    if device.type == "cuda":
+        print(f"    [solve_b3_assembled_direct] mem_allocated at entry (before any "
+              f"increment): {torch.cuda.memory_allocated(device) / 1e6:.1f} MB")
+
     alphas = torch.linspace(0.0, 1.0, n_increments, dtype=dtype, device=device)[1:]
-    for alpha in alphas:
+    for i_alpha, alpha in enumerate(alphas):
+        if device.type == "cuda" and i_alpha == 0:
+            print(f"    [increment 0, before _b3_dirichlet/jac_fn_full] mem_allocated: "
+                  f"{torch.cuda.memory_allocated(device) / 1e6:.1f} MB")
         free_mask_dof, prescribed = _b3_dirichlet(geom, float(alpha) * phi, device, dtype)
         jac_fn_full = build_sparse_jac_fn_b3(geom, E_node, nu_node, free_mask_dof, device, dtype)
+        if device.type == "cuda" and i_alpha == 0:
+            print(f"    [increment 0, after build_sparse_jac_fn_b3, before Newton] "
+                  f"mem_allocated: {torch.cuda.memory_allocated(device) / 1e6:.1f} MB")
 
         def residual(u_flat, _A, f_ext, free_mask_dof=free_mask_dof, prescribed=prescribed):
             # B3 has no external-force term (prescribed-displacement loading
@@ -371,7 +386,8 @@ def solve_b3_assembled_direct(geom, E_node, nu_node, phi, device, dtype=torch.fl
                 warnings.simplefilter("always")
                 u, stats = _newton_cudss_reuse_analysis(
                     residual, jac_fn_full, u0, f_ext, tol=tol, atol=1e-10, max_iter=max_iter,
-                    line_search=True, verbose=False, matrix_type=matrix_type)
+                    line_search=True, verbose=False, matrix_type=matrix_type,
+                    mem_debug=(i_alpha == 0))
             inc_converged = not any("did not converge" in str(w.message) for w in caught)
         else:
             from torch_sla import SparseTensor
