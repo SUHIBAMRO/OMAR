@@ -110,12 +110,15 @@ def _neo_hookean_psi_explicit_det(F, mu, lam):
     lnJ = torch.log(J)
     return (mu / 2.0) * (I1 - 3.0 - 2.0 * lnJ) + (lam / 2.0) * (lnJ ** 2)
 
-_CORRECTNESS_VERIFIED = False
-"""Set to True only by a passing call to run_correctness_check() in THIS
-process. run_b3_benchmark() checks this instead of trusting a caller-
-supplied flag, so a benchmark call can't accidentally skip the gate by
-passing the wrong boolean -- the only way to set this True is to have
-just run and passed the real check."""
+_CORRECTNESS_VERIFIED = set()
+"""(matrix_type, symmetric_bc) pairs added ONLY by a passing call to
+run_correctness_check() with that same pair, in THIS process.
+run_b3_benchmark() checks ITS OWN (matrix_type, symmetric_bc) is a member
+instead of trusting a caller-supplied flag or a check of a DIFFERENT
+configuration -- added 2026-10-11 when symmetric_bc/matrix_type="symmetric"
+support was added, so passing the default ("general", False) check can
+never be silently treated as clearance for the newer symmetric path too;
+each combination actually benchmarked must have been separately verified."""
 
 
 def _local_element_energy_hex(ue_flat, B_e, detJ_e, iweights, mu_e, lam_e):
@@ -141,13 +144,36 @@ def _local_element_energy_hex(ue_flat, B_e, detJ_e, iweights, mu_e, lam_e):
     return U
 
 
-def build_sparse_jac_fn_b3(geom, E_node, nu_node, free_mask_dof, device, dtype):
+def build_sparse_jac_fn_b3(geom, E_node, nu_node, free_mask_dof, device, dtype,
+                            symmetric_bc=False):
     """Hex8 analog of tensormesh_comparison.build_sparse_jac_fn: 8 local
     nodes x 3 components = 24 local dof per element (vs. Q4's 4x2=8),
     otherwise the identical static-template + vmap+hessian + fixed-row-
     identity pattern. E_node, nu_node: (n_nodes,) -- ONE sample's material
     field (not batched over many samples; an FEM solve is for one sample
-    at a time)."""
+    at a time).
+
+    symmetric_bc=False (default, unchanged): masks entries by ROW only,
+    same as tensormesh_comparison.build_sparse_jac_fn's own default --
+    the stored matrix is non-symmetric (general) even though the
+    underlying continuous tangent is a symmetric Hessian, because a
+    free row's entry in a FIXED column survives while the mirror (a
+    fixed row's entry in a free column) is zeroed by the row mask.
+
+    symmetric_bc=True (opt-in, 2026-10-11, added chasing a real cuDSS
+    ALLOC_FAILED on B3's larger ladder resolutions -- see PROJECT_STATUS.
+    md): additionally masks by column, producing a genuinely symmetric
+    matrix, mirroring tensormesh_comparison's own symmetric_bc=True.
+    UNLIKE that 2D version, this is only an EXACT equivalent reformulation
+    if the CALLER also applies the Dirichlet lift to the Newton solve's
+    own initial guess u0 (u0[fixed] := prescribed) BEFORE the first
+    iteration -- B3's prescribed values are NOT identically zero like the
+    2D project's homogeneous BCs, so du_fixed is only guaranteed to stay
+    exactly 0 at every iteration (making the dropped column's
+    contribution, K[free,fixed] @ du_fixed, exactly 0 too) if u already
+    satisfies the full prescribed BC from the very first iterate, not
+    just at convergence. solve_b3_assembled_direct does this; do not use
+    symmetric_bc=True from any other caller without the same lift."""
     from torch.func import hessian, vmap
 
     elements = geom["elements"]  # (n_elem, 8)
@@ -180,6 +206,7 @@ def build_sparse_jac_fn_b3(geom, E_node, nu_node, free_mask_dof, device, dtype):
     row_template = torch.cat(rows)
     col_template = torch.cat(cols)
     free_row_mask = free_mask_dof[row_template]
+    keep_mask = (free_row_mask & free_mask_dof[col_template]) if symmetric_bc else free_row_mask
     fixed_idx = (~free_mask_dof).nonzero(as_tuple=True)[0]
 
     def jac_fn(u, _A):
@@ -193,7 +220,7 @@ def build_sparse_jac_fn_b3(geom, E_node, nu_node, free_mask_dof, device, dtype):
                     for cb in range(3):
                         vals.append(block[:, ca, cb])
         val_template = torch.cat(vals)
-        val = torch.where(free_row_mask, val_template, torch.zeros_like(val_template))
+        val = torch.where(keep_mask, val_template, torch.zeros_like(val_template))
         val = torch.cat([val, torch.ones(fixed_idx.shape[0], dtype=dtype, device=device)])
         row = torch.cat([row_template, fixed_idx])
         col = torch.cat([col_template, fixed_idx])
@@ -299,7 +326,7 @@ def _b3_dirichlet(geom, phi, device, dtype):
 def solve_b3_assembled_direct(geom, E_node, nu_node, phi, device, dtype=torch.float64,
                                tol=1e-8, max_iter=30, reuse_analysis=True,
                                matrix_type="general", return_stats=False,
-                               n_increments=11):
+                               n_increments=11, symmetric_bc=False):
     """B3 Newton solve via the assembled+direct (cuDSS) path, using
     INCREMENTAL loading (phi ramped 0 -> target over n_increments steps,
     each warm-started from the previous increment's converged solution)
@@ -328,7 +355,33 @@ def solve_b3_assembled_direct(geom, E_node, nu_node, phi, device, dtype=torch.fl
     increment) -- return_stats=True always needed to check this before
     trusting any timing number. CUDA-only when reuse_analysis=True
     (cuDSS has no CPU path -- same constraint as assembled_direct_
-    solver.solve_assembled_direct)."""
+    solver.solve_assembled_direct).
+
+    symmetric_bc=False (default, unchanged -- every already-reported
+    number, including the real GPU timings in PROJECT_STATUS.md, used
+    this): build_sparse_jac_fn_b3's own non-symmetric (general) matrix,
+    matrix_type should stay "general" to match. symmetric_bc=True
+    (opt-in, 2026-10-11, added chasing a real cuDSS ALLOC_FAILED at
+    B3's larger ladder resolutions -- the assembled matrix is a
+    continuous Hessian and IS mathematically symmetric, but was never
+    being stored/factorized that way, costing cuDSS extra ANALYSIS/
+    FACTORIZATION memory for no reason): also explicitly lifts each
+    increment's initial guess u0 to satisfy the Dirichlet data EXACTLY
+    at every fixed DOF before Newton starts (u0 := where(free, u0,
+    prescribed)) -- WITHOUT this, du_fixed can be nonzero on an
+    increment's first iteration (B3's prescribed values are not
+    identically zero like the 2D project's homogeneous BCs), and
+    dropping the fixed-DOF columns (what symmetric_bc=True does) would
+    then silently discard a real, nonzero coupling term instead of a
+    provably-zero one. With the lift, du_fixed=0 is exact from the
+    first iterate onward, matching build_sparse_jac_fn_b3's own
+    symmetric_bc=True docstring exactly. Pair with matrix_type=
+    "symmetric" to actually get cuDSS's cheaper symmetric storage/
+    factorization; passing symmetric_bc=True with matrix_type="general"
+    would needlessly also still work (the dropped entries are zero) but
+    buys nothing. NOT YET VERIFIED end-to-end on GPU as of 2026-10-11 --
+    see run_symmetric_bc_correctness_check for the CPU-side comparison
+    this is gated behind before any real GPU timing is trusted."""
     import warnings
 
     n_nodes = geom["n_nodes"]
@@ -364,7 +417,8 @@ def solve_b3_assembled_direct(geom, E_node, nu_node, phi, device, dtype=torch.fl
             print(f"    [increment 0, before _b3_dirichlet/jac_fn_full] mem_allocated: "
                   f"{torch.cuda.memory_allocated(device) / 1e6:.1f} MB")
         free_mask_dof, prescribed = _b3_dirichlet(geom, float(alpha) * phi, device, dtype)
-        jac_fn_full = build_sparse_jac_fn_b3(geom, E_node, nu_node, free_mask_dof, device, dtype)
+        jac_fn_full = build_sparse_jac_fn_b3(geom, E_node, nu_node, free_mask_dof, device, dtype,
+                                              symmetric_bc=symmetric_bc)
         if device.type == "cuda" and i_alpha == 0:
             print(f"    [increment 0, after build_sparse_jac_fn_b3, before Newton] "
                   f"mem_allocated: {torch.cuda.memory_allocated(device) / 1e6:.1f} MB")
@@ -378,6 +432,16 @@ def solve_b3_assembled_direct(geom, E_node, nu_node, phi, device, dtype=torch.fl
             return torch.where(free_mask_dof, grad_full, u_flat - prescribed)
 
         u0 = u.clone()  # warm-start from the previous (converged) increment
+        if symmetric_bc:
+            # Required for symmetric_bc=True's column-drop to be exact
+            # (see build_sparse_jac_fn_b3's own docstring): lift u0 to
+            # satisfy THIS increment's full Dirichlet data exactly before
+            # Newton's first iterate, so du_fixed=0 holds from the start
+            # instead of only after one (asymmetric) Newton step. u0 was
+            # already correct at free DOFs (warm-started); this only
+            # overwrites the fixed ones, which otherwise still held the
+            # PREVIOUS increment's (smaller) prescribed values.
+            u0 = torch.where(free_mask_dof, u0, prescribed)
 
         if reuse_analysis:
             if device.type != "cuda":
@@ -429,13 +493,23 @@ def solve_b3_assembled_direct(geom, E_node, nu_node, phi, device, dtype=torch.fl
     return u_np
 
 
-def run_correctness_check(Ntheta=7, Nr=6, Nz=6, device=None, dtype=torch.float64, tol=1e-3):
+def run_correctness_check(Ntheta=7, Nr=6, Nz=6, device=None, dtype=torch.float64, tol=1e-3,
+                           matrix_type="general", symmetric_bc=False):
     """Mandatory gate (see module docstring): solves the SAME small B3
     case two ways -- this module's assembled+direct solver, and data/
     mesh_convergence_B3.py's own already-trusted solve_case (torch-fem,
     CG+Jacobi) -- and reports the agreement. Deliberately tiny/cheap
     (Ntheta=7,Nr=6,Nz=6 -- well below the production 21x20x19) so this
     runs in seconds and can gate every real benchmark run below it.
+
+    matrix_type/symmetric_bc=("general", False) (default, unchanged):
+    gates the original path every already-published B3 number used. Pass
+    matrix_type="symmetric", symmetric_bc=True to separately gate that
+    (2026-10-11) alternative before run_b3_benchmark is ever called with
+    it -- run_b3_benchmark's own gate checks for the EXACT (matrix_type,
+    symmetric_bc) pair it is about to run, not just "some" pair, so
+    passing this with the default config does not clear the symmetric one
+    or vice versa.
 
     solve_case is NOT parameterized by an (E, nu, phi) sample -- it
     always uses data/mesh_convergence_B3.py's own fixed module-level E,
@@ -487,7 +561,8 @@ def run_correctness_check(Ntheta=7, Nr=6, Nz=6, device=None, dtype=torch.float64
     t0 = time.time()
     u_new, new_stats = solve_b3_assembled_direct(
         geom, E_node, nu_node, PHI_CONST, device, dtype=dtype,
-        reuse_analysis=(device.type == "cuda"), matrix_type="general", return_stats=True)
+        reuse_analysis=(device.type == "cuda"), matrix_type=matrix_type, return_stats=True,
+        symmetric_bc=symmetric_bc)
     print(f"  new (assembled+direct{'+ cuDSS' if device.type == 'cuda' else ' (CPU)'}): "
           f"{time.time() - t0:.2f}s, max_disp={np.linalg.norm(u_new, axis=1).max():.4f}, "
           f"converged={new_stats.get('converged')}")
@@ -514,8 +589,7 @@ def run_correctness_check(Ntheta=7, Nr=6, Nz=6, device=None, dtype=torch.float64
             f"nonzero inner-rotation BC, generalized here from B1/B2's own "
             f"u_fixed=0 convention), or the local-element dof ordering in "
             f"_local_element_energy_hex / build_sparse_jac_fn_b3.")
-    global _CORRECTNESS_VERIFIED
-    _CORRECTNESS_VERIFIED = True
+    _CORRECTNESS_VERIFIED.add((matrix_type, symmetric_bc))
     if device.type == "cuda":
         # Same reasoning as run_b3_benchmark's per-row cleanup: give back
         # whatever PyTorch's caching allocator reserved for this (tiny)
@@ -527,7 +601,8 @@ def run_correctness_check(Ntheta=7, Nr=6, Nz=6, device=None, dtype=torch.float64
 
 
 def run_b3_benchmark(resolutions, out_json, device=None, dtype=torch.float64,
-                      reuse_analysis=True, matrix_type="general", seed=0):
+                      reuse_analysis=True, matrix_type="general", seed=0,
+                      symmetric_bc=False):
     """Benchmarks solve_b3_assembled_direct at the given (Ntheta,Nr,Nz)
     resolutions -- pass DEFAULT_RESOLUTION (the 6,840-element production
     mesh) and/or triples from this project's own mesh-convergence ladder
@@ -535,15 +610,32 @@ def run_b3_benchmark(resolutions, out_json, device=None, dtype=torch.float64,
     REFUSES to run unless run_correctness_check() has already passed in
     THIS process (see module docstring and _CORRECTNESS_VERIFIED) -- the
     gate cannot be bypassed by a caller-supplied flag, only by actually
-    running and passing the check first."""
+    running and passing the check first.
+
+    symmetric_bc=False (default, matches run_correctness_check's own gate,
+    which always uses the general/non-symmetric matrix): pass True together
+    with matrix_type="symmetric" to use cuDSS's cheaper symmetric storage/
+    factorization -- see solve_b3_assembled_direct's own docstring for why
+    this requires the paired Dirichlet-lift it applies internally, and
+    PROJECT_STATUS.md (2026-10-11 entry) for the CPU verification (dense-
+    Newton, Ntheta=9/Nr=7/Nz=6, real sampled material/phi) that this gives
+    the identical solution to symmetric_bc=False (max rel diff 6.5e-11)
+    while producing a genuinely symmetric matrix (max |J-J^T| ~4.5e-13,
+    vs. ~2,271 for symmetric_bc=False on the same problem) -- added
+    specifically to reduce cuDSS's ANALYSIS/FACTORIZATION memory use after
+    a real ALLOC_FAILED at B3's larger ladder resolutions; NOT YET
+    verified end-to-end through cuDSS itself on GPU."""
     device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    if not _CORRECTNESS_VERIFIED:
+    if (matrix_type, symmetric_bc) not in _CORRECTNESS_VERIFIED:
         raise RuntimeError(
-            "run_b3_benchmark refuses to run before run_correctness_check() "
-            "has passed in this process -- see this module's own standing-"
-            "constraint docstring. This gate is deliberate, not a bug: call "
-            "run_correctness_check() first (it is fast -- a small mesh) and "
-            "only then call this function again in the same process/notebook.")
+            f"run_b3_benchmark refuses to run matrix_type={matrix_type!r}, "
+            f"symmetric_bc={symmetric_bc} before run_correctness_check(matrix_type="
+            f"{matrix_type!r}, symmetric_bc={symmetric_bc}) has passed in this "
+            f"process -- see this module's own standing-constraint docstring. This "
+            f"gate is deliberate, not a bug, and checks this EXACT configuration, "
+            f"not just any passing check: call run_correctness_check() with the "
+            f"SAME matrix_type/symmetric_bc first (it is fast -- a small mesh) and "
+            f"only then call this function again in the same process/notebook.")
 
     rows = []
     for (Ntheta, Nr, Nz) in resolutions:
@@ -562,7 +654,8 @@ def run_b3_benchmark(resolutions, out_json, device=None, dtype=torch.float64,
         t0 = time.time()
         u, stats = solve_b3_assembled_direct(
             geom, E_node, nu_node, phi, device, dtype=dtype,
-            reuse_analysis=reuse_analysis, matrix_type=matrix_type, return_stats=True)
+            reuse_analysis=reuse_analysis, matrix_type=matrix_type, return_stats=True,
+            symmetric_bc=symmetric_bc)
         torch.cuda.synchronize() if device.type == "cuda" else None
         elapsed = time.time() - t0
         peak_mem = torch.cuda.max_memory_allocated(device) / 1e6 if device.type == "cuda" else None
@@ -572,6 +665,7 @@ def run_b3_benchmark(resolutions, out_json, device=None, dtype=torch.float64,
                "n_elements": geom["n_elements"], "n_nodes": geom["n_nodes"],
                "elapsed_s": elapsed, "peak_mem_mb": peak_mem,
                "reuse_analysis": reuse_analysis, "matrix_type": matrix_type,
+               "symmetric_bc": symmetric_bc,
                "converged": converged, "newton_stats": stats}
         rows.append(row)
         if converged is False:

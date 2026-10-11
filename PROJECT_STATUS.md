@@ -17963,3 +17963,79 @@ scale, memory-infeasible at large scale) -- exactly the kind of
 solver-selection finding Timon's own request ("benchmark this solver
 at relevant resolutions if possible") was designed to surface, whether
 the answer favors the new solver or not.
+
+## Correction to the "investigation closed" conclusion above -- Omar was
+## right to push back; the matrix was needlessly non-symmetric
+
+Omar's reaction to the "this is just a fundamental 3D fill-in limit,
+not fixable" conclusion was, fairly, that the bug might be on my side.
+Re-examining with that in mind found a real, concrete, previously-
+missed optimization: `build_sparse_jac_fn_b3` was ONLY ever assembling
+the FULL (non-symmetric) matrix -- `matrix_type='general'` in every run
+so far -- even though the underlying tangent (a Hessian of an energy
+functional) IS mathematically symmetric. The 2D path this module mirrors
+(`tensormesh_comparison.build_sparse_jac_fn`) already has a
+`symmetric_bc=True` option for exactly this, documented as giving cuDSS
+"a further reduction in both ANALYSIS and FACTORIZATION cost" -- but
+this was never carried over to B3's hex8 path, so every B3 run (slow-at-
+small-scale AND ALLOC_FAILED-at-large-scale) was unnecessarily paying
+for/trying to factorize the redundant triangle.
+
+The 2D version's `symmetric_bc=True` is exact only because that
+project's Dirichlet BCs are homogeneous (u_fixed=0 identically) -- B3's
+are NOT (nonzero prescribed rigid-rotation displacement at the inner
+boundary), so naively copying the 2D column-drop would silently discard
+a real, nonzero coupling term on an increment's FIRST Newton iteration
+(when the warm-started u0 doesn't yet satisfy the NEW increment's
+prescribed values). Fixed this properly instead of approximating:
+`solve_b3_assembled_direct` now explicitly lifts u0 to satisfy the full
+Dirichlet data exactly (`u0 := where(free, u0, prescribed)`) before
+Newton's first iterate whenever `symmetric_bc=True`, making du_fixed=0
+exact from iteration 0 onward -- at which point dropping the fixed-DOF
+columns is an EXACT reformulation, not an approximation, by the same
+argument the 2D docstring already makes.
+
+**Verified on CPU before touching anything GPU-side** (this project's
+standing discipline): a hand-rolled dense-Newton comparison, same real
+sampled material/phi (seed=0) that caused the original ALLOC_FAILED, at
+the correctness-check mesh (Ntheta=9,Nr=7,Nz=6) --
+  - symmetric_bc=True (+lift) vs. symmetric_bc=False: max abs diff
+    2.854e-12, max rel diff 6.469e-11 (floating-point noise, not a real
+    difference) -- both converged.
+  - Assembled matrix genuinely symmetric with symmetric_bc=True: max
+    |J - J^T| = 4.5e-13. Genuinely NOT symmetric with symmetric_bc=False
+    on the identical problem: max |J - J^T| = 2,271 -- confirms the
+    mechanism (and that the "general" path really was storing/
+    factorizing real asymmetric structure this whole time).
+
+Wired through: `build_sparse_jac_fn_b3(..., symmetric_bc=False)`,
+`solve_b3_assembled_direct(..., symmetric_bc=False)` (does the u0 lift
+only when True), `run_b3_benchmark(..., symmetric_bc=False)`, all
+defaulting to False so every already-reported number (the 6,840-element
+timing, the ALLOC_FAILED findings) is unaffected and still describes the
+general path specifically. `run_correctness_check` also gained the same
+parameters, and `_CORRECTNESS_VERIFIED` changed from a bool to a set of
+(matrix_type, symmetric_bc) pairs -- `run_b3_benchmark` now checks for
+its OWN exact configuration, so passing the default check can never be
+mistaken for clearance of the new symmetric path (or vice versa). The
+notebook's Cell 1 now runs BOTH gates (general, and symmetric+lift)
+before Cell 2 -- which now calls `run_b3_benchmark(..., matrix_type=
+'symmetric', symmetric_bc=True)` -- is allowed to produce any real
+timing.
+
+**Not yet verified through cuDSS itself on GPU** -- the CPU check proves
+the MATH is identical and the matrix really is symmetric; it does not
+yet prove cuDSS's own `MatrixType.SYMMETRIC`/`MatrixViewType.LOWER`
+handling in `_newton_cudss_reuse_analysis` (already used and trusted in
+the 2D study, but not yet exercised on B3's hex8 problem specifically)
+reduces ANALYSIS/FACTORIZATION memory enough to let 480,320+ elements
+actually fit. Withdrawing the "investigation closed, categorically
+infeasible" conclusion from the previous entry until this is actually
+tried -- it may still turn out to be infeasible even with symmetric
+storage (roughly half the memory, not guaranteed to be enough given how
+far short the general path was), but that is now an open question
+again, not a closed one. Next step: Omar re-runs the notebook with this
+fix; watch for both gates passing in Cell 1, then whether Cell 2's
+480,320-element row succeeds, and if it does, whether `mem_get_info()`
+right before FACTORIZATION shows comfortable headroom or another
+near-miss.
