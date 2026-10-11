@@ -17434,3 +17434,33 @@ hold up (e.g. whether the early-stopping-robustness-style check matters
 here too, and whether Omar wants to try other weight values) before
 deciding how prominently to feature the hybrid/Sobolev results in
 Table 21's area.
+
+## B3 notebook missing its own torch_sla/nvmath install cell, fixed, 2026-10-11
+
+Omar's first run of `Round15_B3_Assembled_Direct_Solver.ipynb` failed at
+Cell 1 with `ModuleNotFoundError: No module named 'torch_sla'`. The
+notebook's own error message pointed at Round6_Assembled_Direct_Reuse_
+Analysis.ipynb / Round6_Assembled_Direct_Speedup_Production.ipynb "for
+the exact install cell" -- but neither of those notebooks is part of
+this Round15 batch, so Omar would have had to go find and copy that cell
+manually. Read both of those notebooks directly to get the real install
+commands (`pip install torch-sla` then `pip install
+'nvmath-python[cu12]==0.9.0'`, plus clearing any already-imported
+omar_pfem submodules so the newly-installed torch_sla is actually picked
+up) and inlined them directly into Cell 1, replacing the bare `raise
+RuntimeError(...)` that just told Omar to go find them -- so this
+notebook is now self-contained and doesn't require cross-referencing
+another one.
+
+Also noted: Omar's two most recent early-stopping-robustness notebook
+runs both show `git reset --hard origin/... HEAD is now at bb07e70` even
+though `origin/claude/claude-code-question-d307wp`'s real tip was already
+`692d25b` (the out_dir-naming fix) at the time of both fetches --
+confirmed directly via `git log` against the real remote, so this is not
+a push failure on this session's end. Most likely a short GitHub
+replication-propagation lag between push and a `git fetch` landing on a
+different backend replica seconds later, not a logic bug in the
+notebook's own clone/fetch/reset cell. Told Omar to simply re-run the
+same cell again (which worked: the directory-naming fix is confirmed
+correct and already pushed) rather than chase a phantom bug in the git
+commands themselves.
