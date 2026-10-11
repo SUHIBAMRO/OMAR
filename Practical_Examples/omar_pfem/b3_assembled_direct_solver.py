@@ -145,7 +145,7 @@ def _local_element_energy_hex(ue_flat, B_e, detJ_e, iweights, mu_e, lam_e):
 
 
 def build_sparse_jac_fn_b3(geom, E_node, nu_node, free_mask_dof, device, dtype,
-                            symmetric_bc=False):
+                            symmetric_bc=False, vmap_chunk_size=None):
     """Hex8 analog of tensormesh_comparison.build_sparse_jac_fn: 8 local
     nodes x 3 components = 24 local dof per element (vs. Q4's 4x2=8),
     otherwise the identical static-template + vmap+hessian + fixed-row-
@@ -173,7 +173,23 @@ def build_sparse_jac_fn_b3(geom, E_node, nu_node, free_mask_dof, device, dtype,
     contribution, K[free,fixed] @ du_fixed, exactly 0 too) if u already
     satisfies the full prescribed BC from the very first iterate, not
     just at convergence. solve_b3_assembled_direct does this; do not use
-    symmetric_bc=True from any other caller without the same lift."""
+    symmetric_bc=True from any other caller without the same lift.
+
+    vmap_chunk_size=None (default, unchanged): the outer vmap over
+    elements processes all n_elem elements' local Hessians in one single
+    batched call. Real GPU evidence (2026-10-11, B3's 480,320-element
+    ladder row, see PROJECT_STATUS.md): this costs ~6.6 GB of PyTorch-
+    tracked memory for that one mesh, EVERY Newton iteration (jac_fn
+    recomputes H_local fresh each call, nothing is cached across
+    iterations) -- on top of whatever cuDSS's own ANALYSIS/FACTORIZATION
+    holds for the whole solve, this was enough to OOM on iteration 2 even
+    after symmetric_bc=True's storage savings. Passing an integer here
+    forwards it to torch.func.vmap's own chunk_size (processes that many
+    elements at a time instead of all of them at once) -- mathematically
+    identical output (vmap with chunking is required to give the exact
+    same result, not an approximation), trading some wall-clock time for
+    much lower peak memory. Not yet verified end-to-end on GPU; verified
+    on CPU to give bit-identical output to vmap_chunk_size=None."""
     from torch.func import hessian, vmap
 
     elements = geom["elements"]  # (n_elem, 8)
@@ -191,7 +207,8 @@ def build_sparse_jac_fn_b3(geom, E_node, nu_node, free_mask_dof, device, dtype,
     lam_elem = E_elem * nu_elem / ((1 + nu_elem) * (1 - 2 * nu_elem))
 
     local_hess_fn = hessian(_local_element_energy_hex, argnums=0)
-    batched_hess = vmap(local_hess_fn, in_dims=(0, 0, 0, None, 0, 0))
+    batched_hess = vmap(local_hess_fn, in_dims=(0, 0, 0, None, 0, 0),
+                         chunk_size=vmap_chunk_size)
 
     # Static (row, col) template -- one entry per (element, local-node-pair,
     # component-pair): (n_elem, 8, 8, 3, 3) flattened, d-major/q-minor to
@@ -326,7 +343,7 @@ def _b3_dirichlet(geom, phi, device, dtype):
 def solve_b3_assembled_direct(geom, E_node, nu_node, phi, device, dtype=torch.float64,
                                tol=1e-8, max_iter=30, reuse_analysis=True,
                                matrix_type="general", return_stats=False,
-                               n_increments=11, symmetric_bc=False):
+                               n_increments=11, symmetric_bc=False, vmap_chunk_size=None):
     """B3 Newton solve via the assembled+direct (cuDSS) path, using
     INCREMENTAL loading (phi ramped 0 -> target over n_increments steps,
     each warm-started from the previous increment's converged solution)
@@ -379,9 +396,23 @@ def solve_b3_assembled_direct(geom, E_node, nu_node, phi, device, dtype=torch.fl
     "symmetric" to actually get cuDSS's cheaper symmetric storage/
     factorization; passing symmetric_bc=True with matrix_type="general"
     would needlessly also still work (the dropped entries are zero) but
-    buys nothing. NOT YET VERIFIED end-to-end on GPU as of 2026-10-11 --
-    see run_symmetric_bc_correctness_check for the CPU-side comparison
-    this is gated behind before any real GPU timing is trusted."""
+    buys nothing. Verified on GPU 2026-10-11 (B3's production mesh,
+    6,840 elements): converged, 10.33s, matching the general path's own
+    result -- but at the 480,320-element ladder resolution, symmetric_bc=
+    True cut cuDSS's ANALYSIS memory from ~34 GB to ~28 GB and this
+    module's own CSR/coalesce setup from ~5.85 GB to ~1.1 GB (getting
+    PAST the earlier ALLOC_FAILED, all the way through FACTORIZATION),
+    but still hit a real CUDA OutOfMemoryError on the SECOND Newton
+    iteration's jac_fn(u,None) call -- the vmap(hessian(...)) computation
+    itself costs ~6.6 GB of PyTorch-tracked memory per call, recomputed
+    fresh (not cached) every iteration, which on top of cuDSS's own ~28 GB
+    held for the whole solve was enough to exceed 80 GB. See
+    vmap_chunk_size below for the next real attempt at this.
+
+    vmap_chunk_size=None (default, unchanged): forwarded to
+    build_sparse_jac_fn_b3 -- see its own docstring. Caps the outer
+    vmap's own internal batch size over elements, trading wall-clock for
+    peak memory; mathematically identical output."""
     import warnings
 
     n_nodes = geom["n_nodes"]
@@ -418,7 +449,8 @@ def solve_b3_assembled_direct(geom, E_node, nu_node, phi, device, dtype=torch.fl
                   f"{torch.cuda.memory_allocated(device) / 1e6:.1f} MB")
         free_mask_dof, prescribed = _b3_dirichlet(geom, float(alpha) * phi, device, dtype)
         jac_fn_full = build_sparse_jac_fn_b3(geom, E_node, nu_node, free_mask_dof, device, dtype,
-                                              symmetric_bc=symmetric_bc)
+                                              symmetric_bc=symmetric_bc,
+                                              vmap_chunk_size=vmap_chunk_size)
         if device.type == "cuda" and i_alpha == 0:
             print(f"    [increment 0, after build_sparse_jac_fn_b3, before Newton] "
                   f"mem_allocated: {torch.cuda.memory_allocated(device) / 1e6:.1f} MB")
@@ -602,7 +634,7 @@ def run_correctness_check(Ntheta=7, Nr=6, Nz=6, device=None, dtype=torch.float64
 
 def run_b3_benchmark(resolutions, out_json, device=None, dtype=torch.float64,
                       reuse_analysis=True, matrix_type="general", seed=0,
-                      symmetric_bc=False):
+                      symmetric_bc=False, vmap_chunk_size=None):
     """Benchmarks solve_b3_assembled_direct at the given (Ntheta,Nr,Nz)
     resolutions -- pass DEFAULT_RESOLUTION (the 6,840-element production
     mesh) and/or triples from this project's own mesh-convergence ladder
@@ -623,8 +655,16 @@ def run_b3_benchmark(resolutions, out_json, device=None, dtype=torch.float64,
     while producing a genuinely symmetric matrix (max |J-J^T| ~4.5e-13,
     vs. ~2,271 for symmetric_bc=False on the same problem) -- added
     specifically to reduce cuDSS's ANALYSIS/FACTORIZATION memory use after
-    a real ALLOC_FAILED at B3's larger ladder resolutions; NOT YET
-    verified end-to-end through cuDSS itself on GPU."""
+    a real ALLOC_FAILED at B3's larger ladder resolutions; this got the
+    480,320-element row through FACTORIZATION but it still OOM'd on the
+    second Newton iteration's own Hessian computation -- see
+    vmap_chunk_size.
+
+    vmap_chunk_size=None (default, unchanged): forwarded to
+    solve_b3_assembled_direct / build_sparse_jac_fn_b3 -- see their own
+    docstrings. Caps peak memory of the per-iteration vmap(hessian(...))
+    computation at the cost of some wall-clock time; mathematically
+    identical output."""
     device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if (matrix_type, symmetric_bc) not in _CORRECTNESS_VERIFIED:
         raise RuntimeError(
@@ -655,7 +695,7 @@ def run_b3_benchmark(resolutions, out_json, device=None, dtype=torch.float64,
         u, stats = solve_b3_assembled_direct(
             geom, E_node, nu_node, phi, device, dtype=dtype,
             reuse_analysis=reuse_analysis, matrix_type=matrix_type, return_stats=True,
-            symmetric_bc=symmetric_bc)
+            symmetric_bc=symmetric_bc, vmap_chunk_size=vmap_chunk_size)
         torch.cuda.synchronize() if device.type == "cuda" else None
         elapsed = time.time() - t0
         peak_mem = torch.cuda.max_memory_allocated(device) / 1e6 if device.type == "cuda" else None
@@ -665,7 +705,7 @@ def run_b3_benchmark(resolutions, out_json, device=None, dtype=torch.float64,
                "n_elements": geom["n_elements"], "n_nodes": geom["n_nodes"],
                "elapsed_s": elapsed, "peak_mem_mb": peak_mem,
                "reuse_analysis": reuse_analysis, "matrix_type": matrix_type,
-               "symmetric_bc": symmetric_bc,
+               "symmetric_bc": symmetric_bc, "vmap_chunk_size": vmap_chunk_size,
                "converged": converged, "newton_stats": stats}
         rows.append(row)
         if converged is False:

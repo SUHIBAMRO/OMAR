@@ -18078,3 +18078,56 @@ particular case -- worth a sentence in the paper's training-protocol
 discussion either way (robust within ~8%, but not perfectly insensitive
 to this choice). Not yet run for any other geometry/material
 combination; this is one (B1, neo_hookean) data point only.
+
+## B3 symmetric_bc GPU attempt, round 2: got PAST FACTORIZATION this time,
+## but OOM'd one step later -- localized the SECOND real memory cost
+
+Omar re-ran with the `del val` fix in place. Real, useful new data:
+
+6,840-element row: unchanged, correct, converged, 10.33s.
+
+480,320-element row this time: symmetric_bc=True's savings held up
+exactly as predicted -- CSR/coalesce setup dropped from ~5.85 GB (general)
+to ~1.1 GB, and cuDSS's own ANALYSIS phase dropped from ~34 GB to ~28 GB
+(free=42.74 GB vs the previous 34.30 GB right before FACTORIZATION).
+**FACTORIZATION succeeded this time** -- a real improvement over the
+previous attempt, which failed exactly there. But the solve then hit a
+genuine `CUDA OutOfMemoryError` inside the SECOND Newton iteration's own
+`jac_fn(u, None)` call (traceback confirms: inside `vmap(hessian(...))`'s
+forward-over-reverse-mode backward pass, NOT inside cuDSS).
+
+Real breakdown at the crash: cuDSS's own ANALYSIS+FACTORIZATION buffers
+(~28 GB, held for the WHOLE solve since that is the entire point of
+analysis-reuse across Newton iterations) plus this module's own
+`vmap(hessian(...))` computation (~6.6 GB of PyTorch-tracked memory,
+recomputed FRESH every single Newton iteration -- nothing from it is
+cached or reused between iterations) together exceeded the 80 GB card
+once the second iteration's own Hessian computation needed room to run
+alongside cuDSS's still-held reservation. Error message confirms: 78.05
+GB in use out of 79.25 GB, 37.62 GB of that PyTorch-tracked (up from
+14.16 GB after the first iteration -- consistent with cuDSS's handle/
+data NOT being PyTorch-tracked at all, so the growth is from genuinely
+needing a second full Hessian-computation pass, not a leak).
+
+**Fix attempted (not yet verified on GPU)**: added `vmap_chunk_size`
+(threaded through `build_sparse_jac_fn_b3`, `solve_b3_assembled_direct`,
+`run_b3_benchmark`), forwarded directly to `torch.func.vmap`'s own
+`chunk_size` argument -- processes elements in batches instead of all
+480,320 elements in one single vmapped call, trading wall-clock time for
+peak memory during exactly the step that just OOM'd. Verified on CPU
+before touching anything GPU-side (this project's standing discipline):
+`jac_fn`'s own output is BIT-IDENTICAL (max abs diff = 0.0) across
+chunk_size in {1, 3, 7, 50} vs. chunk_size=None, confirmed for both
+symmetric_bc=False and =True -- chunking a vmap is required by its own
+contract to give the exact same result, not an approximation, so this
+is expected, not a lucky coincidence. End-to-end incremental-Newton
+confirmation (same final displacement field, chunked vs. unchunked) was
+still running in the background when this entry was written; not yet
+confirmed, and NOT yet tried on GPU at the 480,320-element scale.
+
+Next step: Omar tries `run_b3_benchmark(..., matrix_type='symmetric',
+symmetric_bc=True, vmap_chunk_size=<some value, e.g. a few thousand>)`
+on the same ladder. No chunk_size has been chosen/justified yet based on
+real numbers (e.g. how much the ~6.6 GB per-call cost needs to shrink by
+to fit alongside cuDSS's ~28 GB) -- that's a reasonable next thing to
+work out before picking a number, rather than guessing one.
