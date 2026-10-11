@@ -17480,3 +17480,25 @@ currently-active PyPI issue -- unpinned pyvista 0.49+ imports an
 IPython>=8.8-only module that Colab's own older IPython doesn't have),
 plus clearing `torchfem`/`pyvista` from `sys.modules` afterward. Added
 both lines to Cell 1, same place as the torch_sla/nvmath installs.
+
+**Milestone: Cell 1's mandatory correctness gate PASSED on Omar's real
+A100** after the two dependency fixes above -- execution reached Cell 2
+(`run_b3_benchmark`), which only happens if `run_correctness_check`
+returned without raising, i.e. the new B3 assembled+direct (cuDSS,
+reuse_analysis=True) solver's displacement field actually agreed with
+data/mesh_convergence_B3.py's trusted torch-fem reference on real GPU
+hardware, not just in this session's CPU-only hand-rolled verification.
+This is the first real evidence the GPU-only code path
+(`_newton_cudss_reuse_analysis`) is correct, not just the CPU-testable
+residual/Jacobian machinery underneath it.
+
+**Third bug, inside Cell 2 itself**: `run_b3_benchmark` unpacked `sample_
+material_and_load`'s return as a 3-tuple (`E_node_np, nu_node_np, phi`),
+but that function actually returns 5 values (`E_node, nu_node, phi,
+E_field, nu_field` -- the last two are the pre-ravel fields its own
+caller in data_generate_B3_dataset.py keeps for dataset bookkeeping) --
+`ValueError: too many values to unpack`. This path was never exercised
+by `run_correctness_check` (which uses fixed E/NU/PHI constants, not
+this sampler), so the CPU-only verification pass earlier never had a
+chance to catch it. Fixed by unpacking all 5 and discarding the two
+unneeded fields explicitly.

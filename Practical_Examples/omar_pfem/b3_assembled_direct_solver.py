@@ -461,7 +461,13 @@ def run_b3_benchmark(resolutions, out_json, device=None, dtype=torch.float64,
     rows = []
     for (Ntheta, Nr, Nz) in resolutions:
         geom = build_fixed_geometry(Ntheta, Nr, Nz, device, dtype=dtype)
-        E_node_np, nu_node_np, phi = sample_material_and_load(Ntheta, Nr, Nz, seed=seed)
+        # sample_material_and_load returns 5 values (E_node, nu_node, phi,
+        # E_field, nu_field) -- the last two are the pre-ravel (Ntheta,Nr,Nz)
+        # fields, kept by its own caller in data_generate_B3_dataset.py for
+        # dataset bookkeeping; not needed here, so discarded positionally
+        # rather than guessed away as a 3-tuple.
+        E_node_np, nu_node_np, phi, _E_field, _nu_field = sample_material_and_load(
+            Ntheta, Nr, Nz, seed=seed)
         E_node = torch.tensor(E_node_np, dtype=dtype, device=device)
         nu_node = torch.tensor(nu_node_np, dtype=dtype, device=device)
 
