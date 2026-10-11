@@ -18039,3 +18039,42 @@ fix; watch for both gates passing in Cell 1, then whether Cell 2's
 480,320-element row succeeds, and if it does, whether `mem_get_info()`
 right before FACTORIZATION shows comfortable headroom or another
 near-miss.
+
+## Early-stopping robustness: first real, trustworthy result (ntrain=800,
+## B1 x neo_hookean) -- both earlier bugs confirmed fixed
+
+Omar got a full, clean run of `early_stopping_robustness_check.py` on
+B1/neo_hookean with the ntrain/ntest fix and past the earlier git-fetch-
+propagation-lag issue. Confirmed correct this time: `"ntrain": 800,
+"ntest": 200` in the output JSON, and real wall-clock times consistent
+with full-scale training (1,825s / 2,201s / 4,965s for patience 4/8/16
+respectively, 9,360s total) -- not the suspicious 6.28s stale-result
+runs from before.
+
+Results:
+  - patience=4:  best_val_error=9.734% (epoch 375, stopped at 475)
+  - patience=8:  best_val_error=9.734% (epoch 375, stopped at 575) --
+    this is the production patience value every reported B1/B2 result
+    actually used
+  - patience=16: best_val_error=9.032% (epoch 900, stopped at 1300)
+  - spread: 0.70 percentage points absolute, 7.8% of the smallest value
+
+patience=4 and patience=8 reporting the EXACT same best_val_error and
+best_epoch (down to many decimal places, 0.09733771041501314) is not a
+bug -- all three runs share the same seed (2025), same data order, same
+init, so they are the identical deterministic trajectory up to whichever
+early-stopping threshold fires first; patience=8 simply kept training
+longer without ever finding a better checkpoint before its own patience
+ran out. Only patience=16's longer patience let training continue far
+enough (to epoch 900) to find a genuinely better checkpoint.
+
+Honest reading, not spun: the production patience (8) gives a
+best_val_error within 7.8% (relative) of the best found at patience=16
+over this one case -- a real, modest hyperparameter sensitivity, not a
+coincidence. But it is also a real, legitimate finding that a more
+patient run (16) found a checkpoint ~0.7 percentage points better,
+meaning patience=8 may be leaving some accuracy on the table for this
+particular case -- worth a sentence in the paper's training-protocol
+discussion either way (robust within ~8%, but not perfectly insensitive
+to this choice). Not yet run for any other geometry/material
+combination; this is one (B1, neo_hookean) data point only.
