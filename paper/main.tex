@@ -1913,7 +1913,8 @@ Piola--Kirchhoff stress at a single physical point located from a fine
 finite-element reference, rather than the mesh-dependent maximum over
 coarse Gauss points -- was tracked at $N{=}1401$ for the five cases beyond
 B1$\times$Neo-Hookean, and, separately, the region-average vs.\ true-maximum
-Cauchy stress error was examined on the finite-element side alone for
+Cauchy stress error was examined for both the finite-element reference
+and the operator, at every tested resolution, for
 B1$\times$Neo-Hookean, to check whether a spatially-averaged QoI understates
 the error at the true peak.
 
@@ -1923,7 +1924,7 @@ the error at the true peak.
 \includegraphics[width=0.49\textwidth]{figures/image57.png}
 \caption{Peak-stress QoI vs.\ displacement error, five cases beyond
   B1$\times$Neo-Hookean (left); region-average vs.\ true-maximum Cauchy
-  stress error, FEM only, B1$\times$Neo-Hookean (right).}
+  stress error, FEM and operator, B1$\times$Neo-Hookean (right).}
 \label{fig:peak-stress}
 \end{figure*}
 
