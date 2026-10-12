@@ -591,14 +591,14 @@ Q9 & $1.57$ & $0.76$ & $0.75$ \\
 \end{tabular}
 \end{table}
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
-\includegraphics[width=0.98\columnwidth]{figures/image30.png}
+\includegraphics[width=0.85\textwidth]{figures/image30.png}
 \caption{Mesh-convergence field grid (B1, Neo-Hookean): predicted
   $|\mathbf{u}|$ across seven resolutions, $N{=}51$--$1401$, one converged
   solution each.}
 \label{fig:30}
-\end{figure}
+\end{figure*}
 
 For B3, an analogous GPU mesh-convergence ladder (336 to
 950,400 elements) located the first resolution at which the regional
@@ -1681,14 +1681,14 @@ B2 $\times$ AB & 17 & 2{,}666.0 & $\approx394$ & 3{,}551 \\
 \label{fig:24}
 \end{figure}
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
-\includegraphics[width=0.98\columnwidth]{figures/image37.png}
+\includegraphics[width=0.85\textwidth]{figures/image37.png}
 \caption{Zero-shot resolution generalization field grid (B1, Neo-Hookean):
   predicted $|\mathbf{u}|$ at seven unseen resolutions from one trained
   checkpoint.}
 \label{fig:37}
-\end{figure}
+\end{figure*}
 
 A single trained operator's accuracy at the sweep above is not the whole
 picture at a deployment resolution far outside its training range.
