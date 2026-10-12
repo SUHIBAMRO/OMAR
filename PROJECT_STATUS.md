@@ -18647,3 +18647,63 @@ further; (3) accept 839,040/950,400 elements as genuinely out of reach
 for this solver on an 80 GB A100 and report that honestly in the paper
 as the resolution ceiling for this specific port, which is already
 disclosed there as a current limitation, not a categorical one.
+
+## Correction: the del fix above was VERIFIED-CORRECT but had ZERO real
+## effect -- a second, real bug (a dangling loop variable) found and
+## fixed from Omar's own GPU run of it
+
+Omar ran the fixed notebook. The 480,320-element row succeeded again
+(converged=True, 1,473.12s, peak_mem=30,338 MB -- a small, genuine
+improvement over the prior run's 31,994 MB, from the one-time
+`rows`/`cols` part of the fix). But the mem_debug numbers at 839,040
+elements told the real story: torch-tracked allocated right before
+FACTORIZATION was **24.72 GB -- statistically identical to the pre-fix
+~24.7 GB already on record**, and it ALLOC_FAILED again, in exactly the
+same place. The "after jac_fn(u,None)" checkpoint at 480,320 elements
+was also unchanged (13,046.9 MB post-fix vs. 13,046.2 MB pre-fix,
+effectively noise). **The fix achieved nothing where it was supposed to
+matter most.**
+
+Root-caused directly rather than re-guessing: the fix deleted `H_local`
+and `vals`, but missed `block` -- the `for a / for b` loop's own
+variable (`block = H_local[:, 3*a:3*a+3, 3*b:3*b+3]`). Python does NOT
+scope a `for` loop's variable to the loop body; after the nested loop
+exits, `block` still names the LAST iteration's slice (a=7, b=7) as a
+live local variable for the rest of `jac_fn`'s execution -- and since
+`block` is itself a VIEW into `H_local`'s storage (not a copy, same
+basic-indexing rule as before), it independently keeps that ENTIRE
+storage alive regardless of `del H_local, vals`. A tensor's storage is
+only freed once EVERY view into it is gone; one leftover reference is
+enough to keep the whole multi-GB buffer alive. Confirmed directly with
+a minimal weakref-based CPU reproduction (build the identical loop
+pattern, check whether `H_local`'s storage is collected via `weakref.
+ref` + `gc.collect()`): deleting `H_local`+`vals` alone left the storage
+alive; additionally deleting `block` collected it immediately. This
+fully explains the real GPU numbers above -- the fix was never actually
+freeing anything, despite being "correct" in the sense that it changed
+no computed value.
+
+**Fixed properly**: added `block` to the same `del H_local, vals` line
+(now `del H_local, vals, block`). Re-verified bit-identical output the
+same way as before (pre-fix file from `git show HEAD~1` vs. the
+corrected file, same small real geometry, both `matrix_type` configs --
+`torch.equal()` True for val/row/col/shape), PLUS a new check this
+round specifically for the bug class just found: called the same
+`jac_fn` closure multiple times in a row (simulating repeated Newton
+iterations reusing one closure) and confirmed every call still returns
+identical, NaN-free output -- the `del` statements re-execute fresh on
+every call (no stale state carried between calls, since `block`/
+`H_local`/`vals` are all freshly rebound at the top of each call).
+
+**Honest status, unchanged in spirit from before, now on a corrected
+fix**: this is a real, verified-correct, and this time (pending the next
+GPU run) genuinely more promising fix -- but it has NOT yet been run on
+a real GPU, so there is still no confirmed number for how much memory it
+actually saves or whether it is enough for 839,040 elements. The
+`rows`/`cols` one-time-setup half of the original fix was never in
+question (no lingering-reference bug there, and the small, real
+480,320-element improvement already measured, 31,994->30,338 MB, is
+consistent with it working) -- only the larger, per-Newton-iteration
+`jac_fn` half needed this second pass. Notebook unchanged (still queues
+480,320 then 839,040); Omar needs to re-run it once more with this
+corrected version before anything is concluded.

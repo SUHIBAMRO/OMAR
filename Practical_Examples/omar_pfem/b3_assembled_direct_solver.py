@@ -250,20 +250,36 @@ def build_sparse_jac_fn_b3(geom, E_node, nu_node, free_mask_dof, device, dtype,
         # vals' 576 entries are VIEWS into H_local's own storage (confirmed
         # directly: pure basic indexing -- slices + Python ints -- always
         # returns a view in PyTorch, never a copy), so H_local's storage
-        # stays alive as long as ANY of them do; deleting H_local alone
-        # (without also dropping every view into it) would free nothing.
-        # torch.cat(vals) below allocates a genuinely NEW, independent
-        # buffer the same total size as H_local -- so without this del,
-        # H_local's storage (via vals' views) AND val_template are both
-        # alive at once, real redundant memory, not a hypothetical one:
-        # this function is called every Newton iteration (not just once
-        # per increment), so this cost recurs on every call, and is a
-        # direct, measured contributor to the OOM/ALLOC_FAILED ceiling
-        # blocking B3's 839,040-element ladder row (PROJECT_STATUS.md).
-        # Bit-identical output either way -- val_template only ever reads
-        # from these views, never writes to them.
+        # stays alive as long as ANY tensor still references it; deleting
+        # H_local alone (without also dropping every view into it) would
+        # free nothing. torch.cat(vals) below allocates a genuinely NEW,
+        # independent buffer the same total size as H_local -- so without
+        # this del, H_local's storage and val_template are both alive at
+        # once, real redundant memory, not a hypothetical one: this
+        # function is called every Newton iteration (not just once per
+        # increment), so this cost recurs on every call, and is a direct,
+        # measured contributor to the OOM/ALLOC_FAILED ceiling blocking
+        # B3's 839,040-element ladder row (PROJECT_STATUS.md).
+        #
+        # `block` MUST also be deleted here, not just H_local/vals -- a
+        # REAL bug in this fix's first version, found from a real GPU run
+        # that showed zero measured memory improvement despite this same
+        # del being present: `block` is the Python for-loop variable, and
+        # Python does NOT scope loop variables to the loop body -- after
+        # the nested loop above exits, `block` still names the LAST
+        # iteration's view (a=7,b=7 slice), independently holding its own
+        # reference to H_local's storage, regardless of `del H_local,
+        # vals`. A storage is freed only once EVERY tensor view into it is
+        # gone; one leftover reference (`block`) is enough to keep the
+        # whole thing alive. Confirmed directly with a weakref-based CPU
+        # test: deleting H_local+vals alone left the storage alive;
+        # additionally deleting `block` collected it. Bit-identical output
+        # either way regardless of this bug -- val_template only ever
+        # reads from these views, never writes to them, so the computed
+        # VALUES were always correct; only the memory was never actually
+        # freed.
         val_template = torch.cat(vals)
-        del H_local, vals
+        del H_local, vals, block
         val = torch.where(keep_mask, val_template, torch.zeros_like(val_template))
         del val_template
         val = torch.cat([val, torch.ones(fixed_idx.shape[0], dtype=dtype, device=device)])
