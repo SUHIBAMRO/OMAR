@@ -19440,3 +19440,33 @@ layout change in a two-column document can shift pagination arbitrarily
 far downstream -- checking only the pages next to the edit is not
 sufficient; a full page-by-page re-render is the only reliable check
 after any width/height change to a float.
+
+## Omar pointed at the actual still-small figure from his own screenshot
+## -- two more 7-panel field grids found and enlarged, missed in the
+## earlier Figure 6/8 round
+
+Omar's reply ("انت ما صلحت الي صورتلك ياهم" -- you didn't fix the ones
+I sent screenshots of) pointed at Figure 3 (page 6 in his screenshot),
+which was still visibly tiny. Checking it directly: `image30.png`
+("Mesh-convergence field grid", 7 sub-panels for N=51..1401) was still
+a single-column `figure` at `0.98\columnwidth` -- the earlier Figure
+6/8 investigation had focused on figures already identified from the
+GPU field-grid round and the accuracy_diagnostics.py/train_B1.py
+search, and simply never checked this one.
+
+Grepped every "field grid" caption in `main.tex` to find all of this
+class rather than fixing just the one flagged: found a second,
+identical case (`image37.png`, "Zero-shot resolution generalization
+field grid", Figure 22, also 7 panels, also `0.98\columnwidth`); the
+third ("Out-of-distribution shift field grids", 6 panels) was already
+`figure*`-width from an earlier round and fine. Converted both
+remaining ones to `figure*` at `0.85\textwidth`, matching the width
+convention already used for other wide single-image figures (e.g.
+`b3_geometry.png`).
+
+Applying the lesson from the Figure 6 regression immediately before
+this: verified by rendering and visually inspecting **all 41 pages**
+before trusting the fix, not just the two changed pages. Page count
+unchanged (41), overfull-box count unchanged (92), 0 undefined
+references, no blank-column or overlap defects anywhere. Committed and
+pushed.
