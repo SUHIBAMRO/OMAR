@@ -19224,9 +19224,66 @@ regenerated `report_builders/figures/fig_*.png`, and
 resolution-grid and OOD-shift field-grid figures still need a real
 GPU/Colab session to regenerate with the already-applied
 `panel_grid_plot.py` font fix (checkpoints not available here); the
-round12 Cauchy-flagship figure's source JSON is lost and would need to
-be regenerated from scratch or located on Omar's Drive; the VINO
-licensing question needs the original authors' explicit permission,
-not something fixable from this repository alone; and the 839,040+-
-element B3 solver memory ceiling, already explicitly decided out of
-scope in the entry above.
+VINO licensing question needs the original authors' explicit
+permission, not something fixable from this repository alone; and the
+839,040+-element B3 solver memory ceiling, already explicitly decided
+out of scope in the entry above.
+
+## round12_cauchy_flagship figure: lost source JSON recovered from the
+## report docx; a real pre-existing caption inaccuracy found and fixed
+
+The `round12_final_accuracy_cauchy_summary.json` behind `image57.png`
+(B1xNeo-Hookean fixed-region Cauchy-stress error vs. resolution, FEM
+vs. operator) only ever existed in a past session's own `/tmp`
+scratchpad and was confirmed genuinely gone (searched the whole
+filesystem). Rather than re-running the original GPU experiment or
+guessing the numbers, found that the exact same 16-row dataset had
+already been written as a literal table ("Table 18-R10p") into
+`advisor_feedback/PFEM_Transolver_Report_2026-10-05.docx` by this
+project's own pre-existing `apply_round12_point1_cauchy.py` script.
+
+Wrote `Practical_Examples/report_builders/reconstruct_round12_cauchy.py`
+to extract that table directly via `python-docx` (iterating the
+document body for the table immediately following the "Table 18-R10p"
+caption paragraph) and rewrite it as
+`round12_final_accuracy_cauchy_summary_RECONSTRUCTED.json`. Before
+trusting a single reconstructed number, cross-validated the N=3 and
+N=49 rows bit-for-bit against the already-published,
+independently-sourced `tab:b1-b1nh-b` appendix table already in
+`main.tex` -- exact match on both rows across all six error columns.
+
+Repointed `make_figure_round12_cauchy_flagship.py` at the reconstructed
+JSON and regenerated `image57.png`. Along the way, found and fixed a
+real log-scale minor-tick-label overlap (matplotlib's own automatic
+"2x10^1"/"3x10^1" minor labels colliding with the explicit integer-N
+major labels once font size was bumped in the earlier figure-legibility
+round) via `ax.minorticks_off()`.
+
+While re-reading this figure's surrounding context in `main.tex` to
+confirm the regenerated figure still matched the prose, found a
+genuine pre-existing inaccuracy, not introduced by any recent edit: the
+`fig:peak-stress` caption and its lead-in paragraph both described the
+right-hand panel as "FEM only," but the figure (both the old,
+pre-session `image57.png`, confirmed via `git show
+fab80f3^:paper/figures/image57.png`, and the newly-regenerated one) has
+always plotted all four series -- FEM region-average, operator
+region-average, FEM true-max, operator true-max. Fixed the caption to
+"FEM and operator" and the lead-in prose to "examined for both the
+finite-element reference and the operator, at every tested resolution."
+
+Verified via a two-pass `pdflatex` recompile (41 pages, 0 undefined
+references, 92 overfull boxes vs. 93 on the unedited baseline -- no new
+regressions) and by rendering page 20 to PNG and visually confirming
+the figure now matches its corrected caption. Committed and pushed:
+`main.tex`, `reconstruct_round12_cauchy.py` (new),
+`round12_final_accuracy_cauchy_summary_RECONSTRUCTED.json` (new),
+`make_figure_round12_cauchy_flagship.py`,
+`report_builders/figures/fig_round12_cauchy_flagship.png`, and
+`paper/figures/image57.png`.
+
+This closes the round12_cauchy_flagship item that was previously listed
+as open. **Still genuinely open**: the dense GPU field-grid figures
+(pending Omar's own Colab run), the VINO licensing permission
+(external, not fixable from this repo), and the B3 assembled-direct
+solver's 839,040+-element memory ceiling (explicitly stopped per user
+instruction).
