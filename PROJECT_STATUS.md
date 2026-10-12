@@ -19415,3 +19415,28 @@ the B3 assembled-direct solver's 839,040+-element memory ceiling
 (explicitly stopped per user instruction), and actually regenerating
 Figure 6/Figure 8 with their now-fixed fonts (needs Omar's next GPU
 session, same pattern as the dense field-grid figures).
+
+## Caught own regression: the Figure 6 layout change broke page 26
+
+Omar opened the actual PDF himself (not just the rendered-page images
+I'd checked) and the Figure-6/Figure-8 commit above had a real defect:
+page 26's entire right column was blank. My own verification at the
+time only checked the pages immediately around the two changed figures
+-- not every downstream page the two-column reflow could affect -- so
+this was missed.
+
+Root-caused properly rather than guessing: compiled the exact pre-fix
+commit (`884d7ab`, main.tex plus its own 55 figures) as an independent
+baseline -- 39 pages, page 26 fully packed, confirming this was a real
+regression, not pre-existing. Tested the two changes separately:
+reverting Figure 6 alone (back to 3-per-row, `0.33\textwidth`) restored
+a fully-packed page 26; Figure 8's double-column conversion was kept
+since it does not reproduce the defect. This time, verified by
+rendering and visually checking **all 41 pages**, not just the ones
+adjacent to the edit, before trusting the fix. Committed and pushed.
+
+**Lesson for this file's own discipline going forward**: a figure
+layout change in a two-column document can shift pagination arbitrarily
+far downstream -- checking only the pages next to the edit is not
+sufficient; a full page-by-page re-render is the only reliable check
+after any width/height change to a float.
