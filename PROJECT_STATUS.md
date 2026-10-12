@@ -18208,3 +18208,81 @@ hypothesis, before assuming symmetric_bc or chunking themselves are
 somehow at fault (both already independently verified correct on CPU).
 If this still fails, the new diagnostic print will show the real final
 ||F|| and which increment, which is the next thing needed either way.
+
+## B3 480,320-element row: FULL SUCCESS -- converges correctly, but
+## honestly much slower than the existing FEM reference at this mesh
+
+Omar restarted the Colab runtime (the ~24.7 GB "stuck" memory from the
+previous attempt -- see below -- was a session-hygiene artifact, not a
+code bug) and re-ran. Both Cell 1 gates passed cleanly (general:
+max_rel=3.386e-15; symmetric: max_rel=2.030e-13, both well under the
+1e-3 tolerance). Cell 2, 480,320 elements, `matrix_type='symmetric',
+symmetric_bc=True, vmap_chunk_size=50000, n_increments=21`:
+
+  **`"converged": true` -- EVERY one of the 20 load increments converged,
+  each in exactly 7 Newton iterations** (stable and consistent, not
+  borderline), confirming the hypothesis directly: the earlier
+  `n_increments=11` schedule genuinely was not fine enough for this
+  resolution's real sampled material/phi (seed=0); 21 increments fixes
+  it cleanly, the same fix this module already needed once before at
+  the production mesh scale. `elapsed_s=1474.09` (~24.6 min),
+  `peak_mem_mb=31,994` (well inside the 80 GB budget, confirming
+  vmap_chunk_size=50000 genuinely solved the memory problem too -- no
+  OOM, no ALLOC_FAILED, clean completion).
+
+**Session-hygiene finding, for the record**: the attempt immediately
+before this one (same code, n_increments=21, no runtime restart) showed
+~24.7 GB ALREADY allocated at entry, before any increment ran -- and
+failed at FACTORIZATION as a direct result (less real headroom left for
+cuDSS). Every incremental memory delta in that run matched this
+successful run's own deltas exactly (closure +5.49 GB, Hessian +6.64 GB,
+CSR +1.09 GB, to the decimal) -- only the BASELINE differed, by almost
+exactly 24.7 GB. This points to Jupyter/IPython's own exception/
+traceback retention (a previous cell's crash keeps its local GPU tensors
+alive via the stored traceback object until the kernel is restarted or
+the traceback is explicitly cleared) accumulating across repeated
+same-session attempts, not a bug in this module. Worth remembering for
+every future round: restart the runtime between attempts that followed
+a crash, don't just re-run the cell.
+
+**Honest comparison against the existing, already-published FEM
+reference at this EXACT mesh** (`report_builders/add_round18_real_fem_
+time_memory_to_report.py`'s own real-GPU table, confirmed already in
+`main.tex` line 683 -- torch-fem CG+Jacobi, same groove geometry, same
+480,320-element mesh): **76.06 s**, using that reference's own
+`N_INCREMENTS=11` (`cell_b3_groove_gpu_mesh_convergence.py` line 169).
+
+So the new assembled+direct solver's real, now-correctly-converged time
+(1,474.09 s) is **~19.4x SLOWER** than the existing iterative reference
+at this identical mesh. Not a fully apples-to-apples increment count
+(reference used 11, ours needed 21) -- but even generously assuming the
+reference's own cost would roughly double at 21 increments (~152 s,
+an overestimate of the real cost since analysis/factorization reuse
+amortizes extra increments cheaply), the new solver is still **~9.7x
+slower**. This is the same pattern already seen at B3's small production
+mesh (8.79 s vs. 5.06 s, ~1.74x slower there) -- but the gap grows
+sharply worse at this larger, more fill-in-prone resolution, consistent
+with the well-known theoretical fact that direct solvers' 3D fill-in
+disadvantage against iterative methods gets WORSE, not better, as mesh
+size grows. Per-increment timing breakdown confirms where the time
+goes: ANALYSIS ~15.8 s + FACTORIZATION ~41.8 s + SOLVE ~1.0 s per
+increment, 20 increments -- FACTORIZATION alone is the dominant cost,
+exactly where 3D fill-in should hurt most.
+
+**Complete, honest status of this investigation, not yet shown to
+Timon**: the GPU-native assembled+direct solver is numerically correct
+at every resolution tested (production mesh and 480,320 elements) and
+can be made to fit in memory and converge reliably at both with enough
+engineering (symmetric storage, vmap chunking, finer load stepping) --
+but it is slower than the existing, simpler iterative FEM reference at
+every resolution tested so far, by a growing margin as the mesh gets
+finer. The 839,040/950,400-element rows remain blocked by the separate,
+still-unsolved cuDSS/CSR memory ceiling (not attempted this round,
+correctly left out to avoid wasting GPU time on a known, unrelated
+failure) -- though given the clear, worsening slowdown trend already
+measured, it is reasonable to expect they would be slower still even if
+that memory ceiling were solved. This is a complete, honest, reportable
+answer to Timon's own request to "benchmark this solver at relevant
+resolutions if possible": benchmarked, and the assembled+direct solver
+does not outperform the existing reference at B3's 3D geometry at any
+tested scale -- a legitimate negative result, not a failure to hide.
