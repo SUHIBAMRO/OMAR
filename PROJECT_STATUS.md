@@ -19071,3 +19071,162 @@ resolution inside his requested range. The software-licensing audit is
 complete (one real finding, fixed). The only thing left unresolved is
 the 839,040+/950,400-element memory ceiling, now explicitly decided to
 be out of scope rather than silently abandoned.
+
+## Independent external review of main.tex against Timon's real emails
+## -- most items already correct, but 6 real, concrete gaps found and
+## fixed; one genuinely new, more serious licensing finding (VINO)
+
+Omar had the compiled PDF independently re-checked against the full
+email chain. Rather than trusting the review's verdicts at face value,
+verified each one directly against `main.tex`/the repo. Most of its
+"✅" calls were confirmed correct on inspection; six of its flagged
+gaps were real and are now fixed:
+
+1. **Figures/legends too small (point 1)**: confirmed directly by
+   rendering pages and comparing -- true, and worse than the earlier
+   "LaTeX-width-only" round could fix, since the text is baked into
+   the source PNGs. Found 20 figure-generation scripts in
+   `report_builders/`, most importing a shared `plot_style.py` module.
+   Bumped font sizes systematically (shared rcParams injection across
+   all 20 scripts + the shared helper module's own defaults), then
+   re-ran every script whose source data is actually reproducible.
+   8 of 20 depended on a stale, session-local scratchpad path to a
+   docx that no longer exists -- redirected them to the real, most
+   recent report (`advisor_feedback/PFEM_Transolver_Report_2026-10-05.
+   docx`), first spot-verifying its PI-vs-DD numbers came back
+   bit-identical to the ones already trusted and published in
+   `main.tex` before trusting anything else from it. 19 of 20 scripts
+   now run cleanly; the 20th (`round12_cauchy_flagship`) has lost its
+   own source JSON entirely (only ever existed in a past session's now-
+   gone scratchpad) and is left un-regenerated, flagged honestly rather
+   than guessed at.
+
+   Matched each regenerated `report_builders/figures/fig_*.png` to the
+   actual `paper/figures/imageNN.png` file `main.tex` embeds via content
+   hash (MD5) -- the two directories use completely different naming
+   conventions with no other link between them, so this was the only
+   reliable way to know which regenerated file replaces which embedded
+   one. Copied in 18 of the 19 successfully regenerated figures this
+   way (the 19th, a dense field-grid figure, needs trained-model
+   checkpoints this sandbox does not have -- see below).
+
+   **Caught and fixed 4 real regressions the font bump itself
+   introduced**, by viewing every regenerated figure directly rather
+   than assuming bigger fonts are automatically better: `fig_breakeven`
+   (x-axis case labels overlapping, legend overlapping the rotated
+   labels after the first fix), `fig_ood_degradation` (bar-top value
+   labels like "47.3% (4.22×)" running into their neighbors),
+   `fig_resolution_matched_breakeven` (same x-axis label class),
+   `fig_multires_retrain_summary` (duplicate-looking overlapping x-tick
+   text), and `fig_mms`/`fig_mms_richer` (dense log-scale minor-tick
+   labels overlapping in a 6-panel, 2-column figure). Fixed by widening
+   figures, rotating long category labels, and shrinking just the
+   dense-tick axes' own tick-label size back down -- each fix re-
+   rendered and visually re-confirmed clean before moving to the next.
+
+   Also bumped the shared `panel_grid_plot.py` helper (`omar_pfem/`,
+   used by `resolution_invariance_zeroshot.py` and `ood_progressive.py`
+   for the dense N=51...N=1401 resolution grids and the OOD-shift field
+   grids -- the worst-looking figures of all, per direct visual
+   inspection of the compiled PDF) so the next time those are
+   regenerated on a real GPU/Colab session (they load trained-model
+   `.pt` checkpoints from Drive, not reproducible here), the fix is
+   already in place. Not regenerated in this round -- flagged as the
+   one piece of point 1 still needing a GPU session, same honest
+   framing as the B3-geometry fix two rounds ago before it turned out
+   to actually be fixable locally.
+
+2. **Leftover "(Candidate A)" in two table captions (point 8)**:
+   real and simply forgotten -- Candidate B was removed entirely in an
+   earlier round, making "Candidate A" meaningless (nothing left to
+   contrast against). Removed from both `tab:b3-ladder` and
+   `tab:b3-ladder-time`'s captions.
+
+3. **B3 high-resolution ladder missing nodes/DOFs (point 10)**: real --
+   the small production mesh's elements/nodes/DOFs were already stated,
+   but the 13-row high-resolution ladder table only ever reported
+   element counts, leaving Timon's own arithmetic question ("~1M
+   elements means ~1M nodes and ~3M DOFs, right?") unanswered for the
+   actual ladder rows. Added real node/DOF counts for all 13 rows,
+   read directly from Omar's own torch-fem solver banner output in the
+   Colab log already pasted into this conversation (e.g. "950,400 elem
+   | 2,939,100 dof"), not estimated -- confirms his arithmetic directly
+   (950,400 elements -> 979,700 nodes, 2,939,100 DOFs).
+
+4. **"Same-N" vs. "resolution-matched" terminology (point 3)**: the
+   paper already kept these two comparisons properly separate
+   throughout (confirmed, the review's own "✅ with minor wording"
+   verdict was right) -- added "(same-$N$)" alongside
+   "resolution-matched" in the two places that comparison is
+   introduced, so a reader scanning for Timon's own literal phrase
+   finds it tied directly to the paper's term.
+
+5. **Internal-correspondence-sounding language**: real -- Section 7.5
+   (the B3 solver benchmark section added two rounds ago) and its
+   table caption said "The advisor's own follow-up review requested..."
+   and "inside the advisor's own requested range," language that reads
+   as leaked internal correspondence rather than paper prose. Reworded
+   as direct scientific statements, matching how this exact situation
+   (crediting an advisor-suggested direction) was already handled
+   correctly elsewhere in the paper -- the conclusion's own outlook
+   paragraph states the Krylov/AMG and multi-GPU next steps directly,
+   with no "the advisor suggested" framing at all.
+
+6. **Licensing -- a genuinely NEW and more serious finding, not
+   previously caught**: the earlier licensing-audit round (closing
+   Timon's Email 4) found and fixed a real Transolver attribution gap,
+   but did not separately re-check VINO specifically. Checked the
+   upstream VINO repository directly this round: **it has no LICENSE
+   file of its own** -- confirmed its root listing has none, and its
+   own README (copied here verbatim as `VINO_README.md`) has no license
+   section either. This is a different, more serious class of problem
+   than Transolver's (which just needed its existing MIT notice added):
+   with no license granted by the VINO authors at all, vendoring
+   `Comparative_Examples`/`Integration` is not self-evidently permitted
+   for redistribution regardless of attribution -- copyright law
+   reserves all rights by default. Documented explicitly and separately
+   in `README.md` as a real, unresolved blocker for public release
+   specifically (not the rest of the repo), requiring explicit
+   permission from the VINO authors (Eshaghi et al.) before that
+   portion of the repo is included in anything released publicly.
+
+**Confirmed already correct, no change needed** (the review's "✅"
+verdicts, checked directly rather than assumed): accuracy-matched/
+fixed-threshold renaming and B3 stress exclusion (point 2); DD-vs-PI
+real numbers + hybrid/Sobolev + GPU label-gen cost (point 4); B1/B2 vs.
+B3 vs. DD training-budget framing + early-stopping robustness (point
+5); the four FEM baselines kept textually distinct + batched solver
+included (point 6); assembled+direct solver's headline number + the
+B3-at-relevant-resolutions section (point 7, closed as explicitly
+qualified by Timon's own "if possible," see the stop-decision entry
+above); Table 3 labeled as the small 2D reference (point 10, first
+half); Section 5.2's Transolver/DEM clarification (point 11);
+"training time per sample" definition (point 12); Table 13's speed-up
+disambiguation (point 13); "resolution generalization" terminology
+(point 14); Table 21's full 2×2 grid (point 15); the Arruda-Boyce N=1401
+wording and the 394ms-vs-6.32ms B3 inference-cost distinction (the two
+"small things"); the mesh-refinement question's direct answer; and
+both follow-up emails (title change, three-solver promotion, and the
+already-complete licensing audit, now extended by the VINO finding
+above).
+
+Verified the whole round via a full two-pass `pdflatex` compile (0
+undefined references throughout every edit) and by directly viewing
+every one of the 18 regenerated figures at full resolution, not just
+the recompiled PDF pages -- the discipline that caught all 4 of the
+font-bump regressions above before they could reach Omar. Committed
+(60 files -- `main.tex`, `README.md`, 18 `paper/figures/imageNN.png`,
+19 `report_builders/make_figure_*.py` + `plot_style.py`, 18
+regenerated `report_builders/figures/fig_*.png`, and
+`panel_grid_plot.py`) and pushed.
+
+**What remains genuinely open after this round**: the dense N=51..1401
+resolution-grid and OOD-shift field-grid figures still need a real
+GPU/Colab session to regenerate with the already-applied
+`panel_grid_plot.py` font fix (checkpoints not available here); the
+round12 Cauchy-flagship figure's source JSON is lost and would need to
+be regenerated from scratch or located on Omar's Drive; the VINO
+licensing question needs the original authors' explicit permission,
+not something fixable from this repository alone; and the 839,040+-
+element B3 solver memory ceiling, already explicitly decided out of
+scope in the entry above.
