@@ -605,54 +605,51 @@ For B3, an analogous GPU mesh-convergence ladder (336 to
 Cauchy-stress field error (defined later for the 3D benchmark) enters a
 $5$--$10\%$ target band at 480,320 elements, within the $10^5$--$10^6$-element
 range adopted for this benchmark. Table~\ref{tab:b3-ladder} reports the
-full ladder, scored against the $839{,}040$-element row as the fixed
-reference. The table's own last row (the $950{,}400$-element mesh,
-one step finer than the reference, scored against it) reads $1.41\%$,
-larger than the $736{,}736$-element row's $1.02\%$ -- this is not a sign
-of non-convergence, but an artifact of how this relative-error metric is
-defined: it normalizes by the \emph{reference} mesh's own field
-magnitude, so the same absolute field difference can read as a larger or
-smaller percentage depending on which of two close meshes is designated
-the reference. The real convergence evidence is the direct two-way check
-between the two finest meshes: scored the other way around (the
-$839{,}040$-element mesh against the $950{,}400$-element mesh as
-reference), the regional Cauchy-stress field error is $0.858\%$ and the
-region-average relative change is $0.623\%$ -- both comfortably small in
-either direction, confirming the two finest meshes agree closely and the
-ladder has genuinely converged by this point, regardless of which of the
-two is designated the reference. The $950{,}400$-element mesh -- the
-finer of the two -- is adopted as the common reference used throughout
-the 3D results proper, so its own self-comparison reads $0\%$ by
-construction below (not to be confused with its $1.41\%$ row in the
-table above, which is a different comparison, scored the opposite way).
+full ladder, scored against the $950{,}400$-element mesh -- the ladder's
+own finest row -- as the common reference used throughout the 3D
+results proper. Scored this way, the regional Cauchy-stress field error
+decreases monotonically with refinement across the entire target range
+and beyond ($6.72\%$ at $480{,}320$ elements down to $0.86\%$ at
+$839{,}040$), directly confirming convergence rather than needing a
+separate artifact-of-the-metric explanation for a non-monotonic reading.
+A direct two-way check against the second-finest mesh
+($839{,}040$ elements) independently supports the same conclusion: scored
+the other way around (the $839{,}040$-element mesh against the
+$950{,}400$-element mesh as reference), the regional Cauchy-stress field
+error is $0.858\%$ and the region-average relative change is $0.623\%$
+-- both comfortably small, confirming the choice of $950{,}400$ over
+$839{,}040$ as the common reference does not itself change the
+conclusion that the two finest meshes agree closely and the ladder has
+genuinely converged by this point.
 
 \begin{table}[ht]
 \centering
 \caption{B3 (Candidate A, grooved design) GPU mesh-convergence ladder:
   regional Cauchy-stress field error and displacement $L^2$ error vs.\
-  element count, scored against the $839{,}040$-element row (the 13-point
-  ladder's own fixed reference; a separate two-way convergence check
-  between this row and the $950{,}400$-element row, discussed above,
-  confirms convergence directly).}
+  element count, scored against the $950{,}400$-element row (the
+  13-point ladder's own finest row, adopted as the common reference
+  used throughout the 3D results proper; a separate two-way convergence
+  check against the $839{,}040$-element row, discussed above, confirms
+  convergence independently).}
 \label{tab:b3-ladder}
 \small
 \begin{tabular}{lcc}
 \toprule
 Elements & Regional Cauchy-stress error & Displacement $L^2$ error \\
 \midrule
-336      & $1{,}222.93\%$ & $5.91\%$ \\
-1{,}320    & $318.42\%$   & $3.35\%$ \\
-3{,}360    & $1{,}262.82\%$ & $3.43\%$ \\
-6{,}840    & $807.48\%$   & $2.30\%$ \\
-18{,}200   & $382.26\%$   & $1.53\%$ \\
-79{,}464   & $81.05\%$    & $0.70\%$ \\
-201{,}780  & $24.60\%$    & $0.34\%$ \\
-480{,}320  & $5.69\%$     & $0.12\%$ \\
-557{,}760  & $3.76\%$     & $0.09\%$ \\
-643{,}104  & $2.25\%$     & $0.06\%$ \\
-736{,}736  & $1.02\%$     & $0.05\%$ \\
-839{,}040  & $0.00\%$ (reference) & $0.00\%$ \\
-950{,}400  & $1.41\%$     & $0.05\%$ \\
+336      & $1{,}239.78\%$ & $5.92\%$ \\
+1{,}320    & $300.90\%$   & $3.36\%$ \\
+3{,}360    & $1{,}295.95\%$ & $3.45\%$ \\
+6{,}840    & $827.74\%$   & $2.32\%$ \\
+18{,}200   & $382.70\%$   & $1.54\%$ \\
+79{,}464   & $82.73\%$    & $0.72\%$ \\
+201{,}780  & $25.90\%$    & $0.36\%$ \\
+480{,}320  & $6.72\%$     & $0.14\%$ \\
+557{,}760  & $4.73\%$     & $0.10\%$ \\
+643{,}104  & $3.18\%$     & $0.08\%$ \\
+736{,}736  & $1.91\%$     & $0.05\%$ \\
+839{,}040  & $0.86\%$     & $0.04\%$ \\
+950{,}400  & $0.00\%$ (reference) & $0.00\%$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -2522,16 +2519,15 @@ be measured against an independent fine reference, not
 the same mesh it trained on, which itself carries non-negligible
 discretization error. This fine reference ($43{,}400$ elements) was established independently,
 for this accuracy-matched comparison specifically, and is distinct from
-both references used in the earlier mesh-convergence ladder: the
-$839{,}040$-element mesh the 13-point ladder (Table~\ref{tab:b3-ladder})
-is itself scored against, and the $950{,}400$-element mesh -- one step
-finer still, independently solved to confirm agreement with the
-$839{,}040$-element solution within the ladder's own reproducibility --
-subsequently adopted as the common, downstream high-resolution reference
-used elsewhere in this section. All three serve different purposes (a
-displacement/energy/reaction accuracy baseline here, a mesh-convergence
-score there, and a shared downstream reference elsewhere) and are not
-required to coincide. Ten held-out samples were re-solved at this
+the reference used in the earlier mesh-convergence ladder: the
+$950{,}400$-element mesh -- the 13-point ladder's own finest row
+(Table~\ref{tab:b3-ladder}) -- independently confirmed converged there
+against the $839{,}040$-element row (the ladder's second-finest row,
+within $0.86\%$), and subsequently adopted as the common, downstream
+high-resolution reference used elsewhere in this section as well. The
+two references serve different purposes (a displacement/energy/reaction
+accuracy baseline here, a mesh-convergence score and shared downstream
+reference there) and are not required to coincide. Ten held-out samples were re-solved at this
 $43{,}400$-element fine reference, and the same checkpoint
 queried zero-shot at that finer mesh's node positions, giving: displacement
 $2.03\%$, energy $2.30\%$ (pooled RMS), reaction moment $2.22\%$ (pooled
