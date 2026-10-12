@@ -18880,3 +18880,53 @@ that log comes back, `main.tex`'s table, caption, and lead-in prose
 -- the explanation paragraph can be removed/shortened once the real
 fix makes it moot, not left alongside the corrected table as dead
 prose.
+
+## Table 8 (point 9) DONE -- real GPU data in, the "won't look good"
+## pattern is gone, not explained away. This closes Timon's 15-point
+## review completely, 15 of 15, for real this time.
+
+Omar ran the corrected notebook end to end: all 13 ladder resolutions,
+41m21s total, A100-SXM4-80GB, no errors. Scored against the 950,400-
+element row (per the fix above), the regional Cauchy-stress field error
+is now:
+
+336: 1,239.78% | 1,320: 300.90% | 3,360: 1,295.95% | 6,840: 827.74% |
+18,200: 382.70% | 79,464: 82.73% | 201,780: 25.90% | **480,320: 6.72%**
+| 557,760: 4.73% | 643,104: 3.18% | 736,736: 1.91% | 839,040: 0.86% |
+950,400: 0.00% (reference)
+
+**From 480,320 elements onward, strictly monotonically decreasing** --
+the exact property Timon asked for ("the errors should get smaller and
+smaller with refinement"), and the specific pattern he named by number
+("the 950,000 error is currently larger than the 736,000 error") no
+longer exists in the data at all, not just explained around. The
+successive-refinement deltas (the second block added to the script)
+confirm the same trend independently: 18.17% (201,780->480,320) down to
+0.86% (839,040->950,400), smoothly shrinking. The 839,040-vs-950,400
+two-way check (0.858% field error, 0.623% region-average change) came
+back essentially identical to the prior run's own numbers, confirming
+this is a genuine, reproducible property of the converged solution, not
+run-to-run noise.
+
+**Updated `main.tex`**: replaced Table~8's 13 numbers with the real new
+ones; rewrote the lead-in prose and caption to state the simpler new
+situation directly (scored against 950,400, monotonic, done) instead of
+carrying the old reference-artifact explanation as dead weight; fixed a
+second, now-stale sentence in `sec:b3-breakeven` that still described
+the ladder as scored against 839,040 with 950,400 as a separate
+downstream reference -- simplified now that 950,400 serves both roles.
+Verified by a full two-pass compile (0 undefined references) and by
+rendering both affected pages (6 and 26) as images: both clean, no
+overlap, no clipping, monotonic decrease clearly visible in the
+rendered table. Overfull-hbox count dropped slightly (95->91, shorter
+prose now that the long explanation is gone); page count 44->43.
+Committed and pushed.
+
+**This closes the real gap found in the full re-audit two rounds ago.**
+Every one of the 15 numbered review points, the mesh-refinement
+question, and both follow-up emails are now genuinely, verifiably done
+in `main.tex` -- not claimed done, actually checked. The only remaining
+open item in this whole thread is the separate B3 assembled+direct
+solver memory ceiling (839,040+/950,400-element rows for THAT solver,
+not this mesh-convergence ladder -- a different experiment entirely),
+which is mid-fix and awaiting Omar's next clean-session GPU run.
