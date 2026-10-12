@@ -18539,3 +18539,111 @@ yet. If Omar wants a short reply drafted for Email 4 specifically (in
 `advisor_feedback/`, matching every other round's pattern), that is the
 natural next step once he confirms this summary is accurate and
 sufficient.
+
+## B3 839,040-element memory ceiling: a real, verified memory-efficiency
+## fix found and applied -- NOT yet confirmed to be enough, needs a GPU run
+
+Omar asked to work on the still-open 839,040/950,400-element cuDSS
+memory ceiling. Re-read the full investigation history first (the
+"B3 ladder, round 3/4" entries above): the decisive number already on
+record is that at 839,040 elements, this module's OWN PyTorch-side CSR/
+coalesce setup cost ~24.7 GB, leaving only 19.10 GB free when cuDSS's
+FACTORIZATION needed more -- and that number scales linearly with
+element count (confirmed: ~14.1 GB at 480,320 elements, 1.745x vs.
+839,040's 1.747x element-count ratio). That 24.7 GB is OUR OWN
+bookkeeping, not cuDSS's internal ANALYSIS/FACTORIZATION buffers (never
+visible to `torch.cuda.memory_allocated()`) -- so it was worth checking
+directly, by reading the actual code rather than re-guessing, whether
+that 24.7 GB is a genuine, minimal requirement or partly wasted.
+
+**Found a real, concrete bug, the same CLASS already fixed once before
+in this project's own `assembled_direct_solver.py`** (the `del val`
+fix from an earlier round): `build_sparse_jac_fn_b3`'s one-time index-
+template construction (`rows`/`cols` Python lists -> `torch.cat` ->
+`row_template`/`col_template`) and its inner `jac_fn` closure (called
+EVERY Newton iteration, not just once) both hold a full extra
+`(n_elem, 24, 24)`-sized buffer alive at the same time as the buffer
+that superseded it, for no reason:
+
+- `rows`/`cols`: 576 separate `(n_elem,)` int64 tensors (genuine
+  storage each, from an arithmetic op `3*elements[:,a]+ca`, not a view)
+  stay alive, unused, for the rest of the function after
+  `torch.cat(rows)`/`torch.cat(cols)` already built the real
+  `row_template`/`col_template` -- a full redundant copy of both.
+- Inside `jac_fn`: confirmed directly (a small standalone check,
+  `block[:, ca, cb]` compared via `.storage().data_ptr()`) that the
+  576-entry `vals` list is made of VIEWS into `H_local`'s own storage
+  (pure basic indexing -- slices + Python ints -- always returns a view
+  in PyTorch), so `H_local`'s memory stays alive via those views even
+  after it is fully consumed by `torch.cat(vals)` into the new,
+  independent `val_template` buffer -- and `val_template` itself then
+  ALSO stayed alive, unused, after being consumed into `val` by
+  `torch.where`. This recurs on EVERY Newton iteration (jac_fn is
+  called fresh each time, nothing cached), so it is the more
+  consequential of the two.
+
+**Fixed**: added `del rows, cols` right after `row_template`/
+`col_template` are built, and `del H_local, vals` / `del val_template`
+at each point inside `jac_fn` where they become genuinely unused.
+Every deletion happens strictly AFTER the value it held has already
+been read into a new, independent tensor -- so this cannot change any
+computed value, only how long memory is held.
+
+**Verified correct, not assumed**: a standalone check first confirmed
+the view-vs-copy assumption directly (`block[:, ca, cb].storage().
+data_ptr() == H_local.storage().data_ptr()` -> `True`). Then ran the
+ACTUAL pre-fix file (`git show HEAD:...` checked out to a scratch copy)
+and the post-fix file side by side on the same small real B3 geometry
+(`build_fixed_geometry_with_groove(7,6,6,...)`, the same geometry
+`run_correctness_check` uses), same random `u`, both `matrix_type=
+'general'` and `symmetric_bc=True`: `torch.equal()` (bit-identical, not
+just close) True for val/row/col/shape in both configurations. Also
+ran a full small-mesh smoke test end-to-end (`jac_fn(u, None)` at
+Ntheta=7/Nr=6/Nz=6, both configs) confirming no NaN, correct shapes,
+no exceptions. `python3 -m py_compile` clean.
+
+**Honest estimate of the expected savings, not a promise**: at 839,040
+elements, each full-size buffer this fix removes from the "alive
+simultaneously" set is roughly `839,040 x 576 x 8 bytes` ≈ 3.87 GB
+(fp64). The `jac_fn`-internal fix removes two such buffers from staying
+alive past their last use (`H_local` via its views, and `val_template`)
+-- recurring every Newton iteration -- and the one-time `rows`/`cols`
+fix removes roughly another two buffers' worth (`rows` ≈ `row_template`'s
+size, `cols` ≈ `col_template`'s size), once per increment. Taken
+together this is a real, meaningful, LOWER-BOUND estimate of several GB
+freed, potentially a large fraction of the measured 24.7 GB figure --
+but it is OUR OWN PyTorch-side cost, not cuDSS's internal ANALYSIS/
+FACTORIZATION workspace, which is by far the larger and still-unmeasured
+term at this resolution and which this fix does not and cannot touch.
+**Whether this is enough to get 839,040 elements through FACTORIZATION
+cannot be known without an actual GPU run** -- there is no GPU in this
+environment to confirm it, and no claim of success is being made here,
+only a real, verified-correct improvement and an honest estimate of its
+likely size.
+
+**Notebook updated for the next real test**: `Round15_B3_Assembled_
+Direct_Solver.ipynb`'s Cell 2 `RESOLUTIONS` now includes `(97, 96, 93)`
+(839,040 elements) alongside the already-working `(81, 80, 77)`
+(480,320 elements, kept first to re-confirm the fix changed nothing
+about its already-correct result). `(101, 100, 97)` (950,400 elements)
+deliberately NOT added yet -- test 839,040 first; no point risking GPU
+time on an even larger, even-less-likely-to-fit resolution until that
+one is confirmed either way.
+
+**If this run still ALLOC_FAILS at 839,040 elements**: the honest next
+options, in order of effort, are (1) try `dtype=torch.float32` instead
+of the current `torch.float64` throughout this solve -- would roughly
+halve BOTH our own remaining PyTorch-side memory AND cuDSS's own
+FACTORIZATION memory (the numeric factor's own storage is the dominant
+cost), the single highest-leverage remaining lever, but changes
+precision and would need the Newton `tol`/`atol` loosened and a fresh
+correctness-check pass before trusting any result from it -- not
+attempted yet since it is a bigger, riskier change than this round's
+fix; (2) restructure the COO/CSR construction to build and scatter-add
+directly in chunks (mirroring what `vmap_chunk_size` already does for
+the Hessian computation itself) instead of materializing the full
+duplicate-entry template at once, cutting the one-time setup cost
+further; (3) accept 839,040/950,400 elements as genuinely out of reach
+for this solver on an 80 GB A100 and report that honestly in the paper
+as the resolution ceiling for this specific port, which is already
+disclosed there as a current limitation, not a categorical one.

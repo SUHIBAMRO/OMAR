@@ -222,6 +222,17 @@ def build_sparse_jac_fn_b3(geom, E_node, nu_node, free_mask_dof, device, dtype,
                     cols.append(3 * elements[:, b] + cb)
     row_template = torch.cat(rows)
     col_template = torch.cat(cols)
+    # rows/cols are 576 separate (n_elem,) int64 buffers (genuine storage,
+    # not views -- each came from an arithmetic op `3*elements[:,a]+ca`, not
+    # plain indexing), together the SAME total size as row_template/
+    # col_template. torch.cat materializes a new buffer, so without this,
+    # both the pre-cat pieces and the concatenated result stay alive at
+    # once -- a real, measured contributor to this function's ~24.7 GB
+    # one-time setup cost at B3's 839,040-element ladder row (see
+    # PROJECT_STATUS.md), found chasing the still-open memory ceiling
+    # blocking that resolution. Safe: row_template/col_template (what the
+    # closure below actually needs) are untouched.
+    del rows, cols
     free_row_mask = free_mask_dof[row_template]
     keep_mask = (free_row_mask & free_mask_dof[col_template]) if symmetric_bc else free_row_mask
     fixed_idx = (~free_mask_dof).nonzero(as_tuple=True)[0]
@@ -236,8 +247,25 @@ def build_sparse_jac_fn_b3(geom, E_node, nu_node, free_mask_dof, device, dtype,
                 for ca in range(3):
                     for cb in range(3):
                         vals.append(block[:, ca, cb])
+        # vals' 576 entries are VIEWS into H_local's own storage (confirmed
+        # directly: pure basic indexing -- slices + Python ints -- always
+        # returns a view in PyTorch, never a copy), so H_local's storage
+        # stays alive as long as ANY of them do; deleting H_local alone
+        # (without also dropping every view into it) would free nothing.
+        # torch.cat(vals) below allocates a genuinely NEW, independent
+        # buffer the same total size as H_local -- so without this del,
+        # H_local's storage (via vals' views) AND val_template are both
+        # alive at once, real redundant memory, not a hypothetical one:
+        # this function is called every Newton iteration (not just once
+        # per increment), so this cost recurs on every call, and is a
+        # direct, measured contributor to the OOM/ALLOC_FAILED ceiling
+        # blocking B3's 839,040-element ladder row (PROJECT_STATUS.md).
+        # Bit-identical output either way -- val_template only ever reads
+        # from these views, never writes to them.
         val_template = torch.cat(vals)
+        del H_local, vals
         val = torch.where(keep_mask, val_template, torch.zeros_like(val_template))
+        del val_template
         val = torch.cat([val, torch.ones(fixed_idx.shape[0], dtype=dtype, device=device)])
         row = torch.cat([row_template, fixed_idx])
         col = torch.cat([col_template, fixed_idx])
