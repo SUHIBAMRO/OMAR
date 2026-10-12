@@ -222,20 +222,54 @@ def build_sparse_jac_fn_b3(geom, E_node, nu_node, free_mask_dof, device, dtype,
                     cols.append(3 * elements[:, b] + cb)
     row_template = torch.cat(rows)
     col_template = torch.cat(cols)
-    # rows/cols are 576 separate (n_elem,) int64 buffers (genuine storage,
-    # not views -- each came from an arithmetic op `3*elements[:,a]+ca`, not
-    # plain indexing), together the SAME total size as row_template/
-    # col_template. torch.cat materializes a new buffer, so without this,
-    # both the pre-cat pieces and the concatenated result stay alive at
-    # once -- a real, measured contributor to this function's ~24.7 GB
-    # one-time setup cost at B3's 839,040-element ladder row (see
-    # PROJECT_STATUS.md), found chasing the still-open memory ceiling
-    # blocking that resolution. Safe: row_template/col_template (what the
-    # closure below actually needs) are untouched.
     del rows, cols
     free_row_mask = free_mask_dof[row_template]
     keep_mask = (free_row_mask & free_mask_dof[col_template]) if symmetric_bc else free_row_mask
     fixed_idx = (~free_mask_dof).nonzero(as_tuple=True)[0]
+
+    # REVISED 2026-10-12, round 3 of chasing B3's 839,040-element memory
+    # ceiling -- the PREVIOUS round's del-based fix (deleting H_local/
+    # vals/block inside jac_fn once consumed) was verified bit-identical
+    # on CPU but came back from a real GPU run with ZERO measured effect:
+    # the "after jac_fn" and final "after CSR+coalesce setup" checkpoints
+    # were statistically IDENTICAL before and after that fix (24,677.5 MB
+    # either way at 839,040 elements). Root cause of why that fix did
+    # nothing, worked out from the real numbers rather than guessed:
+    # Python already frees a function's own local variables when its
+    # frame is popped, REGARDLESS of explicit `del`, as long as nothing
+    # outside the function still references them -- so del'ing H_local/
+    # vals/block one statement early changed nothing about what survives
+    # past jac_fn's own `return`. The `after jac_fn` delta (+11,601.4 MB
+    # at 839,040 el.) is fully explained, to the MB, by just the THREE
+    # returned tensors (val+row+col, each ~3.87 GB at this resolution) --
+    # proving nothing extra was ever surviving that call in the first
+    # place; the previous round's theory (an orphaned buffer surviving
+    # the call) was simply wrong.
+    #
+    # The REAL redundancy, found by then asking where else that same
+    # ~3.87 GB x 2 of index data could be duplicated: `row`/`col` used to
+    # be rebuilt via `torch.cat([row_template, fixed_idx])` INSIDE jac_fn
+    # on EVERY Newton iteration, even though they never change (the
+    # sparsity pattern is fixed for a whole Newton solve; only `val`
+    # depends on `u`) -- and `_newton_cudss_reuse_analysis` (the caller)
+    # separately stores its OWN copy, `row0, col0 = row, col`, from the
+    # first call, kept alive for the rest of the solve to check the
+    # pattern hasn't changed. Since each call rebuilt a NEW `row`/`col`
+    # object via `torch.cat`, `row0`/`col0` were never the same object as
+    # `row_template`/`col_template` (the closure's own copy) -- real,
+    # measured duplication: row_template+col_template (closure, ~7.7 GB
+    # combined at 839,040 el.) plus row0+col0 (caller, another ~7.7 GB of
+    # effectively the same values) both held for the whole solve at once.
+    #
+    # Fixed by building `row`/`col` ONCE here (not per Newton iteration)
+    # and returning these SAME precomputed objects from every jac_fn
+    # call -- row_template/col_template are no longer needed afterward
+    # (nothing else reads them), so they are deleted once built into
+    # row_full/col_full, and the caller's own `row0, col0 = row, col`
+    # becomes a reference to this SAME object, not a second ~7.7 GB copy.
+    row_full = torch.cat([row_template, fixed_idx])
+    col_full = torch.cat([col_template, fixed_idx])
+    del row_template, col_template
 
     def jac_fn(u, _A):
         ue_all = u.reshape(n_nodes, 3)[elements].reshape(n_elem, -1)  # (n_elem, 24), node-major
@@ -247,45 +281,12 @@ def build_sparse_jac_fn_b3(geom, E_node, nu_node, free_mask_dof, device, dtype,
                 for ca in range(3):
                     for cb in range(3):
                         vals.append(block[:, ca, cb])
-        # vals' 576 entries are VIEWS into H_local's own storage (confirmed
-        # directly: pure basic indexing -- slices + Python ints -- always
-        # returns a view in PyTorch, never a copy), so H_local's storage
-        # stays alive as long as ANY tensor still references it; deleting
-        # H_local alone (without also dropping every view into it) would
-        # free nothing. torch.cat(vals) below allocates a genuinely NEW,
-        # independent buffer the same total size as H_local -- so without
-        # this del, H_local's storage and val_template are both alive at
-        # once, real redundant memory, not a hypothetical one: this
-        # function is called every Newton iteration (not just once per
-        # increment), so this cost recurs on every call, and is a direct,
-        # measured contributor to the OOM/ALLOC_FAILED ceiling blocking
-        # B3's 839,040-element ladder row (PROJECT_STATUS.md).
-        #
-        # `block` MUST also be deleted here, not just H_local/vals -- a
-        # REAL bug in this fix's first version, found from a real GPU run
-        # that showed zero measured memory improvement despite this same
-        # del being present: `block` is the Python for-loop variable, and
-        # Python does NOT scope loop variables to the loop body -- after
-        # the nested loop above exits, `block` still names the LAST
-        # iteration's view (a=7,b=7 slice), independently holding its own
-        # reference to H_local's storage, regardless of `del H_local,
-        # vals`. A storage is freed only once EVERY tensor view into it is
-        # gone; one leftover reference (`block`) is enough to keep the
-        # whole thing alive. Confirmed directly with a weakref-based CPU
-        # test: deleting H_local+vals alone left the storage alive;
-        # additionally deleting `block` collected it. Bit-identical output
-        # either way regardless of this bug -- val_template only ever
-        # reads from these views, never writes to them, so the computed
-        # VALUES were always correct; only the memory was never actually
-        # freed.
         val_template = torch.cat(vals)
         del H_local, vals, block
         val = torch.where(keep_mask, val_template, torch.zeros_like(val_template))
         del val_template
         val = torch.cat([val, torch.ones(fixed_idx.shape[0], dtype=dtype, device=device)])
-        row = torch.cat([row_template, fixed_idx])
-        col = torch.cat([col_template, fixed_idx])
-        return val.detach(), row, col, (n_dof, n_dof)
+        return val.detach(), row_full, col_full, (n_dof, n_dof)
 
     return jac_fn
 

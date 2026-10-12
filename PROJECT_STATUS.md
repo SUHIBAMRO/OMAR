@@ -18930,3 +18930,93 @@ open item in this whole thread is the separate B3 assembled+direct
 solver memory ceiling (839,040+/950,400-element rows for THAT solver,
 not this mesh-convergence ladder -- a different experiment entirely),
 which is mid-fix and awaiting Omar's next clean-session GPU run.
+
+## B3 839,040-element memory ceiling, round 3: the block-fix was
+## VERIFIED CORRECT but EMPIRICALLY INEFFECTIVE -- real numbers show why,
+## and point to the actual redundancy. A different, better-targeted fix
+## applied; still not confirmed enough.
+
+Omar re-ran the (block-fix) notebook on a clean session (no stale-
+session contamination this time -- entry memory 1,507.7 MB at
+839,040 elements, consistent with earlier clean runs). Real, decisive
+result: **the fix had ZERO measured effect.** Torch-tracked memory
+before FACTORIZATION was 24.72 GB -- statistically identical to every
+number on record before any of this round's fixes -- and ALLOC_FAILED
+again, in the same place. The 480,320-element row's own peak_mem
+(30,338.5 MB) was also statistically identical to the PREVIOUS (still-
+broken) attempt's 30,338.0 MB.
+
+**Root-caused properly this time, from the real numbers, not a new
+guess**: the "after jac_fn(u,None)" checkpoint's delta at 839,040
+elements (+11,601.4 MB) is fully and exactly explained by just the
+THREE tensors jac_fn actually returns (val + row + col, each
+independently ~3.87 GB at this resolution) -- proving nothing extra
+was ever surviving past jac_fn's own return in the first place. This
+makes sense in hindsight and should have been checked before trusting
+the previous round's theory: **Python frees a function's own local
+variables when its stack frame is popped, regardless of whether they
+were explicitly `del`'d, as long as nothing outside the function still
+references them.** `del H_local, vals, block` inside jac_fn could only
+ever have reduced PEAK memory *during* jac_fn's own execution (which
+`vmap_chunk_size` already targets) -- it was never going to change what
+survives *after* jac_fn returns, which is what the "after jac_fn"/
+"after CSR+coalesce setup" checkpoints actually measure. The previous
+round's theory (an orphaned buffer surviving the call via the dangling
+`block` reference) was a real, verified-on-CPU phenomenon, but it was
+answering the wrong question -- CPU-only testing confirmed WHAT stayed
+referenced, not WHEN in the call lifecycle it stopped mattering.
+
+**The real redundancy, found by then asking where else ~3.87 GB x 2 of
+equivalent index data could be duplicated**: `build_sparse_jac_fn_b3`'s
+closure builds `row_template`/`col_template` once (for the free/fixed
+masks) -- but `jac_fn` itself used to rebuild `row = torch.cat([row_
+template, fixed_idx])` / `col = torch.cat([col_template, fixed_idx])`
+fresh on EVERY Newton iteration, even though the sparsity pattern never
+changes within a solve (only `val`, which depends on `u`, does).
+Separately, `_newton_cudss_reuse_analysis` (the caller) stores its own
+copy from the first call, `row0, col0 = row, col`, kept alive for the
+whole solve to check the pattern hasn't drifted. Because each call
+built a NEW `torch.cat` result, `row0`/`col0` were never the same
+object as the closure's own `row_template`/`col_template` -- real,
+measured duplication: both held simultaneously for the whole solve,
+roughly another ~7.7 GB at 839,040 elements on top of everything else.
+
+**Fixed**: `row`/`col` (now named `row_full`/`col_full`) are built ONCE
+in `build_sparse_jac_fn_b3`, outside `jac_fn`; `row_template`/
+`col_template` are deleted immediately afterward (nothing else needs
+them once `row_full`/`col_full` exist); `jac_fn` now returns these same
+precomputed objects every call instead of rebuilding them. The caller's
+`row0, col0 = row, col` becomes a reference to this SAME object, not a
+second copy.
+
+**Verified, same discipline as every prior round**: ran the actual
+pre-this-fix file (checked out from `HEAD`) against the new file on the
+same small real B3 geometry, both `matrix_type` configs -- bit-
+identical (`torch.equal` True) val/row/col/shape, confirming the output
+values are unchanged. Additionally confirmed (the specific property
+this fix depends on) that calling the SAME `jac_fn` closure twice with
+DIFFERENT `u` returns `row`/`col` that are not just equal but the
+literal SAME Python object (`is`, not just `torch.equal`) both times --
+the property that makes `row0 is row` true for the caller going
+forward, eliminating the duplicate allocation rather than just hiding
+it. Ran a 5-call sequential smoke test (simulating repeated Newton
+iterations) with no NaN and stable object identity throughout.
+`python3 -m py_compile` clean.
+
+**Honest status**: this fix targets a different, now better-understood
+~7.7 GB of real redundancy (at 839,040 elements) that the previous
+round's fix never actually touched. It is NOT guaranteed to be enough
+on its own -- cuDSS's own internal ANALYSIS/FACTORIZATION memory (the
+dominant, PyTorch-invisible cost) is still completely untouched by
+anything on our side, and the honest remaining levers if this still
+isn't enough (unchanged from two rounds ago) are: `dtype=torch.float32`
+instead of `float64` (would roughly halve both our own remaining
+memory AND cuDSS's own factorization memory -- the single highest-
+leverage remaining lever, not yet attempted since it is a bigger,
+precision-changing move); chunked COO/CSR construction (mirroring what
+`vmap_chunk_size` already does for the Hessian computation); or
+accepting 839,040/950,400 elements as genuinely out of reach for this
+solver on an 80 GB A100, which is already honestly disclosed in the
+paper as a current limitation, not a categorical one. Not yet run on
+GPU -- no claim of success, only a different, better-targeted, re-
+verified fix ready for the next test.
