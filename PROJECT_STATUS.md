@@ -18286,3 +18286,77 @@ answer to Timon's own request to "benchmark this solver at relevant
 resolutions if possible": benchmarked, and the assembled+direct solver
 does not outperform the existing reference at B3's 3D geometry at any
 tested scale -- a legitimate negative result, not a failure to hide.
+
+## B3 assembled+direct solver findings written into the paper itself
+## (main.tex) -- task #16 now fully closed, not just verified in Colab
+
+Omar asked to "prepare everything according to Timon's request"
+("جهز كلشي حسب طلب تيمون"). The one remaining piece was that the
+findings above existed only in this file and in Colab JSON output, not
+in `main.tex` itself -- so they were not yet part of the actual
+deliverable Timon reads. Added a new subsection immediately after
+`sec:b3-breakeven` and before `\section{Discussion}`:
+
+- `\subsection{Assembled+direct solver at B3: benchmark at relevant
+  resolutions}`, `\label{sec:b3-assembled-direct}` -- states the
+  advisor's own request verbatim as the motivation, describes the hex8
+  port (same two 2D optimizations: cuDSS analysis-phase reuse,
+  symmetric storage) and its incremental-load-stepping addition,
+  reports the CPU correctness check ($2.0\times10^{-13}$ relative field
+  agreement) that gated trusting any GPU timing, then the two completed
+  resolutions' real numbers: $10.25$~s vs.\ the already-published
+  $5.06$~s at 6,840 elements ($2.03\times$ slower), and $1{,}474.1$~s
+  vs.\ the already-published $76.06$~s at 480,320 elements ($19.4\times$
+  slower, $\approx9.7\times$ after the explicit load-increment-count
+  caveat), with peak memory (639.5~MB / 32.0~GB) and the honest
+  still-open 839,040+/950,400-element memory ceiling disclosed as a
+  current limitation, not a categorical one. Framed as a genuine
+  architectural finding (3D fill-in under nested-dissection reordering
+  erodes the same design's decisive 2D win) -- matches the framing
+  already used throughout this file, not softened or oversold for the
+  advisor.
+- `\begin{table*}[ht] ... \label{tab:b3-assembled-direct}` -- the two-row
+  summary table (elements, reference time, assembled+direct time,
+  slow-down, peak memory), cross-referencing the already-published
+  `tab:b3-breakeven` and `tab:b3-ladder-time` numbers rather than
+  re-deriving them.
+
+**Verification performed before trusting this change** (same discipline
+as every other `main.tex` edit in this project): a full two-pass
+`pdflatex` compile from a clean state. First pass correctly flagged
+"undefined references" (expected, new labels); second pass resolved
+everything with zero undefined references and zero new bad citations.
+Caught one real bug in the process: the new table was first written as
+a single-column `\begin{table}[h]`, but a 48.7pt overfull-hbox warning
+at its exact line range (`lines 2581--2589`) turned out, on rendering
+the actual page image (page 28), to be a genuine visual defect -- the
+table's rightmost "Peak mem." column and its values (639.5 MB / 32.0 GB)
+were bleeding into the adjacent Discussion section's second column,
+overlapping running text ("...2.5 standard deviations..."). Fixed by
+switching it to `\begin{table*}[ht]` (full double-column width), the
+same convention already used by the adjacent `tab:b3-breakeven` table
+for a similarly wide table. Re-rendered page images after the fix
+confirm clean layout with no overlap and normal text flow. All five
+`\ref`s used in the new text (`sec:gpu-fem`, `tab:b3-breakeven`,
+`tab:b3-ladder`, `tab:b3-ladder-time`, and the new
+`tab:b3-assembled-direct` itself) resolve to the correct, genuinely
+pre-existing targets, confirmed directly against `main.aux` (e.g.
+`tab:b3-ladder-time` really is Table 7, `tab:b3-breakeven` really is
+Table 29, matching what the new prose says).
+
+Committed (`paper/main.tex`, +82 lines) and pushed to
+`claude/claude-code-question-d307wp`. Task #16 ("Benchmark B3
+assembled+direct solver at larger ladder resolutions") is now closed
+end-to-end: investigated, fixed through five real bugs, benchmarked
+successfully at a resolution inside Timon's own requested range, and
+the honest result is now actually in the paper he will read -- not just
+in this status file.
+
+**Still open, unchanged, not touched this round**: the 839,040/950,400-
+element cuDSS/CSR memory ceiling (separate from everything fixed above);
+Timon's Email 4 (software-licensing audit), still deferred; the Hybrid
+PI+DD (12.75%), Sobolev DD (14.70%), and early-stopping-robustness
+findings remain in this file / Colab JSON only, not yet written into
+`main.tex` -- out of scope for this round, which was specifically about
+closing out the B3 solver benchmark request; should not be added to the
+paper without Omar confirming that's wanted next.
