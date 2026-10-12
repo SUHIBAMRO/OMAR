@@ -787,25 +787,36 @@ def visualize_one_hyperelastic_Q4(samples, model, args, device, dtype, sid=0, ta
     umag_err = np.sqrt(u_err*u_err + v_err*v_err)
 
     def save_combined_scatter(pred, exact, err, name, err_label, cmap="coolwarm"):
-        fig, axes = plt.subplots(1, 3, figsize=(18, 5))
-        vmin = min(pred.min(), exact.min())
-        vmax = max(pred.max(), exact.max())
+        # This 3-panel figure is embedded at roughly a third of a printed
+        # page's width in the paper (Figure 6, six of these in a 2x3
+        # grid), so matplotlib's defaults are unreadable once downscaled
+        # -- bumped explicitly, matching the sizing already used for
+        # every other project figure.
+        with plt.rc_context({
+            'font.size': 20,
+            'axes.titlesize': 24,
+            'xtick.labelsize': 16,
+            'ytick.labelsize': 16,
+        }):
+            fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+            vmin = min(pred.min(), exact.min())
+            vmax = max(pred.max(), exact.max())
 
-        sc1 = axes[0].scatter(x_np, y_np, c=pred, s=8, cmap=cmap, vmin=vmin, vmax=vmax)
-        axes[0].set_aspect("equal"); axes[0].set_title("Prediction")
-        plt.colorbar(sc1, ax=axes[0])
+            sc1 = axes[0].scatter(x_np, y_np, c=pred, s=10, cmap=cmap, vmin=vmin, vmax=vmax)
+            axes[0].set_aspect("equal"); axes[0].set_title("Prediction")
+            cb1 = plt.colorbar(sc1, ax=axes[0]); cb1.ax.tick_params(labelsize=14)
 
-        sc2 = axes[1].scatter(x_np, y_np, c=exact, s=8, cmap=cmap, vmin=vmin, vmax=vmax)
-        axes[1].set_aspect("equal"); axes[1].set_title("Exact")
-        plt.colorbar(sc2, ax=axes[1])
+            sc2 = axes[1].scatter(x_np, y_np, c=exact, s=10, cmap=cmap, vmin=vmin, vmax=vmax)
+            axes[1].set_aspect("equal"); axes[1].set_title("Exact")
+            cb2 = plt.colorbar(sc2, ax=axes[1]); cb2.ax.tick_params(labelsize=14)
 
-        sc3 = axes[2].scatter(x_np, y_np, c=err, s=8, cmap=cmap)
-        axes[2].set_aspect("equal"); axes[2].set_title(f"Error ({err_label})")
-        plt.colorbar(sc3, ax=axes[2])
+            sc3 = axes[2].scatter(x_np, y_np, c=err, s=10, cmap=cmap)
+            axes[2].set_aspect("equal"); axes[2].set_title(f"Error ({err_label})")
+            cb3 = plt.colorbar(sc3, ax=axes[2]); cb3.ax.tick_params(labelsize=14)
 
-        plt.tight_layout()
-        plt.savefig(os.path.join(args.out_dir, f"{name}_combined_{tag}_sid{sid}.png"), dpi=300)
-        plt.close()
+            plt.tight_layout()
+            plt.savefig(os.path.join(args.out_dir, f"{name}_combined_{tag}_sid{sid}.png"), dpi=300)
+            plt.close()
 
     save_combined_scatter(u_pred, u_exact, u_err, "ux", f"L2={rel_l2_u:.3e}")
     save_combined_scatter(v_pred, v_exact, v_err, "uy", f"L2={rel_l2_v:.3e}")

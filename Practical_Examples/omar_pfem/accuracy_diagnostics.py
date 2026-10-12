@@ -269,18 +269,32 @@ def _make_plots(args, per_sample, worst, uv_pred_all, Test_samples, xy):
         print("matplotlib not available -- skipping plots (JSON data is still written).")
         return
 
+    # These two 1x3 panel figures are embedded at roughly a quarter of a
+    # printed page's width each (Figure 8, two per row in the paper), so
+    # the default matplotlib font sizes used here are unreadable once
+    # downscaled -- bumped explicitly, matching the sizing already used
+    # for every other report_builders figure in this project.
+    matplotlib.rcParams.update({
+        'font.size': 15,
+        'axes.titlesize': 17,
+        'axes.labelsize': 15,
+        'xtick.labelsize': 13,
+        'ytick.labelsize': 13,
+        'legend.fontsize': 13,
+    })
+
     errs = np.array([r["rel_l2_error"] for r in per_sample])
     Es = np.array([r["mean_E"] for r in per_sample])
     nus = np.array([r["mean_nu"] for r in per_sample])
     loads = np.array([r["mean_load_magnitude"] for r in per_sample])
 
-    fig, axes = plt.subplots(1, 3, figsize=(15, 4.5))
+    fig, axes = plt.subplots(1, 3, figsize=(21, 6.3), dpi=220)
     for ax, (x, xlabel) in zip(axes, [(Es, "Mean E"), (nus, "Mean nu"), (loads, "Mean load magnitude")]):
-        ax.scatter(x, errs, s=12, alpha=0.6)
+        ax.scatter(x, errs, s=20, alpha=0.6)
         ax.set_xlabel(xlabel); ax.set_ylabel("Per-sample rel-L2 error"); ax.grid(alpha=0.3)
-    fig.suptitle(f"{args.geometry} x {args.material}: error vs. material/loading parameters")
+    fig.suptitle(f"{args.geometry} x {args.material}: error vs. material/loading parameters", fontsize=19)
     fig.tight_layout()
-    fig.savefig(os.path.join(args.out_dir, "error_vs_parameters.png"), dpi=150)
+    fig.savefig(os.path.join(args.out_dir, "error_vs_parameters.png"))
     plt.close(fig)
 
     # Error contour for the single worst sample (prediction, exact, error)
@@ -291,16 +305,17 @@ def _make_plots(args, per_sample, worst, uv_pred_all, Test_samples, xy):
     umag_exact = np.linalg.norm(exact, axis=1)
     err_mag = np.linalg.norm(pred - exact, axis=1)
 
-    fig, axes = plt.subplots(1, 3, figsize=(15, 4.5))
+    fig, axes = plt.subplots(1, 3, figsize=(21, 6.3), dpi=220)
     for ax, field, title in zip(axes, [umag_pred, umag_exact, err_mag],
                                  ["Prediction |u|", "Exact |u|", f"Error |Δu| (Linf={err_mag.max():.3e})"]):
-        sc = ax.scatter(xy[:, 0], xy[:, 1], c=field, cmap="coolwarm", s=10)
+        sc = ax.scatter(xy[:, 0], xy[:, 1], c=field, cmap="coolwarm", s=18)
         ax.set_title(title); ax.set_aspect("equal")
-        fig.colorbar(sc, ax=ax)
+        cb = fig.colorbar(sc, ax=ax)
+        cb.ax.tick_params(labelsize=12)
     fig.suptitle(f"{args.geometry} x {args.material}: worst test sample (idx={worst_idx}, "
-                 f"rel_l2={worst[0]['rel_l2_error']:.3e})")
+                 f"rel_l2={worst[0]['rel_l2_error']:.3e})", fontsize=19)
     fig.tight_layout()
-    fig.savefig(os.path.join(args.out_dir, "worst_sample_error_contour.png"), dpi=150)
+    fig.savefig(os.path.join(args.out_dir, "worst_sample_error_contour.png"))
     plt.close(fig)
 
     print(f"Plots written to {args.out_dir}/error_vs_parameters.png and "
