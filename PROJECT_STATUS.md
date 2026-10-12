@@ -18707,3 +18707,115 @@ consistent with it working) -- only the larger, per-Newton-iteration
 `jac_fn` half needed this second pass. Notebook unchanged (still queues
 480,320 then 839,040); Omar needs to re-run it once more with this
 corrected version before anything is concluded.
+
+## Full re-audit of every point in Timon's real 15-point review + mesh-
+## refinement question + two follow-up emails, against the REAL verbatim
+## email text this time (Omar pasted it directly) -- two real gaps found
+
+Omar asked, verbatim: "بعيدا عن هاي النقطه كل النقاط حسب ايميلات تيمون
+جاهزين؟ ما ضل فيهم اشي مش معمول؟" (aside from the memory point, are all
+the points from Timon's emails ready? Is there anything not done?), then
+pasted the actual, real email chain. This was the first time this
+session had the VERBATIM text rather than a paraphrase -- used it to
+re-check every point directly against `main.tex`, not against this
+file's own prior summaries (which, see below, turned out to be wrong in
+one place).
+
+**Checked directly against main.tex, confirmed correct, 13 of 15 points
++ the mesh-refinement question + both follow-up emails**: Candidate B
+removed (point 8); Table 20/appendix accuracy-matched -> "fixed-
+threshold" renaming with the real H1 evidence cited, and B3's own
+break-even table already omits a stress row (point 2); same-N vs.
+accuracy-matched kept in visibly separate, distinctly captioned tables
+(point 3); DD-vs-PI real numbers in `tab:pi-vs-dd`, PLUS now also the
+hybrid/Sobolev baselines (`tab:hybrid-sobolev`), PLUS the GPU-based
+label-gen cost estimate stated alongside the CPU one (~284s GPU vs.
+20,340s CPU) (point 4); B1/B2-vs-B3-vs-DD training-budget conventions
+explicitly contrasted in Discussion, PLUS the early-stopping robustness
+check now written in (point 5); the four FEM baselines (CPU, batched
+GPU, matrix-free, torch-fem/TensorMesh, assembled-direct) kept
+textually distinct throughout, batched solver included with its own
+table (point 6); assembled+direct solver's 23.68s/17.1GB headline
+number present, PLUS the new B3-at-relevant-resolutions section (point
+7); Table 3 explicitly labeled as the small 2D CPU reference, B3's own
+elements/nodes/DOFs given (6,840/7,980/~23,940) (point 10); Section 5.2
+calls the network the Transolver operator trained by an energy-based
+objective, not a generic DEM ansatz (point 11); "training time per
+sample" defined precisely, B3's wall-clock/steps/samples convention
+stated (point 12); Table 13's speed-up column disambiguated, GPU-FEM
+comparison pointed to as primary (point 13); "resolution invariance" ->
+"resolution generalization" throughout (point 14); Table 21's full
+2x2 grid with real per-cell errors/costs, best-PI-vs-best-DD comparison
+(point 15); the mesh-refinement question answered explicitly ("no mesh
+grading or local element refinement is applied anywhere, including
+around the groove"); both follow-up emails (title change + three-
+solver promotion with the exact 58.54->24.61->23.68s/17.1GB numbers and
+the Krylov/AMG + multi-GPU outlook; the licensing audit, done this
+session with one real finding already fixed). The two "small things"
+(Arruda-Boyce N=1401 wording naming torch-fem's own unchunked double-
+backprop Hessian memory limit, not a generic convergence failure; the
+B3 394ms-vs-6.32ms inference-cost figures kept explicitly distinct) are
+also both correctly in the text.
+
+**Found two real gaps, not previously caught**:
+
+1. **Point 9 (Table 8/`tab:b3-ladder`) is only PARTIALLY done.** Timon's
+   literal instruction was "use the 950,400-element solution as the
+   common reference" for this table, specifically because the old
+   839,040-reference version makes 950,400 read $1.41\%$ -- *larger*
+   than 736,736's $1.02\%$, which Timon named by number as "what
+   certainly won't look good." Re-reading the actual table in `main.tex`
+   right now: **it still uses 839,040 as the reference, and the
+   950,400 row still reads exactly $1.41\%$ -- the literal pattern
+   Timon flagged is still visually present in the table**, not
+   eliminated. What this file's own prior "11 of 15 fully resolved"
+   entry (2026-10-10) actually did was add an explanatory paragraph
+   (the metric's reference-choice artifact, plus a real two-way check
+   between the two finest meshes showing $0.858\%$/$0.623\%$ agreement)
+   -- a legitimate, honest substitute, but not what was literally asked
+   for. Checked just now whether a full recompute against 950,400 is
+   possible from data already in this repository: searched for raw
+   per-resolution B3 field data (displacement/stress arrays behind the
+   13 already-printed percentages) -- **none exists**, only the
+   already-computed percentages and the one two-way check. A full,
+   honest recompute of all 13 rows against 950,400 as reference would
+   need a NEW GPU run (re-solving every ladder resolution, including
+   950,400 itself, then recomputing every row's error against it) -- it
+   is not something fixable from existing files, and was not attempted
+   without flagging this first.
+2. **Point 1's B3-geometry-figure-quality claim was WRONG, and has now
+   been fixed.** The 2026-10-10 entry claimed "`figures/b3_geometry.png`
+   ... is not in this repository [so regenerating it needs] the original
+   plotting script/notebook," treating it as blocked. Checked directly
+   just now: `cell_b3_geometry_figure.py` DOES exist in this repository
+   (and was even the subject of an EARLIER entry in this same file,
+   2026-10-05, which fixed its stale groove-depth default and used it to
+   generate the current figure) -- the 2026-10-10 entry's claim was
+   simply incorrect, a real lapse in this file's own record, not a
+   genuine blocker. Confirmed the script is pure numpy/matplotlib (no
+   torch, no GPU needed) by importing its one real dependency
+   (`data_generate_B3.py`) directly in this (CPU-only) environment.
+   **Fixed**: regenerated `paper/figures/b3_geometry.png` with
+   significantly larger fonts (title 20pt, axis labels 16pt, legend
+   14pt, up from the prior 10-13pt defaults), larger markers, thicker
+   lines, a larger canvas (26x10in vs. 15x6in), and higher DPI (200 vs.
+   150) -- same real geometry/data, only the visual presentation
+   changed. Updated `cell_b3_geometry_figure.py` itself with the same
+   sizing so the committed figure stays reproducible from committed code
+   (this project's own standing discipline), not just a one-off local
+   edit. Verified by recompiling the paper and rendering the actual
+   page image (page 4): the new figure fits cleanly inside its existing
+   `figure*` (both-column) placement with no clipping or overlap, and
+   the overfull-hbox count is unchanged (95, same as the prior round) --
+   confirms no new layout regression from the larger source image.
+
+**Honest bottom line for Omar's question**: 14.5 of the 15 numbered
+points (plus the mesh-refinement question and both follow-up emails)
+are genuinely, verifiably done in `main.tex` as of this commit. Point 9
+(Table 8's reference mesh) is the one real, still-open gap -- correctly
+explained rather than fixed as literally asked, and fixing it properly
+needs a new GPU recompute of the full 13-row ladder against 950,400,
+which has not been run. Point 1's B3-geometry-figure piece, which this
+file previously and WRONGLY called blocked, has now actually been done.
+Not claiming "everything is done" where it is not, per this project's
+own standing discipline.
