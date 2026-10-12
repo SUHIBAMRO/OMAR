@@ -2526,6 +2526,88 @@ $589$--$739\times$ faster per sample and repays its one-off training cost
 ($6{,}980.3$~s, under 2 GPU-hours) within fewer than $1{,}900$ solves, for
 every one of the three quantities of interest reproduced well.
 
+\subsection{Assembled+direct solver at B3: benchmark at relevant resolutions}
+\label{sec:b3-assembled-direct}
+The advisor's own follow-up review requested that the assembled+direct
+solver (Section~\ref{sec:gpu-fem}), already this study's strongest
+large-$N$ 2D FEM baseline, also be benchmarked for B3's 3D hex geometry
+at relevant resolutions. It was ported to B3's hex8 mesh with both 2D
+optimizations unchanged (cuDSS analysis-phase reuse across Newton
+iterations; symmetric storage), plus incremental load stepping matching
+the production-mesh reference solver's own convention (the prescribed
+rigid-rotation boundary condition is ramped over several steps rather
+than applied in one shot, standard practice for a large prescribed-
+displacement condition on a near-incompressible material). Correctness
+was verified against the same trusted torch-fem reference used
+throughout this section, to near machine precision at a small test mesh
+($2.0\times10^{-13}$ relative field agreement), before any timing number
+from this port was trusted.
+
+At the two resolutions this configuration could be run to completion --
+the $6{,}840$-element production mesh and the $480{,}320$-element mesh
+from the mesh-convergence ladder (Table~\ref{tab:b3-ladder}), the latter
+inside the advisor's own requested $10^5$--$10^6$-element range -- the
+solver is numerically correct (every load increment converges at both
+scales) but, unlike the 2D result above, \emph{slower} than the existing
+iterative torch-fem reference at both (Table~\ref{tab:b3-assembled-direct}):
+$10.25$~s vs.\ the $5.06$~s already reported in
+Table~\ref{tab:b3-breakeven} at $6{,}840$ elements ($2.03\times$ slower),
+and $1{,}474.1$~s vs.\ the $76.06$~s already reported in
+Table~\ref{tab:b3-ladder-time} at $480{,}320$ elements ($19.4\times$
+slower). The second comparison is not fully matched on load-step count:
+the reference uses $11$ increments throughout, while this port needed
+$21$ to converge reliably on this resolution's own sampled material
+field, so $19.4\times$ is an overestimate of the gap attributable to the
+solver itself; even generously doubling the reference's own cost to
+account for the extra increments ($\approx152$~s, itself an
+overestimate, since cuDSS's analysis-reuse amortizes extra increments
+cheaply once the symbolic factorization is already available), the port
+remains roughly $9.7\times$ slower. Peak GPU memory was $639.5$~MB and
+$32.0$~GB respectively -- the larger figure only achievable by
+processing the per-element tangent computation in chunks rather than
+all $480{,}320$ elements' local Hessians in one batched call, which an
+unchunked first attempt showed exceeding the $80$~GB card's memory.
+
+\begin{table*}[ht]
+\centering
+\caption{B3 assembled+direct solver (cuDSS, symmetric storage,
+  analysis-phase reuse) vs.\ the existing iterative torch-fem reference
+  already reported in Tables~\ref{tab:b3-breakeven}
+  and~\ref{tab:b3-ladder-time}, at the production mesh and at one
+  resolution from the mesh-convergence ladder inside the advisor's
+  requested $10^5$--$10^6$-element range.}
+\label{tab:b3-assembled-direct}
+\small
+\begin{tabular}{lcccc}
+\toprule
+Elements & Reference (s) & Assembled+direct (s) & Slow-down & Peak mem. \\
+\midrule
+6{,}840   & 5.06  & 10.25     & $2.03\times$ & 639.5~MB \\
+480{,}320 & 76.06 & 1{,}474.1 & $19.4\times$ & 32.0~GB \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+This is read as a genuine, informative limit on where this class of
+solver helps, not a defect in the implementation: the same
+analysis-reuse-plus-symmetric-storage design decisively wins against
+both reference libraries in the 2D, large-$N$ regime above ($5.65\times$
+faster than torch-fem, $2.66\times$ faster than TensorMesh at
+$N{=}1401$), but the advantage reverses, and worsens with mesh size, for
+B3's 3D hex geometry at every resolution tested -- consistent with the
+well-known fact that direct sparse factorization's fill-in under
+nested-dissection reordering grows substantially faster in 3D than in
+2D, eventually overwhelming whatever is saved by reusing the symbolic
+analysis phase. Resolutions beyond $480{,}320$ elements on this
+project's own mesh-convergence ladder ($839{,}040$ and $950{,}400$
+elements, Table~\ref{tab:b3-ladder}) could not be completed on an
+$80$~GB A100: cuDSS's own factorization memory, which this port's
+optimizations do not reduce, scales linearly with element count and
+exceeded the remaining budget before a result could be obtained --
+reported here as a current limitation of this specific port, not a
+claim that larger resolutions are categorically infeasible for this
+solver family.
+
 \FloatBarrier
 \section{Discussion}
 \label{sec:discussion}
