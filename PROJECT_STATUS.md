@@ -18360,3 +18360,63 @@ findings remain in this file / Colab JSON only, not yet written into
 `main.tex` -- out of scope for this round, which was specifically about
 closing out the B3 solver benchmark request; should not be added to the
 paper without Omar confirming that's wanted next.
+
+## Hybrid PI+DD, Sobolev DD, and early-stopping-robustness findings also
+## written into the paper -- Omar's blanket go-ahead ("الي ناقص يلا
+## نعمله والي مش محطوط بالورقه حطه") closes the three items flagged
+## above as "not yet written into main.tex"
+
+Omar's follow-up made clear the scope was broader than just the B3
+solver: do everything still outstanding from Timon's review and put
+every already-verified finding into the paper. The three items flagged
+immediately above as deliberately left out were the next concrete,
+already-GPU-verified pieces available to add (unlike the still-open
+memory ceiling, which has no result to add), so they went in now:
+
+- **New subsection, `sec:hybrid-sobolev`**, placed right after the
+  physics-informed-vs-data-driven $2\times2$ grid
+  (`sec:pi-vs-dd`/`tab:pi-vs-dd`) and before "Verification against
+  manufactured solutions": reports the hybrid loss (physics weight 0.5,
+  $12.75\%$ val.\ error at step 60,000, $2{,}460.9$s) and the Sobolev
+  loss (gradient weight 0.5, $14.70\%$ at step 75,000, $1{,}945.2$s),
+  both B1$\times$Neo-Hookean/Adam/75,000 steps -- directly comparable to
+  the grid's own Adam column ($9.59\%$ PI, $13.07\%$ DD). New table
+  `tab:hybrid-sobolev` lines up all four losses together, sorted by
+  accuracy. Framed honestly: hybrid is a middle ground between PI and
+  DD (not a win over PI), Sobolev is reported as a genuine negative
+  result relative to plain DD at this weighting, not re-run to chase a
+  better number.
+- **Discussion section addition**: a new sentence set right after the
+  existing early-stopping-protocol paragraph, reporting the patience
+  4/8/16 robustness check (patience 4 and 8 converge to the identical
+  $9.734\%$ checkpoint; patience 16 finds $9.032\%$ at 2-3x the
+  wall-clock) -- framed as "a modest, non-negligible but not alarming
+  sensitivity," matching this file's own prior honest characterization
+  verbatim rather than softening or inflating it for the paper.
+
+**Verification, same discipline as every other `main.tex` round**: full
+two-pass `pdflatex` compile (0 undefined references, 0 errors), then
+rendered the actual affected page images (18-19 for the new subsection/
+table, 29 for the Discussion addition) given the table-bleed bug found
+earlier this session -- confirmed clean on both: Table 24 sits fully
+inside its column, the Discussion paragraph flows normally with no
+clipping or overlap. Overfull-hbox count grew by exactly 4 (91 -> 95,
+all under 9pt), consistent with -- not exceeding -- this document's
+existing ~90 small pre-existing warnings; not treated as a new defect.
+Page count grew from 43 to 44 (one new subsection + two tables, expected).
+
+Committed (`paper/main.tex`, +59/-2 lines) and pushed to
+`claude/claude-code-question-d307wp`.
+
+**What this leaves still genuinely open** (not touched, no claim of
+completion):
+- The 839,040/950,400-element cuDSS/CSR memory ceiling -- no result
+  exists to add; would need new GPU investigation first.
+- **Timon's Email 4 (software-licensing audit)** -- the one remaining
+  item from Omar's "whatever's missing, do it" instruction that is not
+  a paper-writing task but a due-diligence investigation (torch-fem's
+  license, NVIDIA cuDSS's license/distribution terms, confirming no
+  TensorMesh dependency anywhere in released code, Transolver/neural-
+  operator architecture provenance) gating Timon's own proposal to
+  release this code publicly. Starting this next, now that Omar's
+  go-ahead covers it explicitly.
