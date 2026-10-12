@@ -19020,3 +19020,54 @@ solver on an 80 GB A100, which is already honestly disclosed in the
 paper as a current limitation, not a categorical one. Not yet run on
 GPU -- no claim of success, only a different, better-targeted, re-
 verified fix ready for the next test.
+
+## Omar's explicit decision, 2026-10-12: STOP chasing the 839,040+-
+## element memory ceiling. This was always an optional extra, not part
+## of Timon's actual request -- re-confirmed against his verbatim
+## wording before stopping, not assumed.
+
+Asked directly, Omar wanted the literal text of Timon's point 7 re-
+checked before deciding whether to keep burning GPU time on this.
+Re-read it verbatim: *"For B3, please also benchmark our best solver at
+the relevant resolutions **if possible**."* -- a qualified request, not
+an unconditional one. What this project has ALREADY done satisfies it
+in full:
+
+- The solver was benchmarked at B3's $6{,}840$-element production mesh
+  (correct, $2.03\times$ slower than the existing reference) and at
+  $480{,}320$ elements -- squarely inside Timon's own stated
+  $10^5$--$10^6$-element "relevant resolutions" range (correct,
+  $19.4\times$/$\approx9.7\times$ slower after the load-increment
+  caveat) -- both already written into `main.tex`
+  (`sec:b3-assembled-direct`, `tab:b3-assembled-direct`).
+- The $839{,}040$/$950{,}400$-element rows -- also technically inside
+  that range, one step further up the ladder -- could not be completed
+  on an $80$~GB A100, and this is already disclosed honestly in the
+  paper's own text as "a current limitation of this specific port, not
+  a claim that larger resolutions are categorically infeasible for this
+  solver family." Nothing about the paper's completeness depends on
+  these two rows succeeding.
+
+**Decision: stop here.** Three real rounds of memory-efficiency
+investigation were run (caching-allocator starvation, the symmetric-
+storage fix, vmap chunking, two further redundant-buffer fixes -- one
+that turned out to target the wrong mechanism, one that targets a real
+but insufficient $\sim\!7.7$~GB of duplication) -- all verified correct,
+none sufficient, with cuDSS's own opaque internal ANALYSIS/
+FACTORIZATION memory (the actual dominant cost) never directly
+reachable or measurable from this project's own code. Continuing would
+mean more speculative GPU time against a library we cannot instrument,
+for two resolutions Timon's own "if possible" wording never required.
+The row/col-deduplication fix from the round above is left in place
+(harmless, verified bit-identical, a genuine if modest efficiency
+improvement) but no further rounds are planned unless Omar explicitly
+reopens this.
+
+**Final status of every item from this entire session, for the record**:
+all 15 points of Timon's review, the mesh-refinement question, and both
+follow-up emails are genuinely done and verified in `main.tex`,
+including the real, honest B3 assembled+direct solver benchmark at a
+resolution inside his requested range. The software-licensing audit is
+complete (one real finding, fixed). The only thing left unresolved is
+the 839,040+/950,400-element memory ceiling, now explicitly decided to
+be out of scope rather than silently abandoned.
