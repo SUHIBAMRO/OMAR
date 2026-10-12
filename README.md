@@ -95,11 +95,47 @@ reference [4]; two material energy-density formulas in this project
 were cross-checked against its implementation for correctness (see the
 report, Section 2.4).
 
+`Practical_Examples/omar_pfem/model/Transolver_Irregular_Mesh.py`,
+`Physics_Attention.py`, and `Embedding.py` are adapted from
+[Transolver](https://github.com/thuml/Transolver) (Wu et al., ICML
+2024, THUML @ Tsinghua University), MIT License, copyright and license
+text retained at the top of each file. Modified for this project's
+energy-based (Deep Energy Method) training objective; cited in the
+report/paper as the architecture used throughout.
+
+## Dependency licensing
+
+Checked before any public release, per the advisor's request (see
+`PROJECT_STATUS.md`): every third-party package this project calls is
+used only as an installed dependency (via `pip`), never vendored or
+redistributed by this repository, so each package's own license governs
+a user's installation of it, not this repository's own license.
+
+- **torch-fem** (reference finite-element solver) — MIT License.
+- **torch-sla** and **nvmath-python** (sparse linear algebra /
+  cuDSS Python bindings used by the assembled+direct GPU solver) —
+  Apache License 2.0.
+- **NVIDIA cuDSS** (`nvidia-cudss-cu12`, the actual GPU sparse-solver
+  binary, pulled in by `nvmath-python[cu12]`) — NVIDIA's own
+  proprietary SDK license (not OSI-approved), accepted separately by
+  whoever installs it; this repository does not bundle or redistribute
+  the cuDSS binary itself.
+- **TensorMesh** (`tensormesh-fem`, comparison-only baseline) — Apache
+  License 2.0. The assembled+direct solver code actually released
+  (`assembled_direct_solver.py`'s `build_sparse_jac_fn`) has no runtime
+  dependency on it at all -- confirmed by code audit, every
+  `tensormesh` import in the codebase is deferred inside the
+  comparison-only functions that are never called by the released
+  solver path.
+
 ## License
 
 Not yet decided — pending the advisor's input on whether a public
 release needs institutional sign-off and which license to use. See
-`PROJECT_STATUS.md` for the current status of that question.
+`PROJECT_STATUS.md` for the current status of that question. Whatever
+license is chosen for this project's own original code, it must remain
+compatible with retaining the Transolver files' own MIT notice (see
+above) -- any permissive license (MIT, Apache-2.0, BSD) satisfies this.
 
 ## Contact
 

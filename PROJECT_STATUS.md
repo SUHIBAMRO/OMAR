@@ -18420,3 +18420,122 @@ completion):
   operator architecture provenance) gating Timon's own proposal to
   release this code publicly. Starting this next, now that Omar's
   go-ahead covers it explicitly.
+
+## Software-licensing audit (Timon's Email 4) -- complete, one real
+## finding, fixed; this project's own license still needs Timon's choice
+
+Checked all four items the email asked for, each verified directly
+(package metadata, actual downloaded wheels, code audit, and the
+official upstream repository) rather than assumed -- same "verify
+before trust" discipline as every other finding in this file.
+
+**1. torch-fem's own license**: MIT (`pip show torch-fem` -> "License:
+Copyright 2026 Nils Meyer" + full MIT text). Used only as an installed
+pip dependency throughout this project (`mms_study.py`,
+`assembled_direct_solver.py`, `break_even_resolution_matched.py`, and
+every other file calling `import torchfem`/`from torchfem import ...`)
+-- never vendored or copied into this repository. No action needed: MIT
+permits this kind of use with zero obligations beyond what pip's own
+package installation already does.
+
+**2. NVIDIA cuDSS's license/distribution terms**: the Python API layer
+this project actually imports -- `torch-sla` (Apache-2.0, confirmed via
+`pip show`) and `nvmath-python` (Apache-2.0, confirmed by downloading
+the real wheel's `METADATA`, `License-Expression: Apache-2.0`) -- is
+fully permissive. But the actual GPU solver binary underneath,
+`nvidia-cudss-cu12` (pulled in only when a user opts into
+`nvmath-python[cu12]`, confirmed by downloading that wheel directly and
+reading its `LICENSE.txt`), is under NVIDIA's own "LICENSE AGREEMENT
+FOR NVIDIA MATH LIBRARIES SOFTWARE DEVELOPMENT KITS" --
+`License-Expression: LicenseRef-Nvidia-cuDSS-License`, a proprietary
+EULA, not OSI-approved. This is **not a blocker**: this repository never
+bundles or redistributes the cuDSS binary itself -- it is an optional
+pip extra every end user installs directly from NVIDIA's own
+distribution channel and accepts NVIDIA's EULA for themselves, the same
+pattern as depending on the CUDA toolkit or cuDNN. Documented explicitly
+in the README's new "Dependency licensing" section so this is not left
+implicit.
+
+**3. TensorMesh dependency in released code**: re-confirmed, now across
+the WHOLE codebase (not just the solver file already checked in the
+2026-10-11 follow-up-email round) -- `grep -rl tensormesh` across every
+`.py` file, then read every `from tensormesh import` call site directly.
+Result: `tensormesh_comparison.py` has **zero module-level `import
+tensormesh`** (confirmed: only `numpy`, `torch`, and this project's own
+`high_dof_convergence_study` at the top of the file) -- every single
+`from tensormesh import X` (`ElementAssembler`, `Mesh`,
+`LinearElasticityElementAssembler`) is deferred INSIDE the specific
+functions that build the TensorMesh comparison baseline
+(`_make_assembler_class`, `build_tensormesh_model`, etc.), by design
+(the file's own docstring at that point: "imported lazily here...so
+this file still imports cleanly wherever tensormesh-fem isn't
+installed"). `assembled_direct_solver.py` imports exactly one function
+from this file, `build_sparse_jac_fn` -- read its full body directly:
+it only calls `omar_pfem.matrix_free_solver` and
+`omar_pfem.materials_torch`, both this project's own code, never
+`tensormesh`. So the actually-released, actually-benchmarked solver
+path has no TensorMesh dependency at import time OR call time, exactly
+as the prior round's claim said, now verified file-by-file rather than
+taken on faith. Separately, even where TensorMesh genuinely IS used
+(the comparison-only functions), it is no licensing problem either way:
+confirmed Apache-2.0 by downloading the real `tensormesh-fem` wheel
+(`camlab-ethz/TensorMesh`, ETH Zurich) and reading its `METADATA`
+directly.
+
+**4. Transolver/neural-operator architecture's own licensing
+provenance -- the one real finding**: `model/Transolver_Irregular_
+Mesh.py`, `model/Physics_Attention.py`, and `model/Embedding.py` are
+adapted from the official Transolver implementation
+(`github.com/thuml/Transolver`, Wu et al., ICML 2024, THUML @ Tsinghua
+University) -- confirmed by the matching class names
+(`Physics_Attention_Irregular_Mesh`, `Transolver_block`), file
+structure, and independently corroborated by NVIDIA's own PhysicsNeMo
+documentation, which describes ITS OWN derived `physics_attention.py`
+module as "modified from https://github.com/thuml/Transolver and
+carries the original MIT license" -- the same code lineage. The
+official repo's `LICENSE` file (fetched directly) is MIT, copyright (c)
+2024 THUML @ Tsinghua University, which requires "the above copyright
+notice and this permission notice shall be included in all copies or
+substantial portions of the Software." **This project's three files had
+zero attribution, copyright notice, or license text anywhere** -- a
+real, concrete compliance gap, though an easily fixable one (MIT is
+permissive; it does not block modification or redistribution, it only
+requires the notice travel with the code). The paper's own academic
+citation of Transolver (`\cite{wu2024transolver}`, `sec:transolver`,
+`main.tex` line 725) already satisfies the separate scholarly-citation
+obligation -- this gap was specifically about the SOFTWARE license
+notice, which is a distinct requirement from citing the paper.
+
+**Fixed**: added the exact upstream MIT license text (fetched directly
+from `raw.githubusercontent.com/thuml/Transolver/main/LICENSE`, not
+paraphrased) as a header comment to all three files, crediting THUML @
+Tsinghua University by name and linking the source repository, plus a
+one-line note that the files were modified for this project's
+energy-based training objective. Verified all three still `python3 -m
+py_compile` cleanly after the header was added (no syntax issues from
+the comment block). Also updated `README.md`: added the three
+Transolver-derived files to the existing "Third-party code" section
+(previously only documented the VINO-derived code, silently omitting
+Transolver entirely), and added a new "Dependency licensing" section
+summarizing all four findings above in one place for whoever reviews
+this before release.
+
+**Not fixed, and correctly left alone**: this project's OWN license
+choice (`README.md`'s existing "License: Not yet decided" line,
+unchanged) -- that is explicitly Timon's call, not something to decide
+unilaterally; the README now notes that whatever permissive license is
+chosen (MIT, Apache-2.0, BSD) will be compatible with retaining the
+Transolver files' own MIT notice, so the one real finding above does
+not constrain that future choice.
+
+**Honest summary for Timon, not yet sent**: three of the four checks
+came back clean (torch-fem MIT, cuDSS proprietary-but-never-redistributed-
+by-us, TensorMesh confirmed zero runtime dependency in released code);
+one came back with a real, now-fixed gap (missing MIT attribution on
+three adapted Transolver files). Per this project's own standing
+practice, nothing is sent to Timon without Omar's own review first --
+this entry is the complete record for that review, not a drafted email
+yet. If Omar wants a short reply drafted for Email 4 specifically (in
+`advisor_feedback/`, matching every other round's pattern), that is the
+natural next step once he confirms this summary is accurate and
+sufficient.
