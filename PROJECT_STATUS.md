@@ -19282,8 +19282,58 @@ the figure now matches its corrected caption. Committed and pushed:
 `paper/figures/image57.png`.
 
 This closes the round12_cauchy_flagship item that was previously listed
-as open. **Still genuinely open**: the dense GPU field-grid figures
-(pending Omar's own Colab run), the VINO licensing permission
-(external, not fixable from this repo), and the B3 assembled-direct
-solver's 839,040+-element memory ceiling (explicitly stopped per user
-instruction).
+as open.
+
+## Dense GPU field-grid figures regenerated with real checkpoints --
+## the panel_grid_plot.py font fix finally exercised on real output
+
+Omar ran `Round6_Project_Figures.ipynb` on a Colab GPU session with the
+trained checkpoints (not available in this environment), producing the
+zero-shot resolution-generalization grid, all six OOD-shift grids (B1
+and B2 x Neo-Hookean/Mooney-Rivlin/Arruda-Boyce), and both DD-NO
+coarse-vs-fine grids -- the `panel_grid_plot.py` larger-font fix from
+an earlier round, applied then but never actually run on real GPU
+output until now.
+
+Fetched all 10 output PNGs directly from Omar's Google Drive
+(`pfem_run/figures/`) via the Google Drive connector rather than
+retyping or guessing file correspondence. Verified the file-to-figure
+mapping implied by `fig:ood-grids`'s own caption order (B1 NH/MR/AB
+top row -> images 36/35/34, B2 NH/MR/AB bottom row -> images 33/32/31)
+before overwriting anything: spot-checked the pre-existing
+`image36.png`'s own embedded title ("Out-of-distribution generalization
+(B1, Neo-Hookean)") against the incoming `fig_B1_neo_hookean_ood_grid.
+png`'s title -- exact match, confirming the mapping. Separately
+cross-checked the two DD-NO figures' own color-scale maxima (0.0036 /
+0.0045) against the previously-published `image39`/`image38` -- exact
+match, confirming the coarse-vs-fine assignment survived. Both DD-NO
+figures share a generic "Zero-shot resolution generalization" embedded
+title with the unrelated PI zero-shot figure -- checked this was
+already true of the OLD, already-published versions (`git show HEAD:`)
+before concluding it is a pre-existing characteristic of the shared
+`omar_pfem.resolution_invariance_zeroshot` plotting script (reused
+for both the PI zero-shot eval and the DD-NO coarse/fine eval), not a
+new bug -- `main.tex`'s own caption already disambiguates them
+correctly ("coarse-trained ($N{=}13$, left) vs. fine-trained
+($N{=}33$, right)"), so no text fix was needed.
+
+`image30.png` (mesh-convergence field grid) came back byte-identical
+to what was already committed -- already up to date from a prior
+round. The other 9 (images 31-39) are genuinely new renders with the
+larger fonts and widened panels, replacing the old small-font
+versions.
+
+Verified via a two-pass `pdflatex` recompile (41 pages, 0 undefined
+references, 92 overfull boxes -- same as the pre-change baseline, no
+new regressions) and by rendering every page touched (6, 15, 16, 21)
+at both normal and zoomed resolution: all panel titles, axis ticks,
+and colorbar labels are legible with no overlap or clipping. Committed
+and pushed: `paper/figures/image31.png` through `image39.png`.
+
+**This closes the dense-GPU-field-grid item.** The only items still
+genuinely open are the VINO licensing permission (external, not
+fixable from this repo) and the B3 assembled-direct solver's
+839,040+-element memory ceiling (explicitly stopped per user
+instruction, three documented fix attempts, not guaranteed sufficient
+even if resumed since the dominant cost is inside cuDSS's own
+PyTorch-invisible buffers).
