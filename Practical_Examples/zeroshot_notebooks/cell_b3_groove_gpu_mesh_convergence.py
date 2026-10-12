@@ -273,9 +273,29 @@ print(f"  NEW reference: {ref_new['n_elements']} elements, {ref_new['elapsed_s']
       f"n_region={ref_new['n_region']}, region_avg_sigma_xx={ref_new['region_avg_sigma_xx']:.4f} "
       f"(true_max={ref_new['region_true_max_sigma_xx']:.4f}, diagnostic only)")
 
-# Comparison against ref_old: every ladder row was already solved above,
-# so this is just post-hoc comparison, not a new solve.
-ref = ref_old
+# REVISED 2026-10-12, per Timon's own explicit instruction ("please use
+# the 950,400-element solution as the common reference... the 950,000
+# error is currently larger than the 736,000 error, which certainly
+# won't look good"): the paper's own Table 8 (tab:b3-ladder) was built
+# from an EARLIER run of this exact script that scored every row
+# against ref_old (839,040 elements) -- which is why its own 950,400
+# row reads 1.41%, larger than 736,736's 1.02%: it is one step PAST the
+# 839,040 reference, not a sign of non-convergence (see the honest
+# metric-artifact explanation already in the paper), but it is also
+# exactly the confusing pattern Timon asked to eliminate by switching
+# the reference outright, not just explaining it away. ref_new
+# (950,400 elements, the ladder's own finest row) is therefore now THE
+# reference for every row below, matching his literal instruction --
+# ref_old is kept only for the OLD-vs-NEW two-way convergence check
+# above, unchanged, still useful supporting evidence either way. No new
+# solve needed for this change by itself (every row was already solved
+# above); this does require a full GPU run of the ladder once, though,
+# since the underlying field data these comparisons need is not
+# persisted to the saved JSON (only the reduced scalar/percentage
+# outputs are, per `report`'s own `k.startswith('_')` filter below) --
+# confirmed directly before claiming this could be done from existing
+# files.
+ref = ref_new
 for r in rows:
     l2_rel, h1_rel, cauchy_field_rel, n_ref_region = compare(r, ref)
     r['disp_l2_rel'] = l2_rel
@@ -283,6 +303,18 @@ for r in rows:
     r['cauchy_field_rel'] = cauchy_field_rel
     print(f"  n_elem={r['n_elements']:>9,}  disp_L2={l2_rel*100:6.2f}%  "
           f"cauchy_field={cauchy_field_rel*100:6.2f}%  n_ref_region={n_ref_region}")
+
+print('\n' + '=' * 90)
+print('Successive-refinement changes (each row vs. the NEXT FINER row in the ladder, '
+      'not vs. the final reference) -- per Timon\'s own "ideally also report successive-'
+      'refinement changes so that actual FEM convergence is visible" request. Monotonic '
+      'decrease here, independent of which mesh is designated the final reference, is '
+      'the most direct evidence of real convergence.')
+for i in range(len(rows) - 1):
+    r_coarse, r_fine = rows[i], rows[i + 1]
+    _, _, step_cauchy_field_rel, step_n_region = compare(r_coarse, r_fine)
+    print(f"  {r_coarse['n_elements']:>9,} -> {r_fine['n_elements']:>9,} el.  "
+          f"cauchy_field_change={step_cauchy_field_rel*100:6.2f}%  n_ref_region={step_n_region}")
 
 print('\n' + '=' * 90)
 print('OLD vs NEW reference -- the check for whether the chosen reference is '
@@ -379,6 +411,13 @@ report = {
     'r_grading': R_GRADING, 'n_increments': N_INCREMENTS,
     'resolutions': RESOLUTIONS,
     'old_fine_resolution': OLD_FINE_RESOLUTION, 'new_fine_resolution': NEW_FINE_RESOLUTION,
+    # 2026-10-12: every row's own disp_l2_rel/grad_h1_rel/cauchy_field_rel
+    # below is now scored against NEW_FINE_RESOLUTION (950,400 elements),
+    # not OLD_FINE_RESOLUTION (839,040) -- see the comment above the main
+    # comparison loop for why. Recorded explicitly here so this JSON is
+    # self-documenting and this choice cannot be silently assumed wrong
+    # by a later reader.
+    'per_row_errors_scored_against': 'new_fine_resolution (950,400 elements)',
     'old_vs_new_region_avg_rel_change': d_avg,
     'old_vs_new_cauchy_field_rel': cauchy_field_old_vs_new,
     'rows': [{k: v for k, v in r.items() if not k.startswith('_')} for r in rows],

@@ -18819,3 +18819,64 @@ which has not been run. Point 1's B3-geometry-figure piece, which this
 file previously and WRONGLY called blocked, has now actually been done.
 Not claiming "everything is done" where it is not, per this project's
 own standing discipline.
+
+## Table 8 fix (point 9, the one real remaining gap): script updated,
+## notebook rebuilt, ready for Omar's GPU run -- not yet run
+
+Omar said "صلحها طبعا" (fix it, of course) in response to the gap found
+above. Investigated whether this could be done without a new GPU run
+first, properly this time (the same mistake -- claiming something is
+blocked without actually checking -- was just caught once this session
+already, not repeating it): read `cell_b3_groove_gpu_mesh_convergence.
+py` (the script that originally produced Table 8's numbers) directly.
+Confirmed it already solves ALL 13 ladder resolutions, INCLUDING both
+839,040 and 950,400 elements, in one run -- and its own
+`compare_to_reference` function already works symmetrically (the
+existing OLD-vs-NEW two-way check already calls it both directions).
+So the only thing actually wrong was which already-solved row the main
+per-row comparison loop was scored against (`ref = ref_old`, hardcoded
+to 839,040) -- not a missing capability.
+
+**Checked whether a full re-solve is really necessary** (rather than
+reusing a previously-saved JSON output) before assuming it is:
+`compare_to_reference` reads underscore-prefixed fields from each row's
+result dict (`case["_Ntheta"]`, and by the same convention elsewhere in
+this codebase, the raw field arrays needed for the comparison itself) --
+and this script's own JSON-saving step explicitly strips every
+underscore-prefixed key before writing (`{k: v for k, v in r.items() if
+not k.startswith('_')}`). So the raw per-row field data this comparison
+needs is never persisted, even if an old `mesh_convergence_extended.
+json` still exists somewhere on Omar's Drive -- confirming a fresh GPU
+run of the full ladder really is required, not avoidable by reusing old
+output.
+
+**Fixed**: changed the main comparison loop's `ref = ref_old` to
+`ref = ref_new` (950,400 elements, the ladder's own finest row) --
+exactly Timon's literal instruction, not an explanation substituting
+for it this time. `ref_old` is kept only for the pre-existing OLD-vs-
+NEW two-way convergence check (still valid, still useful supporting
+evidence). Added a second block per Timon's own "ideally also report
+successive-refinement changes" request: for each consecutive pair of
+ladder resolutions, compares the coarser against the next-finer one
+directly (not against the final reference), giving a second, reference-
+choice-independent view of convergence. Added an explicit
+`per_row_errors_scored_against` field to the saved JSON so this choice
+is self-documenting for whoever reads the output next. `python3 -m
+py_compile` clean; rebuilt `B3_Groove_Sharp_GPU_MeshConvergence.ipynb`
+from the updated script via its existing builder
+(`make_b3_groove_gpu_mesh_convergence_notebook.py`) and confirmed the
+rebuilt notebook's code cell contains the fix verbatim.
+
+**Not yet run** -- there is no GPU in this environment. Once Omar runs
+it, the real output needed to finally fix `main.tex`'s Table 8
+(`tab:b3-ladder`) is: the 13 rows' `cauchy_field_rel`/`disp_l2_rel`
+scored against 950,400 (should now read $0.00\%$ for the 950,400 row
+itself, and -- the actual point -- monotonically non-increasing as
+element count grows, eliminating the "950,400 reads $1.41\%$, larger
+than 736,736's $1.02\%$" pattern Timon named), plus the new successive-
+refinement deltas for the bonus table/discussion if there's room. Once
+that log comes back, `main.tex`'s table, caption, and lead-in prose
+(currently explaining away the old pattern) all need updating together
+-- the explanation paragraph can be removed/shortened once the real
+fix makes it moot, not left alongside the corrected table as dead
+prose.
