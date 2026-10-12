@@ -2069,6 +2069,53 @@ Test $N$ & Coarse-trained ($N{=}13$) & Fine-trained ($N{=}33$) \\
 \label{fig:dd-no}
 \end{figure*}
 
+\subsection{Hybrid and Sobolev-regularized data-driven losses}
+\label{sec:hybrid-sobolev}
+The $2\times2$ grid above compares two losses in their pure form; two
+intermediate formulations were also tested, both on B1$\times$Neo-Hookean
+under the same Adam recipe and the same $75{,}000$-optimizer-step budget
+as Table~\ref{tab:pi-vs-dd}'s Adam column, so all four numbers are
+directly comparable. A hybrid loss combines the physics-informed energy
+$\Pi$ with the data-driven relative-$L^2$ term, $\Pi$ rescaled by a
+running exponential moving average of its own magnitude (physics weight
+$0.5$) since the two live on incomparable scales; a Sobolev loss instead
+augments the plain data-driven relative-$L^2$ term with a matching term
+on the predicted deformation gradient (gradient weight $0.5$). The
+hybrid loss reaches $12.75\%$ validation error (best at step $60{,}000$,
+$2{,}460.9$~s training wall-clock) -- better than plain data-driven
+($13.07\%$) by a small margin, but short of plain physics-informed's
+$9.59\%$, a physically sensible middle ground given neither pure
+method's own hyperparameters were re-tuned for this combination. The
+Sobolev loss reaches $14.70\%$ (step $75{,}000$, still improving at the
+end of the budget rather than clearly plateaued, $1{,}945.2$~s training
+wall-clock) -- slightly worse than plain data-driven at this weighting,
+a genuine negative result reported as such rather than re-run until a
+more favorable weight is found. Table~\ref{tab:hybrid-sobolev}
+summarizes all four losses together; training wall-clock tracks each
+loss's own per-step cost as expected -- hybrid is most expensive (a
+full Gauss-quadrature energy assembly every step, on top of the data
+loss), Sobolev next (one extra kinematic-gradient term), plain
+data-driven cheapest.
+
+\begin{table}[h]
+\centering
+\caption{Validation error, B1$\times$Neo-Hookean, Adam, $75{,}000$
+  optimizer steps: the two pure losses from Table~\ref{tab:pi-vs-dd}
+  alongside the hybrid and Sobolev-regularized variants.}
+\label{tab:hybrid-sobolev}
+\small
+\begin{tabular}{lcc}
+\toprule
+Loss & Val.\ error & Wall-clock (s) \\
+\midrule
+Physics-informed          & $9.59\%$  & $2{,}873.8$ \\
+Hybrid (phys.\ wt.\ 0.5)   & $12.75\%$ & $2{,}460.9$ \\
+Data-driven                & $13.07\%$ & $1{,}458.3$ \\
+Sobolev (grad.\ wt.\ 0.5)  & $14.70\%$ & $1{,}945.2$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \subsection{Verification against manufactured solutions}
 Every accuracy figure reported so far is measured against a finite-element
 solution, which makes the finite-element method the one component of the
@@ -2615,8 +2662,18 @@ solver family.
 The screening and early-stopping protocol reached the best validation
 performance within $375$--$1{,}050$ epochs across all six benchmark cases
 (Table~\ref{tab:final-results}), substantially reducing the training
-budget compared with a naive fixed-epoch setting. Training budgets are
-not uniform across this study and should not be compared directly across
+budget compared with a naive fixed-epoch setting. A separate robustness
+check varied the early-stopping patience (4/8/16 consecutive validation
+events, i.e.\ 100/200/400 epochs) for B1$\times$Neo-Hookean, holding
+everything else fixed (seed, architecture, dataset): patience $4$ and
+$8$ -- the value used for every result reported above -- converge to the
+identical best checkpoint ($9.734\%$, found at epoch 375 either way),
+while patience $16$ finds a marginally better one ($9.032\%$, epoch 900)
+at roughly $2$--$3\times$ the wall-clock cost. The $0.70$-percentage-point
+($7.8\%$ relative) spread is read as a modest, non-negligible but not
+alarming sensitivity: the production patience of $8$ is within $8\%$ of
+the best value found over this range, for this one case. Training
+budgets are not uniform across this study and should not be compared directly across
 experiments without accounting for this: B1/B2 use this early-stopping
 protocol (a variable number of epochs, 375--1,050, selected by
 validation performance); B3 instead trains for a fixed $50{,}000$
