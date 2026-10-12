@@ -28,7 +28,7 @@ PRIMARY = '#2E86AB'
 SECONDARY = '#E67E22'
 
 
-def add_bar_labels(ax, bars, fmt='{:.1f}', fontsize=8, rotation=0, pad=3):
+def add_bar_labels(ax, bars, fmt='{:.1f}', fontsize=11, rotation=0, pad=3):
     """Value label centred above each bar. `pad` is in points, so it
     reads correctly on both linear and log-scaled axes."""
     for b in bars:
@@ -38,7 +38,7 @@ def add_bar_labels(ax, bars, fmt='{:.1f}', fontsize=8, rotation=0, pad=3):
                     ha='center', va='bottom', fontsize=fontsize, rotation=rotation)
 
 
-def add_line_labels(ax, x, y, fmt='{:.2f}', fontsize=7, dy=8, color=None):
+def add_line_labels(ax, x, y, fmt='{:.2f}', fontsize=10, dy=8, color=None):
     """Value label above each point on a (sparse) line/marker series --
     reserved for series with few enough points that this stays
     readable; dense convergence-style curves skip this deliberately."""
@@ -48,7 +48,7 @@ def add_line_labels(ax, x, y, fmt='{:.2f}', fontsize=7, dy=8, color=None):
                     textcoords='offset points', ha='center', fontsize=fontsize, **kwargs)
 
 
-def legend_right(ax, fontsize=8, **kwargs):
+def legend_right(ax, fontsize=11, **kwargs):
     """Legend placed OUTSIDE the axes, to the right -- never on top of
     bars or lines. Caller must leave room via fig.tight_layout(rect=...)
     or subplots_adjust."""
@@ -56,7 +56,7 @@ def legend_right(ax, fontsize=8, **kwargs):
                       frameon=False, fontsize=fontsize, **kwargs)
 
 
-def legend_below(ax, ncol, fontsize=8, y=-0.15, **kwargs):
+def legend_below(ax, ncol, fontsize=11, y=-0.15, **kwargs):
     """Legend placed OUTSIDE the axes, below -- for wide figures where
     a right-side legend would not fit."""
     return ax.legend(loc='upper center', bbox_to_anchor=(0.5, y), ncol=ncol,

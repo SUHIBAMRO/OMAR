@@ -14,6 +14,15 @@ import os
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+matplotlib.rcParams.update({
+    'font.size': 13,
+    'axes.titlesize': 15,
+    'axes.labelsize': 13,
+    'xtick.labelsize': 11,
+    'ytick.labelsize': 11,
+    'legend.fontsize': 11,
+})
 import numpy as np
 
 from plot_style import PRIMARY, SECONDARY, add_bar_labels
@@ -40,15 +49,15 @@ fig, ax = plt.subplots(figsize=(9.5, 5.5), dpi=200)
 bars0 = ax.bar(x - width / 2, DISP_L2, width, label='disp_rel_L2', color=L2_COLOR)
 bars1 = ax.bar(x + width / 2, PEAK_STRESS, width, label='peak_stress_rel_err', color=PEAK_STRESS_COLOR)
 
-add_bar_labels(ax, bars0, fmt='{:.1f}', fontsize=8)
-add_bar_labels(ax, bars1, fmt='{:.1f}', fontsize=8)
+add_bar_labels(ax, bars0, fmt='{:.1f}', fontsize=13)
+add_bar_labels(ax, bars1, fmt='{:.1f}', fontsize=13)
 
 ax.set_xticks(x)
-ax.set_xticklabels(CASES, fontsize=9)
+ax.set_xticklabels(CASES, fontsize=14)
 ax.set_ylabel('Relative error (%)')
 ax.set_title('Peak-stress QoI at N=1401 vs. displacement error, five cases')
 ax.set_ylim(top=max(PEAK_STRESS + DISP_L2) * 1.2)
-ax.legend(frameon=False, fontsize=9, loc='upper center', bbox_to_anchor=(0.5, -0.12), ncol=2)
+ax.legend(frameon=False, fontsize=14, loc='upper center', bbox_to_anchor=(0.5, -0.12), ncol=2)
 ax.grid(True, axis='y', alpha=0.25)
 
 fig.tight_layout(rect=[0, 0.06, 1, 1])

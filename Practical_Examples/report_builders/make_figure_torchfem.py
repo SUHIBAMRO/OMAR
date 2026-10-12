@@ -8,6 +8,15 @@ import os
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+matplotlib.rcParams.update({
+    'font.size': 13,
+    'axes.titlesize': 15,
+    'axes.labelsize': 13,
+    'xtick.labelsize': 11,
+    'ytick.labelsize': 11,
+    'legend.fontsize': 11,
+})
 import numpy as np
 
 from plot_style import PRIMARY, SECONDARY, add_bar_labels
@@ -37,10 +46,10 @@ ax.set_xticks(x)
 ax.set_xticklabels([f'N={n}' for n in N])
 ax.set_ylabel('Wall-clock time (s)')
 ax.set_title('Solve time')
-ax.legend(frameon=False, fontsize=8)
+ax.legend(frameon=False, fontsize=13)
 ax.grid(True, axis='y', alpha=0.25)
-add_bar_labels(ax, bars_ours, fmt='{:.0f}s', fontsize=7)
-add_bar_labels(ax, bars_theirs, fmt='{:.1f}s', fontsize=7)
+add_bar_labels(ax, bars_ours, fmt='{:.0f}s', fontsize=12)
+add_bar_labels(ax, bars_theirs, fmt='{:.1f}s', fontsize=12)
 ax.set_ylim(top=ax.get_ylim()[1] * 3)
 
 ax = axes[1]
@@ -50,10 +59,10 @@ ax.set_xticklabels([f'N={n}' for n in N])
 ax.set_ylabel('Peak GPU memory (MB)')
 ax.set_title('torch-fem peak memory')
 ax.grid(True, axis='y', alpha=0.25)
-add_bar_labels(ax, bars_mem, fmt='{:.0f}', fontsize=7)
+add_bar_labels(ax, bars_mem, fmt='{:.0f}', fontsize=12)
 ax.set_ylim(top=ax.get_ylim()[1] * 1.12)
 
-fig.suptitle('GPU-native solver vs. torch-fem (B1, Neo-Hookean)', fontsize=12)
+fig.suptitle('GPU-native solver vs. torch-fem (B1, Neo-Hookean)', fontsize=16)
 fig.tight_layout(rect=[0, 0, 1, 0.94])
 
 out_path = os.path.join(OUT, 'fig_torchfem_comparison.png')

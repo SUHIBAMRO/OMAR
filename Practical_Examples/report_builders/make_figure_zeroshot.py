@@ -18,6 +18,15 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+matplotlib.rcParams.update({
+    'font.size': 13,
+    'axes.titlesize': 15,
+    'axes.labelsize': 13,
+    'xtick.labelsize': 11,
+    'ytick.labelsize': 11,
+    'legend.fontsize': 11,
+})
+
 from plot_style import MATERIAL_COLOR
 
 PF = 'omar_pfem/point7a_results'
@@ -53,11 +62,11 @@ for ax, geometry, files in [(axes[0], 'B1', B1_FILES), (axes[1], 'B2', B2_FILES)
     ax.set_xlabel('N (test resolution)')
     ax.set_ylabel('Mean relative L2 error (%)')
     ax.set_title(geometry)
-    ax.legend(frameon=False, fontsize=7.5, loc='upper center')
+    ax.legend(frameon=False, fontsize=12, loc='upper center')
     ax.grid(True, which='both', alpha=0.25)
 
 fig.suptitle('Zero-shot resolution invariance (one checkpoint, seven unseen resolutions)',
-              fontsize=11)
+              fontsize=15)
 fig.tight_layout(rect=[0, 0, 1, 0.92])
 
 out_path = os.path.join(OUT, 'fig_zeroshot_resolution.png')

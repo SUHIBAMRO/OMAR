@@ -95,6 +95,22 @@ reference [4]; two material energy-density formulas in this project
 were cross-checked against its implementation for correctness (see the
 report, Section 2.4).
 
+**Unresolved licensing concern, distinct from the Transolver case
+below**: checked the upstream VINO repository directly -- it carries
+**no LICENSE file of its own** (confirmed: its root listing has no
+`LICENSE`/`LICENSE.md`, and its own `README.md`, copied verbatim here as
+`VINO_README.md`, has no license section either). Unlike Transolver
+(MIT, fixed by adding the required notice), there is no license here to
+attribute -- by default, copyright law reserves all rights to the VINO
+authors, so vendoring this code is not self-evidently permitted for
+redistribution regardless of attribution. **This needs explicit
+permission from the VINO authors (Eshaghi et al.) before
+`Comparative_Examples/`/`Integration/` are included in any public
+release**, not just a notice; until that permission is obtained (or
+this code is dropped from what gets published), treat this as a real
+blocker for public release, separate from -- and more serious than --
+the dependency-licensing items below.
+
 `Practical_Examples/omar_pfem/model/Transolver_Irregular_Mesh.py`,
 `Physics_Attention.py`, and `Embedding.py` are adapted from
 [Transolver](https://github.com/thuml/Transolver) (Wu et al., ICML

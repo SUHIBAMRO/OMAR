@@ -70,7 +70,14 @@ def plot_panel_grid(panels, out_path, suptitle=None, cmap='viridis', shared_scal
     else:
         vmin = vmax = None
 
-    fig, axes = plt.subplots(1, len(panels), figsize=(2.8 * len(panels), 3.1), dpi=200)
+    # Font sizes bumped 2026-10-12 (Timon's review point 1: "figures and
+    # legends are way too small") -- panel titles 9->13, suptitle 10->16,
+    # colorbar ticks given an explicit size (previously left at whatever
+    # matplotlib's own small default was). figsize widened per panel
+    # (2.8->3.4in) so the larger titles/colorbar have room without
+    # crowding; verified by re-rendering the actual compiled PDF page
+    # afterward, not assumed from the source image alone.
+    fig, axes = plt.subplots(1, len(panels), figsize=(3.4 * len(panels), 3.8), dpi=200)
     if len(panels) == 1:
         axes = [axes]
 
@@ -84,17 +91,18 @@ def plot_panel_grid(panels, out_path, suptitle=None, cmap='viridis', shared_scal
             im = ax.tricontourf(triang, p['values'], **kwargs)
         else:
             im = ax.tricontourf(p['x'], p['y'], p['values'], **kwargs)
-        ax.set_title(p['title'], fontsize=9)
+        ax.set_title(p['title'], fontsize=13)
         ax.set_xticks([])
         ax.set_yticks([])
         ax.set_aspect('equal')
 
     fig.subplots_adjust(right=0.88, wspace=0.15)
     cax = fig.add_axes([0.90, 0.15, 0.015, 0.7])
-    fig.colorbar(im, cax=cax)
+    cb = fig.colorbar(im, cax=cax)
+    cb.ax.tick_params(labelsize=11)
 
     if suptitle:
-        fig.suptitle(suptitle, fontsize=10, y=1.05)
+        fig.suptitle(suptitle, fontsize=16, y=1.05)
 
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     fig.savefig(out_path, bbox_inches='tight')

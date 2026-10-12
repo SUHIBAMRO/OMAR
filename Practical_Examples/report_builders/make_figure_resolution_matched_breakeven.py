@@ -18,6 +18,15 @@ import os
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+matplotlib.rcParams.update({
+    'font.size': 13,
+    'axes.titlesize': 15,
+    'axes.labelsize': 13,
+    'xtick.labelsize': 11,
+    'ytick.labelsize': 11,
+    'legend.fontsize': 11,
+})
 import numpy as np
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'figures')
@@ -31,19 +40,19 @@ COLORS = ['#2E86AB' if not f else '#C0392B' for f in FAILED]
 
 x = np.arange(len(CASES))
 
-fig, ax = plt.subplots(figsize=(9, 5.5), dpi=200)
+fig, ax = plt.subplots(figsize=(13, 5.5), dpi=200)
 bars = ax.bar(x, SPEEDUPS, color=COLORS, width=0.6)
 
 for xi, (v, f) in zip(x, zip(SPEEDUPS, FAILED)):
     if f:
         ax.annotate('FAILED', xy=(xi, 2), xytext=(0, 3), textcoords='offset points',
-                    ha='center', fontsize=9, color='#C0392B', fontweight='bold')
+                    ha='center', fontsize=14, color='#C0392B', fontweight='bold')
     else:
         ax.annotate(f'{v:.1f}x', xy=(xi, v), xytext=(0, 4), textcoords='offset points',
-                    ha='center', fontsize=10)
+                    ha='center', fontsize=14)
 
 ax.set_xticks(x)
-ax.set_xticklabels(CASES, fontsize=9)
+ax.set_xticklabels(CASES, fontsize=13, rotation=15, ha='right')
 ax.set_ylabel('Speedup vs. torch-fem (operator faster by)')
 ax.set_title('Resolution-matched comparison at N=1401 (operator, compile+TF32, vs. torch-fem, same N)')
 ax.set_ylim(top=max(SPEEDUPS) * 1.2)

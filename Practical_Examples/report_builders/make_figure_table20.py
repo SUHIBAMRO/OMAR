@@ -18,6 +18,15 @@ import os
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+matplotlib.rcParams.update({
+    'font.size': 13,
+    'axes.titlesize': 15,
+    'axes.labelsize': 13,
+    'xtick.labelsize': 11,
+    'ytick.labelsize': 11,
+    'legend.fontsize': 11,
+})
 import numpy as np
 
 PF = 'omar_pfem/highdof_stress_qoi_results'
@@ -59,7 +68,7 @@ ax.set_ylabel('Wall-clock time (s)')
 ax.set_title('Solve time vs. problem size')
 ax.grid(True, which='both', alpha=0.25)
 for x, y, n in zip(n_dof, wall, N):
-    ax.annotate(f'N={n}', (x, y), textcoords='offset points', xytext=(5, 5), fontsize=7)
+    ax.annotate(f'N={n}', (x, y), textcoords='offset points', xytext=(5, 5), fontsize=12)
 
 ax = axes[1]
 ax.loglog(n_dof, cg, marker='s', color='#d62728', linewidth=1.8)
@@ -68,9 +77,9 @@ ax.set_ylabel('Total CG iterations')
 ax.set_title('CG iteration count vs. problem size')
 ax.grid(True, which='both', alpha=0.25)
 for x, y, n in zip(n_dof, cg, N):
-    ax.annotate(f'N={n}', (x, y), textcoords='offset points', xytext=(5, 5), fontsize=7)
+    ax.annotate(f'N={n}', (x, y), textcoords='offset points', xytext=(5, 5), fontsize=12)
 
-fig.suptitle('GPU-native matrix-free solver scaling (B1, Neo-Hookean)', fontsize=12)
+fig.suptitle('GPU-native matrix-free solver scaling (B1, Neo-Hookean)', fontsize=16)
 fig.tight_layout(rect=[0, 0, 1, 0.94])
 
 out_path = os.path.join(OUT, 'fig_table20_scaling.png')

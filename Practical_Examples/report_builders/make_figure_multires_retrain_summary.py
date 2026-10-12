@@ -21,6 +21,15 @@ import os
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+matplotlib.rcParams.update({
+    'font.size': 13,
+    'axes.titlesize': 15,
+    'axes.labelsize': 13,
+    'xtick.labelsize': 11,
+    'ytick.labelsize': 11,
+    'legend.fontsize': 11,
+})
 import numpy as np
 
 from plot_style import add_bar_labels
@@ -36,19 +45,19 @@ NEW = [5.85, 15.04, 25.05, 13.10, 36.05]
 x = np.arange(len(CASES))
 width = 0.32
 
-fig, ax = plt.subplots(figsize=(9, 5.5), dpi=200)
+fig, ax = plt.subplots(figsize=(12, 5.5), dpi=200)
 bars_old = ax.bar(x - width / 2, OLD, width, label='Old checkpoint (N=21,33 only)', color='#C0392B')
 bars_new = ax.bar(x + width / 2, NEW, width, label='New checkpoint (N=21,33,101,201)', color='#27AE60')
 
-add_bar_labels(ax, bars_old, fmt='{:.1f}%', fontsize=9)
-add_bar_labels(ax, bars_new, fmt='{:.1f}%', fontsize=9)
+add_bar_labels(ax, bars_old, fmt='{:.1f}%', fontsize=14)
+add_bar_labels(ax, bars_new, fmt='{:.1f}%', fontsize=14)
 
 ax.set_xticks(x)
-ax.set_xticklabels(CASES, fontsize=9)
+ax.set_xticklabels(CASES, fontsize=13, rotation=12, ha='right')
 ax.set_ylabel('disp_rel_L2 at N=1401 (%)')
 ax.set_title('Multi-resolution retrain fix at N=1401, every completed case')
 ax.set_ylim(top=max(OLD) * 1.18)
-ax.legend(frameon=False, fontsize=9, loc='upper center', bbox_to_anchor=(0.5, -0.12), ncol=2)
+ax.legend(frameon=False, fontsize=14, loc='upper center', bbox_to_anchor=(0.5, -0.12), ncol=2)
 ax.grid(True, axis='y', alpha=0.25)
 
 fig.tight_layout(rect=[0, 0.06, 1, 1])

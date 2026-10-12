@@ -15,6 +15,15 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
+matplotlib.rcParams.update({
+    'font.size': 13,
+    'axes.titlesize': 15,
+    'axes.labelsize': 13,
+    'xtick.labelsize': 11,
+    'ytick.labelsize': 11,
+    'legend.fontsize': 11,
+})
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
 from omar_pfem.data.data_generate_B3 import (
@@ -48,7 +57,7 @@ def main():
     ax1.scatter(*nodes[inner].T, s=3, c="tab:red", label="Inner core (rocking)", alpha=0.7)
     ax1.set_title("B3 bushing: undeformed geometry\n(half-cylinder, mirror symmetry at y=0)")
     ax1.set_xlabel("x"); ax1.set_ylabel("y"); ax1.set_zlabel("z")
-    ax1.legend(loc="upper left", fontsize=8)
+    ax1.legend(loc="upper left", fontsize=13)
     ax1.set_box_aspect([1, 0.55, 1])
 
     ax2 = fig.add_subplot(1, 3, 2, projection="3d")
@@ -57,7 +66,7 @@ def main():
                 label=f"Inner core (rocked, phi={PHI} rad)")
     ax2.set_title("B3 bushing: deformed configuration\n(true rigid-body rotation of the core)")
     ax2.set_xlabel("x"); ax2.set_ylabel("y"); ax2.set_zlabel("z")
-    ax2.legend(loc="upper left", fontsize=8)
+    ax2.legend(loc="upper left", fontsize=13)
     ax2.set_box_aspect([1, 0.55, 1])
 
     ax3 = fig.add_subplot(1, 3, 3)
@@ -71,14 +80,14 @@ def main():
     ax3.annotate(f"groove (depth={GROOVE_DEPTH}, rho={rho:.4f})",
                  xy=(z_mid, R_IN0 - GROOVE_DEPTH),
                  xytext=(0.05, R_IN0 - GROOVE_DEPTH - 0.06),
-                 arrowprops=dict(arrowstyle="->"), fontsize=9)
+                 arrowprops=dict(arrowstyle="->"), fontsize=14)
     ax3.set_xlabel("z (axial)"); ax3.set_ylabel("radius")
     ax3.set_ylim(0.40, 1.05)
     ax3.set_title("Meridian cross-section (theta=0), zoomed\nshowing the groove -- the one explicit\n"
                   "finite-radius stress-concentration feature")
-    ax3.legend(loc="upper center", fontsize=8, framealpha=0.9)
+    ax3.legend(loc="upper center", fontsize=13, framealpha=0.9)
 
-    fig.suptitle("B3: rocking elastomeric rubber-mount bushing -- geometry", fontsize=13)
+    fig.suptitle("B3: rocking elastomeric rubber-mount bushing -- geometry", fontsize=18)
     fig.tight_layout()
     fig.savefig(OUT, dpi=150)
     print("saved", OUT)

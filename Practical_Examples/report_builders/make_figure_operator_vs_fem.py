@@ -15,11 +15,20 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+matplotlib.rcParams.update({
+    'font.size': 13,
+    'axes.titlesize': 15,
+    'axes.labelsize': 13,
+    'xtick.labelsize': 11,
+    'ytick.labelsize': 11,
+    'legend.fontsize': 11,
+})
+
 from docx_table_map import build_table_map, get_rows
 from plot_style import MATERIAL_COLOR
 
-DELIV = '/tmp/claude-0/-home-user/64d7c4d8-d5f0-5686-a58f-aa87abfd4ba4/scratchpad/deliverables'
-REPORT = os.path.join(DELIV, 'PFEM_Transolver_Report_updated_2026-09-08.docx')
+DELIV = '/home/user/OMAR/advisor_feedback'
+REPORT = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-10-05.docx')
 OUT = 'report_builders/figures'
 os.makedirs(OUT, exist_ok=True)
 
@@ -50,7 +59,7 @@ for ax, geometry in zip(axes[:2], ('B1', 'B2')):
     ax.set_xlabel('N')
     ax.set_ylabel('Relative L2 error (%)')
     ax.set_title(f'{geometry}: FEM vs. operator accuracy')
-    ax.legend(frameon=False, fontsize=6.5, ncol=1)
+    ax.legend(frameon=False, fontsize=12, ncol=1)
     ax.grid(True, which='both', alpha=0.25)
 
 ax = axes[2]
@@ -64,10 +73,10 @@ for geometry, style, marker in [('B1', '-', 'o'), ('B2', '--', 's')]:
 ax.set_xlabel('N')
 ax.set_ylabel('Speed-up over CPU FEM (×)')
 ax.set_title('Operator speed-up')
-ax.legend(frameon=False, fontsize=6.5, ncol=1)
+ax.legend(frameon=False, fontsize=12, ncol=1)
 ax.grid(True, which='both', alpha=0.25)
 
-fig.suptitle('Operator vs. FEM: accuracy and cost across mesh resolutions', fontsize=12)
+fig.suptitle('Operator vs. FEM: accuracy and cost across mesh resolutions', fontsize=16)
 fig.tight_layout(rect=[0, 0, 1, 0.93])
 
 out_path = os.path.join(OUT, 'fig_operator_vs_fem.png')

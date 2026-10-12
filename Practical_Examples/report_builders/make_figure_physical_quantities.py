@@ -9,6 +9,15 @@ import os
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+matplotlib.rcParams.update({
+    'font.size': 13,
+    'axes.titlesize': 15,
+    'axes.labelsize': 13,
+    'xtick.labelsize': 11,
+    'ytick.labelsize': 11,
+    'legend.fontsize': 11,
+})
 import numpy as np
 
 from plot_style import PRIMARY, SECONDARY, GOOD, add_bar_labels
@@ -39,13 +48,13 @@ disp = [data[lbl]['disp_rel_L2']['mean'] * 100 for _, _, lbl in CASES]
 disp_std = [data[lbl]['disp_rel_L2']['std'] * 100 for _, _, lbl in CASES]
 bars = ax.bar(x, disp, yerr=disp_std, capsize=3, color=PRIMARY)
 ax.set_xticks(x)
-ax.set_xticklabels([lbl for _, _, lbl in CASES], rotation=45, ha='right', fontsize=8)
+ax.set_xticklabels([lbl for _, _, lbl in CASES], rotation=45, ha='right', fontsize=13)
 ax.set_ylabel('Relative error (%)')
 ax.set_title('Displacement error')
 ax.grid(True, axis='y', alpha=0.25)
 for xi, (v, s) in enumerate(zip(disp, disp_std)):
     ax.annotate(f'{v:.2f}%', (xi, v + s), xytext=(0, 3), textcoords='offset points',
-                ha='center', fontsize=7)
+                ha='center', fontsize=12)
 ax.set_ylim(top=ax.get_ylim()[1] * 1.15)
 
 ax = axes[1]
@@ -53,12 +62,12 @@ stress = [data[lbl]['P_rel_L2']['mean'] * 100 for _, _, lbl in CASES]
 stress_std = [data[lbl]['P_rel_L2']['std'] * 100 for _, _, lbl in CASES]
 ax.bar(x, stress, yerr=stress_std, capsize=3, color=SECONDARY)
 ax.set_xticks(x)
-ax.set_xticklabels([lbl for _, _, lbl in CASES], rotation=45, ha='right', fontsize=8)
+ax.set_xticklabels([lbl for _, _, lbl in CASES], rotation=45, ha='right', fontsize=13)
 ax.set_title('First Piola-Kirchhoff stress error')
 ax.grid(True, axis='y', alpha=0.25)
 for xi, (v, s) in enumerate(zip(stress, stress_std)):
     ax.annotate(f'{v:.2f}%', (xi, v + s), xytext=(0, 3), textcoords='offset points',
-                ha='center', fontsize=7)
+                ha='center', fontsize=12)
 ax.set_ylim(top=ax.get_ylim()[1] * 1.15)
 
 def reaction_mean_std(m):
@@ -79,15 +88,15 @@ reaction_std = [v * 100 for v in reaction_std]
 ax = axes[2]
 ax.bar(x, reaction, yerr=reaction_std, capsize=3, color=GOOD)
 ax.set_xticks(x)
-ax.set_xticklabels([lbl for _, _, lbl in CASES], rotation=45, ha='right', fontsize=8)
+ax.set_xticklabels([lbl for _, _, lbl in CASES], rotation=45, ha='right', fontsize=13)
 ax.set_title('Reaction-force error')
 ax.grid(True, axis='y', alpha=0.25)
 for xi, (v, s) in enumerate(zip(reaction, reaction_std)):
     ax.annotate(f'{v:.2f}%', (xi, v + s), xytext=(0, 3), textcoords='offset points',
-                ha='center', fontsize=7)
+                ha='center', fontsize=12)
 ax.set_ylim(top=ax.get_ylim()[1] * 1.15)
 
-fig.suptitle('Trained-operator error: displacement, stress, and reaction force', fontsize=12)
+fig.suptitle('Trained-operator error: displacement, stress, and reaction force', fontsize=16)
 fig.tight_layout(rect=[0, 0, 1, 0.93])
 
 out_path = os.path.join(OUT, 'fig_physical_quantities.png')

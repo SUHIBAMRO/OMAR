@@ -622,37 +622,38 @@ $839{,}040$ as the common reference does not itself change the
 conclusion that the two finest meshes agree closely and the ladder has
 genuinely converged by this point.
 
-\begin{table}[ht]
+\begin{table*}[ht]
 \centering
-\caption{B3 (Candidate A, grooved design) GPU mesh-convergence ladder:
-  regional Cauchy-stress field error and displacement $L^2$ error vs.\
-  element count, scored against the $950{,}400$-element row (the
-  13-point ladder's own finest row, adopted as the common reference
-  used throughout the 3D results proper; a separate two-way convergence
-  check against the $839{,}040$-element row, discussed above, confirms
-  convergence independently).}
+\caption{B3 (grooved design) GPU mesh-convergence ladder: element,
+  node, and displacement-DOF counts, and regional Cauchy-stress field
+  error and displacement $L^2$ error, vs.\ resolution, scored against
+  the $950{,}400$-element row (the 13-point ladder's own finest row,
+  adopted as the common reference used throughout the 3D results
+  proper; a separate two-way convergence check against the
+  $839{,}040$-element row, discussed above, confirms convergence
+  independently).}
 \label{tab:b3-ladder}
 \small
-\begin{tabular}{lcc}
+\begin{tabular}{lcccc}
 \toprule
-Elements & Regional Cauchy-stress error & Displacement $L^2$ error \\
+Elements & Nodes & DOFs & Regional Cauchy-stress error & Displacement $L^2$ error \\
 \midrule
-336      & $1{,}239.78\%$ & $5.92\%$ \\
-1{,}320    & $300.90\%$   & $3.36\%$ \\
-3{,}360    & $1{,}295.95\%$ & $3.45\%$ \\
-6{,}840    & $827.74\%$   & $2.32\%$ \\
-18{,}200   & $382.70\%$   & $1.54\%$ \\
-79{,}464   & $82.73\%$    & $0.72\%$ \\
-201{,}780  & $25.90\%$    & $0.36\%$ \\
-480{,}320  & $6.72\%$     & $0.14\%$ \\
-557{,}760  & $4.73\%$     & $0.10\%$ \\
-643{,}104  & $3.18\%$     & $0.08\%$ \\
-736{,}736  & $1.91\%$     & $0.05\%$ \\
-839{,}040  & $0.86\%$     & $0.04\%$ \\
-950{,}400  & $0.00\%$ (reference) & $0.00\%$ \\
+336      & 504     & 1{,}512     & $1{,}239.78\%$ & $5.92\%$ \\
+1{,}320    & 1{,}716   & 5{,}148     & $300.90\%$   & $3.36\%$ \\
+3{,}360    & 4{,}080   & 12{,}240    & $1{,}295.95\%$ & $3.45\%$ \\
+6{,}840    & 7{,}980   & 23{,}940    & $827.74\%$   & $2.32\%$ \\
+18{,}200   & 20{,}358  & 61{,}074    & $382.70\%$   & $1.54\%$ \\
+79{,}464   & 85{,}140  & 255{,}420   & $82.73\%$    & $0.72\%$ \\
+201{,}780  & 212{,}280 & 636{,}840   & $25.90\%$    & $0.36\%$ \\
+480{,}320  & 498{,}960 & 1{,}496{,}880 & $6.72\%$     & $0.14\%$ \\
+557{,}760  & 578{,}340 & 1{,}735{,}020 & $4.73\%$     & $0.10\%$ \\
+643{,}104  & 665{,}720 & 1{,}997{,}160 & $3.18\%$     & $0.08\%$ \\
+736{,}736  & 761{,}484 & 2{,}284{,}452 & $1.91\%$     & $0.05\%$ \\
+839{,}040  & 866{,}016 & 2{,}598{,}048 & $0.86\%$     & $0.04\%$ \\
+950{,}400  & 979{,}700 & 2{,}939{,}100 & $0.00\%$ (reference) & $0.00\%$ \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 Table~\ref{tab:b3-ladder-time} reports the corresponding wall-clock time
 and peak GPU memory for each resolution on a single A100, confirming both
@@ -662,7 +663,7 @@ $80$~GB).
 
 \begin{table}[ht]
 \centering
-\caption{B3 (Candidate A) GPU mesh-convergence ladder: wall-clock time
+\caption{B3 GPU mesh-convergence ladder: wall-clock time
   and peak GPU memory vs.\ element count.}
 \label{tab:b3-ladder-time}
 \small
@@ -1620,9 +1621,9 @@ directly measured per-sample cost there, set against the operator's own
 compile+TF32 inference cost at $N{=}1401$, its real deployment resolution
 (essentially case-independent at $\approx394$~ms, the same operator
 baseline used throughout this comparison) -- complementary to the
-resolution-matched comparison above, which holds FEM at the fixed
-$N{=}21$ training mesh rather than at each case's own threshold-matched
-mesh. This is \emph{not} an accuracy-matched comparison in the sense of
+resolution-matched (same-$N$) comparison above, which holds FEM at the
+fixed $N{=}21$ training mesh rather than at each case's own
+threshold-matched mesh. This is \emph{not} an accuracy-matched comparison in the sense of
 Table~\ref{tab:b3-breakeven}'s B3 analysis, which matches FEM to the
 operator's own independently measured error: here, the operator's own
 $H^1$ semi-norm error at $N{=}1401$ has never been directly measured (only
@@ -2534,8 +2535,8 @@ $2.03\%$, energy $2.30\%$ (pooled RMS), reaction moment $2.22\%$ (pooled
 RMS) -- all close to the training-resolution figures above, confirming the
 $6{,}840$-element training mesh was already reasonably converged for these
 three quantities. Table~\ref{tab:b3-breakeven} reports both a
-resolution-matched break-even (operator and finite-element solver both at
-$6{,}840$ elements) and, for each of the three well-reproduced quantities,
+resolution-matched (same-$N$) break-even (operator and finite-element
+solver both at $6{,}840$ elements) and, for each of the three well-reproduced quantities,
 an accuracy-matched break-even against the cheapest finite-element mesh
 whose own error against the same fine reference is at least as good as the
 operator's, all computed against the operator's own measured inference
@@ -2571,10 +2572,9 @@ every one of the three quantities of interest reproduced well.
 
 \subsection{Assembled+direct solver at B3: benchmark at relevant resolutions}
 \label{sec:b3-assembled-direct}
-The advisor's own follow-up review requested that the assembled+direct
-solver (Section~\ref{sec:gpu-fem}), already this study's strongest
-large-$N$ 2D FEM baseline, also be benchmarked for B3's 3D hex geometry
-at relevant resolutions. It was ported to B3's hex8 mesh with both 2D
+The assembled+direct solver (Section~\ref{sec:gpu-fem}), already this
+study's strongest large-$N$ 2D FEM baseline, is also benchmarked here
+for B3's 3D hex geometry at relevant resolutions. It was ported to B3's hex8 mesh with both 2D
 optimizations unchanged (cuDSS analysis-phase reuse across Newton
 iterations; symmetric storage), plus incremental load stepping matching
 the production-mesh reference solver's own convention (the prescribed
@@ -2589,7 +2589,7 @@ from this port was trusted.
 At the two resolutions this configuration could be run to completion --
 the $6{,}840$-element production mesh and the $480{,}320$-element mesh
 from the mesh-convergence ladder (Table~\ref{tab:b3-ladder}), the latter
-inside the advisor's own requested $10^5$--$10^6$-element range -- the
+inside the $10^5$--$10^6$-element range targeted for this benchmark -- the
 solver is numerically correct (every load increment converges at both
 scales) but, unlike the 2D result above, \emph{slower} than the existing
 iterative torch-fem reference at both (Table~\ref{tab:b3-assembled-direct}):
@@ -2617,8 +2617,8 @@ unchunked first attempt showed exceeding the $80$~GB card's memory.
   analysis-phase reuse) vs.\ the existing iterative torch-fem reference
   already reported in Tables~\ref{tab:b3-breakeven}
   and~\ref{tab:b3-ladder-time}, at the production mesh and at one
-  resolution from the mesh-convergence ladder inside the advisor's
-  requested $10^5$--$10^6$-element range.}
+  resolution from the mesh-convergence ladder inside the
+  $10^5$--$10^6$-element range targeted for this benchmark.}
 \label{tab:b3-assembled-direct}
 \small
 \begin{tabular}{lcccc}

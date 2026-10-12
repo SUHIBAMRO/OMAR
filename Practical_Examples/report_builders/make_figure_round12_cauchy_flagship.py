@@ -18,6 +18,15 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+matplotlib.rcParams.update({
+    'font.size': 13,
+    'axes.titlesize': 15,
+    'axes.labelsize': 13,
+    'xtick.labelsize': 11,
+    'ytick.labelsize': 11,
+    'legend.fontsize': 11,
+})
+
 from plot_style import PRIMARY, SECONDARY
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -42,11 +51,11 @@ ax.plot(N, no_max, 's--', color=SECONDARY, alpha=0.5, label='Operator, true max'
 
 ax.set_xscale('log')
 ax.set_xticks(N)
-ax.set_xticklabels([str(n) for n in N], rotation=45, fontsize=8)
+ax.set_xticklabels([str(n) for n in N], rotation=45, fontsize=13)
 ax.set_xlabel('N (finite-element mesh resolution)')
 ax.set_ylabel('Region Cauchy-stress relative error (%)')
 ax.set_title('B1 x Neo-Hookean: fixed-region Cauchy stress vs. resolution\n(vs. the same fine reference, N=201)')
-ax.legend(frameon=False, fontsize=8)
+ax.legend(frameon=False, fontsize=13)
 ax.grid(True, alpha=0.25)
 fig.tight_layout()
 

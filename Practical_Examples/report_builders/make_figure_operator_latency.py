@@ -18,11 +18,20 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+matplotlib.rcParams.update({
+    'font.size': 13,
+    'axes.titlesize': 15,
+    'axes.labelsize': 13,
+    'xtick.labelsize': 11,
+    'ytick.labelsize': 11,
+    'legend.fontsize': 11,
+})
+
 from docx_table_map import build_table_map, get_rows
 from plot_style import MATERIAL_COLOR
 
-DELIV = '/tmp/claude-0/-home-user/64d7c4d8-d5f0-5686-a58f-aa87abfd4ba4/scratchpad/deliverables'
-REPORT = os.path.join(DELIV, 'PFEM_Transolver_Report_updated_2026-09-08.docx')
+DELIV = '/home/user/OMAR/advisor_feedback'
+REPORT = os.path.join(DELIV, 'PFEM_Transolver_Report_2026-10-05.docx')
 OUT = 'report_builders/figures'
 os.makedirs(OUT, exist_ok=True)
 
@@ -70,9 +79,9 @@ for ax, rows, getter, title, ylabel, logy in [
     ax.set_title(title)
     ax.grid(True, which='both', alpha=0.25)
 
-axes[0].legend(frameon=False, fontsize=7, loc='upper right')
+axes[0].legend(frameon=False, fontsize=12, loc='upper right')
 
-fig.suptitle('GPU-native FEM vs. trained-operator latency across batch sizes', fontsize=12)
+fig.suptitle('GPU-native FEM vs. trained-operator latency across batch sizes', fontsize=16)
 fig.tight_layout(rect=[0, 0, 1, 0.93])
 
 out_path = os.path.join(OUT, 'fig_operator_latency.png')

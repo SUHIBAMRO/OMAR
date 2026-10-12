@@ -15,6 +15,15 @@ import os
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+matplotlib.rcParams.update({
+    'font.size': 13,
+    'axes.titlesize': 15,
+    'axes.labelsize': 13,
+    'xtick.labelsize': 11,
+    'ytick.labelsize': 11,
+    'legend.fontsize': 11,
+})
 import numpy as np
 
 PF = 'omar_pfem/point9_results'
@@ -33,7 +42,7 @@ SERIES = [
     ('energy_norm_rel', 'Energy norm', '#d62728', 'd'),
 ]
 
-fig, axes = plt.subplots(3, 2, figsize=(9, 10.5), dpi=200)
+fig, axes = plt.subplots(3, 2, figsize=(11, 12), dpi=200)
 
 for mi, (mat_key, mat_label, fname) in enumerate(MATERIALS):
     d = json.load(open(os.path.join(PF, fname)))
@@ -49,14 +58,19 @@ for mi, (mat_key, mat_label, fname) in enumerate(MATERIALS):
                  'energy_norm_rel': 'energy_norm'}[key]]['rate']
             ax.loglog(h, y, marker=marker, color=color, linewidth=1.6, markersize=5,
                        label=f'{label} (p={rate:.2f})')
-        ax.set_title(f'{mat_label}, {order}', fontsize=10)
+        ax.set_title(f'{mat_label}, {order}', fontsize=14)
         ax.set_xlabel('h')
         if oi == 0:
             ax.set_ylabel('Relative error')
-        ax.legend(frameon=False, fontsize=7, loc='upper left')
+        ax.legend(frameon=False, fontsize=12, loc='upper left')
         ax.grid(True, which='both', alpha=0.25)
+        # The dense log-scale x-axis (several close minor ticks, e.g.
+        # 3e-2/4e-2/6e-2) overlaps at the global 11pt xtick.labelsize in
+        # a 2-column, 6-panel figure -- shrunk back down just for this
+        # axis's tick labels (title/legend/axis-label fonts unchanged).
+        ax.tick_params(axis='x', labelsize=9)
 
-fig.suptitle('Method of manufactured solutions: convergence rates', fontsize=12, y=0.995)
+fig.suptitle('Method of manufactured solutions: convergence rates', fontsize=16, y=0.995)
 fig.tight_layout(rect=[0, 0, 1, 0.98])
 
 out_path = os.path.join(OUT, 'fig_mms_convergence.png')
