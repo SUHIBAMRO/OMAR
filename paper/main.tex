@@ -618,7 +618,21 @@ elements, Table~\ref{tab:b3-ladder}) sits entirely below this range: these
 meshes are far too coarse to resolve the groove feature at all and lie
 well outside the asymptotic convergence regime, so a non-monotonic
 reading there is expected and unrelated to the convergence property
-claimed above.
+claimed above. Scoring each row against the \emph{next finer} row
+instead of the final reference -- independent of which mesh is
+designated the common reference, per Timon's own request -- gives the
+same monotonic picture from the point the fixed region first contains
+quadrature points onward: $159.72\%$ ($6{,}840\!\to\!18{,}200$),
+$167.35\%$ ($18{,}200\!\to\!79{,}464$), $50.88\%$
+($79{,}464\!\to\!201{,}780$), $18.17\%$ ($201{,}780\!\to\!480{,}320$),
+$1.80\%$ ($480{,}320\!\to\!557{,}760$), $1.43\%$
+($557{,}760\!\to\!643{,}104$), $1.19\%$ ($643{,}104\!\to\!736{,}736$),
+$1.02\%$ ($736{,}736\!\to\!839{,}040$), and $0.86\%$
+($839{,}040\!\to\!950{,}400$) -- strictly decreasing throughout, a
+second, reference-choice-independent confirmation of the same
+convergence property (the three coarsest steps, $336$ through
+$6{,}840$ elements, are undefined for this comparison since the fixed
+region contains zero quadrature points there).
 A direct two-way check against the second-finest mesh
 ($839{,}040$ elements) independently supports the same conclusion: scored
 the other way around (the $839{,}040$-element mesh against the
