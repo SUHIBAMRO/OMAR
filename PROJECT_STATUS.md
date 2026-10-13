@@ -19512,3 +19512,52 @@ single-plot or lightly-paneled ones already confirmed legible at their
 current width -- not a defect, just a different, less demanding class
 of figure than the ones fixed across this and the previous three
 rounds.
+
+## Page 6's blank column, round 2: real root cause was a pre-existing
+## table*, not Figure 3 -- found by bisecting against an older commit
+
+Omar reported page 6 still had a problem after the Figure 3/22
+enlargement round. Investigated properly instead of guessing: compiled
+the commit right after Table 8's original fix (`698bc34`, well before
+any of this session's figure work) as an independent baseline, and
+found Table 6 (`tab:b3-ladder`) was **already** a `table*` at that
+point -- a latent defect from when Nodes/DOFs columns were added to it
+in an earlier round, completely unrelated to today's figure changes.
+It went uncaught by every earlier "full page scan" in this session
+because Figure 3 was small enough before today that the table* could
+still squeeze into the remaining column space without visibly stranding
+one blank -- enlarging Figure 3 is what made the pre-existing defect
+visible, not what caused it.
+
+Confirmed by elimination before touching anything else: reverted Figure
+3 alone back to single-column first -- page 6 was still broken, proving
+the figure was never the cause. Tried `\FloatBarrier` and several
+`table*` placement specifiers (`[tp]`, `[b]`) -- none fixed it, because
+two double-column-spanning floats (figure* + table*) close together
+with insufficient single-column text between them to fill a full column
+will always strand the trailing column; this is a structural
+two-column LaTeX limitation, not something placement hints can route
+around.
+
+**Fixed properly**: converted Table 6 back to a genuinely single-column
+table -- abbreviated two of its five headers via `\makecell` (new
+package) and switched to `\footnotesize` with tighter column spacing,
+preserving every row and column of real data (Nodes and DOFs both
+kept) while fitting cleanly in one column. This let Figure 3 keep its
+larger `figure*`/`0.85\textwidth` size from the earlier round -- the
+figure-size request and the layout-correctness fix are both satisfied,
+not traded off against each other.
+
+Verified by rendering and visually inspecting **all 42 pages** again
+(not just page 6) -- no blank-column, overlap, or clipping defects
+found anywhere; 0 undefined references; overfull-box count unchanged
+(92). Committed and pushed.
+
+**Lesson, sharpened further**: a "full page scan looked fine" check is
+only as good as what it's actually looking for -- this defect was
+latent for multiple rounds because the symptom (a blank column) only
+became visually obvious once a nearby figure grew large enough to
+surface it. When a blank-page-region bug appears after a change, the
+right first move is bisecting against an older, known-good commit to
+localize the TRUE cause, not assuming the most recently touched element
+is responsible.
