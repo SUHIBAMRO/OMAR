@@ -3,6 +3,7 @@
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{makecell}
 \usepackage{hyperref}
 \usepackage{xurl}
 \usepackage{placeins}
@@ -622,7 +623,7 @@ $839{,}040$ as the common reference does not itself change the
 conclusion that the two finest meshes agree closely and the ladder has
 genuinely converged by this point.
 
-\begin{table*}[ht]
+\begin{table}[ht]
 \centering
 \caption{B3 (grooved design) GPU mesh-convergence ladder: element,
   node, and displacement-DOF counts, and regional Cauchy-stress field
@@ -633,10 +634,11 @@ genuinely converged by this point.
   $839{,}040$-element row, discussed above, confirms convergence
   independently).}
 \label{tab:b3-ladder}
-\small
-\begin{tabular}{lcccc}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{rrrrr}
 \toprule
-Elements & Nodes & DOFs & Regional Cauchy-stress error & Displacement $L^2$ error \\
+Elem. & Nodes & DOFs & \makecell{Reg.\ Cauchy\\error} & \makecell{Disp.\\$L^2$ error} \\
 \midrule
 336      & 504     & 1{,}512     & $1{,}239.78\%$ & $5.92\%$ \\
 1{,}320    & 1{,}716   & 5{,}148     & $300.90\%$   & $3.36\%$ \\
@@ -650,10 +652,10 @@ Elements & Nodes & DOFs & Regional Cauchy-stress error & Displacement $L^2$ erro
 643{,}104  & 665{,}720 & 1{,}997{,}160 & $3.18\%$     & $0.08\%$ \\
 736{,}736  & 761{,}484 & 2{,}284{,}452 & $1.91\%$     & $0.05\%$ \\
 839{,}040  & 866{,}016 & 2{,}598{,}048 & $0.86\%$     & $0.04\%$ \\
-950{,}400  & 979{,}700 & 2{,}939{,}100 & $0.00\%$ (reference) & $0.00\%$ \\
+950{,}400  & 979{,}700 & 2{,}939{,}100 & $0.00\%$ (ref.) & $0.00\%$ \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}
 
 Table~\ref{tab:b3-ladder-time} reports the corresponding wall-clock time
 and peak GPU memory for each resolution on a single A100, confirming both
