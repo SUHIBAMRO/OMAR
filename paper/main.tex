@@ -868,13 +868,13 @@ throughout this study.
 \label{fig:batch-screening}
 \end{figure*}
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
-\includegraphics[width=0.98\columnwidth]{figures/image4.png}
+\includegraphics[width=0.85\textwidth]{figures/image4.png}
 \caption{Validation-error trajectories (log scale) for all six benchmark
   cases, each terminating at its early-stopped final epoch.}
 \label{fig:1}
-\end{figure}
+\end{figure*}
 
 \begin{table*}[ht]
 \centering
@@ -1208,15 +1208,15 @@ $N$ & DOF & torch-fem peak mem. & torch-fem time \\
 \end{tabular}
 \end{table}
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
-\includegraphics[width=0.98\columnwidth]{figures/image40.png}
+\includegraphics[width=0.85\textwidth]{figures/image40.png}
 \caption{All quantities of interest at large DOF, our own
   GPU-native solver vs.\ torch-fem at matched precision ($N{=}1001$,
   $N{=}1401$): $L^2$, energy-norm, and peak-stress relative errors,
   identical to every printed digit on both sides.}
 \label{fig:40}
-\end{figure}
+\end{figure*}
 
 \begin{figure}[htb]
 \centering
@@ -1238,13 +1238,13 @@ identical to four significant digits across all three tolerances, with
 wall-clock differing by only $1.02$--$1.10\times$ between the loosest and
 tightest.
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
-\includegraphics[width=0.98\columnwidth]{figures/image41.png}
+\includegraphics[width=0.85\textwidth]{figures/image41.png}
 \caption{torch-fem timing breakdown by phase: assembly vs.\ CG-solve time,
   and peak GPU memory, $N{=}401$--$1401$.}
 \label{fig:42}
-\end{figure}
+\end{figure*}
 
 \begin{figure}[htb]
 \centering
