@@ -19676,3 +19676,63 @@ small, should be followed by a full page-by-page visual re-render (not
 just the pages adjacent to the edit) before trusting the result -- this
 has been the single most reliable way to catch this class of bug in
 this session, and spot-checking has repeatedly missed it.
+
+## Page 6's blank column fixed for real: the missing successive-
+## refinement data, recovered from this session's own transcript, not
+## padding
+
+Omar correctly pushed back on treating page 6's blank column as
+acceptable and asked for real content, not filler. The genuinely
+missing piece was the complete B3 successive-refinement comparison
+(each ladder row vs. the next finer row, not the final reference) --
+Timon's own explicit request ("ideally also report successive-
+refinement changes so that actual FEM convergence is visible"),
+previously only partially covered: two example values were quoted
+earlier in this file, but the full 12-value comparison was never
+actually written into `main.tex`.
+
+Checked whether this could be recomputed from already-available data
+before searching further: downloaded the actual
+`mesh_convergence_extended.json` from Google Drive (the real output of
+Omar's GPU run that also produced Table 6's own numbers) and confirmed
+its `rows` only contain scalar summaries (`region_avg_sigma_xx`,
+`region_true_max_sigma_xx`, etc.) -- the underlying
+`compare_to_reference()` function needs full per-point field arrays
+(`_u`, `_F_elem`) to compute a pairwise comparison, and those are
+stripped before the JSON is saved (confirmed directly in the script).
+So the 12 real values could not be recomputed locally.
+
+Found them anyway, without fabricating or estimating: the console
+output from Omar's actual GPU run (which prints, but never saves, this
+exact comparison) is preserved in this session's own transcript file.
+Searched it directly and recovered all 12 real values verbatim: three
+n/a (336->1,320->3,360->6,840 elements, where the fixed region has
+zero quadrature points), then 159.72%, 167.35%, 50.88%, 18.17%, 1.80%,
+1.43%, 1.19%, 1.02%, 0.86% -- strictly decreasing, independent
+confirmation of the same convergence property already claimed from the
+fixed-reference scoring.
+
+First attempt -- a new floating `table` placed right after Table 6 --
+made things WORSE: visually confirmed the new float didn't even land
+on page 6, and stranded an entirely blank column on page 7 instead.
+Reverted immediately rather than leaving it. Second attempt, kept:
+added the same real data as inline prose appended to the existing
+paragraph instead of a new float, so it cannot drift to another page;
+the added text length pushes the following paragraph's natural
+overflow into column 2, filling it with real already-present content
+(the "Table 8 summarizes the dataset..." paragraph that used to be
+stuck entirely in column 1) rather than leaving it blank.
+
+Verified via two-pass recompile (41 pages, unchanged; 0 undefined
+references; overfull-box count 96->99, all new ones under 50pt
+badness from unbreakable math expressions like
+"$6{,}840\!\to\!18{,}200$", no visible defects) and by rendering and
+visually inspecting all 41 pages -- page 6 is now fully packed in both
+columns, no other page affected. Committed and pushed.
+
+**This also fully closes Timon's point 9 (successive-refinement
+reporting) for real this time** -- the earlier "point 9 closed"
+entries in this file described the fixed-reference monotonic property,
+which was genuinely done, but the complete reference-independent
+comparison table Timon explicitly asked to see was still missing from
+`main.tex` itself until this round.
