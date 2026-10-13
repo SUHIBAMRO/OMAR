@@ -643,6 +643,23 @@ $839{,}040$ as the common reference does not itself change the
 conclusion that the two finest meshes agree closely and the ladder has
 genuinely converged by this point.
 
+A third, independent view of the same convergence uses the raw
+region-average Cauchy stress itself rather than any relative-error
+metric derived from it -- immune by construction to whatever reference
+mesh a relative-error comparison happens to choose. Restricted to the
+seven resolutions inside or beyond this benchmark's own target range,
+where the fixed region's quadrature-point count is already large enough
+($400$ points or more, Table~\ref{tab:b3-ladder}) for the sample mean to
+be meaningful, the raw value itself decreases smoothly and
+monotonically with refinement: $0.5023$ at $480{,}320$ elements,
+$0.4959$ at $557{,}760$, $0.4910$ at $643{,}104$, $0.4864$ at
+$736{,}736$, $0.4826$ at $839{,}040$, and $0.4796$ at $950{,}400$ --
+each step smaller than the last, settling toward a value near $0.48$
+rather than oscillating around it. This is the same qualitative picture
+told a third way: not a property of the $950{,}400$-element reference
+choice, nor of scoring against the next-finer row instead, but of the
+underlying physical quantity itself settling down as the mesh refines.
+
 \begin{table}[ht]
 \centering
 \caption{B3 (grooved design) GPU mesh-convergence ladder: element,
