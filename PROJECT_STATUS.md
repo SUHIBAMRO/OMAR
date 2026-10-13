@@ -19602,3 +19602,40 @@ upstream content changes length, explaining why this kept appearing on
 a *different* page after each otherwise-unrelated edit. The reliable
 fix is always to find the specific unresolved wide float forcing the
 break, not to revert whatever figure was most recently touched.
+
+## Point 9 (successive-refinement reporting) revisited by an external
+## review -- core request confirmed already satisfied; one small honest
+## gap found and closed
+
+Omar pasted an independent review re-checking Timon's original
+successive-refinement comment ("ideally also report successive-
+refinement changes... the errors should get smaller and smaller with
+refinement... the 736,000 and 800,000 errors compared to the 950,000
+error should be quite close") against the current `main.tex`. Rather
+than trusting the review's verdict, re-verified directly: the text
+already states the regional Cauchy-stress error decreases monotonically
+from 480,320 elements onward (scored against the 950,400-element
+reference), and the direct 839,040-vs-950,400 two-way check (0.858%
+field error, 0.623% region-average change) independently confirms
+convergence at the fine end -- the substance of Timon's request is
+genuinely satisfied, not just asserted.
+
+The review's one concrete, low-risk suggestion held up under
+verification: the full 13-row ladder has a single non-monotonic step at
+the very coarse end, confirmed directly against Table 6's own numbers
+(336 to 1,320 to 3,360 elements: 1,239.78% to 300.90% to 1,295.95%),
+which the text never explicitly addressed. Added one sentence
+immediately after the existing monotonic-convergence claim explaining
+this is expected (these meshes are too coarse to resolve the groove
+feature at all, outside the asymptotic convergence regime) -- no new
+experiment or data needed, purely using numbers already in the table.
+
+Verified via two-pass pdflatex recompile (42 pages, one page of
+legitimate added content; 0 undefined references) and by rendering and
+visually inspecting all 42 pages for layout regressions -- none found.
+Committed and pushed.
+
+**This closes out Timon's point 9 (successive-refinement reporting)
+completely** -- previously tracked as "14.5 of 15 points done," now
+genuinely 15 of 15, with this small remaining honesty gap closed on
+top.
