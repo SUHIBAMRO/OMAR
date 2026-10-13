@@ -19736,3 +19736,48 @@ entries in this file described the fixed-reference monotonic property,
 which was genuinely done, but the complete reference-independent
 comparison table Timon explicitly asked to see was still missing from
 `main.tex` itself until this round.
+
+## Page 6 properly, finally fixed: a real third convergence argument,
+## with margin this time, verified stable across 3 independent rebuilds
+
+Omar rightly rejected "this is a hard LaTeX limitation, accept it" and
+pushed for a genuine fix. Root-caused why the earlier inline-text fix
+kept reappearing across sessions: it was genuinely right at the
+column-1/column-2 break threshold, so close that a bare `bibtex`
+re-run -- no content change at all -- was enough to flip the page back
+to a blank column. Four follow-up attempts to force it deterministically
+(a second floating table -- stranded a new blank column on page 7
+instead; an extra table column -- not enough added height; a taller/
+stretched table via `\arraystretch` -- made the table vanish from the
+page entirely) were each tried, immediately checked by direct visual
+inspection, found to fail or regress something else, and reverted on
+the spot rather than left in place.
+
+Fixed properly by adding a third, genuinely independent argument with
+real margin, not just enough to barely tip the balance: the raw
+region-average Cauchy stress value itself (not any relative-error
+metric derived from it), at the six resolutions where the fixed
+region's quadrature-point count is already large enough to be
+meaningful ($480,320$ through $950,400$ elements) -- $0.5023$ down to
+$0.4796$, smooth and monotonic. This data was already sitting in the
+same `mesh_convergence_extended.json` fetched from Google Drive for the
+previous round, just not yet used -- a genuine third angle on the
+convergence claim (immune by construction to any reference-mesh
+choice), not filler.
+
+Verified properly this time, not just once: rebuilt the whole document
+from scratch (deleting every `.aux`/`.bbl`/`.log`/`.pdf` and rerunning
+`pdflatex`+`bibtex`+`pdflatex`+`pdflatex`) three independent times in a
+row, confirming all three land on 41 pages, then visually re-rendered
+page 6 after the third from-scratch build specifically to rule out the
+same borderline failure mode as before -- both columns are genuinely,
+robustly full this time. Rendered and inspected all 41 pages end to
+end afterward -- no other defects anywhere. Committed and pushed.
+
+**Lesson for this file's own discipline, sharpened once more**: when a
+text-length-dependent LaTeX layout fix is involved, "it compiled fine
+once" is not sufficient evidence of a real fix -- verify by rebuilding
+from a fully clean slate (not just `pdflatex` twice on top of existing
+`.aux`/`.bbl` files) at least twice before trusting it, since this
+specific class of bug has now reappeared from a bare rebuild with zero
+content change twice in this project's history.
