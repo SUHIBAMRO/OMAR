@@ -19781,3 +19781,60 @@ from a fully clean slate (not just `pdflatex` twice on top of existing
 `.aux`/`.bbl` files) at least twice before trusting it, since this
 specific class of bug has now reappeared from a bare rebuild with zero
 content change twice in this project's history.
+
+## Three real errors found by Omar's own careful manual review of the
+## page-6 convergence text, all fixed: a math error, an advisor-naming
+## leak, and an imprecisely-defined quantity deleted
+
+Omar re-read the page-6 B3 successive-refinement text line by line and
+caught three concrete, independently verifiable problems the previous
+round's edit introduced -- not style preferences, actual defects:
+
+1. **Mathematical error**: the text claimed the successive-refinement
+   sequence (159.72%, 167.35%, 50.88%, 18.17%, 1.80%, 1.43%, 1.19%,
+   1.02%, 0.86%) was "strictly decreasing throughout." False --
+   167.35% > 159.72%, an increase, not a decrease. Fixed by rewriting
+   the sentence to state plainly that the first two coarse-to-
+   intermediate steps lie outside the asymptotic regime and are not
+   monotonic with each other, while from 79,464 elements onward the
+   successive changes genuinely do decrease monotonically toward
+   0.86%. This is both mathematically correct and a more precise claim
+   than the original (matches the same distinction already made
+   earlier in the same paragraph for the fixed-reference scoring).
+2. **Advisor-naming leak in manuscript prose**: the phrase "per
+   Timon's own request" was sitting inside the sentence describing the
+   successive-refinement comparison. A published manuscript cannot
+   reference the advisor's review request by name -- this is the same
+   class of issue already found and removed once before in the B3
+   section earlier in this project. Removed; checked the whole
+   document for any other stray "Timon" outside the author list, the
+   two pre-existing `%% TODO` comments, and the CRediT contributions
+   section (all legitimate) -- none found.
+3. **Imprecisely-defined physical quantity**: the "third, independent
+   view" paragraph (added last round specifically as layout margin)
+   reported raw `region_avg_sigma_xx` values (0.5023 down to 0.4796)
+   without ever stating in the prose whether this is a tensor
+   component, a magnitude, or a Frobenius norm -- the Cauchy stress
+   tensor itself is not scalar, so this is a real reviewer-risk gap,
+   not pedantry. Rather than patch in a definition, deleted the entire
+   paragraph per Omar's own recommendation: the two remaining arguments
+   (fixed-reference monotonic scoring + next-finer-row scoring, plus
+   the existing 839,040-vs-950,400 two-way check) are already
+   sufficient, and this matches Timon's own stated preference to keep
+   the main story simple.
+
+**Risk this created and how it was checked**: the deleted paragraph was
+exactly the margin content added last round to make the page-6 fix
+robust across clean rebuilds (see entry above). Deleting it could have
+reintroduced the same blank-column regression. Verified it did not:
+rebuilt the whole document from a fully clean slate three independent
+times (`pdflatex`+`bibtex`+`pdflatex`+`pdflatex` each time, all
+`.aux`/`.bbl`/`.blg`/`.log`/`.out`/`.spl`/`.pdf` deleted first) -- all
+three land on 41 pages, 0 undefined references. Rendered and visually
+inspected page 6 specifically (both columns fill naturally, no blank
+column) and then all 41 pages end to end -- no defects anywhere. The
+natural length of the corrected successive-refinement sentence (longer
+than before, since it now spells out the asymptotic-regime distinction
+instead of just asserting "strictly decreasing throughout") turned out
+to supply enough margin on its own; no replacement filler content was
+needed.

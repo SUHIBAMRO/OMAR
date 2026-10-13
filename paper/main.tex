@@ -620,19 +620,21 @@ well outside the asymptotic convergence regime, so a non-monotonic
 reading there is expected and unrelated to the convergence property
 claimed above. Scoring each row against the \emph{next finer} row
 instead of the final reference -- independent of which mesh is
-designated the common reference, per Timon's own request -- gives the
-same monotonic picture from the point the fixed region first contains
-quadrature points onward: $159.72\%$ ($6{,}840\!\to\!18{,}200$),
+designated the common reference -- gives successive changes of
+$159.72\%$ ($6{,}840\!\to\!18{,}200$),
 $167.35\%$ ($18{,}200\!\to\!79{,}464$), $50.88\%$
 ($79{,}464\!\to\!201{,}780$), $18.17\%$ ($201{,}780\!\to\!480{,}320$),
 $1.80\%$ ($480{,}320\!\to\!557{,}760$), $1.43\%$
 ($557{,}760\!\to\!643{,}104$), $1.19\%$ ($643{,}104\!\to\!736{,}736$),
 $1.02\%$ ($736{,}736\!\to\!839{,}040$), and $0.86\%$
-($839{,}040\!\to\!950{,}400$) -- strictly decreasing throughout, a
-second, reference-choice-independent confirmation of the same
-convergence property (the three coarsest steps, $336$ through
-$6{,}840$ elements, are undefined for this comparison since the fixed
-region contains zero quadrature points there).
+($839{,}040\!\to\!950{,}400$). The first two coarse-to-intermediate
+steps lie outside the asymptotic regime and are not monotonic with
+each other; from $79{,}464$ elements onward, however, the successive
+changes decrease monotonically toward $0.86\%$, a second,
+reference-choice-independent confirmation of the same convergence
+property (the three coarsest steps, $336$ through $6{,}840$ elements,
+are undefined for this comparison since the fixed region contains zero
+quadrature points there).
 A direct two-way check against the second-finest mesh
 ($839{,}040$ elements) independently supports the same conclusion: scored
 the other way around (the $839{,}040$-element mesh against the
@@ -642,23 +644,6 @@ error is $0.858\%$ and the region-average relative change is $0.623\%$
 $839{,}040$ as the common reference does not itself change the
 conclusion that the two finest meshes agree closely and the ladder has
 genuinely converged by this point.
-
-A third, independent view of the same convergence uses the raw
-region-average Cauchy stress itself rather than any relative-error
-metric derived from it -- immune by construction to whatever reference
-mesh a relative-error comparison happens to choose. Restricted to the
-seven resolutions inside or beyond this benchmark's own target range,
-where the fixed region's quadrature-point count is already large enough
-($400$ points or more, Table~\ref{tab:b3-ladder}) for the sample mean to
-be meaningful, the raw value itself decreases smoothly and
-monotonically with refinement: $0.5023$ at $480{,}320$ elements,
-$0.4959$ at $557{,}760$, $0.4910$ at $643{,}104$, $0.4864$ at
-$736{,}736$, $0.4826$ at $839{,}040$, and $0.4796$ at $950{,}400$ --
-each step smaller than the last, settling toward a value near $0.48$
-rather than oscillating around it. This is the same qualitative picture
-told a third way: not a property of the $950{,}400$-element reference
-choice, nor of scoring against the next-finer row instead, but of the
-underlying physical quantity itself settling down as the mesh refines.
 
 \begin{table}[ht]
 \centering
