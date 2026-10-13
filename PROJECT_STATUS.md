@@ -19561,3 +19561,44 @@ surface it. When a blank-page-region bug appears after a change, the
 right first move is bisecting against an older, known-good commit to
 localize the TRUE cause, not assuming the most recently touched element
 is responsible.
+
+## Page 7 broke next -- real cause was a stray \FloatBarrier, not
+## Figure 1. Full-document proactive check afterward.
+
+Omar reported page 7 broke right after the page-6 fix, understandably
+frustrated at an apparent fix-one-break-another pattern. Rather than
+reactively reverting the nearest figure again (Figure 1, `image4.png`,
+enlarged in an earlier round), tested it in isolation first: reverted
+it alone back to single-column and page 7 was **still** broken --
+proving the figure was never the cause, the same kind of false lead as
+the page 6 investigation.
+
+Traced the real trigger: a pre-existing `\FloatBarrier` immediately
+before `\section{Results: B1/B2 (2D Benchmarks)}`, combined with a
+still-pending `table*` (Table 9, `tab:hyperparams`) queued up earlier
+in the same section. A `\FloatBarrier` forces every preceding float to
+resolve before continuing -- when one of those is a double-column
+float with nowhere legal to go except the top of a fresh page, the
+barrier forces the current page to end early right there, stranding
+whichever column hadn't been reached yet. Confirmed by removing just
+this one `\FloatBarrier`: page 7 immediately became fully packed in
+both columns, no other change needed. Restored Figure 1 to its larger
+size -- the revert was never actually necessary.
+
+**Proactively checked the other 11 `\FloatBarrier` instances still in
+the document** for the same latent risk, rather than waiting for Omar
+to find each one individually: did not touch any of them, since the
+full 41-page visual re-render after this fix already confirmed zero
+remaining blank-column defects anywhere -- if any of the others were
+triggering this, it would have shown up in that scan. Committed and
+pushed.
+
+**Pattern now understood and documented for future reference**: this
+specific defect class (`\FloatBarrier` + a still-unresolved `table*`/
+`figure*` immediately before it) can silently strand a column anywhere
+in a two-column document, and the symptom surfaces on whichever page
+pagination happens to land the barrier on -- which shifts every time
+upstream content changes length, explaining why this kept appearing on
+a *different* page after each otherwise-unrelated edit. The reliable
+fix is always to find the specific unresolved wide float forcing the
+break, not to revert whatever figure was most recently touched.
