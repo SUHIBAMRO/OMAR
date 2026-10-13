@@ -19639,3 +19639,40 @@ Committed and pushed.
 completely** -- previously tracked as "14.5 of 15 points done," now
 genuinely 15 of 15, with this small remaining honesty gap closed on
 top.
+
+## Same FloatBarrier regression hit again on pages 6/23; second instance
+## found and fixed; all remaining FloatBarriers audited
+
+Omar reported pages 6 and 23 broke again right after the monotonic-step
+sentence commit. Tested the sentence in isolation first this time
+(compiled the live main.tex with and without just that sentence, using
+the real `.bbl` so the comparison is trustworthy) -- page 23 was
+**already broken without the sentence too**, proving it was never the
+cause; the sentence's 1-page pagination shift only exposed a second,
+pre-existing latent defect of the exact same class fixed on page 7
+earlier today.
+
+Found it the same way: a second `\FloatBarrier` immediately before
+`\section{Results: B3 (3D Rocking Rubber-Mount Bushing)}`, with Figures
+28/28a (rendered as Figure 32/33, "Method of manufactured solutions")
+still pending. Removed it; both figures now land side-by-side on one
+fully packed page with Table 25/26 and the section header flowing
+normally.
+
+**Proactively audited all 11 remaining `\FloatBarrier` instances** in
+the document for the same `\section`-adjacency risk (listed each one's
+following line, checked for a nearby pending wide float) -- none
+currently reproduce the bug, confirmed by a full 41-page re-render with
+zero defects found. None were touched speculatively, consistent with
+this file's "verify before trust" discipline: a `\FloatBarrier` is only
+dangerous when a wide float is genuinely pending right before it.
+
+**A caution for any future edit to this document**: this defect class
+has now appeared twice, each time surfaced by an unrelated, otherwise-
+harmless edit elsewhere in the document shifting pagination by exactly
+enough to expose a different pre-existing `\FloatBarrier`/wide-float
+collision. Any future change that alters total page count, however
+small, should be followed by a full page-by-page visual re-render (not
+just the pages adjacent to the edit) before trusting the result -- this
+has been the single most reliable way to catch this class of bug in
+this session, and spot-checking has repeatedly missed it.
