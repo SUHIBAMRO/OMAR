@@ -19470,3 +19470,45 @@ before trusting the fix, not just the two changed pages. Page count
 unchanged (41), overfull-box count unchanged (92), 0 undefined
 references, no blank-column or overlap defects anywhere. Committed and
 pushed.
+
+## Systematic sweep of every remaining figure in the document, not just
+## the ones already flagged -- three more real offenders found and fixed
+
+Omar asked for a full sweep ("دور كمان على باقي الصور الصغيرة بالورقة
+كلها") rather than continuing to fix one flagged figure at a time.
+Rather than guessing which figures were still too small, resized every
+remaining single-column figure (23 of them) to its actual approximate
+print size -- the resolution it is really displayed at in the compiled
+PDF (`0.98\columnwidth` etc.), not the native PNG resolution -- and
+reviewed them side by side in a montage. Most (images 17-27, 29, 43,
+45-47, 50, 56) were confirmed legible at that size, already covered by
+the earlier `report_builders` font-bump round. Three were not:
+`image4.png` (Figure 1, six-panel validation-error trajectories),
+`image40.png` (Figure 14, three-panel large-DOF QoI comparison), and
+`image41.png` ("torch-fem timing breakdown", three-panel).
+
+Cross-checked the judgment directly rather than trusting the montage
+alone: compared `image18.png` (confirmed fine) against `image40`/
+`image41` at full native resolution side by side -- `image18`'s fonts
+are visibly, substantially larger (from the `report_builders` bump),
+while `image4`/`image40`/`image41` came from different, unbumped
+one-off appendix scripts (their own captions cite "Timon round-9"
+items) that the earlier systematic font-bump pass never touched.
+
+Converted all three from single-column `figure` (`0.98\columnwidth`) to
+double-column `figure*` (`0.85\textwidth`), the same convention already
+used for Figure 3/22/30/37. Applied the verification discipline learned
+from the earlier Figure 6 regression without exception: page count
+changed again (41->42) -- exactly the signal that caused that
+regression -- so rendered and visually inspected **all 42 pages**
+before trusting this fix, not just the three changed ones. No
+blank-column, overlap, or clipping defects found anywhere; 0 undefined
+references; overfull-box count unchanged (92). Committed and pushed.
+
+**With this round, every dense multi-panel figure in the document has
+now been checked directly against its actual print size, not assumed
+fine from habit.** The only figures still genuinely small are
+single-plot or lightly-paneled ones already confirmed legible at their
+current width -- not a defect, just a different, less demanding class
+of figure than the ones fixed across this and the previous three
+rounds.
