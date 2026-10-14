@@ -19838,3 +19838,144 @@ than before, since it now spells out the asymptotic-regime distinction
 instead of just asserting "strictly decreasing throughout") turned out
 to supply enough margin on its own; no replacement filler content was
 needed.
+
+## Timon's newest review email (8 points, 3 major + 5 minor): 7 of 8
+## addressed from existing data/text; 3 specific sub-items genuinely
+## need a short GPU/Colab run and are flagged, not guessed at
+
+Timon sent a real review email (not relayed through Omar first this
+time) with three major asks and five smaller wording/table fixes.
+Worked through all eight systematically rather than picking the easy
+ones only.
+
+**Major 1 -- PI-vs-DD cost comparison should use GPU-native FEM for DD
+label generation (DONE from already-existing data, no new experiment
+needed)**: Section 6.9's own text already had a GPU-based label-gen
+estimate (284s, from Table A.1's N=21 batch-128 throughput) sitting as
+a footnote-ish aside after the CPU-based (20,340s) headline comparison.
+Rewrote the section so the GPU number is the real comparison the
+conclusion is drawn from: recomputed data-driven total pre-inference
+cost as training + 284s (not + 20,340s) -- $1{,}742.0$s (Adam) and
+$1{,}747.0$s (AdamW+OneCycleLR), both now BELOW physics-informed's own
+wall-clock ($2{,}873.8$s / $3{,}108.9$s). Comparing each loss's own best
+configuration: data-driven+AdamW+OneCycleLR now wins on BOTH accuracy
+($8.26\%$ vs.\ $9.59\%$) and total cost ($1.64\times$ less) -- exactly
+the reversal Timon predicted. The CPU figure is kept, explicitly labeled
+as the real cost of the specific (slower) pipeline the labels were
+actually produced on, not retracted. Added a short connecting paragraph
+(Timon's own observation) noting this reversal is specific to
+cheap-FEM problems like B1; B3's own native solve is far more costly per
+sample, so a hypothetical data-driven B3 study would make the FEM-solver
+choice used for labels a first-order cost factor rather than something
+training time eventually amortizes away -- explicitly noted as a
+forward-looking observation, not a claim this paper measures directly
+(no data-driven B3 checkpoint exists).
+
+**Major 2 -- hybrid/Sobolev ablation should also report H1 and stress
+errors (BLOCKED on a one-line GPU command, not on missing data)**:
+confirmed directly in code (`train_data_driven.py`'s own evaluation
+call, `evaluate_dataset_hyperelastic_Q4`) that H1 semi-norm and stress
+were never computed for ANY of the four PI/DD/hybrid/Sobolev losses --
+only relative-L2 was tracked during training, for all of them. A
+background investigation agent located the real checkpoints on Drive
+(`pfem_run/hybrid_pi_dd/B1_neo_hookean/model_best.pt` and
+`pfem_run/sobolev_dd/B1_neo_hookean/model_best.pt`, both confirmed
+800/200 split, Adam, 75,000 steps -- matching the published numbers
+exactly) and the exact dataset file they were trained/evaluated on
+(`pfem_run/results/datasets/B1_neo_hookean/hyperelastic_training_data_q4.npz`).
+The repo already has the right tool for this
+(`physical_quantities_eval.py --cpu`, the same script behind every
+other H1/stress table in this paper) -- this is a measurement gap, not
+a missing-capability gap. **Blocked purely on tooling**: a second agent
+confirmed the Google Drive MCP connector cannot download either
+~8 MB checkpoint (fails with "message... too large or could not be
+parsed" on every attempt) -- a transport limit, not a flaky network
+(outbound HTTPS to Drive itself works fine from this sandbox; Drive's
+`share_file` tool has no anonymous-link option to work around it
+either). **Needs Omar to run one command in his own Colab session**
+(where the checkpoint is already on the mounted Drive):
+`python physical_quantities_eval.py --geometry B1 --material
+neo_hookean --checkpoint <hybrid or sobolev model_best.pt path>
+--data_path <the npz path above> --ntrain 800 --ntest 200 --cpu
+--out_json <name>.json` for each of the two checkpoints -- CPU-only,
+should run in well under a few minutes given this is B1's small 2D
+mesh. Not yet run; not written into main.tex.
+
+**Major 3 -- B3 direct-solver timing breakdown (assembly, symbolic
+analysis, factorization, solve, Newton iterations, load steps) at
+6,840 and 480,320 elements (HALF DONE from existing data)**:
+`_newton_cudss_reuse_analysis` already captures exactly this
+(`t_analysis_s`, `t_factorization_s`, `t_solve_s`, `t_coalesce_s`,
+`n_newton_iters`) per load increment. Downloaded and decoded the real
+`b3_assembled_direct_benchmark.json` from Drive: it has this full
+breakdown for the $480{,}320$-element case (confirmed real numbers --
+20 load increments, each converging in a constant 7 Newton iterations;
+summed across all 20: analysis $316.9$s ($21.6\%$), factorization
+$832.2$s ($56.6\%$, the dominant cost, consistent with 3D fill-in
+already discussed in this section), solve $20.1$s ($1.4\%$), coalesce
+$7.6$s ($0.5\%$), leaving $292.6$s ($19.9\%$) as per-element
+assembly/other overhead not separately timed; peak memory $30{,}338.5$
+MB) -- written into Section 7.7 as a new paragraph, with an honest note
+that the total ($1{,}469.3$s) is a repeat run within $0.3\%$ of the
+already-published $1{,}474.1$s. **The $6{,}840$-element case has NO
+equivalent file anywhere on Drive** (searched broadly: other files with
+this element count only ever stored a single wall-clock number,
+predating this per-phase instrumentation) -- written into main.tex as
+an explicit "not yet measured" note rather than estimated or
+interpolated. **Needs Omar to re-run `Round15_B3_Assembled_Direct_
+Solver.ipynb`'s own benchmark cell at $n\_elements{=}6{,}840$** (the
+smallest case on the ladder -- should be fast) to get this second half.
+
+**Minor items, all done directly, no new data needed**:
+1. Table 18 (`tab:required-n`): B2's reaction column was "--"; changed
+   to "n/a", matching the caption's own already-correct explanation
+   (no single scalar reaction resultant exists for B2's two independent
+   symmetry-edge constraints).
+2. Tables 10 and 14 (`tab:final-results`, `tab:ood-six-cases`): captions
+   now state explicitly that "Val. error" is the mean relative-$L^2$
+   displacement error (averaged over $u$, $v$) -- confirmed from the
+   actual training-time metric definition in `train_B1.py`/
+   `train_data_driven.py`, not guessed.
+3. Figure 24 (`fig:41`) caption: removed "at matched precision", which
+   was simply wrong for this specific comparison -- the operator side
+   uses `torch.compile`+TF32, not FP64 like the genuinely FP64-matched
+   FEM-vs-FEM comparison in Table~12 (`tab:gpu-fem-matched`) elsewhere.
+   Caption now states each side's real precision directly.
+4. MMS section: added a paragraph clarifying $N$ is the operator's
+   spatial integration discretization, not a measure of its trainable
+   capacity ($\approx2.01$M parameters, constant at every $N$, per the
+   hyperparameters table already in the paper, vs.\ FEM DOFs which grow
+   with $N$) -- so the already-reported negative $L^2$ "rate" is not a
+   finite-element convergence rate and isn't directly comparable to
+   Q4/Q9's own rates; also states plainly that neural operators carry no
+   analogue of FEM's a priori convergence guarantees.
+5. Conclusion: added a "Fourth" finding (matching the existing
+   First/Second/Third structure) framing operator integration-resolution
+   selection as an open, case-dependent problem -- no simple "finer is
+   always better" rule, since the family-mean MMS results already in
+   the paper show $L^2$/energy getting WORSE from $N{=}9$ to $N{=}33$.
+
+**Figures 4 and 8 (left column) -- Timon's remaining minor point,
+genuinely not yet started**: Figure 4 (`fig:batch-screening`,
+images 1/2/3) visually confirmed to have many overlapping,
+hard-to-distinguish curves; Figure 8 left column (`fig:b2-worst-case`,
+images 11/13/15) visually confirmed small/congested. Unlike every other
+figure fixed in earlier rounds (which only needed a LaTeX width change),
+these need the underlying plot RE-drawn (better color/line separation
+for Fig.\ 4, larger per-subplot fonts for Fig.\ 8's scatter panels) --
+checked for the original plotting source in this repo and did not find
+one (these images were part of the original 54-figure batch pulled
+directly from the already-written Report docx, not generated by any
+script currently in `report_builders/`). Likely source:
+`omar_pfem/PFEM_Training_Colab.ipynb` (batch-size screening) and
+whatever produced the B2 per-sample scatter grids -- not yet confirmed.
+**Not started**; needs either Omar's pointer to the original plotting
+cell, or further investigation time to track it down, before any replot
+can happen.
+
+Verified the whole round via a fully clean rebuild (41 pages, 0
+undefined references) and a full 41-page visual re-render (no
+blank-column or overflow regressions anywhere). Committed
+(`fbb781c`) and pushed. **3 of 8 points have a real, concrete,
+low-effort next action sitting with Omar** (two Colab commands, one
+pointer to a notebook); the rest are fully closed in `main.tex` itself.
