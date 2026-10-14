@@ -20173,3 +20173,42 @@ Omar pushed a second time. A full-document figure-legibility pass
 should mean literally every remaining single-column multi-panel
 figure checked against its own rendered page, not just the ones a
 reviewer happened to name.
+
+## Third round of figure enlarging: Omar pointed at six SPECIFIC figure
+## numbers (7, 19, 20, 21, 22, 31) from his own read of the PDF
+
+Omar gave exact figure numbers this time rather than a general "still
+small" -- all six genuinely needed it, confirmed by rendering each
+one's actual page before touching anything:
+
+- Figure 7 (image29, B2 fix-history + final results, 2 panels),
+  Figure 19 (image23, single plot with unused page width), Figure 21
+  (image24, 2 panels) -- all converted `figure`/`0.98\columnwidth` to
+  `figure*`/`0.85\textwidth`, the standard convention.
+- Figure 22 (image37, 7-panel field grid) was ALREADY `figure*` at
+  0.85\textwidth -- checked the source PNG's real pixel size first
+  (3945x741) before bumping further, to confirm a width increase would
+  be real sharpness, not upscaled blur. Bumped to 0.98\textwidth.
+- Figure 20 (the 6-image OOD field-grid composite) -- a real structural
+  fix, not just a width number: was 3-across/2-rows at 0.33\textwidth
+  each; restructured to 2-across/3-rows at 0.49\textwidth each (a true
+  ~1.5x per-panel increase), reorganized as left column B1/right column
+  B2, rows by material, caption rewritten to describe the new layout.
+- Figure 31 (the two coarse-vs-fine field-grid composites) -- same
+  class of real fix: was side-by-side at 0.49\textwidth each;
+  restructured to stacked top/bottom at 0.98\textwidth each (a full 2x
+  per-image increase).
+
+Verified via a fully clean rebuild (44 pages, up from 43 -- the two
+restructured composites take more vertical space, a real consequence
+of the fix, not a defect) and a full 44-page visual re-render -- no
+regressions. Directly re-rendered and looked at all six changed
+figures individually to confirm the legibility gain is real, not
+assumed from the LaTeX change alone. Committed (`6a20edf`) and pushed.
+
+**Running total across three rounds this session: 14 figures widened
+or restructured** (9/10 first round; 13/14/15/22/25/26/44/45/46 second
+round; 7/19/20/21/22/31 third round -- image22/44/45/46 and the
+OOD/coarse-fine composites appear in more than one round's own list
+because the figure NUMBER shifts every time pagination changes, while
+the underlying image FILE is the stable identifier tracked here).
