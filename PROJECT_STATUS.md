@@ -19979,3 +19979,77 @@ blank-column or overflow regressions anywhere). Committed
 (`fbb781c`) and pushed. **3 of 8 points have a real, concrete,
 low-effort next action sitting with Omar** (two Colab commands, one
 pointer to a notebook); the rest are fully closed in `main.tex` itself.
+
+## The two blocked GPU sub-items both closed with real numbers from
+## Omar's own Colab runs; Figures 4/8 still the one open item
+
+Omar ran all three prepared Colab cells and pasted the real output back
+directly, including one real mix-up along the way that is worth
+recording so the same confusion doesn't repeat.
+
+**Hybrid/Sobolev H1+stress (DONE)**: Omar's first attempt accidentally
+re-ran the OLD training cell (33 min, re-trained Sobolev from scratch)
+instead of the NEW evaluation cell appended at the bottom of the
+notebook -- a GitHub-to-Colab caching issue where his already-open tab
+hadn't picked up the latest push (confirmed directly by fetching the
+raw file from GitHub mid-conversation: it already had 4 cells, so the
+file was never wrong, only his open tab was stale). Fixed by having him
+close the tab and reopen the link fresh. Second attempt ran the correct
+cell and produced real numbers: `disp_rel_L2` (12.755%, 14.700%)
+matched the already-published val rel-L2 (12.75%, 14.70%) almost
+exactly for both checkpoints, confirming the right checkpoint was
+evaluated. Written into Table 24: $H^1$ semi-norm (hybrid $25.07\%$,
+Sobolev $31.33\%$) and full PK1-stress relative $L^2$ (hybrid $21.69\%$,
+Sobolev $36.01\%$, using `P_rel_L2` -- the script's own docstring
+explicitly names this, not any per-component number, as "the right
+single number to quote for stress accuracy"). Added a paragraph noting
+both quantities degrade substantially more than displacement for both
+checkpoints (same pattern already established for the physics-informed
+operator elsewhere in the paper), and that Sobolev's own gradient-
+matching term does not give it a better $H^1$ error than hybrid's --
+consistent with Sobolev not having converged within this budget. The
+physics-informed and plain data-driven rows are explicit "n/a" (not
+re-evaluated, outside this specific ask), not blank.
+
+**B3 6,840-element timing breakdown (DONE)**: a real mistake on my side
+caused one wasted round first -- my initial instruction to "re-run at
+6,840 elements" pointed Omar at the notebook's EXISTING Cell 2, which is
+hardcoded to the two LARGER ladder resolutions
+(`RESOLUTIONS = [(81,80,77), (97,96,93)]` = 480,320 and 839,040
+elements), not 6,840 at all. Running it reproduced exactly the
+already-known, already out-of-scope cuDSS `ALLOC_FAILED` at 839,040
+(the ceiling Omar himself already decided to stop chasing on
+2026-10-12) -- confusing and unproductive, not new information. Fixed
+by adding a separate, independent Cell 2b that calls
+`run_b3_benchmark([DEFAULT_RESOLUTION], ...)` directly -- the real
+6,840-element mesh, carrying none of the larger run's memory risk.
+Omar ran it and got a real result: $9.99$s total (vs.\ the
+already-published $10.25$s), 10 load increments at a constant 4 Newton
+iterations each, peak memory $511.8$~MB. Phase breakdown: analysis
+$1.52$s ($15.2\%$), factorization $0.91$s ($9.1\%$), solve $0.12$s
+($1.2\%$), coalesce $0.04$s ($0.4\%$) -- leaving $7.40$s ($74.1\%$) as
+per-element assembly/overhead, the OPPOSITE balance from the
+480,320-element case ($19.9\%$ overhead there). Written into `main.tex`
+with an explanation for the inversion (cuDSS analysis/factorization
+cost grows with mesh size and dominates at large scale; per-element
+assembly and fixed Python/CUDA-launch overhead are size-independent and
+so dominate the already-tiny total at small scale).
+
+**Lesson for next time a Colab cell is handed to Omar**: always verify
+directly (fetch the raw file from GitHub, don't just trust `git push`
+exit code) that the EXACT cell being pointed at does what's intended,
+and tell Omar explicitly which cell NUMBER/NAME to run, not just "the
+notebook" -- both wasted rounds this entry records came from an
+ambiguous or wrong pointer, not from Omar doing anything wrong.
+
+Verified via two more fully clean rebuilds (42 pages each time, 0
+undefined references) and full 42-page visual re-renders after each
+edit -- no regressions. Committed (`ddcefc9`, `d1fcebd`) and pushed.
+
+**Genuinely remaining from Timon's 8-point review**: Figures 4
+(`fig:batch-screening`) and 8 left column (`fig:b2-worst-case`) --
+still need their original plotting source located (not found in
+`report_builders/` -- likely in `PFEM_Training_Colab.ipynb` or similar,
+not yet confirmed) before they can be redrawn with better curve
+separation/larger subplot fonts. Not started; waiting on Omar's
+pointer or further investigation time.
