@@ -1854,6 +1854,7 @@ directly-checked accuracy cost noted there.
 \end{figure*}
 
 \subsection{Error in derived physical quantities}
+\label{sec:derived-quantities}
 Every operator error reported above is a displacement error -- the most
 forgiving quantity that could be asked about: it is the primary unknown,
 what the network is trained to produce, and smoother than its own
@@ -2150,21 +2151,46 @@ full Gauss-quadrature energy assembly every step, on top of the data
 loss), Sobolev next (one extra kinematic-gradient term), plain
 data-driven cheapest.
 
+For the hybrid and Sobolev checkpoints specifically, the same
+evaluation used for every other H1-semi-norm/stress table in this paper
+(\texttt{physical\_quantities\_eval.py}) was additionally run against
+their held-out test sets, reporting the $H^1$ semi-norm and the
+quadrature-weighted relative $L^2$ error of the full first
+Piola-Kirchhoff stress tensor (Table~\ref{tab:hybrid-sobolev}).
+Both derived quantities degrade substantially more than displacement
+does for both checkpoints -- hybrid's $H^1$ semi-norm ($25.07\%$) is
+$1.97\times$ its own displacement error ($12.75\%$), and its stress
+error ($21.69\%$) is $1.70\times$; Sobolev's $H^1$ semi-norm
+($31.33\%$) is $2.13\times$ its displacement error ($14.70\%$), and its
+stress error ($36.01\%$) is $2.45\times$ -- the same
+derivative-quantities-are-harder pattern reported throughout
+Section~\ref{sec:derived-quantities} for the physics-informed operator,
+now confirmed to hold for these two data-driven variants as well.
+Sobolev's own gradient-matching term might be expected to help its $H^1$
+error specifically, but it does not: Sobolev's $H^1$ semi-norm is worse
+in both absolute terms and relative to its own displacement error than
+hybrid's, consistent with the already-noted finding that Sobolev had not
+clearly converged within this budget. The physics-informed and plain
+data-driven rows were not re-evaluated with this tool here, since that
+was outside what this ablation specifically asked for.
+
 \begin{table}[h]
 \centering
 \caption{Validation error, B1$\times$Neo-Hookean, Adam, $75{,}000$
   optimizer steps: the two pure losses from Table~\ref{tab:pi-vs-dd}
-  alongside the hybrid and Sobolev-regularized variants.}
+  alongside the hybrid and Sobolev-regularized variants. $H^1$ and
+  stress are reported only for hybrid and Sobolev (see text); n/a for
+  the two pure-loss rows, not a missing value.}
 \label{tab:hybrid-sobolev}
 \small
-\begin{tabular}{lcc}
+\begin{tabular}{lccccc}
 \toprule
-Loss & Val.\ error & Wall-clock (s) \\
+Loss & Val.\ error & $H^1$ & Stress & Wall-clock (s) \\
 \midrule
-Physics-informed          & $9.59\%$  & $2{,}873.8$ \\
-Hybrid (phys.\ wt.\ 0.5)   & $12.75\%$ & $2{,}460.9$ \\
-Data-driven                & $13.07\%$ & $1{,}458.3$ \\
-Sobolev (grad.\ wt.\ 0.5)  & $14.70\%$ & $1{,}945.2$ \\
+Physics-informed          & $9.59\%$  & n/a & n/a & $2{,}873.8$ \\
+Hybrid (phys.\ wt.\ 0.5)   & $12.75\%$ & $25.07\%$ & $21.69\%$ & $2{,}460.9$ \\
+Data-driven                & $13.07\%$ & n/a & n/a & $1{,}458.3$ \\
+Sobolev (grad.\ wt.\ 0.5)  & $14.70\%$ & $31.33\%$ & $36.01\%$ & $1{,}945.2$ \\
 \bottomrule
 \end{tabular}
 \end{table}
