@@ -20212,3 +20212,17 @@ round; 7/19/20/21/22/31 third round -- image22/44/45/46 and the
 OOD/coarse-fine composites appear in more than one round's own list
 because the figure NUMBER shifts every time pagination changes, while
 the underlying image FILE is the stable identifier tracked here).
+
+## Fourth round: Figures 2, 11, 12
+
+Omar found three more (image17/20/21) -- confirmed each one directly
+before touching it: Figure 2 had overlapping percentage labels at the
+bottom of its two subplots, Figure 11's bar-top value labels were
+cramped, Figure 12's `N=` point labels overlapped the data markers.
+All three converted `figure`/`0.98\columnwidth` to
+`figure*`/`0.85\textwidth`. Verified via a fully clean rebuild (45
+pages, up from 44) and a full 45-page visual re-render -- no
+regressions. Committed (`9dea195`) and pushed.
+
+**Running total, four rounds this session: 17 figures widened or
+restructured.**
