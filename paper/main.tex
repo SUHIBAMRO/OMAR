@@ -2748,11 +2748,24 @@ $20.1$~s ($1.4\%$), and coalescing the raw Jacobian COO output into CSR
 $7.6$~s ($0.5\%$) -- leaving $292.6$~s ($19.9\%$) attributable to
 per-element tangent/residual assembly and other overhead not separately
 timed by these four phase counters. Peak memory at this resolution was
-$30{,}338.5$~MB. The equivalent phase-level breakdown at the
-$6{,}840$-element production mesh has not yet been measured: the
-$10.25$~s total reported for that resolution above predates this
-per-phase instrumentation and was captured as a single wall-clock number
-only.
+$30{,}338.5$~MB.
+
+The same breakdown at the $6{,}840$-element production mesh (a repeat
+run, total $9.99$~s, close to the $10.25$~s reported above) shows the
+opposite balance: 10 load increments, each converging in a constant 4
+Newton iterations (40 total), with per-phase time summed across all 10
+increments -- symbolic analysis $1.52$~s ($15.2\%$), factorization
+$0.91$~s ($9.1\%$), triangular solve $0.12$~s ($1.2\%$), and coalescing
+$0.04$~s ($0.4\%$) -- leaving $7.40$~s ($74.1\%$) attributable to
+per-element assembly and other overhead, versus only $19.9\%$ at
+$480{,}320$ elements. This inversion is consistent with the two
+workloads' own scaling: cuDSS's analysis/factorization cost grows with
+mesh size (and dominates once the mesh is large enough, as at
+$480{,}320$ elements), while per-element assembly and fixed
+Python/CUDA-launch overhead are largely size-independent on this scale
+and so make up nearly all of the (already tiny) total time at the
+small production mesh. Peak memory at $6{,}840$ elements was
+$511.8$~MB.
 
 This is read as a genuine, informative limit on where this class of
 solver helps, not a defect in the implementation: the same
