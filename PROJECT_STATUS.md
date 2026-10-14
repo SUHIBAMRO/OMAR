@@ -20110,3 +20110,24 @@ edits since the same filenames are already referenced. Committed
 **This closes Timon's entire 8-point review (3 major + 5 minor) --
 all 8 are now done in `main.tex`/`paper/figures/` itself, nothing left
 sitting on Omar's side.**
+
+## Correction: Figures 9/10 were also named by Timon and had been missed
+
+Omar asked directly whether the figures Timon named were actually all
+enlarged -- re-checking Timon's verbatim wording ("Figures 4, 8 (left),
+9 and 10 are still rather small") against what was actually fixed
+showed only 4 and 8 had been addressed; 9 (`fig:18`, image18.png --
+training cost/inference speed-up/training memory, 3 panels) and 10
+(`fig:19`, image19.png -- GPU-native FEM vs.\ operator latency, 3
+panels) were still single-column `figure` at `0.98\columnwidth`,
+missed in both the original figure-size sweep and the Figure-4/8 round
+above. Converted both to `figure*` at `0.85\textwidth`, the same
+convention already used throughout. Verified via a fully clean rebuild
+(42 pages, 0 undefined references) and a full 42-page visual re-render
+-- no regressions. Committed (`64648fe`) and pushed.
+
+**Lesson, consistent with this file's own repeated pattern**: when a
+reviewer names a LIST of figures, check off each one explicitly against
+what was actually touched before declaring the point closed -- "I fixed
+the figures Timon mentioned" is not verified until every named figure
+is individually confirmed, not just the first two addressed.
