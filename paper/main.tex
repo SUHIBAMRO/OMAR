@@ -524,13 +524,13 @@ B2 $\times$ AB & $0.167\%$ & $0.156\%$ & $0.012\%$ & $0.018\%$ \\
 \end{tabular}
 \end{table}
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
-\includegraphics[width=0.98\columnwidth]{figures/image17.png}
+\includegraphics[width=0.85\textwidth]{figures/image17.png}
 \caption{Mesh convergence: strain-energy change per refinement vs.\ $N$,
   B1 and B2, all three materials.}
 \label{fig:17}
-\end{figure}
+\end{figure*}
 
 A deeper check, against a genuine
 $\sim$$10^7$-DOF numerical reference (B1$\times$Neo-Hookean, Q4, $N{=}2236$)
@@ -1130,13 +1130,13 @@ whether a GPU-native solver is actually available to the practitioner.
 \label{fig:19}
 \end{figure*}
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
-\includegraphics[width=0.98\columnwidth]{figures/image20.png}
+\includegraphics[width=0.85\textwidth]{figures/image20.png}
 \caption{Break-even, in new problem instances, against the CPU-FEM and
   GPU-native-FEM baselines.}
 \label{fig:20}
-\end{figure}
+\end{figure*}
 
 \subsection{GPU-native finite-element solver: scaling and comparison to established libraries}
 \label{sec:gpu-fem}
@@ -1152,13 +1152,13 @@ conjugate-gradient inner loop, was therefore used for the scaling study,
 on B1$\times$Neo-Hookean, across eight resolutions up to $N{=}1401$
 ($3{,}925{,}602$~DOF) on a single A100.
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
-\includegraphics[width=0.98\columnwidth]{figures/image21.png}
+\includegraphics[width=0.85\textwidth]{figures/image21.png}
 \caption{GPU-native matrix-free solver scaling: wall-clock time and CG
   iteration count vs.\ problem size.}
 \label{fig:21}
-\end{figure}
+\end{figure*}
 
 The solver reaches $3{,}925{,}602$~DOF in $11.0$~hours, using only
 $3{,}280$~MB of the card's 80~GB ($\sim$4\%) -- memory is not the limiting
