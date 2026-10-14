@@ -20131,3 +20131,45 @@ reviewer names a LIST of figures, check off each one explicitly against
 what was actually touched before declaring the point closed -- "I fixed
 the figures Timon mentioned" is not verified until every named figure
 is individually confirmed, not just the first two addressed.
+
+## Second correction, same session: a genuinely exhaustive figure check,
+## not just the four Timon named
+
+Omar asked again ("لسا في صور بدها تكبير شوي صح؟") whether more figures
+still needed enlarging, beyond the four Timon explicitly listed. Rather
+than re-asserting the sweep was complete, did the check that should have
+been done the first time: grepped every remaining `\includegraphics` in
+`main.tex` still at single-column width (`0.98\columnwidth` or
+`0.85\columnwidth`), rendered each one's actual page at 200dpi, and
+looked at it directly instead of judging from caption text. Found six
+more multi-panel figures with real, visible legend/label crowding that
+Timon never named but were just as cramped:
+
+- `image22` (solve time + torch-fem peak memory, 2 panels)
+- `image25` (operator vs.\ FEM accuracy + speed-up, 3 panels)
+- `image26` (displacement/stress/reaction-force error, 3 panels --
+  legend boxes were sitting directly on top of the bars and error-bar
+  value labels)
+- `image44` (reaction-force resultant + per-component stress, 2 panels)
+- `image45` (torch-fem tolerance sensitivity, 2 panels)
+- `image46` (TensorMesh vs.\ torch-fem, 2 panels)
+
+Converted all six to `figure*`/`0.85\textwidth`. Confirmed in the same
+pass that several OTHER remaining single-column figures (`image17`,
+`image20`, `image21`, `image23`, `image24`, `image27`, `image28`,
+`image50`) were genuinely fine as rendered -- either single-plot, or
+already-legible 2-panel small multiples, or 2x3 grids where each panel's
+own text stays readable at that density -- so this was a real,
+confirmed-both-ways check, not a reflexive "widen everything."
+
+Verified via a fully clean rebuild (43 pages, up one from 42 -- the six
+width changes shifted one more figure) and a full 43-page visual
+re-render -- no regressions anywhere. Committed (`72992bd`) and pushed.
+
+**Lesson, now stated plainly for next time**: "the figures Timon named
+are fixed" and "every cramped figure in the document is fixed" are two
+different claims -- the first was verified, the second was not, until
+Omar pushed a second time. A full-document figure-legibility pass
+should mean literally every remaining single-column multi-panel
+figure checked against its own rendered page, not just the ones a
+reviewer happened to name.
