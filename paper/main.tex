@@ -902,8 +902,11 @@ throughout this study.
 \begin{table*}[ht]
 \centering
 \caption{Final validation error, best/final epoch, and training wall-clock
-  time, all six (geometry, material) cases. B2's three rows use the
-  loss-scale-normalized training recipe described next.}
+  time, all six (geometry, material) cases. Val.\ error is the mean
+  relative-$L^2$ displacement error (averaged over the $u$ and $v$
+  components) against the held-out finite-element reference, the same
+  norm and held-out split used for early stopping. B2's three rows use
+  the loss-scale-normalized training recipe described next.}
 \label{tab:final-results}
 \begin{tabular}{lcccc}
 \toprule
@@ -1390,7 +1393,10 @@ or less robust than the other under this test.
 \centering
 \caption{In-distribution vs.\ out-of-distribution validation error and
   degradation factor, all six cases (corrected loss-normalized B2
-  checkpoints).}
+  checkpoints). Both columns use the same mean relative-$L^2$
+  displacement error as Table~\ref{tab:final-results}'s own Val.\ error
+  column; the in-distribution column reproduces that table's values
+  exactly.}
 \label{tab:ood-six-cases}
 \small
 \begin{tabular}{lccc}
@@ -1630,9 +1636,9 @@ Case & Disp. & $H^1$ & Energy & React. & Region \\
 B1 $\times$ NH & 4 & 17 & 13 & 5 & 3 \\
 B1 $\times$ MR & 4 & 17 & 13 & 4 & 9 \\
 B1 $\times$ AB & 4 & 13 & 11 & 5 & 3 \\
-B2 $\times$ NH & 6 & 17 & 17 & -- & 6 \\
-B2 $\times$ MR & 6 & 17 & 17 & -- & 6 \\
-B2 $\times$ AB & 6 & 17 & 17 & -- & 6 \\
+B2 $\times$ NH & 6 & 17 & 17 & n/a & 6 \\
+B2 $\times$ MR & 6 & 17 & 17 & n/a & 6 \\
+B2 $\times$ AB & 6 & 17 & 17 & n/a & 6 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1786,8 +1792,11 @@ inferences.
 \begin{figure}[htb]
 \centering
 \includegraphics[width=0.85\columnwidth]{figures/image43.png}
-\caption{Neural-operator inference time vs.\ torch-fem solve time at
-  $N{=}1401$: $2.29$~s vs.\ $133.83$~s at matched precision.}
+\caption{Neural-operator inference time (\texttt{torch.compile}, TF32)
+  vs.\ torch-fem solve time (FP64) at $N{=}1401$: $2.29$~s vs.\
+  $133.83$~s. Unlike Table~\ref{tab:gpu-fem-matched}'s FEM-vs-FEM
+  comparison, which is genuinely matched at FP64, the two sides here use
+  each method's own real deployment precision, not a common one.}
 \label{fig:41}
 \end{figure}
 
@@ -2009,32 +2018,54 @@ Data-driven       & AdamW+OneCycle   & $8.26\%$  & $1{,}463.0$ \\
 \end{table*}
 
 One asymmetry survives the reversal and is not an accuracy figure: the
-data-driven model needs a labelled dataset -- 800 finite-element solves,
-$5.65$ CPU-hours ($20{,}340$~s) at the measured cost -- before training
-can even begin, a fixed cost the physics-informed model never pays,
-since its loss is the energy of its own prediction. Including this
-label-generation cost, the data-driven model's total pre-inference cost
-is $21{,}798.3$~s under Adam and $21{,}803.0$~s under AdamW+OneCycleLR --
-roughly an order of magnitude more than the corresponding
-physics-informed wall-clock in both pairings (physics-informed's own
-wall-clock above already is its total pre-inference cost, since it pays
-no separate label-generation step). The two checkpoints' inference cost
-is effectively identical ($4.625$ vs.\ $4.586$~ms/sample, a $0.8\%$
-difference, consistent with sharing the identical architecture), so once
-label generation is included the data-driven route is more expensive for
-every number of future inferences, not just below some threshold. This
-label-generation cost is itself CPU-based, the same reference
-finite-element implementation used throughout this study; a GPU-native
-batched re-implementation of the same solver (used elsewhere for the
-large-$N$ scaling study) solves B1$\times$Neo-Hookean at $N{=}21$ in
-$354.6$~ms/sample at batch size 128 (Table~\ref{tab:a1-fem}), which would
-put 800 such solves at approximately $284$~s of GPU time total --
-roughly $72\times$ less than the $20{,}340$~s CPU figure above. A
-GPU-based label-generation pipeline would therefore all but eliminate
-this cost asymmetry rather than merely reduce it; the $5.65$-CPU-hour
-figure above should be read as the cost of the specific (CPU)
-label-generation pipeline actually used for this comparison, not as an
-architectural requirement of the data-driven approach itself.
+data-driven model needs a labelled dataset -- 800 finite-element solves --
+before training can even begin, a fixed cost the physics-informed model
+never pays, since its loss is the energy of its own prediction. This
+study's own GPU-native batched solver (used elsewhere for the large-$N$
+scaling study) is the right tool to cost this step with, rather than the
+native CPU reference implementation used in early exploration: it solves
+B1$\times$Neo-Hookean at $N{=}21$ in $354.6$~ms/sample at batch size 128
+(Table~\ref{tab:a1-fem}), putting 800 such solves at approximately
+$284$~s of GPU time total -- $72\times$ less than the $20{,}340$~s
+($5.65$~CPU-hours) the same 800 solves cost on the CPU reference
+implementation used for the solves actually underlying this experiment.
+Scoring the comparison on this GPU-based label-generation cost, the data-
+driven model's total pre-inference cost is $1{,}742.0$~s under Adam
+($1{,}458.3$~s training $+\,284$~s labels) and $1{,}747.0$~s under
+AdamW+OneCycleLR ($1{,}463.0$~s $+\,284$~s) -- now \emph{below}, not
+above, the corresponding physics-informed wall-clock in both pairings
+($2{,}873.8$~s and $3{,}108.9$~s respectively; physics-informed's own
+wall-clock already is its total pre-inference cost, since it pays no
+separate label-generation step). Comparing each loss's own best
+configuration, as above: data-driven+AdamW+OneCycleLR reaches both a
+lower validation error ($8.26\%$ vs.\ $9.59\%$) and a lower total
+pre-inference cost ($1{,}747.0$~s vs.\ $2{,}873.8$~s, $1.64\times$ less)
+than physics-informed+Adam -- the data-driven route wins on accuracy and
+speed simultaneously once its label-generation step is costed on the same
+GPU-native hardware the rest of this study's break-even figures already
+use, not on the slower CPU reference pipeline the labels were actually
+produced on for this experiment. The two checkpoints' inference cost is
+effectively identical ($4.625$ vs.\ $4.586$~ms/sample, a $0.8\%$
+difference, consistent with sharing the identical architecture), so this
+total-cost advantage is not diluted by any later difference in deployment
+cost. The $20{,}340$~s CPU figure remains the real, measured cost of the
+specific label-generation pipeline this experiment's own labels were
+produced on -- it is not retracted -- but the GPU-based figure is the
+correct one to draw a general conclusion from, since nothing about the
+data-driven approach requires the slower pipeline. This reversal is specific to problems, like B1, where native
+finite-element label generation is itself cheap relative to training.
+B3 is the opposite case: its own native finite-element solve is far more
+costly per sample than B1's (Section~\ref{sec:b3-breakeven}), so a
+hypothetical data-driven B3 study would make the choice of finite-element
+implementation used to generate its labels -- the same native CPU solver
+used for B1's labels above, or the GPU-native assembled, direct solver
+this study develops for B3 itself (Section~\ref{sec:b3-assembled-direct})
+-- a first-order factor in the data-driven route's total cost, not a
+detail that training time eventually amortizes away as it does for B1.
+This study does not train a data-driven B3 checkpoint to test this
+directly; it is noted here as a natural extension of the finding above,
+where the label-generation-cost asymmetry this section identifies would
+be considerably larger and considerably more consequential than for B1.
 
 \begin{figure}[htb]
 \centering
@@ -2211,6 +2242,31 @@ variation across the family is two orders of magnitude larger than Q4's
 in $L^2$ and energy, but close to Q4's own at the coarsest mesh in $H^1$
 and stress. Table~\ref{tab:mms-operator-convergence} reports the full
 numerical evidence behind both findings above.
+
+A clarification on what $N$ means for the operator, since the negative
+rates above invite a direct reading against FEM's own convergence theory
+that does not actually apply. $N$ here is the resolution of the Q4 mesh
+the operator's own energy loss is integrated over at training time -- its
+spatial integration discretization -- not a measure of the operator's
+capacity: the network retains the same $\approx2.01$M trainable
+parameters (Table~\ref{tab:hyperparams}) at every $N$ tested, while a
+finite element's number of degrees of freedom grows directly with $N$ by
+construction. A finite element's convergence rate is a statement about a
+fixed functional form (shape functions of fixed polynomial order) refined
+on a shrinking mesh; refining $N$ for the operator instead refines the
+integration grid underneath a fixed-capacity network whose own
+optimization gap does not shrink with it, which is exactly the
+mechanism identified above. The two negative-sloping numbers are
+therefore not a convergence rate in the finite-element sense and are not
+directly comparable to Q4/Q9's own rates, and, more generally, neural
+operators carry no analogue of the a priori convergence guarantees finite
+elements provide. A further, practical consequence of this same
+mechanism is that there is no simple rule that a finer integration $N$ is
+always better for a trained operator: the family-mean results above show
+$L^2$ and energy getting \emph{worse} from $N{=}9$ to $N{=}33$ at fixed
+training budget, so choosing the integration resolution to train at is
+itself an open, case-dependent question rather than "finer is always
+preferable" by default.
 
 \begin{table}[h]
 \centering
@@ -2654,6 +2710,24 @@ Elements & Reference (s) & Assembled+direct (s) & Slow-down & Peak mem. \\
 \end{tabular}
 \end{table*}
 
+A more detailed phase breakdown is available for the $480{,}320$-element
+case (a repeat run under the same solver configuration -- symmetric
+storage, analysis-phase reuse -- total $1{,}469.3$~s, within $0.3\%$ of
+the $1{,}474.1$~s reported above): 20 load increments, each converging in
+a constant 7 Newton iterations (140 total), with per-phase time summed
+across all 20 increments -- symbolic analysis $316.9$~s ($21.6\%$),
+factorization $832.2$~s ($56.6\%$, the dominant single cost, consistent
+with the faster growth of 3D fill-in noted above), triangular solve
+$20.1$~s ($1.4\%$), and coalescing the raw Jacobian COO output into CSR
+$7.6$~s ($0.5\%$) -- leaving $292.6$~s ($19.9\%$) attributable to
+per-element tangent/residual assembly and other overhead not separately
+timed by these four phase counters. Peak memory at this resolution was
+$30{,}338.5$~MB. The equivalent phase-level breakdown at the
+$6{,}840$-element production mesh has not yet been measured: the
+$10.25$~s total reported for that resolution above predates this
+per-phase instrumentation and was captured as a single wall-clock number
+only.
+
 This is read as a genuine, informative limit on where this class of
 solver helps, not a defect in the implementation: the same
 analysis-reuse-plus-symmetric-storage design decisively wins against
@@ -2846,7 +2920,17 @@ separable deficiency: this paper shows that refining the DEM background
 integration in the region of interest, independently of the operator's own
 discretization, recovers roughly half of a large initial error, but closing
 the remainder is left as an open problem with several concrete candidate
-directions identified above.
+directions identified above. Fourth, the manufactured-solution study
+shows that refining the operator's own spatial integration discretization
+is not uniformly beneficial at fixed training budget -- family-mean
+displacement and energy error both worsen, not improve, from $N{=}9$ to
+$N{=}33$ -- so, unlike a finite element's mesh size, there is no simple
+"finer is always better" rule for selecting an operator's integration
+resolution; this is left here as an open selection problem rather than a
+resolved one, since this paper's own operators were trained at a handful
+of resolutions chosen for comparability with the finite-element study
+they are scored against, not as the result of a search over this
+trade-off.
 
 \section*{CRediT Author Contributions}
 %% TODO: confirm contribution roles with Suhib/Timon before submission.
