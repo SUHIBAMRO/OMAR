@@ -1181,13 +1181,13 @@ linear memory model (fixed overhead plus a per-DOF term), fitted on four
 smaller resolutions before the largest case had run, predicted the
 $N{=}1401$ peak memory to within $2.4\%$ out of sample.
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
-\includegraphics[width=0.98\columnwidth]{figures/image22.png}
+\includegraphics[width=0.85\textwidth]{figures/image22.png}
 \caption{GPU-native solver vs.\ torch-fem: solve time and torch-fem peak
   memory across resolutions.}
 \label{fig:22}
-\end{figure}
+\end{figure*}
 
 Compared directly against torch-fem~\cite{meyer2024torchfem}, a PyTorch-native
 GPU-accelerated finite-element library, on the identical mesh, material
@@ -1244,14 +1244,14 @@ $N$ & DOF & torch-fem peak mem. & torch-fem time \\
 \label{fig:40}
 \end{figure*}
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
-\includegraphics[width=0.98\columnwidth]{figures/image44.png}
+\includegraphics[width=0.85\textwidth]{figures/image44.png}
 \caption{Reaction-force resultant relative error ($N{=}1001$, $N{=}1401$)
   and per-component first Piola--Kirchhoff stress field error ($N{=}1401$),
   our solver vs.\ torch-fem.}
 \label{fig:44}
-\end{figure}
+\end{figure*}
 
 A per-phase timing breakdown of torch-fem itself shows assembly falling
 from $43\%$ of wall-clock at $N{=}401$ to $24\%$ at $N{=}1401$, with the
@@ -1272,14 +1272,14 @@ tightest.
 \label{fig:42}
 \end{figure*}
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
-\includegraphics[width=0.98\columnwidth]{figures/image45.png}
+\includegraphics[width=0.85\textwidth]{figures/image45.png}
 \caption{torch-fem tolerance sensitivity: $L^2$ relative error and
   wall-clock time at tolerance $10^{-6}/10^{-7}/10^{-8}$, $N{=}401$ and
   $N{=}1401$.}
 \label{fig:43}
-\end{figure}
+\end{figure*}
 
 A second established library, TensorMesh (\url{https://github.com/camlab-ethz/TensorMesh}),
 was also tested directly, using a genuine Newton-type solve with a direct
@@ -1288,14 +1288,14 @@ example code uses. $L^2$ error again agrees with torch-fem to every printed
 digit; TensorMesh is $1.8$--$2.1\times$ faster than torch-fem at every
 resolution tested.
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
-\includegraphics[width=0.98\columnwidth]{figures/image46.png}
+\includegraphics[width=0.85\textwidth]{figures/image46.png}
 \caption{TensorMesh (direct cuDSS solver) vs.\ torch-fem at production
   scale ($N{=}401$--$1401$): $L^2$ relative error identical to every
   printed digit; TensorMesh $1.8$--$2.1\times$ faster at every resolution.}
 \label{fig:45}
-\end{figure}
+\end{figure*}
 
 A third, distinct GPU baseline was also built and optimized directly:
 an \emph{assembled+direct} solver that, unlike our matrix-free solver
@@ -1821,13 +1821,13 @@ inferences.
 \label{fig:n1401}
 \end{figure*}
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
-\includegraphics[width=0.98\columnwidth]{figures/image25.png}
+\includegraphics[width=0.85\textwidth]{figures/image25.png}
 \caption{Operator vs.\ FEM accuracy and speed-up across mesh resolutions,
   all six cases.}
 \label{fig:25}
-\end{figure}
+\end{figure*}
 
 A maximum-feasible-batch-size comparison at matched GPU memory
 (B1$\times$Neo-Hookean, $N{=}21$) shows the operator's peak throughput
@@ -1933,13 +1933,13 @@ downstream engineering quantity would see, not a reliable predictor of
 it: across the quantities measured here that ratio spans $0.45\times$ to
 $4.06\times$.
 
-\begin{figure}[htb]
+\begin{figure*}[htb]
 \centering
-\includegraphics[width=0.98\columnwidth]{figures/image26.png}
+\includegraphics[width=0.85\textwidth]{figures/image26.png}
 \caption{Trained-operator displacement, stress, and reaction-force error,
   all six cases.}
 \label{fig:26}
-\end{figure}
+\end{figure*}
 
 A fixed-location peak-stress quantity of interest -- the first
 Piola--Kirchhoff stress at a single physical point located from a fine
