@@ -2894,26 +2894,7 @@ own discretization -- recovers roughly half of the gap, directly confirming
 that the region's background numerical integration, not only the network's
 representational capacity, was a real contributor to the original error.
 The remaining $29.8\%$ gap, still above a $5$--$10\%$ practical target, is
-reported here as an open limitation rather than a resolved result. Several
-concrete directions are identified for future work, none attempted in this
-paper: a stress- or equilibrium-aware physics loss term, analogous to prior
-energy-based treatments of contact and fracture~\cite{bai2025energy,goswami2020transfer,wang2026xdem};
-a mixed displacement--stress formulation, following complementary-energy
-approaches~\cite{abueidda2023enhanced,rao2021elastodynamics,abueidda2021meshless,wang2024dcem};
-PINO-type residual enforcement or Newton-operator hybrids~\cite{taghikhani2025neuralnewton};
-a local or hierarchical representation with additional capacity in
-stress-critical regions, in the spirit of graph-neural-network and
-geometry-conditioned approaches~\cite{he2023gnn,dean2026piginot}; data-driven
-stress supervision; a hybrid physics-informed-plus-supervised objective; and,
-more generally, further study of separating the physics-integration
-resolution from the operator's own resolution, which this result already
-shows to be a productive axis on its own. Goal-oriented error estimation in
-the finite-element sense~\cite{prudhomme1999goal,becker2001optimal} -- which
-localizes a global discretization error to a specific quantity of interest
-via an adjoint problem -- offers a complementary, more principled framing of
-"where does a trained operator's error in a specific local quantity actually
-come from" than the ablation-style diagnosis used here, and is a natural
-direction for relating the two fields more rigorously.
+reported here as an open limitation rather than a resolved result.
 
 \FloatBarrier
 \section{Conclusion}
@@ -2943,14 +2924,7 @@ reuse and symmetric-matrix storage, which together push this study's own
 strongest finite-element baseline to $23.68$~s at $17.1$~GB for a
 $1{,}962{,}801$-node reference problem (from $58.54$~s unoptimized) --
 the baseline every break-even figure above is judged against most
-strictly. Scaling this assembled, direct approach to genuinely
-large-scale problems is a natural next step, along the same two axes
-finite-element practice already uses for this purpose: an iterative
-Krylov or algebraic-multigrid linear solve in place of a single direct
-factorization once the assembled matrix itself becomes too large to
-factorize economically, and a multi-GPU, domain-decomposed assembly and
-solve once a single GPU's memory becomes the binding constraint rather
-than solve time.
+strictly.
 
 Three further findings qualify the operator's own result and point to
 concrete future work.

@@ -20488,3 +20488,62 @@ that exact page region showed the predicted visual collision before any
 fix was applied, and showed it gone after. Not yet confirmed by Omar
 against his own Chrome/Acrobat setup, but this is now evidence-backed
 rather than a plausible-sounding guess.
+
+## Omar's own instruction: two existing future-work passages deleted
+## from the paper (Discussion's stress-QoI directions, Conclusion's
+## solver-scaling next-step) -- these happened to overlap thematically
+## with Timon's own closing remarks, and Omar does not want them in
+## the manuscript
+
+While drafting a status-update email to Professor Rabczuk confirming
+all his review points were addressed, the draft noted his three
+closing remarks (reduce QoI/stress error, test more complex
+geometries, improve iterative-solver efficiency) as "recorded as
+future work, not acted on now." Omar asked directly whether these were
+literally written into the paper file itself. Checked `main.tex`
+directly rather than answering from memory: two of the three themes
+were indeed already present, verbatim, as pre-existing future-work
+text (not added in response to Timon's email, already in the
+manuscript from earlier sessions, coincidentally overlapping) --
+Section 8 (Discussion) had a full itemized paragraph on stress/QoI
+future directions (stress-aware physics loss, mixed
+displacement-stress formulation, PINO hybrids, local/hierarchical
+representation, data-driven stress supervision, goal-oriented error
+estimation), and Section 9 (Conclusion) had a paragraph on scaling the
+assembled/direct solver via iterative Krylov/multigrid methods. The
+third theme (more complex geometries, checking whether DD still beats
+PI) was not present anywhere in the document.
+
+Omar's explicit instruction, after confirming he meant the two
+passages actually present in the file: delete both from the paper.
+Removed:
+- The Section 8 sentence run from "Several concrete directions are
+  identified for future work..." through "...a natural direction for
+  relating the two fields more rigorously" (the paragraph now ends
+  cleanly at "...reported here as an open limitation rather than a
+  resolved result").
+- The Section 9 (Conclusion) sentence "Scaling this assembled, direct
+  approach to genuinely large-scale problems is a natural next
+  step..." through "...the binding constraint rather than solve time"
+  (the paragraph now ends cleanly at "...judged against most
+  strictly").
+
+The separate "Three further findings qualify the operator's own
+result and point to concrete future work" paragraph later in the
+Conclusion (summarizing, not prescribing specific techniques) was left
+alone -- Omar's instruction was specifically about the two passages
+quoted to him, not this one.
+
+Verified via a fully clean rebuild: 45 pages (unchanged), 0 undefined
+references, and a direct visual check of pages 30-31 (where both cuts
+land) confirms both paragraphs now end cleanly with no orphaned
+sentences or awkward transitions.
+
+**Separately noticed, not yet acted on**: a stale LaTeX comment at the
+CRediT Author Contributions section, `%% TODO: confirm contribution
+roles with Suhib/Timon before submission.` -- doesn't render in the
+PDF, but is live in the `main.tex` source (pushed to the public GitHub
+repo and included in the Overleaf package). The roles it asks about
+are already filled in on the very next lines, so the TODO is stale.
+Flagged to Omar; not removed without his say-so since it wasn't part
+of this specific request.
