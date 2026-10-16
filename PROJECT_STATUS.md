@@ -20547,3 +20547,36 @@ repo and included in the Overleaf package). The roles it asks about
 are already filled in on the very next lines, so the TODO is stale.
 Flagged to Omar; not removed without his say-so since it wasn't part
 of this specific request.
+
+Omar said yes -- removed the stale `%% TODO: confirm contribution
+roles with Suhib/Timon before submission.` comment line from the
+CRediT section. Comment-only change (never rendered in the PDF either
+way). Verified via a clean rebuild: 45 pages, unchanged, 0 undefined
+references.
+
+## Manuscript status as of 2026-10-16: submission-ready from this
+## side, pending Omar's own confirmation that the page-2 rendering
+## glitch is actually gone in his Chrome/Acrobat setup
+
+Current state: both of Timon's review rounds (8-point main review +
+final 5-point round) are fully addressed and verified; all
+figure-enlarging requests (Timon's own four plus Omar's own follow-up
+rounds naming specific figure numbers) are done; the root-caused page-2
+rendering-glitch fix (overfull-hbox sweep, see above) is in and
+visually verified from this side but not yet confirmed by Omar against
+his own viewers; two future-work passages were removed from the
+Discussion/Conclusion per Omar's explicit instruction (see above); a
+stale TODO comment was cleaned from the CRediT section. A draft
+status-update email to Professor Rabczuk (confirming all review points
+addressed, manuscript ready for submission) was prepared and given to
+Omar to review/send himself -- not sent from here.
+
+**Immediate next step for a future session**: if Omar confirms the
+page-2 glitch is resolved, the manuscript is ready to submit and the
+main open item is simply waiting on him to send the status email (or
+asking for edits to it first). If he reports the glitch persists even
+after this round's fix, the next step is a tighter, Omar-provided crop
+of exactly what he still sees, since the three fixes tried so far
+(non-breaking dash, T1 fontenc, overfull-hbox sweep) were each
+evidence-based but none has been confirmed working by Omar directly
+yet.
