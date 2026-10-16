@@ -20337,3 +20337,51 @@ inspected from this environment), but it directly removes the one
 candidate trigger identified, and is a strict improvement (an
 unbreakable proper-noun pair) independent of whether it was the actual
 cause.
+
+## Omar confirmed the Newton-Raphson fix did NOT resolve the glitch --
+## found and fixed the real, more fundamental cause: no T1 fontenc
+
+Went back to the actual document setup rather than patching more
+individual words: `main.tex` had NO `\usepackage[T1]{fontenc}` at all,
+meaning the whole document was compiling under pdflatex's legacy
+default OT1 encoding. This is a well-known, common root cause of
+exactly this class of bug -- text that renders fine in poppler/Acrobat
+but shows corrupted or overlapping glyphs specifically in PDF.js-based
+viewers (Chrome's built-in viewer among them), because OT1 builds
+certain glyphs (like the en-dash in "Newton--Raphson") via a ligature
+mechanism that doesn't map cleanly to how those renderers expect glyph
+runs to be structured -- a much better explanation than any single
+word, consistent with Omar seeing it keep happening after the
+word-level fix.
+
+Added `\usepackage[T1]{fontenc}`. The first attempt also added
+`lmodern` (a common pairing, to supply T1-encoded fonts) -- this was
+WRONG and caught immediately via `pdffonts` and a full visual re-render
+before committing: it silently overrode the document's entire txfonts
+(Times-like) typography with Latin Modern instead, changing the page
+count 45->49 and every font in the document, a massive unwanted side
+effect from one package addition. Root-caused the real, narrower
+problem instead: txfonts doesn't ship a T1-encoded typewriter family,
+so plain `[T1]{fontenc}` alone made LaTeX's font substitution silently
+fall back to generating Type 3 (bitmap) fonts for every `\texttt{}` run
+in the document -- itself a separate, well-known cause of rendering
+corruption in exactly these same browser-based renderers, confirmed via
+`pdffonts` showing new "Type 3" rows that weren't there in the original
+45-page document. Fixed surgically with `\usepackage{courier}` instead
+of lmodern -- supplies a proper T1 Type 1 Courier font for `\ttfamily`
+only, without touching txfonts' already-correct Times-like
+`\rmfamily`/`\sffamily` setup at all.
+
+Verified via a fully clean rebuild: 45 pages (unchanged), 0 undefined
+references, `pdffonts` shows every single font embedded as Type 1 (zero
+Type 3/bitmap fonts anywhere), and a full 45-page visual re-render is
+pixel-for-pixel identical in layout to the pre-fontenc version --
+exactly what a correct, encoding-only fontenc fix should look like
+(invisible in poppler, meaningful only to renderers that handle OT1
+differently). Committed (`c555fc2`) and pushed.
+
+**Not yet confirmed by Omar** whether this actually resolves what he
+sees in Chrome -- the underlying renderer bug can't be reproduced or
+inspected from this environment, so this is the best-available,
+most-likely real fix based on direct evidence (the missing fontenc
+declaration itself, not just a guess), not a verified-working report.
