@@ -20226,3 +20226,77 @@ regressions. Committed (`9dea195`) and pushed.
 
 **Running total, four rounds this session: 17 figures widened or
 restructured.**
+
+## Timon's final review round: title change, real overlap defects
+## fixed, sentence reworded, second affiliation added, Figure 8 fonts
+## bumped again
+
+Timon replied directly this time (not relayed through Omar), confirming
+the paper is nearly done and giving five last items.
+
+**1. Title**: removed "Physics-Informed" per his request (DD now beats
+PI for B1 on both accuracy and cost, per the GPU-based comparison fixed
+earlier this session) -> "Accuracy- and Hardware-Matched Comparison of
+GPU-Native Finite Element Solvers and Neural Operators for
+Hyperelasticity".
+
+**2. Figure 4**: Timon said he still finds it hard to read but "let's
+see what the reviewer will say :)" -- read as accepting the current
+state (color-by-batch-size + linestyle-by-LR-rule from the earlier
+round) rather than a new action item; not touched further. **Figure 8
+left column**: explicit request to increase font size further --
+bumped `accuracy_diagnostics.py`'s plot rcParams a second time (15->19
+body, 17->21 title) and regenerated image11/13/15.png from the same
+verified per-sample data as the earlier round (re-confirmed against the
+published 9.11%/7.28%/9.81% means).
+
+**3. Real overlap defects on pages 21/22 and Table 24 (page 25) --
+found and fixed, not assumed**:
+- Figure 26 (image25.png, operator-vs-FEM accuracy/speed-up, B2 panel):
+  matplotlib's default `loc='best'` legend placement was sitting
+  directly on top of the data curves. Found the source script
+  (`make_figure_operator_vs_fem.py`), moved the legend below each axes
+  via `bbox_to_anchor`, increased figure height to fit it, and
+  regenerated. **Found and fixed a real bug while doing this**: the
+  script's own `OUT = 'report_builders/figures'` path is relative to
+  cwd, not to the script's own location -- running it from inside
+  `report_builders/` itself (the natural thing to do) silently saved
+  into a doubly-nested `report_builders/report_builders/figures/`
+  directory instead of overwriting the real file, which is why the
+  first regeneration attempt appeared to do nothing (confirmed via
+  mtime/md5 before realizing the output went to the wrong path).
+- A genuinely overfull LaTeX line: today's own earlier rewrite of the
+  PI-vs-DD section used the unbreakable compound
+  "data-driven+AdamW+OneCycleLR", which doesn't have a breakpoint TeX
+  can use, pushing the line past the column boundary and visibly
+  overlapping "Section 7.5" from the facing column's text. Reworded to
+  avoid the compound entirely rather than inserting a manual
+  `\allowbreak` hack.
+- Table 24 (`tab:hybrid-sobolev`): the tabular column spec had a stray
+  extra column (`lccccc` for only 5 real columns) and, at `\small`
+  size, the table was wide enough to bleed into the adjacent column's
+  text (the "Wall-clock (s)" header and first data row were visibly
+  colliding with "Two further operators..."). Fixed with
+  `\footnotesize` + `\setlength{\tabcolsep}{3pt}` + the corrected
+  5-column spec, the same pattern already used for Table 6's own
+  earlier width fix.
+
+**4. Sentence reworded exactly as requested**: "neural operators carry
+no analogue of the a priori convergence guarantees finite elements
+provide" -> "this trained Transolver has no FEM-like mesh-refinement
+convergence guarantee" (MMS section, N-vs-parameter-count paragraph).
+
+**5. Second affiliation added** for Timon: Institute of CMxAI, Fudan
+University, Shanghai, China (`\address[fudan]{...}`, author line
+updated to `\author[rub,fudan]{Timon Rabczuk}`).
+
+Verified via a fully clean rebuild (45 pages, unchanged, 0 undefined
+references) and a full 45-page visual re-render -- both flagged overlap
+defects confirmed gone, no new regressions anywhere. Committed
+(`8154aca`) and pushed.
+
+**Not acted on** (Timon's own forward-looking remarks about next
+steps -- reducing QoI/stress error, more complex geometries, DD-vs-PI
+at scale, faster iterative solvers -- read as his own reflection on
+future work, not a request to add text to this manuscript; left alone
+unless he asks explicitly).
