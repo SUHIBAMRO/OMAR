@@ -20300,3 +20300,40 @@ steps -- reducing QoI/stress error, more complex geometries, DD-vs-PI
 at scale, faster iterative solvers -- read as his own reflection on
 future work, not a request to add text to this manuscript; left alone
 unless he asks explicitly).
+
+## Omar reported a page-2 rendering glitch; root-caused to a line break
+## inside "Newton-Raphson", fixed by making it non-breaking everywhere
+
+Omar sent a screenshot of page 2 with a garbled/overlapping-text region
+circled, right around "Newton-Raphson Total-Lagrangian finite-element
+solver." Rendered the same page directly via `pdftoppm` (poppler) at
+250dpi and confirmed the actual PDF content there is clean -- no overlap
+poppler can see -- so this is a renderer-specific issue (Omar's
+screenshot showed Chrome's built-in PDF viewer), not a defect visible to
+every tool. Reported back that it looked like a viewer-side glitch; Omar
+said the same problem persisted after retrying.
+
+Looked more carefully rather than leaving it as "try a different
+viewer": the exact line in poppler's own clean render breaks right at
+the en-dash inside "Newton--Raphson" ("Newton-" ends one line, "Raphson"
+starts the next) -- precisely the spot Omar's circle pointed at. Some
+PDF renderers (PDF.js/Chrome among the historically known cases) have
+had glyph-positioning quirks around line breaks that land on certain
+embedded Type 1 dash glyphs, which this document uses throughout (the
+txfonts family, confirmed via `pdffonts` -- all fonts embedded and
+subset correctly, ruling out a missing-font explanation). Rather than
+guess further at the exact renderer mechanism, removed the one concrete
+fact in common with the report: wrapped all 8 occurrences of
+"Newton--Raphson" in `\mbox{--}` so the whole compound can never break
+across a line again, standard practice for this kind of proper-noun
+pair regardless of the renderer question.
+
+Verified via a fully clean rebuild (45 pages, unchanged, 0 undefined
+references) and a full 45-page visual re-render -- the affected line
+now wraps as a whole unit, no other regressions. Committed (`35a56c7`)
+and pushed. Not yet confirmed by Omar that this actually fixes what he
+saw (the underlying renderer behavior could not be reproduced or
+inspected from this environment), but it directly removes the one
+candidate trigger identified, and is a strict improvement (an
+unbreakable proper-noun pair) independent of whether it was the actual
+cause.
