@@ -20580,3 +20580,43 @@ of exactly what he still sees, since the three fixes tried so far
 (non-breaking dash, T1 fontenc, overfull-hbox sweep) were each
 evidence-based but none has been confirmed working by Omar directly
 yet.
+
+## Ideas for a follow-up paper (Professor Rabczuk, 2026-10-16) -- NOT
+## for the current manuscript, not acted on
+
+Professor Rabczuk sent a separate email, explicitly framed as what to
+work on "once this paper is finished" and "a small follow-up paper" --
+i.e. next-paper scope, not a request against the current manuscript.
+Consistent with Omar's own decision earlier this session to keep
+future-work speculation out of the current paper, nothing here should
+be added to `main.tex` unless Omar explicitly asks later. Recorded
+here only so the ideas aren't lost between sessions:
+
+Focus area: reducing the regional Cauchy-stress error near the B3
+groove -- the current paper's own local-integration-refinement fix
+recovers roughly half of it (62.4% -> 29.8% baseline-vs-refined, Table
+28/29), but the professor considers the remainder still too high.
+Four candidate approaches, suggested to be tried in this order:
+
+1. **Mixed displacement-stress formulation**: network predicts both
+   `u` and `P` (first Piola-Kirchhoff stress) jointly, with equilibrium
+   (`Div P = 0`) and constitutive consistency (`P = dW/dF`) both
+   enforced as loss terms, rather than deriving stress purely as a
+   post-hoc differentiation of a `u`-only network.
+2. **Equilibrium-augmented displacement formulation**: keep the
+   current `u`-only network, but add equilibrium and traction-residual
+   terms directly to the existing energy loss (a lighter-weight
+   version of (1), no architecture change, just additional loss
+   terms).
+3. **A more general H1/gradient/weak-form term**: constrains
+   displacement gradients more directly than the current pure-energy
+   objective does.
+4. **Sobolev/H1 training** for the pure data-driven model, and
+   possibly a hybrid model -- note this paper already has a Sobolev
+   baseline (Table 24/`tab:hybrid-sobolev`: Sobolev reaches 14.70%
+   validation error, 31.33% H1, 36.01% stress, vs. hybrid's 12.75%/
+   25.07%/21.69%) as a starting point/baseline for this exact
+   direction, should a follow-up build on it rather than start fresh.
+
+No action taken on any of these; this is a parking spot for next-paper
+scope only.
