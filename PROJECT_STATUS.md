@@ -20385,3 +20385,106 @@ sees in Chrome -- the underlying renderer bug can't be reproduced or
 inspected from this environment, so this is the best-available,
 most-likely real fix based on direct evidence (the missing fontenc
 declaration itself, not just a guess), not a verified-working report.
+
+## Fontenc fix did NOT work either (confirmed by Omar in BOTH Chrome AND
+## Acrobat, even on a freshly re-downloaded file) -- found and fixed the
+## REAL, visually-confirmed defect: a severe overfull \hbox spilling a
+## citation bracket into the facing column
+
+Omar reported the glitch persisted after the fontenc fix, in Chrome.
+Asked him to test in a completely different renderer (Adobe Acrobat
+Reader) to rule out a PDF.js-specific quirk -- he reported the same
+problem there too. Had him delete all old `main*.pdf` files from
+Downloads and fetch a fresh copy first, to rule out a stale cached file
+-- confirmed the exact same problem on a verified-fresh file in Acrobat.
+This ruled out both the stale-file and the single-renderer-quirk
+explanations: Acrobat is one of the strictest, most standards-compliant
+PDF renderers available, so a defect reproducible there is very likely
+a real property of the PDF content itself, not a renderer bug. Omar
+then explicitly asked to stop requesting more screenshots and just fix
+something concrete.
+
+Reworded the sentence containing "Newton-Raphson" to change its exact
+print position (restructured "An independent Newton-Raphson
+Total-Lagrangian finite-element solver... generates ground-truth
+samples" to "Ground-truth samples come from an independent, custom
+Total-Lagrangian finite-element solver... iterated to convergence with
+Newton-Raphson"). While re-rendering page 2 at 300dpi to inspect this
+change before sending it, spotted what looked like a stray bold
+character crossing the column gutter near "stress-concentrating" /
+"groove in its rigid inner core (B3)." Pixel-level crop analysis first
+suggested this might just be two independent columns happening to sit
+close together (real gap measured, no actual pixel collision at that
+spot) -- but cross-checking against `pdflatex`'s own log turned up the
+real mechanism: an **Overfull \hbox (24.5pt too wide)** in that exact
+paragraph, for the line "rocking elastomeric rubber-mount bushing with
+a stress-concentrating" -- i.e. `pdflatex` itself could not find a valid
+line break and let that line's content spill 24.5pt past its column's
+right edge. With an 18pt column gutter (`elsarticle`'s own default for
+the `5p` style used here), a 24.5pt overflow eats the entire gutter and
+pokes visibly into the facing column -- a genuine, renderer-independent
+defect baked into the PDF's content stream itself, not a rendering
+quirk. This explains everything Omar reported: identical in Chrome and
+Acrobat (both render the actual overlapping glyphs faithfully), present
+on every fresh copy of the file (it's not cache-dependent, it's in the
+PDF itself), and invisible to a casual poppler render at reduced zoom
+(small enough to miss without a tight crop or reading `pdflatex`'s own
+warnings).
+
+Searched the full build log for every other severely overfull `\hbox`
+(>15pt, the same order of magnitude as the confirmed defect) across all
+45 pages and fixed each one found, instead of patching only the one
+Omar happened to screenshot:
+- The worst in the whole document, 47.2pt, in Section 6.7
+  (physics-informed-vs-data-driven discussion): an unbreakable
+  `physics-informed+Adam` / `data-driven+AdamW+OneCycleLR` compound
+  (the same "+"-joined-compound pattern already fixed once elsewhere
+  this project, apparently missed in that earlier pass) -- reworded to
+  "physics-informed with Adam... vs. data-driven with AdamW and a
+  one-cycle schedule," removing the unbreakable token entirely.
+- The B3-intro paragraph itself (24.5pt, the one visually confirmed
+  above): shortened "rocking elastomeric rubber-mount bushing" to
+  "rocking rubber-mount bushing" (dropped the redundant "elastomeric" --
+  rubber-mount already implies an elastomeric material) and shortened
+  the B3 subsection heading to match, bringing this down to 5.9pt (well
+  inside the 18pt gutter, confirmed visually clean).
+- A `displacement/energy/reaction` slash-joined compound (30.9pt,
+  Section 7.1) -- reworded to "displacement, energy, and reaction."
+- A `100/200/400` slash-joined compound next to `B1$\times$Neo-Hookean`
+  (19.1pt, Section 7 discussion) -- reworded to "100, 200, or 400."
+- Two single-column tables (`tab:fem-correctness`, the cuDSS
+  reuse/symmetric-storage timing table) still set at `\small` and
+  overflowing by 19-20pt -- switched to `\footnotesize` +
+  `\setlength{\tabcolsep}{3pt}`, the same pattern already used
+  successfully for Table 24 earlier this project.
+- A citation tied too tightly to its anchor word with `~` (`objective~\cite{...}`,
+  25.8pt, causing the exact citation-bracket-into-facing-column
+  collision visually confirmed on page 2) -- loosened to a normal
+  breakable space before the citation, and separately dropped one
+  redundant word ("closely") from the same sentence.
+- A `resolution-generalization` compound stretching a line past its
+  column (19.1pt, Section 6.6) -- reworded the surrounding sentence to
+  shift where the line wraps.
+
+Verified via a fully clean rebuild at every step (45 pages, unchanged
+throughout; 0 undefined references). Total overfull-hbox count across
+the document dropped from 103 to 95, and the worst remaining instance
+anywhere in the 45 pages dropped from 47.2pt to 13.9pt -- comfortably
+inside the 18pt column gutter everywhere now, confirmed by re-rendering
+all 45 pages as full-page contact sheets and visually inspecting every
+one: no remaining overlap/collision anywhere in the document. The
+original defect Omar could actually see -- the citation bracket merging
+with the start of the facing column's text, rendering as something like
+"...Deep Ritz method [1[0]r a data structure..." -- is directly
+confirmed gone by before/after 300dpi crops of the same page-2 region.
+
+This is a materially different, and far better supported, finding than
+the two earlier attempts (non-breaking dash, T1 fontenc): both of those
+were reasonable hypotheses based on known LaTeX/PDF-renderer failure
+modes in general, but neither was tied to a specific, measurable defect
+in this document's own build log. This one is: `pdflatex` itself
+flagged the exact line, the exact overflow amount, and a 300dpi crop of
+that exact page region showed the predicted visual collision before any
+fix was applied, and showed it gone after. Not yet confirmed by Omar
+against his own Chrome/Acrobat setup, but this is now evidence-backed
+rather than a plausible-sounding guess.

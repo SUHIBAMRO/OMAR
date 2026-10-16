@@ -117,7 +117,7 @@ operator~\cite{wu2024transolver,luo2025transolverpp}, built on the attention
 mechanism~\cite{vaswani2017attention}, is trained without any labeled
 displacement data, by directly minimizing the discretized total potential
 energy of the elastic body -- a Deep Energy Method (DEM)
-objective~\cite{samaniego2020energy,nguyen2020deep}, closely related to
+objective \cite{samaniego2020energy,nguyen2020deep}, related to
 the Deep Ritz method~\cite{e2018deepritz} and to the variational
 physics-informed operator framework~\cite{eshaghi2025vino}, rather than a
 supervised regression loss against finite-element solutions. The same
@@ -137,12 +137,13 @@ under top-edge traction (B1) and a quarter ring under internal pressure
 (Neo-Hookean~\cite{rivlin1948large}, Mooney--Rivlin~\cite{mooney1940theory},
 Arruda--Boyce~\cite{arruda1993threedim}), for six total (geometry,
 material) cases, and a third, substantially more demanding 3D benchmark: a
-rocking elastomeric rubber-mount bushing with a stress-concentrating
-groove in its rigid inner core (B3). An independent Newton\mbox{--}Raphson
-Total-Lagrangian finite-element solver, built on top of
-torch-fem~\cite{meyer2024torchfem} and
-PyTorch~\cite{paszke2019pytorch,baydin2018automatic}, generates
-ground-truth samples. For the physics-informed models that are this
+rocking rubber-mount bushing with a stress-concentrating groove in its
+rigid inner core (B3). Ground-truth samples come from an
+independent, custom Total-Lagrangian finite-element solver built on top
+of torch-fem~\cite{meyer2024torchfem} and
+PyTorch~\cite{paszke2019pytorch,baydin2018automatic}, iterated to
+convergence with Newton\mbox{--}Raphson. For the physics-informed models
+that are this
 study's primary subject, these samples are used only for evaluation; the
 supervised, data-driven baseline introduced for comparison uses
 finite-element-labeled samples for training by construction, since
@@ -320,7 +321,7 @@ the inner arc $r=R_{\text{in}}$; the outer arc is traction-free; symmetry
 boundary conditions are imposed on the two radial edges. $E$ and $\nu$ use
 the same sampling distributions as B1.
 
-\subsection{B3: rocking rubber-mount bushing with a stress-concentrating groove}
+\subsection{B3: rubber-mount bushing with a stress-concentrating groove}
 \label{sec:b3-geometry}
 The third, 3D benchmark is an elastomeric rubber-mount bushing: a hollow
 rubber annulus ($R_{\text{in}}=0.5$, $R_{\text{out}}=1.0$, height $L_z=1.0$)
@@ -468,7 +469,8 @@ merely close.
 \caption{GPU-native vs.\ CPU-reference solver correctness, all six cases
   (round-off-level agreement, not an independent accuracy claim).}
 \label{tab:fem-correctness}
-\small
+\footnotesize
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{lcccc}
 \toprule
 Case & $\max|u_{\text{cpu}}|$ & Max abs.\ diff. & Mean rel.\ err. & Max rel.\ err. \\
@@ -1337,7 +1339,8 @@ FEM cost figures across this paper.
   time (s) across three progressively-added optimizations, and peak GPU
   memory (MB) for the fully-optimized configuration.}
 \label{tab:assembled-direct}
-\small
+\footnotesize
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{lcccc}
 \toprule
 $N$ & No reuse & $+$Reuse & $+$Reuse$+$symmetric & Peak mem.\ (MB) \\
@@ -1990,9 +1993,10 @@ losses alike: switching from Adam to AdamW with a one-cycle schedule
 makes the physics-informed model $30.0\%$ worse ($9.59\%\to12.47\%$) and
 the data-driven model $36.8\%$ better ($13.07\%\to8.26\%$), so a
 learning-rate schedule tuned against one objective is not neutral ground
-for the other. Comparing each loss's own best configuration directly
-(physics-informed+Adam, $9.59\%$, vs.\ data-driven+AdamW+OneCycleLR,
-$8.26\%$) rather than reading down either single column, the best
+for the other. Comparing each loss's own best configuration directly --
+physics-informed with Adam at $9.59\%$ vs.\ data-driven with AdamW and a
+one-cycle schedule at $8.26\%$ -- rather than reading down either single
+column, the best
 data-driven configuration found here is in fact more accurate than the
 best physics-informed one on this problem -- a comparison only possible
 because all four cells of the grid were run, not just a matched pair.
@@ -2082,9 +2086,9 @@ be considerably larger and considerably more consequential than for B1.
 \label{fig:27}
 \end{figure}
 
-A preliminary comparison suggests the resolution-generalization behavior
-observed above for the zero-shot study is not specific to
-physics-informed training: a data-driven operator trained on
+The resolution-generalization behavior observed above for the
+zero-shot study appears not to be specific to physics-informed
+training: a data-driven operator trained on
 finite-element labels from a
 coarse mesh ($N{=}13$) is most accurate at its own training resolution
 but degrades to $25.9\%$ at the farthest unseen mesh tested, while one
@@ -2640,8 +2644,8 @@ $950{,}400$-element mesh -- the 13-point ladder's own finest row
 against the $839{,}040$-element row (the ladder's second-finest row,
 within $0.86\%$), and subsequently adopted as the common, downstream
 high-resolution reference used elsewhere in this section as well. The
-two references serve different purposes (a displacement/energy/reaction
-accuracy baseline here, a mesh-convergence score and shared downstream
+two references serve different purposes (a displacement, energy, and
+reaction accuracy baseline here, a mesh-convergence score and shared downstream
 reference there) and are not required to coincide. Ten held-out samples were re-solved at this
 $43{,}400$-element fine reference, and the same checkpoint
 queried zero-shot at that finer mesh's node positions, giving: displacement
@@ -2654,7 +2658,7 @@ solver both at $6{,}840$ elements) and, for each of the three well-reproduced qu
 an accuracy-matched break-even against the cheapest finite-element mesh
 whose own error against the same fine reference is at least as good as the
 operator's, all computed against the operator's own measured inference
-cost at this production mesh ($\approx6.32$~ms/sample, batch size 1) -- not to
+cost at this production mesh ($\approx6.32$~ms per sample, batch size 1) -- not to
 be confused with the much larger $N{=}1401$ 2D-mesh inference cost
 reported elsewhere for the B1/B2 deployment-resolution study, which does
 not apply to B3's fixed 3D mesh.
@@ -2804,8 +2808,9 @@ The screening and early-stopping protocol reached the best validation
 performance within $375$--$1{,}050$ epochs across all six benchmark cases
 (Table~\ref{tab:final-results}), substantially reducing the training
 budget compared with a naive fixed-epoch setting. A separate robustness
-check varied the early-stopping patience (4/8/16 consecutive validation
-events, i.e.\ 100/200/400 epochs) for B1$\times$Neo-Hookean, holding
+check varied the early-stopping patience (4, 8, or 16 consecutive
+validation events, i.e.\ 100, 200, or 400 epochs) for
+B1$\times$Neo-Hookean, holding
 everything else fixed (seed, architecture, dataset): patience $4$ and
 $8$ -- the value used for every result reported above -- converge to the
 identical best checkpoint ($9.734\%$, found at epoch 375 either way),
