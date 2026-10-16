@@ -89,7 +89,7 @@ Classical finite-element (FEM) solvers for nonlinear
 elasticity~\cite{bathe1996finite,belytschko2014nonlinear,zienkiewicz2013finite}
 re-solve a new nonlinear system from scratch for every new combination of
 geometry, material field, and loading, each solve requiring a full
-Newton--Raphson iteration to convergence. Operator learning instead trains
+Newton\mbox{--}Raphson iteration to convergence. Operator learning instead trains
 a single neural
 network to approximate the map from problem data (material field, loading
 field, geometry) directly to the solution field, so that new instances are
@@ -136,7 +136,7 @@ under top-edge traction (B1) and a quarter ring under internal pressure
 Arruda--Boyce~\cite{arruda1993threedim}), for six total (geometry,
 material) cases, and a third, substantially more demanding 3D benchmark: a
 rocking elastomeric rubber-mount bushing with a stress-concentrating
-groove in its rigid inner core (B3). An independent Newton--Raphson
+groove in its rigid inner core (B3). An independent Newton\mbox{--}Raphson
 Total-Lagrangian finite-element solver, built on top of
 torch-fem~\cite{meyer2024torchfem} and
 PyTorch~\cite{paszke2019pytorch,baydin2018automatic}, generates
@@ -240,7 +240,7 @@ the compressible Neo-Hookean strain-energy density is
 which yields the first Piola--Kirchhoff stress
 $\mathbf{P} = \partial\psi/\partial\mathbf{F} = \mu(\mathbf{F}-\mathbf{F}^{-\mathsf T}) + \lambda(\ln J)\mathbf{F}^{-\mathsf T}$.
 This expression, and the corresponding consistent material tangent, were
-derived analytically and used in the Newton--Raphson solver that generates
+derived analytically and used in the Newton\mbox{--}Raphson solver that generates
 the reference finite-element solutions.
 
 \subsection{Mooney--Rivlin (2D, compressible)}
@@ -276,7 +276,7 @@ sampled per instance).
 For all three constitutive models the first Piola--Kirchhoff stress is
 $\mathbf{P} = \partial\psi/\partial\mathbf{F}$ and the consistent material
 tangent is $\mathbb{C} = \partial^2\psi/\partial\mathbf{F}\partial\mathbf{F}$,
-used only inside the reference Newton--Raphson solver. For Neo-Hookean, both
+used only inside the reference Newton\mbox{--}Raphson solver. For Neo-Hookean, both
 were derived analytically; for Mooney--Rivlin and Arruda--Boyce they were
 obtained by automatic differentiation (\texttt{jax.grad}, \texttt{jax.jacfwd}),
 avoiding manual derivation of the more complex tangent operators. All three
@@ -377,7 +377,7 @@ in the domain. (A later subsection separately refines only the
 \emph{numerical-integration quadrature} used in the training objective
 for the handful of elements touching the stress region of interest, a
 distinct, mesh-independent change discussed there.) An independent
-Newton--Raphson Total-Lagrangian finite-element
+Newton\mbox{--}Raphson Total-Lagrangian finite-element
 solver (built on torch-fem~\cite{meyer2024torchfem}) generates the
 ground-truth samples used only for validation. All GPU experiments in
 this study (training, the GPU-native solver, and the evaluation scripts)
@@ -454,7 +454,7 @@ Arruda-Boyce   & \multicolumn{2}{c}{$\approx9.72\times10^{7}$} & $\approx7.9\tim
 
 The reference solver's own correctness is checked independently of the
 operator comparison: a GPU-native, batched re-implementation of the same
-Newton--Raphson solver (used for the scaling study below) is validated
+Newton\mbox{--}Raphson solver (used for the scaling study below) is validated
 node-by-node against this CPU reference at the operating resolution
 before any timing is trusted
 (Table~\ref{tab:fem-correctness}) -- agreement is at the level of machine
@@ -1106,7 +1106,7 @@ access to a finite-element solver is against GPU-FEM instead, reported
 immediately below, which gives smaller but still substantial, and more
 realistic, speed-up and break-even figures. A hardware-matched comparison
 against a GPU-native, batched
-Newton--Raphson solver (written in PyTorch using \texttt{torch.func}
+Newton\mbox{--}Raphson solver (written in PyTorch using \texttt{torch.func}
 automatic differentiation and \texttt{vmap}, validated node-by-node against
 the CPU reference before timing) gives a smaller but still substantial
 speed-up of $1{,}215$--$1{,}297\times$ at matched batch size, with a
@@ -1143,7 +1143,7 @@ whether a GPU-native solver is actually available to the practitioner.
 \label{sec:gpu-fem}
 To check whether the break-even figures above depend on the finite-element
 side being a slow, single-threaded CPU baseline, the same GPU-native,
-batched Newton--Raphson solver was also scaled up on its own terms, and
+batched Newton\mbox{--}Raphson solver was also scaled up on its own terms, and
 compared directly against two established
 GPU finite-element codes. The solver forms its tangent densely at the
 study's own mesh, which is appropriate at $N{=}21$ but cannot scale (a
