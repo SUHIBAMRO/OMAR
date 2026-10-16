@@ -273,14 +273,17 @@ def _make_plots(args, per_sample, worst, uv_pred_all, Test_samples, xy):
     # printed page's width each (Figure 8, two per row in the paper), so
     # the default matplotlib font sizes used here are unreadable once
     # downscaled -- bumped explicitly, matching the sizing already used
-    # for every other report_builders figure in this project.
+    # for every other report_builders figure in this project. Bumped a
+    # second time (2026-10-16) after Timon's own direct request to
+    # increase the left-column (error-vs-parameters) scatter plots
+    # further, on top of the earlier bump.
     matplotlib.rcParams.update({
-        'font.size': 15,
-        'axes.titlesize': 17,
-        'axes.labelsize': 15,
-        'xtick.labelsize': 13,
-        'ytick.labelsize': 13,
-        'legend.fontsize': 13,
+        'font.size': 19,
+        'axes.titlesize': 21,
+        'axes.labelsize': 19,
+        'xtick.labelsize': 16,
+        'ytick.labelsize': 16,
+        'legend.fontsize': 16,
     })
 
     errs = np.array([r["rel_l2_error"] for r in per_sample])

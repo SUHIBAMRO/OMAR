@@ -44,7 +44,7 @@ for label, geometry, material in CASES:
     rows = sorted(get_rows(tmap[label]), key=lambda r: int(r['N']))
     data[(geometry, material)] = rows
 
-fig, axes = plt.subplots(1, 3, figsize=(15.5, 4.6), dpi=200)
+fig, axes = plt.subplots(1, 3, figsize=(15.5, 5.6), dpi=200)
 
 for ax, geometry in zip(axes[:2], ('B1', 'B2')):
     for material, color in MATERIAL_COLOR.items():
@@ -59,7 +59,12 @@ for ax, geometry in zip(axes[:2], ('B1', 'B2')):
     ax.set_xlabel('N')
     ax.set_ylabel('Relative L2 error (%)')
     ax.set_title(f'{geometry}: FEM vs. operator accuracy')
-    ax.legend(frameon=False, fontsize=12, ncol=1)
+    # Timon caught the default 'best'-location legend sitting directly on
+    # top of the B2 curves (overlapping lines/markers) -- anchored below
+    # the axes instead, which is guaranteed clear of the data regardless
+    # of where the curves happen to sit.
+    ax.legend(frameon=False, fontsize=10, ncol=2, loc='upper center',
+               bbox_to_anchor=(0.5, -0.18))
     ax.grid(True, which='both', alpha=0.25)
 
 ax = axes[2]
@@ -77,7 +82,7 @@ ax.legend(frameon=False, fontsize=12, ncol=1)
 ax.grid(True, which='both', alpha=0.25)
 
 fig.suptitle('Operator vs. FEM: accuracy and cost across mesh resolutions', fontsize=16)
-fig.tight_layout(rect=[0, 0, 1, 0.93])
+fig.tight_layout(rect=[0, 0.1, 1, 0.93])
 
 out_path = os.path.join(OUT, 'fig_operator_vs_fem.png')
 fig.savefig(out_path)

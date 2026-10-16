@@ -17,15 +17,16 @@
 
 \begin{frontmatter}
 
-\title{Accuracy- and Hardware-Matched Comparison of GPU-Native Finite Element Solvers and Physics-Informed Neural Operators for Hyperelasticity}
+\title{Accuracy- and Hardware-Matched Comparison of GPU-Native Finite Element Solvers and Neural Operators for Hyperelasticity}
 
 %% TODO: confirm author list and order with Suhib/Timon before submission.
 \author[rub]{Suhib Amro\corref{cor1}}
 \cortext[cor1]{Corresponding author.}
 \ead{suhib.amro@uni-weimar.de}
-\author[rub]{Timon Rabczuk}
+\author[rub,fudan]{Timon Rabczuk}
 \ead{timon.rabczuk@uni-weimar.de}
 \address[rub]{Chair of Computational Mechanics, Bauhaus-Universit\"at Weimar}
+\address[fudan]{Institute of CMxAI, Fudan University, Shanghai, China}
 
 \begin{abstract}
 We train a physics-informed neural operator (Transolver) to predict the
@@ -2040,10 +2041,11 @@ above, the corresponding physics-informed wall-clock in both pairings
 ($2{,}873.8$~s and $3{,}108.9$~s respectively; physics-informed's own
 wall-clock already is its total pre-inference cost, since it pays no
 separate label-generation step). Comparing each loss's own best
-configuration, as above: data-driven+AdamW+OneCycleLR reaches both a
-lower validation error ($8.26\%$ vs.\ $9.59\%$) and a lower total
-pre-inference cost ($1{,}747.0$~s vs.\ $2{,}873.8$~s, $1.64\times$ less)
-than physics-informed+Adam -- the data-driven route wins on accuracy and
+configuration, as above: the data-driven model, trained with AdamW and a
+one-cycle schedule, reaches both a lower validation error ($8.26\%$
+vs.\ $9.59\%$) and a lower total pre-inference cost ($1{,}747.0$~s
+vs.\ $2{,}873.8$~s, $1.64\times$ less) than the physics-informed model
+trained with plain Adam -- the data-driven route wins on accuracy and
 speed simultaneously once its label-generation step is costed on the same
 GPU-native hardware the rest of this study's break-even figures already
 use, not on the slower CPU reference pipeline the labels were actually
@@ -2186,10 +2188,11 @@ was outside what this ablation specifically asked for.
   stress are reported only for hybrid and Sobolev (see text); n/a for
   the two pure-loss rows, not a missing value.}
 \label{tab:hybrid-sobolev}
-\small
-\begin{tabular}{lccccc}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lcccc}
 \toprule
-Loss & Val.\ error & $H^1$ & Stress & Wall-clock (s) \\
+Loss & Val.\ error & $H^1$ & Stress & Wall-clk (s) \\
 \midrule
 Physics-informed          & $9.59\%$  & n/a & n/a & $2{,}873.8$ \\
 Hybrid (phys.\ wt.\ 0.5)   & $12.75\%$ & $25.07\%$ & $21.69\%$ & $2{,}460.9$ \\
@@ -2288,9 +2291,9 @@ integration grid underneath a fixed-capacity network whose own
 optimization gap does not shrink with it, which is exactly the
 mechanism identified above. The two negative-sloping numbers are
 therefore not a convergence rate in the finite-element sense and are not
-directly comparable to Q4/Q9's own rates, and, more generally, neural
-operators carry no analogue of the a priori convergence guarantees finite
-elements provide. A further, practical consequence of this same
+directly comparable to Q4/Q9's own rates, and, more generally, this
+trained Transolver has no FEM-like mesh-refinement convergence
+guarantee. A further, practical consequence of this same
 mechanism is that there is no simple rule that a finer integration $N$ is
 always better for a trained operator: the family-mean results above show
 $L^2$ and energy getting \emph{worse} from $N{=}9$ to $N{=}33$ at fixed
