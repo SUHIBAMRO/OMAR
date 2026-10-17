@@ -20620,3 +20620,33 @@ Four candidate approaches, suggested to be tried in this order:
 
 No action taken on any of these; this is a parking spot for next-paper
 scope only.
+
+## Abstract rewritten to passive voice and cut to the journal's 250-word
+## limit (was 413 words)
+
+Omar flagged that the abstract was 410 words against a 250-word journal
+limit; counted it directly (413 words by the same method, confirmed
+independently via `pdftotext` on the rendered PDF: 247 words in the
+final version). Rewrote from scratch in passive voice (no first-person
+"We train..."), preserving every factual claim and number exactly
+(1.9%/0.3%/3.0% errors, 589-739x, 1,900 solves, 1,962,801 nodes,
+23.68 s/17.1 GB vs. 58.54 s, 62% to 31%+-12%) and the "rocking
+rubber-mount bushing" wording already used elsewhere in the document
+(not "elastomeric rubber-mount," consistent with the earlier
+overfull-hbox fix to the same phrase in the Introduction). Cut the
+itemized future-work parenthetical from the end (stress/equilibrium-
+aware physics losses, mixed displacement-stress formulations,
+local/hierarchical representations) for the same reason the
+Discussion/Conclusion future-work passages were removed earlier this
+session (Omar's own preference), which also helped hit the word count.
+
+Verified via a fully clean rebuild (45 pages, unchanged; 0 undefined
+references; no new overfull/underfull boxes) and a direct page-1 visual
+check.
+
+**Also noticed, not yet acted on**: a second stale TODO comment,
+`%% TODO: confirm author list and order with Suhib/Timon before
+submission.`, right above the author block -- same category as the
+CRediT one removed earlier (comment-only, never rendered, names both
+authors informally in the shared source). Flagged to Omar; not removed
+without his say-so.

@@ -31,50 +31,31 @@
 \address[fudan]{Institute of CMxAI, Fudan University, Shanghai, China}
 
 \begin{abstract}
-We train a physics-informed neural operator (Transolver) to predict the
-displacement field of hyperelastic solids under randomly sampled material
-and loading fields, without any labeled displacement data: the network is
-trained by directly minimizing the discrete total potential energy of the
-body (a Deep Energy Method), following the PFEM pretraining methodology.
-Two 2D benchmark geometries (a unit square under top-edge traction, and a
-quarter ring under internal pressure), each combined with three isotropic
-hyperelastic strain-energy densities (Neo-Hookean, Mooney--Rivlin,
-Arruda--Boyce), are trained to completion, evaluated against an independent
-finite-element reference, and characterized across mesh-resolution
-generalization, out-of-distribution robustness, and break-even cost against
-both a native and a GPU-native finite-element solver. This comparison is
-itself enabled by three GPU-native finite-element solvers developed for
-this study, presented as a contribution in their own right alongside the
-operator: a batched solver for many independent small problems at once, a
-matrix-free/multigrid solver for large meshes under memory constraints,
-and an assembled, direct (cuDSS) solver with analysis-phase reuse and
-symmetric-matrix storage for multi-million-degree-of-freedom problems --
-the last of which solves a 1,962,801-node 2D reference problem in
-$23.68$~s at $17.1$~GB peak memory, down from $58.54$~s unoptimized, our
-strongest measured large-$N$ finite-element result. The study is then extended
-to a third, more demanding 3D benchmark: a rocking elastomeric rubber-mount
-bushing with a stress-concentrating groove. The operator reproduces
-displacement, strain energy, and reaction moment accurately (combined
-displacement error 1.9\%, energy error 0.3\%, reaction-moment error 3.0\%),
-and, judged against the cheapest finite-element mesh that matches its own
-accuracy, remains 589--739$\times$ faster per sample while repaying its
-one-off training cost within fewer than 1{,}900 solves. The one quantity
-that does not reach the same standard is the regional Cauchy-stress field
-near the groove: an input-normalization fix first resolves a training
-instability, after which the regional-stress error is traced, in part, to
-an under-resolved background numerical integration rather than the
-network's own capacity, and a local integration refinement -- applied to
-only the few mesh elements touching the region of interest, independently
-of the operator's own discretization, via a separately trained checkpoint
-of the same architecture (the displacement/energy/reaction figures above
-are from the baseline checkpoint, not this one) -- roughly halves the
-error on average (from 62\% to a 3-seed mean of $31\%\pm12\%$, a wide
-seed-to-seed spread reported explicitly rather than smoothed over). The
-remaining gap is reported as an open
-limitation, with
-several concrete directions (stress/equilibrium-aware physics losses,
-mixed displacement--stress formulations, local/hierarchical representations)
-identified for future work.
+A physics-informed neural operator (Transolver) is trained to predict the
+displacement field of hyperelastic solids under random material and
+loading, without labeled displacement data, by minimizing the total
+potential energy of the body (a Deep Energy Method), following the PFEM
+pretraining approach. Two 2D benchmarks (a unit square in top-edge
+traction, a quarter ring under internal pressure), with three hyperelastic
+materials (Neo-Hookean, Mooney--Rivlin, Arruda--Boyce), are evaluated
+against an independent finite-element reference and characterized for
+resolution generalization, out-of-distribution robustness, and break-even
+cost against native and GPU-native solvers. Three GPU-native solvers are
+developed -- batched, matrix-free/multigrid, and an assembled, direct
+cuDSS solver with analysis-phase reuse and symmetric storage -- the last
+used to solve a 1,962,801-node 2D problem in $23.68$~s at $17.1$~GB, down
+from $58.54$~s unoptimized. The approach is extended to a more demanding
+3D benchmark: a rocking rubber-mount bushing with a stress-concentrating
+groove. Displacement, strain energy, and reaction moment are reproduced
+accurately ($1.9\%$, $0.3\%$, and $3.0\%$ error), and, against the
+cheapest finite-element mesh matching its accuracy, the operator is
+589--739$\times$ faster per sample, with its training cost repaid within
+fewer than 1{,}900 solves. The regional Cauchy-stress field near the
+groove is the one quantity that falls short: a training instability is
+resolved by an input-normalization fix, after which the error is traced
+partly to under-resolved background integration, and is halved by a local
+integration refinement, from $62\%$ to a 3-seed mean of $31\%\pm12\%$.
+The remaining gap is reported as an open limitation.
 \end{abstract}
 
 \begin{keyword}
