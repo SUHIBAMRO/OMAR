@@ -20781,3 +20781,11 @@ thousands of iterations, real per-iteration sampling, checkpointing),
 but that is a real, nontrivial GPU-hours commitment -- not started
 without asking Omar first, consistent with this project's standing
 practice of scoping GPU time deliberately rather than assuming it.
+
+**Paused here, Omar's own instruction**: he has emailed Professor
+Rabczuk asking him to clarify what to actually do next on the
+follow-up paper, and wants to wait for that reply before committing to
+the real training run (or anything else on this item). Everything
+above this point is implemented, tested, and GPU-confirmed and stays
+ready to resume from exactly here -- no further action on the
+mixed-stress item until Omar says the advisor has replied.
