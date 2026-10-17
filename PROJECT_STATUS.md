@@ -20746,3 +20746,38 @@ consistent with this project's own repeated, hard-won lesson (the
 `OUTPUT_SCALE` story, the wrong-notebook-cell mistake, the 33-minute
 wasted retraining) that a short, cheap diagnostic before a long GPU run
 is never wasted effort.
+
+## Production-scale GPU diagnostic confirms the mixed-stress loss
+## balance holds -- real training run is the natural next step, not
+## yet started
+
+Built and pushed `B3_Mixed_Stress_Diagnostic.ipynb` (re-runs the 5 CPU
+correctness checks in the real Colab environment, then the same
+fixed-batch diagnostic at PRODUCTION model size -- n_hidden=256,
+n_layers=4, the real `train_B3_mixed_stress.py` defaults -- for 300
+iterations on an A100). Omar ran it; all 5 correctness checks passed
+identically in Colab, and the real finding:
+
+- Initial constitutive/equilibrium ratio at production scale was
+  ~1,719x (428,186 vs. 249.1) -- smaller than the ~28,000x measured on
+  the tiny CPU toy model, confirming the ratio IS model-size-dependent
+  as flagged, but `w_equilibrium=28000` (chosen conservatively from the
+  toy-model measurement) turned out to be more than sufficient at
+  production scale too -- no retuning needed before proceeding.
+- Over 300 iterations: equilibrium converged essentially to zero
+  (249.1 -> 0.0002, even cleaner than the toy-model run), while
+  constitutive also dropped substantially and reached a plateau
+  (428,186 -> ~51,092, an 8.4x reduction) -- both terms are genuinely
+  being optimized, loss is stable throughout (no NaN, no divergence).
+
+Reads as a successful, confirmed diagnostic: the loss formulation,
+weighting, and P_OUTPUT_SCALE are all workable at real model/mesh
+scale. **No training run has happened yet** -- this was still only a
+300-iteration fixed-batch check (same sample every iteration), not
+real training (new random samples every iteration, thousands of
+iterations, a real checkpoint). The natural next step is a real
+training run (mirroring `train_B3.py`'s own convention: tens of
+thousands of iterations, real per-iteration sampling, checkpointing),
+but that is a real, nontrivial GPU-hours commitment -- not started
+without asking Omar first, consistent with this project's standing
+practice of scoping GPU time deliberately rather than assuming it.
