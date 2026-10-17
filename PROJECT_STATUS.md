@@ -20650,3 +20650,99 @@ submission.`, right above the author block -- same category as the
 CRediT one removed earlier (comment-only, never rendered, names both
 authors informally in the shared source). Flagged to Omar; not removed
 without his say-so.
+
+## Follow-up paper started: Professor Rabczuk's item 1 (mixed
+## displacement-stress formulation for B3) -- implemented, unit-tested,
+## CPU-diagnosed, NOT yet run on GPU
+
+Omar confirmed (1) the current manuscript is submitted on Elsevier, and
+(2) to start the follow-up-paper work in the order Professor Rabczuk's
+email suggested, beginning with item 1: the network predicts both `u`
+and the first Piola-Kirchhoff stress `P`, trained against two physics
+residuals instead of total potential energy -- constitutive consistency
+(`P = dpsi/dF`) and equilibrium (`Div_0(P) = 0`).
+
+**New files** (all in `Practical_Examples/omar_pfem/`), deliberately
+kept SEPARATE from `train_B3.py` rather than edited into it --
+`train_B3.py` already produced the real, already-published B3 numbers
+in the submitted paper, and this follow-up work must not risk changing
+its behavior even by accident:
+- `mixed_stress_B3.py`: the loss itself. Reuses `apply_dirichlet_b3`
+  unchanged for `u`'s boundary conditions (not touched by this work at
+  all); `P` is left unconstrained (no Neumann/traction-free boundary
+  term in this first version -- flagged as a candidate follow-up
+  extension, not implemented, to keep this version's correctness easy
+  to verify term-by-term). Two new pieces of machinery beyond what
+  `train_B3.py` already has: a closed-form Neo-Hookean `P` (`P =
+  mu*(F-F^-T) + lam*ln(J)*F^-T`, used directly rather than nested
+  autograd, since it was verified to match `dpsi/dF` exactly -- see
+  tests below -- so the constitutive loss needs only one backward
+  pass, not a double backward), and a generic per-node-field
+  gradient/divergence operator built by reusing the exact same
+  B-operator `train_B3.py` already trusts for `grad(u)`, just applied
+  to `P`'s 9 components instead of `u`'s 3.
+- `test_mixed_stress_B3.py` (`python -m omar_pfem.test_mixed_stress_B3`,
+  all 5 passing): rigorous, closed-form correctness checks, all on CPU,
+  all at 1e-10 or tighter --
+  (1) closed-form `P` vs. autograd `dpsi/dF` at a generic `F` (2.8e-14);
+  (2) the divergence operator returns exactly zero for a reconstructed
+  spatially-uniform stress field (4.9e-13);
+  (3) the SAME operator matches a known nonzero closed-form divergence
+  for a field that varies linearly in `X` (5.0e-13) -- specifically
+  added so that check (2) couldn't be a trivial always-zero bug in
+  disguise;
+  (4) an end-to-end check with a globally affine `u(X)=G@X` (constant
+  `F` everywhere, hence constant true `P` everywhere): the
+  gradient-derived `F` and the shape-function-interpolated `P`
+  prediction both match the known constants exactly (2.4e-16, 5.4e-13),
+  confirming the gradient (`B`) and interpolation (`N`) operators are
+  mutually consistent on the same mesh;
+  (5) the full loss wrapper (real B3 Dirichlet BCs via
+  `apply_dirichlet_b3` included) produces a finite, positive loss and
+  backpropagates valid, nonzero gradients to both the raw `u` and raw
+  `P` network outputs.
+- `train_B3_mixed_stress.py`: the actual training script, mirroring
+  `train_B3.py`'s CLI/loop structure as closely as possible (same
+  sampling, same geometry convention, same input-normalization option)
+  so the two are easy to compare side by side. Model `out_dim` is 12
+  (3 for `u` + 9 for `P`, vs. `train_B3.py`'s 3) with everything else
+  architecturally identical.
+- `diagnose_mixed_stress_B3_scale.py`: a reusable fixed-batch
+  diagnostic (same sample every iteration, no sampling noise), mirroring
+  the exact methodology that originally found `train_B3.py`'s own
+  `OUTPUT_SCALE=0.02` (see that constant's docstring in `train_B3.py`).
+
+**Real finding from running this diagnostic** (CPU, toy-sized model,
+production mesh, 200 fixed-batch iterations) -- not a guess: at the
+naive `w_constitutive=w_equilibrium=1.0`, the loss is stable (no
+divergence, settles to a plateau) but is 99.995%+ dominated by the
+constitutive term from iteration 1 (62,047 vs. 2.18, a ~28,000x gap),
+so equilibrium's gradient contribution is noise-level and is not
+actually being optimized -- it drifts slightly WORSE over the run
+(2.18 -> 2.61) while constitutive slowly improves, the textbook
+signature of one loss term's gradient swamping another's. Re-running
+with `w_equilibrium=28000` (the measured initial ratio) makes
+equilibrium converge to ~0 within ~20 iterations while constitutive
+still improves and the total loss stays stable -- confirms this was
+pure scale imbalance, not an optimization pathology, and gives an
+evidence-based (not guessed) starting default, now wired in as
+`train_B3_mixed_stress.py`'s own `--w_equilibrium` default. This ratio
+was measured on a tiny, undertrained toy model (32 hidden, 2 layers,
+CPU) -- **must be re-checked on a real production-sized model (GPU)
+before trusting any long training run**, the same way `OUTPUT_SCALE`'s
+own value was confirmed at production scale before being trusted.
+`P_OUTPUT_SCALE=500.0` (the stress-channel analogue of `OUTPUT_SCALE`,
+based on this project's own `mu` range for `E~1000, nu~0.45`) is
+similarly a first-cut estimate, not yet independently confirmed.
+
+**Status: implementation and CPU-level correctness/diagnosis complete;
+zero GPU time spent so far.** Next step for whoever picks this up:
+run `diagnose_mixed_stress_B3_scale.py` (without `--tiny`, i.e. at
+production model size) on Omar's own GPU/Colab for a few hundred
+iterations on a fixed batch, exactly as done here on CPU with a toy
+model, to confirm the loss settles stably and both residuals actually
+move at production scale before committing to any real training run --
+consistent with this project's own repeated, hard-won lesson (the
+`OUTPUT_SCALE` story, the wrong-notebook-cell mistake, the 33-minute
+wasted retraining) that a short, cheap diagnostic before a long GPU run
+is never wasted effort.
