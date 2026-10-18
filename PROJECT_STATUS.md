@@ -20789,3 +20789,46 @@ the real training run (or anything else on this item). Everything
 above this point is implemented, tested, and GPU-confirmed and stays
 ready to resume from exactly here -- no further action on the
 mixed-stress item until Omar says the advisor has replied.
+
+## Professor Rabczuk replied: confirmed "bring down the error," AND
+## added a new, bigger requirement -- "trustworthy AI"
+
+His reply (2026-10-18): "Yes, let's try to bring down the error. The
+final goal would be trustworthy AI, meaning we need to have some upper
+error bounds in specific norms or QoIs at inference (without comparing
+to the ground truth). Last but not least, please save the results. I'll
+soon send some more information."
+
+Two distinct asks here, not one:
+1. Confirms the error-reduction work already in progress (item 1, the
+   mixed-stress formulation above) should continue.
+2. A NEW, separate requirement: the operator must be able to report its
+   own UPPER ERROR BOUND on a specific norm/QoI **at inference time, on
+   a genuinely new sample, with no FEM ground truth available to
+   compare against** -- i.e. a real a posteriori error
+   estimate/certificate, not a post-hoc accuracy number computed
+   against held-out FEM solutions (which is all this study has ever
+   produced so far -- every error figure in the submitted paper and in
+   this follow-up work to date is computed BY comparing to a FEM
+   reference). This is a materially different, harder problem
+   (uncertainty quantification / certified bounds for a trained neural
+   operator), not a natural side effect of reducing the raw error
+   number. Common approaches in this space worth being aware of once
+   work starts: residual-based/PDE-residual bounds (checking how well
+   the predicted field satisfies the governing equations/equilibrium at
+   inference, which the mixed-stress formulation above already computes
+   as a residual -- a very natural, already-available starting point),
+   ensemble/dropout-based uncertainty estimates, or conformal-prediction
+   style calibrated bounds.
+
+He explicitly said more information is coming ("I'll soon send some
+more information") -- **not implementing anything for the trustworthy-
+AI/error-bound requirement yet**, since the scope isn't fully specified
+and acting prematurely risks building the wrong thing before his
+follow-up email arrives. The mixed-stress item (error reduction) can
+continue on its own track regardless.
+
+**"Please save the results"**: a standing reminder to make sure every
+real run's outputs (checkpoints, JSON result files, diagnostic logs) 
+actually get saved to Drive/committed, not just printed and lost --
+applies to the mixed-stress work above and anything that follows.
