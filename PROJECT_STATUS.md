@@ -20832,3 +20832,128 @@ continue on its own track regardless.
 real run's outputs (checkpoints, JSON result files, diagnostic logs) 
 actually get saved to Drive/committed, not just printed and lost --
 applies to the mixed-stress work above and anything that follows.
+
+## TU Ilmenau HPC access application reviewed (2026-10-18/19)
+
+Omar is applying for dedicated HPC access (via Bauhaus-Universitat
+Weimar) instead of relying on Colab, motivated partly by a real,
+repeated project problem: Colab silently downgrades long A100 sessions
+to a 16GB T4 after ~10h (documented twice in this project, both times
+corrupting a long run). Provided a resource estimate for the
+application's four required fields (Main Memory, CPU-Time, CPU Cores,
+GPUs), explicitly grounded in this project's own real logged numbers
+(A100-SXM4-80GB throughout; 32GB peak for the largest successful B3
+solve at 480,320 elements; a documented, unresolved memory ceiling
+between 480,320 and 839,040 elements that exceeds a single 80GB card)
+rather than invented figures, with everything else (GPU count, CPU
+cores, total GPU-hour budget) clearly flagged as forward-looking
+planning assumptions, not measurements. Final submitted values: 80GB
+main memory, 2,800 CPU core-hours, 8 CPU cores, 5 GPUs (>=80GB VRAM
+each, one >=120GB preferred for the B3 memory ceiling). Reviewed the
+actual filled PDF form + supplement Omar prepared and caught two real
+text bugs before signing (a missing number in "Main memory: GB per
+job" and a missing open-parenthesis in "system RAM  80 GB)"), both
+fixed. Confirmed for Omar which specific numbers are real
+Colab-measured evidence (GPU type, the 32GB success, the 839,040-
+element failure) vs. which are this session's own planning estimates
+(GPU-hour budget, CPU-hour derivation, GPU count, system RAM, the
+120GB "preferred" figure) -- so he can answer honestly if HPC staff
+ask which is which.
+
+## Professor Rabczuk's full follow-up-paper roadmap (2026-10-20 email)
+## -- a much larger program than just item 1; recorded in full, nothing
+## started on the new parts yet
+
+His reply to "what should we do next" turned out to be a complete,
+multi-stage research plan, not just a go-ahead on the mixed-stress
+item already in progress. Recording the whole thing here so no part of
+it gets lost, since this is clearly the authoritative scope document
+for this entire follow-up paper (or papers):
+
+**Restated primary goal** (unchanged from his first email, now stated
+more sharply): "significantly improve the accuracy in the QoIs we
+failed in the first paper" -- explicitly ALL stress components, the H1
+semi-norm, and "other local QoIs," not only the single regional
+Cauchy-stress number near the B3 groove the submitted paper already
+improved (62% -> 31%+-12%). The 4 candidate methods from his first
+email (mixed displacement-stress [in progress, see above],
+equilibrium-augmented displacement, a general H1/gradient/weak-form
+term, Sobolev/H1 training for DD/hybrid) remain the menu for this.
+
+**New, explicitly added in this email**:
+
+1. **A fair PI-vs-DD comparison for B3** ("figure out when the
+   expensive high-fidelity labels actually make PI worthwhile") --
+   this is the B3 analogue of the submitted paper's own B1 PI-vs-DD
+   2x2 grid (Table 22: physics-informed/Adam 9.59%, data-driven/
+   AdamW+OneCycleLR 8.26%, "the ranking reverses" finding). B3 has
+   never had a trained data-driven baseline at all (only the
+   physics-informed DEM checkpoint exists) -- this needs a new B3 DD
+   training run against the real FEM-labeled dataset
+   (`data_generate_B3_dataset.py`'s own output, already generated for
+   validation, now also usable as DD training labels) before any
+   comparison can be made. "When the expensive high-fidelity labels
+   actually make PI worthwhile" reads as wanting a genuine break-even
+   analysis (cost of generating B3 FEM labels vs. PI's own label-free
+   training cost), not just a bare accuracy comparison.
+
+2. **Move from fixed geometry to geometry families, and more
+   industrial nonlinearities.** A significant generalization of this
+   entire study's own setup: B1/B2/B3 are each currently ONE fixed
+   geometry with random material/loading fields only -- this asks for
+   the geometry itself to become a random/parametric input the
+   operator must generalize across (e.g. the B3 groove's depth/width,
+   or the B1/B2 domain's own shape parameters), plus testing material
+   models beyond this study's three (Neo-Hookean, Mooney-Rivlin,
+   Arruda-Boyce) toward ones closer to real industrial use. Scope
+   (which geometry parameters, which new material models) not yet
+   specified -- a question to ask him, not to guess at.
+
+3. **Faster iterative solvers: AMG-Krylov with multi-GPU/domain
+   decomposition.** This is near-verbatim the same idea in the
+   paragraph Omar had deleted from the submitted paper's own
+   Conclusion earlier this session ("an iterative Krylov or
+   algebraic-multigrid linear solve... a multi-GPU, domain-decomposed
+   assembly and solve") -- confirms that removal was the right call
+   (it really was future work, now independently confirmed as
+   official follow-up scope rather than something that belonged in
+   the submitted paper).
+
+**Trustworthy AI, broken into two concrete stages** (the "upper error
+bounds... without comparing to the ground truth" requirement from his
+first email now has a real research plan attached, not just a
+one-line goal):
+
+- **Stage 1 -- resolution theory and model selection**: understand
+  theoretically/empirically *why finer N can hurt* accuracy, and how
+  to choose N, network capacity, and integration resolution together.
+  This is not a cold start -- the submitted paper's own manufactured-
+  solution study already observed exactly this phenomenon directly
+  ("family-mean displacement and energy error both worsen, not
+  improve, from N=9 to N=33... no simple 'finer is always better'
+  rule," left there as an open, unexplained selection problem). This
+  stage asks to actually explain and systematize that already-observed
+  effect, not discover it from scratch.
+- **Stage 2 -- a certified approach**: error indicators plus selective
+  FEM correction -- i.e. an adaptive hybrid scheme where an inference-
+  time error indicator (from stage 1's own understanding) flags where
+  the operator's prediction is untrustworthy, and FEM is invoked only
+  there to correct it, rather than always or never. This is the
+  concrete mechanism that would satisfy "trustworthy AI" (a real,
+  inference-time, no-ground-truth-needed signal), not a vague goal
+  anymore.
+
+Also explicitly offered a choice of approach for the trustworthy-AI
+goal overall: a theoretical study, or building a more comprehensive
+database -- not yet decided which; worth asking Omar/Professor
+Rabczuk directly rather than assuming.
+
+**Status: nothing on items 1 (geometry families), 2 (industrial
+nonlinearities), 3 (faster solvers), or either trustworthy-AI stage has
+been started.** Only the mixed-stress formulation (the first of the 4
+original error-reduction options) has real work done on it (implemented,
+unit-tested, GPU-diagnosed at production scale -- see above), and that
+work is itself paused pending Omar's decision on when to resume the
+real training run. Given the scope of everything in this email, the
+next conversation with Omar should prioritize and sequence this list
+explicitly rather than assume an order.
