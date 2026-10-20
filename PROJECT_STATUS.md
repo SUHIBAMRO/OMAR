@@ -20957,3 +20957,56 @@ work is itself paused pending Omar's decision on when to resume the
 real training run. Given the scope of everything in this email, the
 next conversation with Omar should prioritize and sequence this list
 explicitly rather than assume an order.
+
+## Omar's decision: resume the mixed-stress item first (it's the most
+## on-track, already-verified piece of the roadmap) -- real training
+## run built and handed off, not yet executed
+
+Omar confirmed: start working "properly and in [Professor Rabczuk's]
+order." His email's own structure puts "significantly improve the
+accuracy in the QoIs" first, and of the 4 candidate methods for that,
+mixed-stress is the only one with real implementation/verification work
+done (see above) -- so resuming it is the correct next concrete step,
+not a guess at ordering.
+
+Two new pieces built, both verified before any GPU time:
+
+- **`evaluate_B3_mixed_stress.py`**: adapts `evaluate_B3_qois.py`'s
+  exact QoI machinery (energy, reaction, region Cauchy stress, all
+  already trusted and reused unchanged) to the mixed-stress
+  checkpoint's 12-channel output, so the resulting numbers are directly
+  comparable to the baseline DEM checkpoint's already-published ones.
+  Adds one genuinely new comparison this formulation makes possible:
+  region stress computed TWO ways from the same forward pass -- (a)
+  "implicit," the same autograd-from-u the baseline already does, and
+  (b) "direct," the network's own predicted P interpolated to the
+  region and run through the identical sigma=(1/detF)P F^T conversion.
+  Comparing (a) vs. (b) against the true FEM stress directly answers
+  whether predicting P explicitly actually helps, not just whether
+  displacement improved. Kept as a separate script, not an edit to
+  `evaluate_B3_qois.py`, for the same reason as `mixed_stress_B3.py`
+  itself -- the baseline evaluation path must stay untouched. Verified
+  end-to-end with a CPU smoke test (tiny untrained checkpoint, tiny
+  synthetic HDF5 dataset): runs without error, produces both stress
+  paths, writes valid JSON; separately confirmed the real production
+  mesh's groove region actually contains Gauss points (6, at the base
+  8-point-per-element quadrature) so the region stats won't silently
+  come back empty at full scale.
+- **`B3_Mixed_Stress_Training.ipynb`**: the real training run --
+  50,000 iterations, batch_size=8, production model size, the SAME
+  budget `train_B3.py`'s own baseline used, so the two checkpoints are
+  comparable. Mirrors `B3_Transolver_Training.ipynb`'s own established
+  Colab pattern exactly (mount drive, clone/pull, pip install, clear
+  module cache, GPU/memory checks), chains the new evaluation script
+  immediately after training in the same cell (one run produces both
+  the checkpoint and the comparable QoI numbers), and calls
+  `run_manifest.write_manifest` at the end -- Professor Rabczuk's own
+  explicit "please save the results" instruction from his first reply.
+
+**Not yet run.** Expected wall-clock: unknown precisely (the production
+diagnostic didn't log a clean s/iteration rate), but the mixed-stress
+loss is computationally heavier than the baseline DEM loss (two
+8-gauss-point loops instead of one, plus the interpolation step), so
+plausibly a few multiples of the baseline's own 50,000-iteration ~2h7m
+-- the notebook's own markdown cell tells Omar to watch the printed
+s/iteration rate early and flags what to compare it against.
