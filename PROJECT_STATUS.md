@@ -21236,3 +21236,62 @@ loading distribution than it needed to fit one fixed sample, or it may
 indicate a genuine difficulty generalizing the P~F relationship across
 samples. Not yet known which -- worth watching closely once the
 resumed run reaches iteration 50,000 before drawing any conclusion.
+
+## Mixed-stress run actually finished to 50,000 (on Colab's backend,
+## after the visible disconnection -- see below); final result: a
+## SECOND real failure, with one genuinely useful positive finding
+## buried inside it
+
+When Omar re-ran the same notebook cell expecting a resume from
+iteration 15,000, it instead printed `found checkpoint_50000.pt,
+resuming from iteration 50001 -- already at iteration 50000, nothing to
+do` and finished in 4.8s. The only explanation consistent with this:
+the ORIGINAL run did not actually stop at iteration 15,000 -- that was
+only the last output his browser/notebook UI had visibly received
+before the connection dropped; the Colab backend kept executing the
+cell to completion in the background regardless, reached iteration
+50,000 on its own, and saved that checkpoint before Omar ever re-ran
+anything. The re-run just found the already-finished job and repeated
+its evaluation step, producing a second `run_manifest.json` entry.
+
+**The real, final evaluation against the held-out set**:
+- energy mean rel. err **181.9%**, reaction moment **216.9%** -- both
+  essentially identical to the already-bad equilibrium-augmented
+  result above, not an improvement with the extra 35,000 iterations.
+- `region_avg_sigma_xx_implicit` pooled-RMS **18.4%** vs.
+  `region_avg_sigma_xx_direct` pooled-RMS **8.2%** -- a real, specific,
+  positive finding buried inside an otherwise poor result: predicting
+  stress DIRECTLY (this formulation's whole point) is genuinely more
+  than 2x more accurate than deriving it implicitly from the predicted
+  displacement field (autograd dpsi/dF(u)), a real answer to Prof.
+  Rabczuk's own question "does predicting P directly help the stress
+  QoI" -- yes, conditionally, even on a checkpoint whose overall
+  displacement field is still far from the baseline's quality.
+- `region_cauchy_field_rel` (implicit) mean **1018%** -- consistent
+  with the above, the overall field is not accurate.
+
+**A pattern worth stating plainly, not burying**: BOTH new formulations
+tried so far today (mixed-stress AND equilibrium-augmented) converged
+to displacement/energy/reaction errors roughly two orders of magnitude
+worse than the existing pure-DEM baseline (1.88%/0.3%/3.0%), despite
+each passing its own pre-GPU correctness checks and small-scale fixed-
+batch diagnostics. The one method that DID work well today (B3
+data-driven + Sobolev, 2.51-2.62% displacement error) trains on a
+SIMPLE, single data-fitting objective against FIXED real labels -- no
+energy integral, no auxiliary residual term, no live per-iteration
+resampling of anything beyond the training batch itself. The two that
+failed both add a SECOND loss term (constitutive+equilibrium, or
+energy+weak-form-residual) evaluated fresh against a NEW random
+material/load sample every single iteration, with no fixed reference to
+anchor against -- a real, now twice-observed candidate explanation
+(not yet proven) for why their fixed-batch diagnostics looked fine
+(same sample throughout, an easier target) but real training did not
+reach comparable accuracy to the baseline.
+
+**Not yet decided**: whether to retry either method with changes (more
+iterations, a schedule that anchors early training on a smaller, fixed
+sample pool before switching to full random sampling, or a different
+loss weighting), or treat both as genuine, reportable negative findings
+and move on to item 4/the DD comparison's own next steps and the still-
+unscoped items. Needs a decision from Omar/Prof. Rabczuk before more
+GPU time goes into either variant as currently implemented.
