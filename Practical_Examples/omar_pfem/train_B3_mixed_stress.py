@@ -14,34 +14,41 @@ does not need to change (sampling, geometry construction, input
 normalization, the Dirichlet-BC ansatz for u) is imported from
 train_B3.py rather than copy-pasted.
 
-STATUS: the two underlying operators (constitutive, equilibrium) and
-the loss function's own plumbing are verified on CPU to 1e-10 or better
-(omar_pfem/test_mixed_stress_B3.py, all 5 checks passing) -- but this
-training script itself has NOT yet been run, not even briefly. Two
-things should be checked on a short run (a few hundred iterations,
-small batch) before committing to any long training run:
+STATUS (updated 2026-10-21, after the first REAL 50,000-iteration run):
+the two underlying operators (constitutive, equilibrium) and the loss
+function's own plumbing are verified on CPU to 1e-10 or better
+(omar_pfem/test_mixed_stress_B3.py, all 5 checks passing). The first
+real training run completed (PROJECT_STATUS.md has the full account)
+but the resulting checkpoint was a genuine failure -- combined
+displacement/energy/reaction errors against the held-out set were
+roughly 100x worse than the DEM baseline (1.88%/0.3%/3.0%), and the
+"constitutive" loss term showed no clear downward trend across the
+whole run. Two things identified since:
 
-1. P_OUTPUT_SCALE below (the stress-channel analogue of train_B3.py's
-   own OUTPUT_SCALE for displacement) is a first-cut estimate, not yet
-   empirically confirmed. train_B3.py's OUTPUT_SCALE=0.02 was only
-   found after a real production run showed the loss climbing without
-   bound (see that constant's own docstring) -- the untrained network's
-   raw output (~0.3 magnitude) was 5-50x too large relative to the true
-   displacement scale (~0.01-0.06). The SAME kind of mismatch is
-   expected here, in the opposite direction: true P values are O(mu),
-   i.e. O(100-1000) for this project's E~1000, nu~0.45 sampling range,
-   while the untrained network's raw per-channel output starts at the
-   same ~0.3 magnitude regardless of which channel it is -- so without
-   some compensating scale, the constitutive residual will start
-   enormous (P_pred under-scaled by ~1000x relative to P_true) even
-   though nothing is actually unstable. P_OUTPUT_SCALE multiplies the
-   network's raw stress channels before they enter the loss, mirroring
-   OUTPUT_SCALE's own role, with an initial guess of 500.0 (mid-range
-   of this project's own mu = E/(2(1+nu)) for E~1000, nu~0.45, i.e.
-   ~345) -- confirm or correct this the same way OUTPUT_SCALE was
-   confirmed: watch the loss trajectory over a short run on a FIXED
-   batch (no new sampling noise each step) and check it settles to a
-   stable plateau rather than diverging, before trusting any longer run.
+1. P_OUTPUT_SCALE was a hand-picked guess (500.0), never rigorously
+   checked the way train_B3.py's own OUTPUT_SCALE=0.02 was (that one
+   was found only after measuring the untrained network's real raw
+   output magnitude against the true displacement scale from real FEM
+   data -- see that constant's own docstring). `calibrate_p_output_
+   scale.py` does the analogous measurement for P: a "realistic true P"
+   (from real sampled E/nu/phi run through the same Dirichlet-ansatz
+   construction, raw network contribution zeroed) has RMS ~74, while
+   the untrained network's own raw stress-channel output has RMS ~0.30
+   at production model size -- giving a DERIVED scale of ~246.6, found
+   to be a real, ~2x over-estimate versus the 500.0 that was actually
+   used (500/246.6 ~ 2.03x). Updated the default below to 250.0 (the
+   derived value is 246.6; rounded). **This is a real, measured
+   correction, but almost certainly not the WHOLE explanation** -- it
+   is a much smaller mismatch than OUTPUT_SCALE's original 5-50x, and
+   the observed per-component constitutive residual during the failed
+   run (~65) was already comparable in magnitude to the true RMS P
+   itself (~74), i.e. close to 100% relative error throughout training,
+   which a mere 2x initial-scale fix would not fully resolve on its
+   own. Treat 250.0 as a real improvement worth re-testing, not a
+   confirmed fix -- the next real run's own loss trajectory is the
+   actual test, the same way OUTPUT_SCALE's correctness was ultimately
+   confirmed by a real run settling to a stable plateau, not by the
+   calibration arithmetic alone.
 2. The constitutive and equilibrium residuals are NOT the same order of
    magnitude -- CONFIRMED empirically, not just a priori, via a 200-
    iteration fixed-batch diagnostic (same sample every iteration, no
@@ -77,9 +84,11 @@ from omar_pfem.train_B3 import (
     _apply_input_norm, compute_input_norm_b3, sample_batch, set_input_norm,
 )
 
-P_OUTPUT_SCALE = 500.0
-"""First-cut estimate, NOT yet empirically confirmed -- see this
-module's own docstring, point 1, before trusting a full training run."""
+P_OUTPUT_SCALE = 250.0
+"""Derived via calibrate_p_output_scale.py (~246.6, rounded) after the
+first real 500.0-scale run failed -- see this module's own docstring,
+point 1. A real, measured correction (2x smaller), not yet confirmed to
+fully fix the failure on its own; the next real run is the actual test."""
 
 
 def build_model(args, device):
@@ -128,6 +137,19 @@ def train(args, device, dtype=torch.float64, resolution=None):
     if existing:
         latest = max(existing, key=lambda f: int(f[len("checkpoint_"):-len(".pt")]))
         ckpt = torch.load(os.path.join(args.output_dir, latest), map_location=device)
+        # Real near-miss, 2026-10-21: P_OUTPUT_SCALE was corrected (500.0 ->
+        # 250.0) after the first run failed. Blindly resuming an old
+        # checkpoint under a NEW scale would silently reinterpret its
+        # already-learned stress-channel weights at the wrong magnitude,
+        # mixing two inconsistent trainings together with no warning --
+        # checked explicitly so this can never happen silently again.
+        ckpt_scale = ckpt.get("args", {}).get("p_output_scale")
+        if ckpt_scale is not None and ckpt_scale != args.p_output_scale:
+            raise ValueError(
+                f"{latest} was trained with p_output_scale={ckpt_scale}, but this run "
+                f"is configured with p_output_scale={args.p_output_scale} -- resuming "
+                f"would silently mix two inconsistent trainings. Use a different "
+                f"--output_dir for the new scale, or pass the matching p_output_scale.")
         model.load_state_dict(ckpt["model_state"])
         start_it = ckpt["iter"] + 1
         print(f"[resume] found {latest}, resuming from iteration {start_it} "

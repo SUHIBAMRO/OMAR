@@ -34,7 +34,10 @@ def main(argv=None):
                     help="Toy model size for a fast CPU sanity check, not a real training run.")
     p.add_argument("--n_steps", type=int, default=200)
     p.add_argument("--batch_size", type=int, default=4)
-    p.add_argument("--p_output_scale", type=float, default=500.0)
+    p.add_argument("--p_output_scale", type=float, default=250.0,
+                   help="matches train_B3_mixed_stress.py's own P_OUTPUT_SCALE default, "
+                        "corrected 2026-10-21 from 500.0 via calibrate_p_output_scale.py "
+                        "after the first 500.0-scale run failed")
     p.add_argument("--w_constitutive", type=float, default=1.0)
     p.add_argument("--w_equilibrium", type=float, default=28000.0)
     diag_args = p.parse_args(argv)
