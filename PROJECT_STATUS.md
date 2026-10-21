@@ -21342,3 +21342,102 @@ new output directory. Not yet re-run -- next step is Omar's call on
 whether to spend the GPU hours on this recalibrated attempt 2 now, or
 wait given the open question of whether a deeper issue (beyond scale)
 also needs resolving first.
+
+## Omar asked for a full re-audit of all recent code before more GPU
+## time is spent; attempt 2 (p_output_scale=250.0) ran on Colab and was
+## interrupted at 14,000/50,000 once it showed the same failure
+## signature as attempt 1; built and CPU-verified a two-stage
+## curriculum (attempt 3) instead of touching the loss/scale again
+
+Re-read `mixed_stress_B3.py`'s full loss computation (weight handling,
+P-index ordering, gradient flow from u into the constitutive residual
+via F), `calibrate_p_output_scale.py`, and `train_B3_mixed_stress.py`
+end to end. **No additional implementation bug found** -- the 5 CPU
+correctness checks in `test_mixed_stress_B3.py` still pass exactly as
+before. Checked the Transolver model's last layer
+(`Transolver_block.mlp2`, a plain `nn.Linear(hidden_dim, out_dim)`) for
+anything `out_dim`-dependent that could explain the failure: nothing --
+PyTorch's default Linear init scales with `in_features`, not
+`out_features`, so a wider (12 vs. 3) output has no special
+initialization concern.
+
+While this audit was in progress, Omar's real Colab re-run of the
+recalibrated attempt 2 (`p_output_scale=250.0`,
+`b3_mixed_stress_training_v2`) produced real data: `constitutive`
+oscillated between ~27,000 and ~103,000 with **no visible downward
+trend** all the way to iteration 14,000/50,000 (`equilibrium` converges
+to ~0 within the first 500 iterations, as designed, and stays there).
+This is the SAME qualitative failure signature attempt 1 (500.0 scale)
+showed across its own full 50,000-iteration run. **Conclusion: the
+500->250 scale correction was real (confirmed by
+`calibrate_p_output_scale.py`'s own measurement) but made no visible
+difference to the actual training dynamics -- scale was never the
+dominant problem.** Told Omar this plainly when he asked whether the
+early iterations (500-3000, before the diagnostic signature was
+visible) already showed a difference: no, not yet, and explained why
+early-iteration values are uninformative between runs with different
+hyperparameters (`seed_offset = it * batch_size` depends only on
+iteration number, so two differently-configured runs see the identical
+sequence of random material/load samples at each step -- sample-to-
+sample difficulty dominates short-term loss values regardless of
+whether the hyperparameter fix is real). At Omar's explicit instruction
+("وقف التجربة وجهزلي نسخة بمرحلتين" -- stop the run and prepare a
+two-stage version), the Colab cell was interrupted at iteration 14,000.
+
+**New working hypothesis** (not yet disproven): jointly learning u and
+P from a random initialization, under a loss with no energy term at
+all, is a substantially harder optimization landscape than
+`train_B3.py`'s own single, already-proven energy objective -- and once
+`equilibrium` is driven to ~0 (trivially achievable by outputting a
+sufficiently smooth P field; many such fields have near-zero
+divergence regardless of whether P itself is correct), essentially ALL
+subsequent gradient signal is about `constitutive` alone, yet it still
+does not consistently decrease even after 14,000+ iterations focused on
+nothing else.
+
+**Built and CPU-verified a two-stage curriculum** instead of changing
+the loss formula/scale a third time: added `--pretrain_iters` to
+`train_B3_mixed_stress.py` (default 0, exactly reproducing the old
+single-stage behavior for every existing caller/checkpoint). For
+iterations `1..pretrain_iters`, the training loop computes
+`train_B3.total_potential_energy_B3` on u alone (the same proven
+objective `train_B3.py` already uses for its own, already-published
+production checkpoints) -- the stress head's raw output is simply not
+computed in that branch, so it gets no gradient and stays at its random
+init, which is harmless since stage 2 retrains it from there anyway.
+For every iteration after `pretrain_iters`, the loop switches to the
+normal `mixed_stress_loss_B3` objective, continuing from the SAME model
+weights (not a fresh model) -- so the harder joint constitutive/
+equilibrium optimization now starts from an already-good displacement
+field instead of a random one. The checkpoint-resume logic (added
+2026-10-21 after the earlier Colab disconnection) needed no changes:
+verified directly that resuming a checkpoint saved exactly at the
+stage1/stage2 boundary correctly continues into stage 2 on the next
+invocation (small CPU test: 3 pretrain iterations saved to a
+checkpoint, re-run with `--n_iters 6` resumed at iteration 4 and
+correctly used the mixed-stress loss from there).
+
+Verified end to end on CPU (tiny model, 6 total iterations, 3
+pretrain): stage 1 prints `[stage1:pretrain-u] loss(mean U)=...`;
+iteration 4 onward prints `[stage2:mixed-stress] loss=... constitutive=...
+equilibrium=...` -- the switch happens at exactly the configured
+boundary, and `test_mixed_stress_B3.py`'s 5 checks still pass
+unmodified.
+
+`B3_Mixed_Stress_Training.ipynb` rebuilt a third time: new output
+directory `b3_mixed_stress_two_stage` (keeps all three attempts'
+checkpoints/logs separately inspectable -- does NOT resume attempt 2's
+own incomplete `b3_mixed_stress_training_v2` run), `--pretrain_iters
+10000` within the same 50,000-iteration total budget (10,000 pretrain-u
++ 40,000 mixed-stress). **Stated honestly**: this 10,000/40,000 split is
+a reasonable starting choice within the existing budget, not a value
+derived from re-examining the baseline's own energy-loss convergence
+curve for this specific split -- the markdown cell tells Omar to watch
+stage 1's own printed loss for a plateau before iteration 10,000 (the
+same shape `train_B3.py`'s training always shows) and to interrupt if
+it is still trending down hard at the boundary, and to watch stage 2's
+`constitutive` for the same flat oscillation that doomed attempts 1 and
+2 (if it reappears even after a good u pretraining, the "harder joint
+landscape" hypothesis itself would need revisiting, not just the
+curriculum split). Not yet run on GPU -- next step is Omar starting
+this notebook on Colab.

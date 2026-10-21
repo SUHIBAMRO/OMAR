@@ -70,6 +70,38 @@ whole run. Two things identified since:
    still be re-checked on the first real production-sized run (see
    diagnose_mixed_stress_B3_scale.py), the same way OUTPUT_SCALE's own
    value was confirmed at production scale before being trusted.
+
+UPDATE 2026-10-21 (second real run, p_output_scale=250.0): interrupted
+by Omar at iteration 14,000/50,000 after a full re-audit of this
+module's own code found no further implementation bugs (loss weights,
+P-index ordering, gradient flow from u into the constitutive residual
+via F -- all re-checked, all correct). The `constitutive` term
+oscillated between ~27,000 and ~103,000 with NO visible downward trend
+across all 14,000 iterations -- the identical qualitative signature the
+first (500.0-scale) run showed across its full 50,000 iterations.
+`equilibrium` again converges to ~0 within the first 500 iterations and
+stays there. Conclusion: the 500->250 scale correction was real (see
+calibrate_p_output_scale.py) but made NO visible difference to the
+actual training dynamics -- the scale was never the dominant problem.
+
+New working hypothesis, not yet disproven: jointly learning u AND P
+from scratch, under a loss with no energy term at all, is a
+substantially harder optimization landscape than train_B3.py's own
+single, well-behaved energy objective -- and once `equilibrium` is
+driven to ~0 (trivially achievable by outputting a sufficiently smooth P
+field, since many such fields have near-zero divergence), essentially
+ALL subsequent gradient signal is about `constitutive` alone, yet it
+still does not consistently decrease even with 14,000+ iterations
+focused on nothing else. PRETRAIN_ITERS below implements the resulting
+curriculum: spend the first `--pretrain_iters` iterations training u
+ALONE via train_B3.py's own already-proven total_potential_energy_B3
+objective (p_net_raw computed but excluded from the loss, so it gets no
+gradient and stays at its random init -- harmless, since stage 2
+retrains it from there anyway), then switch to the full mixed_stress_
+loss_B3 objective for the remainder, so the constitutive/equilibrium
+optimization starts from an already-good displacement field instead of
+a random one. Default 0 (old behavior, single-stage) for backward
+compatibility with every existing caller/checkpoint.
 """
 import argparse
 import os
@@ -81,7 +113,8 @@ from omar_pfem.data.data_generate_B3_dataset import DEFAULT_RESOLUTION
 from omar_pfem.mixed_stress_B3 import build_fixed_geometry_mixed, mixed_stress_loss_B3
 from omar_pfem.model_dict import get_model
 from omar_pfem.train_B3 import (
-    _apply_input_norm, compute_input_norm_b3, sample_batch, set_input_norm,
+    _apply_input_norm, apply_dirichlet_b3, compute_input_norm_b3, sample_batch, set_input_norm,
+    total_potential_energy_B3,
 )
 
 P_OUTPUT_SCALE = 250.0
@@ -190,21 +223,37 @@ def train(args, device, dtype=torch.float64, resolution=None):
         xyz_batch = xyz.unsqueeze(0).expand(args.batch_size, -1, -1)
         raw = model(xyz_batch, fun_material)  # (Batch, N, 12)
         u_net_raw = raw[..., :3]
-        p_net_raw = raw[..., 3:] * args.p_output_scale
 
-        loss, parts = mixed_stress_loss_B3(
-            u_net_raw, p_net_raw, E_node, nu_node, phi, geom,
-            w_constitutive=args.w_constitutive, w_equilibrium=args.w_equilibrium)
+        pretraining = it <= args.pretrain_iters
+        if pretraining:
+            # Stage 1: u alone, via the same proven energy objective
+            # train_B3.py uses. p_net_raw is deliberately NOT computed
+            # from raw here -- it would get no gradient anyway (unused
+            # in this loss) and stage 2 retrains it from scratch, so
+            # skipping it is a real (if small) compute saving, not a
+            # correctness shortcut.
+            u = apply_dirichlet_b3(u_net_raw, geom, phi)
+            loss = total_potential_energy_B3(u, E_node, nu_node, geom).mean()
+            parts = {"constitutive": float("nan"), "equilibrium": float("nan")}
+        else:
+            p_net_raw = raw[..., 3:] * args.p_output_scale
+            loss, parts = mixed_stress_loss_B3(
+                u_net_raw, p_net_raw, E_node, nu_node, phi, geom,
+                w_constitutive=args.w_constitutive, w_equilibrium=args.w_equilibrium)
 
         opt.zero_grad(set_to_none=True)
         loss.backward()
         opt.step()
 
-        if it % args.log_every == 0 or it == start_it:
+        if it % args.log_every == 0 or it == start_it or it == args.pretrain_iters + 1:
             elapsed = time.time() - t0
-            print(f"[{it}/{args.n_iters}] loss={loss.item():.6f} "
-                  f"constitutive={parts['constitutive']:.6f} "
-                  f"equilibrium={parts['equilibrium']:.6f} elapsed={elapsed:.1f}s")
+            if pretraining:
+                print(f"[{it}/{args.n_iters}] [stage1:pretrain-u] loss(mean U)={loss.item():.6f} "
+                      f"elapsed={elapsed:.1f}s")
+            else:
+                print(f"[{it}/{args.n_iters}] [stage2:mixed-stress] loss={loss.item():.6f} "
+                      f"constitutive={parts['constitutive']:.6f} "
+                      f"equilibrium={parts['equilibrium']:.6f} elapsed={elapsed:.1f}s")
 
         if it % args.ckpt_every == 0 or it == args.n_iters:
             ckpt_path = os.path.join(args.output_dir, f"checkpoint_{it}.pt")
@@ -242,6 +291,17 @@ def get_args(argv=None):
                          "docstring, point 2. Measured on a tiny toy model via a fixed-batch "
                          "diagnostic (28000 = the initial constitutive/equilibrium ratio found "
                          "there); re-check at production model scale before a long run.")
+    p.add_argument("--pretrain_iters", type=int, default=0,
+                    help="Two-stage curriculum, added 2026-10-21 after the second real run "
+                         "(p_output_scale=250.0) showed the identical non-converging "
+                         "'constitutive' pattern as the first (500.0-scale) run even after "
+                         "14,000 iterations -- see this module's own docstring, 'UPDATE "
+                         "2026-10-21'. For iterations 1..pretrain_iters, train u ALONE via "
+                         "train_B3.py's own proven total_potential_energy_B3 objective (p_net "
+                         "gets no gradient and stays at its random init); for every iteration "
+                         "after that, switch to the normal mixed_stress_loss_B3 objective, "
+                         "continuing from the same model weights. Default 0 reproduces the "
+                         "old single-stage behavior exactly.")
     return p.parse_args(argv)
 
 
