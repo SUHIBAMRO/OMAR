@@ -21010,3 +21010,101 @@ loss is computationally heavier than the baseline DEM loss (two
 plausibly a few multiples of the baseline's own 50,000-iteration ~2h7m
 -- the notebook's own markdown cell tells Omar to watch the printed
 s/iteration rate early and flags what to compare it against.
+
+## Omar: "prepare everything until HPC access arrives" -- then: "work on
+## Colab now instead, run everything" -- built out items 2-4 of the
+## error-reduction menu; nothing run on GPU yet except what's noted below
+
+Sequence this round: Omar first asked to prepare everything for future
+HPC execution (prompting a brief discussion of portability -- Colab
+notebooks assume Drive/pip-install patterns an HPC SLURM job would not
+have; no TU Ilmenau-specific config exists yet to target). He then
+reversed this: keep working on Colab now, nothing is running yet, "we'll
+see what to do with [HPC] later." Then: "start on everything, give me
+all the notebook links" -- i.e. build out the rest of the error-
+reduction menu (items 2/3/4 of Prof. Rabczuk's original four, since item
+1/mixed-stress already has a built, unexecuted training notebook from
+the previous round) and the B3 DD/Sobolev comparison, all CPU-verified
+and ready to run, not actually run yet except by Omar's own choice.
+
+**B3 data-driven + Sobolev training** (serves TWO of Prof. Rabczuk's
+asks: the "fair PI-vs-DD comparison for B3" and "Sobolev/H1 training for
+the pure DD model"): B3 never had a DD baseline -- `train_data_driven.py`
+only supports `--geometry {B1,B2}`. Built `train_B3_data_driven.py` as a
+separate file (B3's h5 dataset format differs structurally from B1/B2's
+per-sample .npz, so forcing it through the existing dispatch would have
+meant editing that trusted file), reusing B3's own geometry/Dirichlet/
+energy machinery unchanged. Supports the same 4 loss variants (rel_l2,
+mse, sobolev, hybrid) as the B1/B2 version. Verified via a CPU smoke
+test: all 4 variants run end to end without error.
+`B3_Data_Driven_Training.ipynb` chains two things: (1) generates a NEW
+200-sample labeled training set at `seed=50` (sample_seed range
+500,000-500,199) via the already-trusted `generate_dataset` -- clearly
+disjoint from the held-out set's own `seed=99999` range (999990-
+1000089) documented in this file's own 2026-09-26 entry, so training and
+evaluation never overlap; (2) trains `rel_l2` and `sobolev` variants,
+both evaluated against that SAME held-out set every physics-informed B3
+checkpoint has been evaluated on. 200 samples chosen because B3's 3D FEM
+solve cost has never been measured for this purpose (unlike B1/B2's
+documented 25-62s/sample) -- the notebook's own markdown tells Omar to
+watch the first few samples' printed time and interrupt if it is far
+more expensive than that. Not yet run.
+
+**B3 equilibrium-augmented formulation** (Prof. Rabczuk's items 2 AND
+3): a real technical finding, not a guess, worked out before writing
+any code -- for a u-only network, a STRONG-form Div(P)=0 residual is
+meaningless to add, because B3's trilinear (Hexa1) elements have
+constant shape-function gradients, making F (hence P) constant within
+every element and its WITHIN-element divergence identically zero
+regardless of correctness (the standard reason FEM practice uses the
+weak form for low-order elements, not a strong-form residual). Items 2
+("equilibrium-augmented... adding equilibrium and traction residuals")
+and 3 ("a more general H1/gradient or weak-form term") therefore
+collapse to the SAME mechanism for this architecture: the weak form
+(virtual work), `integral P:grad(v) dV = 0` for admissible virtual
+fields v. New module `equilibrium_augmented_B3.py` constructs random
+admissible v by reusing `apply_dirichlet_b3`'s own boundary-vanishing
+shape functions (the ramp, the sin(theta) factor) multiplied by fresh
+per-node noise -- so every v is automatically zero on every Dirichlet/
+symmetry boundary with no new BC code, and B3's groove/lateral surfaces
+are genuinely traction-free so the right-hand side is correctly zero
+there too, not just assumed.
+
+Verified two ways before any GPU time: (1)
+`test_equilibrium_augmented_B3.py` confirms the residual genuinely
+tracks equilibrium violation -- it decreases as a CPU toy model's total
+potential energy is minimized (no equilibrium term in that
+minimization's own gradient at all), confirming the two are connected
+via the stationarity argument, not a disconnected number; (2) a
+fixed-batch diagnostic (`diagnose_equilibrium_augmented_B3_scale.py`) at
+production mesh scale showed the loss is stable with the two terms
+roughly the SAME order of magnitude at the default `w_equilibrium=1.0`
+-- a far milder imbalance than item 1's mixed-stress formulation hit
+(which needed a ~28,000x reweighting), so no drastic rescaling was
+applied; `n_virtual` (random test fields per iteration) raised from 4 to
+8 after the diagnostic showed meaningful run-to-run noise purely from
+the random draw at 4. `train_B3_equilibrium_augmented.py` is a new,
+separate file (not an edit to `train_B3.py`), same 50,000-iteration
+budget. Since this checkpoint stays u-only (no new output channels),
+the ORIGINAL `evaluate_B3_qois.py` applies unchanged for evaluation --
+no new eval script was needed, unlike item 1. `B3_Equilibrium_
+Augmented_Training.ipynb` built, not yet run.
+
+**Status, all four original error-reduction items**: item 1 (mixed-
+stress) has a built, CPU-and-production-GPU-diagnosed, not-yet-executed
+training notebook from the previous round. Items 2+3 (equilibrium-
+augmented/weak-form, now understood to be one mechanism) have a built,
+CPU-verified, not-yet-executed training notebook from this round. Item
+4 (Sobolev/H1 for the DD model) is covered by the B3 DD/Sobolev notebook
+above. **Four real notebooks now exist and are ready to run; none has
+been executed yet except at Omar's own pace.** Links given to Omar:
+- `B3_Mixed_Stress_Training.ipynb` (item 1)
+- `B3_Data_Driven_Training.ipynb` (PI-vs-DD comparison + item 4/Sobolev)
+- `B3_Equilibrium_Augmented_Training.ipynb` (items 2+3)
+
+Not yet built: geometry families/industrial nonlinearities and faster
+solvers (both still need scope clarification from Prof. Rabczuk before
+implementation makes sense), and either stage of the trustworthy-AI
+plan (resolution theory/model selection, then certified error
+indicators + selective FEM correction) -- these remain the next things
+to scope once the currently-running items report back.
