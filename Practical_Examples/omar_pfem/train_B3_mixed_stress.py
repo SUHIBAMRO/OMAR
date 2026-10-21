@@ -104,11 +104,36 @@ def train(args, device, dtype=torch.float64, resolution=None):
     geom = build_fixed_geometry_mixed(Ntheta, Nr, Nz, device, dtype=dtype)
     print(f"Fixed geometry: {geom['n_elements']} elements, {geom['n_nodes']} nodes")
 
-    model = build_model(args, device).to(dtype)
-    opt = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-
     xyz = geom["nodes"]
     os.makedirs(args.output_dir, exist_ok=True)
+
+    model = build_model(args, device).to(dtype)
+
+    # Resume from the latest checkpoint already in output_dir, if any --
+    # added after a real Colab disconnection mid-run (2026-10-21) lost no
+    # progress only because the interruption happened to land exactly on a
+    # checkpoint boundary; without this, any other interruption point would
+    # have silently discarded real GPU time on the next re-run. Loads INTO
+    # the already-constructed model (not a new one) so the optimizer built
+    # right after this block starts from the resumed weights, not a fresh
+    # model's parameter objects. Optimizer state itself is not saved/
+    # restored (matching this project's own established checkpoint
+    # convention everywhere else -- train_B3.py, train_B3_equilibrium_
+    # augmented.py -- none of them save optimizer state either), so Adam's
+    # own momentum restarts fresh; still far better than re-initializing
+    # the model weights themselves from scratch.
+    start_it = 1
+    existing = [f for f in os.listdir(args.output_dir)
+                if f.startswith("checkpoint_") and f.endswith(".pt")]
+    if existing:
+        latest = max(existing, key=lambda f: int(f[len("checkpoint_"):-len(".pt")]))
+        ckpt = torch.load(os.path.join(args.output_dir, latest), map_location=device)
+        model.load_state_dict(ckpt["model_state"])
+        start_it = ckpt["iter"] + 1
+        print(f"[resume] found {latest}, resuming from iteration {start_it} "
+              f"(optimizer state not saved/restored -- Adam's own momentum restarts fresh)")
+
+    opt = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
     norm_path = os.path.join(args.output_dir, "input_norm.json")
     if int(getattr(args, "normalize_inputs", 0)):
@@ -128,8 +153,12 @@ def train(args, device, dtype=torch.float64, resolution=None):
     else:
         set_input_norm(None)
 
+    if start_it > args.n_iters:
+        print(f"[resume] already at iteration {start_it - 1} >= n_iters={args.n_iters}, nothing to do")
+        return model
+
     t0 = time.time()
-    for it in range(1, args.n_iters + 1):
+    for it in range(start_it, args.n_iters + 1):
         E_node, nu_node, phi = sample_batch(args.batch_size, Ntheta, Nr, Nz,
                                              seed_offset=it * args.batch_size,
                                              dtype=dtype, device=device)
@@ -149,7 +178,7 @@ def train(args, device, dtype=torch.float64, resolution=None):
         loss.backward()
         opt.step()
 
-        if it % args.log_every == 0 or it == 1:
+        if it % args.log_every == 0 or it == start_it:
             elapsed = time.time() - t0
             print(f"[{it}/{args.n_iters}] loss={loss.item():.6f} "
                   f"constitutive={parts['constitutive']:.6f} "
