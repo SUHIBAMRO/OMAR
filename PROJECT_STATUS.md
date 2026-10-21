@@ -21295,3 +21295,50 @@ loss weighting), or treat both as genuine, reportable negative findings
 and move on to item 4/the DD comparison's own next steps and the still-
 unscoped items. Needs a decision from Omar/Prof. Rabczuk before more
 GPU time goes into either variant as currently implemented.
+
+## Omar asked "why are the numbers so high" -- rigorously calibrated
+## P_OUTPUT_SCALE the same way OUTPUT_SCALE was originally found;
+## real, measured 2x correction found, re-run prepared but NOT a
+## confirmed fix
+
+`calibrate_p_output_scale.py` (new): measures the untrained,
+production-size network's real raw output magnitude for the 9 stress
+channels, and a "realistic true P" built from REAL sampled (E,nu,phi)
+(via `sample_batch`) run through the same Dirichlet-ansatz construction
+`apply_dirichlet_b3` already uses (network's own raw contribution
+zeroed -- not the full true FEM field, which lives only on Drive, but a
+physically grounded, boundary-consistent proxy, not an invented
+example). Result: true P RMS ~74.0, raw untrained output RMS ~0.30,
+derived scale = 73.99/0.30 = **246.6** -- vs. the 500.0 hand-picked
+guess actually used in the failed run, a real, measured **~2.03x
+over-estimate**.
+
+Updated `P_OUTPUT_SCALE` to 250.0 (rounded). **Stated honestly, not
+oversold**: this is a real correction, but a much smaller mismatch than
+the 5-50x gap that explained `train_B3.py`'s own original `OUTPUT_SCALE`
+failure, and the failed run's own per-component constitutive residual
+(~65) was already close in magnitude to the true RMS P itself (~74,
+i.e. ~100% relative error throughout 50,000 iterations) -- a mere 2x
+initial-scale fix would not obviously resolve that scale of mismatch on
+its own. This is presented to Omar as "a real, worthwhile thing to
+retry," not "the fix."
+
+**A real near-miss caught while making this change**: the recalibrated
+re-run needed a NEW output directory
+(`b3_mixed_stress_training_v2`, not the original
+`b3_mixed_stress_training`) -- resuming the OLD, 500.0-scale checkpoint
+under the new 250.0 default would have silently reinterpreted its
+already-learned stress-channel weights at the wrong magnitude, mixing
+two inconsistent trainings with zero warning, exactly the kind of
+subtle bug this project's own discipline exists to catch before it
+wastes GPU time. Added an explicit check in `train()`: if a checkpoint's
+own saved `p_output_scale` doesn't match the current run's, raise an
+error naming both values rather than resuming silently. Verified this
+doesn't break the normal resume path (same CPU smoke test as before,
+re-run clean).
+
+`B3_Mixed_Stress_Training.ipynb` rebuilt with this recalibration and the
+new output directory. Not yet re-run -- next step is Omar's call on
+whether to spend the GPU hours on this recalibrated attempt 2 now, or
+wait given the open question of whether a deeper issue (beyond scale)
+also needs resolving first.
