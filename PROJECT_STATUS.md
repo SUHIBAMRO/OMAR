@@ -21195,3 +21195,44 @@ follow-up question, not yet answered.
 
 **Still pending**: `B3_Mixed_Stress_Training.ipynb` (item 1) has not
 been reported back yet.
+
+## Mixed-stress training run disconnected at iteration 15,000/50,000;
+## checkpoint-resume added so re-running the notebook continues instead
+## of restarting
+
+Omar's first real run of `B3_Mixed_Stress_Training.ipynb` hit a Colab
+disconnection at iteration 15,000 (also on a smaller A100-SXM4-**40GB**
+instance this time, not the 80GB variant every prior run used --
+training itself was unaffected, no OOM, just worth noting the hardware
+varies between Colab sessions). It only avoided losing all 2,751.8s
+(46 min) of progress because 15,000 happens to be an exact multiple of
+`--ckpt_every 5000` -- `train_B3_mixed_stress.py` had no resume logic at
+all before this, so any other interruption point would have silently
+discarded real GPU time on the next re-run. Fixed: `train()` now
+auto-detects the latest `checkpoint_*.pt` already in `output_dir` and
+resumes from the next iteration (optimizer state not saved/restored,
+matching this project's own convention everywhere else). Verified with
+a CPU smoke test: a fresh run and a resumed run produce matching loss
+values at the same iteration (to ~5 significant figures, differing only
+by expected run-to-run floating-point noise), and the no-op path when
+already fully trained does not restart from scratch. Omar just needs to
+re-run the same notebook cell -- its own setup already does a fresh
+`git reset --hard` each time, so it will pick this fix up automatically
+and resume from `checkpoint_15000.pt`.
+
+**Real observation from the 15,000 iterations already completed, not
+yet resolved**: `equilibrium` converged to ~0.00001-0.0004 almost
+immediately (as expected, `w_equilibrium=28000` is clearly enough), but
+`constitutive` showed NO clear downward trend across the full
+15,000 iterations -- oscillating between ~26,000 and ~104,000 throughout,
+not settling toward a lower plateau the way the earlier 300-iteration
+fixed-batch diagnostic's own constitutive term did (428,186 -> 51,092).
+The real difference: that diagnostic used the SAME fixed material/load
+sample every iteration (an easier, memorization-style target), while
+real training draws a NEW random sample every iteration (seed_offset=
+it*batch_size) -- so this gap may simply mean the constitutive term
+needs many more iterations to generalize across the full material/
+loading distribution than it needed to fit one fixed sample, or it may
+indicate a genuine difficulty generalizing the P~F relationship across
+samples. Not yet known which -- worth watching closely once the
+resumed run reaches iteration 50,000 before drawing any conclusion.
