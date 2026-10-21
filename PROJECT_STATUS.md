@@ -21108,3 +21108,90 @@ implementation makes sense), and either stage of the trustworthy-AI
 plan (resolution theory/model selection, then certified error
 indicators + selective FEM correction) -- these remain the next things
 to scope once the currently-running items report back.
+
+## First two real GPU results: equilibrium-augmented FAILED badly (real
+## negative finding, root cause identified); B3 PI-vs-DD comparison
+## SUCCEEDED and gives a genuinely interesting, publication-relevant
+## answer
+
+Omar ran `B3_Equilibrium_Augmented_Training.ipynb` and
+`B3_Data_Driven_Training.ipynb` on a real A100. Both finished; reporting
+both honestly, including the one that did not work.
+
+**Equilibrium-augmented (items 2/3): a real failure, not a success.**
+50,000 iterations, 8,240s (2h17m, 0.165s/iter -- close to the DEM
+baseline's own 0.1525s/iter, confirming the per-iteration cost estimate
+was right). Evaluated against the held-out set:
+- combined displacement-adjacent errors: energy mean rel. err
+  **181.8%**, reaction moment **216.9%**, region Cauchy stress field
+  rel. err **1013.8%** (pooled-RMS region sigma_xx **2028%**).
+- For comparison, the already-published PI baseline reaches 1.88%
+  combined displacement error, 0.3% energy error, 3.0% reaction-moment
+  error -- the equilibrium-augmented checkpoint is roughly two orders
+  of magnitude worse across every QoI, not a marginal regression.
+
+**Root cause identified, not just "it didn't work"**: the training
+log's own printed `energy` term stayed flat around 2-4 for the ENTIRE
+50,000-iteration run (2.15 at iteration 500, 2.17 at iteration 50,000)
+-- it never converged toward the baseline's own documented plateau
+(~2.55-2.6, itself already close to a true minimum). Meanwhile
+`weak_form_residual` was frequently LARGER than the energy term (e.g.
+iteration 37,000: energy=2.86, residual=71.3) and never showed a
+decreasing trend either, bouncing between ~4 and ~70 throughout.
+Checking `train_B3_equilibrium_augmented.py`'s own training loop
+against the diagnostic/test code that validated this method
+beforehand: the TEST code
+(`test_equilibrium_augmented_B3.py`/the fixed-batch diagnostic) fixed a
+`torch.Generator` seed for the virtual test fields specifically so
+consecutive measurements were comparable -- but the REAL TRAINING LOOP
+draws a fresh, unseeded random set of virtual fields every single
+iteration. Combined with the residual term often outweighing the energy
+term at `w_equilibrium=1.0`, this means the optimizer was chasing a
+constantly-shifting, high-variance target for a large fraction of its
+own gradient signal -- plausible mechanism for why training never
+settled near the energy-minimizing (and hence true equilibrium)
+solution, unlike the small-scale (150-200 iteration, fixed-batch) toy
+diagnostic that originally looked stable: that diagnostic never ran
+long enough or across enough resampled batches to expose this
+long-run degradation.
+
+**Not fixed yet -- needs a decision before retrying**: candidate fixes,
+none yet chosen or implemented: (a) a much smaller `w_equilibrium` so
+the residual acts as a gentle regularizer rather than a competing
+objective; (b) far more virtual fields per iteration to reduce the
+per-step variance of the residual estimate; (c) resample virtual fields
+on a slower schedule (e.g. once per N iterations) rather than every
+step, trading some signal diversity for a dramatically more stable
+target. This is a genuine, reportable negative result for the
+follow-up paper -- "a weak-form virtual-work auxiliary loss, naively
+added with unseeded per-iteration resampling, actively degrades a
+physics-informed B3 operator rather than helping it" is itself a real
+finding worth writing up, not just a bug to quietly patch.
+
+**B3 data-driven + Sobolev (fair PI-vs-DD comparison + item 4): a real
+success, and a genuinely interesting result.** Dataset generation: 200
+samples in 825.8s (4.13s/sample -- the first real B3 per-sample FEM
+timing this project has, now known rather than estimated). Training:
+- `--loss rel_l2` (plain DD): best val. rel. L2 **2.51%** at step
+  50,000 (monotonic improvement throughout, best checkpoint at the very
+  end), 7,116.4s (1h59m) training wall-clock.
+- `--loss sobolev`: best val. rel. L2 **2.62%** at step 42,000 (slightly
+  WORSE than plain rel_l2, and showed mild instability after ~step
+  36,000 rather than continuing to improve), 7,328.1s (2h2m).
+
+**The headline comparison Prof. Rabczuk asked for**: PI reaches 1.88%
+displacement error at ~2.12h training cost (no labels needed). DD
+(rel_l2) reaches 2.51% at a TOTAL cost of ~2.21h (0.23h labels + 1.98h
+training) -- PI is both MORE accurate AND cheaper for B3, the opposite
+of this project's own B1 finding (where DD beat PI once AdamW+OneCycleLR
+was used, Table 22). This is a genuinely new, publication-relevant
+cross-case result: the PI-vs-DD ranking is not universal, it depends on
+the geometry/case, not just the optimizer (as B1's own finding already
+showed) -- B1 favors DD, B3 favors PI, at these respective sample/
+budget choices. Caveat for the write-up: this is one point (200 DD
+training samples), not a break-even sweep across sample count -- more
+DD labels could plausibly close or reverse the gap, which is a fair
+follow-up question, not yet answered.
+
+**Still pending**: `B3_Mixed_Stress_Training.ipynb` (item 1) has not
+been reported back yet.
