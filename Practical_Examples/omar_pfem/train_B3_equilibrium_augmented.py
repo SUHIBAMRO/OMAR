@@ -13,6 +13,44 @@ and must not be touched.
 Usage:
   python -m omar_pfem.train_B3_equilibrium_augmented \
       --n_iters 50000 --batch_size 8 --output_dir .../b3_equilibrium_augmented
+
+STATUS (updated 2026-10-22): the first real 50,000-iteration run (at
+the original w_equilibrium=1.0 default) was a genuine failure --
+roughly 100x worse than the DEM baseline on every QoI (energy 181.8%,
+reaction 216.9%, region Cauchy field 1013.8% vs. the baseline's
+0.3%/3.0%). Root-caused via a CPU-only measurement, not a guess: at
+PRODUCTION model size, with REAL sampled material/load batches, the raw
+(unweighted) weak-form residual is roughly 6.5-10x LARGER in magnitude
+than the energy term at initialization (measured across 3 seeds: energy
+2.6-5.2, residual 22-51, ratio energy/residual = 0.10-0.15) -- i.e.
+w_equilibrium=1.0 was never actually "balanced," it was only ever
+sanity-checked at a smaller/undertrained scale. With w=1.0, the
+equilibrium term (which is ALSO inherently noisy -- resampled with
+fresh random, unseeded virtual test fields every iteration; measured
+swinging +/-40% between back-to-back evaluations of the SAME u at
+n_virtual=8) completely dominated the total loss, so the optimizer
+mostly chased a noisy, overweighted target instead of the energy term
+that actually drives a good displacement field, explaining the ~100x
+failure without needing to invoke the "unseeded resampling" noise as a
+separate, additional villain -- the weighting alone was already a 6.5-
+10x miscalibration.
+
+W_EQUILIBRIUM's default below was corrected from 1.0 to 0.12 (the
+measured ratio, rounded) following this measurement. Verified on a CPU
+fixed-batch diagnostic (`diagnose_equilibrium_augmented_B3_scale.py
+--tiny --w_equilibrium 0.12`, 600 steps): `energy` settles to a stable
+plateau (~2.30) that is NEARLY IDENTICAL to a pure-energy-only
+(w_equilibrium=0) reference run on the exact same fixed batch (~2.25-
+2.30) -- i.e. the corrected weight no longer visibly perturbs the
+energy term's own healthy convergence, unlike w=1.0's complete
+domination. `weak_form_residual` itself remains noisy run-to-run (still
+the same unseeded-resampling behavior, now not investigated further
+since it no longer appears to be the dominant problem) but this no
+longer destabilizes the term that actually matters. This is the same
+kind of real, measured calibration this project has now done four times
+(train_B3.py's OUTPUT_SCALE, mixed_stress's P_OUTPUT_SCALE and
+w_equilibrium, now this) -- the fixed-batch CPU check is a necessary
+sanity gate, not a guarantee; the real test is a full GPU run.
 """
 import json
 import os
@@ -120,13 +158,13 @@ def get_eq_args(argv=None):
     p.add_argument("--ckpt_every", type=int, default=5000)
     p.add_argument("--output_dir", type=str, default="b3_equilibrium_augmented_output")
     p.add_argument("--normalize_inputs", type=int, default=0)
-    p.add_argument("--w_equilibrium", type=float, default=1.0,
+    p.add_argument("--w_equilibrium", type=float, default=0.12,
                    help="weight on the weak-form equilibrium residual, relative to the "
-                        "energy loss. NOT yet confirmed at production scale -- watch the "
-                        "printed energy vs. weak_form_residual magnitudes early in a real "
-                        "run the same way mixed-stress's own w_equilibrium=28000 was "
-                        "calibrated via a fixed-batch diagnostic before trusting this "
-                        "default.")
+                        "energy loss. Corrected 2026-10-22 from 1.0 (which caused a real, "
+                        "measured ~100x-worse-than-baseline training failure) to 0.12, the "
+                        "measured production-scale ratio of energy/residual magnitude "
+                        "(0.10-0.15 across 3 seeds) -- see this module's own docstring, "
+                        "'STATUS (updated 2026-10-22)'.")
     p.add_argument("--n_virtual", type=int, default=8,
                    help="number of random virtual test fields per iteration -- a fixed-batch "
                         "diagnostic (diagnose_equilibrium_augmented_B3_scale.py) showed the "

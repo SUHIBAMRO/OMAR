@@ -21639,3 +21639,53 @@ real quantitative improvement beyond that would most plausibly need a
 dedicated local treatment for the groove region (mirroring
 `--local_refine_region`'s own, already-proven role for the baseline),
 which is a real scoping decision, not a quick follow-up.
+
+## Omar asked to keep retrying the equilibrium-augmented formulation
+## (items 2/3) until it works; found and fixed a real, measured scale
+## miscalibration (same category of bug as every other item's own
+## OUTPUT_SCALE/w_equilibrium story) -- attempt 2 prepared, not yet run
+
+Root-cause investigation of attempt 1's ~100x failure (energy 181.8%,
+reaction 216.9%, region Cauchy field 1013.8% vs. baseline's 0.3%/3.0%),
+via CPU-only measurements at PRODUCTION model size with real sampled
+material/load batches (not the toy-model-only check the original
+w_equilibrium=1.0 default actually relied on): the raw, unweighted
+weak-form equilibrium residual is **6.5-10x LARGER** than the energy
+term at initialization (measured across 3 seeds: energy 2.6-5.2,
+residual 22-51, ratio energy/residual = 0.10-0.15). `w_equilibrium=1.0`
+was therefore never actually balanced at the scale that matters -- it
+let the equilibrium term dominate the total loss. Also measured: the
+residual is inherently noisy (fresh, unseeded random virtual test
+fields drawn every call -- three evaluations of the IDENTICAL
+displacement field gave 24.2, 22.2, 32.8, roughly +/-40% swing). With
+the old w=1.0, this noisy AND over-weighted term would dominate the
+optimizer's gradient almost every step, explaining the failure without
+needing a second, separate cause.
+
+**Fix**: corrected `w_equilibrium` from 1.0 to 0.12 (the measured
+ratio, rounded) in `train_B3_equilibrium_augmented.py` and
+`diagnose_equilibrium_augmented_B3_scale.py`. Verified directly on a
+CPU fixed-batch diagnostic (`--tiny --w_equilibrium 0.12`, 600 steps,
+production mesh): `energy` settles to a stable ~2.30 plateau, and a
+separate pure-energy-only (`w_equilibrium=0`) reference run on the
+IDENTICAL fixed batch settles to an almost indistinguishable ~2.25-2.30
+-- i.e. the corrected weight no longer visibly perturbs the energy
+term's own healthy convergence (unlike w=1.0, which dominated it
+completely). `weak_form_residual` itself is still noisy run-to-run
+(same unseeded-resampling behavior, not changed by this fix) but no
+longer destabilizes the term that actually drives learning. The
+existing correctness test (`test_equilibrium_augmented_B3.py`, residual
+tracks energy minimization) still passes unmodified -- this fix only
+changed a CLI default, not any of the underlying math.
+
+This is the same category of fix as every other scale calibration this
+project has done (`train_B3.py`'s `OUTPUT_SCALE`, mixed_stress's
+`P_OUTPUT_SCALE` and `w_equilibrium`) -- a real, measured correction to
+a weight that was only ever sanity-checked at a smaller/different scale
+than production. `B3_Equilibrium_Augmented_Training.ipynb` rebuilt for
+attempt 2, writing to a new output directory
+(`b3_equilibrium_augmented_v2`, keeping attempt 1's own checkpoints/logs
+inspectable). Not yet run on GPU -- the fixed-batch CPU check is a
+necessary sanity gate, not a guarantee of success at full scale and
+real (non-fixed) sampling; next step is Omar starting this notebook on
+Colab.

@@ -28,7 +28,10 @@ def main(argv=None):
     p.add_argument("--tiny", action="store_true")
     p.add_argument("--n_steps", type=int, default=200)
     p.add_argument("--batch_size", type=int, default=4)
-    p.add_argument("--w_equilibrium", type=float, default=1.0)
+    p.add_argument("--w_equilibrium", type=float, default=0.12,
+                   help="matches train_B3_equilibrium_augmented.py's own corrected "
+                        "default (2026-10-22, see its docstring) -- the old 1.0 was a "
+                        "real ~6.5-10x over-estimate at production scale.")
     p.add_argument("--n_virtual", type=int, default=4)
     diag_args = p.parse_args(argv)
 
