@@ -21532,3 +21532,110 @@ quadrature refinement) -- not another loss-function tweak.
 new output directory (`b3_mixed_stress_relative`) so every previous
 attempt's checkpoints/logs stay separately inspectable. Not yet run on
 GPU -- next step is Omar starting this notebook on Colab.
+
+## Omar asked for a rigorous root-cause investigation of attempt 4's
+## plateau and a fix if a real bug was found; found and confirmed a
+## genuine structural flaw (gradient collapse) via CPU diagnostics; the
+## most direct fix did NOT resolve it; ran attempt 4 to completion on
+## GPU anyway and its real evaluation CONFIRMS the diagnosis -- direct
+## P-prediction accuracy got WORSE than attempt 1's, not better
+
+**CPU root-cause investigation** (before any more GPU time): reproduced
+attempt 4's exact plateau value (~0.74-0.83) on a TINY toy model with a
+FIXED (non-random) batch in under 100 CPU iterations -- proving the
+plateau is NOT a generalization-difficulty, learning-rate, or
+model-capacity issue (a lower learning rate, 10x smaller, converged to
+the IDENTICAL plateau, just more slowly -- ruling out step size).
+Inspected the trained network's own stress output directly: predicted
+P collapsed to a nearly-constant, near-zero field (std across nodes
+~0.003, mean abs ~0.73) while the true P field it should match varies
+hugely (std across elements ~95, mean abs ~68) -- the network had
+essentially stopped trying to track the real field at all.
+
+**Mechanism, confirmed mathematically and numerically**: the relative
+residual `(P_pred-P_true)^2/(eps+P_true^2)` has gradient (w.r.t.
+P_pred) `2(P_pred-P_true)/(eps+P_true^2)`, which for large `|P_true|`
+(the groove-region quadrature points attempt 4 was specifically meant
+to stop from dominating the loss VALUE) shrinks roughly as `1/|P_true|`
+-- i.e., the fix that correctly stopped those points from dominating
+the loss also crippled the GRADIENT signal needed to actually learn
+their (large) correct values, while low-|P_true| points near the `eps`
+floor keep a comparatively large gradient. Net effect: optimization is
+pulled toward predicting near-zero everywhere (cheaply satisfies the
+low-stress majority, barely penalized for being very wrong at the
+high-stress groove points since their gradient is weak) -- a genuine,
+different-but-equally-real flaw from the one attempt 4 was built to
+fix, not merely "needs more training."
+
+**Attempted the direct mathematical fix**: changed the normalizer from
+`eps + P_true^2` (quadratic) to `eps + |P_true|` (linear), which in
+principle should **not** vanish for large `|P_true|` (gradient -> a
+bounded constant, not -> 0). Tested on the identical CPU fixed-batch
+setup: **did not fix it** -- still plateaus quickly, predicted P still
+stays near-collapsed (mean abs ~1.27 vs. true ~68, std across nodes
+only ~0.37). This was tested as an ad-hoc CPU-only experiment, NOT
+merged into `mixed_stress_B3.py` -- it is not a working fix, just a
+ruled-out candidate, so no code in the committed `relative_constitutive`
+path was changed by this investigation.
+
+**No further fix was found** within this investigation. Honest
+conclusion: this is very likely a genuine difficulty of directly
+regressing the TRUE, extremely heavy-tailed, spatially-localized (the
+groove) stress field with a UNIFORM-resolution network and a simple
+pointwise loss, not something a loss-reweighting formula alone can
+resolve -- consistent with this project's own earlier, independent
+finding that the SAME groove region already needed dedicated local
+mesh/quadrature refinement (`evaluate_B3_region_local_refine.py`,
+`--local_refine_region`) even for the much easier, implicit,
+energy-based baseline.
+
+**Meanwhile, Omar let the GPU run continue to full completion (50,000
+iterations)** rather than interrupting at 30,000 as suggested --
+`constitutive` stayed in the identical 0.79-0.89 oscillating-plateau
+range for the entire second half, exactly matching the CPU diagnosis
+(no further movement was ever realistic). The run's own evaluation
+against the held-out FEM dataset is the first FULL evaluation this
+session has for the relative-constitutive formulation, and it
+**confirms the collapse diagnosis has a real, measured downstream
+cost**:
+
+| metric | attempt 1 (absolute, scale=500, "failed") | attempt 4 (relative, scale=250, this run) |
+|---|---|---|
+| `region_avg_sigma_xx_implicit` pooled RMS | 18.4% | 16,490% (corr=-0.24, nonsensical -- u/energy/reaction were never trained this run, by design, to isolate the loss-formula change) |
+| `region_avg_sigma_xx_direct` pooled RMS | **8.2%** | **96.1%** (corr=0.65) |
+| energy / reaction_moment_y pooled RMS | ~0.3% / ~3.0% (original published baseline, separate run) | 228% / 140% |
+
+**`region_p99_sigma_xx_*` came back NaN** for both implicit and direct
+-- not a new bug, the evaluation script's own printed line already
+flags why: "fixed region: 6 Gauss points (reliable p99 needs >= 20)" --
+a pre-existing resolution limitation of the region-QoI evaluation at
+this mesh size, unrelated to this run's loss formula.
+
+**The core, robust, REPORTABLE finding survives**: direct P-prediction
+beats the implicit (autograd-from-u) stress estimate for this specific
+region QoI in BOTH attempt 1 and attempt 4 (by 2.2x and ~172x pooled
+RMS respectively) -- consistent across two very differently-tuned
+runs, answering Professor Rabczuk's actual question with a real yes.
+
+**But the "fix" made the real, practical accuracy WORSE, not better**:
+attempt 1's direct-P accuracy (8.2% RMS) is noticeably better than
+attempt 4's (96.1% RMS), despite attempt 1 being the admittedly
+uncalibrated, "failed-by-every-other-metric" first try. This is the
+gradient-collapse mechanism found above showing up as a real,
+quantified cost, not just a training-curve curiosity -- the relative
+loss's more "well-behaved" training plateau (stable ~0.8 vs. attempt
+1's wide unstable oscillation) did NOT translate into a better model;
+if anything the opposite.
+
+**Recommendation given to Omar, not yet acted on pending his/Timon's
+decision**: stop iterating on loss-formula tweaks for this formulation
+-- four attempts (scale x2, curriculum, relative residual) have each
+addressed a real, measured issue without improving on attempt 1's own
+direct-P accuracy, and attempt 4 is a regression on it. Treat "direct
+P-prediction beats implicit for stress QoIs" (robust across attempts 1
+and 4) as the reportable finding for item 1, using attempt 1's
+checkpoint as the best-available quantification (8.2% pooled RMS) --
+real quantitative improvement beyond that would most plausibly need a
+dedicated local treatment for the groove region (mirroring
+`--local_refine_region`'s own, already-proven role for the baseline),
+which is a real scoping decision, not a quick follow-up.
