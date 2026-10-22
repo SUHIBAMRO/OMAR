@@ -154,7 +154,8 @@ def divergence_from_grad(gradP):
 
 
 def mixed_stress_loss_B3(u_net_raw, p_net_raw, E_node, nu_node, phi, geom,
-                          w_constitutive=1.0, w_equilibrium=1.0):
+                          w_constitutive=1.0, w_equilibrium=1.0,
+                          relative_constitutive=False, constitutive_eps=400.0):
     """u_net_raw: (Batch,N,3) network's raw displacement output (BEFORE
     the Dirichlet ansatz -- apply_dirichlet_b3 is called inside here,
     exactly as train_B3.py's own training loop calls it, so every
@@ -166,6 +167,34 @@ def mixed_stress_loss_B3(u_net_raw, p_net_raw, E_node, nu_node, phi, geom,
     residual, if the groove/lateral surfaces need one, is a candidate
     follow-up extension, not added here to keep this first version's
     correctness easy to verify term-by-term).
+
+    relative_constitutive (added 2026-10-22, see train_B3_mixed_stress.
+    py's own docstring, "UPDATE 2026-10-22" for the full diagnosis):
+    if True, each quadrature point's constitutive residual is divided
+    by (constitutive_eps + |P_true|_F^2) before being volume-weighted
+    and summed, instead of being used as a raw absolute squared error.
+    Found necessary because the TRUE |P| distribution across B3's
+    domain is extremely heavy-tailed (measured directly from real
+    sampled E/nu/phi: median ~99, p99 ~801 (8x median), max ~2599 (26x
+    median) -- almost certainly the groove region, where strain
+    concentrates) -- with a plain absolute L2 residual, the handful of
+    high-|P| elements dominate the loss/gradient quadratically more
+    than the bulk of the domain, which is a real, measured candidate
+    explanation for why `constitutive` oscillated with no visible
+    downward trend across three separate real GPU runs (500/250 scale,
+    and the two-stage curriculum) despite no implementation bug being
+    found in any of them. Default False preserves the exact old
+    behavior for every existing caller/checkpoint/test.
+    constitutive_eps: a floor on the per-point |P_true|_F^2 used as the
+    relative-error denominator, so very-low-stress quadrature points
+    (measured min |P|_F ~0.21, far below the 400=20^2 floor) are not
+    divided by a near-zero number and do not themselves come to
+    dominate the loss the opposite way. 400.0 = (~20)^2, close to the
+    measured 10th-percentile |P|_F (~20.5) -- i.e. quadrature points at
+    or below the lower ~10% of the real |P| distribution are treated
+    with an effectively-absolute (not blown-up) residual, while the
+    heavy right tail that caused the original problem is properly
+    relative.
 
     Returns (loss, parts) where parts is a dict of the two un-weighted
     residual means, for logging/diagnosis independent of the chosen
@@ -202,6 +231,9 @@ def mixed_stress_loss_B3(u_net_raw, p_net_raw, E_node, nu_node, phi, geom,
         total_weight = total_weight + w.sum().expand(Batch)
 
         resid_c = ((P_pred - P_true) ** 2).sum(dim=(-1, -2))  # (Batch, n_elem)
+        if relative_constitutive:
+            P_true_sq = (P_true ** 2).sum(dim=(-1, -2))  # (Batch, n_elem)
+            resid_c = resid_c / (constitutive_eps + P_true_sq)
         L_constitutive = L_constitutive + torch.sum(resid_c * w[None, :], dim=1)
 
         divP = divergence_from_grad(gradP_all[g])  # (Batch, n_elem, 3)

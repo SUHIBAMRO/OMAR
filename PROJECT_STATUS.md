@@ -21441,3 +21441,94 @@ it is still trending down hard at the boundary, and to watch stage 2's
 landscape" hypothesis itself would need revisiting, not just the
 curriculum split). Not yet run on GPU -- next step is Omar starting
 this notebook on Colab.
+
+## Attempt 3 (two-stage curriculum) ALSO failed the same way; measured
+## the real |P| field and found it extremely heavy-tailed; built and
+## CPU-verified attempt 4: a RELATIVE constitutive residual instead of
+## absolute squared error, with w_equilibrium re-measured from scratch
+
+Omar ran attempt 3 (two-stage curriculum) on Colab and reported its
+full log up to iteration 29,500/50,000, then interrupted it himself
+("هادا اخر تحديث قبل ما اوقفها"). Stage 1 (pretrain-u, iterations
+1-10,000) looked healthy: `loss(mean U)` settled into the same ~1.5-4.7
+range the baseline's own energy training always shows, no runaway
+growth. Stage 2 (mixed-stress, iterations 10,001-29,500): `equilibrium`
+decreased smoothly and correctly (7371 at the moment of the switch ->
+0.002-0.07 by 29,500), but **`constitutive` showed the identical
+no-downward-trend oscillation as attempts 1 and 2** (range roughly
+24,000-75,000 throughout, no visible improvement even with 19,500
+iterations of a well-pretrained u). **Conclusion: "untrained u at the
+start" was not the (whole) explanation either** -- three independent
+fixes (scale correction, then training-order curriculum) have now
+failed to move `constitutive` off its oscillating plateau.
+
+**Found the real, measured cause**: wrote a CPU-only script (reusing
+`calibrate_p_output_scale.py`'s own methodology -- real sampled E/nu/phi
+via `sample_batch`, run through the Dirichlet-ansatz construction,
+`neo_hookean_P_closed_form`) to measure the TRUE |P| distribution across
+the real domain, batch=16: **min |P|_F ~0.21, median ~99, p90 ~332, p99
+~801 (8x median), p99.9 ~1385, max ~2599 (26x median)** -- an extremely
+heavy-tailed distribution, almost certainly the groove region where
+strain concentrates (consistent with this project's own earlier
+local-refinement work on exactly that region for the energy-based
+baseline, `evaluate_B3_region_local_refine.py`). The constitutive
+residual `mixed_stress_loss_B3` has always used is a plain ABSOLUTE
+squared error, summed/volume-weighted across quadrature points -- so
+the handful of high-|P| points contribute quadratically more to the
+loss and its gradient than their actual share of the domain, regardless
+of how well the rest of the field is fit. This is a real, measured
+candidate explanation that fits all three previous failures, and is
+distinct from (not another guess piled onto) the scale and curriculum
+fixes already tried.
+
+**Built and CPU-verified attempt 4**: added `relative_constitutive`
+(bool, default False) and `constitutive_eps` (default 400.0) parameters
+to `mixed_stress_B3.mixed_stress_loss_B3`. When on, each quadrature
+point's `(P_pred-P_true)` squared-error is divided by
+`(constitutive_eps + |P_true|_F^2)` before volume-weighting -- a
+genuinely relative error. `constitutive_eps=400.0` (~20^2) was chosen
+from the SAME measurement (close to the measured 10th-percentile |P|_F,
+~20.5), not guessed: it floors the denominator so very-low-stress points
+(measured min ~0.21) are not divided by a near-zero number and do not
+swing to dominate the loss the opposite way. Default False/0 everywhere
+(the loss function, and the new `--relative_constitutive`/
+`--constitutive_eps` CLI flags on `train_B3_mixed_stress.py` and
+`diagnose_mixed_stress_B3_scale.py`) for exact backward compatibility --
+confirmed directly: all 5 pre-existing CPU correctness checks in
+`test_mixed_stress_B3.py` still pass completely unmodified, and a new
+6th check (`test_relative_constitutive_matches_hand_computation`) was
+added, verifying the relative branch against an INDEPENDENT
+re-computation from the module's own low-level operators (not just
+re-deriving the same formula), AND that `relative_constitutive=False`
+passed explicitly gives bit-identical results to omitting it.
+
+**`w_equilibrium` re-measured from scratch for the new loss, not
+reused**: under the relative constitutive residual, `constitutive` and
+`equilibrium` are naturally within about one order of magnitude of each
+other at initialization -- measured directly on the real PRODUCTION-size
+model (not a toy model, unlike the original 28,000 measurement) across
+3 different seeds: constitutive ranged ~10-20, equilibrium ~45-78.
+Nothing like the original 28,000x imbalance that made the large
+`w_equilibrium` weight necessary for the absolute loss (`equilibrium`
+itself is UNCHANGED -- still computed on absolute P, since only
+`constitutive`'s heavy tail was the measured problem). Set
+`w_equilibrium=1.0` for this attempt. A tiny-model fixed-batch
+diagnostic run (`diagnose_mixed_stress_B3_scale.py --tiny
+--relative_constitutive --w_equilibrium 1.0`, 40 steps) confirmed the
+loss settles to a stable, DECREASING plateau (constitutive: ~1.0 ->
+~0.825) rather than diverging or being dominated by one term -- the
+same healthy shape every previous scale/weight calibration in this
+project has used as its own pre-GPU sanity gate.
+
+**Attempt 4 isolates ONE change from attempt 3's two changes**:
+`--pretrain_iters 0` (no curriculum this time) + the new relative
+residual, specifically so that if it works, we know the residual itself
+was the fix (not the curriculum), and if it fails the same way again,
+that is strong evidence the real problem is something else entirely
+(network capacity, learning rate, or the groove region needing its own
+dedicated treatment the way the energy baseline already has via local
+quadrature refinement) -- not another loss-function tweak.
+`B3_Mixed_Stress_Training.ipynb` rebuilt a fourth time, writing to a
+new output directory (`b3_mixed_stress_relative`) so every previous
+attempt's checkpoints/logs stay separately inspectable. Not yet run on
+GPU -- next step is Omar starting this notebook on Colab.

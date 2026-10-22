@@ -102,6 +102,53 @@ loss_B3 objective for the remainder, so the constitutive/equilibrium
 optimization starts from an already-good displacement field instead of
 a random one. Default 0 (old behavior, single-stage) for backward
 compatibility with every existing caller/checkpoint.
+
+UPDATE 2026-10-22 (third real run, two-stage curriculum): Omar
+interrupted this run too, at iteration 29,500/50,000, once `constitutive`
+showed the SAME no-trend oscillation after the stage-2 switch (ranging
+roughly 24,000-75,000 from iteration 10,001 to 29,500) as the single-
+stage attempts -- confirming the curriculum fix alone does not resolve
+it either (`equilibrium` behaved fine throughout, decreasing smoothly to
+~0.002-0.07 by 29,500). This ruled out "untrained u at the start" as the
+(whole) explanation, prompting a direct measurement of the TRUE |P|
+distribution across the real domain (via a CPU-only script reusing
+calibrate_p_output_scale.py's own methodology, batch=16, real sampled
+E/nu/phi): it is extremely heavy-tailed -- median |P|_F ~99, p90 ~332,
+p99 ~801 (8x median), p99.9 ~1385, max ~2599 (26x median) -- almost
+certainly the groove region, where strain concentrates. A plain
+absolute-squared-error constitutive residual weights every quadrature
+point's SQUARED error equally regardless of the local stress scale, so
+the handful of high-|P| (likely groove) points can dominate the
+loss/gradient far out of proportion to their share of the domain -- a
+real, measured candidate explanation for why `constitutive` never
+showed a consistent downward trend across all three real runs despite
+no implementation bug being found in any of them (re-audited fully each
+time; see mixed_stress_B3.py's test suite, still passing unmodified).
+
+RELATIVE_CONSTITUTIVE below (mixed_stress_B3.mixed_stress_loss_B3's own
+new parameter) is the resulting fourth attempt: each quadrature point's
+constitutive residual is divided by (constitutive_eps + |P_true|_F^2)
+before being volume-weighted, turning it into a genuinely RELATIVE
+error that no longer lets a few high-stress points dominate purely
+because of their absolute magnitude. constitutive_eps=400.0 (~20^2,
+close to the measured 10th-percentile |P|_F ~20.5) floors the
+denominator so very-low-stress points are not divided by a near-zero
+number (measured min |P|_F ~0.21) and do not swing to dominate the
+opposite way. Default off (0), matching every other new-behavior flag
+in this module, for backward compatibility.
+
+Re-measuring the constitutive/equilibrium balance under the new
+relative loss (same production-model-size, real-sampled-batch
+methodology that originally found w_equilibrium=28000 for the absolute
+loss) found the two residuals are now naturally within about one order
+of magnitude of each other (3 seeds: constitutive ~10-20, equilibrium
+~45-78 -- equilibrium is UNCHANGED, still computed on absolute P, since
+only the constitutive term's heavy tail was the measured problem) --
+nothing like the original 28,000x imbalance that made that weight
+necessary. w_equilibrium should be set to roughly 1.0 (not 28000) when
+--relative_constitutive is on; the CLI default below is left at 28000
+for backward compatibility with the absolute-loss path, so this must be
+passed explicitly (the attempt-4 notebook does this).
 """
 import argparse
 import os
@@ -239,7 +286,9 @@ def train(args, device, dtype=torch.float64, resolution=None):
             p_net_raw = raw[..., 3:] * args.p_output_scale
             loss, parts = mixed_stress_loss_B3(
                 u_net_raw, p_net_raw, E_node, nu_node, phi, geom,
-                w_constitutive=args.w_constitutive, w_equilibrium=args.w_equilibrium)
+                w_constitutive=args.w_constitutive, w_equilibrium=args.w_equilibrium,
+                relative_constitutive=bool(args.relative_constitutive),
+                constitutive_eps=args.constitutive_eps)
 
         opt.zero_grad(set_to_none=True)
         loss.backward()
@@ -302,6 +351,22 @@ def get_args(argv=None):
                          "after that, switch to the normal mixed_stress_loss_B3 objective, "
                          "continuing from the same model weights. Default 0 reproduces the "
                          "old single-stage behavior exactly.")
+    p.add_argument("--relative_constitutive", type=int, default=0,
+                    help="Fourth attempt, added 2026-10-22 after the two-stage curriculum "
+                         "(--pretrain_iters) ALSO failed to fix constitutive's no-trend "
+                         "oscillation -- see this module's own docstring, 'UPDATE 2026-10-22'. "
+                         "Divides each quadrature point's constitutive residual by "
+                         "(constitutive_eps + |P_true|_F^2), measured necessary because the "
+                         "true |P| distribution is extremely heavy-tailed (max ~26x the "
+                         "median), so a plain absolute residual lets a few high-stress "
+                         "(likely groove-region) points dominate the loss. Default 0 "
+                         "(old behavior) for backward compatibility. When this is 1, "
+                         "--w_equilibrium should be set to roughly 1.0, not the 28000 "
+                         "default calibrated for the absolute loss -- see the docstring.")
+    p.add_argument("--constitutive_eps", type=float, default=400.0,
+                    help="Floor on the relative-error denominator when "
+                         "--relative_constitutive is set (~20^2, close to the measured "
+                         "10th-percentile |P|_F ~20.5) -- see this module's own docstring.")
     return p.parse_args(argv)
 
 

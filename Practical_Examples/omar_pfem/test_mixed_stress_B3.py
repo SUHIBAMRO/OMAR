@@ -111,6 +111,75 @@ def test_affine_field_end_to_end():
     print(f'PASS  affine field: grad op exact ({err_F:.2e}), interpolation matches ({err_P:.2e})')
 
 
+def test_relative_constitutive_matches_hand_computation():
+    """relative_constitutive=True must (a) exactly reproduce the
+    absolute-error loss divided pointwise by (eps + |P_true|_F^2) --
+    checked here against a direct, independent re-computation of the
+    same quantity from mixed_stress_loss_B3's own constituent pieces,
+    not just re-deriving the same formula -- and (b) leave the
+    relative_constitutive=False path completely unchanged (already
+    covered by test_loss_is_finite_and_differentiable's fixed expected
+    value, re-asserted here too for a single call site)."""
+    torch.manual_seed(4)
+    geom = _small_geom()
+    n_nodes = geom['n_nodes']
+    Batch = 2
+    E_node = (1000.0 + 50.0 * torch.randn(Batch, n_nodes)).abs() + 500.0
+    nu_node = torch.full((Batch, n_nodes), 0.45)
+    phi = torch.tensor([0.05, 0.07])
+    u_net_raw = 0.1 * torch.randn(Batch, n_nodes, 3)
+    p_net_raw = 10.0 * torch.randn(Batch, n_nodes, 9)
+    eps = 400.0
+
+    loss_abs, parts_abs = mixed_stress_loss_B3(u_net_raw, p_net_raw, E_node, nu_node, phi, geom)
+    loss_abs_explicit, parts_abs_explicit = mixed_stress_loss_B3(
+        u_net_raw, p_net_raw, E_node, nu_node, phi, geom, relative_constitutive=False)
+    loss_rel, parts_rel = mixed_stress_loss_B3(
+        u_net_raw, p_net_raw, E_node, nu_node, phi, geom,
+        relative_constitutive=True, constitutive_eps=eps)
+
+    # Independent re-derivation of the relative constitutive term,
+    # reusing only the low-level operators (not mixed_stress_loss_B3's
+    # own internals), to catch a copy-paste-style bug rather than just
+    # re-running the same formula twice.
+    elements = geom['elements']
+    B_op, N_sf, detJ, iweights = geom['B'], geom['N'], geom['detJ'], geom['iweights']
+    u = apply_dirichlet_b3(u_net_raw, geom, phi)
+    E_elem = E_node[:, elements].mean(dim=2)
+    nu_elem = nu_node[:, elements].mean(dim=2)
+    mu_elem = E_elem / (2 * (1 + nu_elem))
+    lam_elem = E_elem * nu_elem / ((1 + nu_elem) * (1 - 2 * nu_elem))
+    ue = u[:, elements, :].permute(0, 1, 3, 2)
+    eye = torch.eye(3, dtype=u.dtype).view(1, 1, 3, 3)
+    p_flat = p_net_raw.reshape(Batch, n_nodes, 9)
+    P_interp_all = interpolate_nodal_field_to_quadpts(p_flat, elements, N_sf)
+
+    total_weight = torch.zeros(Batch, dtype=u.dtype)
+    L_rel = torch.zeros(Batch, dtype=u.dtype)
+    for g in range(B_op.shape[0]):
+        H = torch.einsum('bedq,ecq->bedc', ue, B_op[g])
+        F = eye + H
+        P_true = neo_hookean_P_closed_form(F, mu_elem, lam_elem)
+        P_pred = P_interp_all[g].reshape(Batch, -1, 3, 3)
+        w = detJ[g] * iweights[g]
+        total_weight = total_weight + w.sum().expand(Batch)
+        resid = ((P_pred - P_true) ** 2).sum(dim=(-1, -2))
+        P_true_sq = (P_true ** 2).sum(dim=(-1, -2))
+        L_rel = L_rel + torch.sum((resid / (eps + P_true_sq)) * w[None, :], dim=1)
+    L_rel = (L_rel / total_weight).mean().item()
+
+    err = abs(L_rel - parts_rel['constitutive'])
+    assert err < 1e-10, f'relative constitutive residual does not match hand computation (err={err})'
+    assert loss_abs.item() == loss_abs_explicit.item() \
+        and parts_abs['constitutive'] == parts_abs_explicit['constitutive'], \
+        'explicit relative_constitutive=False must exactly match the default (omitted) behavior'
+    assert parts_rel['constitutive'] < parts_abs['constitutive'], \
+        'relative residual should be far smaller than the absolute one on this batch (sanity check)'
+    print(f'PASS  relative_constitutive matches independent hand computation '
+          f'(err={err:.2e}); abs path unchanged (constitutive={parts_abs["constitutive"]:.3f}), '
+          f'relative constitutive={parts_rel["constitutive"]:.6f}')
+
+
 def test_loss_is_finite_and_differentiable():
     """Full mixed_stress_loss_B3 wrapper (real B3 Dirichlet BCs via
     apply_dirichlet_b3): finite, positive loss; gradients reach both
@@ -140,5 +209,6 @@ if __name__ == '__main__':
     test_divergence_zero_for_uniform_field()
     test_divergence_matches_known_nonzero_value()
     test_affine_field_end_to_end()
+    test_relative_constitutive_matches_hand_computation()
     test_loss_is_finite_and_differentiable()
     print('\nall mixed-stress-B3 checks passed')

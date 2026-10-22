@@ -40,6 +40,12 @@ def main(argv=None):
                         "after the first 500.0-scale run failed")
     p.add_argument("--w_constitutive", type=float, default=1.0)
     p.add_argument("--w_equilibrium", type=float, default=28000.0)
+    p.add_argument("--relative_constitutive", action="store_true",
+                   help="Use mixed_stress_loss_B3's relative constitutive residual (2026-10-22 "
+                        "fix for the heavy-tailed true-|P| distribution) instead of absolute "
+                        "squared error. When set, pass --w_equilibrium 1.0 (not the 28000 "
+                        "default, which was calibrated for the absolute loss).")
+    p.add_argument("--constitutive_eps", type=float, default=400.0)
     diag_args = p.parse_args(argv)
 
     torch.manual_seed(0)
@@ -72,7 +78,9 @@ def main(argv=None):
         p_net_raw = raw[..., 3:] * diag_args.p_output_scale
         loss, parts = mixed_stress_loss_B3(
             u_net_raw, p_net_raw, E_node, nu_node, phi, geom,
-            w_constitutive=diag_args.w_constitutive, w_equilibrium=diag_args.w_equilibrium)
+            w_constitutive=diag_args.w_constitutive, w_equilibrium=diag_args.w_equilibrium,
+            relative_constitutive=diag_args.relative_constitutive,
+            constitutive_eps=diag_args.constitutive_eps)
         opt.zero_grad(set_to_none=True)
         loss.backward()
         opt.step()
