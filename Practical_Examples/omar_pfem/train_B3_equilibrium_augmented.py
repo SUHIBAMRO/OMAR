@@ -51,6 +51,40 @@ kind of real, measured calibration this project has now done four times
 (train_B3.py's OUTPUT_SCALE, mixed_stress's P_OUTPUT_SCALE and
 w_equilibrium, now this) -- the fixed-batch CPU check is a necessary
 sanity gate, not a guarantee; the real test is a full GPU run.
+
+UPDATE 2026-10-24 (real GPU result for w=0.12, plus a 4-variant short
+real-training pilot): the full attempt-2 run (w=0.12) completed and
+DID improve over attempt 1 (energy pooled RMS 181.8%->103.7%, reaction
+216.9%->165.8%), confirming the weight-scale diagnosis was real -- but
+still ~300x worse than the DEM baseline (0.3%/3.0%). A 4-variant SHORT
+(4,000-iteration) real-training pilot comparing a pure-energy reference
+against w=0.05/n_virtual=8, w=0.12/n_virtual=32, and w=0.03/n_virtual=32
+found something more specific: because `sample_batch`'s seed depends
+only on iteration number (`seed_offset = it*batch_size`), all 4 variants
+see the IDENTICAL sequence of random material/load samples, so their
+`energy` values are directly comparable iteration-by-iteration. Up to
+iteration ~2250 all 4 track together almost exactly (no visible
+benefit OR harm from the equilibrium term at this stage). From
+iteration ~2500 onward, the pure-energy reference keeps improving
+(e.g. down to 1.35-1.79) while ALL THREE equilibrium-augmented variants
+diverge upward together (up to 3.8-4.7 by iteration 4000) -- REGARDLESS
+of weight (0.03, 0.05, or 0.12, a 4x range already well below the
+originally-miscalibrated 1.0) and REGARDLESS of n_virtual (8 or 32, a
+4x noise-reduction factor). This rules out both remaining candidate
+explanations (weight still too large; residual too noisy) -- the
+equilibrium term appears to destabilize training specifically once the
+energy term has matured past a certain point, independent of its exact
+magnitude within the tested range.
+
+W_EQUILIBRIUM_DECAY_START/END implement the one remaining reasonable
+idea given this pattern: since the term looks harmless (not helpful,
+not harmful) before the observed onset (~2500) and harmful after, phase
+it out on an ABSOLUTE iteration schedule (not a fraction of the total
+run -- the onset is tied to how far energy's own optimization has
+progressed at a given iteration INDEX, via the same seed_offset
+determinism, not to the total run length) before training reaches that
+regime. Default (0, 0) disables this entirely, reproducing the exact
+constant-weight behavior above, for backward compatibility.
 """
 import json
 import os
@@ -65,6 +99,24 @@ from omar_pfem.train_B3 import (
     _apply_input_norm, apply_dirichlet_b3, build_model, compute_input_norm_b3,
     sample_batch, set_input_norm, total_potential_energy_B3,
 )
+
+
+def w_equilibrium_at(it, w0, decay_start, decay_end):
+    """Absolute-iteration schedule for w_equilibrium: constant w0 up to
+    decay_start, linearly down to 0 by decay_end, 0 after. decay_start=
+    decay_end=0 (the default) disables this -- returns w0 unconditionally
+    -- so every existing caller/checkpoint is unaffected unless the new
+    flags are explicitly set. See this module's own "UPDATE 2026-10-24"
+    docstring entry for why this is iteration-indexed, not a fraction of
+    args.n_iters."""
+    if decay_start <= 0 and decay_end <= 0:
+        return w0
+    if it <= decay_start:
+        return w0
+    if it >= decay_end:
+        return 0.0
+    frac = (it - decay_start) / (decay_end - decay_start)
+    return w0 * (1.0 - frac)
 
 
 def train(args, device, dtype=torch.float64, resolution=None):
@@ -115,7 +167,10 @@ def train(args, device, dtype=torch.float64, resolution=None):
         U = total_potential_energy_B3(u, E_node, nu_node, geom)
         eq_resid = weak_form_equilibrium_residual(u, E_node, nu_node, geom,
                                                    n_virtual=args.n_virtual)
-        loss = U.mean() + args.w_equilibrium * eq_resid
+        w_eq_now = w_equilibrium_at(it, args.w_equilibrium,
+                                     getattr(args, "w_equilibrium_decay_start", 0),
+                                     getattr(args, "w_equilibrium_decay_end", 0))
+        loss = U.mean() + w_eq_now * eq_resid
 
         opt.zero_grad(set_to_none=True)
         loss.backward()
@@ -125,7 +180,7 @@ def train(args, device, dtype=torch.float64, resolution=None):
             elapsed = time.time() - t0
             print(f"[{it}/{args.n_iters}] loss={loss.item():.6f} "
                   f"energy={U.mean().item():.6f} weak_form_residual={eq_resid.item():.6f} "
-                  f"elapsed={elapsed:.1f}s")
+                  f"w_equilibrium_now={w_eq_now:.6f} elapsed={elapsed:.1f}s")
 
         if it % args.ckpt_every == 0 or it == args.n_iters:
             ckpt_path = os.path.join(args.output_dir, f"checkpoint_{it}.pt")
@@ -171,6 +226,17 @@ def get_eq_args(argv=None):
                         "residual is noisy run-to-run at n_virtual=4 purely from the random "
                         "test-function draw, not a sign of an actual problem; 8 trades a "
                         "little more compute for a steadier per-iteration estimate.")
+    p.add_argument("--w_equilibrium_decay_start", type=int, default=0,
+                   help="Added 2026-10-24 after a 4-variant pilot found the equilibrium term "
+                        "destabilizes training from iteration ~2500 onward regardless of its "
+                        "weight (0.03-0.12 tested) or n_virtual (8 or 32) -- see this module's "
+                        "own 'UPDATE 2026-10-24' docstring entry. w_equilibrium stays constant "
+                        "up to this ABSOLUTE iteration, then decays linearly to 0 by "
+                        "--w_equilibrium_decay_end. Default 0 (with decay_end also 0) disables "
+                        "this -- constant w_equilibrium throughout, the old behavior.")
+    p.add_argument("--w_equilibrium_decay_end", type=int, default=0,
+                   help="Iteration by which w_equilibrium has decayed to 0, if "
+                        "--w_equilibrium_decay_start > 0. Must be > decay_start.")
     return p.parse_args(argv)
 
 

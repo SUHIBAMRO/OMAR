@@ -21746,3 +21746,79 @@ through `train()` correctly before spending any GPU time. Not yet run
 on GPU -- next step is Omar starting this notebook on Colab; its
 per-variant `energy` trend (vs. the pure-energy reference) decides
 attempt 3's settings for a full run.
+
+## The 4-variant pilot ran: a sharper, more specific finding than
+## "weight still wrong" -- the equilibrium term destabilizes training
+## from a fixed iteration onward REGARDLESS of weight (0.03-0.12) or
+## noise level (n_virtual 8 or 32); built and tested an early-cutoff
+## decay schedule as the last reasonable idea before treating this as
+## a genuine negative finding
+
+All 4 pilot variants (pure-energy reference, w=0.05/nv=8, w=0.12/nv=32,
+w=0.03/nv=32) ran for 4,000 real-training iterations each. Because
+`sample_batch`'s seed depends only on iteration number
+(`seed_offset=it*batch_size`), every variant sees the IDENTICAL sequence
+of random material/load samples -- their `energy` values are directly,
+iteration-by-iteration comparable, not just qualitatively similar:
+
+| it | baseline (w=0) | w=0.05/nv8 | w=0.12/nv32 | w=0.03/nv32 |
+|---|---|---|---|---|
+| 1-2250 | track together (within ~0.1 of each other throughout) | | | |
+| 2500 | 1.789 | 2.357 | 2.356 | 2.351 |
+| 3000 | 2.835 | 4.014 | 3.990 | 3.932 |
+| 3750 | 1.354 | 2.565 | 2.107 | 2.137 |
+| 4000 | 2.470 | 4.724 | 3.789 | 4.054 |
+
+Up to iteration ~2250 all 4 are indistinguishable -- the equilibrium
+term shows NO visible benefit or harm at this stage, at any tested
+weight. From ~2500 onward the pure-energy reference keeps improving
+(down to 1.35-1.79) while all 3 equilibrium-augmented variants diverge
+UPWARD together, ending 1.5-3.5x worse than the reference by iteration
+4000 -- and this happens essentially identically whether the weight is
+0.03, 0.05, or 0.12 (a 4x range, both well below the original
+miscalibrated 1.0) and whether n_virtual is 8 or 32 (a 4x noise-
+reduction factor). This rules out BOTH remaining candidate
+explanations from the "UPDATE 2026-10-22" entry above (weight still
+too large; residual too noisy) -- the term appears to destabilize
+training once the energy optimization has matured past a specific
+point, independent of its magnitude within the tested range. A
+materially different, more specific finding than attempt 2's own
+"still too large a weight" diagnosis.
+
+**Built and verified the one remaining reasonable idea**: since the
+term is harmless (not helpful, not harmful) before the observed onset
+and harmful after, phase it out on an ABSOLUTE-iteration schedule
+(tied to iteration INDEX, not a fraction of the total run length --
+the onset is reproducible at the same iteration number because of the
+seed-determinism noted above, so it should occur at roughly the same
+point regardless of how long the full run is) before training reaches
+that regime, rather than tuning its magnitude a third time. Added
+`--w_equilibrium_decay_start`/`--w_equilibrium_decay_end` to
+`train_B3_equilibrium_augmented.py` (`w_equilibrium_at()`: constant up
+to decay_start, linear to 0 by decay_end, 0 after; default (0,0)
+disables this, exactly reproducing every prior run's behavior). Unit-
+tested the schedule function directly (disabled case returns w0
+unconditionally; decay case hits the exact expected values at the
+start/midpoint/end boundaries) and smoke-tested the full `train()` path
+on CPU (tiny model, 10 iterations, decay window 3-7) -- confirmed
+`w_equilibrium_now` transitions exactly 1.0->0.75->0.5->0.25->0.0 at the
+configured iterations and the loss correctly drops to pure energy once
+it hits 0. The pre-existing correctness test
+(`test_equilibrium_augmented_B3.py`) still passes unmodified (default
+path untouched).
+
+`B3_Equilibrium_Augmented_Decay_Pilot.ipynb` (new notebook): tests
+`w_equilibrium_decay_start=1000, decay_end=2500` (safely before the
+observed ~2500-3000 divergence zone) against a pure-energy reference,
+both over 6,000 iterations (longer than the first pilot's 4,000,
+specifically to check whether an early, fully-phased-out application
+of the term actually avoids the later degradation or merely delays it
+past where this pilot would see). Still no final FEM evaluation (a
+pilot, not a full run). Not yet run on GPU -- if the decay variant
+tracks the pure-energy reference all the way to 6,000, that supports a
+full 50,000-iteration attempt 3 with this schedule; if it still
+diverges even with the term fully off by iteration 2,500, that points
+to a lasting negative effect from ANY exposure to this term, which
+would argue for reporting the weak-form equilibrium residual (as
+currently formulated, for a u-only network) as a genuine negative
+finding rather than continuing to tune it.
