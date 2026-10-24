@@ -21689,3 +21689,60 @@ inspectable). Not yet run on GPU -- the fixed-batch CPU check is a
 necessary sanity gate, not a guarantee of success at full scale and
 real (non-fixed) sampling; next step is Omar starting this notebook on
 Colab.
+
+## Attempt 2 (w_equilibrium=0.12) ran on GPU: a real, measured
+## improvement over attempt 1 but still ~300x worse than baseline.
+## Omar wants to keep retrying until it works; CPU can't answer the
+## next question at production scale, so built a SHORT real-training
+## GPU pilot (4 candidate settings, 4,000 iterations each) instead of
+## guessing another full 50,000-iteration run
+
+Attempt 2's full run completed and was evaluated against the held-out
+FEM dataset:
+
+| metric | attempt 1 (w=1.0) | attempt 2 (w=0.12) | DEM baseline |
+|---|---|---|---|
+| energy pooled RMS | 181.8% | **103.7%** | 0.3% |
+| reaction_moment_y pooled RMS | 216.9% | **165.8%** | 3.0% |
+| region_cauchy_field_rel (mean/median) | 1013.8% / -- | **550.9% / 387.6%** | -- |
+
+A real, measured improvement (~1.3-2x better across metrics, confirming
+the w_equilibrium diagnosis was correct and the fix had a genuine
+positive effect) -- but still roughly 300x worse than the baseline on
+energy, nowhere near usable. Omar's instruction: keep retrying until it
+actually works, not settle for "better but still broken."
+
+**Tried to find the next fix on CPU first** (candidates: lower
+`w_equilibrium` further, e.g. 0.05 or 0.03; increase `n_virtual` from 8
+to 32 to reduce the residual's measured per-call sampling noise). A
+TOY-model real-(random-batch)-training comparison (400 iterations, 4
+variants: w=0/0.05/0.12 with n_virtual=8, and w=0.12 with n_virtual=32)
+found NO measurable difference in energy convergence between any of
+them (all settled to ~2.91-2.93) -- but this is likely because a toy
+model lacks the capacity/sensitivity to reveal a real-scale effect, not
+evidence that the choice doesn't matter. A genuine PRODUCTION-model-size
+CPU attempt at the same comparison did not complete even 150 iterations
+within a 30-minute background limit -- CPU cannot answer this question
+at the scale that matters; confirmed, not assumed, before giving up on
+the CPU route.
+
+**Built a SHORT, real (non-fixed-batch) GPU training pilot instead of
+guessing another full run**: `B3_Equilibrium_Augmented_Diagnostic.ipynb`
+(new notebook) runs 4,000 iterations (not 50,000) of 4 variants back to
+back in one GPU session -- a pure-energy reference (`w_equilibrium=0.0`,
+needed since this project doesn't yet have this exact architecture/LR's
+own raw energy trajectory at this iteration count to compare against),
+`w=0.05/n_virtual=8`, `w=0.12/n_virtual=32`, and `w=0.03/n_virtual=32`
+(both levers combined). Deliberately NOT a fixed-batch diagnostic (every
+other calibration check in this project used one) -- the open question
+now is specifically whether REAL training accuracy improves, which a
+fixed-batch check cannot answer by design (it skips the real sampling
+variance that is itself part of the problem). No final FEM evaluation
+in this pilot, to keep it cheap -- that is reserved for whichever
+setting is chosen for a full 50,000-iteration attempt 3. CLI smoke-
+tested on CPU (tiny model, 3 iterations, both `w_equilibrium=0.0` and
+the combo variant) to confirm the new flag combinations parse and flow
+through `train()` correctly before spending any GPU time. Not yet run
+on GPU -- next step is Omar starting this notebook on Colab; its
+per-variant `energy` trend (vs. the pure-energy reference) decides
+attempt 3's settings for a full run.
