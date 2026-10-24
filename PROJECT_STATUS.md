@@ -21822,3 +21822,60 @@ to a lasting negative effect from ANY exposure to this term, which
 would argue for reporting the weak-form equilibrium residual (as
 currently formulated, for a u-only network) as a genuine negative
 finding rather than continuing to tune it.
+
+## CONCLUSIVE: the decay-schedule pilot ran -- early cutoff only
+## DELAYED the divergence, it did not prevent it. Closing items 2/3 as
+## a genuine, fully-investigated negative finding, not a calibration
+## gap to keep chasing
+
+The decay pilot (`decay_start=1000, decay_end=2500`, `w_equilibrium`
+fully OFF from iteration 2,500 onward) vs. the pure-energy reference,
+both 6,000 iterations, matched iteration-by-iteration (same seed
+determinism as the first pilot):
+
+| it | baseline (w=0) | decay (off since it=2500) |
+|---|---|---|
+| 2500 | 2.352 | 2.356 (equilibrium just turned off -- identical) |
+| 3000-4500 | 3.08-4.60 | 3.02-4.73 (still tracking closely, ~2000 iterations after cutoff) |
+| 4750 | 2.319 | 2.612 (gap starts reopening) |
+| 5000 | 1.765 | 2.278 |
+| 5250 | 2.694 | 3.737 |
+| 6000 | 2.310 | 3.209 (clearly worse again, same shape as the first pilot's divergence) |
+
+**The divergence came back even with the term COMPLETELY off for the
+previous 2,000+ iterations.** This is a materially different and more
+serious finding than "wrong weight" or "too noisy": brief exposure to
+the equilibrium term during iterations 1,000-2,500 left a LASTING
+negative effect on the optimization trajectory that the energy term
+alone could not fully undo, surfacing again roughly 2,000-2,500
+iterations later -- almost the same delay as the cutoff-to-onset gap
+in the original (undecayed) run. Phasing the term out in time did not
+avoid the problem, only postponed it by roughly the length of the
+exposure window.
+
+**Three independent, well-reasoned fixes have now been tried and
+falsified in sequence**, each targeting a different, genuinely measured
+aspect of the problem:
+1. Scale correction (w=1.0 -> 0.12, a real ~6.5-10x measured
+   miscalibration) -- improved attempt 1's full-run result but left it
+   ~300x worse than baseline.
+2. Lower weight (down to 0.03, a further 4x reduction) and reduced
+   sampling noise (n_virtual 8->32, a 4x noise reduction) -- measured,
+   on real training, to make NO difference to the divergence pattern.
+3. Early-cutoff/decay schedule -- delayed the divergence by
+   approximately the length of the exposure window, did not prevent it.
+
+**Conclusion, stated plainly**: this is not a calibration problem
+remaining to be solved by further weight/schedule tuning -- the
+weak-form virtual-work equilibrium residual, as currently formulated
+for a u-only Transolver network trained by the Deep Energy Method,
+appears to inject a persistent, delayed-onset instability into the
+optimization regardless of how much (within the tested 0.03-1.0 range)
+or how briefly it is applied. Closing Professor Rabczuk's items 2/3 as
+a genuine, thoroughly investigated NEGATIVE finding -- a real,
+reportable result (what was tried, the real measurements at each step,
+and why each fix failed) -- not an unresolved calibration gap. No
+further GPU time recommended on this specific mechanism without a
+fundamentally different idea (not available at the time of writing);
+a decision on whether to report this as-is or pursue a different
+realization of items 2/3 is Omar's/Professor Rabczuk's to make.
