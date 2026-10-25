@@ -21979,3 +21979,41 @@ session, a larger undertaking than the two gaps above). Not yet run on
 GPU/re-evaluated -- next step is Omar starting both new notebooks on
 Colab (the re-evaluation one first, since it is cheap and fast; the
 hybrid training one is a real ~2h+ GPU commitment).
+
+## Built the break-even sweep (the one remaining open piece of item 4:
+## "figure out when the expensive high-fidelity labels actually make PI
+## worthwhile") -- a 2-point bracket around the existing N=200 result,
+## scope confirmed with Omar to keep new GPU time to ~4h instead of ~8h
+
+The existing PI-vs-DD comparison has exactly ONE data-driven data point
+(N=200: 2.51% rel. L2, ~2.21h total cost, vs. PI's 1.88% at ~2.12h, no
+labels needed) -- not the actual break-even analysis Professor Rabczuk's
+2026-10-20 email asked for. Asked Omar to choose the sweep's scope
+(1/2/4 new points, each ~2 GPU-hours) before building it, given this
+project's own established discipline of surfacing GPU-time tradeoffs
+before committing; he chose a 2-point bracket (N=50, N=400) around the
+existing N=200 point, ~4 new GPU-hours instead of ~8.
+
+New `B3_Data_Driven_Breakeven_Sweep.ipynb`: N=50 reuses the first 50
+rows of the EXISTING 200-sample `b3_dd_training_set` dataset -- no new
+FEM solves, since these are already-generated i.i.d. samples from the
+same distribution; its label cost is reported as `50 * 4.13s/sample`
+(the measured per-sample rate), i.e. what it would cost to generate
+exactly 50 samples, not what this notebook actually spends (~0, reusing
+existing data). N=400 generates 200 NEW samples at `seed=51`
+(`sample_seed` range 510,000-510,199 -- confirmed via
+`generate_dataset`'s own `sample_seed = seed*10000+i` formula to be
+disjoint from both the existing training range (500,000-500,199) and
+the held-out range (999990-1000089)), concatenated with the existing
+200 into a 400-sample dataset. Both trained with `--loss rel_l2` (the
+better-performing plain DD variant, avoiding conflating this with a
+loss-type comparison) at the SAME 50,000-step budget as every other B3
+run, evaluated against the SAME held-out set, each also reporting the
+new H1 semi-norm metric. The h5 subset/concatenation logic was verified
+directly on fake data matching the real schema (shapes, values, and
+row order all confirmed correct) before trusting it with the real
+dataset. Not yet run on GPU -- next step is Omar starting this notebook
+on Colab; its final break-even summary (PI vs. DD at N=50/200/400)
+answers whether DD's accuracy ever closes the gap with PI, and whether
+its total cost (labels + training) ever becomes competitive with PI's
+own label-free cost, within this practical sample range.
