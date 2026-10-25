@@ -22131,3 +22131,102 @@ small/positive finding" framing of item 1's headline result to the
 corrected, far more guarded picture (both attempts produce enormous
 absolute stress errors; only the relative direct-vs-implicit ordering
 is a defensible finding).
+
+## Omar asked to keep trying on BOTH items 1 and 2/3 rather than close
+## either one -- built one genuinely untried lever for each, both
+## CPU-verified, neither yet run on GPU
+
+Asked "كيف ممكن نصلحها؟" (how can we fix them?) after the H1/stress
+numbers were explained; told plainly that item 1 had one real untried
+lever left (local integration refinement, already proven on the
+energy-only baseline) while items 2/3 was a genuinely CLOSED negative
+finding (3 independent fixes falsified, with a proven lasting-damage
+mechanism) unless a fundamentally different idea was proposed. Omar's
+answer: "لا بدنا نضل نجرب لحد ما نلاقي حل" (no, we want to keep trying
+until we find a solution) -- for both. Built one real, scoped attempt
+for each, not just more of the same tuning:
+
+**Item 1 attempt 5 -- local integration refinement for the
+constitutive+equilibrium residuals.** The four prior attempts (scale
+x2, curriculum, relative residual) all tweaked the LOSS FORMULA; this
+reuses a DIFFERENT, already-GPU-PROVEN lever instead --
+`train_B3.py`'s own `--local_refine_region` (refines the DEM
+energy-integration quadrature near the groove, operator's mesh
+unchanged) roughly HALVED the energy-only baseline's own region-stress
+error on 2026-09-30 (62.2% -> 29.7%, per that date's own entry above)
+but was never tried on the mixed-stress formulation. New
+`mixed_stress_loss_B3_locally_refined` + `precompute_region_fine_
+quadrature_mixed` (both in `mixed_stress_B3.py`) extend the same
+technique to BOTH residuals this formulation actually trains on (the
+energy-only baseline only ever needed to refine one scalar energy
+density; this one also needs to interpolate AND gradient a per-node
+stress field at the fine points). Implementation reuses a new shared
+helper (`_mixed_stress_residual_pass`) so the non-region (coarse) and
+region (fine) passes run the exact same per-quadrature-point math,
+just parameterized by which quadrature rule and element subset they
+see -- `mixed_stress_loss_B3` itself untouched, zero regression risk.
+
+CPU-verified (`test_mixed_stress_B3_local_refine.py`, 3 checks, all
+passing, exact to machine precision): an EMPTY region mask exactly
+reproduces the plain loss (no contamination from the new code path); a
+NON-EMPTY region refined at the SAME degree as the standard 2-point
+rule still exactly reproduces the plain loss (confirms the split/
+recombine itself, not just the trivial empty case, mirroring the
+energy-only baseline's own identity-check methodology); a genuinely
+finer region (n_sub=6) changes the loss and stays finite/
+differentiable through both network outputs. A CPU smoke test at full
+production resolution found the same 4/6,840 region elements the
+energy-only baseline found, and ran several real training iterations
+without error (both with and without the new flag, confirming no
+regression to the existing default path either).
+
+New `B3_MixedStress_LocalRefine_Training.ipynb`: attempt 1's own base
+config (`p_output_scale=500`, `w_equilibrium=28000`, absolute
+constitutive, no curriculum -- the configuration that produced the
+project's best-available direct-P checkpoint so far) plus
+`--local_refine_region 1 --local_refine_n_sub 10`, isolating this one
+change. 50,000 iterations, same budget as every other B3 run (~2h on
+an A100, by precedent). Not yet run on GPU -- next step is Omar
+starting it on Colab; watch `region_avg_sigma_xx_direct` pooled RMS
+against attempt 1's own corrected 824.9%.
+
+**Items 2/3 -- a genuinely different structural idea: introduce the
+equilibrium term LATE instead of tuning its weight or phasing it out
+early.** All 3 already-falsified fixes (recalibration, weight/noise
+sweep, decay-out) had the equilibrium residual present from iteration
+1 onward; the decay pilot's own finding was that removing it EARLY
+only delays the damage (~2,000 iterations later), not prevents it.
+Never yet tested: introducing it LATE, onto a network that has already
+converged far past the ~2,500-iteration onset the original 4-variant
+pilot found, rather than onto an actively-converging early trajectory.
+New `w_equilibrium_late_introduction_at(it, w0, introduce_start,
+introduce_end)` (in `train_B3_equilibrium_augmented.py`, alongside the
+existing decay schedule, not replacing it): 0 before `introduce_start`,
+linear ramp to `w0` by `introduce_end`, constant after; disabled
+(returns 0.0 unconditionally, the opposite default from the decay
+schedule's own "always w0") unless the two new flags
+(`--w_equilibrium_introduce_start/_end`) are explicitly set. Wired into
+the training loop so it takes priority over the decay schedule if both
+were somehow set (not a supported combination). CPU-verified
+(`test_w_equilibrium_late_introduction.py`, 4 checks: disabled-by-
+default, exactly 0 before/at `introduce_start`, exactly `w0` at/after
+`introduce_end`, exact linear interpolation at the midpoint) and smoke-
+tested end to end in the real training loop on CPU (confirmed the
+printed `w_equilibrium_now` follows the schedule exactly: 0, 0, ramp,
+w0, w0 across 5 iterations with `introduce_start=2, introduce_end=4`).
+
+New `B3_Equilibrium_LateIntroduction_Pilot.ipynb`: a SHORT 2-variant
+pilot (12,000 iterations each, not a full 50,000-iteration run) --
+(A) a pure-energy reference, (B) late introduction at iteration 10,000
+(4x past the original onset), ramping to full weight (0.12) by 10,500,
+then held for 1,500 more iterations -- a post-introduction observation
+window comparable to the original pilot's own (~1,500 iterations,
+2,500-4,000). Both variants share the same deterministic
+`sample_batch` sequence, so `energy` is directly comparable
+iteration-by-iteration, exactly like the original pilot's own
+methodology. Not yet run on GPU -- rough cost estimate (by precedent,
+not measured for this exact config) is on the order of an hour or so
+total for both variants combined, well under one full production run;
+next step is Omar starting it on Colab. Either outcome (destabilizes
+again vs. stays stable) is a real, reportable finding for items 2/3,
+not assumed to work going in.

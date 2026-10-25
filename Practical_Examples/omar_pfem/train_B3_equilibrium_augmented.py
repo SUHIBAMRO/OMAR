@@ -119,6 +119,43 @@ def w_equilibrium_at(it, w0, decay_start, decay_end):
     return w0 * (1.0 - frac)
 
 
+def w_equilibrium_late_introduction_at(it, w0, introduce_start, introduce_end):
+    """A genuinely different schedule from w_equilibrium_at's own decay
+    (added 2026-10-26, per Omar's explicit "keep trying" instruction):
+    0 before introduce_start, linear ramp-UP from 0 to w0 between
+    introduce_start and introduce_end, constant w0 after. introduce_start=
+    introduce_end=0 (default) disables this -- returns 0.0 UNCONDITIONALLY
+    (never w0 -- this is a "do not introduce the term at all" default, the
+    opposite convention from w_equilibrium_at's own "always at w0" disabled
+    state, which is correct for THAT function's own decay-FROM-the-start
+    semantics).
+
+    The three independent fixes already tried and falsified (weight
+    recalibration, weight/noise sweep, decay-the-term-out) all introduced
+    the equilibrium residual from ITERATION 1 onward; the decay pilot
+    specifically showed that even a brief, EARLY, fully-decayed-out
+    exposure leaves a LASTING negative effect on the optimization
+    trajectory (the degradation reappears ~2,000 iterations after the term
+    is fully removed, roughly matching the original exposure window's own
+    length) -- i.e. the damage is delayed, not prevented, by removing the
+    term early. This schedule tests a genuinely different hypothesis never
+    exercised by any of the three prior fixes: does the SAME destabilizing
+    effect occur when the term is introduced LATE, onto a network that has
+    already had far more time to converge via the pure energy loss alone
+    (well past the ~2,500-iteration onset point the 4-variant pilot
+    identified), or is the damage specifically tied to perturbing an
+    actively-converging EARLY-training trajectory? Either outcome is a
+    real, reportable finding -- this is not assumed to work."""
+    if introduce_start <= 0 and introduce_end <= 0:
+        return 0.0
+    if it <= introduce_start:
+        return 0.0
+    if it >= introduce_end:
+        return w0
+    frac = (it - introduce_start) / (introduce_end - introduce_start)
+    return w0 * frac
+
+
 def train(args, device, dtype=torch.float64, resolution=None):
     Ntheta, Nr, Nz = resolution or DEFAULT_RESOLUTION
     # build_fixed_geometry_mixed, not train_B3's own build_fixed_geometry --
@@ -167,9 +204,15 @@ def train(args, device, dtype=torch.float64, resolution=None):
         U = total_potential_energy_B3(u, E_node, nu_node, geom)
         eq_resid = weak_form_equilibrium_residual(u, E_node, nu_node, geom,
                                                    n_virtual=args.n_virtual)
-        w_eq_now = w_equilibrium_at(it, args.w_equilibrium,
-                                     getattr(args, "w_equilibrium_decay_start", 0),
-                                     getattr(args, "w_equilibrium_decay_end", 0))
+        introduce_start = getattr(args, "w_equilibrium_introduce_start", 0)
+        introduce_end = getattr(args, "w_equilibrium_introduce_end", 0)
+        if introduce_start > 0 or introduce_end > 0:
+            w_eq_now = w_equilibrium_late_introduction_at(it, args.w_equilibrium,
+                                                           introduce_start, introduce_end)
+        else:
+            w_eq_now = w_equilibrium_at(it, args.w_equilibrium,
+                                         getattr(args, "w_equilibrium_decay_start", 0),
+                                         getattr(args, "w_equilibrium_decay_end", 0))
         loss = U.mean() + w_eq_now * eq_resid
 
         opt.zero_grad(set_to_none=True)
@@ -237,6 +280,21 @@ def get_eq_args(argv=None):
     p.add_argument("--w_equilibrium_decay_end", type=int, default=0,
                    help="Iteration by which w_equilibrium has decayed to 0, if "
                         "--w_equilibrium_decay_start > 0. Must be > decay_start.")
+    p.add_argument("--w_equilibrium_introduce_start", type=int, default=0,
+                   help="Added 2026-10-26, a genuinely different idea from the decay schedule "
+                        "above (per Omar's explicit instruction to keep trying): w_equilibrium "
+                        "is 0 up to this ABSOLUTE iteration (pure energy loss, exactly like the "
+                        "baseline), then ramps linearly up to its full value by "
+                        "--w_equilibrium_introduce_end -- the OPPOSITE of decaying it out, "
+                        "testing whether introducing the term LATE (onto a network that has "
+                        "already converged far past the ~2500-iteration onset the decay pilot "
+                        "found) avoids the same destabilization. Takes priority over "
+                        "--w_equilibrium_decay_start/_end if both are set (not a supported "
+                        "combination -- set one or the other). Default 0 (with introduce_end "
+                        "also 0) disables this.")
+    p.add_argument("--w_equilibrium_introduce_end", type=int, default=0,
+                   help="Iteration by which w_equilibrium has ramped up to its full value, if "
+                        "--w_equilibrium_introduce_start > 0. Must be > introduce_start.")
     return p.parse_args(argv)
 
 

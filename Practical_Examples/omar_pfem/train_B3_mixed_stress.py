@@ -157,7 +157,10 @@ import time
 import torch
 
 from omar_pfem.data.data_generate_B3_dataset import DEFAULT_RESOLUTION
-from omar_pfem.mixed_stress_B3 import build_fixed_geometry_mixed, mixed_stress_loss_B3
+from omar_pfem.mixed_stress_B3 import (
+    build_fixed_geometry_mixed, mixed_stress_loss_B3, mixed_stress_loss_B3_locally_refined,
+    precompute_region_fine_quadrature_mixed,
+)
 from omar_pfem.model_dict import get_model
 from omar_pfem.train_B3 import (
     _apply_input_norm, apply_dirichlet_b3, compute_input_norm_b3, sample_batch, set_input_norm,
@@ -192,6 +195,40 @@ def train(args, device, dtype=torch.float64, resolution=None):
     Ntheta, Nr, Nz = resolution or DEFAULT_RESOLUTION
     geom = build_fixed_geometry_mixed(Ntheta, Nr, Nz, device, dtype=dtype)
     print(f"Fixed geometry: {geom['n_elements']} elements, {geom['n_nodes']} nodes")
+
+    # Item 1 attempt 5 (2026-10-26): local integration refinement near the
+    # groove, applied to the constitutive+equilibrium residuals this
+    # formulation actually trains on -- see mixed_stress_loss_B3_locally_
+    # refined's own docstring. Mirrors train_B3.py's own --local_refine_
+    # region block as closely as possible (same region-identification call,
+    # same groove geometry constants); the operator's own mesh (geom above)
+    # is completely UNCHANGED either way, only the quadrature used to
+    # integrate the loss near the groove.
+    local_refine_region = int(getattr(args, "local_refine_region", 0))
+    region_elem_mask = N_f_region = B_f_region = detJ_f_region = fine_w_t = None
+    if local_refine_region:
+        from omar_pfem.evaluate_B3_region_local_refine import (
+            build_shape_function_evaluator, fine_quadrature_3d, identify_region_elements,
+        )
+        from omar_pfem.data.data_generate_B3_dataset import GROOVE_DEPTH, GROOVE_HALF_WIDTH
+        from omar_pfem.data.mesh_convergence_B3 import R_IN0, LZ
+        from omar_pfem.data.data_generate_B3 import groove_radius_of_curvature
+
+        n_sub = int(getattr(args, "local_refine_n_sub", 10))
+        model_sf = build_shape_function_evaluator(Ntheta, Nr, Nz, device, dtype)
+        fine_xi, fine_w = fine_quadrature_3d(n_sub)
+        region_ref_point = torch.tensor(
+            [R_IN0 - GROOVE_DEPTH, 0.0, LZ / 2.0], dtype=dtype, device=device)
+        region_radius = 2.0 * groove_radius_of_curvature(GROOVE_DEPTH, GROOVE_HALF_WIDTH)
+        region_elem_mask = identify_region_elements(
+            model_sf, geom["elements"], fine_xi, region_ref_point, region_radius)
+        print(f"[local-refine] n_sub={n_sub} ({n_sub ** 3} points/element), "
+              f"{int(region_elem_mask.sum().item())}/{geom['n_elements']} region elements refined")
+        # Purely geometric -- computed ONCE here, reused every iteration
+        # (same discipline as train_B3.py's own block, which found and
+        # fixed a real ~12x slowdown from doing this per-iteration instead).
+        N_f_region, B_f_region, detJ_f_region, fine_w_t = precompute_region_fine_quadrature_mixed(
+            geom["nodes"], geom["elements"], region_elem_mask, fine_xi, fine_w, device, dtype)
 
     xyz = geom["nodes"]
     os.makedirs(args.output_dir, exist_ok=True)
@@ -284,11 +321,19 @@ def train(args, device, dtype=torch.float64, resolution=None):
             parts = {"constitutive": float("nan"), "equilibrium": float("nan")}
         else:
             p_net_raw = raw[..., 3:] * args.p_output_scale
-            loss, parts = mixed_stress_loss_B3(
-                u_net_raw, p_net_raw, E_node, nu_node, phi, geom,
-                w_constitutive=args.w_constitutive, w_equilibrium=args.w_equilibrium,
-                relative_constitutive=bool(args.relative_constitutive),
-                constitutive_eps=args.constitutive_eps)
+            if local_refine_region:
+                loss, parts = mixed_stress_loss_B3_locally_refined(
+                    u_net_raw, p_net_raw, E_node, nu_node, phi, geom,
+                    region_elem_mask, N_f_region, B_f_region, detJ_f_region, fine_w_t,
+                    w_constitutive=args.w_constitutive, w_equilibrium=args.w_equilibrium,
+                    relative_constitutive=bool(args.relative_constitutive),
+                    constitutive_eps=args.constitutive_eps)
+            else:
+                loss, parts = mixed_stress_loss_B3(
+                    u_net_raw, p_net_raw, E_node, nu_node, phi, geom,
+                    w_constitutive=args.w_constitutive, w_equilibrium=args.w_equilibrium,
+                    relative_constitutive=bool(args.relative_constitutive),
+                    constitutive_eps=args.constitutive_eps)
 
         opt.zero_grad(set_to_none=True)
         loss.backward()
@@ -367,6 +412,19 @@ def get_args(argv=None):
                     help="Floor on the relative-error denominator when "
                          "--relative_constitutive is set (~20^2, close to the measured "
                          "10th-percentile |P|_F ~20.5) -- see this module's own docstring.")
+    p.add_argument("--local_refine_region", type=int, default=0,
+                    help="Item 1 attempt 5 (2026-10-26): refine the constitutive+equilibrium "
+                         "residual integration for elements touching the groove region, reusing "
+                         "the SAME technique train_B3.py's own --local_refine_region already "
+                         "proved on real GPU training (roughly halved the energy-only baseline's "
+                         "own region-stress error, 62.2%->29.7%). The operator's own mesh is "
+                         "completely unchanged -- only the quadrature used to integrate the loss "
+                         "near the groove. Off by default; see mixed_stress_loss_B3_locally_"
+                         "refined's own docstring.")
+    p.add_argument("--local_refine_n_sub", type=int, default=10,
+                    help="Gauss-Legendre points per axis (n_sub**3 per element) for the region "
+                         "elements when --local_refine_region is set. 10 matches the level "
+                         "train_B3.py's own convergence sweep found already stable.")
     return p.parse_args(argv)
 
 

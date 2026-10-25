@@ -153,6 +153,152 @@ def divergence_from_grad(gradP):
     return torch.diagonal(g, dim1=-2, dim2=-1).sum(-1)
 
 
+def _mixed_stress_residual_pass(p_flat, ue, mu_elem, lam_elem, elements, B_op, N_sf, w,
+                                 eye, relative_constitutive, constitutive_eps, Batch):
+    """One pass of the constitutive+equilibrium residual accumulation over a
+    SET of elements at a GIVEN quadrature rule (B_op/N_sf/w already restricted
+    to that element subset and that rule -- coarse for non-region elements,
+    fine for region elements). Shared by mixed_stress_loss_B3 (one coarse pass
+    over every element) and mixed_stress_loss_B3_locally_refined (one coarse
+    pass over non-region elements, one fine pass over region elements) so the
+    per-quadrature-point math is written and tested exactly once.
+
+    w: (n_gauss, n_elem) already-combined volume weight (detJ*iweight for the
+    coarse rule, detJ_fine.abs()*fine_w for the fine rule -- the fine rule's
+    detJ can be negative for a left-handed local parametrization, same as any
+    other quadrature point, so callers must pass .abs() if their own detJ is
+    unsigned-unsafe; the coarse geom['detJ'] used elsewhere in this project is
+    passed through as-is, matching mixed_stress_loss_B3's own prior behavior).
+
+    Returns (total_weight, L_constitutive, L_equilibrium), each (Batch,),
+    UNNORMALIZED (not yet divided by total_weight) so a caller can add a
+    second pass's own totals before normalizing once at the end."""
+    n_gauss = B_op.shape[0]
+    total_weight = torch.zeros(Batch, device=ue.device, dtype=ue.dtype)
+    L_constitutive = torch.zeros(Batch, device=ue.device, dtype=ue.dtype)
+    L_equilibrium = torch.zeros(Batch, device=ue.device, dtype=ue.dtype)
+    if ue.shape[1] == 0:  # no elements in this pass (e.g. an empty region)
+        return total_weight, L_constitutive, L_equilibrium
+
+    P_interp_all = interpolate_nodal_field_to_quadpts(p_flat, elements, N_sf)  # (g,B,e,9)
+    pe = p_flat[:, elements, :].permute(0, 1, 3, 2)  # (Batch, n_elem, 9, 8_node)
+
+    for g in range(n_gauss):
+        H = torch.einsum("bedq,ecq->bedc", ue, B_op[g])  # (Batch, n_elem, 3, 3)
+        F = eye + H
+        P_true = neo_hookean_P_closed_form(F, mu_elem, lam_elem)
+        P_pred = P_interp_all[g].reshape(Batch, -1, 3, 3)
+
+        wg = w[g]  # (n_elem,)
+        total_weight = total_weight + wg.sum().expand(Batch)
+
+        resid_c = ((P_pred - P_true) ** 2).sum(dim=(-1, -2))  # (Batch, n_elem)
+        if relative_constitutive:
+            P_true_sq = (P_true ** 2).sum(dim=(-1, -2))
+            resid_c = resid_c / (constitutive_eps + P_true_sq)
+        L_constitutive = L_constitutive + torch.sum(resid_c * wg[None, :], dim=1)
+
+        gradP_g = torch.einsum("bedq,ecq->bedc", pe, B_op[g])  # (Batch, n_elem, 9, 3)
+        divP = divergence_from_grad(gradP_g)  # (Batch, n_elem, 3)
+        resid_e = (divP ** 2).sum(dim=-1)  # (Batch, n_elem)
+        L_equilibrium = L_equilibrium + torch.sum(resid_e * wg[None, :], dim=1)
+
+    return total_weight, L_constitutive, L_equilibrium
+
+
+def mixed_stress_loss_B3_locally_refined(
+        u_net_raw, p_net_raw, E_node, nu_node, phi, geom,
+        region_elem_mask, N_f_region, B_f_region, detJ_f_region, fine_w_t,
+        w_constitutive=1.0, w_equilibrium=1.0,
+        relative_constitutive=False, constitutive_eps=400.0):
+    """Same two residuals as mixed_stress_loss_B3 (constitutive consistency,
+    equilibrium), but elements touching the groove (region_elem_mask) have
+    BOTH residuals integrated with a FINER quadrature (N_f_region/B_f_region/
+    detJ_f_region/fine_w_t, precomputed once by
+    precompute_region_fine_quadrature_mixed) instead of the standard 8-point
+    rule -- every other element is completely unchanged.
+
+    Mirrors evaluate_B3_region_local_refine.total_potential_energy_B3_
+    locally_refined's own pattern, already proven on real GPU training for
+    the energy-only baseline (roughly HALVED that formulation's own
+    region-stress error, 62.2%->29.7%, 2026-09-30) -- extended here to the
+    constitutive AND equilibrium residuals this mixed-stress formulation
+    actually trains on, since that formulation has no single "energy" term
+    to refine. Each element contributes via EXACTLY ONE of the two
+    quadrature rules (fine XOR coarse): verified by
+    test_mixed_stress_B3_local_refine.py's identity check (an EMPTY region
+    mask must exactly reproduce plain mixed_stress_loss_B3's own result,
+    since then every element takes the coarse pass alone)."""
+    elements = geom["elements"]
+    B_op, N_sf, detJ, iweights = geom["B"], geom["N"], geom["detJ"], geom["iweights"]
+    non_region_mask = ~region_elem_mask
+    Batch = u_net_raw.shape[0]
+
+    u = apply_dirichlet_b3(u_net_raw, geom, phi)
+    E_elem = E_node[:, elements].mean(dim=2)
+    nu_elem = nu_node[:, elements].mean(dim=2)
+    mu_elem = E_elem / (2 * (1 + nu_elem))
+    lam_elem = E_elem * nu_elem / ((1 + nu_elem) * (1 - 2 * nu_elem))
+    eye = torch.eye(3, device=u.device, dtype=u.dtype).view(1, 1, 3, 3)
+
+    ue = u[:, elements, :].permute(0, 1, 3, 2)  # (Batch, n_elem, 3, 8_node)
+    p_flat = p_net_raw.reshape(Batch, p_net_raw.shape[1], 9)
+
+    # Standard coarse quadrature, restricted to non-region elements.
+    coarse_w = detJ * iweights[:, None]  # (n_gauss, n_elem), matches mixed_stress_loss_B3's own w
+    tw_c, Lc_c, Le_c = _mixed_stress_residual_pass(
+        p_flat, ue[:, non_region_mask], mu_elem[:, non_region_mask], lam_elem[:, non_region_mask],
+        elements[non_region_mask], B_op[:, non_region_mask], N_sf, coarse_w[:, non_region_mask],
+        eye, relative_constitutive, constitutive_eps, Batch)
+
+    # Finer quadrature, restricted to region elements.
+    fine_w = detJ_f_region.abs() * fine_w_t[:, None]  # (n_fine_gauss, n_region_elem)
+    tw_f, Lc_f, Le_f = _mixed_stress_residual_pass(
+        p_flat, ue[:, region_elem_mask], mu_elem[:, region_elem_mask], lam_elem[:, region_elem_mask],
+        elements[region_elem_mask], B_f_region, N_f_region, fine_w,
+        eye, relative_constitutive, constitutive_eps, Batch)
+
+    total_weight = tw_c + tw_f
+    L_constitutive = (Lc_c + Lc_f) / total_weight
+    L_equilibrium = (Le_c + Le_f) / total_weight
+    loss = w_constitutive * L_constitutive.mean() + w_equilibrium * L_equilibrium.mean()
+    return loss, {"constitutive": L_constitutive.mean().item(),
+                  "equilibrium": L_equilibrium.mean().item()}
+
+
+def precompute_region_fine_quadrature_mixed(nodes_t, elements_t, region_elem_mask, fine_xi, fine_w,
+                                             device, dtype):
+    """Like evaluate_B3_region_local_refine.precompute_region_fine_quadrature,
+    but also returns the fine shape-function VALUES N_f_region: the
+    energy-only baseline's own precompute only ever needs B/detJ (it
+    differentiates u, never interpolates a field), while the mixed-stress
+    formulation also needs N to interpolate the network's own predicted
+    nodal P field to the fine quadrature points for the constitutive
+    residual. Purely geometric (independent of material/displacement/
+    network) -- computed ONCE before training starts and reused every
+    iteration, never recomputed inside the training loop (the baseline's own
+    docstring has the full story of a real ~12x slowdown bug found and fixed
+    by this same discipline)."""
+    from torchfem import Solid
+    from torchfem.materials import Hyperelastic3D
+    from omar_pfem.torchfem_comparison import neo_hookean_psi_3d
+
+    region_elements = elements_t[region_elem_mask]  # (n_region_elem, 8)
+    old_default_dtype = torch.get_default_dtype()
+    torch.set_default_dtype(dtype)
+    try:
+        dummy_params = torch.tensor([1.0, 1.0], dtype=dtype, device=device)
+        material = Hyperelastic3D(psi=neo_hookean_psi_3d, params=dummy_params)
+        with torch.device(device):
+            model_region = Solid(nodes_t, region_elements, material)
+        fine_xi_t = torch.tensor(fine_xi, dtype=dtype, device=device)
+        N_f_region, B_f_region, detJ_f_region = model_region.eval_shape_functions(fine_xi_t)
+    finally:
+        torch.set_default_dtype(old_default_dtype)
+    fine_w_t = torch.tensor(fine_w, dtype=dtype, device=device)
+    return N_f_region, B_f_region, detJ_f_region, fine_w_t
+
+
 def mixed_stress_loss_B3(u_net_raw, p_net_raw, E_node, nu_node, phi, geom,
                           w_constitutive=1.0, w_equilibrium=1.0,
                           relative_constitutive=False, constitutive_eps=400.0):
