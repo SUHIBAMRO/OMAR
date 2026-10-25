@@ -21258,8 +21258,8 @@ its evaluation step, producing a second `run_manifest.json` entry.
 - energy mean rel. err **181.9%**, reaction moment **216.9%** -- both
   essentially identical to the already-bad equilibrium-augmented
   result above, not an improvement with the extra 35,000 iterations.
-- `region_avg_sigma_xx_implicit` pooled-RMS **18.4%** vs.
-  `region_avg_sigma_xx_direct` pooled-RMS **8.2%** -- a real, specific,
+- `region_avg_sigma_xx_implicit` pooled-RMS **1837.1%** vs.
+  `region_avg_sigma_xx_direct` pooled-RMS **824.9%** -- a real, specific,
   positive finding buried inside an otherwise poor result: predicting
   stress DIRECTLY (this formulation's whole point) is genuinely more
   than 2x more accurate than deriving it implicitly from the predicted
@@ -21601,8 +21601,8 @@ cost**:
 
 | metric | attempt 1 (absolute, scale=500, "failed") | attempt 4 (relative, scale=250, this run) |
 |---|---|---|
-| `region_avg_sigma_xx_implicit` pooled RMS | 18.4% | 16,490% (corr=-0.24, nonsensical -- u/energy/reaction were never trained this run, by design, to isolate the loss-formula change) |
-| `region_avg_sigma_xx_direct` pooled RMS | **8.2%** | **96.1%** (corr=0.65) |
+| `region_avg_sigma_xx_implicit` pooled RMS | 1837.1% | 16,490% (corr=-0.24, nonsensical -- u/energy/reaction were never trained this run, by design, to isolate the loss-formula change) |
+| `region_avg_sigma_xx_direct` pooled RMS | **824.9%** | **96.1%** (corr=0.65) |
 | energy / reaction_moment_y pooled RMS | ~0.3% / ~3.0% (original published baseline, separate run) | 228% / 140% |
 
 **`region_p99_sigma_xx_*` came back NaN** for both implicit and direct
@@ -21617,26 +21617,39 @@ region QoI in BOTH attempt 1 and attempt 4 (by 2.2x and ~172x pooled
 RMS respectively) -- consistent across two very differently-tuned
 runs, answering Professor Rabczuk's actual question with a real yes.
 
-**But the "fix" made the real, practical accuracy WORSE, not better**:
-attempt 1's direct-P accuracy (8.2% RMS) is noticeably better than
-attempt 4's (96.1% RMS), despite attempt 1 being the admittedly
-uncalibrated, "failed-by-every-other-metric" first try. This is the
-gradient-collapse mechanism found above showing up as a real,
-quantified cost, not just a training-curve curiosity -- the relative
-loss's more "well-behaved" training plateau (stable ~0.8 vs. attempt
-1's wide unstable oscillation) did NOT translate into a better model;
-if anything the opposite.
+**CORRECTED 2026-10-26 (see the dedicated correction entry near the end
+of this file for the full story)**: the "8.2%" figure above was a
+mislabeling bug -- the true value is **824.9%**, which is now NUMERICALLY
+LARGER than attempt 4's 96.1%, the opposite ordering from what this
+paragraph originally concluded. But that reversal is NOT a real
+"attempt 4 improved" finding either: attempt 4's smaller number is a
+mathematical artifact of the already-diagnosed gradient-collapse (its
+predicted P is nearly constant and near-zero, mean abs ~0.73-1.27 vs. a
+true field whose mean abs is ~68) -- a trivial zero-predictor naturally
+scores a pooled RMS relative error close to 100% (true vs. 0 means
+err≈true, so the ratio -> 1.0), which is exactly what 96.1% reflects:
+not accuracy, but a signature of having learned nothing. Attempt 1's
+824.9% being well ABOVE that trivial-zero reference (100%) means its
+scale=500 miscalibration is actively worse than predicting nothing at
+all -- a different, non-degenerate failure mode (real but badly-scaled
+predictions), not a collapse. Both attempts are therefore unusable in
+absolute terms; neither pooled-RMS number supports a "this one is
+accurate" claim. See the correction entry for the corrected bottom line.
 
 **Recommendation given to Omar, not yet acted on pending his/Timon's
 decision**: stop iterating on loss-formula tweaks for this formulation
 -- four attempts (scale x2, curriculum, relative residual) have each
-addressed a real, measured issue without improving on attempt 1's own
-direct-P accuracy, and attempt 4 is a regression on it. Treat "direct
-P-prediction beats implicit for stress QoIs" (robust across attempts 1
-and 4) as the reportable finding for item 1, using attempt 1's
-checkpoint as the best-available quantification (8.2% pooled RMS) --
-real quantitative improvement beyond that would most plausibly need a
-dedicated local treatment for the groove region (mirroring
+addressed a real, measured issue without producing a direct-P prediction
+usable in absolute terms, and attempt 4's own internal diagnostics (not
+the pooled-RMS comparison above, which is now known to be misleading)
+confirm it is a regression -- a collapse to a trivial near-zero
+predictor, not a working fix. The only claim that survives the
+correction is the WITHIN-attempt ratio (direct less catastrophically
+wrong than implicit, by ~2.2x in attempt 1 and ~172x in attempt 4 --
+both ratios untouched by the mislabeling bug, since it cancels out),
+read as "direct still beats implicit," never as "direct is accurate."
+Real quantitative improvement would most plausibly need a dedicated
+local treatment for the groove region (mirroring
 `--local_refine_region`'s own, already-proven role for the baseline),
 which is a real scoping decision, not a quick follow-up.
 
@@ -22017,3 +22030,104 @@ on Colab; its final break-even summary (PI vs. DD at N=50/200/400)
 answers whether DD's accuracy ever closes the gap with PI, and whether
 its total cost (labels + training) ever becomes competitive with PI's
 own label-free cost, within this practical sample range.
+
+## `B3_H1_Seminorm_Reevaluation.ipynb` ran successfully (89.8s total, A100)
+## -- H1 semi-norm now measured for all 7 checkpoints, closing the real
+## gap found by checking the report against Professor Rabczuk's own
+## emails
+
+All 3 CPU correctness checks for `compute_H1_seminorm_rel` reproduced
+cleanly in the Colab environment first. Then all 7 checkpoints were
+re-evaluated against the same held-out FEM set each already used, now
+including the new field:
+
+| checkpoint | mean H1_seminorm_rel | median H1_seminorm_rel |
+|---|---|---|
+| PI baseline | 4.44% | 4.18% |
+| Item 1, attempt 1 (mixed-stress, scale=500) | 67.10% | 67.14% |
+| Item 1, attempt 4 (mixed-stress, relative) | 84.97% | 70.18% |
+| Items 2/3, attempt 1 (equilibrium, w=1.0) | 67.10% | 67.14% |
+| Items 2/3, attempt 2 (equilibrium, w=0.12) | 72.97% | 61.57% |
+| Item 4, data-driven rel_l2 | 7.27% | 5.61% |
+| Item 4, data-driven sobolev | 7.10% | 5.88% |
+
+**Reading it plainly**: the PI baseline and both data-driven checkpoints
+are the only ones with a usable H1 semi-norm (4-7%, in the same range as
+their own displacement rel. L2 numbers); all four candidate
+error-reduction methods for items 1 and 2/3 land at 67-85% H1 error --
+consistent with, and now QUANTIFYING on the exact metric Professor
+Rabczuk named, their already-known catastrophic failure on
+energy/reaction/stress. Not a new finding in direction, but a real,
+previously-missing number that directly answers his 2026-10-20 ask.
+
+**One detail worth flagging, not yet investigated further**: item 1
+attempt 1 (mixed-stress, scale=500) and items 2/3 attempt 1
+(equilibrium, w=1.0) have NEARLY IDENTICAL H1 values (67.10315% vs.
+67.09883%, matching to 4 decimal places) -- and recall these two runs
+ALSO had nearly identical energy/reaction numbers (181.8-181.9%/
+216.9%) reported earlier. Plausible explanation: both of these
+catastrophically-failed runs converged toward a similarly-shaped
+(bad) displacement field independent of the specific auxiliary loss
+term each was using, rather than each failing in its own distinct way
+-- consistent with this project's earlier cross-method pattern
+observation ("both new formulations... converged to... errors roughly
+two orders of magnitude worse... despite each passing its own pre-GPU
+correctness checks"). Not pursued further here since both methods are
+already closed/concluded; noted for completeness.
+
+Both the artifact report and the `.docx` updated: the "H1 semi-norm
+never measured" line in the Coverage table changed from a gap to
+**done**, and a new results section/table added citing the numbers
+above.
+
+## CORRECTION (2026-10-26): item 1 attempt 1's "18.4%"/"8.2%" stress
+## numbers were mislabeled by 100x -- true values are 1837.1%/824.9%;
+## this also reverses (without validating) a since-superseded
+## attempt-1-vs-attempt-4 comparison
+
+While reviewing the fresh `B3_H1_Seminorm_Reevaluation.ipynb` output
+above, noticed its re-printed raw `region_avg_sigma_xx_implicit`/
+`_direct` pooled-RMS values for item 1 attempt 1 (`18.3711`/`8.2486`)
+are the exact same raw numbers this project had been labeling "18.4%"/
+"8.2%" everywhere (this file, the chat, both report documents) since
+those numbers were first reported. Every OTHER metric in this project
+is correctly scaled by 100 when converted from raw ratio to percentage
+(e.g. that SAME run's own `energy` raw `1.8097` -> correctly labeled
+"181.9%"; items-2/3-attempt-1's own `region_avg_sigma_xx` raw `20.2828`
+-> correctly labeled "2028%") -- only these two specific numbers for
+item 1 attempt 1 were never multiplied by 100, a plain labeling bug, not
+a re-derivation or a different run. Corrected inline above (both the
+narrative paragraph and the attempt-1-vs-4 comparison table) to
+**1837.1%** / **824.9%**.
+
+**Consequence worth being explicit about**: fixing this reverses the
+RAW-NUMBER ordering between attempt 1's direct-P pooled RMS (now
+824.9%) and attempt 4's (96.1%, itself not affected by the bug) --
+numerically, 824.9% > 96.1%, the opposite of what was previously
+stated ("attempt 1 noticeably better"). This is corrected inline above
+with the necessary caveat: attempt 4's smaller number is a known
+artifact of its diagnosed collapse to a trivial near-zero predictor
+(confirmed independently via its own predicted-P mean/std, unaffected
+by this bug), not genuine accuracy, so the corrected ordering does NOT
+mean "attempt 4 is the better result" -- both are unusable in absolute
+terms. The only claim that survives untouched is the WITHIN-attempt
+direct-vs-implicit ratio (~2.2x and ~172x), since a mislabeling bug
+that scales both sides of a ratio by the same missing factor cancels
+out of that ratio exactly.
+
+**What this does NOT change**: every other number in both report
+documents (energy/reaction percentages, items 2/3's own stress number,
+item 4's rel. L2 figures, the new H1 table above) was independently
+spot-checked against this same "is it a raw ratio with %100 applied"
+rule while hunting this bug and found correctly scaled -- this appears
+to be an isolated, one-time mislabeling of exactly these two numbers,
+not a systemic issue across the project's reporting.
+
+**Still to do**: correct the Claude Doc artifact report (Executive
+Summary table, Item 1 section's Attempt 1 paragraph, Final Evaluation
+table, Conclusion) and the `.docx` build script + re-send the corrected
+file to Omar, in both cases also softening the "8.2%, a reasonably
+small/positive finding" framing of item 1's headline result to the
+corrected, far more guarded picture (both attempts produce enormous
+absolute stress errors; only the relative direct-vs-implicit ordering
+is a defensible finding).
