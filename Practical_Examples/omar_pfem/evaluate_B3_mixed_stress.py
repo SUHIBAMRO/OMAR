@@ -39,8 +39,8 @@ import torch
 from omar_pfem.data.data_generate_B3_dataset import DEFAULT_RESOLUTION, R_GRADING
 from omar_pfem.data.mesh_convergence_B3 import MIN_RELIABLE_N_P99
 from omar_pfem.evaluate_B3_qois import (
-    build_region_mask, compute_energy, compute_reaction, compute_region_cauchy_field_rel,
-    compute_region_sigma_xx,
+    build_region_mask, compute_energy, compute_H1_seminorm_rel, compute_reaction,
+    compute_region_cauchy_field_rel, compute_region_sigma_xx,
 )
 from omar_pfem.mixed_stress_B3 import build_fixed_geometry_mixed, interpolate_nodal_field_to_quadpts
 from omar_pfem.train_B1 import _apply_input_norm, install_input_norm_for_checkpoint
@@ -196,6 +196,7 @@ def main():
             p_net_raw, u_pred, E_b, nu_b, geom, region_mask_torch)
 
         cauchy_field_rel = compute_region_cauchy_field_rel(u_true, u_pred, E_b, nu_b, geom, region_mask_torch)
+        h1_seminorm_rel = compute_H1_seminorm_rel(u_true, u_pred, geom)
 
         for i in range(end - start):
             rows.append({
@@ -208,6 +209,7 @@ def main():
                 "region_p99_sigma_xx_implicit": p99_implicit[i].item(),
                 "region_p99_sigma_xx_direct": p99_direct[i].item(),
                 "region_cauchy_field_rel_implicit": cauchy_field_rel[i].item(),
+                "H1_seminorm_rel": h1_seminorm_rel[i].item(),
             })
         print(f"  [{end}/{n_samples}] done")
 
@@ -241,6 +243,15 @@ def main():
           f"mean={summary['mean_region_cauchy_field_rel_implicit']:.4f}  "
           f"median={summary['median_region_cauchy_field_rel_implicit']:.4f}  "
           f"(n_valid={summary['n_valid_region_cauchy_field_rel_implicit']}/{n_samples})")
+
+    h1 = np.array([r["H1_seminorm_rel"] for r in rows])
+    h1_valid = h1[np.isfinite(h1)]
+    summary["mean_H1_seminorm_rel"] = float(np.mean(h1_valid)) if len(h1_valid) else float("nan")
+    summary["median_H1_seminorm_rel"] = float(np.median(h1_valid)) if len(h1_valid) else float("nan")
+    summary["std_H1_seminorm_rel"] = float(np.std(h1_valid)) if len(h1_valid) else float("nan")
+    print(f"  H1_seminorm_rel (volume-weighted, whole-domain displacement gradient): "
+          f"mean={summary['mean_H1_seminorm_rel']:.4f}  median={summary['median_H1_seminorm_rel']:.4f}  "
+          f"std={summary['std_H1_seminorm_rel']:.4f}")
 
     print("\nKey comparison for Professor Rabczuk's item 1 (does predicting P directly help "
           "the stress QoI?): region_avg_sigma_xx_direct's pooled_rms vs. "

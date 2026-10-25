@@ -239,6 +239,55 @@ def compute_region_sigma_full(u, E_node, nu_node, geom, region_mask_torch):
     return sigma_region, w_region
 
 
+def compute_H1_seminorm_rel(u_true, u_pred, geom):
+    """Volume-weighted relative H1 SEMI-norm error of the displacement
+    field over the WHOLE domain (not just the fixed stress region):
+
+      sqrt(sum_g w_g * ||grad(u_pred) - grad(u_true)||_F^2)
+      / sqrt(sum_g w_g * ||grad(u_true)||_F^2)
+
+    per sample, where grad(u) = H = du_i/dX_I at each Gauss point (the
+    exact same B_op einsum total_potential_energy_B3 already uses to
+    build F = I + H, just without the +I and without any material
+    model -- a purely kinematic quantity). Added 2026-10-26 because
+    Professor Rabczuk's 2026-10-20 email explicitly named "the H1
+    semi-norm" as one of the QoIs to track, alongside stress components
+    and other local QoIs -- it had never actually been computed for any
+    of the four candidate error-reduction methods before this.
+
+    Volume-weighted (detJ*iweights per Gauss point), analogous to
+    region_cauchy_field_rel's own full-tensor/squared-before-summing
+    convention (not vulnerable to a near-zero denominator the way a
+    naive signed-scalar ratio would be) -- NOT the same formula as
+    train_B3_data_driven.grad_rel_l2 (that one is an unweighted sum
+    over all Gauss points/elements, used only as an internal training
+    loss term where exact integration doesn't matter; this is the
+    properly volume-integrated version for REPORTING). Verified
+    (test_evaluate_B3_h1_seminorm.py): returns exactly 0 for u_pred ==
+    u_true, and a nonzero value matching a hand-computed reference for
+    a simple affine field.
+    """
+    elements = geom["elements"]
+    B_op, detJ, iweights = geom["B"], geom["detJ"], geom["iweights"]
+    n_gauss = B_op.shape[0]
+    Batch = u_true.shape[0]
+
+    ue_true = u_true[:, elements, :].permute(0, 1, 3, 2)  # (B, n_elem, 3, 8)
+    ue_pred = u_pred[:, elements, :].permute(0, 1, 3, 2)
+
+    num_sq = torch.zeros(Batch, dtype=u_true.dtype, device=u_true.device)
+    den_sq = torch.zeros(Batch, dtype=u_true.dtype, device=u_true.device)
+    for g in range(n_gauss):
+        H_true = torch.einsum("bedq,ecq->bedc", ue_true, B_op[g])  # (B, n_elem, 3, 3)
+        H_pred = torch.einsum("bedq,ecq->bedc", ue_pred, B_op[g])
+        w = detJ[g].abs() * iweights[g]  # (n_elem,)
+        diff_sq = ((H_pred - H_true) ** 2).sum(dim=(-1, -2))  # (B, n_elem)
+        true_sq = (H_true ** 2).sum(dim=(-1, -2))
+        num_sq = num_sq + (diff_sq * w[None, :]).sum(dim=1)
+        den_sq = den_sq + (true_sq * w[None, :]).sum(dim=1)
+    return torch.sqrt(num_sq) / torch.sqrt(den_sq).clamp_min(1e-300)
+
+
 def compute_region_cauchy_field_rel(u_true, u_pred, E_node, nu_node, geom, region_mask_torch):
     """Volume-weighted, FULL-TENSOR relative field error of Cauchy
     stress within the fixed region:
@@ -338,6 +387,7 @@ def main():
         avg_pred, p99_pred, _ = compute_region_sigma_xx(u_pred, E_b, nu_b, geom, region_mask_torch)
 
         cauchy_field_rel = compute_region_cauchy_field_rel(u_true, u_pred, E_b, nu_b, geom, region_mask_torch)
+        h1_seminorm_rel = compute_H1_seminorm_rel(u_true, u_pred, geom)
 
         for i in range(end - start):
             rows.append({
@@ -348,6 +398,7 @@ def main():
                 "region_avg_sigma_xx_true": avg_true[i].item(), "region_avg_sigma_xx_pred": avg_pred[i].item(),
                 "region_p99_sigma_xx_true": p99_true[i].item(), "region_p99_sigma_xx_pred": p99_pred[i].item(),
                 "region_cauchy_field_rel": cauchy_field_rel[i].item(),
+                "H1_seminorm_rel": h1_seminorm_rel[i].item(),
             })
         print(f"  [{end}/{n_samples}] done")
 
@@ -419,6 +470,15 @@ def main():
           f"median={summary['median_region_cauchy_field_rel']:.4f}  "
           f"std={summary['std_region_cauchy_field_rel']:.4f}  "
           f"(n_valid={summary['n_valid_region_cauchy_field_rel']}/{n_samples})")
+
+    h1 = np.array([r["H1_seminorm_rel"] for r in rows])
+    h1_valid = h1[np.isfinite(h1)]
+    summary["mean_H1_seminorm_rel"] = float(np.mean(h1_valid)) if len(h1_valid) else float("nan")
+    summary["median_H1_seminorm_rel"] = float(np.median(h1_valid)) if len(h1_valid) else float("nan")
+    summary["std_H1_seminorm_rel"] = float(np.std(h1_valid)) if len(h1_valid) else float("nan")
+    print(f"  H1_seminorm_rel (volume-weighted, whole-domain displacement gradient): "
+          f"mean={summary['mean_H1_seminorm_rel']:.4f}  median={summary['median_H1_seminorm_rel']:.4f}  "
+          f"std={summary['std_H1_seminorm_rel']:.4f}")
 
     eq_true_mean = float(np.mean([r["equilibrium_residual_true"] for r in rows]))
     eq_pred_mean = float(np.mean([r["equilibrium_residual_pred"] for r in rows]))

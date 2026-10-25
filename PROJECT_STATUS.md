@@ -21879,3 +21879,103 @@ further GPU time recommended on this specific mechanism without a
 fundamentally different idea (not available at the time of writing);
 a decision on whether to report this as-is or pursue a different
 realization of items 2/3 is Omar's/Professor Rabczuk's to make.
+
+## Wrote a full investigation report (artifact doc + matching .docx in
+## this project's own PFEM_Work_Summary style) covering items 1, 2/3,
+## and 4; checked it against Professor Rabczuk's three actual emails
+## (2026-10-11, 10-18, 10-20) and found two real, previously unflagged
+## gaps -- H1 semi-norm never measured, hybrid DD/PI loss never run;
+## closed both
+
+Built a comprehensive investigation report (a Claude Docs artifact, and
+a matching `.docx` styled like this project's own `advisor_feedback/
+PFEM_Work_Summary_*.docx` reports -- plain Word default theme, numbered
+Heading 1/2 sections, Table Grid tables, no colored chips -- after Omar
+flagged the first PDF export as visually inconsistent with what he
+actually sends Professor Rabczuk). Covers item 1 (mixed-stress, all 4
+attempts in full), items 2/3 (equilibrium-augmented, all 3 fixes + 2
+pilots in full, with the two pilot comparison charts embedded as
+images), and item 4 (B3 data-driven + Sobolev, newly given its own full
+section after Omar asked whether "the methods we worked on before" were
+missing -- they were: the report originally covered only items 1 and
+2/3).
+
+**Checked the report directly against Professor Rabczuk's three actual
+emails** (2026-10-11: the 4 candidate methods; 2026-10-18: the
+trustworthy-AI goal + "please save the results"; 2026-10-20: the
+explicit QoI list, the fair PI-vs-DD ask, geometry families, faster
+solvers, the 2-stage trustworthy-AI plan) at Omar's request ("يعني كل
+النقاط الي قال تيمون اشتغلو عليها... موجودين هون؟"). Found two real
+gaps, not previously flagged anywhere in this project:
+
+1. **H1 semi-norm was never measured for any of the four candidate
+   methods**, despite Professor Rabczuk naming it explicitly ("reducing
+   the errors in all stress component, H1 semi-norm and other local
+   QoIs") alongside stress components, which WERE measured
+   (`region_avg_sigma_xx`, `region_cauchy_field_rel`).
+2. **The hybrid DD/PI loss for B3 was built and CPU-verified but never
+   actually run on GPU** -- `train_B3_data_driven.py --loss hybrid`
+   existed from the same session that ran `rel_l2`/`sobolev`, but only
+   those two were ever trained.
+
+**Both closed in the same session, not just flagged**:
+
+Added `compute_H1_seminorm_rel(u_true, u_pred, geom)` to
+`evaluate_B3_qois.py` -- a volume-weighted relative H1 semi-norm error
+over the WHOLE domain (not just the fixed stress region), using the
+exact same `B_op`/Gauss-point construction `total_potential_energy_B3`
+already uses for `grad(u)`, just without the material model (a purely
+kinematic quantity). Deliberately NOT the same formula as
+`train_B3_data_driven.grad_rel_l2` (that one is an unweighted sum used
+only as an internal Sobolev-loss term, where exact integration doesn't
+matter) -- this is the properly volume-integrated version for
+reporting. Verified directly (`test_evaluate_B3_h1_seminorm.py`, 3
+checks): exactly 0 for `u_pred == u_true`; matches a closed-form
+hand-computed reference for a globally affine field to 5.55e-17 (an
+affine field makes `grad(u)` the SAME constant matrix everywhere, so
+the volume-weighted error must reduce to a plain Frobenius-norm ratio,
+independent of volume weights -- confirmed exactly); finite and
+positive for random fields. Wired into `evaluate_B3_qois.py` (covers
+the PI baseline AND both equilibrium-augmented checkpoints, which use
+this same script, being u-only) and `evaluate_B3_mixed_stress.py`
+(item 1's checkpoints) -- both CPU-smoke-tested end to end with a tiny
+fake checkpoint/dataset, confirming the new field appears correctly in
+each script's JSON output with no regression to existing metrics.
+`train_B3_data_driven.py`'s own `evaluate()` (item 4) also extended to
+report H1 alongside rel. L2, for every future run. New
+`reevaluate_B3_data_driven.py`: re-evaluates an EXISTING data-driven
+checkpoint (no training dataset needed, unlike the training script's
+own `main()`) -- lets item 4's already-trained `rel_l2`/`sobolev`
+checkpoints get the new H1 metric without retraining. CPU-smoke-tested
+end to end.
+
+New `B3_H1_Seminorm_Reevaluation.ipynb`: a CHEAP notebook (no training,
+just forward passes) that re-evaluates all 7 existing B3 checkpoints
+already on Drive (PI baseline, both mixed-stress attempts, both
+equilibrium-augmented attempts, both data-driven variants) against the
+same held-out set each was already evaluated on, now reporting H1
+semi-norm for every one. Expected to take minutes, not hours, since no
+training is involved.
+
+New `B3_Data_Driven_Hybrid_Training.ipynb`: a REAL training run
+(`train_B3_data_driven.py --loss hybrid`, 50,000 steps, matched to
+every other B3 run's own budget) completing item 4's menu -- reuses the
+EXISTING `b3_dd_training_set` dataset (200 samples, `seed=50`) already
+on Drive from the `rel_l2`/`sobolev` run, no new FEM solves needed.
+Hybrid loss itself (`w * physics_term + (1-w) * data_term`, physics
+term normalized by a running EMA of its own scale,
+`hybrid_phys_weight=0.5` default) was already implemented and
+CPU-smoke-tested in this session (confirmed runs end to end without
+error on a tiny model/fake dataset, 4 iterations) -- this notebook is
+the first time it will actually run on GPU. Evaluated with the new H1
+metric from the start.
+
+Both the artifact report and the `.docx` updated with a new "Coverage
+Against Professor Rabczuk's Roadmap" section listing every ask from the
+three emails against its actual status, including these two gaps and
+the still-open "figure out when labels make PI worthwhile" break-even
+question (one data point so far, not a sweep -- not attempted this
+session, a larger undertaking than the two gaps above). Not yet run on
+GPU/re-evaluated -- next step is Omar starting both new notebooks on
+Colab (the re-evaluation one first, since it is cheap and fast; the
+hybrid training one is a real ~2h+ GPU commitment).

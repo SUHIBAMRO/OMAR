@@ -45,6 +45,7 @@ import numpy as np
 import torch
 
 from omar_pfem.data.data_generate_B3_dataset import DEFAULT_RESOLUTION
+from omar_pfem.evaluate_B3_qois import compute_H1_seminorm_rel
 from omar_pfem.train_B1 import _apply_input_norm, install_input_norm_for_checkpoint, set_input_norm
 from omar_pfem.train_B3 import apply_dirichlet_b3, build_fixed_geometry, build_model, \
     neo_hookean_energy_density_batched, total_potential_energy_B3
@@ -112,9 +113,18 @@ def evaluate(test, model, geom, device, dtype, normalize_inputs):
     num = torch.sqrt(torch.sum((u_pred - u_true) ** 2, dim=(1, 2)))
     den = torch.sqrt(torch.sum(u_true ** 2, dim=(1, 2))) + 1e-12
     rel_l2 = (num / den)
+    # H1 semi-norm, added 2026-10-26: Professor Rabczuk's 2026-10-20 email
+    # explicitly named this as a QoI to track, alongside stress components
+    # and other local QoIs -- it had never been computed for any of the
+    # four candidate error-reduction methods, including this one, before
+    # this. Reuses evaluate_B3_qois.compute_H1_seminorm_rel unchanged (same
+    # volume-weighted convention as every other B3 region/field QoI).
+    h1 = compute_H1_seminorm_rel(u_true, u_pred, geom)
     model.train()
     return {"mean_rel_L2": float(rel_l2.mean().item()),
-            "median_rel_L2": float(rel_l2.median().item())}
+            "median_rel_L2": float(rel_l2.median().item()),
+            "mean_H1_seminorm_rel": float(h1.mean().item()),
+            "median_H1_seminorm_rel": float(h1.median().item())}
 
 
 def main():
@@ -274,15 +284,16 @@ def main():
                 m = evaluate(test, model, geom, device, dtype, args.normalize_inputs)
                 val = m["mean_rel_L2"]
                 history.append({"step": step, "train_loss": float(loss.item()),
-                                "val_rel_L2": val, "elapsed_s": time.time() - t0, **log_extra})
+                                "val_rel_L2": val, "val_H1_seminorm_rel": m["mean_H1_seminorm_rel"],
+                                "elapsed_s": time.time() - t0, **log_extra})
                 flag = ""
                 if val < best["val_rel_L2"]:
-                    best = {"step": step, "val_rel_L2": val}
+                    best = {"step": step, "val_rel_L2": val, "val_H1_seminorm_rel": m["mean_H1_seminorm_rel"]}
                     torch.save({"model_state": model.state_dict(), "step": step,
                                "args": vars(args)}, ckpt_path)
                     flag = "  <- best"
                 print(f"  step {step:>7,}/{args.opt_steps:,}  loss={loss.item():.5f}  "
-                      f"val rel-L2={val:.4f}{flag}")
+                      f"val rel-L2={val:.4f}  val H1_seminorm={m['mean_H1_seminorm_rel']:.4f}{flag}")
                 with open(hist_path, "w") as fh:
                     json.dump(history, fh, indent=2)
 
@@ -294,6 +305,7 @@ def main():
         "batch_size": args.batch_size, "opt_steps": args.opt_steps,
         "lr": args.lr, "weight_decay": args.weight_decay, "n_parameters": n_par,
         "best_val_rel_L2": best["val_rel_L2"], "best_step": best["step"],
+        "best_val_H1_seminorm_rel": best.get("val_H1_seminorm_rel"),
         "train_wall_clock_s": wall, "checkpoint": ckpt_path, "device": device.type,
         "sobolev_grad_weight": args.sobolev_grad_weight if args.loss == "sobolev" else None,
         "hybrid_phys_weight": args.hybrid_phys_weight if args.loss == "hybrid" else None,
