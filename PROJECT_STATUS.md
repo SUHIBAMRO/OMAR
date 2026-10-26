@@ -22507,3 +22507,38 @@ advisor-facing report documents (Claude Doc artifact, `.docx`) -- those
 still reflect the investigation as of the H1 re-evaluation; updating
 them with items 1 attempt 5, the items 2/3 late-introduction result,
 and the completed break-even sweep is a real next step, not yet done.
+
+## Item 1 attempt 6 built: combining attempt 4's relative residual with
+## attempt 5's local refinement -- a well-motivated, not random,
+## combination targeting attempt 4's own diagnosed failure mechanism
+
+Omar asked "كيف ممكن نصلحه؟" (how can we fix it?) again after attempt
+5's real-but-partial improvement. Reasoned from the two attempts'
+own diagnoses rather than guessing: attempt 4's CPU root-cause
+investigation found its gradient (w.r.t. `P_pred`) shrinks roughly as
+`1/|P_true|` for large `|P_true|` -- the groove-region points
+specifically -- which were, AT THE TIME, represented by only 6-8
+quadrature points per element. Attempt 5 just gave those SAME points a
+real, measured improvement (824.9%->526.84%) by refining their
+quadrature to 1,000 points/element. The two have never been combined;
+doing so tests whether denser groove quadrature gives the relative
+residual's otherwise-sound loss formula (it correctly stops high-stress
+points from dominating the loss VALUE, at the cost of their own
+gradient) enough aggregate signal across many more points to avoid the
+collapse-to-near-zero failure attempt 4's own diagnosis found.
+
+**No new code needed**: `mixed_stress_loss_B3_locally_refined` already
+accepts `relative_constitutive`/`constitutive_eps`, already CPU-
+verified; this is a new combination of two already-separately-tested
+flags, not new machinery. CPU-smoke-tested end to end (3 iterations,
+tiny model, both flags combined, finite loss, no error).
+
+New `B3_MixedStress_LocalRefine_Relative_Training.ipynb`: attempt 4's
+own base config (`p_output_scale=250`, `relative_constitutive=1`,
+`constitutive_eps=400.0`, `w_equilibrium=1.0`) plus attempt 5's own
+local-refine setting (`local_refine_region=1`, `local_refine_n_sub=10`).
+Includes the SAME automated rate-check safety net added after attempt
+5's own real performance bug, before committing to the full 50,000
+iterations. Not yet run on GPU -- next step is Omar starting it on
+Colab; either outcome (fixes the collapse vs. doesn't) is a real,
+reportable finding that directly tests the gradient-vanishing diagnosis.
