@@ -22305,3 +22305,145 @@ the fixed notebook should skip straight to training N=400 and finish
 in roughly one training run's worth of GPU time (~2h), not redo
 anything already done. Committed and pushed; corrected notebook
 re-sent to Omar.
+
+## Both the items 2/3 late-introduction pilot and the break-even
+## sweep's N=400 point ran to completion -- a clean, decisive NEGATIVE
+## result for the late-introduction idea, and a clean, complete answer
+## to the break-even question (PI dominates DD on both cost and
+## accuracy throughout N=50-400)
+
+**Items 2/3 late-introduction pilot** (`B3_Equilibrium_LateIntroduction_
+Pilot.ipynb`, A100, both variants ~2,150-2,162s = ~0.18s/iteration,
+exactly the expected rate): variant A (pure-energy reference) and
+variant B (late introduction, `w_equilibrium` ramping 0->0.12 between
+iterations 10,000-10,500) track ALMOST IDENTICALLY from iteration 1
+through 10,000 (as expected -- both have `w_equilibrium=0` the whole
+time up to there, same deterministic sample sequence), confirming the
+pilot's own methodology before the real test even begins. The moment
+the term is introduced, B's `energy` diverges sharply upward from A's:
+
+| iteration | A (reference) energy | B (late-intro) energy | B vs. A |
+|---|---|---|---|
+| 10,000 (just before) | 3.143 | 3.121 | -0.7% (still tracking) |
+| 10,500 (ramp complete) | 1.936 | 2.607 | +35% |
+| 11,000 | 1.732 | 2.384 | +38% |
+| 11,500 | 2.087 | 2.856 | +37% |
+| 12,000 | 1.910 | 2.661 | +39% |
+
+**A clean, decisive NEGATIVE result -- but a real, useful one**:
+introducing the equilibrium term LATE, onto a network that has already
+converged 4x past the original ~2,500-iteration onset, does NOT avoid
+the destabilization -- it reappears immediately (within 500 iterations
+of introduction) and persists for the entire 1,500-iteration
+observation window, at a magnitude (+35-39% energy) comparable to the
+early-introduction variants' own divergence. This rules out the
+hypothesis that the damage is specific to perturbing an actively-
+converging, fragile EARLY-training trajectory -- it strongly suggests
+the weak-form equilibrium residual (or its unseeded, noisy per-
+iteration resampling) is intrinsically incompatible with this
+energy-based DEM training, independent of WHEN it is introduced, not
+just how it is weighted or phased out. **Four independent structural
+ideas now falsified** (recalibration, weight/noise sweep, decay-out,
+late-introduction) -- each targeting a genuinely different hypothesis,
+not just a re-tuning of the same one. Recommend treating items 2/3 as
+closed unless a fundamentally different MATHEMATICAL formulation of
+the equilibrium constraint is proposed (not another training-schedule
+variant on the same weak-form residual).
+
+**Break-even sweep, N=400 point** (A100, 7,878.6s = 2.19h training):
+best val rel. L2 **2.33%** (step 50,000), H1 semi-norm **7.66%**.
+Complete summary across the whole sweep:
+
+| N | best val rel. L2 | total cost | vs. PI (1.88%, 2.12h, 0 labels) |
+|---|---|---|---|
+| 50 | 18.60% | 1.85h | cheaper, far less accurate |
+| 200 (existing) | 2.51% | 2.21h | more expensive AND less accurate |
+| 400 | 2.33% | 2.65h | more expensive AND less accurate |
+
+**A clean, complete answer to Professor Rabczuk's own break-even
+question**: across this entire practical range (50-400 samples), PI
+dominates DD on BOTH axes simultaneously -- it is both cheaper (no
+label cost at all) and more accurate than every DD point tested,
+including N=400. Diminishing returns are visible too: doubling the
+training set from 200->400 only closed the rel. L2 gap from
+2.51%->2.33% (a modest ~7% relative improvement) while total cost rose
+~20% (2.21h->2.65h) -- DD's own accuracy is visibly plateauing, not
+accelerating toward PI's 1.88%, making it implausible that a
+substantially larger N would change the qualitative conclusion before
+its label cost became prohibitive. For B3 specifically, there is no
+evidence of a label count within a practical range where DD becomes
+competitive with PI -- the opposite of what Professor Rabczuk's own
+question left open.
+
+A real crash was also found and fixed in this same run (`NameError:
+json` -- see the entry above) -- the fixed, resumable notebook
+correctly skipped N=50's already-completed work and the already-
+generated N=400 dataset, going straight to training N=400 as intended.
+
+## A real, serious performance bug (~14x slowdown) in item 1 attempt 5's
+## own local-refine code burned ~21.7h of real GPU time before being
+## caught and fixed; a second, independent bug in the same batch of
+## work, both now corrected
+
+While item 1 attempt 5 (`B3_MixedStress_LocalRefine_Training.ipynb`)
+was running on Omar's A100, its printed per-iteration rate was
+**2.52s/iteration**, not the ~0.18-0.20s/iteration every other B3 run
+(refined or not) gets -- a **~14x slowdown**. By the time this was
+caught (reading the pasted output, not from Omar flagging it), the run
+had already reached iteration 31,000/50,000, meaning **~21.7h of real
+GPU time had already been spent** on a run that would have taken ~35h
+total at that rate, instead of the expected ~2h. Omar was told to
+interrupt it immediately.
+
+**Root cause, found and confirmed by direct inspection of the code
+(not a guess)**: `mixed_stress_loss_B3_locally_refined`'s fine-region
+pass reused `_mixed_stress_residual_pass` -- the SAME per-quadrature-
+point Python loop the coarse pass uses, which is fine for the coarse
+pass's own 8 points but was being called with `n_sub=10`'s 1,000
+points per element for the region pass, i.e. **1,000 Python loop
+iterations per training step**, each a tiny einsum over only the ~4
+region elements. This is the EXACT same bug class the energy-only
+baseline already hit and fixed on 2026-09-29 (`evaluate_B3_region_
+local_refine.py`'s own documented ~12x slowdown, "an unvectorized loop
+over the fine-point dimension, run every training iteration") -- this
+implementation simply failed to replicate that fix for the mixed-stress
+case specifically. The slowdown factor (2.52/0.18 ~= 14x) matches the
+baseline's own ~12x bug closely enough to all but confirm the
+diagnosis by itself, before even reading the code.
+
+**Fixed, not patched around**: new `_mixed_stress_residual_pass_
+vectorized` (in `mixed_stress_B3.py`) computes H/gradP for ALL
+quadrature points in ONE batched einsum (an extra leading `g` axis
+threaded through every operation) instead of looping -- mirroring the
+baseline's own "fully VECTORIZED over the fine-point dimension" fix.
+Wired in for the fine-region pass only; the coarse pass (8 points,
+already cheap and already proven correct/fast on real GPU runs) is
+untouched. Verified to give BIT-IDENTICAL loss values to the old
+loop-based implementation (`test_mixed_stress_B3_local_refine.py`'s 3
+existing identity/differentiability checks, unchanged results to the
+same precision) while running in 0.005s on CPU for a 1,000-point/
+element region, instead of several seconds -- a NEW 4th test
+(`test_production_n_sub_is_vectorized_not_a_python_loop`) added
+specifically as a regression guard against this exact bug class
+reappearing.
+
+**Also hardened the notebook itself, not just the code**: the original
+notebook only had a TEXT instruction asking Omar to watch the rate
+manually -- which is exactly how 21.7h were spent before anyone
+caught it. Added an AUTOMATED short rate-check (500 iterations, same
+config, a throwaway output dir) that runs BEFORE the real 50,000-
+iteration commitment and raises a clear error (instead of silently
+continuing) if the measured rate is more than 3x the expected
+~0.20s/iteration -- the same kind of automatic safety net this
+project's own established discipline (CPU diagnostics before GPU
+commitments) is meant to provide, now enforced in code rather than
+relying on a human watching output scroll by during a multi-hour run.
+
+**A second, independent, smaller bug was also found and fixed in this
+same batch of work** (`B3_Data_Driven_Breakeven_Sweep.ipynb`'s missing
+`import json` -- see the dedicated entry above) -- unrelated in cause
+(a plain missing import vs. a real algorithmic performance bug) but
+found the same way, by reading real pasted Colab output carefully
+rather than assuming success. Corrected notebook re-sent to Omar;
+PROJECT_STATUS.md, `mixed_stress_B3.py`, and the test suite all
+updated and pushed.

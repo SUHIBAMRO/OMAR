@@ -150,8 +150,48 @@ def test_finer_region_quadrature_changes_the_loss_and_stays_differentiable():
           f'(parts={parts_refined})')
 
 
+def test_production_n_sub_is_vectorized_not_a_python_loop():
+    """Regression guard for the REAL bug found on GPU, 2026-10-26: the
+    first version of mixed_stress_loss_B3_locally_refined looped over
+    the fine region's quadrature points in Python (fine for the coarse
+    pass's own 8 points, but the production n_sub=10 fine pass has 1000
+    points per element) -- a ~14x real slowdown on an A100, matching the
+    energy-only baseline's own already-documented ~12x bug from the same
+    root cause (an unvectorized loop over the fine-point dimension). This
+    does not re-measure GPU wall-clock (not available here), but asserts
+    a CPU time bound loose enough to pass for the vectorized
+    implementation and fail for an O(n_sub**3)-Python-loop implementation
+    at this many points -- a real, fast, deterministic regression guard,
+    not a timing-sensitive flake, since the two implementations differ
+    by well over an order of magnitude."""
+    import time
+    geom = build_fixed_geometry_mixed(Ntheta=5, Nr=4, Nz=4, device='cpu', dtype=torch.float64)
+    E_node, nu_node, phi, u_net_raw, p_net_raw = _random_batch(geom, seed=13)
+    n_elements = geom['n_elements']
+    region_elem_mask = torch.zeros(n_elements, dtype=torch.bool)
+    region_elem_mask[:3] = True
+
+    fine_xi, fine_w = fine_quadrature_3d(n_sub=10)  # production n_sub -- 1000 points/element
+    N_f_region, B_f_region, detJ_f_region, fine_w_t = precompute_region_fine_quadrature_mixed(
+        geom['nodes'], geom['elements'], region_elem_mask, fine_xi, fine_w,
+        device='cpu', dtype=geom['nodes'].dtype)
+
+    t0 = time.time()
+    loss, _ = mixed_stress_loss_B3_locally_refined(
+        u_net_raw, p_net_raw, E_node, nu_node, phi, geom,
+        region_elem_mask, N_f_region, B_f_region, detJ_f_region, fine_w_t)
+    elapsed = time.time() - t0
+    assert torch.isfinite(loss)
+    assert elapsed < 2.0, (f'n_sub=10 (1000 points/element) took {elapsed:.2f}s for a 3-element '
+                            f'region on CPU -- expected well under a second if vectorized; this '
+                            f'looks like the real ~14x-slowdown Python-loop bug has come back')
+    print(f'PASS  n_sub=10 (1000 points/element), 3 region elements: {elapsed:.3f}s '
+          f'(vectorized, not a 1000-iteration Python loop)')
+
+
 if __name__ == '__main__':
     test_empty_region_matches_plain_loss_exactly()
     test_nonempty_region_at_matching_degree_matches_plain_loss()
     test_finer_region_quadrature_changes_the_loss_and_stays_differentiable()
+    test_production_n_sub_is_vectorized_not_a_python_loop()
     print('\nall mixed-stress-B3 local-refine checks passed')

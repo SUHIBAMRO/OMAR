@@ -206,6 +206,57 @@ def _mixed_stress_residual_pass(p_flat, ue, mu_elem, lam_elem, elements, B_op, N
     return total_weight, L_constitutive, L_equilibrium
 
 
+def _mixed_stress_residual_pass_vectorized(p_flat, ue, mu_elem, lam_elem, elements, B_op, N_sf, w,
+                                            eye, relative_constitutive, constitutive_eps, Batch):
+    """Same math as _mixed_stress_residual_pass, but fully VECTORIZED over
+    the quadrature-point (g) axis in a single batched einsum, instead of a
+    Python loop over g -- required whenever n_gauss is large (the fine
+    region quadrature can have 1000+ points per element at n_sub=10).
+
+    REAL BUG FOUND ON GPU, 2026-10-26: the first version of
+    mixed_stress_loss_B3_locally_refined used _mixed_stress_residual_pass
+    (the coarse pass's own Python-loop-over-g implementation, fine for its
+    8 points) for the FINE region pass too -- looping 1000 times per
+    training iteration in Python, each a tiny einsum over only ~4 region
+    elements. Measured on an A100: 2.52s/iteration vs. the ~0.18s/iteration
+    every other mixed-stress run gets -- a ~14x slowdown, matching almost
+    exactly the energy-only baseline's own already-documented ~12x
+    slowdown bug (evaluate_B3_region_local_refine.precompute_region_fine_
+    quadrature's own docstring) from the SAME root cause (an unvectorized
+    loop over the fine-point dimension) -- this implementation failed to
+    replicate that fix the first time. Fixed here by computing H/gradP for
+    ALL gauss points in one batched einsum (adding a leading g axis
+    throughout) instead of looping. The coarse pass (_mixed_stress_
+    residual_pass, 8 points) is untouched -- already cheap, already proven
+    correct and fast on real GPU runs, not the source of this bug."""
+    n_elem = ue.shape[1]
+    if n_elem == 0:
+        z = torch.zeros(Batch, device=ue.device, dtype=ue.dtype)
+        return z, z.clone(), z.clone()
+
+    P_interp_all = interpolate_nodal_field_to_quadpts(p_flat, elements, N_sf)  # (g,B,e,9)
+    P_pred_all = P_interp_all.reshape(*P_interp_all.shape[:-1], 3, 3)  # (g,B,e,3,3)
+    pe = p_flat[:, elements, :].permute(0, 1, 3, 2)  # (Batch, n_elem, 9, 8_node)
+
+    H_all = torch.einsum("bedq,gecq->gbedc", ue, B_op)  # (g, Batch, n_elem, 3, 3)
+    F_all = eye.unsqueeze(0) + H_all
+    P_true_all = neo_hookean_P_closed_form(F_all, mu_elem.unsqueeze(0), lam_elem.unsqueeze(0))
+
+    resid_c_all = ((P_pred_all - P_true_all) ** 2).sum(dim=(-1, -2))  # (g, Batch, n_elem)
+    if relative_constitutive:
+        P_true_sq_all = (P_true_all ** 2).sum(dim=(-1, -2))
+        resid_c_all = resid_c_all / (constitutive_eps + P_true_sq_all)
+    L_constitutive = torch.sum(resid_c_all * w[:, None, :], dim=(0, 2))  # (Batch,)
+
+    gradP_all = torch.einsum("bedq,gecq->gbedc", pe, B_op)  # (g, Batch, n_elem, 9, 3)
+    divP_all = divergence_from_grad(gradP_all)  # (g, Batch, n_elem, 3)
+    resid_e_all = (divP_all ** 2).sum(dim=-1)  # (g, Batch, n_elem)
+    L_equilibrium = torch.sum(resid_e_all * w[:, None, :], dim=(0, 2))  # (Batch,)
+
+    total_weight = w.sum().expand(Batch).clone()
+    return total_weight, L_constitutive, L_equilibrium
+
+
 def mixed_stress_loss_B3_locally_refined(
         u_net_raw, p_net_raw, E_node, nu_node, phi, geom,
         region_elem_mask, N_f_region, B_f_region, detJ_f_region, fine_w_t,
@@ -251,9 +302,12 @@ def mixed_stress_loss_B3_locally_refined(
         elements[non_region_mask], B_op[:, non_region_mask], N_sf, coarse_w[:, non_region_mask],
         eye, relative_constitutive, constitutive_eps, Batch)
 
-    # Finer quadrature, restricted to region elements.
+    # Finer quadrature, restricted to region elements -- VECTORIZED over
+    # the (potentially 1000+) fine quadrature points, not a Python loop
+    # (see _mixed_stress_residual_pass_vectorized's own docstring for the
+    # real ~14x slowdown bug this fixes).
     fine_w = detJ_f_region.abs() * fine_w_t[:, None]  # (n_fine_gauss, n_region_elem)
-    tw_f, Lc_f, Le_f = _mixed_stress_residual_pass(
+    tw_f, Lc_f, Le_f = _mixed_stress_residual_pass_vectorized(
         p_flat, ue[:, region_elem_mask], mu_elem[:, region_elem_mask], lam_elem[:, region_elem_mask],
         elements[region_elem_mask], B_f_region, N_f_region, fine_w,
         eye, relative_constitutive, constitutive_eps, Batch)
