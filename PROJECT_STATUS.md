@@ -22230,3 +22230,78 @@ total for both variants combined, well under one full production run;
 next step is Omar starting it on Colab. Either outcome (destabilizes
 again vs. stays stable) is a real, reportable finding for items 2/3,
 not assumed to work going in.
+
+## Hybrid DD/PI loss ran successfully (completes item 4's menu); the
+## break-even sweep ran N=50 successfully but crashed on a real bug
+## (`NameError: json` -- a notebook never imported it) before reaching
+## N=400; fixed and made resumable so N=50's already-spent GPU time is
+## not wasted on a re-run
+
+**Hybrid (`B3_Data_Driven_Hybrid_Training.ipynb`, A100, 7,626.0s =
+2.12h)**: best validation rel. L2 **2.54%** (step 40,000), H1 semi-norm
+mean **6.67%** / median **5.84%**. Compared against the other two item-4
+variants at the same N=200:
+
+| loss variant | best val rel. L2 | H1 semi-norm (mean/median) |
+|---|---|---|
+| rel_l2 | 2.51% | 7.27% / 5.61% |
+| sobolev | 2.62% | 7.10% / 5.88% |
+| hybrid | 2.54% | 6.67% / 5.84% |
+
+Reading it plainly: hybrid is statistically indistinguishable from
+rel_l2 on rel. L2 (2.54% vs. 2.51%, well within normal run-to-run
+noise) and slightly better than sobolev; on H1 it has the best MEAN of
+the three but a MEDIAN in between the other two -- no clear winner
+either way. Completes item 4's own menu with a genuinely neutral
+finding: mixing in the (label-free) physics term neither helps nor
+hurts noticeably once 200 real FEM labels are already available for
+B3, consistent with sobolev's own earlier "no help" result -- B3's DD
+labels already carry enough signal that an auxiliary physics term has
+little left to add. The hybrid training curve is visibly noisier
+step-to-step than this is used to seeing (val rel-L2 swings from 0.082
+to 0.169 to 0.043 between consecutive 2,000-step evals around
+iteration 12,000-20,000) -- not investigated further since the FINAL
+(best-checkpoint) numbers land in the same range as the other two
+variants regardless.
+
+**Break-even sweep (`B3_Data_Driven_Breakeven_Sweep.ipynb`)**: N=50
+trained successfully (A100, 6,440.1s = 1.79h): best val rel. L2
+**18.60%** (step 20,000), H1 semi-norm ~35-38% throughout -- both far
+worse than N=200's own 2.51%/7.27%, as expected from a 4x-smaller
+training set. Using this project's own established label-cost
+convention (N x the measured 4.13s/sample rate, regardless of whether
+labels were actually freshly generated or reused, for a fair
+apples-to-apples comparison): N=50's total cost is ~0.06h labels +
+1.79h training = **~1.85h**, actually slightly CHEAPER than PI's 2.12h
+-- but at 18.60% vs. PI's 1.88%, nowhere near competitive on accuracy.
+A clear illustration of the tradeoff: fewer labels makes DD cheaper but
+drastically less accurate, not a free lunch.
+
+**Then a real bug crashed the notebook before N=400 could train**:
+`NameError: name 'json' is not defined`, at the line reading back
+N=50's own just-written `data_driven_B3_rel_l2.json` report to build
+the cost-summary dict. Root cause confirmed directly by reading the
+notebook's own source: `import json` was never added to this notebook
+at all (every other stdlib import -- `os`, `subprocess`, `sys`, `time`,
+`h5py`, `numpy`, `torch` -- was present; `json` was the one missed),
+despite `json.load` being called once, deep in the per-N training loop
+-- a plain oversight when this notebook was built, not a logic error,
+and not present in any of this project's OTHER notebooks (all checked
+when fixing this one).
+
+**Fixed and made resumable, not just patched**: added the missing
+`import json`, AND added existence checks before (1) generating the
+200 new seed=51 samples, (2) concatenating the N=400 dataset, and (3)
+training each N -- so re-running the notebook from the top reuses
+whatever already-completed work is sitting on Drive (confirmed from
+the real crash: N=50's full report.json + checkpoint, AND the N=400
+dataset itself, were already written successfully before the crash)
+instead of wastefully re-spending N=50's own real ~1.8h of GPU time or
+regenerating 200 real FEM solves, mirroring this project's own
+established checkpoint-resume discipline elsewhere (e.g.
+`train_B3_mixed_stress.py`'s own resume-from-checkpoint logic, built
+after a real Colab disconnection for exactly this reason). Re-running
+the fixed notebook should skip straight to training N=400 and finish
+in roughly one training run's worth of GPU time (~2h), not redo
+anything already done. Committed and pushed; corrected notebook
+re-sent to Omar.
