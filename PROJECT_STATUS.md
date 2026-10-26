@@ -22447,3 +22447,63 @@ found the same way, by reading real pasted Colab output carefully
 rather than assuming success. Corrected notebook re-sent to Omar;
 PROJECT_STATUS.md, `mixed_stress_B3.py`, and the test suite all
 updated and pushed.
+
+## Item 1 attempt 5 (local-refine) finished on the fixed notebook --
+## the fix is CONFIRMED on real GPU, resume logic saved the buggy run's
+## already-completed 30,000 iterations, and the result is a REAL,
+## measured improvement -- the first since attempt 1
+
+**The fix is confirmed working on real hardware**: the automated rate
+check measured **0.1716s/iteration** (expected ~0.20s/iteration) --
+back in line with every other B3 run, not the buggy 2.52s/iteration.
+Training then **resumed from `checkpoint_30000.pt`** (the interrupted
+buggy run's own last checkpoint, saved before it was stopped) and
+finished the remaining 20,000 iterations in 3,426.9s (~57 minutes) at
+the now-fixed rate -- meaning the ~21.7h already spent reaching
+iteration 30,000 was NOT wasted; only the extra time the bug would have
+added for the remaining 20,000 iterations (would have been ~14h at the
+buggy rate) was avoided.
+
+**Final evaluation against the held-out set**:
+
+| metric | attempt 1 (no refine) | attempt 5 (local-refine) |
+|---|---|---|
+| energy pooled RMS | 181.9% | 180.98% (unchanged, as expected) |
+| reaction_moment_y pooled RMS | 216.9% | 217.48% (unchanged, as expected) |
+| H1 semi-norm (mean/median) | 67.10%/67.14% | 67.10%/67.14% (unchanged, as expected) |
+| `region_avg_sigma_xx_implicit` pooled RMS | 1837.1% | 1813.2% (no meaningful change, as expected) |
+| `region_avg_sigma_xx_direct` pooled RMS | **824.9%** | **526.84%** |
+
+**A real, measured improvement -- the first found for item 1 beyond
+attempt 1, across 5 attempts now**: `region_avg_sigma_xx_direct`
+dropped from 824.9% to 526.84%, a genuine ~36% error reduction (~1.57x),
+via a lever that targets integration resolution rather than the loss
+formula every prior attempt tried. Energy/reaction/H1 are all
+essentially UNCHANGED, exactly as expected -- local refinement only
+touches the constitutive/equilibrium residual integration near the
+groove, not the overall displacement field this formulation trains
+via those same two residuals (not an energy term).
+
+**Honest caveats, stated plainly, not glossed over**: (1) not nearly
+as large a win as the baseline's own analogous result (roughly halved,
+62.2%->29.7%) -- a real but smaller improvement here; (2) 526.84% is
+still an enormous absolute error, nowhere near a usable stress QoI;
+(3) `sign_agree=0.17` for the direct estimate -- only 17% of held-out
+samples have the CORRECT SIGN for this region QoI, meaning the pooled-
+RMS improvement reflects a less-bad aggregate, not a qualitatively
+trustworthy per-sample estimate; (4) `region_p99_sigma_xx_*` is still
+NaN for both implicit and direct -- the EVALUATION script itself still
+samples the region at the original coarse 6 Gauss points (local
+refinement only changed the TRAINING-time loss integration, not this
+evaluation), an existing, already-documented resolution limit, not a
+new issue.
+
+**Bottom line for item 1**: local integration refinement is a real,
+measured, moderate improvement on the direct-P region-stress estimate
+-- the first lever tried (of 5 now) that improves on attempt 1's own
+number rather than regressing on it -- but does not come close to
+closing the gap to a usable QoI on its own. Not yet written into the
+advisor-facing report documents (Claude Doc artifact, `.docx`) -- those
+still reflect the investigation as of the H1 re-evaluation; updating
+them with items 1 attempt 5, the items 2/3 late-introduction result,
+and the completed break-even sweep is a real next step, not yet done.
