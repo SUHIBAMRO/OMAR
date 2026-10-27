@@ -22542,3 +22542,66 @@ Includes the SAME automated rate-check safety net added after attempt
 iterations. Not yet run on GPU -- next step is Omar starting it on
 Colab; either outcome (fixes the collapse vs. doesn't) is a real,
 reportable finding that directly tests the gradient-vanishing diagnosis.
+
+## Item 1 attempt 6 ran to completion -- the `constitutive` loss curve
+## shape is a near-exact match to attempt 4's own already-diagnosed
+## collapse, so the smaller pooled-RMS number is very likely the SAME
+## trivial-near-zero-predictor artifact, not a real fix; a direct,
+## cheap diagnostic was built to settle this instead of guessing
+
+Rate check: 0.1770s/iteration (expected ~0.20s) -- fix holds. Full run:
+8,591.4s (~2h23m), 0.1718s/iteration average -- normal, matches every
+other local-refine run, no new performance issue.
+
+**`constitutive` settled to a plateau around 0.80-0.89 for nearly the
+entire run** (e.g. step 500: 0.977, step 25,000: 0.829, step 50,000:
+0.803) -- this is, to within noise, THE SAME oscillating-plateau VALUE
+RANGE attempt 4's own original run showed (0.79-0.89) before its CPU
+root-cause investigation found the network had collapsed to a
+near-constant, near-zero P field. This loss-curve shape match is a
+strong a-priori warning sign that local refinement did NOT give the
+relative residual enough gradient signal to escape the collapse --
+exactly the opposite of what attempt 6 was built to test.
+
+**Final evaluation**:
+
+| metric | attempt 4 (no refine) | attempt 5 (refine, absolute) | attempt 6 (refine, relative) |
+|---|---|---|---|
+| energy pooled RMS | 228.2% | 180.98% | 224.57% |
+| reaction_moment_y pooled RMS | 140.3% | 217.48% | 146.31% |
+| `region_avg_sigma_xx_implicit` pooled RMS | 16,490% | 1813.2% | 23,811.4% |
+| `region_avg_sigma_xx_direct` pooled RMS | 96.1% | 526.84% | **84.11%** |
+| `region_avg_sigma_xx_direct` sign_agree | (not recorded then) | 0.17 | **0.83** |
+| `region_avg_sigma_xx_direct` corr | (not recorded then) | 0.6531 | 0.6533 |
+
+**Read with real suspicion, not celebration**: 84.11% is numerically
+the SMALLEST `region_avg_sigma_xx_direct` pooled RMS seen across all 6
+attempts -- but it is also BELOW attempt 4's own 96.1%, which this
+project already established is itself the signature of a trivial
+near-zero predictor (pooled RMS relative error -> ~100% when pred~=0,
+since err~=true). A number even smaller than that reference is at
+least as consistent with a MORE collapsed predictor as with a genuinely
+better one. The nearly IDENTICAL correlation to attempt 5 (0.6533 vs.
+0.6531 -- correlation is roughly scale-invariant) suggests the
+underlying prediction PATTERN did not meaningfully change between
+attempts 5 and 6; what changed is magnitude/scale. The sign_agree jump
+(0.17->0.83) is harder to explain away as pure collapse (a literal
+near-zero predictor against a sign-varying true field would plausibly
+sit closer to 50%, not 83%) -- genuinely ambiguous from these
+aggregate stats alone.
+
+**Rather than guess, built a direct, cheap diagnostic**: new
+`inspect_mixed_stress_P_scale.py` -- loads an EXISTING checkpoint (no
+training), runs one forward pass on held-out samples, and directly
+reports predicted-P's own mean-abs/std (the SAME statistic attempt 4's
+original CPU diagnosis used to confirm its collapse: predicted mean abs
+~0.73-1.27 vs. true ~68) against the true P field's own stats computed
+fresh from the held-out FEM data. This settles the question directly
+instead of inferring it from pooled-RMS behavior, which this project
+has now twice found to be misleading on its own (the 18.4%/8.2%
+mislabeling, and now this). Syntax-checked; full functional smoke test
+pending a fresh pip install in this reset container. Not yet run on
+Omar's real checkpoint -- next step: run
+`python -m omar_pfem.inspect_mixed_stress_P_scale --checkpoint .../b3_mixed_stress_local_refine_relative/checkpoint_50000.pt --dataset .../b3_dataset_clean_holdout/dataset.h5`
+on Colab (cheap -- one forward pass, no training, expect well under a
+minute).
