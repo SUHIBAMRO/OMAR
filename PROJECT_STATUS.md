@@ -22605,3 +22605,65 @@ Omar's real checkpoint -- next step: run
 `python -m omar_pfem.inspect_mixed_stress_P_scale --checkpoint .../b3_mixed_stress_local_refine_relative/checkpoint_50000.pt --dataset .../b3_dataset_clean_holdout/dataset.h5`
 on Colab (cheap -- one forward pass, no training, expect well under a
 minute).
+
+## Diagnostic ran -- CONFIRMED: attempt 6's smaller pooled-RMS number is
+## not real progress. The network still cannot represent the extreme,
+## groove-concentrated stress values at all. Attempt 6 closed as a
+## negative result, despite its better headline number
+
+Ran against attempt 6's real checkpoint, 16 real held-out FEM samples:
+
+| | predicted P | true P (same 16 samples, real FEM solution) |
+|---|---|---|
+| mean abs | 2.029 | 10.406 |
+| std | 2.528 | 15.476 |
+| median abs | 1.095 | 5.899 |
+| **max abs** | **6.695** | **873.134** |
+
+**The max-abs comparison is decisive, not ambiguous**: the true field
+reaches 873.134 at its most extreme (the groove, as always), while the
+network's predictions never exceed 6.695 across all 16 samples -- a
+~130x shortfall at the tail. The network has NOT learned to represent
+the heavy-tailed, spatially-concentrated high-stress behavior at the
+groove AT ALL; its predictions live in a narrow band regardless of the
+true field's own huge dynamic range (true max/mean ~84x; predicted
+max/mean ~3.3x). This is a real, if less extreme, relative of attempt
+4's own original collapse (there, predicted mean abs ~0.73-1.27 vs
+true ~68, an even more severe flattening) -- not identical in degree,
+but the SAME qualitative failure: an inability to represent the
+extreme values that are the actual physically important part of this
+QoI.
+
+**Why the pooled-RMS number still looked better**: pooled RMS relative
+error weights the aggregate squared error across ALL points, most of
+which are NOT at the extreme tail -- a moderately under-scaled,
+narrow-range prediction can score better on this aggregate metric than
+a wildly-miscalibrated one (attempt 1's scale=500 config), without
+actually capturing the one thing that matters physically (the groove's
+own extreme values). This is now the THIRD time in this project that a
+pooled-RMS-only read would have been actively misleading (after the
+18.4%/8.2% mislabeling, and attempt 4's own 96.1% collapse artifact) --
+reinforcing that this specific metric should never be read alone for
+this QoI going forward; a direct check of predicted-vs-true magnitude/
+range (as this new tool now provides) should accompany it.
+
+**Conclusion for item 1, updated**: attempt 6 (relative residual +
+local refinement) is CLOSED as a negative result -- it does not
+represent real progress over attempt 5 despite its better pooled-RMS
+headline, and the relative-constitutive-residual lever specifically
+continues to fail regardless of quadrature refinement, closing off
+that combination as a path forward. Attempt 5 (local refinement alone,
+824.9%->526.84%, a real if modest and unverified-at-the-tail
+improvement -- it has not been re-checked with this same P-scale
+diagnostic yet) remains the best-available lever tried so far. Of 6
+attempts total, none produces a region-stress estimate that captures
+the groove's own extreme values; the project's own earlier-stated
+plausible path (a dedicated, more aggressive local MESH/architecture
+treatment for the groove, not just integration-quadrature refinement
+or loss-formula tweaks) remains the most likely remaining direction,
+not yet attempted.
+
+Not yet updated in the advisor-facing report documents (Claude Doc
+artifact, `.docx`) -- they currently describe attempt 6 as "pending",
+not as this now-concluded negative result; a real next step, not done
+yet.
