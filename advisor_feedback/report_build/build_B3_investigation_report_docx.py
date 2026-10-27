@@ -308,6 +308,37 @@ para("The max-abs comparison is decisive: the true field reaches 873.1 at the gr
      "that scores better in aggregate without capturing the one thing that matters physically. "
      "Closed as a negative result -- the relative-residual lever fails regardless of quadrature "
      "refinement.")
+para("Attempt 5's own checkpoint was then run through the same diagnostic (same 16 held-out "
+     "samples), to resolve this open question directly rather than leave it assumed.")
+table(
+    ["", "Attempt 5 predicted P", "Attempt 6 predicted P", "True P"],
+    [
+        ["mean abs", "3.815", "2.029", "10.406"],
+        ["std", "5.808", "2.528", "15.476"],
+        ["max abs", "12.422", "6.695", "873.134"],
+        ["predicted/true mean-abs ratio", "0.367", "0.195", "--"],
+        ["std/mean ratio (true's own: 1.487)", "1.522", "1.246", "1.487"],
+        ["max-abs shortfall vs. true", "~70x", "~130x", "--"],
+    ],
+)
+para("Attempt 5 is confirmed genuinely less degraded than attempt 6 on every axis: a closer "
+     "magnitude ratio (0.367 vs. 0.195), a std/mean ratio nearly matching the true field's own "
+     "shape (1.522 vs. true's 1.487, vs. attempt 6's flatter 1.246), and a smaller -- though "
+     "still enormous -- max-abs shortfall (~70x vs. ~130x). Neither captures the groove's own "
+     "extreme values; attempt 5 simply fails less badly.")
+para("The broader lesson: pooled RMS ranked these two backwards. Attempt 6 “won” on "
+     "pooled RMS (84.11% vs. attempt 5's 526.84%) precisely because it predicts an even "
+     "narrower, more under-scaled range of values -- a more collapsed prediction scores better "
+     "on that aggregate metric purely because most held-out points are small-magnitude, not "
+     "because it captures reality any better. This is the clearest demonstration yet in this "
+     "project of why pooled RMS must never be trusted alone for this QoI -- a second, "
+     "independent confirmation after attempt 4's own 96.1% collapse artifact. Any future B3 "
+     "region-stress comparison should report this max-abs/std-mean-ratio diagnostic alongside "
+     "pooled RMS, never instead of it.", bold=True)
+para("Final status for item 1, after 6 attempts and this diagnostic: attempt 5 is confirmed as "
+     "the best-available lever -- not because it is good (it still misses the groove's extreme "
+     "values by ~70x), but because it is measurably the least-bad of everything tried, on a "
+     "diagnostic that checks the thing that actually matters.", bold=True)
 
 h2("2.8 Final evaluation: attempts 1, 4, and 5")
 table(
@@ -345,13 +376,16 @@ para("The reportable finding survives only in a narrower, ratio-only form -- dir
      "(84.11%), a direct predicted-vs-true comparison found the network's predictions never "
      "exceed 6.7 in magnitude while the true field reaches 873.1 at the groove -- it has not "
      "learned to represent the extreme, physically important stress values at all, and the "
-     "relative-residual lever fails regardless of quadrature refinement. Attempt 5 remains the "
-     "best-available lever, though it has not itself been re-checked with this same diagnostic, "
-     "so whether it also under-represents the groove's extreme values to some degree is not yet "
-     "known. Of 6 attempts total, none produces a region-stress estimate that captures the "
-     "groove's own extreme values; real further improvement would most plausibly need a more "
-     "aggressive, dedicated local mesh or architecture treatment for the groove region -- a "
-     "genuine scoping decision, not a quick follow-up.")
+     "relative-residual lever fails regardless of quadrature refinement. Attempt 5 was then "
+     "checked with this same diagnostic and confirmed as genuinely the least-degraded of the "
+     "two (max-abs shortfall ~70x vs. attempt 6's ~130x) -- pooled RMS had in fact ranked the "
+     "two attempts backwards, since a more collapsed prediction scores better on that aggregate "
+     "metric without capturing reality any better. Of 6 attempts total, none produces a "
+     "region-stress estimate that captures the groove's own extreme values; attempt 5 remains "
+     "the best-available lever by a real, diagnostic-confirmed margin, not merely by default. "
+     "Real further improvement would most plausibly need a more aggressive, dedicated local "
+     "mesh or architecture treatment for the groove region -- a genuine scoping decision, not a "
+     "quick follow-up.")
 
 # ---------------------------------------------------------------------
 h1("3. Items 2/3 — Equilibrium-Augmented Formulation")
@@ -650,12 +684,14 @@ h1("7. Recommendations and Open Decisions")
 para("Five decisions for Omar / Professor Rabczuk:")
 numbered("Item 1 -- report the direct-vs-implicit stress finding as a ratio only (direct less "
          "wrong than implicit by ~2.2x-172x); attempt 5 (local integration refinement) found a "
-         "real, partial improvement on the direct-P estimate (824.9%→526.84%), still far "
-         "from usable; attempt 6 (combined with the relative residual) is now closed as a "
-         "negative result after a direct diagnostic showed it still cannot represent the "
-         "groove's extreme stress values (predicted max 6.7 vs. true max 873.1) -- decide "
-         "whether to pursue a more aggressive local mesh/architecture treatment for the groove, "
-         "or report the current state as-is.")
+         "real, partial improvement on the direct-P estimate (824.9%→526.84%), now CONFIRMED "
+         "via a direct predicted-vs-true diagnostic as the genuinely least-degraded checkpoint "
+         "tried (still far from usable); attempt 6 (combined with the relative residual) is "
+         "closed as a negative result -- its better pooled-RMS number was shown to be an "
+         "artifact of a MORE collapsed prediction, not better accuracy, a result worth flagging "
+         "to Professor Rabczuk on its own (pooled RMS cannot be trusted alone for this QoI); "
+         "decide whether to pursue a more aggressive local mesh/architecture treatment for the "
+         "groove, or report the current state as-is.")
 numbered("Items 2/3 -- confirm closing this as a negative finding (no further tuning planned): "
          "four independent structural ideas (recalibration, weight/noise sweep, decay-out, "
          "late-introduction) are now falsified, ruling out both calibration and timing as the "
