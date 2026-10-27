@@ -283,10 +283,31 @@ para("Honest caveats: a smaller win than the baseline's own ~2.1x reduction; 526
      "an enormous absolute error, nowhere near a usable stress QoI; sign_agree=0.17 for the "
      "direct estimate means only 17% of held-out samples have the correct sign for this region "
      "QoI, so the improvement is a less-bad aggregate, not a trustworthy per-sample estimate.")
-para("Attempt 6 (in progress, not yet run): combines attempt 4's relative constitutive residual "
-     "with attempt 5's local refinement, testing whether the denser groove quadrature gives the "
-     "relative residual's otherwise-sound loss formula enough gradient signal to avoid its own "
-     "diagnosed collapse-to-near-zero failure.")
+para("Attempt 6 -- CLOSED, negative result: combined attempt 4's relative constitutive residual "
+     "with attempt 5's local refinement, testing whether denser groove quadrature could fix the "
+     "relative residual's own diagnosed gradient-collapse. Pooled RMS looked promising at first "
+     "(region_avg_sigma_xx_direct fell to 84.11%, sign_agree rose to 0.83), but the constitutive "
+     "training loss plateaued at 0.80-0.89 throughout -- nearly identical to attempt 4's own "
+     "already-diagnosed collapse range, a warning sign checked directly rather than taken as "
+     "success.")
+para("A new diagnostic tool (loads the checkpoint, no retraining) compared predicted vs. true P "
+     "directly on 16 held-out samples:")
+table(
+    ["", "predicted P", "true P"],
+    [
+        ["mean abs", "2.029", "10.406"],
+        ["std", "2.528", "15.476"],
+        ["median abs", "1.095", "5.899"],
+        ["max abs", "6.695", "873.134"],
+    ],
+)
+para("The max-abs comparison is decisive: the true field reaches 873.1 at the groove, but the "
+     "network's predictions never exceed 6.7 across all 16 samples -- a ~130x shortfall at the "
+     "tail. The network has not learned to represent the groove's extreme, heavy-tailed stress "
+     "at all; the smaller pooled-RMS number reflects a narrow-range, under-scaled prediction "
+     "that scores better in aggregate without capturing the one thing that matters physically. "
+     "Closed as a negative result -- the relative-residual lever fails regardless of quadrature "
+     "refinement.")
 
 h2("2.8 Final evaluation: attempts 1, 4, and 5")
 table(
@@ -320,10 +341,17 @@ para("The reportable finding survives only in a narrower, ratio-only form -- dir
      "pooled RMS fell from 824.9% to 526.84% (~36% reduction), a genuine but partial result -- "
      "still far from usable (sign_agree=0.17), and energy/reaction/H1 semi-norm are unaffected, "
      "as expected. Attempt 6 (combining attempt 4's relative residual with attempt 5's local "
-     "refinement) is built and pending, testing whether denser groove quadrature can also fix "
-     "the relative residual's own diagnosed gradient-collapse failure. Real further improvement "
-     "beyond that would most plausibly need an even more dedicated local treatment for the "
-     "groove region -- a genuine scoping decision, not a quick follow-up.")
+     "refinement) is now CLOSED as a negative result: despite a better pooled-RMS headline "
+     "(84.11%), a direct predicted-vs-true comparison found the network's predictions never "
+     "exceed 6.7 in magnitude while the true field reaches 873.1 at the groove -- it has not "
+     "learned to represent the extreme, physically important stress values at all, and the "
+     "relative-residual lever fails regardless of quadrature refinement. Attempt 5 remains the "
+     "best-available lever, though it has not itself been re-checked with this same diagnostic, "
+     "so whether it also under-represents the groove's extreme values to some degree is not yet "
+     "known. Of 6 attempts total, none produces a region-stress estimate that captures the "
+     "groove's own extreme values; real further improvement would most plausibly need a more "
+     "aggressive, dedicated local mesh or architecture treatment for the groove region -- a "
+     "genuine scoping decision, not a quick follow-up.")
 
 # ---------------------------------------------------------------------
 h1("3. Items 2/3 — Equilibrium-Augmented Formulation")
@@ -623,9 +651,11 @@ para("Five decisions for Omar / Professor Rabczuk:")
 numbered("Item 1 -- report the direct-vs-implicit stress finding as a ratio only (direct less "
          "wrong than implicit by ~2.2x-172x); attempt 5 (local integration refinement) found a "
          "real, partial improvement on the direct-P estimate (824.9%→526.84%), still far "
-         "from usable; attempt 6 (combined with the relative residual) is built and pending -- "
-         "decide whether to keep pursuing local-refinement-based fixes or report the current "
-         "state as-is.")
+         "from usable; attempt 6 (combined with the relative residual) is now closed as a "
+         "negative result after a direct diagnostic showed it still cannot represent the "
+         "groove's extreme stress values (predicted max 6.7 vs. true max 873.1) -- decide "
+         "whether to pursue a more aggressive local mesh/architecture treatment for the groove, "
+         "or report the current state as-is.")
 numbered("Items 2/3 -- confirm closing this as a negative finding (no further tuning planned): "
          "four independent structural ideas (recalibration, weight/noise sweep, decay-out, "
          "late-introduction) are now falsified, ruling out both calibration and timing as the "
@@ -649,8 +679,8 @@ table(
     ["Roadmap item", "Status"],
     [
         ["Item 1: mixed displacement-stress",
-         "Done -- reportable finding, 5 attempts tried; attempt 5 (local refinement) found a "
-         "real partial improvement, attempt 6 pending"],
+         "Done -- reportable finding, 6 attempts tried; attempt 5 (local refinement) found a "
+         "real partial improvement, attempt 6 (combined with relative residual) closed negative"],
         ["Items 2/3: equilibrium-augmented", "Done -- negative finding, 4 fixes exhausted"],
         ["Item 4 / fair PI vs. DD comparison for B3",
          "Done -- PI beats DD for B3 (1.88% vs. 2.51-2.62%); break-even sweep complete, PI "
