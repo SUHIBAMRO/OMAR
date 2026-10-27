@@ -8,6 +8,9 @@ from docx import Document
 from docx.shared import Pt, Inches, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+CHARTS_DIR = os.path.join(SCRIPT_DIR, "charts")  # committed in the repo, not scratchpad-only
+
 OUT_DIR = "/tmp/claude-0/-home-user/64d7c4d8-d5f0-5686-a58f-aa87abfd4ba4/scratchpad/report"
 os.makedirs(OUT_DIR, exist_ok=True)
 OUT_PATH = os.path.join(OUT_DIR, "B3_Accuracy_Improvement_Investigation_Report.docx")
@@ -490,7 +493,7 @@ para("Pilot 1: lower weight (0.05, 0.03) and more virtual test fields (32 vs. 8,
      "reference keeps improving (down to 1.35-1.79 by iteration 4,000) while all three "
      "equilibrium-augmented variants diverge upward together (up to 3.8-4.7), regardless of "
      "weight or n_virtual.")
-image("/tmp/claude-0/-home-user/64d7c4d8-d5f0-5686-a58f-aa87abfd4ba4/scratchpad/chart1_equilibrium_divergence.png",
+image(os.path.join(CHARTS_DIR, "chart1_equilibrium_divergence.png"),
       caption="Training energy vs. iteration, pure-energy baseline vs. 3 equilibrium-augmented "
               "variants (w=0.05/nv=8, w=0.12/nv=32, w=0.03/nv=32) -- all three diverge from the "
               "baseline after iteration ~2,500, regardless of weight or n_virtual.")
@@ -504,7 +507,7 @@ para("Pilot 2 / decay schedule: added w_equilibrium_decay_start/w_equilibrium_de
      "before the decay variant's energy started climbing away again, reaching 3.209 vs. the "
      "baseline's 2.310 by iteration 6,000 (1.39x). The quiet period's length is close to the "
      "length of the original 1,000-2,500 exposure window itself.")
-image("/tmp/claude-0/-home-user/64d7c4d8-d5f0-5686-a58f-aa87abfd4ba4/scratchpad/chart2_decay_pilot.png",
+image(os.path.join(CHARTS_DIR, "chart2_decay_pilot.png"),
       caption="Training energy vs. iteration, pure-energy baseline vs. the decay variant "
               "(equilibrium weight decayed to 0 between iterations 1,000-2,500) -- tracks the "
               "baseline for ~2,000 iterations after the term is fully off, then diverges again.")
