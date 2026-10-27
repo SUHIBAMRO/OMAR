@@ -22667,3 +22667,65 @@ Not yet updated in the advisor-facing report documents (Claude Doc
 artifact, `.docx`) -- they currently describe attempt 6 as "pending",
 not as this now-concluded negative result; a real next step, not done
 yet.
+
+## Report updated with attempt 6's concluded negative result and sent
+## to Omar to forward to Professor Rabczuk; THEN attempt 5 itself was
+## finally checked with the same P-scale diagnostic -- confirms it is
+## genuinely the least-degraded of the 6 attempts, but ALSO reveals
+## pooled RMS inverted the true ranking between attempts 5 and 6
+
+Both the Claude Doc artifact and the `.docx` were updated with attempt
+6's full concluded-negative writeup (predicted-vs-true P table, the
+873.1-vs-6.7 max-abs finding, updated item 1 Conclusion/Recommendation/
+Executive-Summary/Roadmap-status rows) and the regenerated `.docx` sent
+to Omar to forward to Professor Rabczuk.
+
+**Then attempt 5's own checkpoint was finally run through the same
+diagnostic** (16 real held-out samples, same true-P reference as
+attempt 6's own run):
+
+| | attempt 5 predicted P | attempt 6 predicted P | true P (same 16 samples) |
+|---|---|---|---|
+| mean abs | 3.8154 | 2.029 | 10.4064 |
+| std | 5.8081 | 2.5279 | 15.4755 |
+| max abs | **12.4224** | 6.6951 | **873.134** |
+| predicted/true mean-abs ratio | **0.3666** | 0.195 | -- |
+| std/mean ratio (shape match to true's own 1.487) | **1.522** | 1.246 | 1.487 |
+| max-abs shortfall vs. true | **~70x** | ~130x | -- |
+
+**Attempt 5 is confirmed genuinely less degraded than attempt 6 by
+EVERY measure in this diagnostic** -- closer predicted/true magnitude
+ratio (0.3666 vs 0.195), a std/mean ratio nearly matching the true
+field's own shape (1.522 vs. true's 1.487, vs. attempt 6's flatter
+1.246), and a smaller (though still enormous) max-abs shortfall at the
+tail (~70x vs. ~130x). Both still fail to capture the groove's own
+extreme values (873.1) at all -- neither is a usable fix -- but attempt
+5 fails LESS badly by a real, measurable margin on every axis that
+isn't pooled RMS.
+
+**The important, broader lesson**: pooled RMS ranked these two
+BACKWARDS. Attempt 6 "won" on pooled RMS (84.11% vs. attempt 5's
+526.84%) precisely BECAUSE it predicts an even narrower, more
+under-scaled range of values than attempt 5 -- a more degenerate,
+MORE collapsed prediction scores BETTER on this aggregate metric
+purely because most held-out points are small-magnitude, not because
+it captures reality any better. This is now the clearest, most direct
+demonstration in this project of why pooled RMS must never be trusted
+alone for this specific QoI (the groove's heavy-tailed region stress)
+-- a second, independent confirmation after the 18.4%/8.2% mislabeling
+and attempt 4's own 96.1% collapse artifact. Any future B3 region-
+stress comparison should report the predicted-vs-true max-abs/std-mean
+-ratio diagnostic alongside pooled RMS, not instead of it, but never
+pooled RMS by itself.
+
+**Final, honest status for item 1 after 6 attempts and this diagnostic**:
+attempt 5 (local integration refinement alone) is confirmed as the
+best-available lever -- not because it is good (it still misses the
+groove's extreme values by ~70x), but because it is measurably the
+LEAST BAD of everything tried, on a diagnostic that actually checks the
+thing that matters (capturing extreme values), not just an aggregate
+error number. Not yet written into the advisor-facing report documents
+-- they currently still frame attempt 5 as "the best lever, not yet
+re-checked with this diagnostic"; this new finding (the pooled-RMS
+ranking inversion, and attempt 5's own confirmed-but-still-inadequate
+result) is a real update still pending for both documents.
