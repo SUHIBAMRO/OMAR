@@ -22729,3 +22729,98 @@ error number. Not yet written into the advisor-facing report documents
 re-checked with this diagnostic"; this new finding (the pooled-RMS
 ranking inversion, and attempt 5's own confirmed-but-still-inadequate
 result) is a real update still pending for both documents.
+
+## Professor Rabczuk's own review (real email) caught that NONE of this
+## follow-up investigation's region-stress/H1/break-even numbers had
+## ever been checked against an independent fine reference -- traced
+## precisely (including a real self-caught error in our own first
+## reply), confirmed directly against the submitted paper's own text,
+## and the evaluation tooling extended to fix it
+
+Timon's real reply, verbatim question: "For both the B3 results in the
+submitted paper and the new B3 study, are the reported stress/H1 errors
+evaluated against the converged high-resolution FEM reference
+(approximately 950k elements), rather than against the 6,840-element
+production mesh? ... Could you also please clarify how the DD training
+data were generated?"
+
+**First answer given was WRONG and self-caught before being fully
+trusted**: initially claimed the paper's displacement/energy/reaction
+numbers (2.03%/2.30%/2.22%) were against a 243,360-element reference,
+based on a mismatched table-column header in this project's own
+PROJECT_STATUS.md. A dedicated re-investigation (tracing the exact
+surrounding prose, the evaluation script's own argparse default, and a
+2026-10-10 independent audit entry) found all three independently
+agree: the real reference is **43,400 elements**, not 243,360 -- a
+correction was sent to Omar before the wrong version could do any
+damage, and the real submitted-paper PDF was then read directly
+(pages 26-31) to confirm with full certainty, not just from this
+project's own historical log:
+
+- **Displacement/energy/reaction** (paper Section 7.4): accuracy-matched
+  against an independent **43,400-element** reference -- quoted
+  directly: "Ten held-out samples were re-solved at this 43,400-element
+  fine reference... giving: displacement 2.03%, energy 2.30%, reaction
+  moment 2.22%." Confirms 6,840 elements is already adequate for these
+  three quantities.
+- **The 950,400-element mesh**: real, and explicitly named in the paper
+  (Table 6) -- but ONLY as the reference for the mesh-convergence study
+  itself, never as ground truth for any reported accuracy number.
+- **Regional Cauchy stress -- Timon's concern is exactly right**: every
+  stress number in the paper (62.2-62.3% originally, 29.7-29.9% after
+  local integration refinement) is STILL measured against the SAME
+  6,840-element training mesh. The "refinement" that halved the error
+  added more quadrature points WITHIN that same coarse mesh's own
+  solution -- it never re-solved FEM at a finer mesh. The paper's own
+  Discussion says so plainly: "closing the remainder is left as an open
+  problem."
+- **Item 4 (DD-vs-PI for B3) does not exist in the submitted paper at
+  all** -- its own text states explicitly: "this study does not train a
+  data-driven B3 checkpoint to test this directly." The entire
+  break-even sweep is new work from this follow-up study, with no
+  paper-side convention to reconcile against -- but it still needs the
+  same fine-reference treatment, and currently doesn't have it (it used
+  the raw, uncorrected "1.88%" PI figure, not the paper's own
+  accuracy-matched 2.03%).
+- **DD data generation**: torch-fem, the 6,840-element mesh (same as
+  the operator's own discretization), 200 samples in 825.8s = 4.13s/
+  sample, measured directly.
+
+A second, more precise correction (citing the paper's own exact
+sentences) was sent to Omar, who then sent it to Timon.
+
+**Built to close the gap, not just explain it**: refactored
+`evaluate_B3_qois_finer.py` (previously single-checkpoint, re-solving
+its fine mesh from scratch every invocation) into two reusable pieces
+-- `generate_fine_reference` (the expensive part: re-solves held-out
+samples at a given fine mesh ONCE) and
+`evaluate_u_only_checkpoint_against_fine_reference` (the cheap part:
+one forward pass per checkpoint against an already-generated
+reference) -- so re-evaluating ~10 checkpoints no longer means
+re-solving the same expensive FEM problem ~10 times. Added H1
+semi-norm to this script (previously only region stress/displacement/
+energy/reaction). New `evaluate_B3_mixed_stress_finer.py` extends the
+same shared-reference pattern to item 1's mixed-stress checkpoints,
+adding a `compute_region_sigma_full_direct` (full-tensor direct-P
+stress, mirroring the already-existing `compute_region_sigma_xx_direct`
+but keeping the whole tensor like `compute_region_sigma_full` does for
+the implicit path) so item 1's own direct-vs-implicit headline
+comparison can finally be checked against an independent reference too.
+
+New `B3_FineReference_Reevaluation.ipynb`: generates BOTH of the paper's
+own real fine references (950,400 elements for region stress/H1 --
+matching Timon's own question and the paper's mesh-convergence choice;
+43,400 elements for the break-even sweep's displacement comparison --
+matching the paper's own accuracy-matched choice) ONCE each, then
+re-evaluates every relevant checkpoint (PI baseline, item 1 attempts 1
+and 5, items 2/3 attempts 1 and 2, item 4's three loss variants, and
+the break-even sweep's N=50/200/400 checkpoints) against the shared
+reference. Syntax-checked; full functional/numerical verification is
+PENDING a package install in this freshly-reset container (no GPU
+here regardless) -- the implementation closely mirrors already-tested,
+already-proven patterns already in the codebase (the exact region-mask/
+geometry/direct-P conventions `evaluate_B3_mixed_stress.py`'s own
+`main()` already uses at production resolution, just generalized to an
+arbitrary resolution), but this has NOT yet been run end-to-end by
+either Claude or Omar. Not yet run on GPU -- next step is Omar starting
+it on Colab once local verification completes.
