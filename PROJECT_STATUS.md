@@ -22988,3 +22988,94 @@ open: whether this next round of (no-retraining) evaluation work should
 run on Colab (as before) or be moved to the newly-set-up TU Ilmenau HPC
 account (see entry above) -- would need the relevant checkpoints
 transferred there first either way.
+
+**B3 side: BUILT and CPU-verified 2026-10-30** (confirmed via
+`.gitignore` that no checkpoint/.pt/.h5 file is or ever was tracked in
+GitHub -- Omar's "they should be in Drive and GitHub" only holds for
+Drive; checkpoints live on Drive only, consistent with every prior round
+this project has already handled this way):
+
+- Added `compute_region_sigma_components_rel` (and its low-level shared
+  tail `sigma_components_rel_from_full`, plus a matching
+  `cauchy_field_rel_from_full` refactored out of the existing aggregate
+  function) to `evaluate_B3_qois.py` -- per-component (xx/yy/zz/xy/xz/yz)
+  volume-weighted relative stress error, the "individual stress
+  components" Timon asked for, using the same denominator-safe
+  squared-before-summing convention as the existing aggregate field
+  error. Wired into both `evaluate_B3_qois_finer.py` (u-only path) and
+  `evaluate_B3_mixed_stress_finer.py` (both the implicit AND direct
+  stress paths for item 1) -- refactored to compute the full Cauchy
+  tensor ONCE per sample and derive both the aggregate and per-component
+  numbers from it, instead of redundantly recomputing it (caught via a
+  real, measured ~2x slowdown in this session's own CPU smoke test
+  before the refactor).
+- New `evaluate_B3_fem_discretization_error.py`: answers Timon's new
+  "report the errors of the 6,840- and 43,400-element FEM SOLUTIONS
+  THEMSELVES (no neural network) relative to 950,400" request directly.
+  `load_coarse_reference` loads the already-solved 6,840-element
+  solution straight from `dataset.h5` (no new FEM solve); `
+  compute_fem_discretization_errors` interpolates the 6,840- and
+  43,400-element displacement fields onto the 950,400 mesh's own node
+  positions (generalized `interpolate_node_field_to_finer_mesh` to take
+  an `n_components` argument -- reuses the exact same
+  `_field_interpolator` call pattern, at `n_components=3`,
+  `mesh_convergence_B3.py`'s own `compare_to_reference` already
+  validated for displacement fields during the paper's own Table 6
+  work) and applies the IDENTICAL QoI functions the neural-operator
+  evaluation already uses (H1 semi-norm, regional Cauchy field +
+  per-component, displacement L2), so the FEM-vs-FEM number and the
+  NN-vs-FEM number are computed by the literal same formula -- energy/
+  reaction/region-avg-sigma_xx are recomputed directly on each
+  resolution's own mesh with no interpolation needed (plain scalar
+  relative error).
+- All of the above verified end-to-end on CPU (real FEM solves at
+  6,840/~31k/~37k elements, untrained checkpoints, all summary values
+  finite; the discretization-error numbers showed the expected
+  monotonic trend -- smaller error at the resolution closer to the
+  reference). Committed (`dc0c008`).
+- New `B3_Rabczuk_Reeval_v2.ipynb`: generates the ONE common
+  950,400-element reference once and evaluates EVERY existing B3
+  checkpoint against it for every QoI (PI baseline; items 2/3 attempts 1
+  and 2; item 4's DD rel_l2 at N=50/200/400, Sobolev, and hybrid; item
+  1's mixed-stress attempts 1, 5, and 6, both implicit and direct stress
+  paths) -- no more splitting the reference by QoI the way the
+  2026-10-28 notebook and the submitted paper itself did, per Timon's
+  own explicit request this round. Also generates the 43,400-element
+  solution and runs the new FEM-vs-FEM discretization-error report
+  against the same 950,400 reference. JSON structure and code-cell
+  syntax validated; checkpoint paths reused unchanged from the
+  2026-10-28 notebook's own already-confirmed Drive layout. **Not yet
+  run on GPU, not yet sent to Omar as a Colab link.**
+
+**B1 side: investigated, NOT yet built.** Confirmed real and
+pre-existing in this codebase: `fine_N=2236` (the exact reference Timon
+named) is the long-standing default fine resolution across
+`torchfem_comparison.py`'s `run_convergence_study`/`run_qoi_study`
+(which already reuse `high_dof_convergence_study.py`'s own
+`build_mesh_and_bcs`/`compute_l2_h1_errors`/`solve_one`, with a
+`checkpoint_path` mechanism to RESUME an already-converged fine solve
+instead of re-solving it -- a cached `fine_B1_neo_hookean_Q4_N2236.pt`
+FEM-solution checkpoint may already exist on Drive from a prior GPU
+round, worth checking before assuming a fresh ~5M-DOF solve is needed).
+Also found the EXISTING PI-vs-DD comparison this round is meant to
+redo: `point7b_results/comparison_B1_neo_hookean.json` ("the clean
+comparison: only the loss differs" -- `physics_informed` best_val_rel_L2
+0.0959 vs `data_driven_matched_optimizer` 0.1307, both at 75,000
+optimizer steps, both evaluated at the TRAINING resolution/mesh, which
+is exactly the limitation Timon flagged). `resolve_b1_checkpoint.py`
+already documents real, historically-confirmed Drive candidate paths
+for these two checkpoints (`results/B1_neo_hookean/model_best.pt` for
+PI, `data_driven/B1_neo_hookean/model_best.pt` for DD) plus a
+sha256-fingerprint-based resolver -- built specifically because an
+earlier round silently loaded the WRONG checkpoint from one of several
+plausible paths and produced a false-alarm result that survived several
+GPU rounds before being caught; any new B1 tooling MUST reuse this
+resolver, not hardcode a path. **Not yet built**: the actual script that
+(a) queries the PI/DD checkpoints at an inference mesh N different from
+21 (not yet chosen) and (b) compares against a genuine N=2236 FEM
+solve via `compute_l2_h1_errors` -- this is new ground, unlike the B3
+side above which mostly extended already-proven machinery. Next
+session/next step on this: confirm the exact Drive paths via
+`resolve_b1_checkpoint.py`'s own fingerprint check, then build and
+CPU-smoke-test an analogous `evaluate_B1_qois_finer.py` before touching
+any real GPU time.
