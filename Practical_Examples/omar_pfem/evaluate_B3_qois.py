@@ -305,10 +305,23 @@ def compute_region_cauchy_field_rel(u_true, u_pred, E_node, nu_node, geom, regio
     here is a sum of squared norms, not a signed sum."""
     sigma_true, w = compute_region_sigma_full(u_true, E_node, nu_node, geom, region_mask_torch)
     sigma_pred, _ = compute_region_sigma_full(u_pred, E_node, nu_node, geom, region_mask_torch)
-    Batch = u_true.shape[0]
+    return cauchy_field_rel_from_full(sigma_true, w, sigma_pred)
+
+
+def cauchy_field_rel_from_full(sigma_true, w, sigma_pred):
+    """Low-level shared tail of compute_region_cauchy_field_rel, given
+    ALREADY-COMPUTED full Cauchy tensors (B, n_region, 3, 3) and region
+    weights (n_region,) -- lets a caller that needs both the aggregate
+    field error AND the per-component breakdown
+    (sigma_components_rel_from_full) compute sigma_true/sigma_pred ONCE
+    and derive both from it, instead of calling compute_region_sigma_full
+    redundantly (each call re-does an autograd pass over every Gauss
+    point of the WHOLE mesh, not just the region -- not cheap at fine
+    resolutions)."""
+    Batch = sigma_true.shape[0]
     w_sum = w.sum()
     if w.shape[0] == 0 or w_sum <= 0:
-        return torch.full((Batch,), float("nan"), dtype=u_true.dtype, device=u_true.device)
+        return torch.full((Batch,), float("nan"), dtype=sigma_true.dtype, device=sigma_true.device)
 
     diff_sq = torch.sum((sigma_pred - sigma_true) ** 2, dim=(-1, -2))  # (B, n_region)
     true_sq = torch.sum(sigma_true ** 2, dim=(-1, -2))                  # (B, n_region)
@@ -317,6 +330,51 @@ def compute_region_cauchy_field_rel(u_true, u_pred, E_node, nu_node, geom, regio
     rel = torch.where(den > 0, num / den.clamp_min(1e-300),
                        torch.full_like(num, float("nan")))
     return rel
+
+
+STRESS_COMPONENTS = (("xx", 0, 0), ("yy", 1, 1), ("zz", 2, 2),
+                     ("xy", 0, 1), ("xz", 0, 2), ("yz", 1, 2))
+
+
+def sigma_components_rel_from_full(sigma_true, w, sigma_pred):
+    """Low-level shared tail: per-component (xx, yy, zz, xy, xz, yz)
+    volume-weighted relative error given ALREADY-COMPUTED full Cauchy
+    tensors (B, n_region, 3, 3) and region weights (n_region,) -- lets
+    callers that already have sigma_true/sigma_pred on hand (e.g. the
+    mixed-stress "direct" path, which uses the network's own P instead
+    of compute_region_sigma_full's autograd-derived one) reuse this
+    without recomputing sigma. compute_region_sigma_components_rel below
+    is the convenience wrapper for the common case of two known
+    displacement fields."""
+    Batch = sigma_true.shape[0]
+    w_sum = w.sum()
+    out = {}
+    for name, i, j in STRESS_COMPONENTS:
+        if w.shape[0] == 0 or w_sum <= 0:
+            out[name] = torch.full((Batch,), float("nan"), dtype=sigma_true.dtype, device=sigma_true.device)
+            continue
+        diff_sq = (sigma_pred[..., i, j] - sigma_true[..., i, j]) ** 2  # (B, n_region)
+        true_sq = sigma_true[..., i, j] ** 2
+        num = torch.sqrt((diff_sq * w[None, :]).sum(dim=1) / w_sum)
+        den = torch.sqrt((true_sq * w[None, :]).sum(dim=1) / w_sum)
+        out[name] = torch.where(den > 0, num / den.clamp_min(1e-300), torch.full_like(num, float("nan")))
+    return out
+
+
+def compute_region_sigma_components_rel(u_true, u_pred, E_node, nu_node, geom, region_mask_torch):
+    """Per-component (xx, yy, zz, xy, xz, yz) volume-weighted relative
+    error of the Cauchy stress tensor within the fixed region -- same
+    squared-before-summing convention as compute_region_cauchy_field_rel
+    (immune to a near-zero SIGNED average collapsing the denominator),
+    just applied to one tensor entry at a time instead of the full
+    Frobenius norm. Added 2026-10-30 per Professor Rabczuk's own request
+    for "individual stress components/local QoIs where available" in
+    the independent-fine-reference re-evaluation, on top of
+    compute_region_cauchy_field_rel's already-existing aggregate number.
+    Returns {"xx": (B,) tensor, "yy": ..., ...}."""
+    sigma_true, w = compute_region_sigma_full(u_true, E_node, nu_node, geom, region_mask_torch)
+    sigma_pred, _ = compute_region_sigma_full(u_pred, E_node, nu_node, geom, region_mask_torch)
+    return sigma_components_rel_from_full(sigma_true, w, sigma_pred)
 
 
 def main():

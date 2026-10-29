@@ -41,7 +41,10 @@ import argparse
 import numpy as np
 import torch
 
-from omar_pfem.evaluate_B3_qois import compute_H1_seminorm_rel, compute_region_sigma_full
+from omar_pfem.evaluate_B3_qois import (
+    compute_H1_seminorm_rel, compute_region_sigma_full,
+    sigma_components_rel_from_full, STRESS_COMPONENTS,
+)
 from omar_pfem.mixed_stress_B3 import build_fixed_geometry_mixed, interpolate_nodal_field_to_quadpts
 from omar_pfem.train_B1 import _apply_input_norm, install_input_norm_for_checkpoint
 from omar_pfem.train_B3 import apply_dirichlet_b3
@@ -148,6 +151,8 @@ def evaluate_mixed_stress_checkpoint_against_fine_reference(checkpoint_path, fin
                                                                          geom_fine_mixed, region_mask_fine_torch)
         field_rel_implicit = _cauchy_field_rel_from_sigma(sigma_true, w_true, sigma_pred_implicit, w_pred_i)
         field_rel_direct = _cauchy_field_rel_from_sigma(sigma_true, w_true, sigma_pred_direct, w_pred_d)
+        comp_rel_implicit = sigma_components_rel_from_full(sigma_true, w_true, sigma_pred_implicit)
+        comp_rel_direct = sigma_components_rel_from_full(sigma_true, w_true, sigma_pred_direct)
 
         rows.append({
             "sample_index": s["sample_index"], "phi": s["phi"],
@@ -156,6 +161,10 @@ def evaluate_mixed_stress_checkpoint_against_fine_reference(checkpoint_path, fin
             "H1_seminorm_rel_fine": float(h1_rel_fine[0].item()),
             "region_cauchy_field_rel_implicit_fine": float(field_rel_implicit[0].item()),
             "region_cauchy_field_rel_direct_fine": float(field_rel_direct[0].item()),
+            "region_sigma_components_rel_implicit_fine": {
+                name: float(comp_rel_implicit[name][0].item()) for name, _, _ in STRESS_COMPONENTS},
+            "region_sigma_components_rel_direct_fine": {
+                name: float(comp_rel_direct[name][0].item()) for name, _, _ in STRESS_COMPONENTS},
         })
 
     n_samples = len(rows)
@@ -172,6 +181,14 @@ def evaluate_mixed_stress_checkpoint_against_fine_reference(checkpoint_path, fin
         "mean_region_cauchy_field_rel_direct_fine": float(np.mean(dir_valid)) if len(dir_valid) else float("nan"),
         "median_region_cauchy_field_rel_direct_fine": float(np.median(dir_valid)) if len(dir_valid) else float("nan"),
     }
+    for name, _, _ in STRESS_COMPONENTS:
+        for path in ("implicit", "direct"):
+            vals_s = np.array([row[f"region_sigma_components_rel_{path}_fine"][name] for row in rows])
+            vals_s_valid = vals_s[~np.isnan(vals_s)]
+            summary[f"mean_region_sigma_{name}_rel_{path}_fine"] = (
+                float(np.mean(vals_s_valid)) if len(vals_s_valid) else float("nan"))
+            summary[f"median_region_sigma_{name}_rel_{path}_fine"] = (
+                float(np.median(vals_s_valid)) if len(vals_s_valid) else float("nan"))
     if verbose:
         print(f"  H1_seminorm_rel_fine: mean={summary['mean_H1_seminorm_rel_fine']:.4f}")
         print(f"  region_cauchy_field_rel_implicit_fine: mean={summary['mean_region_cauchy_field_rel_implicit_fine']:.4f}")

@@ -114,7 +114,8 @@ from omar_pfem.data.data_generate_B3_dataset import (
 from omar_pfem.data.mesh_convergence_B3 import MIN_RELIABLE_N_P99, _theta_t_axes, _field_interpolator
 from omar_pfem.evaluate_B3_qois import (
     build_region_mask, compute_region_cauchy_field_rel, compute_region_sigma_xx,
-    compute_energy, compute_reaction, compute_H1_seminorm_rel,
+    compute_region_sigma_full, compute_energy, compute_reaction, compute_H1_seminorm_rel,
+    cauchy_field_rel_from_full, sigma_components_rel_from_full, STRESS_COMPONENTS,
 )
 
 # The two real, independently-established fine references this project
@@ -124,17 +125,20 @@ FINE_RESOLUTION_DISP_ENERGY_REACTION = (41, 36, 32)  # 43,400 elements -- paper'
 
 
 def interpolate_node_field_to_finer_mesh(field_coarse, Ntheta_c, Nr_c, Nz_c,
-                                          Ntheta_f, Nr_f, Nz_f, r_grading):
-    """field_coarse: (n_nodes_coarse,) node-ordered as index =
-    k*(Ntheta*Nr) + j*Nr + i (matches generate_grid_hex8_bushing's own
-    convention, and build_fixed_geometry's node ordering). Returns
-    (n_nodes_fine,) interpolated onto the finer mesh's own node
-    positions, using the exact same query-point construction
-    mesh_convergence_B3.py's `compare_case_to_reference` already
-    verified for interpolating displacement fields across resolutions."""
+                                          Ntheta_f, Nr_f, Nz_f, r_grading, n_components=1):
+    """field_coarse: (n_nodes_coarse,) for n_components=1, or
+    (n_nodes_coarse, n_components) for n_components>1 -- node-ordered as
+    index = k*(Ntheta*Nr) + j*Nr + i (matches generate_grid_hex8_bushing's
+    own convention, and build_fixed_geometry's node ordering). Returns
+    (n_nodes_fine,) or (n_nodes_fine, n_components) interpolated onto the
+    finer mesh's own node positions, using the exact same query-point
+    construction mesh_convergence_B3.py's `compare_to_reference` already
+    verified for interpolating displacement fields across resolutions
+    (that function calls this same `_field_interpolator` with
+    n_components=3 for its own u-field comparison)."""
     thetas_c, ts_c, zs_c = _theta_t_axes(Ntheta_c, Nr_c, Nz_c, r_grading)
-    interp_fn = _field_interpolator(field_coarse.reshape(-1, 1), Ntheta_c, Nr_c, Nz_c,
-                                     thetas_c, ts_c, zs_c, 1)
+    interp_fn = _field_interpolator(field_coarse.reshape(-1, n_components), Ntheta_c, Nr_c, Nz_c,
+                                     thetas_c, ts_c, zs_c, n_components)
 
     from omar_pfem.data.mesh_convergence_B3 import LZ
     thetas_f = np.linspace(0.0, np.pi, Ntheta_f)
@@ -145,8 +149,8 @@ def interpolate_node_field_to_finer_mesh(field_coarse, Ntheta_c, Nr_c, Nz_c,
     t_q = np.transpose(T, (2, 0, 1)).ravel()
     z_q = np.transpose(Z, (2, 0, 1)).ravel()
 
-    field_fine = interp_fn(theta_q, t_q, z_q).reshape(-1)
-    return field_fine
+    field_fine = interp_fn(theta_q, t_q, z_q)
+    return field_fine.reshape(-1) if n_components == 1 else field_fine.reshape(-1, n_components)
 
 
 def generate_fine_reference(dataset_path, fine_resolution, n_samples, device, dtype=torch.float64,
@@ -253,8 +257,10 @@ def evaluate_u_only_checkpoint_against_fine_reference(checkpoint_path, fine_ref,
             u_net = model(xyz_batch, fun_material)
             u_pred_f = apply_dirichlet_b3(u_net, geom_fine, phi_t)
 
-        field_rel_fine = compute_region_cauchy_field_rel(
-            u_true_f, u_pred_f, E_f_t, nu_f_t, geom_fine, region_mask_fine_torch)
+        sigma_true_f, w_true_f = compute_region_sigma_full(u_true_f, E_f_t, nu_f_t, geom_fine, region_mask_fine_torch)
+        sigma_pred_f, _ = compute_region_sigma_full(u_pred_f, E_f_t, nu_f_t, geom_fine, region_mask_fine_torch)
+        field_rel_fine = cauchy_field_rel_from_full(sigma_true_f, w_true_f, sigma_pred_f)
+        sigma_components_rel_fine = sigma_components_rel_from_full(sigma_true_f, w_true_f, sigma_pred_f)
         avg_true_f, _, _ = compute_region_sigma_xx(u_true_f, E_f_t, nu_f_t, geom_fine, region_mask_fine_torch)
         avg_pred_f, _, _ = compute_region_sigma_xx(u_pred_f, E_f_t, nu_f_t, geom_fine, region_mask_fine_torch)
         h1_rel_fine = compute_H1_seminorm_rel(u_true_f, u_pred_f, geom_fine)
@@ -282,6 +288,8 @@ def evaluate_u_only_checkpoint_against_fine_reference(checkpoint_path, fine_ref,
             "region_avg_sigma_xx_true_fine": float(avg_true_f[0].item()),
             "region_avg_sigma_xx_pred_fine": float(avg_pred_f[0].item()),
             "H1_seminorm_rel_fine": float(h1_rel_fine[0].item()),
+            "region_sigma_components_rel_fine": {
+                name: float(sigma_components_rel_fine[name][0].item()) for name, _, _ in STRESS_COMPONENTS},
             "disp_rel_l2_fine": disp_rel_l2,
             "energy_true_fine": float(energy_true_f[0].item()),
             "energy_pred_fine": float(energy_pred_f[0].item()),
@@ -307,6 +315,11 @@ def evaluate_u_only_checkpoint_against_fine_reference(checkpoint_path, fine_ref,
         vals_c = np.array([row["disp_rel_l2_fine"][comp] for row in rows])
         summary[f"mean_disp_rel_l2_fine_{comp}"] = float(np.mean(vals_c))
         summary[f"std_disp_rel_l2_fine_{comp}"] = float(np.std(vals_c))
+    for name, _, _ in STRESS_COMPONENTS:
+        vals_s = np.array([row["region_sigma_components_rel_fine"][name] for row in rows])
+        vals_s_valid = vals_s[~np.isnan(vals_s)]
+        summary[f"mean_region_sigma_{name}_rel_fine"] = float(np.mean(vals_s_valid)) if len(vals_s_valid) else float("nan")
+        summary[f"median_region_sigma_{name}_rel_fine"] = float(np.median(vals_s_valid)) if len(vals_s_valid) else float("nan")
 
     def _rel_err_fine(key_true, key_pred):
         t = np.array([row[key_true] for row in rows])
@@ -332,6 +345,9 @@ def evaluate_u_only_checkpoint_against_fine_reference(checkpoint_path, fine_ref,
         print(f"  disp_rel_l2_fine combined: {summary['mean_disp_rel_l2_fine_combined']:.4f}")
         print(f"  energy rel err (fine): mean={mean_e:.4f}  pooled_rms={pooled_e:.4f}")
         print(f"  reaction_moment_y rel err (fine): mean={mean_m:.4f}  pooled_rms={pooled_m:.4f}")
+        comp_str = "  ".join(f"{name}={summary[f'mean_region_sigma_{name}_rel_fine']:.4f}"
+                              for name, _, _ in STRESS_COMPONENTS)
+        print(f"  region_sigma_components_rel_fine (mean): {comp_str}")
 
     return {"checkpoint": checkpoint_path, "checkpoint_iter": ckpt.get("iter") or ckpt.get("step"),
             "coarse_resolution": fine_ref["coarse_resolution"], "fine_resolution": fine_ref["fine_resolution"],
