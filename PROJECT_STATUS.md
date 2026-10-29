@@ -22824,3 +22824,92 @@ geometry/direct-P conventions `evaluate_B3_mixed_stress.py`'s own
 arbitrary resolution), but this has NOT yet been run end-to-end by
 either Claude or Omar. Not yet run on GPU -- next step is Omar starting
 it on Colab once local verification completes.
+
+Functionally verified (2026-10-28, CPU, this container): built a tiny
+fake dataset + untrained checkpoints and ran generate_fine_reference +
+both evaluate_u_only_checkpoint_against_fine_reference and
+evaluate_mixed_stress_checkpoint_against_fine_reference end to end; all
+summary values finite and sane-shaped. Committed and pushed (commit
+eeeb106). Colab link for `B3_FineReference_Reevaluation.ipynb` sent to
+Omar; not yet run on real GPU as of that message.
+
+## New compute option: TU Ilmenau university HPC cluster (CS-User
+## account), set up from scratch this session as an alternative to
+## Colab
+
+Omar got a CS-User HPC account (login `gole3157`) at TU Ilmenau and
+walked through first-time setup live, step by step, with heavy
+hand-holding (he does not have a technical background and needed every
+single action spelled out literally -- this is the expected support
+level for him going forward on this system too).
+
+**How the cluster is organized** (from the university's own
+account-creation email):
+- Login node (general, reached via `ssh <login>@cslogin.tu-ilmenau.de`,
+  which load-balances across hosts): Omar landed on a host called
+  `makalu47`.
+- A separate, named interactive GPU host **`makalu86`** has **4x NVIDIA
+  A100** -- reached via `ssh -X makalu86` from inside an interactive
+  session. NOT yet tried this session.
+- Batch jobs (for dedicated/queued GPU time) use wrapper scripts
+  `batch.1gpu`/`batch.2gpu`/`batch.4gpu <user_script>` -- exact
+  submission semantics NOT yet explored this session (no job submitted
+  yet, only interactive work on the shared login-node GPU).
+- Three storage tiers: `/home/<login>` (187G quota seen for this
+  account, backed up 2 weeks, high IO -- code lives here), `/scratch/
+  <login>` (7.4T(!) quota seen for this account -- much larger than the
+  2T default documented in the account email -- no backup, 1-year
+  file-retention, high IO -- large datasets/checkpoints belong here),
+  `/data2/hpcuser/<login>` (100G, full 2-month backup, slow IO, only
+  reachable from a separate transfer node `csdata.tu-ilmenau.de`, not
+  from compute/login nodes directly -- long-term archive only).
+
+**What was actually set up and verified working, live, this session**:
+1. SSH login confirmed working (`gole3157@cslogin.tu-ilmenau.de`,
+   landed on `makalu47`); `show_user_info` confirmed quotas above.
+2. `git clone https://github.com/SUHIBAMRO/OMAR.git` into `/home/
+   gole3157` -- the repo is public (no auth needed) and its default
+   branch already IS `claude/claude-code-question-d307wp` (`git
+   checkout` was already on it after clone).
+3. System `python3` on the cluster is **3.6.8** (2018-era, far too old
+   for current torch/jax) and the only `module`-provided Python options
+   are old Intel-distribution builds (`intel/python3`,
+   `intel/python3_v2018/2019/2019u5`) -- also too old. No conda/
+   anaconda module exists either (confirmed via `module avail | grep
+   -iE "conda|anaconda"`, empty).
+4. Fix: installed a private Miniconda into `~/miniconda3` (no root
+   needed -- standard practice on shared HPC clusters). Hit one new
+   obstacle: Anaconda now requires accepting Terms of Service for the
+   `defaults`-channel family before `conda create` works non-
+   interactively (`conda tos accept --override-channels --channel
+   https://repo.anaconda.com/pkgs/main` and `.../pkgs/r`) -- not
+   documented anywhere in the university's own onboarding email, purely
+   an Anaconda-side policy change; solved on the first retry once
+   diagnosed from the error text itself.
+5. Created a `python=3.11` conda env named `omar`, then `pip install
+   numpy scipy h5py torch matplotlib einops timm jax jaxlib torch-fem`
+   -- the exact same package set this container's own CPU smoke test
+   (above) needed to resolve `omar_pfem`'s full import chain. All
+   imported cleanly; final check command also did `from torchfem import
+   Solid` and printed `torch.cuda.is_available()`.
+6. **Result: `cuda_available= True`**, torch 2.15.0+cu132, on
+   `makalu47` itself (no need to even reach the separate `makalu86` node
+   for this check) -- `nvidia-smi` showed an **NVIDIA RTX A5000 (24GB)**,
+   NOT an A100 (the A100s are on the separate `makalu86` host, not this
+   shared login node). This A5000 was already at 100% utilization from
+   a different user's own job at the time of checking -- it is a SHARED
+   resource, fine for quick interactive testing/debugging but NOT where
+   real training jobs should run; production runs should go through the
+   batch system or `makalu86` instead.
+7. Confirmed the project's OWN code imports cleanly in this new
+   environment too: `from omar_pfem.evaluate_B3_qois_finer import
+   generate_fine_reference` succeeded (`PROJECT_IMPORT_OK`), from inside
+   `Practical_Examples/`, matching how every training/eval script here
+   expects to be run.
+
+**Not yet done on the HPC cluster**: no actual FEM solve, no actual
+training run, no attempt at `makalu86` or the batch-job scripts yet;
+next session should pick up from here once Omar decides what to run
+there first (e.g., re-running this session's own CPU smoke test but for
+real on the shared A5000 as a first live GPU check, before moving
+anything to batch jobs for real training/evaluation time).
