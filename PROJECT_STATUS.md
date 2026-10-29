@@ -22913,3 +22913,78 @@ next session should pick up from here once Omar decides what to run
 there first (e.g., re-running this session's own CPU smoke test but for
 real on the shared A5000 as a first live GPU check, before moving
 anything to batch jobs for real training/evaluation time).
+
+## Professor Rabczuk's SECOND real email (2026-10-29/30) -- a precise,
+## concrete follow-up request, superseding/extending the first one.
+## EXPLICITLY SAYS NOT TO RETRAIN ANYTHING YET -- this is an
+## evaluation-only task for now
+
+Verbatim key asks (paraphrased only where noted):
+
+1. **"For now, I would not retrain any models."** Everything below is
+   RE-EVALUATION of EXISTING checkpoints, not new training.
+2. **B1**: the DD checkpoint was trained on N=21 FEM data. Repeat the
+   PI-vs-DD comparison on an INFERENCE MESH DIFFERENT FROM N=21,
+   evaluated against the already-established fine reference **N=2236**
+   (confirmed real and already used in this project's own B1
+   mesh-convergence work -- `fine_N=2236` is the long-standing default
+   across `torchfem_comparison.py`, `tensormesh_comparison.py`,
+   `assembled_direct_solver.py`, `matrix_free_solver.py`,
+   `verify_checkpoint.py`). Goal: see whether the current PI-vs-DD
+   ranking survives under an independent reference instead of the
+   training-resolution FEM solution.
+3. **B3**: use the **950,400-element** solution as ONE common reference
+   for ALL relevant QoIs this round (not split by QoI the way the
+   submitted paper itself was, and the way this project's own
+   2026-10-28 tooling defaults were) -- displacement, H1 semi-norm,
+   energy, reaction moment, regional stress, AND individual stress
+   components/local QoIs where available, for the existing PI, DD,
+   Sobolev, hybrid, and local-integration-refinement (item 1)
+   checkpoints. The 6,840-element solution may stay as the TRAINING/
+   DD-label mesh, "apparently not" for stress specifically, but must
+   not define final reported accuracy for anything.
+4. **NEW, not yet built anywhere in this project**: also report, for
+   the SAME samples/QoIs, the error of the 6,840-element and
+   43,400-element FEM SOLUTIONS THEMSELVES (not any neural operator)
+   relative to the 950,400-element reference -- i.e. pure mesh-
+   discretization error, to separate it cleanly from neural-operator
+   error. This needs solving FEM at 6,840/43,400/950,400 for the same
+   samples (6,840 already exists in the original dataset.h5; 43,400 and
+   950,400 both already supported by `generate_fine_reference`) and
+   then comparing the COARSER solutions' own fields against the
+   950,400 one using the same interpolate-to-common-mesh approach this
+   project's `interpolate_node_field_to_finer_mesh` already uses for
+   material fields (needs extending to a vector field like
+   displacement -- the underlying `_field_interpolator` already takes
+   an `n_components` argument, just never called with 3 yet) for
+   displacement/H1/stress, while energy/reaction/regional-stress at
+   each resolution can be recomputed directly from that resolution's
+   own FEM solution with no interpolation needed.
+5. MMS studies: no change -- the analytical manufactured solution stays
+   ground truth; just confirm both FEM and NN errors are consistently
+   reported relative to it (already standard practice here).
+6. Cost reporting: keep reporting the REAL DD label-generation cost at
+   the 6,840-element B3 mesh (4.13 s/sample, already confirmed and
+   reported) since that is the cost of the labels actually used for
+   training; the fine FEM solves are only an independent evaluation
+   reference, not a training-cost item -- no change needed here, matches
+   what was already sent to Timon.
+
+**Investigation so far (this session, before building anything new)**:
+confirmed via grep that `fine_N=2236` for B1 is a real, already-
+established convention in this codebase (not something to invent), and
+that `train_data_driven.py` is the existing shared PI-vs-DD training
+script for B1/B2 (geometry-agnostic, reads a `--path` .npz the PI model
+also trained on) -- so a B1 DD checkpoint trained at N=21 should
+already exist from earlier project work, but its exact file location
+(almost certainly Google Drive, from a past Colab run, like every other
+checkpoint in this project) has NOT yet been confirmed with Omar.
+
+**STILL OPEN, blocking concrete implementation**: where are the actual
+existing checkpoint files for (a) B1 PI, (b) B1 DD (trained at N=21),
+(c) B3's Sobolev/hybrid/local-integration-refinement variants --
+presumably all on Omar's Google Drive from prior Colab runs. Also still
+open: whether this next round of (no-retraining) evaluation work should
+run on Colab (as before) or be moved to the newly-set-up TU Ilmenau HPC
+account (see entry above) -- would need the relevant checkpoints
+transferred there first either way.
