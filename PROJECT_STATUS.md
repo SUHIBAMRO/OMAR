@@ -22980,14 +22980,50 @@ already exist from earlier project work, but its exact file location
 (almost certainly Google Drive, from a past Colab run, like every other
 checkpoint in this project) has NOT yet been confirmed with Omar.
 
-**STILL OPEN, blocking concrete implementation**: where are the actual
-existing checkpoint files for (a) B1 PI, (b) B1 DD (trained at N=21),
-(c) B3's Sobolev/hybrid/local-integration-refinement variants --
-presumably all on Omar's Google Drive from prior Colab runs. Also still
-open: whether this next round of (no-retraining) evaluation work should
-run on Colab (as before) or be moved to the newly-set-up TU Ilmenau HPC
-account (see entry above) -- would need the relevant checkpoints
-transferred there first either way.
+**RESOLVED, 2026-10-30**: found and content-verified the exact B1 PI
+and DD checkpoint paths directly via a live, authenticated Google Drive
+connector (read-only, confirmed connected to Omar's own
+sohaipamro111@gmail.com account) -- no guessing, each confirmed the
+same way `resolve_b1_checkpoint.py` already insists on:
+- **PI**: `pfem_run/zeroshot_B1_neo_hookean/model_best.pt` -- sha256
+  `86030f4f05ea74f83079cee6b74485b30f2c1a5acac6acd5bc7a06e3adaa88f4`,
+  an EXACT match to `resolve_b1_checkpoint.py`'s own already-trusted
+  `ZEROSHOT_B1_NEO_HOOKEAN_FINGERPRINT`. **Caught a real near-miss
+  here**: the more "obvious"-looking path `pfem_run/results/
+  B1_neo_hookean/model_best.pt` (same file size, 8,076,981 bytes) is
+  NOT this checkpoint -- its own sha256
+  (`d3308a87151392d78c16627e67ab870c66071e5fce07c5abcfb16f0721e0a148`)
+  does not match, meaning it is some OTHER B1 run entirely. This is
+  the exact class of mistake `resolve_b1_checkpoint.py` was built
+  after (a previous round silently loaded a wrong-but-plausible path
+  and got a false-alarm result that survived several GPU rounds) --
+  confirms that tool's own discipline is still necessary, not
+  historical caution that can be skipped now.
+- **DD**: `pfem_run/data_driven/B1_neo_hookean_matched/model_best.pt`
+  -- confirmed not by fingerprint (point7b_results never recorded one)
+  but by downloading and reading its own sibling result file
+  (`data_driven_B1_neo_hookean.json`, 834 bytes) directly: `
+  best_val_rel_L2: 0.130701138721779` and `best_step: 56000` match
+  point7b_results' own `data_driven_matched_optimizer` entry (0.1307,
+  step 56000) to full precision, `optimizer: "Adam + x0.9/1000 epochs,
+  matched to the physics-informed run"` matches its "matched to the PI
+  run" description, and the file even self-documents its own full
+  Drive path matching exactly where it was found. This is "the clean
+  comparison: only the loss differs" entry specifically (not the
+  separate AdamW+OneCycleLR "own_optimizer" variant, confirmed to live
+  in a plain, unsuffixed sibling folder `data_driven/B1_neo_hookean/`
+  instead -- NOT used for this comparison).
+
+Both checkpoints still need transferring from Drive to the HPC (same
+`rclone copy gdrive:pfem_run/<name> /scratch/<login>/pfem_run/<name>`
+pattern already working for B3) before
+`evaluate_B1_pi_vs_dd_fine_reference.py` can actually be run for real.
+
+Also still open: whether `solve_b1_fast_gpu` (the project's own fast
+assembled-direct GPU solver) can actually handle `fine_N=2236` in
+practice -- it has only ever been exercised up to N=1401 before this;
+N=2236 is untested at this solver's own scale and will be a genuine
+first-time test when the HPC run happens.
 
 **B3 side: BUILT and CPU-verified 2026-10-30** (confirmed via
 `.gitignore` that no checkpoint/.pt/.h5 file is or ever was tracked in
