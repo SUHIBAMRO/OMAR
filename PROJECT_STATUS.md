@@ -23164,6 +23164,56 @@ job's shell doesn't have the submission directory on `PATH`. Caught
 this exact mistake on the very first two batch submissions (3112374,
 3112375, 3112376 all failed this way) before resubmitting correctly.
 
+**Second round the same day: both correctly-submitted real jobs
+(3112377 B3, 3112392 B1) still hit real trouble.**
+
+B1 (job 3112392, `--cpu`, real `fine_N=2236`): crashed with **exit
+code 139 (SIGSEGV)** after only ~7 minutes (431.86s CPU time), before
+completing even the first `(seed, N)` row -- `solve_assembled_direct`'s
+CPU path segfaulted solving the fine reference itself, with
+`Max Memory: 28557.98 MB`. Checked `bhosts -l` on the node that ran it
+and confirmed it had **341G of memory free** at the time -- this was
+NOT a memory-exhaustion crash, so it is a real, not-yet-root-caused
+bug in the CPU sparse-solve path at this problem's actual scale
+(~10M DOF, never exercised before by this solver on CPU OR GPU).
+Omar's own explicit instruction, asked directly: **do not substitute a
+smaller `--fine_N`** -- work the problem Timon actually specified,
+don't quietly change scope. Resubmitted as-is (same `fine_N=2236`) but
+with `python -u -X faulthandler` added, so that if it segfaults again
+there is a real chance of a partial native stack trace in the log
+instead of nothing -- this is a genuine open bug to diagnose from the
+next crash's actual evidence, not yet resolved.
+
+B3 (job 3112377): ran for over 11 hours accumulating ~39,804s of real
+CPU time (i.e. ~100% of one core, continuously) with
+`NTHREAD: 18` but only **1.7GB memory used throughout** -- suspiciously
+low for a 950,400-element mesh computation, and an LSF external message
+read `makalu81:gpus=0`, suggesting the job may never have actually had
+its requested GPU. The job's own `stdout` log file was still **0 bytes**
+after 11 hours (Python fully block-buffers stdout when it isn't a
+terminal, so nothing had been flushed to disk yet) -- meaning there was
+no way to tell from the log whether this was genuine (if slow) progress
+or a silent hang. The on-disk fine-reference cache
+(`b3_rabczuk_reeval_v2.json.fine_950400.cache.pt`, 195,948,509 bytes)
+had a last-modified timestamp of 13:58, ~25 minutes after the job
+started at 13:41 -- consistent with the 10-sample 950,400-element
+reference having finished solving around then, but NO further progress
+(no main output JSON ever appeared) in the following ~10.5 hours, which
+is far longer than any single checkpoint evaluation should plausibly
+take. Killed (`bkill 3112377`) rather than let it run indefinitely with
+no visibility, and resubmitted (job 3112485) with `python -u` added --
+the already-solved fine-reference cache is intact on disk and will be
+reused instantly (per the resumability fix), so nothing already-genuinely-
+done is lost by the restart; only whatever the stalled/stuck ~10.5
+hours were spent on (unclear what, exactly, given zero log output) is
+discarded.
+
+**Current state, both resubmitted with real-time log output this
+time**: Job 3112485 (B3) and Job 3112486 (B1), both with `-u -X
+faulthandler`. This round should finally give either real completed
+results or an actual, diagnosable error/stack-trace -- neither of
+which existed from the previous attempts.
+
 **B3 side: BUILT and CPU-verified 2026-10-30** (confirmed via
 `.gitignore` that no checkpoint/.pt/.h5 file is or ever was tracked in
 GitHub -- Omar's "they should be in Drive and GitHub" only holds for
