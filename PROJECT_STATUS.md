@@ -23117,6 +23117,53 @@ own exact training resolution. Not yet the real answer (that needs the
 actual `fine_N=2236` batch run to finish), but a first concrete,
 real-checkpoint data point in the right direction.
 
+**Follow-up, same day: the `nvmath-python`/cuDSS GPU path for B1 does
+not actually work on this cluster, root cause confirmed, resolved by
+dropping to CPU for B1 rather than chasing it further.** First
+submission of the real B1 batch job (3112378) failed with a NEW error
+one level deeper than the earlier missing-package one:
+`matrix_create_csr() takes exactly 13 positional arguments (12 given)`,
+deep inside `torch_sla`'s own `nvmath_backend.py` calling into
+`nvmath-python`'s cuDSS binding. Confirmed by checking installed
+versions (`torch-sla==0.4.0` -- already the latest release available;
+`nvmath-python==1.0.0` -- also latest) that this is a real API
+mismatch: `torch_sla`'s latest release predates `nvmath-python`'s 1.0.0
+release, which changed the cuDSS binding's call signature. Tried
+downgrading to `nvmath-python==0.9.0` (the release just before 1.0.0)
+as the obvious fix -- this instead surfaced the SAME underlying tension
+as the original `torch`-breaking incident: `nvmath-python` (any
+version tried) pulls in a `cuda-bindings`/`cuda-toolkit` 12.x stack,
+while this environment's `torch==2.15.0+cu132` needs `cuda-toolkit==
+13.2.2` -- a real, structural CUDA-generation mismatch between
+`nvmath-python`'s own cuDSS packaging and this project's CUDA-13 torch
+build, not something fixable by picking a different `nvmath-python`
+version. (`torch` itself was NOT broken by this second attempt,
+unlike the first one -- confirmed immediately after, still
+`2.15.0+cu132`/`cuda_available=True`.)
+
+**Decision (Omar's own call, given the repeated fragility): stop
+chasing this GPU-only dependency chain and run B1's fine-mesh solve on
+CPU instead**, via `evaluate_B1_pi_vs_dd_fine_reference.py`'s existing
+`--cpu` flag -- `solve_assembled_direct`'s CPU path needs no `cuDSS`/
+`nvmath-python` at all (already proven working, including for the real
+checkpoints' own small-scale CPU result above) and the LSF batch
+queue's 7-day run limit easily accommodates the slower CPU solve time
+at `fine_N=2236`, whatever it turns out to be. Resubmitted as Job
+3112392 (`b1_job.sh` rewritten with `--cpu` added). **This means B1's
+real run is now a genuine first-time test of `solve_assembled_direct`'s
+CPU path at `fine_N=2236` (~10M DOF) -- never attempted at this scale
+before either, GPU or CPU.** If this also proves too slow in practice,
+the next fallback would be a smaller (but still far finer than N=21)
+`--fine_N`, e.g. 701 or 1401, documented honestly as a substitution if
+it comes to that -- not yet needed as of this entry.
+
+**Batch-submission gotcha, worth remembering**: `batch.1gpu <script>`
+needs `./<script>` (or a full path) -- a bare relative filename with no
+`./` fails inside the job with `<script>: command not found`, since the
+job's shell doesn't have the submission directory on `PATH`. Caught
+this exact mistake on the very first two batch submissions (3112374,
+3112375, 3112376 all failed this way) before resubmitting correctly.
+
 **B3 side: BUILT and CPU-verified 2026-10-30** (confirmed via
 `.gitignore` that no checkpoint/.pt/.h5 file is or ever was tracked in
 GitHub -- Omar's "they should be in Drive and GitHub" only holds for
