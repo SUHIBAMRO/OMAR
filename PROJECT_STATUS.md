@@ -23025,6 +23025,98 @@ practice -- it has only ever been exercised up to N=1401 before this;
 N=2236 is untested at this solver's own scale and will be a genuine
 first-time test when the HPC run happens.
 
+## 2026-10-30/31: a real ~10h HPC run was lost outright, the root
+## cause was fixed (resumability, not just a retry), and the correct
+## way to run long jobs on this cluster (LSF batch queue, not an
+## interactive session) was found
+
+**What happened**: `run_b3_rabczuk_reeval_v2_local.py` was launched
+interactively (via `tmux`, on the `makalu86` GPU node) and ran for
+over 10 hours (638+ minutes of real CPU time confirmed via `ps`
+mid-run) -- then the ENTIRE `tmux` server on that node vanished
+("no server running on /tmp/tmux-31695/default"), taking the running
+Python process with it and leaving NO output file and NO trace in
+`ps` afterward. Likely cause: `makalu86` is an interactive node, and
+interactive HPC nodes typically enforce a session time limit that
+kills everything on the node once hit, tmux included -- this is not
+something `tmux` itself can protect against, since tmux only survives
+a dropped *connection*, not the underlying session/node being
+reclaimed. All ~10 hours of real GPU-adjacent compute were lost with
+nothing to show for it, because the script only wrote its JSON output
+once, at the very end.
+
+**Real fix, not a workaround**: made every expensive step in both the
+B3 and B1 re-evaluation scripts resumable at fine granularity --
+`generate_fine_reference` now takes a `cache_path` and saves each
+solved sample to disk (atomic `os.replace`) immediately after its own
+FEM solve, `run_b3_rabczuk_reeval_v2_local.py` saves its output JSON
+after every checkpoint evaluation (not just at the end), and
+`evaluate_B1_pi_vs_dd_fine_reference.py`'s `compare_pi_dd_against_
+fine_reference` saves after every `(seed, N)` row and skips a seed's
+own expensive fine-mesh solve entirely once every resolution for that
+seed is already recorded. Re-running the exact same command after any
+future interruption now picks up from wherever it left off -- at most
+one in-progress FEM solve or checkpoint evaluation is ever lost again,
+not an entire multi-hour run. Verified for real on CPU: a genuine first
+solve (157.65s) followed by a second call that resumed from the cache
+in 0.37s with bit-identical results; the existing CPU smoke tests for
+both scripts still pass unchanged with their default (no
+cache/resume-path given) behavior. Committed (`337e46e`).
+
+**The actual right way to run long jobs on this cluster, found by
+reading `batch.1gpu`'s own source** (`head -80 $(which batch.1gpu)`,
+at Omar's own insistence on finding "the real way", not another
+workaround): it is a thin wrapper around IBM Spectrum LSF's `bsub`:
+```
+bsub -gpu "num=1:mode=exclusive_process:gmem=24G" -q BatchGPU \
+     -R "a100 span[hosts=1]" -n 6 -oo lsf_%J_gpu.log -eo lsf_%J_gpu.err \
+     -L /bin/bash -J 1GPU_Job_parallel "$@"
+```
+i.e. `batch.1gpu <script>` submits `<script>` to the real LSF batch
+queue with an EXCLUSIVE GPU (not shared with other users' jobs, unlike
+every interactive-node GPU used so far this project), no session time
+limit, and output captured to `lsf_<jobid>_gpu.log`/`.err`. Monitor
+with `bjobs`, cancel with `bkill <jobid>`. Both the B3 and B1
+re-evaluation jobs were submitted this way (`~/batch_jobs/b3_job.sh`,
+`b1_job.sh`, each just `conda activate omar` + `cd` + the same resumable
+python commands already in this file) -- **Job 3112375 (B3) and Job
+3112376 (B1), both PEND in the BatchGPU queue as of this entry.** This
+should be the standing way every real GPU run on this cluster is
+launched from now on, not an interactive `tmux` session -- the
+interactive nodes are for short, hands-on debugging/testing only.
+
+**Separately, today's HPC environment also needed real fixing**:
+installing `torch_sla` (for `assembled_direct_solver`) then
+`nvmath-python[cu12]` (for its cuDSS GPU sparse-solve backend, needed
+by `solve_b1_fast_gpu` at B1's problem sizes) pulled in a conflicting
+older `torch==2.0.1`, breaking the whole shared `omar` conda
+environment (including the then-still-running B3 job, though that
+process itself was unaffected since Linux keeps a running process's
+already-loaded `.so` files alive via their open file descriptors even
+after the files on disk are overwritten) -- fixed by `pip install
+--force-reinstall torch` (full reinstall WITH its own dependencies,
+not `--no-deps`, which an intermediate attempt used and made things
+worse: `undefined symbol: ncclCommResume`, an NCCL/torch ABI mismatch).
+Restored to `torch 2.15.0+cu132`, `cuda_available=True`, confirmed
+working again. A benign-looking residual pip warning remains
+(`nvidia-cudss-cu12 0.8.0.10 requires cuda-toolkit[cublas]==12.*, but
+you have cuda-toolkit 13.2.2`) -- not yet confirmed whether this
+actually breaks the cuDSS backend at runtime or is just a harmless
+metadata mismatch; the real B1 batch job (3112376) running the actual
+GPU cuDSS path at real `fine_N=2236` scale will be the genuine test of
+this, not yet known at the time of this entry.
+
+**A real, useful intermediate result landed along the way** (CPU, via
+`evaluate_B1_pi_vs_dd_fine_reference.py`, small scale N=13 vs
+fine_N=101, 1 seed, REAL checkpoints with fingerprint-confirmed
+identity): FEM(N=13)-vs-fine L2=0.43%, **PI-vs-fine L2=6.69%,
+DD-vs-fine L2=16.91%** -- PI clearly more accurate than DD at this
+tiny, CPU-only smoke scale, consistent with physics-informed training
+generalizing better than supervised data-driven training outside its
+own exact training resolution. Not yet the real answer (that needs the
+actual `fine_N=2236` batch run to finish), but a first concrete,
+real-checkpoint data point in the right direction.
+
 **B3 side: BUILT and CPU-verified 2026-10-30** (confirmed via
 `.gitignore` that no checkpoint/.pt/.h5 file is or ever was tracked in
 GitHub -- Omar's "they should be in Drive and GitHub" only holds for
