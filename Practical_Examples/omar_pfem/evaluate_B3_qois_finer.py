@@ -99,6 +99,7 @@ B3_FineReference_Reevaluation.ipynb for the full worked example):
 """
 import argparse
 import json
+import os
 
 import h5py
 import numpy as np
@@ -154,7 +155,7 @@ def interpolate_node_field_to_finer_mesh(field_coarse, Ntheta_c, Nr_c, Nz_c,
 
 
 def generate_fine_reference(dataset_path, fine_resolution, n_samples, device, dtype=torch.float64,
-                             verbose=True):
+                             verbose=True, cache_path=None):
     """THE EXPENSIVE STEP, done ONCE regardless of how many checkpoints
     will be evaluated against it: interpolates each of the first
     n_samples held-out samples' E/nu fields onto the fine mesh and
@@ -162,7 +163,17 @@ def generate_fine_reference(dataset_path, fine_resolution, n_samples, device, dt
     geometry (built once), the region mask, and a list of per-sample
     reference dicts (E_f_t, nu_f_t, phi_t, u_true_f, plus the FEM
     solve's own diagnostics) -- everything a cheap per-checkpoint
-    evaluation needs, with no further FEM solving."""
+    evaluation needs, with no further FEM solving.
+
+    cache_path (added 2026-10-31, after a real ~10h run was lost to an
+    interactive-node session time limit with no partial results saved
+    anywhere): when given, each solved sample is written to this file
+    (torch.save of the full samples-so-far list) IMMEDIATELY after its
+    own FEM solve finishes, and any already-cached samples found at
+    this path when the function starts are loaded and skipped instead
+    of re-solved. Makes this function resumable across an interruption
+    at ANY point -- at most one in-progress sample's work is ever lost,
+    not the whole reference."""
     Ntheta_c, Nr_c, Nz_c = DEFAULT_RESOLUTION
     Ntheta_f, Nr_f, Nz_f = fine_resolution
     n_elem_f = (Ntheta_f - 1) * (Nr_f - 1) * (Nz_f - 1)
@@ -194,7 +205,20 @@ def generate_fine_reference(dataset_path, fine_resolution, n_samples, device, dt
     region_mask_fine_torch = torch.tensor(region_mask_fine_np, device=device)
 
     samples = []
+    done_indices = set()
+    if cache_path and os.path.exists(cache_path):
+        cached = torch.load(cache_path, map_location=device, weights_only=False)
+        if cached.get("fine_resolution") == [Ntheta_f, Nr_f, Nz_f]:
+            samples = cached["samples"]
+            done_indices = {s["sample_index"] for s in samples}
+            if verbose:
+                print(f"  resuming from {cache_path}: {len(done_indices)} sample(s) already solved, skipping them")
+        elif verbose:
+            print(f"  {cache_path} exists but is for a different fine_resolution -- ignoring, starting fresh")
+
     for idx in range(n_samples):
+        if idx in done_indices:
+            continue
         E_c = E_node_all[idx].astype(np.float64)
         nu_c = nu_node_all[idx].astype(np.float64)
         phi = float(phi_all[idx])
@@ -214,9 +238,14 @@ def generate_fine_reference(dataset_path, fine_resolution, n_samples, device, dt
             "E_f_t": E_f_t, "nu_f_t": nu_f_t, "phi_t": phi_t, "u_true_f": u_true_f,
             "force_rel_residual": r["force_rel_residual"], "elapsed_s": r["elapsed_s"],
         })
+        samples.sort(key=lambda s: s["sample_index"])
         if verbose:
             print(f"  [{idx + 1}/{n_samples}] fine solve elapsed_s={r['elapsed_s']:.2f}s "
                   f"force_rel_residual={r['force_rel_residual']:.2e}")
+        if cache_path:
+            tmp_path = cache_path + ".tmp"
+            torch.save({"fine_resolution": [Ntheta_f, Nr_f, Nz_f], "samples": samples}, tmp_path)
+            os.replace(tmp_path, cache_path)  # atomic -- a crash mid-write never corrupts the cache
 
     return {"geom_fine": geom_fine, "region_mask_fine_torch": region_mask_fine_torch,
             "fine_resolution": [Ntheta_f, Nr_f, Nz_f], "coarse_resolution": [Ntheta_c, Nr_c, Nz_c],

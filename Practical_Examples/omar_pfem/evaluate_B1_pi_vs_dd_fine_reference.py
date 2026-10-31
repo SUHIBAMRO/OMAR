@@ -119,7 +119,7 @@ def compare_pi_dd_against_fine_reference(pi_model, dd_model, resolutions, fine_N
                                           region_radius=0.15, use_soft_dirichlet=1,
                                           mode="plane_strain", fun_dim=4,
                                           pi_fingerprint=None, dd_fingerprint=None,
-                                          dtype=torch.float32, verbose=True):
+                                          dtype=torch.float32, verbose=True, out_json=None):
     """THE SHARED-REFERENCE VERSION of no_accuracy_at_n1401.
     run_qoi_study_consistent_field_b1: for each seed, solves the fine
     (N=fine_N) and coarse (each N in resolutions) FEM references ONCE
@@ -128,10 +128,40 @@ def compare_pi_dd_against_fine_reference(pi_model, dd_model, resolutions, fine_N
     the DD model against that SAME shared fine reference and SAME
     coarse FEM solution -- avoiding the cost of re-solving the
     expensive fine_N reference twice (once per model) the way calling
-    the per-model function separately would."""
+    the per-model function separately would.
+
+    out_json (added 2026-10-31, after a real ~10h HPC run was lost with
+    nothing saved when an interactive node's session time limit killed
+    it): when given, writes rows to this file IMMEDIATELY after each
+    (seed, N) finishes, and skips any (seed, N) already present there
+    on a re-run -- if every N for a seed is already done, that seed's
+    own expensive fine_N solve is skipped entirely too."""
     geom_kwargs = {"Lx": Lx, "Ly": Ly}
     rows = []
+    done_keys = set()
+    if out_json and os.path.exists(out_json):
+        with open(out_json) as f:
+            prev = json.load(f)
+        rows = prev.get("rows", [])
+        done_keys = {(r["seed"], r["N"]) for r in rows}
+        if verbose:
+            print(f"Resuming from {out_json}: {len(rows)} row(s) already done.")
+
+    def _save():
+        if not out_json:
+            return
+        tmp = out_json + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump({"material": material, "fine_N": fine_N, "resolutions": resolutions, "seeds": seeds,
+                       "pi_fingerprint": pi_fingerprint, "dd_fingerprint": dd_fingerprint, "rows": rows},
+                      f, indent=2)
+        os.replace(tmp, out_json)  # atomic -- a crash mid-write never corrupts the real output
+
     for seed in seeds:
+        if all((seed, N) in done_keys for N in resolutions):
+            if verbose:
+                print(f"[skip seed={seed}, all resolutions already done]")
+            continue
         if verbose:
             print(f"\n{'=' * 90}\n=== seed={seed} ===")
         t0 = time.time()
@@ -168,6 +198,10 @@ def compare_pi_dd_against_fine_reference(pi_model, dd_model, resolutions, fine_N
             }
 
         for N in resolutions:
+            if (seed, N) in done_keys:
+                if verbose:
+                    print(f"  [skip N={N}, already done]")
+                continue
             if verbose:
                 print(f"  --- N={N} ---")
             t1 = time.time()
@@ -197,6 +231,7 @@ def compare_pi_dd_against_fine_reference(pi_model, dd_model, resolutions, fine_N
 
             rows.append({"seed": seed, "N": N, "fine_N": fine_N,
                          "fem_vs_fine": fem_score, "pi_vs_fine": pi_score, "dd_vs_fine": dd_score})
+            _save()
 
     return {"material": material, "fine_N": fine_N, "resolutions": resolutions, "seeds": seeds,
             "pi_fingerprint": pi_fingerprint, "dd_fingerprint": dd_fingerprint, "rows": rows}
@@ -230,11 +265,9 @@ def main():
     seeds = list(range(args.seed_offset, args.seed_offset + args.n_seeds))
     result = compare_pi_dd_against_fine_reference(
         pi_model, dd_model, args.resolutions, args.fine_N, seeds, device,
-        material=args.material, pi_fingerprint=pi_fp, dd_fingerprint=dd_fp)
+        material=args.material, pi_fingerprint=pi_fp, dd_fingerprint=dd_fp, out_json=args.out_json)
 
-    with open(args.out_json, "w") as f:
-        json.dump(result, f, indent=2)
-    print(f"\nWritten to {args.out_json}")
+    print(f"\nResults in {args.out_json} (already saved incrementally after every row)")
 
     print(f"\n{'=' * 90}\n=== SUMMARY (mean over {len(seeds)} seeds, per N) ===")
     for N in args.resolutions:
