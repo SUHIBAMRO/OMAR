@@ -168,8 +168,19 @@ def compare_pi_dd_against_fine_reference(pi_model, dd_model, resolutions, fine_N
         sample_fine, (E_fn, nu_fn, ty_fn) = build_sample_b1(
             fine_N, seed=seed, material=material, Lx=Lx, Ly=Ly, solve_fem=False)
         field_fns = {"E": E_fn, "nu": nu_fn, "ty": ty_fn}
+        # fine_N=2236 (~10M DOF) segfaults scipy's default direct solver
+        # ('lu', i.e. SuperLU via spsolve) with "Not enough memory to
+        # perform factorization" regardless of how much memory the job
+        # is actually given (confirmed via bhosts -l/bqueues -l/ulimit --
+        # see assembled_direct_solver.solve_assembled_direct's own
+        # linear_method docstring) -- an iterative Krylov method solves
+        # the SAME linear system each Newton iteration without needing a
+        # factorization's fill-in memory. Only applies on the CPU/scipy
+        # backend; cuDSS (CUDA) does not support 'gmres'.
+        fine_solve_kwargs = {"linear_method": "gmres"} if device.type == "cpu" else {}
         u_fine_flat, nodes_fine, elems_fine, _ = solve_b1_fast_gpu(
-            fine_N, seed, material, device, torch.float64, Lx=Lx, Ly=Ly, nsteps=10)
+            fine_N, seed, material, device, torch.float64, Lx=Lx, Ly=Ly, nsteps=10,
+            **fine_solve_kwargs)
         fine = {"nodes": nodes_fine, "elements": elems_fine,
                 "u": u_fine_flat.reshape(-1, 2), "N": fine_N}
         if verbose:

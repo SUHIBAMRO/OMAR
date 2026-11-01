@@ -384,7 +384,7 @@ def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_
 
 def solve_assembled_direct(nodes, elements, free_dofs, fext_full, *mat_params, dtype=torch.float64,
                             tol=1e-8, material="neo_hookean", order="Q4", device=None,
-                            linear_solver=None, max_iter=30, reuse_analysis=False,
+                            linear_solver=None, linear_method="lu", max_iter=30, reuse_analysis=False,
                             return_stats=False, symmetric_bc=False, matrix_type="general",
                             u0_init=None):
     """Newton + a real direct solver (cuDSS on CUDA, matching Timon's own
@@ -453,7 +453,30 @@ def solve_assembled_direct(nodes, elements, free_dofs, fext_full, *mat_params, d
     non-convergence at N=1401 on a problem large enough to need it (relative
     residual 2.612e-03, unchanged by tightening tol/max_iter alone -- see
     PROJECT_STATUS.md) even though the same single-shot solve was verified
-    exact at N=11/N=21."""
+    exact at N=11/N=21.
+
+    linear_method="lu" (default, unchanged -- only meaningful on the
+    non-reuse_analysis CPU/"auto" backend path; the CUDA "cudss" backend
+    always does a real direct sparse solve regardless of this argument):
+    forwarded to torch_sla's own A.nonlinear_solve/scipy backend, which
+    documents 'lu' (SciPy's SuperLU, via scipy.sparse.linalg.spsolve) as
+    the default direct method, plus iterative alternatives ('cg',
+    'bicgstab', 'gmres', 'lgmres', 'minres', 'qmr'). Added 2026-11-01
+    after a REAL, reproducible crash at B1's fine_N=2236 (~10M DOF) on
+    CPU: 'lu' segfaults (exit 139) inside scipy's own spsolve/SuperLU
+    with "Not enough memory to perform factorization", at the SAME ~20GB
+    usage point regardless of how much memory the job is actually given
+    (confirmed via bhosts -l: 242G/492G free on the nodes that crashed,
+    bqueues -l: a 732GB queue MEMLIMIT, `ulimit -a`: unlimited virtual
+    memory -- ruling out an actual resource ceiling as the cause; this is
+    a real limitation of SciPy's bundled SuperLU build at this matrix
+    size, not something more RAM can fix). 'gmres' solves the IDENTICAL
+    linear system each Newton iteration via a different (iterative,
+    Krylov-subspace) algorithm that needs only a handful of n_dof-sized
+    vectors instead of a factored matrix's fill-in -- same mesh, same
+    fine_N, same material, same tolerance; only the internal numerical
+    method changes. Not yet exercised at N=2236 before this fix -- verify
+    on a real run before trusting it unconditionally at that scale."""
     from omar_pfem.matrix_free_solver import element_energy_order_agnostic, precompute_shape_data
     from omar_pfem.materials_torch import get_material_fns as get_material_fns_torch
 
@@ -521,7 +544,7 @@ def solve_assembled_direct(nodes, elements, free_dofs, fext_full, *mat_params, d
         A = SparseTensor(torch.ones(n_dof, dtype=dtype, device=device), ident, ident,
                           (n_dof, n_dof))
         u = A.nonlinear_solve(residual, u0, f_ext_flat, jac_fn=jac_fn, method="newton",
-                               verbose=False, max_iter=max_iter, tol=tol, linear_method="lu",
+                               verbose=False, max_iter=max_iter, tol=tol, linear_method=linear_method,
                                linear_solver=linear_solver)
 
     u_np = u.reshape(n_nodes, 2).detach().cpu().numpy()

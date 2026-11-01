@@ -23385,3 +23385,70 @@ reveals a genuinely different error, its result -- and 3112485's, once
 it finishes -- are what will go into
 `summarize_rabczuk_reeval_results.py` for the final numbers to send
 Prof. Rabczuk.
+
+## 2026-11-01 (same day, later): the real cause was a scipy/SuperLU
+## limitation, NOT a resource shortage -- fixed with an iterative solver,
+## same N=2236, same problem, no scope change
+
+Job 3112561 (the 200GB-memory-reservation retry) crashed with the
+IDENTICAL stack trace, same crash site, and almost the same Max Memory
+(~20.6GB) as every previous attempt -- despite genuinely having 200GB
+reserved. That similarity across three different nodes with three very
+different amounts of free memory (341G, 242G, 492G) was the tell that
+this was never actually a memory-availability problem.
+
+Checked thoroughly, exactly as Omar asked ("تفحص كلشي للوقت والذاكره"),
+before concluding anything:
+- `ulimit -a` on the login/job shell: virtual memory and max memory size
+  both **unlimited**.
+- `bqueues -l BatchGPU`: queue-level `MEMLIMIT` is **768,000,000 K
+  (~732GB)** -- far above anything this job ever used.
+- `bhosts -l` on the exact node that ran the crashing job (makalu91):
+  **492G free** at the time.
+
+Conclusion: there is no memory ceiling anywhere in this picture. The
+crash is a real limitation of SciPy's bundled SuperLU (the direct
+sparse solver behind `scipy.sparse.linalg.spsolve`, used via
+`torch_sla`'s `linear_method="lu"`) at this matrix size (~10M DOF) --
+it hard-crashes instead of raising a clean Python exception when its
+internal factorization can't proceed, independent of how much memory
+the surrounding job is actually given.
+
+Asked Omar directly whether to change the *internal solving method*
+(explicitly NOT the mesh, NOT fine_N, NOT the problem) now that a pure
+resource fix was proven impossible -- he agreed ("طب حلها!").
+
+**Fix, in `assembled_direct_solver.py`'s `solve_assembled_direct`**:
+added a new `linear_method="lu"` parameter (default unchanged, so
+EVERY existing caller/result in this project is bit-for-bit
+unaffected) and threaded it through to `torch_sla`'s own
+`A.nonlinear_solve(..., linear_method=linear_method, ...)` call instead
+of the previous hardcoded `"lu"`. In
+`evaluate_B1_pi_vs_dd_fine_reference.py`, the fine-reference
+(`fine_N=2236`) solve specifically now passes `linear_method="gmres"`
+when running on CPU (an iterative Krylov solver that needs only a
+handful of n_dof-sized vectors per iteration, no factorization fill-in
+at all) -- the coarse-mesh solves (N=13/29/49) are untouched and still
+use the default direct `"lu"` path, since those never had a problem.
+cuDSS (the CUDA backend) does not support `"gmres"`, so this only
+activates on the `--cpu` path already in use for B1.
+
+**Verified for correctness before trusting it** (not assumed): ran
+both `linear_method="lu"` and `linear_method="gmres"` on the SAME
+moderate-size real B1 problem (N=81, 13,122 DOF, Neo-Hookean, real
+`ParametricFieldB1` fields) -- relative difference between the two
+solutions: **5.4e-9**, i.e. identical to numerical precision. `gmres`
+was about 8.5x slower at this small size (41.7s vs 4.9s), which is
+expected and irrelevant next to the alternative of not finishing at
+all.
+
+Not yet verified: how `gmres` actually performs (wall-clock time,
+convergence) at the real `fine_N=2236` scale, inside the 10-load-step
+Newton loop the fine reference solve uses -- this is genuinely new
+ground, being tried for real next. If it turns out too slow or fails to
+converge at that scale, the next things to try (in order) are
+`"bicgstab"` (same memory profile, often faster per-iteration than
+GMRES on non-symmetric systems) and an incomplete-LU preconditioner
+(`scipy_ilu`, already present in `torch_sla`'s scipy backend) to speed
+GMRES/BiCGStab's convergence -- neither changes fine_N or the problem
+either.
