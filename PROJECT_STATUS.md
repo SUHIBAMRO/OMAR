@@ -23304,3 +23304,84 @@ session/next step on this: confirm the exact Drive paths via
 `resolve_b1_checkpoint.py`'s own fingerprint check, then build and
 CPU-smoke-test an analogous `evaluate_B1_qois_finer.py` before touching
 any real GPU time.
+
+(Note: the three paragraphs above, down to "any real GPU time", are
+stale -- left in place rather than rewritten, since by the time they
+were written the B1 tooling described as "NOT yet built" had already
+been built, checkpoint-fingerprint-verified, and run for real on the
+HPC multiple times, as the next entries below -- which were appended
+chronologically AFTER this one despite sitting earlier in the file --
+make clear.)
+
+## 2026-11-01: B1's real root cause found -- it's a memory LIMIT, not a mystery bug
+
+Third round. Jobs 3112485 (B3) and 3112486 (B1) were resubmitted with
+`python -u -X faulthandler` (see above). Outcome:
+
+**B3 (job 3112485): genuinely running, real-time log confirmed.**
+Went RUN on `makalu95` (H100 NVL) after the queue cleared. Live log
+output (thanks to `-u`) shows it correctly resuming the 950,400-element
+fine reference from the on-disk cache (5 of 10 samples already solved
+from the killed previous attempt, skipped) and solving the rest --
+genuine visible progress this time, unlike the previous silent 11-hour
+stall. Still running as of this entry.
+
+**B1 (job 3112486): crashed again (exit 139, SIGSEGV), but this time
+with a real, actionable diagnosis.** The `-X faulthandler` native stack
+trace pinpointed the exact crash site:
+```
+scipy/sparse/linalg/_dsolve/linsolve.py:286 in spsolve
+  <- torch_sla/backends/scipy_backend.py:146 in scipy_solve
+  <- torch_sla/linear_solve.py (forward / spsolve)
+  <- torch_sla/sparse_tensor/{autograd,linalg,core}.py (nonlinear_solve)
+  <- assembled_direct_solver.py:523 in solve_assembled_direct
+  <- no_ground_truth_fast.py:139 in solve_b1_fast_gpu
+  <- evaluate_B1_pi_vs_dd_fine_reference.py (compare_pi_dd_against_fine_reference, main)
+```
+and the job's own stdout printed, right before the crash: **"Not enough
+memory to perform factorization."** -- this is SuperLU's own internal
+message (via scipy's `spsolve`), not something this project's code
+emits. SuperLU hard-crashes (rather than raising a clean Python
+exception) when it fails to allocate memory mid-factorization. LSF's
+own job summary showed `Max Memory: 20786.03 MB` at the moment of
+death -- i.e. the direct sparse LU factorization of the real
+`fine_N=2236` system (~10M DOF) needs more than ~20GB, and the job
+never got more than that.
+
+**Checked `bhosts -l` on the node that actually ran it (makalu82):
+242G of memory was free at the time of checking.** So this was never a
+true memory-exhaustion-on-the-cluster problem -- it's that the
+submission command used so far (`batch.1gpu <script>`, a wrapper around
+`bsub -gpu "num=1:mode=exclusive_process:gmem=24G" -q BatchGPU -R "a100
+span[hosts=1]" -n 6 ...`) never requests a memory reservation
+(`rusage[mem=...]`), so LSF was applying some much smaller default
+limit well below what the node actually has free. This fully explains
+both this crash and the earlier, seemingly-identical SIGSEGV from job
+3112392 (which hit the same ~20-28GB ceiling) -- **it was never a bug
+in `solve_assembled_direct`'s CPU path itself**, it was always a
+cluster resource-request gap. No code change needed, and `fine_N=2236`
+remains completely unchanged, per Omar's explicit instruction.
+
+**Fix:** submitted a new job (**3112561**) with `bsub` called directly
+(not through the `batch.1gpu` wrapper, which hardcodes its flags and
+leaves no room to add more), using the identical flags `batch.1gpu`
+itself uses plus an explicit `rusage[mem=200000]` (200GB) added to the
+`-R` string:
+```
+bsub -gpu "num=1:mode=exclusive_process:gmem=24G" -q BatchGPU \
+     -R "a100 span[hosts=1] rusage[mem=200000]" -n 6 \
+     -oo lsf_%J_gpu.log -eo lsf_%J_gpu.err -L /bin/bash \
+     -J 1GPU_Job_parallel ./b1_job.sh
+```
+PEND as of this entry, waiting for a slot. Nothing was lost by the
+restart: the crash happened during the very first seed's fine-reference
+solve, before any `(seed, N)` row had been saved, so there was no
+partial progress to resume from in the first place.
+
+**Current state:** Job 3112485 (B3) RUN on makalu95, progressing with
+visible real-time log output. Job 3112561 (B1, with the 200GB memory
+fix) PEND, waiting for a GPU slot. Once 3112561 either completes or
+reveals a genuinely different error, its result -- and 3112485's, once
+it finishes -- are what will go into
+`summarize_rabczuk_reeval_results.py` for the final numbers to send
+Prof. Rabczuk.
