@@ -23452,3 +23452,92 @@ GMRES on non-symmetric systems) and an incomplete-LU preconditioner
 (`scipy_ilu`, already present in `torch_sla`'s scipy backend) to speed
 GMRES/BiCGStab's convergence -- neither changes fine_N or the problem
 either.
+
+## 2026-11-02: `gmres` confirmed impractically slow for real -- switched
+## to `linear_method="pardiso"` (Intel MKL PARDISO), a genuinely BETTER
+## direct solver, not an iterative workaround
+
+Job 3112604 (the GMRES fix) ran for real on the HPC: no crash (the fix
+worked as intended -- memory stayed flat around 20-28GB, the same
+range that used to segfault the "lu" path, confirming the diagnosis),
+but after **16.5+ hours** it had not finished even the FIRST of 10
+load-steps for seed=0's fine reference (CPU time climbing the whole
+time, confirmed via repeated `bjobs -l`, so genuinely computing, just
+far too slowly). Measured real local scaling (N=81: 48.3s, N=151:
+334.1s -- empirical exponent ~1.55) extrapolates to roughly **two
+weeks** for a single full-load GMRES solve at the real `fine_N=2236`
+(~10M DOF) scale -- confirming this path, while correct and crash-free,
+is not practically usable.
+
+Rather than tune GMRES further (preconditioning, looser inexact-Newton
+tolerances -- both considered, both add real complexity/regression
+risk), tried a genuinely better DIRECT solver instead: **Intel MKL
+PARDISO**, via the `pypardiso` package. This keeps Omar's original,
+strongly-preferred approach (a real direct/exact solve, not an
+iterative approximation) -- it is simply a more capable, more robust
+implementation than scipy's bundled SuperLU, built for exactly this
+problem scale, without SuperLU's crash bug.
+
+**Implementation** (`assembled_direct_solver.py`): `torch_sla`'s own
+`spsolve` dispatcher validates `method` against a fixed per-backend
+whitelist that has no PARDISO entry, and raises before reaching any
+backend code for an unlisted method -- there is no supported way to add
+a method without either patching torch_sla's own installed files (not
+ours to modify, and would not survive a fresh conda env) or
+intercepting the dispatcher itself. Traced the REAL call path for
+`A.nonlinear_solve` by reading the actual traceback (not assumed): it
+goes through `torch_sla.sparse_tensor.{core,linalg,autograd}`, whose
+`forward`/`backward` do a LOCAL `from ..linear_solve import spsolve`
+INSIDE the function body, re-resolved from `torch_sla.linear_solve`'s
+own module namespace on every call. Monkey-patching the `spsolve`
+attribute on `torch_sla.linear_solve` itself (the actual source module,
+not some other module's already-bound copy of the name, which an
+earlier attempt wrongly targeted) intercepts every linear solve inside
+Newton's loop; the patch only handles `method=="pardiso"` itself, and
+forwards every other method byte-for-byte to the original function, so
+the "lu"/"gmres" paths used everywhere else (including B1's own
+coarse-mesh solves, left untouched) are completely unaffected.
+
+**A real, non-obvious packaging snag, caught and fixed before trusting
+any timing number**: `pip install pypardiso` succeeded, but
+`import pypardiso` failed with `"Shared library mkl_rt not found"` --
+the `mkl` pip package lays down a VERSIONED shared library
+(`libmkl_rt.so.<N>`, confirmed by direct inspection: this sandbox's
+install put it at `{prefix}/lib/libmkl_rt.so.3`, no unversioned
+symlink), while pypardiso's own ctypes loader looks for the unversioned
+name by default. Fixed by auto-discovering the real library path
+(checking `$CONDA_PREFIX`, `sys.prefix`, `sys.exec_prefix`, `/usr/local`,
+`/usr`, each `lib/` and `lib64/`) and setting pypardiso's own documented
+`PYPARDISO_MKL_RT` env var before import -- done automatically in
+`assembled_direct_solver.py` itself, so Omar/the HPC only ever needs a
+plain `pip install pypardiso mkl` on the login node, no manual
+environment configuration, and this works whether the install lands
+under a conda env (the real HPC case) or any other layout.
+
+**Verified for correctness AND speed before trusting it** (not
+assumed): re-ran the same real B1 problem (Neo-Hookean,
+`ParametricFieldB1`) at N=81/151/221 comparing `"lu"` against
+`"pardiso"`:
+
+| N | ndof | lu | pardiso | relative difference |
+|---|---|---|---|---|
+| 81 | 13,122 | 1.35s | 0.60s | 2.94e-16 |
+| 151 | 45,602 | 4.11s | 1.38s | 5.02e-16 |
+| 221 | 97,682 | 12.58s | 4.06s | 2.53e-16 |
+
+PARDISO is **2-3x FASTER than SuperLU at every size tested** (not
+slower, the way an iterative method would be) and bit-for-bit identical
+to machine precision (~1e-16) -- a real direct solver, not an
+approximation. Empirical scaling exponent from this data (~0.95, i.e.
+very close to LINEAR in ndof) extrapolates to on the order of minutes,
+not weeks, for one full-load solve at the real `fine_N=2236` scale --
+though this is still an extrapolation past what's been measured
+directly, and the real HPC run is what will confirm it for real.
+
+`evaluate_B1_pi_vs_dd_fine_reference.py`'s fine-reference solve now
+passes `linear_method="pardiso"` (CPU only, same as the `gmres` attempt
+it replaces) instead of `"gmres"`. Next: install `pypardiso`/`mkl` on
+the HPC login node (`pip install pypardiso mkl`, needs the login node's
+internet access, same as every other package install this project has
+done), kill the still-running-but-hopeless GMRES job (3112604), and
+resubmit with this fix.

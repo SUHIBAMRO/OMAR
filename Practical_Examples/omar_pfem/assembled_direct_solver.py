@@ -44,11 +44,98 @@ official project result. This module only adds an opt-in alternative
 solve path; it changes no existing default and no already-published
 number.
 """
+import os
+
 import numpy as np
 import torch
 from torch_sla import SparseTensor
+from torch_sla.backends.scipy_backend import torch_coo_to_scipy_csr as _torch_coo_to_scipy_csr
 
 from omar_pfem.tensormesh_comparison import build_sparse_jac_fn
+
+# 2026-11-02: adds linear_method="pardiso" (Intel MKL PARDISO, via the
+# `pypardiso` package) as a genuine DIRECT-solver alternative to "lu"
+# (scipy's bundled SuperLU). Real motivation: "lu" segfaults (exit 139,
+# SIGSEGV, "Not enough memory to perform factorization") on CPU at B1's
+# real fine_N=2236 scale (~10M DOF) regardless of how much memory the
+# job is actually given -- a confirmed limitation of SuperLU at this
+# matrix size, not a resource shortage (see PROJECT_STATUS.md). The
+# first fix tried, "gmres" (unpreconditioned), avoids the crash but is
+# genuinely impractical at this scale: measured real scaling (N=81:
+# 48.3s, N=151: 334.1s) extrapolates to roughly two WEEKS for a single
+# fine_N=2236 solve. PARDISO is a real direct sparse solver (same
+# mathematical approach as SuperLU -- full factorization, not an
+# iterative approximation) built for exactly this scale, without
+# SuperLU's crash bug.
+#
+# torch_sla's own `spsolve` dispatcher (torch_sla.linear_solve.spsolve)
+# validates `method` against a fixed per-backend whitelist
+# (BACKEND_METHODS) that does not know about PARDISO, and raises before
+# ever reaching a backend's own solve function if asked for an unlisted
+# method -- there is no supported way to add a new method without
+# either patching torch_sla's own installed files (not ours to modify,
+# and wouldn't survive a fresh conda env) or intercepting the dispatcher
+# itself. `A.nonlinear_solve`'s real call path (confirmed by reading the
+# actual traceback, NOT assumed -- torch_sla.sparse_tensor.core ->
+# .linalg -> .autograd) calls `spsolve` via a LOCAL
+# `from ..linear_solve import spsolve` done INSIDE the forward/backward
+# functions themselves, re-resolved from torch_sla.linear_solve's own
+# module namespace on every call -- unlike a top-level `import`, this
+# local form means patching the attribute on `torch_sla.linear_solve`
+# itself (not some other module's already-bound copy of the name) is
+# exactly what intercepts it. The wrapper only handles method=="pardiso"
+# itself; every other method is forwarded, byte-for-byte, to the
+# original function, so nothing already relying on torch_sla's own
+# dispatch (the "lu"/"gmres" paths used everywhere else, including B1's
+# own coarse-mesh solves) changes at all.
+def _discover_mkl_rt():
+    """pypardiso's own ctypes loader looks for an unversioned
+    'libmkl_rt.so' (or .dylib/.dll); the MKL runtime that `pip install
+    mkl` actually lays down is typically versioned
+    (libmkl_rt.so.<N>, found by direct test: this sandbox's `pip install
+    mkl` put it at {sys.prefix}/lib/libmkl_rt.so.3 with no unversioned
+    symlink), so the bare ctypes.CDLL('libmkl_rt.so') lookup pypardiso
+    does internally fails with "Shared library mkl_rt not found" even
+    though the real library is right there. pypardiso itself documents
+    the PYPARDISO_MKL_RT env var as the fix for exactly this. Searching
+    a couple of standard prefixes here (rather than requiring Omar to
+    set this by hand, which would need to be redone for every fresh
+    conda env / HPC login) keeps this a one-line `pip install pypardiso
+    mkl` on the login node with no manual environment configuration."""
+    if os.environ.get("PYPARDISO_MKL_RT"):
+        return
+    import glob
+    import sys
+    prefixes = [p for p in (os.environ.get("CONDA_PREFIX"), sys.prefix, sys.exec_prefix,
+                             "/usr/local", "/usr") if p]
+    candidates = []
+    for prefix in prefixes:
+        candidates.extend(glob.glob(os.path.join(prefix, "lib", "libmkl_rt.so*")))
+        candidates.extend(glob.glob(os.path.join(prefix, "lib64", "libmkl_rt.so*")))
+    if candidates:
+        os.environ["PYPARDISO_MKL_RT"] = sorted(candidates)[-1]
+
+
+_discover_mkl_rt()
+try:
+    import pypardiso as _pypardiso
+    _PARDISO_AVAILABLE = True
+except ImportError:
+    _PARDISO_AVAILABLE = False
+
+if _PARDISO_AVAILABLE:
+    import torch_sla.linear_solve as _torch_sla_linear_solve
+    _original_tsla_spsolve = _torch_sla_linear_solve.spsolve
+
+    def _spsolve_with_pardiso(val, row, col, shape, b, backend="auto", method="auto", **kwargs):
+        if method != "pardiso":
+            return _original_tsla_spsolve(val, row, col, shape, b, backend=backend, method=method, **kwargs)
+        A_csr = _torch_coo_to_scipy_csr(val, row, col, shape)
+        b_np = b.detach().cpu().numpy()
+        x_np = _pypardiso.spsolve(A_csr, b_np)
+        return torch.from_numpy(np.ascontiguousarray(x_np)).to(dtype=val.dtype, device=val.device)
+
+    _torch_sla_linear_solve.spsolve = _spsolve_with_pardiso
 
 
 def _newton_cudss_reuse_analysis(residual_fn, jac_fn, u0, f_ext, tol, atol, max_iter,

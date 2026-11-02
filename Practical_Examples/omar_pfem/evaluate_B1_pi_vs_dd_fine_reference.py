@@ -173,11 +173,16 @@ def compare_pi_dd_against_fine_reference(pi_model, dd_model, resolutions, fine_N
         # perform factorization" regardless of how much memory the job
         # is actually given (confirmed via bhosts -l/bqueues -l/ulimit --
         # see assembled_direct_solver.solve_assembled_direct's own
-        # linear_method docstring) -- an iterative Krylov method solves
-        # the SAME linear system each Newton iteration without needing a
-        # factorization's fill-in memory. Only applies on the CPU/scipy
-        # backend; cuDSS (CUDA) does not support 'gmres'.
-        fine_solve_kwargs = {"linear_method": "gmres"} if device.type == "cpu" else {}
+        # linear_method docstring). First tried 'gmres' (iterative,
+        # avoids the crash but measured scaling extrapolated to ~2 WEEKS
+        # at this scale -- impractical). 'pardiso' (Intel MKL PARDISO) is
+        # a genuine direct solver like 'lu', without SuperLU's crash bug
+        # -- measured 2-3x FASTER than 'lu' (not slower, as an iterative
+        # method would be) and bit-for-bit identical (~1e-16 relative
+        # difference) at every size tested (N=81/151/221) before this was
+        # ever pointed at the real fine_N=2236. Only applies on the
+        # CPU/scipy backend; cuDSS (CUDA) has no PARDISO path.
+        fine_solve_kwargs = {"linear_method": "pardiso"} if device.type == "cpu" else {}
         u_fine_flat, nodes_fine, elems_fine, _ = solve_b1_fast_gpu(
             fine_N, seed, material, device, torch.float64, Lx=Lx, Ly=Ly, nsteps=10,
             **fine_solve_kwargs)
