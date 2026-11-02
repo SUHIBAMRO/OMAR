@@ -23592,3 +23592,22 @@ python -m omar_pfem.plot_rabczuk_reeval_results \
     --b1_json /scratch/gole3157/pfem_run/b1_pi_vs_dd_fine_reference.json \
     --out_dir /scratch/gole3157/pfem_run/figures
 ```
+
+**Follow-up, same day**: Omar explicitly asked for this to NOT be a
+separate manual step -- "بدي الكود نفسو لما يخلص هو الي يطلع الصور"
+(the code itself should produce the figures when it finishes). Wired
+`plot_b3`/`plot_b1` directly into the end of
+`run_b3_rabczuk_reeval_v2_local.py`'s and
+`evaluate_B1_pi_vs_dd_fine_reference.py`'s own `main()`, right after
+each one's existing summary print block -- i.e. only once the real
+results are actually complete (B3: both checkpoint loops AND the
+discretization-error report done; B1: `compare_pi_dd_against_fine_
+reference` returns, which already holds every row resumed-plus-fresh).
+Figures land in a `figures/` subdirectory next to the JSON output
+automatically. A resumed/re-run invocation just re-plots the (now more
+complete) current state -- harmless, overwrites the same PNGs. No
+matplotlib install needed on the HPC: it's already a dependency of
+`train_B1.py`/`train_B2.py`/`validate_against_timoshenko.py` in the
+same conda env. Verified the exact call each script now makes
+(`os.path.dirname(os.path.abspath(args.out_json))` + `plot_b3`) against
+`fake_b3.json` -- all 10 B3 figures generated correctly.

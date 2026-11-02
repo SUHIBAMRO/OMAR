@@ -190,6 +190,18 @@ def main():
     print(f"Total wall-clock THIS invocation: {time.time() - _started:.1f}s")
     print(f"Results in {args.out_json} (already saved incrementally throughout the run)")
 
+    # 2026-11-02, Omar's explicit request: figures should come out of the
+    # SAME run that produces the numbers, not a separate manual step --
+    # "بدي الكود نفسو لما يخلص هو الي يطلع الصور". Only runs once results
+    # are complete (both checkpoint loops AND the discretization-error
+    # report are done -- i.e. exactly when this print block above runs at
+    # all), so a run that's still resuming partial work never produces
+    # half-finished figures.
+    figures_dir = os.path.join(os.path.dirname(os.path.abspath(args.out_json)), "figures")
+    print(f"\n{'=' * 90}\nGenerating figures in {figures_dir} ...")
+    from omar_pfem.plot_rabczuk_reeval_results import plot_b3
+    plot_b3(args.out_json, figures_dir)
+
 
 if __name__ == "__main__":
     main()

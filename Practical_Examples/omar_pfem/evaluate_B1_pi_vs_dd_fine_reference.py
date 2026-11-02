@@ -294,6 +294,18 @@ def main():
         print(f"  N={N}: FEM(N)-vs-fine L2={fem_l2 * 100:.2f}%  "
               f"PI-vs-fine L2={pi_l2 * 100:.2f}%  DD-vs-fine L2={dd_l2 * 100:.2f}%")
 
+    # 2026-11-02, Omar's explicit request: figures should come out of the
+    # SAME run that produces the numbers, not a separate manual step --
+    # "بدي الكود نفسو لما يخلص هو الي يطلع الصور". compare_pi_dd_against_
+    # fine_reference already returns every row saved so far (resumed +
+    # freshly computed), so this always plots the CURRENT full state --
+    # harmless to re-run on a resumed invocation, it just overwrites the
+    # same PNGs with the now-more-complete data.
+    figures_dir = os.path.join(os.path.dirname(os.path.abspath(args.out_json)), "figures")
+    print(f"\n{'=' * 90}\nGenerating figures in {figures_dir} ...")
+    from omar_pfem.plot_rabczuk_reeval_results import plot_b1
+    plot_b1(args.out_json, figures_dir)
+
 
 if __name__ == "__main__":
     main()
