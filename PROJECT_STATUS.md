@@ -23541,3 +23541,54 @@ the HPC login node (`pip install pypardiso mkl`, needs the login node's
 internet access, same as every other package install this project has
 done), kill the still-running-but-hopeless GMRES job (3112604), and
 resubmit with this fix.
+
+`pypardiso`/`mkl` installed for real on the HPC (`conda activate omar
+&& pip install pypardiso mkl`), confirmed importable
+(`_PARDISO_AVAILABLE: True`) after pulling the fix -- no manual
+`PYPARDISO_MKL_RT` configuration needed, the auto-discovery in
+`assembled_direct_solver.py` found the right library on its own.
+
+## 2026-11-02 (same day): figures -- Omar's explicit request ("كل الصور
+## الممكن تطلع حطها خليه يطلعها كلشي ممكن", every possible figure, not a
+## curated subset)
+
+New `plot_rabczuk_reeval_results.py` -- reads the same raw JSON files
+`summarize_rabczuk_reeval_results.py` already turns into Markdown
+tables, and draws every figure that can reasonably be made from them:
+
+- B1: one grouped bar chart (FEM(N)/PI/DD, across N=13/29/49) per QoI
+  (displacement L2, H1, energy, reaction, region Cauchy mean/p99/max --
+  7 figures) with error bars across seeds, plus a 2-panel overview.
+- B3: one horizontal bar chart per QoI across every u-only checkpoint
+  (disp L2, H1, energy, reaction, region Cauchy field -- 5 figures,
+  sorted best-to-worst), a checkpoint x stress-component heatmap,
+  an implicit-vs-direct comparison and per-component heatmap for the
+  mixed-stress checkpoints, a 6,840-vs-43,400-element FEM
+  discretization-error chart, and an overlay comparing the single best
+  NN checkpoint against both discretization errors on the same axes --
+  directly answering "is the neural operator as accurate as using a
+  finer mesh?" on one chart.
+
+Colors follow this account's own validated data-viz palette (dataviz
+skill, `references/palette.md`) -- fixed categorical hue order (so
+FEM/PI/DD, or 6,840/43,400-element, keep the SAME color across every
+figure in the report) and a single-hue sequential blue ramp for the
+heatmaps, rather than matplotlib's own defaults.
+
+Verified end-to-end against the same synthetic JSON files used to
+verify the summarizer (`fake_b3.json`; `fake_b1.json` was missing 5 of
+the real 7 B1 QoI keys -- the real `_score()` function in
+`evaluate_B1_pi_vs_dd_fine_reference.py` was re-read to confirm the
+real key set before writing `fake_b1_full.json` to actually exercise
+every metric, not just the two the Markdown summarizer happened to
+use). All 18 figures generated without error; spot-checked several
+visually (the overview bar chart and the stress-component heatmap) --
+correctly sorted, correctly colored, legible labels, percentage axes.
+
+Usage, once the real JSON results exist:
+```
+python -m omar_pfem.plot_rabczuk_reeval_results \
+    --b3_json /scratch/gole3157/pfem_run/b3_rabczuk_reeval_v2.json \
+    --b1_json /scratch/gole3157/pfem_run/b1_pi_vs_dd_fine_reference.json \
+    --out_dir /scratch/gole3157/pfem_run/figures
+```
