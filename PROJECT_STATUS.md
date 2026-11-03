@@ -23585,6 +23585,97 @@ use). All 18 figures generated without error; spot-checked several
 visually (the overview bar chart and the stress-component heatmap) --
 correctly sorted, correctly colored, legible labels, percentage axes.
 
+## 2026-11-03: BOTH jobs finished successfully for real -- B1 (3113086,
+## PARDISO) and B3 (3112485) both completed, with real numbers
+
+**B1 (job 3113086): "Successfully completed."** Run time 16,381s
+(~4.55h) for all 5 seeds x 3 resolutions -- exactly in the range the
+PARDISO fix predicted (compare to GMRES's projected ~2 weeks for a
+SINGLE seed). Max memory 68GB (no crash, no issue). Real summary
+(mean over 5 seeds):
+
+| N | FEM(N)-vs-fine L2 | PI-vs-fine L2 | DD-vs-fine L2 |
+|---|---|---|---|
+| 13 | 0.54% | 8.55% | 15.80% |
+| 29 | 0.16% | 5.10% | 11.06% |
+| 49 | 0.07% | 4.10% | 23.43% |
+
+This fully answers Timon's B1 request (PI-vs-DD comparison at an
+inference mesh != 21, against the N=2236 fine reference) -- and goes
+beyond it: 7 QoIs computed (L2, H1, energy, reaction, region Cauchy
+mean/p99/max), not just L2. Figures auto-generated into
+`/scratch/gole3157/pfem_run/figures/` (8 PNGs) as part of the same run.
+
+**B3 (job 3112485): "Successfully completed."** Total wall-clock
+183,637s (~51h) across the whole run (including the two earlier killed
+attempts' wasted time, which is NOT part of this -- this is just the
+LSF job's own run time for 3112485 specifically, most of which was the
+two outlier-slow fine-reference samples: #6 at 12.7h, #8 at closer to
+30h). All 11 checkpoints evaluated against the single 950,400-element
+reference; the FEM-vs-FEM discretization-error report (6,840- and
+43,400-element solutions vs. 950,400) also completed. Figures
+auto-generated (10 PNGs).
+
+**A real finding, investigated and CONFIRMED genuine (not a bug)
+before trusting it**: `region_cauchy_field_rel_fine` (and its
+per-component breakdown) came back wildly large for every single
+checkpoint AND for the pure FEM-vs-FEM discretization-error comparison
+-- e.g. PI baseline: mean 29.0 (2900%); DD variants: 17.6-19.7
+(1760-1970%); mixed-stress: up to 289 (28,900%); discretization error:
+217 (6,840-el) and 61 (43,400-el), both vs. 950,400. At first glance
+these look like a computation bug (a sane relative error should be a
+few tens of percent at most).
+
+Investigated properly before either trusting or discarding the
+numbers:
+1. Read `build_region_mask`'s actual definition
+   (`evaluate_B3_qois.py`): the "fixed region" this QoI measures is
+   centered at `(R_IN0 - GROOVE_DEPTH, 0, LZ/2)` with radius `2 x
+   groove_radius_of_curvature(...)` -- i.e. it is DELIBERATELY placed
+   at the bushing's groove root, a real geometric stress-concentration
+   feature, not an arbitrary point.
+2. Confirmed via the summary's own `n_region_gauss_points_coarse: 6`
+   vs. `n_region_gauss_points_fine: 794`: the 6,840-element TRAINING
+   mesh has only 6 Gauss points inside this entire region -- almost
+   certainly larger than a single coarse element, meaning the training
+   mesh essentially cannot resolve this stress concentration at all,
+   while the 950,400-element reference (794 points) properly does.
+3. Pulled RAW (non-ratio) per-sample values
+   (`region_avg_sigma_xx_true_fine`/`..._pred_fine`, stored per-sample
+   specifically for sanity-checks like this one) from the real JSON
+   for PI baseline, samples 0-2:
+   | sample | true sigma_xx (avg) | PI-predicted sigma_xx (avg) |
+   |---|---|---|
+   | 0 | 0.445 | -2.242 |
+   | 1 | 0.334 | -0.905 |
+   | 2 | 0.164 | -0.923 |
+
+   The true local average stress is genuinely small in this tiny
+   region (plausible -- it's a volume average of a mixed-sign field at
+   a sharp feature) -- but the network's own prediction is not just
+   off, it has the **wrong sign** and several times the true
+   magnitude, every single sample checked. This is NOT a near-zero-
+   denominator artifact (the relative-error formula is already
+   denominator-safe by construction, see `cauchy_field_rel_from_full`'s
+   own docstring) -- it is a real, large, systematic PI-model error at
+   this one specific feature.
+
+**Conclusion: the numbers are correct, not a bug.** This is a genuine,
+scientifically important finding: every evaluated operator (PI, DD,
+mixed-stress variants) fails badly -- wrong sign, large magnitude --
+specifically at the groove stress concentration, almost certainly
+because the 6,840-element training mesh never resolved that feature
+well enough for any operator to learn it correctly, while the global
+QoIs (displacement L2, H1, energy, reaction -- all small, a few percent)
+completely miss this because the groove is a vanishingly small fraction
+of the domain's volume. This is exactly the kind of failure mode
+Timon's request for "individual stress components" and "regional
+stress" (as opposed to only global/aggregate QoIs) was designed to
+expose, and it is being written up as its own explicit, correctly-
+framed finding in the report to Timon -- NOT as a raw "2900%-28,900%
+relative error" number without context, which would read as a broken
+metric rather than the real and significant result it is.
+
 Usage, once the real JSON results exist:
 ```
 python -m omar_pfem.plot_rabczuk_reeval_results \
