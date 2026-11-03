@@ -23933,3 +23933,106 @@ against the new reference, once the re-run above produces it. Per
 Omar's own explicit instruction, the PowerPoint slides are NOT being
 touched until this is run and reviewed -- getting the science right
 comes first.
+
+## 2026-11-03 (same day): local-integration-refinement (3 seeds) RUN
+## for real against the 950,400-element reference -- a real data-pipeline
+## bug caught and fixed mid-run (missing input_norm.json), final numbers
+## are sane and a genuine new finding
+
+**Job 1 (3114096)**: submitted via `batch.1gpu b3_job_lr_fix.sh` (no `./`
+prefix) -- EXIT, code 127, "b3_job_lr_fix.sh: command not found". The
+`batch.1gpu` wrapper's `"$@"` needs an explicit path; bare filename
+isn't found via `$PATH`. Same lesson this project already hit before,
+just forgotten in the moment. Fixed: `batch.1gpu ./b3_job_lr_fix.sh`.
+
+**Job 2 (3114112)**: RUN, completed in 43s -- but all 3 new checkpoints
+came back `SKIPPED -- checkpoint not found`. The plain local-integration-
+refinement checkpoints were trained on COLAB (`B3_Multiseed_Seed{2,3}.
+ipynb`, Drive path `/content/drive/MyDrive/pfem_run/b3_training_local_
+refine{,_seed2,_seed3}/checkpoint_50000.pt`) and were simply never
+copied to the HPC's `/scratch/gole3157/pfem_run/` -- only the
+checkpoints already used in the original 51h run live there. Confirmed
+via `rclone lsf gdrive:pfem_run/b3_training_local_refine*/` that all 3
+files genuinely exist on Drive, then pulled them down with `rclone copy
+gdrive:pfem_run/<dir>/checkpoint_50000.pt /scratch/gole3157/pfem_run/
+<dir>/` (a download from Drive, not an upload, so the project's
+long-standing rclone write-scope problem doesn't apply here -- and it
+didn't: downloads worked cleanly).
+
+**Job 3 (3114152)**: RUN, completed in 627s, all 3 checkpoints evaluated
+-- but the numbers were NONSENSE: seed 1 showed `disp_rel_l2=4.4951`
+(449.5%!), `energy rel err mean=107.66` (10,766%!), `region_cauchy_
+field_rel mean=2744.29` (274,429%!). Too catastrophic to be a real
+accuracy result, especially for a checkpoint whose own paper-reported
+training-mesh numbers are a few percent. **Root-caused immediately,
+before trusting or reporting any of it**: `evaluate_u_only_checkpoint_
+against_fine_reference` calls `install_input_norm_for_checkpoint
+(checkpoint_path)` (imported from `train_B1.py`), which looks for
+`input_norm.json` BESIDE the checkpoint file and, if missing, silently
+calls `set_input_norm(None)` -- NO ERROR, just evaluates with zero
+input normalization. The function's own docstring states this exactly:
+"a model trained on standardized inputs and evaluated on raw ones
+produces plausible-looking garbage rather than an error." These LR
+checkpoints WERE trained with `--normalize_inputs 1` (confirmed from
+`cell_b3_local_refine_training.py`'s own training-launch args), and
+their own `input_norm.json` sidecar files genuinely exist on Drive
+right next to each checkpoint (visible in the earlier `rclone lsf`
+listing) -- they just hadn't been copied down, because the download
+instructions only named the `.pt` file. A real, avoidable mistake on
+my part, caught fast by refusing to accept wildly-implausible numbers
+at face value.
+
+**Fix**: downloaded the 3 missing `input_norm.json` files the same way
+(`rclone copy gdrive:pfem_run/<dir>/input_norm.json /scratch/gole3157/
+pfem_run/<dir>/`), then DELETED the 3 garbage entries from
+`b3_rabczuk_reeval_v2.json`'s `checkpoints` dict before re-running --
+required, since the script's resumability (`if name in partial[
+"checkpoints"]: skip`) would otherwise have silently kept the bad
+numbers forever. Re-ran (**job 4, 3114165**): log now shows `[input-
+norm] loaded .../input_norm.json: mean=[1000.0, 0.44999..., 0.05039...]
+std=[200.0, 0.01999..., 0.01843...]` for all 3 checkpoints before their
+evaluation -- confirms normalization is actually applied this time.
+RUN, completed in 628s, **Successfully completed**.
+
+**Real, sane, final numbers -- local-integration-refinement vs. the
+950,400-element reference (3 seeds)**:
+
+| Quantity | seed 1 (paper's headline run) | seed 2 | seed 3 |
+|---|---|---|---|
+| Displacement (combined) | 3.37% | 2.40% | 2.85% |
+| H1 semi-norm | 11.95% | 12.03% | 11.80% |
+| Energy | 4.13% | 5.22% | 4.41% |
+| Reaction moment | 5.68% | 1.39% | 2.88% |
+| Regional Cauchy stress (field) | **2106.11%** | **1832.04%** | **2092.66%** |
+| sigma_xx | 2627.55% | 2210.92% | 2580.03% |
+| sigma_yy | 2544.15% | 2231.19% | 2570.71% |
+| sigma_zz | 2075.52% | 1843.57% | 2120.35% |
+| sigma_xy | 2886.98% | 1944.99% | 2593.52% |
+| sigma_xz | 674.32% | 599.54% | 659.21% |
+| sigma_yz | 1483.83% | 1200.27% | 1412.13% |
+
+(PI baseline for comparison, same 950,400 reference: displacement
+2.78%, H1 12.30%, energy 5.33%, reaction 1.38%, regional stress
+**2900.48%**.)
+
+**A genuine new finding, not previously reported anywhere**: every one
+of the 3 local-integration-refinement seeds scores a LOWER (better)
+regional-stress field error against the independent 950,400-element
+reference than PI baseline (~1832-2106% vs. 2900%) -- meaning the
+training-side quadrature refinement's benefit is not purely a same-
+mesh quadrature artifact (which Section 2.2's own reasoning already
+argued was the likely story for the paper's own 62%->30% number); it
+measurably helps even when judged against a genuinely finer,
+independent mesh. This is worth a dedicated paragraph in the report,
+not just a table row -- it directly answers the part of Timon's
+question that could have gone either way.
+
+Figures auto-regenerated on the HPC (confirmed in the log: all 10 B3
+PNGs rewritten, `plot_b3` iterates the JSON's own checkpoint dict
+dynamically so no code change was needed for the new entries to
+appear). **Not yet pulled into this session** -- next step is fetching
+the updated JSON/figures (same Google Drive relay as before) and adding
+a dedicated Local-Integration-Refinement subsection + table + the
+finding above to `build_rabczuk_reeval_report_docx.py`, before touching
+the PowerPoint slides (per Omar's standing instruction) or sending
+anything to Timon.
