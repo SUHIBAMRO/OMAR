@@ -42,6 +42,24 @@ from omar_pfem.evaluate_B3_fem_discretization_error import load_coarse_reference
 
 U_ONLY_NAMES = {
     "PI baseline": "b3_training_normalized/checkpoint_50000.pt",
+    # The plain (non-mixed-stress) local-integration-refinement checkpoints --
+    # THE checkpoints behind the paper's headline 62.2-62.3% -> 29.7-29.9%
+    # regional-stress story (Tables 27/28, paper/main.tex). Added 2026-11-03:
+    # the original version of this dict only covered "PI baseline" (the
+    # UNrefined checkpoint) plus the separate mixed-stress-training local-
+    # refine variants below -- it never actually included these three, so
+    # the one checkpoint Prof. Rabczuk's email most directly asked about was
+    # never evaluated against the new 950,400-element reference. Caught via
+    # an independent review of this exact dict against
+    # cell_b3_local_refine_training.py's real checkpoint paths (RUN5_DIR =
+    # 'b3_training_local_refine'; seeds 2/3 = 'b3_training_local_refine_seed{2,3}',
+    # per B3_Multiseed_Seed2.ipynb/B3_Multiseed_Seed3.ipynb) -- not assumed.
+    "Item 2, local-integration-refinement (seed 1, paper's headline run)":
+        "b3_training_local_refine/checkpoint_50000.pt",
+    "Item 2, local-integration-refinement (seed 2)":
+        "b3_training_local_refine_seed2/checkpoint_50000.pt",
+    "Item 2, local-integration-refinement (seed 3)":
+        "b3_training_local_refine_seed3/checkpoint_50000.pt",
     "Items 2/3, attempt 1 (equilibrium, w=1.0)": "b3_equilibrium_augmented/checkpoint_50000.pt",
     "Items 2/3, attempt 2 (equilibrium, w=0.12)": "b3_equilibrium_augmented_v2/checkpoint_50000.pt",
     "Item 4, DD rel_l2 @ N=50": "b3_data_driven_rel_l2_N50/model_best.pt",

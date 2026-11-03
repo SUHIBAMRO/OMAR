@@ -23828,3 +23828,108 @@ quadrature still converges to ~62.2-62.3%) -- it only fixed which row
 carried which number. No other number in the report needed correction.
 Rebuilt, re-rendered to PDF/JPEG, re-verified visually, re-delivered to
 Omar, committed (`a9272f5`) and pushed.
+
+## 2026-11-03 (same day): a real, confirmed gap caught -- the plain
+## local-integration-refinement checkpoint was NEVER evaluated against
+## the new 950,400-element reference; stress-computation methodology
+## independently re-verified and found sound
+
+Omar relayed a second-opinion critique of the re-evaluation report,
+explicitly flagged as based on reading the report's CONTENTS only, not
+an independent audit of the actual Python files or run logs -- i.e. an
+unverified claim, to be checked against source, not trusted or
+dismissed on its wording alone. Two points raised; both investigated
+directly against the real code in this session, not assumed:
+
+**Point 1 -- CONFIRMED, a real and significant gap.** The critique's
+claim: the "Local Integration Refinement" checkpoint -- the one
+responsible for the paper's own headline 62.2-62.3% -> 29.7-29.9%
+regional-stress story (Tables 27/28, `paper/main.tex`) -- has no clear,
+independent row in the re-evaluation report against the new 950,400-
+element reference. Verified directly against
+`run_b3_rabczuk_reeval_v2_local.py`'s own `U_ONLY_NAMES`/
+`MIXED_STRESS_NAMES` dicts (the actual checkpoint list the real HPC run
+used): they contain "PI baseline" (`b3_training_normalized/
+checkpoint_50000.pt` -- the UNrefined checkpoint, 62.4% baseline, not
+the refined one), the two equilibrium attempts, five DD variants, and
+three MIXED-STRESS checkpoints that separately happen to also use
+local-refine quadrature during THEIR OWN training (`b3_mixed_stress_
+local_refine/...`) -- a different, later line of experimentation, not
+the same model. The actual plain local-integration-refinement
+checkpoints -- `b3_training_local_refine/checkpoint_50000.pt` (seed 1,
+the paper's own headline run) and `b3_training_local_refine_seed{2,3}/
+checkpoint_50000.pt` (confirmed to exist and be real, trained, complete
+runs: `B3_Multiseed_Seed2.ipynb`/`B3_Multiseed_Seed3.ipynb`, 50,000
+iters each, 7,976.6s/7,942.1s, per the 2026-10-05 entry above) -- are
+simply ABSENT from both the HPC script's and the Colab notebook's
+(`B3_Rabczuk_Reeval_v2.ipynb`) checkpoint lists. So: the one checkpoint
+Prof. Rabczuk's email most directly asked about was genuinely never run
+against the new independent reference. This is exactly the kind of gap
+the project's own "verify everything before reporting" discipline is
+for -- caught, not dismissed, because the critique asked a specific,
+checkable question and the answer turned out to be real.
+
+**Fix (code only, no retraining, no data touched)**: added all 3 plain
+local-integration-refinement checkpoints to `U_ONLY_NAMES` in
+`run_b3_rabczuk_reeval_v2_local.py`, and the equivalent
+`U_ONLY_CHECKPOINTS` list in `B3_Rabczuk_Reeval_v2.ipynb` (a separately
+hand-duplicated list, not imported from the .py file -- fixed
+independently so neither path silently regresses). Both verified to
+still be valid Python (`ast.parse`) after editing -- caught and fixed
+one real bug introduced while editing (an unescaped apostrophe inside a
+single-quoted checkpoint-name string broke the notebook cell's syntax;
+fixed by rewording the name, then re-verified with `ast.parse`).
+**Re-running this is CHEAP, not a 51-hour repeat**: the HPC script
+caches the already-solved 950,400-element fine reference at
+`<out_json>.fine_950400.cache.pt` and is fully resumable (`if name in
+partial["checkpoints"]: skip`) -- re-running the exact same command
+against the existing `b3_rabczuk_reeval_v2.json` will skip every
+already-done checkpoint and the already-done FEM-vs-FEM discretization
+report, and only evaluate the 3 new checkpoints (same cost as any other
+single u-only checkpoint evaluation in the existing run, not a new
+fine-reference solve). **Not yet run** -- needs the real HPC environment
+(checkpoints + cache file live on `/scratch/gole3157/pfem_run`, not in
+this cloud session); next step is for Omar to re-run the existing
+command unchanged (same `--out_json`) after pulling this commit.
+
+**Point 2 -- INVESTIGATED independently, found sound, not a bug.** The
+critique's claim: the 21,703% (6,840-el) and 6,100% (43,400-el)
+discretization-error numbers need their computation method, point
+correspondence, and cross-mesh field transfer checked before trusting
+them. Read `evaluate_B3_fem_discretization_error.py` and
+`evaluate_B3_qois_finer.interpolate_node_field_to_finer_mesh` directly
+(not just the docstrings' own claims), then independently tested the
+interpolation itself with two numerical checks run in this session,
+not assumed:
+1. Identity test (same resolution in and out): max abs error 0.0.
+2. A known analytic linear field (`2*theta + 3*t - 1.5*z + 7`)
+   interpolated from the 6,840-element mesh onto the 43,400-element
+   mesh's own node positions, compared against the TRUE analytic value
+   at those exact node positions (an independent ground truth, not a
+   circular check): max abs error 7.1e-15 (machine precision).
+Also confirmed from source: `compute_fem_discretization_errors` asserts
+sample-index correspondence across resolutions
+(`assert s_c["sample_index"] == s_f["sample_index"]`), and
+`generate_fine_reference` solves each fine-mesh sample from the SAME
+per-sample `E_node`/`nu_node`/`phi` loaded from `dataset.h5` (just
+interpolated onto the finer mesh, then genuinely re-solved with
+torch-fem) -- not a fresh independent random draw. **Conclusion: the
+methodology is sound. The 21,703%/6,100% numbers are not an artifact of
+mismatched points, a broken interpolation, or non-corresponding
+samples/materials -- they are a real measurement of mesh-discretization
+error at the groove.** This does not change the report; it just means
+this specific worry, once actually checked, does not hold up -- stated
+plainly, the same way an unconfirmed worry would have been stated
+plainly if it HAD turned out to be real.
+
+**Net effect on the deliverables so far**: the `.docx` report's and the
+PowerPoint slides' headline numbers (B1 table, B3 u-only/mixed-stress
+tables, FEM-vs-FEM discretization table, paper's own quadrature table)
+are unaffected -- none of them claimed to BE the plain local-
+integration-refinement checkpoint's own 950,400-reference numbers, so
+nothing in them is now known to be wrong. What is still missing is an
+ADDITION: a clean, dedicated table/row for the actual LR checkpoint(s)
+against the new reference, once the re-run above produces it. Per
+Omar's own explicit instruction, the PowerPoint slides are NOT being
+touched until this is run and reviewed -- getting the science right
+comes first.
