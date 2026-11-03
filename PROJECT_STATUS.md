@@ -23780,3 +23780,51 @@ Not yet decided with Omar: whether the earlier Claude Doc artifact
 (https://claude.ai/artifact/UNGeJLnnwp8DwcWFsDEDLF) should be kept as a
 secondary reference or considered superseded by this `.docx` -- ask him
 next session if it comes up.
+
+## 2026-11-03 (same day): full numeric audit of the delivered .docx
+## report, per Omar's explicit request before starting another task
+## ("تاكدلي من كل التفاصيل والارقام بشكل دقيق جدا جدا")
+
+Traced every number in `build_rabczuk_reeval_report_docx.py` back to a
+primary source before trusting the report -- not just re-reading
+`PROJECT_STATUS.md`'s own prose, since that could just be repeating an
+earlier mistake. Sources used: the real pasted HPC terminal output
+(`summarize_rabczuk_reeval_results` run, preserved verbatim in this
+session's own transcript), the real local JSON files already in the
+repo (`comparison_B1_neo_hookean.json`), the real source code
+(`data_generate_B3_dataset.py`), and `paper/main.tex`'s own
+3-seed/quadrature-convergence numbers.
+
+**Verified exact, every cell, against the real terminal paste**: the B1
+L2+H1 table (Section 4) including both checkpoint fingerprint prefixes;
+the B3 u-only 8-checkpoint table (Section 5.1), all 11 columns x 8 rows;
+the B3 mixed-stress 6-row table (Section 5.2), all 8 columns; the
+FEM-vs-FEM discretization-error table (Section 6) including the
+per-component stress breakdown (traced specifically to a one-off Python
+one-liner Omar ran and pasted back after I noticed it was missing from
+the standard summary script's output); the 3-seed quadrature-refinement
+paragraph numbers (16.95%/47.33%/31.35%+-12.45%, displacement
+1.82%+-0.54%, energy 0.27%+-0.12%, reaction 2.40%+-0.27%) against
+`paper/main.tex`'s own table; the raw per-sample sigma_xx values
+(Section 7) against a direct JSON read Omar ran and pasted; the B3
+DD-generation solver claim (torch-fem `Solid` + `Hyperelastic3D`,
+6,840-element `DEFAULT_RESOLUTION = (21, 20, 19)`) against
+`data_generate_B3_dataset.py`'s actual source; and the "PI beats DD at
+training resolution" claim (best_val_rel_L2 0.0959 vs. 0.1307) against
+`comparison_B1_neo_hookean.json` directly.
+
+**One real inaccuracy found and fixed**: Section 2.1's quadrature-
+convergence table had mislabeled the sweep's `n_sub=2` row (6 Gauss
+points) with the CONVERGED value (62.2-62.3%) instead of its own real,
+not-yet-converged value (64.04%), and had silently dropped the
+`n_sub=4` (36 points, 60.32%) and `n_sub=6` (124 points, 62.39%) rows
+from the real 6-row sweep
+(`PROJECT_STATUS.md`, "REAL GPU RESULT, 2026-09-29" entry above).
+Fixed: now shows the full 7-row sweep (6/36/124/292/566/994 points plus
+the local-integration-refinement run), each row correctly labeled
+converged or not-yet-converged. This did not change the report's
+conclusions (default quadrature was always inadequate; refined
+quadrature still converges to ~62.2-62.3%) -- it only fixed which row
+carried which number. No other number in the report needed correction.
+Rebuilt, re-rendered to PDF/JPEG, re-verified visually, re-delivered to
+Omar, committed (`a9272f5`) and pushed.
