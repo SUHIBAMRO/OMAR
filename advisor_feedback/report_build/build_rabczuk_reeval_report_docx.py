@@ -163,13 +163,19 @@ para("The submitted paper's region-stress numbers (62.2-62.3%, later 29.7-29.9% 
      "the apparent confusion between the submitted paper's 29.8% and this new study's 2,900%+.")
 
 h2("2.1 The paper's own quadrature-convergence result")
+para("Full convergence sweep (same checkpoint, same 6,840-element mesh, only the number of "
+     "region Gauss points varied) -- the error has NOT converged at the default 6 points; it "
+     "only stabilizes from 292 points onward:")
 table(
-    ["Region Gauss points", "Converged region-stress error (vs. the SAME 6,840-el mesh)"],
+    ["Region Gauss points", "Region-stress error (vs. the SAME 6,840-el mesh)"],
     [
-        ["6 (default)", "62.2-62.3%"],
-        ["292", "62.30%"],
-        ["566-994", "62.21-62.32% (stable)"],
-        ["994 (local-integration-refinement run)", "29.7-29.9%"],
+        ["6 (n_sub=2, default) -- not yet converged", "64.04%"],
+        ["36 (n_sub=4) -- not yet converged", "60.32%"],
+        ["124 (n_sub=6) -- not yet converged", "62.39%"],
+        ["292 (n_sub=8) -- converged (change < 0.2% from here on)", "62.30%"],
+        ["566 (n_sub=10) -- converged", "62.21%"],
+        ["994 (n_sub=12) -- converged; this is the paper's reported baseline", "62.32% (reported as ~62.2-62.3%)"],
+        ["994, local-integration-refinement training run", "29.7-29.9%"],
     ],
 )
 para("Across 3 additional seeds of this same local-integration-refinement run, the converged "
