@@ -23702,3 +23702,81 @@ matplotlib install needed on the HPC: it's already a dependency of
 same conda env. Verified the exact call each script now makes
 (`os.path.dirname(os.path.abspath(args.out_json))` + `plot_b3`) against
 `fake_b3.json` -- all 10 B3 figures generated correctly.
+
+## 2026-11-03 (same day): reconciled Timon's EARLIER email too, confirmed
+## the B3 DD-label solver/mesh/cost from source, built the final .docx
+## report in the project's own house style, and delivered it to Omar
+
+After the B1/B3 re-evaluation above answered Timon's long, detailed
+re-evaluation-request email, Omar separately pasted an EARLIER email
+from Timon (sent before that one) asking two different things: (1)
+which reference the SUBMITTED PAPER's own B3 region-stress/H1 numbers
+were measured against, and (2) what solver/mesh/cost the B3 DD training
+labels were generated with. Both needed answering precisely, from
+source, not from memory:
+
+1. **Paper's own region-stress reference**: re-read `paper/main.tex`'s
+   own text. The submitted paper's numbers (62.2-62.3% -> 29.7-29.9%
+   after "local-integration-refinement") were measured by refining
+   QUADRATURE (Gauss points per element: 6 -> 994) on the SAME,
+   UNCHANGED 6,840-element mesh used for training -- i.e. a better
+   numerical INTEGRATION of the field that mesh already represents, not
+   a finer MESH. This is a fundamentally different axis from the new
+   re-evaluation study's numbers (thousands-of-percent), which compare
+   against a genuinely different, finer 950,400-element MESH. The two
+   are not in tension -- confirmed and written up explicitly as its own
+   report section so it reads as a reconciliation, not a contradiction.
+2. **B3 DD label-generation solver/mesh/cost**: read
+   `Practical_Examples/omar_pfem/data/data_generate_B3_dataset.py`
+   directly (not summarized from memory) -- confirmed it uses
+   `torchfem.Solid` + `torchfem.materials.Hyperelastic3D` (torch-fem's
+   own native per-element material support, no custom solver code), at
+   the 6,840-element production mesh, 4.13 s/sample (200 samples in
+   825.8s).
+
+While double-checking the long re-evaluation email's points against the
+delivered numbers (per Omar's own insistence on re-verifying before
+trusting it), caught one real gap: the B3 FEM-vs-FEM discretization-
+error table was missing per-component stress breakdown, which Timon's
+email had explicitly asked for alongside the aggregate numbers -- fixed
+before finalizing.
+
+**Report format**: Omar rejected the Claude Doc artifact version of
+this report outright -- "ما بيظهر بشكل ريبورت صحيح ... اعمليه بشكل
+الريبورت الاصلي تبعنا" (it doesn't look like a proper report, make it
+in the format of our original report). Found this project's established
+house style by reading `advisor_feedback/report_build/
+build_B3_investigation_report_docx.py` (python-docx, specific `title`/
+`h1`/`h2`/`para`/`table`/`numbered`/`image` helpers, RGBColor 0x365F91/
+0x4F81BD headers, US-Letter page setup) and wrote a new script,
+`advisor_feedback/report_build/build_rabczuk_reeval_report_docx.py`,
+replicating it exactly for this report: 9 sections (executive summary;
+paper's-reference reconciliation; DD-generation solver/mesh/cost; B1
+results + 8 figures; B3 u-only + mixed-stress results + 8 figures; B3
+discretization-error table with per-component stress + 2 figures;
+groove key-finding with raw per-sample sigma_xx table; MMS/cost note;
+recommendation) -- all 18 figures embedded as real images, all numbers
+traced to the real JSON results and `PROJECT_STATUS.md` entries above,
+not re-derived from memory.
+
+One figure (`b1_energy_rel.png`) came back corrupted/truncated during
+an earlier bulk download from Google Drive (the relay used because this
+session has no direct access to Omar's machine or the HPC filesystem) --
+traced to a failed manual base64-reconstruction workaround. Fixed by
+finding an already-good copy of the same figure
+(`scratchpad/figures/b1_energy_rel.png`, verified with `PIL.Image.
+verify()`) that had been produced correctly earlier in the same
+session, rather than re-attempting the fragile manual-copy relay a
+second time.
+
+Built the `.docx`, converted to PDF (`soffice.py --headless
+--convert-to pdf`) and rendered every page to JPEG
+(`pdftoppm -jpeg -r 100`) to visually verify all 15 pages and all 18
+embedded figures render correctly before calling it done, per the
+docx-skill's own verification step. Delivered the finished `.docx` to
+Omar directly as a file.
+
+Not yet decided with Omar: whether the earlier Claude Doc artifact
+(https://claude.ai/artifact/UNGeJLnnwp8DwcWFsDEDLF) should be kept as a
+secondary reference or considered superseded by this `.docx` -- ask him
+next session if it comes up.
