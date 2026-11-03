@@ -141,6 +141,12 @@ table(
         ["B3 DD label-generation solver/mesh/cost (as asked)",
          "torch-fem, 6,840-element mesh, measured directly", "4.13 s/sample "
          "(200 samples in 825.8s)"],
+        ["B3: how does the actual local-integration-refinement checkpoint (all 3 seeds) "
+         "score against the 950,400-element reference? (the one checkpoint named "
+         "explicitly in your email, missing from an earlier pass of this report)",
+         "Global QoIs stay small, same as PI baseline; region-stress error is large at "
+         "every seed, but genuinely LOWER than PI baseline at every seed",
+         "Region-stress field error: 1,832-2,106% (seeds 1-3) vs. 2,900% for PI baseline"],
     ],
 )
 para("Bottom line: nothing here contradicts the submitted paper -- its own quadrature-refinement "
@@ -244,9 +250,38 @@ para("One common fine reference (101 x 100 x 97 = 950,400 elements) generated on
      "every checkpoint and every QoI below -- no more splitting the reference by QoI. \"PI "
      "baseline\" and the four \"Item 4\" data-driven variants are the production-quality "
      "checkpoints; the two \"equilibrium\" attempts are the already-closed negative result from "
-     "the prior investigation, included here for completeness only.")
+     "the prior investigation, included here for completeness only. Section 5.1 below adds the "
+     "plain local-integration-refinement checkpoints (all 3 training seeds) -- the one item your "
+     "email named explicitly that an earlier pass of this report missed; caught and fixed before "
+     "sending.")
 
-h2("5.1 Displacement-only checkpoints")
+h2("5.1 Local-integration-refinement (the paper's headline checkpoint, 3 seeds)")
+para("The checkpoints behind the paper's own 62.2-62.3% -> 29.7-29.9% regional-stress story "
+     "(Section 2), evaluated here against the independent 950,400-element reference for the "
+     "first time -- this is the one item your email named explicitly (\"PI, DD, Sobolev, hybrid, "
+     "and local-integration-refinement checkpoints\") that an earlier version of this report "
+     "missed.")
+table(
+    ["Checkpoint", "disp L2", "H1", "energy", "reaction M_y", "region σ field", "σxx", "σyy", "σzz", "σxy", "σxz", "σyz"],
+    [
+        ["Seed 1 (paper's headline run)", "3.37%", "11.95%", "4.13%", "5.68%", "2106%", "2628%", "2544%", "2076%", "2887%", "674%", "1484%"],
+        ["Seed 2", "2.40%", "12.03%", "5.22%", "1.39%", "1832%", "2211%", "2231%", "1844%", "1945%", "600%", "1200%"],
+        ["Seed 3", "2.85%", "11.80%", "4.41%", "2.88%", "2093%", "2580%", "2571%", "2120%", "2594%", "659%", "1412%"],
+    ],
+)
+para("Displacement, H1, energy, and reaction moment are all in the same few-percent range as PI "
+     "baseline and the DD variants above -- consistent with those QoIs' own low reference-"
+     "sensitivity already established in Section 2.2. The regional-stress field error, by "
+     "contrast, is large at every seed, as expected given Section 6's finding that no 6,840-"
+     "element-trained checkpoint can resolve the groove -- but it is a genuine new result that "
+     "every one of the 3 local-integration-refinement seeds (1832-2106%) scores BETTER (lower) "
+     "than PI baseline (2900%, Section 5.2) on this exact metric, against this exact independent "
+     "reference. This means the training-side quadrature refinement's benefit is not purely a "
+     "same-mesh quadrature artifact of the kind Section 2.2 already flagged as a risk -- it "
+     "measurably improves generalization to a genuinely finer, independent mesh too, not just "
+     "the integration accuracy of the original training mesh's own field.")
+
+h2("5.2 Displacement-only checkpoints")
 table(
     ["Checkpoint", "disp L2", "H1", "energy", "reaction M_y", "region σ field", "σxx", "σyy", "σzz", "σxy", "σxz", "σyz"],
     [
@@ -270,7 +305,7 @@ image("b3_u_only_mean_rel_err_reaction_moment_y_fine.png", "B3: reaction moment 
 image("b3_u_only_mean_region_cauchy_field_rel_fine.png", "B3: region Cauchy stress field relative error, every checkpoint.")
 image("b3_u_only_stress_components_heatmap.png", "B3: per-component stress relative error, checkpoint x component.")
 
-h2("5.2 Mixed-stress checkpoints: implicit vs. direct stress path")
+h2("5.3 Mixed-stress checkpoints: implicit vs. direct stress path")
 para("Three mixed-stress training attempts, each queried two ways: \"implicit\" derives stress "
      "from the predicted displacement field via autograd (same method as the checkpoints above); "
      "\"direct\" uses the network's own stress output directly. H1 is identical between the two "
