@@ -155,7 +155,7 @@ def interpolate_node_field_to_finer_mesh(field_coarse, Ntheta_c, Nr_c, Nz_c,
 
 
 def generate_fine_reference(dataset_path, fine_resolution, n_samples, device, dtype=torch.float64,
-                             verbose=True, cache_path=None):
+                             verbose=True, cache_path=None, require_region_mask=True):
     """THE EXPENSIVE STEP, done ONCE regardless of how many checkpoints
     will be evaluated against it: interpolates each of the first
     n_samples held-out samples' E/nu fields onto the fine mesh and
@@ -173,7 +173,14 @@ def generate_fine_reference(dataset_path, fine_resolution, n_samples, device, dt
     this path when the function starts are loaded and skipped instead
     of re-solved. Makes this function resumable across an interruption
     at ANY point -- at most one in-progress sample's work is ever lost,
-    not the whole reference."""
+    not the whole reference.
+
+    require_region_mask (added 2026-11-04): the groove region-stress
+    mask needs >= MIN_RELIABLE_N_P99 Gauss points to be meaningful, which
+    coarse resolutions (e.g. 336, 1,320 elements) do not have. Callers
+    that only need the global scalar QoIs (displacement/H1/energy/
+    reaction -- none of which depend on the region mask) can pass False
+    to skip that check and use this function at any resolution."""
     Ntheta_c, Nr_c, Nz_c = DEFAULT_RESOLUTION
     Ntheta_f, Nr_f, Nz_f = fine_resolution
     n_elem_f = (Ntheta_f - 1) * (Nr_f - 1) * (Nz_f - 1)
@@ -186,9 +193,11 @@ def generate_fine_reference(dataset_path, fine_resolution, n_samples, device, dt
     if verbose:
         print(f"  fine-mesh fixed region: {n_region_fine} Gauss points "
               f"(reliable p99 needs >= {MIN_RELIABLE_N_P99}) -- vs. 6 at production resolution")
-    assert n_region_fine >= MIN_RELIABLE_N_P99, (
-        f"chosen fine_resolution only gives {n_region_fine} region Gauss points, "
-        f"below MIN_RELIABLE_N_P99={MIN_RELIABLE_N_P99} -- pick a finer resolution")
+    if require_region_mask:
+        assert n_region_fine >= MIN_RELIABLE_N_P99, (
+            f"chosen fine_resolution only gives {n_region_fine} region Gauss points, "
+            f"below MIN_RELIABLE_N_P99={MIN_RELIABLE_N_P99} -- pick a finer resolution, "
+            f"or pass require_region_mask=False if this call does not need region-stress QoIs")
 
     with h5py.File(dataset_path, "r") as h5:
         E_node_all = h5["E_node"][:]

@@ -162,7 +162,7 @@ def main():
               f"n_elem={n_elem}) for {N_SAMPLES} samples ===")
         cache_path = args.out_json + f".res_{label}.cache.pt"
         ref = generate_fine_reference(HOLDOUT, (Ntheta, Nr, Nz), N_SAMPLES, device, dtype,
-                                       cache_path=cache_path)
+                                       cache_path=cache_path, require_region_mask=False)
         print(f"  comparing vs. the 950,400-element reference ...")
         results[label] = _one_resolution_vs_fine(ref, fine_ref, device, dtype)
         s = results[label]["summary"]
