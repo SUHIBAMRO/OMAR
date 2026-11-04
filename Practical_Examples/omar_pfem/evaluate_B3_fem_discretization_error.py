@@ -110,6 +110,102 @@ def load_coarse_reference(dataset_path, n_samples, device, dtype=torch.float64, 
             "n_region_fine": int(region_mask_c_np.sum()), "samples": samples}
 
 
+def compute_one_resolution_vs_fine(ref, fine_ref, device, dtype=torch.float64, tag="", verbose=True):
+    """Compares a single coarser FEM solution (`ref`, from
+    load_coarse_reference or generate_fine_reference) against `fine_ref`
+    (the 950,400-element reference, or any other designated "truth" mesh)
+    for the same samples -- pure FEM-vs-FEM discretization error, no
+    neural network involved. Both refs must come from the SAME
+    dataset_path and sample ordering (sample i in each = the same
+    physical case). Extracted 2026-11-04 (originally inlined twice inside
+    compute_fem_discretization_errors) so the identical, already-verified
+    computation can be reused for ANY resolution pair -- e.g. checking
+    whether 950,400 is itself converged against 839,040, with the exact
+    same formula used for the 6,840/43,400-vs-950,400 numbers, not a
+    re-implementation that could silently drift from it."""
+    Ntheta_f, Nr_f, Nz_f = fine_ref["fine_resolution"]
+    geom_fine = fine_ref["geom_fine"]
+    region_mask_fine_torch = fine_ref["region_mask_fine_torch"]
+    n_samples = min(len(ref["samples"]), len(fine_ref["samples"]))
+    Ntheta_c, Nr_c, Nz_c = ref["fine_resolution"]
+    rows = []
+    for idx in range(n_samples):
+        s_c = ref["samples"][idx]
+        s_f = fine_ref["samples"][idx]
+        assert s_c["sample_index"] == s_f["sample_index"], "sample ordering mismatch between resolutions"
+
+        u_c_np = s_c["u_true_f"][0].cpu().numpy()  # (n_nodes_c, 3)
+        u_c_on_fine_np = interpolate_node_field_to_finer_mesh(
+            u_c_np, Ntheta_c, Nr_c, Nz_c, Ntheta_f, Nr_f, Nz_f, R_GRADING, n_components=3)
+        u_c_on_fine = torch.tensor(u_c_on_fine_np, dtype=dtype, device=device).unsqueeze(0)
+        u_true_f = s_f["u_true_f"]
+        E_f_t, nu_f_t = s_f["E_f_t"], s_f["nu_f_t"]
+
+        err = u_c_on_fine - u_true_f
+        l2_num = torch.sqrt(torch.mean(torch.sum(err ** 2, dim=2)))
+        l2_den = torch.sqrt(torch.mean(torch.sum(u_true_f ** 2, dim=2))) + 1e-12
+        disp_rel_l2 = float((l2_num / l2_den).item())
+
+        h1_rel = float(compute_H1_seminorm_rel(u_true_f, u_c_on_fine, geom_fine)[0].item())
+        sigma_true_f, w_true_f = compute_region_sigma_full(
+            u_true_f, E_f_t, nu_f_t, geom_fine, region_mask_fine_torch)
+        sigma_c_on_fine, _ = compute_region_sigma_full(
+            u_c_on_fine, E_f_t, nu_f_t, geom_fine, region_mask_fine_torch)
+        field_rel = float(cauchy_field_rel_from_full(sigma_true_f, w_true_f, sigma_c_on_fine)[0].item())
+        comp_rel = sigma_components_rel_from_full(sigma_true_f, w_true_f, sigma_c_on_fine)
+
+        avg_true_f, _, _ = compute_region_sigma_xx(u_true_f, E_f_t, nu_f_t, geom_fine, region_mask_fine_torch)
+        avg_c_on_fine, _, _ = compute_region_sigma_xx(u_c_on_fine, E_f_t, nu_f_t, geom_fine, region_mask_fine_torch)
+        region_avg_sigma_xx_rel = float(
+            (torch.abs(avg_c_on_fine - avg_true_f) / (torch.abs(avg_true_f) + 1e-12))[0].item())
+
+        # Scalars: each resolution's OWN FEM solution on its OWN mesh/material, no interpolation.
+        geom_c = ref["geom_fine"]
+        u_c_native = s_c["u_true_f"]
+        E_c_t, nu_c_t = s_c["E_f_t"], s_c["nu_f_t"]
+        energy_c = compute_energy(u_c_native, E_c_t, nu_c_t, geom_c)
+        energy_f = compute_energy(u_true_f, E_f_t, nu_f_t, geom_fine)
+        energy_rel = float((torch.abs(energy_c - energy_f) / (torch.abs(energy_f) + 1e-12))[0].item())
+
+        _, Mr_c, _ = compute_reaction(u_c_native, E_c_t, nu_c_t, geom_c)
+        _, Mr_f, _ = compute_reaction(u_true_f, E_f_t, nu_f_t, geom_fine)
+        moment_rel = float((torch.abs(Mr_c - Mr_f) / (torch.abs(Mr_f) + 1e-12))[0].item())
+
+        rows.append({
+            "sample_index": s_c["sample_index"],
+            "disp_rel_l2_vs_950400": disp_rel_l2,
+            "H1_seminorm_rel_vs_950400": h1_rel,
+            "region_cauchy_field_rel_vs_950400": field_rel,
+            "region_sigma_components_rel_vs_950400": {
+                name: float(comp_rel[name][0].item()) for name, _, _ in STRESS_COMPONENTS},
+            "region_avg_sigma_xx_rel_vs_950400": region_avg_sigma_xx_rel,
+            "energy_rel_vs_950400": energy_rel,
+            "reaction_moment_y_rel_vs_950400": moment_rel,
+        })
+
+    n_elem = (Ntheta_c - 1) * (Nr_c - 1) * (Nz_c - 1)
+    summary = {"resolution": [Ntheta_c, Nr_c, Nz_c], "n_elements": n_elem, "n_samples": n_samples}
+    for key in ("disp_rel_l2_vs_950400", "H1_seminorm_rel_vs_950400", "region_cauchy_field_rel_vs_950400",
+                "region_avg_sigma_xx_rel_vs_950400", "energy_rel_vs_950400", "reaction_moment_y_rel_vs_950400"):
+        vals = np.array([row[key] for row in rows])
+        vals_valid = vals[~np.isnan(vals)]
+        summary[f"mean_{key}"] = float(np.mean(vals_valid)) if len(vals_valid) else float("nan")
+        summary[f"median_{key}"] = float(np.median(vals_valid)) if len(vals_valid) else float("nan")
+    for name, _, _ in STRESS_COMPONENTS:
+        vals = np.array([row["region_sigma_components_rel_vs_950400"][name] for row in rows])
+        vals_valid = vals[~np.isnan(vals)]
+        summary[f"mean_region_sigma_{name}_rel_vs_950400"] = float(np.mean(vals_valid)) if len(vals_valid) else float("nan")
+
+    if verbose:
+        print(f"  [{tag}, {n_elem:,} elements] disp_rel_l2={summary['mean_disp_rel_l2_vs_950400']:.4f}  "
+              f"H1={summary['mean_H1_seminorm_rel_vs_950400']:.4f}  "
+              f"region_cauchy_field={summary['mean_region_cauchy_field_rel_vs_950400']:.4f}  "
+              f"energy={summary['mean_energy_rel_vs_950400']:.4f}  "
+              f"moment={summary['mean_reaction_moment_y_rel_vs_950400']:.4f}")
+
+    return {"summary": summary, "per_sample": rows}
+
+
 def compute_fem_discretization_errors(coarse_ref, mid_ref, fine_ref, device, dtype=torch.float64, verbose=True):
     """Compares coarse_ref (6,840) and mid_ref (43,400) against fine_ref
     (950,400) for the SAME samples -- pure FEM-vs-FEM discretization
@@ -118,93 +214,11 @@ def compute_fem_discretization_errors(coarse_ref, mid_ref, fine_ref, device, dty
     built from the SAME dataset_path and sample ordering (so sample i in
     each corresponds to the same physical case)."""
     Ntheta_f, Nr_f, Nz_f = fine_ref["fine_resolution"]
-    geom_fine = fine_ref["geom_fine"]
-    region_mask_fine_torch = fine_ref["region_mask_fine_torch"]
     n_samples = min(len(coarse_ref["samples"]), len(mid_ref["samples"]), len(fine_ref["samples"]))
-
-    def _one_resolution_vs_fine(ref, tag):
-        Ntheta_c, Nr_c, Nz_c = ref["fine_resolution"]
-        rows = []
-        for idx in range(n_samples):
-            s_c = ref["samples"][idx]
-            s_f = fine_ref["samples"][idx]
-            assert s_c["sample_index"] == s_f["sample_index"], "sample ordering mismatch between resolutions"
-
-            u_c_np = s_c["u_true_f"][0].cpu().numpy()  # (n_nodes_c, 3)
-            u_c_on_fine_np = interpolate_node_field_to_finer_mesh(
-                u_c_np, Ntheta_c, Nr_c, Nz_c, Ntheta_f, Nr_f, Nz_f, R_GRADING, n_components=3)
-            u_c_on_fine = torch.tensor(u_c_on_fine_np, dtype=dtype, device=device).unsqueeze(0)
-            u_true_f = s_f["u_true_f"]
-            E_f_t, nu_f_t = s_f["E_f_t"], s_f["nu_f_t"]
-
-            err = u_c_on_fine - u_true_f
-            l2_num = torch.sqrt(torch.mean(torch.sum(err ** 2, dim=2)))
-            l2_den = torch.sqrt(torch.mean(torch.sum(u_true_f ** 2, dim=2))) + 1e-12
-            disp_rel_l2 = float((l2_num / l2_den).item())
-
-            h1_rel = float(compute_H1_seminorm_rel(u_true_f, u_c_on_fine, geom_fine)[0].item())
-            sigma_true_f, w_true_f = compute_region_sigma_full(
-                u_true_f, E_f_t, nu_f_t, geom_fine, region_mask_fine_torch)
-            sigma_c_on_fine, _ = compute_region_sigma_full(
-                u_c_on_fine, E_f_t, nu_f_t, geom_fine, region_mask_fine_torch)
-            field_rel = float(cauchy_field_rel_from_full(sigma_true_f, w_true_f, sigma_c_on_fine)[0].item())
-            comp_rel = sigma_components_rel_from_full(sigma_true_f, w_true_f, sigma_c_on_fine)
-
-            avg_true_f, _, _ = compute_region_sigma_xx(u_true_f, E_f_t, nu_f_t, geom_fine, region_mask_fine_torch)
-            avg_c_on_fine, _, _ = compute_region_sigma_xx(u_c_on_fine, E_f_t, nu_f_t, geom_fine, region_mask_fine_torch)
-            region_avg_sigma_xx_rel = float(
-                (torch.abs(avg_c_on_fine - avg_true_f) / (torch.abs(avg_true_f) + 1e-12))[0].item())
-
-            # Scalars: each resolution's OWN FEM solution on its OWN mesh/material, no interpolation.
-            geom_c, mask_c = ref["geom_fine"], ref["region_mask_fine_torch"]
-            u_c_native = s_c["u_true_f"]
-            E_c_t, nu_c_t = s_c["E_f_t"], s_c["nu_f_t"]
-            energy_c = compute_energy(u_c_native, E_c_t, nu_c_t, geom_c)
-            energy_f = compute_energy(u_true_f, E_f_t, nu_f_t, geom_fine)
-            energy_rel = float((torch.abs(energy_c - energy_f) / (torch.abs(energy_f) + 1e-12))[0].item())
-
-            _, Mr_c, _ = compute_reaction(u_c_native, E_c_t, nu_c_t, geom_c)
-            _, Mr_f, _ = compute_reaction(u_true_f, E_f_t, nu_f_t, geom_fine)
-            moment_rel = float((torch.abs(Mr_c - Mr_f) / (torch.abs(Mr_f) + 1e-12))[0].item())
-
-            rows.append({
-                "sample_index": s_c["sample_index"],
-                "disp_rel_l2_vs_950400": disp_rel_l2,
-                "H1_seminorm_rel_vs_950400": h1_rel,
-                "region_cauchy_field_rel_vs_950400": field_rel,
-                "region_sigma_components_rel_vs_950400": {
-                    name: float(comp_rel[name][0].item()) for name, _, _ in STRESS_COMPONENTS},
-                "region_avg_sigma_xx_rel_vs_950400": region_avg_sigma_xx_rel,
-                "energy_rel_vs_950400": energy_rel,
-                "reaction_moment_y_rel_vs_950400": moment_rel,
-            })
-
-        n_elem = (Ntheta_c - 1) * (Nr_c - 1) * (Nz_c - 1)
-        summary = {"resolution": [Ntheta_c, Nr_c, Nz_c], "n_elements": n_elem, "n_samples": n_samples}
-        for key in ("disp_rel_l2_vs_950400", "H1_seminorm_rel_vs_950400", "region_cauchy_field_rel_vs_950400",
-                    "region_avg_sigma_xx_rel_vs_950400", "energy_rel_vs_950400", "reaction_moment_y_rel_vs_950400"):
-            vals = np.array([row[key] for row in rows])
-            vals_valid = vals[~np.isnan(vals)]
-            summary[f"mean_{key}"] = float(np.mean(vals_valid)) if len(vals_valid) else float("nan")
-            summary[f"median_{key}"] = float(np.median(vals_valid)) if len(vals_valid) else float("nan")
-        for name, _, _ in STRESS_COMPONENTS:
-            vals = np.array([row["region_sigma_components_rel_vs_950400"][name] for row in rows])
-            vals_valid = vals[~np.isnan(vals)]
-            summary[f"mean_region_sigma_{name}_rel_vs_950400"] = float(np.mean(vals_valid)) if len(vals_valid) else float("nan")
-
-        if verbose:
-            print(f"  [{tag}, {n_elem:,} elements] disp_rel_l2={summary['mean_disp_rel_l2_vs_950400']:.4f}  "
-                  f"H1={summary['mean_H1_seminorm_rel_vs_950400']:.4f}  "
-                  f"region_cauchy_field={summary['mean_region_cauchy_field_rel_vs_950400']:.4f}  "
-                  f"energy={summary['mean_energy_rel_vs_950400']:.4f}  "
-                  f"moment={summary['mean_reaction_moment_y_rel_vs_950400']:.4f}")
-
-        return {"summary": summary, "per_sample": rows}
-
     if verbose:
         print(f"FEM discretization error vs. {Ntheta_f, Nr_f, Nz_f} "
               f"({(Ntheta_f - 1) * (Nr_f - 1) * (Nz_f - 1):,} elements), n_samples={n_samples}")
-    result_coarse = _one_resolution_vs_fine(coarse_ref, "6,840-element")
-    result_mid = _one_resolution_vs_fine(mid_ref, "43,400-element")
+    result_coarse = compute_one_resolution_vs_fine(coarse_ref, fine_ref, device, dtype, "6,840-element", verbose)
+    result_mid = compute_one_resolution_vs_fine(mid_ref, fine_ref, device, dtype, "43,400-element", verbose)
     return {"fine_resolution": [Ntheta_f, Nr_f, Nz_f], "n_samples": n_samples,
             "vs_6840": result_coarse, "vs_43400": result_mid}
