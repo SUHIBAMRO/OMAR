@@ -244,6 +244,35 @@ image("b1_cauchy_avg_rel_err.png", "B1: region Cauchy stress, mean relative erro
 image("b1_cauchy_p99_rel_err.png", "B1: region Cauchy stress, p99 relative error.")
 image("b1_cauchy_max_rel_err.png", "B1: region Cauchy stress, max relative error.")
 
+h2("4.1 Model-selection methodology: no test-set snooping")
+para("Professor Rabczuk raised a methodological concern (2026-11-04 email, point 5): whether "
+     "'the best B1 result' -- the optimizer and loss choice behind Table 21 / tab:pi-vs-dd in the "
+     "submitted paper (physics-informed with Adam at 9.59%, data-driven with AdamW+OneCycleLR at "
+     "8.26%) -- was effectively hand-picked after seeing it perform well against the final "
+     "ground-truth test set, which would bias the reported number optimistically.")
+para("Checked directly against the training code (train_B1.py, train_data_driven.py), not assumed: "
+     "it was not. Every validation error reported in that table comes from a genuine held-out split "
+     "of the training dataset -- 800 training samples, 200 held-out validation samples (ntrain=800, "
+     "ntest=200, the actual values used for these runs), all generated at the same N=21 mesh "
+     "resolution. The best checkpoint (model_best.pt) for each of the four (loss, optimizer) cells "
+     "is the one with the lowest error on these 200 validation samples, decided purely from that "
+     "split. The independent N=2236 fine-mesh reference used throughout Section 4 above is never "
+     "consulted during training, checkpoint selection, or optimizer choice -- it is used only "
+     "afterwards, to re-check whether the ranking established on the validation split survives "
+     "against a completely independent reference and at inference resolutions (N=13, 29, 49) the "
+     "models never trained on. As shown above, it does: PI remains more accurate than DD at every "
+     "such N and QoI tested, consistent with (not derived from) the validation-split ranking. Both "
+     "losses were also given the same fixed training budget (75,000 optimizer steps) and the same "
+     "validation protocol, so neither method had a search-budget advantage over the other.")
+para("Still pending as of this report: a limited study (per the same email, \"we do not need to "
+     "explore the full combinatorial space now, but even a limited study\" would help) of the "
+     "remaining, genuinely open question -- how much the data-driven model's final accuracy depends "
+     "on the resolution its own training labels were generated at, independent of training/inference "
+     "resolution (currently all three coincide at N=21). Two additional DD checkpoints (labels "
+     "generated at N=13 and N=33, otherwise identical recipe -- AdamW+OneCycleLR, matching the best "
+     "DD cell above) have been queued for training and evaluation against the N=2236 reference; "
+     "results will be added here once that run completes.")
+
 # ===========================================================================
 h1("5. B3 — every checkpoint vs. the single 950,400-element reference")
 para("One common fine reference (101 x 100 x 97 = 950,400 elements) generated once and used for "
