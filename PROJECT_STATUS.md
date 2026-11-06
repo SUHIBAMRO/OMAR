@@ -24108,3 +24108,33 @@ All fixes re-published to the same artifact (https://claude.ai/artifact/Tc42DEWp
 - [ ] **Point 6** (long-term trustworthy-AI research vision -- a-priori/a-posteriori error certification, or a large-scale active-learning/multi-fidelity database, possible PhD direction) -- NOT an action item. For discussion only; Timon is describing where his OWN presentation and the research programme are heading, not asking for work product now.
 
 Once points 3 and 4's HPC jobs return, update the slides (points 1-2's numbers), rebuild the break-even table (point 3), and write up point 4's findings (far-region result + multi-resolution table) as a direct, evidence-based reply to Timon's "something must be wrong" concern -- confirming it either way, not just reassuring him in words.
+
+## 2026-11-06: Timon replied to the reorganized slides -- approved V3 (the
+## 950,400-based numbers), one small follow-up request, done
+
+Timon's email, verbatim: "V3 looks perfect. Just one small request: Can you
+please show the comparison between DD and PI basically just taking the
+'best' ones at inference showing that PI outperforms DD in both accuracy
+and speed in all QoI." Omar confirmed he meant the single-slide layout
+(`B3_Key_Results_v3_single.pptx`).
+
+Added a 5th table column, "Best DD", to that slide: for each of the 4 QoIs
+independently, the single best value across all 5 already-evaluated B3 DD
+variants (label counts N=50/200/400, Sobolev training, hybrid training) --
+the most generous possible number for DD on each QoI, not one weak
+baseline picked to make PI look better. Source: job 3114165's own
+already-printed SUMMARY (Item 4 rows), already in this conversation,
+re-verified before use:
+  - Displacement: DD best 2.81% (N=200) vs. PI 2.78%
+  - H1 semi-norm: DD best 16.67% (hybrid) vs. PI 12.30%
+  - Strain energy: DD best 9.04% (hybrid) vs. PI 5.33%
+  - Reaction moment: DD best 4.78% (N=200) vs. PI 1.38%
+**PI wins on all four, even against each QoI's own best-case DD number.**
+For "speed," used the already-established B3 DD label-generation cost
+(825.8s for 200 FEM solves, the N=200 variant's own figure) to state PI
+needs zero FEM-generated labels while DD's cheapest variants still need
+200+. Updated both the visible table/caption and the speaker notes;
+rebuilt, visual-QA'd (no overlap/overflow) and content-QA'd (no
+placeholder text) before sending. File delivered to Omar; not yet
+committed to the repo (lives in the session scratchpad like the other
+delivered `.pptx` files, consistent with how those have been handled).
