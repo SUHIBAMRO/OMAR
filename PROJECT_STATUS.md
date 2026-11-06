@@ -24169,3 +24169,29 @@ one as a table and the other as prose. Caption shortened accordingly
 (still states the inference-speed-parity fact, just once, briefly).
 Re-verified visually after the table grew by one row (no overlap with the
 stat cards below). Final file delivered to Omar.
+
+**Independent GPU measurement obtained (Omar's explicit ask, 2026-11-06)**:
+a further relayed critique insisted on an actually-measured DD inference
+number, not just the architecture argument. Wrote
+`Practical_Examples/measure_dd_inference_latency.py` (committed `94dc9b3`,
+diagnostics added in `3273523`) -- instantiates a freshly-initialized
+model of the exact architecture `train_B3_data_driven.py` builds
+(confirmed via code: same `build_model` call, same default
+hyperparameters as `train_B3.py`/PI), no checkpoint download needed since
+timing is weight-independent. First HPC attempt (job 3122675) failed:
+script wasn't committed yet (fixed, resubmitted as 3122712). That run
+printed `device: cpu` despite running inside a `batch.1gpu` job --
+diagnosed by adding `CUDA_VISIBLE_DEVICES`/`torch.cuda.is_available()`
+prints and resubmitting (job 3127038): confirmed a real, if unexplained,
+one-off GPU-visibility miss on that specific node/scheduling instance, not
+a bug in the script -- the retry got `CUDA_VISIBLE_DEVICES='0'`,
+`NVIDIA H100 NVL`, and a real measured **3.80 ms/sample**. Important
+caveat caught before using this number: the original 6.32 ms/sample PI
+figure was measured on A100 hardware (confirmed via this project's own
+history of B3 Colab runs), not H100 -- so 3.80 vs. 6.32 is a GPU-generation
+difference, not a PI-vs-DD difference, and presenting them side by side
+without that label would have been misleading (could even read as "DD is
+faster than PI"). Added to the slide with the GPU explicitly named in both
+places, per Omar's explicit call ("حط نوع الجيبيو جنبها"). Re-verified
+visually after layout adjustments (shrank the stat-card row slightly to
+keep clearance); still fits on one slide. Final file delivered to Omar.
