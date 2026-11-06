@@ -24138,3 +24138,24 @@ rebuilt, visual-QA'd (no overlap/overflow) and content-QA'd (no
 placeholder text) before sending. File delivered to Omar; not yet
 committed to the repo (lives in the session scratchpad like the other
 delivered `.pptx` files, consistent with how those have been handled).
+
+**Follow-up same day**: a relayed critique claimed the slide was still
+missing an explicit PI-vs-DD *inference-speed* comparison (as opposed to
+PI-vs-FEM). Checked before accepting: `evaluate_B3.py`'s
+`benchmark_inference_latency_B3` times the Transolver architecture's
+forward pass, independent of which checkpoint's weights are loaded --
+structurally guaranteed to give the same number for PI and DD, since both
+share the identical architecture (exactly the already-documented B1
+precedent: 4.625 vs. 4.586 ms/sample, "consistent with sharing the
+identical architecture"). No DD-specific B3 inference-latency figure
+exists in this codebase (`grep` for `benchmark_inference_latency`/
+`inference_ms_per_sample` in `train_B3_data_driven.py`/`train_B3.py`:
+nothing), confirming this was never separately measured because the
+architecture-level reasoning already settles it. The critique's missing
+item was real (the slide didn't say this explicitly), but its implicit
+premise (that measuring it would show PI winning) would have been false --
+added one precise clarifying sentence to the slide instead of a
+misleading "speed" row: inference speed is identical by construction;
+PI's real speed advantage is the avoided label-generation cost (already
+shown: 0 vs. 825.8s). Rebuilt, visually re-verified (no overlap, still
+fits one slide), re-delivered to Omar.
