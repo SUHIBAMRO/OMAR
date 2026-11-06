@@ -7,6 +7,7 @@ architecture gives the same real, measured number any trained DD
 checkpoint would, without needing to fetch one from Drive.
 """
 import argparse
+import os
 import time
 import types
 
@@ -15,6 +16,12 @@ import torch
 from omar_pfem.train_B3 import build_fixed_geometry, build_model
 from omar_pfem.data.data_generate_B3_dataset import DEFAULT_RESOLUTION, sample_material_and_load
 from omar_pfem.evaluate_B3 import benchmark_inference_latency_B3
+
+print(f"CUDA_VISIBLE_DEVICES={os.environ.get('CUDA_VISIBLE_DEVICES')!r}")
+print(f"torch.cuda.is_available()={torch.cuda.is_available()}")
+print(f"torch.cuda.device_count()={torch.cuda.device_count()}")
+if torch.cuda.is_available():
+    print(f"torch.cuda.get_device_name(0)={torch.cuda.get_device_name(0)!r}")
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 dtype = torch.float64
