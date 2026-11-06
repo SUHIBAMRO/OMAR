@@ -24159,3 +24159,13 @@ misleading "speed" row: inference speed is identical by construction;
 PI's real speed advantage is the avoided label-generation cost (already
 shown: 0 vs. 825.8s). Rebuilt, visually re-verified (no overlap, still
 fits one slide), re-delivered to Omar.
+
+**Final format pass (Omar's call)**: a caption sentence buries the speed
+comparison relative to the table-based accuracy comparison -- moved it
+into the SAME table instead, as an explicit 5th row ("Label cost
+(training)": PI "0 (no labels)", FEM columns "n/a", Best DD "825.8s (200+
+solves)"), so accuracy and speed are both shown as visible table data, not
+one as a table and the other as prose. Caption shortened accordingly
+(still states the inference-speed-parity fact, just once, briefly).
+Re-verified visually after the table grew by one row (no overlap with the
+stat cards below). Final file delivered to Omar.
