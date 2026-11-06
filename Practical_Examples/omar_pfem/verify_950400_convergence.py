@@ -75,7 +75,8 @@ def main():
           f"(real new FEM solve, cacheable/resumable) ...")
     mid_cache = args.out_json + ".res_839040.cache.pt"
     mid_ref = generate_fine_reference(HOLDOUT, RESOLUTION_839040, N_SAMPLES, device, dtype,
-                                       cache_path=mid_cache, require_region_mask=True)
+                                       cache_path=mid_cache, require_region_mask=True,
+                                       n_increments=25)
 
     print(f"\n{'=' * 90}\n=== 839,040-element solution vs. the 950,400-element reference "
           f"(SAME methodology/samples/formula as every other QoI in this re-evaluation) ===")

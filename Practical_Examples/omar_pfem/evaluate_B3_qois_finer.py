@@ -155,7 +155,8 @@ def interpolate_node_field_to_finer_mesh(field_coarse, Ntheta_c, Nr_c, Nz_c,
 
 
 def generate_fine_reference(dataset_path, fine_resolution, n_samples, device, dtype=torch.float64,
-                             verbose=True, cache_path=None, require_region_mask=True):
+                             verbose=True, cache_path=None, require_region_mask=True,
+                             n_increments=11):
     """THE EXPENSIVE STEP, done ONCE regardless of how many checkpoints
     will be evaluated against it: interpolates each of the first
     n_samples held-out samples' E/nu fields onto the fine mesh and
@@ -180,7 +181,26 @@ def generate_fine_reference(dataset_path, fine_resolution, n_samples, device, dt
     coarse resolutions (e.g. 336, 1,320 elements) do not have. Callers
     that only need the global scalar QoIs (displacement/H1/energy/
     reaction -- none of which depend on the region mask) can pass False
-    to skip that check and use this function at any resolution."""
+    to skip that check and use this function at any resolution.
+
+    n_increments (added 2026-11-07, after a real sample at 839,040
+    elements ran for 46+ hours without finishing): passed straight
+    through to solve_one_sample's own `n_increments` (default 11).
+    Diagnosed directly from the dataset, not guessed: the stuck sample's
+    own rocking angle (phi=0.0714 rad) is ~1.6x any other held-out
+    sample's (next-highest 0.0452), not an extreme nu -- several already-
+    fast samples have a HIGHER nu (0.49) than the stuck one (0.478), so
+    near-incompressibility is not the cause. A larger prescribed rotation
+    per load increment pushes the per-increment Newton step further from
+    the converged state, which both needs more Newton iterations and
+    makes each one's CG+Jacobi linear solve slower (worse tangent-
+    stiffness conditioning at a larger deformation) -- doubly expensive
+    at this resolution's already-large linear systems. More, smaller
+    increments make each individual Newton step easier without changing
+    the converged physics at all. Raising the default would silently
+    change the cost of every resolution this function has already been
+    used (and cached) for; left at 11 so this is purely an opt-in lever
+    for callers that hit a hard case, not a silent global change."""
     Ntheta_c, Nr_c, Nz_c = DEFAULT_RESOLUTION
     Ntheta_f, Nr_f, Nz_f = fine_resolution
     n_elem_f = (Ntheta_f - 1) * (Nr_f - 1) * (Nz_f - 1)
@@ -235,7 +255,8 @@ def generate_fine_reference(dataset_path, fine_resolution, n_samples, device, dt
         E_f = interpolate_node_field_to_finer_mesh(E_c, Ntheta_c, Nr_c, Nz_c, Ntheta_f, Nr_f, Nz_f, R_GRADING)
         nu_f = interpolate_node_field_to_finer_mesh(nu_c, Ntheta_c, Nr_c, Nz_c, Ntheta_f, Nr_f, Nz_f, R_GRADING)
 
-        r = solve_one_sample(Ntheta_f, Nr_f, Nz_f, E_f, nu_f, phi, device=device, dtype=dtype)
+        r = solve_one_sample(Ntheta_f, Nr_f, Nz_f, E_f, nu_f, phi, device=device, dtype=dtype,
+                              n_increments=n_increments)
         u_true_f = torch.tensor(r["u"], dtype=dtype, device=device).unsqueeze(0)  # (1, n_nodes_f, 3)
 
         E_f_t = torch.tensor(E_f, dtype=dtype, device=device).unsqueeze(0)
