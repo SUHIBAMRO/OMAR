@@ -13,11 +13,13 @@ NTEST=200
 mkdir -p "$RUN_DIR"
 
 echo "=== Resolving the real PI checkpoint by fingerprint (not a guessed path) ==="
-PI_CKPT=$(python3 -c "
+python3 -c "
 from omar_pfem.resolve_b1_checkpoint import resolve_b1_neo_hookean_checkpoint
 path, fp = resolve_b1_neo_hookean_checkpoint('$CKPT_CANDIDATES_DIR')
 print(path)
-")
+" | tee /tmp/resolve_pi_ckpt_$$.log
+PI_CKPT=$(tail -n 1 /tmp/resolve_pi_ckpt_$$.log)
+rm -f /tmp/resolve_pi_ckpt_$$.log
 echo "Resolved PI checkpoint: $PI_CKPT"
 
 for N in 13 33; do
