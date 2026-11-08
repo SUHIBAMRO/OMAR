@@ -24236,9 +24236,31 @@ HIS stated order):
 `B3_Accuracy_Improvement_Investigation_Report.docx`):**
 - A: tried -- partial improvement, stress accuracy still insufficient.
 - B: tried, several modifications -- did not improve.
-- C: **NOT YET TRIED** -- no mention anywhere in this project's history of
-  a general H1/gradient/weak-form term distinct from B's specific
-  equilibrium/traction residual choice.
+- C: **CORRECTION, 2026-11-08 -- NOT actually untried; this row was wrong.**
+  Before spending any new GPU time on this (per Omar's "يلا بلش اشتغل"),
+  read `equilibrium_augmented_B3.py`'s own module docstring, which already
+  derives, before any code was written for it, that for B3's u-only
+  network on trilinear (Hexa1) elements, a STRONG-form residual
+  Div(P)=0 is mathematically vacuous: F (and hence P) is piecewise
+  CONSTANT within each element for trilinear shape functions, so the
+  divergence of any piecewise-constant field is identically zero
+  regardless of whether the field is physically correct. The weak form
+  (virtual work, integral P:grad(v) dV = 0) is therefore "the one
+  well-posed way to realize BOTH... items 2 and 3" -- Items B and C
+  **collapse to the exact same mechanism** for this architecture, not
+  two separate things to try. `train_B3_equilibrium_augmented.py`
+  already tried this mechanism exhaustively (constant weights 1.0/0.12/
+  0.05/0.03, `n_virtual` 4/8/32, decay schedules, late-introduction
+  schedules, the "local-refine" and "relative" variants already in the
+  report's Section 5.3) with a clearly documented negative conclusion:
+  the term destabilizes training past a certain point in energy's own
+  optimization, independent of weight or noise level within the tested
+  range. **There is no separate, un-run "Item C" left to try** -- what
+  remains open is not a new method, but possibly a genuinely different
+  mathematical device for low-order elements (e.g. a higher-order/
+  mixed element reformulation, or matching grad(u) against something
+  other than the equilibrium PDE residual) -- not attempted, and not
+  clearly what Timon meant by "a more general H1/gradient... term."
 - D: tried (Sobolev and hybrid checkpoints both exist with real numbers
   already tracked in this file, e.g. Sobolev 3.37/23.33/23.35/12.49%,
   hybrid 3.55/16.67/9.04/15.88% for disp/H1/energy/reaction).
