@@ -24209,3 +24209,124 @@ faster than PI"). Added to the slide with the GPU explicitly named in both
 places, per Omar's explicit call ("حط نوع الجيبيو جنبها"). Re-verified
 visually after layout adjustments (shrank the stat-card row slightly to
 keep clearance); still fits on one slide. Final file delivered to Omar.
+
+## NEXT-PHASE RESEARCH ROADMAP, extracted from Timon's full email history, 2026-11-08
+
+Omar asked to go back through Timon's emails about "what's next" (after the
+current re-evaluation/report/slides work, which is the separate Points 1-6
+tracked throughout this file above) and build a precise, lettered breakdown
+plus an ordered task list. Extracted faithfully from the actual email text
+(not invented categories), with each item's real status in this project.
+
+**From Timon's 2026-10-11 email** (regional-stress-error improvement, in
+HIS stated order):
+- **A.** Mixed displacement-stress formulation -- network predicts u AND
+  P (stress), with equilibrium (Div P = 0) and constitutive consistency
+  (P = dW/dF) as extra residuals.
+- **B.** Equilibrium-augmented displacement formulation -- add equilibrium
+  + traction residuals to the existing energy loss (displacement-only
+  network).
+- **C.** A more general H1/gradient/weak-form term constraining
+  displacement GRADIENTS directly (broader than B's specific residual
+  choice).
+- **D.** Sobolev/H1 training for the pure DD model, and maybe a hybrid
+  model.
+
+**Status (from Omar's own 2026-10-27 update email + this project's history,
+`B3_Accuracy_Improvement_Investigation_Report.docx`):**
+- A: tried -- partial improvement, stress accuracy still insufficient.
+- B: tried, several modifications -- did not improve.
+- C: **NOT YET TRIED** -- no mention anywhere in this project's history of
+  a general H1/gradient/weak-form term distinct from B's specific
+  equilibrium/traction residual choice.
+- D: tried (Sobolev and hybrid checkpoints both exist with real numbers
+  already tracked in this file, e.g. Sobolev 3.37/23.33/23.35/12.49%,
+  hybrid 3.55/16.67/9.04/15.88% for disp/H1/energy/reaction).
+
+**From Timon's 2026-10-20 email** (the expanded plan, beyond just the 4
+stress-improvement methods above):
+- **E.** A fair PI-vs-DD comparison for B3, to figure out when the
+  expensive high-fidelity labels actually make PI worthwhile (a genuine
+  break-even-by-sample-count question, not just "which wins at a fixed
+  N").
+- **F.** Move from a fixed geometry to geometry FAMILIES, with more
+  industrial nonlinearities.
+- **G.** Faster iterative solvers: AMG-Krylov with multi-GPU/domain
+  decomposition.
+- The overall goal: trustworthy AI. First step: understand **resolution
+  theory and model selection** -- why a finer N can HURT, and how to
+  choose N, capacity, and integration resolution. Next step after that:
+  a certified approach with error indicators and selective FEM
+  corrections.
+
+**Status:**
+- E: a first pass was done (Omar's 2026-10-27 update: "PI vs DD comparison
+  for B3 is complete... PI achieved better accuracy and was more
+  cost-effective... at the higher tested sample counts") but against the
+  WRONG reference (6,840-element mesh, per the Oct 28 reference-confusion
+  thread) -- effectively superseded/redone by the current re-evaluation
+  (Section 5/6.3 of the report), but NOT yet reframed as an explicit
+  "at what N does the label cost stop being worth it" break-even
+  statement -- that specific framing is still open.
+- F: **NOT STARTED.**
+- G: **NOT STARTED** (unrelated to the separate multigrid/CG-preconditioner
+  work done earlier in this project's B1/B2 history, which was about
+  solver speed for a different purpose, not this AMG-Krylov/multi-GPU
+  item specifically).
+- "Resolution theory and model selection" = exactly **Point 5** already
+  being executed (Part A done, Part B running now, job 3128471).
+- "Certified approach, error indicators + selective FEM correction" =
+  **NOT STARTED**, directly continues into item H2 below.
+
+**From Timon's 2026-11-04 email, Point 6** (the long-term trustworthy-AI
+vision, explicitly "not an action item... for discussion only"):
+- **H.** The "smart path" (certification):
+  - **H1.** A-priori error bounds -- tell, before solving, whether a given
+    model/discretization/operator will satisfy prescribed QoI tolerances.
+    Timon's own words: "extremely challenging."
+  - **H2.** Goal-oriented a-posteriori error estimation -- use the PI
+    solution as the primal approximation, build QoI-specific estimators
+    from the governing residual and an adjoint solution (adjoint first
+    via FEM, later compared against DD/hybrid adjoint approximations).
+    Timon's own words: "a more realistic second direction."
+- **I.** The "brute force path" -- a large multi-fidelity database across
+  problems/geometries/physics/discretizations/solvers/architectures,
+  built via active learning (choosing which expensive simulation to run
+  next), multi-fidelity Bayesian optimization (fidelity/hyperparameter
+  choice), meta-learning (transfer across problems), and eventually RL
+  for sequential decisions (refine mesh? request another high-fidelity
+  run? switch model class? accept the prediction?). Timon's own words:
+  "This could form a substantial PhD direction."
+
+**Status:** H and I are both explicitly discussion-only per Timon's own
+email ("not asking for work product now") -- nothing to execute yet.
+
+### Ordered task list going forward (Timon's own stated priority + Omar's
+### own 2026-10-27 proposal, which Timon's Nov-4 email implicitly endorsed
+### by acting on the model-selection item specifically):
+
+1. **Finish the current independent-reference re-evaluation (Points 1-6,
+   2026-11-04 email)** -- DONE except Point 5 Part B, see #2.
+2. **Point 5 / "resolution theory and model selection"** -- Part A done;
+   Part B running now on the HPC (job 3128471, awaiting result).
+3. **Item C** -- the one untried stress-improvement method from Timon's
+   original Oct-11 list (general H1/gradient/weak-form constraint on
+   displacement gradients, distinct from B's already-tried equilibrium/
+   traction-residual approach).
+4. **Item E, done properly** -- an explicit break-even-by-sample-count
+   statement (at what N does DD's label cost stop being worth it, now
+   against the correct 950,400-element reference), not just a "which
+   wins at one N" comparison.
+5. **Item F** -- geometry families + industrial nonlinearities (larger
+   research phase).
+6. **Item G** -- AMG-Krylov / multi-GPU faster iterative solvers (larger
+   research phase).
+7. **Item H2** -- goal-oriented a-posteriori error estimation (PI primal +
+   adjoint-based QoI estimator) -- the realistic first step into
+   trustworthy-AI certification, builds directly on #2's resolution/
+   model-selection understanding.
+8. **Items H1 and I** -- long-term/PhD-scale, not actionable yet, explicitly
+   discussion-only per Timon himself.
+
+Not yet shared with Omar for confirmation/correction as of this writing --
+present this breakdown to him first before treating the ordering as final.
