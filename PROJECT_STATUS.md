@@ -24330,6 +24330,46 @@ tell Timon these two already exist and ask if he still wants them before
 doing anything else. **Not yet decided -- presented to Omar for this
 decision rather than unilaterally picking one.**
 
+**Item G scoping started, 2026-11-08 (before designing any new multi-GPU
+infrastructure, checked what already exists for the AMG half of the
+ask).** Read torch-fem's own source (`site-packages/torchfem/sparse.py`):
+`Solid.solve(..., preconditioner=)` already wires up real algebraic
+multigrid via `pyamg.smoothed_aggregation_solver` on CPU (pyamg==5.3.0
+already installed, zero new dependency), and via NVIDIA AmgX on CUDA --
+but AmgX is NOT available here (ships no wheels; needs building from
+source with `AMGX_DLL` set, real infra work, not done). Multi-GPU/domain
+decomposition does not exist anywhere in torch-fem or this project at
+all (confirmed by `grep`) -- a genuinely new, large engineering task, not
+a config flag.
+
+**Real CPU benchmark run (`benchmark_amg_vs_jacobi_b3.py`, this project's
+own real B3 problem, `solve_one_sample` unchanged, only the
+`preconditioner` kwarg varied), before assuming AMG would help at larger
+scale:**
+
+| elements | Jacobi | AMG | winner |
+|---|---|---|---|
+| 1,320 | 4.50s | 4.45s | ~tie |
+| 3,360 | 7.86s | 9.48s | Jacobi |
+| 6,840 | 16.1s | 18.3s | Jacobi |
+| 18,200 | 46.0s | 58.0s | Jacobi |
+
+**Finding: Jacobi wins at every size tested, and the gap GROWS with
+size** -- the opposite of the naive "AMG wins at larger scale"
+expectation. Most likely explanation (not yet independently confirmed):
+this is a geometrically nonlinear problem (Neo-Hookean, multi-increment
+Newton-Raphson), so the tangent stiffness matrix changes every Newton
+iteration -- AMG must rebuild its multigrid hierarchy from scratch at
+every one of those re-solves, a real, repeated setup cost that Jacobi
+(just the diagonal, essentially free to rebuild) does not pay. This may
+or may not hold at GPU scale (AmgX's cost model for hierarchy rebuild vs.
+Jacobi's many-more-iterations-but-cheap-matvecs tradeoff is not the same
+as pyamg's CPU one) -- not yet testable without first building AmgX from
+source, which has not been done. **Conclusion for now: the CPU half of
+"AMG-Krylov" does not help this project's own problem as measured; the
+multi-GPU/domain-decomposition half has not been started at all and is a
+substantial new undertaking, not a quick follow-on to this result.**
+
 **Status:**
 - E: a first pass was done (Omar's 2026-10-27 update: "PI vs DD comparison
   for B3 is complete... PI achieved better accuracy and was more
