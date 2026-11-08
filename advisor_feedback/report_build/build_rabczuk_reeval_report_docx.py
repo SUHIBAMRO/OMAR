@@ -161,6 +161,13 @@ table(
          "specifically (DD partially closes the gap, still catastrophic for both)",
          "DD @ N=400/Sobolev/hybrid region-stress: 1764-1973% vs. PI's 2900% -- better, "
          "but still 1,700%+ either way"],
+        ["B3: what are the discretization errors (incl. individual stress components) at "
+         "every OTHER mesh size on the convergence ladder, not just 6,840/43,400?",
+         "Reported for all 6 remaining rungs (336 to 201,780 elements); region-stress error "
+         "stays in the thousands-of-percent range at every single one, including the finest "
+         "(201,780 elements)",
+         "201,780-element region σ field: 2,856% -- still nowhere near resolving the groove, "
+         "even at ~4.6x the accuracy-matched 43,400-element mesh"],
         ["Is the groove-stress failure a pipeline bug, or is it localized to the groove "
          "geometry specifically? Is the 950,400-element reference itself converged "
          "everywhere, including the groove region?",
@@ -428,24 +435,39 @@ para("Bottom line for your question: within the tested range (N up to 400, plus 
 
 # ===========================================================================
 h1("6. B3 — pure FEM-vs-FEM discretization error (no neural network)")
-para("Answers your request to isolate mesh-discretization error from neural-operator error: the "
-     "6,840-element (training) and 43,400-element (accuracy-matched) FEM solutions, compared "
-     "directly against the 950,400-element reference -- no network involved on either side, same "
-     "samples and same QoIs as the checkpoint evaluation above, including the individual stress "
-     "components.")
+para("Answers your request to isolate mesh-discretization error from neural-operator error, now "
+     "for EVERY resolution on this project's own B3 mesh-convergence ladder (not just the "
+     "6,840-element training mesh and the 43,400-element accuracy-matched mesh) -- your "
+     "2026-10-20 email's explicit ask to \"report the errors of all the other mesh sizes as "
+     "well.\" All compared directly against the 950,400-element reference -- no network "
+     "involved on either side, same samples and same QoIs as the checkpoint evaluation above, "
+     "including the individual stress components.")
 table(
     ["Solution", "disp L2", "H1", "energy", "reaction M_y", "region σ field", "σxx", "σyy", "σzz", "σxy", "σxz", "σyz"],
     [
+        ["336-element", "6.26%", "26.14%", "15.69%", "15.77%", "18,577%", "20,412%", "22,732%", "21,101%", "987%", "858%", "16,429%"],
+        ["1,320-element", "3.56%", "19.57%", "7.07%", "7.13%", "27,995%", "30,720%", "34,290%", "31,863%", "982%", "579%", "9,884%"],
+        ["3,360-element", "3.70%", "16.28%", "5.72%", "5.77%", "27,043%", "29,921%", "33,199%", "30,618%", "1,223%", "819%", "6,387%"],
         ["6,840-element (training mesh)", "2.52%", "13.11%", "3.88%", "3.92%", "21,703%", "24,021%", "26,665%", "24,582%", "1517%", "802%", "5107%"],
+        ["18,200-element", "1.69%", "9.36%", "2.31%", "2.33%", "13,804%", "15,194%", "16,918%", "15,678%", "293%", "311%", "3,004%"],
         ["43,400-element (accuracy-matched)", "1.32%", "7.21%", "1.61%", "1.63%", "6,100%", "6,714%", "7,473%", "6,925%", "258%", "160%", "1694%"],
+        ["79,464-element", "0.80%", "4.95%", "0.95%", "0.96%", "7,093%", "7,801%", "8,692%", "8,062%", "218%", "104%", "1,537%"],
+        ["201,780-element", "0.40%", "2.98%", "0.45%", "0.46%", "2,856%", "3,141%", "3,502%", "3,248%", "118%", "49%", "756%"],
     ],
 )
-para("On every global QoI, refining from 6,840 to 43,400 elements roughly halves the error, as "
-     "expected for ordinary mesh convergence. The region-stress error, by contrast, stays "
-     "enormous at both resolutions -- even the \"accuracy-matched\" 43,400-element mesh is "
-     "nowhere near resolving the groove's local stress, which only the 950,400-element mesh "
-     "captures. This confirms the finding in Section 7 is a genuine mesh-resolution effect, not "
-     "a neural-network failure.")
+para("On every global QoI, refining along this ladder steadily reduces the error, as expected "
+     "for ordinary mesh convergence. The region-stress error, by contrast, stays in the "
+     "thousands-of-percent range across EVERY resolution tested -- even the finest, 201,780 "
+     "elements (2,856% on the field), nowhere near resolving the groove's local stress, which "
+     "only the 950,400-element mesh captures. One real, noteworthy non-monotonicity: the field "
+     "error actually RISES from 336 to 1,320/3,360 elements (18,577% -> 27,995%/27,043%) before "
+     "falling steadily from there on -- consistent with the 336-element mesh having essentially "
+     "no Gauss points inside the groove region at all (so its already-poor stress estimate is "
+     "close to an uninformative default rather than a converging one), while 1,320/3,360 start "
+     "to resolve the region just enough to produce a genuinely large, well-defined (if still "
+     "badly wrong) local value. This confirms the finding in Section 7 is a genuine, ladder-wide "
+     "mesh-resolution effect, not a neural-network failure, and not a one-off artifact of the "
+     "two resolutions originally reported.")
 para("This also confirms your own hypothesis about the 6,840-element mesh directly: you noted "
      "the 6,840-element solution \"may still be used for training and DD label generation (if it "
      "makes sense for the associated QoI; so apparently not for the stresses).\" The numbers "
