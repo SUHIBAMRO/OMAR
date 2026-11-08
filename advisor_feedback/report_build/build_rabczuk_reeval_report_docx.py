@@ -154,6 +154,13 @@ table(
          "cheapest mesh confirmed to match PI on every QoI",
          "79,464-element FEM solve (12,986.8 ms) vs. PI inference (6.32 ms) = 2,054.9x, "
          "up from the old 646.2-739.3x (vs. the superseded 43,400-element reference)"],
+        ["B3: do the expensive high-fidelity DD labels ever pay off relative to PI's "
+         "zero-cost result? (the break-even question)",
+         "No for displacement/H1/energy/reaction (PI wins at every N tested, 50-400, and "
+         "every Sobolev/hybrid variant); yes but not a fix for groove-region stress "
+         "specifically (DD partially closes the gap, still catastrophic for both)",
+         "DD @ N=400/Sobolev/hybrid region-stress: 1764-1973% vs. PI's 2900% -- better, "
+         "but still 1,700%+ either way"],
         ["Is the groove-stress failure a pipeline bug, or is it localized to the groove "
          "geometry specifically? Is the 950,400-element reference itself converged "
          "everywhere, including the groove region?",
@@ -377,6 +384,47 @@ para("The direct stress path is consistently and substantially more accurate at 
      "feature.")
 image("b3_mixed_stress_implicit_vs_direct.png", "B3 mixed-stress checkpoints: implicit vs. direct region Cauchy field error.")
 image("b3_mixed_stress_components_heatmap.png", "B3 mixed-stress checkpoints: per-component error (direct path).")
+
+h2("5.4 Does paying for DD's labels ever pay off? The break-even question, against 950,400")
+para("Your 2026-10-20 email asked for a fair PI-vs-DD comparison for B3 that identifies when "
+     "the expensive high-fidelity labels actually make the investment worthwhile. This project's "
+     "earlier break-even sweep (N=50/200/400) answers this directly, now re-evaluated against "
+     "the correct 950,400-element reference instead of the originally-used 6,840-element one "
+     "(Section 5.2's table above). PI needs zero FEM-generated labels by construction "
+     "(physics-informed); DD's label cost scales linearly with N at the measured 4.13 s/sample "
+     "rate.")
+table(
+    ["Checkpoint", "Label cost", "disp L2", "H1", "energy", "reaction M_y", "region σ field"],
+    [
+        ["PI baseline", "0 s (no labels)", "2.78%", "12.30%", "5.33%", "1.38%", "2900%"],
+        ["DD @ N=50", "206.5 s", "8.73%", "24.54%", "34.28%", "42.31%", "4485%"],
+        ["DD @ N=200", "825.8 s", "2.81%", "23.27%", "24.45%", "4.78%", "3108%"],
+        ["DD @ N=400", "1652.0 s", "3.88%", "23.39%", "24.66%", "22.85%", "1764%"],
+        ["DD sobolev (N=200, extra training-time loss term)", "825.8 s", "3.37%", "23.33%", "23.35%", "12.49%", "1780%"],
+        ["DD hybrid (N=200, extra training-time loss term)", "825.8 s", "3.55%", "16.67%", "9.04%", "15.88%", "1973%"],
+    ],
+)
+para("Answer: it depends on the QoI, and the two groups split cleanly. For displacement, H1, "
+     "energy, and reaction moment, PI wins at EVERY tested N (50, 200, 400) and every improved-"
+     "training variant (Sobolev, hybrid) -- there is no point in this tested range where paying "
+     "for labels closes the gap with PI's zero-cost result, let alone exceeds it. N=200 gets "
+     "closest on displacement (2.81% vs. PI's 2.78%) and is DD's best reaction-moment result "
+     "(4.78%), but still loses on both.")
+para("For the groove-region stress field specifically, the answer flips: DD @ N=400 (1764%), "
+     "Sobolev (1780%), and hybrid (1973%) all score LOWER (better) than PI's 2900% -- the label "
+     "investment genuinely buys something on exactly the one QoI where PI's own 6,840-element-"
+     "mesh limitation (Sections 6-7) is worst. This is not a contradiction: more/better-trained-"
+     "on labels let DD partially inherit whatever local information the 6,840-element FEM "
+     "solutions do carry about the groove region, which PI's physics-only loss has no equivalent "
+     "channel for. It is not, however, a fix -- every one of these \"best\" region-stress numbers "
+     "is still in the 1,700-2,000% range, nowhere near usable, since DD trained on this same "
+     "6,840-element mesh inherits that mesh's own catastrophic groove-region discretization error "
+     "(Section 6) just as PI does.")
+para("Bottom line for your question: within the tested range (N up to 400, plus Sobolev/hybrid "
+     "training), the expensive high-fidelity labels are NOT worth their cost for displacement, "
+     "H1, energy, or reaction moment -- PI's zero-cost result already dominates. They DO measurably "
+     "help -- without fixing -- the one QoI (groove-region stress) where the underlying training-"
+     "mesh resolution is the real bottleneck for both methods alike.")
 
 # ===========================================================================
 h1("6. B3 — pure FEM-vs-FEM discretization error (no neural network)")
