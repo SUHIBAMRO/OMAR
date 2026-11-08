@@ -24281,6 +24281,55 @@ stress-improvement methods above):
   a certified approach with error indicators and selective FEM
   corrections.
 
+**Item F scoping started, 2026-11-08 (before designing anything new, checked
+whether this project already has relevant groundwork -- it does):**
+Two real candidate "geometry family / industrial nonlinearity" benchmarks
+already exist in this codebase from an earlier (September) round, BOTH
+with substantial real FEM-side work already done, but **NEITHER has ever
+had a neural operator trained on it** (`grep` confirms no `train_B7.py` or
+`train_B8.py` exist anywhere in this project):
+- **B7** (`data_generate_B7.py`, started 2026-09-12): a smooth local
+  Gaussian notch cut into B2's inner-ring geometry -- Omar's own chosen
+  instance of an earlier Timon ask ("fine resolution actually required by
+  the geometry... e.g. local stress concentrations... tire, pressure
+  vessels with local details"). Real, CPU-verified feasibility evidence:
+  peak PK1 stress at the notch does NOT converge across 4 resolutions
+  (11.70 -> 12.72 -> 13.45 -> 13.9372, still rising) while max
+  displacement is essentially flat (<1% change) -- genuine local
+  under-resolution next to fast global convergence, the exact signature
+  Timon described. **Deliberately DEFERRED since 2026-09-12** (Omar's own
+  choice): check with Timon FIRST that ring+notch is an acceptable
+  instance of his suggestion before spending GPU/training time. Searched
+  the full email thread available in this conversation (2026-10-11
+  through 2026-11-05) -- **Timon's confirmation was never asked for or
+  given in any visible email; this thread appears to have gone
+  unanswered for ~2 months.** His 2026-10-20 "geometry families" item may
+  be him re-raising the same general idea without realizing B7 already
+  exists and is ready to resume.
+- **B8** (`data_generate_B8.py`, "B8-final", rebuilt 2026-09-23): a REAL
+  published 3D laminated elastomeric seismic bearing (Kalantari & Rofooei
+  2010 -- real cited dimensions, real Neo-Hookean rubber + real linear-
+  elastic steel shim materials, a genuine multi-material dispatcher
+  psi function). CPU-verified convergence trend is clean and monotonic;
+  the EARLIER prototype version's GPU run satisfied the advisor's stated
+  5-10%-error-in-10^5-10^6-elements target (7.53% at 791,864 elements)
+  before a technical review found its geometry/materials were arbitrary
+  (not cited) and rebuilt it as "B8-final" on the real published source
+  above. **No GPU production run has been done for B8-final itself yet**
+  (explicitly deferred per a reviewer's instruction to fix the modeling
+  issues first), and like B7, no Transolver training has ever been run
+  on it.
+
+**This changes Item F's real scope**: not "design a geometry-family
+benchmark from scratch," but a judgment call for Omar -- (a) resume/
+finish B7 and/or B8-final's FEM-side work (B8's GPU production ladder;
+B7's Timon confirmation) and then train Transolver on whichever is ready,
+reusing ~2 months of real existing work, vs. (b) treat Timon's 2026-10-20
+ask as wanting something different/new and design fresh, vs. (c) simply
+tell Timon these two already exist and ask if he still wants them before
+doing anything else. **Not yet decided -- presented to Omar for this
+decision rather than unilaterally picking one.**
+
 **Status:**
 - E: a first pass was done (Omar's 2026-10-27 update: "PI vs DD comparison
   for B3 is complete... PI achieved better accuracy and was more
