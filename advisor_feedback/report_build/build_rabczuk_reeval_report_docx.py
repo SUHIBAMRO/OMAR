@@ -147,6 +147,18 @@ table(
          "Global QoIs stay small, same as PI baseline; region-stress error is large at "
          "every seed, but genuinely LOWER than PI baseline at every seed",
          "Region-stress field error: 1,832-2,106% (seeds 1-3) vs. 2,900% for PI baseline"],
+        ["Is the groove-stress failure a pipeline bug, or is it localized to the groove "
+         "geometry specifically? Is the 950,400-element reference itself converged "
+         "everywhere, including the groove region?",
+         "Confirmed localized (an identical-size control region away from the groove shows "
+         "small, normal error) and confirmed NOT yet converged in the groove region "
+         "specifically, even at the two finest mesh resolutions tested -- a genuine "
+         "physical effect, independently confirmed not to be an interpolation artifact "
+         "(Section 6.1-6.2)",
+         "Groove-region error at the far-region control: ~1,400x/~790x smaller than at "
+         "the groove; 839,040-vs-950,400 groove-region error: 274% (vs. <0.5% for every "
+         "global QoI); synthetic-field interpolation-only error: <1% at the groove's own "
+         "curvature scale"],
     ],
 )
 para("Bottom line: nothing here contradicts the submitted paper -- its own quadrature-refinement "
@@ -391,6 +403,79 @@ para("This also confirms your own hypothesis about the 6,840-element mesh direct
      "6,840-element mesh remain justified as-is.")
 image("b3_fem_discretization_error.png", "B3: pure FEM-vs-FEM discretization error, 6,840- and 43,400-element solutions vs. the 950,400-element reference.")
 image("b3_nn_vs_discretization_error.png", "B3: best NN checkpoint vs. both discretization errors on the same axes.")
+
+h2("6.1 Far-region control check: is the groove-stress failure localized, or a pipeline bug?")
+para("To rule out a bug in the region-stress formula, mask, or interpolation itself, the exact "
+     "same methodology, samples, and formula were re-run on a control region of identical size "
+     "(radius = 2x the groove's own radius of curvature) and comparable Gauss-point count, but "
+     "located away from the groove (theta=0, z=Lz/4, where the inner radius equals the "
+     "undisturbed R_in0 exactly -- no groove influence).")
+table(
+    ["Mesh", "GROOVE region σ field", "FAR region σ field (control)", "Ratio"],
+    [
+        ["6,840-element", "21,703%", "15.46%", "~1,400x smaller"],
+        ["43,400-element", "6,100%", "7.70%", "~790x smaller"],
+    ],
+)
+para("The far-region control error is small and in the same single-to-low-double-digit range as "
+     "every other QoI in this report. This confirms the groove-region failure is a real, "
+     "localized effect of the unresolved stress concentration at that specific geometric "
+     "feature -- not a bug in the pipeline, which behaves normally everywhere else in the domain.")
+
+h2("6.2 Is the 950,400-element reference itself converged? A finer-mesh check")
+para("The 950,400-element mesh is used as the common fine reference throughout this report. Its "
+     "convergence against the ladder's second-finest rung (839,040 elements) was re-checked using "
+     "the CURRENT 10-random-held-out-sample methodology and the CURRENT region-stress formula "
+     "(an earlier, superseded check in this project's history used a single deterministic case "
+     "and an older formula version, and should not be assumed to carry over).")
+table(
+    ["QoI", "839,040-element vs. 950,400-element relative error"],
+    [
+        ["Displacement L2", "0.045%"],
+        ["H1 semi-norm", "0.48%"],
+        ["Strain energy", "0.025%"],
+        ["Reaction moment", "0.025%"],
+        ["Groove-region σ field", "274%"],
+        ["Groove-region σxx / σyy / σzz", "300%+"],
+        ["Groove-region σxy / σxz / σyz (shear)", "3.7-5.8%"],
+    ],
+)
+para("Every global QoI is excellently converged between these two finest mesh rungs -- but the "
+     "groove-region stress field is NOT, even between the two finest resolutions tested anywhere "
+     "in this project. 950,400 elements should be treated as converged and trustworthy for every "
+     "global QoI reported elsewhere in this re-evaluation, but NOT yet as a converged reference "
+     "for the groove-region stress field specifically.")
+para("Two explanations were considered for this specific non-convergence: (1) genuinely slow "
+     "physical stress convergence near the groove's sharp local curvature, where global mesh "
+     "refinement does not proportionally refine the local element size there; or (2) an "
+     "interpolation/sampling-mismatch artifact -- comparing two different meshes requires "
+     "interpolating the coarser mesh's field onto the finer mesh's node positions, and a very "
+     "steep local peak could inflate the apparent error through sample-point-position differences "
+     "alone, independent of any genuine non-convergence (consistent with the shear-vs-normal "
+     "asymmetry observed above).")
+para("Hypothesis (2) was tested directly and in isolation: a known synthetic field (a Gaussian "
+     "bump) was centered at the exact same point the region mask uses, with a width equal to the "
+     "groove's own geometric radius of curvature -- a realistic upper bound on how sharp a "
+     "smooth physical field near that feature could be. This exact, fully-known function was "
+     "evaluated directly at both meshes' real node positions (no FEM solve involved at all), the "
+     "coarse-mesh values were passed through the SAME interpolation function the real pipeline "
+     "uses, and the result was compared against the fine mesh's own true values.")
+table(
+    ["Synthetic bump sharpness (relative to the groove's own curvature)", "Interpolation-only error, groove region"],
+    [
+        ["1x (as sharp as the groove's real geometric feature)", "0.81%"],
+        ["4x sharper", "3.09%"],
+        ["8x sharper", "6.49%"],
+        ["32x sharper (far beyond physical realism)", "7.15% (plateaus)"],
+    ],
+)
+para("Even a synthetic feature ~30x sharper than the groove's own curvature -- well beyond what "
+     "a physically smooth stress field at that geometry could be -- produces only ~7% "
+     "interpolation-only error. This rules out interpolation/sampling mismatch as the "
+     "explanation for the observed 274%. The groove-region stress non-convergence between "
+     "839,040 and 950,400 elements is genuine, physical, under-resolved local stress "
+     "concentration, consistent with and reinforcing the far-region control finding in Section "
+     "6.1 above -- a second, independent line of evidence pointing the same direction.")
 
 # ===========================================================================
 h1("7. Key finding: every B3 operator fails at the groove stress concentration")
