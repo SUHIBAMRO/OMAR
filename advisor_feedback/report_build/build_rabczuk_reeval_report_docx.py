@@ -122,6 +122,12 @@ table(
          "at an inference mesh DD never trained on?",
          "Yes, unchanged", "PI beats DD at every N tested (13, 29, 49); e.g. N=29 L2: "
          "PI 5.10% vs. DD 11.06%"],
+        ["B1: does the DD label-generation resolution matter, independent of training/"
+         "inference resolution? (Point 5 Part B)",
+         "Yes, strongly -- DD only beats PI when its own training-label resolution matches "
+         "the inference resolution exactly; everywhere else PI wins, often by a large margin",
+         "DD @ N=13 labels: 6.54% at N=13 inference (beats PI) but 71.25% at N=49 (PI: 4.10%); "
+         "DD @ N=33 labels never beats PI at any tested N"],
         ["B3: what reference did the submitted paper's stress/H1 numbers use?",
          "The SAME 6,840-element mesh, just with far more quadrature points per element "
          "(994 vs. 6) -- not a finer mesh",
@@ -297,14 +303,41 @@ para("Checked directly against the training code (train_B1.py, train_data_driven
      "such N and QoI tested, consistent with (not derived from) the validation-split ranking. Both "
      "losses were also given the same fixed training budget (75,000 optimizer steps) and the same "
      "validation protocol, so neither method had a search-budget advantage over the other.")
-para("Still pending as of this report: a limited study (per the same email, \"we do not need to "
-     "explore the full combinatorial space now, but even a limited study\" would help) of the "
-     "remaining, genuinely open question -- how much the data-driven model's final accuracy depends "
-     "on the resolution its own training labels were generated at, independent of training/inference "
-     "resolution (currently all three coincide at N=21). Two additional DD checkpoints (labels "
-     "generated at N=13 and N=33, otherwise identical recipe -- AdamW+OneCycleLR, matching the best "
-     "DD cell above) have been queued for training and evaluation against the N=2236 reference; "
-     "results will be added here once that run completes.")
+h2("4.2 Part B: does the DD label-generation resolution matter, independent of training/inference resolution?")
+para("Your same 2026-11-04 email named the remaining genuinely open question: how much the "
+     "data-driven model's final accuracy depends on the resolution its own training labels were "
+     "generated at -- a third, independent axis from training resolution and inference "
+     "resolution (all three happened to coincide at N=21 in every DD checkpoint reported above). "
+     "\"We do not need to explore the full combinatorial space now, but even a limited study\" "
+     "would help -- so two additional DD checkpoints were trained (otherwise the identical "
+     "AdamW+OneCycleLR recipe as the best-DD cell above), one on labels generated at N=13 "
+     "(coarser than the original N=21), one at N=33 (finer), each then queried zero-shot at the "
+     "same three inference resolutions (N=13, 29, 49) against the real N=2236 reference, 5 seeds "
+     "each.")
+table(
+    ["Inference N", "PI", "DD (labels @ N=13)", "DD (labels @ N=33)"],
+    [
+        ["13", "8.55%", "6.54% (DD wins)", "73.89%"],
+        ["29", "5.10%", "43.17%", "17.82%"],
+        ["49", "4.10%", "71.25%", "20.55%"],
+    ],
+)
+para("A clean, complete answer. PI's error depends only on inference resolution and improves "
+     "monotonically as it refines (8.55% -> 5.10% -> 4.10%) -- it has no training-label-"
+     "resolution dependency at all, since it is a single checkpoint trained with no FEM labels "
+     "in the first place. DD's error, by contrast, depends on BOTH its own training-label "
+     "resolution and how far the inference mesh sits from it: the N=13-label checkpoint wins "
+     "only exactly at N=13 inference (6.54% < PI's 8.55%) and collapses the farther the inference "
+     "mesh moves from its own training-label resolution (43.17% at N=29, 71.25% at N=49); the "
+     "N=33-label checkpoint never beats PI at any of the three tested inference resolutions, and "
+     "is worst exactly where the inference mesh sits farthest below its own training-label "
+     "resolution (73.89% at N=13, vs. 17.82%/20.55% at N=29/49, both closer to its own 33).")
+para("Bottom line for your \"why finer N can hurt, and how to choose N\" question, on this "
+     "specific axis: DD only ever beats PI in the single narrow case where its training-label "
+     "resolution and the inference resolution coincide; everywhere else tested, PI wins, often "
+     "by a large margin. DD's useful inference range is tightly bound to the resolution its own "
+     "labels were generated at, while PI carries no such constraint and generalizes -- indeed "
+     "improves -- uniformly as the inference mesh refines.")
 
 # ===========================================================================
 h1("5. B3 — every checkpoint vs. the single 950,400-element reference")
