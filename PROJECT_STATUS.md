@@ -24395,6 +24395,61 @@ source, which has not been done. **Conclusion for now: the CPU half of
 multi-GPU/domain-decomposition half has not been started at all and is a
 substantial new undertaking, not a quick follow-on to this result.**
 
+**Multi-GPU/domain-decomposition: first real step taken, 2026-11-09**
+(Omar's explicit call: "هات نجربها بما انه عنا مفتوح الاشي"). This
+container has NO GPU at all (`torch.cuda.is_available()` is False), so
+the real multi-GPU/NCCL version cannot be built or tested here. What was
+done instead, matching this project's own standing discipline of proving
+a mechanism correct on a small/CPU case before spending any real GPU
+time: wrote `distributed_domain_decomposition_cg.py` -- a GENUINE
+domain-decomposed distributed CG (partitioned sparse-matrix storage,
+neighbor-only halo exchange for the matvec via point-to-point send/recv,
+`all_reduce` for the global dot products CG needs), using
+`torch.distributed`'s "gloo" backend, which runs over ordinary CPU
+processes. The exact same code, with `backend="nccl"` and tensors on
+`cuda:{rank}`, is the real multi-GPU version -- gloo only stands in for
+CPU-only correctness testing here. Domains are 1D slabs of a structured
+3D grid (the simplest real decomposition; a real unstructured FEM mesh
+would need a graph partitioner like METIS instead -- a separate, later
+upgrade, not done here). Test problem: a standard 3D 7-point
+finite-difference Laplacian (an honest, well-understood SPD benchmark
+for testing the PARALLEL ALGORITHM itself, not this project's own B1/B3
+tangent stiffness -- swapping in the real FEM matrix is a separate next
+step once this mechanism is trusted).
+
+**Correctness check (against a single-process reference CG solve of the
+SAME full matrix, not "it ran without crashing")**: a REAL bug was
+caught and fixed in the process, not missed -- the first run (3 ranks,
+n_side=17, an UNEQUAL partition since 17 does not divide evenly by 3)
+crashed with a tensor-size mismatch, because `torch.distributed`'s
+`gather` collective assumes uniform tensor size across ranks, which
+breaks whenever the slab partition is uneven (a real, not edge-case,
+situation -- most grid sizes don't divide evenly by the rank count).
+Fixed with point-to-point send/recv into independently-size-computed
+buffers instead. **Verified correct across 5 configurations after the
+fix, including both equal and uneven partitions**: 1 rank, 2 ranks
+(n_side=10), 4 ranks (n_side=20), 3 ranks/n_side=17 (uneven), 5
+ranks/n_side=23 (uneven, prime) -- every case matches the single-process
+reference to 1e-15/2e-15 relative difference, and the distributed CG
+takes the EXACT SAME iteration count as the reference every time
+(mathematically identical algorithm, only the storage/communication
+differ, as it should be).
+
+**Honest limits of what this proves**: this confirms the domain-
+decomposition MECHANISM (partitioned storage + halo exchange + global
+reductions) is implemented correctly -- it does NOT yet show any real
+speedup (gloo-over-CPU-processes with small toy problems is dominated by
+process-spawn/communication overhead, not a meaningful speed comparison,
+and was never claimed as one here). The real speedup question needs: (1)
+porting this to `nccl`+real GPUs on the HPC (the code change itself is
+small -- backend string and device placement -- but requires actual
+multi-GPU hardware to run, not available in this container); (2) a
+graph-partitioned (not slab) decomposition of a real unstructured FEM
+mesh; (3) swapping the toy Laplacian for the project's own real B1/B3
+tangent stiffness. None of those three are done -- this is a genuine
+first step (a correctness-proven mechanism), not a finished multi-GPU
+solver.
+
 **Status:**
 - E: a first pass was done (Omar's 2026-10-27 update: "PI vs DD comparison
   for B3 is complete... PI achieved better accuracy and was more
