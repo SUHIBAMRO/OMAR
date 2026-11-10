@@ -160,15 +160,26 @@ class DistributedCG:
         halo_prev = torch.zeros(self.plane, dtype=self.dtype, device=self.device) if self.prev_rank is not None else None
         halo_next = torch.zeros(self.plane, dtype=self.dtype, device=self.device) if self.next_rank is not None else None
 
-        reqs = []
+        # dist.batch_isend_irecv, not separate dist.isend/dist.irecv calls: the
+        # NCCL backend's own docs warn that uncoalesced point-to-point ops
+        # issued this way have deadlocked in real PyTorch versions -- this is
+        # the recommended way to issue several concurrent P2P ops (to possibly
+        # different peers) safely over NCCL. Real bug hit and fixed here, not
+        # theorized: the original separate-isend/irecv version hung on the HPC
+        # (job 3129021, killed after 12+ minutes with CPU time still climbing
+        # but zero output, on a problem that should finish in seconds) -- this
+        # rewrite is the fix, not yet re-verified on real GPU hardware.
+        ops = []
         if self.prev_rank is not None:
-            reqs.append(dist.isend(x_local[self.send_to_prev].contiguous(), dst=self.prev_rank))
-            reqs.append(dist.irecv(halo_prev, src=self.prev_rank))
+            ops.append(dist.P2POp(dist.isend, x_local[self.send_to_prev].contiguous(), self.prev_rank))
+            ops.append(dist.P2POp(dist.irecv, halo_prev, self.prev_rank))
         if self.next_rank is not None:
-            reqs.append(dist.isend(x_local[self.send_to_next].contiguous(), dst=self.next_rank))
-            reqs.append(dist.irecv(halo_next, src=self.next_rank))
-        for r in reqs:
-            r.wait()
+            ops.append(dist.P2POp(dist.isend, x_local[self.send_to_next].contiguous(), self.next_rank))
+            ops.append(dist.P2POp(dist.irecv, halo_next, self.next_rank))
+        if ops:
+            reqs = dist.batch_isend_irecv(ops)
+            for r in reqs:
+                r.wait()
 
         out = torch.zeros(self.n_local, dtype=self.dtype, device=self.device)
         local_mask = (self.local_col >= self.k_lo * self.plane) & (self.local_col < self.k_hi * self.plane)
@@ -203,13 +214,20 @@ class DistributedCG:
         dist.all_reduce(local, op=dist.ReduceOp.SUM)
         return local
 
-    def solve(self, max_iter=500, rtol=1e-10):
+    def solve(self, max_iter=500, rtol=1e-10, log_every=0):
+        """log_every>0: rank 0 prints progress every that many iterations,
+        flushed immediately -- so a stall shows exactly which iteration it
+        stalled on instead of leaving a silent gap in the log (how the
+        NCCL P2P deadlock that hit job 3129021 was invisible until killed
+        and investigated; this closes that blind spot for next time)."""
         x = torch.zeros(self.n_local, dtype=self.dtype, device=self.device)
         r = self.b_local - self.matvec(x)
         p = r.clone()
         rs_old = self.global_dot(r, r)
         b_norm = torch.sqrt(self.global_dot(self.b_local, self.b_local)) + 1e-300
         for it in range(max_iter):
+            if log_every and self.rank == 0 and it % log_every == 0:
+                print(f"  [cg] iter {it}/{max_iter}", flush=True)
             Ap = self.matvec(p)
             alpha = rs_old / (self.global_dot(p, Ap) + 1e-300)
             x = x + alpha * p
@@ -222,18 +240,24 @@ class DistributedCG:
         return x, max_iter
 
 
-def _worker(rank, n_ranks, n_side, backend, result_queue):
+def _worker(rank, n_ranks, n_side, backend, result_queue, log_every=0):
     if backend == "nccl":
         torch.cuda.set_device(rank)  # must happen BEFORE init_process_group for NCCL
         device = torch.device(f"cuda:{rank}")
     else:
         device = torch.device("cpu")
+    if rank == 0:
+        print(f"[rank 0] calling init_process_group(backend={backend!r}) ...", flush=True)
     dist.init_process_group(backend, rank=rank, world_size=n_ranks)
+    if rank == 0:
+        print("[rank 0] process group ready, building local matrix slab ...", flush=True)
     solver = DistributedCG(n_side, n_ranks, rank, device=device)
     if backend == "nccl":
         torch.cuda.synchronize(device)
+    if rank == 0:
+        print(f"[rank 0] local slab built (n_local={solver.n_local:,}), starting CG ...", flush=True)
     t0 = time.time()
-    x_local, n_iter = solver.solve()
+    x_local, n_iter = solver.solve(log_every=log_every)
     if backend == "nccl":
         torch.cuda.synchronize(device)  # NCCL ops are async -- don't time a kernel launch queue
     elapsed = time.time() - t0
@@ -303,6 +327,11 @@ def main():
     parser.add_argument("--backend", type=str, default=None, choices=["nccl", "gloo"],
                          help="default: nccl if CUDA is available (real multi-GPU run), "
                               "else gloo (CPU correctness check).")
+    parser.add_argument("--log_every", type=int, default=0,
+                         help="print rank 0's CG iteration number every this many iterations "
+                              "(0 disables -- the default, since the small CPU correctness runs "
+                              "finish fast enough not to need it). Set this on any real GPU run "
+                              "so a stall is visible immediately instead of a silent gap.")
     args = parser.parse_args()
     backend = args.backend or ("nccl" if torch.cuda.is_available() else "gloo")
     if backend == "nccl":
@@ -332,7 +361,7 @@ def main():
     result_queue = mp.Queue()
     procs = []
     for rank in range(args.n_ranks):
-        p = mp.Process(target=_worker, args=(rank, args.n_ranks, args.n_side, backend, result_queue))
+        p = mp.Process(target=_worker, args=(rank, args.n_ranks, args.n_side, backend, result_queue, args.log_every))
         p.start()
         procs.append(p)
     x_distributed, n_iter_dist, elapsed_dist = result_queue.get()

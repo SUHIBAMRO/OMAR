@@ -24450,6 +24450,39 @@ tangent stiffness. None of those three are done -- this is a genuine
 first step (a correctness-proven mechanism), not a finished multi-GPU
 solver.
 
+**First real GPU/NCCL attempt, 2026-11-10 (Omar's call: "يلا جربها").**
+Ported the CPU-proven mechanism to `backend="nccl"` with each rank
+pinned to its own `cuda:{rank}`, vectorized the Laplacian builder (was a
+per-node Python loop -- now builds a 216,000-DOF matrix in 0.042s,
+fast enough for a real multi-million-DOF timing test) and the halo
+lookup (was a per-element Python dict -- vectorized to a single
+`torch.where`). Re-verified the full CPU/gloo correctness suite still
+passed identically after these changes before trusting the GPU port at
+all.
+
+**Submitted as job 3129021 (2 GPUs, `gmem=40G` each) -- genuinely
+hung.** Confirmed via the SAME CPU-time-vs-wall-clock discipline this
+project always uses (not assumed): CPU time climbed steadily (605s ->
+854s -> 962s -> 1244s over ~13 minutes) with ZERO output beyond the
+startup line, for a problem (64,000 DOF, 2 ranks) that should finish in
+seconds -- genuinely computing, just never finishing or progressing
+through the correctness check. Killed after 13 minutes rather than wait
+indefinitely. **Real root cause, fixed before re-submitting**:
+`torch.distributed`'s own NCCL-backend documentation warns that
+SEPARATE `dist.isend`/`dist.irecv` calls (what the CPU/gloo version used
+throughout, which never hit this because gloo doesn't have the same
+constraint) can deadlock when combined, and recommends
+`dist.batch_isend_irecv` with `dist.P2POp` to coalesce concurrent
+point-to-point operations safely -- rewrote `matvec`'s halo exchange to
+use it. Also added `--log_every` progress printing (rank 0 only,
+flushed immediately) plus init/matrix-build milestone prints, so a
+future stall shows exactly where it happened instead of the same
+silent multi-minute gap that made this one take real detective work to
+diagnose. **Re-verified the full CPU/gloo correctness suite again after
+this fix (2/3/4/5 ranks, same 1e-15-level agreement, same iteration
+counts) -- not yet re-run on real GPU hardware**, queued as the next
+action.
+
 **Status:**
 - E: a first pass was done (Omar's 2026-10-27 update: "PI vs DD comparison
   for B3 is complete... PI achieved better accuracy and was more

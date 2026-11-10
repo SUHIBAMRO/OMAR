@@ -10,8 +10,8 @@ cd ~/OMAR/Practical_Examples
 # confirmed on THIS hardware/backend. Only once this prints PASS does the
 # bigger timing run below mean anything.
 echo "=== Step 1: correctness check (small, fast) ==="
-python -u -m omar_pfem.distributed_domain_decomposition_cg --n_ranks 2 --n_side 40
+python -u -m omar_pfem.distributed_domain_decomposition_cg --n_ranks 2 --n_side 40 --log_every 10
 
 echo ""
 echo "=== Step 2: real timing comparison (bigger problem, real GPU work) ==="
-python -u -m omar_pfem.distributed_domain_decomposition_cg --n_ranks 2 --n_side 160
+python -u -m omar_pfem.distributed_domain_decomposition_cg --n_ranks 2 --n_side 160 --log_every 10
