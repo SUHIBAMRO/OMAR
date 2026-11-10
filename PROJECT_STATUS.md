@@ -24667,4 +24667,41 @@ specific physical mechanism (e.g. the groove's circumferential/axial
 normal-stress response being the genuinely under-resolved direction,
 while shear transmission across the groove is already well captured).
 
+**Timon's 2026-11-10 item 2 (far-field PI-vs-DD comparison) -- complete,
+real result, job 3137655.** Ran `evaluate_b3_checkpoints_far_region.py`
+(all 11 existing u-only checkpoints, zero new FEM solving, far-field
+mask swapped into the already-cached 950,400 reference) -- 5 minutes
+total on 1 GPU:
+
+| checkpoint | disp | far-field region σ field | far-field σxx |
+|---|---|---|---|
+| PI baseline | 2.78% | 16.69% | 15.04% |
+| local-refine seed 1 | 3.37% | **13.01%** | 11.34% |
+| local-refine seed 2 | 2.40% | 15.02% | 13.54% |
+| local-refine seed 3 | 2.85% | 13.65% | 12.85% |
+| equilibrium w=1.0 (closed, poor) | 37.08% | 138.56% | 140.27% |
+| equilibrium w=0.12 (closed, poor) | 37.76% | 151.27% | 153.88% |
+| DD N=50 | 8.73% | 52.57% | 55.47% |
+| DD N=200 | 2.81% | 30.24% | 32.40% |
+| DD N=400 | 3.88% | 21.19% | 21.27% |
+| DD Sobolev | 3.37% | 21.10% | 21.47% |
+| DD hybrid | 3.55% | 29.38% | 30.25% |
+
+**This is exactly the "meaningful PI-vs-DD stress comparison away from
+the unresolved groove" Timon asked for, and it is clean**: PI and every
+local-integration-refinement seed are the best performers (13-17%),
+clearly beating every DD variant (21-53%) -- the same PI > DD ranking
+already established elsewhere in this project, now confirmed to hold
+for region stress specifically once measured somewhere the FEM ground
+truth itself is trustworthy. Local-integration-refinement (trained
+specifically to help the groove) is slightly BETTER than PI baseline
+even here, away from the groove -- the training does not trade off
+far-field accuracy for groove-region accuracy. Critically, these numbers
+(13-53%) are in the same reasonable range as every other QoI in this
+project (H1, energy, reaction) -- nothing like the groove's
+1,000-29,000% range -- confirming decisively that the groove failure is
+a LOCALIZED phenomenon specific to that one unresolved geometric
+feature, not representative of how well any of these models predict
+stress in general. Not yet folded into the report -- next step.
+
 **Item E completed, 2026-11-08** (Omar's explicit "يلا بلش اشتغل" after confirming this was doable with zero new compute). Added Section 5.4 ("Does paying for DD's labels ever pay off? The break-even question, against 950,400") to the report, reusing the project's own existing N=50/200/400 + Sobolev/hybrid break-even sweep data (already in Section 5.2's table), now explicitly framed as the break-even answer Timon's 2026-10-20 email asked for. Real finding: PI wins at every tested N on displacement/H1/energy/reaction -- labels never pay off there within this range -- but DD @ N=400/Sobolev/hybrid (1764-1973%) genuinely beats PI (2900%) on groove-region stress specifically, the one QoI where the shared 6,840-element training mesh is the real bottleneck for both methods (still catastrophic in absolute terms either way). Added a matching Executive Summary row. Rebuilt and visually verified (pages 1, 14-15, no overlap) before overwriting the committed `.docx` and re-delivering.
