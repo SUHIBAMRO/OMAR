@@ -24612,4 +24612,59 @@ Ntheta=21/Nr=20/Nz=19, correct count, monotonic z, all finite) -- not
 yet run against the real cached fine-reference data (needs the HPC,
 where that cache lives).
 
+**Contour plot run on the HPC, 2026-11-10 -- real result, plus a real
+follow-up diagnostic that CORRECTED an initial misreading.** The plot
+(`groove_contour_stress_sample0.png`) showed the 839,040- and
+950,400-element normal-stress curves (sigma_xx/yy/zz) visually
+overlapping almost everywhere, INCLUDING at the groove band -- at first
+glance seemingly at odds with the 274% region-stress number. Two
+real, separate findings from the plot itself: (1) the shear components
+(sigma_xy/xz/yz) show a clear, real kink/jump exactly at the band edges
+(z=zc+/-0.15) -- confirming the C1-not-C2 curvature-discontinuity
+feature produces a visible stress signature there, as suspected -- but
+BOTH mesh resolutions agree closely on this kink's shape, so it is
+itself a converged, genuine geometric feature, not a source of
+non-convergence; (2) a large stress spike at the domain's axial ends
+(z near 0 and 1), unrelated to the groove -- a free-surface/corner
+effect, not investigated further here.
+
+The apparent "they overlap at the groove" visual impression was WRONG,
+caught by building `diagnose_groove_region_raw_values.py` to report RAW
+per-Gauss-point magnitudes within the real region mask (using the
+EXACT already-validated interpolate-then-compare steps
+`compute_one_resolution_vs_fine` itself uses, not the plot's cruder 1D
+z-interpolation) rather than trusting a by-eye read at a y-axis scale
+set by the much larger far-groove stress. **Real result (sample 0, 794
+Gauss points in the region)**:
+
+| component | true RMS | true max\|.\| | interpolated(839k) RMS | \|diff\| RMS | relative |
+|---|---|---|---|---|---|
+| sigma_xx | 0.4847 | 1.1049 | 1.1758 | 1.0195 | 210% |
+| sigma_yy | 0.3810 | 0.7628 | 1.0249 | 1.0191 | 267% |
+| sigma_zz | 0.5106 | 1.2646 | 1.1962 | 1.3194 | 258% |
+| sigma_xy | 0.0088 | 0.0276 | 0.0087 | 0.0003 | 3% |
+| sigma_xz | 0.3183 | 0.8148 | 0.3175 | 0.0102 | 3% |
+| sigma_yz | 0.0167 | 0.0509 | 0.0120 | 0.0111 | 66% |
+
+**Conclusion, now on real evidence, not a visual impression**: the
+normal stress components (sigma_xx/yy/zz) have a GENUINE, large
+discrepancy between 839,040 and 950,400 elements -- the true values are
+NOT small/near-zero (RMS 0.38-0.51, not a small-denominator situation),
+and the absolute mismatch (RMS 1.0-1.3) actually EXCEEDS the true
+value's own magnitude. This is real, substantial non-convergence, not a
+relative-error artifact. By contrast, sigma_xz converges beautifully
+(3%) despite having a comparably large true magnitude (0.32) to the
+failing components -- directly disproving "it's just a small
+denominator" as a general explanation and confirming the failure is
+specific to the NORMAL stress components at the groove, not the shear
+components (sigma_xy also converges well, though its true magnitude is
+small so that case alone would have been ambiguous). sigma_yz's 66%
+sits with both a small true magnitude and a non-negligible absolute
+diff -- a genuinely intermediate case. **Next, not yet done**: check
+whether this same xx/yy/zz-specific, xz/xy-excluded pattern holds for
+MORE than just sample 0, and consider whether this points toward a
+specific physical mechanism (e.g. the groove's circumferential/axial
+normal-stress response being the genuinely under-resolved direction,
+while shear transmission across the groove is already well captured).
+
 **Item E completed, 2026-11-08** (Omar's explicit "يلا بلش اشتغل" after confirming this was doable with zero new compute). Added Section 5.4 ("Does paying for DD's labels ever pay off? The break-even question, against 950,400") to the report, reusing the project's own existing N=50/200/400 + Sobolev/hybrid break-even sweep data (already in Section 5.2's table), now explicitly framed as the break-even answer Timon's 2026-10-20 email asked for. Real finding: PI wins at every tested N on displacement/H1/energy/reaction -- labels never pay off there within this range -- but DD @ N=400/Sobolev/hybrid (1764-1973%) genuinely beats PI (2900%) on groove-region stress specifically, the one QoI where the shared 6,840-element training mesh is the real bottleneck for both methods (still catastrophic in absolute terms either way). Added a matching Executive Summary row. Rebuilt and visually verified (pages 1, 14-15, no overlap) before overwriting the committed `.docx` and re-delivering.
