@@ -24555,4 +24555,61 @@ email ("not asking for work product now") -- nothing to execute yet.
 Not yet shared with Omar for confirmation/correction as of this writing --
 present this breakdown to him first before treating the ordering as final.
 
+## Timon's 2026-11-10 follow-up email: groove-stress convergence + far-field PI-vs-DD comparison
+
+In direct response to the previous entry's groove-stress-non-convergence
+finding, Timon asked for two things: (1) do not trust 950,400 as ground
+truth at the groove until local convergence/SCF is established, possibly
+with higher-order elements or NURBS/IGA; is the groove geometry smooth
+enough to exclude a geometric singularity; plot the stress distribution
+along the groove contour; no PI-vs-DD comparison AT THE GROOVE until
+this is resolved. (2) DO compare PI vs. every DD variant at the
+far-field control region, which IS converged. Omar's call ("بالترتيب
+اشتغل يلا"): work the quick/answerable items first (smoothness question,
+contour plot, far-field comparison) before the big new undertakings
+(local refinement + SCF study, higher-order elements, NURBS/IGA).
+
+**Smoothness question -- answered directly, 2026-11-10, with real
+numerical evidence (not just reasoning from the formula).** The groove
+profile r(z) = R_in0 - (d/2)(1+cos(pi(z-zc)/w)) is a raised-cosine dip.
+At its own deepest point (z=zc, the existing region mask's own center):
+genuinely smooth, finite nonzero radius of curvature (rho~0.0228) -- NOT
+a geometric singularity (a true singularity, e.g. a V-notch or crack
+tip, has UNBOUNDED curvature). **But a real, separate feature exists at
+the two band edges (z = zc +/- groove_half_width = 0.35/0.65)**:
+numerically confirmed (finite-difference check, not assumed) that the
+profile's second derivative (curvature) jumps from a finite nonzero
+value (~-43.86) just inside the band to exactly 0 just outside it --
+the profile is C1 (continuous value and slope) but NOT C2 (curvature
+discontinuity) there. Not a singularity either (slope stays continuous,
+no unbounded stress in the classical fracture-mechanics sense), but a
+real, previously-unexamined curvature kink distinct from the main
+groove root. **Critically, the existing region-stress mask (radius =
+2*rho ~ 0.0456) is centered on the deepest point and does not reach
+anywhere near the band edges (0.15 away, over 3x farther out)** -- so
+the existing 274%/catastrophic-region-stress numbers say nothing about
+whether this second feature is itself a problem; it has never been
+measured at all until the contour plot below.
+
+**Contour plot script written**: `plot_groove_contour_stress.py` --
+reuses the exact, already-validated `compute_region_sigma_full` Cauchy-
+stress machinery (same P=dpsi/dF autograd, same sigma formula already
+used for every other stress number in this project) with a mask
+selecting the single innermost-radial/first-angular-ring of elements
+(the exact (theta~0, t~0) line the existing region mask is centered on,
+built via `_element_ijk`'s own structured indices -- not a new,
+independently-invented selection rule), giving a clean z-sweep of every
+stress component right along the inner wall. Plots the SAME 839,040-
+and 950,400-element cached solutions (zero new FEM solving) on the same
+axes, with the groove root, band edges, and existing region-mask extent
+all marked -- so the plot itself shows directly whether convergence
+fails only at the root, also at the band edges, or neither, rather than
+reporting a single scalar number and reasoning about it indirectly.
+Verified the extraction/indexing logic locally first on a small
+synthetic (non-FEM) displacement field before trusting it with real
+cached data (144 Gauss points for an 18-element z-sweep at
+Ntheta=21/Nr=20/Nz=19, correct count, monotonic z, all finite) -- not
+yet run against the real cached fine-reference data (needs the HPC,
+where that cache lives).
+
 **Item E completed, 2026-11-08** (Omar's explicit "يلا بلش اشتغل" after confirming this was doable with zero new compute). Added Section 5.4 ("Does paying for DD's labels ever pay off? The break-even question, against 950,400") to the report, reusing the project's own existing N=50/200/400 + Sobolev/hybrid break-even sweep data (already in Section 5.2's table), now explicitly framed as the break-even answer Timon's 2026-10-20 email asked for. Real finding: PI wins at every tested N on displacement/H1/energy/reaction -- labels never pay off there within this range -- but DD @ N=400/Sobolev/hybrid (1764-1973%) genuinely beats PI (2900%) on groove-region stress specifically, the one QoI where the shared 6,840-element training mesh is the real bottleneck for both methods (still catastrophic in absolute terms either way). Added a matching Executive Summary row. Rebuilt and visually verified (pages 1, 14-15, no overlap) before overwriting the committed `.docx` and re-delivering.
