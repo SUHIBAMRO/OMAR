@@ -311,10 +311,13 @@ table(
 )
 para("Matched-element-type SCF (max groove / nominal average, both quadratic) = 8.45 -- "
      "close to, and confirming, the earlier mixed-element estimate (~9.0) was a reasonable "
-     "approximation, now replaced by this properly apples-to-apples number. SCF on the "
-     "average basis stays below 1 (0.88 for sigma_xx, 0.87 for the Frobenius norm), "
-     "consistent with every earlier finding that this groove does not raise the average "
-     "stress.")
+     "approximation, now replaced by this properly apples-to-apples number. To be precise "
+     "about what this number is: it is specifically the ratio of the peak sigma_xx at the "
+     "groove to the average sigma_xx at the same point with the groove removed -- a "
+     "component-specific figure, not a general or isotropic stress-concentration factor "
+     "covering every stress measure. SCF on the average basis stays below 1 (0.88 for "
+     "sigma_xx, 0.87 for the Frobenius norm), consistent with every earlier finding that this "
+     "groove does not raise the average stress.")
 para("A note on how the region average itself is computed, since this was also checked "
      "directly: it is a volume-weighted (Gauss-quadrature-weighted) average over every Gauss "
      "point inside the region, not a plain arithmetic mean -- each point is weighted by its "
@@ -360,7 +363,17 @@ para("This is exactly the meaningful PI-vs-DD stress comparison requested. PI an
      "representative of how well any of these models predict stress in general.")
 
 # ===========================================================================
-h1("Checklist against Professor Rabczuk's email")
+h1("6. Overall status: well-supported, not yet exhaustively closed")
+para("Taken together, Sections 1-5 give strong, multi-pronged support for a converged, "
+     "bounded groove stress and a defensible SCF -- but we do not consider the groove "
+     "question 100% definitively closed, for two honest reasons. First, sigma_xy's "
+     "pointwise maximum did not converge as tightly as the other five stress components "
+     "(Section 4.1); its small absolute magnitude limits how much this affects the overall "
+     "picture, but it is a genuine loose end, not fully resolved. Second, showing that each "
+     "mesh's own region maximum/average lands in a similar range is not quite the same "
+     "claim as showing the underlying stress FIELD has converged at the same physical "
+     "locations -- a sharper, field-level check along the groove contour, not just a region "
+     "summary statistic, is the more rigorous standard and is reported directly below.")
 bullet("Groove smoothness, and whether the geometry rules out a singularity -- answered in "
        "Section 1 (genuinely smooth at the groove root; a separate, distinct C1-not-C2 "
        "curvature feature identified at the band edges).")
