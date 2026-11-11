@@ -189,13 +189,14 @@ table(
         ["Your 2026-11-10 item 1: does LOCAL (not global) refinement converge the groove "
          "stress, what is the Stress Concentration Factor, and is this a true geometric "
          "singularity or a bounded concentration?",
-         "Local z-refinement converges the region-AVERAGE stress cleanly (real production-"
-         "scale GPU run, monotonic, not just bounded noise); the pointwise MAX needed "
-         "additional work to resolve, and higher-order (quadratic) elements -- genuine "
-         "p-refinement, no custom code -- give an independent, consistent answer",
-         "Region avg sigma_xx: 3.03 -> 2.79/2.80, flattening (47,040 elements); SCF ~19 "
-         "(pointwise), <1 (average); quadratic elements: peak stress 61 -> 29-30, same "
-         "element count, stable across resolutions -- see Section 6.5"],
+         "Local z-refinement converges the region-AVERAGE stress cleanly; the pointwise MAX "
+         "needed higher-order (quadratic) elements -- genuine p-refinement, no custom code -- "
+         "to converge cleanly too (confirmed at 3 independent resolutions); combined evidence "
+         "says this is a real but BOUNDED stress concentration, not a true singularity",
+         "Region avg sigma_xx: 3.03 -> 2.79/2.80 (47,040 elements); quadratic peak stress "
+         "converges to ~29-30 at 3 resolutions (vs. linear's noisy 44-69 under aggressive "
+         "refinement); refined SCF ~9.0 (supersedes an earlier linear-only SCF~19) -- "
+         "see Section 6.5"],
     ],
 )
 para("Bottom line: nothing here contradicts the submitted paper -- its own quadrature-refinement "
@@ -797,19 +798,39 @@ para("Quadratic elements cut the peak groove stress roughly in half at the SAME 
      "these two resolutions (max 28.97 -> 29.90, about 3%).")
 
 h2("6.5.4 Is this a true singularity, or a bounded concentration?")
-para("[TO BE FINALIZED once two additional convergence checks now running return: (a) the "
-     "linear mesh's local z-refinement pushed further, tracking the actual smallest local "
-     "z-element size directly against the pointwise max stress, to see whether it approaches "
-     "a finite limit or keeps growing without bound; (b) a third, finer quadratic-element "
-     "resolution, to see whether ITS pointwise max also stays stable as local element size "
-     "shrinks further. Working hypothesis, to be confirmed or revised against that data: the "
-     "groove profile is C1 (continuous value and slope) but not C2 (a curvature discontinuity "
-     "only) at the band edges -- classical elasticity singularities at a boundary (the Williams "
-     "corner-type asymptotic solutions behind true notch/crack-tip singularities) require an "
-     "actual discontinuity in the boundary's TANGENT direction, which this geometry does not "
-     "have; a curvature-only discontinuity is expected, by that theory, to produce a finite "
-     "stress concentration, not an unbounded one. This is offered as a hypothesis under direct "
-     "numerical test here, not asserted as already proven.]")
+para("Two further checks were run specifically to answer this. (1) Linear elements, pushed "
+     "much harder locally: at a fixed 5,760-element mesh, local clustering was increased until "
+     "the smallest z-element shrank about 1,000x (0.0417 -> 0.000042), while max|sigma_xx| "
+     "stayed in a bounded band (61.19 -> 57.26 -> 58.13 -> 49.95) rather than growing without "
+     "bound as the local element size collapsed toward zero -- not the signature a true "
+     "singularity would produce. (2) Quadratic elements, now checked at a THIRD, intermediate "
+     "resolution (10,200 elements): max|sigma_xx| = 29.61, essentially identical to both "
+     "earlier quadratic points (28.97 and 29.90) -- three independent resolutions spanning a "
+     "4.3x element-count range now agree within about 3%.")
+para("Combined verdict: the true peak stress is almost certainly close to the quadratic-"
+     "converged value (~29-30), confirmed at three independent resolutions. Linear elements, "
+     "at every tested resolution and clustering strategy (2,376 to 47,040 elements), scatter "
+     "noisily within a bounded range (44-69) rather than showing the systematic, unbounded "
+     "growth a true geometric singularity would produce under refinement -- the earlier "
+     "production-scale run's own upward drift (47.65 -> 63.35) is best understood as mesh-"
+     "dependent scatter around this same bounded range, since pushing local refinement much "
+     "further (this section's new check) did not continue that trend. This is consistent with "
+     "classical elasticity theory: true boundary stress singularities (the Williams corner-type "
+     "asymptotic solutions behind real notch/crack-tip behavior) require an actual discontinuity "
+     "in the boundary's TANGENT direction -- this geometry, being C1 (continuous value and "
+     "slope) with only a curvature (not-C2) discontinuity, does not have one. Conclusion: this "
+     "is a genuine, real, but BOUNDED stress concentration, not a mathematical singularity -- "
+     "strong, multi-pronged numerical and theoretical evidence, though not a from-first-"
+     "principles asymptotic proof (which a problem at this applied level does not require).")
+para("This also refines the SCF already reported: the quadratic value is the better-converged "
+     "estimate of the true peak stress (three resolutions agreeing tightly, vs. linear "
+     "elements' known noisy over-estimation at this sharp feature), while the no-groove "
+     "nominal baseline sits at a smooth location where linear elements are already accurate "
+     "and need no re-computation. Refined SCF = 29.9 / 3.335 ~ 9.0 (quadratic peak / linear "
+     "nominal average) -- supersedes the earlier linear-only SCF~19, which is now understood "
+     "to have been inflated by linear elements' own under-resolution of the groove's sharp "
+     "curvature feature, the same mechanism already identified for the region-average "
+     "discretization story.")
 
 # ===========================================================================
 h1("7. Key finding: every B3 operator fails at the groove stress concentration")
