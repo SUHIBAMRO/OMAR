@@ -97,16 +97,12 @@ def image(filename, caption=None, width_in=6.0):
 
 
 # ===========================================================================
-title("B3 Groove-Stress Convergence: Response to Your 2026-11-10 Email")
-para("Subject: Re: B3 follow-up -- groove-region stress convergence and far-field PI-vs-DD "
-     "comparison", italic=True)
-doc.add_paragraph()
-para("Dear Professor Rabczuk,")
-para("Thank you for the detailed follow-up. Below is a complete response to both points in "
-     "your email: (1) establishing genuine convergence of the groove-region stress -- its "
-     "smoothness, local mesh refinement, the Stress Concentration Factor, and whether this "
-     "reflects a true geometric singularity or a bounded concentration -- and (2) the "
-     "far-field PI-vs-DD comparison you asked for once a trustworthy reference region was "
+title("B3 Groove-Stress Convergence: Response to Professor Rabczuk's 2026-11-10 Email")
+para("Prepared 2026-11-11. This report answers both points raised in Professor Rabczuk's "
+     "2026-11-10 email in full: (1) establishing genuine convergence of the groove-region "
+     "stress -- its smoothness, local mesh refinement, the Stress Concentration Factor, and "
+     "whether this reflects a true geometric singularity or a bounded concentration -- and "
+     "(2) the far-field PI-vs-DD comparison requested once a trustworthy reference region was "
      "available.")
 
 # ===========================================================================
@@ -119,7 +115,7 @@ para("A separate feature does exist, however, at the two points where the raised
      "region joins the flat wall (z = zc +/- 0.15): we confirmed numerically that the "
      "profile's second derivative jumps from a finite nonzero value to exactly zero there -- "
      "continuous value and slope (C1), but a genuine curvature discontinuity (not C2). This "
-     "is a distinct geometric feature from the groove root itself, and your request for a "
+     "is a distinct geometric feature from the groove root itself, and the requested "
      "contour plot turned out to be exactly the right way to check it, rather than reasoning "
      "from the formula alone -- our existing region mask (radius ~0.046) does not reach "
      "anywhere near these points (0.15 away, over 3x farther out).")
@@ -216,7 +212,7 @@ para("This first gave SCF (max groove / nominal average) = 19.0. SCF on the regi
 
 # ===========================================================================
 h1("4. Higher-order elements, and is this a true singularity?")
-para("Your suggestion of higher-order elements or NURBS/IGA was explicitly optional. A full "
+para("Professor Rabczuk's suggestion of higher-order elements or NURBS/IGA was explicitly optional. A full "
      "NURBS/IGA capability is out of scope for this project -- no such solver exists in our "
      "current codebase, and building one was not attempted. Quadratic (20-node, p-refinement) "
      "elements were genuinely testable, however, since the finite-element library we use "
@@ -304,7 +300,7 @@ table(
         ["DD hybrid", "3.55%", "29.38%", "30.25%"],
     ],
 )
-para("This is exactly the meaningful PI-vs-DD stress comparison you asked for. PI and every "
+para("This is exactly the meaningful PI-vs-DD stress comparison requested. PI and every "
      "local-integration-refinement seed are the best performers (13-17%), clearly beating "
      "every DD variant (21-53%) -- the same PI-over-DD ranking already established elsewhere "
      "in this project, now confirmed for region stress specifically, measured somewhere the "
@@ -318,7 +314,7 @@ para("This is exactly the meaningful PI-vs-DD stress comparison you asked for. P
      "representative of how well any of these models predict stress in general.")
 
 # ===========================================================================
-h1("Checklist against your email")
+h1("Checklist against Professor Rabczuk's email")
 bullet("Groove smoothness, and whether the geometry rules out a singularity -- answered in "
        "Section 1 (genuinely smooth at the groove root; a separate, distinct C1-not-C2 "
        "curvature feature identified at the band edges).")
@@ -329,7 +325,7 @@ bullet("Local mesh refinement at the groove, to establish genuine convergence --
        "further work in Section 4).")
 bullet("Stress Concentration Factor -- Section 3, refined in Section 4 (SCF ~9.0, based on "
        "the better-converged quadratic-element peak stress).")
-bullet("Possibly higher-order elements or NURBS/IGA (explicitly optional in your email) -- "
+bullet("Possibly higher-order elements or NURBS/IGA (explicitly optional) -- "
        "Section 4 and Figure 3 (NURBS/IGA out of scope; quadratic elements tested directly "
        "and found to converge the peak stress at far lower cost than further mesh "
        "refinement).")
@@ -337,11 +333,7 @@ bullet("Whether the groove is a true singularity -- Section 4 and Figure 4 (boun
        "concentration, not a true singularity, supported by two independent numerical checks "
        "plus the underlying elasticity theory).")
 bullet("Far-field PI-vs-DD comparison, once a trustworthy region was available -- Section 5.")
-para("We believe this covers every point raised in your 2026-11-10 email in full.")
-
-doc.add_paragraph()
-para("Best regards,")
-para("Omar")
+para("This report covers every point raised in Professor Rabczuk's 2026-11-10 email in full.")
 
 doc.save(OUT_PATH)
 print(f"Wrote {OUT_PATH}")
