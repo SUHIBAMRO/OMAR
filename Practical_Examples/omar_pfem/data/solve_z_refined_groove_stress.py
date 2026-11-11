@@ -73,13 +73,40 @@ def _gauss_point_physical_z_aware(Ntheta, Nr, Nz, r_grading, zs, ipoints_np):
 
 
 def solve_and_measure_groove_region(Ntheta, Nr, Nz, z_beta, r_grading=1.0,
-                                     dtype=torch.float64, device=None, verbose=False):
+                                     dtype=torch.float64, device=None, verbose=False,
+                                     ref_point=None, region_radius=None, groove_depth=None):
+    """ref_point/region_radius default to the established groove region
+    (unchanged behavior, every existing call site/result stays byte-
+    identical) -- passed explicitly to evaluate stress at a DIFFERENT
+    fixed physical region instead (e.g. the far-field nominal region
+    used elsewhere in this project, `np.array([R_IN0, 0.0, LZ/4.0])`,
+    same region_radius) on the exact same mesh/solve, so the far-field
+    and groove numbers it returns come from the SAME methodology, just
+    a different mask -- needed for a genuine SCF (ratio of two
+    region-average/max stresses computed the same way).
+
+    groove_depth defaults to the real GROOVE_DEPTH (unchanged behavior).
+    Passing groove_depth=0.0 instead solves the SAME mesh/BC/rotation
+    with the groove geometrically REMOVED (flat R_in0 bore everywhere)
+    -- the correct counterfactual baseline for a genuine SCF, evaluated
+    at the SAME physical location (R_IN0, 0, Lz/2) rather than at a
+    different z. This matters because this problem's rigid-ROTATION
+    (not uniform tension/bending) loading is itself z-position-
+    dependent (rigid_rotation_displacement's own dominant term scales
+    with dz = z-Lz/2, zero exactly at the groove's own z=Lz/2): a
+    far-field point at a DIFFERENT z (e.g. z=Lz/4, dz=-0.25) sits under
+    a fundamentally different local loading intensity than the groove's
+    own dz=0 point, so comparing their raw stress directly is NOT a
+    valid nominal-vs-concentrated SCF comparison -- confirmed directly,
+    not assumed, when an initial z=Lz/4-based attempt gave a
+    nonsensical SCF<1 (see PROJECT_STATUS.md)."""
     device = device or torch.device("cpu")
+    groove_depth = GROOVE_DEPTH if groove_depth is None else groove_depth
     nodes, elements = generate_grid_hex8_bushing_z_refined(
-        R_IN0, R_OUT, LZ, Ntheta, Nr, Nz, GROOVE_DEPTH, GROOVE_HALF_WIDTH,
+        R_IN0, R_OUT, LZ, Ntheta, Nr, Nz, groove_depth, GROOVE_HALF_WIDTH,
         r_grading=r_grading, z_beta=z_beta)
     zs = z_layers_sinh_graded(Nz, LZ, z_beta)
-    inner, outer, sym = boundary_node_sets(nodes, R_IN0, R_OUT, LZ, GROOVE_DEPTH, GROOVE_HALF_WIDTH)
+    inner, outer, sym = boundary_node_sets(nodes, R_IN0, R_OUT, LZ, groove_depth, GROOVE_HALF_WIDTH)
 
     from torchfem import Solid
     from torchfem.materials import Hyperelastic3D
@@ -149,12 +176,14 @@ def solve_and_measure_groove_region(Ntheta, Nr, Nz, z_beta, r_grading=1.0,
 
     theta_g, t_g, z_g = _gauss_point_physical_z_aware(Ntheta, Nr, Nz, r_grading, zs, ipoints_np)
 
-    z_ref = LZ / 2.0
-    r_ref = R_IN0 - GROOVE_DEPTH
-    ref_point = np.array([r_ref, 0.0, z_ref])
-    region_radius = 2.0 * groove_radius_of_curvature(GROOVE_DEPTH, GROOVE_HALF_WIDTH)
+    if ref_point is None:
+        z_ref = LZ / 2.0
+        r_ref = R_IN0 - GROOVE_DEPTH
+        ref_point = np.array([r_ref, 0.0, z_ref])
+    if region_radius is None:
+        region_radius = 2.0 * groove_radius_of_curvature(GROOVE_DEPTH, GROOVE_HALF_WIDTH)
 
-    R_in_eff_g = groove_R_in(z_g, LZ, R_IN0, GROOVE_DEPTH, GROOVE_HALF_WIDTH)
+    R_in_eff_g = groove_R_in(z_g, LZ, R_IN0, groove_depth, GROOVE_HALF_WIDTH)
     Rr_g = R_in_eff_g + (R_OUT - R_in_eff_g) * t_g
     x_g = Rr_g * np.cos(theta_g)
     y_g = Rr_g * np.sin(theta_g)
