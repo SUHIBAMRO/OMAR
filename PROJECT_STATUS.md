@@ -24788,3 +24788,31 @@ avg|sigma_xx| decreases monotonically across these 5 rows, 3.027 -> 2.800 (the l
 **Combined verdict**: the true, well-resolved peak stress is almost certainly close to the quadratic-converged value (~29-30), confirmed independently at THREE resolutions. Linear elements at every tested resolution/clustering strategy (2,376 to 47,040 elements, beta 0 to 18) scatter noisily in a BOUNDED range (44-69, including the new 1000x-finer-element data), never showing the systematic, unbounded growth a true geometric singularity would produce under refinement -- the GPU production run's own earlier upward drift (47.65->63.35) is now understood as mesh-dependent SCATTER around this same bounded range, not genuine divergence, since the smaller-but-much-further-refined CPU test (same beta range, extended 5x further in local element size) did NOT continue that trend upward. This is consistent with, and explained by, classical elasticity theory: the groove profile is C1 (continuous value and slope) but not C2 (curvature-only discontinuity) at its band edges -- true boundary stress singularities (Williams corner-type asymptotic solutions, behind real notch/crack-tip behavior) require an actual discontinuity in the boundary's TANGENT direction, which this geometry does not have. **Conclusion: this is a genuine, real, but BOUNDED stress concentration, not a mathematical singularity** -- strong, multi-pronged numerical+theoretical evidence (not a from first principles asymptotic/eigenvalue proof, which would be needed for 100% certainty, but well beyond what this kind of applied check can or needs to provide).
 
 **This also meaningfully REFINES the SCF number already reported**: since the quadratic value (~29.6-29.9) is the better-converged estimate of the true peak stress (three independent resolutions agreeing tightly, vs. linear elements' known noisy over-estimation at this sharp feature), and the "no-groove" nominal baseline is itself at a smooth, non-near-singular location where linear elements are already accurate (so no re-computation needed there): **SCF (refined) = 29.9 / 3.335 ~ 9.0** (quadratic max / linear no-groove-nominal average) -- supersedes the earlier linear-only SCF~19 figure, which is now understood to have been inflated by linear elements' own under-resolution of the groove's sharp curvature feature, exactly the same mechanism already identified for the region-average discretization story.
+
+**2026-11-12: a second careful external review raised four further, all legitimate, points. Addressed each directly with real new checks (no HPC needed, CPU only):**
+
+1. **Do ALL stress components converge under Q20, not just sigma_xx?** Extended `solve_quadratic_hex_groove_stress.py` to report volume-weighted region average AND pointwise max for all 6 independent Cauchy-stress components, re-run at the same 3 quadratic resolutions already tested (2,376 / 5,760 / 10,200 elements):
+
+| component | avg spread (3 res.) | max spread (3 res.) |
+|---|---|---|
+| sigma_xx | 1.3% | 3.1% |
+| sigma_yy | 3.3% | 2.6% |
+| sigma_zz | 25.0% (small absolute value, ~-0.17 to -0.21 -- a small-denominator effect on the % spread, not a large absolute change) | 6.3% |
+| sigma_xy | 1.3% | **24.4% -- NOT well converged** (absolute values small, 2.8-3.7, far below the dominant xz component) |
+| sigma_xz | 1.4% | 4.9% |
+| sigma_yz | 0.6% | 9.0% |
+
+Honest finding: region AVERAGES converge well for every component. Region MAXIMA converge reasonably (3-9%) for xx/yy/zz/xz, but sigma_xy's max does NOT converge as tightly (24%) -- flagged directly rather than glossed over, though its small absolute magnitude means it is not the component driving the overall stress-concentration story (sigma_xz's much larger ~27-29 dominates the shear response, and is itself well-converged at 4.9%).
+
+2. **Unify the SCF comparison -- same element type on both sides.** The previously-reported refined SCF (~9.0) mixed a quadratic-element groove peak with a LINEAR-element nominal baseline. Computed a proper quadratic-element no-groove counterfactual at the same 5,760-element resolution already used for the quadratic groove result:
+
+| | avg sigma_xx | max sigma_xx | avg sigma_F |
+|---|---|---|---|
+| groove (quadratic, 5,760 el) | 3.114 | 29.90 | 34.84 |
+| nominal, no groove (quadratic, 5,760 el) | 3.537 | 33.23 | 40.04 |
+
+**Matched-element-type SCF (max groove / nominal average, both quadratic) = 8.45** -- close to, and confirming, the earlier mixed-element estimate (~9.0) was a reasonable approximation, but this is now the properly apples-to-apples number. SCF on the average basis stays below 1 (0.88 for sigma_xx, 0.87 for the Frobenius norm), consistent with every earlier finding that this groove does not raise the AVERAGE stress.
+
+3. **Confirm the averaging method.** Checked directly (not just re-asserted): `solve_z_refined_groove_stress.py`/`solve_quadratic_hex_groove_stress.py` both compute `region_avg = sum(sigma * iweight * |detJ|) / sum(iweight * |detJ|)` -- a genuine volume-weighted (Gauss-quadrature) average, NOT a plain arithmetic mean. Verified this distinction is not cosmetic: at one representative case (beta=6, 2,376-element mesh), the volume-weighted mean is 2.588 vs. a plain arithmetic mean of 2.444 -- a 5.6% difference, confirming the weighting matters and that every number in this project's region-stress QoI already uses the physically correct (weighted) convention.
+
+4. **A real numeric reporting bug, found and fixed.** The report claimed the local-refinement sweep's last three region-average rows were "within 0.4% of each other," while also citing a value (2.789) that is not even part of the 5-row table actually shown (that value came from beta=14, a row omitted from the abbreviated table for brevity, mixed in by mistake while summarizing). The TRUE spread of the three rows actually shown (2.850/2.815/2.800, beta=6/10/18) is 1.8%, not 0.4% -- still a real, meaningful convergence (vs. the global ladder's 274%), just not as tight as originally and incorrectly stated. Corrected in PROJECT_STATUS.md and both report-building scripts, with this correction note.

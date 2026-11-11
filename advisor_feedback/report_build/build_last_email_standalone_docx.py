@@ -183,17 +183,10 @@ para("The region AVERAGE converges monotonically across these 5 rows (3.027 -> 2
      "density at the groove grows 4.5x at an identical global element count -- a genuine "
      "convergence curve, unlike the global ladder's 274% non-convergence on the same kind of "
      "comparison. The pointwise maximum does not settle the same way; this is addressed "
-     "directly, not glossed over, in Section 4.")
-para("A note on how the region average is computed, since this matters and was checked "
-     "directly: it is a volume-weighted (Gauss-quadrature-weighted) average over every Gauss "
-     "point inside the region -- each point's stress value is weighted by its own quadrature "
-     "weight times the local Jacobian determinant -- not a plain arithmetic mean of the "
-     "sampled values. This is not a cosmetic distinction: at one representative case we "
-     "checked directly, the two differ by about 5.6% (weighted 2.588 vs. plain 2.444), "
-     "because the Gauss points are not uniformly distributed in physical volume once the mesh "
-     "is locally graded. The volume-weighted average is the physically meaningful quantity "
-     "(it approximates the true integral average over the region), and it is what every "
-     "number in this report uses throughout.")
+     "directly, not glossed over, in Section 4. (Every average in this document, here and "
+     "throughout, is a volume-weighted Gauss-quadrature average, not a plain arithmetic mean "
+     "-- confirmed directly in Section 4.2, where the distinction is shown to matter by about "
+     "5.6% on a representative case.)")
 
 # ===========================================================================
 h1("3. Stress Concentration Factor (SCF)")
@@ -280,13 +273,56 @@ para("Combined verdict: the true peak stress is almost certainly close to the qu
      "independent refinement strategies together with the theoretical argument above, though "
      "not a from-first-principles asymptotic proof, which a problem at this applied level does "
      "not require.")
-para("This also lets us refine the SCF reported in Section 3: the quadratic value is the "
-     "better-converged estimate of the true peak stress, while the no-groove nominal baseline "
-     "sits at a smooth location where linear elements are already accurate and need no re-"
-     "computation. Refined SCF = 29.9 / 3.335 ~ 9.0 (quadratic peak / linear nominal average) "
-     "-- this supersedes the earlier linear-only estimate of approximately 19, which we now "
-     "understand to have been inflated by linear elements' own under-resolution of the "
-     "groove's sharp curvature feature.")
+h2("4.1 Do all six stress components converge under Q20, not just sigma_xx?")
+para("Re-ran the same three quadratic resolutions reporting every independent Cauchy-stress "
+     "component, not only sigma_xx:")
+table(
+    ["Component", "avg spread (3 resolutions)", "max spread (3 resolutions)"],
+    [
+        ["sigma_xx", "1.3%", "3.1%"],
+        ["sigma_yy", "3.3%", "2.6%"],
+        ["sigma_zz", "25.0% (small absolute value, ~-0.17 to -0.21)", "6.3%"],
+        ["sigma_xy", "1.3%", "24.4% -- not well converged"],
+        ["sigma_xz", "1.4%", "4.9%"],
+        ["sigma_yz", "0.6%", "9.0%"],
+    ],
+)
+para("The region AVERAGE converges well for every component. The region MAXIMUM converges "
+     "reasonably (3-9%) for sigma_xx/yy/zz/xz, but sigma_xy's maximum does not converge as "
+     "tightly (24%) -- reported directly rather than omitted. sigma_zz's large average "
+     "percentage spread is a small-denominator effect (its own absolute value is small, "
+     "-0.17 to -0.21), not a large absolute change. Importantly, sigma_xy's own absolute "
+     "magnitude (2.8-3.7) is small relative to the dominant shear component sigma_xz "
+     "(27-29, itself well-converged at 4.9%), so this does not change the overall picture: "
+     "the stress-concentration story at this groove is carried mainly by sigma_xx and "
+     "sigma_xz, both of which converge well under Q20.")
+
+h2("4.2 A properly matched-element-type SCF")
+para("The SCF reported in Section 3 mixed a quadratic-element groove peak with a linear-"
+     "element nominal baseline. For a fully consistent comparison, we computed a quadratic-"
+     "element no-groove counterfactual at the same 5,760-element resolution already used for "
+     "the quadratic groove result:")
+table(
+    ["", "avg|sigma_xx|", "max|sigma_xx|", "avg|sigma|_F"],
+    [
+        ["groove (quadratic, 5,760 elements)", "3.114", "29.90", "34.84"],
+        ["nominal, no groove (quadratic, 5,760 elements)", "3.537", "33.23", "40.04"],
+    ],
+)
+para("Matched-element-type SCF (max groove / nominal average, both quadratic) = 8.45 -- "
+     "close to, and confirming, the earlier mixed-element estimate (~9.0) was a reasonable "
+     "approximation, now replaced by this properly apples-to-apples number. SCF on the "
+     "average basis stays below 1 (0.88 for sigma_xx, 0.87 for the Frobenius norm), "
+     "consistent with every earlier finding that this groove does not raise the average "
+     "stress.")
+para("A note on how the region average itself is computed, since this was also checked "
+     "directly: it is a volume-weighted (Gauss-quadrature-weighted) average over every Gauss "
+     "point inside the region, not a plain arithmetic mean -- each point is weighted by its "
+     "own quadrature weight times the local Jacobian determinant. This is not a cosmetic "
+     "distinction: at one representative case, the volume-weighted mean (2.588) differs from "
+     "the plain arithmetic mean (2.444) by 5.6%, because Gauss points are not uniformly "
+     "distributed in physical volume once the mesh is locally graded. Every average reported "
+     "in this document uses the volume-weighted convention throughout.")
 
 # ===========================================================================
 h1("5. Far-field PI-vs-DD comparison")
@@ -333,8 +369,11 @@ bullet("A plot of the stress distribution along the groove contour -- Figure 1, 
 bullet("Local mesh refinement at the groove, to establish genuine convergence -- Section 2 "
        "and Figure 2 (region average converges cleanly; the pointwise maximum required the "
        "further work in Section 4).")
-bullet("Stress Concentration Factor -- Section 3, refined in Section 4 (SCF ~9.0, based on "
-       "the better-converged quadratic-element peak stress).")
+bullet("Stress Concentration Factor -- Section 3, refined in Section 4.2 with a properly "
+       "matched-element-type comparison (SCF ~8.45, quadratic peak vs. quadratic nominal).")
+bullet("Convergence of all stress components, and the averaging method used -- Section 4.1 "
+       "(every component's average converges well; sigma_xy's maximum is the one exception, "
+       "flagged directly) and Section 4.2 (confirmed volume-weighted, not a plain mean).")
 bullet("Possibly higher-order elements or NURBS/IGA (explicitly optional) -- "
        "Section 4 and Figure 3 (NURBS/IGA out of scope; quadratic elements tested directly "
        "and found to converge the peak stress at far lower cost than further mesh "

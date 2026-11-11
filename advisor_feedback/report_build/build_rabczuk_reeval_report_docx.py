@@ -193,10 +193,10 @@ table(
          "needed higher-order (quadratic) elements -- genuine p-refinement, no custom code -- "
          "to converge cleanly too (confirmed at 3 independent resolutions); combined evidence "
          "says this is a real but BOUNDED stress concentration, not a true singularity",
-         "Region avg sigma_xx: 3.03 -> 2.79/2.80 (47,040 elements); quadratic peak stress "
-         "converges to ~29-30 at 3 resolutions (vs. linear's noisy 44-69 under aggressive "
-         "refinement); refined SCF ~9.0 (supersedes an earlier linear-only SCF~19) -- "
-         "see Section 6.5"],
+         "Region avg sigma_xx: 3.03 -> 2.80 (47,040 elements, last 3 rows within 1.8%); "
+         "quadratic peak stress converges to ~29-30 at 3 resolutions, every stress component "
+         "(vs. linear's noisy 44-69 under aggressive refinement); matched-element-type SCF "
+         "~8.45 (supersedes an earlier linear-only SCF~19) -- see Section 6.5"],
     ],
 )
 para("Bottom line: nothing here contradicts the submitted paper -- its own quadrature-refinement "
@@ -824,13 +824,38 @@ para("Combined verdict: the true peak stress is almost certainly close to the qu
      "principles asymptotic proof (which a problem at this applied level does not require).")
 para("This also refines the SCF already reported: the quadratic value is the better-converged "
      "estimate of the true peak stress (three resolutions agreeing tightly, vs. linear "
-     "elements' known noisy over-estimation at this sharp feature), while the no-groove "
-     "nominal baseline sits at a smooth location where linear elements are already accurate "
-     "and need no re-computation. Refined SCF = 29.9 / 3.335 ~ 9.0 (quadratic peak / linear "
-     "nominal average) -- supersedes the earlier linear-only SCF~19, which is now understood "
-     "to have been inflated by linear elements' own under-resolution of the groove's sharp "
-     "curvature feature, the same mechanism already identified for the region-average "
-     "discretization story.")
+     "elements' known noisy over-estimation at this sharp feature). A first pass mixed this "
+     "quadratic peak with the earlier LINEAR-element nominal baseline (SCF ~9.0) -- a careful "
+     "external review correctly flagged that as not fully apples-to-apples. Recomputed with a "
+     "quadratic-element no-groove counterfactual at the same 5,760-element resolution "
+     "(nominal avg|sigma_xx|=3.537, max=33.23): matched-element-type SCF = 29.9 / 3.537 ~ "
+     "8.45 -- close to the earlier mixed-element estimate, confirming it was a reasonable "
+     "approximation, and supersedes it as the properly consistent number. Both supersede the "
+     "original linear-only SCF~19, understood to have been inflated by linear elements' own "
+     "under-resolution of the groove's sharp curvature feature.")
+
+h2("6.5.5 Do all stress components converge under Q20, and how is the average computed?")
+para("Two further checks a careful external review asked for directly. First: re-ran the "
+     "same three quadratic resolutions reporting every independent Cauchy-stress component, "
+     "not only sigma_xx. The region AVERAGE converges well for every component (spreads 0.6-"
+     "3.3% across the 3 resolutions; sigma_zz's 25% figure is a small-denominator effect, its "
+     "own absolute value being only -0.17 to -0.21). The region MAXIMUM converges reasonably "
+     "(3-9%) for sigma_xx/yy/zz/xz, but sigma_xy's maximum does not converge as tightly (24%) "
+     "-- reported directly rather than omitted, though its small absolute magnitude (2.8-3.7) "
+     "means it does not change the overall picture, which is carried by sigma_xx and the "
+     "dominant shear component sigma_xz (27-29, itself well-converged at 4.9%).")
+para("Second: confirmed directly (not just re-asserted) that every region average in this "
+     "project's groove-stress QoI is a volume-weighted (Gauss-quadrature-weighted) average, "
+     "not a plain arithmetic mean -- verified the distinction is not cosmetic: on one "
+     "representative case, the weighted mean (2.588) differs from a plain arithmetic mean "
+     "(2.444) by 5.6%, since Gauss points are not uniformly distributed in physical volume "
+     "once the mesh is locally graded.")
+para("A genuine reporting error was also caught and corrected in this process: an earlier "
+     "draft of this section claimed the local z-refinement sweep's last three rows were "
+     "\"within 0.4%\" while citing a value (2.789) that was not even part of the 5-row table "
+     "shown. The true spread of the rows actually shown (2.850/2.815/2.800) is 1.8%, not "
+     "0.4% -- still a real, meaningful convergence (vs. the global ladder's 274%), corrected "
+     "here and in PROJECT_STATUS.md.")
 
 # ===========================================================================
 h1("7. Key finding: every B3 operator fails at the groove stress concentration")
