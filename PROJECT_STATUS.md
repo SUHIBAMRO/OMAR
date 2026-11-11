@@ -24722,4 +24722,18 @@ Found a real compatibility gap before trusting any comparison: `mesh_convergence
 
 Local clustering works as intended (n_region_gauss grows 122->474, ~3.9x, at IDENTICAL global element count, confirming physical density near the groove is really increasing). The region-AVERAGED stress stabilizes to within ~7% (avg|sigma_xx|) / ~15% (avg|sigma|_F) across this whole beta sweep -- nothing like the global ladder's 274% non-convergence. The pointwise max is noisier (45-69), as expected for a single extremal Gauss point near a C1-not-C2 curvature discontinuity. **This is a genuinely different, more encouraging picture than global refinement** and is worth reporting to Timon as a real, if small-scale/CPU-only, first signal. **Not yet done**: a real GPU-scale version at production resolution (finer global mesh + a wider/more systematic beta sweep, ideally compared against a locally-refined mesh's own fine-local reference, not just self-consistency across beta) -- needs HPC time Omar must run; SCF computation (needs a converged local value, which this first signal suggests is becoming trustworthy near sigma_xx~2.6 but not yet at the max); higher-order elements/NURBS/IGA (Timon's explicitly-optional item 1c) not started, likely out of scope (no such solver capability exists anywhere in this codebase).
 
+**2026-11-11, same CPU-only approach at a larger, more realistic resolution (Ntheta=17, Nr=16, Nz=25 -> 5,760 elements, close to the actual training-mesh scale of ~6,840) -- stronger, more convincing version of the same signal, run while Omar had no HPC access:**
+
+| z_beta | n_region_gauss | avg&#124;σxx&#124; | max&#124;σxx&#124; | avg&#124;σ&#124;_F |
+|---|---|---|---|---|
+| 0.0 | 284 | 2.86 | 61.19 | 38.35 |
+| 1.0 | 334 | 2.84 | 53.18 | 38.27 |
+| 2.0 | 472 | 2.79 | 57.26 | 38.07 |
+| 4.0 | 816 | 2.71 | 60.40 | 37.36 |
+| 6.0 | 1022 | 2.69 | 58.13 | 36.66 |
+| 8.0 | 1122 | 2.67 | 67.53 | 36.50 |
+| 10.0 | 1186 | 2.74 | 49.95 | 34.27 |
+
+n_region_gauss grows 4.2x (284->1186) at IDENTICAL global element count (5,760, fixed across every row) as local clustering strengthens. avg|sigma_xx| drifts mildly downward then stabilizes, total range 2.67-2.86 (~7%) across the ENTIRE beta=0..10 sweep; avg|sigma|_F similarly tight (34.3-38.3, ~11%). This is a materially tighter, more convincing version of the same conclusion as the smaller (2,376-element) run: local refinement genuinely stabilizes the groove-region AVERAGE stress, unlike global refinement's 274% blowup. The pointwise max (50-68) is still noisy run-to-run, consistent with it being a single extremal Gauss point near the previously-found C1-not-C2 curvature discontinuity at the groove's band edge, not a converging field quantity the same way the average is.
+
 **Item E completed, 2026-11-08** (Omar's explicit "يلا بلش اشتغل" after confirming this was doable with zero new compute). Added Section 5.4 ("Does paying for DD's labels ever pay off? The break-even question, against 950,400") to the report, reusing the project's own existing N=50/200/400 + Sobolev/hybrid break-even sweep data (already in Section 5.2's table), now explicitly framed as the break-even answer Timon's 2026-10-20 email asked for. Real finding: PI wins at every tested N on displacement/H1/energy/reaction -- labels never pay off there within this range -- but DD @ N=400/Sobolev/hybrid (1764-1973%) genuinely beats PI (2900%) on groove-region stress specifically, the one QoI where the shared 6,840-element training mesh is the real bottleneck for both methods (still catastrophic in absolute terms either way). Added a matching Executive Summary row. Rebuilt and visually verified (pages 1, 14-15, no overlap) before overwriting the committed `.docx` and re-delivering.
