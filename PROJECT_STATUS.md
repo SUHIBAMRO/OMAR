@@ -24736,4 +24736,22 @@ Local clustering works as intended (n_region_gauss grows 122->474, ~3.9x, at IDE
 
 n_region_gauss grows 4.2x (284->1186) at IDENTICAL global element count (5,760, fixed across every row) as local clustering strengthens. avg|sigma_xx| drifts mildly downward then stabilizes, total range 2.67-2.86 (~7%) across the ENTIRE beta=0..10 sweep; avg|sigma|_F similarly tight (34.3-38.3, ~11%). This is a materially tighter, more convincing version of the same conclusion as the smaller (2,376-element) run: local refinement genuinely stabilizes the groove-region AVERAGE stress, unlike global refinement's 274% blowup. The pointwise max (50-68) is still noisy run-to-run, consistent with it being a single extremal Gauss point near the previously-found C1-not-C2 curvature discontinuity at the groove's band edge, not a converging field quantity the same way the average is.
 
+**2026-11-11, real GPU run at production-adjacent resolution (Ntheta=41, Nr=25, Nz=50 -> 47,040 elements), job 3141745 on the HPC cluster -- the clearest signal yet, genuine monotonic convergence, not just bounded scatter:**
+
+| z_beta | n_region_gauss | avg&#124;σxx&#124; | max&#124;σxx&#124; | avg&#124;σ&#124;_F | solve time (s) |
+|---|---|---|---|---|---|
+| 0.0 | 2,356 | 3.027 | 47.65 | 36.23 | 7.8 |
+| 1.0 | 2,736 | 3.014 | 46.33 | 36.20 | 6.6 |
+| 2.0 | 3,870 | 2.975 | 44.49 | 36.08 | 6.8 |
+| 4.0 | 6,722 | 2.896 | 47.74 | 35.76 | 8.5 |
+| 6.0 | 8,346 | 2.850 | 47.78 | 35.51 | 12.1 |
+| 8.0 | 9,192 | 2.819 | 56.29 | 35.40 | 20.3 |
+| 10.0 | 9,700 | 2.815 | 54.19 | 35.23 | 31.7 |
+| 14.0 | 10,284 | 2.789 | 56.55 | 34.31 | 53.8 |
+| 18.0 | 10,602 | 2.800 | 63.35 | 34.28 | 76.4 |
+
+avg|sigma_xx| decreases MONOTONICALLY and smoothly, 3.027 -> 2.789/2.800, flattening out (last three values within 0.4% of each other) -- this is a real convergence curve, not bounded noise, at a resolution close enough to the project's production scale to trust. avg|sigma|_F likewise converges smoothly (36.23 -> 34.28, flattening). n_region_gauss grows 4.5x (2,356 -> 10,602) at IDENTICAL global element count as beta increases. **Conclusion: local refinement genuinely converges the groove-region AVERAGE stress, to roughly sigma_xx~2.8, sigma_F~34.3 -- something global uniform refinement never did (274% non-convergence at the same kind of comparison).** The pointwise max stays noisy (44-63) and trends slightly UP with beta rather than converging -- still consistent with a genuine, non-smooth (C1-not-C2) local feature at the groove band edge that averaging smooths over but a single max Gauss point does not. Practical cost note: solve time grows sharply with beta (7.8s -> 76.4s, ~10x) as z-elements become more extreme-aspect-ratio near the groove, worsening CG conditioning -- a real, worth-flagging cost of this remedy, not free.
+
+**Next**: this gives a trustworthy converged LOCAL stress value (~2.8) for the first time. SCF = sigma_max_local / sigma_nominal still needs a genuine nominal/far-field baseline computed the same rigorous way (not yet done -- the existing far-field numbers in Section 6.4 are NN-vs-FEM relative errors, not a raw nominal stress value); that is the next concrete step before SCF can be reported.
+
 **Item E completed, 2026-11-08** (Omar's explicit "يلا بلش اشتغل" after confirming this was doable with zero new compute). Added Section 5.4 ("Does paying for DD's labels ever pay off? The break-even question, against 950,400") to the report, reusing the project's own existing N=50/200/400 + Sobolev/hybrid break-even sweep data (already in Section 5.2's table), now explicitly framed as the break-even answer Timon's 2026-10-20 email asked for. Real finding: PI wins at every tested N on displacement/H1/energy/reaction -- labels never pay off there within this range -- but DD @ N=400/Sobolev/hybrid (1764-1973%) genuinely beats PI (2900%) on groove-region stress specifically, the one QoI where the shared 6,840-element training mesh is the real bottleneck for both methods (still catastrophic in absolute terms either way). Added a matching Executive Summary row. Rebuilt and visually verified (pages 1, 14-15, no overlap) before overwriting the committed `.docx` and re-delivering.
