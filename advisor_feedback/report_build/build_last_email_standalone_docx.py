@@ -178,12 +178,22 @@ image("item1a_local_refinement_convergence.png",
       "Figure 2. Region-average stress converges smoothly as local resolution at the groove "
       "increases (left); the pointwise maximum does not settle at this fixed element order "
       "(right) -- addressed directly in Section 4 below.")
-para("The region AVERAGE converges monotonically and smoothly (3.027 -> 2.789/2.800, "
-     "flattening to within 0.4% over the last three rows) as local Gauss-point density at the "
-     "groove grows 4.5x at an identical global element count -- a genuine convergence curve, "
-     "unlike the global ladder's 274% non-convergence on the same kind of comparison. The "
-     "pointwise maximum does not settle the same way; we address this directly, not glossed "
-     "over, in Section 4.")
+para("The region AVERAGE converges monotonically across these 5 rows (3.027 -> 2.800; the "
+     "last three rows, 2.850/2.815/2.800, span about 1.8% of each other) as local Gauss-point "
+     "density at the groove grows 4.5x at an identical global element count -- a genuine "
+     "convergence curve, unlike the global ladder's 274% non-convergence on the same kind of "
+     "comparison. The pointwise maximum does not settle the same way; this is addressed "
+     "directly, not glossed over, in Section 4.")
+para("A note on how the region average is computed, since this matters and was checked "
+     "directly: it is a volume-weighted (Gauss-quadrature-weighted) average over every Gauss "
+     "point inside the region -- each point's stress value is weighted by its own quadrature "
+     "weight times the local Jacobian determinant -- not a plain arithmetic mean of the "
+     "sampled values. This is not a cosmetic distinction: at one representative case we "
+     "checked directly, the two differ by about 5.6% (weighted 2.588 vs. plain 2.444), "
+     "because the Gauss points are not uniformly distributed in physical volume once the mesh "
+     "is locally graded. The volume-weighted average is the physically meaningful quantity "
+     "(it approximates the true integral average over the region), and it is what every "
+     "number in this report uses throughout.")
 
 # ===========================================================================
 h1("3. Stress Concentration Factor (SCF)")

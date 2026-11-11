@@ -48,12 +48,13 @@ E, NU = 1000.0, 0.45
 PHI = 0.05
 
 
-def build_quadratic_mesh_with_curved_surfaces(Ntheta, Nr, Nz, r_grading=1.0):
+def build_quadratic_mesh_with_curved_surfaces(Ntheta, Nr, Nz, r_grading=1.0, groove_depth=None):
     from torchfem.elements import Hexa1, linear_to_quadratic
 
+    groove_depth = GROOVE_DEPTH if groove_depth is None else groove_depth
     nodes8, elements8 = generate_grid_hex8_bushing(
-        R_IN0, R_OUT, LZ, Ntheta, Nr, Nz, GROOVE_DEPTH, GROOVE_HALF_WIDTH, r_grading=r_grading)
-    inner8, outer8, sym8 = boundary_node_sets(nodes8, R_IN0, R_OUT, LZ, GROOVE_DEPTH, GROOVE_HALF_WIDTH)
+        R_IN0, R_OUT, LZ, Ntheta, Nr, Nz, groove_depth, GROOVE_HALF_WIDTH, r_grading=r_grading)
+    inner8, outer8, sym8 = boundary_node_sets(nodes8, R_IN0, R_OUT, LZ, groove_depth, GROOVE_HALF_WIDTH)
     n_nodes8 = nodes8.shape[0]
 
     nodes8_t = torch.tensor(nodes8, dtype=torch.float64)
@@ -80,14 +81,14 @@ def build_quadratic_mesh_with_curved_surfaces(Ntheta, Nr, Nz, r_grading=1.0):
     theta_mid = np.arctan2(xy[:, 1], xy[:, 0])
     z_mid = nodes20[new_slice, 2]
 
-    r_inner_exact = groove_R_in(z_mid, LZ, R_IN0, GROOVE_DEPTH, GROOVE_HALF_WIDTH)
+    r_inner_exact = groove_R_in(z_mid, LZ, R_IN0, groove_depth, GROOVE_HALF_WIDTH)
     nodes20[new_slice, 0][is_new_inner] = (r_inner_exact * np.cos(theta_mid))[is_new_inner]
     nodes20[new_slice, 1][is_new_inner] = (r_inner_exact * np.sin(theta_mid))[is_new_inner]
     nodes20[new_slice, 0][is_new_outer] = (R_OUT * np.cos(theta_mid))[is_new_outer]
     nodes20[new_slice, 1][is_new_outer] = (R_OUT * np.sin(theta_mid))[is_new_outer]
 
     inner20, outer20, sym20 = boundary_node_sets(
-        nodes20, R_IN0, R_OUT, LZ, GROOVE_DEPTH, GROOVE_HALF_WIDTH)
+        nodes20, R_IN0, R_OUT, LZ, groove_depth, GROOVE_HALF_WIDTH)
     n_new_inner_expected = int(is_new_inner.sum())
     n_new_outer_expected = int(is_new_outer.sum())
     assert int(inner20[new_slice].sum()) == n_new_inner_expected, \
@@ -102,10 +103,12 @@ def build_quadratic_mesh_with_curved_surfaces(Ntheta, Nr, Nz, r_grading=1.0):
 
 
 def solve_and_measure_groove_region_quadratic(Ntheta, Nr, Nz, r_grading=1.0,
-                                               dtype=torch.float64, device=None, verbose=False):
+                                               dtype=torch.float64, device=None, verbose=False,
+                                               groove_depth=None, ref_point=None, region_radius=None):
     device = device or torch.device("cpu")
+    groove_depth_eff = GROOVE_DEPTH if groove_depth is None else groove_depth
     nodes, elements, inner, outer, sym = build_quadratic_mesh_with_curved_surfaces(
-        Ntheta, Nr, Nz, r_grading=r_grading)
+        Ntheta, Nr, Nz, r_grading=r_grading, groove_depth=groove_depth_eff)
 
     from torchfem import Solid
     from torchfem.materials import Hyperelastic3D
@@ -176,10 +179,12 @@ def solve_and_measure_groove_region_quadratic(Ntheta, Nr, Nz, r_grading=1.0,
     nodes_per_elem = nodes_t[elements_t]  # (n_elem, 20, 3)
     pos_g = torch.einsum("gn,enD->egD", N_gauss, nodes_per_elem).cpu().numpy()  # (n_elem, n_gauss, 3)
 
-    z_ref = LZ / 2.0
-    r_ref = R_IN0 - GROOVE_DEPTH
-    ref_point = np.array([r_ref, 0.0, z_ref])
-    region_radius = 2.0 * groove_radius_of_curvature(GROOVE_DEPTH, GROOVE_HALF_WIDTH)
+    if ref_point is None:
+        z_ref = LZ / 2.0
+        r_ref = R_IN0 - groove_depth_eff
+        ref_point = np.array([r_ref, 0.0, z_ref])
+    if region_radius is None:
+        region_radius = 2.0 * groove_radius_of_curvature(GROOVE_DEPTH, GROOVE_HALF_WIDTH)
 
     dist = np.linalg.norm(pos_g - ref_point[None, None, :], axis=-1)
     region_mask = dist < region_radius
@@ -188,15 +193,30 @@ def solve_and_measure_groove_region_quadratic(Ntheta, Nr, Nz, r_grading=1.0,
     sigma_flat = sigma_gauss[region_mask]
     w_flat = vol_weight[region_mask]
     w_sum = w_flat.sum()
-    region_avg_xx = float((sigma_flat[:, 0, 0] * w_flat).sum() / w_sum) if n_region > 0 and w_sum > 0 else float("nan")
-    region_max_xx = float(np.abs(sigma_flat[:, 0, 0]).max()) if n_region > 0 else float("nan")
+
+    # Volume-weighted (Gauss-quadrature) average -- NOT a plain arithmetic
+    # mean -- same convention used throughout this project's region-stress
+    # QoI (solve_z_refined_groove_stress.py), confirmed to differ from a
+    # naive mean by several percent on this same problem (see
+    # PROJECT_STATUS.md), so the distinction is not cosmetic.
+    COMPONENTS = [("xx", 0, 0), ("yy", 1, 1), ("zz", 2, 2), ("xy", 0, 1), ("xz", 0, 2), ("yz", 1, 2)]
+    per_component = {}
+    for name, i, j in COMPONENTS:
+        vals = sigma_flat[:, i, j]
+        avg = float((vals * w_flat).sum() / w_sum) if n_region > 0 and w_sum > 0 else float("nan")
+        mx = float(np.abs(vals).max()) if n_region > 0 else float("nan")
+        per_component[name] = {"avg": avg, "max": mx}
+
     frob = np.sqrt(np.einsum("nij,nij->n", sigma_flat, sigma_flat)) if n_region > 0 else np.array([])
     region_avg_frob = float((frob * w_flat).sum() / w_sum) if n_region > 0 and w_sum > 0 else float("nan")
 
     return {
         "Ntheta": Ntheta, "Nr": Nr, "Nz": Nz, "n_elem": elements.shape[0], "n_nodes": n_nodes,
-        "n_region_gauss": n_region, "region_avg_sigma_xx": region_avg_xx,
-        "region_max_sigma_xx": region_max_xx, "region_avg_sigma_frob": region_avg_frob,
+        "n_region_gauss": n_region,
+        "region_avg_sigma_xx": per_component["xx"]["avg"],
+        "region_max_sigma_xx": per_component["xx"]["max"],
+        "region_avg_sigma_frob": region_avg_frob,
+        "per_component": per_component,
         "elapsed_s": elapsed,
     }
 

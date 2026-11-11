@@ -743,11 +743,11 @@ table(
         ["18.0", "10,602", "2.800", "63.35", "34.28"],
     ],
 )
-para("The region AVERAGE converges monotonically and smoothly (3.027 -> 2.789/2.800, "
-     "flattening to within 0.4% over the last three rows) as local density at the groove "
-     "grows 4.5x at IDENTICAL global element count -- a real convergence curve, unlike the "
-     "global ladder's 274% non-convergence on the same kind of comparison. The pointwise MAX, "
-     "however, stays noisy and trends upward with local refinement strength rather than "
+para("The region AVERAGE converges monotonically across these 5 rows (3.027 -> 2.800; the "
+     "last three rows, 2.850/2.815/2.800, span about 1.8% of each other) as local density at "
+     "the groove grows 4.5x at IDENTICAL global element count -- a real convergence curve, "
+     "unlike the global ladder's 274% non-convergence on the same kind of comparison. The "
+     "pointwise MAX, however, stays noisy and trends upward with local refinement strength rather than "
      "settling -- this matters for the SCF and singularity question below, and is addressed "
      "directly rather than glossed over.")
 
