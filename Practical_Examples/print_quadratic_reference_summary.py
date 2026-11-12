@@ -17,6 +17,8 @@ print("n_region_gauss:", d["n_region_gauss"])
 print()
 print("SCF (max groove / nominal avg):", d["scf"]["SCF_max_sigma_xx_over_nominal_avg"])
 print("SCF (avg basis):", d["scf"]["SCF_avg_sigma_xx"])
+print("  groove:", d["scf"]["groove"])
+print("  nominal (no groove):", d["scf"]["nominal_no_groove"])
 print()
 for name, r in d["checkpoints"].items():
     s = r["summary"]
