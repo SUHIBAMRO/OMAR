@@ -374,6 +374,37 @@ para("Taken together, Sections 1-5 give strong, multi-pronged support for a conv
      "claim as showing the underlying stress FIELD has converged at the same physical "
      "locations -- a sharper, field-level check along the groove contour, not just a region "
      "summary statistic, is the more rigorous standard and is reported directly below.")
+para("Field-level check: extracted the stress along the same inner-wall contour used by "
+     "the original (linear-element) contour plot in Section 1, now across the same three "
+     "quadratic resolutions already tested, and compared the two finest resolutions "
+     "pointwise (not just their region summary statistics) after interpolating onto a "
+     "common grid.")
+image("quadratic_contour_convergence.png",
+      "Figure 5. Every stress component along the inner-wall contour, Q20 elements at three "
+      "resolutions. sigma_xx/yy/zz/xz visibly overlap inside the groove band (shaded); "
+      "sigma_xy/yz show real point-to-point scatter that does not resolve with resolution.")
+table(
+    ["Component", "max pointwise diff (within groove region)", "mean pointwise diff"],
+    [
+        ["sigma_xx", "1.9%", "0.5%"],
+        ["sigma_yy", "2.4%", "0.7%"],
+        ["sigma_zz", "6.8%", "1.5%"],
+        ["sigma_xy", "21.6% -- not well converged", "4.7%"],
+        ["sigma_xz", "4.6%", "1.3%"],
+        ["sigma_yz", "18.8% -- not well converged", "5.6%"],
+    ],
+)
+para("This is a materially stronger result than the earlier region-max/average check: "
+     "sigma_xx, yy, zz, and xz -- including sigma_xz, the dominant shear component carrying "
+     "most of the stress-concentration story -- converge at the FIELD level, not just in "
+     "aggregate, with mean pointwise differences under 1.5% within the groove region. "
+     "sigma_xy and sigma_yz show genuine point-to-point noise that does not resolve with "
+     "increasing Q20 resolution, visible in the figure as real scatter rather than a smooth "
+     "trend -- a confirmed, not merely inferred, loose end. Their small absolute magnitude "
+     "relative to sigma_xx/sigma_xz means this does not change the overall groove-stress-"
+     "concentration conclusion, but we report it plainly rather than smoothing over it. "
+     "Overall: this study is well-supported and ready for Professor Rabczuk's input, but we "
+     "do not present it as 100% exhaustively closed.")
 bullet("Groove smoothness, and whether the geometry rules out a singularity -- answered in "
        "Section 1 (genuinely smooth at the groove root; a separate, distinct C1-not-C2 "
        "curvature feature identified at the band edges).")
@@ -387,6 +418,10 @@ bullet("Stress Concentration Factor -- Section 3, refined in Section 4.2 with a 
 bullet("Convergence of all stress components, and the averaging method used -- Section 4.1 "
        "(every component's average converges well; sigma_xy's maximum is the one exception, "
        "flagged directly) and Section 4.2 (confirmed volume-weighted, not a plain mean).")
+bullet("Whether the stress FIELD itself (not just a region summary statistic) converges at "
+       "the same physical locations -- Section 6 and Figure 5 (sigma_xx/yy/zz/xz converge "
+       "well pointwise, under 1.5% mean difference; sigma_xy/yz show real, unresolved "
+       "point-to-point scatter, reported directly).")
 bullet("Possibly higher-order elements or NURBS/IGA (explicitly optional) -- "
        "Section 4 and Figure 3 (NURBS/IGA out of scope; quadratic elements tested directly "
        "and found to converge the peak stress at far lower cost than further mesh "

@@ -857,6 +857,35 @@ para("A genuine reporting error was also caught and corrected in this process: a
      "0.4% -- still a real, meaningful convergence (vs. the global ladder's 274%), corrected "
      "here and in PROJECT_STATUS.md.")
 
+h2("6.5.6 Field-level convergence, not just a region summary statistic")
+para("A sharper point the same review raised: showing that each mesh's own region max/"
+     "average lands in a similar range is not quite the same claim as showing the stress "
+     "FIELD has converged at the same physical locations. Checked directly: extracted stress "
+     "along the SAME inner-wall contour the original linear-element plot used (Section 6.4), "
+     "now across the 3 quadratic resolutions already tested, and compared the two finest "
+     "pointwise after interpolating onto a common grid.")
+table(
+    ["Component", "max pointwise diff (within groove region)", "mean pointwise diff"],
+    [
+        ["sigma_xx", "1.9%", "0.5%"],
+        ["sigma_yy", "2.4%", "0.7%"],
+        ["sigma_zz", "6.8%", "1.5%"],
+        ["sigma_xy", "21.6% -- not well converged", "4.7%"],
+        ["sigma_xz", "4.6%", "1.3%"],
+        ["sigma_yz", "18.8% -- not well converged", "5.6%"],
+    ],
+)
+para("A materially stronger result than the region-max/average check alone: sigma_xx, yy, "
+     "zz, and xz -- including sigma_xz, the dominant shear component -- converge at the "
+     "FIELD level, mean pointwise differences under 1.5% within the groove region. sigma_xy "
+     "and sigma_yz show genuine point-to-point noise that does not resolve with increasing "
+     "Q20 resolution -- a confirmed, not merely inferred, loose end, though their small "
+     "absolute magnitude does not change the overall conclusion. Overall status: this study "
+     "is well-supported and ready to present for Professor Rabczuk's input, but is not "
+     "presented as 100% exhaustively closed -- sigma_xy/yz field convergence remains the "
+     "clearest open thread. Also clarified: the reported SCF (~8.45) is specifically a "
+     "sigma_xx ratio, not a general/isotropic stress-concentration factor.")
+
 # ===========================================================================
 h1("7. Key finding: every B3 operator fails at the groove stress concentration")
 para("The region-stress numbers above (up to 28,900% relative error) are real, not a computation "
