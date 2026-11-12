@@ -11,14 +11,19 @@ evaluate_u_only_checkpoint_against_fine_reference call, completely
 unmodified (it is already generic over element type, confirmed
 directly in evaluate_B3_qois_quadratic.py's own docstring).
 
-SCF is computed separately via compute_b3_scf.compute_scf (already
-groove-depth-corrected automatically, since that module imports its
-geometry helpers from the now-fixed solve_quadratic_hex_groove_stress.py)
+SCF is computed separately, using QUADRATIC (Q20) elements on BOTH
+sides (groove and no-groove counterfactual) via
+solve_quadratic_hex_groove_stress.solve_and_measure_groove_region_quadratic,
 at a representative, homogeneous-material verification case -- the
-SAME methodology already used and reported earlier, not per real
-dataset sample (keeping this run's scope bounded; a per-sample SCF
-would need a groove_depth-override on the heterogeneous-material solve
-path, not built here).
+SAME methodology already used and reported earlier for the matched-
+element-type SCF, not per real dataset sample (keeping this run's
+scope bounded; a per-sample SCF would need a groove_depth-override on
+the heterogeneous-material solve path, not built here). NOTE: an
+earlier version of this script mistakenly reused compute_b3_scf.
+compute_scf, which computes the groove/nominal pair with LINEAR
+elements -- inconsistent with the Q20 reference used for the
+checkpoint evaluation above. Fixed to keep element type consistent
+throughout this script's own SCF number.
 
 Usage:
   python -m omar_pfem.evaluate_b3_checkpoints_vs_quadratic \\
@@ -33,10 +38,13 @@ import os
 
 import torch
 
+import numpy as np
+
 from omar_pfem.evaluate_B3_qois_quadratic import generate_fine_reference_quadratic
 from omar_pfem.evaluate_B3_qois_finer import evaluate_u_only_checkpoint_against_fine_reference
 from omar_pfem.run_b3_rabczuk_reeval_v2_local import U_ONLY_NAMES
-from omar_pfem.data.compute_b3_scf import compute_scf
+from omar_pfem.data.solve_quadratic_hex_groove_stress import (
+    solve_and_measure_groove_region_quadratic, R_IN0, LZ)
 
 
 def main():
@@ -47,8 +55,6 @@ def main():
                          help="Ntheta Nr Nz for the Q20 reference mesh")
     parser.add_argument("--out_json", type=str, required=True)
     parser.add_argument("--results_out", type=str, default=None)
-    parser.add_argument("--scf_groove_z_beta", type=float, default=0.0,
-                         help="z_beta for the separate representative-case SCF computation")
     parser.add_argument("--cpu", action="store_true")
     args = parser.parse_args()
 
@@ -97,13 +103,24 @@ def main():
               f"region_field={s['mean_region_cauchy_field_rel_fine']*100:8.2f}%  "
               f"sigma_xx={s['mean_region_sigma_xx_rel_fine']*100:8.2f}%")
 
-    print(f"\n{'=' * 90}\nComputing SCF (representative homogeneous-material case, "
-          f"groove_z_beta={args.scf_groove_z_beta}) ...")
-    scf_result = compute_scf(Ntheta, Nr, Nz, args.scf_groove_z_beta, device=device)
-    print(f"  groove avg|sigma_xx|={scf_result['groove']['region_avg_sigma_xx']:.4f}  "
-          f"max|sigma_xx|={scf_result['groove']['region_max_sigma_xx']:.4f}")
-    print(f"  nominal(no groove) avg|sigma_xx|={scf_result['nominal_no_groove']['region_avg_sigma_xx']:.4f}")
-    print(f"  SCF (max groove / nominal avg) = {scf_result['SCF_max_sigma_xx_over_nominal_avg']:.3f}")
+    print(f"\n{'=' * 90}\nComputing SCF with QUADRATIC (Q20) elements on BOTH sides "
+          f"(representative homogeneous-material case, same resolution as the reference "
+          f"above, no local z-clustering) ...")
+    groove_q20 = solve_and_measure_groove_region_quadratic(
+        Ntheta, Nr, Nz, device=device)
+    same_point = np.array([R_IN0, 0.0, LZ / 2.0])
+    nominal_q20 = solve_and_measure_groove_region_quadratic(
+        Ntheta, Nr, Nz, device=device, groove_depth=0.0, ref_point=same_point)
+    scf_max = groove_q20["region_max_sigma_xx"] / nominal_q20["region_avg_sigma_xx"]
+    scf_avg = groove_q20["region_avg_sigma_xx"] / nominal_q20["region_avg_sigma_xx"]
+    scf_result = {
+        "groove": groove_q20, "nominal_no_groove": nominal_q20,
+        "SCF_max_sigma_xx_over_nominal_avg": scf_max, "SCF_avg_sigma_xx": scf_avg,
+    }
+    print(f"  groove (Q20) avg|sigma_xx|={groove_q20['region_avg_sigma_xx']:.4f}  "
+          f"max|sigma_xx|={groove_q20['region_max_sigma_xx']:.4f}")
+    print(f"  nominal(no groove, Q20) avg|sigma_xx|={nominal_q20['region_avg_sigma_xx']:.4f}")
+    print(f"  SCF (max groove / nominal avg, both Q20) = {scf_max:.3f}")
 
     combined = {
         "resolution": [Ntheta, Nr, Nz], "n_elements": geom["n_elements"], "n_nodes": geom["n_nodes"],
