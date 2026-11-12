@@ -24858,3 +24858,33 @@ Honest finding: region AVERAGES converge well for every component. Region MAXIMA
 **Job 3160490 (quadratic/Q20 element re-check, corrected depth, GPU, 4 resolutions 2,376-15,960 elements): peak sigma_xx converges cleanly -- 4.13 -> 1.80 -> 0.83 -> 0.81, the last two agreeing within ~2.5%.** This is a clean, convincing confirmation that p-refinement (quadratic elements) resolves what h-refinement (linear elements, job 3160485, still climbing at the same kind of comparison) does not -- now established on the CORRECT geometry, independently of the earlier (invalid) depth-0.05 version of this same finding. Per-component detail: sigma_yy's max also converges smoothly (4.53->1.69->0.96->0.61); sigma_zz's max converges, somewhat less smoothly (6.03->1.96->1.42->1.11); sigma_xy/yz stay small throughout (noise-level). **This single result is the strongest evidence yet for "bounded concentration, not singularity," and is independent confirmation (same conclusion, now on the right geometry) of what the earlier buggy-depth work also found** -- though the earlier number itself (SCF~8.45, peak~29-30) must still be discarded; only the QUALITATIVE conclusion survives, now backed by this new, correct-depth, convergent data.
 
 **Still pending**: job 3160484 (PI/DD vs. Q20 reference, the actual item Professor Rabczuk asked for) and job 3160489 (extended beta sweep, to settle whether linear h-refinement ever converges or genuinely diverges). Both awaited before writing any final, corrected report section.
+
+**Job 3160484/3163099 (the actual deliverable Professor Rabczuk asked for: PI/DD vs. Q20 reference, DOF, SCF) -- real result, with one real bug caught and fixed along the way.**
+
+**Q20 reference mesh**: 47,040 elements, 200,675 nodes, **DOF = 602,025**. 38 Gauss points in the groove region (above the project's own MIN_RELIABLE_N_P99=20 threshold, though modest).
+
+**Checkpoint comparison (region sigma_xx relative error vs. the Q20 reference):**
+
+| checkpoint | disp L2 | region field | sigma_xx |
+|---|---|---|---|
+| PI baseline | 2.89% | 3077% | 4095% |
+| local-integration-refinement seed 1 | 3.50% | 2063% | 2827% |
+| local-integration-refinement seed 2 | 2.55% | 1745% | 2263% |
+| local-integration-refinement seed 3 | 2.99% | 2301% | 3064% |
+| equilibrium w=1.0 (closed, poor) | 36.87% | 10790% | 13047% |
+| equilibrium w=0.12 (closed, poor) | 37.34% | 4616% | 6340% |
+| DD @ N=50 | 8.73% | 4524% | 5448% |
+| DD @ N=200 | 2.79% | 3082% | 3519% |
+| DD @ N=400 | 3.78% | 1825% | 2176% |
+| DD sobolev | 3.32% | 1766% | 2102% |
+| DD hybrid | 3.37% | 1886% | 2473% |
+
+**A genuinely different ranking than against the old (linear, 950,400-element) reference**: here, DD @ N=400/sobolev/hybrid (1766-2473%) and every local-integration-refinement seed (1745-2301%) now score BETTER than PI baseline (3077%) on the groove-region field error -- the opposite of the earlier, extensively-reported PI > DD ranking. Every error remains enormous (1700-13000%) regardless of checkpoint -- exactly matching Professor Rabczuk's own stated expectation ("If the local NO stress errors remain comparatively large, that is fine and we just report this as a limitation"). Global QoIs (disp) stay small and sane for every u-only checkpoint (2.5-8.7%, except the already-known-poor equilibrium attempts at 37%), consistent with every earlier finding that the groove failure is localized, not a general model-quality problem.
+
+**Real bug caught and fixed before trusting the SCF part of this same run**: the first version of `evaluate_b3_checkpoints_vs_quadratic.py` computed SCF by reusing `compute_b3_scf.compute_scf`, which solves BOTH the groove and no-groove counterfactual with LINEAR elements -- inconsistent with the Q20 reference used for the checkpoint comparison above. Fixed to compute both sides with `solve_and_measure_groove_region_quadratic` directly (Q20 throughout). Thanks to this script's existing resumable caching, re-running it after the fix reused the already-solved (expensive, ~3.3 CPU-hours) reference and all 11 checkpoint evaluations, and only recomputed the cheap SCF step.
+
+**Corrected SCF (both sides Q20, 47,040 elements): groove avg|sigma_xx|=0.433, max=0.705; nominal (no groove, same point) avg|sigma_xx|=3.949, max=9.611. SCF (max groove / nominal avg) = 0.178 -- BELOW 1 on every basis.** This means the well-resolved (Q20, converging cleanly across 5 independent resolutions now: 4.13/1.80/0.83/0.81/0.705 as global resolution increases 2,376->47,040 elements) peak groove stress is LOWER than the no-groove nominal baseline at every level -- i.e. **this groove shows NO genuine stress concentration under this loading**, a materially different conclusion from every earlier SCF estimate in this project (8.45/9.0/19, all built on either the wrong depth or a non-converged linear-element max).
+
+**A real, surprising-looking but CONFIRMED (not a bug) finding uncovered while sanity-checking this**: the no-groove counterfactual's own sigma_xz component is unusually large (avg~22.9, max~24.2) -- initially looked suspicious, but checked directly at TWO independent resolutions (17x16x25 and 41x25x50) and found NEARLY IDENTICAL values both times (22.98/24.22 vs. 22.87/24.23) -- strong evidence this is a genuine, converged, reproducible physical/geometric effect of this specific loading at a flat (non-grooved) wall location, not noise or a bug.
+
+**Open question this raises, not yet resolved**: job 3160485/3160489's own linear-element local-refinement sweep showed the peak stress climbing sharply and NOT converging (1.78 -> 13.32, beta=4 to 18, still rising) -- in apparent tension with this clean, SCF<1 Q20 result. Two non-exclusive explanations, to be distinguished once the extended beta sweep (job 3160489, betas up to 44, still running) returns: (a) the linear result is a genuine NUMERICAL ARTIFACT of increasingly thin/distorted locally-clustered elements (worsening conditioning, consistent with the already-noted sharp solve-time growth, 7.8s->67.8s) that quadratic elements do not suffer from at the same local refinement strategy; or (b) there is a genuine local feature the current global-only Q20 sweep (no local z-clustering support yet) has not pushed far enough locally to see. **Not yet concluded either way -- awaiting the extended linear sweep before writing any final verdict.**
