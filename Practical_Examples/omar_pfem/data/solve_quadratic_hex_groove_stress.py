@@ -42,8 +42,9 @@ from omar_pfem.data.data_generate_B3 import (
     groove_radius_of_curvature, groove_R_in)
 from omar_pfem.torchfem_comparison import neo_hookean_psi_3d
 
+from omar_pfem.data.data_generate_B3_dataset import GROOVE_DEPTH, GROOVE_HALF_WIDTH
+
 R_IN0, R_OUT, LZ = 0.5, 1.0, 1.0
-GROOVE_DEPTH, GROOVE_HALF_WIDTH = 0.05, 0.15
 E, NU = 1000.0, 0.45
 PHI = 0.05
 
