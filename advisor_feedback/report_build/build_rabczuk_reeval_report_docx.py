@@ -189,14 +189,21 @@ table(
         ["Your 2026-11-10 item 1: does LOCAL (not global) refinement converge the groove "
          "stress, what is the Stress Concentration Factor, and is this a true geometric "
          "singularity or a bounded concentration?",
-         "Local z-refinement converges the region-AVERAGE stress cleanly; the pointwise MAX "
-         "needed higher-order (quadratic) elements -- genuine p-refinement, no custom code -- "
-         "to converge cleanly too (confirmed at 3 independent resolutions); combined evidence "
-         "says this is a real but BOUNDED stress concentration, not a true singularity",
-         "Region avg sigma_xx: 3.03 -> 2.80 (47,040 elements, last 3 rows within 1.8%); "
-         "quadratic peak stress converges to ~29-30 at 3 resolutions, every stress component "
-         "(vs. linear's noisy 44-69 under aggressive refinement); matched-element-type SCF "
-         "~8.45 (supersedes an earlier linear-only SCF~19) -- see Section 6.5"],
+         "Superseded by a corrected, final result below (Section 6.6) after a critical "
+         "groove-depth bug was found and fixed: quadratic (Q20) elements converge the peak "
+         "groove stress cleanly across 5 resolutions; the matched-element-type SCF is below "
+         "1, i.e. no genuine stress concentration under this loading",
+         "Q20 peak stress converges 4.13 -> 0.705 (2,376 -> 47,040 elements); SCF (both "
+         "sides Q20) = 0.178, below 1 on every basis -- supersedes every earlier estimate "
+         "(19 / 9.0 / 8.45) -- see Section 6.6"],
+        ["Your 2026-11-12 email: evaluate PI and the DD variants against the converged "
+         "quadratic groove reference, report DOF, include SCF",
+         "DOF and the PI/DD-vs-Q20 comparison are reported; every checkpoint still shows very "
+         "large local-stress error, reported as a limitation as you anticipated; the ranking "
+         "among checkpoints changes vs. the earlier linear reference",
+         "Q20 reference: 602,025 DOF (47,040 elements, 200,675 nodes); checkpoint errors "
+         "1700-13000%; several DD variants and all local-integration-refinement seeds now "
+         "beat PI baseline on groove-region stress -- see Section 6.6"],
     ],
 )
 para("Bottom line: nothing here contradicts the submitted paper -- its own quadrature-refinement "
@@ -885,6 +892,73 @@ para("A materially stronger result than the region-max/average check alone: sigm
      "presented as 100% exhaustively closed -- sigma_xy/yz field convergence remains the "
      "clearest open thread. Also clarified: the reported SCF (~8.45) is specifically a "
      "sigma_xx ratio, not a general/isotropic stress-concentration factor.")
+
+h2("6.6 Correction and final verdict for your 2026-11-12 email: a critical bug fixed, "
+   "PI/DD vs. the converged Q20 reference, DOF, and SCF")
+para("Section 6.5 above, and the earlier standalone response to your 2026-11-10 email, must "
+     "be corrected: while preparing the next step you asked for (item 1 of your 2026-11-12 "
+     "email), we discovered that the groove depth used throughout all of that work was wrong "
+     "-- 0.05 (half-width 0.15), a stale value carried over from an earlier exploratory "
+     "script's own module default, not the real B3 production geometry (depth 0.20, "
+     "half-width 0.15). The real groove is 4x deeper and far sharper (radius of curvature "
+     "~0.0228, not ~0.0912). This invalidates every specific number in Section 6.5 (region-"
+     "average stress, SCF, quadratic peak-stress values, field-convergence percentages); the "
+     "qualitative conclusions (local refinement helps; p-refinement helps; bounded "
+     "concentration, not singularity) follow from the same generic argument regardless of "
+     "depth and most likely still hold, but only the corrected numbers below should be relied "
+     "on. A second, independent bug was also caught and fixed: an early version of the SCF "
+     "computation below mixed quadratic (Q20) and linear elements between the groove and "
+     "no-groove counterfactual; fixed to use Q20 consistently on both sides.")
+para("Q20 reference mesh for this corrected work: 47,040 elements, 200,675 nodes, "
+     "DOF = 602,025. This mesh captures 38 Gauss points in the groove region (above this "
+     "project's own minimum-reliable-sample threshold of 20, though modest).")
+table(
+    ["Checkpoint", "disp L2", "region field error", "sigma_xx error"],
+    [
+        ["PI baseline", "2.89%", "3077%", "4095%"],
+        ["Local-integration-refinement (seed 1)", "3.50%", "2063%", "2827%"],
+        ["Local-integration-refinement (seed 2)", "2.55%", "1745%", "2263%"],
+        ["Local-integration-refinement (seed 3)", "2.99%", "2301%", "3064%"],
+        ["Equilibrium w=1.0 (closed, poor)", "36.87%", "10790%", "13047%"],
+        ["Equilibrium w=0.12 (closed, poor)", "37.34%", "4616%", "6340%"],
+        ["DD @ N=50", "8.73%", "4524%", "5448%"],
+        ["DD @ N=200", "2.79%", "3082%", "3519%"],
+        ["DD @ N=400", "3.78%", "1825%", "2176%"],
+        ["DD sobolev", "3.32%", "1766%", "2102%"],
+        ["DD hybrid", "3.37%", "1886%", "2473%"],
+    ],
+)
+para("As you anticipated, every checkpoint's local groove-region stress error remains very "
+     "large (1700-13000%); we report this plainly as a limitation. Global quantities "
+     "(displacement) remain small and sane for every u-only checkpoint (2.5-8.7%, except the "
+     "already-known-poor equilibrium-augmented attempts at ~37%). A genuinely new finding: "
+     "the RANKING among checkpoints changes against this better reference -- several DD "
+     "variants (N=400, sobolev, hybrid: 1766-2473%) and all three local-integration-"
+     "refinement seeds (1745-2301%) now beat PI baseline (3077%) on groove-region stress "
+     "specifically, the opposite of the ranking against the earlier linear reference.")
+para("SCF, computed consistently with Q20 elements on both sides at the same 47,040-element "
+     "resolution: groove avg|sigma_xx|=0.433, max=0.705; nominal (no groove, same point) "
+     "avg|sigma_xx|=3.949, max=9.611. SCF (max groove / nominal average) = 0.178 -- below 1 "
+     "on every basis. This supersedes every earlier SCF estimate in this project (19 / 9.0 / "
+     "8.45, all built on either the wrong depth or an inconsistent element-type comparison): "
+     "once measured with a properly converged, properly matched-element-type reference, this "
+     "groove shows no genuine stress concentration under this loading.")
+para("Independent supporting evidence, both rerun at the corrected depth: quadratic "
+     "(p-refinement) elements converge the peak groove stress cleanly and monotonically "
+     "across 5 increasing resolutions (4.13 -> 1.80 -> 0.83 -> 0.81 -> 0.705 as element count "
+     "grows 2,376 -> 47,040). Linear elements under aggressive local z-clustering, by "
+     "contrast, climbed sharply at first (1.78 at z_beta=4 up to 13.32 at z_beta=18, with "
+     "solve time growing ~10x) but then REVERSED at z_beta=22 (9.32, with solve time exploding "
+     "a further ~19x) -- a non-monotonic result combined with severe, non-physical cost growth "
+     "that is most consistent with a numerical artifact of increasingly distorted, "
+     "ill-conditioned elements, not genuine physical divergence. The sweep was stopped there "
+     "by explicit choice rather than continued for days, given the cost already observed and "
+     "the strength of the independent quadratic-element evidence pointing to the same bounded "
+     "conclusion.")
+para("We have not yet re-run the field-level (pointwise) contour convergence check (Section "
+     "6.5.6) at the corrected depth; given the strength of the evidence above we consider "
+     "this a lower-priority, further-rigor item rather than a blocking one. A separate, "
+     "standalone report mirroring this section was also prepared and delivered.")
 
 # ===========================================================================
 h1("7. Key finding: every B3 operator fails at the groove stress concentration")
