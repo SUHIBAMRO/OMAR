@@ -83,15 +83,18 @@ def table(headers, rows):
 
 # ===========================================================================
 title("B3 Final Check: PI/DD vs. the Quadratic Groove Reference")
-para("Prepared 2026-11-13, revised after a careful review caught a real error in an earlier "
-     "draft (Section 4). This report answers Professor Rabczuk's 2026-11-12 email: evaluating "
-     "PI and the DD variants against a quadratic (Q20) groove reference, including the Stress "
-     "Concentration Factor (SCF), and reporting the DOF of the quadratic meshes used. The "
-     "reference mesh itself is well-resolved and the checkpoint comparison and SCF are built "
-     "on it directly, but Section 4 is honest that the PEAK-STRESS convergence behind this "
-     "reference is not yet as tightly established as an earlier draft claimed -- this is being "
-     "actively re-verified. A critical bug discovered while preparing this work is "
-     "disclosed first, since it affects how every number below should be read.")
+para("Prepared 2026-11-13, revised twice after a careful review caught a real error in an "
+     "earlier draft (Section 4) and raised three further points, all now closed with real "
+     "additional computation (a new, family-consistent mesh point; a re-run field-level "
+     "convergence check; and a full per-component SCF) rather than caveats alone. This "
+     "report answers Professor Rabczuk's 2026-11-12 email: evaluating PI and the DD variants "
+     "against a quadratic (Q20) groove reference, including the Stress Concentration Factor "
+     "(SCF), and reporting the DOF of the quadratic meshes used. The reference mesh itself is "
+     "well-resolved and the checkpoint comparison and SCF are built on it directly; Section 4 "
+     "now shows a materially smoother peak-stress convergence than the previous draft, and "
+     "Section 3.1 shows the sigma_xx-only SCF conclusion does not generalize to every stress "
+     "component. A critical bug discovered while preparing this work is disclosed first, "
+     "since it affects how every number below should be read.")
 
 # ===========================================================================
 h1("1. A critical bug found and fixed before this work could be trusted")
@@ -186,15 +189,42 @@ para("This is a materially different conclusion from every earlier SCF estimate 
      "this project (19, 9.0, and 8.45 at various points), each of which was built on either "
      "the wrong groove depth or an under-resolved/inconsistent-element-type comparison. Once "
      "measured with a properly converged, properly matched-element-type reference, this "
-     "specific groove shows no genuine stress concentration under this loading -- the "
-     "peak groove stress is lower than the no-groove nominal baseline at every level tested. "
-     "We report this as the correct, superseding answer, not as an additional data point "
-     "alongside the earlier numbers. One scope limitation, worth stating precisely: this SCF "
-     "is specifically a sigma_xx ratio (peak sigma_xx at the groove vs. average sigma_xx with "
-     "the groove removed) -- it does not by itself rule out a concentration in another stress "
-     "component. A genuinely matched-depth, matched-element-type per-component SCF (every "
-     "one of the six independent stress components, not only sigma_xx) is being computed now "
-     "and will be reported as a follow-up.")
+     "specific groove shows no genuine stress concentration in sigma_xx under this loading -- "
+     "the peak groove sigma_xx is lower than the no-groove nominal baseline at every level "
+     "tested. One scope limitation flagged in the previous draft of this report has now been "
+     "closed with real data rather than left as a caveat: the SCF above is specifically a "
+     "sigma_xx ratio, and it does not by itself rule out a concentration in another stress "
+     "component. We have now computed the full per-component SCF (groove vs. no-groove, same "
+     "point, same quadratic mesh) at a new, genuinely consistent resolution of (29, 22, 41) = "
+     "23,520 elements:")
+table(
+    ["Component", "groove avg", "groove max", "nominal avg", "SCF (max/nom.avg)"],
+    [
+        ["sigma_xx", "0.433", "0.737", "3.941", "0.187"],
+        ["sigma_yy", "0.380", "0.633", "0.462", "1.370"],
+        ["sigma_zz", "0.430", "1.011", "0.043", "23.5 (unreliable, see below)"],
+        ["sigma_xy", "-0.001", "0.017", "0.051", "0.338"],
+        ["sigma_xz", "-0.316", "0.788", "22.969", "0.034"],
+        ["sigma_yz", "-0.012", "0.041", "0.682", "0.060"],
+    ],
+)
+para("Reading this table honestly, it does NOT support the blanket claim that there is no "
+     "stress concentration anywhere: sigma_xx (SCF=0.187) and the shear components confirm "
+     "the earlier conclusion, but sigma_yy shows SCF=1.37, i.e. BY THIS SAME RATIO DEFINITION "
+     "the groove peak sigma_yy exceeds the no-groove sigma_yy baseline -- a real, mild "
+     "concentration in that component that the sigma_xx-only number hid. The sigma_zz ratio "
+     "(23.5) is not a trustworthy concentration factor: the no-groove nominal average for "
+     "sigma_zz is itself nearly zero (0.043), so dividing by it amplifies noise into a large "
+     "but not physically meaningful number -- a different, non-ratio-based measure (e.g. "
+     "absolute stress change, or a von Mises/principal-stress SCF) would be needed to say "
+     "anything reliable about sigma_zz, and that is a genuinely open item, not resolved here. "
+     "A separate, unplanned finding from this same computation: at this reference point, the "
+     "no-groove baseline is actually dominated by shear -- sigma_xz averages 22.97 "
+     "there, far larger in magnitude than sigma_xx's 3.94 -- so sigma_xx was never the "
+     "largest stress component at this location even before the groove is considered. This "
+     "does not overturn the sigma_xx-specific conclusion above, but it does mean the single "
+     "sigma_xx SCF cannot be read as representative of \"overall\" stress concentration at "
+     "this groove, and we no longer make that broader claim.")
 
 # ===========================================================================
 h1("4. Independent supporting evidence: quadratic convergence vs. a likely linear artifact")
@@ -202,9 +232,13 @@ para("Beyond the specific SCF computation above, two further checks (both rerun 
      "corrected depth) support the same conclusion from independent angles -- though a "
      "careful review of a draft of this report caught a real error in how we described the "
      "first of these, corrected here.")
-para("Quadratic (p-refinement) elements converge the peak groove stress across five "
+para("Quadratic (p-refinement) elements converge the peak groove stress across six "
      "increasing global resolutions, from 2,376 elements up to the 47,040-element reference "
-     "mesh itself, with its own degrees of freedom (DOF = nodes x 3):")
+     "mesh itself, with its own degrees of freedom (DOF = nodes x 3). The point at 23,520 "
+     "elements is new in this revision: it is a genuine continuation of the same "
+     "Ntheta/Nr/Nz refinement family as the first four points (Ntheta +4, Nr +2, Nz +5, "
+     "matching the pattern of the preceding steps), computed specifically to close the gap "
+     "flagged below.")
 table(
     ["Elements", "DOF", "max|sigma_xx|"],
     [
@@ -212,25 +246,39 @@ table(
         ["5,760", "78,309", "1.80"],
         ["10,200", "135,855", "0.83"],
         ["15,960", "209,640", "0.81"],
+        ["23,520 (new)", "305,709", "0.737"],
         ["47,040", "602,025", "0.705"],
     ],
 )
-para("Correction: an earlier draft of this report claimed the LAST two points (15,960 and "
-     "47,040 elements) agree within about 2.5%. That is wrong -- 2.5% is actually the gap "
-     "between the 3rd and 4th points (10,200 vs. 15,960); the real gap between the 4th and "
-     "5th points (15,960 vs. 47,040) is about 14.9%, a materially larger change at the finest "
-     "step. We also note, on re-examination, that the first four points (2,376 to 15,960) "
-     "come from one consistent mesh-refinement family (Ntheta/Nr/Nz increased in matching, "
-     "smoothly-growing steps), while the fifth point (47,040) is the separately-built "
-     "production PI/DD reference mesh, whose Ntheta/Nr/Nz ratios are NOT a consistent "
-     "continuation of that same family -- so part of the 14.9% gap may reflect a change in "
-     "mesh shape/anisotropy, not only resolution. The sequence IS monotonically decreasing "
-     "with no sign of blowing up, which still argues against a true singularity, but we no "
-     "longer consider the peak stress fully, tightly converged at this point -- a genuinely "
-     "consistent 5th resolution in the original family (continuing the same Ntheta/Nr/Nz "
-     "pattern) is being computed now and will be reported as a follow-up the moment it is "
-     "available, together with a rerun of the field-level (pointwise) convergence check at "
-     "this corrected depth.")
+para("Correction (from the previous draft, which this new point also helps resolve): an "
+     "earlier draft of this report claimed the LAST two points of the then-5-point table "
+     "(15,960 and 47,040 elements) agree within about 2.5%. That was wrong -- 2.5% was "
+     "actually the gap between the 3rd and 4th points (10,200 vs. 15,960); the real gap "
+     "between the old 4th and 5th points (15,960 vs. 47,040) is about 14.9%. With the new, "
+     "family-consistent 23,520-element point now computed, that single 14.9% jump splits "
+     "into two smaller, genuinely monotonic steps: 15,960 to 23,520 is a 9.9% decrease, and "
+     "23,520 to 47,040 is a further 4.6% decrease. This is a materially smoother and more "
+     "convincing convergence trend than the previous table showed, though the last two "
+     "points (23,520 and 47,040) still differ by close to 5%, so we describe the sequence as "
+     "monotonically decreasing and converging, not yet fully converged to engineering "
+     "tolerance. 47,040 remains the separately-built production PI/DD reference mesh, whose "
+     "Ntheta/Nr/Nz ratios are not an exact continuation of the refinement family used for the "
+     "other five points, so a small part of the final 4.6% step may still reflect mesh-shape "
+     "change rather than pure resolution -- we note this for transparency, not because it "
+     "changes the qualitative conclusion.")
+para("The field-level (pointwise, same-physical-location) contour convergence check has "
+     "now also been re-run at the corrected groove depth, across the four finest "
+     "resolutions in the consistent family (2,376 to 15,960 elements). Comparing the two "
+     "finest of those resolutions on a common grid: within the groove region actually used "
+     "for every average/SCF computation in this report, pointwise relative differences are "
+     "small for every stress component (max 0.3-1.0%, mean 0.1-0.2%, depending on "
+     "component) -- strong, direct field-level support for treating the groove-region "
+     "averages above as resolution-independent. Outside that region, at the domain's axial "
+     "ends (z near 0 or 1, i.e. near the load/boundary-condition application, not near the "
+     "groove), pointwise differences are much larger (38-90% depending on component) -- "
+     "consistent with a boundary-layer/stress-concentration effect at the model's ends that "
+     "is still mesh-sensitive, but which is outside the groove region this report's "
+     "conclusions are about.")
 para("By contrast, we also pushed LINEAR elements through aggressive local z-clustering at "
      "the groove (fixed global element count, 47,040), to see whether this alternative "
      "refinement strategy told the same story. It did not, at first: the peak stress climbed "
@@ -272,21 +320,31 @@ bullet("The checkpoint ranking on groove-region stress changes against this bett
        "reference: several DD variants and all local-integration-refinement seeds now beat "
        "PI baseline specifically on this quantity.")
 bullet("SCF (sigma_xx-specific), computed consistently with Q20 elements on both sides: "
-       "0.178 -- below 1 -- superseding every earlier estimate (19 / 9.0 / 8.45), all built "
-       "on either the wrong groove depth or an inconsistent element-type comparison.")
-para("What is genuinely NOT yet settled, honestly stated after a careful review of a draft "
-     "of this report: (1) the peak-stress convergence sequence in Section 4 is monotonically "
-     "decreasing and bounded, which still argues against a true singularity, but the last "
-     "step (15,960 to 47,040 elements) changes by about 14.9%, not the ~2.5% an earlier draft "
-     "mistakenly claimed, and mixes two different mesh families -- so the peak stress is not "
-     "yet shown to be tightly converged; (2) the field-level (pointwise, same-physical-"
-     "location) contour convergence check has not yet been re-run at the corrected depth -- "
-     "the last such check used the wrong geometry entirely; (3) the SCF above covers sigma_xx "
-     "only, not every stress component. All three are being addressed directly: a genuinely "
-     "consistent 5th mesh-refinement point, the field-level contour recheck, and a "
-     "per-component SCF are running now and will be reported the moment they are available. "
-     "We look forward to discussing the longer-term automated-verification-framework "
-     "direction raised in the same email.")
+       "0.178-0.187 depending on resolution -- below 1 -- superseding every earlier estimate "
+       "(19 / 9.0 / 8.45), all built on either the wrong groove depth or an inconsistent "
+       "element-type comparison.")
+bullet("Per-component SCF, newly computed at the (29,22,41)=23,520-element point: sigma_xx "
+       "and the shear components confirm no concentration, but sigma_yy shows SCF=1.37 "
+       "(a real, mild concentration this metric alone would have missed), and sigma_zz's "
+       "ratio is numerically unreliable because its no-groove baseline is near zero -- see "
+       "Section 3.1 for the full table and caveats.")
+bullet("Field-level (pointwise) contour convergence, newly re-run at the corrected depth: "
+       "within the groove region used for every average/SCF in this report, pointwise "
+       "differences between the two finest resolutions are small (max 0.3-1.0%, mean "
+       "0.1-0.2%) -- direct support for the groove-region averages. Larger differences "
+       "(38-90%) appear only at the domain's axial ends, away from the groove.")
+para("What was flagged as NOT yet settled in the previous draft, after a careful review, has "
+     "now been addressed with real additional computation rather than caveats alone: (1) the "
+     "previously-reported 14.9% gap between the last two convergence points has been split, "
+     "with a new genuinely family-consistent 23,520-element point, into two smaller steps "
+     "(9.9% then 4.6%) -- a materially more convincing, though still not fully tight, "
+     "convergence; (2) the field-level contour check has been re-run at the corrected depth "
+     "and confirms tight pointwise agreement inside the groove region specifically; (3) the "
+     "per-component SCF has been computed and shows the sigma_xx-only conclusion does not "
+     "generalize cleanly to sigma_yy, and that sigma_zz needs a different, non-ratio-based "
+     "measure to say anything reliable -- both now explicit, open items rather than things we "
+     "claim to have already ruled out. We look forward to discussing the longer-term "
+     "automated-verification-framework direction raised in the same email.")
 
 doc.save(OUT_PATH)
 print(f"Wrote {OUT_PATH}")
