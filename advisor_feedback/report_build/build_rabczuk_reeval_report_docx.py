@@ -189,13 +189,14 @@ table(
         ["Your 2026-11-10 item 1: does LOCAL (not global) refinement converge the groove "
          "stress, what is the Stress Concentration Factor, and is this a true geometric "
          "singularity or a bounded concentration?",
-         "Superseded by a corrected, final result below (Section 6.6) after a critical "
-         "groove-depth bug was found and fixed: quadratic (Q20) elements converge the peak "
-         "groove stress cleanly across 5 resolutions; the matched-element-type SCF is below "
-         "1, i.e. no genuine stress concentration under this loading",
-         "Q20 peak stress converges 4.13 -> 0.705 (2,376 -> 47,040 elements); SCF (both "
-         "sides Q20) = 0.178, below 1 on every basis -- supersedes every earlier estimate "
-         "(19 / 9.0 / 8.45) -- see Section 6.6"],
+         "Superseded by a corrected result below (Section 6.6) after a critical groove-depth "
+         "bug was found and fixed: quadratic (Q20) elements' peak groove stress decreases "
+         "monotonically across 5 resolutions and the matched-element-type SCF (sigma_xx) is "
+         "below 1; peak-stress convergence is not yet as tight as an earlier draft claimed "
+         "(a real error caught by review and corrected), so this is still being re-verified",
+         "Q20 peak stress 4.13 -> 0.705 (2,376 -> 47,040 elements), but the last step changes "
+         "~14.9%, not ~2.5% as misreported; SCF (both sides Q20) = 0.178 (sigma_xx only) -- "
+         "supersedes every earlier estimate (19 / 9.0 / 8.45) -- see Section 6.6"],
         ["Your 2026-11-12 email: evaluate PI and the DD variants against the converged "
          "quadratic groove reference, report DOF, include SCF",
          "DOF and the PI/DD-vs-Q20 comparison are reported; every checkpoint still shows very "
@@ -893,8 +894,8 @@ para("A materially stronger result than the region-max/average check alone: sigm
      "clearest open thread. Also clarified: the reported SCF (~8.45) is specifically a "
      "sigma_xx ratio, not a general/isotropic stress-concentration factor.")
 
-h2("6.6 Correction and final verdict for your 2026-11-12 email: a critical bug fixed, "
-   "PI/DD vs. the converged Q20 reference, DOF, and SCF")
+h2("6.6 Correction for your 2026-11-12 email: a critical bug fixed, PI/DD vs. the Q20 "
+   "reference, DOF, and SCF -- still being re-verified")
 para("Section 6.5 above, and the earlier standalone response to your 2026-11-10 email, must "
      "be corrected: while preparing the next step you asked for (item 1 of your 2026-11-12 "
      "email), we discovered that the groove depth used throughout all of that work was wrong "
@@ -942,23 +943,46 @@ para("SCF, computed consistently with Q20 elements on both sides at the same 47,
      "on every basis. This supersedes every earlier SCF estimate in this project (19 / 9.0 / "
      "8.45, all built on either the wrong depth or an inconsistent element-type comparison): "
      "once measured with a properly converged, properly matched-element-type reference, this "
-     "groove shows no genuine stress concentration under this loading.")
-para("Independent supporting evidence, both rerun at the corrected depth: quadratic "
-     "(p-refinement) elements converge the peak groove stress cleanly and monotonically "
-     "across 5 increasing resolutions (4.13 -> 1.80 -> 0.83 -> 0.81 -> 0.705 as element count "
-     "grows 2,376 -> 47,040). Linear elements under aggressive local z-clustering, by "
-     "contrast, climbed sharply at first (1.78 at z_beta=4 up to 13.32 at z_beta=18, with "
-     "solve time growing ~10x) but then REVERSED at z_beta=22 (9.32, with solve time exploding "
-     "a further ~19x) -- a non-monotonic result combined with severe, non-physical cost growth "
-     "that is most consistent with a numerical artifact of increasingly distorted, "
-     "ill-conditioned elements, not genuine physical divergence. The sweep was stopped there "
-     "by explicit choice rather than continued for days, given the cost already observed and "
-     "the strength of the independent quadratic-element evidence pointing to the same bounded "
-     "conclusion.")
+     "groove shows no genuine stress concentration under this loading -- in sigma_xx "
+     "specifically; this SCF does not by itself rule out a concentration in another stress "
+     "component, addressed below.")
+para("Independent supporting evidence, rerun at the corrected depth, with a real error "
+     "caught and corrected here by a careful review of an earlier draft: quadratic "
+     "(p-refinement) elements, at their own degrees of freedom, give:")
+table(
+    ["Elements", "DOF", "max|sigma_xx|"],
+    [
+        ["2,376", "33,675", "4.13"],
+        ["5,760", "78,309", "1.80"],
+        ["10,200", "135,855", "0.83"],
+        ["15,960", "209,640", "0.81"],
+        ["47,040", "602,025", "0.705"],
+    ],
+)
+para("This sequence is monotonically decreasing with no sign of blowing up, which still "
+     "argues against a true singularity. However, an earlier draft of this section claimed "
+     "the LAST two points (15,960 and 47,040) agree within about 2.5% -- that is wrong: 2.5% "
+     "is the gap between the 3rd and 4th points (10,200 vs. 15,960); the actual 4th-vs-5th "
+     "gap (15,960 vs. 47,040) is about 14.9%. We also note the first four points come from "
+     "one consistent mesh-refinement family, while the fifth (47,040) is the separately-built "
+     "production reference mesh, whose Ntheta/Nr/Nz ratios do not continue that same family -- "
+     "so part of the 14.9% gap may reflect a change in mesh anisotropy, not only resolution. "
+     "We no longer consider the peak stress fully, tightly converged at this point; a "
+     "genuinely consistent 5th point in the original family, plus a per-component SCF and a "
+     "rerun of the field-level contour check below, are running now and will be reported as a "
+     "follow-up the moment they are available.")
+para("Linear elements under aggressive local z-clustering, by contrast, climbed sharply at "
+     "first (1.78 at z_beta=4 up to 13.32 at z_beta=18, with solve time growing ~10x) but then "
+     "REVERSED at z_beta=22 (9.32, with solve time exploding a further ~19x) -- a non-monotonic "
+     "result combined with severe, non-physical cost growth that is most consistent with a "
+     "numerical artifact of increasingly distorted, ill-conditioned elements, not genuine "
+     "physical divergence. The sweep was stopped there by explicit choice rather than "
+     "continued for days.")
 para("We have not yet re-run the field-level (pointwise) contour convergence check (Section "
-     "6.5.6) at the corrected depth; given the strength of the evidence above we consider "
-     "this a lower-priority, further-rigor item rather than a blocking one. A separate, "
-     "standalone report mirroring this section was also prepared and delivered.")
+     "6.5.6) at the corrected depth; given the peak-stress convergence gap just described, "
+     "this is now a real open item, not merely a lower-priority one, and is being pursued "
+     "directly as a follow-up. A separate, standalone report mirroring this section, with the "
+     "same corrections, was also prepared and delivered.")
 
 # ===========================================================================
 h1("7. Key finding: every B3 operator fails at the groove stress concentration")

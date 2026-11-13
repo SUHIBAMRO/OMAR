@@ -82,11 +82,15 @@ def table(headers, rows):
 
 
 # ===========================================================================
-title("B3 Final Check: PI/DD vs. the Converged Quadratic Groove Reference")
-para("Prepared 2026-11-13. This report answers Professor Rabczuk's 2026-11-12 email in full: "
-     "evaluating PI and the DD variants against a now-converged quadratic (Q20) groove "
-     "reference, including the Stress Concentration Factor (SCF), and reporting the DOF of "
-     "the quadratic meshes used. A critical bug discovered while preparing this work is "
+title("B3 Final Check: PI/DD vs. the Quadratic Groove Reference")
+para("Prepared 2026-11-13, revised after a careful review caught a real error in an earlier "
+     "draft (Section 4). This report answers Professor Rabczuk's 2026-11-12 email: evaluating "
+     "PI and the DD variants against a quadratic (Q20) groove reference, including the Stress "
+     "Concentration Factor (SCF), and reporting the DOF of the quadratic meshes used. The "
+     "reference mesh itself is well-resolved and the checkpoint comparison and SCF are built "
+     "on it directly, but Section 4 is honest that the PEAK-STRESS convergence behind this "
+     "reference is not yet as tightly established as an earlier draft claimed -- this is being "
+     "actively re-verified. A critical bug discovered while preparing this work is "
      "disclosed first, since it affects how every number below should be read.")
 
 # ===========================================================================
@@ -185,28 +189,48 @@ para("This is a materially different conclusion from every earlier SCF estimate 
      "specific groove shows no genuine stress concentration under this loading -- the "
      "peak groove stress is lower than the no-groove nominal baseline at every level tested. "
      "We report this as the correct, superseding answer, not as an additional data point "
-     "alongside the earlier numbers.")
+     "alongside the earlier numbers. One scope limitation, worth stating precisely: this SCF "
+     "is specifically a sigma_xx ratio (peak sigma_xx at the groove vs. average sigma_xx with "
+     "the groove removed) -- it does not by itself rule out a concentration in another stress "
+     "component. A genuinely matched-depth, matched-element-type per-component SCF (every "
+     "one of the six independent stress components, not only sigma_xx) is being computed now "
+     "and will be reported as a follow-up.")
 
 # ===========================================================================
 h1("4. Independent supporting evidence: quadratic convergence vs. a likely linear artifact")
 para("Beyond the specific SCF computation above, two further checks (both rerun at the "
-     "corrected depth) support the same conclusion from independent angles.")
-para("Quadratic (p-refinement) elements converge the peak groove stress cleanly and "
-     "monotonically across five increasing global resolutions, from 2,376 elements up to the "
-     "47,040-element reference mesh itself:")
+     "corrected depth) support the same conclusion from independent angles -- though a "
+     "careful review of a draft of this report caught a real error in how we described the "
+     "first of these, corrected here.")
+para("Quadratic (p-refinement) elements converge the peak groove stress across five "
+     "increasing global resolutions, from 2,376 elements up to the 47,040-element reference "
+     "mesh itself, with its own degrees of freedom (DOF = nodes x 3):")
 table(
-    ["Elements", "max|sigma_xx|"],
+    ["Elements", "DOF", "max|sigma_xx|"],
     [
-        ["2,376", "4.13"],
-        ["5,760", "1.80"],
-        ["10,200", "0.83"],
-        ["15,960", "0.81"],
-        ["47,040", "0.705"],
+        ["2,376", "33,675", "4.13"],
+        ["5,760", "78,309", "1.80"],
+        ["10,200", "135,855", "0.83"],
+        ["15,960", "209,640", "0.81"],
+        ["47,040", "602,025", "0.705"],
     ],
 )
-para("The last two points agree within about 2.5%, and the overall sequence is monotonically "
-     "decreasing with no sign of blowing up -- the behavior expected of a genuinely bounded "
-     "field, not a singularity.")
+para("Correction: an earlier draft of this report claimed the LAST two points (15,960 and "
+     "47,040 elements) agree within about 2.5%. That is wrong -- 2.5% is actually the gap "
+     "between the 3rd and 4th points (10,200 vs. 15,960); the real gap between the 4th and "
+     "5th points (15,960 vs. 47,040) is about 14.9%, a materially larger change at the finest "
+     "step. We also note, on re-examination, that the first four points (2,376 to 15,960) "
+     "come from one consistent mesh-refinement family (Ntheta/Nr/Nz increased in matching, "
+     "smoothly-growing steps), while the fifth point (47,040) is the separately-built "
+     "production PI/DD reference mesh, whose Ntheta/Nr/Nz ratios are NOT a consistent "
+     "continuation of that same family -- so part of the 14.9% gap may reflect a change in "
+     "mesh shape/anisotropy, not only resolution. The sequence IS monotonically decreasing "
+     "with no sign of blowing up, which still argues against a true singularity, but we no "
+     "longer consider the peak stress fully, tightly converged at this point -- a genuinely "
+     "consistent 5th resolution in the original family (continuing the same Ntheta/Nr/Nz "
+     "pattern) is being computed now and will be reported as a follow-up the moment it is "
+     "available, together with a rerun of the field-level (pointwise) convergence check at "
+     "this corrected depth.")
 para("By contrast, we also pushed LINEAR elements through aggressive local z-clustering at "
      "the groove (fixed global element count, 47,040), to see whether this alternative "
      "refinement strategy told the same story. It did not, at first: the peak stress climbed "
@@ -230,32 +254,39 @@ para("At z_beta=22, the peak stress DROPS back to 9.32 -- a reversal, not a cont
      "not as a certainty -- it was not pushed to full resolution of the question, by explicit "
      "choice, given the cost already observed and the strength of the independent quadratic-"
      "element evidence above pointing to the same bounded conclusion.")
-para("Taken together: a clean, monotonically convergent quadratic-element result and a "
-     "linear-element result that is best explained as artifact rather than genuine growth "
-     "both point the same way as the SCF computation in Section 3 -- this groove, at the "
+para("Taken together: a monotonically decreasing (though, as corrected above, not yet "
+     "tightly converged) quadratic-element result and a linear-element result that is best "
+     "explained as artifact rather than genuine growth both point the same way as the SCF "
+     "computation in Section 3 -- this groove, at the "
      "resolutions and element types we can trust, does not show a genuine stress "
      "concentration under this loading.")
 
 # ===========================================================================
-h1("5. Summary")
-bullet("DOF of the quadratic (Q20) reference mesh: 602,025 (47,040 elements, 200,675 nodes).")
+h1("5. Summary, and what is still open")
+bullet("DOF of the quadratic (Q20) reference mesh used for the checkpoint comparison: "
+       "602,025 (47,040 elements, 200,675 nodes); DOF for every mesh in the convergence "
+       "study is now reported in Section 4's table.")
 bullet("Every u-only checkpoint still shows very large groove-region stress error "
        "(1700-13000%) against this reference -- reported as a limitation, as anticipated.")
 bullet("The checkpoint ranking on groove-region stress changes against this better "
        "reference: several DD variants and all local-integration-refinement seeds now beat "
        "PI baseline specifically on this quantity.")
-bullet("SCF, computed consistently with Q20 elements on both sides: 0.178 -- below 1 -- "
-       "superseding every earlier estimate (19 / 9.0 / 8.45), all built on either the wrong "
-       "groove depth or an inconsistent element-type comparison.")
-bullet("Independent evidence (clean quadratic convergence; the likely-artifact linear "
-       "result) supports the same conclusion: this groove shows no genuine stress "
-       "concentration under this loading, once measured properly.")
-para("We have not yet re-run the field-level (pointwise, same-physical-location) contour "
-     "convergence check at the corrected depth -- the last such check, like all specific "
-     "numbers before this fix, used the wrong geometry. We consider this a lower-priority, "
-     "further-rigor item given the strength of the evidence above, and would be glad to "
-     "pursue it if useful before moving on. We look forward to discussing the longer-term "
-     "automated-verification-framework direction raised in the same email.")
+bullet("SCF (sigma_xx-specific), computed consistently with Q20 elements on both sides: "
+       "0.178 -- below 1 -- superseding every earlier estimate (19 / 9.0 / 8.45), all built "
+       "on either the wrong groove depth or an inconsistent element-type comparison.")
+para("What is genuinely NOT yet settled, honestly stated after a careful review of a draft "
+     "of this report: (1) the peak-stress convergence sequence in Section 4 is monotonically "
+     "decreasing and bounded, which still argues against a true singularity, but the last "
+     "step (15,960 to 47,040 elements) changes by about 14.9%, not the ~2.5% an earlier draft "
+     "mistakenly claimed, and mixes two different mesh families -- so the peak stress is not "
+     "yet shown to be tightly converged; (2) the field-level (pointwise, same-physical-"
+     "location) contour convergence check has not yet been re-run at the corrected depth -- "
+     "the last such check used the wrong geometry entirely; (3) the SCF above covers sigma_xx "
+     "only, not every stress component. All three are being addressed directly: a genuinely "
+     "consistent 5th mesh-refinement point, the field-level contour recheck, and a "
+     "per-component SCF are running now and will be reported the moment they are available. "
+     "We look forward to discussing the longer-term automated-verification-framework "
+     "direction raised in the same email.")
 
 doc.save(OUT_PATH)
 print(f"Wrote {OUT_PATH}")
