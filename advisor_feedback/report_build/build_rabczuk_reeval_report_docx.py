@@ -190,14 +190,18 @@ table(
          "stress, what is the Stress Concentration Factor, and is this a true geometric "
          "singularity or a bounded concentration?",
          "Superseded by a corrected result below (Section 6.6) after a critical groove-depth "
-         "bug was found and fixed: quadratic (Q20) elements' peak groove stress decreases "
-         "monotonically across 6 resolutions (a new, family-consistent point added after "
-         "review); the sigma_xx SCF is below 1, but per-component SCF shows this does not "
-         "generalize to sigma_yy; field-level convergence re-verified at the corrected depth",
-         "Q20 peak stress 4.13 -> 0.705 (2,376 -> 47,040 elements); the old apparent last-step "
-         "gap of ~14.9% (not ~2.5% as an earlier draft misreported) splits into 9.9%+4.6% with "
-         "the new 23,520-element point; SCF (both sides Q20) = 0.178-0.187 (sigma_xx), 1.37 "
-         "(sigma_yy) -- see Section 6.6"],
+         "bug was found and fixed: the volume-AVERAGED peak groove stress is robustly stable "
+         "across 8 resolutions and 4 independent refinement strategies, but the pointwise MAX "
+         "groove stress is NOT shown to converge under any of those 4 strategies (confirmed "
+         "by pushing the point-count investigation further after an apparent converging trend "
+         "turned out to be a coincidence); the sigma_xx SCF stays below 1 across the full "
+         "observed max-range regardless, but per-component SCF (sigma_yy=1.37) has not been "
+         "similarly stress-tested; field-level convergence re-verified at the corrected depth",
+         "Q20 peak stress 4.13 -> 0.706 then UP to 0.891 (2,376 -> 45,000 elements, "
+         "non-monotonic); avg|sigma_xx| stable 0.38-0.44 throughout; z_beta sweep and combined "
+         "r/z-grading (Section 6.6) confirm the same non-monotonicity independently; SCF (both "
+         "sides Q20) = 0.156-0.226 (sigma_xx, robust to the non-convergence), 1.37 (sigma_yy, "
+         "not yet stress-tested) -- see Section 6.6"],
         ["Your 2026-11-12 email: evaluate PI and the DD variants against the converged "
          "quadratic groove reference, report DOF, include SCF",
          "DOF and the PI/DD-vs-Q20 comparison are reported; every checkpoint still shows very "
@@ -947,7 +951,11 @@ para("SCF, computed consistently with Q20 elements on both sides at the same 47,
      "groove shows no genuine stress concentration in sigma_xx under this loading -- but, as "
      "flagged previously, this SCF does not by itself rule out a concentration in another "
      "stress component. We have now closed that gap with real data: a full per-component SCF "
-     "at a new, family-consistent (29,22,41)=23,520-element resolution.")
+     "at a new, family-consistent (29,22,41)=23,520-element resolution. Caveat added in this "
+     "revision: this specific resolution-0.178 number is computed from a single mesh; "
+     "later in this section we show max|sigma_xx| does NOT converge monotonically under any "
+     "refinement strategy tried, though even across its full observed range this ratio "
+     "stays below 1.")
 table(
     ["Component", "groove avg", "groove max", "nominal avg", "SCF (max/nom.avg)"],
     [
@@ -970,35 +978,49 @@ para("This does not fully generalize the \"no concentration\" conclusion: sigma_
      "the no-groove baseline is actually dominated by shear (sigma_xz averages 22.97, far "
      "larger than sigma_xx's 3.94) -- so sigma_xx was never the largest stress component here "
      "even before the groove is introduced, and the single sigma_xx SCF should not be read as "
-     "representative of overall concentration at this groove.")
+     "representative of overall concentration at this groove. Further caveat added in this "
+     "revision: this entire per-component table was computed at a single mesh resolution. "
+     "The max-convergence check below shows max|sigma_xx| does not converge monotonically "
+     "under any refinement strategy tried; we have NOT re-tested this per-component table "
+     "(in particular the sigma_yy=1.37 finding) against that same non-convergence, so it "
+     "should be read as indicative at this resolution, not as a fully mesh-converged result.")
 para("Independent supporting evidence, rerun at the corrected depth, with a real error "
      "caught and corrected here by a careful review of an earlier draft: quadratic "
      "(p-refinement) elements, at their own degrees of freedom, give:")
 table(
-    ["Elements", "DOF", "max|sigma_xx|"],
+    ["Elements", "DOF", "max|sigma_xx|", "avg|sigma_xx|"],
     [
-        ["2,376", "33,675", "4.13"],
-        ["5,760", "78,309", "1.80"],
-        ["10,200", "135,855", "0.83"],
-        ["15,960", "209,640", "0.81"],
-        ["23,520 (new)", "305,709", "0.737"],
-        ["47,040", "602,025", "0.705"],
+        ["2,376", "33,675", "4.13", "0.4349"],
+        ["5,760", "78,309", "1.80", "0.3845"],
+        ["10,200", "135,855", "0.83", "0.4306"],
+        ["15,960", "209,640", "0.81", "0.4357"],
+        ["23,520", "305,709", "0.737", "0.4325"],
+        ["33,120 (new)", "426,942", "0.706", "0.4354"],
+        ["45,000 (new)", "576,219", "0.891", "0.4345"],
+        ["47,040 (separate mesh shape)", "602,025", "0.705", "0.433"],
     ],
 )
-para("This sequence is monotonically decreasing with no sign of blowing up, which still "
-     "argues against a true singularity. An earlier draft of this section claimed the then-"
-     "LAST two points (15,960 and 47,040) agree within about 2.5% -- that was wrong: 2.5% was "
-     "the gap between the 3rd and 4th points (10,200 vs. 15,960); the actual old 4th-vs-5th "
-     "gap (15,960 vs. 47,040) is about 14.9%. We closed that gap with real computation rather "
-     "than wording alone: a new point at (29,22,41)=23,520 elements, a genuine continuation "
-     "of the same Ntheta/Nr/Nz refinement family as the first four points. With it, the "
-     "single 14.9% jump splits into two smaller, consistent steps: 15,960 to 23,520 is a 9.9% "
-     "decrease, and 23,520 to 47,040 is a further 4.6% decrease -- materially smoother, though "
-     "the last two points still differ by close to 5%, so we call this monotonically "
-     "converging, not yet fully converged. 47,040 remains the separately-built production "
-     "reference mesh, whose Ntheta/Nr/Nz ratios do not exactly continue the refinement family "
-     "of the other five points, so a small part of that final 4.6% step may still reflect "
-     "mesh-shape change rather than pure resolution.")
+para("Correction, superseding the previous draft (which itself corrected an earlier error): "
+     "an earlier draft of this section claimed the then-LAST two points (15,960 and 47,040) "
+     "agree within about 2.5% -- that was wrong: 2.5% was the gap between the 3rd and 4th "
+     "points (10,200 vs. 15,960); the actual old 4th-vs-5th gap (15,960 vs. 47,040) is about "
+     "14.9%. A new point at 23,520 elements (genuine continuation of the same Ntheta/Nr/Nz "
+     "refinement family) split that single jump into two smaller steps (9.9% then 4.6%) and "
+     "looked like a materially smoother, converging trend. Two FURTHER genuine continuations "
+     "of the same family (33,120 and 45,000 elements) were then computed specifically to "
+     "test whether that trend was real convergence or coincidence. It is NOT real "
+     "convergence. The AVERAGE column (added here) stays essentially flat across all eight "
+     "points (0.3845-0.4357, normal mesh-to-mesh noise on an already-converged quantity) -- "
+     "this is the quantity the checkpoint table in Section 6.6 above is actually built on "
+     "(confirmed directly from the evaluation code), so that comparison is unaffected. The "
+     "MAX column decreases for four consecutive steps (4.13 -> 1.80 -> 0.83 -> 0.81 -> 0.737 "
+     "-> 0.706) and then INCREASES by about 26% at the next step (33,120 to 45,000 elements: "
+     "0.706 -> 0.891), before the separately-built 47,040-element production mesh happens to "
+     "land back near the earlier trend (0.705) -- given the demonstrated non-monotonicity one "
+     "step earlier, this is coincidence, not confirmation of convergence. We must retract the "
+     "previous draft's description of this sequence as monotonically converging: it is not. "
+     "This is a genuine, confirmed property of the pointwise MAX statistic near this groove, "
+     "not a computation error -- see the further checks below.")
 para("Linear elements under aggressive local z-clustering, by contrast, climbed sharply at "
      "first (1.78 at z_beta=4 up to 13.32 at z_beta=18, with solve time growing ~10x) but then "
      "REVERSED at z_beta=22 (9.32, with solve time exploding a further ~19x) -- a non-monotonic "
@@ -1006,6 +1028,43 @@ para("Linear elements under aggressive local z-clustering, by contrast, climbed 
      "numerical artifact of increasingly distorted, ill-conditioned elements, not genuine "
      "physical divergence. The sweep was stopped there by explicit choice rather than "
      "continued for days.")
+para("A third, independent check: local axial clustering with the SAME quadratic (Q20) "
+     "elements as the reference, at a FIXED resolution (21,18,31)=10,200 elements, varying "
+     "only z_beta:")
+table(
+    ["z_beta", "max|sigma_xx|", "avg|sigma_xx|"],
+    [
+        ["0.0 (uniform, baseline)", "0.826", "0.4306"],
+        ["1.0", "0.615", "0.4289"],
+        ["2.0", "0.684", "0.4234"],
+        ["3.0", "0.783", "0.4272"],
+    ],
+)
+para("Max is non-monotonic here too -- in a tighter band than the global sweep (0.615-0.826 "
+     "vs. 0.706-0.891), but still not monotonic -- while avg stays essentially flat "
+     "(0.4234-0.4306), matching the global-refinement table's pattern under a different "
+     "refinement strategy with the exact reference element type.")
+para("A fourth check tried refining in BOTH directions at once (radial grading toward the "
+     "groove surface, plus the same axial clustering), at the same fixed 10,200-element "
+     "resolution. A strong combination (r_grading=2.0, z_beta=1.0) produced a mathematically "
+     "invalid mesh -- a negative-Jacobian (inverted) element right at the groove's sharp "
+     "corner -- and the solver correctly refused to proceed. A milder combination "
+     "(r_grading=1.5, z_beta=0.5) did not invert, but did not finish solving within a "
+     "2-hour compute budget either -- far slower than the single-direction sweep above at "
+     "the same element count, consistent with severe conditioning degradation from "
+     "combining both grading directions near this sharp feature. We stopped here by "
+     "explicit choice, as with the linear sweep above.")
+para("Taken together, across these FOUR independent refinement strategies (global quadratic "
+     "p-refinement; local axial clustering with linear elements; local axial clustering with "
+     "quadratic elements at fixed element count; and combined radial+axial grading), "
+     "max|sigma_xx| near this groove has NOT been shown to converge monotonically under any "
+     "of them, while avg|sigma_xx| is stable under every one of these same strategies "
+     "(consistently 0.42-0.44). One reassurance: across every max value observed in all four "
+     "experiments (0.615 to 0.891), the sigma_xx SCF (max groove / nominal avg=3.941) would "
+     "range from about 0.156 to 0.226 -- still robustly below 1 in every case, so the "
+     "headline \"no sigma_xx concentration\" conclusion is not overturned by this "
+     "non-convergence. The sigma_yy finding above (SCF=1.37) has not been similarly "
+     "stress-tested and should be read as indicative, not final.")
 para("The field-level (pointwise) contour convergence check (Section 6.5.6) has now been "
      "re-run at the corrected depth, across the four finest resolutions in the consistent "
      "mesh family (2,376 to 15,960 elements). Comparing the two finest of those on a common "
