@@ -245,7 +245,7 @@ which treats $I_2$ as an independent invariant with reference value $3$, is
 therefore not applicable in 2D. The compressible Mooney--Rivlin density used
 here is instead
 \begin{equation}
-  \psi_{\text{MR}} = c_1(I_1-d) + c_2(J^2-1) - 2(c_1+c_2)\ln J + \frac{\lambda}{2}(\ln J)^2,
+  \psi_{\text{MR}} = c_1(I_1-d) + c_2(J^2-1) - 2(c_1+c_2)\ln J + \frac{\lambda}{2}(J-1)^2,
   \label{eq:mooney-rivlin}
 \end{equation}
 with the split between $c_1$ and $c_2$ fixed at a $3{:}1$ ratio of the
@@ -258,7 +258,7 @@ Arruda--Boyce density is approximated by the standard five-term Pad\'e series
 of the 8-chain model,
 \begin{equation}
   \psi_{\text{AB}} = \mu \sum_{i=1}^{5} \frac{c_i}{\lambda_m^{2i-2}}\big(\bar I_1^{\,i} - d^{\,i}\big)
-  + \frac{\lambda}{2}(\ln J)^2,
+  + \frac{\kappa}{2}(J-1)^2, \qquad \kappa = \lambda + \tfrac{2}{3}\mu,
   \label{eq:arruda-boyce}
 \end{equation}
 with $(c_1,\dots,c_5) = (\tfrac12,\tfrac{1}{20},\tfrac{11}{1050},\tfrac{19}{7000},\tfrac{519}{673750})$
@@ -278,8 +278,10 @@ Poisson's ratio $\nu$ fields via the standard isotropic linear-elasticity
 relations $\mu = E/[2(1+\nu)]$, $\lambda = E\nu/[(1+\nu)(1-2\nu)]$; this
 reproduces the target linear-elastic moduli exactly for Neo-Hookean, gives an
 effective shear modulus of $1.5\mu$ for the $3{:}1$ Mooney--Rivlin split, and
-reproduces the target shear modulus to within a few percent for Arruda--Boyce
-(a known consequence of the truncated Pad\'e series). All three models are
+gives an initial shear modulus of about $1.09\mu$ for Arruda--Boyce in
+2D (the higher-order terms of the series also contribute at small
+strain: $\mu\sum_i 2i\,c_i\,d^{\,i-1}/\lambda_m^{2i-2}$ with $d{=}2$,
+$\lambda_m^2{=}5$). All three models are
 parameterized from identical sampled $(E,\nu)$ realizations, but their
 effective small-strain responses are not exactly stiffness-matched as a
 result -- Mooney--Rivlin's $1.5\mu$ split in particular means its three
@@ -330,7 +332,8 @@ $\rho = 2w^2/(d\pi^2) \approx 0.0228$). As for B1/B2, $E(\theta,r,z)$ and
 $\nu(\theta,r,z)$ are independent 3D Gaussian random fields (mean/standard
 deviation $(1000,200)$ and $(0.45,0.02)$ respectively); the load varies
 through the core's rocking angle $\phi$, sampled as a single scalar per
-sample (mean $0.0504$, standard deviation $0.0184$) rather than a spatial
+sample from $\mathcal{N}(0.05,0.02^2)$ clipped to $[0.01,0.15]$ (realized
+mean $0.0504$, standard deviation $0.0184$ over the training draws) rather than a spatial
 field, since the load here is a rigid-body rotation amplitude rather than a
 distributed pressure. The geometry itself (groove depth/half-width,
 $R_{\text{in}}$, $R_{\text{out}}$, $L_z$) is held fixed across every sample,
@@ -544,8 +547,14 @@ own tangent stiffness) converge more slowly and do not reach that target
 even at $N{=}1401$ -- consistent with the lower fitted convergence rates for
 derivative-based norms (least-squares rates $L^2$: $1.57$, $H^1$: $0.73$,
 energy: $0.86$) than for the displacement field itself. A parallel
-biquadratic (Q9) reference at the same resolution converges faster in every
-norm, as expected from finite-element theory, and the two element orders'
+biquadratic (Q9) reference at the same resolution converges slightly
+faster in every norm, though both orders stay well below their optimal
+rates (Table~\ref{tab:q4-vs-q9-rates}; optimal $L^2$ rates are 2 and 3).
+This is a property of the B1 solution, not of the solver: the
+manufactured-solution study below, on a smooth exact solution, recovers
+the optimal rates for both orders (Table~\ref{tab:mms-rates}), which
+points to reduced regularity at the corners where the clamped bottom
+edge meets the free vertical edges. The two element orders'
 own fine solutions agree to within $2\times10^{-6}$ in $L^2$ (though not
 fully to the prescribed $10^{-5}$ criterion in $H^1$/energy, attributed to
 residual discretization error in the Q4 reference relative to Q9's faster
@@ -701,8 +710,8 @@ Elements & Time (s) & Peak alloc.\ (MB) & Peak reserved (MB) \\
 
 Table~\ref{tab:dataset-composition} summarizes the dataset composition
 used throughout this study. B1 and B2 draw from a fixed, pre-generated
-dataset (disjoint seed ranges for training, held-out QoI evaluation, and
-out-of-distribution testing); B3's training set is instead sampled
+dataset (disjoint seed ranges for training, validation/early stopping,
+held-out QoI evaluation, and out-of-distribution testing); B3's training set is instead sampled
 on-the-fly every iteration, with the per-iteration seed tied
 deterministically to the iteration index, so no fixed training-set size
 applies -- only its held-out validation set (used throughout the 3D
@@ -715,13 +724,13 @@ not reproduced here.
 \caption{Dataset composition, all three benchmarks.}
 \label{tab:dataset-composition}
 \footnotesize
-\begin{tabular}{lccc}
+\begin{tabular}{lcccc}
 \toprule
-Benchmark & Training & Held-out/validation & OOD \\
+Benchmark & Training & Validation & Held-out QoI & OOD \\
 \midrule
-B1 & 800 (fixed) & 50 & 200 per case \\
-B2 & 800 (fixed) & 50 & 200 per case \\
-B3 & on-the-fly ($50{,}000\times8$) & 100 (fixed) & not run \\
+B1 & 800 (fixed) & 200 & 50 & 200 per case \\
+B2 & 800 (fixed) & 200 & 50 & 200 per case \\
+B3 & on-the-fly ($50{,}000\times8$) & 100 (fixed) & -- & not run \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1652,7 +1661,7 @@ Table~\ref{tab:b3-breakeven}'s B3 analysis, which matches FEM to the
 operator's own independently measured error: here, the operator's own
 $H^1$ semi-norm error at $N{=}1401$ has never been directly measured (only
 displacement $L^2$ has, Table~\ref{tab:multires-n1401}, and even there the
-error is $5.8$--$25.05\%$ depending on case after the multi-resolution
+error is $5.8$--$36.05\%$ depending on case after the multi-resolution
 retraining fix, not uniformly at or below $5\%$). The per-resolution
 sweeps of Appendix~\ref{app:b} (every tested resolution from $N{=}3$ to
 $49$, the finest directly measured) show the operator's own $H^1$
@@ -1742,7 +1751,9 @@ direct training at the target resolution for this architecture and
 objective. The same multi-resolution fix, applied to every other
 (geometry, material) case showing the same degradation signature, gives
 relative error reductions at $N{=}1401$ summarized in
-Table~\ref{tab:multires-n1401} -- most sharply for B2$\times$Mooney-Rivlin
+Table~\ref{tab:multires-n1401} -- least for B2$\times$Neo-Hookean
+($22\%$; its retrained error is lowest at its own training resolutions
+and rises again beyond them), and most sharply for B2$\times$Mooney-Rivlin
 ($73.5\%$ reduction, whose retrained error is also nearly flat from
 $N{=}37$ through $N{=}1401$, the clearest single illustration that the fix
 buys genuine resolution generalization, not just a smaller error at one
@@ -1763,6 +1774,7 @@ Case & Original & Multi-resolution & Reduction \\
 B1 $\times$ NH & $44.65\%$ & $5.8$--$5.9\%$ & $7.6\times$ \\
 B1 $\times$ MR & $39.20\%$ & $15.04\%$ & $62\%$ \\
 B1 $\times$ AB & $45.62\%$ & $25.05\%$ & $45\%$ \\
+B2 $\times$ NH & $46.37\%$ & $36.05\%$ & $22\%$ \\
 B2 $\times$ MR & $49.47\%$ & $13.10\%$ & $73.5\%$ \\
 \bottomrule
 \end{tabular}
@@ -2076,15 +2088,25 @@ they were trained on, the ranking is no longer mixed
 operator is more accurate at every inference resolution, and its error
 \emph{decreases} as the inference mesh is refined, whereas the
 data-driven operator's does not. Two further data-driven models, with
-labels generated at $N{=}13$ and $N{=}33$ instead of $N{=}21$ (AdamW with
-a one-cycle schedule), show why: a data-driven operator is competitive
-only near its own label resolution. The $N{=}13$-label model is the
+labels generated at $N{=}13$ and $N{=}33$ instead of $N{=}21$ and trained
+with AdamW and a one-cycle schedule (the recipe that gives the best
+data-driven accuracy at the training resolution,
+Table~\ref{tab:pi-vs-dd}), show why: a data-driven operator is
+competitive only near its own label resolution. The $N{=}13$-label model is the
 single case that beats the physics-informed one ($6.54\%$ vs.\
 $8.55\%$, at $N{=}13$ inference) but degrades to $43.2\%$ and $71.3\%$
 at $N{=}29$ and $49$; the $N{=}33$-label model loses to the
 physics-informed operator at all three inference resolutions ($73.9\%$,
-$17.8\%$, $20.6\%$). The physics-informed operator has no label
-resolution to be tied to.
+$17.8\%$, $20.6\%$). The same two label resolutions trained with the
+matched Adam recipe instead (Table~\ref{tab:dd-coarse-fine} below)
+transfer far better across resolution (e.g.\ $13.7\%$ rather than
+$73.9\%$ for the $N{=}33$-label model at $N{=}13$; the two evaluations
+use different references and metrics, but the physics-informed
+operator scores similarly under both, e.g.\ $8.55\%$ vs.\ $9.67\%$ at
+$N{=}13$), so the recipe that
+wins at the training resolution is the one that generalizes worst
+across it. The physics-informed operator has no label resolution to be
+tied to.
 
 \begin{table}[h]
 \centering
@@ -2131,10 +2153,11 @@ comparison.
 \begin{table}[h]
 \centering
 \caption{Data-driven B1$\times$Neo-Hookean, zero-shot mean relative $L^2$
-  error (per-component, against the common $N{=}101$ reference) at seven
-  unseen resolutions, for two otherwise-identical models differing only
-  in their training-label mesh ($N{=}13$ vs.\ $N{=}33$; neither training
-  resolution is itself among the seven test points).}
+  error (per-component, against the common $N{=}101$ reference, 20
+  samples) at seven unseen resolutions, for two otherwise-identical
+  models (Adam, matched to the physics-informed run; 800 training
+  samples; $75{,}000$ steps) differing only in their training-label mesh
+  ($N{=}13$ vs.\ $N{=}33$).}
 \label{tab:dd-coarse-fine}
 \small
 \begin{tabular}{lcc}
@@ -2600,7 +2623,9 @@ whose own error is at least as good as the operator's ($2.52\%$ and
 $3.88\%$, while the next coarser rung, $3{,}360$ elements, gives
 $3.70\%$ and $5.72\%$). For the reaction moment, the operator's $1.38\%$
 is matched only at $79{,}464$ elements ($0.96\%$); $43{,}400$ elements
-still gives $1.63\%$. Because only ladder rungs were tested, the true
+still gives $1.63\%$. The $79{,}464$-element solve time used below
+($12{,}986.8$~ms, mean over the 10 samples) agrees within $4\%$ with the
+same mesh's A100 time in Table~\ref{tab:b3-ladder-time} ($13.52$~s). Because only ladder rungs were tested, the true
 cheapest matching mesh lies between the last failing and the first
 passing rung, so each accuracy-matched speed-up below is an upper bound
 at the ladder's granularity.
@@ -2789,8 +2814,10 @@ performance within $375$--$1{,}050$ epochs across all six benchmark cases
 budget compared with a naive fixed-epoch setting. A separate robustness
 check varied the early-stopping patience (4, 8, or 16 consecutive
 validation events, i.e.\ 100, 200, or 400 epochs) for
-B1$\times$Neo-Hookean, holding
-everything else fixed (seed, architecture, dataset): patience $4$ and
+B1$\times$Neo-Hookean, in three fresh runs trained from scratch with
+everything else fixed (seed, architecture, dataset) -- unlike the
+production run of Table~\ref{tab:final-results}, which continues from
+the screening checkpoint, so their errors differ from its $9.59\%$: patience $4$ and
 $8$ -- the value used for every result reported above -- converge to the
 identical best checkpoint ($9.734\%$, found at epoch 375 either way),
 while patience $16$ finds a marginally better one ($9.032\%$, epoch 900)
