@@ -49,10 +49,30 @@ def gauss_point_stress(nodes, elements, u, elem_params, material, dtype=torch.fl
     return torch.cat(Ps), torch.cat(xs), torch.cat(ws)
 
 
-def solve_level(N, material):
+def grade_nodes(nodes, a):
+    """Cluster nodes toward the two clamped/free corners (0,0) and (1,0):
+    x -> s - a sin(2 pi s)/(2 pi) refines both vertical edges, y -> t - a
+    sin(pi t)/pi refines the clamped bottom edge. Element size at the
+    corners shrinks by (1-a); edges stay exactly at 0 and 1, topology and
+    node count are unchanged. a=0 is the uniform mesh."""
+    if a == 0.0:
+        return nodes
+    s, t = nodes[:, 0], nodes[:, 1]
+    x = s - a * np.sin(2 * np.pi * s) / (2 * np.pi)
+    y = t - a * np.sin(np.pi * t) / np.pi
+    for v, ref in ((x, s), (y, t)):
+        v[np.isclose(ref, 0.0)] = 0.0
+        v[np.isclose(ref, 1.0)] = 1.0
+    return np.column_stack([x, y])
+
+
+def solve_level(N, material, grading=0.0):
     from omar_pfem.data.data_generate_B1 import generate_grid_Q4, solve_hyperelastic_TL_spatial
     E_fn, nu_fn, ty_fn = AnalyticFieldB1("E"), AnalyticFieldB1("nu"), AnalyticFieldB1("ty")
     nodes, elements = generate_grid_Q4(1.0, 1.0, N, N)
+    nodes = grade_nodes(nodes, grading)
+    import time
+    t0 = time.time()
     u = solve_hyperelastic_TL_spatial(nodes, elements, E_fn, nu_fn, ty_fn, 1.0,
                                       nsteps=10, newton_max=30, tol=1e-7, material=material)
     elem_params = precompute_element_params_B1(nodes, elements, E_fn, nu_fn, material)
@@ -61,7 +81,10 @@ def solve_level(N, material):
     (cx, cy), r = INTERIOR_REGION
     mask = ((x_gp[:, 0] - cx) ** 2 + (x_gp[:, 1] - cy) ** 2) < r ** 2
     row = {
-        "N": N, "h": 1.0 / (N - 1), "n_dof": 2 * len(nodes),
+        "N": N, "grading": grading, "h": 1.0 / (N - 1), "n_dof": 2 * len(nodes),
+        "min_elem_size": float(min(np.diff(np.unique(nodes[:, 0])).min(),
+                                   np.diff(np.unique(nodes[:, 1])).min())),
+        "wall_clock_s": time.time() - t0,
         "max_disp_mag": float(np.sqrt((u ** 2).sum(1)).max()),
         "strain_energy": _compute_strain_energy(nodes, elements, u, E_fn, nu_fn, material,
                                                 lambda n, e, Ef, nf, m: elem_params),
@@ -76,16 +99,21 @@ def solve_level(N, material):
     return row
 
 
-def run_ladder(Ns, material, cache):
+def run_ladder(Ns, material, cache, grading=0.0):
+    """Resumable: rows are cached by (N, grading); rows from before grading
+    existed are uniform (grading 0)."""
     rows = json.load(open(cache)) if os.path.exists(cache) else []
-    done = {r["N"] for r in rows}
+    for r in rows:
+        r.setdefault("grading", 0.0)
+    done = {(r["N"], r["grading"]) for r in rows}
     for N in Ns:
-        if N in done:
+        if (N, grading) in done:
             continue
-        row = solve_level(N, material)
+        row = solve_level(N, material, grading)
         rows.append(row)
-        rows.sort(key=lambda r: r["N"])
+        rows.sort(key=lambda r: (r["grading"], r["N"]))
         json.dump(rows, open(cache, "w"), indent=1)
-        print(f"N={N:<4} " + "  ".join(f"{k}={v:.6g}" for k, v in row.items()
-                                       if k not in ("N", "h", "n_dof")), flush=True)
-    return [r for r in rows if r["N"] in Ns]
+        print(f"N={N:<4} grading={grading} " + "  ".join(
+            f"{k}={v:.6g}" for k, v in row.items() if k not in ("N", "h", "n_dof", "grading")),
+            flush=True)
+    return [r for r in rows if r["N"] in Ns and r["grading"] == grading]

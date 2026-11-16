@@ -162,9 +162,91 @@ def cmd_orchestrate(args):
     text = open(args.problem).read() if os.path.exists(args.problem) else args.problem
     backend = llm_roles.make_backend(args.backend, args.replay)
     trace = orchestrate(backend, text)
+    if hasattr(backend, "cost_usd"):
+        trace["llm_calls"], trace["llm_cost_usd"] = backend.calls, backend.cost_usd
+        print(f"LLM calls: {len(backend.calls)}, cost ${backend.cost_usd:.2f}")
     if args.trace_out:
         json.dump(trace, open(args.trace_out, "w"), indent=1)
         print(f"trace -> {args.trace_out}")
+
+
+DEFAULT_SPECS = {
+    "unit_square": dict(name="B1 neo_hookean", geometry="unit_square", dim=2,
+                        material="neo_hookean", loading="top_edge_traction",
+                        regularity="clamped_free_corner", element="Q4",
+                        reference="mesh_refinement_family", qois=B1_QOIS),
+    "bushing_groove": dict(name="B3 groove", geometry="bushing_groove", dim=3,
+                           material="neo_hookean", loading="prescribed_rotation",
+                           regularity="stress_concentration", element="Q20",
+                           reference="mesh_refinement_family", qois=None),
+}
+
+
+def _default_spec(geometry):
+    from omar_pfem.verification_agent.orchestrate import ADAPTER_VOCAB
+    d = dict(DEFAULT_SPECS[geometry])
+    d["qois"] = tuple(d["qois"] or ADAPTER_VOCAB[geometry][1])
+    return ProblemSpec(**d)
+
+
+def cmd_rules(args):
+    """Deterministic rule-based plan (no LLM), executed and scored."""
+    from omar_pfem.verification_agent import trees
+    from omar_pfem.verification_agent.orchestrate import ADAPTERS, run_check
+    for geometry in args.geometry.split(","):
+        spec = _default_spec(geometry)
+        sd = spec.to_dict()
+        plan, analysis = trees.rule_plan(sd), trees.apply_rules(sd)
+        adapter = ADAPTERS[geometry]()
+        verdicts = {}
+        for c in plan["checks"]:
+            for q in c["qois"]:
+                verdicts.setdefault(q, {})[c["check"]] = run_check(adapter, c["check"], q,
+                                                                   c["params"])
+        print(f"\n{spec.name} (regularity {spec.regularity})")
+        print(f"{'QoI':<24}{'class':<16}{'rules':<12}{'pred':<6}{'conv':<14}{'robust':<14}overall")
+        hits = n_pred = 0
+        for q in spec.qois:
+            v = verdicts[q]
+            vs = [x["verdict"] for x in v.values()]
+            overall = "FAIL" if "FAIL" in vs else ("PASS" if all(x == "PASS" for x in vs)
+                                                   else "INCONCLUSIVE")
+            a = analysis[q]
+            if a["predicted"]:
+                n_pred += 1
+                hits += a["predicted"] == overall
+            print(f"{q:<24}{a['qoi_class']:<16}{','.join(a['rules']):<12}"
+                  f"{a['predicted'] or '-':<6}"
+                  f"{v.get('qoi_convergence', {}).get('verdict', '-'):<14}"
+                  f"{v.get('strategy_robustness', {}).get('verdict', '-'):<14}{overall}")
+            if "strategy_robustness" in v and "relative_spread" in v["strategy_robustness"]:
+                sr = v["strategy_robustness"]
+                print(f"{'':<24}  strategies {[round(x, 6) for x in sr['values']]} "
+                      f"spread {sr['relative_spread']:.2%}")
+        print(f"rule predictions correct: {hits}/{n_pred}")
+
+
+def cmd_adaptive(args):
+    from omar_pfem.verification_agent import adaptive
+    from omar_pfem.verification_agent.b1_ladder import run_ladder
+    spec = _default_spec("unit_square")
+    print("Outcome prior from the repository (leave-one-out by QoI):")
+    for q, p in adaptive.outcome_prior(spec).items():
+        pp = "no data" if p["p_pass"] is None else f"P(PASS)={p['p_pass']:.2f}"
+        print(f"  {q:<24}{p['qoi_class']:<16}{pp:<16}from {p['n_records']} records "
+              f"(total similarity {p['weight']:.2f})")
+    cache = os.path.join(HERE, f"b1_ladder_{args.material}.json")
+    all_rows = json.load(open(cache)) if os.path.exists(cache) else []
+
+    def solve(N):
+        return run_ladder([N], args.material, cache)[0]
+
+    timing = [r for r in all_rows if r.get("wall_clock_s")]
+    res = adaptive.adaptive_refine(solve, list(B1_QOIS), budget_s=args.budget_s,
+                                   timing_rows=timing)
+    print(f"\nstopped: {res['stop']}; levels used {res['levels']}")
+    for q, d in res["decisions"].items():
+        print(f"  {q:<24}{d['verdict']:<13}levels {d['levels']}  {d['reason']}")
 
 
 def main():
@@ -194,6 +276,13 @@ def main():
     o.add_argument("--replay", help="JSON file of canned role answers (replay backend)")
     o.add_argument("--trace_out")
     o.set_defaults(fn=cmd_orchestrate)
+    r = sub.add_parser("rules", help="rule-based plan (no LLM), executed and scored")
+    r.add_argument("--geometry", default="unit_square,bushing_groove")
+    r.set_defaults(fn=cmd_rules)
+    a = sub.add_parser("adaptive", help="outcome prior + adaptive refinement on B1")
+    a.add_argument("--material", default="neo_hookean")
+    a.add_argument("--budget_s", type=float, default=1800.0)
+    a.set_defaults(fn=cmd_adaptive)
     args = p.parse_args()
     args.fn(args)
 

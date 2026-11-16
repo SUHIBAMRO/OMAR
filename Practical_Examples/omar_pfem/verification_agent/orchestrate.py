@@ -11,7 +11,7 @@ expose a fixed QoI vocabulary, so the formalizer cannot invent observables.
 import json
 import os
 
-from omar_pfem.verification_agent import gates, repository
+from omar_pfem.verification_agent import gates, repository, trees
 from omar_pfem.verification_agent import llm_roles as R
 from omar_pfem.verification_agent.spec import ProblemSpec
 
@@ -32,17 +32,24 @@ class B1Adapter:
     qois = ("max_disp_mag", "u_top_off_center", "v_top_off_center", "u_mid_domain",
             "v_mid_domain", "strain_energy", "interior_avg_PK1_frob", "peak_PK1_frob")
 
-    def __init__(self, material="neo_hookean", Ns=(11, 21, 41, 81)):
+    def __init__(self, material="neo_hookean", Ns=(11, 21, 41, 81), strategy_N=81):
         from omar_pfem.verification_agent.b1_ladder import run_ladder
-        self.rows = run_ladder(list(Ns), material,
-                               os.path.join(HERE, f"b1_ladder_{material}.json"))
+        cache = os.path.join(HERE, f"b1_ladder_{material}.json")
+        self.rows = run_ladder(list(Ns), material, cache)
         self.hs = [r["h"] for r in self.rows]
+        # same node count, three refinement strategies: uniform and corner
+        # grading a=0.5, 0.8 (b1_ladder.grade_nodes), read from the cache only
+        all_rows = json.load(open(cache))
+        self.strategy_rows = sorted(
+            (r for r in all_rows if r["N"] == strategy_N), key=lambda r: r.get("grading", 0.0))
 
     def series(self, qoi):
         return self.hs, [r[qoi] for r in self.rows], None
 
     def strategies(self, qoi):
-        return None
+        if len(self.strategy_rows) < 2:
+            return None
+        return [r[qoi] for r in self.strategy_rows], None
 
 
 class B3Adapter:
@@ -138,12 +145,19 @@ def orchestrate(backend, problem_text, log=print):
     log(f"[repository] nearest: {[(n['problem'], n['similarity']) for n in neigh]}")
 
     # 3. propose / validate / critique, at most one revision
+    baseline = trees.rule_plan(spec_d)
+    trace["rule_plan"], trace["rule_analysis"] = baseline, trees.apply_rules(spec_d)
+    log(f"[rules] baseline requires: " + "; ".join(
+        f"{c['check']} on {len(c['qois'])} QoIs" for c in baseline["checks"])
+        + f"; predicts FAIL: {[e['qoi'] for e in baseline['expected_failures']]}")
     plan, perrs = R.propose(backend, spec_d, neigh)
+    perrs = perrs + trees.plan_rule_errors(plan, spec_d)
     crit = R.critique(backend, spec_d, plan) if not perrs else None
     if perrs or not crit["approve"]:
         feedback = {"validation_errors": perrs, "critic": crit}
         log(f"[guard/critic] revision requested: {json.dumps(feedback)}")
         plan, perrs = R.propose(backend, spec_d, neigh + [{"revise_previous_plan": feedback}])
+        perrs = perrs + trees.plan_rule_errors(plan, spec_d)
         crit = R.critique(backend, spec_d, plan) if not perrs else None
     trace.update(plan=plan, plan_errors=perrs, critique=crit)
     if perrs:
@@ -182,12 +196,17 @@ def orchestrate(backend, problem_text, log=print):
     trace["gate_summary"] = gate_summary
 
     # prediction score: did the proposer anticipate the failures?
-    predicted = {e["qoi"] for e in plan["expected_failures"]}
     failed = {q for q, g in gate_summary.items() if g["verdict"] == "FAIL"}
-    trace["prediction"] = {"predicted_fail": sorted(predicted), "actual_fail": sorted(failed),
-                           "missed": sorted(failed - predicted),
-                           "false_alarm": sorted(predicted - failed)}
-    log(f"[score] predicted {sorted(predicted)} vs actual {sorted(failed)}")
+    trace["prediction"] = {}
+    for who, exp in (("llm", plan["expected_failures"]),
+                     ("rules", baseline["expected_failures"])):
+        predicted = {e["qoi"] for e in exp}
+        trace["prediction"][who] = {"predicted_fail": sorted(predicted),
+                                    "actual_fail": sorted(failed),
+                                    "missed": sorted(failed - predicted),
+                                    "false_alarm": sorted(predicted - failed)}
+        log(f"[score:{who}] predicted FAIL {sorted(predicted)} | actual FAIL {sorted(failed)}"
+            f" | missed {sorted(failed - predicted)} | false alarm {sorted(predicted - failed)}")
 
     # 5. advise and audit
     advice, flags = R.advise(backend, spec_d, gate_summary)

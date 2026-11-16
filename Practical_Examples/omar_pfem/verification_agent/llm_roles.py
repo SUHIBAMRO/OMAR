@@ -175,18 +175,25 @@ class ClaudeCLIBackend:
     """Headless Claude Code (`claude -p`), no tools, JSON-schema output."""
 
     def __init__(self, model=MODEL, exe=None):
+        import tempfile
         self.exe = exe or shutil.which("claude") or "/opt/node22/bin/claude"
         self.model = model
+        # empty working directory: no project CLAUDE.md or files leak into the role
+        self.cwd = tempfile.mkdtemp(prefix="va_llm_")
+        self.cost_usd, self.calls = 0.0, []
 
     def ask(self, role, prompt, schema):
         cmd = [self.exe, "-p", "--model", self.model, "--output-format", "json",
                "--json-schema", json.dumps(schema), "--tools", "",
                "--append-system-prompt", SYSTEM]
         out = subprocess.run(cmd, input=f"[role: {role}]\n\n{prompt}", text=True,
-                             capture_output=True, timeout=1800)
+                             capture_output=True, timeout=1800, cwd=self.cwd)
         if out.returncode != 0:
             raise RuntimeError(f"{role}: claude CLI failed: {out.stderr[-2000:]}")
         envelope = json.loads(out.stdout)
+        self.cost_usd += envelope.get("total_cost_usd") or 0.0
+        self.calls.append({"role": role, "cost_usd": envelope.get("total_cost_usd"),
+                           "model": self.model})
         if envelope.get("is_error"):
             raise RuntimeError(f"{role}: {envelope.get('result')}")
         data = envelope.get("structured_output")

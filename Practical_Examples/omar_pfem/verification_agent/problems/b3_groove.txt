@@ -1,0 +1,8 @@
+A 3D rubber bushing with a circumferential groove is loaded by a prescribed
+rotation. Material: compressible neo-Hookean. The finite-element reference
+uses 20-node quadratic hexahedra (Q20) on a family of globally refined meshes,
+and, at one intermediate resolution, three additional meshes that cluster
+elements axially toward the groove. We want to use stresses in the groove
+region as reference values for validating neural-operator surrogates.
+Question: which groove-region stress quantities can serve as trustworthy
+validation targets, and how should that be established?

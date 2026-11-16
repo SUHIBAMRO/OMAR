@@ -80,3 +80,79 @@ def test_gate_flags_divergent_peak():
                                    [9.33502, 11.0406, 13.3427, 16.28])
     assert g["verdict"] == "FAIL" and g["reason"].startswith("divergent")
     assert "richardson_extrapolate" not in g
+
+
+# ---- problem/method trees -------------------------------------------------
+
+def _spec(reg="clamped_free_corner", ref="mesh_refinement_family", qois=None):
+    return {"reference": ref, "regularity": reg,
+            "qois": qois or ["strain_energy", "max_disp_mag", "interior_avg_PK1_frob",
+                             "peak_PK1_frob", "sigma_xx_max", "L2_rel"]}
+
+
+def test_qoi_classes():
+    from omar_pfem.verification_agent.trees import classify_qoi
+    assert [classify_qoi(q) for q in _spec()["qois"]] == [
+        "global", "displacement", "region_average", "pointwise_peak", "pointwise_peak",
+        "error_norm"]
+
+
+def test_rules_singular_peak_needs_robustness_and_predicts_fail():
+    from omar_pfem.verification_agent.trees import apply_rules
+    a = apply_rules(_spec())["peak_PK1_frob"]
+    assert "strategy_robustness" in a["required"] and a["predicted"] == "FAIL"
+
+
+def test_rules_smooth_peak_not_predicted_to_fail():
+    from omar_pfem.verification_agent.trees import apply_rules
+    assert apply_rules(_spec(reg="smooth"))["peak_PK1_frob"]["predicted"] is None
+
+
+def test_rule_plan_satisfies_its_own_rules():
+    from omar_pfem.verification_agent import trees
+    for reg in ("smooth", "clamped_free_corner", "stress_concentration", "unknown"):
+        s = _spec(reg=reg)
+        assert trees.plan_rule_errors(trees.rule_plan(s), s) == []
+
+
+def test_plan_missing_required_check_flagged():
+    from omar_pfem.verification_agent import trees
+    s = _spec()
+    plan = {"checks": [{"check": "qoi_convergence", "qois": s["qois"], "params": {},
+                        "rationale": ""}], "expected_failures": []}
+    errs = trees.plan_rule_errors(plan, s)
+    assert any("strategy_robustness" in e and "peak_PK1_frob" in e for e in errs)
+
+
+# ---- adaptive refinement controller --------------------------------------
+
+def _fake_solver(calls):
+    # smooth QoI converging at O(h^2) to 1.0, and a peak growing like log(1/h)
+    import math
+
+    def solve(N):
+        calls.append(N)
+        h = 1.0 / (N - 1)
+        return {"N": N, "h": h, "n_dof": 2 * N * N, "wall_clock_s": 1e-4 * N * N,
+                "smooth": 1.0 + 0.5 * h ** 2, "slow": 1.0 + 2.0 * h ** 0.5,
+                "peak": 3.0 + math.log(1.0 / h) + 0.1 * math.log(1.0 / h) ** 2}
+    return solve
+
+
+def test_adaptive_stops_early_and_classifies():
+    from omar_pfem.verification_agent import adaptive
+    calls = []
+    res = adaptive.adaptive_refine(_fake_solver(calls), ["smooth", "peak"], budget_s=1e6,
+                                   log=lambda *a: None)
+    assert res["decisions"]["smooth"]["verdict"] == "PASS"
+    assert res["decisions"]["peak"]["reason"].startswith("divergent")
+    assert calls == [11, 21, 41]  # both decided without a fourth level
+
+
+def test_adaptive_respects_budget():
+    from omar_pfem.verification_agent import adaptive
+    calls = []
+    res = adaptive.adaptive_refine(_fake_solver(calls), ["slow"], budget_s=0.3,
+                                   log=lambda *a: None)
+    assert res["stop"].startswith("budget")
+    assert res["decisions"]["slow"]["verdict"] == "INCONCLUSIVE"
