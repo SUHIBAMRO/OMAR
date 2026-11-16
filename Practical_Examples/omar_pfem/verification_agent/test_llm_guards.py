@@ -174,9 +174,57 @@ def test_orchestrate_replay_augments_and_reviews(tmp_path):
                    capture_output=True)
     t = json.load(open(out))
     assert "error" not in t
-    assert sorted(t["rule_augmented"]) == ["strategy_robustness:interior_avg_PK1_frob",
+    assert sorted(t["rule_augmented"]) == ["anchored_robustness:interior_avg_PK1_frob",
+                                           "anchored_robustness:peak_PK1_frob",
+                                           "strategy_robustness:interior_avg_PK1_frob",
                                            "strategy_robustness:peak_PK1_frob"]
+    # the fixture's gci_tol 0.05 / band 0.01 exceed the displacement/global ceilings
+    assert sorted(t["ceiling_clamped"]) == sorted(
+        f"qoi_convergence:{q}" for q in ("strain_energy", "max_disp_mag", "v_top_off_center",
+                                          "interior_avg_PK1_frob", "peak_PK1_frob"))
     assert t["critique"] is not None
     assert t["gate_summary"]["peak_PK1_frob"]["verdict"] == "FAIL"
     assert t["gate_summary"]["strain_energy"]["verdict"] == "PASS"
     assert t["advisor_flags"] == ["advisor says PASS for 'peak_PK1_frob' but the gate says FAIL"]
+
+
+# ---- critic follow-ups: order window, evidence, anchored robustness, ceilings ----
+
+def test_order_window_rejects_non_asymptotic_rate():
+    from omar_pfem.verification_agent import gates
+    hs = [0.4, 0.2, 0.1, 0.05]
+    vals = [1.0 + 0.3 * h ** 0.2 for h in hs]   # monotone, p = 0.2
+    g = gates.qoi_convergence_gate(hs, vals, band_tol=1e-4, gci_tol=10.0, order_window=(0.5, 3))
+    assert g["verdict"] == "FAIL" and "not asymptotic" in g["reason"]
+    g2 = gates.qoi_convergence_gate(hs, [1.0 + h ** 2 for h in hs], band_tol=1e-4,
+                                    gci_tol=0.05, order_window=(0.5, 3))
+    assert g2["verdict"] == "PASS" and g2["evidence"] == "rate"
+    assert abs(g2["observed_order"] - 2.0) < 1e-6
+
+
+def test_band_pass_is_labeled_weaker_evidence():
+    from omar_pfem.verification_agent import gates
+    g = gates.qoi_convergence_gate([0.1, 0.05, 0.025], [1.0, 1.0005, 1.0006], band_tol=0.01)
+    assert g["verdict"] == "PASS" and g["evidence"] == "band"
+
+
+def test_anchored_robustness_catches_shared_error():
+    from omar_pfem.verification_agent import gates
+    # three strategies agree with each other (0.2%) but all sit 5% off the limit
+    g_s = gates.strategy_robustness_gate([1.05, 1.051, 1.052], tol=0.02)
+    g_a = gates.anchored_robustness_gate([1.05, 1.051, 1.052], anchor=1.0, tol=0.02)
+    assert g_s["verdict"] == "PASS" and g_a["verdict"] == "FAIL"
+
+
+def test_ceiling_flags_loosened_tolerance():
+    from omar_pfem.verification_agent import trees
+    s = _spec(qois=["strain_energy"])
+    plan = trees.rule_plan(s)
+    assert trees.plan_rule_errors(plan, s) == []
+    plan["checks"][0]["params"]["gci_tol"] = 0.05
+    assert any(e.startswith("ceiling:") for e in trees.plan_rule_errors(plan, s))
+
+
+def test_order_window_from_element_degree():
+    from omar_pfem.verification_agent.trees import order_window
+    assert order_window("Q4") == (0.5, 3) and order_window("Q20") == (0.5, 5)

@@ -43,12 +43,18 @@ CHECK_CATALOGUE = {
     "qoi_convergence": {
         "implements": "gates.qoi_convergence_gate on a mesh-refinement family",
         "applies_when": "solution verification of a physical-problem QoI",
-        "params": {"band_tol": (0.001, 0.02), "gci_tol": (0.01, 0.10)},
+        "params": {"band_tol": (0.0005, 0.02), "gci_tol": (0.001, 0.10)},
     },
     "strategy_robustness": {
         "implements": "gates.strategy_robustness_gate across refinement strategies",
         "applies_when": "QoI sensitive to where the mesh is refined (local features)",
-        "params": {"tol": (0.005, 0.05)},
+        "params": {"tol": (0.001, 0.05)},
+    },
+    "anchored_robustness": {
+        "implements": "gates.anchored_robustness_gate: every strategy vs the family's "
+                      "Richardson limit (or finest value)",
+        "applies_when": "strategies must agree with the converged limit, not just each other",
+        "params": {"tol": (0.001, 0.05)},
     },
 }
 ELEMENTS = ("Q4", "Q8", "Q9", "Q20", "H8", "H27", "T3", "T6", "TET4", "TET10")

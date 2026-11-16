@@ -33,7 +33,7 @@ def gauss_point_stress(nodes, elements, u, elem_params, material, dtype=torch.fl
     params = tuple(torch.tensor(p, dtype=dtype) for p in elem_params)
     Xe, ue = xy[quad], uv[quad]
     g = 1.0 / np.sqrt(3.0)
-    Ps, xs, ws = [], [], []
+    Ps, xs, ws, Js = [], [], [], []
     for xi, eta in [(-g, -g), (g, -g), (g, g), (-g, g)]:
         N_, dN_dxi = shape_Q4_torch(torch.tensor(xi, dtype=dtype), torch.tensor(eta, dtype=dtype),
                                     xy.device, dtype)
@@ -44,8 +44,10 @@ def gauss_point_stress(nodes, elements, u, elem_params, material, dtype=torch.fl
         psi = energy_density_fn(F, *params, dtype=dtype)
         (P,) = torch.autograd.grad(psi.sum(), F)
         Ps.append(P.detach())
+        Js.append(torch.linalg.det(F.detach()))
         xs.append(torch.einsum("a,qai->qi", N_, Xe))
         ws.append(detJ0)
+    gauss_point_stress.last_detF = torch.cat(Js)
     return torch.cat(Ps), torch.cat(xs), torch.cat(ws)
 
 
@@ -66,7 +68,7 @@ def grade_nodes(nodes, a):
     return np.column_stack([x, y])
 
 
-def solve_level(N, material, grading=0.0):
+def solve_level(N, material, grading=0.0, tol=1e-7):
     from omar_pfem.data.data_generate_B1 import generate_grid_Q4, solve_hyperelastic_TL_spatial
     E_fn, nu_fn, ty_fn = AnalyticFieldB1("E"), AnalyticFieldB1("nu"), AnalyticFieldB1("ty")
     nodes, elements = generate_grid_Q4(1.0, 1.0, N, N)
@@ -74,14 +76,16 @@ def solve_level(N, material, grading=0.0):
     import time
     t0 = time.time()
     u = solve_hyperelastic_TL_spatial(nodes, elements, E_fn, nu_fn, ty_fn, 1.0,
-                                      nsteps=10, newton_max=30, tol=1e-7, material=material)
+                                      nsteps=10, newton_max=30, tol=tol, material=material)
     elem_params = precompute_element_params_B1(nodes, elements, E_fn, nu_fn, material)
     P, x_gp, w_gp = gauss_point_stress(nodes, elements, u, elem_params, material)
     P_norm = torch.linalg.norm(P.reshape(-1, 4), dim=1)
     (cx, cy), r = INTERIOR_REGION
     mask = ((x_gp[:, 0] - cx) ** 2 + (x_gp[:, 1] - cy) ** 2) < r ** 2
     row = {
-        "N": N, "grading": grading, "h": 1.0 / (N - 1), "n_dof": 2 * len(nodes),
+        "N": N, "grading": grading, "newton_tol": tol, "h": 1.0 / (N - 1),
+        "n_dof": 2 * len(nodes),
+        "min_detF": float(gauss_point_stress.last_detF.min()),
         "min_elem_size": float(min(np.diff(np.unique(nodes[:, 0])).min(),
                                    np.diff(np.unique(nodes[:, 1])).min())),
         "wall_clock_s": time.time() - t0,
@@ -99,21 +103,23 @@ def solve_level(N, material, grading=0.0):
     return row
 
 
-def run_ladder(Ns, material, cache, grading=0.0):
-    """Resumable: rows are cached by (N, grading); rows from before grading
-    existed are uniform (grading 0)."""
+def run_ladder(Ns, material, cache, grading=0.0, tol=1e-7):
+    """Resumable: rows are cached by (N, grading, newton_tol); rows from
+    before those keys existed are uniform (grading 0) with tol 1e-7."""
     rows = json.load(open(cache)) if os.path.exists(cache) else []
     for r in rows:
         r.setdefault("grading", 0.0)
-    done = {(r["N"], r["grading"]) for r in rows}
+        r.setdefault("newton_tol", 1e-7)
+    done = {(r["N"], r["grading"], r["newton_tol"]) for r in rows}
     for N in Ns:
-        if (N, grading) in done:
+        if (N, grading, tol) in done:
             continue
-        row = solve_level(N, material, grading)
+        row = solve_level(N, material, grading, tol)
         rows.append(row)
-        rows.sort(key=lambda r: (r["grading"], r["N"]))
+        rows.sort(key=lambda r: (r["newton_tol"], r["grading"], r["N"]))
         json.dump(rows, open(cache, "w"), indent=1)
         print(f"N={N:<4} grading={grading} " + "  ".join(
             f"{k}={v:.6g}" for k, v in row.items() if k not in ("N", "h", "n_dof", "grading")),
             flush=True)
-    return [r for r in rows if r["N"] in Ns and r["grading"] == grading]
+    return [r for r in rows if r["N"] in Ns and r["grading"] == grading
+            and r["newton_tol"] == tol]

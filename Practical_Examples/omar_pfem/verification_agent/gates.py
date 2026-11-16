@@ -42,7 +42,8 @@ def _celik_order(f1, f2, f3, r21, r32, iters=100):
     return p
 
 
-def qoi_convergence_gate(hs, values, band_tol=0.01, gci_tol=0.05, scale=None):
+def qoi_convergence_gate(hs, values, band_tol=0.01, gci_tol=0.05, scale=None,
+                         order_window=None):
     """Decide whether a QoI sequence under refinement is converged.
 
     hs must be ordered coarse to fine (decreasing). Only the three finest
@@ -55,6 +56,13 @@ def qoi_convergence_gate(hs, values, band_tol=0.01, gci_tol=0.05, scale=None):
     Spread and GCI are relative to `scale` (default |finest value|); pass a
     characteristic magnitude for components that are near zero, where a
     self-relative measure only amplifies noise.
+
+    order_window=(p_lo, p_hi): the GCI is only meaningful in the asymptotic
+    range (Celik et al. 2008), so a monotone sequence whose observed order
+    lies outside the window FAILs as "not asymptotic" whatever its GCI.
+    Every result carries `evidence`: "rate" (monotone, order and GCI
+    checked), "band" (stagnant within band_tol; no rate is identifiable, a
+    weaker claim), or "none".
     """
     hs, values = list(map(float, hs)), list(map(float, values))
     if len(values) < 3:
@@ -68,29 +76,41 @@ def qoi_convergence_gate(hs, values, band_tol=0.01, gci_tol=0.05, scale=None):
     spread = (max(f1, f2, f3) - min(f1, f2, f3)) / scale
     out = {"gate": "qoi_convergence", "finest_three": [f3, f2, f1], "scale": scale,
            "relative_spread": spread, "band_tol": band_tol, "gci_tol": gci_tol}
-    if spread <= band_tol:
-        return {**out, "verdict": "PASS",
-                "reason": f"finest three within {band_tol:.2%} band (spread {spread:.3%})"}
+    out["order_window"] = order_window
     e21, e32 = f2 - f1, f3 - f2
+    monotone_shrinking = e21 != 0 and e32 / e21 > 0 and abs(e21) < abs(e32)
+    r21, r32 = h2 / h1, h3 / h2
+    if spread <= band_tol:
+        diag = {}
+        if monotone_shrinking:  # informational only: tiny differences, noisy order
+            diag["observed_order_diagnostic"] = _celik_order(f1, f2, f3, r21, r32)
+        return {**out, **diag, "verdict": "PASS", "evidence": "band",
+                "reason": f"finest three within {band_tol:.2%} band (spread {spread:.3%}); "
+                          "no rate identifiable"}
     if e21 == 0:
-        return {**out, "verdict": "PASS", "reason": "finest two identical"}
+        return {**out, "verdict": "PASS", "evidence": "band", "reason": "finest two identical"}
     if e32 / e21 < 0:
-        return {**out, "verdict": "FAIL",
+        return {**out, "verdict": "FAIL", "evidence": "none",
                 "reason": "oscillatory: successive differences change sign"}
     if abs(e21) >= abs(e32):
         # successive differences not shrinking: the sequence is not in the
         # asymptotic convergent range (e.g. a singular peak growing with
         # refinement); Celik's |.| would report a spurious positive order
-        return {**out, "verdict": "FAIL", "increments_fine_to_coarse": [e21, e32],
+        return {**out, "verdict": "FAIL", "evidence": "none",
+                "increments_fine_to_coarse": [e21, e32],
                 "reason": "divergent: successive differences do not decrease"}
-    r21, r32 = h2 / h1, h3 / h2
     p = _celik_order(f1, f2, f3, r21, r32)
     gci = 1.25 * abs((f1 - f2) / scale) / (r21 ** p - 1)
     extrap = f1 + (f1 - f2) / (r21 ** p - 1)
+    res = {**out, "observed_order": p, "gci_fine": gci, "richardson_extrapolate": extrap,
+           "evidence": "rate"}
+    if order_window is not None and not order_window[0] <= p <= order_window[1]:
+        return {**res, "verdict": "FAIL",
+                "reason": f"monotone but not asymptotic: observed order {p:.2f} outside "
+                          f"[{order_window[0]}, {order_window[1]}] (GCI {gci:.2%} not trusted)"}
     verdict = "PASS" if gci <= gci_tol else "FAIL"
-    return {**out, "verdict": verdict, "observed_order": p, "gci_fine": gci,
-            "richardson_extrapolate": extrap,
-            "reason": f"monotone, GCI_fine={gci:.2%} vs tol {gci_tol:.2%}"}
+    return {**res, "verdict": verdict,
+            "reason": f"monotone, p={p:.2f}, GCI_fine={gci:.2%} vs tol {gci_tol:.2%}"}
 
 
 def strategy_robustness_gate(values, tol=0.02, scale=None):
@@ -103,3 +123,25 @@ def strategy_robustness_gate(values, tol=0.02, scale=None):
     return {"gate": "strategy_robustness", "verdict": "PASS" if spread <= tol else "FAIL",
             "reason": f"spread across strategies {spread:.3%} vs tol {tol:.2%}",
             "relative_spread": spread, "scale": scale, "tol": tol, "values": v.tolist()}
+
+
+def anchored_robustness_gate(values, anchor, tol=0.02, scale=None, anchor_kind=""):
+    """PASS iff every refinement strategy lies within `tol` (relative to
+    `scale`, default |anchor|) of the refinement family's anchor value: its
+    Richardson extrapolate when one exists, else its finest value. Unlike
+    strategy_robustness_gate, agreement among strategies that share the same
+    discretization error does not pass this gate."""
+    v = np.asarray(values, float)
+    scale = abs(float(anchor)) if scale is None else float(scale)
+    dev = np.abs(v - anchor) / scale
+    return {"gate": "anchored_robustness", "verdict": "PASS" if dev.max() <= tol else "FAIL",
+            "reason": f"max deviation from {anchor_kind or 'anchor'} {dev.max():.3%} vs tol {tol:.2%}",
+            "anchor": float(anchor), "anchor_kind": anchor_kind, "deviations": dev.tolist(),
+            "values": v.tolist(), "scale": scale, "tol": tol}
+
+
+def family_anchor(conv_result):
+    """Anchor for anchored_robustness_gate from a qoi_convergence result."""
+    if conv_result.get("evidence") == "rate" and "richardson_extrapolate" in conv_result:
+        return conv_result["richardson_extrapolate"], "Richardson extrapolate"
+    return conv_result["finest_three"][-1], "finest family value"

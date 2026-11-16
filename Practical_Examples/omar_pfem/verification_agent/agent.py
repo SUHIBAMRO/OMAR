@@ -204,13 +204,18 @@ def cmd_rules(args):
         sd = spec.to_dict()
         plan, analysis = trees.rule_plan(sd), trees.apply_rules(sd)
         adapter = ADAPTERS[geometry]()
+        conv_params = {q: c["params"] for c in plan["checks"]
+                       if c["check"] == "qoi_convergence" for q in c["qois"]}
         verdicts = {}
         for c in plan["checks"]:
             for q in c["qois"]:
-                verdicts.setdefault(q, {})[c["check"]] = run_check(adapter, c["check"], q,
-                                                                   c["params"])
-        print(f"\n{spec.name} (regularity {spec.regularity})")
-        print(f"{'QoI':<24}{'class':<16}{'rules':<12}{'pred':<6}{'conv':<14}{'robust':<14}overall")
+                verdicts.setdefault(q, {})[c["check"]] = run_check(
+                    adapter, c["check"], q, c["params"], element=spec.element,
+                    conv_params=conv_params.get(q))
+        print(f"\n{spec.name} (regularity {spec.regularity}, element {spec.element}, "
+              f"order window {trees.order_window(spec.element)})")
+        print(f"{'QoI':<24}{'class':<16}{'pred':<6}{'conv':<6}{'evid':<6}"
+              f"{'strat':<7}{'anchor':<7}overall")
         hits = n_pred = 0
         for q in spec.qois:
             v = verdicts[q]
@@ -221,14 +226,15 @@ def cmd_rules(args):
             if a["predicted"]:
                 n_pred += 1
                 hits += a["predicted"] == overall
-            print(f"{q:<24}{a['qoi_class']:<16}{','.join(a['rules']):<12}"
-                  f"{a['predicted'] or '-':<6}"
-                  f"{v.get('qoi_convergence', {}).get('verdict', '-'):<14}"
-                  f"{v.get('strategy_robustness', {}).get('verdict', '-'):<14}{overall}")
-            if "strategy_robustness" in v and "relative_spread" in v["strategy_robustness"]:
-                sr = v["strategy_robustness"]
-                print(f"{'':<24}  strategies {[round(x, 6) for x in sr['values']]} "
-                      f"spread {sr['relative_spread']:.2%}")
+            cv = v.get("qoi_convergence", {})
+            print(f"{q:<24}{a['qoi_class']:<16}{a['predicted'] or '-':<6}"
+                  f"{cv.get('verdict', '-'):<6}{cv.get('evidence', '-'):<6}"
+                  f"{v.get('strategy_robustness', {}).get('verdict', '-'):<7}"
+                  f"{v.get('anchored_robustness', {}).get('verdict', '-'):<7}{overall}")
+            print(f"{'':<4}conv: {cv.get('reason')}")
+            for k in ("strategy_robustness", "anchored_robustness"):
+                if k in v:
+                    print(f"{'':<4}{k.split('_')[0]}: {v[k].get('reason')}")
         print(f"rule predictions correct: {hits}/{n_pred}")
 
 
