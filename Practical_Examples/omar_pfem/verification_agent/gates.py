@@ -70,7 +70,7 @@ def qoi_convergence_gate(hs, values, band_tol=0.01, gci_tol=0.05, scale=None):
            "relative_spread": spread, "band_tol": band_tol, "gci_tol": gci_tol}
     if spread <= band_tol:
         return {**out, "verdict": "PASS",
-                "reason": f"finest three within {band_tol:.0%} band"}
+                "reason": f"finest three within {band_tol:.2%} band (spread {spread:.3%})"}
     e21, e32 = f2 - f1, f3 - f2
     if e21 == 0:
         return {**out, "verdict": "PASS", "reason": "finest two identical"}
@@ -90,7 +90,7 @@ def qoi_convergence_gate(hs, values, band_tol=0.01, gci_tol=0.05, scale=None):
     verdict = "PASS" if gci <= gci_tol else "FAIL"
     return {**out, "verdict": verdict, "observed_order": p, "gci_fine": gci,
             "richardson_extrapolate": extrap,
-            "reason": f"monotone, GCI_fine={gci:.2%} vs tol {gci_tol:.0%}"}
+            "reason": f"monotone, GCI_fine={gci:.2%} vs tol {gci_tol:.2%}"}
 
 
 def strategy_robustness_gate(values, tol=0.02, scale=None):
@@ -101,4 +101,5 @@ def strategy_robustness_gate(values, tol=0.02, scale=None):
     scale = abs(float(np.median(v))) if scale is None else float(scale)
     spread = float((v.max() - v.min()) / scale)
     return {"gate": "strategy_robustness", "verdict": "PASS" if spread <= tol else "FAIL",
+            "reason": f"spread across strategies {spread:.3%} vs tol {tol:.2%}",
             "relative_spread": spread, "scale": scale, "tol": tol, "values": v.tolist()}

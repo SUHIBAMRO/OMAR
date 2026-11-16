@@ -1,43 +1,43 @@
 {
  "problem_text": "A 2D unit square of compressible neo-Hookean material with smoothly varying\nYoung's modulus and Poisson ratio is clamped along its bottom edge and loaded\nby a spatially varying normal traction on its top edge; the vertical edges\nare traction-free. The reference is computed with bilinear quadrilaterals (Q4)\non uniformly refined meshes, plus meshes of the same size graded toward the\nbottom corners. Question: which displacement, energy and stress quantities\ncan serve as trustworthy reference values for validating surrogate models?\n",
  "spec": {
-  "name": "B1 unit square, compressible neo-Hookean with smoothly varying E and nu, clamped bottom, top normal traction: trustworthy reference QoIs for surrogate validation",
+  "name": "B1: neo-Hookean unit square, clamped bottom, top normal traction, graded-mesh comparison",
   "geometry": "unit_square",
   "dim": 2,
-  "material": "Compressible neo-Hookean hyperelastic. Young's modulus E(x) and Poisson ratio nu(x) vary smoothly in space (mesh_convergence.AnalyticFieldB1). The bounds on E and nu are not given in the problem statement.",
-  "loading": "Bottom edge clamped (u = 0). A spatially varying normal traction acts on the top edge. Both vertical edges are traction-free. The load magnitude and sign (tension or compression) are not given.",
+  "material": "Compressible neo-Hookean, smoothly varying E(x,y) and nu(x,y) (AnalyticFieldB1); exact fields, ranges and the compressible energy form are unspecified",
+  "loading": "Spatially varying normal traction on the top edge (dead or follower load not stated). Bottom edge clamped (u=0), vertical edges traction-free.",
   "regularity": "clamped_free_corner",
   "element": "Q4",
   "reference": "mesh_refinement_family",
   "qois": [
+   "max_disp_mag",
    "u_top_off_center",
    "v_top_off_center",
    "u_mid_domain",
    "v_mid_domain",
-   "max_disp_mag",
    "strain_energy",
    "interior_avg_PK1_frob",
    "peak_PK1_frob"
   ],
   "well_posedness": [
-   "Dirichlet condition: the clamp on the whole bottom edge removes all rigid-body modes, so the linearized problem is coercive at the reference configuration.",
-   "Material stability: compressible neo-Hookean is polyconvex. The problem is well-posed only if E(x) > 0 and -1 < nu(x) < 0.5 everywhere. If nu(x) gets close to 0.5, Q4 volumetric locking can corrupt displacement and stress convergence.",
-   "Load level and limit points: a unique smooth solution branch requires the traction to stay below any limit or bifurcation load. A compressive top traction on a square clamped only at its base could buckle the square sideways. The load magnitude has to be checked against this.",
-   "Singular features: each bottom corner joins the clamped edge to a traction-free vertical edge. Stress there is singular or near-singular, so the pointwise peak PK1 norm (peak_PK1_frob) need not converge and may keep growing under refinement. It is not a valid reference value.",
-   "The corner singularity is weak and integrable. Strain energy and displacements (point values away from the corners, and the maximum displacement magnitude) should converge, though possibly more slowly than the smooth-solution rates: O(h^2) in L2 and O(h) in energy for Q4, with energy error converging at O(h^2).",
-   "Region averages of stress (interior_avg_PK1_frob) should converge if the averaging region stays away from the bottom corners.",
-   "The top corners join the traction-loaded top edge to the free vertical edges. A traction that is nonzero at a top corner may create a weaker stress irregularity there, so traction compatibility at the top corners needs to be checked.",
-   "Asymptotic-range check: with N = 11, 21, 41, 81 (h halving each time) there are three successive ratios. Observed convergence orders and Richardson extrapolation are trustworthy only if those orders are consistent."
+   "Dirichlet clamp on the full bottom edge removes all rigid-body modes, so the boundary-value problem is determined in displacement.",
+   "Material stability: compressible neo-Hookean is polyconvex and stable when mu(x,y)>0 and lambda(x,y)>0, i.e. E>0 and 0<nu<0.5 everywhere. This must hold for the smooth E, nu fields. As nu approaches 0.5, Q4 volumetric locking would spoil the convergence rates.",
+   "Load level: the traction amplitude must stay below any limit or bifurcation point (for example, wrinkling or instability under compressive normal traction), and J>0 must hold in every element at every load step. Otherwise the solution can be non-unique or the solve can fail.",
+   "Singular features: the two bottom corners at (0,0) and (1,0) are where the clamped edge meets a traction-free edge. The stress there is singular or near-singular, so peak_PK1_frob need not converge under refinement and is not a valid reference.",
+   "The top corners join a traction-loaded edge to a traction-free edge. If the normal traction does not go to zero at x=0 and x=1, the traction data jump there and add weaker local stress features. Away from these corners the solution is smooth.",
+   "Quantities expected to converge: strain_energy, the point displacements (u/v_top_off_center, u/v_mid_domain, provided the points avoid the corners), max_disp_mag (likely reached on the top edge, away from the clamped corners), and interior_avg_PK1_frob (provided the averaging region excludes the corner neighborhoods). Expected Q4 rates: displacement O(h^2), energy error O(h^2), stress O(h) for smooth parts, possibly reduced globally by the corner singularity.",
+   "Graded meshes toward the bottom corners: these should improve energy and global accuracy. Peak corner stress will keep growing or be mesh-dependent, so comparing peak_PK1_frob between graded and uniform meshes measures how the mesh resolves the singularity, not convergence."
   ],
   "open_questions": [
-   "The problem statement mentions meshes of the same size graded toward the bottom corners, but the B1 adapter lists only global refinement (N = 11, 21, 41, 81). Are graded-mesh results available? Without them, the corner-singularity effect on peak stress cannot be checked directly.",
-   "What are the traction magnitude and sign? Is the load level safely below any limit point or buckling load, especially if the traction is compressive?",
-   "What are the ranges of E(x) and nu(x)? Is nu bounded away from 0.5, so that Q4 locking is not a concern?",
-   "Is the top-edge traction zero or nonzero at the top corners? A nonzero value there may create a secondary stress irregularity.",
-   "Where exactly are the 'off_center' and 'mid_domain' sample points, and how is the region for interior_avg_PK1_frob defined? How far are they from the bottom corners?",
-   "Where does max_disp_mag occur (presumably on the top edge)? Is it taken at nodes or interpolated?",
-   "How is peak_PK1_frob evaluated (at Gauss points, extrapolated to nodes, or smoothed)? The answer affects how it diverges at the singular corners.",
-   "Was the nonlinear solve converged tightly enough at each mesh level (Newton tolerance, load stepping) that discretization error dominates over solver error?"
+   "What are the exact forms and ranges of E(x,y) and nu(x,y)? Is max nu close to 0.5 (risk of locking)?",
+   "Which compressible neo-Hookean variant is used (for example, the lambda/2 (ln J)^2 term or a (J-1)^2 term)?",
+   "What is the traction amplitude and profile? Is it a dead load or a follower load, tensile or compressive? Is it zero at the top corners?",
+   "Where exactly are the 'off_center' and 'mid_domain' sample points? Are they safely away from the bottom corners?",
+   "What region does interior_avg_PK1_frob average over, and does it exclude neighborhoods of the bottom corners?",
+   "Is max_disp_mag taken over nodes (which depends on the mesh) or over the continuous field?",
+   "How many graded-mesh levels are there and what are their grading parameters? The adapter lists only the global N=11,21,41,81 family, so graded-mesh data may be unavailable to the checks.",
+   "Were load-stepping and Newton tolerances tight enough that solver error is small next to discretization error at N=81?",
+   "Is the problem plane strain or plane stress?"
   ]
  },
  "spec_errors": [],
@@ -83,11 +83,11 @@
    {
     "check": "qoi_convergence",
     "qois": [
+     "max_disp_mag",
      "u_top_off_center",
      "v_top_off_center",
      "u_mid_domain",
      "v_mid_domain",
-     "max_disp_mag",
      "strain_energy",
      "interior_avg_PK1_frob",
      "peak_PK1_frob"
@@ -118,6 +118,17 @@
   ]
  },
  "rule_analysis": {
+  "max_disp_mag": {
+   "qoi_class": "displacement",
+   "required": [
+    "qoi_convergence"
+   ],
+   "predicted": "PASS",
+   "rules": [
+    "R2",
+    "R5"
+   ]
+  },
   "u_top_off_center": {
    "qoi_class": "displacement",
    "required": [
@@ -152,17 +163,6 @@
    ]
   },
   "v_mid_domain": {
-   "qoi_class": "displacement",
-   "required": [
-    "qoi_convergence"
-   ],
-   "predicted": "PASS",
-   "rules": [
-    "R2",
-    "R5"
-   ]
-  },
-  "max_disp_mag": {
    "qoi_class": "displacement",
    "required": [
     "qoi_convergence"
@@ -209,32 +209,25 @@
    ]
   }
  },
+ "rule_augmented": [
+  "strategy_robustness:peak_PK1_frob"
+ ],
  "plan": {
   "checks": [
    {
     "check": "qoi_convergence",
     "qois": [
+     "strain_energy",
      "u_top_off_center",
      "v_top_off_center",
      "u_mid_domain",
      "v_mid_domain"
     ],
     "params": {
-     "gci_tol": 0.01,
-     "band_tol": 0.002
+     "gci_tol": 0.02,
+     "band_tol": 0.005
     },
-    "rationale": "Solution verification of point displacements on the nested global family N = 11, 21, 41, 81, which gives three successive ratios. GCI is set at the 1% floor so the reference uncertainty is small next to plausible surrogate errors. Any loss of rate from corner pollution should show up through the observed order in the GCI, not be hidden by a looser tolerance. The 0.2% band requires the three observed orders to agree before Richardson extrapolation is trusted. Expected rate: O(h^2) for smooth Q4. A lower order caused by corner pollution (the energy-norm error goes like h^lambda) is acceptable only if it is consistent across ratios. A PASS counts as a reference only if these preconditions hold, and none of them can be checked in this catalogue: (a) the sample points are nodes on every mesh of the family, otherwise interpolation error is not asymptotic; (b) the Newton tolerance at each level is far below the discretization error; (c) nu(x) stays away from 0.5, since Q4 locking can give smooth but wrong convergence; (d) the load is below any limit or bifurcation load if the traction is compressive. These are recorded as unresolved preconditions, not assumed. Nearest-case PASS verdicts are not used as evidence because load, E/nu bounds and solver settings may differ."
-   },
-   {
-    "check": "qoi_convergence",
-    "qois": [
-     "strain_energy"
-    ],
-    "params": {
-     "gci_tol": 0.01,
-     "band_tol": 0.001
-    },
-    "rationale": "Strain energy is a global, integrable functional and the most robust reference QoI here. Its error should go like h^{2*lambda}: O(h^2) if the solution is smooth, lower at the clamped-free bottom corners. It gets the tightest band (0.1%) because it is expected to show the cleanest asymptotic behaviour, and a 1% GCI. The same preconditions as for the displacements apply (solver tolerance, nu bounds, load below the limit point). An element-order cross-check with Q9 would be useful but is not in the catalogue, so it is flagged as missing."
+    "rationale": "Solution verification on the uniform N=11,21,41,81 family. These are integral or point-displacement QoIs. They should converge at about O(h^2) for Q4, possibly at a lower rate because the clamped-free bottom corners pollute the solution. I tightened the tolerances from the earlier plan's 0.05 to 0.02 because the critic was right that 5% is too loose for smooth or integral quantities at N=81. The asymptotic estimate should use the three finest levels (21/41/81), not N=11. The gate should also report the observed order p_obs. I expect it to fall in a reduced range of about 1 to 2 for energy and displacements because of corner pollution. A p_obs well outside that range is a warning sign even if the GCI passes. Open items: the sample point coordinates are unspecified, and it is not stated whether they are nodes at every N or interpolated. A PASS assumes they are fixed physical points away from (0,0) and (1,0). Prior B1 PASS verdicts are not used as evidence, because the material and loading may differ."
    },
    {
     "check": "qoi_convergence",
@@ -242,10 +235,10 @@
      "max_disp_mag"
     ],
     "params": {
-     "gci_tol": 0.01,
-     "band_tol": 0.002
+     "gci_tol": 0.02,
+     "band_tol": 0.005
     },
-    "rationale": "Treated like the point displacements: expected near-O(h^2) convergence, 1% GCI and 0.2% band. Extra risk: if max_disp_mag is a nodal maximum, it is a non-smooth functional whose location can jump between mesh levels, which would give inconsistent orders. This should be read as a QoI-definition problem, not a discretization failure. Where the maximum occurs and how it is evaluated are still open questions."
+    "rationale": "Same family and tolerances as the displacement QoIs. This is a max-norm functional. It should converge if the maximum sits on the top edge away from the clamped corners and its location is stable across N. If it is taken over nodes, a PASS shows only that the nodal maximum converges. It does not show the continuum maximum converges unless the argmax location is reported and shown to be stable. That caveat applies to any PASS here."
    },
    {
     "check": "qoi_convergence",
@@ -253,10 +246,10 @@
      "interior_avg_PK1_frob"
     ],
     "params": {
-     "gci_tol": 0.02,
-     "band_tol": 0.005
+     "gci_tol": 0.05,
+     "band_tol": 0.01
     },
-    "rationale": "A region-averaged stress converges if the averaging region stays away from the singular bottom corners, and also from the top corners if the traction is nonzero there. Stress converges one order lower than displacement for Q4 (O(h) pointwise, though averaging can recover more), so its GCI tolerance is set somewhat looser than for displacement and energy, at 2%, still tight enough for a validation target. The band is 0.5%. A PASS is valid only once the region's distance from both corner pairs and the top-corner traction compatibility are confirmed; both are still open."
+    "rationale": "Tolerances are looser than for displacements because a stress average from Q4 converges at O(h) pointwise, or faster for a smooth average. That leaves about 1% or more discretization error at N=81 (h\u22480.012). This check only makes sense if the averaging region is a fixed physical subdomain, identical on every mesh, that excludes neighborhoods of (0,0) and (1,0). The spec does not define the region, so a FAIL may mean the region includes the corners rather than that the code is wrong. That has to be resolved before the verdict counts."
    },
    {
     "check": "qoi_convergence",
@@ -264,45 +257,312 @@
      "peak_PK1_frob"
     ],
     "params": {
-     "gci_tol": 0.01,
-     "band_tol": 0.001
+     "gci_tol": 0.02,
+     "band_tol": 0.005
     },
-    "rationale": "Included only so every declared QoI is covered. It is a diagnostic and NOT a reference QoI, whatever the verdict. At the clamped-free bottom corners stress behaves like r^{lambda-1}. Sampled at mesh scale, the peak grows like h^{lambda-1}, which is monotone growth by a roughly constant factor of about 2^{1-lambda} per halving. Strict tolerances are used so that a weak singularity that merely looks like a plateau cannot produce a spurious PASS. A PASS would be treated as an artefact of Gauss-point sampling or limited resolution (N <= 81) and not reported as a reference value. strategy_robustness, which would test this directly with graded meshes, is deliberately left out: the B1 adapter provides only global refinement, so the check could not run and would suggest coverage the plan does not have. It should be reinstated (tol about 0.005 on strain_energy and displacements) only if graded-mesh results are confirmed to exist."
+    "rationale": "Included only so every declared QoI is covered, since the catalogue has no singularity-diagnostic check. This is a DIAGNOSTIC, not verification. Its verdict must not count as evidence for or against code correctness. A pointwise peak at a clamped-free corner is ill-posed for convergence. The falsifiable prediction is a FAIL in which the peak grows monotonically across N=21,41,81 at a rate consistent with the corner exponent. A plateau or erratic jumps would point to under-resolution or the peak moving between nodes, and need investigation. A PASS would be suspicious, not reassuring. Tolerances match the displacement QoIs so that any non-convergence shows up clearly; the matching is not meant to imply fairness."
+   },
+   {
+    "check": "strategy_robustness",
+    "qois": [
+     "strain_energy",
+     "interior_avg_PK1_frob",
+     "v_top_off_center",
+     "v_mid_domain"
+    ],
+    "params": {
+     "tol": 0.01
+    },
+    "rationale": "Graded-mesh comparison, which is the stated purpose of B1. It is limited to QoIs that should be insensitive to where the mesh is refined. peak_PK1_frob is left out because a graded-vs-uniform difference in it only measures how much of the singularity each mesh resolves, which is known theory. The comparison should be between Richardson-extrapolated limits, or at matched DOF counts, not between raw values at a single resolution. The adapter lists only the uniform family. If no graded-mesh data exist, this check must be reported as NOT EVALUATED, not PASS or FAIL. I chose tol=0.01 because both strategies should agree on the energy and displacements to well within 1% if both converge to the same limit."
+   },
+   {
+    "check": "strategy_robustness",
+    "qois": [
+     "peak_PK1_frob"
+    ],
+    "params": {
+     "tol": 0.02
+    },
+    "rationale": "added by rules ['R2', 'R3']"
    }
   ],
   "expected_failures": [
    {
     "qoi": "peak_PK1_frob",
-    "why": "The pointwise peak stress sits at the singular corners where the clamped bottom edge meets the free vertical edges, so it has no finite limit. The expected signature is monotone growth under refinement with a consistent near-zero or negative observed order and a stable growth ratio of about 2^{1-lambda} per halving, not erratic orders. qoi_convergence should FAIL on the GCI/convergence criterion. If it passes anyway, the pass is a sampling or resolution artefact and must not be used as a reference."
+    "why": "Stress is singular or near-singular where the clamped bottom edge meets a traction-free vertical edge at (0,0) and (1,0). The peak should grow without bound under refinement, so qoi_convergence should FAIL. This is a diagnostic expectation, not evidence of a code defect. It is the only predicted failure. interior_avg_PK1_frob could also FAIL if its undefined averaging region turns out to include the corner neighborhoods. strategy_robustness may be NOT EVALUATED if there is no graded-mesh data. mms_rates is not proposed because no manufactured solution is specified. Several things outside the catalogue are still unverified: solver and load-step error control, min J>0 and stability under compressive traction, a global equilibrium check, and whether max nu is far enough from 0.5 to avoid locking."
    }
   ]
  },
- "plan_errors": [
-  "rules ['R2', 'R4'] require 'strategy_robustness' for 'interior_avg_PK1_frob' (region_average, regularity clamped_free_corner)",
-  "rules ['R2', 'R3'] require 'strategy_robustness' for 'peak_PK1_frob' (pointwise_peak, regularity clamped_free_corner)"
- ],
- "critique": null,
+ "plan_errors": [],
+ "critique": {
+  "approve": false,
+  "objections": [
+   "Check 6 (strategy_robustness on peak_PK1_frob, tol=0.02, 'added by rules R2, R3') is ill-posed and contradicts the plan. The rationale for check 5 says peak_PK1_frob was left out because a graded-vs-uniform difference only measures how much of the clamped-free corner singularity each mesh resolves. A peak at a singular corner has no common mesh-independent limit for graded and uniform meshes to agree on, so neither PASS nor FAIL means anything at a 2% tolerance. The check also has no real rationale and is missing from expected_failures. Remove it, or label it a non-gating diagnostic with a predicted FAIL listed in expected_failures.",
+   "Check 4 (qoi_convergence on peak_PK1_frob) produces a PASS/FAIL that the plan says must not count as evidence, but nothing in the params excludes it from the aggregate verdict. The plan must state explicitly that this check does not gate the result. Its 'falsifiable prediction' (monotone growth at a rate consistent with the corner exponent) also can't be tested by this check: qoi_convergence returns GCI and band verdicts, not a fitted singular exponent or a monotonicity test. Only 'FAIL' can actually be predicted here.",
+   "Several things the rationales promise are not encoded in any check parameter: Richardson extrapolation from only the three finest levels (21/41/81), an acceptance window of about 1 to 2 for p_obs, argmax-location stability for max_disp_mag, the definition of the averaging region, and 'compare extrapolated limits or matched DOFs' for strategy_robustness. A deterministic gate only enforces its params. Either add these as parameters or say clearly that the corresponding claims are unverified.",
+   "gci_tol=0.02 is too loose for a validation-grade target on strain_energy and point displacements at N=81 (h\u22480.012). Even with corner pollution (energy rate about 2\u03bb, roughly 1.2 to 1.5 for typical nu), the expected relative discretization error is well under 1%. A 2% gate would pass codes with real O(1) consistency errors that happen to converge to the wrong limit. Tie the tolerance to the observed asymptotic error estimate (for example \u22640.5%, or a few times the GCI predicted from p_obs), and justify band_tol, whose meaning the plan never defines.",
+   "Relative tolerances on u_top_off_center and u_mid_domain may be ill-conditioned. Under a nearly symmetric traction and material, the horizontal displacement at or near x=0.5 can be close to zero, so relative GCI and band tests blow up or become arbitrary. Use absolute tolerances normalized by a reference displacement scale (for example max_disp_mag), or confirm the sample points are where u is O(1).",
+   "The interior_avg_PK1_frob tolerance (gci_tol=0.05) is too loose, and its justification is wrong. An average of stress over a fixed smooth subdomain behaves like a weighted L2 functional of the displacement gradient. For smooth data it converges faster than pointwise O(h), typically close to O(h^2), so 5% at N=81 is far beyond the expected error. In addition, the averaging region is undefined. Running this check before the region is fixed and shown to exclude the corners gives a verdict the plan already says may not count. It should be NOT EVALUATED until the region is specified, not run and interpreted afterwards.",
+   "strategy_robustness check 5: tol=0.01 for strain_energy and displacements is looser than the discretization error both strategies should reach. If both converge to the same limit, their extrapolated values should agree to roughly the combined GCI, which is well below 1%. There is also no graded-mesh data in the adapter (only N=11, 21, 41, 81 uniform), so B1's stated purpose, the graded-mesh comparison, cannot currently be evaluated at all. The plan must not report B1 as verified while this check is NOT EVALUATED.",
+   "The plan offers only solution verification against a self-referential mesh family. That establishes asymptotic self-consistency, not correctness: a code with a consistent modeling error (wrong neo-Hookean variant, plane stress vs plane strain mix-up, dead vs follower load, mis-evaluated E(x,y) or nu(x,y)) would pass every check. Since the spatially varying material is the main new feature, a journal reviewer would require a code-verification step (a manufactured solution with the same AnalyticFieldB1 material) before accepting any B1 PASS.",
+   "The spec leaves the problem underdetermined: the material fields and their ranges, the energy form, plane strain vs plane stress, dead vs follower load, traction amplitude and sign, sample point locations, and the averaging region are all unspecified. A convergence verdict on a problem whose data are unknown cannot be checked against theory, for example locking as nu approaches 0.5 or buckling under compressive traction. These must be resolved before execution, not listed as caveats on a PASS.",
+   "Solver error control is unverified. With no evidence that Newton and load-step tolerances sit well below the N=81 discretization error, small GCI differences between the 41 and 81 meshes could be solver noise, and p_obs computed from the three finest levels is especially sensitive to it."
+  ],
+  "missing_checks": [
+   "mms_rates: a manufactured solution using the same AnalyticFieldB1 E(x,y), nu(x,y) and the same compressible neo-Hookean form, checking the L2 displacement rate is about 2 and the H1/energy rate is about 1 for Q4 on a smooth domain without singular corners. This is code verification, which the plan currently lacks.",
+   "Observed-order gate: an explicit p_obs acceptance window (for example 1 to 2.2 for energy and displacements) computed from N=21, 41, 81, plus a test for monotone (non-oscillatory) convergence before Richardson/GCI is applied.",
+   "Solver-error check: final Newton residual and load-step tolerance at every N, confirmed to be orders of magnitude below the estimated discretization error at N=81.",
+   "Global equilibrium check: the bottom reaction force must equal the integrated top traction (dead load) or its current-configuration equivalent (follower load) to solver tolerance.",
+   "Admissibility check: min J>0 over all quadrature points at all load steps, and a positive-definite tangent (no limit or bifurcation point crossed), especially if the traction is compressive.",
+   "Material-range check: confirm E>0 and 0<nu<0.5 everywhere, with max nu reported. If max nu is above about 0.45, test for volumetric locking (for example compare against a mixed or B-bar formulation, or show p_obs is unaffected).",
+   "Argmax-stability check for max_disp_mag: report the location of the maximum at each N and show it converges to a fixed point away from the clamped corners.",
+   "Generation and ingestion of graded-mesh data, with grading parameters and DOF counts, so that strategy_robustness can actually be evaluated on Richardson-extrapolated limits."
+  ]
+ },
+ "gate_summary": {
+  "strain_energy": {
+   "verdict": "PASS",
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      0.017700220485989876,
+      0.017710305589881688,
+      0.017714061187972835
+     ],
+     "relative_spread": 0.0007813398540339383,
+     "verdict": "PASS",
+     "reason": "finest three within 0% band"
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "relative_spread": 9.914045006581692e-05
+    }
+   }
+  },
+  "u_top_off_center": {
+   "verdict": "PASS",
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      0.0004722778650499193,
+      0.00047017817033641215,
+      0.00046963731131347957
+     ],
+     "relative_spread": 0.005622538228605879,
+     "verdict": "PASS",
+     "observed_order": 1.956855077612799,
+     "gci_fine": 0.0004994767047081203,
+     "reason": "monotone, GCI_fine=0.05% vs tol 2%"
+    }
+   }
+  },
+  "v_top_off_center": {
+   "verdict": "PASS",
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      -0.005765645441525942,
+      -0.005769185432812903,
+      -0.005770469560719766
+     ],
+     "relative_spread": 0.0008360011508702914,
+     "verdict": "PASS",
+     "reason": "finest three within 0% band"
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "relative_spread": 7.029444659858758e-05
+    }
+   }
+  },
+  "u_mid_domain": {
+   "verdict": "PASS",
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      -0.0005839728329668587,
+      -0.0005844454501232655,
+      -0.0005846150201784706
+     ],
+     "relative_spread": 0.001098478809894177,
+     "verdict": "PASS",
+     "reason": "finest three within 0% band"
+    }
+   }
+  },
+  "v_mid_domain": {
+   "verdict": "PASS",
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      -0.0030714407966679963,
+      -0.0030748505764184777,
+      -0.00307609576067345
+     ],
+     "relative_spread": 0.0015132701865024772,
+     "verdict": "PASS",
+     "reason": "finest three within 0% band"
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "relative_spread": 0.00019043674380826494
+    }
+   }
+  },
+  "max_disp_mag": {
+   "verdict": "PASS",
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      0.005960646346684156,
+      0.005964829510981749,
+      0.005966287482295259
+     ],
+     "relative_spread": 0.0009455018095998134,
+     "verdict": "PASS",
+     "reason": "finest three within 0% band"
+    }
+   }
+  },
+  "interior_avg_PK1_frob": {
+   "verdict": "PASS",
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      6.616885416628792,
+      6.619602217062153,
+      6.620413991656009
+     ],
+     "relative_spread": 0.0005329840447537518,
+     "verdict": "PASS",
+     "reason": "finest three within 1% band"
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "relative_spread": 4.420068484509457e-05
+    }
+   }
+  },
+  "peak_PK1_frob": {
+   "verdict": "FAIL",
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      11.040573710778704,
+      13.342725022375621,
+      16.28000096700922
+     ],
+     "relative_spread": 0.32183212192972277,
+     "verdict": "FAIL",
+     "reason": "divergent: successive differences do not decrease"
+    },
+    "strategy_robustness": {
+     "verdict": "FAIL",
+     "relative_spread": 0.49180669289693496
+    }
+   }
+  }
+ },
+ "prediction": {
+  "llm": {
+   "predicted_fail": [
+    "peak_PK1_frob"
+   ],
+   "actual_fail": [
+    "peak_PK1_frob"
+   ],
+   "missed": [],
+   "false_alarm": []
+  },
+  "rules": {
+   "predicted_fail": [
+    "peak_PK1_frob"
+   ],
+   "actual_fail": [
+    "peak_PK1_frob"
+   ],
+   "missed": [],
+   "false_alarm": []
+  }
+ },
+ "advice": {
+  "per_qoi": [
+   {
+    "qoi": "strain_energy",
+    "stated_verdict": "PASS",
+    "interpretation": "The total strain energy changes monotonically on the three finest meshes (0.0177002 \u2192 0.0177103 \u2192 0.0177141), and each step is smaller than the last. The relative spread is 7.8e-4. This is a global integral measure, so it is only weakly affected by the singularities at the clamped-free corners, as theory predicts. The uniform and graded mesh strategies agree to a relative spread of 9.9e-5, so the energy does not depend on how the corners are meshed. No observed order or GCI was reported for this QoI, so the gate does not confirm the expected O(h^2) energy-error rate. Caveat: the reason string says 'within 0% band'. That looks like the tolerance being rounded when printed, not a real 0% tolerance. Report the actual tolerance from the gate configuration, not this string."
+   },
+   {
+    "qoi": "u_top_off_center",
+    "stated_verdict": "PASS",
+    "interpretation": "The horizontal displacement at the top off-center point converges monotonically. The observed order is 1.96, which matches the theoretical O(h^2) rate for Q4 displacements at a point in the smooth region. The fine-grid GCI is 0.05%, well inside the 2% tolerance. This is the only QoI that comes with an observed order and a GCI, so it gives the strongest asymptotic-range evidence in the set. The relative spread over the finest three meshes is about 0.56%, larger than for the other displacements. That is expected, because this is a small transverse (Poisson-type) component. No strategy-robustness check was reported for this QoI."
+   },
+   {
+    "qoi": "v_top_off_center",
+    "stated_verdict": "PASS",
+    "interpretation": "The vertical displacement at the top off-center point settles at about -5.770e-3, with a relative spread of 8.4e-4. The sign shows the top edge moves downward, so the net normal traction there is compressive. The magnitude is below 1% of the domain size, which suggests a small-strain regime, but the gates do not test stability margins or how far the load is from a bifurcation point. The uniform and graded strategies agree to 7.0e-5. No observed order was reported. The same 'within 0% band' wording caveat applies."
+   },
+   {
+    "qoi": "u_mid_domain",
+    "stated_verdict": "PASS",
+    "interpretation": "The horizontal displacement at the mid-domain point converges monotonically (relative spread 1.1e-3). This point should lie in the smooth interior, away from the corner singularities, but the spec does not give its coordinates. No observed order and no strategy-robustness result were reported."
+   },
+   {
+    "qoi": "v_mid_domain",
+    "stated_verdict": "PASS",
+    "interpretation": "The vertical displacement at the mid-domain point converges monotonically to about -3.076e-3 (relative spread 1.5e-3). The uniform and graded strategies agree to 1.9e-4. As expected, this interior displacement is roughly half the top-edge vertical displacement. No observed order was reported."
+   },
+   {
+    "qoi": "max_disp_mag",
+    "stated_verdict": "PASS",
+    "interpretation": "The maximum displacement magnitude converges monotonically to about 5.966e-3 (relative spread 9.5e-4). Its value is close to |v_top_off_center|, which supports the expectation that the maximum occurs on the loaded top edge, far from the clamped corners. It is not stated whether the maximum is taken over nodes, which makes it depend on the mesh, or over the continuous field. It is also not stated where the maximum is located. No observed order or strategy-robustness result was reported."
+   },
+   {
+    "qoi": "interior_avg_PK1_frob",
+    "stated_verdict": "PASS",
+    "interpretation": "The average Frobenius norm of the first Piola-Kirchhoff (PK1) stress over the interior region converges monotonically to about 6.620, with a relative spread of 5.3e-4, inside its 1% band. The uniform and graded strategies agree to 4.4e-5. Averaging over a region smooths out the pointwise O(h) stress error and the local singular behavior, so this is the right stress measure to claim as converged. The claim holds only if the averaging region excludes the neighborhoods of the bottom corners. The spec leaves that unconfirmed, and the region should be defined in the manuscript."
+   },
+   {
+    "qoi": "peak_PK1_frob",
+    "stated_verdict": "FAIL",
+    "interpretation": "The peak PK1 Frobenius norm grows with every refinement (11.04 \u2192 13.34 \u2192 16.28), and the increments grow too. The gate classifies this as divergent (relative spread 0.32). The uniform and graded strategies disagree by a relative spread of 0.49. This is the expected signature of the stress singularity at the bottom corners, where the clamped edge meets a traction-free edge: the continuum peak stress is unbounded, and each refinement resolves more of it. The FAIL does not mean the solver is defective. It means this quantity has no mesh-independent limit and must not be reported as a converged result. Any value quoted is an artifact of the particular mesh."
+   }
+  ],
+  "summary": "Seven of the eight QoIs pass and one fails, which is the pattern theory predicts for a domain with clamped-free corners. Strain energy, all four point displacements, the maximum displacement magnitude and the interior-averaged PK1 stress norm all converge monotonically on the three finest meshes. Their relative spreads range from about 4.4e-4 to 5.6e-3. For the four QoIs that also had a strategy-robustness check (energy, the two vertical displacements and the interior stress average), uniform and graded meshes agree to within about 2e-4. The only rate evidence is u_top_off_center: observed order 1.96 (consistent with Q4 O(h^2) displacement convergence) and fine-grid GCI 0.05%. The other passing QoIs pass on a spread band only, with no rate check. The peak PK1 stress norm fails both convergence and strategy robustness: it grows without bound under refinement, and uniform and graded meshes disagree by about 49%. This matches the bottom-corner singularity and is not a solver defect.\n\nCaveats for the authors:\n- Several reason strings say 'within 0% band', which looks like a tolerance-rounding display artifact. Report the actual tolerance.\n- The spec leaves the following open: the sample-point coordinates, the averaging region, plane strain vs. plane stress, the neo-Hookean variant, the E/nu ranges (locking risk), the traction profile and type, and the solver tolerances. The gates do not test any of these.\n- The gates assess discretization convergence only. They do not validate the model against experiment or an exact solution, and they do not check stability margins under the compressive top load.",
+  "manuscript_wording": "Discretization convergence was assessed with a sequence of uniformly refined Q4 meshes, supplemented by graded meshes for a strategy-robustness comparison. Global and interior quantities of interest converged monotonically on the three finest meshes. These are the strain energy, the displacement components at the top off-center and mid-domain sample points, the maximum displacement magnitude, and the PK1 Frobenius norm averaged over an interior region that excludes the bottom corners. Their relative spreads were below 0.6%. Where a strategy comparison was available, the uniform-mesh and graded-mesh results agreed to within about 0.02%. For the horizontal displacement at the top off-center point, the observed order of convergence was 1.96, consistent with the theoretical second-order rate for bilinear elements, and the fine-grid GCI was 0.05%. By contrast, the peak PK1 Frobenius norm increased with every refinement (11.04, 13.34 and 16.28 on the three finest meshes) and differed by about 49% between meshing strategies. This is consistent with the stress singularity where the clamped bottom edge meets the traction-free vertical edges. We therefore do not report peak stress values as converged quantities, and we draw stress-based conclusions only from region-averaged measures away from these corners. These results establish numerical convergence of the reported quantities for the stated discretization. They do not constitute validation of the constitutive model."
+ },
+ "advisor_flags": [],
  "llm_calls": [
   {
    "role": "formalizer",
-   "cost_usd": 0.0620452,
+   "cost_usd": 0.039228400000000004,
    "model": "claude-opus-5-5"
   },
   {
    "role": "proposer",
-   "cost_usd": 0.0618214,
+   "cost_usd": 0.054465400000000004,
    "model": "claude-opus-5-5"
   },
   {
    "role": "critic",
-   "cost_usd": 0.0920682,
+   "cost_usd": 0.0994842,
    "model": "claude-opus-5-5"
   },
   {
    "role": "proposer",
-   "cost_usd": 0.0928654,
+   "cost_usd": 0.09925740000000001,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "role": "critic",
+   "cost_usd": 0.1218602,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "role": "advisor",
+   "cost_usd": 0.1067784,
    "model": "claude-opus-5-5"
   }
  ],
- "llm_cost_usd": 0.30880019999999997
+ "llm_cost_usd": 0.521074
 }
