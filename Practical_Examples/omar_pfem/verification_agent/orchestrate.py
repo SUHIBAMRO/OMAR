@@ -55,7 +55,7 @@ class B1Adapter:
 class B3Adapter:
     geometry = "bushing_groove"
     description = ("B3: 3D bushing with a circumferential groove, prescribed rotation, "
-                   "neo-Hookean, Q20 global refinement family 5,040-47,040 elements, plus "
+                   "neo-Hookean, Q20 global refinement family of 7 levels, 2,376-45,000 elements, plus "
                    "three local z-clustering strategies at 10,200 elements")
 
     def __init__(self):
