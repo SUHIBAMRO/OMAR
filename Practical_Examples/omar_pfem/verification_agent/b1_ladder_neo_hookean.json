@@ -40,5 +40,19 @@
   "v_top_off_center": -0.005769185432812903,
   "u_mid_domain": -0.0005844454501232655,
   "v_mid_domain": -0.0030748505764184777
+ },
+ {
+  "N": 81,
+  "h": 0.0125,
+  "n_dof": 13122,
+  "max_disp_mag": 0.005966287482295259,
+  "strain_energy": 0.017714061187972835,
+  "peak_PK1_frob": 16.28000096700922,
+  "interior_avg_PK1_frob": 6.620413991656009,
+  "interior_region_gauss_points": 1820,
+  "u_top_off_center": 0.00046963731131347957,
+  "v_top_off_center": -0.005770469560719766,
+  "u_mid_domain": -0.0005846150201784706,
+  "v_mid_domain": -0.00307609576067345
  }
 ]

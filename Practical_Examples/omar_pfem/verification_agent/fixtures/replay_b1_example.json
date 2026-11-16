@@ -1,0 +1,31 @@
+{
+ "_note": "Hand-written test fixture standing in for LLM answers, used to exercise the orchestration pipeline offline. NOT model output. The advisor entry deliberately mislabels peak_PK1_frob as PASS so the audit step can be seen to catch it.",
+ "formalizer": {
+  "name": "B1 neo-Hookean unit square, solution verification",
+  "geometry": "unit_square", "dim": 2, "material": "neo_hookean",
+  "loading": "top_edge_traction", "regularity": "clamped_free_corner", "element": "Q4",
+  "reference": "mesh_refinement_family",
+  "qois": ["strain_energy", "max_disp_mag", "v_top_off_center", "interior_avg_PK1_frob", "peak_PK1_frob"],
+  "well_posedness": ["clamped bottom edge removes rigid-body modes",
+                     "bottom corners join a clamped and a traction-free edge: linear theory predicts a stress singularity there",
+                     "load level small (max displacement ~0.6% of side), far from limit points"],
+  "open_questions": []
+ },
+ "proposer": {
+  "checks": [{"check": "qoi_convergence",
+              "qois": ["strain_energy", "max_disp_mag", "v_top_off_center", "interior_avg_PK1_frob", "peak_PK1_frob"],
+              "params": {"band_tol": 0.01, "gci_tol": 0.05},
+              "rationale": "global refinement family is the only reference available"}],
+  "expected_failures": [{"qoi": "peak_PK1_frob", "why": "the peak sits at a clamped/free corner singularity"}]
+ },
+ "critic": {"approve": true, "objections": [], "missing_checks": ["strategy robustness would need a second refinement strategy"]},
+ "advisor": {
+  "per_qoi": [
+   {"qoi": "strain_energy", "stated_verdict": "PASS", "interpretation": "global, converged"},
+   {"qoi": "max_disp_mag", "stated_verdict": "PASS", "interpretation": "converged"},
+   {"qoi": "v_top_off_center", "stated_verdict": "PASS", "interpretation": "converged"},
+   {"qoi": "interior_avg_PK1_frob", "stated_verdict": "PASS", "interpretation": "away from corners, converged"},
+   {"qoi": "peak_PK1_frob", "stated_verdict": "PASS", "interpretation": "DELIBERATE ERROR for the audit test"}],
+  "summary": "fixture summary", "manuscript_wording": "fixture"
+ }
+}

@@ -7,7 +7,8 @@ import subprocess
 
 from omar_pfem.verification_agent.spec import jaccard
 
-DEFAULT_PATH = os.path.join(os.path.dirname(__file__), "repository.jsonl")
+DEFAULT_PATH = os.environ.get("VERIFICATION_REPO",
+                              os.path.join(os.path.dirname(__file__), "repository.jsonl"))
 
 
 def _git_commit():

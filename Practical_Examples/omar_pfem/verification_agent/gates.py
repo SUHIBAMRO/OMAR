@@ -77,6 +77,12 @@ def qoi_convergence_gate(hs, values, band_tol=0.01, gci_tol=0.05, scale=None):
     if e32 / e21 < 0:
         return {**out, "verdict": "FAIL",
                 "reason": "oscillatory: successive differences change sign"}
+    if abs(e21) >= abs(e32):
+        # successive differences not shrinking: the sequence is not in the
+        # asymptotic convergent range (e.g. a singular peak growing with
+        # refinement); Celik's |.| would report a spurious positive order
+        return {**out, "verdict": "FAIL", "increments_fine_to_coarse": [e21, e32],
+                "reason": "divergent: successive differences do not decrease"}
     r21, r32 = h2 / h1, h3 / h2
     p = _celik_order(f1, f2, f3, r21, r32)
     gci = 1.25 * abs((f1 - f2) / scale) / (r21 ** p - 1)

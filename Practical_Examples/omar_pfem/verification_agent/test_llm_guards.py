@@ -71,3 +71,12 @@ def test_advisor_omission_flagged():
     advice = {"per_qoi": [], "summary": "", "manuscript_wording": ""}
     assert R.audit_advice(advice, {"strain_energy": "PASS"}) == [
         "advisor omitted QoI 'strain_energy' (gate: PASS)"]
+
+
+def test_gate_flags_divergent_peak():
+    # B1 peak PK1 on N=11,21,41,81: increments grow with refinement
+    from omar_pfem.verification_agent import gates
+    g = gates.qoi_convergence_gate([0.1, 0.05, 0.025, 0.0125],
+                                   [9.33502, 11.0406, 13.3427, 16.28])
+    assert g["verdict"] == "FAIL" and g["reason"].startswith("divergent")
+    assert "richardson_extrapolate" not in g
