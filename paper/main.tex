@@ -47,10 +47,13 @@ used to solve a 1,962,801-node 2D problem in $23.68$~s at $17.1$~GB, down
 from $58.54$~s unoptimized. The approach is extended to a more demanding
 3D benchmark: a rocking rubber-mount bushing with a stress-concentrating
 groove. Displacement, strain energy, and reaction moment are reproduced
-accurately ($1.9\%$, $0.3\%$, and $3.0\%$ error), and, against the
-cheapest finite-element mesh matching its accuracy, the operator is
-589--739$\times$ faster per sample, with its training cost repaid within
-fewer than 1{,}900 solves. Against independent fine references, the
+accurately ($1.9\%$, $0.3\%$, and $3.0\%$ error against the
+finite-element solution on the same mesh; $2.8\%$, $5.3\%$, and $1.4\%$
+against an independent $950{,}400$-element reference), and, against the
+cheapest tested finite-element mesh matching its accuracy, the operator
+is up to $801\times$ (displacement, energy) and $2{,}055\times$
+(reaction moment) faster per sample, with its training cost repaid
+within fewer than 1{,}400 solves. Against independent fine references, the
 physics-informed operator is more accurate than data-driven operators of
 the same architecture on every global quantity in B3 and, in B1, at
 every inference resolution except a data-driven model's own label
@@ -2575,59 +2578,93 @@ energies require, without any tuning to satisfy it.
 \subsection{Accuracy-matched comparison and break-even}
 \label{sec:b3-breakeven}
 A genuinely matched accuracy comparison requires the operator's error to
-be measured against an independent fine reference, not
-the same mesh it trained on, which itself carries non-negligible
-discretization error. This fine reference ($43{,}400$ elements) was established independently,
-for this accuracy-matched comparison specifically, and is distinct from
-the reference used in the earlier mesh-convergence ladder: the
-$950{,}400$-element mesh -- the 13-point ladder's own finest row
-(Table~\ref{tab:b3-ladder}) -- independently confirmed converged there
-against the $839{,}040$-element row (the ladder's second-finest row,
-within $0.86\%$), and subsequently adopted as the common, downstream
-high-resolution reference used elsewhere in this section as well. The
-two references serve different purposes (a displacement, energy, and
-reaction accuracy baseline here, a mesh-convergence score and shared downstream
-reference there) and are not required to coincide. Ten held-out samples were re-solved at this
-$43{,}400$-element fine reference, and the same checkpoint
-queried zero-shot at that finer mesh's node positions, giving: displacement
-$2.03\%$, energy $2.30\%$ (pooled RMS), reaction moment $2.22\%$ (pooled
-RMS) -- all close to the training-resolution figures above, confirming the
-$6{,}840$-element training mesh was already reasonably converged for these
-three quantities. Table~\ref{tab:b3-breakeven} reports both a
-resolution-matched (same-$N$) break-even (operator and finite-element
-solver both at $6{,}840$ elements) and, for each of the three well-reproduced quantities,
-an accuracy-matched break-even against the cheapest finite-element mesh
-whose own error against the same fine reference is at least as good as the
-operator's, all computed against the operator's own measured inference
-cost at this production mesh ($\approx6.32$~ms per sample, batch size 1) -- not to
-be confused with the much larger $N{=}1401$ 2D-mesh inference cost
-reported elsewhere for the B1/B2 deployment-resolution study, which does
-not apply to B3's fixed 3D mesh.
+be measured against an independent fine reference, not against the
+finite-element solution on the same mesh it trained on, which itself
+carries discretization error. The reference used here is the
+$950{,}400$-element mesh, the finest row of the B3 mesh-convergence
+ladder (Table~\ref{tab:b3-ladder}), whose global quantities agree with
+the $839{,}040$-element row to within $0.5\%$. The figures quoted in the
+preceding subsections ($1.88\%$ displacement, $0.28\%$ energy, $2.99\%$
+reaction) measure the operator against the finite-element solution on
+its own $6{,}840$-element mesh, i.e.\ the operator's own error alone.
+Against the independent reference, which adds the training mesh's own
+discretization error, the operator's errors are $2.78\%$, $5.33\%$, and
+$1.38\%$ respectively (Section~\ref{sec:b3-pi-vs-dd}); these are the
+values the comparison below is matched to.
+
+Every ladder mesh was scored against the same reference on the same 10
+held-out samples (Table~\ref{tab:b3-fem-vs-ref}). For displacement and
+energy, the $6{,}840$-element training mesh is the cheapest tested mesh
+whose own error is at least as good as the operator's ($2.52\%$ and
+$3.88\%$, while the next coarser rung, $3{,}360$ elements, gives
+$3.70\%$ and $5.72\%$). For the reaction moment, the operator's $1.38\%$
+is matched only at $79{,}464$ elements ($0.96\%$); $43{,}400$ elements
+still gives $1.63\%$. Because only ladder rungs were tested, the true
+cheapest matching mesh lies between the last failing and the first
+passing rung, so each accuracy-matched speed-up below is an upper bound
+at the ladder's granularity.
+
+\begin{table}[h]
+\centering
+\caption{B3 finite-element discretization error against the independent
+  $950{,}400$-element reference, mean over 10 held-out samples. The
+  operator's own errors against the same reference are $2.78\%$
+  (displacement), $5.33\%$ (energy), and $1.38\%$ (reaction).}
+\label{tab:b3-fem-vs-ref}
+\small
+\begin{tabular}{rccc}
+\toprule
+Elements & Disp.\ $L^2$ & Energy & Reaction $M_y$ \\
+\midrule
+336      & $6.26\%$ & $15.69\%$ & $15.77\%$ \\
+1{,}320  & $3.56\%$ & $7.07\%$  & $7.13\%$ \\
+3{,}360  & $3.70\%$ & $5.72\%$  & $5.77\%$ \\
+6{,}840  & $2.52\%$ & $3.88\%$  & $3.92\%$ \\
+18{,}200 & $1.69\%$ & $2.31\%$  & $2.33\%$ \\
+43{,}400 & $1.32\%$ & $1.61\%$  & $1.63\%$ \\
+79{,}464 & $0.80\%$ & $0.95\%$  & $0.96\%$ \\
+201{,}780 & $0.40\%$ & $0.45\%$ & $0.46\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:b3-breakeven} reports both a resolution-matched (same-$N$)
+break-even (operator and finite-element solver both at $6{,}840$
+elements) and, for each of the three well-reproduced quantities, the
+accuracy-matched break-even against the cheapest matching ladder mesh,
+all computed against the operator's own measured inference cost at this
+production mesh ($\approx6.32$~ms per sample, batch size 1) -- not to be
+confused with the much larger $N{=}1401$ 2D-mesh inference cost reported
+elsewhere for the B1/B2 deployment-resolution study, which does not
+apply to B3's fixed 3D mesh. The break-even count is the one-off
+training cost ($6{,}980.3$~s) divided by the per-sample saving.
 
 \begin{table*}[ht]
 \centering
 \caption{B3 break-even analysis: resolution-matched (both methods at
-  6,840 elements) and accuracy-matched (cheapest FEM mesh matching the
-  operator's own accuracy against the 43,400-element fine reference).}
+  6,840 elements) and accuracy-matched (cheapest tested ladder mesh
+  matching the operator's own accuracy against the 950,400-element
+  reference, Table~\ref{tab:b3-fem-vs-ref}).}
 \label{tab:b3-breakeven}
 \small
 \begin{tabular}{lccccc}
 \toprule
-Comparison & Error & Matched mesh & FEM (ms) & Speed-up & Break-even \\
+Comparison & Operator error & Matched mesh & FEM (ms) & Speed-up & Break-even \\
 \midrule
-Resolution-matched       & --    & 6{,}840 el. & 5{,}060.4 & 800.7$\times$ & 1{,}381 \\
-Accuracy-matched: disp.  & 2.03\% & 3{,}240 el. & 4{,}083.9 & 646.2$\times$ & 1{,}712 \\
-Accuracy-matched: energy & 2.30\% & 600 el.     & 3{,}723.1 & 589.1$\times$ & 1{,}878 \\
-Accuracy-matched: react. & 2.22\% & 9{,}464 el. & 4{,}672.1 & 739.3$\times$ & 1{,}496 \\
+Resolution-matched        & --      & 6{,}840 el.  & 5{,}060.4  & 800.7$\times$   & 1{,}381 \\
+Accuracy-matched: disp.   & 2.78\%  & 6{,}840 el.  & 5{,}060.4  & 800.7$\times$   & 1{,}381 \\
+Accuracy-matched: energy  & 5.33\%  & 6{,}840 el.  & 5{,}060.4  & 800.7$\times$   & 1{,}381 \\
+Accuracy-matched: react.  & 1.38\%  & 79{,}464 el. & 12{,}986.8 & 2{,}054.9$\times$ & 538 \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-Even judged against the cheapest finite-element mesh that matches its own
-accuracy, not the full production mesh, the trained operator remains
-$589$--$739\times$ faster per sample and repays its one-off training cost
-($6{,}980.3$~s, under 2 GPU-hours) within fewer than $1{,}900$ solves, for
-every one of the three quantities of interest reproduced well.
+Judged against the cheapest tested finite-element mesh that matches its
+own accuracy, the trained operator is up to $801\times$ faster per
+sample for displacement and energy and up to $2{,}055\times$ for the
+reaction moment, and repays its one-off training cost ($6{,}980.3$~s,
+under 2 GPU-hours) within fewer than $1{,}400$ solves for every one of
+the three quantities of interest reproduced well.
 
 \subsection{Assembled+direct solver at B3: benchmark at relevant resolutions}
 \label{sec:b3-assembled-direct}
@@ -2858,9 +2895,10 @@ demanding 3D benchmark -- a rocking rubber-mount bushing with a
 stress-concentrating groove -- where it reproduces displacement ($1.9\%$),
 total strain energy ($0.3\%$), and reaction moment ($3.0\%$) accurately,
 and, judged against the cheapest finite-element mesh matching its own
-accuracy, remains $589$--$739\times$ faster per sample across all studied
-comparisons while repaying its training cost within fewer than $1{,}900$
-solves at most.
+accuracy (scored against an independent $950{,}400$-element reference),
+remains up to $801\times$ (displacement, energy) and $2{,}055\times$
+(reaction moment) faster per sample while repaying
+its training cost within fewer than $1{,}400$ solves.
 
 Alongside the operator, this study contributes three GPU-native
 finite-element solvers developed and benchmarked on the same hardware as

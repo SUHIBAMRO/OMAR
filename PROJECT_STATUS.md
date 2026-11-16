@@ -24983,3 +24983,8 @@ Before editing, checked his "PI beats DD consistently" claim against our own dat
 - Verified: installed TeX Live in the sandbox, full pdflatex+bibtex build -- 0 errors, 0 undefined references, 44 pages; changed pages (1, 23, 27, 28) rendered and read. The B3 break-even section (43,400-ref, 589-739x) was deliberately left unchanged -- not part of this request.
 
 Open: item (4) -- automated verification framework; waiting for the paper Timon attached (Omar needs to share it).
+
+**2026-11-16 (later): Omar approved fixing the two remaining manuscript inconsistencies ("طبعا بلش").**
+- B3 break-even (`sec:b3-breakeven`) rewritten against the 950,400-element reference (the basis of the V3 numbers Timon approved on 2026-11-06), replacing the old 43,400-reference 589-739x. New Table `tab:b3-fem-vs-ref` (ladder meshes vs 950,400, mean of the 10 cached samples, from Point 3). New `tab:b3-breakeven`: disp/energy matched at 6,840 el (800.7x, 1,381 solves), reaction at 79,464 el (2,054.9x, 538 solves); re-derived the arithmetic (6980.3/(5.0604-0.00632)=1381; 6980.3/(12.9868-0.00632)=538). Stated honestly that these are UPPER bounds at ladder granularity, since the true cheapest matching mesh lies between the last failing rung (3,360 / 43,400) and the first passing one.
+- Two-reference clarity: the section now says explicitly that 1.88/0.28/2.99% are vs the FEM solution on the operator's own mesh (operator error alone) and 2.78/5.33/1.38% are vs the independent 950,400 reference (adds the training mesh's discretization error). Abstract and Conclusion updated to give both and the new speed-up figures ("up to 801x disp/energy, 2,055x reaction; < 1,400 solves").
+- Rebuilt: 0 errors, 0 undefined refs, 44 pages; pages 1, 28, 29 rendered and read.
