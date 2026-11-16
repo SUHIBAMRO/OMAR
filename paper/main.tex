@@ -50,12 +50,18 @@ groove. Displacement, strain energy, and reaction moment are reproduced
 accurately ($1.9\%$, $0.3\%$, and $3.0\%$ error), and, against the
 cheapest finite-element mesh matching its accuracy, the operator is
 589--739$\times$ faster per sample, with its training cost repaid within
-fewer than 1{,}900 solves. The regional Cauchy-stress field near the
-groove is the one quantity that falls short: a training instability is
-resolved by an input-normalization fix, after which the error is traced
-partly to under-resolved background integration, and is halved by a local
-integration refinement, from $62\%$ to a 3-seed mean of $31\%\pm12\%$.
-The remaining gap is reported as an open limitation.
+fewer than 1{,}900 solves. Against independent fine references, the
+physics-informed operator is more accurate than data-driven operators of
+the same architecture on every global quantity in B3 and, in B1, at
+every inference resolution except a data-driven model's own label
+resolution, without needing labelled solves. The regional Cauchy stress at the groove is the
+one quantity that falls short: against a quadratic-element reference,
+neither physics-informed nor data-driven operators are adequate there
+(errors above $1{,}700\%$). The pointwise peak stress and stress
+concentration factor at the groove do not converge satisfactorily even
+under refined quadratic finite-element calculations, so they cannot
+currently serve for trustworthy surrogate validation; the
+region-averaged stress is stable and is reported instead.
 \end{abstract}
 
 \begin{keyword}
@@ -2032,8 +2038,10 @@ configuration, as above: the data-driven model, trained with AdamW and a
 one-cycle schedule, reaches both a lower validation error ($8.26\%$
 vs.\ $9.59\%$) and a lower total pre-inference cost ($1{,}747.0$~s
 vs.\ $2{,}873.8$~s, $1.64\times$ less) than the physics-informed model
-trained with plain Adam -- the data-driven route wins on accuracy and
-speed simultaneously once its label-generation step is costed on the same
+trained with plain Adam -- at the training resolution, the data-driven
+route wins on accuracy and speed simultaneously (the picture changes
+against an independent reference at other resolutions,
+Table~\ref{tab:b1-pi-vs-dd-fine} below) once its label-generation step is costed on the same
 GPU-native hardware the rest of this study's break-even figures already
 use, not on the slower CPU reference pipeline the labels were actually
 produced on for this experiment. The two checkpoints' inference cost is
@@ -2054,10 +2062,48 @@ used for B1's labels above, or the GPU-native assembled, direct solver
 this study develops for B3 itself (Section~\ref{sec:b3-assembled-direct})
 -- a first-order factor in the data-driven route's total cost, not a
 detail that training time eventually amortizes away as it does for B1.
-This study does not train a data-driven B3 checkpoint to test this
-directly; it is noted here as a natural extension of the finding above,
-where the label-generation-cost asymmetry this section identifies would
-be considerably larger and considerably more consequential than for B1.
+Data-driven B3 checkpoints were trained to test this directly
+(Section~\ref{sec:b3-pi-vs-dd}).
+
+The validation errors above are measured at the training resolution
+($N{=}21$) on held-out samples. Scored instead against the independent
+$N{=}2236$ fine reference ($\approx10^7$ degrees of freedom), with both
+checkpoints queried zero-shot at three resolutions other than the one
+they were trained on, the ranking is no longer mixed
+(Table~\ref{tab:b1-pi-vs-dd-fine}, mean of 5 seeds): the physics-informed
+operator is more accurate at every inference resolution, and its error
+\emph{decreases} as the inference mesh is refined, whereas the
+data-driven operator's does not. Two further data-driven models, with
+labels generated at $N{=}13$ and $N{=}33$ instead of $N{=}21$ (AdamW with
+a one-cycle schedule), show why: a data-driven operator is competitive
+only near its own label resolution. The $N{=}13$-label model is the
+single case that beats the physics-informed one ($6.54\%$ vs.\
+$8.55\%$, at $N{=}13$ inference) but degrades to $43.2\%$ and $71.3\%$
+at $N{=}29$ and $49$; the $N{=}33$-label model loses to the
+physics-informed operator at all three inference resolutions ($73.9\%$,
+$17.8\%$, $20.6\%$). The physics-informed operator has no label
+resolution to be tied to.
+
+\begin{table}[h]
+\centering
+\caption{B1$\times$Neo-Hookean, relative $L^2$ error against the
+  independent $N{=}2236$ reference, checkpoints queried zero-shot at
+  three inference resolutions (mean of 5 seeds). Data-driven: the
+  matched-optimizer checkpoint of Table~\ref{tab:pi-vs-dd}, labels at
+  $N{=}21$. The finite-element column is the discretization error of a
+  native solve at the same $N$.}
+\label{tab:b1-pi-vs-dd-fine}
+\small
+\begin{tabular}{lccc}
+\toprule
+Inference $N$ & FEM($N$) & Physics-informed & Data-driven \\
+\midrule
+13 & $0.54\%$ & $8.55\%$ & $15.80\%$ \\
+29 & $0.16\%$ & $5.10\%$ & $11.06\%$ \\
+49 & $0.07\%$ & $4.10\%$ & $23.43\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{figure}[htb]
 \centering
@@ -2404,9 +2450,54 @@ by the same variational argument any finite-element solver uses
 internally to report reactions, with the rocking moment $M_y$ obtained by
 summing the moment of each constrained node's reaction about the
 rotation axis. Both are well reproduced: mean relative error $0.28\%$ for
-strain energy and $2.99\%$ for the reaction moment (Table~\ref{tab:b3-global-before-after}).
+strain energy and $2.99\%$ for the reaction moment.
 
-\subsection{Regional Cauchy stress: metric methodology and local integration refinement}
+\subsection{Physics-informed vs.\ data-driven at B3}
+\label{sec:b3-pi-vs-dd}
+Five data-driven B3 checkpoints were trained on the same architecture and
+the same $6{,}840$-element mesh, fitted directly to finite-element
+displacement labels: three with $N{=}50$, $200$, and $400$ labelled
+samples, and two further variants at $N{=}200$ with a Sobolev
+(gradient-matching) term or a hybrid data-plus-energy loss. All five, and
+the physics-informed checkpoint, were scored against the independent
+$950{,}400$-element reference (the finest row of the B3 mesh-convergence
+ladder, Table~\ref{tab:b3-ladder}). Table~\ref{tab:b3-pi-vs-dd} compares
+the physics-informed checkpoint with, for each quantity separately, the
+single best value reached by \emph{any} of the five data-driven variants
+-- the most favourable possible number for the data-driven route on each
+quantity, not one fixed baseline.
+
+\begin{table}[h]
+\centering
+\caption{B3, physics-informed vs.\ the best data-driven variant per
+  quantity (best of $N{=}50/200/400$, Sobolev, hybrid), all against the
+  independent $950{,}400$-element reference.}
+\label{tab:b3-pi-vs-dd}
+\small
+\begin{tabular}{lcc}
+\toprule
+Quantity & Physics-informed & Best data-driven \\
+\midrule
+Displacement ($L^2$)  & $2.78\%$  & $2.81\%$ ($N{=}200$) \\
+$H^1$ semi-norm       & $12.30\%$ & $16.67\%$ (hybrid) \\
+Strain energy         & $5.33\%$  & $9.04\%$ (hybrid) \\
+Reaction moment       & $1.38\%$  & $4.78\%$ ($N{=}200$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The physics-informed operator is more accurate on all four quantities,
+even against each quantity's own best data-driven result, while needing
+no finite-element labels at all; the cheapest data-driven variant that
+comes close on displacement ($N{=}200$) still requires $200$
+finite-element solves ($825.8$~s) before training can begin. The same
+ranking holds for the regional stress in an equal-size control region
+away from the groove, where the finite-element reference itself is
+well converged: the physics-informed checkpoint and the
+local-integration-refinement checkpoints reach $13$--$17\%$, against
+$21$--$53\%$ for every data-driven variant.
+
+\subsection{Regional Cauchy stress at the groove}
 \label{sec:b3-stress}
 The Cauchy stress is obtained from the first Piola--Kirchhoff stress by
 the standard push-forward $\boldsymbol{\sigma} = J^{-1}\mathbf{P}\mathbf{F}^{\mathsf T}$.
@@ -2422,195 +2513,64 @@ the tensor relative field error over the $N_q$ region quadrature points is
   \label{eq:region-field-error}
 \end{equation}
 pooled across the validation set by summing numerator and denominator
-across samples before taking the square root (so a single ratio is
-reported, not an average of ratios), where $w_q$ are the quadrature
-weights and the Frobenius norm of the symmetric stress tensor double-counts
-the off-diagonal shear terms,
-$\lVert\boldsymbol{\sigma}\rVert_F^2 = \sigma_{xx}^2+\sigma_{yy}^2+\sigma_{zz}^2
-+2(\sigma_{xy}^2+\sigma_{yz}^2+\sigma_{xz}^2)$ -- the convention used
-throughout Table~\ref{tab:b3-stress}'s ``pooled Frobenius norm'' row.
+across samples before taking the square root, where $w_q$ are the
+quadrature weights. This volume-weighted tensor error cannot collapse to
+a near-zero denominator, unlike a naive relative error on the signed
+per-sample average of a single component, which tension and compression
+can cancel within the region.
 
-A naive relative error on the signed per-sample average of $\sigma_{xx}$
-within a fixed region near the groove gave an unusable $1{,}683.6\%$ mean
-error, traced to near-zero denominators when tension and compression
-partially cancel within the region for a given sample. Replacing it with a
-volume-weighted, quadrature-based full stress-\emph{tensor} relative field
-error (which cannot collapse to a near-zero denominator) gave $71.8\%$ mean
-/ $68.4\%$ median -- still far above a $5$--$10\%$ target, and computed from
-only 6 Gauss-quadrature points in the fixed region at the production
-resolution, below a reliable sample-count threshold.
+Because the region is centred on a sharp geometric feature, the reference
+itself must be trustworthy there before any operator can be scored
+against it. The groove region was therefore re-solved with quadratic
+(20-node) hexahedral elements, with midside nodes placed exactly on the
+curved inner and outer surfaces, on a $47{,}040$-element mesh
+($200{,}675$ nodes, $602{,}025$ degrees of freedom). Against this
+reference, every checkpoint -- the physics-informed operator, three
+local-integration-refinement variants (which refine the training-time
+background quadrature in the four elements touching the region), and all
+five data-driven variants -- shows a regional stress error above
+$1{,}700\%$ (range $1{,}745$--$5{,}448\%$ on the pooled field and
+$\sigma_{xx}$ errors). Neither training principle is adequate for this
+quantity of interest, and per-checkpoint or per-component detail at this
+error level is not informative, so none is given. The failure is
+local: the displacement error of the same checkpoints against the same
+reference stays at $2.5$--$8.7\%$.
 
-Two numerical-integration refinements were then tested, independently of
-the operator's own mesh discretization. On the \emph{evaluation} side
-(no retraining): torch-fem's shape-function evaluator accepts arbitrary
-local coordinates, so a finer internal Gauss--Legendre grid re-samples the
-same, already-known coarse-element displacement field at up to $994$
-region points (versus $6$ by default), with the $6{,}840$-element operator
-discretization completely unchanged (Table~\ref{tab:b3-quad-convergence}).
-The error stabilizes from $292$ region points onward (successive changes
-under $0.2\%$), settling at $62.2$--$62.3\%$ -- a real, converged gap, not
-an under-sampling artifact.
-
-\begin{table}[h]
-\centering
-\caption{Evaluation-side local-integration convergence (no retraining):
-  pooled Frobenius regional-stress error vs.\ refinement level, baseline
-  checkpoint.}
-\label{tab:b3-quad-convergence}
-\small
-\begin{tabular}{lccc}
-\toprule
-Points/axis & Region quad.\ pts & Pooled error & Change \\
-\midrule
-2  & 6   & $64.04\%$ & -- \\
-4  & 36  & $60.32\%$ & $5.81\%$ \\
-6  & 124 & $62.39\%$ & $3.44\%$ \\
-8  & 292 & $62.30\%$ & $0.14\%$ \\
-10 & 566 & $62.21\%$ & $0.15\%$ \\
-12 & 994 & $62.32\%$ & $0.18\%$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-This motivated a matching change on the \emph{training} side: the DEM
-background-integration quadrature was locally refined to
-$10\times10\times10$ points, for only the four elements (of $6{,}840$) that
-intersect the fixed region, with the operator's mesh, node count, and
-element count left otherwise unchanged. Retraining with this change for the
-same iteration budget ($7{,}627.5$~s, a separate training run from the
-baseline checkpoint used throughout this section) reduced the converged
-regional-stress error from $62.2$--$62.3\%$ to
-$29.7$--$29.9\%$ in this first training run (Table~\ref{tab:b3-stress}) --
-roughly halving it, and confirming that part of the original gap was
-attributable to under-resolved background integration rather than the
-network's own representational capacity. This local-integration-refinement
-checkpoint's own displacement, energy, and reaction accuracy were
-separately re-measured (Table~\ref{tab:b3-global-before-after}): the
-regional-stress improvement is not free. Combined displacement error rises
-from $1.88\%$ to $2.40\%$, driven mostly by $u_y$ ($16.16\%\to21.10\%$, the
-already least-accurate component getting proportionally worse still), and
-the pooled-RMS energy error roughly from $0.28\%$ to $0.42\%$; the reaction
-moment is the one quantity that does not degrade ($2.99\%\to2.72\%$).
-
-Because this entire comparison so far rests on a single trained
-checkpoint, two further independent local-integration-refinement training
-runs (seeds 2 and 3, identical configuration, only the weight-initialization
-seed differing) were trained to quantify how much of the above depends on
-training-seed luck rather than the method itself. The answer is a
-genuinely wide spread: across all 3 seeds, the converged regional-stress
-error ranges $16.95\%$--$47.33\%$ (mean $31.35\%\pm12.45\%$, standard
-deviation, i.e.\ roughly $40\%$ of the mean) -- the original run's
-$29.8\%$ turns out to sit almost exactly at the 3-seed mean, but the true
-range is far wider than a single run suggests. $u_y$ shows the same
-pattern (combined displacement $1.82\%\pm0.54\%$, $u_y$ specifically
-$14.64\%\pm6.23\%$); energy ($0.27\%\pm0.12\%$) and reaction
-($2.40\%\pm0.27\%$) are comparatively more stable relative to their own
-means. Table~\ref{tab:b3-global-before-after} reports the per-seed values
-and the resulting mean$\pm$std. This variance does not undermine the
-deformation-validity conclusion below, which is robust across all 3
-seeds, but it does mean the single-run $62\%\to29.8\%$ point estimate
-understates the true uncertainty in the regional-stress result, and
-should be read as mean$\pm$std, not as a fixed number.
-Table~\ref{tab:b3-breakeven}'s break-even analysis nonetheless uses the
-baseline checkpoint throughout and explicitly excludes regional stress,
-rather than mixing the two checkpoints' results together.
-
-\begin{table*}[ht]
-\centering
-\caption{Global QoIs, baseline (single run) vs.\ local-integration-refinement
-  (``LR'') checkpoint, per seed and mean$\pm$std across 3 independent
-  training runs (same 100-sample validation set, same config, only the
-  weight-init seed differs). Energy and reaction are pooled-RMS relative
-  error.}
-\label{tab:b3-global-before-after}
-\small
-\begin{tabular}{lccccc}
-\toprule
-Quantity & Baseline & LR seed 1 & LR seed 2 & LR seed 3 & LR mean$\pm$std \\
-\midrule
-$u_x$                   & $1.94\%$  & $2.52\%$  & $1.02\%$  & $2.06\%$  & $1.87\%\pm0.63\%$ \\
-$u_y$                   & $16.16\%$ & $21.10\%$ & $6.22\%$  & $16.59\%$ & $14.64\%\pm6.23\%$ \\
-$u_z$                   & $1.42\%$  & $1.74\%$  & $1.03\%$  & $1.45\%$  & $1.41\%\pm0.29\%$ \\
-Displacement (combined) & $1.88\%$  & $2.40\%$  & $1.10\%$  & $1.96\%$  & $1.82\%\pm0.54\%$ \\
-Energy                  & $0.28\%$  & $0.42\%$  & $0.115\%$ & $0.278\%$ & $0.27\%\pm0.12\%$ \\
-Reaction moment         & $2.99\%$  & $2.72\%$  & $2.06\%$  & $2.42\%$  & $2.40\%\pm0.27\%$ \\
-Regional stress (pooled)& $62.4\%$  & $29.8\%$  & $16.95\%$ & $47.33\%$ & $31.35\%\pm12.45\%$ \\
-\bottomrule
-\end{tabular}
-\end{table*}
+A second, independent question is whether the finite-element reference
+itself converges at this feature. Two summary statistics of the same
+region behave very differently under mesh refinement. The volume-averaged
+stress, $\langle|\sigma_{xx}|\rangle$, is stable: across eight quadratic
+resolutions from $2{,}376$ to $47{,}040$ elements it stays within
+$0.38$--$0.44$, without trend, and a pointwise comparison of the stress
+along the inner wall at the two finest resolutions of a consistent
+refinement family differs by at most $0.3$--$1.0\%$ inside the region.
+The pointwise peak, $\max|\sigma_{xx}|$, does not converge
+satisfactorily. Under global refinement it decreases across the first six resolutions
+($4.13$ to $0.706$) and then rises by $26\%$ at the seventh
+($0.891$ at $45{,}000$ elements); under local axial clustering toward
+the groove at a fixed $10{,}200$ quadratic elements it varies
+non-monotonically between $0.615$ and $0.826$; local axial clustering
+with linear elements likewise rises and then reverses; and combined
+radial and axial grading either inverts an element at the groove corner
+or fails to converge within a two-hour solve budget. The stress
+concentration factor, defined as the ratio of the groove peak to the
+no-groove nominal stress at the same point, inherits this behaviour.
+The pointwise peak stress and the stress concentration factor at this
+groove therefore cannot currently be used for trustworthy surrogate-model
+validation, independently of any operator's accuracy; the
+region-averaged stress is stable and is the form in which regional
+stress is reported here.
 
 A deformation-validity check ($J=\det\mathbf{F}$, over every element and
-Gauss point in the mesh, not only the fixed stress region) was also run
-for both checkpoints, across all 3 local-refinement seeds: the true FEM
-field itself has $\min J=0.801$, 1st percentile $0.977$, median $0.9999$,
-and zero points with $J\leq0$ across $5{,}472{,}000$ sampled points
-(identical across seeds, since it is the same ground truth every time);
-the baseline prediction matches this closely ($\min J=0.816$), and the
-3 local-refinement seeds' own predicted $\min J$ stays in a tight
-$0.803$--$0.817$ band ($0.809\pm0.006$) regardless of seed, with 1st
-percentile $0.977$ and zero points with $J\leq0$ in every one of the 3
-runs. Unlike the regional-stress result above, deformation validity is
-therefore robust to training-seed variation: every field evaluated, in
-every seed, is comfortably inside the physically valid,
+Gauss point in the mesh, not only the stress region) was also run. The
+true finite-element field has $\min J=0.801$, 1st percentile $0.977$,
+median $0.9999$, and zero points with $J\leq0$ across $5{,}472{,}000$
+sampled points; the physics-informed prediction matches this closely
+($\min J=0.816$), and the local-integration-refinement predictions stay
+within $\min J=0.803$--$0.817$ with zero points with $J\leq0$. Every
+predicted field is comfortably inside the physically valid,
 orientation-preserving domain the $\ln J$ terms in the constitutive
-energies require, by a wide margin, and without requiring any tuning to
-satisfy it.
-
-\begin{table*}[ht]
-\centering
-\caption{Regional Cauchy-stress accuracy, per component, before and after
-  local integration refinement during training ($n_{\text{sub}}{=}10$,
-  $566$ region quadrature points, 100-sample validation set, local-refinement
-  seed 1 of 3 -- see Table~\ref{tab:b3-global-before-after} for the
-  pooled Frobenius norm's full 3-seed range, $31.35\%\pm12.45\%$). The last
-  column is each component's own share of the pooled Frobenius-error
-  numerator (Eq.~\eqref{eq:region-field-error}, local-refinement model,
-  seed 1), reconstructed from the component RMS and relative-error
-  columns.}
-\label{tab:b3-stress}
-\small
-\begin{tabular}{lcccc}
-\toprule
-Component & True RMS & Baseline & Local refinement & Contribution \\
-\midrule
-$\sigma_{xx}$ & 14.02 & 67.0\% & 32.2\% & $30.1\%$ \\
-$\sigma_{yy}$ & 14.94 & 63.1\% & 29.9\% & $29.4\%$ \\
-$\sigma_{zz}$ & 18.24 & 59.6\% & 28.4\% & $39.6\%$ \\
-$\sigma_{xy}$ & 0.113 & 42.9\% & 100.9\% & $0.04\%$ \\
-$\sigma_{yz}$ & 0.205 & 33.7\% & 43.1\% & $0.02\%$ \\
-$\sigma_{xz}$ & 2.603 & 28.7\% & 21.0\% & $0.88\%$ \\
-\midrule
-Pooled Frobenius norm & -- & 62.4\% & 29.8\% & $100\%$ \\
-\bottomrule
-\end{tabular}
-\end{table*}
-
-Despite $\sigma_{xy}$'s relative error rising to $100.9\%$ after local
-refinement, its contribution to the pooled numerator is $0.04\%$ -- three
-orders of magnitude below the three normal stresses -- because its own
-true magnitude is two orders of magnitude smaller; the apparent
-regression in that one component cannot be moving the pooled $29.8\%$
-figure in any material way. The three large-magnitude normal stresses,
-which together account for $99\%$ of the pooled Frobenius norm, all
-improve by roughly half; the two smallest-magnitude
-shear components ($\sigma_{xy}$, $\sigma_{yz}$) instead worsen in relative
-terms, consistent with their values being close to zero and sign-changing
-within the region, while not meaningfully moving the pooled metric. The
-remaining $29.8\%$ gap (seed 1; $31.35\%\pm12.45\%$ across all 3 seeds,
-Table~\ref{tab:b3-global-before-after}) is reported here as an open
-limitation, discussed further below, not a fully resolved result.
-
-The baseline checkpoint above -- which supplies the displacement/energy/
-reaction/break-even figures used throughout this section
-except where the 3-seed local-integration-refinement range is explicitly
-cited -- comes from a single training run (one weight-initialization
-seed); its own training-seed-to-seed variability has not been quantified
-and is reported here as a limitation of the present study, not as a claim
-that its specific numbers are seed-independent. The
-local-integration-refinement checkpoint's own seed variability, by
-contrast, has now been directly measured (3 independent seeds,
-Table~\ref{tab:b3-global-before-after}) and is substantial for regional
-stress and $u_y$ specifically, as discussed above.
+energies require, without any tuning to satisfy it.
 
 \subsection{Accuracy-matched comparison and break-even}
 \label{sec:b3-breakeven}
@@ -2869,13 +2829,19 @@ field it is trained to minimize energy over.
 
 B3's regional Cauchy-stress result extends
 this picture to a genuinely 3D, geometrically localized quantity of
-interest. Local integration refinement -- applied only to the handful of
-elements touching a region that matters, independently of the operator's
-own discretization -- recovers roughly half of the gap, directly confirming
-that the region's background numerical integration, not only the network's
-representational capacity, was a real contributor to the original error.
-The remaining $29.8\%$ gap, still above a $5$--$10\%$ practical target, is
-reported here as an open limitation rather than a resolved result.
+interest, and adds a second, more basic qualification. Against a
+quadratic-element reference, no operator variant tested -- physics-informed,
+local-integration-refined, or data-driven -- is adequate at the groove,
+with errors above $1{,}700\%$. More fundamentally, the pointwise peak
+stress and the stress concentration factor there do not converge
+satisfactorily under any of four refinement strategies applied to the
+finite-element reference itself, so this quantity cannot currently serve
+as a validation target for any surrogate model, however accurate. The
+region-averaged stress, by contrast, is stable across every refinement
+tested. Choosing quantities of interest whose reference values are
+themselves verifiably converged is therefore a precondition for
+trustworthy surrogate validation, not a detail; automating that check is
+a natural next step.
 
 \FloatBarrier
 \section{Conclusion}
@@ -2922,13 +2888,14 @@ a single network generalizes well across nearby, unseen resolutions, but
 a deployment resolution far outside the training range requires a
 training set whose resolutions already span toward it, not merely a larger
 optimization budget. Third, a quantity of interest that is both
-geometrically localized and derivative-based -- here, regional Cauchy
-stress near a stress concentrator -- can suffer from a confounded,
-separable deficiency: this paper shows that refining the DEM background
-integration in the region of interest, independently of the operator's own
-discretization, recovers roughly half of a large initial error, but closing
-the remainder is left as an open problem with several concrete candidate
-directions identified above. Fourth, the manufactured-solution study
+geometrically localized and derivative-based -- here, stress at a sharp
+groove -- can fail on two levels at once: no operator variant tested,
+physics-informed or data-driven, is adequate there (errors above
+$1{,}700\%$), and the pointwise peak stress and stress concentration
+factor do not converge satisfactorily even in refined quadratic
+finite-element calculations, so they cannot currently be used for
+trustworthy surrogate validation; the region-averaged stress is stable
+and remains reportable. Fourth, the manufactured-solution study
 shows that refining the operator's own spatial integration discretization
 is not uniformly beneficial at fixed training budget -- family-mean
 displacement and energy error both worsen, not improve, from $N{=}9$ to
