@@ -334,7 +334,10 @@ sample (mean $0.0504$, standard deviation $0.0184$) rather than a spatial
 field, since the load here is a rigid-body rotation amplitude rather than a
 distributed pressure. The geometry itself (groove depth/half-width,
 $R_{\text{in}}$, $R_{\text{out}}$, $L_z$) is held fixed across every sample,
-as in B1/B2.
+as in B1/B2. Because the rocking rotation is about the $y$-axis, the
+problem is symmetric about the $y{=}0$ plane, and only the half-domain
+$\theta\in[0,\pi]$ is modelled, with a symmetry condition
+($u_y{=}0$) on that plane.
 
 This grooved design (``B3'') was carried to a full GPU mesh-convergence
 study on the regional Cauchy-stress field-error metric used throughout
@@ -373,9 +376,13 @@ for the handful of elements touching the stress region of interest, a
 distinct, mesh-independent change discussed there.) An independent
 Newton\mbox{--}Raphson Total-Lagrangian finite-element
 solver (built on torch-fem~\cite{meyer2024torchfem}) generates the
-ground-truth samples used only for validation. All GPU experiments in
+ground-truth samples, used for validation of the physics-informed
+operators and as training labels only for the data-driven baselines. All GPU experiments in
 this study (training, the GPU-native solver, and the evaluation scripts)
-run on a single NVIDIA A100 (80~GB) via Google Colab; library versions
+run on a single NVIDIA A100 (80~GB) via Google Colab, except the later
+B3 independent-reference evaluations and data-driven B3 training, which
+ran on a university HPC cluster, and the quadratic-element groove
+reference solves (Section~\ref{sec:b3-stress}), which ran on CPU; library versions
 (PyTorch, torch-fem, JAX) were not pinned and reflect whatever was
 current on PyPI at the time each experiment ran, consistent with the
 unpinned-dependency practice followed throughout this study.
@@ -728,9 +735,9 @@ The neural operator used throughout is Transolver~\cite{wu2024transolver}, a
 physics-attention transformer for learning solution operators on irregular
 meshes. For each mesh node $i$, the input is the reference coordinate
 $\mathbf{x}_i \in \mathbb{R}^d$ together with a material/loading feature
-vector $\mathbf{f}_i$ (the local $(E,\nu)$ pair, plus the scalar loading
-value for B1/B2 or the scalar rocking angle $\phi$, broadcast to every node,
-for B3); the network predicts the corresponding nodal displacement
+vector $\mathbf{f}_i$ (the local $(E,\nu)$ pair, plus the nodal load
+components $(f_x,f_y)$ for B1/B2, or the scalar rocking angle $\phi$,
+broadcast to every node, for B3; Table~\ref{tab:hyperparams}); the network predicts the corresponding nodal displacement
 $\mathbf{u}_\theta(\mathbf{x}_i,\mathbf{f}_i)$, with $\theta$ its trainable
 parameters. The same architecture and hyperparameter configuration are used
 for both B1 and B2; B3 uses the same architecture with $d{=}3$ input/output
@@ -1412,15 +1419,15 @@ combinations at the $k{=}3\sigma$ endpoint, shows the pattern holding
 without exception: shifting the loading magnitude alone produces at most
 mild degradation ($0.81$--$1.35\times$), while shifting the material
 stiffness alone is the dominant driver in every case ($2.27$--$5.90\times$),
-an order of magnitude worse than the corresponding loading shift
+far larger than the corresponding loading shift
 throughout; the two shifts do not compound, with the combined column
-below the material-only column in five of six cases. Material sensitivity
-is itself material-dependent: Mooney-Rivlin is the most fragile of the
-three materials on both geometries ($4.71\times$ on B1, $5.47\times$ on
-B2), and Arruda-Boyce is consistently the most robust ($4.85\times$ on
-B1, only $2.27\times$ on B2 -- the mildest material-shift degradation
-measured anywhere in this study, though still an order of magnitude
-above the loading-only values above). Table~\ref{tab:ood-isolation}
+below the material-only column in four of six cases. Material sensitivity
+is itself material-dependent, and the ranking differs between the two
+geometries: on B1, Neo-Hookean is the most fragile ($5.90\times$) and
+Mooney-Rivlin the least ($4.71\times$); on B2, Mooney-Rivlin is the most
+fragile ($5.47\times$) and Arruda-Boyce the least ($2.27\times$, the
+mildest material-shift degradation measured anywhere in this study,
+though still well above the loading-only values above). Table~\ref{tab:ood-isolation}
 reports the full per-case
 breakdown at $k{=}3\sigma$.
 
@@ -1541,8 +1548,10 @@ error, on every mesh; insensitivity and invariance are indistinguishable
 in that column, and flatness of the error across resolutions is not, on
 its own, evidence of genuine resolution generalization.
 Table~\ref{tab:b2-zeroshot} reports the complete per-material breakdown:
-Mooney-Rivlin is consistently the most accurate of the three materials
-across the sweep and Arruda-Boyce the least, but all three share the same
+Mooney-Rivlin is the most accurate of the three materials on the coarser
+unseen meshes ($N{=}13$--$25$) and Neo-Hookean on the finer ones
+($N{=}29$--$49$), with Arruda-Boyce the least accurate at six of the
+seven resolutions, but all three share the same
 qualitative U-shape (best accuracy in the middle of the resolution range,
 degrading toward both the coarsest and finest unseen meshes), confirming
 the pattern above is not specific to Neo-Hookean.
@@ -1571,7 +1580,9 @@ $N$ & Nodes & NH & MR & AB \\
 
 Placing the operator and the finite-element solver on a single
 accuracy-cost plot (both methods scored against the same common $N{=}101$
-reference, on the same 20 problem instances) settles that the two methods
+reference, on the same 20 problem instances, in the combined norm
+$\|\mathbf{e}\|/\|\mathbf{u}\|$ rather than
+Table~\ref{tab:b1-zeroshot}'s per-component mean) settles that the two methods
 do not compete on accuracy at all: the finite-element solver at its
 coarsest setting ($N{=}13$, 169 nodes, 8.9~s) reaches $0.608\%$, already
 $6.1\times$ more accurate than the operator at its best ($3.69\%$ at
@@ -1592,7 +1603,8 @@ B1$\times$Neo-Hookean is used above as a worked example; the same
 per-quantity required-resolution analysis was repeated for the remaining
 five cases (Table~\ref{tab:required-n}), reporting, for each quantity of
 interest and each case, the coarsest finite-element mesh reaching $5\%$
-relative error against the common $N{=}101$ reference. In every one of
+relative error against an $N{=}201$ fine reference solved on the same
+field realization (Appendix~\ref{app:b}). In every one of
 the six cases, the $H^1$ semi-norm is the binding (hardest to satisfy)
 quantity, requiring a substantially finer mesh than displacement, energy,
 or the reaction/region-stress quantities -- the same derivative-based-norms-
@@ -1603,7 +1615,7 @@ statistics there.
 \begin{table}[h]
 \centering
 \caption{Coarsest finite-element mesh reaching $5\%$ relative error (vs.\
-  the common $N{=}101$ reference), per quantity of interest, all six
+  an $N{=}201$ fine reference), per quantity of interest, all six
   cases. This sweep does not define a single reaction-resultant metric
   for B2 (unlike B1's single fully-fixed edge, B2's two symmetry edges
   each constrain only one component, so there is no one natural scalar
@@ -1722,7 +1734,8 @@ dominates consecutive optimizer steps, and the early-stopping validation
 score is an unweighted mean of the four resolutions' own validation
 errors (each resolution contributes equally regardless of its own sample
 count). A direct-$N{=}1401$-training ablation (no zero-shot
-generalization required) is cheaper to train ($21\%$ less GPU time) but
+generalization required) is cheaper to train ($30\%$ less GPU time,
+$8.19$ vs.\ $11.63$~h, Table~\ref{tab:d3}) but
 $6.3\times$ \emph{less} accurate ($36.65\%$), confirming that generalizing
 zero-shot from a well-chosen multi-resolution training set outperforms
 direct training at the target resolution for this architecture and
@@ -1911,10 +1924,11 @@ B2 $\times$ AB & 10.47 & 13.30 & 11.99 & 13.32 & 5.99  & 6.26/7.17 \\
 \end{table*}
 
 A
-displacement error quoted alone is therefore a lower bound on what a
-downstream engineering quantity would see, not a reliable predictor of
-it: across the quantities measured here that ratio spans $0.45\times$ to
-$4.06\times$.
+displacement error quoted alone is therefore not a reliable predictor of
+what a downstream engineering quantity would see: across the quantities
+measured here, the ratio of a quantity's error to the displacement error
+spans $0.45\times$ (B1 reaction resultant) to $4.06\times$ (B1 peak
+stress).
 
 \begin{figure*}[htb]
 \centering
@@ -2044,7 +2058,7 @@ data-driven approach requires the slower pipeline. This reversal is specific to 
 finite-element label generation is itself cheap relative to training.
 B3 is the opposite case: its own native finite-element solve is far more
 costly per sample than B1's (Section~\ref{sec:b3-breakeven}), so a
-hypothetical data-driven B3 study would make the choice of finite-element
+data-driven B3 study makes the choice of finite-element
 implementation used to generate its labels -- the same native CPU solver
 used for B1's labels above, or the GPU-native assembled, direct solver
 this study develops for B3 itself (Section~\ref{sec:b3-assembled-direct})
@@ -2398,7 +2412,9 @@ One 100-sample set, disjoint from training by seed, is used throughout
 this section for every checkpoint comparison and methodology decision
 below (the input-normalization fix, the evaluation-side and
 training-side integration refinements, and the accuracy-matched
-comparison below); it therefore functions as a validation set in the
+comparison below; comparisons against the independent fine references
+use its first 10 samples, since each reference sample requires a large
+finite-element solve); it therefore functions as a validation set in the
 conventional sense, not a
 test set consulted only once, and the accuracy figures reported should be
 read accordingly. An initial training run, with the raw
@@ -2815,9 +2831,8 @@ is meaningfully more or less robust than the other under this test. The
 resolution-generalization study and the
 reference-solver mesh-convergence study described earlier
 address complementary halves of the same underlying concern about the
-fixed operating mesh used throughout this study: the finite-element
-reference itself is already well converged there, so the ground truth used
-throughout is trustworthy, while the operator trained and evaluated at
+fixed B1/B2 operating mesh: the finite-element reference itself is
+already well converged there, so the 2D ground truth is trustworthy, while the operator trained and evaluated at
 that same resolution sits within a band that is representative of a wide
 range of nearby resolutions, rather than being a fortunate one-off result
 at a single arbitrary mesh size. The zero-shot resolution-generalization study
@@ -2878,8 +2893,11 @@ and an inference cost three to four orders of magnitude below a native
 solve thereafter. The same approach extends to a substantially more
 demanding 3D benchmark -- a rocking rubber-mount bushing with a
 stress-concentrating groove -- where it reproduces displacement ($1.9\%$),
-total strain energy ($0.3\%$), and reaction moment ($3.0\%$) accurately,
-and, judged against the cheapest finite-element mesh matching its own
+total strain energy ($0.3\%$), and reaction moment ($3.0\%$) accurately
+against the finite-element solution on its own mesh ($2.8\%$, $5.3\%$,
+$1.4\%$ against an independent $950{,}400$-element reference), is more
+accurate than data-driven operators of the same architecture on every
+global quantity, and, judged against the cheapest finite-element mesh matching its own
 accuracy (scored against an independent $950{,}400$-element reference),
 remains up to $801\times$ (displacement, energy) and $2{,}055\times$
 (reaction moment) faster per sample while repaying
@@ -2896,7 +2914,7 @@ $1{,}962{,}801$-node reference problem (from $58.54$~s unoptimized) --
 the baseline every break-even figure above is judged against most
 strictly.
 
-Three further findings qualify the operator's own result and point to
+Four further findings qualify the operator's own result and point to
 concrete future work.
 First, derived physical quantities (stress, energy norms, gradients) are
 systematically harder to reproduce than displacement itself, and a trained
@@ -3996,8 +4014,8 @@ B2$\times$AB (original, no retrain) & 21,33     & 400 & 2{,}200 & 220{,}000 & 2.
 
 The direct-$N{=}1401$ run's $294.85$~s/sample is an order of magnitude
 above every multi-resolution run's own per-sample cost ($3.95$--$33.31$~s),
-not just the $21\%$ difference the B1$\times$NH-specific comparison
-quotes -- that $21\%$ figure compares total training wall-clock for that
+not just the $30\%$ difference the B1$\times$NH-specific comparison
+quotes -- that $30\%$ figure compares total training wall-clock for that
 one case (direct: $8.19$~h vs.\ multi-res: $11.63$~h), not per-sample
 cost, since the direct run uses far fewer total samples.
 

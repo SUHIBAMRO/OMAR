@@ -24991,3 +24991,35 @@ Open: item (4) -- automated verification framework; waiting for the paper Timon 
 
 **2026-11-16 (final pass, Omar asked "is it fine now, no problems?"):** a last grep for regional-stress claims found one more real contradiction: the B3 mesh-ladder discussion (Section 3, ~line 598) still claimed the groove-region stress CONVERGES on the linear ladder (0.86% between 839,040 and 950,400, "genuinely converged"). That figure came from a single deterministic load case and an older region-metric version; the 2026-11-08 re-check on the 10 random held-out samples with the current metric gives 274% between the same two meshes (global QoIs within 0.5%; interpolation-artifact test 0.8%). Rewrote the paragraph and the Table `tab:b3-ladder` caption: the ladder establishes convergence of global quantities only; groove stress is not converged on the linear meshes, pointer to `sec:b3-stress`. Also qualified the "5-10% regional-stress band taken as sufficient" sentence in the B3 geometry section. Rebuilt: 0 errors, 0 undefined refs, 45 pages; pages 6-7 rendered and read.
 Not done: a full end-to-end read of all 45 pages; sections not touched in this round (B1/B2, MMS, OOD, appendices) were not re-audited.
+
+**2026-11-16: full end-to-end read of `paper/main.tex` (all ~4,000 lines, Omar's request "اعمل قراءة كاملة للورقة كلها").** Every claim checked against the paper's own tables, the code, or this log.
+
+FIXED (verifiable from the paper's own tables / code / log):
+1. OOD isolation: "combined below material-only in five of six" -> four of six (B1xMR 6.03>4.71, B2xAB 2.68>2.27).
+2. OOD material ranking was wrong for B1: "MR most fragile on both geometries, AB most robust" -> B1: NH most fragile (5.90), MR least (4.71); B2: MR most (5.47), AB least (2.27). "an order of magnitude worse" -> "far larger".
+3. B2 zero-shot: "MR consistently most accurate, AB least" -> MR best at N=13-25, NH best at N=29-49, AB worst at 6 of 7.
+4. "displacement error is a lower bound ... ratio 0.45x-4.06x" contradicted itself (0.45<1) -> "not a reliable predictor".
+5. Conclusion "Three further findings" listed four -> "Four".
+6. Required-N table and its text said "common N=101 reference"; the numbers are identical to Appendix B's tables, which (and the code, run_qoi_study_consistent_field_*) use fine_N=201 -> N=201.
+7. Direct-N1401 vs multi-res training: "21% less GPU time" contradicts Table d3 (8.19 vs 11.63 h = 30%) in both main text and appendix -> 30%.
+8. Accuracy-cost plot's operator best "3.69% at N=37" vs Table b1-zeroshot's 5.25% at N=37: different metric (combined both_components vs per-component mean, per log line ~13655) -> stated in text.
+9. B3 is a half-ring model (theta in [0,pi], u_y=0 symmetry on y=0; confirmed in data_generate_B3.py) -- never stated in the geometry section -> added.
+10. "ground-truth samples used only for validation" -> also DD training labels.
+11. "All GPU experiments on A100 via Colab" -> plus HPC cluster (B3 independent-reference evals, DD B3 training) and CPU (Q20 groove reference).
+12. "One 100-sample set used for every checkpoint comparison" -> fine-reference comparisons use its first 10 samples.
+13. "a hypothetical data-driven B3 study" -> no longer hypothetical.
+14. Conclusion B3 sentence gave only own-mesh errors next to a 950,400-based speed-up -> now gives both, plus the B3 PI>DD statement (mirrors abstract).
+15. Discussion "ground truth used throughout is trustworthy" -> scoped to B1/B2 (B3 groove is not).
+16. Architecture text "scalar loading value for B1/B2" vs Table hyperparams fun_dim=4 (E,nu,fx,fy) -> (f_x,f_y).
+Rebuilt: 0 errors, 0 undefined refs, 45 pages; changed pages rendered.
+
+NOT CHANGED -- need investigation or Omar/Timon's decision:
+A. B1 DD label-resolution: two studies in the paper disagree badly. Table dd-coarse-fine (vs N=101, per-component): N=33-label model at N=13 = 13.72%. Point 5 Part B (vs N=2236, AdamW): same setup = 73.89%. Different checkpoints/optimizer/metric/reference, but the gap is too large to explain by metric alone. One of them needs re-checking before submission; the abstract's "except a DD model's own label resolution" rests on Part B.
+B. Patience robustness check: patience 8 gives 9.734% best at epoch 375, but Table final-results (same case, "patience used for every result") gives 9.59% at epoch 550, and the text claims "same seed".
+C. Dataset table: B1/B2 held-out/validation = 50, but Point 5 Part A found the Table-21 B1 runs used ntest=200.
+D. Q9 rates on B1 (L2 1.57, H1 0.76) are far below theory (3, 2) yet the text says "converges faster ... as expected from FE theory"; likely corner-singularity-limited regularity -- reviewer risk, wording needs an author decision.
+E. Arruda-Boyce "reproduces the target shear modulus to within a few percent": computing the initial shear modulus from the 5-term series with lambda_m^2=5 in 2D gives ~9% stiffer (3D ~15%). Worth confirming before submission.
+F. Phi statistics: geometry section says mean 0.0504/std 0.0184; data section says N(0.05, 0.02^2) clipped to [0.01,0.15] -- probably realized vs nominal, not stated.
+G. Table d3 lists a B2xNH multi-resolution retrain (10.99 h) but Table multires-n1401 has no B2xNH row.
+H. B3 break-even FEM time 12,986.8 ms came from an HPC run whose GPU is not recorded; it is consistent with the A100 ladder timing (13.52 s at 79,464), so probably fine.
+I. Pre-submission admin: TODO comment on author list (line 24); Funding statement ("no specific grant"); Data availability says github.com/suhibamro/omar is public -- confirm it is public before submission.
