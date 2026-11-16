@@ -159,6 +159,25 @@ def orchestrate(backend, problem_text, log=print):
         plan, perrs = R.propose(backend, spec_d, neigh + [{"revise_previous_plan": feedback}])
         perrs = perrs + trees.plan_rule_errors(plan, spec_d)
         crit = R.critique(backend, spec_d, plan) if not perrs else None
+    # Rules are authoritative: if the only remaining problems are checks the
+    # rules require but the LLM left out, add them (catalogue defaults) and
+    # record the augmentation, instead of discarding the whole plan.
+    rule_only = perrs and all(e.startswith("rules ") for e in perrs)
+    if rule_only:
+        base = {c["check"]: c for c in baseline["checks"]}
+        need = trees.apply_rules(spec_d)
+        added = []
+        for q, r in need.items():
+            have = {c["check"] for c in plan["checks"] if q in c["qois"]}
+            for chk in r["required"]:
+                if chk not in have:
+                    plan["checks"].append({"check": chk, "qois": [q],
+                                           "params": dict(base[chk]["params"]),
+                                           "rationale": f"added by rules {r['rules']}"})
+                    added.append(f"{chk}:{q}")
+        trace["rule_augmented"] = added
+        log(f"[rules] plan augmented with required checks the LLM omitted: {added}")
+        perrs = R.validate_plan(plan, spec_d["qois"]) + trees.plan_rule_errors(plan, spec_d)
     trace.update(plan=plan, plan_errors=perrs, critique=crit)
     if perrs:
         log(f"[guard] plan rejected after revision: {perrs}")
