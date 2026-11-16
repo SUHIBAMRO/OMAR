@@ -143,5 +143,22 @@
   "v_top_off_center": -0.005769634010131171,
   "u_mid_domain": -0.0005845681692897264,
   "v_mid_domain": -0.003076111870099024
+ },
+ {
+  "N": 81,
+  "grading": 0.8,
+  "h": 0.0125,
+  "n_dof": 13122,
+  "min_elem_size": 0.002502570011307423,
+  "wall_clock_s": 233.4920256137848,
+  "max_disp_mag": 0.005966773696048932,
+  "strain_energy": 0.017715817495011856,
+  "peak_PK1_frob": 26.08252460383896,
+  "interior_avg_PK1_frob": 6.6207066226982425,
+  "interior_region_gauss_points": 700,
+  "u_top_off_center": 0.00046998321490332754,
+  "v_top_off_center": -0.0057708752189011385,
+  "u_mid_domain": -0.0005846349419031324,
+  "v_mid_domain": -0.003076681668199504
  }
 ]
