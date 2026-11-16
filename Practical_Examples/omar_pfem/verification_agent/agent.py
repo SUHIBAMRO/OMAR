@@ -161,13 +161,19 @@ def cmd_orchestrate(args):
     from omar_pfem.verification_agent.orchestrate import orchestrate
     text = open(args.problem).read() if os.path.exists(args.problem) else args.problem
     backend = llm_roles.make_backend(args.backend, args.replay)
-    trace = orchestrate(backend, text)
-    if hasattr(backend, "cost_usd"):
-        trace["llm_calls"], trace["llm_cost_usd"] = backend.calls, backend.cost_usd
-        print(f"LLM calls: {len(backend.calls)}, cost ${backend.cost_usd:.2f}")
-    if args.trace_out:
-        json.dump(trace, open(args.trace_out, "w"), indent=1)
-        print(f"trace -> {args.trace_out}")
+    trace = {}
+    try:
+        orchestrate(backend, text, trace=trace)
+    except Exception as e:
+        trace["error"] = f"{type(e).__name__}: {e}"
+        raise
+    finally:
+        if hasattr(backend, "cost_usd"):
+            trace["llm_calls"], trace["llm_cost_usd"] = backend.calls, backend.cost_usd
+            print(f"LLM calls: {len(backend.calls)}, cost ${backend.cost_usd:.2f}")
+        if args.trace_out:
+            json.dump(trace, open(args.trace_out, "w"), indent=1)
+            print(f"trace -> {args.trace_out}")
 
 
 DEFAULT_SPECS = {

@@ -109,8 +109,11 @@ def run_check(adapter, check, qoi, params):
     raise ValueError(check)
 
 
-def orchestrate(backend, problem_text, log=print):
-    trace = {"problem_text": problem_text}
+def orchestrate(backend, problem_text, log=print, trace=None):
+    """`trace` (a dict) is filled in place, so a caller can save it even if
+    a later step raises."""
+    trace = {} if trace is None else trace
+    trace["problem_text"] = problem_text
 
     # 1. formalize
     vocab = "\n".join(f"- geometry '{g}': {d}\n  available QoIs: {list(q)}"
@@ -178,6 +181,9 @@ def orchestrate(backend, problem_text, log=print):
         trace["rule_augmented"] = added
         log(f"[rules] plan augmented with required checks the LLM omitted: {added}")
         perrs = R.validate_plan(plan, spec_d["qois"]) + trees.plan_rule_errors(plan, spec_d)
+    if not perrs and crit is None:
+        # the final plan has not been reviewed yet (e.g. after augmentation)
+        crit = R.critique(backend, spec_d, plan)
     trace.update(plan=plan, plan_errors=perrs, critique=crit)
     if perrs:
         log(f"[guard] plan rejected after revision: {perrs}")

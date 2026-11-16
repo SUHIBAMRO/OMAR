@@ -156,3 +156,27 @@ def test_adaptive_respects_budget():
                                    log=lambda *a: None)
     assert res["stop"].startswith("budget")
     assert res["decisions"]["slow"]["verdict"] == "INCONCLUSIVE"
+
+
+# ---- end-to-end, offline: plan omits rule-required checks -> augmented ----
+
+def test_orchestrate_replay_augments_and_reviews(tmp_path):
+    import json, os, subprocess, sys
+    here = os.path.dirname(os.path.abspath(__file__))
+    repo = tmp_path / "repo.jsonl"
+    out = tmp_path / "trace.json"
+    env = {**os.environ, "VERIFICATION_REPO": str(repo)}
+    subprocess.run([sys.executable, "-m", "omar_pfem.verification_agent.agent", "orchestrate",
+                    "--backend", "replay", "--replay",
+                    os.path.join(here, "fixtures", "replay_b1_example.json"),
+                    "--problem", "B1 test", "--trace_out", str(out)],
+                   cwd=os.path.dirname(os.path.dirname(here)), env=env, check=True,
+                   capture_output=True)
+    t = json.load(open(out))
+    assert "error" not in t
+    assert sorted(t["rule_augmented"]) == ["strategy_robustness:interior_avg_PK1_frob",
+                                           "strategy_robustness:peak_PK1_frob"]
+    assert t["critique"] is not None
+    assert t["gate_summary"]["peak_PK1_frob"]["verdict"] == "FAIL"
+    assert t["gate_summary"]["strain_energy"]["verdict"] == "PASS"
+    assert t["advisor_flags"] == ["advisor says PASS for 'peak_PK1_frob' but the gate says FAIL"]
