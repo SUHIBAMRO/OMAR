@@ -1,12 +1,15 @@
-"""Verification agent, first prototype (deterministic core, no LLM).
+"""Verification agent: deterministic core plus an optional LLM layer.
 
-Two tasks, both writing to the solved-case repository:
+Tasks, all writing to the solved-case repository:
 
   mms       solve a manufactured-solution case on a mesh sequence and
             PASS/FAIL it on observed vs. theoretical convergence rates.
   replay-b3 judge the already-computed B3 groove-region QoIs (quadratic
             reference) with the QoI-convergence and strategy-robustness
             gates, deciding which QoIs may serve as validation targets.
+  b1-ladder solve B1 on N=11..81 and gate global/pointwise/peak/average QoIs.
+  orchestrate  LLM formalizer/proposer/critic/advisor (llm_roles.py) around
+            the same gates; the LLM never sets a verdict (orchestrate.py).
 
     python -m omar_pfem.verification_agent.agent mms --orders Q4,Q9 --Ns 5,9,17 --cpu
     python -m omar_pfem.verification_agent.agent replay-b3
@@ -125,6 +128,45 @@ def cmd_replay_b3(args):
     print(f"rejected: {[q for q, a in admitted.items() if not a]}")
 
 
+B1_QOIS = ("max_disp_mag", "u_top_off_center", "v_top_off_center", "u_mid_domain",
+           "v_mid_domain", "strain_energy", "interior_avg_PK1_frob", "peak_PK1_frob")
+
+
+def cmd_b1_ladder(args):
+    from omar_pfem.verification_agent.b1_ladder import run_ladder
+    Ns = [int(n) for n in args.Ns.split(",")]
+    cache = os.path.join(HERE, f"b1_ladder_{args.material}.json")
+    rows = run_ladder(Ns, args.material, cache)
+    hs = [r["h"] for r in rows]
+    print(f"\nB1 {args.material}, Q4, N={Ns}")
+    print(f"{'QoI':<24}{'verdict':>9}  detail")
+    for qoi in B1_QOIS:
+        vals = [r[qoi] for r in rows]
+        g = gates.qoi_convergence_gate(hs, vals, band_tol=args.band_tol, gci_tol=args.gci_tol)
+        spec = ProblemSpec(
+            name=f"B1 {args.material} {qoi}", geometry="unit_square", dim=2,
+            material=args.material, loading="top_edge_traction",
+            regularity="clamped_free_corner", element="Q4",
+            reference="mesh_refinement_family", qois=(qoi,))
+        repository.record(spec, method={"solver": "data_generate_B1.solve_hyperelastic_TL_spatial",
+                                        "fields": "mesh_convergence.AnalyticFieldB1", "Ns": Ns},
+                          observables={"h": hs, "values": vals}, verdicts={"qoi_convergence": g})
+        extra = (f", p={g['observed_order']:.2f}, extrapolated={g['richardson_extrapolate']:.6g}"
+                 if "observed_order" in g else "")
+        print(f"{qoi:<24}{g['verdict']:>9}  {g['reason']}{extra}")
+
+
+def cmd_orchestrate(args):
+    from omar_pfem.verification_agent import llm_roles
+    from omar_pfem.verification_agent.orchestrate import orchestrate
+    text = open(args.problem).read() if os.path.exists(args.problem) else args.problem
+    backend = llm_roles.make_backend(args.backend, args.replay)
+    trace = orchestrate(backend, text)
+    if args.trace_out:
+        json.dump(trace, open(args.trace_out, "w"), indent=1)
+        print(f"trace -> {args.trace_out}")
+
+
 def main():
     p = argparse.ArgumentParser()
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -140,6 +182,18 @@ def main():
     b.add_argument("--gci_tol", type=float, default=0.05)
     b.add_argument("--robust_tol", type=float, default=0.02)
     b.set_defaults(fn=cmd_replay_b3)
+    l = sub.add_parser("b1-ladder")
+    l.add_argument("--material", default="neo_hookean")
+    l.add_argument("--Ns", default="11,21,41,81")
+    l.add_argument("--band_tol", type=float, default=0.01)
+    l.add_argument("--gci_tol", type=float, default=0.05)
+    l.set_defaults(fn=cmd_b1_ladder)
+    o = sub.add_parser("orchestrate", help="LLM roles around the deterministic gates")
+    o.add_argument("--problem", required=True, help="problem text, or a path to a text file")
+    o.add_argument("--backend", choices=("anthropic", "claude-cli", "replay"), default="replay")
+    o.add_argument("--replay", help="JSON file of canned role answers (replay backend)")
+    o.add_argument("--trace_out")
+    o.set_defaults(fn=cmd_orchestrate)
     args = p.parse_args()
     args.fn(args)
 

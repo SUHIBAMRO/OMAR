@@ -1,0 +1,44 @@
+[
+ {
+  "N": 11,
+  "h": 0.1,
+  "n_dof": 242,
+  "max_disp_mag": 0.00594839144700189,
+  "strain_energy": 0.017672913994673176,
+  "peak_PK1_frob": 9.335016859207675,
+  "interior_avg_PK1_frob": 6.600939974650301,
+  "interior_region_gauss_points": 32,
+  "u_top_off_center": 0.0004801822722054376,
+  "v_top_off_center": -0.00575570549537682,
+  "u_mid_domain": -0.0005825635233957684,
+  "v_mid_domain": -0.0030619757167316478
+ },
+ {
+  "N": 21,
+  "h": 0.05,
+  "n_dof": 882,
+  "max_disp_mag": 0.005960646346684156,
+  "strain_energy": 0.017700220485989876,
+  "peak_PK1_frob": 11.040573710778704,
+  "interior_avg_PK1_frob": 6.616885416628792,
+  "interior_region_gauss_points": 112,
+  "u_top_off_center": 0.0004722778650499193,
+  "v_top_off_center": -0.005765645441525942,
+  "u_mid_domain": -0.0005839728329668587,
+  "v_mid_domain": -0.0030714407966679963
+ },
+ {
+  "N": 41,
+  "h": 0.025,
+  "n_dof": 3362,
+  "max_disp_mag": 0.005964829510981749,
+  "strain_energy": 0.017710305589881688,
+  "peak_PK1_frob": 13.342725022375621,
+  "interior_avg_PK1_frob": 6.619602217062153,
+  "interior_region_gauss_points": 452,
+  "u_top_off_center": 0.00047017817033641215,
+  "v_top_off_center": -0.005769185432812903,
+  "u_mid_domain": -0.0005844454501232655,
+  "v_mid_domain": -0.0030748505764184777
+ }
+]
