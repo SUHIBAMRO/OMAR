@@ -1,0 +1,40 @@
+[
+ {
+  "N": 41,
+  "grading": 0.0,
+  "newton_tol": 1e-07,
+  "h": 0.025,
+  "n_dof": 3362,
+  "min_detF": 0.9917172890220725,
+  "min_elem_size": 0.02499999999999991,
+  "wall_clock_s": 62.7388801574707,
+  "max_disp_mag": 0.005964829510981749,
+  "strain_energy": 0.017710305589881688,
+  "peak_PK1_frob": 13.342725022375621,
+  "interior_avg_PK1_frob": 6.619602217062153,
+  "interior_region_gauss_points": 452,
+  "u_top_off_center": 0.00047017817033641215,
+  "v_top_off_center": -0.005769185432812903,
+  "u_mid_domain": -0.0005844454501232655,
+  "v_mid_domain": -0.0030748505764184777
+ },
+ {
+  "N": 41,
+  "grading": 0.0,
+  "newton_tol": 1e-10,
+  "h": 0.025,
+  "n_dof": 3362,
+  "min_detF": 0.9917172890220725,
+  "min_elem_size": 0.02499999999999991,
+  "wall_clock_s": 58.07029175758362,
+  "max_disp_mag": 0.005964829510981749,
+  "strain_energy": 0.017710305589881688,
+  "peak_PK1_frob": 13.342725022375621,
+  "interior_avg_PK1_frob": 6.619602217062153,
+  "interior_region_gauss_points": 452,
+  "u_top_off_center": 0.00047017817033641215,
+  "v_top_off_center": -0.005769185432812903,
+  "u_mid_domain": -0.0005844454501232655,
+  "v_mid_domain": -0.0030748505764184777
+ }
+]
