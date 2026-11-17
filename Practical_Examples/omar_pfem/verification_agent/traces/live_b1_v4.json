@@ -1,0 +1,1362 @@
+{
+ "problem_text": "A 2D unit square of compressible neo-Hookean material with smoothly varying\nYoung's modulus (constant Poisson ratio) is clamped along its bottom edge and loaded\nby a spatially varying normal traction on its top edge; the vertical edges\nare traction-free. The reference is computed with bilinear quadrilaterals (Q4)\non uniformly refined meshes, plus meshes of the same size graded toward the\nbottom corners. Question: which displacement, energy and stress quantities\ncan serve as trustworthy reference values for validating surrogate models?\n",
+ "spec": {
+  "name": "B1 unit square: clamped-bottom compressible neo-Hookean plate under a dead normal traction on the top edge. Which reference QoIs can be trusted?",
+  "geometry": "unit_square",
+  "dim": 2,
+  "material": "Compressible neo-Hookean, plane strain, total Lagrangian: psi = mu/2 (I1 - 2 - 2 ln J) + lam/2 (ln J)^2. E(x,y) = 1000 + 200 sin(pi x) cos(pi y), ranging 800-1200 and smooth. nu = 0.3 constant, so not near-incompressible. Each element takes E and nu at its centroid, so E is piecewise constant per element.",
+  "loading": "Bottom edge y=0 is clamped (u=v=0). The vertical edges x=0 and x=1 are traction-free. The top edge y=1 carries a dead (reference-configuration) normal traction t_y = -5 - 2 sin(pi x). It is compressive, with magnitude 5-7, and is applied in 10 equal increments. Newton tol 1e-7 (residual ~3e-11); tightening to 1e-10 at N=41 changes no QoI. min det F = 0.9917 at N=41 and 0.9876 at N=161, so strains are small.",
+  "regularity": "clamped_free_corner",
+  "element": "Q4",
+  "reference": "mesh_refinement_family",
+  "qois": [
+   "max_disp_mag",
+   "u_top_off_center",
+   "v_top_off_center",
+   "u_mid_domain",
+   "v_mid_domain",
+   "strain_energy",
+   "interior_avg_PK1_frob",
+   "peak_PK1_frob"
+  ],
+  "well_posedness": [
+   "Dirichlet data: the clamp on y=0 removes all rigid-body modes, so the displacement field is unique. The other edges have Neumann (traction) data only, which fits a well-posed mixed problem.",
+   "Material stability: compressible neo-Hookean with nu=0.3 (lam/mu finite) is polyconvex and stable. E is in [800,1200] (bounded, positive, smooth), so there is no locking concern for full-integration Q4 at nu=0.3.",
+   "Load level vs limit points: the dead compressive traction (5-7 against E~1000) gives min det F >= 0.9876, so the problem is in the small-strain, near-linear regime. With 10 increments and a converged Newton solve, no limit or bifurcation point is expected, so the solution branch is unique.",
+   "Singular feature: the two corners (0,0) and (1,0) are where the clamped edge meets a traction-free edge. The Williams exponent there is lam = 0.7112 (plane strain, nu=0.3), so stresses go like r^(lam-1) = r^-0.289 and the solution is not H2. Uniform Q4 refinement is therefore limited by the corners and not by the theoretical O(h^2)/O(h) rates.",
+   "Consequence for strain_energy: it should converge at order about 2*lam = 1.42, below the smooth-case order 2. It is the stored energy, not the total potential, but with a dead load and a converged solution it is still a functional of the solution and should converge at that same pollution-limited rate.",
+   "Consequence for the point displacements u/v_top_off_center (0.7,1.0) and u/v_mid_domain (0.3,0.6): both points are far from the corners and are nodes of every uniform mesh, so they should converge. Their rate is pollution-limited (about 1.42 or above), not the clean O(h^2).",
+   "Consequence for max_disp_mag: it is a nodal maximum of a continuous field that most likely lies on the loaded top edge, away from the corners. It should converge like a displacement unless its location jumps between meshes.",
+   "Consequence for interior_avg_PK1_frob: the circle (centre (0.5,0.5), R=0.15) is about 0.56 from the singular corners, so the local stress there is smooth and the regional average should converge. Its rate may be lowered by corner pollution, and Gauss points entering or leaving the sharp circle boundary under refinement add non-smooth, roughly O(h) jitter.",
+   "Consequence for peak_PK1_frob: this is a pointwise maximum at a singular corner and is not a convergent quantity. In theory it grows like h^-0.289 under uniform refinement and grows further as the corners are graded. It must not be used as a reference value; the most it supports is a check that the observed growth rate matches the predicted singularity exponent.",
+   "Graded meshes (a=0.5 and 0.8 at N=81) have the same node count as the uniform N=81 mesh, so they are a sensitivity test and not a refinement family. Convergent QoIs should be nearly unchanged under grading, while the peak stress should increase."
+  ],
+  "open_questions": [
+   "Surrogate error targets for strain_energy and the stress QoIs are not recorded; only the displacement relative L2 of 4.10% is given. Class-ceiling tolerances from requirements.py will be used, and their values are not stated here.",
+   "The surrogate's 4.10% displacement error is a field-wise relative L2 norm. It is not stated how that maps onto the point displacement QoIs, or whether max_disp_mag is compared in the same norm.",
+   "On the graded meshes, (0.7,1.0) and (0.3,0.6) are probably not nodes: the x-map moves interior nodes, and the y-map moves y=0.6. Point values there would include a linear-interpolation error. It is not stated whether this is accounted for.",
+   "The location of max_disp_mag is not reported per mesh. If the maximizing node moves (for example along the top edge, where the load peaks at x=0.5), the convergence of a max-of-field QoI could be non-monotone.",
+   "Evaluating E at element centroids adds an O(h^2) coefficient-approximation error. This is probably below the pollution-limited rate, but it is not quantified separately.",
+   "It is not stated whether the interior-average circle membership is decided by Gauss-point position in the reference or the current configuration. Gauss points switching membership under refinement may make the observed order noisy.",
+   "Whether the uniform family (N=11...161) is in the asymptotic range for the 1.42 corner-limited rate has to be decided from the data (for example observed order and GCI consistency). Theory alone does not settle it.",
+   "It is not stated whether the peak stress should be reported at all, or only shown as an example of a divergent QoI. Its divergence rate of -0.289 is mild, so over a ratio-2 family it can look deceptively stable."
+  ]
+ },
+ "spec_errors": [],
+ "neighbours": [
+  {
+   "similarity": 0.353,
+   "problem": "B1: neo-Hookean unit square, clamped bottom, top normal traction, graded-mesh comparison strain_energy",
+   "verdicts": {
+    "qoi_convergence": "PASS",
+    "strategy_robustness": "PASS"
+   }
+  },
+  {
+   "similarity": 0.353,
+   "problem": "B1: neo-Hookean unit square, clamped bottom, top normal traction, graded-mesh comparison u_top_off_center",
+   "verdicts": {
+    "qoi_convergence": "PASS"
+   }
+  },
+  {
+   "similarity": 0.353,
+   "problem": "B1: neo-Hookean unit square, clamped bottom, top normal traction, graded-mesh comparison v_top_off_center",
+   "verdicts": {
+    "qoi_convergence": "PASS",
+    "strategy_robustness": "PASS"
+   }
+  },
+  {
+   "similarity": 0.353,
+   "problem": "B1: neo-Hookean unit square, clamped bottom, top normal traction, graded-mesh comparison u_mid_domain",
+   "verdicts": {
+    "qoi_convergence": "PASS"
+   }
+  },
+  {
+   "similarity": 0.353,
+   "problem": "B1: neo-Hookean unit square, clamped bottom, top normal traction, graded-mesh comparison v_mid_domain",
+   "verdicts": {
+    "qoi_convergence": "PASS",
+    "strategy_robustness": "PASS"
+   }
+  }
+ ],
+ "rule_plan": {
+  "checks": [
+   {
+    "check": "qoi_convergence",
+    "qois": [
+     "max_disp_mag",
+     "u_top_off_center",
+     "v_top_off_center",
+     "u_mid_domain",
+     "v_mid_domain"
+    ],
+    "params": {
+     "band_tol": 0.002,
+     "gci_tol": 0.01
+    },
+    "rationale": "displacement: required by rules R2, R5, R8"
+   },
+   {
+    "check": "qoi_convergence",
+    "qois": [
+     "strain_energy"
+    ],
+    "params": {
+     "band_tol": 0.002,
+     "gci_tol": 0.01
+    },
+    "rationale": "global: required by rules R2, R5, R8"
+   },
+   {
+    "check": "qoi_convergence",
+    "qois": [
+     "interior_avg_PK1_frob"
+    ],
+    "params": {
+     "band_tol": 0.01,
+     "gci_tol": 0.02
+    },
+    "rationale": "region_average: required by rules R2, R4, R8"
+   },
+   {
+    "check": "qoi_convergence",
+    "qois": [
+     "peak_PK1_frob"
+    ],
+    "params": {
+     "band_tol": 0.01,
+     "gci_tol": 0.02
+    },
+    "rationale": "pointwise_peak: required by rules R2, R3, R8"
+   },
+   {
+    "check": "qoi_convergence_multilevel",
+    "qois": [
+     "max_disp_mag",
+     "u_top_off_center",
+     "v_top_off_center",
+     "u_mid_domain",
+     "v_mid_domain"
+    ],
+    "params": {
+     "band_tol": 0.002,
+     "gci_tol": 0.01
+    },
+    "rationale": "displacement: required by rules R2, R5, R8"
+   },
+   {
+    "check": "qoi_convergence_multilevel",
+    "qois": [
+     "strain_energy"
+    ],
+    "params": {
+     "band_tol": 0.002,
+     "gci_tol": 0.01
+    },
+    "rationale": "global: required by rules R2, R5, R8"
+   },
+   {
+    "check": "qoi_convergence_multilevel",
+    "qois": [
+     "interior_avg_PK1_frob"
+    ],
+    "params": {
+     "band_tol": 0.01,
+     "gci_tol": 0.02
+    },
+    "rationale": "region_average: required by rules R2, R4, R8"
+   },
+   {
+    "check": "qoi_convergence_multilevel",
+    "qois": [
+     "peak_PK1_frob"
+    ],
+    "params": {
+     "band_tol": 0.01,
+     "gci_tol": 0.02
+    },
+    "rationale": "pointwise_peak: required by rules R2, R3, R8"
+   },
+   {
+    "check": "singular_order",
+    "qois": [
+     "max_disp_mag",
+     "u_top_off_center",
+     "v_top_off_center",
+     "u_mid_domain",
+     "v_mid_domain"
+    ],
+    "params": {},
+    "rationale": "displacement: required by rules R2, R5, R8"
+   },
+   {
+    "check": "singular_order",
+    "qois": [
+     "strain_energy"
+    ],
+    "params": {},
+    "rationale": "global: required by rules R2, R5, R8"
+   },
+   {
+    "check": "singular_order",
+    "qois": [
+     "interior_avg_PK1_frob"
+    ],
+    "params": {},
+    "rationale": "region_average: required by rules R2, R4, R8"
+   },
+   {
+    "check": "singular_order",
+    "qois": [
+     "peak_PK1_frob"
+    ],
+    "params": {},
+    "rationale": "pointwise_peak: required by rules R2, R3, R8"
+   },
+   {
+    "check": "strategy_robustness",
+    "qois": [
+     "interior_avg_PK1_frob"
+    ],
+    "params": {
+     "tol": 0.02
+    },
+    "rationale": "region_average: required by rules R2, R4, R8"
+   },
+   {
+    "check": "strategy_robustness",
+    "qois": [
+     "peak_PK1_frob"
+    ],
+    "params": {
+     "tol": 0.02
+    },
+    "rationale": "pointwise_peak: required by rules R2, R3, R8"
+   },
+   {
+    "check": "anchored_robustness",
+    "qois": [
+     "interior_avg_PK1_frob"
+    ],
+    "params": {
+     "tol": 0.02
+    },
+    "rationale": "region_average: required by rules R2, R4, R8"
+   },
+   {
+    "check": "anchored_robustness",
+    "qois": [
+     "peak_PK1_frob"
+    ],
+    "params": {
+     "tol": 0.02
+    },
+    "rationale": "pointwise_peak: required by rules R2, R3, R8"
+   }
+  ],
+  "expected_failures": [
+   {
+    "qoi": "peak_PK1_frob",
+    "why": "rules R2, R3, R8"
+   }
+  ]
+ },
+ "rule_analysis": {
+  "max_disp_mag": {
+   "qoi_class": "displacement",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ],
+   "predicted": "PASS",
+   "rules": [
+    "R2",
+    "R5",
+    "R8"
+   ]
+  },
+  "u_top_off_center": {
+   "qoi_class": "displacement",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ],
+   "predicted": "PASS",
+   "rules": [
+    "R2",
+    "R5",
+    "R8"
+   ]
+  },
+  "v_top_off_center": {
+   "qoi_class": "displacement",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ],
+   "predicted": "PASS",
+   "rules": [
+    "R2",
+    "R5",
+    "R8"
+   ]
+  },
+  "u_mid_domain": {
+   "qoi_class": "displacement",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ],
+   "predicted": "PASS",
+   "rules": [
+    "R2",
+    "R5",
+    "R8"
+   ]
+  },
+  "v_mid_domain": {
+   "qoi_class": "displacement",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ],
+   "predicted": "PASS",
+   "rules": [
+    "R2",
+    "R5",
+    "R8"
+   ]
+  },
+  "strain_energy": {
+   "qoi_class": "global",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ],
+   "predicted": "PASS",
+   "rules": [
+    "R2",
+    "R5",
+    "R8"
+   ]
+  },
+  "interior_avg_PK1_frob": {
+   "qoi_class": "region_average",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ],
+   "predicted": null,
+   "rules": [
+    "R2",
+    "R4",
+    "R8"
+   ]
+  },
+  "peak_PK1_frob": {
+   "qoi_class": "pointwise_peak",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ],
+   "predicted": "FAIL",
+   "rules": [
+    "R2",
+    "R3",
+    "R8"
+   ]
+  }
+ },
+ "tolerances_overridden": [
+  {
+   "check": "qoi_convergence",
+   "qoi": "max_disp_mag",
+   "llm": {},
+   "code": {
+    "band_tol": 0.002,
+    "gci_tol": 0.01
+   }
+  },
+  {
+   "check": "qoi_convergence",
+   "qoi": "u_top_off_center",
+   "llm": {},
+   "code": {
+    "band_tol": 0.002,
+    "gci_tol": 0.01
+   }
+  },
+  {
+   "check": "qoi_convergence",
+   "qoi": "v_top_off_center",
+   "llm": {},
+   "code": {
+    "band_tol": 0.002,
+    "gci_tol": 0.01
+   }
+  },
+  {
+   "check": "qoi_convergence",
+   "qoi": "u_mid_domain",
+   "llm": {},
+   "code": {
+    "band_tol": 0.002,
+    "gci_tol": 0.01
+   }
+  },
+  {
+   "check": "qoi_convergence",
+   "qoi": "v_mid_domain",
+   "llm": {},
+   "code": {
+    "band_tol": 0.002,
+    "gci_tol": 0.01
+   }
+  },
+  {
+   "check": "qoi_convergence",
+   "qoi": "strain_energy",
+   "llm": {},
+   "code": {
+    "band_tol": 0.002,
+    "gci_tol": 0.01
+   }
+  },
+  {
+   "check": "qoi_convergence",
+   "qoi": "interior_avg_PK1_frob",
+   "llm": {},
+   "code": {
+    "band_tol": 0.01,
+    "gci_tol": 0.02
+   }
+  },
+  {
+   "check": "qoi_convergence",
+   "qoi": "peak_PK1_frob",
+   "llm": {},
+   "code": {
+    "band_tol": 0.01,
+    "gci_tol": 0.02
+   }
+  },
+  {
+   "check": "qoi_convergence_multilevel",
+   "qoi": "max_disp_mag",
+   "llm": {},
+   "code": {
+    "band_tol": 0.002,
+    "gci_tol": 0.01
+   }
+  },
+  {
+   "check": "qoi_convergence_multilevel",
+   "qoi": "u_top_off_center",
+   "llm": {},
+   "code": {
+    "band_tol": 0.002,
+    "gci_tol": 0.01
+   }
+  },
+  {
+   "check": "qoi_convergence_multilevel",
+   "qoi": "v_top_off_center",
+   "llm": {},
+   "code": {
+    "band_tol": 0.002,
+    "gci_tol": 0.01
+   }
+  },
+  {
+   "check": "qoi_convergence_multilevel",
+   "qoi": "u_mid_domain",
+   "llm": {},
+   "code": {
+    "band_tol": 0.002,
+    "gci_tol": 0.01
+   }
+  },
+  {
+   "check": "qoi_convergence_multilevel",
+   "qoi": "v_mid_domain",
+   "llm": {},
+   "code": {
+    "band_tol": 0.002,
+    "gci_tol": 0.01
+   }
+  },
+  {
+   "check": "qoi_convergence_multilevel",
+   "qoi": "strain_energy",
+   "llm": {},
+   "code": {
+    "band_tol": 0.002,
+    "gci_tol": 0.01
+   }
+  },
+  {
+   "check": "qoi_convergence_multilevel",
+   "qoi": "interior_avg_PK1_frob",
+   "llm": {},
+   "code": {
+    "band_tol": 0.01,
+    "gci_tol": 0.02
+   }
+  },
+  {
+   "check": "qoi_convergence_multilevel",
+   "qoi": "peak_PK1_frob",
+   "llm": {},
+   "code": {
+    "band_tol": 0.01,
+    "gci_tol": 0.02
+   }
+  },
+  {
+   "check": "strategy_robustness",
+   "qoi": "max_disp_mag",
+   "llm": {},
+   "code": {
+    "tol": 0.01
+   }
+  },
+  {
+   "check": "strategy_robustness",
+   "qoi": "u_top_off_center",
+   "llm": {},
+   "code": {
+    "tol": 0.01
+   }
+  },
+  {
+   "check": "strategy_robustness",
+   "qoi": "v_top_off_center",
+   "llm": {},
+   "code": {
+    "tol": 0.01
+   }
+  },
+  {
+   "check": "strategy_robustness",
+   "qoi": "u_mid_domain",
+   "llm": {},
+   "code": {
+    "tol": 0.01
+   }
+  },
+  {
+   "check": "strategy_robustness",
+   "qoi": "v_mid_domain",
+   "llm": {},
+   "code": {
+    "tol": 0.01
+   }
+  },
+  {
+   "check": "strategy_robustness",
+   "qoi": "strain_energy",
+   "llm": {},
+   "code": {
+    "tol": 0.01
+   }
+  },
+  {
+   "check": "strategy_robustness",
+   "qoi": "interior_avg_PK1_frob",
+   "llm": {},
+   "code": {
+    "tol": 0.02
+   }
+  },
+  {
+   "check": "strategy_robustness",
+   "qoi": "peak_PK1_frob",
+   "llm": {},
+   "code": {
+    "tol": 0.02
+   }
+  },
+  {
+   "check": "anchored_robustness",
+   "qoi": "max_disp_mag",
+   "llm": {},
+   "code": {
+    "tol": 0.01
+   }
+  },
+  {
+   "check": "anchored_robustness",
+   "qoi": "u_top_off_center",
+   "llm": {},
+   "code": {
+    "tol": 0.01
+   }
+  },
+  {
+   "check": "anchored_robustness",
+   "qoi": "v_top_off_center",
+   "llm": {},
+   "code": {
+    "tol": 0.01
+   }
+  },
+  {
+   "check": "anchored_robustness",
+   "qoi": "u_mid_domain",
+   "llm": {},
+   "code": {
+    "tol": 0.01
+   }
+  },
+  {
+   "check": "anchored_robustness",
+   "qoi": "v_mid_domain",
+   "llm": {},
+   "code": {
+    "tol": 0.01
+   }
+  },
+  {
+   "check": "anchored_robustness",
+   "qoi": "strain_energy",
+   "llm": {},
+   "code": {
+    "tol": 0.01
+   }
+  },
+  {
+   "check": "anchored_robustness",
+   "qoi": "interior_avg_PK1_frob",
+   "llm": {},
+   "code": {
+    "tol": 0.02
+   }
+  },
+  {
+   "check": "anchored_robustness",
+   "qoi": "peak_PK1_frob",
+   "llm": {},
+   "code": {
+    "tol": 0.02
+   }
+  }
+ ],
+ "plan": {
+  "checks": [
+   {
+    "check": "qoi_convergence",
+    "qois": [
+     "max_disp_mag",
+     "u_top_off_center",
+     "v_top_off_center",
+     "u_mid_domain",
+     "v_mid_domain",
+     "strain_energy"
+    ],
+    "params": {
+     "band_tol": 0.002,
+     "gci_tol": 0.01
+    },
+    "rationale": "This is the basic solution-verification check on the uniform family N=11..161, run on every declared QoI. Rule R3 requires it for peak_PK1_frob as well, where it is expected to fail because the peak diverges. In the nearest solved cases all five point displacements and strain_energy passed."
+   },
+   {
+    "check": "qoi_convergence",
+    "qois": [
+     "interior_avg_PK1_frob",
+     "peak_PK1_frob"
+    ],
+    "params": {
+     "band_tol": 0.01,
+     "gci_tol": 0.02
+    },
+    "rationale": "This is the basic solution-verification check on the uniform family N=11..161, run on every declared QoI. Rule R3 requires it for peak_PK1_frob as well, where it is expected to fail because the peak diverges. In the nearest solved cases all five point displacements and strain_energy passed."
+   },
+   {
+    "check": "qoi_convergence_multilevel",
+    "qois": [
+     "max_disp_mag",
+     "u_top_off_center",
+     "v_top_off_center",
+     "u_mid_domain",
+     "v_mid_domain",
+     "strain_energy"
+    ],
+    "params": {
+     "band_tol": 0.002,
+     "gci_tol": 0.01
+    },
+    "rationale": "The family has at least 4 levels. This check tests whether the corner-polluted rate (about 1.42) actually shows up across the finest 5 levels rather than only appearing in the last three. That matters because the open questions leave it unclear whether the family is asymptotic. The rate for interior_avg_PK1_frob may be noisy because Gauss points move in and out of the circle. Rule R3 requires this check for peak_PK1_frob."
+   },
+   {
+    "check": "qoi_convergence_multilevel",
+    "qois": [
+     "interior_avg_PK1_frob",
+     "peak_PK1_frob"
+    ],
+    "params": {
+     "band_tol": 0.01,
+     "gci_tol": 0.02
+    },
+    "rationale": "The family has at least 4 levels. This check tests whether the corner-polluted rate (about 1.42) actually shows up across the finest 5 levels rather than only appearing in the last three. That matters because the open questions leave it unclear whether the family is asymptotic. The rate for interior_avg_PK1_frob may be noisy because Gauss points move in and out of the circle. Rule R3 requires this check for peak_PK1_frob."
+   },
+   {
+    "check": "singular_order",
+    "qois": [
+     "max_disp_mag",
+     "u_top_off_center",
+     "v_top_off_center",
+     "u_mid_domain",
+     "v_mid_domain",
+     "strain_energy",
+     "interior_avg_PK1_frob",
+     "peak_PK1_frob"
+    ],
+    "params": {},
+    "rationale": "The two corners where the clamped edge meets a free edge have Williams exponent lam = 0.7112 (Q4 is a degree-1 element). Expected orders: about 2*lam = 1.42 for energy, at least 1.42 for displacements and region averages, and peak growth like h^-0.289. Rules R2/R4/R5/R8 require this check for the displacements and the region average. For peak_PK1_frob it is the only meaningful positive check: it tests whether the observed growth matches the predicted singularity."
+   },
+   {
+    "check": "strategy_robustness",
+    "qois": [
+     "max_disp_mag",
+     "u_top_off_center",
+     "v_top_off_center",
+     "u_mid_domain",
+     "v_mid_domain",
+     "strain_energy"
+    ],
+    "params": {
+     "tol": 0.01
+    },
+    "rationale": "The graded meshes (a=0.5 and 0.8 at N=81) test sensitivity to where the mesh is refined. Convergent QoIs should barely change, while the peak should grow with grading. Point QoIs on the graded meshes include interpolation error because the evaluation points are not nodes there. Rule R3 requires this check for the peak."
+   },
+   {
+    "check": "strategy_robustness",
+    "qois": [
+     "interior_avg_PK1_frob",
+     "peak_PK1_frob"
+    ],
+    "params": {
+     "tol": 0.02
+    },
+    "rationale": "The graded meshes (a=0.5 and 0.8 at N=81) test sensitivity to where the mesh is refined. Convergent QoIs should barely change, while the peak should grow with grading. Point QoIs on the graded meshes include interpolation error because the evaluation points are not nodes there. Rule R3 requires this check for the peak."
+   },
+   {
+    "check": "anchored_robustness",
+    "qois": [
+     "max_disp_mag",
+     "u_top_off_center",
+     "v_top_off_center",
+     "u_mid_domain",
+     "v_mid_domain",
+     "strain_energy"
+    ],
+    "params": {
+     "tol": 0.01
+    },
+    "rationale": "Rule R7 requires this check for every QoI that gets strategy_robustness. It compares each graded-mesh value against the converged limit (Richardson limit, or the multilevel fit limit), not just against the other strategies. For peak_PK1_frob it should come out INCONCLUSIVE or FAIL, because a family that is not converged has no limit."
+   },
+   {
+    "check": "anchored_robustness",
+    "qois": [
+     "interior_avg_PK1_frob",
+     "peak_PK1_frob"
+    ],
+    "params": {
+     "tol": 0.02
+    },
+    "rationale": "Rule R7 requires this check for every QoI that gets strategy_robustness. It compares each graded-mesh value against the converged limit (Richardson limit, or the multilevel fit limit), not just against the other strategies. For peak_PK1_frob it should come out INCONCLUSIVE or FAIL, because a family that is not converged has no limit."
+   }
+  ],
+  "expected_failures": [
+   {
+    "qoi": "peak_PK1_frob",
+    "why": "This is a pointwise maximum at the singular corners (0,0) and (1,0), so it grows like h^(lam-1) = h^-0.289 under uniform refinement and grows further under grading. I expect qoi_convergence, qoi_convergence_multilevel and strategy_robustness to fail. anchored_robustness should be INCONCLUSIVE or FAIL because the family has no limit. Only singular_order (growth that matches the exponent) can pass. The growth is mild, so over a ratio-2 family the values can look deceptively stable."
+   },
+   {
+    "qoi": "interior_avg_PK1_frob",
+    "why": "This one is a risk rather than a certain failure. Gauss points move in and out of the sharp circle boundary under refinement, which adds roughly O(h) non-smooth jitter. That can make the multilevel fit non-monotone, unstable under leave-one-out, or give an order outside the window, so qoi_convergence_multilevel or singular_order may fail even though the regional average itself converges."
+   }
+  ]
+ },
+ "plan_errors": [],
+ "critique": {
+  "approve": false,
+  "objections": [
+   "The tolerances aren't tied to any accuracy target. The only stated surrogate target is the 4.10% field-wise relative L2 displacement error. The targets for strain_energy and the stress QoIs are missing, and the requirements.py class-ceiling values aren't given. So nothing shows that gci_tol=0.01 (displacements, energy) or gci_tol=0.02 (interior average) makes the reference error clearly smaller than the error it is meant to judge. A reference whose uncertainty is about 1/4 of the 4.1% surrogate error, or about 1/2 at 2%, is too loose for a validation reference. The usual requirement is at least about 1/10. Either derive band_tol and gci_tol from the target errors, or state the ceilings and justify the ratio.",
+   "The one quantity with a stated target, the field-wise relative L2 displacement error, is not verified by any check. Showing that five point displacements and the energy converge does not show that the reference displacement field is accurate in L2 to the needed fraction of 4.10%. The surrogate comparison metric and the verified QoIs don't match.",
+   "interior_avg_PK1_frob is defined in a way that undermines its own convergence check. Membership is decided by Gauss point inside a sharp circle, which adds a non-smooth error of roughly O(h) with a sign that changes from mesh to mesh. That error can dominate the corner-limited h^1.42 behaviour. Richardson/GCI and multilevel fits assume a smooth, monotone asymptotic error expansion, so pass or fail here would reflect the quadrature rule rather than the regional average. Listing this as an 'expected risk' doesn't make the check informative. Fix the QoI: use a smooth weight function (mollified indicator), integrate exactly over the circle\u2013element intersection, or use a region aligned with mesh lines in every uniform mesh (for example [0.3,0.7]^2, which is aligned for h=0.1/2^k).",
+   "Bundling peak_PK1_frob with interior_avg_PK1_frob under one shared tolerance (gci 0.02, band 0.01, robustness 0.02) gives a convergent QoI and a known-divergent one the same acceptance criteria. That makes no sense. The peak should not get convergence or robustness tolerances at all. Its only role is the singular_order growth-rate test, plus an explicit statement that it is excluded as a reference value.",
+   "The claim that the peak divergence 'can look deceptively stable over a ratio-2 family' conflicts with the stated exponent. If the peak sits at the corner and is in the asymptotic regime, h^-0.289 means a growth factor of 2^0.289 \u2248 1.22 per halving, which is plainly visible. If the observed peak changes much less than that, the more likely explanation is that the maximum is not at the corner, or that the Gauss-point sampling is pre-asymptotic. The plan has no way to tell these apart because the peak's location is not recorded.",
+   "singular_order is applied to point displacements, max_disp_mag and the region average with an expected order of 'at least 1.42'. The plan doesn't say whether the check tests a one-sided lower bound or a window around 2\u03bb. A window check could wrongly fail a QoI that converges faster than 1.42 (for example if the corner singularity coefficient for that functional is small). A lower-bound check can't detect a wrong exponent. State which one is used and justify it.",
+   "strategy_robustness and anchored_robustness for the point displacements use tol=0.01. On the graded meshes, (0.7,1.0) and (0.3,0.6) are not nodes, so those values include a linear-interpolation error the plan admits to but doesn't estimate. Grading also coarsens the interior, where these points lie. A 1% tolerance equal to the GCI tolerance can't separate a real sensitivity to mesh strategy from interpolation and coarsening error. Either evaluate at points that are nodes in every mesh, or estimate the interpolation error and tighten or justify the tolerance.",
+   "Grading is a sensitivity test at a single N=81 with no refinement under grading. It can't show that the uniform-family Richardson limit is correct, so anchored_robustness has no independent anchor. Using it as confirmation of the reference value overstates what it shows.",
+   "The multilevel fit uses all 5 levels including N=11 (h=0.1), which the open questions say may be pre-asymptotic for the corner-limited rate. Report the fit with and without the coarsest level (or a leave-one-out spread). Otherwise a 'pass' may come from fitting pre-asymptotic data.",
+   "The rationales are copy-pasted and partly wrong. Check 1 says R3 requires it for peak_PK1_frob, but check 1 doesn't include that QoI. Check 1 cites 'nearest solved cases passed' as support, but results from other cases are not evidence for this problem."
+  ],
+  "missing_checks": [
+   "Convergence or reference-error check on the field-wise relative L2 displacement norm (the metric behind the 4.10% surrogate target), with a tolerance derived from that target",
+   "Per-mesh location report for max_disp_mag and peak_PK1_frob, to confirm the maximizer is stable (displacement) and actually at the clamped\u2013free corner (peak) before the singular_order result is interpreted",
+   "Leave-coarsest-level-out (or leave-one-out) check of observed order and extrapolated limit, to establish the asymptotic range across N=11..161",
+   "Interpolation-error estimate, or a nodal-point substitute, for the point QoIs on the graded meshes",
+   "Recorded surrogate error targets for strain_energy and the stress QoIs, with tolerances derived from them (target / reference-uncertainty ratio of at least about 10)",
+   "Redefined interior-average QoI (smooth weight, exact intersection quadrature, or a region aligned with mesh lines) before its convergence and order checks are run"
+  ]
+ },
+ "gate_summary": {
+  "max_disp_mag": {
+   "verdict": "PASS",
+   "convergence_evidence": "rate",
+   "evidence_from": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel"
+   ],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      0.005964829510981749,
+      0.005966287482295259,
+      0.005966806206677958
+     ],
+     "relative_spread": 0.00033128203392906823,
+     "observed_order": 1.4909222435726113,
+     "gci_fine": 6.001525015751589e-05,
+     "evidence": "rate",
+     "verdict": "PASS",
+     "reason": "monotone, p=1.49, GCI_fine=0.01% vs tol 1.00%"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.00033128203392906823,
+     "fit_order": 1.5395827900923718,
+     "fit_limit": 0.005967053838862865,
+     "leave_one_out_orders": [
+      1.5141250300259093,
+      1.5284837335876018,
+      1.5412856826678911,
+      1.5388589466934426,
+      1.5442391378845859
+     ],
+     "failed_criteria": [],
+     "evidence": "rate",
+     "uncertainty_fine": 5.714340686078016e-05,
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=1.54 (leave-one-out 1.51-1.54), U_fine=0.01% vs tol 1.00%"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 1.540 vs theory >= 1.422 (lam = 0.7112, tol 0.15)"
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.008% vs tol 1.00%",
+     "relative_spread": 8.148834368347474e-05
+    },
+    "anchored_robustness": {
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 0.013% vs tol 1.00%",
+     "anchor_kind": "Richardson extrapolate"
+    }
+   }
+  },
+  "u_top_off_center": {
+   "verdict": "PASS",
+   "convergence_evidence": "rate",
+   "evidence_from": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel"
+   ],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      0.00047017817033641215,
+      0.00046963731131347957,
+      0.00046949885663452405
+     ],
+     "relative_spread": 0.0014468910675471645,
+     "observed_order": 1.96583878966661,
+     "gci_fine": 0.00012683178001996682,
+     "evidence": "rate",
+     "verdict": "PASS",
+     "reason": "monotone, p=1.97, GCI_fine=0.01% vs tol 1.00%"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.0014468910675471645,
+     "fit_order": 1.9232601195564234,
+     "fit_limit": 0.00046944097544491354,
+     "leave_one_out_orders": [
+      1.958290761782448,
+      1.9396641923319766,
+      1.922048859850198,
+      1.9234148634504984,
+      1.9197183745928057
+     ],
+     "failed_criteria": [],
+     "evidence": "rate",
+     "uncertainty_fine": 0.0001852279494304489,
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=1.92 (leave-one-out 1.92-1.96), U_fine=0.02% vs tol 1.00%"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 1.923 vs theory >= 1.422 (lam = 0.7112, tol 0.15)"
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.074% vs tol 1.00%",
+     "relative_spread": 0.0007362421624459098
+    },
+    "anchored_robustness": {
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 0.113% vs tol 1.00%",
+     "anchor_kind": "Richardson extrapolate"
+    }
+   }
+  },
+  "v_top_off_center": {
+   "verdict": "PASS",
+   "convergence_evidence": "rate",
+   "evidence_from": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel"
+   ],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      -0.005769185432812903,
+      -0.005770469560719766,
+      -0.005770940953755469
+     ],
+     "relative_spread": 0.00030420012206563404,
+     "observed_order": 1.4457865610436744,
+     "gci_fine": 5.922169213942906e-05,
+     "evidence": "rate",
+     "verdict": "PASS",
+     "reason": "monotone, p=1.45, GCI_fine=0.01% vs tol 1.00%"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.00030420012206563404,
+     "fit_order": 1.479730762316999,
+     "fit_limit": -0.005771187563798909,
+     "leave_one_out_orders": [
+      1.4590634316358422,
+      1.4707511149470553,
+      1.481293388137023,
+      1.4792132624200276,
+      1.4835637900223682
+     ],
+     "failed_criteria": [],
+     "evidence": "rate",
+     "uncertainty_fine": 5.7218810268985845e-05,
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=1.48 (leave-one-out 1.46-1.48), U_fine=0.01% vs tol 1.00%"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 1.480 vs theory >= 1.422 (lam = 0.7112, tol 0.15)"
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.007% vs tol 1.00%",
+     "relative_spread": 7.029444659858758e-05
+    },
+    "anchored_robustness": {
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 0.013% vs tol 1.00%",
+     "anchor_kind": "Richardson extrapolate"
+    }
+   }
+  },
+  "u_mid_domain": {
+   "verdict": "PASS",
+   "convergence_evidence": "rate",
+   "evidence_from": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel"
+   ],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      -0.0005844454501232655,
+      -0.0005846150201784706,
+      -0.0005846783079227648
+     ],
+     "relative_spread": 0.00039826652766809854,
+     "observed_order": 1.4218833701702653,
+     "gci_fine": 8.056961277886829e-05,
+     "evidence": "rate",
+     "verdict": "PASS",
+     "reason": "monotone, p=1.42, GCI_fine=0.01% vs tol 1.00%"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.00039826652766809854,
+     "fit_order": 1.5419076994545877,
+     "fit_limit": -0.0005847036142213615,
+     "leave_one_out_orders": [
+      1.4658694736247844,
+      1.508576186727787,
+      1.547216653548012,
+      1.5401072322483547,
+      1.555259216754927
+     ],
+     "failed_criteria": [],
+     "evidence": "rate",
+     "uncertainty_fine": 7.2108038112557e-05,
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=1.54 (leave-one-out 1.47-1.56), U_fine=0.01% vs tol 1.00%"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 1.542 vs theory >= 1.422 (lam = 0.7112, tol 0.15)"
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.012% vs tol 1.00%",
+     "relative_spread": 0.0001172053872695428
+    },
+    "anchored_robustness": {
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 0.026% vs tol 1.00%",
+     "anchor_kind": "Richardson extrapolate"
+    }
+   }
+  },
+  "v_mid_domain": {
+   "verdict": "PASS",
+   "convergence_evidence": "rate",
+   "evidence_from": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel"
+   ],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      -0.0030748505764184777,
+      -0.00307609576067345,
+      -0.0030765541524340415
+     ],
+     "relative_spread": 0.0005537285973711991,
+     "observed_order": 1.441706221961197,
+     "gci_fine": 0.00010850727237028108,
+     "evidence": "rate",
+     "verdict": "PASS",
+     "reason": "monotone, p=1.44, GCI_fine=0.01% vs tol 1.00%"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.0005537285973711991,
+     "fit_order": 1.4657140077189426,
+     "fit_limit": -0.0030768024357991646,
+     "leave_one_out_orders": [
+      1.4506734862826975,
+      1.4591851494758095,
+      1.4668810365347134,
+      1.465347046825354,
+      1.46851405658044
+     ],
+     "failed_criteria": [],
+     "evidence": "rate",
+     "uncertainty_fine": 0.00010589205539350495,
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=1.47 (leave-one-out 1.45-1.47), U_fine=0.01% vs tol 1.00%"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 1.466 vs theory >= 1.422 (lam = 0.7112, tol 0.15)"
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.019% vs tol 1.00%",
+     "relative_spread": 0.00019043674380826494
+    },
+    "anchored_robustness": {
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 0.024% vs tol 1.00%",
+     "anchor_kind": "Richardson extrapolate"
+    }
+   }
+  },
+  "strain_energy": {
+   "verdict": "PASS",
+   "convergence_evidence": "rate",
+   "evidence_from": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel"
+   ],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      0.017710305589881688,
+      0.017714061187972835,
+      0.017715466391237517
+     ],
+     "relative_spread": 0.00029131614386297786,
+     "observed_order": 1.4182638464260027,
+     "gci_fine": 5.92781853450425e-05,
+     "evidence": "rate",
+     "verdict": "PASS",
+     "reason": "monotone, p=1.42, GCI_fine=0.01% vs tol 1.00%"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.00029131614386297786,
+     "fit_order": 1.432542456167256,
+     "fit_limit": 0.017716271479652258,
+     "leave_one_out_orders": [
+      1.4235242190921633,
+      1.4286499330064675,
+      1.4332767218367002,
+      1.4323191335300092,
+      1.4342757378321964
+     ],
+     "failed_criteria": [],
+     "evidence": "rate",
+     "uncertainty_fine": 5.8383967017699646e-05,
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=1.43 (leave-one-out 1.42-1.43), U_fine=0.01% vs tol 1.00%"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 1.433 vs theory = 1.422 (lam = 0.7112, tol 0.15)"
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.010% vs tol 1.00%",
+     "relative_spread": 9.914045006581692e-05
+    },
+    "anchored_robustness": {
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 0.013% vs tol 1.00%",
+     "anchor_kind": "Richardson extrapolate"
+    }
+   }
+  },
+  "interior_avg_PK1_frob": {
+   "verdict": "PASS",
+   "convergence_evidence": "rate",
+   "evidence_from": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel"
+   ],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      6.619602217062153,
+      6.620413991656009,
+      6.620894397155796
+     ],
+     "relative_spread": 0.00019516699952177113,
+     "observed_order": 0.7568265212284804,
+     "gci_fine": 0.0001314913829021721,
+     "evidence": "rate",
+     "verdict": "PASS",
+     "reason": "monotone, p=0.76, GCI_fine=0.01% vs tol 2.00%"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.00019516699952177113,
+     "fit_order": 2.3432883070804946,
+     "fit_limit": 6.620653211730369,
+     "leave_one_out_orders": [
+      1.4929842322052556,
+      1.9565154195817822,
+      2.3514515951934443,
+      2.322596370307908,
+      2.4435430840057784
+     ],
+     "failed_criteria": [],
+     "evidence": "rate",
+     "uncertainty_fine": 0.00013128469218172108,
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=2.34 (leave-one-out 1.49-2.44), U_fine=0.01% vs tol 2.00%"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 2.343 vs theory >= 1.422 (lam = 0.7112, tol 0.15)"
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.004% vs tol 2.00%",
+     "relative_spread": 4.420068484509457e-05
+    },
+    "anchored_robustness": {
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 0.018% vs tol 2.00%",
+     "anchor_kind": "Richardson extrapolate"
+    }
+   }
+  },
+  "peak_PK1_frob": {
+   "verdict": "FAIL",
+   "convergence_evidence": "none",
+   "evidence_from": [],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      13.342725022375621,
+      16.28000096700922,
+      19.937820177573798
+     ],
+     "relative_spread": 0.33078315966639055,
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "divergent: successive differences do not decrease"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.33078315966639055,
+     "fit_order": 0.050000001446839366,
+     "fit_limit": 90.07223560831734,
+     "leave_one_out_orders": [
+      0.050000001446839366,
+      0.050000001446839366,
+      0.050000001446839366,
+      0.050000001446839366,
+      0.050000001446839366
+     ],
+     "failed_criteria": [
+      "order_window",
+      "leave_one_out"
+     ],
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "no rate from 5 levels (failed: order_window, leave_one_out; fitted p=0.05) and finest-three spread 33.078% exceeds 1.00%"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "log-log slope of the peak -0.275 vs theory = -0.289 (lam = 0.7112, tol 0.15)"
+    },
+    "strategy_robustness": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 49.181% vs tol 2.00%",
+     "relative_spread": 0.49180669289693496
+    },
+    "anchored_robustness": {
+     "verdict": "INCONCLUSIVE",
+     "anchor_kind": "none",
+     "reason": "refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative"
+    }
+   }
+  }
+ },
+ "prediction": {
+  "llm": {
+   "predicted_fail": [
+    "interior_avg_PK1_frob",
+    "peak_PK1_frob"
+   ],
+   "actual_fail": [
+    "peak_PK1_frob"
+   ],
+   "missed": [],
+   "false_alarm": [
+    "interior_avg_PK1_frob"
+   ]
+  },
+  "rules": {
+   "predicted_fail": [
+    "peak_PK1_frob"
+   ],
+   "actual_fail": [
+    "peak_PK1_frob"
+   ],
+   "missed": [],
+   "false_alarm": []
+  }
+ },
+ "advice": {
+  "per_qoi": [
+   {
+    "qoi": "max_disp_mag",
+    "stated_verdict": "PASS",
+    "interpretation": "The PASS rests on a demonstrated rate from both gates: the finest three levels are monotone with p=1.49, and the five-level fit gives p=1.54 (leave-one-out 1.51-1.54). Both are just above the corner-limited bound of 1.42 (2*lam, lam=0.7112), which is what a displacement should do when corner pollution, not O(h^2), limits accuracy. The fine-mesh uncertainty is about 0.01% (GCI_fine 6.0e-5 relative; U_fine 5.7e-5) against a 1% tolerance. The fitted limit is 5.967e-3. The maximum is insensitive to grading (strategy spread 0.008%) and stays within 0.013% of the Richardson extrapolate. Caveat: the location of the maximizing node is not reported per mesh. The monotone five-level history suggests the location did not jump, but that is not verified directly."
+   },
+   {
+    "qoi": "u_top_off_center",
+    "stated_verdict": "PASS",
+    "interpretation": "The PASS rests on a demonstrated rate: p=1.97 on the finest three levels and p=1.92 on the five-level fit (leave-one-out 1.92-1.96). Both are well above the corner-limited bound of 1.42. That fits a point at (0.7,1.0), far from the clamped-free corners, where local smoothness dominates the error at these mesh sizes. It is still a pre-asymptotic observation and should not be read as a proof that the true rate is O(h^2). The uncertainty is about 0.01-0.02% (GCI_fine 1.3e-4, U_fine 1.9e-4), and the fitted limit is 4.694e-4. This is the smallest-magnitude QoI, so its relative deviations are the largest, but the strategy spread (0.074%) and the deviation from the extrapolate (0.113%) are still well inside 1%. The open question about interpolating at non-nodal points on graded meshes therefore has no material effect here."
+   },
+   {
+    "qoi": "v_top_off_center",
+    "stated_verdict": "PASS",
+    "interpretation": "The PASS rests on a demonstrated rate: p=1.45 on the finest three levels and p=1.48 on the five-level fit (leave-one-out 1.46-1.48). This matches the corner-pollution-limited order of about 1.42 that theory predicts for displacements. The uncertainty is about 0.01% (GCI_fine 5.9e-5, U_fine 5.7e-5), and the fitted limit is -5.771e-3. It is insensitive to grading (0.007%) and stays within 0.013% of the Richardson extrapolate."
+   },
+   {
+    "qoi": "u_mid_domain",
+    "stated_verdict": "PASS",
+    "interpretation": "The PASS rests on a demonstrated rate: p=1.42 on the finest three levels and p=1.54 on the five-level fit (leave-one-out 1.47-1.56). Both are consistent with the corner-limited bound of 1.42 or above. The leave-one-out range is somewhat wider than for the other displacements, but every level is monotone. The uncertainty is about 0.01% (GCI_fine 8.1e-5, U_fine 7.2e-5), and the fitted limit is -5.847e-4. The strategy spread is 0.012%, and the deviation from the extrapolate is 0.026%."
+   },
+   {
+    "qoi": "v_mid_domain",
+    "stated_verdict": "PASS",
+    "interpretation": "The PASS rests on a demonstrated rate: p=1.44 on the finest three levels and p=1.47 on the five-level fit (leave-one-out 1.45-1.47). This is close to the predicted corner-limited order of 1.42. The uncertainty is about 0.01% (GCI_fine 1.1e-4, U_fine 1.06e-4), and the fitted limit is -3.0768e-3. The strategy spread is 0.019%, and the deviation from the extrapolate is 0.024%."
+   },
+   {
+    "qoi": "strain_energy",
+    "stated_verdict": "PASS",
+    "interpretation": "The PASS rests on a demonstrated rate: p=1.42 on the finest three levels and p=1.43 on the five-level fit (leave-one-out 1.42-1.43). This agrees closely with the predicted energy order of 2*lam = 1.422 for the clamped-free corner singularity, and it is the strongest evidence that the uniform family is in the asymptotic range for the corner-limited rate. The uncertainty is about 0.01% (GCI_fine 5.9e-5, U_fine 5.8e-5), and the fitted limit is 1.77163e-2. The strategy spread is 0.010%, and the deviation from the extrapolate is 0.013%. The QoI is the stored energy, not the total potential, as the spec notes."
+   },
+   {
+    "qoi": "interior_avg_PK1_frob",
+    "stated_verdict": "PASS",
+    "interpretation": "The gates report PASS with 'rate' evidence, and the value is tightly determined: the finest-three spread is 0.0195%, GCI_fine and U_fine are both about 1.3e-4 relative against a 2% tolerance, the fitted limit is 6.6207, the strategy spread is 0.004%, and the deviation from the extrapolate is 0.018%. The observed order, however, is not stable. The finest three levels give p=0.76, the five-level fit gives p=2.34, and leave-one-out orders range from 1.49 to 2.44. This is the non-smooth, Gauss-point-membership jitter from the sharp circle boundary that the spec anticipated, superposed on very small increments (about 1e-4 relative). Only the reference value with its uncertainty should be reported. No specific convergence order should be claimed for this QoI."
+   },
+   {
+    "qoi": "peak_PK1_frob",
+    "stated_verdict": "FAIL",
+    "interpretation": "The convergence verdict is FAIL. The finest three values are 13.34, 16.28 and 19.94; the differences grow, and the finest-three spread is 33%. The five-level fit hits the lower bound of its order window (p=0.05), so its 'fit limit' of 90.07 has no meaning. The value also changes by 49% between uniform and graded meshes. This is the expected behaviour of a pointwise maximum at the clamped/traction-free corners, where the stress is singular. The singular_order sub-gate PASSES: the log-log growth slope of -0.275 matches the predicted r^(lam-1) exponent of -0.289. The peak stress therefore serves only as a consistency check that the corner singularity is resolved as theory predicts. It is not a reference value, and it must not be used to measure surrogate stress accuracy. The anchored-robustness gate is INCONCLUSIVE because no converged limit exists to anchor to."
+   }
+  ],
+  "summary": "Seven of the eight QoIs PASS with demonstrated-rate evidence from both the three-level and the five-level gates: the four point displacements, max_disp_mag, strain_energy and interior_avg_PK1_frob. Their fine-mesh discretization uncertainties are about 0.01-0.02%, far inside the 1% and 2% tolerances, and they are insensitive to corner grading (at most 0.074%). Strain energy converges at p\u22481.43, matching the corner-limited prediction 2*lam=1.422. This confirms that the clamped-free corner singularity controls global accuracy and that the uniform family N=11-161 is in the asymptotic range for that rate. Most displacements show p\u22481.45-1.54, consistent with that bound. u_top_off_center shows p\u22481.92-1.97, higher than the bound, which is plausible for a point far from the corners but is only an observation. The interior stress average is a trustworthy reference value, but its observed order is erratic (0.76 on three levels, 2.34 on five, leave-one-out 1.49-2.44), so no rate should be quoted for it. peak_PK1_frob FAILS: it grows under refinement (13.3\u219216.3\u219219.9) and changes by 49% under grading. Its growth slope of -0.275 does match the predicted singular exponent of -0.289, so it is evidence that the singularity behaves as theory predicts, not a reference QoI.\n\nLimitations: these gates verify only how well the FE reference is converged. They say nothing about whether the surrogate meets its targets; per the open questions, the surrogate tolerances for energy and stress, and the link between the 4.10% field L2 error and the point QoIs, are still unspecified. The location of the max_disp_mag node is not reported per mesh, and the observed rates come from a single load case in the near-linear regime (min det F \u2265 0.9876).",
+  "manuscript_wording": "We assessed the reference solution of benchmark B1 on a uniform Q4 refinement family (N = 11 to 161, five levels), with two corner-graded meshes at N = 81 as a sensitivity test. For the point displacements at (0.7, 1.0) and (0.3, 0.6), the maximum displacement magnitude, the stored strain energy, and the PK1 Frobenius norm averaged over the interior disc (centre (0.5, 0.5), R = 0.15), the sequences are monotone over all five levels. The estimated fine-mesh discretization uncertainty (GCI and a five-level fit) is about 0.01\u20130.02% for each of these quantities, and they change by less than 0.1% under corner grading. The strain energy converges at an observed order of 1.43, in agreement with the order 2\u03bb \u2248 1.42 predicted by the clamped/traction-free corner singularity (\u03bb = 0.7112, plane strain, \u03bd = 0.3). This indicates that corner pollution, not the nominal O(h\u00b2) rate of Q4, limits global accuracy. The displacement QoIs show observed orders of about 1.45 to 1.97, consistent with this bound. For the interior stress average, the observed order varies with the levels used (about 0.8 to 2.4), probably because Gauss points cross the disc boundary as the mesh is refined. We therefore report only its value and uncertainty and do not quote a convergence rate for it. The pointwise peak PK1 stress, which occurs at the singular corners, does not converge: it grows from 13.3 to 19.9 over the three finest meshes and differs by 49% between uniform and graded meshes. Its growth rate (log-log slope \u22120.275) is consistent with the predicted r^(\u03bb\u22121) singularity (\u22120.289). We therefore exclude the peak stress as a reference quantity and do not use it to assess surrogate accuracy. These statements concern only the discretization accuracy of the finite-element reference. They do not by themselves establish the accuracy of the surrogate model."
+ },
+ "advisor_flags": [
+  "advisor claims convergence/monotonicity for 'peak_PK1_frob' (evidence: none): ...The convergence verdict is FAIL. Th..."
+ ],
+ "llm_calls": [
+  {
+   "role": "formalizer",
+   "cost_usd": 0.121108,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "role": "proposer",
+   "cost_usd": 0.11291999999999999,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "role": "proposer",
+   "cost_usd": 0.08609520000000001,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "role": "critic",
+   "cost_usd": 0.17865599999999998,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "role": "advisor",
+   "cost_usd": 0.186992,
+   "model": "claude-opus-5-5"
+  }
+ ],
+ "llm_cost_usd": 0.6857712
+}

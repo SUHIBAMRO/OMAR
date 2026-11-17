@@ -434,11 +434,13 @@ def test_audit_flags_convergence_claim_without_rate():
          "interpretation": "Stable in the band; it does not converge at a demonstrable rate "
                            "and is not monotone."},
         {"qoi": "c", "stated_verdict": "FAIL",
-         "interpretation": "Monotone on the finest three levels but not asymptotic."}],
+         "interpretation": "Monotone on the finest three levels but not asymptotic."},
+        {"qoi": "d", "stated_verdict": "FAIL",
+         "interpretation": "The convergence verdict is FAIL; the differences grow."}],
         "summary": "", "manuscript_wording": ""}
-    flags = R.audit_advice(adv, {"a": "PASS", "b": "PASS", "c": "FAIL"},
-                           {"a": "band", "b": "band", "c": "none"},
-                           {"a": False, "b": False, "c": True})
+    flags = R.audit_advice(adv, {"a": "PASS", "b": "PASS", "c": "FAIL", "d": "FAIL"},
+                           {"a": "band", "b": "band", "c": "none", "d": "none"},
+                           {"a": False, "b": False, "c": True, "d": False})
     assert flags and all("'a'" in f for f in flags)
 
 

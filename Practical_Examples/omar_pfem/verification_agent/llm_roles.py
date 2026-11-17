@@ -303,7 +303,9 @@ def validate_plan(plan, spec_qois):
     return errs
 
 
-_CLAIM = re.compile(r"\b(converg\w*|monoton\w*)", re.I)
+# claim forms only: "converges/converged/converging/convergent", "monotone(ly)";
+# the noun "convergence" ("convergence verdict is FAIL") is not a claim
+_CLAIM = re.compile(r"\b(converg(?:es|ed|ing|ent)\b|monoton\w*)", re.I)
 _CONV = re.compile(r"converg", re.I)
 _NEGATION = re.compile(r"(\bnot\b|\bno\b|\bnever\b|\bwithout\b|\bnor\b|\bcannot\b|n't\b|"
                        r"\bnon[- ]?$|\bneither\b|\bfail\w*\b|\black\w*\b|\bunproven\b)", re.I)
