@@ -1,0 +1,4305 @@
+{
+ "sharp 1R0": {
+  "kind": "sharp",
+  "size": 0.045594532639051985,
+  "points": [
+   2,
+   4,
+   8,
+   12,
+   20,
+   26,
+   36
+  ],
+  "scale": 0.910078398313038,
+  "qois": {
+   "sigma_xx_avg": {
+    "values": [
+     0.43486441737243015,
+     0.3845316582086458,
+     0.4306114478149608,
+     0.43567698103677327,
+     0.43252053713628286,
+     0.43538596699877635,
+     0.4345387473527122
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.43252053713628286,
+      0.43538596699877635,
+      0.4345387473527122
+     ],
+     "scale": 0.910078398313038,
+     "relative_spread": 0.003148552770623921,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.315%); no convergence rate demonstrated"
+    },
+    "diagnostics": {
+     "sign_changes": 3,
+     "fit_p": 5.0,
+     "fit_rms": 0.0015091303280117994,
+     "fit_limit_minus_finest": 0.0008475994513671885,
+     "local_p": [
+      null,
+      null,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.791% vs tol 2.00%",
+     "relative_spread": 0.007911991396429147,
+     "scale": 0.910078398313038,
+     "tol": 0.02,
+     "values": [
+      0.4306114478149608,
+      0.42887719827208226,
+      0.423410915357432,
+      0.4272349804945361
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 1.223% vs tol 2.00%",
+     "anchor": 0.4345387473527122,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.0043153420024376055,
+      0.006220946559246363,
+      0.01222733339886675,
+      0.008025426020126028
+     ],
+     "values": [
+      0.4306114478149608,
+      0.42887719827208226,
+      0.423410915357432,
+      0.4272349804945361
+     ],
+     "scale": 0.910078398313038,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "sigma_yy_avg": {
+    "values": [
+     0.40310048054036035,
+     0.3693836770991808,
+     0.3784936953834336,
+     0.37991396115585446,
+     0.37960638079752035,
+     0.37826110495146176,
+     0.38073293672435005
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.37960638079752035,
+      0.37826110495146176,
+      0.38073293672435005
+     ],
+     "scale": 0.910078398313038,
+     "relative_spread": 0.002716064657144029,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.272%); no convergence rate demonstrated"
+    },
+    "diagnostics": {
+     "sign_changes": 2,
+     "fit_p": 5.0,
+     "fit_rms": 0.0009076990775767876,
+     "fit_limit_minus_finest": -0.0009522965776022027,
+     "local_p": [
+      null,
+      null,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.875% vs tol 2.00%",
+     "relative_spread": 0.008746359443261383,
+     "scale": 0.910078398313038,
+     "tol": 0.02,
+     "values": [
+      0.3784936953834336,
+      0.3726571064227837,
+      0.37053382259024015,
+      0.3718637444386331
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 1.121% vs tol 2.00%",
+     "anchor": 0.38073293672435005,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.0024604927938815186,
+      0.008873774299594466,
+      0.0112068522371429,
+      0.009745525552696616
+     ],
+     "values": [
+      0.3784936953834336,
+      0.3726571064227837,
+      0.37053382259024015,
+      0.3718637444386331
+     ],
+     "scale": 0.910078398313038,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "sigma_zz_avg": {
+    "values": [
+     0.49132488268276225,
+     0.46326534073010167,
+     0.42926518689082876,
+     0.426854210345252,
+     0.4304903799224774,
+     0.4226515045105335,
+     0.43053609097274054
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.4304903799224774,
+      0.4226515045105335,
+      0.43053609097274054
+     ],
+     "scale": 0.910078398313038,
+     "relative_spread": 0.008663634338340788,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.866%); no convergence rate demonstrated"
+    },
+    "diagnostics": {
+     "sign_changes": 3,
+     "fit_p": 5.0,
+     "fit_rms": 0.003212705675375567,
+     "fit_limit_minus_finest": -0.0035114139423558163,
+     "local_p": [
+      null,
+      null,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 1.310% vs tol 2.00%",
+     "relative_spread": 0.013101434420755051,
+     "scale": 0.910078398313038,
+     "tol": 0.02,
+     "values": [
+      0.42926518689082876,
+      0.41766600503991075,
+      0.4186660292103898,
+      0.4173418544375847
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 1.450% vs tol 2.00%",
+     "anchor": 0.43053609097274054,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.0013964775828847018,
+      0.01414173323604467,
+      0.01304290024282919,
+      0.014497912003639753
+     ],
+     "values": [
+      0.42926518689082876,
+      0.41766600503991075,
+      0.4186660292103898,
+      0.4173418544375847
+     ],
+     "scale": 0.910078398313038,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "pressure_avg": {
+    "values": [
+     -0.44309659353185127,
+     -0.4057268920126427,
+     -0.4127901100297411,
+     -0.4141483841792932,
+     -0.41420576595209346,
+     -0.4120995254869239,
+     -0.4152692583499342
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      -0.41420576595209346,
+      -0.4120995254869239,
+      -0.4152692583499342
+     ],
+     "scale": 0.910078398313038,
+     "relative_spread": 0.003482922865640882,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.348%); no convergence rate demonstrated"
+    },
+    "diagnostics": {
+     "sign_changes": 2,
+     "fit_p": 5.0,
+     "fit_rms": 0.0011526227868028382,
+     "fit_limit_minus_finest": 0.001205370356196964,
+     "local_p": [
+      21.04316678900269,
+      null,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.943% vs tol 2.00%",
+     "relative_spread": 0.009434924499878442,
+     "scale": 0.910078398313038,
+     "tol": 0.02,
+     "values": [
+      -0.4127901100297411,
+      -0.4064001032449256,
+      -0.4042035890526873,
+      -0.40548019312358463
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 1.216% vs tol 2.00%",
+     "anchor": -0.4152692583499342,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.002724104126401194,
+      0.009745484698295106,
+      0.012159028626279635,
+      0.010756287858820778
+     ],
+     "values": [
+      -0.4127901100297411,
+      -0.4064001032449256,
+      -0.4042035890526873,
+      -0.40548019312358463
+     ],
+     "scale": 0.910078398313038,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "cyl_rr_avg": {
+    "values": [
+     0.434592820430432,
+     0.3843371113347059,
+     0.4301059086939,
+     0.4352393625896414,
+     0.43205478937169944,
+     0.434897061872503,
+     0.43411191956252704
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.43205478937169944,
+      0.434897061872503,
+      0.43411191956252704
+     ],
+     "scale": 0.910078398313038,
+     "relative_spread": 0.003123107312592088,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.312%); no convergence rate demonstrated"
+    },
+    "diagnostics": {
+     "sign_changes": 3,
+     "fit_p": 5.0,
+     "fit_rms": 0.0015188492301509782,
+     "fit_limit_minus_finest": 0.0008273445124331535,
+     "local_p": [
+      null,
+      null,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.796% vs tol 2.00%",
+     "relative_spread": 0.007962824150912894,
+     "scale": 0.910078398313038,
+     "tol": 0.02,
+     "values": [
+      0.4301059086939,
+      0.42837803719329043,
+      0.4228591144445888,
+      0.4266883966038578
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 1.236% vs tol 2.00%",
+     "anchor": 0.43411191956252704,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.004401830519274805,
+      0.0063004268421986385,
+      0.0123646546701877,
+      0.008157014793923016
+     ],
+     "values": [
+      0.4301059086939,
+      0.42837803719329043,
+      0.4228591144445888,
+      0.4266883966038578
+     ],
+     "scale": 0.910078398313038,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "cyl_tt_avg": {
+    "values": [
+     0.4033720774823585,
+     0.3695782239731208,
+     0.3789992345044944,
+     0.3803515796029863,
+     0.38007212856210365,
+     0.37875001007773507,
+     0.38115976451453504
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.38007212856210365,
+      0.37875001007773507,
+      0.38115976451453504
+     ],
+     "scale": 0.910078398313038,
+     "relative_spread": 0.0026478536808112354,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.265%); no convergence rate demonstrated"
+    },
+    "diagnostics": {
+     "sign_changes": 2,
+     "fit_p": 5.0,
+     "fit_rms": 0.0008823846177611399,
+     "fit_limit_minus_finest": -0.0009320416386681676,
+     "local_p": [
+      null,
+      null,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.870% vs tol 2.00%",
+     "relative_spread": 0.008695526688777573,
+     "scale": 0.910078398313038,
+     "tol": 0.02,
+     "values": [
+      0.3789992345044944,
+      0.3731562675015755,
+      0.37108562350308344,
+      0.3724103283293115
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 1.107% vs tol 2.00%",
+     "anchor": 0.38115976451453504,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.0023740042770441358,
+      0.008794294016642069,
+      0.01106953096582171,
+      0.009613936778899383
+     ],
+     "values": [
+      0.3789992345044944,
+      0.3731562675015755,
+      0.37108562350308344,
+      0.3724103283293115
+     ],
+     "scale": 0.910078398313038,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "cyl_rz_avg": {
+    "values": [
+     -0.4869849334794891,
+     -0.6236264718325862,
+     -0.3110669713623405,
+     -0.288552669777983,
+     -0.3167119386777317,
+     -0.2812552657745409,
+     -0.31265930157785893
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      -0.3167119386777317,
+      -0.2812552657745409,
+      -0.31265930157785893
+     ],
+     "scale": 0.910078398313038,
+     "relative_spread": 0.03896002033331946,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "oscillatory: successive differences change sign"
+    },
+    "diagnostics": {
+     "sign_changes": 3,
+     "fit_p": 5.0,
+     "fit_rms": 0.01547032930098086,
+     "fit_limit_minus_finest": 0.014923958216386191,
+     "local_p": [
+      null,
+      null,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "FAIL",
+     "reason": "spread across strategies 3.908% vs tol 2.00%",
+     "relative_spread": 0.039083042329712284,
+     "scale": 0.910078398313038,
+     "tol": 0.02,
+     "values": [
+      -0.3110669713623405,
+      -0.2754983387977153,
+      -0.3007352327217144,
+      -0.2850238110115265
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "FAIL",
+     "reason": "max deviation from finest family value 4.083% vs tol 2.00%",
+     "anchor": -0.31265930157785893,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.0017496626867202056,
+      0.04083270501643249,
+      0.013102243585000523,
+      0.03036605485588801
+     ],
+     "values": [
+      -0.3110669713623405,
+      -0.2754983387977153,
+      -0.3007352327217144,
+      -0.2850238110115265
+     ],
+     "scale": 0.910078398313038,
+     "tol": 0.02
+    },
+    "overall": "FAIL"
+   },
+   "frob_avg": {
+    "values": [
+     7.869526386190166,
+     2.012886656556653,
+     1.0306338036801672,
+     0.9135239106648065,
+     0.9360286816394454,
+     0.8977258618264194,
+     0.910078398313038
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.9360286816394454,
+      0.8977258618264194,
+      0.910078398313038
+     ],
+     "scale": 0.910078398313038,
+     "relative_spread": 0.04208738487148556,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "oscillatory: successive differences change sign"
+    },
+    "diagnostics": {
+     "sign_changes": 3,
+     "fit_p": 5.0,
+     "fit_rms": 0.02142179081341761,
+     "fit_limit_minus_finest": -0.026294123348309557,
+     "local_p": [
+      null,
+      null,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "FAIL",
+     "reason": "spread across strategies 16.749% vs tol 2.00%",
+     "relative_spread": 0.16749051155088254,
+     "scale": 0.910078398313038,
+     "tol": 0.02,
+     "values": [
+      1.0306338036801672,
+      0.8848077905001579,
+      0.8782043071953086,
+      0.8843972122720288
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "FAIL",
+     "reason": "max deviation from finest family value 13.247% vs tol 2.00%",
+     "anchor": 0.910078398313038,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.13246705513568507,
+      0.02776750646946777,
+      0.03502345641519749,
+      0.02821865246841702
+     ],
+     "values": [
+      1.0306338036801672,
+      0.8848077905001579,
+      0.8782043071953086,
+      0.8843972122720288
+     ],
+     "scale": 0.910078398313038,
+     "tol": 0.02
+    },
+    "overall": "FAIL"
+   },
+   "von_mises_avg": {
+    "values": [
+     1.9044041377810705,
+     1.1058820792371837,
+     0.632748667870319,
+     0.6198460624333102,
+     0.6569896596211777,
+     0.5883541529650941,
+     0.6239301419451988
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.6569896596211777,
+      0.5883541529650941,
+      0.6239301419451988
+     ],
+     "scale": 0.910078398313038,
+     "relative_spread": 0.07541713635145003,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "oscillatory: successive differences change sign"
+    },
+    "diagnostics": {
+     "sign_changes": 3,
+     "fit_p": 0.5,
+     "fit_rms": 0.02318704321992687,
+     "fit_limit_minus_finest": -0.08332291987186623,
+     "local_p": [
+      null,
+      null,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "FAIL",
+     "reason": "spread across strategies 11.036% vs tol 2.00%",
+     "relative_spread": 0.1103640036110092,
+     "scale": 0.910078398313038,
+     "tol": 0.02,
+     "values": [
+      0.632748667870319,
+      0.5323087722325974,
+      0.5749446741538835,
+      0.5867585543109894
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "FAIL",
+     "reason": "max deviation from finest family value 10.067% vs tol 2.00%",
+     "anchor": 0.6239301419451988,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.009689853029658364,
+      0.10067415058135083,
+      0.0538255472079295,
+      0.04084437967444593
+     ],
+     "values": [
+      0.632748667870319,
+      0.5323087722325974,
+      0.5749446741538835,
+      0.5867585543109894
+     ],
+     "scale": 0.910078398313038,
+     "tol": 0.02
+    },
+    "overall": "FAIL"
+   }
+  }
+ },
+ "sharp 2R0": {
+  "kind": "sharp",
+  "size": 0.09118906527810397,
+  "points": [
+   12,
+   32,
+   50,
+   86,
+   122,
+   170,
+   234
+  ],
+  "scale": 1.4646243624362334,
+  "qois": {
+   "sigma_xx_avg": {
+    "values": [
+     0.4201766579272347,
+     0.4358747852548672,
+     0.42610395713362553,
+     0.4361038476755222,
+     0.42943344589919713,
+     0.4350706653440449,
+     0.4386864592439961
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.42943344589919713,
+      0.4350706653440449,
+      0.4386864592439961
+     ],
+     "scale": 1.4646243624362334,
+     "relative_spread": 0.006317669965155861,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "observed_order": 3.076860715349275,
+     "gci_fine": 0.008353747158786645,
+     "richardson_extrapolate": 0.4484745405291092,
+     "evidence": "rate",
+     "verdict": "PASS",
+     "reason": "monotone, p=3.08, GCI_fine=0.84% vs tol 2.00%"
+    },
+    "diagnostics": {
+     "sign_changes": 2,
+     "fit_p": 1.75,
+     "fit_rms": 0.0021105752521588736,
+     "fit_limit_minus_finest": 0.0036956416039387145,
+     "local_p": [
+      null,
+      null,
+      3.076860715349275
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.330% vs tol 2.00%",
+     "relative_spread": 0.0033019422661529807,
+     "scale": 1.4646243624362334,
+     "tol": 0.02,
+     "values": [
+      0.42610395713362553,
+      0.4282150497089798,
+      0.4272695875032306,
+      0.4309400622199911
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 1.527% vs tol 2.00%",
+     "anchor": 0.4484745405291092,
+     "anchor_kind": "Richardson extrapolate",
+     "deviations": [
+      0.01527393915411373,
+      0.013832550747981604,
+      0.014478082960880573,
+      0.01197199688796075
+     ],
+     "values": [
+      0.42610395713362553,
+      0.4282150497089798,
+      0.4272695875032306,
+      0.4309400622199911
+     ],
+     "scale": 1.4646243624362334,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "sigma_yy_avg": {
+    "values": [
+     0.3758438563472881,
+     0.397013371354748,
+     0.3905077545998641,
+     0.3967728958256663,
+     0.3987764329594662,
+     0.400536208476811,
+     0.4003942078755475
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.3987764329594662,
+      0.400536208476811,
+      0.4003942078755475
+     ],
+     "scale": 1.4646243624362334,
+     "relative_spread": 0.0012015200364533154,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.120%); no convergence rate demonstrated"
+    },
+    "diagnostics": {
+     "sign_changes": 1,
+     "fit_p": 5.0,
+     "fit_rms": 0.0002025698730599379,
+     "fit_limit_minus_finest": 0.000900778382169201,
+     "local_p": [
+      7.073592030105161,
+      0.04087984746901443,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.477% vs tol 2.00%",
+     "relative_spread": 0.004772126315154716,
+     "scale": 1.4646243624362334,
+     "tol": 0.02,
+     "values": [
+      0.3905077545998641,
+      0.39749712706166274,
+      0.3939430386397465,
+      0.39330623412781557
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.675% vs tol 2.00%",
+     "anchor": 0.4003942078755475,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.006750163065182437,
+      0.0019780367500277203,
+      0.004404657877648744,
+      0.004839448209056097
+     ],
+     "values": [
+      0.3905077545998641,
+      0.39749712706166274,
+      0.3939430386397465,
+      0.39330623412781557
+     ],
+     "scale": 1.4646243624362334,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "sigma_zz_avg": {
+    "values": [
+     0.4561234810586969,
+     0.47882335046095026,
+     0.4731744846312427,
+     0.47758045582884,
+     0.48959919563273296,
+     0.48734274992139404,
+     0.4831934002618953
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.48959919563273296,
+      0.48734274992139404,
+      0.4831934002618953
+     ],
+     "scale": 1.4646243624362334,
+     "relative_spread": 0.004373678012690152,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.437%); no convergence rate demonstrated"
+    },
+    "diagnostics": {
+     "sign_changes": 1,
+     "fit_p": 5.0,
+     "fit_rms": 0.0022418956554395076,
+     "fit_limit_minus_finest": 0.0033934605390711723,
+     "local_p": [
+      null,
+      null,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.973% vs tol 2.00%",
+     "relative_spread": 0.009732863246584534,
+     "scale": 1.4646243624362334,
+     "tol": 0.02,
+     "values": [
+      0.4731744846312427,
+      0.4874294732584506,
+      0.4804844015250124,
+      0.47502874088290453
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.684% vs tol 2.00%",
+     "anchor": 0.4831934002618953,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.0068406042447548086,
+      0.002892259001829725,
+      0.0018496201526900726,
+      0.005574575698993412
+     ],
+     "values": [
+      0.4731744846312427,
+      0.4874294732584506,
+      0.4804844015250124,
+      0.47502874088290453
+     ],
+     "scale": 1.4646243624362334,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "pressure_avg": {
+    "values": [
+     -0.4173813317777399,
+     -0.43723716902352183,
+     -0.42992873212157745,
+     -0.43681906644334284,
+     -0.4392696914971321,
+     -0.44098320791408335,
+     -0.4407580224604796
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      -0.4392696914971321,
+      -0.44098320791408335,
+      -0.4407580224604796
+     ],
+     "scale": 1.4646243624362334,
+     "relative_spread": 0.0011699357602525749,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.117%); no convergence rate demonstrated"
+    },
+    "diagnostics": {
+     "sign_changes": 1,
+     "fit_p": 5.0,
+     "fit_rms": 0.00022489139325839176,
+     "fit_limit_minus_finest": -0.0010650749830453281,
+     "local_p": [
+      6.326306089578207,
+      1.9106690890173295,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.532% vs tol 2.00%",
+     "relative_spread": 0.005315459322623767,
+     "scale": 1.4646243624362334,
+     "tol": 0.02,
+     "values": [
+      -0.42992873212157745,
+      -0.437713883343031,
+      -0.4338990092226631,
+      -0.43309167907690366
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.739% vs tol 2.00%",
+     "anchor": -0.4407580224604796,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.007393902912340542,
+      0.0020784435897167747,
+      0.004683121088063384,
+      0.0052343410229937
+     ],
+     "values": [
+      -0.42992873212157745,
+      -0.437713883343031,
+      -0.4338990092226631,
+      -0.43309167907690366
+     ],
+     "scale": 1.4646243624362334,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "cyl_rr_avg": {
+    "values": [
+     0.4192833914725912,
+     0.43459089230496584,
+     0.4248633279233309,
+     0.43472967903569215,
+     0.4281749730974645,
+     0.43380950016994696,
+     0.4373371121745193
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.4281749730974645,
+      0.43380950016994696,
+      0.4373371121745193
+     ],
+     "scale": 1.4646243624362334,
+     "relative_spread": 0.006255623839149215,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "observed_order": 3.29936704551064,
+     "gci_fine": 0.007509851900805342,
+     "richardson_extrapolate": 0.4461364018162854,
+     "evidence": "rate",
+     "verdict": "PASS",
+     "reason": "monotone, p=3.30, GCI_fine=0.75% vs tol 2.00%"
+    },
+    "diagnostics": {
+     "sign_changes": 2,
+     "fit_p": 1.6,
+     "fit_rms": 0.0020785292452876955,
+     "fit_limit_minus_finest": 0.0044031527966288675,
+     "local_p": [
+      null,
+      null,
+      3.29936704551064
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.328% vs tol 2.00%",
+     "relative_spread": 0.003276227470740222,
+     "scale": 1.4646243624362334,
+     "tol": 0.02,
+     "values": [
+      0.4248633279233309,
+      0.4270269528897928,
+      0.42602133886417726,
+      0.4296617704938599
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 1.452% vs tol 2.00%",
+     "anchor": 0.4461364018162854,
+     "anchor_kind": "Richardson extrapolate",
+     "deviations": [
+      0.014524593771995683,
+      0.013047337881712017,
+      0.013733939887937578,
+      0.01124836630125546
+     ],
+     "values": [
+      0.4248633279233309,
+      0.4270269528897928,
+      0.42602133886417726,
+      0.4296617704938599
+     ],
+     "scale": 1.4646243624362334,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "cyl_tt_avg": {
+    "values": [
+     0.3767371228019316,
+     0.39829726430464957,
+     0.3917483838101587,
+     0.3981470644654964,
+     0.4000349057611988,
+     0.401797373650909,
+     0.40174355494502423
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.4000349057611988,
+      0.401797373650909,
+      0.40174355494502423
+     ],
+     "scale": 1.4646243624362334,
+     "relative_spread": 0.0012033583046362293,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.120%); no convergence rate demonstrated"
+    },
+    "diagnostics": {
+     "sign_changes": 1,
+     "fit_p": 5.0,
+     "fit_rms": 0.0002076073671983141,
+     "fit_limit_minus_finest": 0.0008790063099816964,
+     "local_p": [
+      7.6388479307125,
+      0.5264701747506272,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.474% vs tol 2.00%",
+     "relative_spread": 0.0047362588310032525,
+     "scale": 1.4646243624362334,
+     "tol": 0.02,
+     "values": [
+      0.3917483838101587,
+      0.3986852238808498,
+      0.39519128727879976,
+      0.3945845258539467
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.682% vs tol 2.00%",
+     "anchor": 0.40174355494502423,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.006824392240915425,
+      0.002088133409912172,
+      0.004473684744206716,
+      0.004887962589376364
+     ],
+     "values": [
+      0.3917483838101587,
+      0.3986852238808498,
+      0.39519128727879976,
+      0.3945845258539467
+     ],
+     "scale": 1.4646243624362334,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "cyl_rz_avg": {
+    "values": [
+     -0.43535267323939036,
+     -0.49402223394301226,
+     -0.5145054103180693,
+     -0.4968080376411354,
+     -0.5566896300258422,
+     -0.5302407878123175,
+     -0.5049264002460742
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      -0.5566896300258422,
+      -0.5302407878123175,
+      -0.5049264002460742
+     ],
+     "scale": 1.4646243624362334,
+     "relative_spread": 0.035342324699328256,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "observed_order": 0.6917779906474187,
+     "gci_fine": 0.2949854997059907,
+     "richardson_extrapolate": -0.1592920406982179,
+     "evidence": "rate",
+     "verdict": "FAIL",
+     "reason": "monotone, p=0.69, GCI_fine=29.50% vs tol 2.00%"
+    },
+    "diagnostics": {
+     "sign_changes": 2,
+     "fit_p": 5.0,
+     "fit_rms": 0.014045272738503197,
+     "fit_limit_minus_finest": -0.014769893424056319,
+     "local_p": [
+      null,
+      null,
+      0.6917779906474187
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "FAIL",
+     "reason": "spread across strategies 3.634% vs tol 2.00%",
+     "relative_spread": 0.036342028691599595,
+     "scale": 1.4646243624362334,
+     "tol": 0.02,
+     "values": [
+      -0.5145054103180693,
+      -0.5520210631483196,
+      -0.5267137880111045,
+      -0.4987936425462462
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "FAIL",
+     "reason": "max deviation from Richardson extrapolate 26.814% vs tol 2.00%",
+     "anchor": -0.1592920406982179,
+     "anchor_kind": "Richardson extrapolate",
+     "deviations": [
+      0.24252865016460262,
+      0.2681431720805479,
+      0.25086415106582205,
+      0.23180114338894828
+     ],
+     "values": [
+      -0.5145054103180693,
+      -0.5520210631483196,
+      -0.5267137880111045,
+      -0.4987936425462462
+     ],
+     "scale": 1.4646243624362334,
+     "tol": 0.02
+    },
+    "overall": "FAIL"
+   },
+   "frob_avg": {
+    "values": [
+     5.934533137837596,
+     2.545311730052082,
+     1.5189790348894445,
+     1.5132970624770314,
+     1.4922147194212134,
+     1.4701752548083988,
+     1.4646243624362334
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      1.4922147194212134,
+      1.4701752548083988,
+      1.4646243624362334
+     ],
+     "scale": 1.4646243624362334,
+     "relative_spread": 0.01883783835132078,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "observed_order": 11.600653788319303,
+     "gci_fine": 0.002085466824656231,
+     "richardson_extrapolate": 1.4621808220214783,
+     "evidence": "none",
+     "verdict": "FAIL",
+     "reason": "monotone but not asymptotic: observed order 11.60 outside [0.5, 5] (GCI 0.21% not trusted)"
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 0.5,
+     "fit_rms": 0.0036610168304579767,
+     "fit_limit_minus_finest": -0.14636988901921033,
+     "local_p": [
+      null,
+      null,
+      11.600653788319303
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "FAIL",
+     "reason": "spread across strategies 13.768% vs tol 2.00%",
+     "relative_spread": 0.13767613046533508,
+     "scale": 1.4646243624362334,
+     "tol": 0.02,
+     "values": [
+      1.5189790348894445,
+      1.6709562334950976,
+      1.4693124186896185,
+      1.4735731398513527
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "FAIL",
+     "reason": "max deviation from finest family value 14.088% vs tol 2.00%",
+     "anchor": 1.4646243624362334,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.037111681225074265,
+      0.14087698958909503,
+      0.003200859123759929,
+      0.006109947126807375
+     ],
+     "values": [
+      1.5189790348894445,
+      1.6709562334950976,
+      1.4693124186896185,
+      1.4735731398513527
+     ],
+     "scale": 1.4646243624362334,
+     "tol": 0.02
+    },
+    "overall": "FAIL"
+   },
+   "von_mises_avg": {
+    "values": [
+     1.8697146523358112,
+     1.5385102253781864,
+     1.3760131386294623,
+     1.4385844411655295,
+     1.4262785373257434,
+     1.417015431582839,
+     1.4062188354397218
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      1.4262785373257434,
+      1.417015431582839,
+      1.4062188354397218
+     ],
+     "scale": 1.4646243624362334,
+     "relative_spread": 0.013696141072414349,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "FAIL",
+     "evidence": "none",
+     "increments_fine_to_coarse": [
+      0.010796596143117121,
+      0.009263105742904454
+     ],
+     "reason": "divergent: successive differences do not decrease"
+    },
+    "diagnostics": {
+     "sign_changes": 1,
+     "fit_p": 5.0,
+     "fit_rms": 0.011626024617031282,
+     "fit_limit_minus_finest": 0.014674832513430701,
+     "local_p": [
+      null,
+      1.306951396004087,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "FAIL",
+     "reason": "spread across strategies 5.436% vs tol 2.00%",
+     "relative_spread": 0.05435884651386521,
+     "scale": 1.4646243624362334,
+     "tol": 0.02,
+     "values": [
+      1.3760131386294623,
+      1.4556284295476012,
+      1.4217606828940872,
+      1.422378802282
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "FAIL",
+     "reason": "max deviation from finest family value 3.374% vs tol 2.00%",
+     "anchor": 1.4062188354397218,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.020623511109712694,
+      0.033735335404152515,
+      0.010611490463338537,
+      0.01103352317272535
+     ],
+     "values": [
+      1.3760131386294623,
+      1.4556284295476012,
+      1.4217606828940872,
+      1.422378802282
+     ],
+     "scale": 1.4646243624362334,
+     "tol": 0.02
+    },
+    "overall": "FAIL"
+   }
+  }
+ },
+ "sharp 3R0": {
+  "kind": "sharp",
+  "size": 0.13678359791715594,
+  "points": [
+   32,
+   86,
+   160,
+   242,
+   354,
+   494,
+   688
+  ],
+  "scale": 2.475852586887591,
+  "qois": {
+   "sigma_xx_avg": {
+    "values": [
+     0.4696727257707174,
+     0.48397517091954423,
+     0.49495145440189364,
+     0.4932323443291482,
+     0.49032275294253946,
+     0.49330835443958165,
+     0.4958658575059196
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.49032275294253946,
+      0.49330835443958165,
+      0.4958658575059196
+     ],
+     "scale": 2.475852586887591,
+     "relative_spread": 0.002238866963540996,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.224%); no convergence rate demonstrated (monotone but p=0.41 outside [0.5, 5])",
+     "observed_order_diagnostic": 0.41063672369152193
+    },
+    "diagnostics": {
+     "sign_changes": 1,
+     "fit_p": 5.0,
+     "fit_rms": 0.0007484558385470231,
+     "fit_limit_minus_finest": -0.0011215691358342173,
+     "local_p": [
+      null,
+      null,
+      0.41063672369152193
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.509% vs tol 2.00%",
+     "relative_spread": 0.005085394897714504,
+     "scale": 2.475852586887591,
+     "tol": 0.02,
+     "values": [
+      0.49495145440189364,
+      0.4896851238213772,
+      0.48236076628904223,
+      0.4832179438082219
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.545% vs tol 2.00%",
+     "anchor": 0.4958658575059196,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.0003693285734654599,
+      0.0024964061742917634,
+      0.005454723471179964,
+      0.0051085083840138705
+     ],
+     "values": [
+      0.49495145440189364,
+      0.4896851238213772,
+      0.48236076628904223,
+      0.4832179438082219
+     ],
+     "scale": 2.475852586887591,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "sigma_yy_avg": {
+    "values": [
+     0.4011760552066446,
+     0.4087868897904958,
+     0.4197059497200017,
+     0.4223198856371086,
+     0.42168305398802564,
+     0.4247134996917576,
+     0.42615436306146964
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.42168305398802564,
+      0.4247134996917576,
+      0.42615436306146964
+     ],
+     "scale": 2.475852586887591,
+     "relative_spread": 0.0018059674057836039,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.181%); no convergence rate demonstrated (monotone but p=5.82 outside [0.5, 5])",
+     "observed_order_diagnostic": 5.82144605480736
+    },
+    "diagnostics": {
+     "sign_changes": 2,
+     "fit_p": 0.5,
+     "fit_rms": 0.0003184821755558442,
+     "fit_limit_minus_finest": 0.008483902222210302,
+     "local_p": [
+      null,
+      null,
+      5.82144605480736
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.113% vs tol 2.00%",
+     "relative_spread": 0.0011314786572741854,
+     "scale": 2.475852586887591,
+     "tol": 0.02,
+     "values": [
+      0.4197059497200017,
+      0.42111894997296534,
+      0.4186628369123037,
+      0.41831757561234495
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.317% vs tol 2.00%",
+     "anchor": 0.42615436306146964,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.002604522327225584,
+      0.002033809732926931,
+      0.003025836913248365,
+      0.0031652883902011167
+     ],
+     "values": [
+      0.4197059497200017,
+      0.42111894997296534,
+      0.4186628369123037,
+      0.41831757561234495
+     ],
+     "scale": 2.475852586887591,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "sigma_zz_avg": {
+    "values": [
+     0.45827939966766695,
+     0.4566367909789686,
+     0.46767969407863685,
+     0.4760499142397774,
+     0.47818363340149467,
+     0.48149468198992496,
+     0.4821535155258897
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.47818363340149467,
+      0.48149468198992496,
+      0.4821535155258897
+     ],
+     "scale": 2.475852586887591,
+     "relative_spread": 0.0016034404250963876,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.160%); no convergence rate demonstrated (monotone but p=13.73 outside [0.5, 5])",
+     "observed_order_diagnostic": 13.729679759345123
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 4.25,
+     "fit_rms": 0.00021703601837670775,
+     "fit_limit_minus_finest": 0.0007982485937311798,
+     "local_p": [
+      8.661873495774572,
+      null,
+      13.729679759345123
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.433% vs tol 2.00%",
+     "relative_spread": 0.004334380161908898,
+     "scale": 2.475852586887591,
+     "tol": 0.02,
+     "values": [
+      0.46767969407863685,
+      0.4757790063448722,
+      0.47841098041505326,
+      0.47658696915365645
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.585% vs tol 2.00%",
+     "anchor": 0.4821535155258897,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.005845994839881792,
+      0.0025746723430860397,
+      0.0015116146779728939,
+      0.002248335139868318
+     ],
+     "values": [
+      0.46767969407863685,
+      0.4757790063448722,
+      0.47841098041505326,
+      0.47658696915365645
+     ],
+     "scale": 2.475852586887591,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "pressure_avg": {
+    "values": [
+     -0.4430427268816764,
+     -0.4497996172296696,
+     -0.4607790327335108,
+     -0.4638673814020115,
+     -0.46339648011068657,
+     -0.46650551204042146,
+     -0.46805791203109304
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      -0.46339648011068657,
+      -0.46650551204042146,
+      -0.46805791203109304
+     ],
+     "scale": 2.475852586887591,
+     "relative_spread": 0.0018827582648070257,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.188%); no convergence rate demonstrated (monotone but p=5.37 outside [0.5, 5])",
+     "observed_order_diagnostic": 5.373618717604211
+    },
+    "diagnostics": {
+     "sign_changes": 2,
+     "fit_p": 0.5,
+     "fit_rms": 0.000313078207727773,
+     "fit_limit_minus_finest": -0.00964397797868371,
+     "local_p": [
+      null,
+      null,
+      5.373618717604211
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.114% vs tol 2.00%",
+     "relative_spread": 0.001139081221259531,
+     "scale": 2.475852586887591,
+     "tol": 0.02,
+     "values": [
+      -0.4607790327335108,
+      -0.46219436004640496,
+      -0.459811527872133,
+      -0.4593741628580745
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.351% vs tol 2.00%",
+     "anchor": -0.46805791203109304,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.002939948580190945,
+      0.0023682960834349115,
+      0.0033307250208004673,
+      0.0035073773046944423
+     ],
+     "values": [
+      -0.4607790327335108,
+      -0.46219436004640496,
+      -0.459811527872133,
+      -0.4593741628580745
+     ],
+     "scale": 2.475852586887591,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "cyl_rr_avg": {
+    "values": [
+     0.4683047862763325,
+     0.48274463718981664,
+     0.4938423753412071,
+     0.49191550616169577,
+     0.48891325062665003,
+     0.49186410425055876,
+     0.49453088062712375
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.48891325062665003,
+      0.49186410425055876,
+      0.49453088062712375
+     ],
+     "scale": 2.475852586887591,
+     "relative_spread": 0.0022689678821046742,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.227%); no convergence rate demonstrated (monotone but p=0.09 outside [0.5, 5])",
+     "observed_order_diagnostic": 0.09483225666286087
+    },
+    "diagnostics": {
+     "sign_changes": 1,
+     "fit_p": 5.0,
+     "fit_rms": 0.0007648823851289911,
+     "fit_limit_minus_finest": -0.0011669239722014739,
+     "local_p": [
+      null,
+      null,
+      0.09483225666286087
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.514% vs tol 2.00%",
+     "relative_spread": 0.00513604946142112,
+     "scale": 2.475852586887591,
+     "tol": 0.02,
+     "values": [
+      0.4938423753412071,
+      0.4885575401912379,
+      0.481126273995765,
+      0.48190852985274024
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.541% vs tol 2.00%",
+     "anchor": 0.49453088062712375,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.0002780881582219536,
+      0.002412639778119804,
+      0.005414137619643073,
+      0.005098183486865483
+     ],
+     "values": [
+      0.4938423753412071,
+      0.4885575401912379,
+      0.481126273995765,
+      0.48190852985274024
+     ],
+     "scale": 2.475852586887591,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "cyl_tt_avg": {
+    "values": [
+     0.40254399470102975,
+     0.4100174235202232,
+     0.4208150287806882,
+     0.423636723804561,
+     0.423092556303915,
+     0.42615774988078037,
+     0.4274893399402655
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.423092556303915,
+      0.42615774988078037,
+      0.4274893399402655
+     ],
+     "scale": 2.475852586887591,
+     "relative_spread": 0.001775866487219948,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.178%); no convergence rate demonstrated (monotone but p=6.65 outside [0.5, 5])",
+     "observed_order_diagnostic": 6.6461710838403
+    },
+    "diagnostics": {
+     "sign_changes": 2,
+     "fit_p": 0.5,
+     "fit_rms": 0.0003067715480622613,
+     "fit_limit_minus_finest": 0.00889421387570778,
+     "local_p": [
+      null,
+      null,
+      6.6461710838403
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.106% vs tol 2.00%",
+     "relative_spread": 0.0010580371582505235,
+     "scale": 2.475852586887591,
+     "tol": 0.02,
+     "values": [
+      0.4208150287806882,
+      0.4222465336031045,
+      0.4198973292055808,
+      0.41962698956782674
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.318% vs tol 2.00%",
+     "anchor": 0.4274893399402655,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.00269576274246909,
+      0.002117576129098935,
+      0.0030664227647853,
+      0.0031756132873494588
+     ],
+     "values": [
+      0.4208150287806882,
+      0.4222465336031045,
+      0.4198973292055808,
+      0.41962698956782674
+     ],
+     "scale": 2.475852586887591,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "cyl_rz_avg": {
+    "values": [
+     -0.30697402804044466,
+     -0.2777837193948417,
+     -0.28001904373487924,
+     -0.3190620136916719,
+     -0.33951895995156145,
+     -0.3404494773683746,
+     -0.33734477170913074
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      -0.33951895995156145,
+      -0.3404494773683746,
+      -0.33734477170913074
+     ],
+     "scale": 2.475852586887591,
+     "relative_spread": 0.001253994553507247,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.125%); no convergence rate demonstrated"
+    },
+    "diagnostics": {
+     "sign_changes": 1,
+     "fit_p": 5.0,
+     "fit_rms": 0.001755338247659513,
+     "fit_limit_minus_finest": -0.004984456244750016,
+     "local_p": [
+      3.5883093825970813,
+      23.743709310636756,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "FAIL",
+     "reason": "spread across strategies 3.364% vs tol 2.00%",
+     "relative_spread": 0.0336432954326242,
+     "scale": 2.475852586887591,
+     "tol": 0.02,
+     "values": [
+      -0.28001904373487924,
+      -0.32386000301927065,
+      -0.36331488376316534,
+      -0.35124626276868415
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "FAIL",
+     "reason": "max deviation from finest family value 2.315% vs tol 2.00%",
+     "anchor": -0.33734477170913074,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.02315393423576806,
+      0.0054465151767423585,
+      0.010489361196856143,
+      0.0056148298703958995
+     ],
+     "values": [
+      -0.28001904373487924,
+      -0.32386000301927065,
+      -0.36331488376316534,
+      -0.35124626276868415
+     ],
+     "scale": 2.475852586887591,
+     "tol": 0.02
+    },
+    "overall": "FAIL"
+   },
+   "frob_avg": {
+    "values": [
+     5.827261138002672,
+     3.5267499259174735,
+     2.762933203538529,
+     2.420773058900836,
+     2.420678279536109,
+     2.430994737896617,
+     2.475852586887591
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      2.420678279536109,
+      2.430994737896617,
+      2.475852586887591
+     ],
+     "scale": 2.475852586887591,
+     "relative_spread": 0.02228497271755668,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "FAIL",
+     "evidence": "none",
+     "increments_fine_to_coarse": [
+      -0.044857848990974336,
+      -0.010316458360507763
+     ],
+     "reason": "divergent: successive differences do not decrease"
+    },
+    "diagnostics": {
+     "sign_changes": 1,
+     "fit_p": 5.0,
+     "fit_rms": 0.02696021961494769,
+     "fit_limit_minus_finest": -0.04307008464339834,
+     "local_p": [
+      54.88699033553115,
+      null,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "FAIL",
+     "reason": "spread across strategies 14.964% vs tol 2.00%",
+     "relative_spread": 0.1496378174539197,
+     "scale": 2.475852586887591,
+     "tol": 0.02,
+     "values": [
+      2.762933203538529,
+      2.5504721327156683,
+      2.427746293696106,
+      2.3924520260990287
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "FAIL",
+     "reason": "max deviation from finest family value 11.595% vs tol 2.00%",
+     "anchor": 2.475852586887591,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.11595222517340122,
+      0.030138929200902807,
+      0.01943019283387941,
+      0.0336855922805185
+     ],
+     "values": [
+      2.762933203538529,
+      2.5504721327156683,
+      2.427746293696106,
+      2.3924520260990287
+     ],
+     "scale": 2.475852586887591,
+     "tol": 0.02
+    },
+    "overall": "FAIL"
+   },
+   "von_mises_avg": {
+    "values": [
+     2.1068334204702603,
+     1.8629234877326781,
+     1.860756588383613,
+     1.8086470574969933,
+     1.832810958130618,
+     1.8010900955597982,
+     1.8236690239227273
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      1.832810958130618,
+      1.8010900955597982,
+      1.8236690239227273
+     ],
+     "scale": 2.475852586887591,
+     "relative_spread": 0.012812096624337532,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "oscillatory: successive differences change sign"
+    },
+    "diagnostics": {
+     "sign_changes": 3,
+     "fit_p": 5.0,
+     "fit_rms": 0.005680851383796727,
+     "fit_limit_minus_finest": -0.006588963800986796,
+     "local_p": [
+      null,
+      null,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "FAIL",
+     "reason": "spread across strategies 3.192% vs tol 2.00%",
+     "relative_spread": 0.03191900732833673,
+     "scale": 2.475852586887591,
+     "tol": 0.02,
+     "values": [
+      1.860756588383613,
+      1.7817298315188665,
+      1.7940975498506606,
+      1.7867444621520483
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 1.694% vs tol 2.00%",
+     "anchor": 1.8236690239227273,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.014979714324393068,
+      0.016939293003943662,
+      0.0119439558835937,
+      0.014913877331080171
+     ],
+     "values": [
+      1.860756588383613,
+      1.7817298315188665,
+      1.7940975498506606,
+      1.7867444621520483
+     ],
+     "scale": 2.475852586887591,
+     "tol": 0.02
+    },
+    "overall": "FAIL"
+   }
+  }
+ },
+ "sharp 4R0": {
+  "kind": "sharp",
+  "size": 0.18237813055620794,
+  "points": [
+   76,
+   186,
+   330,
+   510,
+   762,
+   1074,
+   1462
+  ],
+  "scale": 5.083048109203124,
+  "qois": {
+   "sigma_xx_avg": {
+    "values": [
+     0.5716898957749998,
+     0.656196308576115,
+     0.6450377279461667,
+     0.648088803753152,
+     0.6511753524908431,
+     0.6609131718142652,
+     0.661185089788407
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.6511753524908431,
+      0.6609131718142652,
+      0.661185089788407
+     ],
+     "scale": 5.083048109203124,
+     "relative_spread": 0.0019692391420495655,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.197%); no convergence rate demonstrated (monotone but p=31.25 outside [0.5, 5])",
+     "observed_order_diagnostic": 31.24615782715142
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 0.5,
+     "fit_rms": 0.000401890091535577,
+     "fit_limit_minus_finest": 0.012546223597071134,
+     "local_p": [
+      null,
+      null,
+      31.24615782715142
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.246% vs tol 2.00%",
+     "relative_spread": 0.0024615063975848865,
+     "scale": 5.083048109203124,
+     "tol": 0.02,
+     "values": [
+      0.6450377279461667,
+      0.6575496833862019,
+      0.6499519343819945,
+      0.651821458908468
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.318% vs tol 2.00%",
+     "anchor": 0.661185089788407,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.0031767084425198856,
+      0.0007152020449349991,
+      0.002209925061711346,
+      0.0018421291081203077
+     ],
+     "values": [
+      0.6450377279461667,
+      0.6575496833862019,
+      0.6499519343819945,
+      0.651821458908468
+     ],
+     "scale": 5.083048109203124,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "sigma_yy_avg": {
+    "values": [
+     0.4180909305281785,
+     0.4394877482800602,
+     0.437419224835983,
+     0.4382250725308831,
+     0.4404694998648791,
+     0.4436803801433154,
+     0.4443342716201174
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.4404694998648791,
+      0.4436803801433154,
+      0.4443342716201174
+     ],
+     "scale": 5.083048109203124,
+     "relative_spread": 0.0007603256298599525,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.076%); no convergence rate demonstrated (monotone but p=13.52 outside [0.5, 5])",
+     "observed_order_diagnostic": 13.520504409318951
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 0.5,
+     "fit_rms": 0.00014283316125326335,
+     "fit_limit_minus_finest": 0.005330832198015584,
+     "local_p": [
+      null,
+      null,
+      13.520504409318951
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.076% vs tol 2.00%",
+     "relative_spread": 0.0007592735725143933,
+     "scale": 5.083048109203124,
+     "tol": 0.02,
+     "values": [
+      0.437419224835983,
+      0.4386445245143293,
+      0.4358624337095992,
+      0.4347851004171921
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.188% vs tol 2.00%",
+     "anchor": 0.4443342716201174,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.001360413404629075,
+      0.001119357319378217,
+      0.0016666845814776953,
+      0.0018786308918926104
+     ],
+     "values": [
+      0.437419224835983,
+      0.4386445245143293,
+      0.4358624337095992,
+      0.4347851004171921
+     ],
+     "scale": 5.083048109203124,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "sigma_zz_avg": {
+    "values": [
+     0.3893195663206596,
+     0.3561003102687723,
+     0.3591408127755001,
+     0.3593944862804283,
+     0.36111370610223964,
+     0.3598578486262369,
+     0.3610659107961228
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.36111370610223964,
+      0.3598578486262369,
+      0.3610659107961228
+     ],
+     "scale": 5.083048109203124,
+     "relative_spread": 0.0002470677925965266,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.025%); no convergence rate demonstrated"
+    },
+    "diagnostics": {
+     "sign_changes": 2,
+     "fit_p": 2.1,
+     "fit_rms": 0.00010699444409765526,
+     "fit_limit_minus_finest": 0.00014260265602431996,
+     "local_p": [
+      null,
+      null,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.196% vs tol 2.00%",
+     "relative_spread": 0.001964734326922978,
+     "scale": 5.083048109203124,
+     "tol": 0.02,
+     "values": [
+      0.3591408127755001,
+      0.3530003933149047,
+      0.35194365174682574,
+      0.34915397366994777
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.234% vs tol 2.00%",
+     "anchor": 0.3610659107961228,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.0003787290576961586,
+      0.0015867482085434334,
+      0.0017946434606394464,
+      0.0023434633846191365
+     ],
+     "values": [
+      0.3591408127755001,
+      0.3530003933149047,
+      0.35194365174682574,
+      0.34915397366994777
+     ],
+     "scale": 5.083048109203124,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "pressure_avg": {
+    "values": [
+     -0.45970013087461264,
+     -0.4839281223749826,
+     -0.4805325885192166,
+     -0.4819027875214879,
+     -0.4842528528193206,
+     -0.4881504668612725,
+     -0.48886175740154897
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      -0.4842528528193206,
+      -0.4881504668612725,
+      -0.48886175740154897
+     ],
+     "scale": 5.083048109203124,
+     "relative_spread": 0.0009067206296717286,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.091%); no convergence rate demonstrated (monotone but p=14.51 outside [0.5, 5])",
+     "observed_order_diagnostic": 14.509213438302075
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 0.5,
+     "fit_rms": 0.00015502473725359804,
+     "fit_limit_minus_finest": -0.0063594521160456495,
+     "local_p": [
+      null,
+      null,
+      14.509213438302075
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.088% vs tol 2.00%",
+     "relative_spread": 0.0008809719372584282,
+     "scale": 5.083048109203124,
+     "tol": 0.02,
+     "values": [
+      -0.4805325885192166,
+      -0.48306486707181184,
+      -0.47925267327947324,
+      -0.4785868443318694
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.202% vs tol 2.00%",
+     "anchor": -0.48886175740154897,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.0016386169682816845,
+      0.001140435857618887,
+      0.001890417701276126,
+      0.0020214077948773152
+     ],
+     "values": [
+      -0.4805325885192166,
+      -0.48306486707181184,
+      -0.47925267327947324,
+      -0.4785868443318694
+     ],
+     "scale": 5.083048109203124,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "cyl_rr_avg": {
+    "values": [
+     0.572241650434624,
+     0.6566653602473882,
+     0.6456819482560983,
+     0.64841144856446,
+     0.6515574470197252,
+     0.6614389296984927,
+     0.6616723088573047
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.6515574470197252,
+      0.6614389296984927,
+      0.6616723088573047
+     ],
+     "scale": 5.083048109203124,
+     "relative_spread": 0.0019899205398559963,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.199%); no convergence rate demonstrated (monotone but p=32.73 outside [0.5, 5])",
+     "observed_order_diagnostic": 32.72702386359412
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 0.5,
+     "fit_rms": 0.0004188475659920392,
+     "fit_limit_minus_finest": 0.01248715113068603,
+     "local_p": [
+      null,
+      null,
+      32.72702386359412
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.242% vs tol 2.00%",
+     "relative_spread": 0.00242488688815037,
+     "scale": 5.083048109203124,
+     "tol": 0.02,
+     "values": [
+      0.6456819482560983,
+      0.6580077649679424,
+      0.6504986929586621,
+      0.6523368589085495
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.315% vs tol 2.00%",
+     "anchor": 0.6616723088573047,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.0031458212194086887,
+      0.0007209343312583186,
+      0.0021982117144262524,
+      0.0018365850073015849
+     ],
+     "values": [
+      0.6456819482560983,
+      0.6580077649679424,
+      0.6504986929586621,
+      0.6523368589085495
+     ],
+     "scale": 5.083048109203124,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "cyl_tt_avg": {
+    "values": [
+     0.41753917586855455,
+     0.4390186966087872,
+     0.43677500452605106,
+     0.43790242771957516,
+     0.4400874053359965,
+     0.44315462225908764,
+     0.44384705255121976
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.4400874053359965,
+      0.44315462225908764,
+      0.44384705255121976
+     ],
+     "scale": 5.083048109203124,
+     "relative_spread": 0.0007396442320536418,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.074%); no convergence rate demonstrated (monotone but p=12.59 outside [0.5, 5])",
+     "observed_order_diagnostic": 12.590244156792942
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 0.5,
+     "fit_rms": 0.0001224458191784404,
+     "fit_limit_minus_finest": 0.005389904664400535,
+     "local_p": [
+      null,
+      null,
+      12.590244156792942
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.077% vs tol 2.00%",
+     "relative_spread": 0.0007705499596565449,
+     "scale": 5.083048109203124,
+     "tol": 0.02,
+     "values": [
+      0.43677500452605106,
+      0.4381864429325889,
+      0.43531567513293185,
+      0.43426970041711016
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.188% vs tol 2.00%",
+     "anchor": 0.44384705255121976,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.0013913006277403487,
+      0.0011136250330548757,
+      0.0016783979287627452,
+      0.0018841749927114206
+     ],
+     "values": [
+      0.43677500452605106,
+      0.4381864429325889,
+      0.43531567513293185,
+      0.43426970041711016
+     ],
+     "scale": 5.083048109203124,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "cyl_rz_avg": {
+    "values": [
+     0.32343039268825285,
+     0.7397087558340605,
+     0.6859840880605933,
+     0.6879422840990086,
+     0.6901336136254596,
+     0.7404011300415497,
+     0.7362429291554671
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.6901336136254596,
+      0.7404011300415497,
+      0.7362429291554671
+     ],
+     "scale": 5.083048109203124,
+     "relative_spread": 0.009889246636300414,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.989%); no convergence rate demonstrated"
+    },
+    "diagnostics": {
+     "sign_changes": 1,
+     "fit_p": 0.5,
+     "fit_rms": 0.0025813803331596746,
+     "fit_limit_minus_finest": 0.041256930660805165,
+     "local_p": [
+      null,
+      null,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 1.492% vs tol 2.00%",
+     "relative_spread": 0.014921498184864431,
+     "scale": 5.083048109203124,
+     "tol": 0.02,
+     "values": [
+      0.6859840880605933,
+      0.7618307811956463,
+      0.7323269656038705,
+      0.7581126121599299
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.989% vs tol 2.00%",
+     "anchor": 0.7362429291554671,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.009887539919969972,
+      0.005033958264894459,
+      0.0007703967122614023,
+      0.004302474132571476
+     ],
+     "values": [
+      0.6859840880605933,
+      0.7618307811956463,
+      0.7323269656038705,
+      0.7581126121599299
+     ],
+     "scale": 5.083048109203124,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "frob_avg": {
+    "values": [
+     7.195605918068899,
+     5.65713941639731,
+     5.098010497069478,
+     5.020629887275256,
+     5.079668950778073,
+     5.101028909265982,
+     5.083048109203124
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      5.079668950778073,
+      5.101028909265982,
+      5.083048109203124
+     ],
+     "scale": 5.083048109203124,
+     "relative_spread": 0.004202194830545796,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.420%); no convergence rate demonstrated"
+    },
+    "diagnostics": {
+     "sign_changes": 2,
+     "fit_p": 0.5,
+     "fit_rms": 0.005616613439664397,
+     "fit_limit_minus_finest": 0.011478027432210111,
+     "local_p": [
+      null,
+      7.264577805238511,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "FAIL",
+     "reason": "spread across strategies 3.918% vs tol 2.00%",
+     "relative_spread": 0.03917819188358966,
+     "scale": 5.083048109203124,
+     "tol": 0.02,
+     "values": [
+      5.098010497069478,
+      5.259039109774873,
+      5.16104051665083,
+      5.059894475598996
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "FAIL",
+     "reason": "max deviation from finest family value 3.462% vs tol 2.00%",
+     "anchor": 5.083048109203124,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.00294358572748201,
+      0.034623123132182965,
+      0.015343629604153742,
+      0.0045550687514066945
+     ],
+     "values": [
+      5.098010497069478,
+      5.259039109774873,
+      5.16104051665083,
+      5.059894475598996
+     ],
+     "scale": 5.083048109203124,
+     "tol": 0.02
+    },
+    "overall": "FAIL"
+   },
+   "von_mises_avg": {
+    "values": [
+     2.9968938693851195,
+     3.0561407742093203,
+     2.995680940918501,
+     2.991279921405713,
+     3.004228894017413,
+     3.0957306406953844,
+     3.091707984723525
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      3.004228894017413,
+      3.0957306406953844,
+      3.091707984723525
+     ],
+     "scale": 5.083048109203124,
+     "relative_spread": 0.018001353658703884,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "oscillatory: successive differences change sign"
+    },
+    "diagnostics": {
+     "sign_changes": 2,
+     "fit_p": 0.5,
+     "fit_rms": 0.004919555865914749,
+     "fit_limit_minus_finest": 0.07934446071519471,
+     "local_p": [
+      null,
+      null,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "FAIL",
+     "reason": "spread across strategies 2.495% vs tol 2.00%",
+     "relative_spread": 0.024952901947552834,
+     "scale": 5.083048109203124,
+     "tol": 0.02,
+     "values": [
+      2.995680940918501,
+      3.1163552809633823,
+      3.083155091114678,
+      3.1225177419821404
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 1.889% vs tol 2.00%",
+     "anchor": 3.091707984723525,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.018891625997236174,
+      0.004848920511933023,
+      0.0016826308594957724,
+      0.006061275950316658
+     ],
+     "values": [
+      2.995680940918501,
+      3.1163552809633823,
+      3.083155091114678,
+      3.1225177419821404
+     ],
+     "scale": 5.083048109203124,
+     "tol": 0.02
+    },
+    "overall": "FAIL"
+   }
+  }
+ },
+ "gauss l=1R0": {
+  "kind": "gauss",
+  "size": 0.045594532639051985,
+  "points": [
+   4.838137592792387,
+   12.852590542426427,
+   24.334485788897798,
+   38.74256284849985,
+   57.73312675197091,
+   81.74980931997125,
+   111.52051485098791
+  ],
+  "scale": 1.1701786475661349,
+  "qois": {
+   "sigma_xx_avg": {
+    "values": [
+     0.4406410226310572,
+     0.41742420122227797,
+     0.43023131682700233,
+     0.43265745755111734,
+     0.43475207507855285,
+     0.4361611998580687,
+     0.4368462336761352
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.43475207507855285,
+      0.4361611998580687,
+      0.4368462336761352
+     ],
+     "scale": 1.1701786475661349,
+     "relative_spread": 0.0017896058879026625,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.179%); no convergence rate demonstrated (monotone but p=5.62 outside [0.5, 5])",
+     "observed_order_diagnostic": 5.6183217416421956
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 1.6500000000000001,
+     "fit_rms": 0.00011442437632008707,
+     "fit_limit_minus_finest": 0.004719218788202704,
+     "local_p": [
+      0.023074359453862114,
+      2.226315878774711,
+      5.6183217416421956
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.284% vs tol 2.00%",
+     "relative_spread": 0.0028409936272407598,
+     "scale": 1.1701786475661349,
+     "tol": 0.02,
+     "values": [
+      0.43023131682700233,
+      0.42690684674653373,
+      0.4275710911813743,
+      0.42735236522613956
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.849% vs tol 2.00%",
+     "anchor": 0.4368462336761352,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.005652911940318917,
+      0.008493905567559678,
+      0.00792626195500346,
+      0.008113178675531293
+     ],
+     "values": [
+      0.43023131682700233,
+      0.42690684674653373,
+      0.4275710911813743,
+      0.42735236522613956
+     ],
+     "scale": 1.1701786475661349,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "sigma_yy_avg": {
+    "values": [
+     0.38600913802888176,
+     0.3794001281115822,
+     0.3842092847479345,
+     0.38643437433799677,
+     0.3881459729724292,
+     0.38939394160544366,
+     0.3900153927667183
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.3881459729724292,
+      0.38939394160544366,
+      0.3900153927667183
+     ],
+     "scale": 1.1701786475661349,
+     "relative_spread": 0.00159755076558382,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.160%); no convergence rate demonstrated (monotone but p=5.40 outside [0.5, 5])",
+     "observed_order_diagnostic": 5.398379132170278
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 1.75,
+     "fit_rms": 7.237673289583172e-05,
+     "fit_limit_minus_finest": 0.0037549793852743488,
+     "local_p": [
+      0.8509084659372952,
+      1.567938727792516,
+      5.398379132170278
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.159% vs tol 2.00%",
+     "relative_spread": 0.0015874790973106664,
+     "scale": 1.1701786475661349,
+     "tol": 0.02,
+     "values": [
+      0.3842092847479345,
+      0.3833659017224138,
+      0.38247670211056445,
+      0.38235165060480397
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.655% vs tol 2.00%",
+     "anchor": 0.3900153927667183,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.0049617278787815996,
+      0.005682458023084636,
+      0.00644234166452589,
+      0.006549206976092266
+     ],
+     "values": [
+      0.3842092847479345,
+      0.3833659017224138,
+      0.38247670211056445,
+      0.38235165060480397
+     ],
+     "scale": 1.1701786475661349,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "sigma_zz_avg": {
+    "values": [
+     0.4517180224775969,
+     0.45119880076076735,
+     0.4483694949393349,
+     0.45096859197749856,
+     0.45269354590375543,
+     0.45407350818883774,
+     0.45477561856065746
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.45269354590375543,
+      0.45407350818883774,
+      0.45477561856065746
+     ],
+     "scale": 1.1701786475661349,
+     "relative_spread": 0.0017792776011018017,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.178%); no convergence rate demonstrated (monotone but p=5.20 outside [0.5, 5])",
+     "observed_order_diagnostic": 5.201656055263906
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 1.9500000000000002,
+     "fit_rms": 5.52904355522372e-05,
+     "fit_limit_minus_finest": 0.0034602853148131755,
+     "local_p": [
+      1.9060426736268332,
+      0.8078080116081727,
+      5.201656055263906
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.239% vs tol 2.00%",
+     "relative_spread": 0.0023912155703756485,
+     "scale": 1.1701786475661349,
+     "tol": 0.02,
+     "values": [
+      0.4483694949393349,
+      0.4500233202379681,
+      0.4472645805262989,
+      0.44722517083578683
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.645% vs tol 2.00%",
+     "anchor": 0.45477561856065746,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.005474483434342858,
+      0.004061173336715476,
+      0.006418710553282456,
+      0.006452388907091125
+     ],
+     "values": [
+      0.4483694949393349,
+      0.4500233202379681,
+      0.4472645805262989,
+      0.44722517083578683
+     ],
+     "scale": 1.1701786475661349,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "pressure_avg": {
+    "values": [
+     -0.42612272771251186,
+     -0.4160077100315426,
+     -0.4209366988380906,
+     -0.4233534746222042,
+     -0.4251971979849124,
+     -0.42654288321745,
+     -0.4272124150011703
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      -0.4251971979849124,
+      -0.42654288321745,
+      -0.4272124150011703
+     ],
+     "scale": 1.1701786475661349,
+     "relative_spread": 0.0017221447515294913,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.172%); no convergence rate demonstrated (monotone but p=5.41 outside [0.5, 5])",
+     "observed_order_diagnostic": 5.406293483100861
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 1.8,
+     "fit_rms": 7.67712279352357e-05,
+     "fit_limit_minus_finest": -0.003886080655069535,
+     "local_p": [
+      0.9101834429398631,
+      1.5595319953874192,
+      5.406293483100861
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.168% vs tol 2.00%",
+     "relative_spread": 0.0016752171017571029,
+     "scale": 1.1701786475661349,
+     "tol": 0.02,
+     "values": [
+      -0.4209366988380906,
+      -0.42009868956897195,
+      -0.41910412460607915,
+      -0.4189763955555768
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.704% vs tol 2.00%",
+     "anchor": -0.4272124150011703,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.005363041084481093,
+      0.006079178975786518,
+      0.00692910472427065,
+      0.007038258186238196
+     ],
+     "values": [
+      -0.4209366988380906,
+      -0.42009868956897195,
+      -0.41910412460607915,
+      -0.4189763955555768
+     ],
+     "scale": 1.1701786475661349,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "cyl_rr_avg": {
+    "values": [
+     0.43999386432535176,
+     0.4166358006208381,
+     0.429392864918059,
+     0.43181048513420567,
+     0.4339041072580771,
+     0.435313059385568,
+     0.43599795449060896
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.4339041072580771,
+      0.435313059385568,
+      0.43599795449060896
+     ],
+     "scale": 1.1701786475661349,
+     "relative_spread": 0.0017893398045562329,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.179%); no convergence rate demonstrated (monotone but p=5.62 outside [0.5, 5])",
+     "observed_order_diagnostic": 5.619053299438735
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 1.6500000000000001,
+     "fit_rms": 0.00011489544545191634,
+     "fit_limit_minus_finest": 0.004711514705913816,
+     "local_p": [
+      0.0012228804426575386,
+      2.223432520040446,
+      5.619053299438735
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.284% vs tol 2.00%",
+     "relative_spread": 0.002843382035195627,
+     "scale": 1.1701786475661349,
+     "tol": 0.02,
+     "values": [
+      0.429392864918059,
+      0.42606559997359994,
+      0.42672534798519257,
+      0.42650634315859687
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.849% vs tol 2.00%",
+     "anchor": 0.43599795449060896,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.005644513840931849,
+      0.008487895876127477,
+      0.007924094773650647,
+      0.008111249809380631
+     ],
+     "values": [
+      0.429392864918059,
+      0.42606559997359994,
+      0.42672534798519257,
+      0.42650634315859687
+     ],
+     "scale": 1.1701786475661349,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "cyl_tt_avg": {
+    "values": [
+     0.38665629633458576,
+     0.38018852871302217,
+     0.38504773665687786,
+     0.38728134675490844,
+     0.38899394079290495,
+     0.39024208207794425,
+     0.39086367195224453
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.38899394079290495,
+      0.39024208207794425,
+      0.39086367195224453
+     ],
+     "scale": 1.1701786475661349,
+     "relative_spread": 0.0015978168489302496,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.160%); no convergence rate demonstrated (monotone but p=5.40 outside [0.5, 5])",
+     "observed_order_diagnostic": 5.397602731862798
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 1.75,
+     "fit_rms": 7.19678073767182e-05,
+     "fit_limit_minus_finest": 0.003762160953835394,
+     "local_p": [
+      0.8741145435158426,
+      1.5715656725965412,
+      5.397602731862798
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.158% vs tol 2.00%",
+     "relative_spread": 0.0015810098640743073,
+     "scale": 1.1701786475661349,
+     "tol": 0.02,
+     "values": [
+      0.38504773665687786,
+      0.38420714849534776,
+      0.3833224453067462,
+      0.38319767267234667
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.655% vs tol 2.00%",
+     "anchor": 0.39086367195224453,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.0049701259781686205,
+      0.005688467714516695,
+      0.006444508845878703,
+      0.006551135842242928
+     ],
+     "values": [
+      0.38504773665687786,
+      0.38420714849534776,
+      0.3833224453067462,
+      0.38319767267234667
+     ],
+     "scale": 1.1701786475661349,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "cyl_rz_avg": {
+    "values": [
+     -0.34472081597281456,
+     -0.45324066040259225,
+     -0.3955017078921884,
+     -0.39645989230904255,
+     -0.39718135142605426,
+     -0.39870310882471877,
+     -0.39953798910760746
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      -0.39718135142605426,
+      -0.39870310882471877,
+      -0.39953798910760746
+     ],
+     "scale": 1.1701786475661349,
+     "relative_spread": 0.0020139127358500255,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "observed_order": 4.511093158457476,
+     "gci_fine": 0.0015231056109445444,
+     "richardson_extrapolate": -0.40096383363873983,
+     "evidence": "rate",
+     "verdict": "PASS",
+     "reason": "monotone, p=4.51, GCI_fine=0.15% vs tol 2.00%"
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 0.5,
+     "fit_rms": 0.00023558697832708173,
+     "fit_limit_minus_finest": -0.012230993304179889,
+     "local_p": [
+      1.0040882073895248,
+      null,
+      4.511093158457476
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 1.427% vs tol 2.00%",
+     "relative_spread": 0.014265427840351787,
+     "scale": 1.1701786475661349,
+     "tol": 0.02,
+     "values": [
+      -0.3955017078921884,
+      -0.41219480694936356,
+      -0.39903230536553136,
+      -0.39969417568295396
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 0.960% vs tol 2.00%",
+     "anchor": -0.40096383363873983,
+     "anchor_kind": "Richardson extrapolate",
+     "deviations": [
+      0.004667770821072612,
+      0.009597657019279175,
+      0.0016506268314037985,
+      0.0010850120692482703
+     ],
+     "values": [
+      -0.3955017078921884,
+      -0.41219480694936356,
+      -0.39903230536553136,
+      -0.39969417568295396
+     ],
+     "scale": 1.1701786475661349,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "frob_avg": {
+    "values": [
+     7.25283879422012,
+     2.5050773209095185,
+     1.2784601762269419,
+     1.1821500070102975,
+     1.1734158205490854,
+     1.1730351803597374,
+     1.1701786475661349
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      1.1734158205490854,
+      1.1730351803597374,
+      1.1701786475661349
+     ],
+     "scale": 1.1701786475661349,
+     "relative_spread": 0.002766392114301171,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.277%); no convergence rate demonstrated"
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 5.0,
+     "fit_rms": 0.011179547102235387,
+     "fit_limit_minus_finest": -0.017961063139926715,
+     "local_p": [
+      15.819877418682134,
+      24.07962956044965,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "FAIL",
+     "reason": "spread across strategies 10.140% vs tol 2.00%",
+     "relative_spread": 0.1014046761495817,
+     "scale": 1.1701786475661349,
+     "tol": 0.02,
+     "values": [
+      1.2784601762269419,
+      1.2661979770621572,
+      1.1667366761996703,
+      1.1597985894333425
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "FAIL",
+     "reason": "max deviation from finest family value 9.253% vs tol 2.00%",
+     "anchor": 1.1701786475661349,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.09253418602879374,
+      0.08205527394960914,
+      0.002941406744708265,
+      0.008870490120787958
+     ],
+     "values": [
+      1.2784601762269419,
+      1.2661979770621572,
+      1.1667366761996703,
+      1.1597985894333425
+     ],
+     "scale": 1.1701786475661349,
+     "tol": 0.02
+    },
+    "overall": "FAIL"
+   },
+   "von_mises_avg": {
+    "values": [
+     1.799421130120715,
+     1.1692129114475858,
+     0.9913750549402249,
+     0.9764512177672542,
+     0.9803535254728997,
+     0.980660237127923,
+     0.979084368258185
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.9803535254728997,
+      0.980660237127923,
+      0.979084368258185
+     ],
+     "scale": 1.1701786475661349,
+     "relative_spread": 0.0013466908433303782,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.135%); no convergence rate demonstrated"
+    },
+    "diagnostics": {
+     "sign_changes": 2,
+     "fit_p": 5.0,
+     "fit_rms": 0.002694591527260882,
+     "fit_limit_minus_finest": -0.0018869620613697234,
+     "local_p": [
+      null,
+      19.440008134014775,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 1.582% vs tol 2.00%",
+     "relative_spread": 0.015822326896405812,
+     "scale": 1.1701786475661349,
+     "tol": 0.02,
+     "values": [
+      0.9913750549402249,
+      0.9728601058512395,
+      0.9780323858868344,
+      0.9752503983770202
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 1.050% vs tol 2.00%",
+     "anchor": 0.979084368258185,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.010503256667350263,
+      0.005319070229055548,
+      0.000898992964483373,
+      0.003276397060516451
+     ],
+     "values": [
+      0.9913750549402249,
+      0.9728601058512395,
+      0.9780323858868344,
+      0.9752503983770202
+     ],
+     "scale": 1.1701786475661349,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   }
+  }
+ },
+ "gauss l=2R0": {
+  "kind": "gauss",
+  "size": 0.09118906527810397,
+  "points": [
+   35.39857477328268,
+   87.67777665671582,
+   156.06847511258806,
+   244.95237894414277,
+   361.66985178723917,
+   509.9682698785586,
+   693.6054602710245
+  ],
+  "scale": 3.0965858077241952,
+  "qois": {
+   "sigma_xx_avg": {
+    "values": [
+     0.5193495919523113,
+     0.5300940527590758,
+     0.5285302871668545,
+     0.5323890978783665,
+     0.5353521062473351,
+     0.537331414277688,
+     0.5383477354212075
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.5353521062473351,
+      0.537331414277688,
+      0.5383477354212075
+     ],
+     "scale": 3.0965858077241952,
+     "relative_spread": 0.0009673974370095121,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.097%); no convergence rate demonstrated (monotone but p=5.12 outside [0.5, 5])",
+     "observed_order_diagnostic": 5.117771410842265
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 2.0,
+     "fit_rms": 4.610223318895275e-05,
+     "fit_limit_minus_finest": 0.001958749593883198,
+     "local_p": [
+      0.8636881123164877,
+      2.2839753278807935,
+      5.117771410842265
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.076% vs tol 2.00%",
+     "relative_spread": 0.000755713973070566,
+     "scale": 3.0965858077241952,
+     "tol": 0.02,
+     "values": [
+      0.5285302871668545,
+      0.5297368589796597,
+      0.5276886268704655,
+      0.5273967258159505
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.354% vs tol 2.00%",
+     "anchor": 0.5383477354212075,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.0031704105308059524,
+      0.002780764679625095,
+      0.0034422132027324124,
+      0.003536478652695661
+     ],
+     "values": [
+      0.5285302871668545,
+      0.5297368589796597,
+      0.5276886268704655,
+      0.5273967258159505
+     ],
+     "scale": 3.0965858077241952,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "sigma_yy_avg": {
+    "values": [
+     0.3977088596277807,
+     0.40999695986391343,
+     0.411882338447237,
+     0.41516175636120267,
+     0.4175607527340054,
+     0.41920343041919333,
+     0.4199470177348355
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.4175607527340054,
+      0.41920343041919333,
+      0.4199470177348355
+     ],
+     "scale": 3.0965858077241952,
+     "relative_spread": 0.00077061161840817,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.077%); no convergence rate demonstrated (monotone but p=6.27 outside [0.5, 5])",
+     "observed_order_diagnostic": 6.270462695849135
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 2.2,
+     "fit_rms": 3.9745408471345865e-05,
+     "fit_limit_minus_finest": 0.001391410119757878,
+     "local_p": [
+      1.210524733231594,
+      2.081801104655891,
+      6.270462695849135
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.035% vs tol 2.00%",
+     "relative_spread": 0.00034571075545726364,
+     "scale": 3.0965858077241952,
+     "tol": 0.02,
+     "values": [
+      0.411882338447237,
+      0.41285185276956304,
+      0.41178300275899915,
+      0.41178132975063647
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.264% vs tol 2.00%",
+     "anchor": 0.4199470177348355,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.002604377785198717,
+      0.002291286405684001,
+      0.0026364568859909665,
+      0.0026369971611412647
+     ],
+     "values": [
+      0.411882338447237,
+      0.41285185276956304,
+      0.41178300275899915,
+      0.41178132975063647
+     ],
+     "scale": 3.0965858077241952,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "sigma_zz_avg": {
+    "values": [
+     0.4125979076324077,
+     0.42351136787959054,
+     0.4282607237074034,
+     0.4319087813384336,
+     0.4345547972498418,
+     0.43636859721473703,
+     0.437060156483407
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.4345547972498418,
+      0.43636859721473703,
+      0.437060156483407
+     ],
+     "scale": 3.0965858077241952,
+     "relative_spread": 0.0008090714706874202,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.081%); no convergence rate demonstrated (monotone but p=7.84 outside [0.5, 5])",
+     "observed_order_diagnostic": 7.836159665799995
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 2.35,
+     "fit_rms": 5.210075396633788e-05,
+     "fit_limit_minus_finest": 0.0013821417068454636,
+     "local_p": [
+      1.2714917028128045,
+      2.0728746275116583,
+      7.836159665799995
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.045% vs tol 2.00%",
+     "relative_spread": 0.0004504738955954933,
+     "scale": 3.0965858077241952,
+     "tol": 0.02,
+     "values": [
+      0.4282607237074034,
+      0.42965565477925466,
+      0.42907540329800714,
+      0.42920504286704353
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.284% vs tol 2.00%",
+     "anchor": 0.437060156483407,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.002841656366845731,
+      0.002391182471250238,
+      0.002578566744536037,
+      0.00253670142024468
+     ],
+     "values": [
+      0.4282607237074034,
+      0.42965565477925466,
+      0.42907540329800714,
+      0.42920504286704353
+     ],
+     "scale": 3.0965858077241952,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "pressure_avg": {
+    "values": [
+     -0.44321878640416673,
+     -0.4545341268341933,
+     -0.45622444977383164,
+     -0.45981987852600076,
+     -0.46248921874372756,
+     -0.46430114730387284,
+     -0.4651183032131502
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      -0.46248921874372756,
+      -0.46430114730387284,
+      -0.4651183032131502
+     ],
+     "scale": 3.0965858077241952,
+     "relative_spread": 0.000849026842035046,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.085%); no convergence rate demonstrated (monotone but p=6.30 outside [0.5, 5])",
+     "observed_order_diagnostic": 6.304449903105957
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 2.1500000000000004,
+     "fit_rms": 4.5744595737718645e-05,
+     "fit_limit_minus_finest": -0.001597607603550706,
+     "local_p": [
+      1.1047618251353999,
+      2.1530599543626967,
+      6.304449903105957
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.042% vs tol 2.00%",
+     "relative_spread": 0.0004156478925074298,
+     "scale": 3.0965858077241952,
+     "tol": 0.02,
+     "values": [
+      -0.45622444977383164,
+      -0.45741478884282577,
+      -0.45618234430915716,
+      -0.4561276994778768
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.290% vs tol 2.00%",
+     "anchor": -0.4651183032131502,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.002872148227616848,
+      0.002487744518853177,
+      0.002885745611086556,
+      0.002903392411360607
+     ],
+     "values": [
+      -0.45622444977383164,
+      -0.45741478884282577,
+      -0.45618234430915716,
+      -0.4561276994778768
+     ],
+     "scale": 3.0965858077241952,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "cyl_rr_avg": {
+    "values": [
+     0.5190546328300218,
+     0.5296866961325123,
+     0.5280833214713596,
+     0.5319179622647714,
+     0.5348572539575839,
+     0.5368279870758303,
+     0.5378377301589228
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.5348572539575839,
+      0.5368279870758303,
+      0.5378377301589228
+     ],
+     "scale": 3.0965858077241952,
+     "relative_spread": 0.0009625039919463336,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.096%); no convergence rate demonstrated (monotone but p=5.14 outside [0.5, 5])",
+     "observed_order_diagnostic": 5.1374716495454855
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 2.0,
+     "fit_rms": 4.562147345828009e-05,
+     "fit_limit_minus_finest": 0.0019457177369633571,
+     "local_p": [
+      0.8762425961321597,
+      2.2537821340120416,
+      5.1374716495454855
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.076% vs tol 2.00%",
+     "relative_spread": 0.0007638082985087978,
+     "scale": 3.0965858077241952,
+     "tol": 0.02,
+     "values": [
+      0.5280833214713596,
+      0.5292812307430058,
+      0.5272131154823432,
+      0.5269160328060215
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.353% vs tol 2.00%",
+     "anchor": 0.5378377301589228,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.0031500527656077035,
+      0.002763204363519794,
+      0.003431073878229797,
+      0.003527012662028592
+     ],
+     "values": [
+      0.5280833214713596,
+      0.5292812307430058,
+      0.5272131154823432,
+      0.5269160328060215
+     ],
+     "scale": 3.0965858077241952,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "cyl_tt_avg": {
+    "values": [
+     0.3980038187500702,
+     0.410404316490477,
+     0.412329304142732,
+     0.41563289197479775,
+     0.41805560502375666,
+     0.41970685762105125,
+     0.42045702299712034
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.41805560502375666,
+      0.41970685762105125,
+      0.42045702299712034
+     ],
+     "scale": 3.0965858077241952,
+     "relative_spread": 0.0007755050634713663,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.078%); no convergence rate demonstrated (monotone but p=6.24 outside [0.5, 5])",
+     "observed_order_diagnostic": 6.237564581057258
+    },
+    "diagnostics": {
+     "sign_changes": 0,
+     "fit_p": 2.2,
+     "fit_rms": 4.016691992924745e-05,
+     "fit_limit_minus_finest": 0.0014025418327330437,
+     "local_p": [
+      1.1926823281273315,
+      2.1196611566371035,
+      6.237564581057258
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.034% vs tol 2.00%",
+     "relative_spread": 0.00033874948870435184,
+     "scale": 3.0965858077241952,
+     "tol": 0.02,
+     "values": [
+      0.412329304142732,
+      0.413307481006217,
+      0.4122585141471213,
+      0.41226202276056556
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.265% vs tol 2.00%",
+     "anchor": 0.42045702299712034,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.002624735550396948,
+      0.0023088467217893195,
+      0.0026475962104936714,
+      0.0026464631518083514
+     ],
+     "values": [
+      0.412329304142732,
+      0.413307481006217,
+      0.4122585141471213,
+      0.41226202276056556
+     ],
+     "scale": 3.0965858077241952,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "cyl_rz_avg": {
+    "values": [
+     0.08969824199864976,
+     0.06681991954114523,
+     0.04459344607599798,
+     0.043071951375600936,
+     0.04299544792196676,
+     0.04263159473288693,
+     0.04303988849133399
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      0.04299544792196676,
+      0.04263159473288693,
+      0.04303988849133399
+     ],
+     "scale": 3.0965858077241952,
+     "relative_spread": 0.0001318528804945785,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.013%); no convergence rate demonstrated"
+    },
+    "diagnostics": {
+     "sign_changes": 1,
+     "fit_p": 5.0,
+     "fit_rms": 7.978470514604857e-05,
+     "fit_limit_minus_finest": -0.00016686982584536856,
+     "local_p": [
+      19.856494287050744,
+      null,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.194% vs tol 2.00%",
+     "relative_spread": 0.0019388491058258846,
+     "scale": 3.0965858077241952,
+     "tol": 0.02,
+     "values": [
+      0.04459344607599798,
+      0.04465218749961279,
+      0.040581924311773786,
+      0.03864837487519361
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.142% vs tol 2.00%",
+     "anchor": 0.04303988849133399,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.000501700156601105,
+      0.0005206698952946962,
+      0.0007937658867482387,
+      0.0014181792105311883
+     ],
+     "values": [
+      0.04459344607599798,
+      0.04465218749961279,
+      0.040581924311773786,
+      0.03864837487519361
+     ],
+     "scale": 3.0965858077241952,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   },
+   "frob_avg": {
+    "values": [
+     6.792879308693306,
+     4.066489642132781,
+     3.210919090918819,
+     3.1036883369964623,
+     3.095588239439919,
+     3.0959571628895426,
+     3.0965858077241952
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      3.095588239439919,
+      3.0959571628895426,
+      3.0965858077241952
+     ],
+     "scale": 3.0965858077241952,
+     "relative_spread": 0.0003221510225190862,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 1.00% band (spread 0.032%); no convergence rate demonstrated"
+    },
+    "diagnostics": {
+     "sign_changes": 1,
+     "fit_p": 5.0,
+     "fit_rms": 0.005097107049321511,
+     "fit_limit_minus_finest": -0.008285482708584143,
+     "local_p": [
+      17.073984590127996,
+      null,
+      null
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "FAIL",
+     "reason": "spread across strategies 5.301% vs tol 2.00%",
+     "relative_spread": 0.053014103099179304,
+     "scale": 3.0965858077241952,
+     "tol": 0.02,
+     "values": [
+      3.210919090918819,
+      3.2467264822933743,
+      3.0921428631331564,
+      3.0825637630272285
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "FAIL",
+     "reason": "max deviation from finest family value 4.849% vs tol 2.00%",
+     "anchor": 3.0965858077241952,
+     "anchor_kind": "finest family value",
+     "deviations": [
+      0.03692236879385948,
+      0.04848587570047785,
+      0.0014347881398785055,
+      0.004528227398701454
+     ],
+     "values": [
+      3.210919090918819,
+      3.2467264822933743,
+      3.0921428631331564,
+      3.0825637630272285
+     ],
+     "scale": 3.0965858077241952,
+     "tol": 0.02
+    },
+    "overall": "FAIL"
+   },
+   "von_mises_avg": {
+    "values": [
+     2.6176249501230484,
+     2.2691261274982053,
+     2.2239817570984766,
+     2.214812763837262,
+     2.2296197205575456,
+     2.2312443319296973,
+     2.23281832117227
+    ],
+    "conv": {
+     "gate": "qoi_convergence",
+     "finest_three": [
+      2.2296197205575456,
+      2.2312443319296973,
+      2.23281832117227
+     ],
+     "scale": 3.0965858077241952,
+     "relative_spread": 0.0010329442855243252,
+     "band_tol": 0.01,
+     "gci_tol": 0.02,
+     "order_window": [
+      0.5,
+      5
+     ],
+     "observed_order": 0.8186266855140957,
+     "gci_fine": 0.0072829678751530486,
+     "richardson_extrapolate": 2.250860189140518,
+     "evidence": "rate",
+     "verdict": "PASS",
+     "reason": "monotone, p=0.82, GCI_fine=0.73% vs tol 2.00%"
+    },
+    "diagnostics": {
+     "sign_changes": 1,
+     "fit_p": 0.5,
+     "fit_rms": 0.001496939014032337,
+     "fit_limit_minus_finest": 0.014975136843685533,
+     "local_p": [
+      null,
+      16.80240442007995,
+      0.8186266855140957
+     ]
+    },
+    "strategy": {
+     "gate": "strategy_robustness",
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.725% vs tol 2.00%",
+     "relative_spread": 0.0072512278613111845,
+     "scale": 3.0965858077241952,
+     "tol": 0.02,
+     "values": [
+      2.2239817570984766,
+      2.2158314580142915,
+      2.238285507298202,
+      2.228681264462166
+     ]
+    },
+    "anchored": {
+     "gate": "anchored_robustness",
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 1.131% vs tol 2.00%",
+     "anchor": 2.250860189140518,
+     "anchor_kind": "Richardson extrapolate",
+     "deviations": [
+      0.008680021711329772,
+      0.011312049237857467,
+      0.004060821376546283,
+      0.00716238013589959
+     ],
+     "values": [
+      2.2239817570984766,
+      2.2158314580142915,
+      2.238285507298202,
+      2.228681264462166
+     ],
+     "scale": 3.0965858077241952,
+     "tol": 0.02
+    },
+    "overall": "PASS"
+   }
+  }
+ }
+}

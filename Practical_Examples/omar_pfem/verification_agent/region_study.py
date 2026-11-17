@@ -82,6 +82,34 @@ def qois(rec, wt):
     }
 
 
+def oscillation_diagnostics(hs, vals, scale, n_last=5):
+    """Shape of the finest n_last levels, independent of the three-level gate.
+
+    sign_changes  number of sign changes among the n_last-1 successive differences
+    fit_p, fit_rms  least-squares fit v = a + b h^p (p on a grid in [0.5, 5]);
+                    rms residual as a fraction of scale
+    fit_limit_minus_finest  (a - v_finest) / scale
+    local_p       three-level Celik orders of the consecutive triples
+    """
+    h, v = np.asarray(hs[-n_last:]), np.asarray(vals[-n_last:])
+    dv = np.diff(v)
+    sign_changes = int(np.sum(np.sign(dv[1:]) != np.sign(dv[:-1])))
+    best = None
+    for p in np.linspace(0.5, 5.0, 91):
+        A = np.c_[np.ones_like(h), h ** p]
+        c, *_ = np.linalg.lstsq(A, v, rcond=None)
+        rms = float(np.sqrt(np.mean((A @ c - v) ** 2)) / scale)
+        if best is None or rms < best[0]:
+            best = (rms, float(p), float(c[0]))
+    local_p = []
+    for i in range(n_last - 2):
+        g = gates.qoi_convergence_gate(list(h[i:i + 3]), list(v[i:i + 3]), 1.0, 1e3,
+                                       order_window=(1e-3, 1e3))
+        local_p.append(g.get("observed_order"))
+    return {"sign_changes": sign_changes, "fit_p": best[1], "fit_rms": best[0],
+            "fit_limit_minus_finest": (best[2] - float(v[-1])) / scale, "local_p": local_p}
+
+
 def main():
     fam, strat = load()
     if len(fam) < 3:
@@ -103,7 +131,8 @@ def main():
             vals = [r[q] for r in rows]
             g = gates.qoi_convergence_gate(hs, vals, BAND, GCI, scale=scale,
                                            order_window=ORDER_WINDOW)
-            rec = {"values": vals, "conv": g}
+            rec = {"values": vals, "conv": g,
+                   "diagnostics": oscillation_diagnostics(hs, vals, scale)}
             if srows:
                 sv = [r[q] for r in srows]
                 rec["strategy"] = gates.strategy_robustness_gate(sv, ROBUST, scale=scale)
@@ -122,12 +151,20 @@ def main():
         n_fail = sum(r["overall"] == "FAIL" for r in res.values())
         osc = np.median([r["conv"]["relative_spread"] for r in res.values()])
         pts = npts[-1]
+        n_sign = sum(r["diagnostics"]["sign_changes"] for r in res.values())
+        med_rms = np.median([r["diagnostics"]["fit_rms"] for r in res.values()])
         print(f"\n{name:<14} points at finest {pts:>8.1f}   PASS(rate) {n_rate}  PASS(band) "
-              f"{n_band}  FAIL {n_fail}   median finest-three spread {osc:.3%}")
+              f"{n_band}  FAIL {n_fail}   median finest-three spread {osc:.3%}\n"
+              f"{'':<14} finest-5 sign changes {n_sign}/{3 * len(res)}   "
+              f"median power-law fit residual {med_rms:.3%} of scale")
         for q, r in res.items():
             c = r["conv"]
             extra = "".join(f"  {k[:5]} {r[k]['verdict']}" for k in ("strategy", "anchored") if k in r)
-            print(f"   {q:<15} {r['overall']:<5} {c['evidence']:<5} {c['reason'][:70]}{extra}")
+            dg = r["diagnostics"]
+            lp = ",".join("-" if p is None else f"{p:.1f}" for p in dg["local_p"])
+            print(f"   {q:<15} {r['overall']:<5} {c['evidence']:<5} {c['reason'][:60]}{extra}"
+                  f"   | sign {dg['sign_changes']} fit p {dg['fit_p']:.2f} "
+                  f"rms {dg['fit_rms']:.3%} local p [{lp}]")
     json.dump(out, open(os.path.join(HERE, "region_study_result.json"), "w"), indent=1,
               default=float)
 
