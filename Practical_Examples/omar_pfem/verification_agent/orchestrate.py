@@ -11,6 +11,8 @@ expose a fixed QoI vocabulary, so the formalizer cannot invent observables.
 import json
 import os
 
+import numpy as np
+
 from omar_pfem.verification_agent import gates, repository, trees
 from omar_pfem.verification_agent import llm_roles as R
 from omar_pfem.verification_agent.spec import ProblemSpec
@@ -56,6 +58,9 @@ class B1Adapter:
         "work); "
         "interior_avg_PK1_frob = detJ-weighted mean of |P|_F over the Gauss points inside "
         "the circle centre (0.5,0.5), radius 0.15 (about 0.56 from the clamped corners); "
+        "interior_gk_PK1_frob = the same |P|_F averaged with the smooth weight "
+        "exp(-(d/0.1)^2) around (0.5,0.5) instead of the sharp circle (Gauss-point dumps "
+        "in b1_gauss_interior/); "
         "peak_PK1_frob = max of |P|_F over all Gauss points (corner singularity where the "
         "clamped edge meets the free edges). Corner theory (singularity.py, Williams "
         "eigenproblem, 90-degree clamped/free corner, plane strain, nu = 0.3): smallest "
@@ -66,7 +71,8 @@ class B1Adapter:
         "number is recorded, so the class ceilings apply. Tolerances are set by code "
         "(requirements.py), not by the plan.")
     qois = ("max_disp_mag", "u_top_off_center", "v_top_off_center", "u_mid_domain",
-            "v_mid_domain", "strain_energy", "interior_avg_PK1_frob", "peak_PK1_frob")
+            "v_mid_domain", "strain_energy", "interior_avg_PK1_frob", "interior_gk_PK1_frob",
+            "peak_PK1_frob")
 
     def __init__(self, material="neo_hookean", Ns=None, strategy_N=81):
         """Ns=None: every uniform level already in the cache (no new solves)."""
@@ -81,6 +87,12 @@ class B1Adapter:
         self.strategy_rows = sorted(
             (r for r in all_rows if r["N"] == strategy_N and r.get("newton_tol", 1e-7) == 1e-7),
             key=lambda r: r.get("grading", 0.0))
+        # smooth interior average from the Gauss-point dumps (b1_gauss_interior/)
+        from omar_pfem.verification_agent.b1_ladder import kernel_interior_average
+        for r in self.rows + self.strategy_rows:
+            f = os.path.join(HERE, "b1_gauss_interior", f"N{r['N']}_a{r.get('grading', 0.0)}.npz")
+            if os.path.exists(f) and "interior_gk_PK1_frob" not in r:
+                r["interior_gk_PK1_frob"], _ = kernel_interior_average(f)
 
     def series(self, qoi):
         return self.hs, [r[qoi] for r in self.rows], None
@@ -168,6 +180,11 @@ class B3Adapter:
             self.zbeta = [("uniform", base)] + [
                 (f"z_beta={r['z_beta']}", r) for r in sorted(
                     (r for r in rows if r["z_beta"] is not None), key=lambda r: r["z_beta"])]
+            # radial strategy at the same resolution (b3_global.py radial), if solved
+            rad = os.path.join(HERE, "b3_radial.json")
+            if os.path.exists(rad):
+                self.zbeta += [(f"r_grading={r['r_grading']}", r) for r in sorted(
+                    json.load(open(rad)), key=lambda r: r["r_grading"])]
             self.extended = True
         else:
             from omar_pfem.verification_agent.agent import _load_b3_family, _load_b3_zbeta_10200
@@ -200,22 +217,31 @@ class B3Adapter:
             fam, strat = RS.load()
         except Exception:
             return
-        if len(fam) < len(self.family) or len(strat) < len(self.zbeta) - 1:
-            return
+        import glob
+        rad = []
+        for f in sorted(glob.glob(os.path.join(HERE, "b3_gauss_radial", "*_rg*.npz"))):
+            if f.endswith("_surface.npz"):
+                continue
+            d = np.load(f)
+            rec = {k: d[k] for k in d.files}
+            rec["n_elem"], rec["z_beta"] = int(d["n_elem"]), None
+            rec["r_grading"] = float(os.path.basename(f).split("_rg")[1][:-4])
+            rad.append(rec)
+        key = lambda r: (int(r["n_elem"]), r["z_beta"], float(r.get("r_grading", 1.0)))
         R0 = float(fam[0]["radius"])
         vals = {}
-        for rec in fam + strat:
+        for rec in fam + strat + rad:
             w, _ = RS.weights(rec, "gauss", 2 * R0)
             q = RS.qois(rec, w)
             q["sigma_frob_avg"] = q.pop("frob_avg")
-            vals[(rec["n_elem"], rec["z_beta"])] = q
-        if not all((g["n_elem"], g["z_beta"]) in vals for g in self.family):
+            vals[key(rec)] = q
+        if not all(key(g) in vals for g in self.family + [z for _, z in self.zbeta]):
             return
         self.kernel_values = vals
         for name in self.KERNEL_QOIS:
             self.get[self.KERNEL_PREFIX + name] = (
-                lambda g, name=name: self.kernel_values[(g["n_elem"], g["z_beta"])][name])
-        self.kernel_scale = vals[(self.family[-1]["n_elem"], None)]["sigma_frob_avg"]
+                lambda g, name=name: self.kernel_values[key(g)][name])
+        self.kernel_scale = vals[key(self.family[-1])]["sigma_frob_avg"]
 
     def _scale(self, qoi):
         if qoi in self.GLOBAL:

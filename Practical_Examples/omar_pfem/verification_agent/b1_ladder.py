@@ -134,6 +134,23 @@ def run_ladder(Ns, material, cache, grading=0.0, tol=1e-7):
             and r["newton_tol"] == tol]
 
 
+KERNEL_ELL = 0.1   # Gaussian length of the smooth interior average
+
+
+def kernel_interior_average(npz_path, ell=KERNEL_ELL):
+    """Smooth counterpart of interior_avg_PK1_frob: |P|_F averaged with the
+    weight w * exp(-(d/ell)^2), d = distance to the region centre (0.5,0.5),
+    over the dumped Gauss points (d < 0.4, where the weight is < 1e-7).
+    Also returns the sharp-circle average recomputed from the same dump, as a
+    check against the stored value."""
+    d = np.load(npz_path)
+    dist = np.linalg.norm(d["pos"] - d["centre"][None, :], axis=1)
+    k = d["w"] * np.exp(-(dist / ell) ** 2)
+    sharp = dist < float(d["radius"])
+    return (float((d["P_norm"] * k).sum() / k.sum()),
+            float((d["P_norm"] * d["w"] * sharp).sum() / (d["w"] * sharp).sum()))
+
+
 def dump_levels(material="neo_hookean", cases=((11, 0.0), (21, 0.0), (41, 0.0), (81, 0.0),
                                                 (161, 0.0), (81, 0.5), (81, 0.8))):
     """Re-solve the given (N, grading) cases and save Gauss-point |P|_F near the
