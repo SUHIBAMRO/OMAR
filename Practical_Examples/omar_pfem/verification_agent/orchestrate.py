@@ -54,27 +54,63 @@ class B1Adapter:
 
 class B3Adapter:
     geometry = "bushing_groove"
-    description = ("B3: 3D bushing with a circumferential groove, prescribed rotation, "
-                   "neo-Hookean, Q20 global refinement family of 7 levels, 2,376-45,000 elements, plus "
-                   "three local z-clustering strategies at 10,200 elements")
+    description = ("B3: 3D bushing with a circumferential groove, inner surface rigidly rotated "
+                   "about the y axis (a tilting rotation, not torsion about the bushing axis z), "
+                   "outer surface fixed, half model with symmetry plane y=0, compressible "
+                   "neo-Hookean (E=1000, nu=0.45), Q20 global refinement family of 7 levels, "
+                   "2,376-45,000 elements, plus three local z-clustering strategies at 10,200 "
+                   "elements. Stresses are Cauchy, averaged (volume-weighted) over a sphere "
+                   "around the groove root.")
+    CYL = ("rr", "tt", "zz", "rt", "rz", "tz")
+    GLOBAL = ("reaction_moment_y", "strain_energy")
 
     def __init__(self):
-        from omar_pfem.verification_agent.agent import _load_b3_family, _load_b3_zbeta_10200
-        self.family = _load_b3_family()
-        self.zbeta = _load_b3_zbeta_10200(self.family)
+        ext = os.path.join(HERE, "b3_extended.json")
+        rows = json.load(open(ext)) if os.path.exists(ext) else []
+        fam = sorted((r for r in rows if r["z_beta"] is None and r["rtol"] == 1e-8),
+                     key=lambda r: r["n_elem"])
+        if len(fam) >= 7:
+            # extended re-solve, checked to reproduce the stored data to <=5e-13
+            self.family = fam
+            base = next(r for r in fam if r["n_elem"] == 10200)
+            self.zbeta = [("uniform", base)] + [
+                (f"z_beta={r['z_beta']}", r) for r in sorted(
+                    (r for r in rows if r["z_beta"] is not None), key=lambda r: r["z_beta"])]
+            self.extended = True
+        else:
+            from omar_pfem.verification_agent.agent import _load_b3_family, _load_b3_zbeta_10200
+            self.family = _load_b3_family()
+            self.zbeta = _load_b3_zbeta_10200(self.family)
+            self.extended = False
         self.hs = [g["n_elem"] ** (-1.0 / 3.0) for g in self.family]
         self.scale = self.family[-1]["region_avg_sigma_frob"]
         self.get = {"sigma_frob_avg": lambda g: g["region_avg_sigma_frob"]}
         for c in ("xx", "yy", "zz", "xy", "xz", "yz"):
-            for s in ("avg", "max"):
-                self.get[f"sigma_{c}_{s}"] = lambda g, c=c, s=s: g["per_component"][c][s]
+            for st in ("avg", "max"):
+                self.get[f"sigma_{c}_{st}"] = lambda g, c=c, st=st: g["per_component"][c][st]
+        if self.extended:
+            for k in self.GLOBAL:
+                self.get[k] = lambda g, k=k: g[k]
+            self.get["von_mises_avg"] = lambda g: g["region_avg_von_mises"]
+            self.get["von_mises_max"] = lambda g: g["region_max_von_mises"]
+            self.get["pressure_avg"] = lambda g: g["region_avg_pressure"]
+            for c in self.CYL:
+                for st in ("avg", "max"):
+                    self.get[f"cyl_{c}_{st}"] = lambda g, c=c, st=st: g["per_cylindrical"][c][st]
         self.qois = tuple(self.get)
 
+    def _scale(self, qoi):
+        return None if qoi in self.GLOBAL else self.scale  # globals: self-relative
+
     def series(self, qoi):
-        return self.hs, [self.get[qoi](g) for g in self.family], self.scale
+        return self.hs, [self.get[qoi](g) for g in self.family], self._scale(qoi)
 
     def strategies(self, qoi):
-        return [self.get[qoi](z) for _, z in self.zbeta], self.scale
+        return [self.get[qoi](z) for _, z in self.zbeta], self._scale(qoi)
+
+    def admissibility(self):
+        rows = self.family + [z for _, z in self.zbeta]
+        return {"min_detF": min(r.get("min_detF", float("nan")) for r in rows)}
 
 
 ADAPTERS = {"unit_square": B1Adapter, "bushing_groove": B3Adapter}
@@ -83,7 +119,9 @@ ADAPTER_VOCAB = {
     "bushing_groove": (B3Adapter.description,
                        ("sigma_frob_avg",) + tuple(f"sigma_{c}_{s}" for c in
                                                    ("xx", "yy", "zz", "xy", "xz", "yz")
-                                                   for s in ("avg", "max"))),
+                                                   for s in ("avg", "max"))
+                       + B3Adapter.GLOBAL + ("von_mises_avg", "von_mises_max", "pressure_avg")
+                       + tuple(f"cyl_{c}_{s}" for c in B3Adapter.CYL for s in ("avg", "max"))),
 }
 
 

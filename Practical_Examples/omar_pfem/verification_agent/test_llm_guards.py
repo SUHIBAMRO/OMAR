@@ -204,8 +204,13 @@ def test_order_window_rejects_non_asymptotic_rate():
 
 def test_band_pass_is_labeled_weaker_evidence():
     from omar_pfem.verification_agent import gates
-    g = gates.qoi_convergence_gate([0.1, 0.05, 0.025], [1.0, 1.0005, 1.0006], band_tol=0.01)
+    # oscillating inside the band: stable, but no rate can be shown
+    g = gates.qoi_convergence_gate([0.1, 0.05, 0.025], [1.0, 1.0006, 1.0003], band_tol=0.01)
     assert g["verdict"] == "PASS" and g["evidence"] == "band"
+    # monotone and shrinking inside the band: rate evidence takes precedence
+    g2 = gates.qoi_convergence_gate([0.1, 0.05, 0.025], [1.0, 1.0005, 1.0006], band_tol=0.01,
+                                    order_window=(0.5, 3))
+    assert g2["evidence"] == "rate" and abs(g2["observed_order"] - 2.3219) < 1e-3
 
 
 def test_anchored_robustness_catches_shared_error():
