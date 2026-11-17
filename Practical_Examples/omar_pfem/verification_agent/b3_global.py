@@ -46,7 +46,8 @@ def _family_resolutions():
     return sorted(res, key=lambda t: t[0] * t[1] * t[2])
 
 
-def solve_extended(Ntheta, Nr, Nz, z_beta=None, rtol=1e-8, atol=1e-8, dtype=torch.float64):
+def solve_extended(Ntheta, Nr, Nz, z_beta=None, rtol=1e-8, atol=1e-8, dtype=torch.float64,
+                   dump_path=None, dump_radius=0.25):
     from torchfem import Solid
     from torchfem.materials import Hyperelastic3D
 
@@ -104,7 +105,13 @@ def solve_extended(Ntheta, Nr, Nz, z_beta=None, rtol=1e-8, atol=1e-8, dtype=torc
     # --- standard region QoIs (identical definitions to the stored data) ---
     ref = np.array([R_IN0 - GROOVE_DEPTH, 0.0, LZ / 2.0])
     radius = 2.0 * groove_radius_of_curvature(GROOVE_DEPTH, GROOVE_HALF_WIDTH)
-    mask = np.linalg.norm(pos - ref[None, None, :], axis=-1) < radius
+    dist = np.linalg.norm(pos - ref[None, None, :], axis=-1)
+    mask = dist < radius
+    if dump_path is not None:
+        # Gauss-point data near the groove, for post-hoc region definitions
+        near = dist < dump_radius
+        np.savez_compressed(dump_path, pos=pos[near], sigma=sigma[near], w=w[near],
+                            ref=ref, radius=radius, n_elem=elements.shape[0])
     s, wr = sigma[mask], w[mask]
     W = wr.sum()
     avg = lambda v: float((v * wr).sum() / W)
@@ -177,5 +184,17 @@ if __name__ == "__main__":
         run([(*r, None, 1e-8) for r in fam], cache)
     elif which == "strategies":
         run([(21, 18, 31, zb, 1e-8) for zb in (1.0, 2.0, 3.0)], cache)
+    elif which == "dump":
+        # one solve per case, saving Gauss-point data within 0.25 of the groove root
+        ddir = os.path.join(HERE, "b3_gauss_near_groove")
+        os.makedirs(ddir, exist_ok=True)
+        cases = [(*r, None) for r in fam] + [(21, 18, 31, zb) for zb in (1.0, 2.0, 3.0)]
+        for Nt, Nr_, Nz, zb in cases:
+            path = os.path.join(ddir, f"{Nt}_{Nr_}_{Nz}_zb{zb}.npz")
+            if os.path.exists(path):
+                continue
+            r = solve_extended(Nt, Nr_, Nz, z_beta=zb, dump_path=path)
+            print(f"dumped {path} ({r['n_elem']} el, {r['elapsed_s']:.0f}s, "
+                  f"frob_avg={r['region_avg_sigma_frob']:.6g})", flush=True)
     elif which == "solver":
         run([(*fam[0], None, 1e-11), (*fam[2], None, 1e-11)], cache)
