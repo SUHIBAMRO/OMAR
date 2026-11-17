@@ -1,0 +1,1656 @@
+{
+ "problem_text": "A 3D rubber bushing with a circumferential groove is loaded by a prescribed\nrotation. Material: compressible neo-Hookean. The finite-element reference\nuses 20-node quadratic hexahedra (Q20) on a family of globally refined meshes,\nand, at one intermediate resolution, three additional meshes that cluster\nelements axially toward the groove. We want to use stresses in the groove\nregion as reference values for validating neural-operator surrogates.\nQuestion: which groove-region stress quantities can serve as trustworthy\nvalidation targets, and how should that be established?\n",
+ "spec": {
+  "name": "B3 grooved rubber bushing under prescribed tilting rotation: checking whether groove-root stresses can serve as reference values",
+  "geometry": "bushing_groove",
+  "dim": 3,
+  "material": "Compressible neo-Hookean, psi = mu/2 (I1 - 3 - 2 ln J) + lam/2 (ln J)^2 (3D form of the B1 energy), E = 1000, nu = 0.45. The material is moderately compressible, not near-incompressible. Min det F is 0.914-0.948, so strains are moderate.",
+  "loading": "The whole inner surface, groove included, is rigidly rotated by phi = 0.05 rad about the y axis through (0,0,0.5). This tilts the bushing; it is not torsion about z. The rotation is applied in 10 equal increments. The outer surface r = 1.0 is fixed. Symmetry plane y = 0 (half model, y >= 0). The loading is symmetric under y -> -y: u_x and u_z are even in y and u_y is odd, so u_y = 0 on y = 0 is consistent with the load. Solved with Newton-CG, rtol = atol = 1e-8; tightening to 1e-11 changes the QoIs by <= 4e-14, so solver error is negligible.",
+  "regularity": "stress_concentration",
+  "element": "Q20",
+  "reference": "mesh_refinement_family",
+  "qois": [
+   "reaction_moment_y",
+   "strain_energy",
+   "sigma_frob_avg",
+   "von_mises_avg",
+   "pressure_avg",
+   "cyl_rr_avg",
+   "cyl_tt_avg",
+   "cyl_zz_avg",
+   "cyl_rz_avg",
+   "cyl_rt_avg",
+   "cyl_tz_avg",
+   "von_mises_max",
+   "cyl_rr_max",
+   "cyl_zz_max",
+   "cyl_rz_max"
+  ],
+  "well_posedness": [
+   "Boundary conditions: the inner surface is fully Dirichlet (rigid rotation) and the outer surface is fully Dirichlet (fixed), so rigid-body modes are suppressed and the problem is well posed. The symmetry condition u_y = 0 on y = 0 is consistent with the tilting load, which is symmetric in y.",
+   "Material stability: compressible neo-Hookean with nu = 0.45 is polyconvex. With min det F 0.914-0.948, J stays well away from zero. At phi = 0.05 rad there is no indication of a limit point, bifurcation or loss of ellipticity. Newton-CG converges and the QoIs do not change when the tolerance is tightened, so algebraic error is negligible and the computed solution can be taken as the solution branch reached from the reference state.",
+   "Groove feature: the cosine groove is C1 at the shoulders and its root radius is finite (rho = 0.0228). It is a smooth stress concentration, not a notch, crack or re-entrant corner. The exact stress is therefore bounded at the groove root, and both region averages and the true pointwise peak there are finite limits that refinement can converge to. Because rho is small relative to the mesh, convergence is expected to be preasymptotic on the coarse levels.",
+   "Singular features elsewhere: edges where a Dirichlet surface (inner rotated or outer fixed) meets an end face z = 0 or z = 1 are clamped-free type edges if the end faces are traction-free. These edges can carry singular stress, but they lie outside the groove region (|z - 0.5| <= 0.15 versus ends at z = 0, 1). They do affect the global max stress, and they may slightly pollute energy and reaction convergence. Neither global QoI is a pointwise peak, so both should still converge.",
+   "Region definition: the sphere radius R0 = 2 rho = 0.0456 is fixed in physical space, so region averages are mesh-independent functionals that have a well-defined limit. However, only 2 to 36 Gauss points fall inside the sphere (coarse to fine), and the sphere is cut by the groove surface and by y = 0. The set of Gauss points inside changes discontinuously between meshes, which adds quadrature/sampling noise on top of discretisation error. The coarsest levels are likely too poorly resolved to be in the asymptotic range.",
+   "*_max quantities are maxima over the Gauss points inside the sphere. Since the field is smooth, they converge towards the true peak, but only slowly and not monotonically: Gauss points never lie on the groove surface, where the peak occurs, and their distance from the surface shrinks with h. Their convergence has to be shown, not assumed.",
+   "Refinement ratios are not constant (1.34 down to 1.11). Order and extrapolation estimates must use the actual r21 and r32 (Celik GCI). Ratios near 1.1 make the order estimate sensitive to noise, so oscillatory or non-monotone sequences have to be flagged.",
+   "Discretisation: Q20 with curved midside nodes represents the cosine groove geometry to second order. The 2x2x2 reduced rule for Q20 admits a spurious mode in isolated elements, which is normally not communicable in connected meshes. With nu = 0.45, volumetric locking should be mild. pressure_avg is the QoI most sensitive to both effects.",
+   "Stress scale: region QoIs are judged against the fixed scale |sigma|_F,avg = 0.910 at the finest level. By symmetry, cyl_rt and cyl_tz (sigma_xy and sigma_yz) vanish on y = 0, so these components are near zero in the quarter sphere. They can be judged on an absolute scale but carry little validation value. cyl_zz equals sigma_zz and cyl_rr is approximately sigma_xx, so Cartesian and cylindrical QoIs should not be counted as independent evidence.",
+   "Trustworthiness criterion: a groove QoI is usable as a validation target only if two conditions hold. (a) Its discretisation uncertainty (GCI on the global family, using the finest three levels in the asymptotic range) is well below the 1.4-4% surrogate errors, roughly <= 0.5% of the 0.910 stress scale. (b) Its spread across the four strategies at 10,200 elements (uniform and z_beta = 1, 2, 3) is consistent with that uncertainty. Mesh-strategy sensitivity of *_max above that level disqualifies it."
+  ],
+  "open_questions": [
+   "Are the end faces z = 0 and z = 1 traction-free? This is not stated, and it decides whether clamped-free edge singularities exist where the inner and outer Dirichlet surfaces meet the end faces.",
+   "Do the axially clustered meshes (z_beta = 1, 2, 3) keep exactly 10,200 elements? Is the clustering applied only in z, or also radially toward the groove root, where the gradients are mainly radial and axial?",
+   "Do all meshes resolve the groove geometry with curved Q20 midside nodes so that the groove surface is the same for every level? Is the sphere region clipped against the actual curved surface or against element Gauss points only?",
+   "How many Gauss points fall inside the sphere at each of the 7 levels, beyond the stated 2-36 range? Is the count monotone, and from which level on can the region average be considered resolved (asymptotic range)?",
+   "Has anyone checked for spurious modes of the reduced 2x2x2 Q20 integration, for example eigenvalues of the tangent stiffness or a comparison with full 27-point integration on one level?",
+   "Which stress components and measures do the neural-operator surrogates actually predict, and in which frame (Cartesian or cylindrical, Cauchy or PK1)?",
+   "What acceptance tolerance for reference uncertainty relative to surrogate error should the pipeline use? A ratio of at least 3-5x below the 1.4% best-surrogate error is assumed here.",
+   "Is the half model restricted to the symmetric part of the response, given that the full 3D tilting problem is symmetric in y? Would a full model be needed to rule out asymmetric bifurcation at this load level (this is unlikely at phi = 0.05)?"
+  ]
+ },
+ "spec_errors": [],
+ "neighbours": [
+  {
+   "similarity": 0.25,
+   "problem": "B3 grooved rubber bushing under prescribed rotation: which groove-region stress QoIs can serve as validation targets sigma_frob_avg",
+   "verdicts": {
+    "qoi_convergence": "FAIL",
+    "strategy_robustness": "FAIL"
+   }
+  },
+  {
+   "similarity": 0.25,
+   "problem": "B3 groove sigma_frob_avg",
+   "verdicts": {
+    "qoi_convergence": "FAIL",
+    "qoi_convergence_multilevel": "FAIL",
+    "strategy_robustness": "FAIL"
+   }
+  },
+  {
+   "similarity": 0.25,
+   "problem": "B3 grooved rubber bushing under prescribed tilting rotation: are groove-region stresses usable as validation targets for neural-operator surrogates? strain_energy",
+   "verdicts": {
+    "qoi_convergence": "PASS",
+    "qoi_convergence_multilevel": "PASS",
+    "strategy_robustness": "PASS",
+    "anchored_robustness": "PASS"
+   }
+  },
+  {
+   "similarity": 0.25,
+   "problem": "B3 grooved rubber bushing under prescribed tilting rotation: are groove-region stresses usable as validation targets for neural-operator surrogates? reaction_moment_y",
+   "verdicts": {
+    "qoi_convergence": "PASS",
+    "qoi_convergence_multilevel": "PASS",
+    "strategy_robustness": "PASS",
+    "anchored_robustness": "PASS"
+   }
+  },
+  {
+   "similarity": 0.25,
+   "problem": "B3 grooved rubber bushing under prescribed tilting rotation: are groove-region stresses usable as validation targets for neural-operator surrogates? von_mises_avg",
+   "verdicts": {
+    "qoi_convergence": "FAIL",
+    "qoi_convergence_multilevel": "FAIL",
+    "strategy_robustness": "FAIL",
+    "anchored_robustness": "FAIL"
+   }
+  }
+ ],
+ "rule_plan": {
+  "checks": [
+   {
+    "check": "qoi_convergence",
+    "qois": [
+     "reaction_moment_y",
+     "strain_energy"
+    ],
+    "params": {
+     "band_tol": 0.002,
+     "gci_tol": 0.01
+    },
+    "rationale": "global: required by rules R2, R5"
+   },
+   {
+    "check": "qoi_convergence",
+    "qois": [
+     "sigma_frob_avg",
+     "von_mises_avg",
+     "pressure_avg",
+     "cyl_rr_avg",
+     "cyl_tt_avg",
+     "cyl_zz_avg",
+     "cyl_rz_avg",
+     "cyl_rt_avg",
+     "cyl_tz_avg"
+    ],
+    "params": {
+     "band_tol": 0.01,
+     "gci_tol": 0.02
+    },
+    "rationale": "region_average: required by rules R2, R4"
+   },
+   {
+    "check": "qoi_convergence",
+    "qois": [
+     "von_mises_max",
+     "cyl_rr_max",
+     "cyl_zz_max",
+     "cyl_rz_max"
+    ],
+    "params": {
+     "band_tol": 0.01,
+     "gci_tol": 0.02
+    },
+    "rationale": "pointwise_peak: required by rules R2, R3"
+   },
+   {
+    "check": "qoi_convergence_multilevel",
+    "qois": [
+     "reaction_moment_y",
+     "strain_energy"
+    ],
+    "params": {
+     "band_tol": 0.002,
+     "gci_tol": 0.01
+    },
+    "rationale": "global: required by rules R2, R5"
+   },
+   {
+    "check": "qoi_convergence_multilevel",
+    "qois": [
+     "sigma_frob_avg",
+     "von_mises_avg",
+     "pressure_avg",
+     "cyl_rr_avg",
+     "cyl_tt_avg",
+     "cyl_zz_avg",
+     "cyl_rz_avg",
+     "cyl_rt_avg",
+     "cyl_tz_avg"
+    ],
+    "params": {
+     "band_tol": 0.01,
+     "gci_tol": 0.02
+    },
+    "rationale": "region_average: required by rules R2, R4"
+   },
+   {
+    "check": "qoi_convergence_multilevel",
+    "qois": [
+     "von_mises_max",
+     "cyl_rr_max",
+     "cyl_zz_max",
+     "cyl_rz_max"
+    ],
+    "params": {
+     "band_tol": 0.01,
+     "gci_tol": 0.02
+    },
+    "rationale": "pointwise_peak: required by rules R2, R3"
+   },
+   {
+    "check": "strategy_robustness",
+    "qois": [
+     "sigma_frob_avg",
+     "von_mises_avg",
+     "pressure_avg",
+     "cyl_rr_avg",
+     "cyl_tt_avg",
+     "cyl_zz_avg",
+     "cyl_rz_avg",
+     "cyl_rt_avg",
+     "cyl_tz_avg"
+    ],
+    "params": {
+     "tol": 0.02
+    },
+    "rationale": "region_average: required by rules R2, R4"
+   },
+   {
+    "check": "strategy_robustness",
+    "qois": [
+     "von_mises_max",
+     "cyl_rr_max",
+     "cyl_zz_max",
+     "cyl_rz_max"
+    ],
+    "params": {
+     "tol": 0.02
+    },
+    "rationale": "pointwise_peak: required by rules R2, R3"
+   },
+   {
+    "check": "anchored_robustness",
+    "qois": [
+     "sigma_frob_avg",
+     "von_mises_avg",
+     "pressure_avg",
+     "cyl_rr_avg",
+     "cyl_tt_avg",
+     "cyl_zz_avg",
+     "cyl_rz_avg",
+     "cyl_rt_avg",
+     "cyl_tz_avg"
+    ],
+    "params": {
+     "tol": 0.02
+    },
+    "rationale": "region_average: required by rules R2, R4"
+   },
+   {
+    "check": "anchored_robustness",
+    "qois": [
+     "von_mises_max",
+     "cyl_rr_max",
+     "cyl_zz_max",
+     "cyl_rz_max"
+    ],
+    "params": {
+     "tol": 0.02
+    },
+    "rationale": "pointwise_peak: required by rules R2, R3"
+   }
+  ],
+  "expected_failures": [
+   {
+    "qoi": "von_mises_max",
+    "why": "rules R2, R3"
+   },
+   {
+    "qoi": "cyl_rr_max",
+    "why": "rules R2, R3"
+   },
+   {
+    "qoi": "cyl_zz_max",
+    "why": "rules R2, R3"
+   },
+   {
+    "qoi": "cyl_rz_max",
+    "why": "rules R2, R3"
+   }
+  ]
+ },
+ "rule_analysis": {
+  "reaction_moment_y": {
+   "qoi_class": "global",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel"
+   ],
+   "predicted": "PASS",
+   "rules": [
+    "R2",
+    "R5"
+   ]
+  },
+  "strain_energy": {
+   "qoi_class": "global",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel"
+   ],
+   "predicted": "PASS",
+   "rules": [
+    "R2",
+    "R5"
+   ]
+  },
+  "sigma_frob_avg": {
+   "qoi_class": "region_average",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "strategy_robustness"
+   ],
+   "predicted": null,
+   "rules": [
+    "R2",
+    "R4"
+   ]
+  },
+  "von_mises_avg": {
+   "qoi_class": "region_average",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "strategy_robustness"
+   ],
+   "predicted": null,
+   "rules": [
+    "R2",
+    "R4"
+   ]
+  },
+  "pressure_avg": {
+   "qoi_class": "region_average",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "strategy_robustness"
+   ],
+   "predicted": null,
+   "rules": [
+    "R2",
+    "R4"
+   ]
+  },
+  "cyl_rr_avg": {
+   "qoi_class": "region_average",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "strategy_robustness"
+   ],
+   "predicted": null,
+   "rules": [
+    "R2",
+    "R4"
+   ]
+  },
+  "cyl_tt_avg": {
+   "qoi_class": "region_average",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "strategy_robustness"
+   ],
+   "predicted": null,
+   "rules": [
+    "R2",
+    "R4"
+   ]
+  },
+  "cyl_zz_avg": {
+   "qoi_class": "region_average",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "strategy_robustness"
+   ],
+   "predicted": null,
+   "rules": [
+    "R2",
+    "R4"
+   ]
+  },
+  "cyl_rz_avg": {
+   "qoi_class": "region_average",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "strategy_robustness"
+   ],
+   "predicted": null,
+   "rules": [
+    "R2",
+    "R4"
+   ]
+  },
+  "cyl_rt_avg": {
+   "qoi_class": "region_average",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "strategy_robustness"
+   ],
+   "predicted": null,
+   "rules": [
+    "R2",
+    "R4"
+   ]
+  },
+  "cyl_tz_avg": {
+   "qoi_class": "region_average",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "strategy_robustness"
+   ],
+   "predicted": null,
+   "rules": [
+    "R2",
+    "R4"
+   ]
+  },
+  "von_mises_max": {
+   "qoi_class": "pointwise_peak",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "strategy_robustness"
+   ],
+   "predicted": "FAIL",
+   "rules": [
+    "R2",
+    "R3"
+   ]
+  },
+  "cyl_rr_max": {
+   "qoi_class": "pointwise_peak",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "strategy_robustness"
+   ],
+   "predicted": "FAIL",
+   "rules": [
+    "R2",
+    "R3"
+   ]
+  },
+  "cyl_zz_max": {
+   "qoi_class": "pointwise_peak",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "strategy_robustness"
+   ],
+   "predicted": "FAIL",
+   "rules": [
+    "R2",
+    "R3"
+   ]
+  },
+  "cyl_rz_max": {
+   "qoi_class": "pointwise_peak",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "strategy_robustness"
+   ],
+   "predicted": "FAIL",
+   "rules": [
+    "R2",
+    "R3"
+   ]
+  }
+ },
+ "plan": {
+  "checks": [
+   {
+    "check": "qoi_convergence",
+    "qois": [
+     "reaction_moment_y",
+     "strain_energy"
+    ],
+    "params": {
+     "band_tol": 0.002,
+     "gci_tol": 0.003
+    },
+    "rationale": "Global controls: three-level Celik GCI using the actual r21 and r32. gci_tol = 0.003 keeps a margin of 3-5x below the 1.4% best-surrogate error after the Fs = 1.25 safety factor, as the critic asked. Both are integral functionals and should converge even if the end-face edges are clamped-free singular. In that case the observed order is limited by the singularity and is below the smooth Q20 rate. Nearest solved cases passed both."
+   },
+   {
+    "check": "qoi_convergence_multilevel",
+    "qois": [
+     "reaction_moment_y",
+     "strain_energy"
+    ],
+    "params": {
+     "band_tol": 0.002,
+     "gci_tol": 0.003
+    },
+    "rationale": "There are 7 levels and the ratios go down to 1.11, which makes the three-level order ill-conditioned. The least-squares fit over the finest 5 levels, with monotonicity and leave-one-out stability, gives rate evidence for the controls. Note: the expected order window depends on open question 1. If the end faces are traction-free, a singularity-limited p below the smooth Q20 value is expected and should not be read as a code defect."
+   },
+   {
+    "check": "strategy_robustness",
+    "qois": [
+     "reaction_moment_y",
+     "strain_energy"
+    ],
+    "params": {
+     "tol": 0.005
+    },
+    "rationale": "Controls for the strategy comparison at 10,200 elements. Global functionals should not depend on axial clustering. If they disagree, the strategy meshes themselves are suspect, not the groove QoIs."
+   },
+   {
+    "check": "anchored_robustness",
+    "qois": [
+     "reaction_moment_y",
+     "strain_energy"
+    ],
+    "params": {
+     "tol": 0.005
+    },
+    "rationale": "Required by R7 for every QoI that gets strategy_robustness. It anchors each strategy to the Richardson or multilevel limit of the global family. This also partly addresses the critic's objection that the 10,200-element strategy meshes are not the finest family level."
+   },
+   {
+    "check": "qoi_convergence",
+    "qois": [
+     "sigma_frob_avg",
+     "von_mises_avg",
+     "pressure_avg",
+     "cyl_rr_avg",
+     "cyl_tt_avg",
+     "cyl_zz_avg",
+     "cyl_rz_avg",
+     "cyl_rt_avg",
+     "cyl_tz_avg",
+     "von_mises_max",
+     "cyl_rr_max",
+     "cyl_zz_max",
+     "cyl_rz_max"
+    ],
+    "params": {
+     "band_tol": 0.002,
+     "gci_tol": 0.003
+    },
+    "rationale": "Criterion (a): the GCI on the global family must be well below the surrogate errors. Tolerances are tightened to 0.003 for the Fs = 1.25 margin. Caveat: the catalogue params cannot set the normalisation. Criterion (a) is meant against the absolute 0.910 stress scale. If the gate normalises by each QoI's own magnitude, results for small components (pressure, rz, rt, tz) are stricter than intended, and those for *_max are looser. This has to be stated when the verdicts are interpreted. A three-level PASS on *_max is not sufficient on its own; see the multilevel and anchored checks."
+   },
+   {
+    "check": "qoi_convergence_multilevel",
+    "qois": [
+     "sigma_frob_avg",
+     "von_mises_avg",
+     "pressure_avg",
+     "cyl_rr_avg",
+     "cyl_tt_avg",
+     "cyl_zz_avg",
+     "cyl_rz_avg",
+     "cyl_rt_avg",
+     "cyl_tz_avg",
+     "von_mises_max",
+     "cyl_rr_max",
+     "cyl_zz_max",
+     "cyl_rz_max"
+    ],
+    "params": {
+     "band_tol": 0.002,
+     "gci_tol": 0.003
+    },
+    "rationale": "This is the main guard against spurious three-level GCI passes. The Gauss-point-sampled sphere functionals (2-36 points) and the Gauss-point maxima jump whenever the sampled point set changes. The fit over the finest 5 levels, with monotonicity, fit quality, a rate window and leave-one-out stability, rejects rates that only appear on the finest three. Any PASS of a *_max QoI must come with a PASS here."
+   },
+   {
+    "check": "strategy_robustness",
+    "qois": [
+     "sigma_frob_avg",
+     "von_mises_avg",
+     "pressure_avg",
+     "cyl_rr_avg",
+     "cyl_tt_avg",
+     "cyl_zz_avg",
+     "cyl_rz_avg",
+     "cyl_rt_avg",
+     "cyl_tz_avg",
+     "von_mises_max",
+     "cyl_rr_max",
+     "cyl_zz_max",
+     "cyl_rz_max"
+    ],
+    "params": {
+     "tol": 0.005
+    },
+    "rationale": "Criterion (b): the spread across uniform and z_beta = 1, 2, 3 at 10,200 elements must be consistent with an uncertainty of about 0.5%. Groove-root QoIs are local features and depend on where the mesh is refined. Limitation: if the clustering is axial only (open question 2), radial resolution at the root is not tested, so a PASS over-credits robustness."
+   },
+   {
+    "check": "anchored_robustness",
+    "qois": [
+     "sigma_frob_avg",
+     "von_mises_avg",
+     "pressure_avg",
+     "cyl_rr_avg",
+     "cyl_tt_avg",
+     "cyl_zz_avg",
+     "cyl_rz_avg",
+     "cyl_rt_avg",
+     "cyl_tz_avg",
+     "von_mises_max",
+     "cyl_rr_max",
+     "cyl_zz_max",
+     "cyl_rz_max"
+    ],
+    "params": {
+     "tol": 0.005
+    },
+    "rationale": "Required by R7. The strategies must agree with the converged limit, not only with each other. If neither convergence gate passes, this returns INCONCLUSIVE, which correctly means no reference value exists."
+   }
+  ],
+  "expected_failures": [
+   {
+    "qoi": "sigma_frob_avg",
+    "why": "In the nearest solved B3 cases this QoI failed qoi_convergence, the multilevel check and strategy_robustness. The average over 2-36 Gauss points inside a fixed sphere jumps when the sampled point set changes, which breaks the h^p model. With rho = 0.0228 the solution is also preasymptotic on the coarse levels."
+   },
+   {
+    "qoi": "von_mises_avg",
+    "why": "A nearest solved case failed all four gates, for the same sampling and preasymptotic reasons as sigma_frob_avg."
+   },
+   {
+    "qoi": "pressure_avg",
+    "why": "The same sampling-noise problem applies. In addition, this QoI is the most sensitive to mild volumetric locking at nu = 0.45 and to reduced-integration artefacts of the 2x2x2 Q20 rule. It is also a small quantity, so relative normalisation makes the gate stricter."
+   },
+   {
+    "qoi": "cyl_rr_avg",
+    "why": "The same Gauss-point sampling jumps occur within the groove sphere. It is essentially sigma_xx, so it is not independent of the other components. Expected to fail convergence and strategy robustness in the same way as sigma_frob_avg."
+   },
+   {
+    "qoi": "cyl_tt_avg",
+    "why": "The same Gauss-point sampling and preasymptotic behaviour apply as for the other groove-region averages."
+   },
+   {
+    "qoi": "cyl_zz_avg",
+    "why": "It equals sigma_zz in the groove sphere, which has the same sampling issues. Axial clustering changes the sampled point set strongly, so a strategy_robustness failure is likely."
+   },
+   {
+    "qoi": "cyl_rz_avg",
+    "why": "This is a smaller shear component, so relative tolerances are effectively tighter. It also has the same sampling-jump problem."
+   },
+   {
+    "qoi": "cyl_rt_avg",
+    "why": "It is odd in y and small over the quarter sphere, so the relative GCI, band and strategy gates are ill-conditioned (they divide by a near-zero value). Failure or a meaningless order is expected. It has little validation value unless it is judged on the absolute 0.910 scale."
+   },
+   {
+    "qoi": "cyl_tz_avg",
+    "why": "The same reasons apply as for cyl_rt_avg: a small odd-in-y component with ill-conditioned relative gates."
+   },
+   {
+    "qoi": "von_mises_max",
+    "why": "This is a maximum over a mesh-dependent Gauss-point set, and those points never lie on the groove surface, where the peak occurs. Convergence is non-monotone and has no a-priori rate, so the multilevel monotonicity and leave-one-out tests should reject it. It is also strongly sensitive to the mesh strategy."
+   },
+   {
+    "qoi": "cyl_rr_max",
+    "why": "This is a Gauss-point sampled maximum with no consistent h^p behaviour, and the point positions change across strategies. Expected to fail the multilevel and strategy gates."
+   },
+   {
+    "qoi": "cyl_zz_max",
+    "why": "The same Gauss-point maximum issue applies. Axial clustering moves sample points directly in the direction this component varies, so the strategy spread should be large."
+   },
+   {
+    "qoi": "cyl_rz_max",
+    "why": "This is a Gauss-point maximum of a shear component with a smaller magnitude. It shows non-monotone sampling convergence and mesh-strategy sensitivity."
+   }
+  ]
+ },
+ "plan_errors": [],
+ "critique": {
+  "approve": false,
+  "objections": [
+   "The region averages are not a consistent quadrature of the functional the spec defines. The spec calls the sphere average a mesh-independent functional, but it is computed as an average of the 2-36 Gauss points of the reduced rule that happen to fall inside the sphere. Element volumes cut by the sphere boundary are wrong, and that error changes irregularly with the mesh. That breaks the h^p error model (an assumed error proportional to h^p) that GCI and the multilevel fit rely on. A FAIL from qoi_convergence or the multilevel check therefore measures the extraction method, not whether groove-root stress converges. The plan's expected failures say exactly this, which means the plan cannot answer the question it is meant to answer. Use a volume-weighted integral with sub-cell quadrature or a smooth weighting kernel over the sphere, and check every element's coverage, before running these gates.",
+   "The *_max QoIs measure the wrong thing. The groove root has a finite radius (rho = 0.0228), so the true peak is finite and a valid target, but it lies on the groove surface. A maximum over interior Gauss points sits at a distance of about 0.2h from that surface. It is a biased and erratic stand-in for the peak, not something that converges to it. If these maxima fail, that says nothing about the peak itself. Replace them with a peak taken directly on the groove surface, either by extrapolating stresses to the surface or by smoothing nodal stresses (superconvergent patch recovery, SPR), or drop them from the validation-target question.",
+   "The tolerances do not match criterion (a). gci_tol and band_tol are relative to each QoI's own value, while criterion (a) is defined against the fixed scale of 0.910. The plan admits this mismatch but runs the gates anyway. For cyl_rt_avg and cyl_tz_avg, which are odd in y and close to zero, a relative gate divides by almost nothing, so any verdict is meaningless. Either judge them on the absolute 0.910 scale or exclude them. Do not list them as expected failures.",
+   "Fs = 1.25 is too small a safety factor here. Roache's 1.25 is only justified when three-level GCI gives an observed order close to the formal one on monotone data. With r = 1.11-1.34, Gauss-point sampling noise and an order that may be limited by the end-face singularity, use Fs = 3. Otherwise the stated margin of 3-5x below the 1.4% best-surrogate error is not actually achieved.",
+   "strategy_robustness and anchored_robustness at 10,200 elements mix two error sources. The spec does not say which family level 10,200 elements corresponds to. At that level, discretisation error at the groove root may itself exceed 0.5%. If so, anchored_robustness fails because the meshes are coarse, not because the result depends on mesh strategy, and criterion (b) cannot be separated from criterion (a). The anchored gate's tolerance needs a stated discretisation-error allowance for that level.",
+   "The strategy test does not cover the right direction of refinement. If the z_beta clustering is axial only (open question 2), radial resolution at the groove root never changes. Gradients there are mainly radial and axial. A PASS would then overstate robustness, and the plan accepts that limitation without fixing it. Add a strategy that clusters radially toward the groove root.",
+   "The global-control rate checks depend on an unanswered question. Whether the end faces are traction-free (open question 1) decides whether the clamped-free edges are singular. That in turn sets the expected order window for qoi_convergence_multilevel. Without that window fixed in advance, any observed order can be explained away after the fact. Settle the end-face boundary conditions before running, and state the expected singular exponent.",
+   "The two controls are not independent evidence. Under a prescribed rotation, the strain energy is the reaction moment integrated over the rotation path, so the two are linked. Cartesian and cylindrical stress components overlap in the same way, as the spec itself notes. The plan should not present agreement among these as corroboration.",
+   "Where the groove sits is ambiguous. The loading says the whole inner surface, groove included, is rigidly rotated, which puts the groove root on a Dirichlet (clamped) surface. The well-posedness argument and the expected failures both treat it as a traction-free notch. Near a clamped surface, the tangential strains are fixed, which ties the cylindrical stress components to each other and changes what a 'groove-root stress concentration' means. Clarify this before choosing QoIs.",
+   "The plan relies on the reduced 2x2x2 rule for Q20 without checking it. pressure_avg and every quantity sampled at Gauss points rely on that rule, and the spec says it admits spurious modes. Nothing in the plan rules out spurious-mode contamination or locking."
+  ],
+  "missing_checks": [
+   "The number of Gauss points inside the sphere at each of the 7 levels and for each strategy, so it is clear which levels are resolved before they enter the multilevel fit.",
+   "Recompute the sphere averages with a consistent volume-weighted integral (sub-cell or kernel weighting), and compare against the Gauss-point version on two levels.",
+   "Sensitivity to the region radius (for example R0 = 1, 2 and 3 rho), to show the region functional varies smoothly with R0 and is not dominated by sampling noise.",
+   "A peak taken on the groove surface (by extrapolation or SPR recovery) to replace the Gauss-point *_max QoIs.",
+   "Compare full 27-point integration with the reduced 2x2x2 rule on at least one level, or check the tangent-stiffness eigenvalues for zero-energy modes.",
+   "Confirm the end-face boundary conditions and set the expected singularity-limited order window for strain energy and reaction moment before running the gates.",
+   "Identify which family level the 10,200-element strategy meshes correspond to, and estimate the discretisation error at that level for each groove QoI.",
+   "A strategy that clusters radially toward the groove root, not only axially (z_beta).",
+   "Judge the small or odd-in-y components (cyl_rt_avg, cyl_tz_avg, and possibly pressure_avg and cyl_rz_avg) on the absolute 0.910 scale outside the relative gates, or exclude them.",
+   "Recompute GCI with Fs = 3 wherever the observed order differs from the formal order or the sequence is not monotone."
+  ]
+ },
+ "gate_summary": {
+  "reaction_moment_y": {
+   "verdict": "FAIL",
+   "convergence_evidence": "rate",
+   "evidence_from": [
+    "qoi_convergence"
+   ],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      34.545105406496226,
+      34.534546639555124,
+      34.526349631992595
+     ],
+     "relative_spread": 0.0005432307412612241,
+     "observed_order": 1.3192099122421839,
+     "gci_fine": 0.0020566379018870946,
+     "evidence": "rate",
+     "verdict": "PASS",
+     "reason": "monotone, p=1.32, GCI_fine=0.21% vs tol 0.30%"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.0005432307412612241,
+     "fit_order": 0.8634365301554843,
+     "fit_limit": 34.43037404348733,
+     "leave_one_out_orders": [
+      1.6542026817670077,
+      1.0948813352401507,
+      0.6890102222505942,
+      0.8473733415542825,
+      0.5603985643782136
+     ],
+     "failed_criteria": [],
+     "evidence": "rate",
+     "uncertainty_fine": 0.0035069329691319985,
+     "verdict": "FAIL",
+     "reason": "5 levels monotone, fitted p=0.86 (leave-one-out 0.56-1.65), U_fine=0.35% vs tol 0.30%"
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.101% vs tol 0.50%",
+     "relative_spread": 0.0010088930505188379
+    },
+    "anchored_robustness": {
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 0.412% vs tol 0.50%",
+     "anchor_kind": "Richardson extrapolate"
+    }
+   }
+  },
+  "strain_energy": {
+   "verdict": "FAIL",
+   "convergence_evidence": "rate",
+   "evidence_from": [
+    "qoi_convergence"
+   ],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      0.864218407940688,
+      0.8639646866398683,
+      0.8637688684846743
+     ],
+     "relative_spread": 0.0005204395208204441,
+     "observed_order": 1.3732810899229462,
+     "gci_fine": 0.0018812038699188211,
+     "evidence": "rate",
+     "verdict": "PASS",
+     "reason": "monotone, p=1.37, GCI_fine=0.19% vs tol 0.30%"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.0005204395208204441,
+     "fit_order": 0.8970131601216019,
+     "fit_limit": 0.8615579845180563,
+     "leave_one_out_orders": [
+      1.7167402623185142,
+      1.1378956030799816,
+      0.7170240604318417,
+      0.8808036110277441,
+      0.584671179414834
+     ],
+     "failed_criteria": [],
+     "evidence": "rate",
+     "uncertainty_fine": 0.003231598268925693,
+     "verdict": "FAIL",
+     "reason": "5 levels monotone, fitted p=0.90 (leave-one-out 0.58-1.72), U_fine=0.32% vs tol 0.30%"
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.103% vs tol 0.50%",
+     "relative_spread": 0.0010325431629031251
+    },
+    "anchored_robustness": {
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 0.395% vs tol 0.50%",
+     "anchor_kind": "Richardson extrapolate"
+    }
+   }
+  },
+  "sigma_frob_avg": {
+   "verdict": "FAIL",
+   "convergence_evidence": "none",
+   "evidence_from": [],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      0.9360286816394451,
+      0.8977258618264197,
+      0.9100783983130382
+     ],
+     "relative_spread": 0.042087384871484945,
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "oscillatory: successive differences change sign"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.042087384871484945,
+     "fit_order": 19.9999994229954,
+     "fit_limit": 0.9127722323188984,
+     "leave_one_out_orders": [
+      0.050000001446839366,
+      4.28197726629236,
+      17.417371091280785,
+      19.9999994229954,
+      19.9999994229954
+     ],
+     "failed_criteria": [
+      "monotone",
+      "fit_quality",
+      "order_window",
+      "leave_one_out"
+     ],
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00) and finest-three spread 4.209% exceeds 0.20%"
+    },
+    "strategy_robustness": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 16.749% vs tol 0.50%",
+     "relative_spread": 0.16749051155088254
+    },
+    "anchored_robustness": {
+     "verdict": "INCONCLUSIVE",
+     "anchor_kind": "none",
+     "reason": "refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative"
+    }
+   }
+  },
+  "von_mises_avg": {
+   "verdict": "FAIL",
+   "convergence_evidence": "none",
+   "evidence_from": [],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      0.6569896596211776,
+      0.5883541529650943,
+      0.6239301419451989
+     ],
+     "relative_spread": 0.07541713635144966,
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "oscillatory: successive differences change sign"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.07541713635144966,
+     "fit_order": 0.050000001446839366,
+     "fit_limit": -0.15287952148882483,
+     "leave_one_out_orders": [
+      0.050000001446839366,
+      0.050000001446839366,
+      7.582041441205055,
+      7.177014691713188,
+      0.050000001446839366
+     ],
+     "failed_criteria": [
+      "monotone",
+      "fit_quality",
+      "order_window",
+      "leave_one_out"
+     ],
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05) and finest-three spread 7.542% exceeds 0.20%"
+    },
+    "strategy_robustness": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 11.036% vs tol 0.50%",
+     "relative_spread": 0.11036400361100919
+    },
+    "anchored_robustness": {
+     "verdict": "INCONCLUSIVE",
+     "anchor_kind": "none",
+     "reason": "refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative"
+    }
+   }
+  },
+  "pressure_avg": {
+   "verdict": "FAIL",
+   "convergence_evidence": "none",
+   "evidence_from": [],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      -0.41420576595209346,
+      -0.4120995254869239,
+      -0.41526925834993417
+     ],
+     "relative_spread": 0.0034829228656408206,
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "oscillatory: successive differences change sign"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.0034829228656408206,
+     "fit_order": 19.9999994229954,
+     "fit_limit": -0.41394292530196164,
+     "leave_one_out_orders": [
+      18.335042550104376,
+      0.050000001446839366,
+      19.9999994229954,
+      2.4617383507459767,
+      19.9999994229954
+     ],
+     "failed_criteria": [
+      "monotone",
+      "fit_quality",
+      "order_window",
+      "leave_one_out"
+     ],
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00) and finest-three spread 0.348% exceeds 0.20%"
+    },
+    "strategy_robustness": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 0.943% vs tol 0.50%",
+     "relative_spread": 0.00943492449987844
+    },
+    "anchored_robustness": {
+     "verdict": "INCONCLUSIVE",
+     "anchor_kind": "none",
+     "reason": "refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative"
+    }
+   }
+  },
+  "cyl_rr_avg": {
+   "verdict": "FAIL",
+   "convergence_evidence": "none",
+   "evidence_from": [],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      0.43205478937169944,
+      0.4348970618725031,
+      0.43411191956252704
+     ],
+     "relative_spread": 0.00312310731259221,
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "oscillatory: successive differences change sign"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.00312310731259221,
+     "fit_order": 19.9999994229954,
+     "fit_limit": 0.4341150400294853,
+     "leave_one_out_orders": [
+      19.9999994229954,
+      0.6139603739938189,
+      19.9999994229954,
+      19.9999994229954,
+      19.9999994229954
+     ],
+     "failed_criteria": [
+      "monotone",
+      "fit_quality",
+      "order_window",
+      "leave_one_out"
+     ],
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00) and finest-three spread 0.312% exceeds 0.20%"
+    },
+    "strategy_robustness": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 0.796% vs tol 0.50%",
+     "relative_spread": 0.007962824150912954
+    },
+    "anchored_robustness": {
+     "verdict": "INCONCLUSIVE",
+     "anchor_kind": "none",
+     "reason": "refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative"
+    }
+   }
+  },
+  "cyl_tt_avg": {
+   "verdict": "FAIL",
+   "convergence_evidence": "none",
+   "evidence_from": [],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      0.38007212856210365,
+      0.3787500100777352,
+      0.3811597645145351
+     ],
+     "relative_spread": 0.002647853680811174,
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "oscillatory: successive differences change sign"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.002647853680811174,
+     "fit_order": 19.9999994229954,
+     "fit_limit": 0.38009436093215826,
+     "leave_one_out_orders": [
+      19.9999994229954,
+      0.050000001446839366,
+      19.9999994229954,
+      2.7346490743251453,
+      19.9999994229954
+     ],
+     "failed_criteria": [
+      "monotone",
+      "fit_quality",
+      "order_window",
+      "leave_one_out"
+     ],
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00) and finest-three spread 0.265% exceeds 0.20%"
+    },
+    "strategy_robustness": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 0.870% vs tol 0.50%",
+     "relative_spread": 0.008695526688777572
+    },
+    "anchored_robustness": {
+     "verdict": "INCONCLUSIVE",
+     "anchor_kind": "none",
+     "reason": "refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative"
+    }
+   }
+  },
+  "cyl_zz_avg": {
+   "verdict": "FAIL",
+   "convergence_evidence": "none",
+   "evidence_from": [],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      0.4304903799224774,
+      0.4226515045105337,
+      0.43053609097274054
+     ],
+     "relative_spread": 0.008663634338340604,
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "oscillatory: successive differences change sign"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.008663634338340604,
+     "fit_order": 19.9999994229954,
+     "fit_limit": 0.4276193749442413,
+     "leave_one_out_orders": [
+      19.9999994229954,
+      4.503516770593848,
+      19.387906909930035,
+      0.050000001446839366,
+      0.050000001446839366
+     ],
+     "failed_criteria": [
+      "monotone",
+      "fit_quality",
+      "order_window",
+      "leave_one_out"
+     ],
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00) and finest-three spread 0.866% exceeds 0.20%"
+    },
+    "strategy_robustness": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 1.310% vs tol 0.50%",
+     "relative_spread": 0.01310143442075511
+    },
+    "anchored_robustness": {
+     "verdict": "INCONCLUSIVE",
+     "anchor_kind": "none",
+     "reason": "refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative"
+    }
+   }
+  },
+  "cyl_rz_avg": {
+   "verdict": "FAIL",
+   "convergence_evidence": "none",
+   "evidence_from": [],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      -0.31671193867773173,
+      -0.28125526577454096,
+      -0.3126593015778589
+     ],
+     "relative_spread": 0.03896002033331945,
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "oscillatory: successive differences change sign"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.03896002033331945,
+     "fit_order": 19.9999994229954,
+     "fit_limit": -0.2997818728760488,
+     "leave_one_out_orders": [
+      19.9999994229954,
+      2.6148956928054004,
+      19.9999994229954,
+      0.050000001446839366,
+      0.050000001446839366
+     ],
+     "failed_criteria": [
+      "monotone",
+      "fit_quality",
+      "order_window",
+      "leave_one_out"
+     ],
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00) and finest-three spread 3.896% exceeds 0.20%"
+    },
+    "strategy_robustness": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 3.908% vs tol 0.50%",
+     "relative_spread": 0.0390830423297124
+    },
+    "anchored_robustness": {
+     "verdict": "INCONCLUSIVE",
+     "anchor_kind": "none",
+     "reason": "refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative"
+    }
+   }
+  },
+  "cyl_rt_avg": {
+   "verdict": "PASS",
+   "convergence_evidence": "band",
+   "evidence_from": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel"
+   ],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      -0.003913634739655213,
+      -0.004401827890237153,
+      -0.0039541238622116705
+     ],
+     "relative_spread": 0.0005364297751565978,
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 0.20% band (spread 0.054%); no convergence rate demonstrated"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.0005364297751565978,
+     "fit_order": 2.484485890911415,
+     "fit_limit": -0.004144480760276235,
+     "leave_one_out_orders": [
+      6.131940346335971,
+      2.689401221561908,
+      7.019476958367235,
+      2.33847814455194,
+      0.050000001446839366
+     ],
+     "failed_criteria": [
+      "monotone",
+      "fit_quality",
+      "leave_one_out"
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 0.20% band (spread 0.054%); no rate from 5 levels (failed: monotone, fit_quality, leave_one_out; fitted p=2.48)"
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.045% vs tol 0.50%",
+     "relative_spread": 0.0004513475593797951
+    },
+    "anchored_robustness": {
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.053% vs tol 0.50%",
+     "anchor_kind": "finest family value"
+    }
+   }
+  },
+  "cyl_tz_avg": {
+   "verdict": "PASS",
+   "convergence_evidence": "band",
+   "evidence_from": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel"
+   ],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      0.0024084156424329277,
+      0.002059087179830172,
+      0.002187095925041219
+     ],
+     "relative_spread": 0.0003838443624750205,
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 0.20% band (spread 0.038%); no convergence rate demonstrated"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.0003838443624750205,
+     "fit_order": 8.527473935806878,
+     "fit_limit": 0.0021454396670704218,
+     "leave_one_out_orders": [
+      1.8513852254026057,
+      4.647448384409782,
+      9.498077068799445,
+      10.977795517637576,
+      7.589022712316308
+     ],
+     "failed_criteria": [
+      "monotone",
+      "fit_quality",
+      "order_window",
+      "leave_one_out"
+     ],
+     "verdict": "PASS",
+     "evidence": "band",
+     "reason": "finest three within 0.20% band (spread 0.038%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=8.53)"
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.187% vs tol 0.50%",
+     "relative_spread": 0.0018740847097134575
+    },
+    "anchored_robustness": {
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.268% vs tol 0.50%",
+     "anchor_kind": "finest family value"
+    }
+   }
+  },
+  "von_mises_max": {
+   "verdict": "FAIL",
+   "convergence_evidence": "none",
+   "evidence_from": [],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      1.35053258206674,
+      1.2246184243461569,
+      1.2440079489385567
+     ],
+     "relative_spread": 0.13835528670275354,
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "oscillatory: successive differences change sign"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.13835528670275354,
+     "fit_order": 7.929564250426973,
+     "fit_limit": 1.2688079087867978,
+     "leave_one_out_orders": [
+      19.9999994229954,
+      19.9999994229954,
+      2.7840556339813176,
+      6.917745838962091,
+      6.099106782627784
+     ],
+     "failed_criteria": [
+      "monotone",
+      "fit_quality",
+      "order_window",
+      "leave_one_out"
+     ],
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=7.93) and finest-three spread 13.836% exceeds 0.20%"
+    },
+    "strategy_robustness": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 12.276% vs tol 0.50%",
+     "relative_spread": 0.12275555593969534
+    },
+    "anchored_robustness": {
+     "verdict": "INCONCLUSIVE",
+     "anchor_kind": "none",
+     "reason": "refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative"
+    }
+   }
+  },
+  "cyl_rr_max": {
+   "verdict": "FAIL",
+   "convergence_evidence": "none",
+   "evidence_from": [],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      0.7373185314986841,
+      0.7064627708446658,
+      0.8911401579526315
+     ],
+     "relative_spread": 0.20292470126781592,
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "oscillatory: successive differences change sign"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.20292470126781592,
+     "fit_order": 14.218176295071988,
+     "fit_limit": 0.7835343602350646,
+     "leave_one_out_orders": [
+      0.050000001446839366,
+      19.9999994229954,
+      16.22129450891529,
+      0.050000001446839366,
+      0.050000001446839366
+     ],
+     "failed_criteria": [
+      "monotone",
+      "fit_quality",
+      "order_window",
+      "leave_one_out"
+     ],
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=14.22) and finest-three spread 20.292% exceeds 0.20%"
+    },
+    "strategy_robustness": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 23.136% vs tol 0.50%",
+     "relative_spread": 0.2313611722292466
+    },
+    "anchored_robustness": {
+     "verdict": "INCONCLUSIVE",
+     "anchor_kind": "none",
+     "reason": "refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative"
+    }
+   }
+  },
+  "cyl_zz_max": {
+   "verdict": "FAIL",
+   "convergence_evidence": "none",
+   "evidence_from": [],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      1.0111179999564008,
+      1.1036416029946674,
+      0.9697145608649655
+     ],
+     "relative_spread": 0.14715989565069887,
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "oscillatory: successive differences change sign"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.14715989565069887,
+     "fit_order": 10.31193920123981,
+     "fit_limit": 1.0182853936313623,
+     "leave_one_out_orders": [
+      0.050000001446839366,
+      19.9999994229954,
+      9.825128100918691,
+      7.647139434506203,
+      15.258718893708272
+     ],
+     "failed_criteria": [
+      "monotone",
+      "fit_quality",
+      "order_window",
+      "leave_one_out"
+     ],
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=10.31) and finest-three spread 14.716% exceeds 0.20%"
+    },
+    "strategy_robustness": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 56.736% vs tol 0.50%",
+     "relative_spread": 0.5673578756997386
+    },
+    "anchored_robustness": {
+     "verdict": "INCONCLUSIVE",
+     "anchor_kind": "none",
+     "reason": "refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative"
+    }
+   }
+  },
+  "cyl_rz_max": {
+   "verdict": "FAIL",
+   "convergence_evidence": "none",
+   "evidence_from": [],
+   "gates": {
+    "qoi_convergence": {
+     "finest_three": [
+      0.788267902012367,
+      0.7270487797200337,
+      0.6711974549404431
+     ],
+     "relative_spread": 0.12863776053681839,
+     "observed_order": 0.1931620596093656,
+     "gci_fine": 3.848621873007123,
+     "evidence": "none",
+     "verdict": "FAIL",
+     "reason": "monotone but not asymptotic: observed order 0.19 outside [0.5, 5] (GCI 384.86% not trusted)"
+    },
+    "qoi_convergence_multilevel": {
+     "n_levels": 5,
+     "relative_spread": 0.12863776053681839,
+     "fit_order": 4.189604661822458,
+     "fit_limit": 0.7311052094324856,
+     "leave_one_out_orders": [
+      19.9999994229954,
+      19.9999994229954,
+      0.050000001446839366,
+      4.402314886734824,
+      0.050000001446839366
+     ],
+     "failed_criteria": [
+      "monotone",
+      "fit_quality",
+      "leave_one_out"
+     ],
+     "verdict": "FAIL",
+     "evidence": "none",
+     "reason": "no rate from 5 levels (failed: monotone, fit_quality, leave_one_out; fitted p=4.19) and finest-three spread 12.864% exceeds 0.20%"
+    },
+    "strategy_robustness": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 11.763% vs tol 0.50%",
+     "relative_spread": 0.11763217638011976
+    },
+    "anchored_robustness": {
+     "verdict": "INCONCLUSIVE",
+     "anchor_kind": "none",
+     "reason": "refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative"
+    }
+   }
+  }
+ },
+ "prediction": {
+  "llm": {
+   "predicted_fail": [
+    "cyl_rr_avg",
+    "cyl_rr_max",
+    "cyl_rt_avg",
+    "cyl_rz_avg",
+    "cyl_rz_max",
+    "cyl_tt_avg",
+    "cyl_tz_avg",
+    "cyl_zz_avg",
+    "cyl_zz_max",
+    "pressure_avg",
+    "sigma_frob_avg",
+    "von_mises_avg",
+    "von_mises_max"
+   ],
+   "actual_fail": [
+    "cyl_rr_avg",
+    "cyl_rr_max",
+    "cyl_rz_avg",
+    "cyl_rz_max",
+    "cyl_tt_avg",
+    "cyl_zz_avg",
+    "cyl_zz_max",
+    "pressure_avg",
+    "reaction_moment_y",
+    "sigma_frob_avg",
+    "strain_energy",
+    "von_mises_avg",
+    "von_mises_max"
+   ],
+   "missed": [
+    "reaction_moment_y",
+    "strain_energy"
+   ],
+   "false_alarm": [
+    "cyl_rt_avg",
+    "cyl_tz_avg"
+   ]
+  },
+  "rules": {
+   "predicted_fail": [
+    "cyl_rr_max",
+    "cyl_rz_max",
+    "cyl_zz_max",
+    "von_mises_max"
+   ],
+   "actual_fail": [
+    "cyl_rr_avg",
+    "cyl_rr_max",
+    "cyl_rz_avg",
+    "cyl_rz_max",
+    "cyl_tt_avg",
+    "cyl_zz_avg",
+    "cyl_zz_max",
+    "pressure_avg",
+    "reaction_moment_y",
+    "sigma_frob_avg",
+    "strain_energy",
+    "von_mises_avg",
+    "von_mises_max"
+   ],
+   "missed": [
+    "cyl_rr_avg",
+    "cyl_rz_avg",
+    "cyl_tt_avg",
+    "cyl_zz_avg",
+    "pressure_avg",
+    "reaction_moment_y",
+    "sigma_frob_avg",
+    "strain_energy",
+    "von_mises_avg"
+   ],
+   "false_alarm": []
+  }
+ },
+ "advice": {
+  "per_qoi": [
+   {
+    "qoi": "reaction_moment_y",
+    "stated_verdict": "FAIL",
+    "interpretation": "FAIL by a narrow margin, and the FAIL is real. The finest three levels change monotonically with observed order p = 1.32 and GCI_fine = 0.21%, which is under the 0.30% tolerance, so that gate PASSes and supplies the 'rate' evidence. The five-level fit, however, gives p = 0.86, the leave-one-out orders range from 0.56 to 1.65, and U_fine = 0.35% is above 0.30%. The rate estimate is therefore unstable, and the three-level GCI probably understates the uncertainty. The fit limit (34.43) sits about 0.3% below the finest value. The strategy spread (0.10%) and the deviation from the Richardson extrapolate (0.41%) are both within 0.50%. An order of roughly 1 is far below what Q20 should reach for a smooth energy-type quantity. This fits the pollution expected from clamped-free edge singularities where the Dirichlet surfaces meet the end faces, but only if those end faces are traction-free, which is still an open question. The moment is mesh-robust to a few tenths of a percent, but its discretisation uncertainty is not certified below the gate tolerance."
+   },
+   {
+    "qoi": "strain_energy",
+    "stated_verdict": "FAIL",
+    "interpretation": "Same pattern as the reaction moment, which is expected because both are global work-conjugate quantities. The finest three levels are monotone with p = 1.37 and GCI_fine = 0.19%, so that gate PASSes. The five-level fit gives p = 0.90, leave-one-out orders range from 0.58 to 1.72, and U_fine = 0.32%, just above the 0.30% tolerance, so the gate verdict is FAIL. The strategy spread (0.10%) and the deviation from the anchor (0.40%) both pass. The low and unstable order suggests preasymptotic behaviour or edge-singularity pollution rather than smooth Q20 convergence. The energy is accurate to a few tenths of a percent, but it is not certified at the gate tolerance."
+   },
+   {
+    "qoi": "sigma_frob_avg",
+    "stated_verdict": "FAIL",
+    "interpretation": "No convergence evidence. The finest three levels oscillate: 0.936, then 0.898, then 0.910, a 4.2% spread. The five-level fit fails every criterion, and the fitted p = 20 is only the fitter's upper bound, not a meaningful order. The spread across mesh strategies is 16.7%. The anchored check is INCONCLUSIVE because there is no converged limit to anchor to. This is the quantity that defines the 0.910 stress scale, and its own value is uncertain by several percent, which is comparable to or larger than the 1.4-4% surrogate errors. The most likely cause is sampling noise: only 2-36 Gauss points lie inside a sphere cut by the groove surface and by y = 0. The gates cannot tell this apart from unresolved discretisation error."
+   },
+   {
+    "qoi": "von_mises_avg",
+    "stated_verdict": "FAIL",
+    "interpretation": "No convergence evidence. The finest three levels oscillate (0.657, 0.588, 0.624; 7.5% spread). The five-level fit is degenerate: p sits at the 0.05 lower bound and the fitted limit is negative and unphysical. The strategy spread is 11.0%. The anchored check is INCONCLUSIVE. The value cannot be used as a reference."
+   },
+   {
+    "qoi": "pressure_avg",
+    "stated_verdict": "FAIL",
+    "interpretation": "FAIL because the sequence oscillates. The finest-three spread is small in absolute terms (0.35% of the stress scale), but successive differences change sign, no rate can be fitted, and 0.35% exceeds the 0.20% band. The strategy spread is 0.94%, which exceeds 0.50%. Pressure was flagged beforehand as the quantity most sensitive to reduced-integration modes and mild locking. The gates cannot separate those effects from Gauss-point sampling noise. It is not certified."
+   },
+   {
+    "qoi": "cyl_rr_avg",
+    "stated_verdict": "FAIL",
+    "interpretation": "FAIL because the sequence oscillates: the finest-three spread is 0.31%, above the 0.20% band, and no rate can be fitted. The strategy spread is 0.80%, above 0.50%. The value is fairly stable in absolute terms, but it does not meet the stability or robustness criteria. It is roughly sigma_xx, so it is not independent of the Cartesian averages."
+   },
+   {
+    "qoi": "cyl_tt_avg",
+    "stated_verdict": "FAIL",
+    "interpretation": "FAIL because the sequence oscillates: the finest-three spread is 0.26%, above the 0.20% band, and no rate can be fitted. The strategy spread is 0.87%, above 0.50%. Like cyl_rr_avg, it is close to the tolerance in absolute terms but not certified."
+   },
+   {
+    "qoi": "cyl_zz_avg",
+    "stated_verdict": "FAIL",
+    "interpretation": "FAIL because the sequence oscillates (0.430, 0.423, 0.431; 0.87% spread), and the strategy spread is 1.31%. This is identical to sigma_zz and so is not independent evidence. It is not certified."
+   },
+   {
+    "qoi": "cyl_rz_avg",
+    "stated_verdict": "FAIL",
+    "interpretation": "FAIL with large oscillation (-0.317, -0.281, -0.313; 3.9% spread) and a 3.9% strategy spread. The in-plane shear component that drives the tilting response at the groove root is not resolved by the region average at these mesh levels."
+   },
+   {
+    "qoi": "cyl_rt_avg",
+    "stated_verdict": "PASS",
+    "interpretation": "PASS on 'band' evidence only. The finest three values stay within the 0.20% band measured on the 0.910 stress scale (spread 0.054%). No convergence rate is shown, the five-level sequence is non-monotone, the strategy spread is 0.045%, and the deviation from the finest family value is 0.053%. Physically, this is sigma_xy-type shear, which vanishes on the y = 0 symmetry plane. Its values (about -0.004) are below 0.5% of the stress scale, so the PASS really says the quantity is near zero relative to the scale. Relative to its own size it varies by roughly 10%. It is a useful symmetry consistency check but has little value as a validation target. It must not be described as converged or monotone."
+   },
+   {
+    "qoi": "cyl_tz_avg",
+    "stated_verdict": "PASS",
+    "interpretation": "PASS on 'band' evidence only. The finest three values stay within the 0.20% band on the stress scale (spread 0.038%). No rate is shown, and the five-level fit fails monotonicity, fit quality, order window and leave-one-out. The strategy spread is 0.19% and the deviation from the anchor is 0.27%. Like cyl_rt, this shear component vanishes by symmetry on y = 0, and its magnitude (about 0.002) is negligible against the 0.910 scale. The PASS confirms it is small and stable on that absolute scale, not that its own value has converged. It carries little validation value."
+   },
+   {
+    "qoi": "von_mises_max",
+    "stated_verdict": "FAIL",
+    "interpretation": "FAIL. The Gauss-point maximum oscillates (1.351, 1.225, 1.244; 13.8% spread), the strategy spread is 12.3%, and no rate or limit can be established. This fits the expectation that a Gauss-point maximum near a small-radius groove root (rho = 0.0228) samples the surface peak inconsistently. The gates do not show convergence to the bounded true peak at these resolutions."
+   },
+   {
+    "qoi": "cyl_rr_max",
+    "stated_verdict": "FAIL",
+    "interpretation": "FAIL with the largest refinement oscillation of all the QoIs (0.737, 0.706, 0.891; 20.3% spread) and a 23.1% strategy spread. It is not usable as a reference."
+   },
+   {
+    "qoi": "cyl_zz_max",
+    "stated_verdict": "FAIL",
+    "interpretation": "FAIL. The sequence oscillates with a 14.7% spread, and the strategy spread is 56.7%, the largest sensitivity to mesh layout in the set. This disqualifies it under the stated criterion (b)."
+   },
+   {
+    "qoi": "cyl_rz_max",
+    "stated_verdict": "FAIL",
+    "interpretation": "FAIL. The finest three levels are monotone and decreasing (0.788, 0.727, 0.671), but the observed order is 0.19, which is outside [0.5, 5]. The resulting GCI of 385% is therefore not trusted. The five-level sequence is non-monotone, and the strategy spread is 11.8%. The peak is still drifting by several percent per level with no asymptotic behaviour, so no limit value can be stated."
+   }
+  ],
+  "summary": "13 of the 15 QoIs FAIL, and none of them gives a certified groove-root stress reference. The two PASSes are only 'band' passes.\n\n**Global quantities: just outside tolerance**\n- reaction_moment_y and strain_energy are monotone over the finest three levels, with p of about 1.3-1.4 and GCI of about 0.2%. That gate PASSes.\n- The five-level fit gives a lower and unstable order (p about 0.86-0.90; leave-one-out orders range from about 0.56 to 1.72). Its uncertainty is 0.35% for the moment and 0.32% for the energy, just above the 0.30% tolerance. Their overall verdicts are FAIL.\n- Both are robust across mesh strategies (about 0.1% spread, and within 0.41% of the Richardson extrapolate).\n- An order of about 1 for Q20 points to preasymptotic behaviour or pollution from clamped-free edge singularities. Whether those edges exist depends on the end faces z = 0 and z = 1 being traction-free, which is still unconfirmed.\n\n**Groove-region averages: all FAIL except the two near-zero shears**\n- The seven averages that carry real stress (sigma_frob, von Mises, pressure, rr, tt, zz, rz) all oscillate under refinement. Their finest-three spreads run from 0.26% to 7.5%.\n- They also vary from 0.8% to 16.7% across mesh strategies, which exceeds the 0.5% criterion.\n- sigma_frob_avg itself, which sets the 0.910 stress scale, is uncertain by about 4% under refinement and about 17% across strategies.\n- The oscillation fits the expected Gauss-point sampling noise: only 2-36 points fall inside a cut sphere. The gates cannot separate that noise from unresolved discretisation error.\n\n**The two PASSes**\n- cyl_rt_avg and cyl_tz_avg PASS on band evidence only. No rate and no monotonicity are shown.\n- They pass because both components vanish by symmetry on y = 0 and are tiny (below 0.5% of the stress scale). Their PASS checks consistency, not that they can serve as a reference.\n\n**Peak quantities: all FAIL, with large mesh sensitivity**\n- All four Gauss-point maxima FAIL, with 13-20% refinement spreads and 12-57% strategy spreads.\n- cyl_rz_max is monotone but non-asymptotic (p = 0.19).\n\n**Overall**\n- Under the spec's trustworthiness criterion, no groove stress QoI qualifies as a validation target against surrogate errors of 1.4-4%.\n- The global moment and energy are the closest candidates. They still need certification, for example with finer levels or a resolved end-edge treatment.\n\n**Questions that affect interpretation**\n- Are the end faces traction-free?\n- What is the Gauss-point count per level inside the sphere?\n- Does the reduced Q20 integration produce spurious modes?",
+  "manuscript_wording": "We assessed whether groove-root stresses in the B3 tilting bushing (Q20, seven-level refinement family, plus four meshing strategies at 10,200 elements) can serve as reference values for surrogate validation. They cannot. Every stress-carrying region average over the sphere of radius 2rho at the groove root (Frobenius norm, von Mises, pressure, and the rr, \u03b8\u03b8, zz and rz components) varies non-monotonically under refinement. Over the three finest levels these averages vary by 0.3-7.5% of the stress scale. Across meshing strategies they vary by 0.8-17%. The Gauss-point maxima vary by 13-20% under refinement and by 12-57% across strategies, and no convergence rate or limit can be established for them. We attribute this mainly to the small number of integration points inside the region (2-36). However, our data do not separate this sampling effect from unresolved discretisation error, so we report these quantities without a certified reference value. The two shear components that vanish on the symmetry plane (r\u03b8 and \u03b8z) stay within 0.2% of the stress scale across levels and strategies. Since they are near zero by symmetry, this only confirms consistency and is not used as validation evidence. For the global reaction moment and strain energy, the three finest levels show monotone change with an observed order of about 1.3-1.4 and a GCI of about 0.2%. A five-level fit, however, gives a lower and less stable order (about 0.9) and an uncertainty of 0.32-0.35%, slightly above our 0.30% acceptance tolerance. These two quantities are insensitive to the meshing strategy (about 0.1% spread), but we do not treat them as certified to that tolerance. Surrogate errors at the groove root are therefore not reported against an FE reference in this configuration."
+ },
+ "advisor_flags": [],
+ "llm_calls": [
+  {
+   "role": "formalizer",
+   "cost_usd": 0.1163452,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "role": "proposer",
+   "cost_usd": 0.100522,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "role": "critic",
+   "cost_usd": 0.1508082,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "role": "proposer",
+   "cost_usd": 0.136598,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "role": "critic",
+   "cost_usd": 0.1858522,
+   "model": "claude-opus-5-5"
+  },
+  {
+   "role": "advisor",
+   "cost_usd": 0.2274744,
+   "model": "claude-opus-5-5"
+  }
+ ],
+ "llm_cost_usd": 0.9176
+}

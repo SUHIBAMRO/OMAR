@@ -1,5 +1,5 @@
 A 2D unit square of compressible neo-Hookean material with smoothly varying
-Young's modulus and Poisson ratio is clamped along its bottom edge and loaded
+Young's modulus (constant Poisson ratio) is clamped along its bottom edge and loaded
 by a spatially varying normal traction on its top edge; the vertical edges
 are traction-free. The reference is computed with bilinear quadrilaterals (Q4)
 on uniformly refined meshes, plus meshes of the same size graded toward the
