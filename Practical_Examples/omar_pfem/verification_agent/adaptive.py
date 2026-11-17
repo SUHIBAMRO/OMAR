@@ -92,9 +92,11 @@ def _gates(hs, vals, band_tol, gci_tol, window):
 
 def adaptive_refine(solve, qois, N0=(11, 21, 41), budget_s=1800.0, max_levels=6,
                     band_tol=None, gci_tol=None, element=None, require_rate=True,
-                    timing_rows=(), log=print):
+                    min_levels=4, timing_rows=(), log=print):
     """solve(N) -> row dict with 'h', 'n_dof', optional 'wall_clock_s', and
-    the QoIs. band_tol/gci_tol: None -> the QoI class ceiling. Returns
+    the QoIs. band_tol/gci_tol: None -> the QoI class ceiling. min_levels:
+    levels needed before a PASS can be decided (4 = earliest multilevel
+    gate; 5 = the full multilevel check including leave-one-out). Returns
     per-QoI decisions (combined verdict, evidence, both gate results, levels)
     and the levels used."""
     window = trees.order_window(element)
@@ -120,6 +122,7 @@ def adaptive_refine(solve, qois, N0=(11, 21, 41), budget_s=1800.0, max_levels=6,
             final_fail = (g3["verdict"] == "FAIL"
                           and g3["reason"].startswith(("divergent", "oscillatory")))
             final_pass = (overall == "PASS" and "qoi_convergence_multilevel" in g
+                          and len(rows) >= min_levels
                           and (evidence == "rate" or not require_rate))
             if final_fail or final_pass:
                 decided[q] = {"verdict": "FAIL" if final_fail else "PASS",

@@ -347,3 +347,13 @@ def test_repository_latest_record_supersedes(tmp_path):
     assert len(repository.load(p, latest_only=False)) == 2
     recs = repository.load(p)
     assert len(recs) == 1 and recs[0]["accepted"] is True
+
+
+def test_adaptive_min_levels_five_uses_full_multilevel_check():
+    from omar_pfem.verification_agent import adaptive
+    calls = []
+    res = adaptive.adaptive_refine(_fake_solver(calls), ["smooth"], budget_s=1e6,
+                                   min_levels=5, log=lambda *a: None)
+    assert calls == [11, 21, 41, 81, 161]
+    g = res["decisions"]["smooth"]["gates"]["qoi_convergence_multilevel"]
+    assert "leave_one_out_orders" in g and res["decisions"]["smooth"]["evidence"] == "rate"

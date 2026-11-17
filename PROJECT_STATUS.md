@@ -5,6 +5,26 @@ It is the single source of truth for where things stand — more reliable than
 chat history, which resets between sessions. Update it whenever a task
 finishes or a new one starts.
 
+> 🧭 **VERIFICATION FRAMEWORK — CURRENT STATE (updated 2026-11-17).** Code
+> and how-to: `Practical_Examples/omar_pfem/verification_agent/README.md`;
+> full history: the dated 2026-11-16/17 entries at the END of this file.
+> - Gates: 3-level Celik/GCI with order window, 5-level least-squares
+>   (`multilevel_convergence_gate`, leave-one-out), strategy + anchored
+>   robustness; one shared verdict policy (`gates.combine_verdicts`);
+>   per-class tolerance ceilings; rules R1-R6 require both convergence gates.
+> - B1 (Q4, N=11..161): all 7 smooth QoIs PASS with RATE from both gates
+>   (full 5-level check), peak FAILs (corner singularity; peak = C h_min^-0.281,
+>   N=161 predicted blind within 0.40%).
+> - B3 (Q20, 2,376-45,000 el): moment + strain energy rate-converged (U ~0.2-0.35%);
+>   stored sharp-sphere region averages only band-stable; Gaussian-kernel
+>   region averages rate-certified by the 5-level gate (p~2, U~0.2%) -- NOT
+>   adopted: redefining the B3 target is Omar/Rabczuk's decision.
+> - Open decisions for Omar/Rabczuk: (1) "region-averaged normal stresses"
+>   manuscript wording (deferred by Omar); (2) adopt a Gaussian-kernel region
+>   QoI for B3 or not; (3) surrogate active learning (needs discussion).
+>   No live LLM run since the 5-level gate was added (billed; not done
+>   without Omar).
+
 > ⚠️ **STANDING POLICY CHANGE, Omar's own explicit instruction (2026-09-18):
 > the Summary (`PFEM_Work_Summary_*.docx`) is NO LONGER cumulative.**
 > Starting with round 12, each new Summary covers ONLY the round just
@@ -25099,3 +25119,10 @@ Limits: the advisor audit checks verdict labels, not every sentence (run-3 advis
 - `adaptive.adaptive_refine`: after each level it runs the 3-level gate and, from 4 levels on, the multilevel gate, and combines them with the SAME policy as the orchestrator (`gates.combine_verdicts`, moved from orchestrate.py into gates.py; orchestrate.combine is an alias). Decided PASS only when the multilevel gate is available, all gates pass, and (require_rate, default) the evidence is a rate; a band-only PASS keeps refining (it may still get a rate) until max_levels/budget, then is reported PASS(band) "rate not certified". Decided FAIL on a divergent/oscillatory 3-level sequence outside the band (unchanged). Tolerances now default to the per-class ceilings and the element's order window (before: fixed 1%/5%, no window). CLI `agent.py adaptive --allow_band` stops on band PASS too.
 - B1 run (Q4): peak FAIL (divergent) at N=11,21,41; the other 7 need N=81 to reach the multilevel gate, then all PASS with RATE from both gates (multilevel n=4, so no leave-one-out; p 1.43-2.44, U <= 0.06%). Levels 11-81, 240 s counted (N=81 from the cache, its recorded solve time). CONSEQUENCE: the earlier saving (N=81 skipped, ~75% of the ladder cost) is gone -- the 5-level confirmation costs exactly that level. With 4 levels the multilevel gate is weaker (no leave-one-out); a 5th level (N=161, est. ~16 min at the fitted alpha=1.0) would be needed for the full check.
 - Fixed: the multilevel reason text printed "leave-one-out a-b" with n=4 by reusing the fitted p; now says "no leave-one-out check with 4 levels" (test added). Rules run unchanged (7/7, 12/15).
+
+**2026-11-17: B1 N=161 + housekeeping (Omar: "شغّل N=161 لـ B1", then "كمل من عندك كلشي ... بدون ما ترجعلي").** 34 tests pass, pyflakes clean.
+- B1 N=161 (uniform, 103,682 dof): 783 s (adaptive cost model predicted 851 s, +9%), Newton residual ~3e-11 per step, min det F 0.9876. Values: max|u| 0.00596681, strain energy 0.0177155, v_top -0.00577094, interior avg |P| 6.62089, peak |P| 19.938.
+- `agent.py b1-ladder --Ns 11,21,41,81,161`: all 7 smooth QoIs PASS with RATE from BOTH gates, now the full 5-level check incl. leave-one-out: displacements p 1.47-1.92 (LOO within +-0.1), strain energy p 1.43 (LOO 1.42-1.43), U_fine <= 0.02%; 3-level and 5-level limits agree to <= 0.003% except the interior average: 3-level p dropped to 0.76 (it was 1.74 with N<=81), 5-level p 2.34 (LOO 1.49-2.44), limits 6.62159 vs 6.62065 (0.014% apart, both inside U) -- its order is NOT well determined, its value is. Peak FAIL (divergent 9.34 -> 11.04 -> 13.34 -> 16.28 -> 19.94).
+- Peak law: the fit on the 10 earlier meshes (exponent -0.281) predicted the N=161 peak at 19.859 before it was computed; actual 19.938 (+0.40%). All 11 meshes: exponent -0.281, max misfit 2.34%. N=161 uniform and N=81 graded a=0.5 have the same smallest element (0.00625) and the same peak (19.938 vs 19.932, 0.03%): the peak depends on h_min alone.
+- Adaptive: `--min_levels` (default 4; 5 = full multilevel check). min_levels 4: levels 11-81, all 8 decided (peak FAIL at 3 levels, rest PASS rate). min_levels 5: levels 11-161, same 8 verdicts, all with leave-one-out, ~1009 s counted.
+- Housekeeping: module README.md; repository load() keeps the LATEST record per problem name (append-only file unchanged; earlier records superseded; 57 lines -> 44 current records); `replay-b3` and `b1-ladder` now use class-ceiling tolerances, the element order window and both convergence gates, and were re-run (B3: no verdict changed vs before; B1 records now from 5 levels); B1 adapter uses every uniform level in the cache (now 11..161); unused import / f-string lint fixes; agent.py docstring lists all subcommands.
