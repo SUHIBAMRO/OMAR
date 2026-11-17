@@ -25263,3 +25263,9 @@ Limits: the advisor audit checks verdict labels, not every sentence (run-3 advis
   README updated (B1 kernel, 8 levels, radial, surface study, contradiction
   rule, no mixed u/p in torchfem). Rabczuk draft updated with these numbers
   (still NOT sent; no "Timon" in it).
+- Rabczuk summary: final version for Omar's review as a Claude Doc
+  ("Automated verification framework: status summary",
+  https://claude.ai/artifact/3TbzJAshrU6VZ2HviGZdeH) and the same text in
+  `advisor_feedback/2026-11-17_verification_framework_summary_DRAFT.md`.
+  Adds a B1 order-vs-theory table and a B3 sharp-vs-Gaussian table. NOT
+  sent; Omar reviews first.
