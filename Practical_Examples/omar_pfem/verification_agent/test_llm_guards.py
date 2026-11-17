@@ -357,3 +357,26 @@ def test_adaptive_min_levels_five_uses_full_multilevel_check():
     assert calls == [11, 21, 41, 81, 161]
     g = res["decisions"]["smooth"]["gates"]["qoi_convergence_multilevel"]
     assert "leave_one_out_orders" in g and res["decisions"]["smooth"]["evidence"] == "rate"
+
+
+def test_rule_r7_strategy_needs_anchor():
+    from omar_pfem.verification_agent import trees
+    s = _spec(reg="smooth", qois=["max_disp_mag"])
+    plan = trees.rule_plan(s)
+    plan["checks"].append({"check": "strategy_robustness", "qois": ["max_disp_mag"],
+                           "params": {"tol": 0.01}, "rationale": ""})
+    errs = trees.plan_rule_errors(plan, s)
+    assert any("R7" in e and "anchored_robustness" in e for e in errs)
+
+
+def test_anchored_inconclusive_without_converged_family():
+    from omar_pfem.verification_agent import orchestrate as O
+
+    class Fake:
+        def series(self, q):        # divergent: increments grow
+            return [0.1, 0.05, 0.025, 0.0125, 0.00625], [9.3, 11.0, 13.3, 16.3, 19.9], None
+
+        def strategies(self, q):
+            return [16.3, 19.9, 26.1], None
+    g = O.run_check(Fake(), "anchored_robustness", "peak", {"tol": 0.02}, element="Q4")
+    assert g["verdict"] == "INCONCLUSIVE" and "no limit" in g["reason"]

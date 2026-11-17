@@ -243,7 +243,7 @@ def cmd_rules(args):
         print(f"\n{spec.name} (regularity {spec.regularity}, element {spec.element}, "
               f"order window {trees.order_window(spec.element)})")
         print(f"{'QoI':<24}{'class':<16}{'pred':<6}{'conv3':<6}{'evid':<6}{'conv5':<6}"
-              f"{'evid':<6}{'strat':<7}{'anchor':<7}{'overall':<8}evidence")
+              f"{'evid':<6}{'strat':<7}{'anchor':<13}{'overall':<8}evidence")
         hits = n_pred = 0
         for q in spec.qois:
             v = verdicts[q]
@@ -258,7 +258,7 @@ def cmd_rules(args):
                   f"{cv.get('verdict', '-'):<6}{cv.get('evidence', '-'):<6}"
                   f"{ml.get('verdict', '-'):<6}{ml.get('evidence', '-'):<6}"
                   f"{v.get('strategy_robustness', {}).get('verdict', '-'):<7}"
-                  f"{v.get('anchored_robustness', {}).get('verdict', '-'):<7}{overall:<8}"
+                  f"{v.get('anchored_robustness', {}).get('verdict', '-'):<13}{overall:<8}"
                   f"{evidence}")
             print(f"{'':<4}conv3: {cv.get('reason')}")
             if ml:

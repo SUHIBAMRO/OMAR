@@ -37,7 +37,7 @@ Live LLM backends:
 | `qoi_convergence_gate` | finest three levels: Celik 2008 order and GCI. The order must lie in the element's window `[0.5, 2k+1]`. Fallback: stability band. A divergent sequence FAILs. | `rate` / `band` / `none` |
 | `multilevel_convergence_gate` | least-squares fit `v = a + b h^p` over the finest 5 levels (needs at least 4). Rate evidence needs all of: monotone sequence, fit sigma ≤ 10% of the data range, `p` in the window and off the search bound, and leave-one-out refits that keep `p` in the window (only checked with ≥ 5 levels). Uncertainty: `U = 1.25·\|v_fine − a\| + sigma + \|finest residual\|`. | `rate` / `band` / `none`, plus `failed_criteria` |
 | `strategy_robustness_gate` | spread across refinement strategies at comparable resolution | |
-| `anchored_robustness_gate` | every strategy against the family's limit: the 3-level Richardson value, else the multilevel fit limit, else the finest value | |
+| `anchored_robustness_gate` | every strategy against the family's limit: the 3-level Richardson value, else the multilevel fit limit, else the finest value. INCONCLUSIVE when neither convergence gate passes: a family that did not converge has no limit. | |
 | `mms_rate_gate` | observed vs theoretical rates against a manufactured solution | |
 | `combine_verdicts` | one policy, shared by the orchestrator and the adaptive controller. Any FAIL fails the QoI. Evidence is the strongest among the convergence gates that passed. | |
 
@@ -55,6 +55,9 @@ within the band. It does not show a convergence rate or monotonicity.
   predicted. The two convergence gates are required for every
   solution-verification QoI. Robustness checks are required for peaks and
   region averages near singular or near-singular features.
+- **Rule R7** depends on the plan: any QoI checked for strategy
+  agreement must also be compared against the family's limit, because
+  strategies that agree can share one error.
 - **The rules are authoritative.** If an LLM plan omits a required check,
   code adds it and records that. If a tolerance is looser than the class
   ceiling, code clamps it and records that.

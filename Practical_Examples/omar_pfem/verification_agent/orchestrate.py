@@ -36,10 +36,26 @@ def _b1_uniform_Ns(material="neo_hookean", tol=1e-7):
 
 class B1Adapter:
     geometry = "unit_square"
-    description = ("B1: 2D unit square, clamped bottom edge, top-edge traction, smooth "
-                   "spatially varying E, nu (mesh_convergence.AnalyticFieldB1), Q4, "
-                   "global refinement N=" + ",".join(map(str, _b1_uniform_Ns()))
-                   + "; corner-graded strategies a=0.5, 0.8 at N=81")
+    description = (
+        "B1: 2D unit square [0,1]^2, plane strain, compressible neo-Hookean "
+        "psi = mu/2 (I1 - 2 - 2 ln J) + lam/2 (ln J)^2, total Lagrangian. "
+        "E(x,y) = 1000 + 200 sin(pi x) cos(pi y) (800-1200), nu = 0.3 everywhere (no "
+        "near-incompressibility). Bottom edge y=0 clamped (u=v=0); vertical edges "
+        "traction-free; top edge y=1 loaded by a DEAD (reference-configuration) normal "
+        "traction t_y = -5 - 2 sin(pi x) (compressive, 5-7), applied in 10 equal load "
+        "increments, Newton tol 1e-7 (residual ~3e-11 reached; at N=41 tightening to 1e-10 "
+        "changes no QoI); min det F 0.9917 at N=41, 0.9876 at N=161 (small strain). Q4 elements, full 2x2 Gauss "
+        "integration, E/nu evaluated at element centroids. Uniform meshes N x N nodes, "
+        "N=" + ",".join(map(str, _b1_uniform_Ns())) + " (h = 1/(N-1), ratio 2); "
+        "strategies at N=81: uniform and corner grading a=0.5, 0.8 (x -> s - a sin(2 pi s)/"
+        "(2 pi), y -> t - a sin(pi t)/pi; corner elements 2x and 5x smaller, same node "
+        "count). QoIs: max_disp_mag = max nodal |u|; u/v_top_off_center at (0.7, 1.0) and "
+        "u/v_mid_domain at (0.3, 0.6), linear interpolation of nodal values (both points are "
+        "nodes of every uniform mesh); strain_energy = integral of psi; "
+        "interior_avg_PK1_frob = detJ-weighted mean of |P|_F over the Gauss points inside "
+        "the circle centre (0.5,0.5), radius 0.15 (about 0.56 from the clamped corners); "
+        "peak_PK1_frob = max of |P|_F over all Gauss points (corner singularity where the "
+        "clamped edge meets the free edges).")
     qois = ("max_disp_mag", "u_top_off_center", "v_top_off_center", "u_mid_domain",
             "v_mid_domain", "strain_energy", "interior_avg_PK1_frob", "peak_PK1_frob")
 
@@ -68,13 +84,36 @@ class B1Adapter:
 
 class B3Adapter:
     geometry = "bushing_groove"
-    description = ("B3: 3D bushing with a circumferential groove, inner surface rigidly rotated "
-                   "about the y axis (a tilting rotation, not torsion about the bushing axis z), "
-                   "outer surface fixed, half model with symmetry plane y=0, compressible "
-                   "neo-Hookean (E=1000, nu=0.45), Q20 global refinement family of 7 levels, "
-                   "2,376-45,000 elements, plus three local z-clustering strategies at 10,200 "
-                   "elements. Stresses are Cauchy, averaged (volume-weighted) over a sphere "
-                   "around the groove root.")
+    description = (
+        "B3: 3D bushing, inner radius 0.5, outer radius 1.0, length 1.0 (z in [0,1]); half "
+        "model y >= 0 with symmetry plane y=0. A circumferential groove is cut into the INNER "
+        "surface: r_in(z) = 0.5 - 0.1 (1 + cos(pi (z - 0.5)/0.15)) for |z - 0.5| < 0.15, "
+        "depth 0.20, half-width 0.15, smooth cosine profile (C1 at the shoulders, NOT a "
+        "sharp notch); root curvature radius rho = 0.0228. Loading: the whole inner surface "
+        "(groove included) is RIGIDLY ROTATED by phi = 0.05 rad about the y axis through "
+        "(0,0,0.5) (a tilting rotation, not torsion about the bushing axis z), applied in 10 "
+        "equal increments; outer surface fixed. Compressible neo-Hookean (same psi as the 2D "
+        "form, 3D invariants), E=1000, nu=0.45. Elements: 20-node serendipity hexahedra "
+        "(Q20) with curved-surface midside nodes, integrated with 2x2x2 = 8 Gauss points "
+        "(the reduced rule for Q20, not the full 27). Newton-CG, rtol=atol=1e-8 "
+        "(tightening to 1e-11 changes QoIs by <= 4e-14); min det F 0.914-0.948. Global "
+        "family of 7 levels, 2,376-45,000 elements, refinement ratios (n_elem ratio)^(1/3) "
+        "= 1.34, 1.21, 1.16, 1.14, 1.12, 1.11 (NOT constant; the Celik order uses the two "
+        "actual ratios r21, r32). Strategies at 10,200 elements: uniform and axial "
+        "clustering toward the groove with z_beta = 1, 2, 3. Region QoIs: Cauchy stress "
+        "(global Cartesian, or cylindrical about z), averaged with Gauss-point volume "
+        "weights over the Gauss points inside a sphere of FIXED physical radius "
+        "R0 = 2 rho = 0.0456 centred at (0.3, 0, 0.5) = the groove root on the inner "
+        "surface, on the symmetry plane (theta = 0), so the sphere is cut by both the "
+        "groove surface and y=0 (about a quarter sphere); 2-36 Gauss points inside from "
+        "the coarsest to the finest level. At theta ~ 0, cyl_rr ~ sigma_xx, cyl_tt ~ "
+        "sigma_yy, cyl_rz ~ sigma_xz and cyl_zz = sigma_zz exactly. *_max = max |component| "
+        "over the Gauss points in the sphere. Region QoIs are judged RELATIVE TO A FIXED "
+        "STRESS SCALE (the finest-level region average of the Frobenius norm, 0.910), not "
+        "to their own magnitude, so near-zero components are not amplified; global QoIs "
+        "(reaction_moment_y about the rotation axis, strain_energy; half model) are judged "
+        "relative to themselves. Context: the best surrogates validated against these "
+        "targets have errors of about 1.4-4%.")
     CYL = ("rr", "tt", "zz", "rt", "rz", "tz")
     GLOBAL = ("reaction_moment_y", "strain_energy")
 
@@ -181,15 +220,21 @@ def run_check(adapter, check, qoi, params, element=None, conv_params=None):
         cp = conv_params or {}
         conv = gates.qoi_convergence_gate(hs, vals, scale=scale, order_window=window,
                                           **cp.get("qoi_convergence", {}))
+        ml = gates.multilevel_convergence_gate(hs, vals, scale=scale, order_window=window,
+                                               **cp.get("qoi_convergence_multilevel", {}))
+        if conv["verdict"] != "PASS" and ml["verdict"] != "PASS":
+            # a family that did not converge has no limit: comparing the
+            # strategies with its finest value would say nothing either way
+            return {"gate": "anchored_robustness", "verdict": "INCONCLUSIVE",
+                    "anchor_kind": "none",
+                    "reason": "refinement family not converged (3-level: "
+                              f"{conv['verdict']}, 5-level: {ml['verdict']}), so there is no "
+                              "limit to anchor the strategies to; uninformative"}
+        # anchor: 3-level Richardson value if that has a rate, else the
+        # multilevel fit limit if that has a rate, else the finest value
         anchor, kind = gates.family_anchor(conv)
-        if conv.get("evidence") != "rate":
-            # no three-level rate: anchor on the multilevel fit limit if that
-            # one certifies a rate, else stay on the finest value
-            ml = gates.multilevel_convergence_gate(
-                hs, vals, scale=scale, order_window=window,
-                **cp.get("qoi_convergence_multilevel", {}))
-            if ml.get("evidence") == "rate":
-                anchor, kind = gates.family_anchor(ml)
+        if conv.get("evidence") != "rate" and ml.get("evidence") == "rate":
+            anchor, kind = gates.family_anchor(ml)
         return gates.anchored_robustness_gate(s[0], anchor, scale=s[1], anchor_kind=kind,
                                               **params)
     if check == "strategy_robustness":
@@ -263,11 +308,11 @@ def orchestrate(backend, problem_text, log=print, trace=None):
     # record the augmentation, instead of discarding the whole plan.
     rule_only = perrs and all(e.startswith(("rules ", "ceiling: ")) for e in perrs)
     if rule_only:
-        need = trees.apply_rules(spec_d)
+        need = trees.required_checks(plan, spec_d)   # R1-R6 plus plan-level R7
         added = []
         for q, r in need.items():
             have = {c["check"] for c in plan["checks"] if q in c["qois"]}
-            for chk in r["required"]:
+            for chk in sorted(r["required"]):
                 if chk not in have:
                     plan["checks"].append({"check": chk, "qois": [q],
                                            "params": trees.class_params(

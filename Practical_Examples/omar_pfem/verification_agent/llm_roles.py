@@ -63,8 +63,11 @@ CHECK_CATALOGUE = {
     "anchored_robustness": {
         "implements": "gates.anchored_robustness_gate: every strategy vs the family's "
                       "Richardson limit, else the multilevel fit limit when that one has "
-                      "rate evidence, else the finest value",
-        "applies_when": "strategies must agree with the converged limit, not just each other",
+                      "rate evidence, else the finest value; INCONCLUSIVE (uninformative) "
+                      "when neither convergence gate passes, since a non-converged family "
+                      "has no limit",
+        "applies_when": "strategies must agree with the converged limit, not just each other; "
+                        "required (rule R7) for every QoI that gets strategy_robustness",
         "params": {"tol": (0.001, 0.05)},
     },
 }

@@ -9,7 +9,8 @@ hyperelastic FE references:
                  (qoi_convergence, qoi_convergence_multilevel,
                  strategy_robustness, anchored_robustness)
   rules          which checks a (problem, QoI) REQUIRES, and which verdict
-                 theory PREDICTS, each with a stated reason
+                 theory PREDICTS, each with a stated reason (R1-R6 from the
+                 spec; R7 from the plan: strategy robustness needs an anchor)
 
 The rules give (i) a deterministic baseline plan with no LLM, (ii) a
 completeness check every LLM plan must pass, and (iii) predictions that are
@@ -48,7 +49,8 @@ METHOD_TREE = {
                                       "the window and leave-one-out stability",
         "strategy_robustness": "agreement across independent refinement strategies",
         "anchored_robustness": "every strategy agrees with the family's Richardson limit "
-                               "(or finest value), not only with the other strategies",
+                               "(or finest value), not only with the other strategies; "
+                               "inconclusive when the family itself did not converge",
     },
 }
 
@@ -190,6 +192,28 @@ def rule_plan(spec):
                                   for q, r in rules.items() if r["predicted"] == "FAIL"]}
 
 
+# Plan-level rule (depends on the plan, not only on the spec):
+# R7  a QoI checked for strategy robustness must also be checked against the
+#     family's limit: strategies that agree with each other can share one
+#     discretization error.
+R7_REASON = ("strategies that agree with each other can share one discretization error, so "
+             "strategy agreement must be checked against the family's limit as well")
+
+
+def required_checks(plan, spec):
+    """{qoi: {"required", "rules", "qoi_class"}}: the spec rules (R1-R6) plus
+    the plan-level rule R7."""
+    out = {q: {"required": set(r["required"]), "rules": list(r["rules"]),
+               "qoi_class": r["qoi_class"]} for q, r in apply_rules(spec).items()}
+    for c in plan["checks"]:
+        if c["check"] == "strategy_robustness":
+            for q in c["qois"]:
+                if q in out and "anchored_robustness" not in out[q]["required"]:
+                    out[q]["required"].add("anchored_robustness")
+                    out[q]["rules"].append("R7")
+    return out
+
+
 def plan_rule_errors(plan, spec):
     """Every check the rules require must be in the plan for that QoI."""
     have = {}
@@ -198,8 +222,8 @@ def plan_rule_errors(plan, spec):
             have.setdefault(q, set()).add(c["check"])
     errs = []
     analysis = apply_rules(spec)
-    for q, r in analysis.items():
-        for chk in r["required"]:
+    for q, r in required_checks(plan, spec).items():
+        for chk in sorted(r["required"]):
             if chk not in have.get(q, set()):
                 errs.append(f"rules {r['rules']} require '{chk}' for '{q}' "
                             f"({r['qoi_class']}, regularity {spec['regularity']})")
