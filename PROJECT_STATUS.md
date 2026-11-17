@@ -17,7 +17,14 @@ finishes or a new one starts.
 >   requires an anchored check wherever strategy robustness is checked.
 > - B1 (Q4, N=11..161): all 7 smooth QoIs PASS with RATE from both gates
 >   (full 5-level check), peak FAILs (corner singularity; peak = C h_min^-0.281,
->   N=161 predicted blind within 0.40%).
+>   N=161 predicted blind within 0.40%). Gaussian-kernel interior average
+>   (`interior_gk_PK1_frob`, from `b1_gauss_interior/` dumps) PASS with rate,
+>   3-/5-level orders consistent (1.61/1.79; sharp average 0.76/2.34).
+> - IN PROGRESS (2026-11-17 evening): B3 radial strategy (r_grading
+>   1.1/1.2/1.3, direct solver -- 1.5/2/3 were invalid meshes, see the
+>   dated entry), groove-surface nodal stress for all family levels
+>   (`b3_surface/`), 8th family level 100,815 el. Resumable:
+>   `python -m omar_pfem.verification_agent.b3_global radial|surface|fine`.
 > - B3 (Q20, 2,376-45,000 el): moment + strain energy rate-converged (U ~0.2-0.35%);
 >   stored sharp-sphere region averages only band-stable; Gaussian-kernel
 >   region averages (`gk2_*`, in the adapter next to the sphere ones)
@@ -25162,3 +25169,30 @@ Limits: the advisor audit checks verdict labels, not every sentence (run-3 advis
 - Adaptive controller: generalised (next_level, n_dof_of, scale_of) and runs on B3 by replaying the stored family (`agent.py adaptive --problem b3`). FLAW FOUND AND FIXED: it decided FAIL on "oscillatory" after the 3 coarsest levels, but B3's sphere averages oscillate beyond the band only pre-asymptotically and pass the band on the full family -> a FAIL now needs min_levels levels like a PASS. After the fix the adaptive verdicts equal the full-family verdicts for all 26 B3 QoIs (min_levels 4 and 5). Cost: for globals + gk2 normal averages it stops at 23,520 el = 36% of the family's solve time; the sphere averages (no rate ever) need all 7 levels. B1: same verdicts with N <= 81 (peak FAIL now decided at 4 levels).
 - Live run v4 (`traces/live_*_v4.json`, B1 $0.69, B3 $1.11; cumulative live ~$6.10): tolerances replaced by code for 32 (B1) / 96 (B3) check-QoI pairs -> verdicts now match the deterministic rules run: B1 7 PASS rate + peak FAIL; B3 globals PASS rate, sphere normal averages PASS band, gk2 normal averages PASS rate, Frobenius/von Mises/shear avg and all maxima FAIL. Advisor consistent; claim audit 0 flags. LLM predictions: B1 1 false alarm (interior avg); B3 several false alarms (globals, pressure). Critics (not approving, 10/12 objections) raise mostly valid refinements: sharp-circle/sphere membership is non-smooth also for B1's interior average; peaks should be diagnostic-only, not verdict-producing; no radial strategy for B3; Q20 multilevel window covers only ~1.65x in h; gk2 surrogate errors not measured (only sphere); no mixed u/p or F-bar cross-check at nu = 0.45; gk2 set lacks cyl_zz/sigma_xz counterparts. Not acted on.
 - Draft summary for Rabczuk: `advisor_feedback/2026-11-17_verification_framework_summary_DRAFT.md` (point-by-point, all numbers checked, no first name) -- for Omar's review, NOT sent.
+
+### 2026-11-17 (evening) -- remaining items: B1 smooth average, radial-strategy mesh fault
+
+- B1 Gauss-point dumps (`verification_agent/b1_gauss_interior/`, 7 files:
+  N=11,21,41,81,161 uniform + N=81 graded a=0.5/0.8). Check: the sharp
+  interior average recomputed from every dump equals the stored
+  `interior_avg_PK1_frob` to <=3e-16 (relative). `agent rules --geometry
+  unit_square`: `interior_gk_PK1_frob` PASS/rate, 3-level p=1.61, 5-level
+  p=1.79 (LOO 1.69-1.80), strategy spread 0.001%, anchored 0.007%; the
+  sharp average's orders disagree (0.76 vs 2.34, LOO 1.49-2.44). Rule
+  predictions still 7/7. (Fix: the B1 default spec had a fixed QoI list
+  without `interior_gk`; it now takes the adapter's list.)
+- B3 radial strategy, first attempt (r_grading 1.5/2/3) was WRONG and is
+  discarded (never produced a result): the power-law radial grading
+  thins the first radial layer at the groove (curvature radius 0.0228), so
+  the Q20 midside nodes snapped to the exact curved surface bulge through
+  it. Measured: r_grading >= 1.75 -> negative Jacobians (inverted
+  elements); 1.5 -> detJ max/min 39-79 (uniform 3-4), on which
+  Jacobi-preconditioned CG did not finish the first load increment in
+  2 h (2,376 el; normally 35 s for the whole solve). 1.1/1.2/1.3 -> detJ
+  contrast 5-15, valid. rg=1.3 with CG converges (2 Newton its/increment)
+  but needs ~1,160 CG its per solve, so the radial strategy now uses the
+  pypardiso direct solver; checked: direct reproduces the stored CG
+  result at 2,376 el to 1e-12 relative (moment, energy, region averages).
+  `solve_extended` now records `linear_solver` and `detJ_max_over_min`.
+- A container restart killed the first background chain after 3 of 7
+  surface levels; restarted (each stage skips finished files).
