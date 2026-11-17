@@ -264,13 +264,46 @@ def cmd_rules(args):
             print(f"{'':<4}conv3: {cv.get('reason')}")
             if ml:
                 print(f"{'':<4}conv5: {ml.get('reason')}")
+            if "singular_order" in v:
+                print(f"{'':<4}sing:  {v['singular_order']['verdict']} "
+                      f"{v['singular_order'].get('reason')}")
             for k in ("strategy_robustness", "anchored_robustness"):
                 if k in v:
                     print(f"{'':<4}{k.split('_')[0]}: {v[k].get('reason')}")
         print(f"rule predictions correct: {hits}/{n_pred}")
 
 
+def _adaptive_b3(args):
+    """Adaptive controller on B3, replaying the stored Q20 family (no new
+    solves): level i = the i-th family mesh; its recorded solve time counts
+    as the cost, and the mesh size (known before solving) predicts the next."""
+    from omar_pfem.verification_agent import adaptive
+    from omar_pfem.verification_agent.orchestrate import B3Adapter
+    a = B3Adapter()
+    qois = [q for q in a.qois if q in a.GLOBAL or q.endswith("_avg")]
+    n = len(a.family)
+
+    def solve(i):
+        g = a.family[i]
+        return {"N": i, "h": a.hs[i], "n_dof": 3 * g["n_nodes"],
+                "wall_clock_s": g["elapsed_s"], **{q: a.get[q](g) for q in qois}}
+
+    res = adaptive.adaptive_refine(
+        solve, qois, N0=(0, 1, 2), budget_s=args.budget_s, max_levels=n, element="Q20",
+        geometry="bushing_groove", require_rate=not args.allow_band, min_levels=args.min_levels,
+        next_level=lambda Ns: Ns[-1] + 1 if Ns[-1] + 1 < n else None,
+        n_dof_of=lambda i: 3 * a.family[i]["n_nodes"], scale_of=a._scale)
+    print(f"\nstopped: {res['stop']}; levels used {[a.family[i]['n_elem'] for i in res['levels']]}"
+          f"; solver time counted {res['spent_s']:.0f}s of "
+          f"{sum(g['elapsed_s'] for g in a.family):.0f}s for the whole family")
+    for q, d in res["decisions"].items():
+        print(f"  {q:<22}{d['verdict']:<13}{d['evidence']:<6}"
+              f"levels {[a.family[i]['n_elem'] for i in d['levels']]}")
+
+
 def cmd_adaptive(args):
+    if args.problem == "b3":
+        return _adaptive_b3(args)
     from omar_pfem.verification_agent import adaptive
     from omar_pfem.verification_agent.b1_ladder import run_ladder
     spec = _default_spec("unit_square")
@@ -333,6 +366,7 @@ def main():
     a.add_argument("--budget_s", type=float, default=1800.0)
     a.add_argument("--allow_band", action="store_true",
                    help="also stop on a band-only PASS (default: refine until a rate)")
+    a.add_argument("--problem", choices=("b1", "b3"), default="b1")
     a.add_argument("--min_levels", type=int, default=4,
                    help="levels before a PASS may be decided (5: full multilevel check)")
     a.set_defaults(fn=cmd_adaptive)

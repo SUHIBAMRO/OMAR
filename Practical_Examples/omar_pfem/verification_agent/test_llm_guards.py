@@ -154,7 +154,8 @@ def test_adaptive_stops_early_and_classifies():
     assert calls == [11, 21, 41, 81]
     assert res["decisions"]["smooth"]["evidence"] == "rate"
     assert "qoi_convergence_multilevel" in res["decisions"]["smooth"]["evidence_from"]
-    assert res["decisions"]["peak"]["levels"] == [11, 21, 41]
+    # a FAIL needs min_levels (4) levels too, like a PASS
+    assert res["decisions"]["peak"]["levels"] == [11, 21, 41, 81]
 
 
 def test_adaptive_respects_budget():
@@ -182,13 +183,13 @@ def test_orchestrate_replay_augments_and_reviews(tmp_path):
                    capture_output=True)
     t = json.load(open(out))
     assert "error" not in t
-    # the fixture predates qoi_convergence_multilevel, so rule R2 adds it for every QoI
+    # the fixture predates qoi_convergence_multilevel (R2) and singular_order (R8)
     assert sorted(t["rule_augmented"]) == sorted(
         ["anchored_robustness:interior_avg_PK1_frob", "anchored_robustness:peak_PK1_frob",
          "strategy_robustness:interior_avg_PK1_frob", "strategy_robustness:peak_PK1_frob"]
-        + [f"qoi_convergence_multilevel:{q}" for q in (
-            "strain_energy", "max_disp_mag", "v_top_off_center", "interior_avg_PK1_frob",
-            "peak_PK1_frob")])
+        + [f"{chk}:{q}" for chk in ("qoi_convergence_multilevel", "singular_order")
+           for q in ("strain_energy", "max_disp_mag", "v_top_off_center",
+                     "interior_avg_PK1_frob", "peak_PK1_frob")])
     # tolerances are always set by code: the fixture's band 0.01 / gci 0.05 are replaced
     over = {(o["check"], o["qoi"]) for o in t["tolerances_overridden"]}
     assert {("qoi_convergence", q) for q in ("strain_energy", "max_disp_mag",
@@ -423,3 +424,43 @@ def test_b3_kernel_qois_present_and_scaled():
     _, vals, scale = a.series("gk2_sigma_zz_avg")
     assert len(vals) == 7 and abs(scale - a.kernel_scale) < 1e-15
     assert a.series("sigma_zz_avg")[2] == a.scale     # sphere QoIs keep their scale
+
+
+def test_audit_flags_convergence_claim_without_rate():
+    adv = {"per_qoi": [
+        {"qoi": "a", "stated_verdict": "PASS",
+         "interpretation": "The average converges monotonically to 0.43."},
+        {"qoi": "b", "stated_verdict": "PASS",
+         "interpretation": "Stable in the band; it does not converge at a demonstrable rate "
+                           "and is not monotone."},
+        {"qoi": "c", "stated_verdict": "FAIL",
+         "interpretation": "Monotone on the finest three levels but not asymptotic."}],
+        "summary": "", "manuscript_wording": ""}
+    flags = R.audit_advice(adv, {"a": "PASS", "b": "PASS", "c": "FAIL"},
+                           {"a": "band", "b": "band", "c": "none"},
+                           {"a": False, "b": False, "c": True})
+    assert flags and all("'a'" in f for f in flags)
+
+
+def test_singular_exponent_reproduces_known_values():
+    import numpy as np
+    from omar_pfem.verification_agent import singularity as S
+    l1 = S.smallest_exponent(1.5 * np.pi, "free", "free", 0.3)        # L-shaped corner
+    assert abs(l1 - 0.5444837) < 1e-6
+    assert abs(S.smallest_exponent(1.5 * np.pi, "free", "free", 0.3, lo=l1 + 1e-3)
+               - 0.9085292) < 1e-6
+    assert abs(S.b1_corner_exponent(0.3) - 0.7111729) < 1e-6
+
+
+def test_singular_order_gate_modes():
+    from omar_pfem.verification_agent import gates
+    hs = [0.1, 0.05, 0.025, 0.0125, 0.00625]
+    lam = 0.7
+    g = gates.singular_order_gate(hs, [1 + h ** 1.4 for h in hs], lam, "global")
+    assert g["verdict"] == "PASS" and abs(g["observed"] - 1.4) < 1e-3
+    assert gates.singular_order_gate(hs, [1 + h ** 1.0 for h in hs], lam,
+                                     "displacement")["verdict"] == "FAIL"
+    assert gates.singular_order_gate(hs, [1 + h ** 2.0 for h in hs], lam,
+                                     "displacement")["verdict"] == "PASS"   # lower bound
+    g = gates.singular_order_gate(hs, [3 * h ** (lam - 1) for h in hs], lam, "pointwise_peak")
+    assert g["verdict"] == "PASS" and abs(g["observed"] - (lam - 1)) < 1e-9

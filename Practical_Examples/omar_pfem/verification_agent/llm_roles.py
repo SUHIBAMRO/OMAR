@@ -55,6 +55,13 @@ CHECK_CATALOGUE = {
                         "to show",
         "params": {"band_tol": (0.0005, 0.02), "gci_tol": (0.001, 0.10)},
     },
+    "singular_order": {
+        "implements": "gates.singular_order_gate: observed order vs the corner singular "
+                      "exponent lam (singularity.py, Williams eigenproblem): energy order "
+                      "= 2 lam, displacement/region order >= 2 lam, peak growth h^(lam-1)",
+        "applies_when": "a corner singularity with a computable exponent (degree-1 elements)",
+        "params": {},
+    },
     "strategy_robustness": {
         "implements": "gates.strategy_robustness_gate across refinement strategies",
         "applies_when": "QoI sensitive to where the mesh is refined (local features)",
@@ -296,7 +303,28 @@ def validate_plan(plan, spec_qois):
     return errs
 
 
-def audit_advice(advice, gate_verdicts):
+_CLAIM = re.compile(r"\b(converg\w*|monoton\w*)", re.I)
+_CONV = re.compile(r"converg", re.I)
+_NEGATION = re.compile(r"(\bnot\b|\bno\b|\bnever\b|\bwithout\b|\bnor\b|\bcannot\b|n't\b|"
+                       r"\bnon[- ]?$|\bneither\b|\bfail\w*\b|\black\w*\b|\bunproven\b)", re.I)
+
+
+def unsupported_convergence_claims(text, window=45, allow_monotone=False):
+    """Affirmative 'converg*'/'monoton*' words in `text`, i.e. not preceded
+    within `window` characters (same sentence) by a negation. With
+    allow_monotone, 'monoton*' is accepted (a gate did show monotonicity)."""
+    hits = []
+    for m in _CLAIM.finditer(text):
+        if allow_monotone and not _CONV.match(m.group(0)):
+            continue
+        before = text[max(0, m.start() - window):m.start()]
+        before = re.split(r"[.;:!?]\s", before)[-1]          # stay in the sentence
+        if not _NEGATION.search(before):
+            hits.append(text[max(0, m.start() - 30):m.end() + 20].replace("\n", " "))
+    return hits
+
+
+def audit_advice(advice, gate_verdicts, gate_evidence=None, gate_monotone=None):
     """Flag every place where the advisor's stated verdict disagrees with the
     deterministic gate. gate_verdicts: {qoi: verdict}."""
     _check_schema_keys(advice, ADVICE_SCHEMA, "advisor")
@@ -310,6 +338,15 @@ def audit_advice(advice, gate_verdicts):
     for q in stated:
         if q not in gate_verdicts:
             flags.append(f"advisor discusses '{q}', which no gate judged")
+    # a QoI without rate evidence must not be called converging; it may be
+    # called monotone only if a gate showed monotonicity
+    for p in advice["per_qoi"]:
+        ev = (gate_evidence or {}).get(p["qoi"])
+        if ev is not None and ev != "rate":
+            mono = bool((gate_monotone or {}).get(p["qoi"]))
+            for hit in unsupported_convergence_claims(p["interpretation"], allow_monotone=mono):
+                flags.append(f"advisor claims convergence/monotonicity for '{p['qoi']}' "
+                             f"(evidence: {ev}): ...{hit}...")
     return flags
 
 
@@ -364,4 +401,10 @@ def advise(backend, spec_dict, gate_results):
               f"GATE RESULTS:\n{json.dumps(gate_results, indent=1)}")
     advice = backend.ask("advisor", prompt, ADVICE_SCHEMA)
     verdicts = {q: g["verdict"] for q, g in gate_results.items()}
-    return advice, audit_advice(advice, verdicts)
+    evidence = {q: g.get("convergence_evidence") for q, g in gate_results.items()
+                if g.get("convergence_evidence") is not None}
+    monotone = {q: any(v.get("reason", "").startswith(("monotone", "5 levels monotone",
+                                                          "4 levels monotone"))
+                       for v in g.get("gates", {}).values())
+                for q, g in gate_results.items()}
+    return advice, audit_advice(advice, verdicts, evidence, monotone)

@@ -57,7 +57,11 @@ class B1Adapter:
         "interior_avg_PK1_frob = detJ-weighted mean of |P|_F over the Gauss points inside "
         "the circle centre (0.5,0.5), radius 0.15 (about 0.56 from the clamped corners); "
         "peak_PK1_frob = max of |P|_F over all Gauss points (corner singularity where the "
-        "clamped edge meets the free edges). Surrogate errors these references must "
+        "clamped edge meets the free edges). Corner theory (singularity.py, Williams "
+        "eigenproblem, 90-degree clamped/free corner, plane strain, nu = 0.3): smallest "
+        "exponent lam = 0.7112, so energy converges at order 2 lam = 1.42, point values "
+        "at >= 1.42 (pollution) and the peak grows like h^(lam-1) = h^-0.289. "
+        "Surrogate errors these references must "
         "resolve: best PI displacement relative L2 4.10%; for energy and stress QoIs no "
         "number is recorded, so the class ceilings apply. Tolerances are set by code "
         "(requirements.py), not by the plan.")
@@ -80,6 +84,11 @@ class B1Adapter:
 
     def series(self, qoi):
         return self.hs, [r[qoi] for r in self.rows], None
+
+    def singular_exponent(self):
+        """Clamped/free 90-degree corner, plane strain, nu = 0.3."""
+        from omar_pfem.verification_agent.singularity import b1_corner_exponent
+        return b1_corner_exponent(0.3)
 
     def strategies(self, qoi):
         if len(self.strategy_rows) < 2:
@@ -294,6 +303,13 @@ def run_check(adapter, check, qoi, params, element=None, conv_params=None):
         hs, vals, scale = adapter.series(qoi)
         return gates.multilevel_convergence_gate(hs, vals, scale=scale, order_window=window,
                                                  **params)
+    if check == "singular_order":
+        hs, vals, _ = adapter.series(qoi)
+        lam = getattr(adapter, "singular_exponent", lambda: None)()
+        if element is not None and trees.ELEMENT_DEGREE.get(element) != 1:
+            return {"gate": "singular_order", "verdict": "INCONCLUSIVE",
+                    "reason": "theory implemented for degree-1 elements only"}
+        return gates.singular_order_gate(hs, vals, lam, trees.classify_qoi(qoi))
     if check == "anchored_robustness":
         s = adapter.strategies(qoi)
         if s is None:

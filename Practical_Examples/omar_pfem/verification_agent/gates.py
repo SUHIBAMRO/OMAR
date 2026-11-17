@@ -224,6 +224,38 @@ def multilevel_convergence_gate(hs, values, band_tol=0.01, gci_tol=0.05, scale=N
                       f"finest-three spread {spread:.3%} exceeds {band_tol:.2%}"}
 
 
+def singular_order_gate(hs, values, lam, qoi_class, tol=0.15, n_levels=5):
+    """Is the observed convergence consistent with the corner singularity?
+
+    lam: smallest singular exponent at the corner (singularity.py). For
+    degree-1 elements under uniform refinement theory gives
+      global (energy)             order = 2 lam          ("equal": |p - 2 lam| <= tol)
+      displacement, region avg    order >= 2 lam (pollution bound; may be faster)
+      pointwise peak              peak ~ h^(lam - 1)      (log-log slope, "equal")
+    p is the multilevel least-squares order over the finest n_levels (the
+    peak: log-log slope over the same levels). tol = 0.15 was fixed after
+    the B1 orders had been seen (not blind)."""
+    if lam is None:
+        return {"gate": "singular_order", "verdict": "INCONCLUSIVE",
+                "reason": "no singular exponent available for this problem"}
+    h, v = np.asarray(hs[-n_levels:], float), np.asarray(values[-n_levels:], float)
+    if qoi_class == "pointwise_peak":
+        p = float(np.polyfit(np.log(h), np.log(np.abs(v)), 1)[0])
+        expected, mode = lam - 1.0, "equal"
+        what = "log-log slope of the peak"
+    else:
+        p = _power_fit(list(h), list(v))["p"]
+        expected = 2.0 * lam
+        mode = "equal" if qoi_class == "global" else "lower_bound"
+        what = "fitted order"
+    ok = abs(p - expected) <= tol if mode == "equal" else p >= expected - tol
+    rel = "=" if mode == "equal" else ">="
+    return {"gate": "singular_order", "verdict": "PASS" if ok else "FAIL",
+            "observed": p, "expected": expected, "mode": mode, "tol": tol, "lam": lam,
+            "reason": f"{what} {p:.3f} vs theory {rel} {expected:.3f} (lam = {lam:.4f}, "
+                      f"tol {tol})"}
+
+
 def strategy_robustness_gate(values, tol=0.02, scale=None):
     """PASS iff a QoI agrees across independent refinement strategies at
     comparable resolution (spread relative to `scale` within `tol`;

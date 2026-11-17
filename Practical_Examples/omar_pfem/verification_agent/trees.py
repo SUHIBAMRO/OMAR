@@ -48,6 +48,7 @@ METHOD_TREE = {
                                       "rate evidence needs monotonicity, fit quality, p in "
                                       "the window and leave-one-out stability",
         "strategy_robustness": "agreement across independent refinement strategies",
+        "singular_order": "observed orders consistent with the corner singular exponent",
         "anchored_robustness": "every strategy agrees with the family's Richardson limit "
                                "(or finest value), not only with the other strategies; "
                                "inconclusive when the family itself did not converge",
@@ -138,6 +139,11 @@ RULES = [
      and regularity_class(s["regularity"]) != "unknown",
      set(), "PASS",
      "energy and displacements converge in H1-type norms even with corner singularities"),
+    ("R8", lambda s, q: regularity_class(s["regularity"]) == "singular"
+     and q in ("global", "displacement", "region_average", "pointwise_peak"),
+     {"singular_order"}, None,
+     "at a singular corner theory fixes the convergence order (2 lam for energy, at least "
+     "2 lam elsewhere) and the peak growth (h^(lam-1)); the observed orders must match it"),
     ("R6", lambda s, q: regularity_class(s["regularity"]) == "unknown",
      {"qoi_convergence", "qoi_convergence_multilevel", "strategy_robustness",
       "anchored_robustness"}, None,
@@ -194,7 +200,7 @@ def rule_plan(spec):
     geometry = spec.get("geometry")
     checks = []
     for chk in ("mms_rates", "qoi_convergence", "qoi_convergence_multilevel",
-                "strategy_robustness", "anchored_robustness"):
+                "singular_order", "strategy_robustness", "anchored_robustness"):
         groups = {}
         for q, r in rules.items():
             if chk in r["required"]:

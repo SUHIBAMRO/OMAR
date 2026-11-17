@@ -18,8 +18,11 @@ Two pieces, both deterministic:
            passes, and -- with require_rate (default) -- the evidence is a
            rate; a band-only PASS keeps the QoI open, since more levels may
            certify a rate;
-     FAIL  on a divergent or oscillatory three-level sequence outside the
-           band (more uniform refinement cannot fix those).
+     FAIL  on a divergent or oscillatory sequence outside the band over the
+           finest three levels, but only once min_levels levels exist: on the
+           coarsest levels such behaviour can be pre-asymptotic (B3's sphere
+           averages oscillate beyond the band at 2,376-10,200 el and settle
+           into it later).
    Otherwise it stays open until max_levels or the budget; then a QoI whose
    gates all pass is reported PASS with its (weaker) evidence and the stop
    reason, anything else INCONCLUSIVE. Tolerances default to
@@ -82,23 +85,27 @@ def _cost_model(rows, fallback_exponent=1.5):
     return None, "no timing data"
 
 
-def _gates(hs, vals, band_tol, gci_tol, window):
+def _gates(hs, vals, band_tol, gci_tol, window, scale=None):
     out = {"qoi_convergence": gates.qoi_convergence_gate(hs, vals, band_tol, gci_tol,
-                                                         order_window=window)}
+                                                         scale=scale, order_window=window)}
     if len(vals) >= 4:
         out["qoi_convergence_multilevel"] = gates.multilevel_convergence_gate(
-            hs, vals, band_tol, gci_tol, order_window=window)
+            hs, vals, band_tol, gci_tol, scale=scale, order_window=window)
     return out
 
 
 def adaptive_refine(solve, qois, N0=(11, 21, 41), budget_s=1800.0, max_levels=6,
                     band_tol=None, gci_tol=None, element=None, geometry=None,
                     require_rate=True,
-                    min_levels=4, timing_rows=(), log=print):
+                    min_levels=4, timing_rows=(), next_level=None, n_dof_of=None,
+                    scale_of=None, log=print):
     """solve(N) -> row dict with 'h', 'n_dof', optional 'wall_clock_s', and
     the QoIs. band_tol/gci_tol: None -> the QoI class ceiling. min_levels:
     levels needed before a PASS can be decided (4 = earliest multilevel
-    gate; 5 = the full multilevel check including leave-one-out). Returns
+    gate; 5 = the full multilevel check including leave-one-out).
+    next_level(levels) -> next level id or None; n_dof_of(level) -> dof count
+    (for the cost prediction). Defaults: B1's N -> 2N-1 and 2 N^2.
+    scale_of(qoi) -> fixed scale for the gates (None: self-relative). Returns
     per-QoI decisions (combined verdict, evidence, both gate results, levels)
     and the levels used."""
     window = trees.order_window(element)
@@ -110,7 +117,7 @@ def adaptive_refine(solve, qois, N0=(11, 21, 41), budget_s=1800.0, max_levels=6,
 
     def evaluate(q):
         hs, vals = [r["h"] for r in rows], [r[q] for r in rows]
-        g = _gates(hs, vals, *tols(q), window)
+        g = _gates(hs, vals, *tols(q), window, None if scale_of is None else scale_of(q))
         overall, evidence, src = gates.combine_verdicts(g)
         return g, overall, evidence, src
 
@@ -121,7 +128,9 @@ def adaptive_refine(solve, qois, N0=(11, 21, 41), budget_s=1800.0, max_levels=6,
         for q in list(open_qois):
             g, overall, evidence, src = evaluate(q)
             g3 = g["qoi_convergence"]
-            final_fail = (g3["verdict"] == "FAIL"
+            # a FAIL needs as many levels as a PASS: oscillation or growth on
+            # the coarsest levels can be pre-asymptotic (seen on B3)
+            final_fail = (overall == "FAIL" and len(rows) >= min_levels
                           and g3["reason"].startswith(("divergent", "oscillatory")))
             final_pass = (overall == "PASS" and "qoi_convergence_multilevel" in g
                           and len(rows) >= min_levels
@@ -142,8 +151,11 @@ def adaptive_refine(solve, qois, N0=(11, 21, 41), budget_s=1800.0, max_levels=6,
         if len(rows) >= max_levels:
             stop = "max levels"
             break
-        N_next = 2 * Ns[-1] - 1
-        n_next = 2 * N_next ** 2
+        N_next = (2 * Ns[-1] - 1) if next_level is None else next_level(Ns)
+        if N_next is None:
+            stop = "no finer level available"
+            break
+        n_next = 2 * N_next ** 2 if n_dof_of is None else n_dof_of(N_next)
         model, how = _cost_model(list(rows) + list(timing_rows))
         est = model(n_next) if model else None
         if est is None or spent + est > budget_s:
