@@ -25199,7 +25199,7 @@ Limits: the advisor audit checks verdict labels, not every sentence (run-3 advis
 - Radial strategy results (10,200 el, direct solver; uniform M_y 34.5767):
   r_grading 1.1 / 1.2 / 1.3 -> M_y 34.5522 / 34.5307 / 34.5134 (-0.07 /
   -0.13 / -0.18%), sharp-sphere frob avg 0.980 / 0.911 / 1.061 (uniform
-  1.031), detJ contrast 5.0 / ~8 / ~12. rg=1.3 took 2,522 s (1.1/1.2: ~340 s).
+  1.031), detJ contrast 5.03 / 7.81 / 12.44. rg=1.3 took 2,522 s (1.1/1.2: 334/340 s).
   `agent rules --geometry bushing_groove` with the 3 radial rows added to the
   3 z_beta rows (6 strategies), diffed against the run without them: exactly
   3 verdicts change, all sharp-sphere ones -- sigma_zz_avg and cyl_zz_avg go
