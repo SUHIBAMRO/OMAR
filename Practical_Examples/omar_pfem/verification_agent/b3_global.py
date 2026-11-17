@@ -71,10 +71,43 @@ def _full_integration_solid():
     return SolidFull
 
 
+def surface_nodal_stress(etype, nodes, elements, sigma, inner, ref, radius):
+    """Cauchy stress at the corner nodes of the INNER (groove) surface within
+    `radius` of `ref`: the 2x2x2 Gauss values of every adjacent element are
+    extrapolated to its corners with the trilinear interpolant through the
+    Gauss points (exact for fields linear in the parent coordinates), then
+    averaged over the elements sharing the node. Reduced (8-point) rule only.
+    Returns positions (n,3) and stresses (n,3,3)."""
+    ip = etype.ipoints.numpy()
+    if ip.shape[0] != 8:
+        raise ValueError("surface extrapolation implemented for the 2x2x2 rule only")
+    g = abs(float(ip[0, 0]))
+    corners = etype.iso_coords[:8].numpy()
+    # E[c, q] = prod_d (1 + s_qd * xi_cd / g) / 2, s = sign of the Gauss coordinate
+    E = np.prod((1.0 + np.sign(ip)[None, :, :] * corners[:, None, :] / g) / 2.0, axis=2)
+    on_inner = np.zeros(len(nodes), bool)
+    on_inner[inner] = True
+    near = on_inner & (np.linalg.norm(nodes - ref[None, :], axis=1) < radius)
+    sel = np.where(near[elements[:, :8]].any(axis=1))[0]
+    corner_sig = np.einsum("cq,eqij->ecij", E, sigma[sel])          # (n_sel, 8, 3, 3)
+    acc = np.zeros((len(nodes), 3, 3))
+    cnt = np.zeros(len(nodes))
+    for k in range(8):
+        idx = elements[sel, k]
+        np.add.at(acc, idx, corner_sig[:, k])
+        np.add.at(cnt, idx, 1.0)
+    keep = near & (cnt > 0)
+    return nodes[keep], acc[keep] / cnt[keep][:, None, None]
+
+
 def solve_extended(Ntheta, Nr, Nz, z_beta=None, rtol=1e-8, atol=1e-8, dtype=torch.float64,
-                   dump_path=None, dump_radius=0.25, quadrature="reduced"):
+                   dump_path=None, dump_radius=0.25, quadrature="reduced", r_grading=1.0,
+                   surface_path=None):
     """quadrature: "reduced" = torchfem's 2x2x2 rule for Q20 (every stored
-    result), "full" = 3x3x3 (27 points)."""
+    result), "full" = 3x3x3 (27 points). r_grading > 1 clusters the radial
+    layers toward the inner (groove) surface (t -> t^r_grading).
+    surface_path: save the nodal (extrapolated) stress on the groove surface
+    within dump_radius of the groove root."""
     from torchfem import Solid
     from torchfem.materials import Hyperelastic3D
     if quadrature not in ("reduced", "full"):
@@ -83,12 +116,12 @@ def solve_extended(Ntheta, Nr, Nz, z_beta=None, rtol=1e-8, atol=1e-8, dtype=torc
 
     if z_beta is None:
         nodes, elements, inner, outer, sym = build_quadratic_mesh_with_curved_surfaces(
-            Ntheta, Nr, Nz, r_grading=1.0, groove_depth=GROOVE_DEPTH)
+            Ntheta, Nr, Nz, r_grading=r_grading, groove_depth=GROOVE_DEPTH)
     else:
         from omar_pfem.data.solve_quadratic_hex_groove_stress_z_refined import (
             build_quadratic_mesh_with_curved_surfaces_z_refined)
         nodes, elements, inner, outer, sym = build_quadratic_mesh_with_curved_surfaces_z_refined(
-            Ntheta, Nr, Nz, z_beta, r_grading=1.0, groove_depth=GROOVE_DEPTH)
+            Ntheta, Nr, Nz, z_beta, r_grading=r_grading, groove_depth=GROOVE_DEPTH)
 
     nodes_t = torch.tensor(nodes, dtype=dtype)
     elements_t = torch.tensor(elements, dtype=torch.long)
@@ -142,6 +175,11 @@ def solve_extended(Ntheta, Nr, Nz, z_beta=None, rtol=1e-8, atol=1e-8, dtype=torc
         near = dist < dump_radius
         np.savez_compressed(dump_path, pos=pos[near], sigma=sigma[near], w=w[near],
                             ref=ref, radius=radius, n_elem=elements.shape[0])
+    if surface_path is not None:
+        spos, ssig = surface_nodal_stress(model.etype, nodes, elements, sigma, inner, ref,
+                                          dump_radius)
+        np.savez_compressed(surface_path, pos=spos, sigma=ssig, ref=ref, radius=radius,
+                            n_elem=elements.shape[0])
     s, wr = sigma[mask], w[mask]
     W = wr.sum()
     avg = lambda v: float((v * wr).sum() / W)
@@ -175,6 +213,7 @@ def solve_extended(Ntheta, Nr, Nz, z_beta=None, rtol=1e-8, atol=1e-8, dtype=torc
 
     return {
         "Ntheta": Ntheta, "Nr": Nr, "Nz": Nz, "z_beta": z_beta, "quadrature": quadrature,
+        "r_grading": r_grading,
         "n_gauss_per_elem": int(len(model.etype.iweights)),
         "n_elem": int(elements.shape[0]), "n_nodes": int(n_nodes),
         "rtol": rtol, "atol": atol, "elapsed_s": elapsed,
@@ -245,5 +284,52 @@ if __name__ == "__main__":
                   f"{r['elapsed_s']:.0f}s): M_y={r['reaction_moment_y']:.6g} "
                   f"W={r['strain_energy']:.6g} frob_avg={r['region_avg_sigma_frob']:.5g} "
                   f"p_avg={r['region_avg_pressure']:.5g} minJ={r['min_detF']:.4f}", flush=True)
+    elif which == "radial":
+        # radial strategy at 10,200 el: layers clustered toward the groove surface
+        out = os.path.join(HERE, "b3_radial.json")
+        rows = json.load(open(out)) if os.path.exists(out) else []
+        ddir = os.path.join(HERE, "b3_gauss_radial")
+        os.makedirs(ddir, exist_ok=True)
+        for rg in (1.5, 2.0, 3.0):
+            if any(r["r_grading"] == rg for r in rows):
+                continue
+            r = solve_extended(*fam[2], r_grading=rg,
+                               dump_path=os.path.join(ddir, f"21_18_31_rg{rg}.npz"),
+                               surface_path=os.path.join(ddir, f"21_18_31_rg{rg}_surface.npz"))
+            rows.append(r)
+            json.dump(rows, open(out, "w"), indent=1)
+            print(f"radial r_grading={rg}: {r['n_elem']} el ({r['elapsed_s']:.0f}s) "
+                  f"M_y={r['reaction_moment_y']:.6g} frob_avg={r['region_avg_sigma_frob']:.5g} "
+                  f"minJ={r['min_detF']:.4f}", flush=True)
+    elif which == "surface":
+        # nodal groove-surface stress for every family level (and any finer level)
+        ddir = os.path.join(HERE, "b3_surface")
+        os.makedirs(ddir, exist_ok=True)
+        extra = [tuple(r) for r in json.load(open(os.path.join(HERE, "b3_fine_levels.json")))] \
+            if os.path.exists(os.path.join(HERE, "b3_fine_levels.json")) else []
+        for Nt, Nr_, Nz in list(fam) + extra:
+            path = os.path.join(ddir, f"{Nt}_{Nr_}_{Nz}.npz")
+            if os.path.exists(path):
+                continue
+            r = solve_extended(Nt, Nr_, Nz, surface_path=path)
+            print(f"surface {path} ({r['n_elem']} el, {r['elapsed_s']:.0f}s)", flush=True)
+    elif which == "fine":
+        # one finer family level, ratio ~1.31 in (n_elem)^(1/3) over 45,000 el, same
+        # Ntheta:Nr:Nz proportions as the finest level; joins the family everywhere
+        res = (48, 34, 66)
+        json.dump([list(res)], open(os.path.join(HERE, "b3_fine_levels.json"), "w"))
+        rows = json.load(open(cache)) if os.path.exists(cache) else []
+        if not any((r["Ntheta"], r["Nr"], r["Nz"], r["z_beta"]) == (*res, None) for r in rows):
+            ddir = os.path.join(HERE, "b3_gauss_near_groove")
+            sdir = os.path.join(HERE, "b3_surface")
+            os.makedirs(sdir, exist_ok=True)
+            r = solve_extended(*res, dump_path=os.path.join(ddir, "48_34_66_zbNone.npz"),
+                               surface_path=os.path.join(sdir, "48_34_66.npz"))
+            rows.append(r)
+            json.dump(rows, open(cache, "w"), indent=1)
+            print(f"fine level {r['n_elem']} el ({r['elapsed_s']:.0f}s): "
+                  f"M_y={r['reaction_moment_y']:.6g} W={r['strain_energy']:.6g} "
+                  f"frob_avg={r['region_avg_sigma_frob']:.5g} minJ={r['min_detF']:.4f}",
+                  flush=True)
     elif which == "solver":
         run([(*fam[0], None, 1e-11), (*fam[2], None, 1e-11)], cache)

@@ -260,7 +260,7 @@ def cmd_rules(args):
                   f"{ml.get('verdict', '-'):<6}{ml.get('evidence', '-'):<6}"
                   f"{v.get('strategy_robustness', {}).get('verdict', '-'):<7}"
                   f"{v.get('anchored_robustness', {}).get('verdict', '-'):<13}{overall:<8}"
-                  f"{evidence}")
+                  f"{evidence}" + ("  [diagnostic]" if a["role"] == "diagnostic" else ""))
             print(f"{'':<4}conv3: {cv.get('reason')}")
             if ml:
                 print(f"{'':<4}conv5: {ml.get('reason')}")

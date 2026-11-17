@@ -152,8 +152,8 @@ class B3Adapter:
     CYL = ("rr", "tt", "zz", "rt", "rz", "tz")
     KERNEL_PREFIX = "gk2_"
     KERNEL_QOIS = ("sigma_xx_avg", "sigma_yy_avg", "sigma_zz_avg", "pressure_avg",
-                   "cyl_rr_avg", "cyl_tt_avg", "cyl_rz_avg", "sigma_frob_avg",
-                   "von_mises_avg")
+                   "cyl_rr_avg", "cyl_tt_avg", "cyl_zz_avg", "cyl_rz_avg", "sigma_xz_avg",
+                   "sigma_frob_avg", "von_mises_avg")
     GLOBAL = ("reaction_moment_y", "strain_energy")
 
     def __init__(self):
@@ -461,7 +461,8 @@ def orchestrate(backend, problem_text, log=print, trace=None):
                                              "critic": crit},
                                 observables={}, verdicts=verdicts)
         overall, evidence, ev_src = combine(verdicts)
-        gate_summary[q] = {"verdict": overall, "convergence_evidence": evidence,
+        role = trace["rule_analysis"].get(q, {}).get("role", "candidate")
+        gate_summary[q] = {"verdict": overall, "convergence_evidence": evidence, "role": role,
                            "evidence_from": ev_src,
                            "gates": {k: {kk: vv for kk, vv in v.items()
                                          if kk in ("verdict", "reason", "relative_spread",
@@ -471,7 +472,8 @@ def orchestrate(backend, problem_text, log=print, trace=None):
                                                    "uncertainty_fine", "failed_criteria",
                                                    "leave_one_out_orders")}
                                      for k, v in verdicts.items()}}
-        log(f"[gates] {q:<24} {overall:<13} evidence={evidence:<5} accepted={rec['accepted']}")
+        log(f"[gates] {q:<24} {overall:<13} evidence={evidence:<5} accepted={rec['accepted']}"
+            + ("  (diagnostic, not a reference candidate)" if role == "diagnostic" else ""))
     trace["gate_summary"] = gate_summary
 
     # prediction score: did the proposer anticipate the failures?

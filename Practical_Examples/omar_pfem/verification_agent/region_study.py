@@ -76,7 +76,8 @@ def qois(rec, wt):
         "sigma_xx_avg": avg(s[:, 0, 0]), "sigma_yy_avg": avg(s[:, 1, 1]),
         "sigma_zz_avg": avg(s[:, 2, 2]), "pressure_avg": avg(p),
         "cyl_rr_avg": avg(sc[:, 0, 0]), "cyl_tt_avg": avg(sc[:, 1, 1]),
-        "cyl_rz_avg": avg(sc[:, 0, 2]),
+        "cyl_rz_avg": avg(sc[:, 0, 2]), "cyl_zz_avg": avg(sc[:, 2, 2]),
+        "sigma_xz_avg": avg(s[:, 0, 2]),
         "frob_avg": avg(np.sqrt(np.einsum("nij,nij->n", s, s))),
         "von_mises_avg": avg(np.sqrt(1.5 * np.einsum("nij,nij->n", dev, dev))),
     }

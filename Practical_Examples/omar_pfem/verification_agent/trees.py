@@ -151,9 +151,16 @@ RULES = [
 ]
 
 
+# Rules whose QoIs are DIAGNOSTICS, not reference candidates: their checks
+# still run (they document the expected behaviour), but a FAIL there is the
+# expected outcome, not a failed reference target.
+DIAGNOSTIC_RULES = {"R3"}
+
+
 def apply_rules(spec):
     """spec: dict with reference, regularity, qois. Returns per-QoI required
-    checks, predictions and the rules that fired."""
+    checks, predictions, the rules that fired and the role: "diagnostic" if a
+    DIAGNOSTIC_RULES rule fired, else "candidate"."""
     out = {}
     for qoi in spec["qois"]:
         cls = classify_qoi(qoi)
@@ -165,7 +172,8 @@ def apply_rules(spec):
                 if verdict is not None:
                     pred = verdict
         out[qoi] = {"qoi_class": cls, "required": sorted(req), "predicted": pred,
-                    "rules": fired}
+                    "rules": fired,
+                    "role": "diagnostic" if DIAGNOSTIC_RULES & set(fired) else "candidate"}
     return out
 
 

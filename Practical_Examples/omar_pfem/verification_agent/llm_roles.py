@@ -398,7 +398,10 @@ def advise(backend, spec_dict, gate_results):
               "on: 'rate' = a demonstrated convergence rate (evidence_from names the gate: "
               "qoi_convergence = finest three levels, qoi_convergence_multilevel = fit over "
               "the finest five); 'band' = only stable within the band, NO rate and NO "
-              "monotonicity shown, so do not write 'converges' or 'monotonically' for it.\n\n"
+              "monotonicity shown, so do not write 'converges' or 'monotonically' for it. "
+              "role 'diagnostic' (pointwise peaks at singular or near-singular features): "
+              "not a reference candidate; its FAIL is the expected outcome and documents "
+              "the singularity, it is not a failed target.\n\n"
               f"SPEC:\n{json.dumps(spec_dict, indent=1)}\n\n"
               f"GATE RESULTS:\n{json.dumps(gate_results, indent=1)}")
     advice = backend.ask("advisor", prompt, ADVICE_SCHEMA)

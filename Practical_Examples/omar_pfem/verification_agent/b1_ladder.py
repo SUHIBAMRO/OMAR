@@ -68,7 +68,10 @@ def grade_nodes(nodes, a):
     return np.column_stack([x, y])
 
 
-def solve_level(N, material, grading=0.0, tol=1e-7):
+def solve_level(N, material, grading=0.0, tol=1e-7, dump_path=None, dump_radius=0.4):
+    """dump_path: save |P|_F, positions and weights of the Gauss points within
+    dump_radius of the interior-region centre, for post-hoc (smooth) region
+    definitions."""
     from omar_pfem.data.data_generate_B1 import generate_grid_Q4, solve_hyperelastic_TL_spatial
     E_fn, nu_fn, ty_fn = AnalyticFieldB1("E"), AnalyticFieldB1("nu"), AnalyticFieldB1("ty")
     nodes, elements = generate_grid_Q4(1.0, 1.0, N, N)
@@ -82,6 +85,12 @@ def solve_level(N, material, grading=0.0, tol=1e-7):
     P_norm = torch.linalg.norm(P.reshape(-1, 4), dim=1)
     (cx, cy), r = INTERIOR_REGION
     mask = ((x_gp[:, 0] - cx) ** 2 + (x_gp[:, 1] - cy) ** 2) < r ** 2
+    if dump_path is not None:
+        d2 = (x_gp[:, 0] - cx) ** 2 + (x_gp[:, 1] - cy) ** 2
+        near = (d2 < dump_radius ** 2).numpy()
+        np.savez_compressed(dump_path, pos=x_gp.numpy()[near], P_norm=P_norm.numpy()[near],
+                            w=w_gp.numpy()[near], centre=np.array([cx, cy]), radius=r,
+                            N=N, grading=grading)
     row = {
         "N": N, "grading": grading, "newton_tol": tol, "h": 1.0 / (N - 1),
         "n_dof": 2 * len(nodes),
@@ -123,3 +132,23 @@ def run_ladder(Ns, material, cache, grading=0.0, tol=1e-7):
             flush=True)
     return [r for r in rows if r["N"] in Ns and r["grading"] == grading
             and r["newton_tol"] == tol]
+
+
+def dump_levels(material="neo_hookean", cases=((11, 0.0), (21, 0.0), (41, 0.0), (81, 0.0),
+                                                (161, 0.0), (81, 0.5), (81, 0.8))):
+    """Re-solve the given (N, grading) cases and save Gauss-point |P|_F near the
+    interior region (b1_gauss_interior/); skips existing files."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    ddir = os.path.join(here, "b1_gauss_interior")
+    os.makedirs(ddir, exist_ok=True)
+    for N, a in cases:
+        path = os.path.join(ddir, f"N{N}_a{a}.npz")
+        if os.path.exists(path):
+            continue
+        row = solve_level(N, material, a, dump_path=path)
+        print(f"dumped {path}: interior_avg_PK1_frob={row['interior_avg_PK1_frob']:.9g} "
+              f"({row['wall_clock_s']:.0f}s)", flush=True)
+
+
+if __name__ == "__main__":
+    dump_levels()
