@@ -325,17 +325,20 @@ if __name__ == "__main__":
             r = solve_extended(Nt, Nr_, Nz, surface_path=path)
             print(f"surface {path} ({r['n_elem']} el, {r['elapsed_s']:.0f}s)", flush=True)
     elif which == "fine":
-        # one finer family level, ratio ~1.31 in (n_elem)^(1/3) over 45,000 el, same
-        # Ntheta:Nr:Nz proportions as the finest level; joins the family everywhere
-        res = (48, 34, 66)
+        # one finer family level: the family's own progression (Ntheta +4, Nr +2,
+        # Nz +5 per level) continued, 41x28x56 = 59,400 el, ratio 1.097 in
+        # (n_elem)^(1/3) over 45,000 el (the family's ratios fall 1.34 -> 1.11).
+        # 48x34x66 = 100,815 el was tried first and killed for memory (14 GB RSS
+        # at the 15 GB session limit).
+        res = (41, 28, 56)
         json.dump([list(res)], open(os.path.join(HERE, "b3_fine_levels.json"), "w"))
         rows = json.load(open(cache)) if os.path.exists(cache) else []
         if not any((r["Ntheta"], r["Nr"], r["Nz"], r["z_beta"]) == (*res, None) for r in rows):
             ddir = os.path.join(HERE, "b3_gauss_near_groove")
             sdir = os.path.join(HERE, "b3_surface")
             os.makedirs(sdir, exist_ok=True)
-            r = solve_extended(*res, dump_path=os.path.join(ddir, "48_34_66_zbNone.npz"),
-                               surface_path=os.path.join(sdir, "48_34_66.npz"))
+            r = solve_extended(*res, dump_path=os.path.join(ddir, "{}_{}_{}_zbNone.npz".format(*res)),
+                               surface_path=os.path.join(sdir, "{}_{}_{}.npz".format(*res)))
             rows.append(r)
             json.dump(rows, open(cache, "w"), indent=1)
             print(f"fine level {r['n_elem']} el ({r['elapsed_s']:.0f}s): "

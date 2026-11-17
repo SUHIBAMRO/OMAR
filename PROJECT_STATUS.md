@@ -25209,3 +25209,18 @@ Limits: the advisor audit checks verdict labels, not every sentence (run-3 advis
   Rule predictions 12/15 with and without (the 3 misses are the shear maxima
   xy/rt/tz, predicted FAIL, observed PASS band -- unchanged). B3 adapter
   description updated to name the radial strategies.
+- Groove-surface stress (`surface_study.py`), corrected method: the first
+  version extrapolated to CORNER nodes only, so on levels with an even
+  number of z node layers (25x20x36) there was no node at the groove root
+  (its "root" value sat 0.015 away). Now the Gauss stresses come post hoc
+  from `b3_gauss_near_groove/` (matched to the rebuilt mesh, distance
+  <= 2e-16) and are extrapolated to all 20 nodes; a node sits at the root on
+  every level. Corner values agree with the solver-time files to ~1e-7
+  (two independent CG solves). 7 levels: root sigma_xx / sigma_zz /
+  pressure band-stable (finest-three spread 0.95 / 0.31 / 0.61% of the
+  scale 0.910), no rate; root sigma_xz and von Mises FAIL; surface maxima
+  within R0 (4-20 nodes) oscillate, FAIL.
+- 8th family level: 48x34x66 = 100,815 el was KILLED by the out-of-memory
+  killer (14 GB RSS, session limit ~15 GB). Replaced by the family's own
+  next step (Ntheta +4, Nr +2, Nz +5): 41x28x56 = 59,400 el, ratio 1.097
+  (family ratios fall 1.34 -> 1.11); running, peak memory measured.
