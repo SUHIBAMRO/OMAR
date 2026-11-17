@@ -333,3 +333,17 @@ def test_multilevel_four_levels_says_no_leave_one_out():
                                           order_window=(0.5, 5))
     assert g["evidence"] == "rate" and "leave_one_out_orders" not in g
     assert "no leave-one-out check with 4 levels" in g["reason"]
+
+
+def test_repository_latest_record_supersedes(tmp_path):
+    from omar_pfem.verification_agent import repository
+    from omar_pfem.verification_agent.spec import ProblemSpec
+    p = str(tmp_path / "r.jsonl")
+    s = ProblemSpec(name="X q", geometry="g", dim=2, material="m", loading="l",
+                    regularity="smooth", element="Q4", reference="mesh_refinement_family",
+                    qois=("q",))
+    repository.record(s, {}, {}, {"a": {"verdict": "FAIL"}}, path=p)
+    repository.record(s, {}, {}, {"a": {"verdict": "PASS"}}, path=p)
+    assert len(repository.load(p, latest_only=False)) == 2
+    recs = repository.load(p)
+    assert len(recs) == 1 and recs[0]["accepted"] is True

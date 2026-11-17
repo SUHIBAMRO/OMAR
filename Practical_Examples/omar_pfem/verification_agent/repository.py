@@ -1,5 +1,11 @@
 """Append-only store of verified (problem, method, observables, verdict)
-records, the solved-case memory D of GRAFT."""
+records, the solved-case memory D of GRAFT.
+
+The file is never rewritten. A later record with the same problem name
+SUPERSEDES the earlier one (e.g. after a gate was added or fixed): load()
+and nearest() return only the latest record per name unless
+latest_only=False, so re-running a check does not double its weight in the
+outcome prior."""
 import datetime
 import json
 import os
@@ -36,11 +42,17 @@ def record(spec, method, observables, verdicts, path=DEFAULT_PATH):
     return rec
 
 
-def load(path=DEFAULT_PATH):
+def load(path=DEFAULT_PATH, latest_only=True):
     if not os.path.exists(path):
         return []
     with open(path) as f:
-        return [json.loads(line) for line in f if line.strip()]
+        recs = [json.loads(line) for line in f if line.strip()]
+    if not latest_only:
+        return recs
+    latest = {}
+    for i, r in enumerate(recs):
+        latest[r["problem"]["name"]] = i
+    return [recs[i] for i in sorted(latest.values())]
 
 
 def nearest(spec, k=3, path=DEFAULT_PATH):

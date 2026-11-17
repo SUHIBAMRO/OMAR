@@ -22,7 +22,6 @@ Backends (pick with --backend):
   replay     offline: answers come from a JSON file, for tests and audits
 """
 import json
-import os
 import re
 import shutil
 import subprocess

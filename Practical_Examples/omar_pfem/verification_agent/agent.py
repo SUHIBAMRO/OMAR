@@ -7,9 +7,13 @@ Tasks, all writing to the solved-case repository:
   replay-b3 judge the already-computed B3 groove-region QoIs (quadratic
             reference) with the QoI-convergence and strategy-robustness
             gates, deciding which QoIs may serve as validation targets.
-  b1-ladder solve B1 on N=11..81 and gate global/pointwise/peak/average QoIs.
+  b1-ladder solve B1 on the given N (default 11..81) and gate every QoI with
+            the 3-level and the 5-level convergence gates.
   orchestrate  LLM formalizer/proposer/critic/advisor (llm_roles.py) around
             the same gates; the LLM never sets a verdict (orchestrate.py).
+  rules     the rule-based plan (trees.py), executed and scored, no LLM.
+  adaptive  outcome prior from the repository + budget-aware refinement
+            controller on B1 (adaptive.py).
 
     python -m omar_pfem.verification_agent.agent mms --orders Q4,Q9 --Ns 5,9,17 --cpu
     python -m omar_pfem.verification_agent.agent replay-b3
@@ -96,7 +100,9 @@ def cmd_replay_b3(args):
           [g["n_elem"] for g in family])
     scale = family[-1]["region_avg_sigma_frob"]
     print(f"stress scale (finest-mesh region-average Frobenius norm): {scale:.4f}")
-    print(f"{'QoI':<22}{'convergence':>14}{'robustness':>14}  admitted as validation target")
+    from omar_pfem.verification_agent import trees
+    window = trees.order_window("Q20")
+    print(f"{'QoI':<22}{'conv 3/5-level':>14}{'robust':>8}  admitted, evidence")
     admitted = {}
     series = [("frob", "avg", lambda g: g["region_avg_sigma_frob"])]
     for comp in ("xx", "yy", "zz", "xy", "xz", "yz"):
@@ -105,7 +111,11 @@ def cmd_replay_b3(args):
     for comp, stat, get in series:
             vals = [get(g) for g in family]
             g_conv = gates.qoi_convergence_gate(hs, vals, band_tol=args.band_tol,
-                                                gci_tol=args.gci_tol, scale=scale)
+                                                gci_tol=args.gci_tol, scale=scale,
+                                                order_window=window)
+            g_ml = gates.multilevel_convergence_gate(hs, vals, band_tol=args.band_tol,
+                                                     gci_tol=args.gci_tol, scale=scale,
+                                                     order_window=window)
             g_rob = gates.strategy_robustness_gate(
                 [get(z) for _, z in zbeta], tol=args.robust_tol, scale=scale)
             qoi = f"sigma_{comp}_{stat}"
@@ -120,10 +130,12 @@ def cmd_replay_b3(args):
                 observables={"n_elements": [g["n_elem"] for g in family], "values": vals,
                              "stress_scale": scale,
                              "strategy_values": {k: get(z) for k, z in zbeta}},
-                verdicts={"qoi_convergence": g_conv, "strategy_robustness": g_rob})
+                verdicts={"qoi_convergence": g_conv, "qoi_convergence_multilevel": g_ml,
+                          "strategy_robustness": g_rob})
             admitted[qoi] = rec["accepted"]
-            print(f"{qoi:<22}{g_conv['verdict']:>14}{g_rob['verdict']:>14}  "
-                  f"{'YES' if rec['accepted'] else 'no'}  ({g_conv['reason']})")
+            _, evidence, _ = gates.combine_verdicts(rec["verdicts"])
+            print(f"{qoi:<22}{g_conv['verdict']:>6}/{g_ml['verdict']:<5}{g_rob['verdict']:>8}  "
+                  f"{'YES' if rec['accepted'] else 'no':<4}{evidence:<6}({g_conv['reason']})")
     print(f"\nadmitted: {[q for q, a in admitted.items() if a]}")
     print(f"rejected: {[q for q, a in admitted.items() if not a]}")
 
@@ -138,11 +150,21 @@ def cmd_b1_ladder(args):
     cache = os.path.join(HERE, f"b1_ladder_{args.material}.json")
     rows = run_ladder(Ns, args.material, cache)
     hs = [r["h"] for r in rows]
-    print(f"\nB1 {args.material}, Q4, N={Ns}")
-    print(f"{'QoI':<24}{'verdict':>9}  detail")
+    from omar_pfem.verification_agent import trees
+    window = trees.order_window("Q4")
+    print(f"\nB1 {args.material}, Q4, N={Ns}, order window {window}")
+    print(f"{'QoI':<24}{'verdict':>9}{'evidence':>9}  detail")
     for qoi in B1_QOIS:
         vals = [r[qoi] for r in rows]
-        g = gates.qoi_convergence_gate(hs, vals, band_tol=args.band_tol, gci_tol=args.gci_tol)
+        c = trees.class_params("qoi_convergence", trees.classify_qoi(qoi))
+        band = c["band_tol"] if args.band_tol is None else args.band_tol
+        gci = c["gci_tol"] if args.gci_tol is None else args.gci_tol
+        g = gates.qoi_convergence_gate(hs, vals, band_tol=band, gci_tol=gci,
+                                       order_window=window)
+        gm = gates.multilevel_convergence_gate(hs, vals, band_tol=band, gci_tol=gci,
+                                               order_window=window)
+        verdicts = {"qoi_convergence": g, "qoi_convergence_multilevel": gm}
+        overall, evidence, _ = gates.combine_verdicts(verdicts)
         spec = ProblemSpec(
             name=f"B1 {args.material} {qoi}", geometry="unit_square", dim=2,
             material=args.material, loading="top_edge_traction",
@@ -150,10 +172,12 @@ def cmd_b1_ladder(args):
             reference="mesh_refinement_family", qois=(qoi,))
         repository.record(spec, method={"solver": "data_generate_B1.solve_hyperelastic_TL_spatial",
                                         "fields": "mesh_convergence.AnalyticFieldB1", "Ns": Ns},
-                          observables={"h": hs, "values": vals}, verdicts={"qoi_convergence": g})
-        extra = (f", p={g['observed_order']:.2f}, extrapolated={g['richardson_extrapolate']:.6g}"
-                 if "observed_order" in g else "")
-        print(f"{qoi:<24}{g['verdict']:>9}  {g['reason']}{extra}")
+                          observables={"h": hs, "values": vals}, verdicts=verdicts)
+        extra = (f", extrapolated={g['richardson_extrapolate']:.6g}"
+                 if "richardson_extrapolate" in g else "")
+        print(f"{qoi:<24}{overall:>9}{evidence:>9}  3-level: {g['reason']}{extra}")
+        print(f"{'':<42}5-level: {gm['reason']}"
+              + (f", fit limit={gm['fit_limit']:.6g}" if gm.get("evidence") == "rate" else ""))
 
 
 def cmd_orchestrate(args):
@@ -285,8 +309,8 @@ def main():
     l = sub.add_parser("b1-ladder")
     l.add_argument("--material", default="neo_hookean")
     l.add_argument("--Ns", default="11,21,41,81")
-    l.add_argument("--band_tol", type=float, default=0.01)
-    l.add_argument("--gci_tol", type=float, default=0.05)
+    l.add_argument("--band_tol", type=float, default=None, help="default: QoI class ceiling")
+    l.add_argument("--gci_tol", type=float, default=None, help="default: QoI class ceiling")
     l.set_defaults(fn=cmd_b1_ladder)
     o = sub.add_parser("orchestrate", help="LLM roles around the deterministic gates")
     o.add_argument("--problem", required=True, help="problem text, or a path to a text file")

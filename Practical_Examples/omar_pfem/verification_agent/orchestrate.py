@@ -24,24 +24,38 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # ----------------------------------------------------------------------------
 
 
+def _b1_uniform_Ns(material="neo_hookean", tol=1e-7):
+    """Uniform (grading 0) levels present in the B1 ladder cache."""
+    cache = os.path.join(HERE, f"b1_ladder_{material}.json")
+    if not os.path.exists(cache):
+        return (11, 21, 41, 81)
+    rows = json.load(open(cache))
+    return tuple(sorted(r["N"] for r in rows if r.get("grading", 0.0) == 0.0
+                        and r.get("newton_tol", 1e-7) == tol))
+
+
 class B1Adapter:
     geometry = "unit_square"
     description = ("B1: 2D unit square, clamped bottom edge, top-edge traction, smooth "
                    "spatially varying E, nu (mesh_convergence.AnalyticFieldB1), Q4, "
-                   "global refinement N=11,21,41,81")
+                   "global refinement N=" + ",".join(map(str, _b1_uniform_Ns()))
+                   + "; corner-graded strategies a=0.5, 0.8 at N=81")
     qois = ("max_disp_mag", "u_top_off_center", "v_top_off_center", "u_mid_domain",
             "v_mid_domain", "strain_energy", "interior_avg_PK1_frob", "peak_PK1_frob")
 
-    def __init__(self, material="neo_hookean", Ns=(11, 21, 41, 81), strategy_N=81):
+    def __init__(self, material="neo_hookean", Ns=None, strategy_N=81):
+        """Ns=None: every uniform level already in the cache (no new solves)."""
         from omar_pfem.verification_agent.b1_ladder import run_ladder
         cache = os.path.join(HERE, f"b1_ladder_{material}.json")
+        Ns = _b1_uniform_Ns(material) if Ns is None else Ns
         self.rows = run_ladder(list(Ns), material, cache)
         self.hs = [r["h"] for r in self.rows]
         # same node count, three refinement strategies: uniform and corner
         # grading a=0.5, 0.8 (b1_ladder.grade_nodes), read from the cache only
         all_rows = json.load(open(cache))
         self.strategy_rows = sorted(
-            (r for r in all_rows if r["N"] == strategy_N), key=lambda r: r.get("grading", 0.0))
+            (r for r in all_rows if r["N"] == strategy_N and r.get("newton_tol", 1e-7) == 1e-7),
+            key=lambda r: r.get("grading", 0.0))
 
     def series(self, qoi):
         return self.hs, [r[qoi] for r in self.rows], None
@@ -232,7 +246,7 @@ def orchestrate(backend, problem_text, log=print, trace=None):
     # 3. propose / validate / critique, at most one revision
     baseline = trees.rule_plan(spec_d)
     trace["rule_plan"], trace["rule_analysis"] = baseline, trees.apply_rules(spec_d)
-    log(f"[rules] baseline requires: " + "; ".join(
+    log("[rules] baseline requires: " + "; ".join(
         f"{c['check']} on {len(c['qois'])} QoIs" for c in baseline["checks"])
         + f"; predicts FAIL: {[e['qoi'] for e in baseline['expected_failures']]}")
     plan, perrs = R.propose(backend, spec_d, neigh)
