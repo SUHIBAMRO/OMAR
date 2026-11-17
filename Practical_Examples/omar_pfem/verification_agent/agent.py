@@ -209,7 +209,7 @@ DEFAULT_SPECS = {
     "unit_square": dict(name="B1 neo_hookean", geometry="unit_square", dim=2,
                         material="neo_hookean", loading="top_edge_traction",
                         regularity="clamped_free_corner", element="Q4",
-                        reference="mesh_refinement_family", qois=B1_QOIS),
+                        reference="mesh_refinement_family", qois=None),
     "bushing_groove": dict(name="B3 groove", geometry="bushing_groove", dim=3,
                            material="neo_hookean", loading="prescribed_rotation",
                            regularity="stress_concentration", element="Q20",

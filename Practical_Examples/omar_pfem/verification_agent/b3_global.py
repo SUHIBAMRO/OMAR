@@ -102,8 +102,11 @@ def surface_nodal_stress(etype, nodes, elements, sigma, inner, ref, radius):
 
 def solve_extended(Ntheta, Nr, Nz, z_beta=None, rtol=1e-8, atol=1e-8, dtype=torch.float64,
                    dump_path=None, dump_radius=0.25, quadrature="reduced", r_grading=1.0,
-                   surface_path=None):
-    """quadrature: "reduced" = torchfem's 2x2x2 rule for Q20 (every stored
+                   surface_path=None, linear_solver="cg"):
+    """linear_solver: "cg" (Jacobi-preconditioned CG, every stored family
+    result) or "direct" (pypardiso); both stop Newton at the same rtol/atol,
+    the direct solver is for meshes whose element-size contrast makes CG slow.
+    quadrature: "reduced" = torchfem's 2x2x2 rule for Q20 (every stored
     result), "full" = 3x3x3 (27 points). r_grading > 1 clusters the radial
     layers toward the inner (groove) surface (t -> t^r_grading).
     surface_path: save the nodal (extrapolated) stress on the groove surface
@@ -150,7 +153,8 @@ def solve_extended(Ntheta, Nr, Nz, z_beta=None, rtol=1e-8, atol=1e-8, dtype=torc
         with torch.no_grad():
             u, f, P, F, state = model.solve(
                 increments=increments, max_iter=30, rtol=rtol, atol=atol, stol=1e-8,
-                method="cg", preconditioner="jacobi", verbose=False,
+                method=linear_solver,
+                preconditioner="jacobi" if linear_solver == "cg" else None, verbose=False,
                 aggregate_integration_points=False)
         N_gauss, _, detJ = model.eval_shape_functions(model.etype.ipoints)
     finally:
@@ -216,7 +220,8 @@ def solve_extended(Ntheta, Nr, Nz, z_beta=None, rtol=1e-8, atol=1e-8, dtype=torc
         "r_grading": r_grading,
         "n_gauss_per_elem": int(len(model.etype.iweights)),
         "n_elem": int(elements.shape[0]), "n_nodes": int(n_nodes),
-        "rtol": rtol, "atol": atol, "elapsed_s": elapsed,
+        "rtol": rtol, "atol": atol, "elapsed_s": elapsed, "linear_solver": linear_solver,
+        "detJ_max_over_min": float(detJ.abs().max() / detJ.abs().min()),
         "n_region_gauss": int(mask.sum()),
         "region_avg_sigma_frob": avg(frob), "per_component": per_component,
         "region_avg_von_mises": avg(vm), "region_max_von_mises": float(vm.max()),
@@ -285,17 +290,23 @@ if __name__ == "__main__":
                   f"W={r['strain_energy']:.6g} frob_avg={r['region_avg_sigma_frob']:.5g} "
                   f"p_avg={r['region_avg_pressure']:.5g} minJ={r['min_detF']:.4f}", flush=True)
     elif which == "radial":
-        # radial strategy at 10,200 el: layers clustered toward the groove surface
+        # radial strategy at 10,200 el: layers clustered toward the groove surface.
+        # Valid gradings only: with the groove (curvature radius 0.0228) the
+        # power-law grading collapses the first radial layer, so that the snapped
+        # Q20 midside nodes bulge through it -- r_grading 1.75 or more gives
+        # negative Jacobians, 1.5 a detJ contrast of 39-79 (uniform 3-4) on
+        # which Jacobi-CG stalls; 1.1-1.3 keep it at 5-15.
         out = os.path.join(HERE, "b3_radial.json")
         rows = json.load(open(out)) if os.path.exists(out) else []
         ddir = os.path.join(HERE, "b3_gauss_radial")
         os.makedirs(ddir, exist_ok=True)
-        for rg in (1.5, 2.0, 3.0):
+        for rg in (1.1, 1.2, 1.3):
             if any(r["r_grading"] == rg for r in rows):
                 continue
             r = solve_extended(*fam[2], r_grading=rg,
                                dump_path=os.path.join(ddir, f"21_18_31_rg{rg}.npz"),
-                               surface_path=os.path.join(ddir, f"21_18_31_rg{rg}_surface.npz"))
+                               surface_path=os.path.join(ddir, f"21_18_31_rg{rg}_surface.npz"),
+                               linear_solver="direct")
             rows.append(r)
             json.dump(rows, open(out, "w"), indent=1)
             print(f"radial r_grading={rg}: {r['n_elem']} el ({r['elapsed_s']:.0f}s) "
