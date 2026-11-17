@@ -25196,3 +25196,16 @@ Limits: the advisor audit checks verdict labels, not every sentence (run-3 advis
   `solve_extended` now records `linear_solver` and `detJ_max_over_min`.
 - A container restart killed the first background chain after 3 of 7
   surface levels; restarted (each stage skips finished files).
+- Radial strategy results (10,200 el, direct solver; uniform M_y 34.5767):
+  r_grading 1.1 / 1.2 / 1.3 -> M_y 34.5522 / 34.5307 / 34.5134 (-0.07 /
+  -0.13 / -0.18%), sharp-sphere frob avg 0.980 / 0.911 / 1.061 (uniform
+  1.031), detJ contrast 5.0 / ~8 / ~12. rg=1.3 took 2,522 s (1.1/1.2: ~340 s).
+  `agent rules --geometry bushing_groove` with the 3 radial rows added to the
+  3 z_beta rows (6 strategies), diffed against the run without them: exactly
+  3 verdicts change, all sharp-sphere ones -- sigma_zz_avg and cyl_zz_avg go
+  PASS(band) -> FAIL (strategy spread 2.37% > 2%), sigma_yz_max strategy
+  PASS -> FAIL (already FAIL overall). Every gk2_* verdict is unchanged; the
+  gk2 normal averages keep strategy spread <= 0.49% and anchored <= 0.55%.
+  Rule predictions 12/15 with and without (the 3 misses are the shear maxima
+  xy/rt/tz, predicted FAIL, observed PASS band -- unchanged). B3 adapter
+  description updated to name the radial strategies.
