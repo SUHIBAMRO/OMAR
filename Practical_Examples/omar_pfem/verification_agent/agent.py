@@ -110,15 +110,19 @@ def cmd_replay_b3(args):
             series.append((comp, stat, lambda g, c=comp, s=stat: g["per_component"][c][s]))
     for comp, stat, get in series:
             vals = [get(g) for g in family]
-            g_conv = gates.qoi_convergence_gate(hs, vals, band_tol=args.band_tol,
-                                                gci_tol=args.gci_tol, scale=scale,
+            qoi = f"sigma_{comp}_{stat}"
+            c = trees.CLASS_CEILINGS[trees.classify_qoi(qoi)]
+            band = c["band_tol"] if args.band_tol is None else args.band_tol
+            gci = c["gci_tol"] if args.gci_tol is None else args.gci_tol
+            rob = c["robust_tol"] if args.robust_tol is None else args.robust_tol
+            g_conv = gates.qoi_convergence_gate(hs, vals, band_tol=band,
+                                                gci_tol=gci, scale=scale,
                                                 order_window=window)
-            g_ml = gates.multilevel_convergence_gate(hs, vals, band_tol=args.band_tol,
-                                                     gci_tol=args.gci_tol, scale=scale,
+            g_ml = gates.multilevel_convergence_gate(hs, vals, band_tol=band,
+                                                     gci_tol=gci, scale=scale,
                                                      order_window=window)
             g_rob = gates.strategy_robustness_gate(
-                [get(z) for _, z in zbeta], tol=args.robust_tol, scale=scale)
-            qoi = f"sigma_{comp}_{stat}"
+                [get(z) for _, z in zbeta], tol=rob, scale=scale)
             spec = ProblemSpec(
                 name=f"B3 groove {qoi}", geometry="bushing_groove", dim=3,
                 material="neo_hookean", loading="prescribed_rotation",
@@ -302,9 +306,9 @@ def main():
     m.add_argument("--cpu", action="store_true")
     m.set_defaults(fn=cmd_mms)
     b = sub.add_parser("replay-b3")
-    b.add_argument("--band_tol", type=float, default=0.01)
-    b.add_argument("--gci_tol", type=float, default=0.05)
-    b.add_argument("--robust_tol", type=float, default=0.02)
+    b.add_argument("--band_tol", type=float, default=None, help="default: QoI class ceiling")
+    b.add_argument("--gci_tol", type=float, default=None, help="default: QoI class ceiling")
+    b.add_argument("--robust_tol", type=float, default=None, help="default: QoI class ceiling")
     b.set_defaults(fn=cmd_replay_b3)
     l = sub.add_parser("b1-ladder")
     l.add_argument("--material", default="neo_hookean")
