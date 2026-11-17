@@ -130,7 +130,8 @@ ADAPTER_VOCAB = {
 # ----------------------------------------------------------------------------
 
 
-CONV_CHECKS = ("qoi_convergence", "qoi_convergence_multilevel")
+CONV_CHECKS = gates.CONV_CHECKS
+combine = gates.combine_verdicts   # single policy, shared with adaptive.py
 
 
 def convergence_params(plan):
@@ -142,24 +143,6 @@ def convergence_params(plan):
             for q in c["qois"]:
                 out.setdefault(q, {})[c["check"]] = c["params"]
     return out
-
-
-def combine(verdicts):
-    """Overall verdict of one QoI (FAIL if any gate failed, PASS if all
-    passed, else INCONCLUSIVE) and the strongest convergence evidence among
-    the convergence gates that PASSED ("rate" > "band" > "none"), with the
-    gate it came from. Several convergence gates never relax each other: a
-    FAIL from either one fails the QoI."""
-    vs = [v["verdict"] for v in verdicts.values()]
-    overall = "FAIL" if "FAIL" in vs else ("PASS" if all(v == "PASS" for v in vs)
-                                           else "INCONCLUSIVE")
-    passed = [(k, v.get("evidence")) for k, v in verdicts.items()
-              if k in CONV_CHECKS and v["verdict"] == "PASS"]
-    for level in ("rate", "band"):
-        src = [k for k, e in passed if e == level]
-        if src:
-            return overall, level, src
-    return overall, "none", []
 
 
 def run_check(adapter, check, qoi, params, element=None, conv_params=None):

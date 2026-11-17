@@ -207,11 +207,12 @@ def multilevel_convergence_gate(hs, values, band_tol=0.01, gci_tol=0.05, scale=N
 
     if not failed:
         U = (fs * abs(v[-1] - fit["a"]) + sigma + abs(fit["residuals"][-1])) / scale
+        loo = base.get("leave_one_out_orders")
+        loo_txt = (f"leave-one-out {min(loo):.2f}-{max(loo):.2f}" if loo else
+                   f"no leave-one-out check with {n} levels")
         return {**base, "evidence": "rate", "uncertainty_fine": U,
                 "verdict": "PASS" if U <= gci_tol else "FAIL",
-                "reason": f"{n} levels monotone, fitted p={fit['p']:.2f} (leave-one-out "
-                          f"{min(base.get('leave_one_out_orders', [fit['p']])):.2f}-"
-                          f"{max(base.get('leave_one_out_orders', [fit['p']])):.2f}), "
+                "reason": f"{n} levels monotone, fitted p={fit['p']:.2f} ({loo_txt}), "
                           f"U_fine={U:.2%} vs tol {gci_tol:.2%}"}
     why = ", ".join(failed)
     if spread <= band_tol:
@@ -260,3 +261,24 @@ def family_anchor(conv_result):
     if "levels_used" in conv_result:
         return conv_result["levels_used"][-1], "finest family value"
     return conv_result["finest_three"][-1], "finest family value"
+
+
+CONV_CHECKS = ("qoi_convergence", "qoi_convergence_multilevel")
+
+
+def combine_verdicts(verdicts):
+    """Overall verdict of one QoI (FAIL if any gate failed, PASS if all
+    passed, else INCONCLUSIVE) and the strongest convergence evidence among
+    the convergence gates that PASSED ("rate" > "band" > "none"), with the
+    gate it came from. Several convergence gates never relax each other: a
+    FAIL from either one fails the QoI."""
+    vs = [v["verdict"] for v in verdicts.values()]
+    overall = "FAIL" if "FAIL" in vs else ("PASS" if all(v == "PASS" for v in vs)
+                                           else "INCONCLUSIVE")
+    passed = [(k, v.get("evidence")) for k, v in verdicts.items()
+              if k in CONV_CHECKS and v["verdict"] == "PASS"]
+    for level in ("rate", "band"):
+        src = [k for k, e in passed if e == level]
+        if src:
+            return overall, level, src
+    return overall, "none", []

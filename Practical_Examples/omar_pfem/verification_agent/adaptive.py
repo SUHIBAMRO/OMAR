@@ -8,11 +8,22 @@ Two pieces, both deterministic:
    by the gate verdict). This is what the repository "learns".
 
 2. adaptive_refine: a refinement controller. Starting from the three
-   coarsest levels, it re-evaluates the QoI gate after each level and
-   requests the next (finer) level only for QoIs that are still undecided
-   and only if the predicted cost fits the remaining budget. It stops a QoI
-   on PASS, on a divergent or oscillatory sequence (more uniform refinement
-   cannot fix those), or on budget.
+   coarsest levels, it re-evaluates BOTH convergence gates after each level
+   (three-level Celik, and from 4 levels on the multilevel least-squares
+   gate over the finest 5), combines them with the same policy as the
+   orchestrator (gates.combine_verdicts), and requests the next (finer)
+   level only for QoIs that are still undecided and only if the predicted
+   cost fits the remaining budget. A QoI is decided
+     PASS  when the multilevel gate is available (>= 4 levels), every gate
+           passes, and -- with require_rate (default) -- the evidence is a
+           rate; a band-only PASS keeps the QoI open, since more levels may
+           certify a rate;
+     FAIL  on a divergent or oscillatory three-level sequence outside the
+           band (more uniform refinement cannot fix those).
+   Otherwise it stays open until max_levels or the budget; then a QoI whose
+   gates all pass is reported PASS with its (weaker) evidence and the stop
+   reason, anything else INCONCLUSIVE. Tolerances default to the per-class
+   ceilings (trees.CLASS_CEILINGS) and the order window to the element's.
 
 What this is NOT: active learning for the neural-operator surrogate
 (choosing which training samples or fidelities to generate next). That is
@@ -70,21 +81,53 @@ def _cost_model(rows, fallback_exponent=1.5):
     return None, "no timing data"
 
 
+def _gates(hs, vals, band_tol, gci_tol, window):
+    out = {"qoi_convergence": gates.qoi_convergence_gate(hs, vals, band_tol, gci_tol,
+                                                         order_window=window)}
+    if len(vals) >= 4:
+        out["qoi_convergence_multilevel"] = gates.multilevel_convergence_gate(
+            hs, vals, band_tol, gci_tol, order_window=window)
+    return out
+
+
 def adaptive_refine(solve, qois, N0=(11, 21, 41), budget_s=1800.0, max_levels=6,
-                    band_tol=0.01, gci_tol=0.05, timing_rows=(), log=print):
+                    band_tol=None, gci_tol=None, element=None, require_rate=True,
+                    timing_rows=(), log=print):
     """solve(N) -> row dict with 'h', 'n_dof', optional 'wall_clock_s', and
-    the QoIs. Returns per-QoI decisions and the levels used."""
+    the QoIs. band_tol/gci_tol: None -> the QoI class ceiling. Returns
+    per-QoI decisions (combined verdict, evidence, both gate results, levels)
+    and the levels used."""
+    window = trees.order_window(element)
+
+    def tols(q):
+        c = trees.class_params("qoi_convergence", trees.classify_qoi(q))
+        return (c["band_tol"] if band_tol is None else band_tol,
+                c["gci_tol"] if gci_tol is None else gci_tol)
+
+    def evaluate(q):
+        hs, vals = [r["h"] for r in rows], [r[q] for r in rows]
+        g = _gates(hs, vals, *tols(q), window)
+        overall, evidence, src = gates.combine_verdicts(g)
+        return g, overall, evidence, src
+
     rows = [solve(N) for N in N0]
     spent = sum(r.get("wall_clock_s") or 0.0 for r in rows)
     open_qois, decided = list(qois), {}
     while True:
-        hs = [r["h"] for r in rows]
         for q in list(open_qois):
-            g = gates.qoi_convergence_gate(hs, [r[q] for r in rows], band_tol, gci_tol)
-            final = (g["verdict"] == "PASS" or g["reason"].startswith(("divergent",
-                                                                        "oscillatory")))
-            if final:
-                decided[q] = {**g, "levels": [r["N"] for r in rows]}
+            g, overall, evidence, src = evaluate(q)
+            g3 = g["qoi_convergence"]
+            final_fail = (g3["verdict"] == "FAIL"
+                          and g3["reason"].startswith(("divergent", "oscillatory")))
+            final_pass = (overall == "PASS" and "qoi_convergence_multilevel" in g
+                          and (evidence == "rate" or not require_rate))
+            if final_fail or final_pass:
+                decided[q] = {"verdict": "FAIL" if final_fail else "PASS",
+                              "evidence": "none" if final_fail else evidence,
+                              "evidence_from": [] if final_fail else src,
+                              "reason": g3["reason"] if final_fail else
+                              " | ".join(f"{k}: {v['reason']}" for k, v in g.items()),
+                              "gates": g, "levels": [r["N"] for r in rows]}
                 open_qois.remove(q)
         Ns = [r["N"] for r in rows]
         log(f"[adaptive] levels {Ns}: decided {len(decided)}/{len(qois)}, open {open_qois}")
@@ -108,10 +151,14 @@ def adaptive_refine(solve, qois, N0=(11, 21, 41), budget_s=1800.0, max_levels=6,
         rows.append(r)
         spent += r.get("wall_clock_s") or est
     for q in open_qois:
-        g = gates.qoi_convergence_gate([r["h"] for r in rows], [r[q] for r in rows],
-                                       band_tol, gci_tol)
-        decided[q] = {**g, "verdict": "INCONCLUSIVE" if g["verdict"] != "PASS" else "PASS",
-                      "reason": f"{g['reason']}; stopped: {stop}",
-                      "levels": [r["N"] for r in rows]}
+        g, overall, evidence, src = evaluate(q)
+        verdict = "PASS" if overall == "PASS" else "INCONCLUSIVE"
+        note = ("; rate not certified" if verdict == "PASS" and evidence != "rate" else
+                "; multilevel gate not reached" if "qoi_convergence_multilevel" not in g else "")
+        decided[q] = {"verdict": verdict, "evidence": evidence if verdict == "PASS" else "none",
+                      "evidence_from": src if verdict == "PASS" else [],
+                      "reason": " | ".join(f"{k}: {v['reason']}" for k, v in g.items())
+                      + f"; stopped: {stop}{note}",
+                      "gates": g, "levels": [r["N"] for r in rows]}
     return {"decisions": decided, "levels": [r["N"] for r in rows], "stop": stop,
             "spent_s": spent}

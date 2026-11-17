@@ -258,10 +258,13 @@ def cmd_adaptive(args):
 
     timing = [r for r in all_rows if r.get("wall_clock_s")]
     res = adaptive.adaptive_refine(solve, list(B1_QOIS), budget_s=args.budget_s,
+                                   element="Q4", require_rate=not args.allow_band,
                                    timing_rows=timing)
-    print(f"\nstopped: {res['stop']}; levels used {res['levels']}")
+    print(f"\nstopped: {res['stop']}; levels used {res['levels']}; "
+          f"solver time counted {res['spent_s']:.0f}s")
     for q, d in res["decisions"].items():
-        print(f"  {q:<24}{d['verdict']:<13}levels {d['levels']}  {d['reason']}")
+        print(f"  {q:<24}{d['verdict']:<13}{d['evidence']:<6}levels {d['levels']}")
+        print(f"      {d['reason']}")
 
 
 def main():
@@ -297,6 +300,8 @@ def main():
     a = sub.add_parser("adaptive", help="outcome prior + adaptive refinement on B1")
     a.add_argument("--material", default="neo_hookean")
     a.add_argument("--budget_s", type=float, default=1800.0)
+    a.add_argument("--allow_band", action="store_true",
+                   help="also stop on a band-only PASS (default: refine until a rate)")
     a.set_defaults(fn=cmd_adaptive)
     args = p.parse_args()
     args.fn(args)

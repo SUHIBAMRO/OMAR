@@ -135,7 +135,9 @@ def _fake_solver(calls):
         h = 1.0 / (N - 1)
         return {"N": N, "h": h, "n_dof": 2 * N * N, "wall_clock_s": 1e-4 * N * N,
                 "smooth": 1.0 + 0.5 * h ** 2, "slow": 1.0 + 2.0 * h ** 0.5,
-                "peak": 3.0 + math.log(1.0 / h) + 0.1 * math.log(1.0 / h) ** 2}
+                "peak": 3.0 + math.log(1.0 / h) + 0.1 * math.log(1.0 / h) ** 2,
+                # stable within the band but oscillating: no rate can ever be shown
+                "wobble": 1.0 + 1e-3 * (-1) ** round(math.log2(N - 1))}
     return solve
 
 
@@ -145,8 +147,14 @@ def test_adaptive_stops_early_and_classifies():
     res = adaptive.adaptive_refine(_fake_solver(calls), ["smooth", "peak"], budget_s=1e6,
                                    log=lambda *a: None)
     assert res["decisions"]["smooth"]["verdict"] == "PASS"
+    assert res["decisions"]["peak"]["verdict"] == "FAIL"
     assert res["decisions"]["peak"]["reason"].startswith("divergent")
-    assert calls == [11, 21, 41]  # both decided without a fourth level
+    # the peak is decided FAIL (divergent) at 3 levels; the smooth QoI needs the
+    # multilevel gate, which needs >= 4 levels, before it can be decided PASS
+    assert calls == [11, 21, 41, 81]
+    assert res["decisions"]["smooth"]["evidence"] == "rate"
+    assert "qoi_convergence_multilevel" in res["decisions"]["smooth"]["evidence_from"]
+    assert res["decisions"]["peak"]["levels"] == [11, 21, 41]
 
 
 def test_adaptive_respects_budget():
@@ -300,3 +308,28 @@ def test_rule_plan_includes_multilevel_for_solution_verification():
     plan = trees.rule_plan(_spec())
     ml = [c for c in plan["checks"] if c["check"] == "qoi_convergence_multilevel"]
     assert sorted(q for c in ml for q in c["qois"]) == sorted(_spec()["qois"])
+
+
+def test_adaptive_band_only_refines_until_rate_or_limit():
+    from omar_pfem.verification_agent import adaptive
+    calls = []
+    res = adaptive.adaptive_refine(_fake_solver(calls), ["wobble"], budget_s=1e6,
+                                   max_levels=6, log=lambda *a: None)
+    d = res["decisions"]["wobble"]
+    assert calls == [11, 21, 41, 81, 161, 321] and res["stop"] == "max levels"
+    assert d["verdict"] == "PASS" and d["evidence"] == "band"
+    assert "rate not certified" in d["reason"]
+    calls = []
+    res = adaptive.adaptive_refine(_fake_solver(calls), ["wobble"], budget_s=1e6,
+                                   require_rate=False, log=lambda *a: None)
+    assert calls == [11, 21, 41, 81]
+    assert res["decisions"]["wobble"]["evidence"] == "band"
+
+
+def test_multilevel_four_levels_says_no_leave_one_out():
+    from omar_pfem.verification_agent import gates
+    hs = _HS5[1:]
+    g = gates.multilevel_convergence_gate(hs, [1.0 + 3.0 * h ** 2 for h in hs],
+                                          order_window=(0.5, 5))
+    assert g["evidence"] == "rate" and "leave_one_out_orders" not in g
+    assert "no leave-one-out check with 4 levels" in g["reason"]
