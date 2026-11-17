@@ -233,3 +233,45 @@ def test_ceiling_flags_loosened_tolerance():
 def test_order_window_from_element_degree():
     from omar_pfem.verification_agent.trees import order_window
     assert order_window("Q4") == (0.5, 3) and order_window("Q20") == (0.5, 5)
+
+
+# ---- multilevel (5-level least-squares) convergence gate -------------------
+
+_HS5 = [0.07, 0.058, 0.05, 0.044, 0.04]   # non-uniform ratios, like the B3 family
+
+
+def test_multilevel_recovers_power_law():
+    from omar_pfem.verification_agent import gates
+    vals = [1.0 + 3.0 * h ** 2 for h in _HS5]
+    g = gates.multilevel_convergence_gate(_HS5, vals, gci_tol=0.05, order_window=(0.5, 5))
+    assert g["evidence"] == "rate" and g["verdict"] == "PASS" and g["failed_criteria"] == []
+    assert abs(g["fit_order"] - 2.0) < 1e-4 and abs(g["fit_limit"] - 1.0) < 1e-7
+    a, kind = gates.family_anchor(g)
+    assert kind == "multilevel fit limit" and abs(a - 1.0) < 1e-7
+
+
+def test_multilevel_rejects_oscillation():
+    from omar_pfem.verification_agent import gates
+    vals = [1.0 + 3.0 * h ** 2 + 1e-3 * (-1) ** i for i, h in enumerate(_HS5)]
+    g = gates.multilevel_convergence_gate(_HS5, vals, band_tol=0.01, order_window=(0.5, 5))
+    assert g["evidence"] == "band" and "monotone" in g["failed_criteria"]
+
+
+def test_multilevel_rejects_non_asymptotic_order():
+    from omar_pfem.verification_agent import gates
+    vals = [1.0 + 0.3 * h ** 0.2 for h in _HS5]
+    g = gates.multilevel_convergence_gate(_HS5, vals, band_tol=1e-6, order_window=(0.5, 5))
+    assert g["verdict"] == "FAIL" and "order_window" in g["failed_criteria"]
+
+
+def test_multilevel_needs_four_levels():
+    from omar_pfem.verification_agent import gates
+    g = gates.multilevel_convergence_gate(_HS5[:3], [1.0, 1.1, 1.2][::-1])
+    assert g["verdict"] == "INCONCLUSIVE"
+
+
+def test_multilevel_two_term_error_still_rate():
+    from omar_pfem.verification_agent import gates
+    vals = [2.0 + 1.0 * h ** 2 + 5.0 * h ** 3 for h in _HS5]
+    g = gates.multilevel_convergence_gate(_HS5, vals, gci_tol=0.05, order_window=(0.5, 5))
+    assert g["evidence"] == "rate" and 2.0 < g["fit_order"] < 3.0

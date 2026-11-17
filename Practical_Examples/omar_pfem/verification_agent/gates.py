@@ -114,6 +114,115 @@ def qoi_convergence_gate(hs, values, band_tol=0.01, gci_tol=0.05, scale=None,
             "reason": "divergent: successive differences do not decrease"}
 
 
+def _power_fit(hs, values, p_bounds=(0.05, 20.0)):
+    """Least-squares fit v = a + b * h^p (three parameters).
+
+    h is normalised by its smallest value (conditioning only; a and p are
+    unchanged). p is found by a log-spaced grid search over p_bounds and a
+    bounded 1-D refinement of the residual. Returns a, b (for normalised h),
+    p, the residuals, and whether p ended on a search bound.
+    """
+    from scipy.optimize import minimize_scalar
+    h = np.asarray(hs, float)
+    h = h / h.min()
+    v = np.asarray(values, float)
+
+    def solve(p):
+        A = np.c_[np.ones_like(h), h ** p]
+        c, *_ = np.linalg.lstsq(A, v, rcond=None)
+        return c, v - A @ c
+
+    ssr = lambda p: float(np.sum(solve(p)[1] ** 2))
+    grid = np.geomspace(p_bounds[0], p_bounds[1], 2001)
+    k = int(np.argmin([ssr(p) for p in grid]))
+    lo, hi = grid[max(k - 1, 0)], grid[min(k + 1, len(grid) - 1)]
+    p = float(minimize_scalar(ssr, bounds=(lo, hi), method="bounded",
+                              options={"xatol": 1e-10}).x) if hi > lo else float(grid[k])
+    (a, b), res = solve(p)
+    at_bound = p <= p_bounds[0] * 1.001 or p >= p_bounds[1] * 0.999
+    return {"a": float(a), "b": float(b), "p": p, "residuals": res.tolist(),
+            "p_at_search_bound": bool(at_bound)}
+
+
+def multilevel_convergence_gate(hs, values, band_tol=0.01, gci_tol=0.05, scale=None,
+                                order_window=None, n_levels=5, fit_quality=0.1, fs=1.25):
+    """Convergence from the finest n_levels (default 5) instead of three.
+
+    Least-squares variant in the spirit of Eca & Hoekstra (2014, J. Comput.
+    Phys. 262:104-130), simplified. Criteria, fixed (and unit-tested on
+    synthetic sequences) before this gate was run on project data -- the
+    region_study diagnostics had already been seen, so this is not blind:
+      1. at least 4 levels are used (the finest min(n_levels, available));
+      2. monotone: all successive differences non-zero and of one sign;
+      3. fit v = a + b h^p (p searched on [0.05, 20], so the window test is
+         not decided by the optimiser's bounds);
+      4. fit quality: sigma = sqrt(SSR / (n - 3)) <= fit_quality * (range
+         of the n values);
+      5. p inside order_window;
+      6. leave-one-out stability (only when n >= 5, so that every refit is
+         still over-determined): refitting without each level in turn gives
+         p inside order_window every time;
+    if all hold, evidence is "rate" and the uncertainty of the finest value
+      U = fs * |v_fine - a| + sigma + |residual at the finest level|
+    relative to `scale` must be <= gci_tol for PASS. Otherwise it falls back
+    to the same stability band as qoi_convergence_gate (finest three within
+    band_tol: PASS with evidence "band", else FAIL). `failed_criteria` lists
+    which of 2-6 failed, so a band verdict says why no rate was certified.
+    """
+    hs, values = list(map(float, hs)), list(map(float, values))
+    if any(hs[i] <= hs[i + 1] for i in range(len(hs) - 1)):
+        raise ValueError("hs must be strictly decreasing (coarse to fine)")
+    n = min(n_levels, len(values))
+    base = {"gate": "qoi_convergence_multilevel", "n_levels": n, "band_tol": band_tol,
+            "gci_tol": gci_tol, "order_window": order_window}
+    if n < 4:
+        return {**base, "verdict": "INCONCLUSIVE", "evidence": "none",
+                "reason": f"multilevel test needs >= 4 levels, have {len(values)}"}
+    h, v = hs[-n:], values[-n:]
+    scale = abs(v[-1]) if scale is None else float(scale)
+    f3, f2, f1 = v[-3:]
+    spread = (max(f1, f2, f3) - min(f1, f2, f3)) / scale
+    base.update(levels_used=v, scale=scale, relative_spread=spread)
+    in_window = lambda p: order_window is None or order_window[0] <= p <= order_window[1]
+
+    failed = []
+    d = np.diff(v)
+    if not (np.all(d > 0) or np.all(d < 0)):
+        failed.append("monotone")
+    fit = _power_fit(h, v)
+    sigma = float(np.sqrt(np.sum(np.square(fit["residuals"])) / (n - 3))) if n > 3 else 0.0
+    rng = max(v) - min(v)
+    base.update(fit_order=fit["p"], fit_limit=fit["a"], fit_sigma=sigma,
+                fit_p_at_search_bound=fit["p_at_search_bound"])
+    if rng == 0 or sigma > fit_quality * rng:
+        failed.append("fit_quality")
+    if not in_window(fit["p"]) or fit["p_at_search_bound"]:
+        failed.append("order_window")
+    if n >= 5:
+        loo = [_power_fit(h[:i] + h[i + 1:], v[:i] + v[i + 1:])["p"] for i in range(n)]
+        base["leave_one_out_orders"] = loo
+        if not all(in_window(p) for p in loo):
+            failed.append("leave_one_out")
+    base["failed_criteria"] = failed
+
+    if not failed:
+        U = (fs * abs(v[-1] - fit["a"]) + sigma + abs(fit["residuals"][-1])) / scale
+        return {**base, "evidence": "rate", "uncertainty_fine": U,
+                "verdict": "PASS" if U <= gci_tol else "FAIL",
+                "reason": f"{n} levels monotone, fitted p={fit['p']:.2f} (leave-one-out "
+                          f"{min(base.get('leave_one_out_orders', [fit['p']])):.2f}-"
+                          f"{max(base.get('leave_one_out_orders', [fit['p']])):.2f}), "
+                          f"U_fine={U:.2%} vs tol {gci_tol:.2%}"}
+    why = ", ".join(failed)
+    if spread <= band_tol:
+        return {**base, "verdict": "PASS", "evidence": "band",
+                "reason": f"finest three within {band_tol:.2%} band (spread {spread:.3%}); "
+                          f"no rate from {n} levels (failed: {why}; fitted p={fit['p']:.2f})"}
+    return {**base, "verdict": "FAIL", "evidence": "none",
+            "reason": f"no rate from {n} levels (failed: {why}; fitted p={fit['p']:.2f}) and "
+                      f"finest-three spread {spread:.3%} exceeds {band_tol:.2%}"}
+
+
 def strategy_robustness_gate(values, tol=0.02, scale=None):
     """PASS iff a QoI agrees across independent refinement strategies at
     comparable resolution (spread relative to `scale` within `tol`;
@@ -142,7 +251,12 @@ def anchored_robustness_gate(values, anchor, tol=0.02, scale=None, anchor_kind="
 
 
 def family_anchor(conv_result):
-    """Anchor for anchored_robustness_gate from a qoi_convergence result."""
+    """Anchor for anchored_robustness_gate from a qoi_convergence or
+    qoi_convergence_multilevel result."""
     if conv_result.get("evidence") == "rate" and "richardson_extrapolate" in conv_result:
         return conv_result["richardson_extrapolate"], "Richardson extrapolate"
+    if conv_result.get("evidence") == "rate" and "fit_limit" in conv_result:
+        return conv_result["fit_limit"], "multilevel fit limit"
+    if "levels_used" in conv_result:
+        return conv_result["levels_used"][-1], "finest family value"
     return conv_result["finest_three"][-1], "finest family value"

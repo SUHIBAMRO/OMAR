@@ -142,6 +142,17 @@ def main():
             vs = [rec[k]["verdict"] for k in ("conv", "strategy", "anchored") if k in rec]
             rec["overall"] = ("FAIL" if "FAIL" in vs else
                               "PASS" if all(v == "PASS" for v in vs) else "INCONCLUSIVE")
+            # same, with the 5-level least-squares gate in place of the 3-level one
+            m = gates.multilevel_convergence_gate(hs, vals, BAND, GCI, scale=scale,
+                                                  order_window=ORDER_WINDOW)
+            rec["multilevel"] = m
+            if srows:
+                anchor, kind_a = gates.family_anchor(m)
+                rec["anchored_ml"] = gates.anchored_robustness_gate(
+                    [r[q] for r in srows], anchor, ROBUST, scale=scale, anchor_kind=kind_a)
+            vs = [rec[k]["verdict"] for k in ("multilevel", "strategy", "anchored_ml") if k in rec]
+            rec["overall_ml"] = ("FAIL" if "FAIL" in vs else
+                                 "PASS" if all(v == "PASS" for v in vs) else "INCONCLUSIVE")
             res[q] = rec
         out[name] = {"kind": kind, "size": size, "points": npts, "scale": scale, "qois": res}
 
@@ -151,12 +162,18 @@ def main():
         n_fail = sum(r["overall"] == "FAIL" for r in res.values())
         osc = np.median([r["conv"]["relative_spread"] for r in res.values()])
         pts = npts[-1]
+        m_rate = sum(r["overall_ml"] == "PASS" and r["multilevel"]["evidence"] == "rate"
+                     for r in res.values())
+        m_band = sum(r["overall_ml"] == "PASS" and r["multilevel"]["evidence"] == "band"
+                     for r in res.values())
+        m_fail = sum(r["overall_ml"] == "FAIL" for r in res.values())
         n_sign = sum(r["diagnostics"]["sign_changes"] for r in res.values())
         med_rms = np.median([r["diagnostics"]["fit_rms"] for r in res.values()])
         print(f"\n{name:<14} points at finest {pts:>8.1f}   PASS(rate) {n_rate}  PASS(band) "
               f"{n_band}  FAIL {n_fail}   median finest-three spread {osc:.3%}\n"
               f"{'':<14} finest-5 sign changes {n_sign}/{3 * len(res)}   "
-              f"median power-law fit residual {med_rms:.3%} of scale")
+              f"median power-law fit residual {med_rms:.3%} of scale\n"
+              f"{'':<14} 5-level gate: PASS(rate) {m_rate}  PASS(band) {m_band}  FAIL {m_fail}")
         for q, r in res.items():
             c = r["conv"]
             extra = "".join(f"  {k[:5]} {r[k]['verdict']}" for k in ("strategy", "anchored") if k in r)
@@ -165,6 +182,11 @@ def main():
             print(f"   {q:<15} {r['overall']:<5} {c['evidence']:<5} {c['reason'][:60]}{extra}"
                   f"   | sign {dg['sign_changes']} fit p {dg['fit_p']:.2f} "
                   f"rms {dg['fit_rms']:.3%} local p [{lp}]")
+            m = r["multilevel"]
+            loo = m.get("leave_one_out_orders")
+            print(f"   {'':<15} 5-level: {r['overall_ml']:<5} {m['evidence']:<5} {m['reason'][:120]}"
+                  + (f"  LOO p [{','.join(f'{p:.2f}' for p in loo)}]" if loo else "")
+                  + f"  anch {r['anchored_ml']['verdict'] if 'anchored_ml' in r else '-'}")
     json.dump(out, open(os.path.join(HERE, "region_study_result.json"), "w"), indent=1,
               default=float)
 
