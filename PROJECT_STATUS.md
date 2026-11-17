@@ -11,14 +11,20 @@ finishes or a new one starts.
 > - Gates: 3-level Celik/GCI with order window, 5-level least-squares
 >   (`multilevel_convergence_gate`, leave-one-out), strategy + anchored
 >   robustness; one shared verdict policy (`gates.combine_verdicts`);
->   per-class tolerance ceilings; rules R1-R6 require both convergence gates.
+>   per-class tolerance ceilings tightened to 1/3 of the best recorded
+>   surrogate error (`requirements.py`); tolerances are set by CODE, never
+>   by the LLM; rules R1-R6 require both convergence gates, R7 (plan-level)
+>   requires an anchored check wherever strategy robustness is checked.
 > - B1 (Q4, N=11..161): all 7 smooth QoIs PASS with RATE from both gates
 >   (full 5-level check), peak FAILs (corner singularity; peak = C h_min^-0.281,
 >   N=161 predicted blind within 0.40%).
 > - B3 (Q20, 2,376-45,000 el): moment + strain energy rate-converged (U ~0.2-0.35%);
 >   stored sharp-sphere region averages only band-stable; Gaussian-kernel
->   region averages rate-certified by the 5-level gate (p~2, U~0.2%) -- NOT
->   adopted: redefining the B3 target is Omar/Rabczuk's decision.
+>   region averages (`gk2_*`, in the adapter next to the sphere ones)
+>   rate-certified by the 5-level gate (p~2, U~0.2%) -- NOT adopted in the
+>   manuscript: redefining the B3 target is Omar/Rabczuk's decision. Q20 uses
+>   the reduced 2x2x2 rule; full 27-point check: globals within 0.08% at
+>   10,200 el, pressure oscillation NOT caused by reduced integration.
 > - Open decisions for Omar/Rabczuk: (1) "region-averaged normal stresses"
 >   manuscript wording (deferred by Omar); (2) adopt a Gaussian-kernel region
 >   QoI for B3 or not; (3) surrogate active learning (needs discussion).
