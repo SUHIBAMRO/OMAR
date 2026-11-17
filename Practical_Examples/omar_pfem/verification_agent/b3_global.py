@@ -46,10 +46,40 @@ def _family_resolutions():
     return sorted(res, key=lambda t: t[0] * t[1] * t[2])
 
 
+def _full_integration_solid():
+    """torchfem Solid whose 20-node hexahedron uses the full 3x3x3 Gauss
+    rule (27 points) instead of torchfem's default 2x2x2 (8 points, the
+    reduced rule for a 20-node serendipity element)."""
+    from torchfem import Solid
+    from torchfem.elements import Hexa1, Hexa2, Tetra1, Tetra2, classproperty
+
+    g = (3.0 / 5.0) ** 0.5
+    pts1, w1 = (-g, 0.0, g), (5.0 / 9.0, 8.0 / 9.0, 5.0 / 9.0)
+
+    class Hexa2Full(Hexa2):
+        @classproperty
+        def ipoints(cls):
+            return torch.tensor([[a, b, c] for c in pts1 for b in pts1 for a in pts1])
+
+        @classproperty
+        def iweights(cls):
+            return torch.tensor([wa * wb * wc for wc in w1 for wb in w1 for wa in w1])
+
+    class SolidFull(Solid):
+        element_types = (Tetra1, Hexa1, Tetra2, Hexa2Full)
+
+    return SolidFull
+
+
 def solve_extended(Ntheta, Nr, Nz, z_beta=None, rtol=1e-8, atol=1e-8, dtype=torch.float64,
-                   dump_path=None, dump_radius=0.25):
+                   dump_path=None, dump_radius=0.25, quadrature="reduced"):
+    """quadrature: "reduced" = torchfem's 2x2x2 rule for Q20 (every stored
+    result), "full" = 3x3x3 (27 points)."""
     from torchfem import Solid
     from torchfem.materials import Hyperelastic3D
+    if quadrature not in ("reduced", "full"):
+        raise ValueError(quadrature)
+    SolidCls = _full_integration_solid() if quadrature == "full" else Solid
 
     if z_beta is None:
         nodes, elements, inner, outer, sym = build_quadratic_mesh_with_curved_surfaces(
@@ -65,7 +95,7 @@ def solve_extended(Ntheta, Nr, Nz, z_beta=None, rtol=1e-8, atol=1e-8, dtype=torc
     mu = E / (2 * (1 + NU))
     lam = E * NU / ((1 + NU) * (1 - 2 * NU))
     params = torch.tensor([mu, lam], dtype=dtype)
-    model = Solid(nodes_t, elements_t, Hyperelastic3D(psi=neo_hookean_psi_3d, params=params))
+    model = SolidCls(nodes_t, elements_t, Hyperelastic3D(psi=neo_hookean_psi_3d, params=params))
     n_nodes = nodes.shape[0]
     model.forces = torch.zeros(n_nodes, 3, dtype=dtype)
     constraints = torch.zeros(n_nodes, 3, dtype=torch.bool)
@@ -144,7 +174,8 @@ def solve_extended(Ntheta, Nr, Nz, z_beta=None, rtol=1e-8, atol=1e-8, dtype=torc
     strain_energy = float((psi.cpu().numpy().reshape(w.shape) * w).sum())
 
     return {
-        "Ntheta": Ntheta, "Nr": Nr, "Nz": Nz, "z_beta": z_beta,
+        "Ntheta": Ntheta, "Nr": Nr, "Nz": Nz, "z_beta": z_beta, "quadrature": quadrature,
+        "n_gauss_per_elem": int(len(model.etype.iweights)),
         "n_elem": int(elements.shape[0]), "n_nodes": int(n_nodes),
         "rtol": rtol, "atol": atol, "elapsed_s": elapsed,
         "n_region_gauss": int(mask.sum()),
@@ -196,5 +227,23 @@ if __name__ == "__main__":
             r = solve_extended(Nt, Nr_, Nz, z_beta=zb, dump_path=path)
             print(f"dumped {path} ({r['n_elem']} el, {r['elapsed_s']:.0f}s, "
                   f"frob_avg={r['region_avg_sigma_frob']:.6g})", flush=True)
+    elif which == "fullint":
+        # reduced (8-point) vs full (27-point) integration of the Q20 elements,
+        # on the coarsest level and on the 10,200-element level
+        out = os.path.join(HERE, "b3_fullint.json")
+        rows = json.load(open(out)) if os.path.exists(out) else []
+        ddir = os.path.join(HERE, "b3_gauss_near_groove_fullint")
+        os.makedirs(ddir, exist_ok=True)
+        for Nt, Nr_, Nz in (fam[0], fam[2]):
+            if any((r["Ntheta"], r["Nr"], r["Nz"]) == (Nt, Nr_, Nz) for r in rows):
+                continue
+            r = solve_extended(Nt, Nr_, Nz, quadrature="full",
+                               dump_path=os.path.join(ddir, f"{Nt}_{Nr_}_{Nz}_full.npz"))
+            rows.append(r)
+            json.dump(rows, open(out, "w"), indent=1)
+            print(f"full integration {r['n_elem']} el ({r['n_gauss_per_elem']} pts/el, "
+                  f"{r['elapsed_s']:.0f}s): M_y={r['reaction_moment_y']:.6g} "
+                  f"W={r['strain_energy']:.6g} frob_avg={r['region_avg_sigma_frob']:.5g} "
+                  f"p_avg={r['region_avg_pressure']:.5g} minJ={r['min_detF']:.4f}", flush=True)
     elif which == "solver":
         run([(*fam[0], None, 1e-11), (*fam[2], None, 1e-11)], cache)

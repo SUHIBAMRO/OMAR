@@ -330,7 +330,10 @@ def formalize(backend, problem_text):
 
 def propose(backend, spec_dict, neighbours):
     prompt = ("Choose verification checks for this problem, ONLY from the catalogue. Cover "
-              "every declared QoI. Predict which QoIs you expect to fail and why.\n\n"
+              "every declared QoI. Predict which QoIs you expect to fail and why. "
+              "Tolerances are NOT yours to choose: code sets them per QoI (class ceiling, "
+              "tightened to one third of the best recorded surrogate error) and replaces "
+              "whatever params you give, so put {} unless you only restate them.\n\n"
               f"CATALOGUE:\n{json.dumps(CHECK_CATALOGUE, indent=1)}\n\n"
               f"PROBLEM SPEC:\n{json.dumps(spec_dict, indent=1)}\n\n"
               f"NEAREST SOLVED CASES (Jaccard similarity, verdicts):\n"

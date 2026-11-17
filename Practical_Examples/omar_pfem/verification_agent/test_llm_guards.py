@@ -189,10 +189,15 @@ def test_orchestrate_replay_augments_and_reviews(tmp_path):
         + [f"qoi_convergence_multilevel:{q}" for q in (
             "strain_energy", "max_disp_mag", "v_top_off_center", "interior_avg_PK1_frob",
             "peak_PK1_frob")])
-    # the fixture's gci_tol 0.05 / band 0.01 exceed the displacement/global ceilings
-    assert sorted(t["ceiling_clamped"]) == sorted(
-        f"qoi_convergence:{q}" for q in ("strain_energy", "max_disp_mag", "v_top_off_center",
-                                          "interior_avg_PK1_frob", "peak_PK1_frob"))
+    # tolerances are always set by code: the fixture's band 0.01 / gci 0.05 are replaced
+    over = {(o["check"], o["qoi"]) for o in t["tolerances_overridden"]}
+    assert {("qoi_convergence", q) for q in ("strain_energy", "max_disp_mag",
+                                              "v_top_off_center", "interior_avg_PK1_frob",
+                                              "peak_PK1_frob")} <= over
+    for c in t["plan"]["checks"]:
+        for q in c["qois"]:
+            from omar_pfem.verification_agent import trees
+            assert c["params"] == trees.check_params(c["check"], q, "unit_square")
     assert t["critique"] is not None
     assert t["gate_summary"]["peak_PK1_frob"]["verdict"] == "FAIL"
     assert t["gate_summary"]["strain_energy"]["verdict"] == "PASS"
@@ -380,3 +385,41 @@ def test_anchored_inconclusive_without_converged_family():
             return [16.3, 19.9, 26.1], None
     g = O.run_check(Fake(), "anchored_robustness", "peak", {"tol": 0.02}, element="Q4")
     assert g["verdict"] == "INCONCLUSIVE" and "no limit" in g["reason"]
+
+
+def test_requirement_tightens_ceiling_only_with_recorded_error():
+    from omar_pfem.verification_agent import trees, requirements
+    # B3 reaction moment: 1.38% / 3 = 0.46% < 1% GCI ceiling -> tightened
+    p = trees.check_params("qoi_convergence", "reaction_moment_y", "bushing_groove")
+    assert abs(p["gci_tol"] - 0.0138 / 3) < 1e-12 and p["band_tol"] == 0.002
+    # groove stresses: >= 600% surrogate error -> requirement far above ceiling
+    assert trees.check_params("qoi_convergence", "sigma_xx_avg", "bushing_groove") == \
+        trees.class_params("qoi_convergence", "region_average")
+    # nothing recorded -> class ceiling, and it says so
+    assert requirements.required_uncertainty("unit_square", "strain_energy")[0] is None
+    assert trees.check_params("qoi_convergence", "strain_energy", "unit_square") == \
+        trees.class_params("qoi_convergence", "global")
+
+
+def test_llm_tolerances_are_replaced_by_code():
+    from omar_pfem.verification_agent.orchestrate import set_code_tolerances
+    spec = {"geometry": "bushing_groove", "qois": ["reaction_moment_y", "sigma_xx_avg"]}
+    plan = {"checks": [{"check": "qoi_convergence", "qois": spec["qois"],
+                        "params": {"band_tol": 0.002, "gci_tol": 0.003}, "rationale": ""}],
+            "expected_failures": []}
+    new, changed = set_code_tolerances(plan, spec)
+    params = {q: c["params"] for c in new["checks"] for q in c["qois"]}
+    assert abs(params["reaction_moment_y"]["gci_tol"] - 0.0046) < 1e-12
+    assert params["sigma_xx_avg"] == {"band_tol": 0.01, "gci_tol": 0.02}
+    assert {c["qoi"] for c in changed} == {"reaction_moment_y", "sigma_xx_avg"}
+
+
+def test_b3_kernel_qois_present_and_scaled():
+    from omar_pfem.verification_agent import orchestrate as O
+    a = O.B3Adapter()
+    if not hasattr(a, "kernel_values"):
+        pytest.skip("Gauss-point dumps not available")
+    assert "gk2_sigma_zz_avg" in a.qois and "sigma_zz_avg" in a.qois
+    _, vals, scale = a.series("gk2_sigma_zz_avg")
+    assert len(vals) == 7 and abs(scale - a.kernel_scale) < 1e-15
+    assert a.series("sigma_zz_avg")[2] == a.scale     # sphere QoIs keep their scale

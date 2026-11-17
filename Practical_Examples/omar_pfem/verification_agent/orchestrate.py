@@ -57,7 +57,10 @@ class B1Adapter:
         "interior_avg_PK1_frob = detJ-weighted mean of |P|_F over the Gauss points inside "
         "the circle centre (0.5,0.5), radius 0.15 (about 0.56 from the clamped corners); "
         "peak_PK1_frob = max of |P|_F over all Gauss points (corner singularity where the "
-        "clamped edge meets the free edges).")
+        "clamped edge meets the free edges). Surrogate errors these references must "
+        "resolve: best PI displacement relative L2 4.10%; for energy and stress QoIs no "
+        "number is recorded, so the class ceilings apply. Tolerances are set by code "
+        "(requirements.py), not by the plan.")
     qois = ("max_disp_mag", "u_top_off_center", "v_top_off_center", "u_mid_domain",
             "v_mid_domain", "strain_energy", "interior_avg_PK1_frob", "peak_PK1_frob")
 
@@ -121,9 +124,23 @@ class B3Adapter:
         "STRESS SCALE (the finest-level region average of the Frobenius norm, 0.910), not "
         "to their own magnitude, so near-zero components are not amplified; global QoIs "
         "(reaction_moment_y about the rotation axis, strain_energy; half model) are judged "
-        "relative to themselves. Context: the best surrogates validated against these "
-        "targets have errors of about 1.4-4%.")
+        "relative to themselves; strain_energy and reaction_moment_y are linked "
+        "(W ~ 1/2 M phi, 0.06% at 2,376 el), so they count as ONE piece of evidence. "
+        "Surrogate errors these references must resolve (best recorded, per QoI): "
+        "reaction moment 1.38%, strain energy 4.13%, groove-region stresses >= 600% "
+        "(every component, every checkpoint); tolerances are set by code from these "
+        "(requirements.py), not by the plan. "
+        "gk2_* QoIs: the same stress measures averaged with the SMOOTH weight "
+        "exp(-(d/l)^2), l = 2 R0 = 0.0912, d = distance to the groove-root point, over "
+        "all Gauss points within 0.25 (weight there < 6e-4) instead of the sharp sphere: "
+        "a mesh-independent functional (effective ~35-694 Gauss points from coarsest to "
+        "finest); judged relative to its own Frobenius-average scale 3.097. A proposed "
+        "alternative to the sharp sphere, NOT the definition used in the manuscript.")
     CYL = ("rr", "tt", "zz", "rt", "rz", "tz")
+    KERNEL_PREFIX = "gk2_"
+    KERNEL_QOIS = ("sigma_xx_avg", "sigma_yy_avg", "sigma_zz_avg", "pressure_avg",
+                   "cyl_rr_avg", "cyl_tt_avg", "cyl_rz_avg", "sigma_frob_avg",
+                   "von_mises_avg")
     GLOBAL = ("reaction_moment_y", "strain_energy")
 
     def __init__(self):
@@ -159,10 +176,40 @@ class B3Adapter:
             for c in self.CYL:
                 for st in ("avg", "max"):
                     self.get[f"cyl_{c}_{st}"] = lambda g, c=c, st=st: g["per_cylindrical"][c][st]
+            self._add_kernel_qois()
         self.qois = tuple(self.get)
 
+    def _add_kernel_qois(self):
+        """Gaussian-kernel region averages (l = 2 R0) from the Gauss-point dumps
+        of the same solutions (b3_gauss_near_groove/, region_study.py)."""
+        from omar_pfem.verification_agent import region_study as RS
+        try:
+            fam, strat = RS.load()
+        except Exception:
+            return
+        if len(fam) < len(self.family) or len(strat) < len(self.zbeta) - 1:
+            return
+        R0 = float(fam[0]["radius"])
+        vals = {}
+        for rec in fam + strat:
+            w, _ = RS.weights(rec, "gauss", 2 * R0)
+            q = RS.qois(rec, w)
+            q["sigma_frob_avg"] = q.pop("frob_avg")
+            vals[(rec["n_elem"], rec["z_beta"])] = q
+        if not all((g["n_elem"], g["z_beta"]) in vals for g in self.family):
+            return
+        self.kernel_values = vals
+        for name in self.KERNEL_QOIS:
+            self.get[self.KERNEL_PREFIX + name] = (
+                lambda g, name=name: self.kernel_values[(g["n_elem"], g["z_beta"])][name])
+        self.kernel_scale = vals[(self.family[-1]["n_elem"], None)]["sigma_frob_avg"]
+
     def _scale(self, qoi):
-        return None if qoi in self.GLOBAL else self.scale  # globals: self-relative
+        if qoi in self.GLOBAL:
+            return None                       # globals: self-relative
+        if qoi.startswith(self.KERNEL_PREFIX):
+            return self.kernel_scale
+        return self.scale
 
     def series(self, qoi):
         return self.hs, [self.get[qoi](g) for g in self.family], self._scale(qoi)
@@ -183,7 +230,8 @@ ADAPTER_VOCAB = {
                                                    ("xx", "yy", "zz", "xy", "xz", "yz")
                                                    for s in ("avg", "max"))
                        + B3Adapter.GLOBAL + ("von_mises_avg", "von_mises_max", "pressure_avg")
-                       + tuple(f"cyl_{c}_{s}" for c in B3Adapter.CYL for s in ("avg", "max"))),
+                       + tuple(f"cyl_{c}_{s}" for c in B3Adapter.CYL for s in ("avg", "max"))
+                       + tuple(B3Adapter.KERNEL_PREFIX + q for q in B3Adapter.KERNEL_QOIS)),
 }
 
 
@@ -205,6 +253,28 @@ def convergence_params(plan):
             for q in c["qois"]:
                 out.setdefault(q, {})[c["check"]] = c["params"]
     return out
+
+
+def set_code_tolerances(plan, spec_d):
+    """Replace the tolerances of every (check, QoI) by trees.check_params and
+    split checks so each carries its own QoI's values. Returns the new plan
+    and the list of pairs whose LLM-chosen values differed."""
+    geometry = spec_d.get("geometry")
+    checks, changed = [], []
+    for c in plan["checks"]:
+        if c["check"] not in R.CHECK_CATALOGUE:
+            checks.append(c)          # left for validate_plan to reject
+            continue
+        groups = {}
+        for q in c["qois"]:
+            p = trees.check_params(c["check"], q, geometry)
+            if c["params"] != p:
+                changed.append({"check": c["check"], "qoi": q, "llm": dict(c["params"]),
+                                "code": p})
+            groups.setdefault(tuple(sorted(p.items())), []).append(q)
+        for p, qs in groups.items():
+            checks.append({**c, "qois": qs, "params": dict(p)})
+    return {**plan, "checks": checks}, changed
 
 
 def run_check(adapter, check, qoi, params, element=None, conv_params=None):
@@ -303,19 +373,30 @@ def orchestrate(backend, problem_text, log=print, trace=None):
     log("[rules] baseline requires: " + "; ".join(
         f"{c['check']} on {len(c['qois'])} QoIs" for c in baseline["checks"])
         + f"; predicts FAIL: {[e['qoi'] for e in baseline['expected_failures']]}")
-    plan, perrs = R.propose(backend, spec_d, neigh)
-    perrs = perrs + trees.plan_rule_errors(plan, spec_d)
+    def proposed(extra):
+        """Propose, then replace every tolerance by the code-derived one
+        (trees.check_params) -- tolerances are never the LLM's choice -- and
+        validate what remains: catalogue, QoIs, rule-required checks."""
+        p, _ = R.propose(backend, spec_d, extra)
+        p, changed = set_code_tolerances(p, spec_d)
+        errs = R.validate_plan(p, spec_d["qois"]) + trees.plan_rule_errors(p, spec_d)
+        return p, errs, changed
+
+    plan, perrs, overridden = proposed(neigh)
     crit = R.critique(backend, spec_d, plan) if not perrs else None
     if perrs or not crit["approve"]:
         feedback = {"validation_errors": perrs, "critic": crit}
         log(f"[guard/critic] revision requested: {json.dumps(feedback)}")
-        plan, perrs = R.propose(backend, spec_d, neigh + [{"revise_previous_plan": feedback}])
-        perrs = perrs + trees.plan_rule_errors(plan, spec_d)
+        plan, perrs, overridden = proposed(neigh + [{"revise_previous_plan": feedback}])
         crit = R.critique(backend, spec_d, plan) if not perrs else None
+    trace["tolerances_overridden"] = overridden
+    if overridden:
+        log(f"[code] tolerances set by code, LLM values replaced for {len(overridden)} "
+            "check/QoI pairs")
     # Rules are authoritative: if the only remaining problems are checks the
-    # rules require but the LLM left out, add them (catalogue defaults) and
+    # rules require but the LLM left out, add them (code tolerances) and
     # record the augmentation, instead of discarding the whole plan.
-    rule_only = perrs and all(e.startswith(("rules ", "ceiling: ")) for e in perrs)
+    rule_only = perrs and all(e.startswith("rules ") for e in perrs)
     if rule_only:
         need = trees.required_checks(plan, spec_d)   # R1-R6 plus plan-level R7
         added = []
@@ -324,28 +405,12 @@ def orchestrate(backend, problem_text, log=print, trace=None):
             for chk in sorted(r["required"]):
                 if chk not in have:
                     plan["checks"].append({"check": chk, "qois": [q],
-                                           "params": trees.class_params(
-                                               chk, r["qoi_class"]),
+                                           "params": trees.check_params(
+                                               chk, q, spec_d.get("geometry")),
                                            "rationale": f"added by rules {r['rules']}"})
                     added.append(f"{chk}:{q}")
-        # clamp tolerances looser than the class ceiling
-        clamped = []
-        for c in plan["checks"]:
-            for q in list(c["qois"]):
-                if q not in need:
-                    continue
-                ceil = trees.class_params(c["check"], need[q]["qoi_class"])
-                if any(c["params"].get(k, 0) > v + 1e-12 for k, v in ceil.items()):
-                    c["qois"].remove(q)
-                    plan["checks"].append({"check": c["check"], "qois": [q],
-                                           "params": {k: min(c["params"].get(k, v), v)
-                                                      for k, v in ceil.items()},
-                                           "rationale": "tolerance clamped to class ceiling"})
-                    clamped.append(f"{c['check']}:{q}")
-        plan["checks"] = [c for c in plan["checks"] if c["qois"]]
-        trace["rule_augmented"], trace["ceiling_clamped"] = added, clamped
-        log(f"[rules] plan augmented with required checks the LLM omitted: {added}; "
-            f"tolerances clamped to class ceilings: {clamped}")
+        trace["rule_augmented"] = added
+        log(f"[rules] plan augmented with required checks the LLM omitted: {added}")
         perrs = R.validate_plan(plan, spec_d["qois"]) + trees.plan_rule_errors(plan, spec_d)
     if not perrs and crit is None:
         # the final plan has not been reviewed yet (e.g. after augmentation)

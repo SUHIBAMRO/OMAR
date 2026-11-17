@@ -111,10 +111,11 @@ def cmd_replay_b3(args):
     for comp, stat, get in series:
             vals = [get(g) for g in family]
             qoi = f"sigma_{comp}_{stat}"
-            c = trees.CLASS_CEILINGS[trees.classify_qoi(qoi)]
+            c = trees.check_params("qoi_convergence", qoi, "bushing_groove")
+            r_ = trees.check_params("strategy_robustness", qoi, "bushing_groove")
             band = c["band_tol"] if args.band_tol is None else args.band_tol
             gci = c["gci_tol"] if args.gci_tol is None else args.gci_tol
-            rob = c["robust_tol"] if args.robust_tol is None else args.robust_tol
+            rob = r_["tol"] if args.robust_tol is None else args.robust_tol
             g_conv = gates.qoi_convergence_gate(hs, vals, band_tol=band,
                                                 gci_tol=gci, scale=scale,
                                                 order_window=window)
@@ -160,7 +161,7 @@ def cmd_b1_ladder(args):
     print(f"{'QoI':<24}{'verdict':>9}{'evidence':>9}  detail")
     for qoi in B1_QOIS:
         vals = [r[qoi] for r in rows]
-        c = trees.class_params("qoi_convergence", trees.classify_qoi(qoi))
+        c = trees.check_params("qoi_convergence", qoi, "unit_square")
         band = c["band_tol"] if args.band_tol is None else args.band_tol
         gci = c["gci_tol"] if args.gci_tol is None else args.gci_tol
         g = gates.qoi_convergence_gate(hs, vals, band_tol=band, gci_tol=gci,
@@ -286,7 +287,8 @@ def cmd_adaptive(args):
 
     timing = [r for r in all_rows if r.get("wall_clock_s")]
     res = adaptive.adaptive_refine(solve, list(B1_QOIS), budget_s=args.budget_s,
-                                   element="Q4", require_rate=not args.allow_band,
+                                   element="Q4", geometry="unit_square",
+                                   require_rate=not args.allow_band,
                                    min_levels=args.min_levels,
                                    timing_rows=timing)
     print(f"\nstopped: {res['stop']}; levels used {res['levels']}; "

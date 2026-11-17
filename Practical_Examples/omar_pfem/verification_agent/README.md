@@ -44,11 +44,20 @@ Live LLM backends:
 **`band` is weaker than `rate`.** A band PASS means the QoI is stable
 within the band. It does not show a convergence rate or monotonicity.
 
-## Rules and tolerances (`trees.py`)
+## Rules and tolerances (`trees.py`, `requirements.py`)
 
 - **QoI classes:** global, displacement, region_average, pointwise_peak,
   error_norm.
-- **Tolerance ceilings:** LLM plans may tighten these, never loosen them.
+- **Tolerances are set by code only** (`trees.check_params`). An LLM
+  plan's parameters are replaced, and the replacements are recorded in
+  the trace as `tolerances_overridden`. Each tolerance is the class
+  ceiling, tightened to the requirement from the surrogate errors the
+  reference has to resolve.
+  - Requirement: `best recorded surrogate error / 3` (`requirements.py`;
+    every number has its source).
+  - A QoI with no recorded surrogate error keeps its class ceiling, and
+    the requirement says so.
+- **Class ceilings (upper bounds):**
   - global and displacement: band 0.2%, GCI 1%, robustness 1%;
   - all other classes: 1%, 2%, 2%.
 - **Rules R1–R6** say which checks are required and which verdicts are
@@ -76,6 +85,13 @@ within the band. It does not show a convergence rate or monotonicity.
   - Region averages use the stored sharp sphere of radius 2 × the groove
     curvature radius. `region_study.py` and `b3_gauss_near_groove/` compare
     other region definitions on the same solutions.
+  - `gk2_*` QoIs average the same quantities with the smooth weight
+    `exp(-(d/2R0)^2)`, built from the same dumps. This is a
+    mesh-independent alternative to the sphere; it is **not** the
+    manuscript's definition.
+  - The Q20 elements use torchfem's 2×2×2 (reduced) rule.
+    `b3_global.py fullint` re-solves two levels with the full 27-point
+    rule and saves them to `b3_fullint.json`.
 
 ## Files
 

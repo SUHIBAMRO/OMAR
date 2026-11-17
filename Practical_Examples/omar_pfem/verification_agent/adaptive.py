@@ -22,8 +22,9 @@ Two pieces, both deterministic:
            band (more uniform refinement cannot fix those).
    Otherwise it stays open until max_levels or the budget; then a QoI whose
    gates all pass is reported PASS with its (weaker) evidence and the stop
-   reason, anything else INCONCLUSIVE. Tolerances default to the per-class
-   ceilings (trees.CLASS_CEILINGS) and the order window to the element's.
+   reason, anything else INCONCLUSIVE. Tolerances default to
+   trees.check_params (class ceiling tightened by the requirement from the
+   surrogate errors) and the order window to the element's.
 
 What this is NOT: active learning for the neural-operator surrogate
 (choosing which training samples or fidelities to generate next). That is
@@ -91,7 +92,8 @@ def _gates(hs, vals, band_tol, gci_tol, window):
 
 
 def adaptive_refine(solve, qois, N0=(11, 21, 41), budget_s=1800.0, max_levels=6,
-                    band_tol=None, gci_tol=None, element=None, require_rate=True,
+                    band_tol=None, gci_tol=None, element=None, geometry=None,
+                    require_rate=True,
                     min_levels=4, timing_rows=(), log=print):
     """solve(N) -> row dict with 'h', 'n_dof', optional 'wall_clock_s', and
     the QoIs. band_tol/gci_tol: None -> the QoI class ceiling. min_levels:
@@ -102,7 +104,7 @@ def adaptive_refine(solve, qois, N0=(11, 21, 41), budget_s=1800.0, max_levels=6,
     window = trees.order_window(element)
 
     def tols(q):
-        c = trees.class_params("qoi_convergence", trees.classify_qoi(q))
+        c = trees.check_params("qoi_convergence", q, geometry)
         return (c["band_tol"] if band_tol is None else band_tol,
                 c["gci_tol"] if gci_tol is None else gci_tol)
 

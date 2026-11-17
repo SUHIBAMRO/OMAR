@@ -69,11 +69,11 @@ def order_window(element):
     return None if k is None else (0.5, 2 * k + 1)
 
 
-# Tolerance CEILINGS per QoI class. The reference uncertainty must be well
-# below the surrogate errors it is used to judge (best surrogate errors in
-# this project: ~1.4-4% on B3/B1 QoIs), so global and displacement QoIs,
-# which converge fastest, get the tightest ceilings. LLM plans may tighten
-# these, never loosen them.
+# Tolerance CEILINGS per QoI class (upper bounds). The actual tolerance of a
+# QoI is check_params(): the ceiling, tightened by the requirement derived
+# from the surrogate errors the reference has to resolve
+# (requirements.py). Tolerances are set by code only; an LLM plan's
+# parameters are replaced by these (orchestrate.py).
 CLASS_CEILINGS = {
     "global": {"band_tol": 0.002, "gci_tol": 0.01, "robust_tol": 0.01},
     "displacement": {"band_tol": 0.002, "gci_tol": 0.01, "robust_tol": 0.01},
@@ -174,19 +174,36 @@ def class_params(check, qoi_class):
     return {}
 
 
+def check_params(check, qoi, geometry=None):
+    """The tolerances a check uses for one QoI: the class ceiling, tightened
+    (never loosened) to the required uncertainty of requirements.py when a
+    surrogate error is recorded for that QoI."""
+    from omar_pfem.verification_agent import requirements
+    p = class_params(check, classify_qoi(qoi))
+    req, _ = requirements.required_uncertainty(geometry, qoi)
+    if req is not None:
+        p = {k: (min(v, req) if k in ("band_tol", "gci_tol", "tol") and check != "mms_rates"
+                 else v) for k, v in p.items()}
+    return p
+
+
 def rule_plan(spec):
     """Deterministic baseline plan (no LLM), in the proposer's schema, with
     the per-class ceiling tolerances."""
     rules = apply_rules(spec)
+    geometry = spec.get("geometry")
     checks = []
     for chk in ("mms_rates", "qoi_convergence", "qoi_convergence_multilevel",
                 "strategy_robustness", "anchored_robustness"):
-        for cls in CLASS_CEILINGS:
-            qs = [q for q, r in rules.items() if chk in r["required"] and r["qoi_class"] == cls]
-            if qs:
-                checks.append({"check": chk, "qois": qs, "params": class_params(chk, cls),
-                               "rationale": f"{cls}: required by rules " + ", ".join(sorted(
-                                   {rid for q in qs for rid in rules[q]["rules"]}))})
+        groups = {}
+        for q, r in rules.items():
+            if chk in r["required"]:
+                p = check_params(chk, q, geometry)
+                groups.setdefault((r["qoi_class"], tuple(sorted(p.items()))), []).append(q)
+        for (cls, p), qs in groups.items():
+            checks.append({"check": chk, "qois": qs, "params": dict(p),
+                           "rationale": f"{cls}: required by rules " + ", ".join(sorted(
+                               {rid for q in qs for rid in rules[q]["rules"]}))})
     return {"checks": checks,
             "expected_failures": [{"qoi": q, "why": "rules " + ", ".join(r["rules"])}
                                   for q, r in rules.items() if r["predicted"] == "FAIL"]}
@@ -232,9 +249,9 @@ def plan_rule_errors(plan, spec):
         for q in c["qois"]:
             if q not in analysis:
                 continue
-            ceil = class_params(c["check"], analysis[q]["qoi_class"])
+            ceil = check_params(c["check"], q, spec.get("geometry"))
             for k, v in c["params"].items():
                 if k in ceil and v > ceil[k] + 1e-12:
                     errs.append(f"ceiling: {c['check']} {k}={v} for '{q}' exceeds the "
-                                f"{analysis[q]['qoi_class']} ceiling {ceil[k]}")
+                                f"{analysis[q]['qoi_class']} limit {ceil[k]:g}")
     return errs
