@@ -174,10 +174,13 @@ def test_orchestrate_replay_augments_and_reviews(tmp_path):
                    capture_output=True)
     t = json.load(open(out))
     assert "error" not in t
-    assert sorted(t["rule_augmented"]) == ["anchored_robustness:interior_avg_PK1_frob",
-                                           "anchored_robustness:peak_PK1_frob",
-                                           "strategy_robustness:interior_avg_PK1_frob",
-                                           "strategy_robustness:peak_PK1_frob"]
+    # the fixture predates qoi_convergence_multilevel, so rule R2 adds it for every QoI
+    assert sorted(t["rule_augmented"]) == sorted(
+        ["anchored_robustness:interior_avg_PK1_frob", "anchored_robustness:peak_PK1_frob",
+         "strategy_robustness:interior_avg_PK1_frob", "strategy_robustness:peak_PK1_frob"]
+        + [f"qoi_convergence_multilevel:{q}" for q in (
+            "strain_energy", "max_disp_mag", "v_top_off_center", "interior_avg_PK1_frob",
+            "peak_PK1_frob")])
     # the fixture's gci_tol 0.05 / band 0.01 exceed the displacement/global ceilings
     assert sorted(t["ceiling_clamped"]) == sorted(
         f"qoi_convergence:{q}" for q in ("strain_energy", "max_disp_mag", "v_top_off_center",
@@ -185,6 +188,9 @@ def test_orchestrate_replay_augments_and_reviews(tmp_path):
     assert t["critique"] is not None
     assert t["gate_summary"]["peak_PK1_frob"]["verdict"] == "FAIL"
     assert t["gate_summary"]["strain_energy"]["verdict"] == "PASS"
+    assert t["gate_summary"]["strain_energy"]["convergence_evidence"] == "rate"
+    assert "qoi_convergence_multilevel" in t["gate_summary"]["strain_energy"]["gates"]
+    assert t["gate_summary"]["peak_PK1_frob"]["convergence_evidence"] == "none"
     assert t["advisor_flags"] == ["advisor says PASS for 'peak_PK1_frob' but the gate says FAIL"]
 
 
@@ -275,3 +281,22 @@ def test_multilevel_two_term_error_still_rate():
     vals = [2.0 + 1.0 * h ** 2 + 5.0 * h ** 3 for h in _HS5]
     g = gates.multilevel_convergence_gate(_HS5, vals, gci_tol=0.05, order_window=(0.5, 5))
     assert g["evidence"] == "rate" and 2.0 < g["fit_order"] < 3.0
+
+
+def test_combine_takes_strongest_passing_evidence_and_any_fail():
+    from omar_pfem.verification_agent.orchestrate import combine
+    v = {"qoi_convergence": {"verdict": "PASS", "evidence": "band"},
+         "qoi_convergence_multilevel": {"verdict": "PASS", "evidence": "rate"}}
+    assert combine(v) == ("PASS", "rate", ["qoi_convergence_multilevel"])
+    v["strategy_robustness"] = {"verdict": "FAIL"}
+    assert combine(v)[0] == "FAIL"
+    v = {"qoi_convergence": {"verdict": "FAIL", "evidence": "none"},
+         "qoi_convergence_multilevel": {"verdict": "PASS", "evidence": "rate"}}
+    assert combine(v)[0] == "FAIL"   # one convergence gate never relaxes the other
+
+
+def test_rule_plan_includes_multilevel_for_solution_verification():
+    from omar_pfem.verification_agent import trees
+    plan = trees.rule_plan(_spec())
+    ml = [c for c in plan["checks"] if c["check"] == "qoi_convergence_multilevel"]
+    assert sorted(q for c in ml for q in c["qois"]) == sorted(_spec()["qois"])

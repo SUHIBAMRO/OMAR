@@ -45,6 +45,17 @@ CHECK_CATALOGUE = {
         "applies_when": "solution verification of a physical-problem QoI",
         "params": {"band_tol": (0.0005, 0.02), "gci_tol": (0.001, 0.10)},
     },
+    "qoi_convergence_multilevel": {
+        "implements": "gates.multilevel_convergence_gate: least-squares fit v = a + b h^p over "
+                      "the finest 5 levels (>= 4 required); rate evidence only if monotone, "
+                      "good fit, p in the element's window and stable under leave-one-out; "
+                      "uncertainty 1.25|v_fine - a| + sigma + |finest residual| vs gci_tol",
+        "applies_when": "solution verification on a family with >= 4 levels; certifies a rate "
+                        "where the three-level Celik order is ill-conditioned (small "
+                        "refinement ratios) and rejects a rate the finest three only appear "
+                        "to show",
+        "params": {"band_tol": (0.0005, 0.02), "gci_tol": (0.001, 0.10)},
+    },
     "strategy_robustness": {
         "implements": "gates.strategy_robustness_gate across refinement strategies",
         "applies_when": "QoI sensitive to where the mesh is refined (local features)",
@@ -52,7 +63,8 @@ CHECK_CATALOGUE = {
     },
     "anchored_robustness": {
         "implements": "gates.anchored_robustness_gate: every strategy vs the family's "
-                      "Richardson limit (or finest value)",
+                      "Richardson limit, else the multilevel fit limit when that one has "
+                      "rate evidence, else the finest value",
         "applies_when": "strategies must agree with the converged limit, not just each other",
         "params": {"tol": (0.001, 0.05)},
     },
@@ -338,7 +350,11 @@ def advise(backend, spec_dict, gate_results):
     prompt = ("Explain these deterministic gate results for a manuscript. For each QoI, "
               "restate the gate verdict exactly (do not change it) and interpret it "
               "physically. Then propose one paragraph of manuscript wording that claims no "
-              "more than the gates support.\n\n"
+              "more than the gates support. convergence_evidence says what a PASS rests "
+              "on: 'rate' = a demonstrated convergence rate (evidence_from names the gate: "
+              "qoi_convergence = finest three levels, qoi_convergence_multilevel = fit over "
+              "the finest five); 'band' = only stable within the band, NO rate and NO "
+              "monotonicity shown, so do not write 'converges' or 'monotonically' for it.\n\n"
               f"SPEC:\n{json.dumps(spec_dict, indent=1)}\n\n"
               f"GATE RESULTS:\n{json.dumps(gate_results, indent=1)}")
     advice = backend.ask("advisor", prompt, ADVICE_SCHEMA)

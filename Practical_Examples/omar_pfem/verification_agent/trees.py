@@ -6,7 +6,8 @@ hyperelastic FE references:
 
   problem tree   regularity class x reference type x QoI class
   method tree    code verification (mms_rates) / solution verification
-                 (qoi_convergence, strategy_robustness)
+                 (qoi_convergence, qoi_convergence_multilevel,
+                 strategy_robustness, anchored_robustness)
   rules          which checks a (problem, QoI) REQUIRES, and which verdict
                  theory PREDICTS, each with a stated reason
 
@@ -42,6 +43,9 @@ METHOD_TREE = {
     "solution_verification": {
         "qoi_convergence": "stability / Richardson-GCI on one refinement family, with the "
                            "observed order required to lie in the element's asymptotic window",
+        "qoi_convergence_multilevel": "least-squares power-law fit over the finest 5 levels; "
+                                      "rate evidence needs monotonicity, fit quality, p in "
+                                      "the window and leave-one-out stability",
         "strategy_robustness": "agreement across independent refinement strategies",
         "anchored_robustness": "every strategy agrees with the family's Richardson limit "
                                "(or finest value), not only with the other strategies",
@@ -115,8 +119,9 @@ RULES = [
      {"mms_rates"}, None,
      "an exact manufactured solution allows rate-based code verification"),
     ("R2", lambda s, q: reference_class(s["reference"]) == "solution_verification",
-     {"qoi_convergence"}, None,
-     "without an exact solution, every QoI must be shown converged on a refinement family"),
+     {"qoi_convergence", "qoi_convergence_multilevel"}, None,
+     "without an exact solution, every QoI must be shown converged on a refinement family, "
+     "both on the finest three levels (Celik) and by a fit over the finest five"),
     ("R3", lambda s, q: q == "pointwise_peak"
      and regularity_class(s["regularity"]) in ("singular", "near_singular"),
      {"strategy_robustness", "anchored_robustness"}, "FAIL",
@@ -132,7 +137,8 @@ RULES = [
      set(), "PASS",
      "energy and displacements converge in H1-type norms even with corner singularities"),
     ("R6", lambda s, q: regularity_class(s["regularity"]) == "unknown",
-     {"qoi_convergence", "strategy_robustness", "anchored_robustness"}, None,
+     {"qoi_convergence", "qoi_convergence_multilevel", "strategy_robustness",
+      "anchored_robustness"}, None,
      "unknown regularity: apply every solution-verification check"),
 ]
 
@@ -157,7 +163,7 @@ def apply_rules(spec):
 
 def class_params(check, qoi_class):
     c = CLASS_CEILINGS.get(qoi_class, CLASS_CEILINGS["unknown"])
-    if check == "qoi_convergence":
+    if check in ("qoi_convergence", "qoi_convergence_multilevel"):
         return {"band_tol": c["band_tol"], "gci_tol": c["gci_tol"]}
     if check in ("strategy_robustness", "anchored_robustness"):
         return {"tol": c["robust_tol"]}
@@ -171,7 +177,8 @@ def rule_plan(spec):
     the per-class ceiling tolerances."""
     rules = apply_rules(spec)
     checks = []
-    for chk in ("mms_rates", "qoi_convergence", "strategy_robustness", "anchored_robustness"):
+    for chk in ("mms_rates", "qoi_convergence", "qoi_convergence_multilevel",
+                "strategy_robustness", "anchored_robustness"):
         for cls in CLASS_CEILINGS:
             qs = [q for q, r in rules.items() if chk in r["required"] and r["qoi_class"] == cls]
             if qs:

@@ -198,14 +198,14 @@ def _default_spec(geometry):
 def cmd_rules(args):
     """Deterministic rule-based plan (no LLM), executed and scored."""
     from omar_pfem.verification_agent import trees
-    from omar_pfem.verification_agent.orchestrate import ADAPTERS, run_check
+    from omar_pfem.verification_agent.orchestrate import (ADAPTERS, run_check, combine,
+                                                          convergence_params)
     for geometry in args.geometry.split(","):
         spec = _default_spec(geometry)
         sd = spec.to_dict()
         plan, analysis = trees.rule_plan(sd), trees.apply_rules(sd)
         adapter = ADAPTERS[geometry]()
-        conv_params = {q: c["params"] for c in plan["checks"]
-                       if c["check"] == "qoi_convergence" for q in c["qois"]}
+        conv_params = convergence_params(plan)
         verdicts = {}
         for c in plan["checks"]:
             for q in c["qois"]:
@@ -214,24 +214,27 @@ def cmd_rules(args):
                     conv_params=conv_params.get(q))
         print(f"\n{spec.name} (regularity {spec.regularity}, element {spec.element}, "
               f"order window {trees.order_window(spec.element)})")
-        print(f"{'QoI':<24}{'class':<16}{'pred':<6}{'conv':<6}{'evid':<6}"
-              f"{'strat':<7}{'anchor':<7}overall")
+        print(f"{'QoI':<24}{'class':<16}{'pred':<6}{'conv3':<6}{'evid':<6}{'conv5':<6}"
+              f"{'evid':<6}{'strat':<7}{'anchor':<7}{'overall':<8}evidence")
         hits = n_pred = 0
         for q in spec.qois:
             v = verdicts[q]
-            vs = [x["verdict"] for x in v.values()]
-            overall = "FAIL" if "FAIL" in vs else ("PASS" if all(x == "PASS" for x in vs)
-                                                   else "INCONCLUSIVE")
+            overall, evidence, _ = combine(v)
             a = analysis[q]
             if a["predicted"]:
                 n_pred += 1
                 hits += a["predicted"] == overall
             cv = v.get("qoi_convergence", {})
+            ml = v.get("qoi_convergence_multilevel", {})
             print(f"{q:<24}{a['qoi_class']:<16}{a['predicted'] or '-':<6}"
                   f"{cv.get('verdict', '-'):<6}{cv.get('evidence', '-'):<6}"
+                  f"{ml.get('verdict', '-'):<6}{ml.get('evidence', '-'):<6}"
                   f"{v.get('strategy_robustness', {}).get('verdict', '-'):<7}"
-                  f"{v.get('anchored_robustness', {}).get('verdict', '-'):<7}{overall}")
-            print(f"{'':<4}conv: {cv.get('reason')}")
+                  f"{v.get('anchored_robustness', {}).get('verdict', '-'):<7}{overall:<8}"
+                  f"{evidence}")
+            print(f"{'':<4}conv3: {cv.get('reason')}")
+            if ml:
+                print(f"{'':<4}conv5: {ml.get('reason')}")
             for k in ("strategy_robustness", "anchored_robustness"):
                 if k in v:
                     print(f"{'':<4}{k.split('_')[0]}: {v[k].get('reason')}")

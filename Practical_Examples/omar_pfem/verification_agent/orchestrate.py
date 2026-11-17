@@ -130,23 +130,69 @@ ADAPTER_VOCAB = {
 # ----------------------------------------------------------------------------
 
 
+CONV_CHECKS = ("qoi_convergence", "qoi_convergence_multilevel")
+
+
+def convergence_params(plan):
+    """{qoi: {check: params}} for the convergence checks of a plan; used to
+    anchor anchored_robustness on the same tolerances."""
+    out = {}
+    for c in plan["checks"]:
+        if c["check"] in CONV_CHECKS:
+            for q in c["qois"]:
+                out.setdefault(q, {})[c["check"]] = c["params"]
+    return out
+
+
+def combine(verdicts):
+    """Overall verdict of one QoI (FAIL if any gate failed, PASS if all
+    passed, else INCONCLUSIVE) and the strongest convergence evidence among
+    the convergence gates that PASSED ("rate" > "band" > "none"), with the
+    gate it came from. Several convergence gates never relax each other: a
+    FAIL from either one fails the QoI."""
+    vs = [v["verdict"] for v in verdicts.values()]
+    overall = "FAIL" if "FAIL" in vs else ("PASS" if all(v == "PASS" for v in vs)
+                                           else "INCONCLUSIVE")
+    passed = [(k, v.get("evidence")) for k, v in verdicts.items()
+              if k in CONV_CHECKS and v["verdict"] == "PASS"]
+    for level in ("rate", "band"):
+        src = [k for k, e in passed if e == level]
+        if src:
+            return overall, level, src
+    return overall, "none", []
+
+
 def run_check(adapter, check, qoi, params, element=None, conv_params=None):
-    """Execute one catalogued check. The order window for qoi_convergence
-    comes from the element (trees.order_window), never from the plan."""
+    """Execute one catalogued check. The order window of the convergence
+    checks comes from the element (trees.order_window), never from the plan.
+    conv_params: {check: params} of the QoI's convergence checks (for the
+    anchor of anchored_robustness)."""
+    window = trees.order_window(element)
     if check == "qoi_convergence":
         hs, vals, scale = adapter.series(qoi)
-        return gates.qoi_convergence_gate(hs, vals, scale=scale,
-                                          order_window=trees.order_window(element), **params)
+        return gates.qoi_convergence_gate(hs, vals, scale=scale, order_window=window, **params)
+    if check == "qoi_convergence_multilevel":
+        hs, vals, scale = adapter.series(qoi)
+        return gates.multilevel_convergence_gate(hs, vals, scale=scale, order_window=window,
+                                                 **params)
     if check == "anchored_robustness":
         s = adapter.strategies(qoi)
         if s is None:
             return {"gate": "anchored_robustness", "verdict": "INCONCLUSIVE",
                     "reason": "no alternative refinement strategy computed for this problem"}
         hs, vals, scale = adapter.series(qoi)
-        conv = gates.qoi_convergence_gate(hs, vals, scale=scale,
-                                          order_window=trees.order_window(element),
-                                          **(conv_params or {}))
+        cp = conv_params or {}
+        conv = gates.qoi_convergence_gate(hs, vals, scale=scale, order_window=window,
+                                          **cp.get("qoi_convergence", {}))
         anchor, kind = gates.family_anchor(conv)
+        if conv.get("evidence") != "rate":
+            # no three-level rate: anchor on the multilevel fit limit if that
+            # one certifies a rate, else stay on the finest value
+            ml = gates.multilevel_convergence_gate(
+                hs, vals, scale=scale, order_window=window,
+                **cp.get("qoi_convergence_multilevel", {}))
+            if ml.get("evidence") == "rate":
+                anchor, kind = gates.family_anchor(ml)
         return gates.anchored_robustness_gate(s[0], anchor, scale=s[1], anchor_kind=kind,
                                               **params)
     if check == "strategy_robustness":
@@ -220,7 +266,6 @@ def orchestrate(backend, problem_text, log=print, trace=None):
     # record the augmentation, instead of discarding the whole plan.
     rule_only = perrs and all(e.startswith(("rules ", "ceiling: ")) for e in perrs)
     if rule_only:
-        base = {c["check"]: c for c in baseline["checks"]}
         need = trees.apply_rules(spec_d)
         added = []
         for q, r in need.items():
@@ -228,7 +273,8 @@ def orchestrate(backend, problem_text, log=print, trace=None):
             for chk in r["required"]:
                 if chk not in have:
                     plan["checks"].append({"check": chk, "qois": [q],
-                                           "params": dict(base[chk]["params"]),
+                                           "params": trees.class_params(
+                                               chk, r["qoi_class"]),
                                            "rationale": f"added by rules {r['rules']}"})
                     added.append(f"{chk}:{q}")
         # clamp tolerances looser than the class ceiling
@@ -266,8 +312,7 @@ def orchestrate(backend, problem_text, log=print, trace=None):
     # 4. execute (code only)
     adapter = ADAPTERS[spec.geometry]()
     per_qoi = {}
-    conv_params = {q: c["params"] for c in plan["checks"] if c["check"] == "qoi_convergence"
-                   for q in c["qois"]}
+    conv_params = convergence_params(plan)
     for c in plan["checks"]:
         for q in c["qois"]:
             g = run_check(adapter, c["check"], q, c["params"], element=spec.element,
@@ -279,17 +324,18 @@ def orchestrate(backend, problem_text, log=print, trace=None):
         rec = repository.record(sub, method={"orchestrated": True, "plan": plan,
                                              "critic": crit},
                                 observables={}, verdicts=verdicts)
-        # a QoI's overall verdict: FAIL if any gate failed, PASS if all passed
-        vs = [v["verdict"] for v in verdicts.values()]
-        overall = "FAIL" if "FAIL" in vs else ("PASS" if all(v == "PASS" for v in vs)
-                                               else "INCONCLUSIVE")
-        gate_summary[q] = {"verdict": overall,
+        overall, evidence, ev_src = combine(verdicts)
+        gate_summary[q] = {"verdict": overall, "convergence_evidence": evidence,
+                           "evidence_from": ev_src,
                            "gates": {k: {kk: vv for kk, vv in v.items()
                                          if kk in ("verdict", "reason", "relative_spread",
                                                    "observed_order", "gci_fine", "evidence",
-                                                   "finest_three", "anchor_kind")}
+                                                   "finest_three", "anchor_kind", "n_levels",
+                                                   "fit_order", "fit_limit",
+                                                   "uncertainty_fine", "failed_criteria",
+                                                   "leave_one_out_orders")}
                                      for k, v in verdicts.items()}}
-        log(f"[gates] {q:<24} {overall:<13} accepted={rec['accepted']}")
+        log(f"[gates] {q:<24} {overall:<13} evidence={evidence:<5} accepted={rec['accepted']}")
     trace["gate_summary"] = gate_summary
 
     # prediction score: did the proposer anticipate the failures?
