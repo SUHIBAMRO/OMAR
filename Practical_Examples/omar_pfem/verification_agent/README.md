@@ -39,7 +39,7 @@ Live LLM backends:
 | `strategy_robustness_gate` | spread across refinement strategies at comparable resolution | |
 | `anchored_robustness_gate` | every strategy against the family's limit: the 3-level Richardson value, else the multilevel fit limit, else the finest value. INCONCLUSIVE when neither convergence gate passes: a family that did not converge has no limit. | |
 | `mms_rate_gate` | observed vs theoretical rates against a manufactured solution | |
-| `combine_verdicts` | one policy, shared by the orchestrator and the adaptive controller. Any FAIL fails the QoI. Evidence is the strongest among the convergence gates that passed. | |
+| `combine_verdicts` | one policy, shared by the orchestrator and the adaptive controller. Any FAIL fails the QoI. Evidence is the strongest among the convergence gates that passed, except that a 3-level rate is downgraded to band when the 5-level gate found the finest five levels non-monotone (evidence against an asymptotic regime). | |
 
 **`band` is weaker than `rate`.** A band PASS means the QoI is stable
 within the band. It does not show a convergence rate or monotonicity.
@@ -76,10 +76,17 @@ within the band. It does not show a convergence rate or monotonicity.
 - **B1** (`unit_square`):
   - Q4, uniform levels from the cache `b1_ladder_neo_hookean.json`;
   - corner-graded strategies a = 0.5 and 0.8 at N = 81;
-  - solver: `b1_ladder.py`.
+  - solver: `b1_ladder.py`;
+  - `interior_gk_PK1_frob`: the interior |P| average with a Gaussian weight
+    (length 0.1), from the Gauss-point dumps in `b1_gauss_interior/`
+    (`python -m omar_pfem.verification_agent.b1_ladder` writes them).
 - **B3** (`bushing_groove`):
-  - Q20, a 7-level family from 2,376 to 45,000 elements;
-  - z-refinement strategies at 10,200 elements;
+  - Q20, an 8-level family from 2,376 to 59,400 elements (the 8th level
+    from `b3_global.py fine`; 100,815 elements does not fit in 15 GB);
+  - six strategies at 10,200 elements: axial (z) grading z_beta = 1, 2, 3 and
+    radial grading r_grading = 1.1, 1.2, 1.3 (`b3_global.py radial`, direct
+    solver). r_grading >= 1.75 inverts elements at the groove and 1.5 is
+    near-degenerate, so stronger radial grading is not used;
   - data in `b3_extended.json`, written by `b3_global.py`, which reproduces
     the stored solves.
   - Region averages use the stored sharp sphere of radius 2 × the groove
@@ -92,6 +99,10 @@ within the band. It does not show a convergence rate or monotonicity.
   - The Q20 elements use torchfem's 2×2×2 (reduced) rule.
     `b3_global.py fullint` re-solves two levels with the full 27-point
     rule and saves them to `b3_fullint.json`.
+  - `surface_study.py`: stress ON the groove surface. The Gauss stresses
+    (from the dumps) are extrapolated to all 20 nodes, so a node sits at
+    the groove root on every level; 3- and 5-level gates on the root value
+    and on the surface maximum within R0.
 
 ## Files
 
@@ -111,8 +122,12 @@ within the band. It does not show a convergence rate or monotonicity.
 - The advisor audit checks verdict labels only, not every sentence.
 - Active learning for the surrogate is not implemented. It needs a
   discussion with Prof. Rabczuk.
-- The B3 region averages that get a rate (Gaussian kernel) are not in the
-  B3 adapter. Adding them would redefine the B3 validation target.
+- The B3 region averages that get a rate (Gaussian kernel, `gk2_*`) are in
+  the B3 adapter next to the sphere averages, but the manuscript still uses
+  the sphere: switching would redefine the B3 validation target, which is
+  Omar's and Prof. Rabczuk's decision.
+- No mixed u/p or F-bar formulation: torchfem has neither, so the pressure
+  oscillation at nu = 0.45 cannot be removed within this code.
 
 `PROJECT_STATUS.md` at the repository root holds the results and the
 history.

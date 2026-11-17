@@ -303,11 +303,22 @@ def combine_verdicts(verdicts):
     passed, else INCONCLUSIVE) and the strongest convergence evidence among
     the convergence gates that PASSED ("rate" > "band" > "none"), with the
     gate it came from. Several convergence gates never relax each other: a
-    FAIL from either one fails the QoI."""
+    FAIL from either one fails the QoI.
+
+    Contradiction rule: a rate from the three finest levels does not count
+    when the multilevel gate found the finest five levels NOT MONOTONE --
+    that is evidence against an asymptotic regime, not merely a lack of
+    evidence for one -- and is downgraded to "band". (The reverse case, a
+    3-level gate that only saw a band because the finest changes are tiny,
+    does not contradict a multilevel rate.)"""
     vs = [v["verdict"] for v in verdicts.values()]
     overall = "FAIL" if "FAIL" in vs else ("PASS" if all(v == "PASS" for v in vs)
                                            else "INCONCLUSIVE")
-    passed = [(k, v.get("evidence")) for k, v in verdicts.items()
+    ml = verdicts.get("qoi_convergence_multilevel", {})
+    non_monotone = "monotone" in (ml.get("failed_criteria") or [])
+    passed = [(k, "band" if (non_monotone and v.get("evidence") == "rate"
+                             and k != "qoi_convergence_multilevel") else v.get("evidence"))
+              for k, v in verdicts.items()
               if k in CONV_CHECKS and v["verdict"] == "PASS"]
     for level in ("rate", "band"):
         src = [k for k, e in passed if e == level]

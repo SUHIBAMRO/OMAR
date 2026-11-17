@@ -309,6 +309,17 @@ def test_combine_takes_strongest_passing_evidence_and_any_fail():
     assert combine(v)[0] == "FAIL"   # one convergence gate never relaxes the other
 
 
+def test_three_level_rate_contradicted_by_non_monotone_five_levels_is_band():
+    from omar_pfem.verification_agent.orchestrate import combine
+    v = {"qoi_convergence": {"verdict": "PASS", "evidence": "rate"},
+         "qoi_convergence_multilevel": {"verdict": "PASS", "evidence": "band",
+                                        "failed_criteria": ["monotone", "fit_quality"]}}
+    assert combine(v) == ("PASS", "band", ["qoi_convergence", "qoi_convergence_multilevel"])
+    # a multilevel failure that is not a monotonicity failure does not contradict it
+    v["qoi_convergence_multilevel"]["failed_criteria"] = ["leave_one_out"]
+    assert combine(v) == ("PASS", "rate", ["qoi_convergence"])
+
+
 def test_rule_plan_includes_multilevel_for_solution_verification():
     from omar_pfem.verification_agent import trees
     plan = trees.rule_plan(_spec())
@@ -422,7 +433,9 @@ def test_b3_kernel_qois_present_and_scaled():
         pytest.skip("Gauss-point dumps not available")
     assert "gk2_sigma_zz_avg" in a.qois and "sigma_zz_avg" in a.qois
     _, vals, scale = a.series("gk2_sigma_zz_avg")
-    assert len(vals) == 7 and abs(scale - a.kernel_scale) < 1e-15
+    # one kernel value per family level (every level has a Gauss-point dump)
+    assert len(vals) == len(a.series("sigma_zz_avg")[1]) >= 7
+    assert abs(scale - a.kernel_scale) < 1e-15
     assert a.series("sigma_zz_avg")[2] == a.scale     # sphere QoIs keep their scale
 
 

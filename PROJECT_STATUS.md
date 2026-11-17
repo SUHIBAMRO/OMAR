@@ -20,23 +20,34 @@ finishes or a new one starts.
 >   N=161 predicted blind within 0.40%). Gaussian-kernel interior average
 >   (`interior_gk_PK1_frob`, from `b1_gauss_interior/` dumps) PASS with rate,
 >   3-/5-level orders consistent (1.61/1.79; sharp average 0.76/2.34).
-> - IN PROGRESS (2026-11-17 evening): B3 radial strategy (r_grading
->   1.1/1.2/1.3, direct solver -- 1.5/2/3 were invalid meshes, see the
->   dated entry), groove-surface nodal stress for all family levels
->   (`b3_surface/`), 8th family level 100,815 el. Resumable:
->   `python -m omar_pfem.verification_agent.b3_global radial|surface|fine`.
-> - B3 (Q20, 2,376-45,000 el): moment + strain energy rate-converged (U ~0.2-0.35%);
->   stored sharp-sphere region averages only band-stable; Gaussian-kernel
->   region averages (`gk2_*`, in the adapter next to the sphere ones)
->   rate-certified by the 5-level gate (p~2, U~0.2%) -- NOT adopted in the
->   manuscript: redefining the B3 target is Omar/Rabczuk's decision. Q20 uses
->   the reduced 2x2x2 rule; full 27-point check: globals within 0.08% at
->   10,200 el, pressure oscillation NOT caused by reduced integration.
+> - B3 (Q20, 8 levels 2,376-59,400 el; 100,815 el does not fit in 15 GB):
+>   moment + strain energy rate-converged (U 0.15% / 0.14%, moment
+>   requirement 0.46%). Six strategies at 10,200 el: axial z_beta 1/2/3 and
+>   radial r_grading 1.1/1.2/1.3 (>= 1.75 inverts elements at the groove).
+>   Sharp-sphere region averages band-stable only (~1% under refinement, up
+>   to 2.4% across strategies; sigma_zz/cyl_zz FAIL strategy robustness with
+>   the radial strategies). Gaussian-kernel averages (`gk2_*`, in the adapter)
+>   -- 7 normal/pressure ones rate-certified by the 5-level gate (p 2.2-2.8,
+>   U 0.11-0.18%), strategy spread <= 0.49% -- NOT adopted in the
+>   manuscript (Omar/Rabczuk decision). Groove-surface root stress (20-node
+>   extrapolation, `surface_study.py`): normal stresses + pressure band-stable
+>   (0.38-0.61%), no rate; surface maxima oscillate. Q20 reduced 2x2x2 rule;
+>   full 27-point check: globals within 0.08% at 10,200 el, pressure
+>   oscillation NOT caused by reduced integration. Adaptive controller: same
+>   convergence verdicts as the full family for all 28 QoIs; globals + 5/7
+>   gk2 normal averages decided at 15,960 el (12% of the family's time).
+> - Verdict policy: a 3-level rate is downgraded to band when the 5-level
+>   gate finds the finest five levels non-monotone (changed 2 verdicts:
+>   B3 sigma_yz_avg, surface root sigma_xz).
 > - Open decisions for Omar/Rabczuk: (1) "region-averaged normal stresses"
 >   manuscript wording (deferred by Omar); (2) adopt a Gaussian-kernel region
->   QoI for B3 or not; (3) surrogate active learning (needs discussion).
->   No live LLM run since the 5-level gate was added (billed; not done
->   without Omar).
+>   QoI for B3 or not; (3) margin 3; (4) surrogate active learning (needs
+>   discussion). Draft for Rabczuk (NOT sent):
+>   `advisor_feedback/2026-11-17_verification_framework_summary_DRAFT.md`.
+>   Live LLM runs: traces v2-v4 (with the 5-level gate, before the 8th
+>   level/radial/contradiction rule); further runs are billed, only when
+>   Omar asks. Needs Omar's data: per-QoI surrogate errors for B1, and for
+>   the gk2 definition.
 
 > ⚠️ **STANDING POLICY CHANGE, Omar's own explicit instruction (2026-09-18):
 > the Summary (`PFEM_Work_Summary_*.docx`) is NO LONGER cumulative.**
@@ -25224,3 +25235,31 @@ Limits: the advisor audit checks verdict labels, not every sentence (run-3 advis
   killer (14 GB RSS, session limit ~15 GB). Replaced by the family's own
   next step (Ntheta +4, Nr +2, Nz +5): 41x28x56 = 59,400 el, ratio 1.097
   (family ratios fall 1.34 -> 1.11); running, peak memory measured.
+- 8th level done: 41x28x56 = 59,400 el, 2,739 s, peak RSS 10.26 GB:
+  M_y 34.51984, W 0.863614, sharp frob avg 0.90888 (50 Gauss pts in the
+  sphere), min det F 0.9108. With 8 levels (`agent rules --geometry
+  bushing_groove`): moment p 1.35 / GCI 0.18% / U5 0.15%, energy p 1.41 /
+  GCI 0.16% / U5 0.14%; 7 gk2 normal/pressure averages rate by the 5-level
+  gate (p 2.20-2.76, LOO 1.24-3.74, U 0.11-0.18%); gk2_von_mises_avg lost
+  its 3-level rate (now band); sigma_yz_avg gained a 3-level rate, removed
+  by the new contradiction rule (below). Rule predictions 12/15 (unchanged).
+  region_study (8 levels, 11 QoIs): finest-5 sign changes sharp 1R0 28/33,
+  Gaussian l=2R0 4/33; 5-level rate: sharp 0 of 11, Gaussian l=2R0 7 of 11.
+  surface_study (8 levels): root sigma_xx/sigma_zz/pressure band (finest-three
+  spread 0.61/0.38/0.42%), root von Mises band 0.24%, root sigma_xz band
+  0.80%, surface maxima FAIL.
+- Verdict-policy correction (`gates.combine_verdicts`): a 3-level rate no
+  longer counts when the 5-level gate failed on MONOTONICITY over the
+  finest five levels (evidence against an asymptotic regime); it becomes
+  band. A 3-level band next to a 5-level rate is not a contradiction and
+  is unchanged. Effect: exactly 2 verdicts rate -> band (B3 sigma_yz_avg,
+  surface root sigma_xz); B1 unchanged. New test; 43 tests pass.
+- Adaptive B3 replay, 8 levels, no budget limit: convergence verdicts equal
+  the full family's for all 28 QoIs; globals + gk2 yy/zz/pressure/tt/zz
+  decided with rate at 15,960 el (1,000 s = 12.3% of the family's 8,116 s);
+  gk2 xx/rr need up to 45,000 el (66.3%); sphere averages need all 8 levels.
+- B3 adapter description: 8 levels, ratios incl. 1.10, 2-50 points, scale
+  0.909, gk2 scale 3.098 / 35-916 effective points, min det F 0.911-0.948.
+  README updated (B1 kernel, 8 levels, radial, surface study, contradiction
+  rule, no mixed u/p in torchfem). Rabczuk draft updated with these numbers
+  (still NOT sent; no "Timon" in it).

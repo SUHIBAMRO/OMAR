@@ -153,12 +153,35 @@
    ],
    "gauss_match_distance": 2.2887833992611187e-16,
    "corner_check_vs_solver_time": null
+  },
+  {
+   "n_elem": 59400,
+   "n_surface_nodes": 20,
+   "root_node_distance": 0.0,
+   "surface_max_abs_sxx": 0.5448262665815019,
+   "root_sxx": 0.44250277140970307,
+   "surface_max_abs_szz": 0.7825397092845539,
+   "root_szz": 0.36557078179490016,
+   "surface_max_abs_sxz": 0.07581885996591091,
+   "root_sxz": -0.03819766872778841,
+   "surface_max_abs_von_mises": 0.3565759620009231,
+   "root_von_mises": 0.09094746972830443,
+   "surface_max_abs_pressure": 0.6429275603688792,
+   "root_pressure": -0.390607023914191,
+   "resolution": [
+    41,
+    28,
+    56
+   ],
+   "gauss_match_distance": 2.4835037038225095e-16,
+   "corner_check_vs_solver_time": 8.68850329460713e-08
   }
  ],
- "scale": 0.9100783983130382,
+ "scale": 0.9088826554565627,
  "gates": {
   "root_node_distance": {
    "values": [
+    0.0,
     0.0,
     0.0,
     0.0,
@@ -174,7 +197,7 @@
      0.0,
      0.0
     ],
-    "scale": 0.9100783983130382,
+    "scale": 0.9088826554565627,
     "relative_spread": 0.0,
     "band_tol": 0.01,
     "gci_tol": 0.02,
@@ -202,7 +225,7 @@
      0.0,
      0.0
     ],
-    "scale": 0.9100783983130382,
+    "scale": 0.9088826554565627,
     "relative_spread": 0.0,
     "fit_order": 0.05015000975134371,
     "fit_limit": 0.0,
@@ -236,17 +259,18 @@
     0.6236124749741047,
     0.6154511244646232,
     0.6367109097232224,
-    0.5427095969570072
+    0.5427095969570072,
+    0.5448262665815019
    ],
    "3level": {
     "gate": "qoi_convergence",
     "finest_three": [
-     0.6154511244646232,
      0.6367109097232224,
-     0.5427095969570072
+     0.5427095969570072,
+     0.5448262665815019
     ],
-    "scale": 0.9100783983130382,
-    "relative_spread": 0.10328924732249473,
+    "scale": 0.9088826554565627,
+    "relative_spread": 0.10342513656946749,
     "band_tol": 0.01,
     "gci_tol": 0.02,
     "order_window": [
@@ -267,33 +291,34 @@
      5
     ],
     "levels_used": [
-     2.136755570311293,
      0.6236124749741047,
      0.6154511244646232,
      0.6367109097232224,
-     0.5427095969570072
+     0.5427095969570072,
+     0.5448262665815019
     ],
-    "scale": 0.9100783983130382,
-    "relative_spread": 0.10328924732249473,
-    "fit_order": 19.9999994229954,
-    "fit_limit": 0.5838272001080338,
-    "fit_sigma": 0.05739047639322928,
+    "scale": 0.9088826554565627,
+    "relative_spread": 0.10342513656946749,
+    "fit_order": 0.050000001446839366,
+    "fit_limit": -3.4952748763219965,
+    "fit_sigma": 0.03992010138025042,
     "fit_p_at_search_bound": true,
     "leave_one_out_orders": [
      0.050000001446839366,
-     12.158194549795802,
-     19.9999994229954,
-     19.9999994229954,
-     19.9999994229954
+     0.050000001446839366,
+     0.050000001446839366,
+     0.050000001446839366,
+     0.050000001446839366
     ],
     "failed_criteria": [
      "monotone",
+     "fit_quality",
      "order_window",
      "leave_one_out"
     ],
     "verdict": "FAIL",
     "evidence": "none",
-    "reason": "no rate from 5 levels (failed: monotone, order_window, leave_one_out; fitted p=20.00) and finest-three spread 10.329% exceeds 1.00%"
+    "reason": "no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05) and finest-three spread 10.343% exceeds 1.00%"
    },
    "overall": "FAIL",
    "evidence": "none"
@@ -306,17 +331,18 @@
     0.4342687877405364,
     0.4352891970326716,
     0.4439360868134517,
-    0.43836634505723027
+    0.43836634505723027,
+    0.44250277140970307
    ],
    "3level": {
     "gate": "qoi_convergence",
     "finest_three": [
-     0.4352891970326716,
      0.4439360868134517,
-     0.43836634505723027
+     0.43836634505723027,
+     0.44250277140970307
     ],
-    "scale": 0.9100783983130382,
-    "relative_spread": 0.009501258129858216,
+    "scale": 0.9088826554565627,
+    "relative_spread": 0.006128119755375423,
     "band_tol": 0.01,
     "gci_tol": 0.02,
     "order_window": [
@@ -325,7 +351,7 @@
     ],
     "verdict": "PASS",
     "evidence": "band",
-    "reason": "finest three within 1.00% band (spread 0.950%); no convergence rate demonstrated"
+    "reason": "finest three within 1.00% band (spread 0.613%); no convergence rate demonstrated"
    },
    "5level": {
     "gate": "qoi_convergence_multilevel",
@@ -337,34 +363,33 @@
      5
     ],
     "levels_used": [
-     0.4164739043194514,
      0.4342687877405364,
      0.4352891970326716,
      0.4439360868134517,
-     0.43836634505723027
+     0.43836634505723027,
+     0.44250277140970307
     ],
-    "scale": 0.9100783983130382,
-    "relative_spread": 0.009501258129858216,
-    "fit_order": 8.041549219289724,
-    "fit_limit": 0.4407922846170824,
-    "fit_sigma": 0.0039029771643644532,
+    "scale": 0.9088826554565627,
+    "relative_spread": 0.006128119755375423,
+    "fit_order": 3.690216599725842,
+    "fit_limit": 0.44395679184565123,
+    "fit_sigma": 0.003914653802248165,
     "fit_p_at_search_bound": false,
     "leave_one_out_orders": [
-     5.347611413592468,
-     5.7486323764927025,
-     8.914075189743489,
-     11.454696459618962,
-     4.988706534817425
+     19.9999994229954,
+     19.9999994229954,
+     0.050000001446839366,
+     3.4462388723299937,
+     5.347611413592468
     ],
     "failed_criteria": [
      "monotone",
      "fit_quality",
-     "order_window",
      "leave_one_out"
     ],
     "verdict": "PASS",
     "evidence": "band",
-    "reason": "finest three within 1.00% band (spread 0.950%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=8.04)"
+    "reason": "finest three within 1.00% band (spread 0.613%); no rate from 5 levels (failed: monotone, fit_quality, leave_one_out; fitted p=3.69)"
    },
    "overall": "PASS",
    "evidence": "band"
@@ -377,26 +402,30 @@
     1.0287883047496553,
     0.8664445916881762,
     1.2018657324265651,
-    0.9167288402560655
+    0.9167288402560655,
+    0.7825397092845539
    ],
    "3level": {
     "gate": "qoi_convergence",
     "finest_three": [
-     0.8664445916881762,
      1.2018657324265651,
-     0.9167288402560655
+     0.9167288402560655,
+     0.7825397092845539
     ],
-    "scale": 0.9100783983130382,
-    "relative_spread": 0.3685629077232692,
+    "scale": 0.9088826554565627,
+    "relative_spread": 0.4613643143309513,
     "band_tol": 0.01,
     "gci_tol": 0.02,
     "order_window": [
      0.5,
      5
     ],
-    "verdict": "FAIL",
+    "observed_order": 6.689056929714237,
+    "gci_fine": 0.2153146515538677,
+    "richardson_extrapolate": 0.6259831074741669,
     "evidence": "none",
-    "reason": "oscillatory: successive differences change sign"
+    "verdict": "FAIL",
+    "reason": "monotone but not asymptotic: observed order 6.69 outside [0.5, 5] (GCI 21.53% not trusted)"
    },
    "5level": {
     "gate": "qoi_convergence_multilevel",
@@ -408,33 +437,34 @@
      5
     ],
     "levels_used": [
-     3.023798738567526,
      1.0287883047496553,
      0.8664445916881762,
      1.2018657324265651,
-     0.9167288402560655
+     0.9167288402560655,
+     0.7825397092845539
     ],
-    "scale": 0.9100783983130382,
-    "relative_spread": 0.3685629077232692,
-    "fit_order": 19.9999994229954,
-    "fit_limit": 0.9761728380774799,
-    "fit_sigma": 0.18777770271136773,
+    "scale": 0.9088826554565627,
+    "relative_spread": 0.4613643143309513,
+    "fit_order": 0.050000001446839366,
+    "fit_limit": -6.531996853952897,
+    "fit_sigma": 0.21036636926596614,
     "fit_p_at_search_bound": true,
     "leave_one_out_orders": [
-     19.9999994229954,
-     19.9999994229954,
-     19.9999994229954,
-     18.498033961217818,
+     0.050000001446839366,
+     0.050000001446839366,
+     15.717922512882048,
+     0.050000001446839366,
      19.9999994229954
     ],
     "failed_criteria": [
      "monotone",
+     "fit_quality",
      "order_window",
      "leave_one_out"
     ],
     "verdict": "FAIL",
     "evidence": "none",
-    "reason": "no rate from 5 levels (failed: monotone, order_window, leave_one_out; fitted p=20.00) and finest-three spread 36.856% exceeds 1.00%"
+    "reason": "no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05) and finest-three spread 46.136% exceeds 1.00%"
    },
    "overall": "FAIL",
    "evidence": "none"
@@ -447,17 +477,18 @@
     0.3546810012685353,
     0.3617687826977584,
     0.36454654466965897,
-    0.3620968413368685
+    0.3620968413368685,
+    0.36557078179490016
    ],
    "3level": {
     "gate": "qoi_convergence",
     "finest_three": [
-     0.3617687826977584,
      0.36454654466965897,
-     0.3620968413368685
+     0.3620968413368685,
+     0.36557078179490016
     ],
-    "scale": 0.9100783983130382,
-    "relative_spread": 0.0030522227283380564,
+    "scale": 0.9088826554565627,
+    "relative_spread": 0.003822210091892004,
     "band_tol": 0.01,
     "gci_tol": 0.02,
     "order_window": [
@@ -466,7 +497,7 @@
     ],
     "verdict": "PASS",
     "evidence": "band",
-    "reason": "finest three within 1.00% band (spread 0.305%); no convergence rate demonstrated"
+    "reason": "finest three within 1.00% band (spread 0.382%); no convergence rate demonstrated"
    },
    "5level": {
     "gate": "qoi_convergence_multilevel",
@@ -478,24 +509,24 @@
      5
     ],
     "levels_used": [
-     0.35792027096025775,
      0.3546810012685353,
      0.3617687826977584,
      0.36454654466965897,
-     0.3620968413368685
+     0.3620968413368685,
+     0.36557078179490016
     ],
-    "scale": 0.9100783983130382,
-    "relative_spread": 0.0030522227283380564,
-    "fit_order": 0.050000001446839366,
-    "fit_limit": 0.6548898042859467,
-    "fit_sigma": 0.003699239559911398,
-    "fit_p_at_search_bound": true,
+    "scale": 0.9088826554565627,
+    "relative_spread": 0.003822210091892004,
+    "fit_order": 10.421897372246674,
+    "fit_limit": 0.36441293480699205,
+    "fit_sigma": 0.0018193438400799869,
+    "fit_p_at_search_bound": false,
     "leave_one_out_orders": [
-     15.672195237140388,
-     6.561652292291677,
      0.050000001446839366,
-     0.050000001446839366,
-     0.050000001446839366
+     19.9999994229954,
+     9.419280967028726,
+     7.824009356844918,
+     15.672195237140388
     ],
     "failed_criteria": [
      "monotone",
@@ -505,7 +536,7 @@
     ],
     "verdict": "PASS",
     "evidence": "band",
-    "reason": "finest three within 1.00% band (spread 0.305%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05)"
+    "reason": "finest three within 1.00% band (spread 0.382%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=10.42)"
    },
    "overall": "PASS",
    "evidence": "band"
@@ -518,17 +549,18 @@
     0.08206096832478116,
     0.0880484257290482,
     0.07635314615847634,
-    0.09414582728866536
+    0.09414582728866536,
+    0.07581885996591091
    ],
    "3level": {
     "gate": "qoi_convergence",
     "finest_three": [
-     0.0880484257290482,
      0.07635314615847634,
-     0.09414582728866536
+     0.09414582728866536,
+     0.07581885996591091
     ],
-    "scale": 0.9100783983130382,
-    "relative_spread": 0.019550712513526664,
+    "scale": 0.9088826554565627,
+    "relative_spread": 0.02016428326883209,
     "band_tol": 0.01,
     "gci_tol": 0.02,
     "order_window": [
@@ -549,33 +581,34 @@
      5
     ],
     "levels_used": [
-     0.21482324062543107,
      0.08206096832478116,
      0.0880484257290482,
      0.07635314615847634,
-     0.09414582728866536
+     0.09414582728866536,
+     0.07581885996591091
     ],
-    "scale": 0.9100783983130382,
-    "relative_spread": 0.019550712513526664,
-    "fit_order": 19.9999994229954,
-    "fit_limit": 0.08345543977463653,
-    "fit_sigma": 0.011101461830364904,
+    "scale": 0.9088826554565627,
+    "relative_spread": 0.02016428326883209,
+    "fit_order": 0.050000001446839366,
+    "fit_limit": -0.014174931137599678,
+    "fit_sigma": 0.011024746213786532,
     "fit_p_at_search_bound": true,
     "leave_one_out_orders": [
+     19.9999994229954,
+     4.869543876950139,
+     19.9999994229954,
      0.050000001446839366,
-     18.394182031525673,
-     19.9999994229954,
-     19.9999994229954,
-     19.9999994229954
+     0.050000001446839366
     ],
     "failed_criteria": [
      "monotone",
+     "fit_quality",
      "order_window",
      "leave_one_out"
     ],
     "verdict": "FAIL",
     "evidence": "none",
-    "reason": "no rate from 5 levels (failed: monotone, order_window, leave_one_out; fitted p=20.00) and finest-three spread 1.955% exceeds 1.00%"
+    "reason": "no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05) and finest-three spread 2.016% exceeds 1.00%"
    },
    "overall": "FAIL",
    "evidence": "none"
@@ -588,26 +621,30 @@
     -0.02984157898909527,
     -0.051272188877812534,
     -0.03093818673250608,
-    -0.035332574727642
+    -0.035332574727642,
+    -0.03819766872778841
    ],
    "3level": {
     "gate": "qoi_convergence",
     "finest_three": [
-     -0.051272188877812534,
      -0.03093818673250608,
-     -0.035332574727642
+     -0.035332574727642,
+     -0.03819766872778841
     ],
-    "scale": 0.9100783983130382,
-    "relative_spread": 0.022343132397163217,
+    "scale": 0.9088826554565627,
+    "relative_spread": 0.007987259908305375,
     "band_tol": 0.01,
     "gci_tol": 0.02,
     "order_window": [
      0.5,
      5
     ],
-    "verdict": "FAIL",
-    "evidence": "none",
-    "reason": "oscillatory: successive differences change sign"
+    "observed_order": 3.3672980463549944,
+    "gci_fine": 0.010776749183541157,
+    "richardson_extrapolate": -0.04603350905988939,
+    "evidence": "rate",
+    "verdict": "PASS",
+    "reason": "monotone, p=3.37, GCI_fine=1.08% vs tol 2.00%"
    },
    "5level": {
     "gate": "qoi_convergence_multilevel",
@@ -619,21 +656,21 @@
      5
     ],
     "levels_used": [
-     -0.06506056342151582,
      -0.02984157898909527,
      -0.051272188877812534,
      -0.03093818673250608,
-     -0.035332574727642
+     -0.035332574727642,
+     -0.03819766872778841
     ],
-    "scale": 0.9100783983130382,
-    "relative_spread": 0.022343132397163217,
+    "scale": 0.9088826554565627,
+    "relative_spread": 0.007987259908305375,
     "fit_order": 19.9999994229954,
-    "fit_limit": -0.03654979137195884,
-    "fit_sigma": 0.012508982342687344,
+    "fit_limit": -0.03887705583029944,
+    "fit_sigma": 0.011068665504223398,
     "fit_p_at_search_bound": true,
     "leave_one_out_orders": [
      19.9999994229954,
-     0.251784425441385,
+     0.050000001446839366,
      19.9999994229954,
      19.9999994229954,
      19.9999994229954
@@ -644,12 +681,12 @@
      "order_window",
      "leave_one_out"
     ],
-    "verdict": "FAIL",
-    "evidence": "none",
-    "reason": "no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00) and finest-three spread 2.234% exceeds 1.00%"
+    "verdict": "PASS",
+    "evidence": "band",
+    "reason": "finest three within 1.00% band (spread 0.799%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00)"
    },
-   "overall": "FAIL",
-   "evidence": "none"
+   "overall": "PASS",
+   "evidence": "band"
   },
   "surface_max_abs_von_mises": {
    "values": [
@@ -659,17 +696,18 @@
     0.5650869749815508,
     0.3452275092881918,
     0.6664791672895323,
-    0.5999488466069252
+    0.5999488466069252,
+    0.3565759620009231
    ],
    "3level": {
     "gate": "qoi_convergence",
     "finest_three": [
-     0.3452275092881918,
      0.6664791672895323,
-     0.5999488466069252
+     0.5999488466069252,
+     0.3565759620009231
     ],
-    "scale": 0.9100783983130382,
-    "relative_spread": 0.3529933889177315,
+    "scale": 0.9088826554565627,
+    "relative_spread": 0.3409716352579467,
     "band_tol": 0.01,
     "gci_tol": 0.02,
     "order_window": [
@@ -678,7 +716,11 @@
     ],
     "verdict": "FAIL",
     "evidence": "none",
-    "reason": "oscillatory: successive differences change sign"
+    "increments_fine_to_coarse": [
+     0.24337288460600204,
+     0.06653032068260711
+    ],
+    "reason": "divergent: successive differences do not decrease"
    },
    "5level": {
     "gate": "qoi_convergence_multilevel",
@@ -690,24 +732,24 @@
      5
     ],
     "levels_used": [
-     0.9483042280914662,
      0.5650869749815508,
      0.3452275092881918,
      0.6664791672895323,
-     0.5999488466069252
+     0.5999488466069252,
+     0.3565759620009231
     ],
-    "scale": 0.9100783983130382,
-    "relative_spread": 0.3529933889177315,
+    "scale": 0.9088826554565627,
+    "relative_spread": 0.3409716352579467,
     "fit_order": 19.9999994229954,
-    "fit_limit": 0.5386787795976371,
-    "fit_sigma": 0.17044927882417882,
+    "fit_limit": 0.4932828985945754,
+    "fit_sigma": 0.20409567408344262,
     "fit_p_at_search_bound": true,
     "leave_one_out_orders": [
+     19.9999994229954,
      0.050000001446839366,
      19.9999994229954,
-     19.9999994229954,
-     15.677520651721204,
-     19.055468914042425
+     0.050000001446839366,
+     0.050000001446839366
     ],
     "failed_criteria": [
      "monotone",
@@ -717,7 +759,7 @@
     ],
     "verdict": "FAIL",
     "evidence": "none",
-    "reason": "no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00) and finest-three spread 35.299% exceeds 1.00%"
+    "reason": "no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00) and finest-three spread 34.097% exceeds 1.00%"
    },
    "overall": "FAIL",
    "evidence": "none"
@@ -730,29 +772,27 @@
     0.08868692773055925,
     0.09910530224260662,
     0.08923542152986394,
-    0.08879991883458434
+    0.08879991883458434,
+    0.09094746972830443
    ],
    "3level": {
     "gate": "qoi_convergence",
     "finest_three": [
-     0.09910530224260662,
      0.08923542152986394,
-     0.08879991883458434
+     0.08879991883458434,
+     0.09094746972830443
     ],
-    "scale": 0.9100783983130382,
-    "relative_spread": 0.011323621599111463,
+    "scale": 0.9088826554565627,
+    "relative_spread": 0.002362847261774743,
     "band_tol": 0.01,
     "gci_tol": 0.02,
     "order_window": [
      0.5,
      5
     ],
-    "observed_order": 27.192731146438554,
-    "gci_fine": 3.963059290962542e-05,
-    "richardson_extrapolate": 0.08877106527736883,
-    "evidence": "none",
-    "verdict": "FAIL",
-    "reason": "monotone but not asymptotic: observed order 27.19 outside [0.5, 5] (GCI 0.00% not trusted)"
+    "verdict": "PASS",
+    "evidence": "band",
+    "reason": "finest three within 1.00% band (spread 0.236%); no convergence rate demonstrated"
    },
    "5level": {
     "gate": "qoi_convergence_multilevel",
@@ -764,17 +804,17 @@
      5
     ],
     "levels_used": [
-     0.10773509747377594,
      0.08868692773055925,
      0.09910530224260662,
      0.08923542152986394,
-     0.08879991883458434
+     0.08879991883458434,
+     0.09094746972830443
     ],
-    "scale": 0.9100783983130382,
-    "relative_spread": 0.011323621599111463,
+    "scale": 0.9088826554565627,
+    "relative_spread": 0.002362847261774743,
     "fit_order": 19.9999994229954,
-    "fit_limit": 0.09126913234129087,
-    "fit_sigma": 0.00641593594977463,
+    "fit_limit": 0.0919466945986945,
+    "fit_sigma": 0.006026419959982387,
     "fit_p_at_search_bound": true,
     "leave_one_out_orders": [
      19.9999994229954,
@@ -789,12 +829,12 @@
      "order_window",
      "leave_one_out"
     ],
-    "verdict": "FAIL",
-    "evidence": "none",
-    "reason": "no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00) and finest-three spread 1.132% exceeds 1.00%"
+    "verdict": "PASS",
+    "evidence": "band",
+    "reason": "finest three within 1.00% band (spread 0.236%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00)"
    },
-   "overall": "FAIL",
-   "evidence": "none"
+   "overall": "PASS",
+   "evidence": "band"
   },
   "surface_max_abs_pressure": {
    "values": [
@@ -804,26 +844,30 @@
     0.8006631206085834,
     0.7180686247599386,
     0.8904531873974028,
-    0.6645341401337649
+    0.6645341401337649,
+    0.6429275603688792
    ],
    "3level": {
     "gate": "qoi_convergence",
     "finest_three": [
-     0.7180686247599386,
      0.8904531873974028,
-     0.6645341401337649
+     0.6645341401337649,
+     0.6429275603688792
     ],
-    "scale": 0.9100783983130382,
-    "relative_spread": 0.24824130281787973,
+    "scale": 0.9088826554565627,
+    "relative_spread": 0.27234057723786464,
     "band_tol": 0.01,
     "gci_tol": 0.02,
     "order_window": [
      0.5,
      5
     ],
-    "verdict": "FAIL",
+    "observed_order": 22.707897472806753,
+    "gci_fine": 0.004139709832497842,
+    "richardson_extrapolate": 0.639917551996575,
     "evidence": "none",
-    "reason": "oscillatory: successive differences change sign"
+    "verdict": "FAIL",
+    "reason": "monotone but not asymptotic: observed order 22.71 outside [0.5, 5] (GCI 0.41% not trusted)"
    },
    "5level": {
     "gate": "qoi_convergence_multilevel",
@@ -835,33 +879,34 @@
      5
     ],
     "levels_used": [
-     2.4964821949907274,
      0.8006631206085834,
      0.7180686247599386,
      0.8904531873974028,
-     0.6645341401337649
+     0.6645341401337649,
+     0.6429275603688792
     ],
-    "scale": 0.9100783983130382,
-    "relative_spread": 0.24824130281787973,
-    "fit_order": 19.9999994229954,
-    "fit_limit": 0.7448850659361728,
-    "fit_sigma": 0.12176968294980542,
+    "scale": 0.9088826554565627,
+    "relative_spread": 0.27234057723786464,
+    "fit_order": 0.050000001446839366,
+    "fit_limit": -5.690743223499712,
+    "fit_sigma": 0.12132498764410048,
     "fit_p_at_search_bound": true,
     "leave_one_out_orders": [
      0.050000001446839366,
-     19.9999994229954,
-     19.9999994229954,
-     18.12548452532374,
-     19.9999994229954
+     0.050000001446839366,
+     4.669680100692885,
+     0.050000001446839366,
+     0.050000001446839366
     ],
     "failed_criteria": [
      "monotone",
+     "fit_quality",
      "order_window",
      "leave_one_out"
     ],
     "verdict": "FAIL",
     "evidence": "none",
-    "reason": "no rate from 5 levels (failed: monotone, order_window, leave_one_out; fitted p=20.00) and finest-three spread 24.824% exceeds 1.00%"
+    "reason": "no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05) and finest-three spread 27.234% exceeds 1.00%"
    },
    "overall": "FAIL",
    "evidence": "none"
@@ -874,17 +919,18 @@
     -0.3812835830279104,
     -0.38522849570634343,
     -0.39077018549034914,
-    -0.3869143802376762
+    -0.3869143802376762,
+    -0.390607023914191
    ],
    "3level": {
     "gate": "qoi_convergence",
     "finest_three": [
-     -0.38522849570634343,
      -0.39077018549034914,
-     -0.3869143802376762
+     -0.3869143802376762,
+     -0.390607023914191
     ],
-    "scale": 0.9100783983130382,
-    "relative_spread": 0.006089244392876518,
+    "scale": 0.9088826554565627,
+    "relative_spread": 0.004242357612970429,
     "band_tol": 0.01,
     "gci_tol": 0.02,
     "order_window": [
@@ -893,7 +939,7 @@
     ],
     "verdict": "PASS",
     "evidence": "band",
-    "reason": "finest three within 1.00% band (spread 0.609%); no convergence rate demonstrated"
+    "reason": "finest three within 1.00% band (spread 0.424%); no convergence rate demonstrated"
    },
    "5level": {
     "gate": "qoi_convergence_multilevel",
@@ -905,33 +951,34 @@
      5
     ],
     "levels_used": [
-     -0.37423112820431936,
      -0.3812835830279104,
      -0.38522849570634343,
      -0.39077018549034914,
-     -0.3869143802376762
+     -0.3869143802376762,
+     -0.390607023914191
     ],
-    "scale": 0.9100783983130382,
-    "relative_spread": 0.006089244392876518,
-    "fit_order": 4.29535891406804,
-    "fit_limit": -0.39088826090575624,
-    "fit_sigma": 0.002622134316958166,
+    "scale": 0.9088826554565627,
+    "relative_spread": 0.004242357612970429,
+    "fit_order": 6.137815402026294,
+    "fit_limit": -0.39041797616472596,
+    "fit_sigma": 0.0025812839589331098,
     "fit_p_at_search_bound": false,
     "leave_one_out_orders": [
-     8.825757644356665,
-     5.862582055482622,
-     4.643320202725966,
-     5.035791558196458,
-     0.19418564139376857
+     19.9999994229954,
+     19.9999994229954,
+     0.24039144904372362,
+     5.105453744163835,
+     8.825757644356665
     ],
     "failed_criteria": [
      "monotone",
      "fit_quality",
+     "order_window",
      "leave_one_out"
     ],
     "verdict": "PASS",
     "evidence": "band",
-    "reason": "finest three within 1.00% band (spread 0.609%); no rate from 5 levels (failed: monotone, fit_quality, leave_one_out; fitted p=4.30)"
+    "reason": "finest three within 1.00% band (spread 0.424%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=6.14)"
    },
    "overall": "PASS",
    "evidence": "band"
