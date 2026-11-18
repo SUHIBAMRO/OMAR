@@ -25299,3 +25299,42 @@ Limits: the advisor audit checks verdict labels, not every sentence (run-3 advis
   change is 9.2% (now 9.2%); (4) the N=161 peak prediction 19.859 is
   reproduced only with h_min = stored min_elem_size (log-log fit) -- the
   script now uses that definition. After corrections: 271 of 271 match.
+
+### 2026-11-18 -- four follow-ups (Omar: "اعمل اول اربعه")
+
+1. Claims check (`verify_report.py`): see the entry above; 271/271 after the
+   report corrections.
+2. Q20 MMS (`mms_q20.py`, `mms_q20_result.json`): unit cube, manufactured
+   displacement (amplitude 0.05, |grad u| ~ 0.16), body force -Div P by
+   autodiff of the B3 energy, consistent 3x3x3 load integration, exact
+   Dirichlet data on the whole boundary, errors vs exact on 3x3x3. n = 2, 4,
+   8, 16 (8 to 4,096 el, up to 56,355 dof). Observed rates (L2 / H1;
+   theory 3 / 2):
+   nu 0.3 reduced 3.21,3.06,3.02 / 2.11,2.03,2.01; nu 0.3 full 3.28,3.10,
+   3.03 / 2.11,2.02,2.01; nu 0.45 reduced 3.32,3.32,3.14 / 2.11,2.13,2.06;
+   nu 0.45 full 3.31,3.34,3.16 / 2.13,2.10,2.04. The Q20 element as used for
+   B3 (reduced 2x2x2 rule) is code-verified; no locking in displacements at
+   nu = 0.45.
+3. B2 as a HELD-OUT problem (`b2_ladder.py`, `b2_ladder_neo_hookean.json`,
+   `B2Adapter`, spec smooth/Q4 fixed before any verdict, rules unchanged):
+   N = 7,13,25,49,97,193 (36 to 36,864 el; N=193 took 1,268 s). `agent rules
+   --geometry quarter_ring`: all 6 displacement/energy QoIs PASS rate
+   (p 1.98-2.00, LOO within 1.97-2.00, U ~0.00%); Gaussian interior
+   average PASS rate (p 2.02); SHARP interior average PASS band only
+   (finest-5 non-monotone, fitted p 12.7 -- the same sampling artefact as
+   B1/B3, now on an independent problem); peak |P| PASS rate p ~1.0 (Q4
+   stress on a smooth problem). Rule predictions 6/6. Radial-grading
+   strategies (r_grading 1.5, 2.0 at N=49; not required by the rules for a
+   smooth problem): spreads <= 0.005% for displacements/energy, 0.19%
+   sharp average, 0.007% Gaussian, 0.95% peak. Bug found and fixed while
+   doing this: on graded meshes the mid query point is not a node and the
+   first version took the NEAREST node (spread 0.32%, an artefact); now
+   exact linear interpolation along the theta = pi/3 grid line (0.005%).
+4. LLM ablation (`ablation.py`): code only, NOT run live (billed). Repeated
+   runs per problem (b1, b2, b3) vs the rule-only baseline: spec recovery,
+   checks the rules had to add, tolerances replaced, verdict agreement,
+   prediction misses/false alarms, advisor flags, cost. Each run uses a
+   copy of the repository (real file untouched, tested). Replay backend
+   test: B1 2 runs, agreement 1.0. New problem text `problems/b2_ring.txt`.
+Tests: 46 pass. NOTE: the technical report (not yet sent) still lists Q20
+MMS and B2 as missing -- update it before sending if Omar agrees.

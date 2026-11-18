@@ -104,6 +104,21 @@ within the band. It does not show a convergence rate or monotonicity.
     the groove root on every level; 3- and 5-level gates on the root value
     and on the surface maximum within R0.
 
+- **B2** (`quarter_ring`, HELD-OUT): quarter ring under internal pressure, Q4,
+  fixed smooth fields (`mesh_convergence.AnalyticFieldB2`); levels N = 7-193
+  (`b2_ladder.py`, query points are nodes on every level); radial-grading
+  strategies at N = 49. Spec (smooth, Q4) fixed before any B2 verdict; rules,
+  gates and tolerances applied unchanged.
+
+## Further checks and tools
+
+- `mms_q20.py`: manufactured-solution code verification of the Q20 element
+  (3D, neo-Hookean, reduced and full rule, nu = 0.3 and 0.45).
+- `verify_report.py`: recomputes every number of the technical report from
+  the stored data and compares at the printed precision.
+- `ablation.py`: LLM pipeline vs rule-only baseline over repeated runs
+  (billed with a live backend; `--backend replay` tests the code for free).
+
 ## Files
 
 | file | role |

@@ -65,11 +65,23 @@ def gauss_point_stress_b2(nodes, elements, u, elem_params, material, dtype=torch
     return torch.cat(Ps), torch.cat(xs), torch.cat(ws), torch.cat(Js)
 
 
-def _node_at(nodes, theta, r):
-    p = np.array([r * np.cos(theta), r * np.sin(theta)])
-    d = np.linalg.norm(nodes - p, axis=1)
-    i = int(np.argmin(d))
-    return i, float(d[i])
+def _query(nodes, u, theta, r):
+    """FE displacement at (theta, r). theta = pi/3 is a grid line of every
+    mesh (uniform or radially graded), so the point lies on a radial element
+    edge; the Q4 field is linear along that edge, and linear interpolation
+    between its two end nodes is the exact FE value. Returns (u, v, distance
+    to the nearest node: 0 when the point is a node)."""
+    ang = np.arctan2(nodes[:, 1], nodes[:, 0])
+    ray = np.where(np.abs(ang - theta) < 1e-9)[0]
+    if len(ray) < 2:
+        raise ValueError(f"theta={theta} is not a grid line of this mesh")
+    rr = np.linalg.norm(nodes[ray], axis=1)
+    order = np.argsort(rr)
+    ray, rr = ray[order], rr[order]
+    j = int(np.clip(np.searchsorted(rr, r), 1, len(rr) - 1))
+    t = (r - rr[j - 1]) / (rr[j] - rr[j - 1])
+    val = (1 - t) * u[ray[j - 1]] + t * u[ray[j]]
+    return float(val[0]), float(val[1]), float(np.min(np.abs(rr - r)))
 
 
 def solve_level(N, material="neo_hookean", r_grading=1.0, tol=1e-8):
@@ -100,9 +112,8 @@ def solve_level(N, material="neo_hookean", r_grading=1.0, tol=1e-8):
            "interior_gk_PK1_frob": float((Pn * k).sum() / k.sum()),
            "interior_region_gauss_points": int(sharp.sum())}
     for name, (th, r) in QUERY.items():
-        i, dist = _node_at(nodes, th, r)
-        row[f"u_{name}"], row[f"v_{name}"] = float(u[i, 0]), float(u[i, 1])
-        row[f"query_{name}_node_distance"] = dist
+        row[f"u_{name}"], row[f"v_{name}"], row[f"query_{name}_node_distance"] = \
+            _query(nodes, u, th, r)
     return row
 
 
