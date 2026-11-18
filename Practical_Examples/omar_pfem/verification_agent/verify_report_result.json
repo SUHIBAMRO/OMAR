@@ -1,0 +1,2170 @@
+[
+ {
+  "section": "4.6",
+  "claim": "L-corner exponent 1",
+  "printed": 0.5445,
+  "recomputed": 0.5444837367824591,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "4.6",
+  "claim": "L-corner exponent 2",
+  "printed": 0.9085,
+  "recomputed": 0.908529189846099,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 corner exponent lambda",
+  "printed": 0.7112,
+  "recomputed": 0.7111729329715548,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "2 lambda",
+  "printed": 1.42,
+  "recomputed": 1.4223458659431096,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "peak exponent lambda-1",
+  "printed": -0.289,
+  "recomputed": -0.2888270670284452,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 strain_energy 3-level p",
+  "printed": 1.42,
+  "recomputed": 1.4182638464260027,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 strain_energy 5-level p",
+  "printed": 1.43,
+  "recomputed": 1.432542456167256,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 strain_energy LOO min",
+  "printed": 1.42,
+  "recomputed": 1.4235242190921633,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 strain_energy LOO max",
+  "printed": 1.43,
+  "recomputed": 1.4342757378321964,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 strain_energy U_fine %",
+  "printed": 0.01,
+  "recomputed": 0.005838396701769964,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 strain_energy PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 max_disp_mag 3-level p",
+  "printed": 1.49,
+  "recomputed": 1.4909222435726113,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 max_disp_mag 5-level p",
+  "printed": 1.54,
+  "recomputed": 1.5395827900923718,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 max_disp_mag LOO min",
+  "printed": 1.51,
+  "recomputed": 1.5141250300259093,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 max_disp_mag LOO max",
+  "printed": 1.54,
+  "recomputed": 1.5442391378845859,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 max_disp_mag U_fine %",
+  "printed": 0.01,
+  "recomputed": 0.005714340686078016,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 max_disp_mag PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 u_top_off_center 3-level p",
+  "printed": 1.97,
+  "recomputed": 1.96583878966661,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 u_top_off_center 5-level p",
+  "printed": 1.92,
+  "recomputed": 1.9232601195564234,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 u_top_off_center LOO min",
+  "printed": 1.92,
+  "recomputed": 1.9197183745928057,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 u_top_off_center LOO max",
+  "printed": 1.96,
+  "recomputed": 1.958290761782448,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 u_top_off_center U_fine %",
+  "printed": 0.02,
+  "recomputed": 0.01852279494304489,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 u_top_off_center PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 v_top_off_center 3-level p",
+  "printed": 1.45,
+  "recomputed": 1.4457865610436744,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 v_top_off_center 5-level p",
+  "printed": 1.48,
+  "recomputed": 1.479730762316999,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 v_top_off_center LOO min",
+  "printed": 1.46,
+  "recomputed": 1.4590634316358422,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 v_top_off_center LOO max",
+  "printed": 1.48,
+  "recomputed": 1.4835637900223682,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 v_top_off_center U_fine %",
+  "printed": 0.01,
+  "recomputed": 0.005721881026898585,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 v_top_off_center PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 u_mid_domain 3-level p",
+  "printed": 1.42,
+  "recomputed": 1.4218833701702653,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 u_mid_domain 5-level p",
+  "printed": 1.54,
+  "recomputed": 1.5419076994545877,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 u_mid_domain LOO min",
+  "printed": 1.47,
+  "recomputed": 1.4658694736247844,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 u_mid_domain LOO max",
+  "printed": 1.56,
+  "recomputed": 1.555259216754927,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 u_mid_domain U_fine %",
+  "printed": 0.01,
+  "recomputed": 0.0072108038112557,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 u_mid_domain PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 v_mid_domain 3-level p",
+  "printed": 1.44,
+  "recomputed": 1.441706221961197,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 v_mid_domain 5-level p",
+  "printed": 1.47,
+  "recomputed": 1.4657140077189426,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 v_mid_domain LOO min",
+  "printed": 1.45,
+  "recomputed": 1.4506734862826975,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 v_mid_domain LOO max",
+  "printed": 1.47,
+  "recomputed": 1.46851405658044,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 v_mid_domain U_fine %",
+  "printed": 0.01,
+  "recomputed": 0.010589205539350496,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 v_mid_domain PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 interior_avg_PK1_frob 3-level p",
+  "printed": 0.76,
+  "recomputed": 0.7568265212284804,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 interior_avg_PK1_frob 5-level p",
+  "printed": 2.34,
+  "recomputed": 2.3432883070804946,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 interior_avg_PK1_frob LOO min",
+  "printed": 1.49,
+  "recomputed": 1.4929842322052556,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 interior_avg_PK1_frob LOO max",
+  "printed": 2.44,
+  "recomputed": 2.4435430840057784,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 interior_avg_PK1_frob U_fine %",
+  "printed": 0.01,
+  "recomputed": 0.013128469218172107,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 interior_avg_PK1_frob PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 interior_gk_PK1_frob 3-level p",
+  "printed": 1.61,
+  "recomputed": 1.609714509708622,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 interior_gk_PK1_frob 5-level p",
+  "printed": 1.79,
+  "recomputed": 1.7854391661716722,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 interior_gk_PK1_frob LOO min",
+  "printed": 1.69,
+  "recomputed": 1.6908005434082634,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 interior_gk_PK1_frob LOO max",
+  "printed": 1.8,
+  "recomputed": 1.7988835835399342,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 interior_gk_PK1_frob U_fine %",
+  "printed": 0.0,
+  "recomputed": 0.002671274493961588,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 interior_gk_PK1_frob PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 peak FAIL",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 peak slope, finest 5",
+  "printed": -0.275,
+  "recomputed": -0.27498519510831015,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 strategy spread energy %",
+  "printed": 0.01,
+  "recomputed": 0.009914762178950447,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 strategy spread max disp %",
+  "printed": 0.008,
+  "recomputed": 0.0081493517554364,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 strategy spread interior sharp %",
+  "printed": 0.004,
+  "recomputed": 0.004420068484509457,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 strategy spread interior Gaussian %",
+  "printed": 0.001,
+  "recomputed": 0.0014585420169742212,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 anchored interior sharp %",
+  "printed": 0.018,
+  "recomputed": 0.01777334134995377,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 anchored interior Gaussian %",
+  "printed": 0.007,
+  "recomputed": 0.007284775365813066,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 peak level 0",
+  "printed": 9.34,
+  "recomputed": 9.335016859207675,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 peak level 1",
+  "printed": 11.04,
+  "recomputed": 11.040573710778704,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 peak level 2",
+  "printed": 13.34,
+  "recomputed": 13.342725022375621,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 peak level 3",
+  "printed": 16.28,
+  "recomputed": 16.28000096700922,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 peak level 4",
+  "printed": 19.94,
+  "recomputed": 19.937820177573798,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 peak law exponent (11 meshes)",
+  "printed": -0.281,
+  "recomputed": -0.2808274042489583,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 peak law max misfit %",
+  "printed": 2.3,
+  "recomputed": 2.2900587431990083,
+  "tolerance": 0.05,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 N=161 peak predicted from 10 meshes",
+  "printed": 19.859,
+  "recomputed": 19.859214943767945,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 N=161 peak",
+  "printed": 19.938,
+  "recomputed": 19.937820177573798,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 N=81 a=0.5 peak",
+  "printed": 19.932,
+  "recomputed": 19.931659691512163,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "7",
+  "claim": "B1 rule predictions correct",
+  "printed": 7,
+  "recomputed": 7.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 0 elements",
+  "printed": 2376,
+  "recomputed": 2376.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 0 Gauss points in sphere",
+  "printed": 2,
+  "recomputed": 2.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 0 solve time s",
+  "printed": 35,
+  "recomputed": 35.246872663497925,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 0 min det F",
+  "printed": 0.942,
+  "recomputed": 0.9424187958029266,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 1 elements",
+  "printed": 5760,
+  "recomputed": 5760.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 1 Gauss points in sphere",
+  "printed": 4,
+  "recomputed": 4.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 1 solve time s",
+  "printed": 131,
+  "recomputed": 130.99265909194946,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 1 min det F",
+  "printed": 0.935,
+  "recomputed": 0.9348788815743855,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 2 elements",
+  "printed": 10200,
+  "recomputed": 10200.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 2 Gauss points in sphere",
+  "printed": 8,
+  "recomputed": 8.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 2 solve time s",
+  "printed": 299,
+  "recomputed": 299.34574937820435,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 2 min det F",
+  "printed": 0.929,
+  "recomputed": 0.9294784831688235,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 3 elements",
+  "printed": 15960,
+  "recomputed": 15960.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 3 Gauss points in sphere",
+  "printed": 12,
+  "recomputed": 12.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 3 solve time s",
+  "printed": 534,
+  "recomputed": 533.9878904819489,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 3 min det F",
+  "printed": 0.925,
+  "recomputed": 0.9252374718143769,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 4 elements",
+  "printed": 23520,
+  "recomputed": 23520.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 4 Gauss points in sphere",
+  "printed": 20,
+  "recomputed": 20.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 4 solve time s",
+  "printed": 931,
+  "recomputed": 930.8499934673309,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 4 min det F",
+  "printed": 0.921,
+  "recomputed": 0.921288397469757,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 5 elements",
+  "printed": 33120,
+  "recomputed": 33120.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 5 Gauss points in sphere",
+  "printed": 26,
+  "recomputed": 26.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 5 solve time s",
+  "printed": 1366,
+  "recomputed": 1366.198572397232,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 5 min det F",
+  "printed": 0.918,
+  "recomputed": 0.9175889134321505,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 6 elements",
+  "printed": 45000,
+  "recomputed": 45000.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 6 Gauss points in sphere",
+  "printed": 36,
+  "recomputed": 36.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 6 solve time s",
+  "printed": 2081,
+  "recomputed": 2080.9355041980743,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 6 min det F",
+  "printed": 0.914,
+  "recomputed": 0.9140952813961146,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 7 elements",
+  "printed": 59400,
+  "recomputed": 59400.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 7 Gauss points in sphere",
+  "printed": 50,
+  "recomputed": 50.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 7 solve time s",
+  "printed": 2739,
+  "recomputed": 2738.767961502075,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 level 7 min det F",
+  "printed": 0.911,
+  "recomputed": 0.9107775984862455,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 ratio level 1",
+  "printed": 1.34,
+  "recomputed": 1.3433587724279707,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 ratio level 2",
+  "printed": 1.21,
+  "recomputed": 1.20983430860396,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 ratio level 3",
+  "printed": 1.16,
+  "recomputed": 1.1609430209053198,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 ratio level 4",
+  "printed": 1.14,
+  "recomputed": 1.1379804735655386,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 ratio level 5",
+  "printed": 1.12,
+  "recomputed": 1.120859052160635,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 ratio level 6",
+  "printed": 1.11,
+  "recomputed": 1.1075773399575761,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "6",
+  "claim": "B3 ratio level 7",
+  "printed": 1.1,
+  "recomputed": 1.0969613104865237,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "moment finest",
+  "printed": 34.52,
+  "recomputed": 34.51983933173489,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "moment coarsest",
+  "printed": 34.669,
+  "recomputed": 34.66905677840368,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "energy finest",
+  "printed": 0.86361,
+  "recomputed": 0.8636142611024635,
+  "tolerance": 5e-06,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "B3 reaction_moment_y 3-level p",
+  "printed": 1.35,
+  "recomputed": 1.3479667288791086,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "B3 reaction_moment_y GCI %",
+  "printed": 0.18,
+  "recomputed": 0.17743749755898952,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "B3 reaction_moment_y 5-level p",
+  "printed": 1.56,
+  "recomputed": 1.5569497901627292,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "B3 reaction_moment_y LOO min",
+  "printed": 1.33,
+  "recomputed": 1.3306588229070324,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "B3 reaction_moment_y LOO max",
+  "printed": 1.65,
+  "recomputed": 1.6542026817670077,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "B3 reaction_moment_y U %",
+  "printed": 0.15,
+  "recomputed": 0.1490525536675421,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "B3 strain_energy 3-level p",
+  "printed": 1.41,
+  "recomputed": 1.408576517373108,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "B3 strain_energy GCI %",
+  "printed": 0.16,
+  "recomputed": 0.16072314503477897,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "B3 strain_energy 5-level p",
+  "printed": 1.62,
+  "recomputed": 1.6186430053832774,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "B3 strain_energy LOO min",
+  "printed": 1.39,
+  "recomputed": 1.3872744498567529,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "B3 strain_energy LOO max",
+  "printed": 1.72,
+  "recomputed": 1.7167402623185142,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "B3 strain_energy U %",
+  "printed": 0.14,
+  "recomputed": 0.13565907997650037,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "moment change 1",
+  "printed": 0.063,
+  "recomputed": 0.06255999652362476,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "moment change 2",
+  "printed": 0.03,
+  "recomputed": 0.029748462840196055,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "moment change 3",
+  "printed": 0.017,
+  "recomputed": 0.01664050381145188,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "moment change 4",
+  "printed": 0.015,
+  "recomputed": 0.015002408732179617,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "moment change 5",
+  "printed": 0.011,
+  "recomputed": 0.010558766941102249,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "moment change 6",
+  "printed": 0.008,
+  "recomputed": 0.00819700756252928,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "moment change 7",
+  "printed": 0.007,
+  "recomputed": 0.006510300257701829,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.1",
+  "claim": "W vs M phi/2 at 2,376 el %",
+  "printed": 0.06,
+  "recomputed": 0.05892977149501988,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "sharp 1R0 effective points",
+  "printed": 50,
+  "recomputed": 50.0,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "sharp 1R0 sign changes",
+  "printed": 28,
+  "recomputed": 28.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "sharp 1R0 median fit residual %",
+  "printed": 0.318,
+  "recomputed": 0.317740059306635,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "sharp 1R0 5-level rate count",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "sharp 2R0 effective points",
+  "printed": 314,
+  "recomputed": 314.0,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "sharp 2R0 sign changes",
+  "printed": 18,
+  "recomputed": 18.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "sharp 2R0 median fit residual %",
+  "printed": 0.224,
+  "recomputed": 0.2239838401675577,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "sharp 2R0 5-level rate count",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "sharp 3R0 effective points",
+  "printed": 910,
+  "recomputed": 910.0,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "sharp 3R0 sign changes",
+  "printed": 13,
+  "recomputed": 13.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "sharp 3R0 median fit residual %",
+  "printed": 0.06,
+  "recomputed": 0.059547761542783115,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "sharp 3R0 5-level rate count",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "sharp 4R0 effective points",
+  "printed": 1938,
+  "recomputed": 1938.0,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "sharp 4R0 sign changes",
+  "printed": 12,
+  "recomputed": 12.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "sharp 4R0 median fit residual %",
+  "printed": 0.033,
+  "recomputed": 0.033344636875928035,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "sharp 4R0 5-level rate count",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "gauss l=1R0 effective points",
+  "printed": 148,
+  "recomputed": 147.6684897985346,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "gauss l=1R0 sign changes",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "gauss l=1R0 median fit residual %",
+  "printed": 0.012,
+  "recomputed": 0.012190534997467077,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "gauss l=1R0 5-level rate count",
+  "printed": 5,
+  "recomputed": 5.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "gauss l=2R0 effective points",
+  "printed": 916,
+  "recomputed": 916.2578358227311,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "gauss l=2R0 sign changes",
+  "printed": 4,
+  "recomputed": 4.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "gauss l=2R0 median fit residual %",
+  "printed": 0.005,
+  "recomputed": 0.0047268896599864515,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.2",
+  "claim": "gauss l=2R0 5-level rate count",
+  "printed": 7,
+  "recomputed": 7.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_xx_avg 5-level p",
+  "printed": 2.21,
+  "recomputed": 2.2121410680833815,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_xx_avg LOO min",
+  "printed": 1.24,
+  "recomputed": 1.2444627046625603,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_xx_avg LOO max",
+  "printed": 3.19,
+  "recomputed": 3.187791721230666,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_xx_avg U %",
+  "printed": 0.18,
+  "recomputed": 0.18328595089035887,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_xx_avg strategy spread %",
+  "printed": 0.49,
+  "recomputed": 0.4895772661615427,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_xx_avg anchored %",
+  "printed": 0.54,
+  "recomputed": 0.5358260331962122,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_xx_avg PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_yy_avg 5-level p",
+  "printed": 2.45,
+  "recomputed": 2.450068536056172,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_yy_avg LOO min",
+  "printed": 1.78,
+  "recomputed": 1.7773138190667797,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_yy_avg LOO max",
+  "printed": 3.37,
+  "recomputed": 3.3718509818770115,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_yy_avg U %",
+  "printed": 0.13,
+  "recomputed": 0.12554786453872827,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_yy_avg strategy spread %",
+  "printed": 0.32,
+  "recomputed": 0.3220267857016658,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_yy_avg anchored %",
+  "printed": 0.39,
+  "recomputed": 0.39134548599339725,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_yy_avg PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_zz_avg 5-level p",
+  "printed": 2.76,
+  "recomputed": 2.7605708117969594,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_zz_avg LOO min",
+  "printed": 2.22,
+  "recomputed": 2.2163025946971926,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_zz_avg LOO max",
+  "printed": 3.74,
+  "recomputed": 3.7426767018065488,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_zz_avg U %",
+  "printed": 0.11,
+  "recomputed": 0.1122606052152697,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_zz_avg strategy spread %",
+  "printed": 0.3,
+  "recomputed": 0.2983751595819991,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_zz_avg anchored %",
+  "printed": 0.4,
+  "recomputed": 0.4017959366643099,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_sigma_zz_avg PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_pressure_avg 5-level p",
+  "printed": 2.46,
+  "recomputed": 2.460656865892558,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_pressure_avg LOO min",
+  "printed": 1.7,
+  "recomputed": 1.7040586925275665,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_pressure_avg LOO max",
+  "printed": 3.43,
+  "recomputed": 3.4251927187532005,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_pressure_avg U %",
+  "printed": 0.14,
+  "recomputed": 0.13830696760551564,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_pressure_avg strategy spread %",
+  "printed": 0.36,
+  "recomputed": 0.35983205461164547,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_pressure_avg anchored %",
+  "printed": 0.43,
+  "recomputed": 0.4311991210892018,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_pressure_avg PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_cyl_rr_avg 5-level p",
+  "printed": 2.2,
+  "recomputed": 2.201920477134725,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_cyl_rr_avg LOO min",
+  "printed": 1.25,
+  "recomputed": 1.2503070318577996,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_cyl_rr_avg LOO max",
+  "printed": 3.17,
+  "recomputed": 3.1742168148161984,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_cyl_rr_avg U %",
+  "printed": 0.18,
+  "recomputed": 0.18345134176974254,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_cyl_rr_avg strategy spread %",
+  "printed": 0.49,
+  "recomputed": 0.4890538397322482,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_cyl_rr_avg anchored %",
+  "printed": 0.53,
+  "recomputed": 0.5348593829812128,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_cyl_rr_avg PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_cyl_tt_avg 5-level p",
+  "printed": 2.46,
+  "recomputed": 2.461015668392062,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_cyl_tt_avg LOO min",
+  "printed": 1.77,
+  "recomputed": 1.766102081704464,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_cyl_tt_avg LOO max",
+  "printed": 3.39,
+  "recomputed": 3.38706229043717,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_cyl_tt_avg U %",
+  "printed": 0.13,
+  "recomputed": 0.12560817541729338,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_cyl_tt_avg strategy spread %",
+  "printed": 0.32,
+  "recomputed": 0.32266347175254206,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_cyl_tt_avg anchored %",
+  "printed": 0.39,
+  "recomputed": 0.39261465424973535,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2_cyl_tt_avg PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2 cyl_zz equals sigma_zz",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 1e-12,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2 xz spread %",
+  "printed": 0.44,
+  "recomputed": 0.44425404126837204,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2 rz spread %",
+  "printed": 0.46,
+  "recomputed": 0.45530489687443215,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2 xz anchored %",
+  "printed": 0.3,
+  "recomputed": 0.3014610027191691,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2 rz anchored %",
+  "printed": 0.31,
+  "recomputed": 0.3100763799707636,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2 von Mises spread %",
+  "printed": 0.72,
+  "recomputed": 0.7248268198074073,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2 von Mises anchored %",
+  "printed": 0.79,
+  "recomputed": 0.7881416926176311,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2 Frobenius spread %",
+  "printed": 6.1,
+  "recomputed": 6.104911772688727,
+  "tolerance": 0.05,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2 Frobenius anchored %",
+  "printed": 5.6,
+  "recomputed": 5.611457828486007,
+  "tolerance": 0.05,
+  "ok": true
+ },
+ {
+  "section": "8.3",
+  "claim": "gk2 Frobenius FAIL",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.4",
+  "claim": "sharp sigma_zz strategy spread %",
+  "printed": 2.37,
+  "recomputed": 2.3705658470248103,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.4",
+  "claim": "sharp sigma_zz FAIL",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.4",
+  "claim": "sharp normal anchored min %",
+  "printed": 1.2,
+  "recomputed": 1.216927470987752,
+  "tolerance": 0.05,
+  "ok": true
+ },
+ {
+  "section": "8.4",
+  "claim": "sharp normal anchored max %",
+  "printed": 1.7,
+  "recomputed": 1.6804924473864717,
+  "tolerance": 0.05,
+  "ok": true
+ },
+ {
+  "section": "8.4",
+  "claim": "B3 rule predictions correct",
+  "printed": 12,
+  "recomputed": 12.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.4",
+  "claim": "B3 rule predictions made",
+  "printed": 15,
+  "recomputed": 15.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.4",
+  "claim": "uniform 10,200 sphere |sigma| avg",
+  "printed": 1.031,
+  "recomputed": 1.0306338036801672,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.4",
+  "claim": "radial 1.1 moment change %",
+  "printed": -0.07,
+  "recomputed": -0.07113970545721249,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.4",
+  "claim": "radial 1.1 sphere |sigma| avg",
+  "printed": 0.98,
+  "recomputed": 0.980000363167651,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.4",
+  "claim": "radial 1.1 det J contrast",
+  "printed": 5.03,
+  "recomputed": 5.034663183214903,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.4",
+  "claim": "radial 1.2 moment change %",
+  "printed": -0.13,
+  "recomputed": -0.1330408877117926,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.4",
+  "claim": "radial 1.2 sphere |sigma| avg",
+  "printed": 0.911,
+  "recomputed": 0.9112715778792939,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.4",
+  "claim": "radial 1.2 det J contrast",
+  "printed": 7.81,
+  "recomputed": 7.811400219870239,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.4",
+  "claim": "radial 1.3 moment change %",
+  "printed": -0.18,
+  "recomputed": -0.18331735340979863,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.4",
+  "claim": "radial 1.3 sphere |sigma| avg",
+  "printed": 1.061,
+  "recomputed": 1.0612247934521393,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.4",
+  "claim": "radial 1.3 det J contrast",
+  "printed": 12.44,
+  "recomputed": 12.444338855188885,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.5",
+  "claim": "root_sxx finest-three spread %",
+  "printed": 0.61,
+  "recomputed": 0.6128119755375423,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.5",
+  "claim": "root_sxx PASS band",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.5",
+  "claim": "root_szz finest-three spread %",
+  "printed": 0.38,
+  "recomputed": 0.3822210091892004,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.5",
+  "claim": "root_szz PASS band",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.5",
+  "claim": "root_pressure finest-three spread %",
+  "printed": 0.42,
+  "recomputed": 0.42423576129704293,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.5",
+  "claim": "root_pressure PASS band",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.5",
+  "claim": "root_von_mises finest-three spread %",
+  "printed": 0.24,
+  "recomputed": 0.23628472617747429,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.5",
+  "claim": "root_von_mises PASS band",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.5",
+  "claim": "root_sxz finest-three spread %",
+  "printed": 0.8,
+  "recomputed": 0.7987259908305375,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.5",
+  "claim": "root_sxz PASS band",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.5",
+  "claim": "root node at the groove root on every level",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 1e-12,
+  "ok": true
+ },
+ {
+  "section": "8.5",
+  "claim": "surface_max_abs_sxx FAIL",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.5",
+  "claim": "surface_max_abs_szz FAIL",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.5",
+  "claim": "surface_max_abs_sxz FAIL",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.5",
+  "claim": "surface_max_abs_von_mises FAIL",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.5",
+  "claim": "surface_max_abs_pressure FAIL",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "8.6",
+  "claim": "full vs reduced moment 2,376 %",
+  "printed": 0.22,
+  "recomputed": 0.2228745034318325,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.6",
+  "claim": "full vs reduced energy 2,376 %",
+  "printed": 0.21,
+  "recomputed": 0.21437999705269783,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.6",
+  "claim": "full vs reduced moment 10,200 %",
+  "printed": 0.085,
+  "recomputed": 0.0848900620834525,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.6",
+  "claim": "full vs reduced energy 10,200 %",
+  "printed": 0.079,
+  "recomputed": 0.0792441814652006,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "8.6",
+  "claim": "pressure std reduced 2,376",
+  "printed": 4.04,
+  "recomputed": 4.044259324789035,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.6",
+  "claim": "pressure std full 2,376",
+  "printed": 3.98,
+  "recomputed": 3.9768276367186806,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.6",
+  "claim": "pressure std reduced 10,200",
+  "printed": 0.43,
+  "recomputed": 0.43360761958066324,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.6",
+  "claim": "pressure std full 10,200",
+  "printed": 0.61,
+  "recomputed": 0.6142019093205612,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.6",
+  "claim": "gk2 signed averages full-reduced 2,376 (max, % of scale) <=",
+  "printed": 1.3,
+  "recomputed": 1.2905708829538627,
+  "tolerance": 0.05,
+  "ok": true
+ },
+ {
+  "section": "8.6",
+  "claim": "gk2 signed averages full-reduced 10,200 (max, % of scale) <=",
+  "printed": 0.33,
+  "recomputed": 0.3263086604173556,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "8.6",
+  "claim": "gk2 Frobenius full vs reduced 10,200 %",
+  "printed": 9.2,
+  "recomputed": 9.220655697953735,
+  "tolerance": 0.05,
+  "ok": true
+ },
+ {
+  "section": "9",
+  "claim": "B3 family solve time total s",
+  "printed": 8116,
+  "recomputed": 8116.325203180313,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "9",
+  "claim": "adaptive reaction_moment_y decided at",
+  "printed": 15960,
+  "recomputed": 15960.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "9",
+  "claim": "adaptive strain_energy decided at",
+  "printed": 15960,
+  "recomputed": 15960.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "9",
+  "claim": "adaptive gk2_sigma_yy_avg decided at",
+  "printed": 15960,
+  "recomputed": 15960.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "9",
+  "claim": "adaptive gk2_sigma_zz_avg decided at",
+  "printed": 15960,
+  "recomputed": 15960.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "9",
+  "claim": "adaptive gk2_pressure_avg decided at",
+  "printed": 15960,
+  "recomputed": 15960.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "9",
+  "claim": "adaptive gk2_cyl_tt_avg decided at",
+  "printed": 15960,
+  "recomputed": 15960.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "9",
+  "claim": "adaptive gk2_cyl_zz_avg decided at",
+  "printed": 15960,
+  "recomputed": 15960.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "9",
+  "claim": "adaptive sigma_frob_avg decided at",
+  "printed": 23520,
+  "recomputed": 23520.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "9",
+  "claim": "adaptive von_mises_avg decided at",
+  "printed": 23520,
+  "recomputed": 23520.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "9",
+  "claim": "adaptive sigma_xz_avg decided at",
+  "printed": 23520,
+  "recomputed": 23520.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "9",
+  "claim": "adaptive cyl_rz_avg decided at",
+  "printed": 23520,
+  "recomputed": 23520.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "9",
+  "claim": "adaptive gk2_sigma_xx_avg decided at",
+  "printed": 45000,
+  "recomputed": 45000.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "9",
+  "claim": "adaptive gk2_cyl_rr_avg decided at",
+  "printed": 45000,
+  "recomputed": 45000.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "9",
+  "claim": "adaptive share up to 15960 %",
+  "printed": 12,
+  "recomputed": 12.315587985852591,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "9",
+  "claim": "adaptive share up to 23520 %",
+  "printed": 24,
+  "recomputed": 23.784448217113226,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "9",
+  "claim": "adaptive share up to 45000 %",
+  "printed": 66,
+  "recomputed": 66.25605932560573,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "9",
+  "claim": "adaptive verdicts equal full-family convergence verdicts (of 28)",
+  "printed": 28,
+  "recomputed": 28.0,
+  "tolerance": 0,
+  "ok": true
+ }
+]

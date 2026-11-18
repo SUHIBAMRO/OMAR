@@ -25285,3 +25285,17 @@ Limits: the advisor audit checks verdict labels, not every sentence (run-3 advis
   writing: full vs reduced integration is +0.22%/+0.21% (moment/energy) at
   2,376 el and +0.085%/+0.079% at 10,200 el (the "0.22%/0.08%" pair in older
   text is per LEVEL, not per quantity).
+- 2026-11-18: `verify_report.py` (claims check): recomputes 271 numbers of
+  the technical report from the stored data (rules runs, region and
+  surface studies, adaptive replay, solve records, full-integration dumps,
+  B1 peak law, corner exponents) and compares at the printed precision;
+  writes `verify_report_result.json`. First run: 15 mismatches, all in
+  the REPORT, now corrected in the Claude Doc and the PDF:
+  (1) anchored deviations in 8.3/8.4 were from the 7-level run (8 levels:
+  gk2 normal 0.39-0.54%, von Mises 0.79%, Frobenius 5.6%, sharp normal
+  1.2-1.7%); (2) rounding: moment change 0.0626 printed 0.062 (now 0.063),
+  gk2 von Mises spread 0.7248 printed 0.73 (now 0.72); (3) gk2 Frobenius
+  full-vs-reduced at 10,200: 9.6 was % of the stress scale, the relative
+  change is 9.2% (now 9.2%); (4) the N=161 peak prediction 19.859 is
+  reproduced only with h_min = stored min_elem_size (log-log fit) -- the
+  script now uses that definition. After corrections: 271 of 271 match.
