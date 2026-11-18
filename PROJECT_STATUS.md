@@ -25269,3 +25269,7 @@ Limits: the advisor audit checks verdict labels, not every sentence (run-3 advis
   `advisor_feedback/2026-11-17_verification_framework_summary_DRAFT.md`.
   Adds a B1 order-vs-theory table and a B3 sharp-vs-Gaussian table. NOT
   sent; Omar reviews first.
+- 2026-11-18: detailed Arabic explainer for Omar (what was asked, what was
+  built, every check, rules, results, errors fixed, open decisions,
+  glossary, a system-map diagram) as a Claude Doc: "شرح مفصّل: إطار التحقق
+  الآلي", https://claude.ai/artifact/L5fq1oe6sMbw4oXWf6qhCF. For Omar only.
