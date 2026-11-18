@@ -1,0 +1,9 @@
+A 2D quarter of a thick ring (inner radius 1, outer radius 2) of compressible
+neo-Hookean material, plane strain, with Young's modulus varying smoothly
+around the circumference (constant Poisson ratio), is loaded by an internal
+pressure that also varies smoothly around the inner arc. Symmetry conditions
+hold on both straight edges; the outer arc is traction-free. The reference is
+computed with bilinear quadrilaterals (Q4) on uniformly refined polar meshes,
+plus meshes of the same size graded radially toward the loaded inner arc.
+Question: which displacement, energy and stress quantities can serve as
+trustworthy reference values for validating surrogate models?

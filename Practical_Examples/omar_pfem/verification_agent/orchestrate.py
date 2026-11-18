@@ -108,6 +108,49 @@ class B1Adapter:
         return [r[qoi] for r in self.strategy_rows], None
 
 
+class B2Adapter:
+    """HELD-OUT problem: the agent's rules, gates and tolerances were designed
+    on B1 and B3 and are applied to B2 unchanged (b2_ladder.py)."""
+    geometry = "quarter_ring"
+    description = (
+        "B2: 2D quarter ring, inner radius 1, outer radius 2, plane strain, compressible "
+        "neo-Hookean (same psi as B1), total Lagrangian. E(theta) = 1000 + 200 sin(2 theta), "
+        "nu = 0.3 everywhere, evaluated at each Gauss point. Internal pressure "
+        "p(theta) = 5 + 2 sin(2 theta) on the inner arc (follower direction: local chord "
+        "normal of the reference edge), 10 equal load increments, Newton tol 1e-8; "
+        "symmetry on both straight edges (u_y = 0 on y = 0, u_x = 0 on x = 0), outer arc "
+        "traction-free. By symmetry the problem is a smooth sector of a full ring: no corner "
+        "singularity. Q4 elements, 2x2 Gauss, curved arcs approximated by straight chords. "
+        "Structured (theta, r) meshes N x N nodes, N = 7, 13, 25, 49, 97, 193 (h = 1/(N-1), "
+        "ratio 2); strategies at N = 49: uniform and radial grading toward the inner arc, "
+        "r_grading = 1.5, 2.0 (same node count). QoIs: max_disp_mag = max nodal |u|; "
+        "u/v_inner at (theta = pi/3, r = 1) and u/v_mid at (theta = pi/3, r = 1.5), both mesh "
+        "nodes on every uniform level; strain_energy = stored energy; interior_avg_PK1_frob "
+        "= detJ-weighted mean of |P|_F over the Gauss points inside the disc of radius 0.15 "
+        "centred at (theta = pi/4, r = 1.5); interior_gk_PK1_frob = the same with the smooth "
+        "weight exp(-(d/0.1)^2); peak_PK1_frob = max |P|_F over all Gauss points. No "
+        "surrogate errors are recorded for this case, so the class ceilings apply.")
+    qois = ("max_disp_mag", "u_inner", "v_inner", "u_mid", "v_mid", "strain_energy",
+            "interior_avg_PK1_frob", "interior_gk_PK1_frob", "peak_PK1_frob")
+
+    def __init__(self, strategy_N=49):
+        from omar_pfem.verification_agent.b2_ladder import CACHE
+        rows = json.load(open(CACHE)) if os.path.exists(CACHE) else []
+        rows = [r for r in rows if r["newton_tol"] == 1e-8]
+        self.rows = sorted((r for r in rows if r["r_grading"] == 1.0), key=lambda r: r["N"])
+        self.hs = [r["h"] for r in self.rows]
+        self.strategy_rows = sorted((r for r in rows if r["N"] == strategy_N),
+                                    key=lambda r: r["r_grading"])
+
+    def series(self, qoi):
+        return self.hs, [r[qoi] for r in self.rows], None
+
+    def strategies(self, qoi):
+        if len(self.strategy_rows) < 2:
+            return None
+        return [r[qoi] for r in self.strategy_rows], None
+
+
 class B3Adapter:
     geometry = "bushing_groove"
     description = (
@@ -265,9 +308,10 @@ class B3Adapter:
         return {"min_detF": min(r.get("min_detF", float("nan")) for r in rows)}
 
 
-ADAPTERS = {"unit_square": B1Adapter, "bushing_groove": B3Adapter}
+ADAPTERS = {"unit_square": B1Adapter, "quarter_ring": B2Adapter, "bushing_groove": B3Adapter}
 ADAPTER_VOCAB = {
     "unit_square": (B1Adapter.description, B1Adapter.qois),
+    "quarter_ring": (B2Adapter.description, B2Adapter.qois),
     "bushing_groove": (B3Adapter.description,
                        ("sigma_frob_avg",) + tuple(f"sigma_{c}_{s}" for c in
                                                    ("xx", "yy", "zz", "xy", "xz", "yz")

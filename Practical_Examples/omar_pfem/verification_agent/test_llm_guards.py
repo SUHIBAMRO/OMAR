@@ -479,3 +479,38 @@ def test_singular_order_gate_modes():
                                      "displacement")["verdict"] == "PASS"   # lower bound
     g = gates.singular_order_gate(hs, [3 * h ** (lam - 1) for h in hs], lam, "pointwise_peak")
     assert g["verdict"] == "PASS" and abs(g["observed"] - (lam - 1)) < 1e-9
+
+
+def test_mms_q20_reduced_rule_converges_at_theoretical_rates():
+    # two coarse cubes are enough to see the asymptotic slopes (3 and 2)
+    from omar_pfem.verification_agent import mms_q20 as M
+    rows = [M.solve(n, 0.3, "reduced") for n in (2, 4)]
+    assert M.rates(rows, "L2_rel")[0] > 2.8
+    assert M.rates(rows, "H1_rel")[0] > 1.8
+
+
+def test_b2_is_registered_as_smooth_held_out_problem():
+    from omar_pfem.verification_agent import trees
+    from omar_pfem.verification_agent.agent import _default_spec
+    from omar_pfem.verification_agent.orchestrate import ADAPTERS, ADAPTER_VOCAB
+    assert "quarter_ring" in ADAPTERS and "quarter_ring" in ADAPTER_VOCAB
+    sd = _default_spec("quarter_ring").to_dict()
+    assert sd["regularity"] == "smooth" and sd["element"] == "Q4"
+    req = trees.required_checks(trees.rule_plan(sd), sd)
+    # smooth problem: both convergence checks, no singular-order or robustness requirement
+    for q, r in req.items():
+        assert {"qoi_convergence", "qoi_convergence_multilevel"} <= r["required"]
+        assert "singular_order" not in r["required"]
+
+
+def test_ablation_does_not_touch_the_repository(tmp_path):
+    import filecmp
+    import os
+    import shutil
+    from omar_pfem.verification_agent import ablation
+    repo = os.path.join(os.path.dirname(ablation.__file__), "repository.jsonl")
+    before = tmp_path / "before.jsonl"
+    shutil.copy(repo, before)
+    ablation.main(["--backend", "replay", "--problems", "b1", "--repeats", "1",
+                   "--out", str(tmp_path / "abl.json")])
+    assert filecmp.cmp(repo, before, shallow=False)
