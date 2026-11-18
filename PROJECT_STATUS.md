@@ -25273,3 +25273,15 @@ Limits: the advisor audit checks verdict labels, not every sentence (run-3 advis
   built, every check, rules, results, errors fixed, open decisions,
   glossary, a system-map diagram) as a Claude Doc: "شرح مفصّل: إطار التحقق
   الآلي", https://claude.ai/artifact/L5fq1oe6sMbw4oXWf6qhCF. For Omar only.
+- 2026-11-18: full English technical report for Prof. Rabczuk as a Claude
+  Doc, "Automated Verification Framework: Technical Report"
+  (https://claude.ai/artifact/GqEyA5JueG1SreZUSJf9DX): scope vs his 3-agent
+  plan, architecture diagram, check definitions with formulas, rules,
+  tolerances, setup, experiments B1/B3/adaptive/live LLM, issues corrected,
+  limitations (literature agent, generalisation e.g. B2, active learning/
+  MF-BO, independent verification, LLM ablation, Q20 MMS), 6 questions,
+  reproducibility commands. Supersedes the shorter summary draft as the
+  thing to send. NOT sent; Omar reviews first. Correction made while
+  writing: full vs reduced integration is +0.22%/+0.21% (moment/energy) at
+  2,376 el and +0.085%/+0.079% at 10,200 el (the "0.22%/0.08%" pair in older
+  text is per LEVEL, not per quantity).
