@@ -127,6 +127,23 @@ E = [
               "skip a regular corner (no singular exponent)",
          effect="surfaced by running on a new problem; fixed by hand, test added"),
 
+    dict(id="B19", date="11-19", cat=BUG, found=DEV, now=NO,
+         what="stored B3 stresses converted to Cauchy twice (torch-fem 0.14 already returns "
+              "Cauchy): sigma F^T / J, non-symmetric, a few % off",
+         effect="found when an independent assembly (mixed_b3.py) matched moment/energy to 5e-15 "
+                "but not stresses; all B3 data re-solved; 2 of 41 verdicts changed; manuscript "
+                "stress values affected"),
+    dict(id="B20", date="11-19", cat=BUG, found=DEV, now=NO,
+         what="F-bar tangent NaN in undeformed elements (torch.linalg.det double backward at F = I)",
+         effect="explicit determinant"),
+    dict(id="B21", date="11-19", cat=BUG, found=DEV, now=NO,
+         what="own Newton solver diverged on strongly graded meshes (prescribed increment without "
+              "a consistent predictor)", effect="consistent predictor added; results unchanged"),
+    dict(id="B22", date="11-19", cat=BUG, found=DEV, now=NO,
+         what="project mesh builder cannot make thin layers at the groove (interior mid-side nodes "
+              "on chords): negative Jacobians", effect="builder with exact transfinite mid-side "
+                                                       "placement"),
+
     # ---- design changes from critic objections -------------------------------------------
     dict(id="D1", date="11-16", cat=DESIGN, found=CRITIC, now=NO,
          what="observed order must lie in the element's window; rate tried before band",
@@ -191,6 +208,15 @@ E = [
     dict(id="O2", date="11-16", cat=OPS, found=DEV, now=NO,
          what="live LLM runs need the owner's account (no API key in the container)",
          effect="every live run started by hand"),
+
+    dict(id="V9", date="11-19", cat=INVEST, found=DEV, now=NO,
+         what="local refinement: Gauss-point maxima grew to 10-29 on graded meshes; probe showed "
+              "sign-alternating stresses; full integration on the same mesh gives 0.84",
+         effect="spurious modes of the reduced rule identified by hand; full-integration sequence"),
+    dict(id="O3", date="11-19", cat=OPS, found=DEV, now=NO,
+         what="two solver jobs in parallel ran 25x slower (thread oversubscription); stopped, "
+              "restarted alone; original clean solve times restored from the backup",
+         effect="hours of wall time"),
 
     # ---- decisions reserved for a human (by design) --------------------------------------
     dict(id="H1", date="11-17", cat=DECIDE, found=OMAR, now=NO,

@@ -330,6 +330,46 @@ B1, B3 = "unit_square", "bushing_groove"
 GK = "gk2_"
 
 
+# ---- Sections 12-16 (added after the advisor's reply) -----------------------------------------
+def _j(name):
+    return json.load(open(os.path.join(HERE, name)))
+
+
+def indep(prob):
+    return _j("independent_solver_result.json")["comparison"][prob]
+
+
+def indep_q2(prob, q, key):
+    return next(r for r in indep(prob)["q2"] if r["qoi"] == q)[key]
+
+
+def mixed(key, case):
+    return _j("mixed_b3_result.json")[case][key]
+
+
+def cook_rows():
+    return sorted((r for r in _j("cook_ladder.json") if r["grading"] == 0.0), key=lambda r: r["N"])
+
+
+def cook_local_orders(q):
+    v = np.array([r[q] for r in cook_rows()], float)
+    d = np.diff(v)
+    return list(np.log2(np.abs(d[:-1] / d[1:])))
+
+
+def cook_res(n_levels):
+    return _j(f"cook_result_{n_levels}levels.json")
+
+
+def impact(q, which):
+    return _j("stress_fix_impact.json")["rows"][q][which]["finest"]
+
+
+def hi_counts():
+    from omar_pfem.verification_agent import human_intervention as H
+    return H.E, H.summarise()
+
+
 def claims():
     c = []
     add = lambda sec, label, val, tol, fn: c.append((sec, label, val, tol, fn))
@@ -541,6 +581,98 @@ def claims():
     add("11", "B2 strategy spread Gaussian %", 0.007, h3, lambda: b2_spread("interior_gk_PK1_frob"))
     add("11", "B2 strategy spread sharp %", 0.19, h2, lambda: b2_spread("interior_avg_PK1_frob"))
     add("11", "B2 strategy spread peak %", 0.95, h2, lambda: b2_spread("peak_PK1_frob"))
+    # Section 12: diagnosis
+    add("12", "consistency with hand-established causes (of 16)", 16, 0, lambda: sum(
+        r["ok"] for r in _j("diagnose_result.json")["consistency"]))
+    add("12", "hand-established causes", 16, 0, lambda: len(_j("diagnose_result.json")["consistency"]))
+    add("12", "B2 Newton-tolerance re-solve s", 88, 0.5, lambda: next(
+        r["wall_clock_s"] for r in _j("b2_ladder_neo_hookean.json") if r["newton_tol"] == 1e-10))
+    add("12", "B3 h/rho at the finest level", 1.13, h2, lambda: _j("diagnose_b3_h_root.json")["59400"][
+        "h_max"] / 0.0228)
+    mh = lambda k: 100 * _j("model_hierarchy_result.json")["b1_linear_vs_neo_hookean"][k]["rel_diff"]
+    big = ("max_disp_mag", "v_top_off_center", "u_top_off_center", "v_mid_domain", "strain_energy")
+    add("12", "B1 linear vs neo-Hookean min of five %", 0.43, h2, lambda: min(mh(k) for k in big))
+    add("12", "B1 linear vs neo-Hookean max of five %", 0.65, h2, lambda: max(mh(k) for k in big))
+    add("12", "B1 linear vs neo-Hookean sixth %", 0.02, h2, lambda: mh("u_mid_domain"))
+    add("12", "B1 max |grad u| (linear)", 0.011, h3, lambda: _j("model_hierarchy_result.json")[
+        "b1_linear_vs_neo_hookean"]["max_grad_u_linear"])
+    add("12", "F-bar pressure-scatter factor 2,376", 2.9, h1, lambda: mixed(
+        "pressure_std_2R0", "2376:reduced:disp") / mixed("pressure_std_2R0", "2376:reduced:fbar"))
+    # Section 13.1: second FE code
+    add("13", "B1 same-discretisation max rel diff (x1e-12)", 2.1, h1, lambda: 1e12 * max(
+        r["rel_diff"] for r in indep("b1")["same"]))
+    add("13", "B1 same-discretisation values", 40, 0, lambda: len(indep("b1")["same"]))
+    add("13", "B2 same-discretisation max rel diff (x1e-13)", 2.2, h1, lambda: 1e13 * max(
+        r["rel_diff"] for r in indep("b2")["same"]))
+    add("13", "B2 same-discretisation values", 54, 0, lambda: len(indep("b2")["same"]))
+    add("13", "B1 Q2 within uncertainty (of 7)", 7, 0, lambda: sum(
+        r.get("within_uncertainty", False) for r in indep("b1")["q2"]))
+    add("13", "B2 Q2 finest within uncertainty (of 8)", 7, 0, lambda: sum(
+        r.get("within_uncertainty", False) for r in indep("b2")["q2"]))
+    add("13", "B2 Q2 extrapolated within uncertainty (of 8)", 8, 0, lambda: sum(
+        r.get("extrapolated_within_uncertainty", False) for r in indep("b2")["q2"]))
+    add("13", "B2 peak finest Q2 vs limit %", 0.23, h2, lambda: 100 * indep_q2(
+        "b2", "peak_PK1_frob", "q2_finest_vs_limit_rel"))
+    add("13", "B2 peak agent U %", 0.196, h3, lambda: 100 * indep_q2(
+        "b2", "peak_PK1_frob", "agent_uncertainty_rel"))
+    add("13", "B2 peak extrapolated Q2 vs limit %", 0.020, h3, lambda: 100 * indep_q2(
+        "b2", "peak_PK1_frob", "q2_extrapolated_vs_limit_rel"))
+    for i, val in enumerate((0.118, 0.060, 0.031)):
+        add("13", f"B2 Q2 peak increment {i}", val, h3, lambda i=i: float(np.diff(
+            indep_q2("b2", "peak_PK1_frob", "q2_values"))[1 + i]))
+    add("13", "B1 Q2 peak coarsest", 11.1, h1, lambda: indep_q2("b1", "peak_PK1_frob", "q2_values")[0])
+    add("13", "B1 Q2 peak finest", 24.9, h1, lambda: indep_q2("b1", "peak_PK1_frob", "q2_values")[-1])
+    # Section 13.2: F-bar table
+    for key, fmt, vals in (("reaction_moment_y", h3, ((34.669, 34.577, 34.560), (34.206, 34.332, 34.354))),
+                           ("pressure_std_2R0", h2, ((4.05, 0.43, 0.35), (1.38, 0.53, 0.63))),
+                           ("gk2_sigma_zz_avg", h3, ((0.407, 0.421, 0.424), (0.488, 0.469, 0.466))),
+                           ("gk2_pressure_avg", h3, ((-0.443, -0.454, -0.457), (-0.490, -0.488, -0.488))),
+                           ("gk2_frob_avg", h2, ((6.83, 3.26, 3.15), (5.20, 4.04, 3.83)))):
+        for form, row in zip(("disp", "fbar"), vals):
+            for lv, val in zip((2376, 10200, 15960), row):
+                add("13", f"{key} {form} {lv}", val, fmt,
+                    lambda key=key, form=form, lv=lv: mixed(key, f"{lv}:reduced:{form}"))
+    for lv, gap in ((2376, 1.33), (10200, 0.71), (15960, 0.60)):   # relative to displacement
+        add("13", f"moment gap disp-F-bar {lv} %", gap, h2, lambda lv=lv: 100 * (
+            1 - mixed("reaction_moment_y", f"{lv}:reduced:fbar") / mixed(
+                "reaction_moment_y", f"{lv}:reduced:disp")))
+    # Section 13.3: stress-correction impact (finest level)
+    for q, old, new in (("sigma_xx_avg", 0.4386, 0.4525), ("sigma_zz_avg", 0.4284, 0.4151),
+                        ("gk2_sigma_xx_avg", 0.5397, 0.5361), ("gk2_sigma_zz_avg", 0.4382, 0.4318)):
+        add("13", f"impact {q} before", old, 0.00005, lambda q=q: impact(q, "old"))
+        add("13", f"impact {q} after", new, 0.00005, lambda q=q: impact(q, "new"))
+    add("13", "impact sigma_xz before", -0.292, h3, lambda: impact("sigma_xz_avg", "old"))
+    add("13", "impact sigma_xz after", -0.270, h3, lambda: impact("sigma_xz_avg", "new"))
+    add("13", "impact verdict changes", 2, 0, lambda: len(_j("stress_fix_impact.json")["verdict_changes"]))
+    add("13", "impact quantities", 41, 0, lambda: len(_j("stress_fix_impact.json")["rows"]))
+    # Section 14: Cook
+    add("14", "Cook rule predictions correct (7 levels)", 4, 0, lambda: cook_res(7)["rule_hits"])
+    add("14", "Cook rule predictions made", 5, 0, lambda: cook_res(7)["rule_predictions"])
+    add("14", "Cook expectations met (of 7)", 6, 0, lambda: sum(
+        cook_res(7)["developer_expectations_met"].values()))
+    for q, val in (("u_tip", 1.32), ("v_tip", 1.43), ("max_disp_mag", 1.38), ("strain_energy", 1.75),
+                   ("interior_gk_PK1_frob", 1.94), ("peak_PK1_frob", -0.328)):
+        add("14", f"Cook {q} order/slope (7 levels)", val, h2,
+            lambda q=q: cook_res(7)["qois"][q]["singular_order"]["observed"])
+    add("14", "Cook energy order (8 levels)", 1.71, h2,
+        lambda: cook_res(8)["qois"]["strain_energy"]["singular_order"]["observed"])
+    add("14", "Cook lambda", 0.6442, 0.00005, lambda: _j("cook_preregistration.json")["corner_exponent_lam"])
+    lo = lambda: cook_local_orders("strain_energy")
+    for i, val in zip((2, 3, 4, 5), (1.76, 1.74, 1.67, 1.59)):
+        add("14", f"Cook energy local order {i}", val, h2, lambda i=i: lo()[i])
+    add("14", "Cook u_tip local order finest", 1.11, h2, lambda: cook_local_orders("u_tip")[-1])
+    add("14", "Cook peak local slope finest", -0.361, h3, lambda: -np.log2(
+        cook_rows()[-1]["peak_PK1_frob"] / cook_rows()[-2]["peak_PK1_frob"]))
+    add("14", "Cook N=512 solve s", 1207, 0.5, lambda: cook_rows()[-1]["wall_clock_s"])
+    add("14", "Cook N=512 elements", 262144, 0, lambda: cook_rows()[-1]["n_elem"])
+    # Section 16: human intervention
+    add("16", "interventions", 59, 0, lambda: len(hi_counts()[0]))
+    add("16", "found by developer", 36, 0, lambda: hi_counts()[1][1]["developer"])
+    add("16", "found by LLM critic", 15, 0, lambda: hi_counts()[1][1]["LLM critic"])
+    add("16", "found by automated checks", 2, 0, lambda: hi_counts()[1][1]["automated check"])
+    add("16", "Omar decisions", 4, 0, lambda: hi_counts()[1][1]["Omar"])
+    add("16", "now fully automated", 6, 0, lambda: hi_counts()[1][2]["yes"])
+    add("16", "framework errors fixed", 22, 0, lambda: hi_counts()[1][0]["framework bug fixed"])
     return c
 
 

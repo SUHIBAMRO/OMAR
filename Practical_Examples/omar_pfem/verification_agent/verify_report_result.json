@@ -2982,5 +2982,765 @@
   "recomputed": 0.9510871486235806,
   "tolerance": 0.005,
   "ok": true
+ },
+ {
+  "section": "12",
+  "claim": "consistency with hand-established causes (of 16)",
+  "printed": 16,
+  "recomputed": 16.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "12",
+  "claim": "hand-established causes",
+  "printed": 16,
+  "recomputed": 16.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "12",
+  "claim": "B2 Newton-tolerance re-solve s",
+  "printed": 88,
+  "recomputed": 87.79372668266296,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "12",
+  "claim": "B3 h/rho at the finest level",
+  "printed": 1.13,
+  "recomputed": 1.1341664550459254,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "12",
+  "claim": "B1 linear vs neo-Hookean min of five %",
+  "printed": 0.43,
+  "recomputed": 0.4284442516294032,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "12",
+  "claim": "B1 linear vs neo-Hookean max of five %",
+  "printed": 0.65,
+  "recomputed": 0.6487341782661206,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "12",
+  "claim": "B1 linear vs neo-Hookean sixth %",
+  "printed": 0.02,
+  "recomputed": 0.016544028521520402,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "12",
+  "claim": "B1 max |grad u| (linear)",
+  "printed": 0.011,
+  "recomputed": 0.010912194308298944,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "12",
+  "claim": "F-bar pressure-scatter factor 2,376",
+  "printed": 2.9,
+  "recomputed": 2.9239279978578554,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "B1 same-discretisation max rel diff (x1e-12)",
+  "printed": 2.1,
+  "recomputed": 2.0494819411880307,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "B1 same-discretisation values",
+  "printed": 40,
+  "recomputed": 40.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "B2 same-discretisation max rel diff (x1e-13)",
+  "printed": 2.2,
+  "recomputed": 2.145798856818259,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "B2 same-discretisation values",
+  "printed": 54,
+  "recomputed": 54.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "B1 Q2 within uncertainty (of 7)",
+  "printed": 7,
+  "recomputed": 7.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "B2 Q2 finest within uncertainty (of 8)",
+  "printed": 7,
+  "recomputed": 7.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "B2 Q2 extrapolated within uncertainty (of 8)",
+  "printed": 8,
+  "recomputed": 8.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "B2 peak finest Q2 vs limit %",
+  "printed": 0.23,
+  "recomputed": 0.23246475809450143,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "B2 peak agent U %",
+  "printed": 0.196,
+  "recomputed": 0.19635370314254363,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "B2 peak extrapolated Q2 vs limit %",
+  "printed": 0.02,
+  "recomputed": 0.019682568482228595,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "B2 Q2 peak increment 0",
+  "printed": 0.118,
+  "recomputed": 0.1180121064928148,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "B2 Q2 peak increment 1",
+  "printed": 0.06,
+  "recomputed": 0.06046670365458695,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "B2 Q2 peak increment 2",
+  "printed": 0.031,
+  "recomputed": 0.030586513111089175,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "B1 Q2 peak coarsest",
+  "printed": 11.1,
+  "recomputed": 11.144868786428669,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "B1 Q2 peak finest",
+  "printed": 24.9,
+  "recomputed": 24.860331317374474,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "reaction_moment_y disp 2376",
+  "printed": 34.669,
+  "recomputed": 34.6690567784035,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "reaction_moment_y disp 10200",
+  "printed": 34.577,
+  "recomputed": 34.576748319031225,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "reaction_moment_y disp 15960",
+  "printed": 34.56,
+  "recomputed": 34.56010781501031,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "reaction_moment_y fbar 2376",
+  "printed": 34.206,
+  "recomputed": 34.206356067857044,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "reaction_moment_y fbar 10200",
+  "printed": 34.332,
+  "recomputed": 34.332159349395845,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "reaction_moment_y fbar 15960",
+  "printed": 34.354,
+  "recomputed": 34.35411400163379,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "pressure_std_2R0 disp 2376",
+  "printed": 4.05,
+  "recomputed": 4.048270104264791,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "pressure_std_2R0 disp 10200",
+  "printed": 0.43,
+  "recomputed": 0.434015679980507,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "pressure_std_2R0 disp 15960",
+  "printed": 0.35,
+  "recomputed": 0.352991591854599,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "pressure_std_2R0 fbar 2376",
+  "printed": 1.38,
+  "recomputed": 1.384531393122764,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "pressure_std_2R0 fbar 10200",
+  "printed": 0.53,
+  "recomputed": 0.5272359168657644,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "pressure_std_2R0 fbar 15960",
+  "printed": 0.63,
+  "recomputed": 0.6324286100779727,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "gk2_sigma_zz_avg disp 2376",
+  "printed": 0.407,
+  "recomputed": 0.40708616984768464,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "gk2_sigma_zz_avg disp 10200",
+  "printed": 0.421,
+  "recomputed": 0.4206794324680842,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "gk2_sigma_zz_avg disp 15960",
+  "printed": 0.424,
+  "recomputed": 0.4243212967321837,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "gk2_sigma_zz_avg fbar 2376",
+  "printed": 0.488,
+  "recomputed": 0.488437807701365,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "gk2_sigma_zz_avg fbar 10200",
+  "printed": 0.469,
+  "recomputed": 0.468733452875621,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "gk2_sigma_zz_avg fbar 15960",
+  "printed": 0.466,
+  "recomputed": 0.4662566313271615,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "gk2_pressure_avg disp 2376",
+  "printed": -0.443,
+  "recomputed": -0.442903229029141,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "gk2_pressure_avg disp 10200",
+  "printed": -0.454,
+  "recomputed": -0.4536866587802527,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "gk2_pressure_avg disp 15960",
+  "printed": -0.457,
+  "recomputed": -0.45724192559118365,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "gk2_pressure_avg fbar 2376",
+  "printed": -0.49,
+  "recomputed": -0.49028327718443465,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "gk2_pressure_avg fbar 10200",
+  "printed": -0.488,
+  "recomputed": -0.48800245447695273,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "gk2_pressure_avg fbar 15960",
+  "printed": -0.488,
+  "recomputed": -0.4884587308059289,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "gk2_frob_avg disp 2376",
+  "printed": 6.83,
+  "recomputed": 6.829326908433724,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "gk2_frob_avg disp 10200",
+  "printed": 3.26,
+  "recomputed": 3.257114338998489,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "gk2_frob_avg disp 15960",
+  "printed": 3.15,
+  "recomputed": 3.1478938525743567,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "gk2_frob_avg fbar 2376",
+  "printed": 5.2,
+  "recomputed": 5.200700998310347,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "gk2_frob_avg fbar 10200",
+  "printed": 4.04,
+  "recomputed": 4.042061408141381,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "gk2_frob_avg fbar 15960",
+  "printed": 3.83,
+  "recomputed": 3.8325933564969428,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "moment gap disp-F-bar 2376 %",
+  "printed": 1.34,
+  "recomputed": 1.33462157192199,
+  "tolerance": 0.005,
+  "ok": false
+ },
+ {
+  "section": "13",
+  "claim": "moment gap disp-F-bar 10200 %",
+  "printed": 0.71,
+  "recomputed": 0.7073799056482089,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "moment gap disp-F-bar 15960 %",
+  "printed": 0.6,
+  "recomputed": 0.596045054254879,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "impact sigma_xx_avg before",
+  "printed": 0.4386,
+  "recomputed": 0.4385782781532101,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "impact sigma_xx_avg after",
+  "printed": 0.4525,
+  "recomputed": 0.45253165642836174,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "impact sigma_zz_avg before",
+  "printed": 0.4284,
+  "recomputed": 0.4284022971508785,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "impact sigma_zz_avg after",
+  "printed": 0.4151,
+  "recomputed": 0.415145815945345,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "impact gk2_sigma_xx_avg before",
+  "printed": 0.5397,
+  "recomputed": 0.5397384536394042,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "impact gk2_sigma_xx_avg after",
+  "printed": 0.5361,
+  "recomputed": 0.5361371455667748,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "impact gk2_sigma_zz_avg before",
+  "printed": 0.4382,
+  "recomputed": 0.4382120481895801,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "impact gk2_sigma_zz_avg after",
+  "printed": 0.4318,
+  "recomputed": 0.43181913188431104,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "impact sigma_xz before",
+  "printed": -0.292,
+  "recomputed": -0.2924493013047709,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "impact sigma_xz after",
+  "printed": -0.27,
+  "recomputed": -0.26988745836146977,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "impact verdict changes",
+  "printed": 2,
+  "recomputed": 2.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "13",
+  "claim": "impact quantities",
+  "printed": 41,
+  "recomputed": 41.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "14",
+  "claim": "Cook rule predictions correct (7 levels)",
+  "printed": 4,
+  "recomputed": 4.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "14",
+  "claim": "Cook rule predictions made",
+  "printed": 5,
+  "recomputed": 5.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "14",
+  "claim": "Cook expectations met (of 7)",
+  "printed": 6,
+  "recomputed": 6.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "14",
+  "claim": "Cook u_tip order/slope (7 levels)",
+  "printed": 1.32,
+  "recomputed": 1.317717267489863,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "14",
+  "claim": "Cook v_tip order/slope (7 levels)",
+  "printed": 1.43,
+  "recomputed": 1.4302356654660855,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "14",
+  "claim": "Cook max_disp_mag order/slope (7 levels)",
+  "printed": 1.38,
+  "recomputed": 1.3754657762475073,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "14",
+  "claim": "Cook strain_energy order/slope (7 levels)",
+  "printed": 1.75,
+  "recomputed": 1.7537489688012202,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "14",
+  "claim": "Cook interior_gk_PK1_frob order/slope (7 levels)",
+  "printed": 1.94,
+  "recomputed": 1.938852202232099,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "14",
+  "claim": "Cook peak_PK1_frob order/slope (7 levels)",
+  "printed": -0.328,
+  "recomputed": -0.32806073945611675,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "14",
+  "claim": "Cook energy order (8 levels)",
+  "printed": 1.71,
+  "recomputed": 1.7147555577629487,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "14",
+  "claim": "Cook lambda",
+  "printed": 0.6442,
+  "recomputed": 0.6442080714479778,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "14",
+  "claim": "Cook energy local order 2",
+  "printed": 1.76,
+  "recomputed": 1.7637318471830983,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "14",
+  "claim": "Cook energy local order 3",
+  "printed": 1.74,
+  "recomputed": 1.7362669757982732,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "14",
+  "claim": "Cook energy local order 4",
+  "printed": 1.67,
+  "recomputed": 1.6723308808069042,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "14",
+  "claim": "Cook energy local order 5",
+  "printed": 1.59,
+  "recomputed": 1.59060628940168,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "14",
+  "claim": "Cook u_tip local order finest",
+  "printed": 1.11,
+  "recomputed": 1.111322770819807,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "14",
+  "claim": "Cook peak local slope finest",
+  "printed": -0.361,
+  "recomputed": -0.36086649352679745,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "14",
+  "claim": "Cook N=512 solve s",
+  "printed": 1207,
+  "recomputed": 1206.501404285431,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "14",
+  "claim": "Cook N=512 elements",
+  "printed": 262144,
+  "recomputed": 262144.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "16",
+  "claim": "interventions",
+  "printed": 59,
+  "recomputed": 59.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "16",
+  "claim": "found by developer",
+  "printed": 36,
+  "recomputed": 36.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "16",
+  "claim": "found by LLM critic",
+  "printed": 15,
+  "recomputed": 15.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "16",
+  "claim": "found by automated checks",
+  "printed": 2,
+  "recomputed": 2.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "16",
+  "claim": "Omar decisions",
+  "printed": 4,
+  "recomputed": 4.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "16",
+  "claim": "now fully automated",
+  "printed": 6,
+  "recomputed": 6.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "16",
+  "claim": "framework errors fixed",
+  "printed": 22,
+  "recomputed": 22.0,
+  "tolerance": 0,
+  "ok": true
  }
 ]
