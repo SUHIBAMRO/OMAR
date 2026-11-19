@@ -25494,3 +25494,78 @@ Result on the 7 pre-registered levels (`cook_result_7levels.json`):
 - diagnose.py default now includes cook_membrane; consistency with the
   manual findings still 16/16; 52 tests pass. Human-intervention count now
   53 (Cook facts by hand, post-hoc Q2 extrapolation, corner_lambda crash).
+
+### 2026-11-19 -- Omar: "do the other things, the report last" -- E1-E5 + a BUG
+Order: E1 mixed formulation, E2 costly agent actions, E3 model hierarchy,
+E4 local refinement at the groove root, E5 full reading; E6 report LAST.
+
+**BUG FOUND (pre-existing, important): B3 Cauchy stresses converted twice.**
+torch-fem 0.14 `Solid.solve` already returns the CAUCHY stress for finite
+strain (base.py converts P F^T / J before returning); b3_global.py and
+data/solve_quadratic_hex_groove_stress.py, ..._z_refined.py,
+mesh_convergence_B3.py applied P F^T / J AGAIN. Stored stresses = sigma F^T / J
+exactly (checked to 3.5e-12 against an independent assembly): non-symmetric
+(e.g. xz 9.66 vs zx 5.97), off by O(|grad u|). Found by mixed_b3.py's own
+assembly (moment/energy agree to 5e-15, stresses did not). Size: 2,376 el
+sharp-sphere sigma_xx avg 0.4349 (stored) vs 0.4658 (correct, +7%), xz
+-0.486 vs -0.464, von Mises 1.904 vs 1.862.
+NOT affected: displacements, reaction moment, strain energy (all from u, f,
+F), and the surrogate-error evaluation (evaluate_B3_qois*.py computes its own
+P by autograd from u). AFFECTED: every stored B3 Gauss-point/region/surface
+stress of the verification agent, and the Q20 groove-reference stress values
+and SCFs produced by data/solve_quadratic_hex_groove_stress*.py (manuscript /
+earlier reports), since the b3_extended re-solve reproduced those runs.
+Fix: `torchfem_comparison.cauchy_from_torchfem_flux` (symmetric flux = Cauchy
+passes through, non-symmetric = P is converted), used at all four sites;
+fixed b3_global reproduces the independent assembly to 1e-13. Old data kept
+in verification_agent/pre_stressfix_20261119/ (not committed; also in git
+history). Re-solve of all stored B3 cases running: b3_redo_stress_fix.py
+(~3.5-4 h alone; a first parallel attempt was 25x slower from thread
+oversubscription and was stopped). NEEDS OMAR: the manuscript's groove
+reference stresses/SCF must be recomputed with the fix (not done; numbers
+change by a few %, the conclusions -- surrogate groove-stress errors of
+hundreds of % -- do not).
+
+E1 (mixed formulation, `mixed_b3.py`, `mixed_b3_result.json`): own assembly
+(torch.func element Hessians, pypardiso, explicit det: torch.linalg.det's
+double backward is NaN at F = I), validated: displacement formulation
+reproduces the stored 2,376-el moment/energy to 5e-15 and full integration
+to the stored +0.22%. Mean-dilatation F-bar (= Q20/P0 three-field mixed):
+- moment: displacement 34.669 -> 34.577, F-bar 34.206 -> 34.332 (2,376 ->
+  10,200 el): opposite sides, bracketing the displacement family's limit
+  (~34.46) -> independent support of the global reference value.
+- Gauss-point pressure std within 2R0: displacement 4.05 -> 0.434, F-bar
+  1.38 -> 0.527. F-bar removes most of the scatter at 2,376 el (factor 2.9)
+  but NOT at 10,200 el -> the coarse-level scatter is volumetric (D3), the
+  fine-level one is mostly the real pressure variation at the groove; the
+  pressure-std measure mixes the two (D3 holds only on coarse meshes).
+- groove stresses at 10,200 el depend on the formulation: gk2 sigma_zz 0.421
+  vs 0.469 (11%), Frobenius 3.26 vs 4.04 (24%), von Mises 2.26 vs 3.01 --
+  consistent with h/rho ~ 2.5 at the root (D1). A finer F-bar level is
+  needed to see whether both converge to one limit (after the re-solve).
+E2 (`diagnose.py --confirm`): CONFIRM registry -- supported hypotheses run
+a confirmatory computation if its estimated time (fitted t ~ n^alpha) fits
+the budget and its memory fits 12 GB. Cook D4: N=1024 needs ~13 GB ->
+skipped by the agent, existing N=512 data confirms (local order 1.67 ->
+1.59 toward 1.29). B3 D3: F-bar re-solve, prediction pressure scatter
+drops >= 2x (holds at 2,376 el, not at 10,200 -- see E1).
+E3 (`model_hierarchy.py`): physical models (linear elastic, compressible
+neo-Hookean, Mooney-Rivlin, Arruda-Boyce, nearly-incompressible mixed,
+viscoelastic/damage n/a) and numerical (Q4, Q9, Q2 skfem, Q20 reduced/full,
+Q20 F-bar, local refinement, IGA n/a) with assumptions, limits, evidence,
+cost; escalation map hypothesis -> next model (added to each diagnosis).
+Measured: B1 linear elasticity vs neo-Hookean differ by 0.43-0.65% in
+displacements/energy (max |grad u| 0.011) -- 20-30x the discretisation
+uncertainty (~0.02%): model form matters more than mesh here.
+E4 (`b3_local_refine.py`, prepared, not solved yet): theta grading added;
+the project's mesh builder cannot reach h <= rho/4 at the root (thin first
+radial layer + snapped surface mid-side nodes -> negative Jacobians for
+r_grading >= 1.6 or more radial layers). New builder with EXACT transfinite
+placement of every mid-side node: valid sequence h_root/rho = 2.50, 0.77,
+0.44, 0.25, 0.15 at 10,200-15,000 el (Jacobian contrast up to 6e4 -> direct
+solver). To run after the re-solve.
+E5: FermiLink, ALL-FEM, PDE-Agents read in full text (parts of ALL-FEM /
+PDE-Agents through an extracted summary, marked); none verifies a numerical
+reference (QoI convergence without exact solution, robustness, singular
+order, diagnosis) and none counts human interventions. In
+`advisor_feedback/2026-11-19_related_agents_literature.md`.

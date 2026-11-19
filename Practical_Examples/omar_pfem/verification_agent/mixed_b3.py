@@ -85,10 +85,14 @@ def element_energy(ue, dNdX, w, formulation):
 
 
 class Problem:
-    def __init__(self, Ntheta, Nr, Nz, quadrature="reduced", formulation="disp"):
+    def __init__(self, Ntheta=None, Nr=None, Nz=None, quadrature="reduced", formulation="disp",
+                 mesh=None):
+        """mesh: optional (nodes, elements, inner, outer, sym) from another
+        builder (b3_local_refine)."""
         from torchfem.elements import Hexa2
-        nodes, elements, inner, outer, sym = build_quadratic_mesh_with_curved_surfaces(
-            Ntheta, Nr, Nz, r_grading=1.0, groove_depth=GROOVE_DEPTH)
+        nodes, elements, inner, outer, sym = mesh if mesh is not None else \
+            build_quadratic_mesh_with_curved_surfaces(Ntheta, Nr, Nz, r_grading=1.0,
+                                                      groove_depth=GROOVE_DEPTH)
         self.nodes, self.elements = nodes, elements
         self.inner, self.outer, self.sym = inner, outer, sym
         self.formulation = formulation
@@ -207,6 +211,10 @@ def qois(pb):
     for kind, wt in (("sharp", ww * (d < R0)), ("gk2", ww * np.exp(-(d / (2 * R0)) ** 2))):
         for k, v in meas.items():
             out[f"{kind}_{k}_avg"] = float((v * wt).sum() / wt.sum())
+    inside = d < R0
+    out["n_gauss_R0"] = int(inside.sum())
+    for k in ("sigma_xx", "sigma_zz", "sigma_xz", "von_mises", "pressure"):
+        out[f"max_{k}_R0"] = float(np.abs(meas[k][inside]).max())
     return out
 
 

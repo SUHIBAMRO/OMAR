@@ -1,9 +1,12 @@
 # Related agent frameworks for simulation (literature note, 2026-11-19)
 
 Prof. Rabczuk asked us to look at FermiLink, ALL-FEM and similar agents.
-**Basis: arXiv abstract pages and search results only; the full papers have
-not been read.** Where an abstract is silent, this note says so. A silent
-abstract does not mean the paper lacks the feature.
+**Basis:** the table below comes from arXiv abstracts. FermiLink, ALL-FEM
+and PDE-Agents were then read in full text (section "Full-text reading"
+below). In that reading, parts of ALL-FEM (Sec. 2.2.4 onward, the
+appendices) and of PDE-Agents (Sec. 4-9) came through an extracted summary
+rather than verbatim text; this is marked there. The other three papers
+were read at abstract level only.
 
 ## Summary table
 
@@ -46,11 +49,36 @@ abstract does not mean the paper lacks the feature.
    not a verified one. Our B3 groove stresses ran and looked plausible, yet
    they did not converge at a rate. That is the gap our work addresses.
 
+## Full-text reading (FermiLink, ALL-FEM, PDE-Agents), 2026-11-19
+
+| question | FermiLink (2604.03460 v3) | ALL-FEM (2603.21011 v2) | PDE-Agents (2606.07850 v2) |
+|---|---|---|---|
+| How results are checked | against the published figure; quality rated by two human evaluators, a third if needed (Sec. 3.1). No convergence study, MMS, a-posteriori error or UQ; "always provide uncertainty information" (Sec. 2) without a method | compared with expert reference solutions by plot overlay, then an LLM judge, differences checked by hand (Sec. 3.1*); a relative-L2 check against a finer mesh appears only as an alternative (App. 6*). No convergence study by the agent | a V&V study "following ASME V&V 10-2006" with five mesh levels and log-log rate fits (Sec. 5*), reported by the authors; the agent itself runs nine rule-based pre-run checks, none on convergence (Sec. 4) |
+| What counts as success | Reproduced / Replotted / Blocked; reproduced tasks graded by humans; no numeric tolerance | match with the reference solution (visual, LLM judge) after the code runs | completion plus a "physics score" (T_max/T_min in expected ranges); notes that "a simulation with fabricated properties still 'succeeds' computationally" (Sec. 6.1*) |
+| Failure diagnosis | the agent rejected its own first fit and refit (Sec. 3.3); warns against "shortcut-seeking" and calls for "process-level validation" | Corrector reads code + run-time error (Sec. 2.3.2); numerical errors in code that RUNS are not caught* | ReAct loop with a debug tool; mostly boundary-condition or CFL fixes (Sec. 7.3*) |
+| Human involvement | benchmark with "zero human expert insights"; a separate expert-guided set; interventions not counted; human expertise "is needed" to set objectives and judge validity (Sec. 4) | a human Admin agent must stop the loop*; not counted | not counted |
+| Solid mechanics / hyperelasticity | none (Psi4, CP2K, MEEP, LAMMPS, ...) | linear/nonlinear elasticity, hyperelasticity, plasticity in the benchmark; no hyperelastic-specific validation found | none: heat equation only (Sec. 8*) |
+| Memory of past runs | short/long-term memory of setups and pitfalls (Sec. 2) | none | Neo4j knowledge graph; top-3 similar past runs injected as examples; +0.08 physics score (Sec. 6.3) |
+
+\* = from the extracted summary of that part of the paper, not verbatim text.
+
+Conclusion after the full text: none of the three verifies a numerical
+REFERENCE the way our framework does. Two of them rely on comparison
+with a known answer (published figure, expert reference): FermiLink with
+human grading, ALL-FEM with a visual check and an LLM judge. PDE-Agents
+fits convergence rates, but the authors do it outside the agent and only
+for heat-equation cases with exact solutions. None performs QoI convergence
+without an exact solution, strategy robustness, singular-order checks or a
+non-convergence diagnosis, and none counts human interventions. Two
+statements support our approach directly: FermiLink's call for
+"process-level validation" and PDE-Agents' remark that a run with
+fabricated inputs still "succeeds".
+
 ## Still to do
 
-- Read the full papers, at least FermiLink, ALL-FEM and PDE-Agents, to
-  confirm the "not stated" items, especially whether any of them performs
-  solution verification.
+- Read the remaining parts of ALL-FEM (appendices) and PDE-Agents
+  (Sec. 4-9) verbatim; read VFEAgent, FeaGPT and the CAE-harness study in
+  full.
 - Search further for agents that perform verification and validation
   (V&V) or uncertainty quantification on FE references, not just code
   generation.

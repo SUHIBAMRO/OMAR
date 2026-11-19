@@ -581,3 +581,31 @@ def test_cook_is_registered_as_singular_held_out_problem():
     pre = json.load(open(os.path.join(os.path.dirname(__file__), "cook_preregistration.json")))
     assert pre["rules_changed_for_this_problem"] is False
     assert pre["rule_predictions"]["peak_PK1_frob"]["predicted"] == "FAIL"
+
+
+def test_cauchy_from_torchfem_flux_handles_both_conventions():
+    """Cauchy (symmetric) passes through; a first Piola-Kirchhoff stress
+    (non-symmetric) is converted. Converting the Cauchy stress again was
+    the 2026-11-19 bug (stored B3 stresses were sigma F^T / J)."""
+    import numpy as np
+    from omar_pfem.torchfem_comparison import cauchy_from_torchfem_flux
+    rng = np.random.default_rng(0)
+    F = np.eye(3) + 0.05 * rng.standard_normal((5, 3, 3))
+    S = rng.standard_normal((5, 3, 3)); sig = S + np.swapaxes(S, 1, 2)
+    J = np.linalg.det(F)
+    P = J[:, None, None] * sig @ np.linalg.inv(np.swapaxes(F, 1, 2))   # P = J sigma F^-T
+    assert np.allclose(cauchy_from_torchfem_flux(sig, F), sig)
+    assert np.allclose(cauchy_from_torchfem_flux(P, F), sig)
+
+
+def test_exact_midside_mesh_is_valid_where_project_builder_inverts():
+    from omar_pfem.verification_agent.b3_local_refine import quality
+    q = quality(21, 26, 31, 5.0, 1.5, 0.9, exact=True)
+    assert q["min_detJ"] > 0 and q["h_over_rho"] < 0.25
+    assert quality(21, 26, 31, 5.0, 1.5, 0.9, exact=False)["min_detJ"] < 0
+
+
+def test_confirmation_respects_memory_limit():
+    from omar_pfem.verification_agent import diagnose as D
+    t, gb, what = D._cook_finer_estimate()
+    assert gb > D.MEM_LIMIT_GB      # N = 1024 would need ~13 GB: the agent must not run it
