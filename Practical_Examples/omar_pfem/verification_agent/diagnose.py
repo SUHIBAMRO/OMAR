@@ -92,6 +92,24 @@ def _b1_mms_ok():
         if k in ("L2", "H1_semi"))
 
 
+def _cook_code_ok():
+    """Cook is solved with scikit-fem (cook_ladder.py) using the residual and
+    tangent of independent_solver.py; those reproduce the project's B1/B2
+    solvers to round-off, whose Q4 element passes the 2D MMS."""
+    path = os.path.join(HERE, "independent_solver_result.json")
+    if not os.path.exists(path):
+        return None, "no independent-solver comparison stored"
+    cmp_ = json.load(open(path)).get("comparison", {})
+    worst = max((r["rel_diff"] for p in ("b1", "b2") for r in cmp_.get(p, {}).get("same", [])),
+                default=None)
+    mms_ok, mms_txt = _b1_mms_ok()
+    if worst is None:
+        return None, "no same-discretisation comparison stored"
+    return bool(worst < 1e-9 and mms_ok), (
+        f"scikit-fem residual/tangent reproduce the project's B1/B2 solvers to {worst:.1e}; "
+        + mms_txt)
+
+
 def _q20_mms_ok():
     path = os.path.join(HERE, "mms_q20_result.json")
     if not os.path.exists(path):
@@ -127,6 +145,22 @@ def _b2_tolerance_change():
             "interior_gk_PK1_frob", "u_inner", "v_mid")
     return max(abs(a[k] - t[k]) / abs(a[k]) for k in keys), (
         f"N={t['N']} solved at Newton tol 1e-8 and {t['newton_tol']:g}")
+
+
+COOK_TOL = os.path.join(HERE, "cook_tolerance_check.json")
+
+
+def _cook_tolerance_change():
+    if not os.path.exists(COOK_TOL):
+        return None, "no Cook solve at a tighter Newton tolerance"
+    from omar_pfem.verification_agent.cook_ladder import CACHE
+    t = json.load(open(COOK_TOL))
+    a = next(r for r in json.load(open(CACHE)) if r["N"] == t["N"] and r["grading"] == 0.0)
+    keys = ("u_tip", "v_tip", "max_disp_mag", "strain_energy", "interior_avg_PK1_frob",
+            "interior_gk_PK1_frob", "peak_PK1_frob")
+    return max(abs(a[k] - t[k]) / abs(a[k]) for k in keys), (
+        f"N={t['N']} solved at Newton tol 1e-9 and {t['newton_tol']:g} "
+        f"(final residuals {a['newton'][-1][1]:.1e} / {t['newton'][-1][1]:.1e})")
 
 
 def _b3_tolerance_change():
@@ -200,6 +234,20 @@ FACTS = {
         "linear_solver": ("direct sparse LU", None),
         "fullint": None,
     },
+    # held-out singular problem; facts are geometry/discretisation only
+    "cook_membrane": {
+        "name": "Cook", "element": "Q4", "degree": 1, "quadrature": "full", "nu": 0.3,
+        "corners": [{"where": "clamped left edge meets the free top edge at (0,44)",
+                     "angle": np.pi / 2 + np.arctan(16 / 48), "bc": ("clamped", "free")},
+                    {"where": "clamped left edge meets the free bottom edge at (0,0)",
+                     "angle": np.pi / 2 - np.arctan(44 / 48), "bc": ("clamped", "free")}],
+        "corners_in_qoi_region": True,      # the peak is a maximum over the whole body
+        "feature_radius": None,
+        "code_check": _cook_code_ok,
+        "tolerance_check": _cook_tolerance_change,
+        "linear_solver": ("direct sparse LU", None),
+        "fullint": None,
+    },
     "bushing_groove": {
         "name": "B3", "element": "Q20", "degree": 2, "quadrature": "reduced", "nu": 0.45,
         "corners": [{"where": "Dirichlet inner/outer surfaces meet the free end faces "
@@ -225,6 +273,7 @@ def corner_lambda(facts):
     from omar_pfem.verification_agent import singularity as S
     lams = [S.smallest_exponent(c["angle"], c["bc"][0], c["bc"][1], facts["nu"], "strain")
             for c in facts["corners"]]
+    lams = [l for l in lams if l is not None]      # regular corners have no exponent < 1
     return min(lams) if lams else None
 
 
@@ -728,6 +777,13 @@ def _act_b2_tolerance():
     run_ladder([49], tol=1e-10)
 
 
+def _act_cook_tolerance():
+    from omar_pfem.verification_agent.cook_ladder import solve_level
+    r = solve_level(64, tol=1e-12)
+    r["newton_tol"] = 1e-12
+    json.dump(r, open(COOK_TOL, "w"), indent=1)
+
+
 def _act_b3_direct_solver():
     from omar_pfem.verification_agent import b3_global as b
     r = b.solve_extended(*b._family_resolutions()[0], linear_solver="direct")
@@ -741,6 +797,8 @@ def _act_b3_direct_solver():
 ACTIONS = {
     ("quarter_ring", "S1"): (_act_b2_tolerance, 90,
                              "re-solve B2 at N=49 with Newton tol 1e-10"),
+    ("cook_membrane", "S1"): (_act_cook_tolerance, 10,
+                              "re-solve Cook at N=64 with Newton tol 1e-12"),
     ("bushing_groove", "S2"): (_act_b3_direct_solver, 160,
                                "re-solve B3 at 2,376 el with a direct linear solver"),
 }
@@ -798,6 +856,8 @@ MANUAL = {
 def consistency(res):
     rows = []
     for (g, q), (exp_sup, exp_ref) in MANUAL.items():
+        if g not in res:                  # geometry not diagnosed in this run
+            continue
         d = res.get(g, {}).get(q)
         if d is None:
             rows.append((g, q, False, "not diagnosed"))

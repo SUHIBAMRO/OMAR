@@ -18,7 +18,7 @@ import os
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 # categories
-INPUT = "input/description corrected"
+INPUT = "input written or corrected by hand"
 BUG = "framework bug fixed"
 DESIGN = "design change"
 INVEST = "manual diagnostic investigation"
@@ -58,6 +58,14 @@ E = [
     dict(id="I7", date="11-17", cat=INPUT, found=DEV, now=NO,
          what="B3 Q20 elements use the reduced 2x2x2 rule (found while verifying the description)",
          effect="led to the full-integration check (V3)"),
+
+    dict(id="I8", date="11-19", cat=INPUT, found=DEV, now=NO,
+         what="Cook problem facts for the diagnosis engine (corner angles, boundary "
+              "conditions, solver) written by hand", effect="no tuning of the tests"),
+    dict(id="I9", date="11-19", cat=INPUT, found=DEV, now=NO,
+         what="independent Q2 check: an extrapolation of the Q2 series was added after the "
+              "B2 peak came out 0.23% from the agent's limit (outside U = 0.196%)",
+         effect="extrapolated Q2 value 0.020% from the limit; stated as post hoc"),
 
     # ---- framework bugs ------------------------------------------------------------------
     dict(id="B1", date="11-16", cat=BUG, found=DEV, now=NO,
@@ -113,6 +121,11 @@ E = [
          what="diagnosis Q2 used combined verdicts of the signed components (strategy FAIL "
               "counted as non-convergence)", effect="the one mismatch with the manual findings; "
                                                     "fixed -> 16/16"),
+
+    dict(id="B18", date="11-19", cat=BUG, found=AUTO, now=NO,
+         what="diagnosis engine crashed on the held-out Cook problem: corner_lambda did not "
+              "skip a regular corner (no singular exponent)",
+         effect="surfaced by running on a new problem; fixed by hand, test added"),
 
     # ---- design changes from critic objections -------------------------------------------
     dict(id="D1", date="11-16", cat=DESIGN, found=CRITIC, now=NO,

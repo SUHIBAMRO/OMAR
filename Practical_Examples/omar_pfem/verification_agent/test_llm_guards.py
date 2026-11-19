@@ -559,3 +559,25 @@ def test_independent_solver_reproduces_project_solvers():
         row = S.qois(prob, N, "same", *S.solve(prob, N, "same")[:5])
         for q in S.PROBLEMS[prob]["qois"]:
             assert abs(row[q] - ref[q]) <= 1e-9 * abs(ref[q]), (prob, q, row[q], ref[q])
+
+
+def test_corner_lambda_ignores_regular_corners():
+    """Cook: the 47.5-degree clamped/free corner has no singular exponent
+    below 1 (None); the 108.4-degree one has lam = 0.6442. The minimum must
+    skip the regular corner (this crashed before the held-out Cook test)."""
+    from omar_pfem.verification_agent import diagnose as D
+    assert abs(D.corner_lambda(D.FACTS["cook_membrane"]) - 0.6442) < 1e-3
+    assert D.corner_lambda(D.FACTS["quarter_ring"]) is None
+
+
+def test_cook_is_registered_as_singular_held_out_problem():
+    import json, os
+    from omar_pfem.verification_agent import trees
+    from omar_pfem.verification_agent.agent import DEFAULT_SPECS
+    from omar_pfem.verification_agent.orchestrate import ADAPTERS
+    assert "cook_membrane" in ADAPTERS
+    spec = DEFAULT_SPECS["cook_membrane"]
+    assert trees.regularity_class(spec["regularity"]) == "singular" and spec["element"] == "Q4"
+    pre = json.load(open(os.path.join(os.path.dirname(__file__), "cook_preregistration.json")))
+    assert pre["rules_changed_for_this_problem"] is False
+    assert pre["rule_predictions"]["peak_PK1_frob"]["predicted"] == "FAIL"
