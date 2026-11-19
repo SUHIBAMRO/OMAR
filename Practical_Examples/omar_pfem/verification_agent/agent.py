@@ -216,6 +216,12 @@ DEFAULT_SPECS = {
                          material="neo_hookean", loading="internal_pressure",
                          regularity="smooth", element="Q4",
                          reference="mesh_refinement_family", qois=None),
+    # Cook's membrane: held-out SINGULAR problem -- spec fixed and committed
+    # (cook_preregistration.json) before any Cook solve
+    "cook_membrane": dict(name="Cook membrane", geometry="cook_membrane", dim=2,
+                          material="neo_hookean", loading="edge_shear_traction",
+                          regularity="clamped_free_corner", element="Q4",
+                          reference="mesh_refinement_family", qois=None),
     "bushing_groove": dict(name="B3 groove", geometry="bushing_groove", dim=3,
                            material="neo_hookean", loading="prescribed_rotation",
                            regularity="stress_concentration", element="Q20",

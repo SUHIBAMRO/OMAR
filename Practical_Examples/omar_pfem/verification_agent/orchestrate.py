@@ -151,6 +151,54 @@ class B2Adapter:
         return [r[qoi] for r in self.strategy_rows], None
 
 
+class CookAdapter:
+    """HELD-OUT problem WITH a corner singularity (cook_ladder.py). Spec,
+    description and rule predictions were fixed and committed before any
+    Cook solve (cook_preregistration.json); rules unchanged."""
+    geometry = "cook_membrane"
+    description = (
+        "Cook's membrane: 2D tapered panel with vertices (0,0), (48,44), (48,60), (0,44), "
+        "plane strain, compressible neo-Hookean (same psi as B1), E = 1000, nu = 0.3 "
+        "(constant), total Lagrangian. Left edge x = 0 clamped; right edge x = 48 loaded by a "
+        "uniform dead shear traction t_y = 5 (total 80) in 10 equal increments; top and "
+        "bottom edges traction-free. Q4 elements, 2x2 Gauss, on an N x N mapped mesh of the "
+        "parametric square, N = 4, 8, ..., 256 (h = 1/N, ratio 2). Strategies at N = 64: "
+        "uniform and grading toward the clamped edge and both left corners (a = 0.5, 0.8; "
+        "corner elements 2x and 5x smaller, same element count). QoIs: u_tip, v_tip = "
+        "displacement of the corner (48,60), a mesh node on every level; max_disp_mag over "
+        "the nodes; strain_energy = stored energy; interior_avg_PK1_frob = detJ-weighted mean "
+        "of |P|_F over the Gauss points inside the disc of radius 4 centred at (24,40); "
+        "interior_gk_PK1_frob = the same with the smooth weight exp(-(d/3)^2); peak_PK1_frob "
+        "= max |P|_F over all Gauss points. Corner theory (singularity.py, Williams "
+        "eigenproblem, clamped/free, plane strain, nu = 0.3): the 47.5-degree corner at (0,0) "
+        "is regular; the 108.4-degree corner at (0,44) has lam = 0.6442, so energy converges "
+        "at order 2 lam = 1.29, point values at >= 1.29 and the peak grows like h^(lam-1) = "
+        "h^-0.356. Solver: scikit-fem with the residual/tangent of independent_solver.py. "
+        "No surrogate errors are recorded, so the class ceilings apply.")
+    qois = ("u_tip", "v_tip", "max_disp_mag", "strain_energy", "interior_avg_PK1_frob",
+            "interior_gk_PK1_frob", "peak_PK1_frob")
+
+    def __init__(self, strategy_N=64):
+        from omar_pfem.verification_agent.cook_ladder import CACHE
+        rows = json.load(open(CACHE)) if os.path.exists(CACHE) else []
+        self.rows = sorted((r for r in rows if r["grading"] == 0.0), key=lambda r: r["N"])
+        self.hs = [r["h"] for r in self.rows]
+        self.strategy_rows = sorted((r for r in rows if r["N"] == strategy_N),
+                                    key=lambda r: r["grading"])
+
+    def series(self, qoi):
+        return self.hs, [r[qoi] for r in self.rows], None
+
+    def singular_exponent(self):
+        from omar_pfem.verification_agent.cook_ladder import cook_corner_exponent
+        return cook_corner_exponent()
+
+    def strategies(self, qoi):
+        if len(self.strategy_rows) < 2:
+            return None
+        return [r[qoi] for r in self.strategy_rows], None
+
+
 class B3Adapter:
     geometry = "bushing_groove"
     description = (
@@ -308,8 +356,10 @@ class B3Adapter:
         return {"min_detF": min(r.get("min_detF", float("nan")) for r in rows)}
 
 
-ADAPTERS = {"unit_square": B1Adapter, "quarter_ring": B2Adapter, "bushing_groove": B3Adapter}
+ADAPTERS = {"unit_square": B1Adapter, "quarter_ring": B2Adapter, "bushing_groove": B3Adapter,
+            "cook_membrane": CookAdapter}
 ADAPTER_VOCAB = {
+    "cook_membrane": (CookAdapter.description, CookAdapter.qois),
     "unit_square": (B1Adapter.description, B1Adapter.qois),
     "quarter_ring": (B2Adapter.description, B2Adapter.qois),
     "bushing_groove": (B3Adapter.description,

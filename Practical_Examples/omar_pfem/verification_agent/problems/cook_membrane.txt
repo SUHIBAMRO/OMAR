@@ -1,0 +1,9 @@
+Cook's membrane: a 2D tapered panel (vertices (0,0), (48,44), (48,60), (0,44))
+of compressible neo-Hookean material in plane strain, clamped along its left
+edge and loaded by a uniform shear traction along its right edge; the top and
+bottom edges are traction-free. The clamped edge meets the free edges at two
+corners. The reference is computed with bilinear quadrilaterals (Q4) on
+uniformly refined mapped meshes, plus meshes of the same size graded toward
+the clamped edge and its corners.
+Question: which displacement, energy and stress quantities can serve as
+trustworthy reference values for validating surrogate models?
