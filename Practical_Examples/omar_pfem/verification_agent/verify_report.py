@@ -665,6 +665,30 @@ def claims():
         cook_rows()[-1]["peak_PK1_frob"] / cook_rows()[-2]["peak_PK1_frob"]))
     add("14", "Cook N=512 solve s", 1207, 0.5, lambda: cook_rows()[-1]["wall_clock_s"])
     add("14", "Cook N=512 elements", 262144, 0, lambda: cook_rows()[-1]["n_elem"])
+    # Section 15: local refinement
+    def lr(case_idx, quad, form, key):
+        from omar_pfem.verification_agent.b3_local_refine import SEQUENCE
+        c = list(SEQUENCE[case_idx])
+        return next(r[key] for r in _j("b3_local_refine.json") if r["case"] == c
+                    and r.get("quadrature", "reduced") == quad and r.get("formulation", "disp") == form)
+    for i, hr in ((0, 2.50), (1, 0.77), (2, 0.44), (3, 0.25), (4, 0.15)):
+        add("15", f"local refinement h/rho mesh {i}", hr, h2, lambda i=i: lr(i, "reduced", "disp", "h_over_rho"))
+    for (i, quad, form), vals in {
+            (1, "reduced", "disp"): (34.531, 0.82, 1.09, 0.538),
+            (3, "reduced", "disp"): (34.482, 10.1, 10.5, 0.541),
+            (1, "full", "disp"): (34.664, 0.833, 1.034, 0.497),
+            (3, "full", "disp"): (34.780, 0.839, 1.110, 0.471),
+            (1, "full", "fbar"): (34.294, 1.044, 1.141, 0.565),
+            (3, "full", "fbar"): (34.212, 1.014, 1.277, 0.569)}.items():
+        for key, val in zip(("reaction_moment_y", "max_sigma_xx_R0", "max_sigma_zz_R0",
+                             "gk2_sigma_xx_avg"), vals):
+            tol = {2: h2, 1: h1, 3: h3}[min(3, len(str(val).split(".")[1]))]
+            add("15", f"local {quad}/{form} mesh {i} {key}", val, tol,
+                lambda i=i, quad=quad, form=form, key=key: lr(i, quad, form, key))
+    add("15", "reduced max at h/rho 0.15", 29.0, h1, lambda: lr(4, "reduced", "disp", "max_sigma_xx_R0"))
+    add("15", "full max at h/rho 0.15", 0.856, h3, lambda: lr(4, "full", "disp", "max_sigma_xx_R0"))
+    add("15", "probe reduced max", 10.08, h2, lambda: _j("b3_local_refine_probe_reduced.json")[0]["sxx"])
+    add("15", "probe full max", 0.84, h2, lambda: _j("b3_local_refine_probe_full.json")[0]["sxx"])
     # Section 16: human intervention
     add("16", "interventions", 59, 0, lambda: len(hi_counts()[0]))
     add("16", "found by developer", 36, 0, lambda: hi_counts()[1][1]["developer"])

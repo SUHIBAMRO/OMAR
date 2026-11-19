@@ -133,7 +133,7 @@ SEQUENCE = [(21, 18, 31, 0.0, 1.0, 0.0), (21, 18, 31, 3.0, 1.3, 0.8), (21, 18, 3
             (21, 26, 31, 5.0, 1.5, 0.9), (21, 26, 31, 5.0, 1.7, 0.93)]
 
 
-def solve_sequence(cases=SEQUENCE, quadrature="reduced"):
+def solve_sequence(cases=SEQUENCE, quadrature="reduced", formulation="disp"):
     """quadrature "full" (27 points): on the strongly graded meshes the
     reduced 8-point rule shows spurious sign-alternating Gauss-point stresses
     near the inner surface (h/rho = 0.25: max |sigma_xx| in R0 10.08 reduced
@@ -141,16 +141,17 @@ def solve_sequence(cases=SEQUENCE, quadrature="reduced"):
     integration."""
     from omar_pfem.verification_agent.mixed_b3 import Problem, qois
     rows = json.load(open(OUT)) if os.path.exists(OUT) else []
-    done = {(tuple(r["case"]), r.get("quadrature", "reduced")) for r in rows}
+    done = {(tuple(r["case"]), r.get("quadrature", "reduced"), r.get("formulation", "disp"))
+            for r in rows}
     for c in cases:
-        if (tuple(c), quadrature) in done:
+        if (tuple(c), quadrature, formulation) in done:
             continue
         import time
         t0 = time.time()
         q = quality(*c, exact=True)
-        pb = Problem(mesh=build_exact(*c), quadrature=quadrature)
+        pb = Problem(mesh=build_exact(*c), quadrature=quadrature, formulation=formulation)
         pb.solve()
-        row = {"case": list(c), "quadrature": quadrature, **q, "seconds": time.time() - t0, "newton": pb.hist, **qois(pb)}
+        row = {"case": list(c), "quadrature": quadrature, "formulation": formulation, **q, "seconds": time.time() - t0, "newton": pb.hist, **qois(pb)}
         rows.append(row)
         json.dump(rows, open(OUT, "w"), indent=1)
         print(f"{c} h/rho={q['h_over_rho']:.3f} {row['seconds']:.0f}s M_y={row['reaction_moment_y']:.5f} "
@@ -163,6 +164,10 @@ def solve_sequence(cases=SEQUENCE, quadrature="reduced"):
 if __name__ == "__main__":
     if sys.argv[1:] == ["solve"]:
         solve_sequence()
+    if sys.argv[1:] == ["solve-fbar"]:
+        # full-integration displacement Q20 locks on these thin graded elements (moment
+        # +0.9%, Gaussian averages -12% at h/rho = 0.25): mixed F-bar on the same meshes
+        solve_sequence([SEQUENCE[1], SEQUENCE[3]], quadrature="full", formulation="fbar")
     if sys.argv[1:] == ["solve-full"]:
         solve_sequence([SEQUENCE[1], SEQUENCE[3], SEQUENCE[4]], quadrature="full")
     if sys.argv[1:] == ["scan"]:

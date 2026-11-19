@@ -25569,3 +25569,47 @@ PDE-Agents through an extracted summary, marked); none verifies a numerical
 reference (QoI convergence without exact solution, robustness, singular
 order, diagnosis) and none counts human interventions. In
 `advisor_feedback/2026-11-19_related_agents_literature.md`.
+
+### 2026-11-19/20 -- E1-E6 finished (report last, per Omar)
+- Stress-fix re-solve finished (b3_redo_stress_fix.py, all B3 cases, solved one at
+  a time; a parallel first attempt was 25x slower and its first solve time is
+  not used: the original clean solve times were restored into elapsed_s, the
+  re-solve times kept as elapsed_s_resolve_20261119). Impact
+  (stress_fix_impact.py): 2 of 41 verdicts change (sharp sigma_zz / cyl_zz
+  avg FAIL/band -> PASS/band, strategy spread 2.37% -> 1.96%); finest sphere
+  sigma_xx 0.4386 -> 0.4525, sigma_zz 0.4284 -> 0.4151, xz -0.292 -> -0.270;
+  Gaussian xx/zz 0.5397/0.4382 -> 0.5361/0.4318; moment/energy unchanged.
+  Adaptive: Gaussian yy/pressure/tt now decided at 23,520 (was 15,960).
+  Region study, surface study, diagnosis (16/16) re-run on corrected data.
+- E1 F-bar (mixed_b3.py), 3 levels: moment disp 34.669/34.577/34.560, F-bar
+  34.206/34.332/34.354 (gap 1.33 -> 0.71 -> 0.60%, bracketing); pressure std
+  disp 4.05/0.43/0.35, F-bar 1.38/0.53/0.63; Gaussian normal stresses differ
+  3-8% at 15,960 el -> inconclusive (Q20/P0 first order; Q20/P1 needed).
+- E4 local refinement (b3_local_refine.py, exact mid-side placement):
+  h/rho 2.50/0.77/0.44/0.25/0.15 valid meshes. Reduced rule -> spurious modes
+  (max sigma_xx 10.1 at 0.25, 29.0 at 0.15; probe: full rule on the same mesh
+  0.84); full rule -> locking (moment 34.78, +0.9% over the limit ~34.46,
+  Gaussian xx 0.471, -12%); F-bar full -> soft (moment 34.21). Maxima within
+  a formulation move little (xx +0.7% full, -2.9% F-bar from 0.77 to 0.25),
+  between formulations 15-21%. Groove peak NOT verified; needs Q20/P1 or
+  IGA. Newton consistent predictor added to mixed_b3 (graded meshes
+  diverged without it).
+- E2: diagnose.py --confirm; D3 check judged at the finest common level
+  (not confirmed at 10,200).
+- E6 report updated (Claude Doc GqEyA5JueG1SreZUSJf9DX, PDF
+  advisor_feedback/2026-11-20_Verification_Framework_Technical_Report.pdf,
+  36 pages): corrected numbers in Sections 1-11; new Sections 12 diagnosis,
+  13 independent checks + the stress error, 14 Cook, 15 local refinement,
+  16 human intervention, 17 related agents; 18-21 renumbered and updated
+  (issues +6 rows, limitations, "your answers / what was done / 6 open
+  questions", reproducibility). verify_report.py extended to the new
+  sections: 501 of 501 claims match. Two of my own new numbers were wrong
+  and caught by the check (moment gap rounding, sigma_zz rounding) -- fixed.
+  Email draft advisor_feedback/2026-11-20_email_to_Rabczuk_reply_DRAFT.txt.
+  NOT sent; Omar reviews first.
+- Human-intervention count now 59 (developer 36, critic 15, automated 2,
+  Omar 4; 6 fully automated). 55 tests pass.
+NEEDS OMAR: review report + email; manuscript groove stresses/SCF must be
+recomputed with the fixed code (his go-ahead); Gaussian surrogate errors
+(GPU); billed LLM ablation (~$6-9); absolute accuracy targets; Q20/P1 or IGA
+decision; CSM/CFM papers.

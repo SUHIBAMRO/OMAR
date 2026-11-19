@@ -3418,10 +3418,10 @@
  {
   "section": "13",
   "claim": "moment gap disp-F-bar 2376 %",
-  "printed": 1.34,
+  "printed": 1.33,
   "recomputed": 1.33462157192199,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "13",
@@ -3685,6 +3685,270 @@
   "printed": 262144,
   "recomputed": 262144.0,
   "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local refinement h/rho mesh 0",
+  "printed": 2.5,
+  "recomputed": 2.499650472213228,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local refinement h/rho mesh 1",
+  "printed": 0.77,
+  "recomputed": 0.7719329784617687,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local refinement h/rho mesh 2",
+  "printed": 0.44,
+  "recomputed": 0.43801583468894045,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local refinement h/rho mesh 3",
+  "printed": 0.25,
+  "recomputed": 0.2456140350877196,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local refinement h/rho mesh 4",
+  "printed": 0.15,
+  "recomputed": 0.15412678129336174,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local reduced/disp mesh 1 reaction_moment_y",
+  "printed": 34.531,
+  "recomputed": 34.53082000981733,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local reduced/disp mesh 1 max_sigma_xx_R0",
+  "printed": 0.82,
+  "recomputed": 0.8154126557671941,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local reduced/disp mesh 1 max_sigma_zz_R0",
+  "printed": 1.09,
+  "recomputed": 1.0913648221359071,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local reduced/disp mesh 1 gk2_sigma_xx_avg",
+  "printed": 0.538,
+  "recomputed": 0.5381200596162311,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local reduced/disp mesh 3 reaction_moment_y",
+  "printed": 34.482,
+  "recomputed": 34.48204385158435,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local reduced/disp mesh 3 max_sigma_xx_R0",
+  "printed": 10.1,
+  "recomputed": 10.076598997775305,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local reduced/disp mesh 3 max_sigma_zz_R0",
+  "printed": 10.5,
+  "recomputed": 10.543054107101185,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local reduced/disp mesh 3 gk2_sigma_xx_avg",
+  "printed": 0.541,
+  "recomputed": 0.5414340530182428,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local full/disp mesh 1 reaction_moment_y",
+  "printed": 34.664,
+  "recomputed": 34.663675007665155,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local full/disp mesh 1 max_sigma_xx_R0",
+  "printed": 0.833,
+  "recomputed": 0.8333511515954594,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local full/disp mesh 1 max_sigma_zz_R0",
+  "printed": 1.034,
+  "recomputed": 1.0340821578089108,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local full/disp mesh 1 gk2_sigma_xx_avg",
+  "printed": 0.497,
+  "recomputed": 0.49670587399618243,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local full/disp mesh 3 reaction_moment_y",
+  "printed": 34.78,
+  "recomputed": 34.7795271574584,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local full/disp mesh 3 max_sigma_xx_R0",
+  "printed": 0.839,
+  "recomputed": 0.8388926569267443,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local full/disp mesh 3 max_sigma_zz_R0",
+  "printed": 1.11,
+  "recomputed": 1.1100541080116169,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local full/disp mesh 3 gk2_sigma_xx_avg",
+  "printed": 0.471,
+  "recomputed": 0.4712567169751236,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local full/fbar mesh 1 reaction_moment_y",
+  "printed": 34.294,
+  "recomputed": 34.2942686707568,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local full/fbar mesh 1 max_sigma_xx_R0",
+  "printed": 1.044,
+  "recomputed": 1.044275345090564,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local full/fbar mesh 1 max_sigma_zz_R0",
+  "printed": 1.141,
+  "recomputed": 1.1411653616180397,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local full/fbar mesh 1 gk2_sigma_xx_avg",
+  "printed": 0.565,
+  "recomputed": 0.5652978137606323,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local full/fbar mesh 3 reaction_moment_y",
+  "printed": 34.212,
+  "recomputed": 34.2123861082348,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local full/fbar mesh 3 max_sigma_xx_R0",
+  "printed": 1.014,
+  "recomputed": 1.0141364972689138,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local full/fbar mesh 3 max_sigma_zz_R0",
+  "printed": 1.277,
+  "recomputed": 1.2766815565976417,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "local full/fbar mesh 3 gk2_sigma_xx_avg",
+  "printed": 0.569,
+  "recomputed": 0.5685125737988878,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "reduced max at h/rho 0.15",
+  "printed": 29.0,
+  "recomputed": 28.992306367054756,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "full max at h/rho 0.15",
+  "printed": 0.856,
+  "recomputed": 0.8560147510465181,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "probe reduced max",
+  "printed": 10.08,
+  "recomputed": 10.07659899777989,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "15",
+  "claim": "probe full max",
+  "printed": 0.84,
+  "recomputed": 0.8388926569259515,
+  "tolerance": 0.005,
   "ok": true
  },
  {
