@@ -25408,3 +25408,15 @@ D1 result (`python -m omar_pfem.verification_agent.diagnose --investigate`):
   written, so 16/16 is a consistency check, not a blind test.
 - Tests: 49 pass (3 new).
 Next: D4 (human-intervention document), then D2, D3, D5.
+
+### 2026-11-19 -- D4: human-intervention count -- done
+`verification_agent/human_intervention.py` -> `HUMAN_INTERVENTION.md`: 50
+interventions (2026-11-16..19) reconstructed from this log, each with ID,
+category, who found it, whether the framework now does it itself.
+Categories: 7 wrong inputs/descriptions, 17 framework bugs, 12 design
+changes, 8 manual diagnostic investigations, 2 operations, 4 decisions
+reserved for people. Found by: developer 28, LLM critic 15, Omar 4 (decisions),
+formalizer 1, advisor 1, claims-check script 1. Now automated: 6 yes, 4
+partly, 40 no (mainly the diagnostic investigations are automated now, by
+diagnose.py). Lower bounds (only logged items; no hours recorded).
+Next: D2 (second FE code on B1/B2).
