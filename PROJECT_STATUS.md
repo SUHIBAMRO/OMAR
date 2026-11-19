@@ -25420,3 +25420,38 @@ formalizer 1, advisor 1, claims-check script 1. Now automated: 6 yes, 4
 partly, 40 no (mainly the diagnostic investigations are automated now, by
 diagnose.py). Lower bounds (only logged items; no hours recorded).
 Next: D2 (second FE code on B1/B2).
+
+### 2026-11-19 -- D2: independent solver check (scikit-fem) -- done
+`verification_agent/independent_solver.py`, `independent_solver_result.json`.
+Residual, tangent and Newton written from the neo-Hookean energy in
+scikit-fem 12.0.2 (own mesh, element, quadrature, assembly); tangent and
+residual checked by finite differences (central-difference energy check
+8e-9).
+- SAME discrete problem (Q4, 2x2 Gauss, project's material sampling and
+  edge-load rule): B1 N=11..161 max relative difference 2.05e-12 over 40
+  values; B2 N=7..193 2.15e-13 over 54 values -> the project's B1/B2
+  solvers are reproduced to round-off.
+- DIFFERENT discretisation (Q2, 3x3 Gauss, material at every quadrature
+  point, exact arcs for B2): every QoI the agent certified with a rate
+  agrees with the agent's extrapolated limit within the agent's stated
+  uncertainty: B1 7/7 (finest Q2, N=161), B2 7/8 by the finest Q2 value
+  (N=97). B2 peak |P|: finest Q2 12.388 is 0.23% from the agent limit
+  12.417 (U 0.196%) -> OUTSIDE; Q2 peak itself still converging (increments
+  0.118, 0.060, 0.031); its 3-level Aitken extrapolation 12.4196 is 0.020%
+  from the agent limit -> inside. NOTE: the extrapolation comparison was
+  added AFTER seeing the finest-value result.
+- B1 peak grows under Q2 as well (11.1 -> 24.9; per-halving ratio 1.226,
+  slope ~0.29 vs theory 1 - lam = 0.289): the singularity is not an artefact
+  of the project's solver.
+- New test (fast, N=11 / N=7). 
+
+### 2026-11-19 -- D5: literature note on related agents -- done (abstract level)
+`advisor_feedback/2026-11-19_related_agents_literature.md`: FermiLink,
+ALL-FEM, PDE-Agents, CAE-harness study, VFEAgent, FeaGPT. From abstracts
+only (full papers NOT read): they verify that generated simulations run /
+reproduce figures; only PDE-Agents states a convergence-rate check (exact
+solutions, heat equation). None states QoI solution verification without
+exact solutions, strategy robustness, singular-order checks,
+requirement-based tolerances or non-convergence diagnosis. Ideas to
+adopt: FermiLink's package knowledge bases (literature agent), PDE-Agents'
+knowledge graph of runs/failures (store diagnosis outcomes).

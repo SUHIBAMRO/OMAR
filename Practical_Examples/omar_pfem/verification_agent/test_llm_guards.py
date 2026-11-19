@@ -547,3 +547,15 @@ def test_conv_only_ignores_strategy_checks():
     g = {"qoi_convergence": dict(rate), "qoi_convergence_multilevel": dict(rate),
          "strategy_robustness": {"verdict": "FAIL", "evidence": "none"}}
     assert D._conv_only(g) == ("PASS", "rate")
+
+
+def test_independent_solver_reproduces_project_solvers():
+    """scikit-fem residual/tangent, same discrete problem: B1 (N=11) and B2
+    (N=7) QoIs equal the project's stored ladder values to round-off."""
+    import json
+    from omar_pfem.verification_agent import independent_solver as S
+    for prob, N in (("b1", 11), ("b2", 7)):
+        ref = S._ladder(prob)[N]
+        row = S.qois(prob, N, "same", *S.solve(prob, N, "same")[:5])
+        for q in S.PROBLEMS[prob]["qois"]:
+            assert abs(row[q] - ref[q]) <= 1e-9 * abs(ref[q]), (prob, q, row[q], ref[q])
