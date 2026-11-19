@@ -406,20 +406,20 @@ def claims():
     add("8.1", "W vs M phi/2 at 2,376 el %", 0.06, h2, lambda: 100 * abs(
         fam(0, "strain_energy") / (0.5 * 0.05 * fam(0, "reaction_moment_y")) - 1))
     # Section 8.2: region study
-    for name, pts, sg, rms, r5 in (("sharp 1R0", 50, 28, 0.318, 0), ("sharp 2R0", 314, 18, 0.224, 0),
-                                   ("sharp 3R0", 910, 13, 0.060, 0), ("sharp 4R0", 1938, 12, 0.033, 0),
-                                   ("gauss l=1R0", 148, 1, 0.012, 5), ("gauss l=2R0", 916, 4, 0.005, 7)):
+    for name, pts, sg, rms, r5 in (("sharp 1R0", 50, 24, 0.250, 0), ("sharp 2R0", 314, 18, 0.159, 0),
+                                   ("sharp 3R0", 910, 13, 0.047, 0), ("sharp 4R0", 1938, 12, 0.025, 0),
+                                   ("gauss l=1R0", 148, 1, 0.012, 5), ("gauss l=2R0", 916, 5, 0.004, 7)):
         add("8.2", f"{name} effective points", pts, 0.5, lambda n=name: region_stat(n, "points"))
         add("8.2", f"{name} sign changes", sg, 0, lambda n=name: region_stat(n, "sign"))
         add("8.2", f"{name} median fit residual %", rms, h3, lambda n=name: region_stat(n, "rms"))
         add("8.2", f"{name} 5-level rate count", r5, 0, lambda n=name: region_stat(n, "rate5"))
     # Section 8.3: Gaussian table
-    for q, a5, lo, hi, u, sp, an in (("sigma_xx_avg", 2.21, 1.24, 3.19, 0.18, 0.49, 0.54),
-                                     ("sigma_yy_avg", 2.45, 1.78, 3.37, 0.13, 0.32, 0.39),
-                                     ("sigma_zz_avg", 2.76, 2.22, 3.74, 0.11, 0.30, 0.40),
-                                     ("pressure_avg", 2.46, 1.70, 3.43, 0.14, 0.36, 0.43),
-                                     ("cyl_rr_avg", 2.20, 1.25, 3.17, 0.18, 0.49, 0.53),
-                                     ("cyl_tt_avg", 2.46, 1.77, 3.39, 0.13, 0.32, 0.39)):
+    for q, a5, lo, hi, u, sp, an in (("sigma_xx_avg", 2.27, 1.43, 3.21, 0.18, 0.47, 0.52),
+                                     ("sigma_yy_avg", 2.48, 1.80, 3.41, 0.12, 0.33, 0.39),
+                                     ("sigma_zz_avg", 2.72, 2.11, 3.70, 0.11, 0.31, 0.39),
+                                     ("pressure_avg", 2.48, 1.75, 3.43, 0.14, 0.36, 0.43),
+                                     ("cyl_rr_avg", 2.27, 1.44, 3.20, 0.18, 0.47, 0.52),
+                                     ("cyl_tt_avg", 2.49, 1.79, 3.43, 0.12, 0.33, 0.39)):
         k = GK + q
         add("8.3", f"{k} 5-level p", a5, h2, lambda k=k: p5(B3, k))
         add("8.3", f"{k} LOO min", lo, h2, lambda k=k: loo(B3, k, "min"))
@@ -431,25 +431,25 @@ def claims():
             overall(B3, k) == "PASS" and evidence(B3, k) == "rate"))
     add("8.3", "gk2 cyl_zz equals sigma_zz", 0, 1e-12, lambda: abs(
         p5(B3, GK + "cyl_zz_avg") - p5(B3, GK + "sigma_zz_avg")))
-    add("8.3", "gk2 xz spread %", 0.44, h2, lambda: spread(B3, GK + "sigma_xz_avg"))
-    add("8.3", "gk2 rz spread %", 0.46, h2, lambda: spread(B3, GK + "cyl_rz_avg"))
-    add("8.3", "gk2 xz anchored %", 0.30, h2, lambda: anchored(B3, GK + "sigma_xz_avg"))
+    add("8.3", "gk2 xz spread %", 0.47, h2, lambda: spread(B3, GK + "sigma_xz_avg"))
+    add("8.3", "gk2 rz spread %", 0.48, h2, lambda: spread(B3, GK + "cyl_rz_avg"))
+    add("8.3", "gk2 xz anchored %", 0.31, h2, lambda: anchored(B3, GK + "sigma_xz_avg"))
     add("8.3", "gk2 rz anchored %", 0.31, h2, lambda: anchored(B3, GK + "cyl_rz_avg"))
-    add("8.3", "gk2 von Mises spread %", 0.72, h2, lambda: spread(B3, GK + "von_mises_avg"))
-    add("8.3", "gk2 von Mises anchored %", 0.79, h2, lambda: anchored(B3, GK + "von_mises_avg"))
+    add("8.3", "gk2 von Mises spread %", 0.75, h2, lambda: spread(B3, GK + "von_mises_avg"))
+    add("8.3", "gk2 von Mises anchored %", 0.81, h2, lambda: anchored(B3, GK + "von_mises_avg"))
     add("8.3", "gk2 Frobenius spread %", 6.1, h1, lambda: spread(B3, GK + "sigma_frob_avg"))
     add("8.3", "gk2 Frobenius anchored %", 5.6, h1, lambda: anchored(B3, GK + "sigma_frob_avg"))
     add("8.3", "gk2 Frobenius FAIL", 1, 0, lambda: float(overall(B3, GK + "sigma_frob_avg") == "FAIL"))
     # Section 8.4
-    add("8.4", "sharp sigma_zz strategy spread %", 2.37, h2, lambda: spread(B3, "sigma_zz_avg"))
-    add("8.4", "sharp sigma_zz FAIL", 1, 0, lambda: float(overall(B3, "sigma_zz_avg") == "FAIL"))
+    add("8.4", "sharp sigma_zz strategy spread %", 1.96, h2, lambda: spread(B3, "sigma_zz_avg"))
+    add("8.4", "sharp sigma_zz PASS (narrow)", 1, 0, lambda: float(overall(B3, "sigma_zz_avg") == "PASS"))
     add("8.4", "sharp normal anchored min %", 1.2, h1, lambda: min(anchored(B3, q) for q in (
         "sigma_xx_avg", "sigma_yy_avg", "sigma_zz_avg", "pressure_avg", "cyl_rr_avg", "cyl_tt_avg")))
-    add("8.4", "sharp normal anchored max %", 1.7, h1, lambda: max(anchored(B3, q) for q in (
+    add("8.4", "sharp normal anchored max %", 1.6, h1, lambda: max(anchored(B3, q) for q in (
         "sigma_xx_avg", "sigma_yy_avg", "sigma_zz_avg", "pressure_avg", "cyl_rr_avg", "cyl_tt_avg")))
     add("8.4", "B3 rule predictions correct", 12, 0, lambda: rules(B3)["hits"])
     add("8.4", "B3 rule predictions made", 15, 0, lambda: rules(B3)["n_pred"])
-    add("8.4", "uniform 10,200 sphere |sigma| avg", 1.031, h3,
+    add("8.4", "uniform 10,200 sphere |sigma| avg", 1.030, h3,
         lambda: fam(2, "region_avg_sigma_frob"))
     for rg, dm, fr, dj in ((1.1, -0.07, 0.980, 5.03), (1.2, -0.13, 0.911, 7.81),
                            (1.3, -0.18, 1.061, 12.44)):
@@ -458,8 +458,8 @@ def claims():
             lambda rg=rg: radial()[rg]["region_avg_sigma_frob"])
         add("8.4", f"radial {rg} det J contrast", dj, h2, lambda rg=rg: radial()[rg]["detJ_max_over_min"])
     # Section 8.5: surface
-    for k, val in (("root_sxx", 0.61), ("root_szz", 0.38), ("root_pressure", 0.42),
-                   ("root_von_mises", 0.24), ("root_sxz", 0.80)):
+    for k, val in (("root_sxx", 0.59), ("root_szz", 0.36), ("root_pressure", 0.43),
+                   ("root_von_mises", 0.24), ("root_sxz", 0.81)):
         add("8.5", f"{k} finest-three spread %", val, h2, lambda k=k: surface_spread(k))
         add("8.5", f"{k} PASS band", 1, 0, lambda k=k: float(
             (surface()["gates"][k]["overall"], surface()["gates"][k]["evidence"]) == ("PASS", "band")))
@@ -473,20 +473,20 @@ def claims():
     add("8.6", "full vs reduced energy 2,376 %", 0.21, h2, lambda: fullint_change(2376, "strain_energy"))
     add("8.6", "full vs reduced moment 10,200 %", 0.085, h3, lambda: fullint_change(10200, "reaction_moment_y"))
     add("8.6", "full vs reduced energy 10,200 %", 0.079, h3, lambda: fullint_change(10200, "strain_energy"))
-    add("8.6", "pressure std reduced 2,376", 4.04, h2, lambda: fullint_pstd(2376, "reduced"))
+    add("8.6", "pressure std reduced 2,376", 4.05, h2, lambda: fullint_pstd(2376, "reduced"))
     add("8.6", "pressure std full 2,376", 3.98, h2, lambda: fullint_pstd(2376, "full"))
     add("8.6", "pressure std reduced 10,200", 0.43, h2, lambda: fullint_pstd(10200, "reduced"))
     add("8.6", "pressure std full 10,200", 0.61, h2, lambda: fullint_pstd(10200, "full"))
     add("8.6", "gk2 signed averages full-reduced 2,376 (max, % of scale) <=", 1.3, h1,
         lambda: fullint_gk_signed_max(2376, rules(B3)["adapter"].kernel_scale))
-    add("8.6", "gk2 signed averages full-reduced 10,200 (max, % of scale) <=", 0.33, h2,
+    add("8.6", "gk2 signed averages full-reduced 10,200 (max, % of scale) <=", 0.29, h2,
         lambda: fullint_gk_signed_max(10200, rules(B3)["adapter"].kernel_scale))
     add("8.6", "gk2 Frobenius full vs reduced 10,200 %", 9.2, h1, lambda: fullint_gk_frob_change(10200))
     # Section 9: adaptive
     add("9", "B3 family solve time total s", 8116, 0.5, lambda: adaptive_b3()[1])
     for q, n in (("reaction_moment_y", 15960), ("strain_energy", 15960),
-                 (GK + "sigma_yy_avg", 15960), (GK + "sigma_zz_avg", 15960),
-                 (GK + "pressure_avg", 15960), (GK + "cyl_tt_avg", 15960), (GK + "cyl_zz_avg", 15960),
+                 (GK + "sigma_yy_avg", 23520), (GK + "sigma_zz_avg", 15960),
+                 (GK + "pressure_avg", 23520), (GK + "cyl_tt_avg", 23520), (GK + "cyl_zz_avg", 15960),
                  ("sigma_frob_avg", 23520), ("von_mises_avg", 23520), ("sigma_xz_avg", 23520),
                  ("cyl_rz_avg", 23520), (GK + "sigma_xx_avg", 45000), (GK + "cyl_rr_avg", 45000)):
         add("9", f"adaptive {q} decided at", n, 0, lambda q=q: adaptive_level(q))

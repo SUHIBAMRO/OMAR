@@ -11,7 +11,7 @@
   "n_nodes": 11225,
   "rtol": 1e-08,
   "atol": 1e-08,
-  "elapsed_s": 69.25099492073059,
+  "elapsed_s": 102.1440806388855,
   "linear_solver": "cg",
   "detJ_max_over_min": 4.778195838390184,
   "n_region_gauss": 8,
@@ -75,7 +75,8 @@
   "strain_energy": 0.8690963623981155,
   "min_detF": 0.9169177304082856,
   "max_detF": 1.0678538871483565,
-  "stress_fix_20261119": true
+  "stress_fix_20261119": true,
+  "elapsed_s_resolve_20261119": 69.25099492073059
  },
  {
   "Ntheta": 21,
@@ -89,7 +90,7 @@
   "n_nodes": 45285,
   "rtol": 1e-08,
   "atol": 1e-08,
-  "elapsed_s": 424.6002268791199,
+  "elapsed_s": 404.609904050827,
   "linear_solver": "cg",
   "detJ_max_over_min": 3.665174254005825,
   "n_region_gauss": 26,
@@ -153,6 +154,7 @@
   "strain_energy": 0.8656704302440348,
   "min_detF": 0.8980097097880838,
   "max_detF": 1.079984952560641,
-  "stress_fix_20261119": true
+  "stress_fix_20261119": true,
+  "elapsed_s_resolve_20261119": 424.6002268791199
  }
 ]

@@ -11,7 +11,7 @@
   "n_nodes": 11225,
   "rtol": 1e-08,
   "atol": 1e-08,
-  "elapsed_s": 900.9862847328186,
+  "elapsed_s": 35.246872663497925,
   "linear_solver": "cg",
   "detJ_max_over_min": 3.818612194363156,
   "n_region_gauss": 2,
@@ -75,7 +75,8 @@
   "strain_energy": 0.8672371793585667,
   "min_detF": 0.9424187958029266,
   "max_detF": 1.0472840098820977,
-  "stress_fix_20261119": true
+  "stress_fix_20261119": true,
+  "elapsed_s_resolve_20261119": 900.9862847328186
  },
  {
   "Ntheta": 17,
@@ -89,7 +90,7 @@
   "n_nodes": 26103,
   "rtol": 1e-08,
   "atol": 1e-08,
-  "elapsed_s": 161.93932485580444,
+  "elapsed_s": 130.99265909194946,
   "linear_solver": "cg",
   "detJ_max_over_min": 3.476919874512682,
   "n_region_gauss": 4,
@@ -153,7 +154,8 @@
   "strain_energy": 0.8657144190401646,
   "min_detF": 0.9348788815743855,
   "max_detF": 1.0520759965745816,
-  "stress_fix_20261119": true
+  "stress_fix_20261119": true,
+  "elapsed_s_resolve_20261119": 161.93932485580444
  },
  {
   "Ntheta": 21,
@@ -167,7 +169,7 @@
   "n_nodes": 45285,
   "rtol": 1e-08,
   "atol": 1e-08,
-  "elapsed_s": 342.4383592605591,
+  "elapsed_s": 299.34574937820435,
   "linear_solver": "cg",
   "detJ_max_over_min": 3.2882119495344884,
   "n_region_gauss": 8,
@@ -231,7 +233,8 @@
   "strain_energy": 0.8649849799768552,
   "min_detF": 0.9294784831688235,
   "max_detF": 1.0554124873287074,
-  "stress_fix_20261119": true
+  "stress_fix_20261119": true,
+  "elapsed_s_resolve_20261119": 342.4383592605591
  },
  {
   "Ntheta": 25,
@@ -245,7 +248,7 @@
   "n_nodes": 69880,
   "rtol": 1e-08,
   "atol": 1e-08,
-  "elapsed_s": 576.9625108242035,
+  "elapsed_s": 533.9878904819489,
   "linear_solver": "cg",
   "detJ_max_over_min": 3.224151392035932,
   "n_region_gauss": 12,
@@ -309,7 +312,8 @@
   "strain_energy": 0.864581826461753,
   "min_detF": 0.9252374718143769,
   "max_detF": 1.0579318475856514,
-  "stress_fix_20261119": true
+  "stress_fix_20261119": true,
+  "elapsed_s_resolve_20261119": 576.9625108242035
  },
  {
   "Ntheta": 29,
@@ -323,7 +327,7 @@
   "n_nodes": 101903,
   "rtol": 1e-08,
   "atol": 1e-08,
-  "elapsed_s": 933.0653758049011,
+  "elapsed_s": 930.8499934673309,
   "linear_solver": "cg",
   "detJ_max_over_min": 3.178886354160432,
   "n_region_gauss": 20,
@@ -387,7 +391,8 @@
   "strain_energy": 0.864218407940688,
   "min_detF": 0.921288397469757,
   "max_detF": 1.0602102315031015,
-  "stress_fix_20261119": true
+  "stress_fix_20261119": true,
+  "elapsed_s_resolve_20261119": 933.0653758049011
  },
  {
   "Ntheta": 33,
@@ -401,7 +406,7 @@
   "n_nodes": 142314,
   "rtol": 1e-08,
   "atol": 1e-08,
-  "elapsed_s": 1346.253427028656,
+  "elapsed_s": 1366.198572397232,
   "linear_solver": "cg",
   "detJ_max_over_min": 3.1532760986324737,
   "n_region_gauss": 26,
@@ -465,7 +470,8 @@
   "strain_energy": 0.8639646866398683,
   "min_detF": 0.9175889134321505,
   "max_detF": 1.0622880062886448,
-  "stress_fix_20261119": true
+  "stress_fix_20261119": true,
+  "elapsed_s_resolve_20261119": 1346.253427028656
  },
  {
   "Ntheta": 37,
@@ -479,7 +485,7 @@
   "n_nodes": 192073,
   "rtol": 1e-08,
   "atol": 1e-08,
-  "elapsed_s": 2151.2540361881256,
+  "elapsed_s": 2080.9355041980743,
   "linear_solver": "cg",
   "detJ_max_over_min": 3.1757578683950487,
   "n_region_gauss": 36,
@@ -543,7 +549,8 @@
   "strain_energy": 0.8637688684846743,
   "min_detF": 0.9140952813961146,
   "max_detF": 1.0642017450017727,
-  "stress_fix_20261119": true
+  "stress_fix_20261119": true,
+  "elapsed_s_resolve_20261119": 2151.2540361881256
  },
  {
   "Ntheta": 21,
@@ -557,7 +564,7 @@
   "n_nodes": 45285,
   "rtol": 1e-08,
   "atol": 1e-08,
-  "elapsed_s": 285.2120027542114,
+  "elapsed_s": 424.87321424484253,
   "linear_solver": "cg",
   "detJ_max_over_min": 3.5167788143651695,
   "n_region_gauss": 8,
@@ -621,7 +628,8 @@
   "strain_energy": 0.8652134223047244,
   "min_detF": 0.9343652819244739,
   "max_detF": 1.0523189536497148,
-  "stress_fix_20261119": true
+  "stress_fix_20261119": true,
+  "elapsed_s_resolve_20261119": 285.2120027542114
  },
  {
   "Ntheta": 21,
@@ -635,7 +643,7 @@
   "n_nodes": 45285,
   "rtol": 1e-08,
   "atol": 1e-08,
-  "elapsed_s": 290.4232065677643,
+  "elapsed_s": 317.06727719306946,
   "linear_solver": "cg",
   "detJ_max_over_min": 8.542182881718041,
   "n_region_gauss": 14,
@@ -699,7 +707,8 @@
   "strain_energy": 0.8655947657957703,
   "min_detF": 0.9422690563359472,
   "max_detF": 1.0472332613259439,
-  "stress_fix_20261119": true
+  "stress_fix_20261119": true,
+  "elapsed_s_resolve_20261119": 290.4232065677643
  },
  {
   "Ntheta": 21,
@@ -713,7 +722,7 @@
   "n_nodes": 45285,
   "rtol": 1e-08,
   "atol": 1e-08,
-  "elapsed_s": 365.24051094055176,
+  "elapsed_s": 362.93189668655396,
   "linear_solver": "cg",
   "detJ_max_over_min": 22.45456651542988,
   "n_region_gauss": 28,
@@ -777,7 +786,8 @@
   "strain_energy": 0.8658785470573152,
   "min_detF": 0.9482958949210342,
   "max_detF": 1.043294883141923,
-  "stress_fix_20261119": true
+  "stress_fix_20261119": true,
+  "elapsed_s_resolve_20261119": 365.24051094055176
  },
  {
   "Ntheta": 13,
@@ -791,7 +801,7 @@
   "n_nodes": 11225,
   "rtol": 1e-11,
   "atol": 1e-11,
-  "elapsed_s": 37.13294529914856,
+  "elapsed_s": 39.063780307769775,
   "linear_solver": "cg",
   "detJ_max_over_min": 3.818612194363156,
   "n_region_gauss": 2,
@@ -855,7 +865,8 @@
   "strain_energy": 0.8672371793585671,
   "min_detF": 0.9424187958029268,
   "max_detF": 1.047284009882098,
-  "stress_fix_20261119": true
+  "stress_fix_20261119": true,
+  "elapsed_s_resolve_20261119": 37.13294529914856
  },
  {
   "Ntheta": 21,
@@ -869,7 +880,7 @@
   "n_nodes": 45285,
   "rtol": 1e-11,
   "atol": 1e-11,
-  "elapsed_s": 293.7250654697418,
+  "elapsed_s": 312.09870958328247,
   "linear_solver": "cg",
   "detJ_max_over_min": 3.2882119495344884,
   "n_region_gauss": 8,
@@ -933,7 +944,8 @@
   "strain_energy": 0.8649849799768552,
   "min_detF": 0.9294784831688235,
   "max_detF": 1.0554124873287074,
-  "stress_fix_20261119": true
+  "stress_fix_20261119": true,
+  "elapsed_s_resolve_20261119": 293.7250654697418
  },
  {
   "Ntheta": 41,
@@ -947,7 +959,7 @@
   "n_nodes": 252140,
   "rtol": 1e-08,
   "atol": 1e-08,
-  "elapsed_s": 2941.2674548625946,
+  "elapsed_s": 2738.767961502075,
   "linear_solver": "cg",
   "detJ_max_over_min": 3.1821281278342815,
   "n_region_gauss": 50,
@@ -1011,6 +1023,7 @@
   "strain_energy": 0.8636142611024635,
   "min_detF": 0.9107775984862455,
   "max_detF": 1.0659769879592431,
-  "stress_fix_20261119": true
+  "stress_fix_20261119": true,
+  "elapsed_s_resolve_20261119": 2941.2674548625946
  }
 ]

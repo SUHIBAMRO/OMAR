@@ -145,15 +145,29 @@ class Problem:
         return sp.csr_matrix((np.concatenate(vals), (self.rows, self.cols)),
                              shape=(self.ndof, self.ndof))
 
-    def solve(self, nsteps=10, tol=1e-9, newton_max=30):
+    def solve(self, nsteps=10, tol=1e-9, newton_max=30, predictor=True):
+        """predictor=True: each increment starts with the consistent
+        predictor K_ff du_f = -R_f - K_fc du_c at the converged previous state,
+        so interior nodes move with the prescribed boundary increment (without
+        it, thin graded layers at the groove invert in the first iteration).
+        Converged results are unchanged (same equations, same tolerance)."""
         import pypardiso
         u = np.zeros(self.ndof)
         hist = []
         for step in range(1, nsteps + 1):
-            u[self.fixed] = (step / nsteps * self.ubar.ravel())[self.fixed]
+            target = (step / nsteps * self.ubar.ravel())[self.fixed]
+            if predictor:
+                K = self.tangent(u)
+                R = self.residual(u)
+                du_c = target - u[self.fixed]
+                rhs = -R[self.free] - K[self.free][:, self.fixed] @ du_c
+                u[self.free] += pypardiso.spsolve(K[self.free][:, self.free].tocsr(), rhs)
+            u[self.fixed] = target
             for it in range(newton_max):
                 R = self.residual(u)
                 Rn = np.linalg.norm(R[self.free])
+                if not np.isfinite(Rn):
+                    raise RuntimeError(f"step {step}: non-finite residual")
                 if it > 0 and Rn < tol:
                     break
                 K = self.tangent(u)

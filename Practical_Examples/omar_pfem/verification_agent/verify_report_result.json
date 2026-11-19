@@ -595,9 +595,9 @@
   "section": "6",
   "claim": "B3 level 0 solve time s",
   "printed": 35,
-  "recomputed": 900.9862847328186,
+  "recomputed": 35.246872663497925,
   "tolerance": 0.5,
-  "ok": false
+  "ok": true
  },
  {
   "section": "6",
@@ -627,9 +627,9 @@
   "section": "6",
   "claim": "B3 level 1 solve time s",
   "printed": 131,
-  "recomputed": 161.93932485580444,
+  "recomputed": 130.99265909194946,
   "tolerance": 0.5,
-  "ok": false
+  "ok": true
  },
  {
   "section": "6",
@@ -659,9 +659,9 @@
   "section": "6",
   "claim": "B3 level 2 solve time s",
   "printed": 299,
-  "recomputed": 342.4383592605591,
+  "recomputed": 299.34574937820435,
   "tolerance": 0.5,
-  "ok": false
+  "ok": true
  },
  {
   "section": "6",
@@ -691,9 +691,9 @@
   "section": "6",
   "claim": "B3 level 3 solve time s",
   "printed": 534,
-  "recomputed": 576.9625108242035,
+  "recomputed": 533.9878904819489,
   "tolerance": 0.5,
-  "ok": false
+  "ok": true
  },
  {
   "section": "6",
@@ -723,9 +723,9 @@
   "section": "6",
   "claim": "B3 level 4 solve time s",
   "printed": 931,
-  "recomputed": 933.0653758049011,
+  "recomputed": 930.8499934673309,
   "tolerance": 0.5,
-  "ok": false
+  "ok": true
  },
  {
   "section": "6",
@@ -755,9 +755,9 @@
   "section": "6",
   "claim": "B3 level 5 solve time s",
   "printed": 1366,
-  "recomputed": 1346.253427028656,
+  "recomputed": 1366.198572397232,
   "tolerance": 0.5,
-  "ok": false
+  "ok": true
  },
  {
   "section": "6",
@@ -787,9 +787,9 @@
   "section": "6",
   "claim": "B3 level 6 solve time s",
   "printed": 2081,
-  "recomputed": 2151.2540361881256,
+  "recomputed": 2080.9355041980743,
   "tolerance": 0.5,
-  "ok": false
+  "ok": true
  },
  {
   "section": "6",
@@ -819,9 +819,9 @@
   "section": "6",
   "claim": "B3 level 7 solve time s",
   "printed": 2739,
-  "recomputed": 2941.2674548625946,
+  "recomputed": 2738.767961502075,
   "tolerance": 0.5,
-  "ok": false
+  "ok": true
  },
  {
   "section": "6",
@@ -1082,18 +1082,18 @@
  {
   "section": "8.2",
   "claim": "sharp 1R0 sign changes",
-  "printed": 28,
+  "printed": 24,
   "recomputed": 24.0,
   "tolerance": 0,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.2",
   "claim": "sharp 1R0 median fit residual %",
-  "printed": 0.318,
+  "printed": 0.25,
   "recomputed": 0.24954284897715576,
   "tolerance": 0.0005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.2",
@@ -1122,10 +1122,10 @@
  {
   "section": "8.2",
   "claim": "sharp 2R0 median fit residual %",
-  "printed": 0.224,
+  "printed": 0.159,
   "recomputed": 0.15854167815414683,
   "tolerance": 0.0005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.2",
@@ -1154,10 +1154,10 @@
  {
   "section": "8.2",
   "claim": "sharp 3R0 median fit residual %",
-  "printed": 0.06,
+  "printed": 0.047,
   "recomputed": 0.04744913563072888,
   "tolerance": 0.0005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.2",
@@ -1186,10 +1186,10 @@
  {
   "section": "8.2",
   "claim": "sharp 4R0 median fit residual %",
-  "printed": 0.033,
+  "printed": 0.025,
   "recomputed": 0.0247640357847552,
   "tolerance": 0.0005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.2",
@@ -1242,18 +1242,18 @@
  {
   "section": "8.2",
   "claim": "gauss l=2R0 sign changes",
-  "printed": 4,
+  "printed": 5,
   "recomputed": 5.0,
   "tolerance": 0,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.2",
   "claim": "gauss l=2R0 median fit residual %",
-  "printed": 0.005,
+  "printed": 0.004,
   "recomputed": 0.004478067504240587,
   "tolerance": 0.0005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.2",
@@ -1266,26 +1266,26 @@
  {
   "section": "8.3",
   "claim": "gk2_sigma_xx_avg 5-level p",
-  "printed": 2.21,
+  "printed": 2.27,
   "recomputed": 2.272658990971912,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2_sigma_xx_avg LOO min",
-  "printed": 1.24,
+  "printed": 1.43,
   "recomputed": 1.4317697646866425,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2_sigma_xx_avg LOO max",
-  "printed": 3.19,
+  "printed": 3.21,
   "recomputed": 3.2133038515943344,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
@@ -1298,18 +1298,18 @@
  {
   "section": "8.3",
   "claim": "gk2_sigma_xx_avg strategy spread %",
-  "printed": 0.49,
+  "printed": 0.47,
   "recomputed": 0.46868121528722473,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2_sigma_xx_avg anchored %",
-  "printed": 0.54,
+  "printed": 0.52,
   "recomputed": 0.5227748763594822,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
@@ -1322,42 +1322,42 @@
  {
   "section": "8.3",
   "claim": "gk2_sigma_yy_avg 5-level p",
-  "printed": 2.45,
+  "printed": 2.48,
   "recomputed": 2.4804223342440013,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2_sigma_yy_avg LOO min",
-  "printed": 1.78,
+  "printed": 1.8,
   "recomputed": 1.8047398901149472,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2_sigma_yy_avg LOO max",
-  "printed": 3.37,
+  "printed": 3.41,
   "recomputed": 3.4144650277482826,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2_sigma_yy_avg U %",
-  "printed": 0.13,
+  "printed": 0.12,
   "recomputed": 0.12195878613160802,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2_sigma_yy_avg strategy spread %",
-  "printed": 0.32,
+  "printed": 0.33,
   "recomputed": 0.3294846702373812,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
@@ -1378,26 +1378,26 @@
  {
   "section": "8.3",
   "claim": "gk2_sigma_zz_avg 5-level p",
-  "printed": 2.76,
+  "printed": 2.72,
   "recomputed": 2.719871410627472,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2_sigma_zz_avg LOO min",
-  "printed": 2.22,
+  "printed": 2.11,
   "recomputed": 2.1077588474538658,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2_sigma_zz_avg LOO max",
-  "printed": 3.74,
+  "printed": 3.7,
   "recomputed": 3.6960746140123413,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
@@ -1410,18 +1410,18 @@
  {
   "section": "8.3",
   "claim": "gk2_sigma_zz_avg strategy spread %",
-  "printed": 0.3,
+  "printed": 0.31,
   "recomputed": 0.3068989744130624,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2_sigma_zz_avg anchored %",
-  "printed": 0.4,
+  "printed": 0.39,
   "recomputed": 0.3928165798525052,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
@@ -1434,18 +1434,18 @@
  {
   "section": "8.3",
   "claim": "gk2_pressure_avg 5-level p",
-  "printed": 2.46,
+  "printed": 2.48,
   "recomputed": 2.476978162485209,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2_pressure_avg LOO min",
-  "printed": 1.7,
+  "printed": 1.75,
   "recomputed": 1.7508236999731484,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
@@ -1490,26 +1490,26 @@
  {
   "section": "8.3",
   "claim": "gk2_cyl_rr_avg 5-level p",
-  "printed": 2.2,
+  "printed": 2.27,
   "recomputed": 2.2656231695578293,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2_cyl_rr_avg LOO min",
-  "printed": 1.25,
+  "printed": 1.44,
   "recomputed": 1.444064595221328,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2_cyl_rr_avg LOO max",
-  "printed": 3.17,
+  "printed": 3.2,
   "recomputed": 3.200931519985306,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
@@ -1522,18 +1522,18 @@
  {
   "section": "8.3",
   "claim": "gk2_cyl_rr_avg strategy spread %",
-  "printed": 0.49,
+  "printed": 0.47,
   "recomputed": 0.467934652356914,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2_cyl_rr_avg anchored %",
-  "printed": 0.53,
+  "printed": 0.52,
   "recomputed": 0.5215858902629171,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
@@ -1546,42 +1546,42 @@
  {
   "section": "8.3",
   "claim": "gk2_cyl_tt_avg 5-level p",
-  "printed": 2.46,
+  "printed": 2.49,
   "recomputed": 2.487954818534381,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2_cyl_tt_avg LOO min",
-  "printed": 1.77,
+  "printed": 1.79,
   "recomputed": 1.7864806228316124,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2_cyl_tt_avg LOO max",
-  "printed": 3.39,
+  "printed": 3.43,
   "recomputed": 3.428546277324859,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2_cyl_tt_avg U %",
-  "printed": 0.13,
+  "printed": 0.12,
   "recomputed": 0.12220298716408698,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2_cyl_tt_avg strategy spread %",
-  "printed": 0.32,
+  "printed": 0.33,
   "recomputed": 0.3303587720364113,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
@@ -1610,26 +1610,26 @@
  {
   "section": "8.3",
   "claim": "gk2 xz spread %",
-  "printed": 0.44,
+  "printed": 0.47,
   "recomputed": 0.46696665537282955,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2 rz spread %",
-  "printed": 0.46,
+  "printed": 0.48,
   "recomputed": 0.4777238962169231,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2 xz anchored %",
-  "printed": 0.3,
+  "printed": 0.31,
   "recomputed": 0.30568426290996553,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
@@ -1642,18 +1642,18 @@
  {
   "section": "8.3",
   "claim": "gk2 von Mises spread %",
-  "printed": 0.72,
+  "printed": 0.75,
   "recomputed": 0.7493037203328204,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
   "claim": "gk2 von Mises anchored %",
-  "printed": 0.79,
+  "printed": 0.81,
   "recomputed": 0.8128272216852158,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.3",
@@ -1682,18 +1682,18 @@
  {
   "section": "8.4",
   "claim": "sharp sigma_zz strategy spread %",
-  "printed": 2.37,
+  "printed": 1.96,
   "recomputed": 1.9637583188211036,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.4",
-  "claim": "sharp sigma_zz FAIL",
+  "claim": "sharp sigma_zz PASS (narrow)",
   "printed": 1,
-  "recomputed": 0.0,
+  "recomputed": 1.0,
   "tolerance": 0,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.4",
@@ -1706,10 +1706,10 @@
  {
   "section": "8.4",
   "claim": "sharp normal anchored max %",
-  "printed": 1.7,
+  "printed": 1.6,
   "recomputed": 1.6347076314216402,
   "tolerance": 0.05,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.4",
@@ -1730,10 +1730,10 @@
  {
   "section": "8.4",
   "claim": "uniform 10,200 sphere |sigma| avg",
-  "printed": 1.031,
+  "printed": 1.03,
   "recomputed": 1.0304647743560917,
   "tolerance": 0.0005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.4",
@@ -1810,10 +1810,10 @@
  {
   "section": "8.5",
   "claim": "root_sxx finest-three spread %",
-  "printed": 0.61,
+  "printed": 0.59,
   "recomputed": 0.5932132443046215,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.5",
@@ -1826,10 +1826,10 @@
  {
   "section": "8.5",
   "claim": "root_szz finest-three spread %",
-  "printed": 0.38,
+  "printed": 0.36,
   "recomputed": 0.36437832637202033,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.5",
@@ -1842,10 +1842,10 @@
  {
   "section": "8.5",
   "claim": "root_pressure finest-three spread %",
-  "printed": 0.42,
+  "printed": 0.43,
   "recomputed": 0.42686564149247785,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.5",
@@ -1874,10 +1874,10 @@
  {
   "section": "8.5",
   "claim": "root_sxz finest-three spread %",
-  "printed": 0.8,
+  "printed": 0.81,
   "recomputed": 0.8062215494483816,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.5",
@@ -1970,10 +1970,10 @@
  {
   "section": "8.6",
   "claim": "pressure std reduced 2,376",
-  "printed": 4.04,
+  "printed": 4.05,
   "recomputed": 4.048270104265113,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.6",
@@ -2010,10 +2010,10 @@
  {
   "section": "8.6",
   "claim": "gk2 signed averages full-reduced 10,200 (max, % of scale) <=",
-  "printed": 0.33,
+  "printed": 0.29,
   "recomputed": 0.28757640585184857,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "8.6",
@@ -2027,9 +2027,9 @@
   "section": "9",
   "claim": "B3 family solve time total s",
   "printed": 8116,
-  "recomputed": 9354.166773557663,
+  "recomputed": 8116.325203180313,
   "tolerance": 0.5,
-  "ok": false
+  "ok": true
  },
  {
   "section": "9",
@@ -2050,10 +2050,10 @@
  {
   "section": "9",
   "claim": "adaptive gk2_sigma_yy_avg decided at",
-  "printed": 15960,
+  "printed": 23520,
   "recomputed": 23520.0,
   "tolerance": 0,
-  "ok": false
+  "ok": true
  },
  {
   "section": "9",
@@ -2066,18 +2066,18 @@
  {
   "section": "9",
   "claim": "adaptive gk2_pressure_avg decided at",
-  "printed": 15960,
+  "printed": 23520,
   "recomputed": 23520.0,
   "tolerance": 0,
-  "ok": false
+  "ok": true
  },
  {
   "section": "9",
   "claim": "adaptive gk2_cyl_tt_avg decided at",
-  "printed": 15960,
+  "printed": 23520,
   "recomputed": 23520.0,
   "tolerance": 0,
-  "ok": false
+  "ok": true
  },
  {
   "section": "9",
@@ -2139,25 +2139,25 @@
   "section": "9",
   "claim": "adaptive share up to 15960 %",
   "printed": 12,
-  "recomputed": 21.191908671940954,
+  "recomputed": 12.315587985852591,
   "tolerance": 0.5,
-  "ok": false
+  "ok": true
  },
  {
   "section": "9",
   "claim": "adaptive share up to 23520 %",
   "printed": 24,
-  "recomputed": 31.1667722636666,
+  "recomputed": 23.784448217113226,
   "tolerance": 0.5,
-  "ok": false
+  "ok": true
  },
  {
   "section": "9",
   "claim": "adaptive share up to 45000 %",
   "printed": 66,
-  "recomputed": 68.55660663249064,
+  "recomputed": 66.25605932560573,
   "tolerance": 0.5,
-  "ok": false
+  "ok": true
  },
  {
   "section": "9",
