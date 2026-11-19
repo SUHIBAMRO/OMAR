@@ -1,5 +1,27 @@
 [
  {
+  "N": 49,
+  "r_grading": 1.0,
+  "newton_tol": 1e-10,
+  "h": 0.020833333333333332,
+  "n_elem": 2304,
+  "n_dof": 4802,
+  "wall_clock_s": 87.79372668266296,
+  "min_detF": 1.0010647836121334,
+  "max_disp_mag": 0.011006440260313619,
+  "strain_energy": 0.05272672779239597,
+  "peak_PK1_frob": 12.337305360427541,
+  "interior_avg_PK1_frob": 6.1159403156735825,
+  "interior_gk_PK1_frob": 6.112538666461806,
+  "interior_region_gauss_points": 274,
+  "u_inner": 0.005698729352386126,
+  "v_inner": 0.009238324967284281,
+  "query_inner_node_distance": 0.0,
+  "u_mid": 0.004217538773180874,
+  "v_mid": 0.006954439119087858,
+  "query_mid_node_distance": 2.220446049250313e-16
+ },
+ {
   "N": 7,
   "r_grading": 1.0,
   "newton_tol": 1e-08,

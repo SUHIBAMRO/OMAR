@@ -1,0 +1,4195 @@
+{
+ "diagnoses": {
+  "unit_square": {
+   "max_disp_mag": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "diagnosis": [
+     "mathematical/physical"
+    ],
+    "supported": [
+     "M2"
+    ],
+    "refuted": [],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+    ],
+    "tests": [
+     {
+      "id": "M2",
+      "class": "mathematical/physical",
+      "hypothesis": "corner/edge singularities reduce the convergence order of global quantities",
+      "status": "supported",
+      "evidence": "observed order 1.54 below the element optimum 2; the corners/edges (clamped bottom edge meets the free vertical edges) have lambda = 0.7112, predicting order 2 lambda = 1.42 for energy-type quantities",
+      "next_action": null,
+      "cost": null,
+      "remedy": "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+     }
+    ]
+   },
+   "v_top_off_center": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "diagnosis": [
+     "mathematical/physical"
+    ],
+    "supported": [
+     "M2"
+    ],
+    "refuted": [],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+    ],
+    "tests": [
+     {
+      "id": "M2",
+      "class": "mathematical/physical",
+      "hypothesis": "corner/edge singularities reduce the convergence order of global quantities",
+      "status": "supported",
+      "evidence": "observed order 1.48 below the element optimum 2; the corners/edges (clamped bottom edge meets the free vertical edges) have lambda = 0.7112, predicting order 2 lambda = 1.42 for energy-type quantities",
+      "next_action": null,
+      "cost": null,
+      "remedy": "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+     }
+    ]
+   },
+   "u_mid_domain": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "diagnosis": [
+     "mathematical/physical"
+    ],
+    "supported": [
+     "M2"
+    ],
+    "refuted": [],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+    ],
+    "tests": [
+     {
+      "id": "M2",
+      "class": "mathematical/physical",
+      "hypothesis": "corner/edge singularities reduce the convergence order of global quantities",
+      "status": "supported",
+      "evidence": "observed order 1.54 below the element optimum 2; the corners/edges (clamped bottom edge meets the free vertical edges) have lambda = 0.7112, predicting order 2 lambda = 1.42 for energy-type quantities",
+      "next_action": null,
+      "cost": null,
+      "remedy": "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+     }
+    ]
+   },
+   "v_mid_domain": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "diagnosis": [
+     "mathematical/physical"
+    ],
+    "supported": [
+     "M2"
+    ],
+    "refuted": [],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+    ],
+    "tests": [
+     {
+      "id": "M2",
+      "class": "mathematical/physical",
+      "hypothesis": "corner/edge singularities reduce the convergence order of global quantities",
+      "status": "supported",
+      "evidence": "observed order 1.47 below the element optimum 2; the corners/edges (clamped bottom edge meets the free vertical edges) have lambda = 0.7112, predicting order 2 lambda = 1.42 for energy-type quantities",
+      "next_action": null,
+      "cost": null,
+      "remedy": "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+     }
+    ]
+   },
+   "strain_energy": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "diagnosis": [
+     "mathematical/physical"
+    ],
+    "supported": [
+     "M2"
+    ],
+    "refuted": [],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+    ],
+    "tests": [
+     {
+      "id": "M2",
+      "class": "mathematical/physical",
+      "hypothesis": "corner/edge singularities reduce the convergence order of global quantities",
+      "status": "supported",
+      "evidence": "observed order 1.43 below the element optimum 2; the corners/edges (clamped bottom edge meets the free vertical edges) have lambda = 0.7112, predicting order 2 lambda = 1.42 for energy-type quantities",
+      "next_action": null,
+      "cost": null,
+      "remedy": "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+     }
+    ]
+   },
+   "peak_PK1_frob": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "diagnosis": [
+     "mathematical/physical"
+    ],
+    "supported": [
+     "M1"
+    ],
+    "refuted": [
+     "P1",
+     "D3",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "not a usable reference value: no finite limit exists; use energy, displacements or region averages, or a singular-field quantity (stress-intensity factor)"
+    ],
+    "tests": [
+     {
+      "id": "M1",
+      "class": "mathematical/physical",
+      "hypothesis": "a geometric singularity makes the true peak unbounded",
+      "status": "supported",
+      "evidence": "peak grows like h^-0.275; theory h^(lambda-1) = h^-0.289 (lambda = 0.7112)",
+      "next_action": null,
+      "cost": null,
+      "remedy": "not a usable reference value: no finite limit exists; use energy, displacements or region averages, or a singular-field quantity (stress-intensity factor)"
+     },
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.988 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "refuted",
+      "evidence": "nu = 0.3: far from incompressibility",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (0 sign changes, last/first 2.14)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "N=41 solved at Newton tol 1e-07 and 1e-10: quantities change by at most 0.0e+00 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "direct sparse LU: exact up to round-off",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "2D MMS (Q4): rates L2 1.98 (theory 2), H1_semi 1.00 (theory 1)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     }
+    ]
+   }
+  },
+  "quarter_ring": {
+   "interior_avg_PK1_frob": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "diagnosis": [
+     "QoI/post-processing"
+    ],
+    "supported": [
+     "Q1"
+    ],
+    "refuted": [
+     "P1",
+     "D3",
+     "D4",
+     "S1",
+     "S2",
+     "S3",
+     "Q2"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "report interior_gk_PK1_frob as a separate QoI next to the sharp one"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 1.001 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "refuted",
+      "evidence": "nu = 0.3: far from incompressibility",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (3 sign changes, last/first 0.17)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "N=49 solved at Newton tol 1e-8 and 1e-10: quantities change by at most 1.2e-16 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "direct sparse LU: exact up to round-off",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "2D MMS (Q4): rates L2 1.98 (theory 2), H1_semi 1.00 (theory 1)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q1",
+      "class": "QoI/post-processing",
+      "hypothesis": "a sharp-edged region samples a changing set of Gauss points",
+      "status": "supported",
+      "evidence": "the same field averaged with a smooth weight (interior_gk_PK1_frob: PASS, rate) does better on the same solutions (PASS, band); the sharp cut-off samples a changing set of Gauss points from mesh to mesh",
+      "next_action": null,
+      "cost": null,
+      "remedy": "report interior_gk_PK1_frob as a separate QoI next to the sharp one"
+     },
+     {
+      "id": "Q2",
+      "class": "QoI/post-processing",
+      "hypothesis": "a magnitude measure accumulates point-to-point oscillation",
+      "status": "refuted",
+      "evidence": "the smooth average of the same magnitude (interior_gk_PK1_frob) converges with a rate: no point-to-point oscillation accumulates",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     }
+    ]
+   }
+  },
+  "bushing_groove": {
+   "sigma_frob_avg": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "diagnosis": [
+     "QoI/post-processing",
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1",
+     "D3",
+     "Q2"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3",
+     "Q1"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho",
+     "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures",
+     "use signed (normal) components; find the source of the oscillation"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "supported",
+      "evidence": "nu = 0.45; Gauss-point pressure std within 2R0 falls 4.04 -> 1.33 -> 0.43 -> 0.35 -> 0.33 -> 0.28 -> 0.29 -> 0.29 (levels 2376-59400 el), 32% of the region stress scale at the finest; displacements are not locked (Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2))",
+      "next_action": "cross-check with a mixed u/p or F-bar formulation",
+      "cost": "needs a formulation not available in torchfem",
+      "remedy": "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures"
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (3 sign changes, last/first 0.05)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q1",
+      "class": "QoI/post-processing",
+      "hypothesis": "a sharp-edged region samples a changing set of Gauss points",
+      "status": "refuted",
+      "evidence": "the smooth-weight counterpart gk2_sigma_frob_avg does no better (FAIL, band): the sharp cut-off is not the cause",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q2",
+      "class": "QoI/post-processing",
+      "hypothesis": "a magnitude measure accumulates point-to-point oscillation",
+      "status": "supported",
+      "evidence": "under refinement the signed components of the same region pass (sigma_xx_avg, sigma_yy_avg, sigma_zz_avg, pressure_avg) while the magnitude measure does not reach a rate: point-to-point oscillation cancels in signed averages but accumulates in magnitudes",
+      "next_action": null,
+      "cost": null,
+      "remedy": "use signed (normal) components; find the source of the oscillation"
+     }
+    ]
+   },
+   "sigma_xx_avg": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "diagnosis": [
+     "QoI/post-processing"
+    ],
+    "supported": [
+     "Q1"
+    ],
+    "refuted": [
+     "P1",
+     "D1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "report gk2_sigma_xx_avg as a separate QoI next to the sharp one"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "refuted",
+      "evidence": "averaged over the region, the field converges with a rate on the same meshes (gk2_sigma_xx_avg): resolution of the feature is sufficient for averaged quantities",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (3 sign changes, last/first 1.28)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q1",
+      "class": "QoI/post-processing",
+      "hypothesis": "a sharp-edged region samples a changing set of Gauss points",
+      "status": "supported",
+      "evidence": "the same field averaged with a smooth weight (gk2_sigma_xx_avg: PASS, rate) does better on the same solutions (PASS, band); the sharp cut-off samples a changing set of Gauss points from mesh to mesh",
+      "next_action": null,
+      "cost": null,
+      "remedy": "report gk2_sigma_xx_avg as a separate QoI next to the sharp one"
+     }
+    ]
+   },
+   "sigma_xx_max": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "diagnosis": [
+     "QoI/post-processing",
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1",
+     "D3",
+     "Q3"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho",
+     "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures",
+     "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "supported",
+      "evidence": "nu = 0.45; Gauss-point pressure std within 2R0 falls 4.04 -> 1.33 -> 0.43 -> 0.35 -> 0.33 -> 0.28 -> 0.29 -> 0.29 (levels 2376-59400 el), 32% of the region stress scale at the finest; displacements are not locked (Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2))",
+      "next_action": "cross-check with a mixed u/p or F-bar formulation",
+      "cost": "needs a formulation not available in torchfem",
+      "remedy": "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures"
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (2 sign changes, last/first 1.77)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q3",
+      "class": "QoI/post-processing",
+      "hypothesis": "the maximum is taken at Gauss points inside the body, not on the surface",
+      "status": "supported",
+      "evidence": "surface values at the groove root: root_node_distance PASS/band, root_sxx PASS/band, root_szz PASS/band, root_sxz PASS/band, root_von_mises PASS/band, root_pressure PASS/band; surface maxima: ['FAIL']. The Gauss-point maximum mixes location (points 0.2h inside) with resolution",
+      "next_action": null,
+      "cost": null,
+      "remedy": "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+     }
+    ]
+   },
+   "sigma_yy_avg": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "diagnosis": [
+     "QoI/post-processing"
+    ],
+    "supported": [
+     "Q1"
+    ],
+    "refuted": [
+     "P1",
+     "D1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "report gk2_sigma_yy_avg as a separate QoI next to the sharp one"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "refuted",
+      "evidence": "averaged over the region, the field converges with a rate on the same meshes (gk2_sigma_yy_avg): resolution of the feature is sufficient for averaged quantities",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (1 sign changes, last/first 3.56)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q1",
+      "class": "QoI/post-processing",
+      "hypothesis": "a sharp-edged region samples a changing set of Gauss points",
+      "status": "supported",
+      "evidence": "the same field averaged with a smooth weight (gk2_sigma_yy_avg: PASS, rate) does better on the same solutions (PASS, band); the sharp cut-off samples a changing set of Gauss points from mesh to mesh",
+      "next_action": null,
+      "cost": null,
+      "remedy": "report gk2_sigma_yy_avg as a separate QoI next to the sharp one"
+     }
+    ]
+   },
+   "sigma_yy_max": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "diagnosis": [
+     "QoI/post-processing",
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1",
+     "D3",
+     "Q3"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho",
+     "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures",
+     "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "supported",
+      "evidence": "nu = 0.45; Gauss-point pressure std within 2R0 falls 4.04 -> 1.33 -> 0.43 -> 0.35 -> 0.33 -> 0.28 -> 0.29 -> 0.29 (levels 2376-59400 el), 32% of the region stress scale at the finest; displacements are not locked (Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2))",
+      "next_action": "cross-check with a mixed u/p or F-bar formulation",
+      "cost": "needs a formulation not available in torchfem",
+      "remedy": "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures"
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (2 sign changes, last/first 1.61)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q3",
+      "class": "QoI/post-processing",
+      "hypothesis": "the maximum is taken at Gauss points inside the body, not on the surface",
+      "status": "supported",
+      "evidence": "surface values at the groove root: root_node_distance PASS/band, root_sxx PASS/band, root_szz PASS/band, root_sxz PASS/band, root_von_mises PASS/band, root_pressure PASS/band; surface maxima: ['FAIL']. The Gauss-point maximum mixes location (points 0.2h inside) with resolution",
+      "next_action": null,
+      "cost": null,
+      "remedy": "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+     }
+    ]
+   },
+   "sigma_zz_avg": {
+    "verdict": "FAIL",
+    "evidence": "band",
+    "diagnosis": [
+     "QoI/post-processing"
+    ],
+    "supported": [
+     "Q1"
+    ],
+    "refuted": [
+     "P1",
+     "D1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "report gk2_sigma_zz_avg as a separate QoI next to the sharp one"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "refuted",
+      "evidence": "averaged over the region, the field converges with a rate on the same meshes (gk2_sigma_zz_avg): resolution of the feature is sufficient for averaged quantities",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (3 sign changes, last/first 0.59)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q1",
+      "class": "QoI/post-processing",
+      "hypothesis": "a sharp-edged region samples a changing set of Gauss points",
+      "status": "supported",
+      "evidence": "the same field averaged with a smooth weight (gk2_sigma_zz_avg: PASS, rate) does better on the same solutions (FAIL, band); the sharp cut-off samples a changing set of Gauss points from mesh to mesh",
+      "next_action": null,
+      "cost": null,
+      "remedy": "report gk2_sigma_zz_avg as a separate QoI next to the sharp one"
+     }
+    ]
+   },
+   "sigma_zz_max": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "diagnosis": [
+     "QoI/post-processing",
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1",
+     "D3",
+     "Q3"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho",
+     "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures",
+     "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "supported",
+      "evidence": "nu = 0.45; Gauss-point pressure std within 2R0 falls 4.04 -> 1.33 -> 0.43 -> 0.35 -> 0.33 -> 0.28 -> 0.29 -> 0.29 (levels 2376-59400 el), 32% of the region stress scale at the finest; displacements are not locked (Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2))",
+      "next_action": "cross-check with a mixed u/p or F-bar formulation",
+      "cost": "needs a formulation not available in torchfem",
+      "remedy": "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures"
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (3 sign changes, last/first 0.32)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q3",
+      "class": "QoI/post-processing",
+      "hypothesis": "the maximum is taken at Gauss points inside the body, not on the surface",
+      "status": "supported",
+      "evidence": "surface values at the groove root: root_node_distance PASS/band, root_sxx PASS/band, root_szz PASS/band, root_sxz PASS/band, root_von_mises PASS/band, root_pressure PASS/band; surface maxima: ['FAIL']. The Gauss-point maximum mixes location (points 0.2h inside) with resolution",
+      "next_action": null,
+      "cost": null,
+      "remedy": "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+     }
+    ]
+   },
+   "sigma_xy_avg": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "diagnosis": [
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1",
+     "D4"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "S1",
+     "S2",
+     "S3",
+     "Q1"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "supported",
+      "evidence": "increments over the finest five levels shrink (3.19e-05 -> 1.94e-06) with 1 sign change(s): the sequence may still enter the asymptotic range",
+      "next_action": "add a finer level",
+      "cost": "see the adaptive controller",
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q1",
+      "class": "QoI/post-processing",
+      "hypothesis": "a sharp-edged region samples a changing set of Gauss points",
+      "status": "refuted",
+      "evidence": "computed here from the stored Gauss-point data: the Gaussian-weighted average of this component gives PASS/band under refinement, the sharp one PASS/band: no better, so the sharp cut-off is not the cause",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     }
+    ]
+   },
+   "sigma_xy_max": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "diagnosis": [
+     "QoI/post-processing",
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1",
+     "D3",
+     "Q3"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho",
+     "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures",
+     "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "supported",
+      "evidence": "nu = 0.45; Gauss-point pressure std within 2R0 falls 4.04 -> 1.33 -> 0.43 -> 0.35 -> 0.33 -> 0.28 -> 0.29 -> 0.29 (levels 2376-59400 el), 32% of the region stress scale at the finest; displacements are not locked (Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2))",
+      "next_action": "cross-check with a mixed u/p or F-bar formulation",
+      "cost": "needs a formulation not available in torchfem",
+      "remedy": "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures"
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (3 sign changes, last/first 0.13)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q3",
+      "class": "QoI/post-processing",
+      "hypothesis": "the maximum is taken at Gauss points inside the body, not on the surface",
+      "status": "supported",
+      "evidence": "surface values at the groove root: root_node_distance PASS/band, root_sxx PASS/band, root_szz PASS/band, root_sxz PASS/band, root_von_mises PASS/band, root_pressure PASS/band; surface maxima: ['FAIL']. The Gauss-point maximum mixes location (points 0.2h inside) with resolution",
+      "next_action": null,
+      "cost": null,
+      "remedy": "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+     }
+    ]
+   },
+   "sigma_xz_avg": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "diagnosis": [
+     "QoI/post-processing",
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1",
+     "Q1"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho",
+     "report gk2_sigma_xz_avg as a separate QoI next to the sharp one"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (3 sign changes, last/first 0.71)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q1",
+      "class": "QoI/post-processing",
+      "hypothesis": "a sharp-edged region samples a changing set of Gauss points",
+      "status": "supported",
+      "evidence": "the same field averaged with a smooth weight (gk2_sigma_xz_avg: PASS, band) does better on the same solutions (FAIL, none); the sharp cut-off samples a changing set of Gauss points from mesh to mesh",
+      "next_action": null,
+      "cost": null,
+      "remedy": "report gk2_sigma_xz_avg as a separate QoI next to the sharp one"
+     }
+    ]
+   },
+   "sigma_xz_max": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "diagnosis": [
+     "QoI/post-processing",
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1",
+     "D3",
+     "D4",
+     "Q3"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho",
+     "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures",
+     "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "supported",
+      "evidence": "nu = 0.45; Gauss-point pressure std within 2R0 falls 4.04 -> 1.33 -> 0.43 -> 0.35 -> 0.33 -> 0.28 -> 0.29 -> 0.29 (levels 2376-59400 el), 32% of the region stress scale at the finest; displacements are not locked (Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2))",
+      "next_action": "cross-check with a mixed u/p or F-bar formulation",
+      "cost": "needs a formulation not available in torchfem",
+      "remedy": "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures"
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "supported",
+      "evidence": "increments over the finest five levels shrink (0.199 -> 0.0627) with 1 sign change(s): the sequence may still enter the asymptotic range",
+      "next_action": "add a finer level",
+      "cost": "see the adaptive controller",
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q3",
+      "class": "QoI/post-processing",
+      "hypothesis": "the maximum is taken at Gauss points inside the body, not on the surface",
+      "status": "supported",
+      "evidence": "surface values at the groove root: root_node_distance PASS/band, root_sxx PASS/band, root_szz PASS/band, root_sxz PASS/band, root_von_mises PASS/band, root_pressure PASS/band; surface maxima: ['FAIL']. The Gauss-point maximum mixes location (points 0.2h inside) with resolution",
+      "next_action": null,
+      "cost": null,
+      "remedy": "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+     }
+    ]
+   },
+   "sigma_yz_avg": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "diagnosis": [
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3",
+     "Q1"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (2 sign changes, last/first 0.32)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q1",
+      "class": "QoI/post-processing",
+      "hypothesis": "a sharp-edged region samples a changing set of Gauss points",
+      "status": "refuted",
+      "evidence": "computed here from the stored Gauss-point data: the Gaussian-weighted average of this component gives PASS/band under refinement, the sharp one PASS/band: no better, so the sharp cut-off is not the cause",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     }
+    ]
+   },
+   "sigma_yz_max": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "diagnosis": [
+     "QoI/post-processing",
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1",
+     "D3",
+     "Q3"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho",
+     "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures",
+     "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "supported",
+      "evidence": "nu = 0.45; Gauss-point pressure std within 2R0 falls 4.04 -> 1.33 -> 0.43 -> 0.35 -> 0.33 -> 0.28 -> 0.29 -> 0.29 (levels 2376-59400 el), 32% of the region stress scale at the finest; displacements are not locked (Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2))",
+      "next_action": "cross-check with a mixed u/p or F-bar formulation",
+      "cost": "needs a formulation not available in torchfem",
+      "remedy": "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures"
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (2 sign changes, last/first 0.72)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q3",
+      "class": "QoI/post-processing",
+      "hypothesis": "the maximum is taken at Gauss points inside the body, not on the surface",
+      "status": "supported",
+      "evidence": "surface values at the groove root: root_node_distance PASS/band, root_sxx PASS/band, root_szz PASS/band, root_sxz PASS/band, root_von_mises PASS/band, root_pressure PASS/band; surface maxima: ['FAIL']. The Gauss-point maximum mixes location (points 0.2h inside) with resolution",
+      "next_action": null,
+      "cost": null,
+      "remedy": "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+     }
+    ]
+   },
+   "reaction_moment_y": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "diagnosis": [
+     "mathematical/physical"
+    ],
+    "supported": [
+     "M2"
+    ],
+    "refuted": [],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+    ],
+    "tests": [
+     {
+      "id": "M2",
+      "class": "mathematical/physical",
+      "hypothesis": "corner/edge singularities reduce the convergence order of global quantities",
+      "status": "supported",
+      "evidence": "observed order 1.56 below the element optimum 4; the corners/edges (Dirichlet inner/outer surfaces meet the free end faces (four circular edges)) have lambda = 0.6216, predicting order 2 lambda = 1.24 for energy-type quantities",
+      "next_action": null,
+      "cost": null,
+      "remedy": "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+     }
+    ]
+   },
+   "strain_energy": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "diagnosis": [
+     "mathematical/physical"
+    ],
+    "supported": [
+     "M2"
+    ],
+    "refuted": [],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+    ],
+    "tests": [
+     {
+      "id": "M2",
+      "class": "mathematical/physical",
+      "hypothesis": "corner/edge singularities reduce the convergence order of global quantities",
+      "status": "supported",
+      "evidence": "observed order 1.62 below the element optimum 4; the corners/edges (Dirichlet inner/outer surfaces meet the free end faces (four circular edges)) have lambda = 0.6216, predicting order 2 lambda = 1.24 for energy-type quantities",
+      "next_action": null,
+      "cost": null,
+      "remedy": "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+     }
+    ]
+   },
+   "von_mises_avg": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "diagnosis": [
+     "QoI/post-processing",
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1",
+     "D3",
+     "Q1",
+     "Q2"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho",
+     "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures",
+     "report gk2_von_mises_avg as a separate QoI next to the sharp one",
+     "use signed (normal) components; find the source of the oscillation"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "supported",
+      "evidence": "nu = 0.45; Gauss-point pressure std within 2R0 falls 4.04 -> 1.33 -> 0.43 -> 0.35 -> 0.33 -> 0.28 -> 0.29 -> 0.29 (levels 2376-59400 el), 32% of the region stress scale at the finest; displacements are not locked (Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2))",
+      "next_action": "cross-check with a mixed u/p or F-bar formulation",
+      "cost": "needs a formulation not available in torchfem",
+      "remedy": "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures"
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (3 sign changes, last/first 0.16)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q1",
+      "class": "QoI/post-processing",
+      "hypothesis": "a sharp-edged region samples a changing set of Gauss points",
+      "status": "supported",
+      "evidence": "the same field averaged with a smooth weight (gk2_von_mises_avg: PASS, band) does better on the same solutions (FAIL, none); the sharp cut-off samples a changing set of Gauss points from mesh to mesh",
+      "next_action": null,
+      "cost": null,
+      "remedy": "report gk2_von_mises_avg as a separate QoI next to the sharp one"
+     },
+     {
+      "id": "Q2",
+      "class": "QoI/post-processing",
+      "hypothesis": "a magnitude measure accumulates point-to-point oscillation",
+      "status": "supported",
+      "evidence": "under refinement the signed components of the same region pass (sigma_xx_avg, sigma_yy_avg, sigma_zz_avg, pressure_avg) while the magnitude measure does not reach a rate: point-to-point oscillation cancels in signed averages but accumulates in magnitudes",
+      "next_action": null,
+      "cost": null,
+      "remedy": "use signed (normal) components; find the source of the oscillation"
+     }
+    ]
+   },
+   "von_mises_max": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "diagnosis": [
+     "QoI/post-processing",
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1",
+     "D3",
+     "Q3"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho",
+     "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures",
+     "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "supported",
+      "evidence": "nu = 0.45; Gauss-point pressure std within 2R0 falls 4.04 -> 1.33 -> 0.43 -> 0.35 -> 0.33 -> 0.28 -> 0.29 -> 0.29 (levels 2376-59400 el), 32% of the region stress scale at the finest; displacements are not locked (Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2))",
+      "next_action": "cross-check with a mixed u/p or F-bar formulation",
+      "cost": "needs a formulation not available in torchfem",
+      "remedy": "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures"
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (3 sign changes, last/first 0.72)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q3",
+      "class": "QoI/post-processing",
+      "hypothesis": "the maximum is taken at Gauss points inside the body, not on the surface",
+      "status": "supported",
+      "evidence": "surface values at the groove root: root_node_distance PASS/band, root_sxx PASS/band, root_szz PASS/band, root_sxz PASS/band, root_von_mises PASS/band, root_pressure PASS/band; surface maxima: ['FAIL']. The Gauss-point maximum mixes location (points 0.2h inside) with resolution",
+      "next_action": null,
+      "cost": null,
+      "remedy": "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+     }
+    ]
+   },
+   "pressure_avg": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "diagnosis": [
+     "QoI/post-processing",
+     "numerical discretization"
+    ],
+    "supported": [
+     "D3",
+     "Q1"
+    ],
+    "refuted": [
+     "P1",
+     "D1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "cross-check with a mixed u/p or F-bar formulation",
+    "remedies": [
+     "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures",
+     "report gk2_pressure_avg as a separate QoI next to the sharp one"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "refuted",
+      "evidence": "averaged over the region, the field converges with a rate on the same meshes (gk2_pressure_avg): resolution of the feature is sufficient for averaged quantities",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "supported",
+      "evidence": "nu = 0.45; Gauss-point pressure std within 2R0 falls 4.04 -> 1.33 -> 0.43 -> 0.35 -> 0.33 -> 0.28 -> 0.29 -> 0.29 (levels 2376-59400 el), 32% of the region stress scale at the finest; displacements are not locked (Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2))",
+      "next_action": "cross-check with a mixed u/p or F-bar formulation",
+      "cost": "needs a formulation not available in torchfem",
+      "remedy": "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures"
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (2 sign changes, last/first 17.43)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q1",
+      "class": "QoI/post-processing",
+      "hypothesis": "a sharp-edged region samples a changing set of Gauss points",
+      "status": "supported",
+      "evidence": "the same field averaged with a smooth weight (gk2_pressure_avg: PASS, rate) does better on the same solutions (PASS, band); the sharp cut-off samples a changing set of Gauss points from mesh to mesh",
+      "next_action": null,
+      "cost": null,
+      "remedy": "report gk2_pressure_avg as a separate QoI next to the sharp one"
+     }
+    ]
+   },
+   "cyl_rr_avg": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "diagnosis": [
+     "QoI/post-processing"
+    ],
+    "supported": [
+     "Q1"
+    ],
+    "refuted": [
+     "P1",
+     "D1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "report gk2_cyl_rr_avg as a separate QoI next to the sharp one"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "refuted",
+      "evidence": "averaged over the region, the field converges with a rate on the same meshes (gk2_cyl_rr_avg): resolution of the feature is sufficient for averaged quantities",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (3 sign changes, last/first 1.26)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q1",
+      "class": "QoI/post-processing",
+      "hypothesis": "a sharp-edged region samples a changing set of Gauss points",
+      "status": "supported",
+      "evidence": "the same field averaged with a smooth weight (gk2_cyl_rr_avg: PASS, rate) does better on the same solutions (PASS, band); the sharp cut-off samples a changing set of Gauss points from mesh to mesh",
+      "next_action": null,
+      "cost": null,
+      "remedy": "report gk2_cyl_rr_avg as a separate QoI next to the sharp one"
+     }
+    ]
+   },
+   "cyl_rr_max": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "diagnosis": [
+     "QoI/post-processing",
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1",
+     "D3",
+     "Q3"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho",
+     "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures",
+     "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "supported",
+      "evidence": "nu = 0.45; Gauss-point pressure std within 2R0 falls 4.04 -> 1.33 -> 0.43 -> 0.35 -> 0.33 -> 0.28 -> 0.29 -> 0.29 (levels 2376-59400 el), 32% of the region stress scale at the finest; displacements are not locked (Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2))",
+      "next_action": "cross-check with a mixed u/p or F-bar formulation",
+      "cost": "needs a formulation not available in torchfem",
+      "remedy": "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures"
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (2 sign changes, last/first 1.77)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q3",
+      "class": "QoI/post-processing",
+      "hypothesis": "the maximum is taken at Gauss points inside the body, not on the surface",
+      "status": "supported",
+      "evidence": "surface values at the groove root: root_node_distance PASS/band, root_sxx PASS/band, root_szz PASS/band, root_sxz PASS/band, root_von_mises PASS/band, root_pressure PASS/band; surface maxima: ['FAIL']. The Gauss-point maximum mixes location (points 0.2h inside) with resolution",
+      "next_action": null,
+      "cost": null,
+      "remedy": "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+     }
+    ]
+   },
+   "cyl_tt_avg": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "diagnosis": [
+     "QoI/post-processing"
+    ],
+    "supported": [
+     "Q1"
+    ],
+    "refuted": [
+     "P1",
+     "D1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "report gk2_cyl_tt_avg as a separate QoI next to the sharp one"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "refuted",
+      "evidence": "averaged over the region, the field converges with a rate on the same meshes (gk2_cyl_tt_avg): resolution of the feature is sufficient for averaged quantities",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (1 sign changes, last/first 3.99)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q1",
+      "class": "QoI/post-processing",
+      "hypothesis": "a sharp-edged region samples a changing set of Gauss points",
+      "status": "supported",
+      "evidence": "the same field averaged with a smooth weight (gk2_cyl_tt_avg: PASS, rate) does better on the same solutions (PASS, band); the sharp cut-off samples a changing set of Gauss points from mesh to mesh",
+      "next_action": null,
+      "cost": null,
+      "remedy": "report gk2_cyl_tt_avg as a separate QoI next to the sharp one"
+     }
+    ]
+   },
+   "cyl_tt_max": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "diagnosis": [
+     "QoI/post-processing",
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1",
+     "D3",
+     "Q3"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho",
+     "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures",
+     "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "supported",
+      "evidence": "nu = 0.45; Gauss-point pressure std within 2R0 falls 4.04 -> 1.33 -> 0.43 -> 0.35 -> 0.33 -> 0.28 -> 0.29 -> 0.29 (levels 2376-59400 el), 32% of the region stress scale at the finest; displacements are not locked (Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2))",
+      "next_action": "cross-check with a mixed u/p or F-bar formulation",
+      "cost": "needs a formulation not available in torchfem",
+      "remedy": "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures"
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (2 sign changes, last/first 1.60)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q3",
+      "class": "QoI/post-processing",
+      "hypothesis": "the maximum is taken at Gauss points inside the body, not on the surface",
+      "status": "supported",
+      "evidence": "surface values at the groove root: root_node_distance PASS/band, root_sxx PASS/band, root_szz PASS/band, root_sxz PASS/band, root_von_mises PASS/band, root_pressure PASS/band; surface maxima: ['FAIL']. The Gauss-point maximum mixes location (points 0.2h inside) with resolution",
+      "next_action": null,
+      "cost": null,
+      "remedy": "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+     }
+    ]
+   },
+   "cyl_zz_avg": {
+    "verdict": "FAIL",
+    "evidence": "band",
+    "diagnosis": [
+     "QoI/post-processing"
+    ],
+    "supported": [
+     "Q1"
+    ],
+    "refuted": [
+     "P1",
+     "D1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "report gk2_cyl_zz_avg as a separate QoI next to the sharp one"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "refuted",
+      "evidence": "averaged over the region, the field converges with a rate on the same meshes (gk2_cyl_zz_avg): resolution of the feature is sufficient for averaged quantities",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (3 sign changes, last/first 0.59)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q1",
+      "class": "QoI/post-processing",
+      "hypothesis": "a sharp-edged region samples a changing set of Gauss points",
+      "status": "supported",
+      "evidence": "the same field averaged with a smooth weight (gk2_cyl_zz_avg: PASS, rate) does better on the same solutions (FAIL, band); the sharp cut-off samples a changing set of Gauss points from mesh to mesh",
+      "next_action": null,
+      "cost": null,
+      "remedy": "report gk2_cyl_zz_avg as a separate QoI next to the sharp one"
+     }
+    ]
+   },
+   "cyl_zz_max": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "diagnosis": [
+     "QoI/post-processing",
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1",
+     "D3",
+     "Q3"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho",
+     "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures",
+     "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "supported",
+      "evidence": "nu = 0.45; Gauss-point pressure std within 2R0 falls 4.04 -> 1.33 -> 0.43 -> 0.35 -> 0.33 -> 0.28 -> 0.29 -> 0.29 (levels 2376-59400 el), 32% of the region stress scale at the finest; displacements are not locked (Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2))",
+      "next_action": "cross-check with a mixed u/p or F-bar formulation",
+      "cost": "needs a formulation not available in torchfem",
+      "remedy": "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures"
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (3 sign changes, last/first 0.32)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q3",
+      "class": "QoI/post-processing",
+      "hypothesis": "the maximum is taken at Gauss points inside the body, not on the surface",
+      "status": "supported",
+      "evidence": "surface values at the groove root: root_node_distance PASS/band, root_sxx PASS/band, root_szz PASS/band, root_sxz PASS/band, root_von_mises PASS/band, root_pressure PASS/band; surface maxima: ['FAIL']. The Gauss-point maximum mixes location (points 0.2h inside) with resolution",
+      "next_action": null,
+      "cost": null,
+      "remedy": "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+     }
+    ]
+   },
+   "cyl_rt_avg": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "diagnosis": [
+     "QoI/post-processing"
+    ],
+    "supported": [
+     "Q1"
+    ],
+    "refuted": [
+     "P1",
+     "D1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "add the Gaussian-weighted average of this component as a QoI"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "refuted",
+      "evidence": "averaged over the region, the field converges with a rate on the same meshes (Gaussian-weighted cyl_rt_avg (computed here)): resolution of the feature is sufficient for averaged quantities",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (3 sign changes, last/first 0.91)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q1",
+      "class": "QoI/post-processing",
+      "hypothesis": "a sharp-edged region samples a changing set of Gauss points",
+      "status": "supported",
+      "evidence": "computed here from the stored Gauss-point data: the Gaussian-weighted average of this component gives PASS/rate under refinement, the sharp one PASS/band",
+      "next_action": null,
+      "cost": null,
+      "remedy": "add the Gaussian-weighted average of this component as a QoI"
+     }
+    ]
+   },
+   "cyl_rt_max": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "diagnosis": [
+     "QoI/post-processing",
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1",
+     "D3",
+     "Q3"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho",
+     "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures",
+     "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "supported",
+      "evidence": "nu = 0.45; Gauss-point pressure std within 2R0 falls 4.04 -> 1.33 -> 0.43 -> 0.35 -> 0.33 -> 0.28 -> 0.29 -> 0.29 (levels 2376-59400 el), 32% of the region stress scale at the finest; displacements are not locked (Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2))",
+      "next_action": "cross-check with a mixed u/p or F-bar formulation",
+      "cost": "needs a formulation not available in torchfem",
+      "remedy": "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures"
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (2 sign changes, last/first 0.32)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q3",
+      "class": "QoI/post-processing",
+      "hypothesis": "the maximum is taken at Gauss points inside the body, not on the surface",
+      "status": "supported",
+      "evidence": "surface values at the groove root: root_node_distance PASS/band, root_sxx PASS/band, root_szz PASS/band, root_sxz PASS/band, root_von_mises PASS/band, root_pressure PASS/band; surface maxima: ['FAIL']. The Gauss-point maximum mixes location (points 0.2h inside) with resolution",
+      "next_action": null,
+      "cost": null,
+      "remedy": "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+     }
+    ]
+   },
+   "cyl_rz_avg": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "diagnosis": [
+     "QoI/post-processing",
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1",
+     "Q1"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho",
+     "report gk2_cyl_rz_avg as a separate QoI next to the sharp one"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (3 sign changes, last/first 0.70)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q1",
+      "class": "QoI/post-processing",
+      "hypothesis": "a sharp-edged region samples a changing set of Gauss points",
+      "status": "supported",
+      "evidence": "the same field averaged with a smooth weight (gk2_cyl_rz_avg: PASS, band) does better on the same solutions (FAIL, none); the sharp cut-off samples a changing set of Gauss points from mesh to mesh",
+      "next_action": null,
+      "cost": null,
+      "remedy": "report gk2_cyl_rz_avg as a separate QoI next to the sharp one"
+     }
+    ]
+   },
+   "cyl_rz_max": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "diagnosis": [
+     "QoI/post-processing",
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1",
+     "D3",
+     "D4",
+     "Q3"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho",
+     "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures",
+     "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "supported",
+      "evidence": "nu = 0.45; Gauss-point pressure std within 2R0 falls 4.04 -> 1.33 -> 0.43 -> 0.35 -> 0.33 -> 0.28 -> 0.29 -> 0.29 (levels 2376-59400 el), 32% of the region stress scale at the finest; displacements are not locked (Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2))",
+      "next_action": "cross-check with a mixed u/p or F-bar formulation",
+      "cost": "needs a formulation not available in torchfem",
+      "remedy": "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures"
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "supported",
+      "evidence": "increments over the finest five levels shrink (0.199 -> 0.0627) with 1 sign change(s): the sequence may still enter the asymptotic range",
+      "next_action": "add a finer level",
+      "cost": "see the adaptive controller",
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q3",
+      "class": "QoI/post-processing",
+      "hypothesis": "the maximum is taken at Gauss points inside the body, not on the surface",
+      "status": "supported",
+      "evidence": "surface values at the groove root: root_node_distance PASS/band, root_sxx PASS/band, root_szz PASS/band, root_sxz PASS/band, root_von_mises PASS/band, root_pressure PASS/band; surface maxima: ['FAIL']. The Gauss-point maximum mixes location (points 0.2h inside) with resolution",
+      "next_action": null,
+      "cost": null,
+      "remedy": "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+     }
+    ]
+   },
+   "cyl_tz_avg": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "diagnosis": [
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3",
+     "Q1"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (1 sign changes, last/first 6.32)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q1",
+      "class": "QoI/post-processing",
+      "hypothesis": "a sharp-edged region samples a changing set of Gauss points",
+      "status": "refuted",
+      "evidence": "computed here from the stored Gauss-point data: the Gaussian-weighted average of this component gives PASS/band under refinement, the sharp one PASS/band: no better, so the sharp cut-off is not the cause",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     }
+    ]
+   },
+   "cyl_tz_max": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "diagnosis": [
+     "QoI/post-processing",
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1",
+     "D3",
+     "Q3"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho",
+     "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures",
+     "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "supported",
+      "evidence": "nu = 0.45; Gauss-point pressure std within 2R0 falls 4.04 -> 1.33 -> 0.43 -> 0.35 -> 0.33 -> 0.28 -> 0.29 -> 0.29 (levels 2376-59400 el), 32% of the region stress scale at the finest; displacements are not locked (Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2))",
+      "next_action": "cross-check with a mixed u/p or F-bar formulation",
+      "cost": "needs a formulation not available in torchfem",
+      "remedy": "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures"
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (2 sign changes, last/first 4.78)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q3",
+      "class": "QoI/post-processing",
+      "hypothesis": "the maximum is taken at Gauss points inside the body, not on the surface",
+      "status": "supported",
+      "evidence": "surface values at the groove root: root_node_distance PASS/band, root_sxx PASS/band, root_szz PASS/band, root_sxz PASS/band, root_von_mises PASS/band, root_pressure PASS/band; surface maxima: ['FAIL']. The Gauss-point maximum mixes location (points 0.2h inside) with resolution",
+      "next_action": null,
+      "cost": null,
+      "remedy": "evaluate notch stresses on the surface (extrapolated nodal values) at a fixed point, not as a maximum over Gauss points"
+     }
+    ]
+   },
+   "gk2_cyl_rz_avg": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "diagnosis": [
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (1 sign changes, last/first 1.40)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     }
+    ]
+   },
+   "gk2_sigma_xz_avg": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "diagnosis": [
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (2 sign changes, last/first 13.90)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     }
+    ]
+   },
+   "gk2_sigma_frob_avg": {
+    "verdict": "FAIL",
+    "evidence": "band",
+    "diagnosis": [
+     "QoI/post-processing",
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1",
+     "D3",
+     "D4",
+     "Q2"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho",
+     "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures",
+     "use signed (normal) components; find the source of the oscillation"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "supported",
+      "evidence": "nu = 0.45; Gauss-point pressure std within 2R0 falls 4.04 -> 1.33 -> 0.43 -> 0.35 -> 0.33 -> 0.28 -> 0.29 -> 0.29 (levels 2376-59400 el), 32% of the region stress scale at the finest; displacements are not locked (Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2))",
+      "next_action": "cross-check with a mixed u/p or F-bar formulation",
+      "cost": "needs a formulation not available in torchfem",
+      "remedy": "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures"
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "supported",
+      "evidence": "increments over the finest five levels shrink (0.0081 -> 0.00126) with 1 sign change(s): the sequence may still enter the asymptotic range",
+      "next_action": "add a finer level",
+      "cost": "see the adaptive controller",
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q2",
+      "class": "QoI/post-processing",
+      "hypothesis": "a magnitude measure accumulates point-to-point oscillation",
+      "status": "supported",
+      "evidence": "under refinement the signed components of the same region pass (gk2_sigma_xx_avg, gk2_sigma_yy_avg, gk2_sigma_zz_avg, gk2_pressure_avg) while the magnitude measure does not reach a rate: point-to-point oscillation cancels in signed averages but accumulates in magnitudes",
+      "next_action": null,
+      "cost": null,
+      "remedy": "use signed (normal) components; find the source of the oscillation"
+     }
+    ]
+   },
+   "gk2_von_mises_avg": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "diagnosis": [
+     "QoI/post-processing",
+     "numerical discretization"
+    ],
+    "supported": [
+     "D1",
+     "D3",
+     "D4",
+     "Q2"
+    ],
+    "refuted": [
+     "P1",
+     "D2",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+    "remedies": [
+     "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho",
+     "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures",
+     "use signed (normal) components; find the source of the oscillation"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.911 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D1",
+      "class": "numerical discretization",
+      "hypothesis": "a finite-radius stress concentration is not yet resolved (pre-asymptotic)",
+      "status": "supported",
+      "evidence": "the groove root curvature radius rho = 0.0228 is resolved by elements of size 0.0259 at the finest level (h/rho = 1.13; coarsest 4.79): the finite-radius concentration is not yet resolved, so its peak is pre-asymptotic, not divergent",
+      "next_action": "local refinement around the feature to h <= rho/4 = 0.0057 (uniform refinement would need about 5,546,216 elements)",
+      "cost": "hours (local), infeasible uniformly on this machine",
+      "remedy": "local refinement at the feature, or a higher-order/IGA discretization of the curved boundary; the peak must converge once h << rho"
+     },
+     {
+      "id": "D2",
+      "class": "numerical discretization",
+      "hypothesis": "reduced integration admits spurious modes",
+      "status": "refuted",
+      "evidence": "full integration does not remove the Gauss-point oscillation: 2376 el: pressure std 4.04 (reduced) vs 3.98 (full); 10200 el: pressure std 0.43 (reduced) vs 0.61 (full)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "supported",
+      "evidence": "nu = 0.45; Gauss-point pressure std within 2R0 falls 4.04 -> 1.33 -> 0.43 -> 0.35 -> 0.33 -> 0.28 -> 0.29 -> 0.29 (levels 2376-59400 el), 32% of the region stress scale at the finest; displacements are not locked (Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2))",
+      "next_action": "cross-check with a mixed u/p or F-bar formulation",
+      "cost": "needs a formulation not available in torchfem",
+      "remedy": "mixed u/p or F-bar formulation; until then use signed or smoothly weighted stress measures"
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "supported",
+      "evidence": "increments over the finest five levels shrink (0.0148 -> 0.00743) with 0 sign change(s): the sequence may still enter the asymptotic range",
+      "next_action": "add a finer level",
+      "cost": "see the adaptive controller",
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "2,376 and 10,200 el solved at rtol 1e-8 and 1e-11: quantities change by at most 7.7e-13 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "2376 el re-solved with a direct solver instead of CG: quantities change by at most 8.8e-13",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "Q20 MMS (reduced rule, nu = 0.45): finest rates L2 3.14 (theory 3), H1 2.06 (theory 2)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q2",
+      "class": "QoI/post-processing",
+      "hypothesis": "a magnitude measure accumulates point-to-point oscillation",
+      "status": "supported",
+      "evidence": "under refinement the signed components of the same region pass (gk2_sigma_xx_avg, gk2_sigma_yy_avg, gk2_sigma_zz_avg, gk2_pressure_avg) while the magnitude measure does not reach a rate: point-to-point oscillation cancels in signed averages but accumulates in magnitudes",
+      "next_action": null,
+      "cost": null,
+      "remedy": "use signed (normal) components; find the source of the oscillation"
+     }
+    ]
+   }
+  }
+ },
+ "investigations": [],
+ "consistency": [
+  {
+   "geometry": "unit_square",
+   "qoi": "peak_PK1_frob",
+   "ok": true,
+   "detail": "expected supported ['M1'] refuted []; got supported ['M1']"
+  },
+  {
+   "geometry": "unit_square",
+   "qoi": "strain_energy",
+   "ok": true,
+   "detail": "expected supported ['M2'] refuted []; got supported ['M2']"
+  },
+  {
+   "geometry": "quarter_ring",
+   "qoi": "interior_avg_PK1_frob",
+   "ok": true,
+   "detail": "expected supported ['Q1'] refuted []; got supported ['Q1']"
+  },
+  {
+   "geometry": "bushing_groove",
+   "qoi": "sigma_xx_avg",
+   "ok": true,
+   "detail": "expected supported ['Q1'] refuted []; got supported ['Q1']"
+  },
+  {
+   "geometry": "bushing_groove",
+   "qoi": "sigma_yy_avg",
+   "ok": true,
+   "detail": "expected supported ['Q1'] refuted []; got supported ['Q1']"
+  },
+  {
+   "geometry": "bushing_groove",
+   "qoi": "sigma_zz_avg",
+   "ok": true,
+   "detail": "expected supported ['Q1'] refuted []; got supported ['Q1']"
+  },
+  {
+   "geometry": "bushing_groove",
+   "qoi": "pressure_avg",
+   "ok": true,
+   "detail": "expected supported ['Q1'] refuted []; got supported ['D3', 'Q1']"
+  },
+  {
+   "geometry": "bushing_groove",
+   "qoi": "cyl_rr_avg",
+   "ok": true,
+   "detail": "expected supported ['Q1'] refuted []; got supported ['Q1']"
+  },
+  {
+   "geometry": "bushing_groove",
+   "qoi": "cyl_tt_avg",
+   "ok": true,
+   "detail": "expected supported ['Q1'] refuted []; got supported ['Q1']"
+  },
+  {
+   "geometry": "bushing_groove",
+   "qoi": "cyl_zz_avg",
+   "ok": true,
+   "detail": "expected supported ['Q1'] refuted []; got supported ['Q1']"
+  },
+  {
+   "geometry": "bushing_groove",
+   "qoi": "sigma_frob_avg",
+   "ok": true,
+   "detail": "expected supported ['D3', 'Q2'] refuted ['D2']; got supported ['D1', 'D3', 'Q2']"
+  },
+  {
+   "geometry": "bushing_groove",
+   "qoi": "gk2_sigma_frob_avg",
+   "ok": true,
+   "detail": "expected supported ['D3', 'Q2'] refuted ['D2']; got supported ['D1', 'D3', 'D4', 'Q2']"
+  },
+  {
+   "geometry": "bushing_groove",
+   "qoi": "sigma_xx_max",
+   "ok": true,
+   "detail": "expected supported ['Q3'] refuted ['D2']; got supported ['D1', 'D3', 'Q3']"
+  },
+  {
+   "geometry": "bushing_groove",
+   "qoi": "sigma_zz_max",
+   "ok": true,
+   "detail": "expected supported ['Q3'] refuted ['D2']; got supported ['D1', 'D3', 'Q3']"
+  },
+  {
+   "geometry": "bushing_groove",
+   "qoi": "von_mises_max",
+   "ok": true,
+   "detail": "expected supported ['Q3'] refuted ['D2']; got supported ['D1', 'D3', 'Q3']"
+  },
+  {
+   "geometry": "bushing_groove",
+   "qoi": "cyl_rr_max",
+   "ok": true,
+   "detail": "expected supported ['Q3'] refuted ['D2']; got supported ['D1', 'D3', 'Q3']"
+  }
+ ]
+}

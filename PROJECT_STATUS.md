@@ -25378,3 +25378,33 @@ Decisions / requests, in his order:
 Already done before his reply: Q20 3D MMS, held-out B2, Gaussian QoIs in
 the adapter next to the sharp ones, claims-check script, ablation script.
 Nothing started on the new items yet -- plan proposed to Omar.
+
+### 2026-11-19 -- D1: diagnosis engine (`diagnose.py`) -- done
+Plan after Rabczuk's reply (Omar: "اعمل قائمه وبلش"): D1 diagnosis engine,
+D2 independent solver check (second FE code, B1/B2), D3 held-out singular
+benchmark with rules unchanged, D4 human-intervention quantification,
+D5 literature (FermiLINK, ALL-FEM).
+D1 result (`python -m omar_pfem.verification_agent.diagnose --investigate`):
+- 5 cause classes, 15 hypotheses, tests on stored data only; needs-data
+  results name the next investigation + cost; cheap ones run autonomously.
+- Agreement with the 16 manually established causes: 16/16 (supported and
+  refuted sets). No QoI left with insufficient evidence.
+- B1: globals PASS rate, reduced order explained by corners (M2); corner
+  peak = mathematical singularity (M1), solver causes refuted.
+- B2: sharp interior average PASS band -> sharp sampling (Q1); the agent
+  ran the Newton-tolerance check itself (N=49, tol 1e-10, 88 s): identical
+  value, S1 refuted. (A first try at 1e-11 was below the residual floor
+  ~8e-11 and never converged; that row was removed.)
+- B3 maxima: finite-radius concentration under-resolved (h/rho ~ 1 at the
+  groove root, D1) + volumetric scatter (D3) + Gauss-point location (Q3);
+  next step: local refinement to h <= rho/4 = 0.0057 (uniform would need
+  ~5.5 M elements). Sharp normal averages -> Q1. Frobenius avg -> D1, D3,
+  Q2 (signed components pass under refinement; magnitude does not).
+  Shear averages: Gaussian versions computed on the fly from the dumps:
+  cyl_rt gets a rate (Q1 supported); xy, yz, tz no better (Q1 refuted,
+  attributed to D1). Linear solver check (direct re-solve at 2,376 el,
+  `b3_solver_crosscheck.json`) -> S2 refuted.
+- Caveat: the 16 manual causes were known while the hypotheses were
+  written, so 16/16 is a consistency check, not a blind test.
+- Tests: 49 pass (3 new).
+Next: D4 (human-intervention document), then D2, D3, D5.

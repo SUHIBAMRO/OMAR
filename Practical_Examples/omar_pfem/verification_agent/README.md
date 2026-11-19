@@ -118,6 +118,17 @@ within the band. It does not show a convergence rate or monotonicity.
   the stored data and compares at the printed precision.
 - `ablation.py`: LLM pipeline vs rule-only baseline over repeated runs
   (billed with a live backend; `--backend replay` tests the code for free).
+- `diagnose.py`: diagnosis of every QoI without a rate. Five cause classes
+  (mathematical/physical, numerical discretization, solver/implementation,
+  QoI/post-processing, surrogate); 15 hypotheses (M1, M2, P1, D1-D4,
+  S1-S3, Q1-Q3, U1), each with a test on stored data that returns
+  supported / refuted / needs-data / not-applicable. A needs-data result
+  names the next investigation and its cost; `--investigate` runs the cheap
+  ones itself (registry `ACTIONS`: B2 Newton tolerance 1e-10, B3 direct
+  linear solver; Gaussian averages of B3 shear components are computed on
+  the fly from the Gauss-point dumps) and re-diagnoses. `consistency()`
+  compares with the 16 causes established by hand (currently 16/16).
+  Output: `diagnose_result.json`.
 
 ## Files
 

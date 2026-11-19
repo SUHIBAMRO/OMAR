@@ -514,3 +514,36 @@ def test_ablation_does_not_touch_the_repository(tmp_path):
     ablation.main(["--backend", "replay", "--problems", "b1", "--repeats", "1",
                    "--out", str(tmp_path / "abl.json")])
     assert filecmp.cmp(repo, before, shallow=False)
+
+
+def test_diagnosis_matches_manual_findings():
+    """The diagnosis engine reproduces every manually established cause
+    (supported AND refuted) from the stored data alone, and leaves no
+    insufficient-evidence item open on the three benchmarks."""
+    from omar_pfem.verification_agent import diagnose as D
+    res = {g: D.diagnose_problem(g) for g in ("unit_square", "quarter_ring", "bushing_groove")}
+    rows = D.consistency(res)
+    assert rows and all(ok for _, _, ok, _ in rows), [r for r in rows if not r[2]]
+    assert all(d["evidence_sufficient"] for g in res.values() for d in g.values())
+    # B1 corner peak is a mathematical singularity, not a solver problem
+    assert "M1" in res["unit_square"]["peak_PK1_frob"]["supported"]
+    assert {"S1", "S2", "S3"} <= set(res["unit_square"]["peak_PK1_frob"]["refuted"])
+
+
+def test_diagnosis_actions_are_reachable():
+    """Investigations the agent runs itself must be able to succeed: the B2
+    Newton-tolerance re-solve uses a tolerance above the residual round-off
+    floor (~8e-11 at N=49), so Newton can meet it."""
+    import inspect
+    from omar_pfem.verification_agent import diagnose as D
+    src = inspect.getsource(D._act_b2_tolerance)
+    assert "tol=1e-10" in src and "1e-11" not in src
+    assert ("quarter_ring", "S1") in D.ACTIONS and ("bushing_groove", "S2") in D.ACTIONS
+
+
+def test_conv_only_ignores_strategy_checks():
+    from omar_pfem.verification_agent import diagnose as D
+    rate = {"verdict": "PASS", "evidence": "rate"}
+    g = {"qoi_convergence": dict(rate), "qoi_convergence_multilevel": dict(rate),
+         "strategy_robustness": {"verdict": "FAIL", "evidence": "none"}}
+    assert D._conv_only(g) == ("PASS", "rate")
