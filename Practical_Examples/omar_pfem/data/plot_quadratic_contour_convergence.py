@@ -100,8 +100,9 @@ def quadratic_inner_wall_contour_sigma(Ntheta, Nr, Nz, r_grading=1.0, dtype=torc
 
     P_np, F_np = P.cpu().numpy(), F.cpu().numpy()
     detF_np = detF_gauss.cpu().numpy()
-    sigma_gauss = (np.einsum("egij,egjk->egik", P_np, F_np.transpose(0, 1, 3, 2))
-                   / detF_np[..., None, None])  # (n_elem, n_gauss, 3, 3)
+    # torch-fem >= 0.13 returns Cauchy already; before 2026-11-19 this converted it twice
+    from omar_pfem.torchfem_comparison import cauchy_from_torchfem_flux
+    sigma_gauss = cauchy_from_torchfem_flux(P_np, F_np)  # (n_elem, n_gauss, 3, 3)
 
     nodes_per_elem = nodes_t[elements_t]
     pos_g = torch.einsum("gn,enD->egD", N_gauss, nodes_per_elem).cpu().numpy()  # (n_elem, n_gauss, 3)

@@ -492,8 +492,9 @@ def solve_case(Ntheta, Nr, n_rubber_layers=N_RUBBER_LAYERS, nz_per_rubber=2, nz_
             P_gauss_np = flux_elem_major.cpu().numpy()
             F_gauss_np = grad_elem_major.cpu().numpy()
             detF_gauss_np = detF_gauss.cpu().numpy()  # already (n_elem, n_int): grad_elem_major is already elem-major
-            sigma_gauss = (np.einsum("egij,egjk->egik", P_gauss_np, F_gauss_np.transpose(0, 1, 3, 2))
-                           / detF_gauss_np[..., None, None])
+            # torch-fem >= 0.13 returns Cauchy already; before 2026-11-19 this converted it twice
+            from omar_pfem.torchfem_comparison import cauchy_from_torchfem_flux
+            sigma_gauss = cauchy_from_torchfem_flux(P_gauss_np, F_gauss_np)
             sigma_elem_rubber = sigma_gauss.mean(axis=1)
 
             # compare_to_reference indexes region masks against the FULL mesh's

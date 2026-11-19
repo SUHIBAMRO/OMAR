@@ -147,8 +147,10 @@ def solve_case(Ntheta, Nr, Nphi, dtype=torch.float64, device=None):
     detF_elem = torch.linalg.det(F_elem)
 
     P_np, F_np = P_elem.cpu().numpy(), F_elem.cpu().numpy()
-    sigma_elem = (np.einsum("eij,ejk->eik", P_np, F_np.transpose(0, 2, 1))
-                  / detF_elem.cpu().numpy()[:, None, None])
+    # torch-fem >= 0.13 returns Cauchy already (averaged after conversion); before
+    # 2026-11-19 this converted it twice
+    from omar_pfem.torchfem_comparison import cauchy_from_torchfem_flux
+    sigma_elem = cauchy_from_torchfem_flux(P_np, F_np)
 
     # Reaction force/moment on the fixed rim, about the wheel's big axis
     # (global Y, through the origin -- the axis of revolution of the
