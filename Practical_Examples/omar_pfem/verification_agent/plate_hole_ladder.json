@@ -1,0 +1,226 @@
+[
+ {
+  "m": 2,
+  "g": 1.0,
+  "h": 0.5,
+  "n_elem": 96,
+  "n_dof": 832,
+  "wall_clock_s": 0.03853607177734375,
+  "u_right_mid": 1.1854397516692285e-05,
+  "v_top_right": -6.95243107321648e-07,
+  "max_disp_mag": 1.1854397516692285e-05,
+  "strain_energy": 10.985848991828146,
+  "hole_avg_sigma_xx": 2354571.5380333783,
+  "hole_gk_avg_sigma_xx": 2689661.462286463,
+  "hole_peak_sigma_xx": 3043371.8248180686,
+  "peak_von_mises": 2932724.330241303,
+  "peak_location": [
+   1.011762853250778,
+   0.7361675792610733
+  ],
+  "hole_region_points": 10,
+  "posthoc_corner_peak_von_mises": 1442916.5144294542,
+  "posthoc_corner_peak_location": [
+   0.09567255375536976,
+   0.015318372727961996
+  ],
+  "posthoc_min_detF": 0.9999962392730288,
+  "posthoc_max_detF": 1.0000109832824782
+ },
+ {
+  "m": 4,
+  "g": 1.0,
+  "h": 0.25,
+  "n_elem": 384,
+  "n_dof": 3200,
+  "wall_clock_s": 0.08023953437805176,
+  "u_right_mid": 1.1876034183105361e-05,
+  "v_top_right": -6.948568212034606e-07,
+  "max_disp_mag": 1.1876034183105361e-05,
+  "strain_energy": 10.999386566664882,
+  "hole_avg_sigma_xx": 2326733.39333481,
+  "hole_gk_avg_sigma_xx": 2640732.1721349363,
+  "hole_peak_sigma_xx": 3194558.2975611715,
+  "peak_von_mises": 3134270.856113,
+  "peak_location": [
+   1.0056988000720783,
+   0.7430177360644858
+  ],
+  "hole_region_points": 42,
+  "posthoc_corner_peak_von_mises": 1615363.0234220775,
+  "posthoc_corner_peak_location": [
+   0.05012821151366589,
+   0.007695148600040951
+  ],
+  "posthoc_min_detF": 0.9999959639854292,
+  "posthoc_max_detF": 1.0000110800110436
+ },
+ {
+  "m": 8,
+  "g": 1.0,
+  "h": 0.125,
+  "n_elem": 1536,
+  "n_dof": 12544,
+  "wall_clock_s": 0.42303037643432617,
+  "u_right_mid": 1.1880347257617757e-05,
+  "v_top_right": -6.929310543263211e-07,
+  "max_disp_mag": 1.1880347257617757e-05,
+  "strain_energy": 11.002357659524,
+  "hole_avg_sigma_xx": 2344050.04946531,
+  "hole_gk_avg_sigma_xx": 2638926.8772069192,
+  "hole_peak_sigma_xx": 3283192.215853474,
+  "peak_von_mises": 3254642.499238977,
+  "peak_location": [
+   1.0124400092331298,
+   0.7467777948004831
+  ],
+  "hole_region_points": 168,
+  "posthoc_corner_peak_von_mises": 1856459.807990929,
+  "posthoc_corner_peak_location": [
+   0.025579304725288982,
+   0.00385663779610746
+  ],
+  "posthoc_min_detF": 0.999995838351677,
+  "posthoc_max_detF": 1.0000111470623843
+ },
+ {
+  "m": 16,
+  "g": 1.0,
+  "h": 0.0625,
+  "n_elem": 6144,
+  "n_dof": 49664,
+  "wall_clock_s": 2.790584087371826,
+  "u_right_mid": 1.1881428714683313e-05,
+  "v_top_right": -6.926779826697435e-07,
+  "max_disp_mag": 1.1881428714683313e-05,
+  "strain_energy": 11.003198670079131,
+  "hole_avg_sigma_xx": 2346057.6422687816,
+  "hole_gk_avg_sigma_xx": 2638943.7174007553,
+  "hole_peak_sigma_xx": 3333993.9875977924,
+  "peak_von_mises": 3322297.8466610173,
+  "peak_location": [
+   1.0061785406987114,
+   0.7483141550146348
+  ],
+  "hole_region_points": 672,
+  "posthoc_corner_peak_von_mises": 2168192.460226812,
+  "posthoc_corner_peak_location": [
+   0.012901986207279937,
+   0.001930598107866987
+  ],
+  "posthoc_min_detF": 0.999995760067521,
+  "posthoc_max_detF": 1.0000112119946163
+ },
+ {
+  "m": 32,
+  "g": 1.0,
+  "h": 0.03125,
+  "n_elem": 24576,
+  "n_dof": 197632,
+  "wall_clock_s": 18.280800342559814,
+  "u_right_mid": 1.1881761407128992e-05,
+  "v_top_right": -6.926580910424249e-07,
+  "max_disp_mag": 1.1881761407128992e-05,
+  "strain_energy": 11.003473880586089,
+  "hole_avg_sigma_xx": 2345375.801481283,
+  "hole_gk_avg_sigma_xx": 2638983.3965201396,
+  "hole_peak_sigma_xx": 3361181.6751605184,
+  "peak_von_mises": 3356733.4004122345,
+  "peak_location": [
+   1.0092342431239523,
+   1.2507112767838664
+  ],
+  "hole_region_points": 2678,
+  "posthoc_corner_peak_von_mises": 2551843.023000232,
+  "posthoc_corner_peak_location": [
+   0.00647607325224069,
+   1.9990341291412586
+  ],
+  "posthoc_min_detF": 0.9999957134266674,
+  "posthoc_max_detF": 1.0000112539063206
+ },
+ {
+  "m": 64,
+  "g": 1.0,
+  "h": 0.015625,
+  "n_elem": 98304,
+  "n_dof": 788480,
+  "wall_clock_s": 239.26668500900269,
+  "u_right_mid": 1.1881872582076668e-05,
+  "v_top_right": -6.92650421494802e-07,
+  "max_disp_mag": 1.1881872582076668e-05,
+  "strain_energy": 11.003567987030735,
+  "hole_avg_sigma_xx": 2345233.0399943655,
+  "hole_gk_avg_sigma_xx": 2638999.0521734534,
+  "hole_peak_sigma_xx": 3375175.271787468,
+  "peak_von_mises": 3374125.760318653,
+  "peak_location": [
+   1.007682213573689,
+   1.2503226643122123
+  ],
+  "hole_region_points": 10728,
+  "posthoc_corner_peak_von_mises": 3013113.0834074877,
+  "posthoc_corner_peak_location": [
+   0.0032438544988148896,
+   1.99951692134608
+  ],
+  "posthoc_min_detF": 0.9999956875693403,
+  "posthoc_max_detF": 1.000011369621167
+ },
+ {
+  "m": 16,
+  "g": 1.5,
+  "h": 0.0625,
+  "n_elem": 6144,
+  "n_dof": 49664,
+  "wall_clock_s": 2.57059645652771,
+  "u_right_mid": 1.1881428375596494e-05,
+  "v_top_right": -6.926768121561104e-07,
+  "max_disp_mag": 1.1881428375596494e-05,
+  "strain_energy": 11.003196721532635,
+  "hole_avg_sigma_xx": 2343392.285630201,
+  "hole_gk_avg_sigma_xx": 2638938.7868638793,
+  "hole_peak_sigma_xx": 3383081.8901654975,
+  "peak_von_mises": 3387565.8532570517,
+  "peak_location": [
+   1.006138303892092,
+   1.250046779198263
+  ],
+  "hole_region_points": 1446,
+  "posthoc_corner_peak_von_mises": 2137999.650842478,
+  "posthoc_corner_peak_location": [
+   0.013855012932507953,
+   0.002894214866404308
+  ],
+  "posthoc_min_detF": 0.9999956837716827,
+  "posthoc_max_detF": 1.0000112884800703
+ },
+ {
+  "m": 16,
+  "g": 2.0,
+  "h": 0.0625,
+  "n_elem": 6144,
+  "n_dof": 49664,
+  "wall_clock_s": 2.777529239654541,
+  "u_right_mid": 1.1881418534844532e-05,
+  "v_top_right": -6.926771850594574e-07,
+  "max_disp_mag": 1.1881418534844532e-05,
+  "strain_energy": 11.00318793354326,
+  "hole_avg_sigma_xx": 2344111.4834277565,
+  "hole_gk_avg_sigma_xx": 2638935.207901775,
+  "hole_peak_sigma_xx": 3388418.3946142024,
+  "peak_von_mises": 3391265.715945664,
+  "peak_location": [
+   1.0061354086410428,
+   0.7500711602541562
+  ],
+  "hole_region_points": 2130,
+  "posthoc_corner_peak_von_mises": 2111070.051571588,
+  "posthoc_corner_peak_location": [
+   0.01480688413820484,
+   1.9961433367347234
+  ],
+  "posthoc_min_detF": 0.999995661066268,
+  "posthoc_max_detF": 1.0000113074189532
+ }
+]

@@ -1,0 +1,121 @@
+{
+ "n_levels": 6,
+ "levels_m": [
+  2,
+  4,
+  8,
+  16,
+  32,
+  64
+ ],
+ "lam": 0.758349157882492,
+ "rule_hits": 1,
+ "rule_predictions": 6,
+ "qois": {
+  "u_right_mid": {
+   "verdict": "INCONCLUSIVE",
+   "evidence": "rate",
+   "rule_prediction": "PASS",
+   "singular_order": {
+    "verdict": "INCONCLUSIVE",
+    "observed": null,
+    "expected": null
+   },
+   "convergence": "rate",
+   "rule_hit": false
+  },
+  "v_top_right": {
+   "verdict": "INCONCLUSIVE",
+   "evidence": "rate",
+   "rule_prediction": "PASS",
+   "singular_order": {
+    "verdict": "INCONCLUSIVE",
+    "observed": null,
+    "expected": null
+   },
+   "convergence": "rate",
+   "rule_hit": false
+  },
+  "max_disp_mag": {
+   "verdict": "INCONCLUSIVE",
+   "evidence": "rate",
+   "rule_prediction": "PASS",
+   "singular_order": {
+    "verdict": "INCONCLUSIVE",
+    "observed": null,
+    "expected": null
+   },
+   "convergence": "rate",
+   "rule_hit": false
+  },
+  "strain_energy": {
+   "verdict": "INCONCLUSIVE",
+   "evidence": "rate",
+   "rule_prediction": "PASS",
+   "singular_order": {
+    "verdict": "INCONCLUSIVE",
+    "observed": null,
+    "expected": null
+   },
+   "convergence": "rate",
+   "rule_hit": false
+  },
+  "hole_avg_sigma_xx": {
+   "verdict": "INCONCLUSIVE",
+   "evidence": "band",
+   "rule_prediction": null,
+   "singular_order": {
+    "verdict": "INCONCLUSIVE",
+    "observed": null,
+    "expected": null
+   },
+   "convergence": "band"
+  },
+  "hole_gk_avg_sigma_xx": {
+   "verdict": "INCONCLUSIVE",
+   "evidence": "band",
+   "rule_prediction": null,
+   "singular_order": {
+    "verdict": "INCONCLUSIVE",
+    "observed": null,
+    "expected": null
+   },
+   "convergence": "band"
+  },
+  "hole_peak_sigma_xx": {
+   "verdict": "INCONCLUSIVE",
+   "evidence": "rate",
+   "rule_prediction": "FAIL",
+   "singular_order": {
+    "verdict": "INCONCLUSIVE",
+    "observed": null,
+    "expected": null
+   },
+   "convergence": "rate",
+   "rule_hit": false
+  },
+  "peak_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "rate",
+   "rule_prediction": "FAIL",
+   "singular_order": {
+    "verdict": "INCONCLUSIVE",
+    "observed": null,
+    "expected": null
+   },
+   "convergence": "rate",
+   "rule_hit": true
+  }
+ },
+ "developer_expectations_met": {
+  "displacements PASS with rate, order >= 2 lam - 0.15": false,
+  "strain energy PASS with rate, order = 2 lam within 0.15": false,
+  "sharp hole average PASS (band or rate)": false,
+  "Gaussian hole average PASS with rate": false,
+  "hole peak converges (convergence gate rate)": true,
+  "hole peak singular_order FAIL": false,
+  "von Mises peak convergence FAIL": false,
+  "von Mises peak slope = lam - 1 within 0.15": false,
+  "von Mises peak at a clamped/free corner": false
+ }
+}

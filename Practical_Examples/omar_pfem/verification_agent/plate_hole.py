@@ -123,7 +123,16 @@ def solve_level(m, g=1.0):
     u_rm = node(2.0, 1.0)
     u_tr = node(2.0, 2.0)
     ipk = np.unravel_index(np.argmax(vm), vm.shape)
-    return {"m": m, "g": g, "h": 1.0 / m, "n_elem": int(msh.t.shape[1]), "n_dof": int(ib.N),
+    # POST HOC (added after the pre-registered ladder was solved): von Mises
+    # near the clamped/free corners, and min det F
+    dc = np.minimum(np.hypot(x[0], x[1]), np.hypot(x[0], x[1] - L))
+    cn = dc < 0.1
+    icn = np.unravel_index(np.argmax(np.where(cn, vm, -np.inf)), vm.shape)
+    detF = (1 + gu[0, 0]) * (1 + gu[1, 1]) - gu[0, 1] * gu[1, 0]
+    posthoc = {"posthoc_corner_peak_von_mises": float(vm[cn].max()),
+               "posthoc_corner_peak_location": [float(x[0][icn]), float(x[1][icn])],
+               "posthoc_min_detF": float(detF.min()), "posthoc_max_detF": float(detF.max())}
+    return {**posthoc, "m": m, "g": g, "h": 1.0 / m, "n_elem": int(msh.t.shape[1]), "n_dof": int(ib.N),
             "wall_clock_s": time.time() - t0,
             "u_right_mid": float(u_rm[0]), "v_top_right": float(u_tr[1]),
             "max_disp_mag": float(np.sqrt(ux ** 2 + uy ** 2).max()),
@@ -152,6 +161,75 @@ def run_ladder(ms, g=1.0):
     return sorted((r for r in rows if r["m"] in ms and r["g"] == g), key=lambda r: r["m"])
 
 
+PREREG_KEYS = ("u_right_mid", "v_top_right", "max_disp_mag", "strain_energy",
+               "hole_avg_sigma_xx", "hole_gk_avg_sigma_xx", "hole_peak_sigma_xx",
+               "peak_von_mises")
+
+
+def posthoc_update():
+    """Re-solve every stored level and ADD the post-hoc fields; the
+    pre-registered QoIs must reproduce to 1e-10 (relative)."""
+    rows = json.load(open(CACHE))
+    for r in rows:
+        if "posthoc_corner_peak_von_mises" in r:
+            continue
+        new = solve_level(r["m"], r["g"])
+        for k in PREREG_KEYS:
+            assert abs(new[k] - r[k]) <= 1e-10 * abs(r[k]), (r["m"], r["g"], k, new[k], r[k])
+        r.update({k: v for k, v in new.items() if k.startswith("posthoc_")})
+        json.dump(rows, open(CACHE, "w"), indent=1)
+        print(f"m={r['m']} g={r['g']} corner vM {r['posthoc_corner_peak_von_mises']:.6g} at "
+              f"{r['posthoc_corner_peak_location']}  det F in [{r['posthoc_min_detF']:.8f}, "
+              f"{r['posthoc_max_detF']:.8f}]", flush=True)
+
+
+MMS_OUT = os.path.join(HERE, "plate_hole_mms.json")
+
+
+def mms_check(ns=(4, 8, 16, 32)):
+    """Code check of the Q2 plane-stress element and assembly used here:
+    manufactured u = (sin(pi x) sin(pi y), x y (1-x)(1-y)) on the unit square
+    (u = 0 on the boundary), body force from the same bilinear form's strong
+    operator; expected rates L2 3, H1-seminorm 2."""
+    import sympy as sp
+    X, Y = sp.symbols("x y")
+    ue = [sp.sin(sp.pi * X) * sp.sin(sp.pi * Y), X * Y * (1 - X) * (1 - Y)]
+    eps = [[sp.Rational(1, 2) * (sp.diff(ue[i], [X, Y][j]) + sp.diff(ue[j], [X, Y][i]))
+            for j in range(2)] for i in range(2)]
+    tr = eps[0][0] + eps[1][1]
+    sig = [[2 * MU * eps[i][j] + (LAM_PS * tr if i == j else 0) for j in range(2)]
+           for i in range(2)]
+    fb = [sp.lambdify((X, Y), -(sp.diff(sig[i][0], X) + sp.diff(sig[i][1], Y))) for i in range(2)]
+    uf = [sp.lambdify((X, Y), u) for u in ue]
+    gf = [[sp.lambdify((X, Y), sp.diff(ue[i], v)) for v in (X, Y)] for i in range(2)]
+    rows = []
+    for n in ns:
+        msh = fem.MeshQuad2.from_mesh(fem.MeshQuad.init_tensor(np.linspace(0, 1, n + 1),
+                                                            np.linspace(0, 1, n + 1)))
+        ib = fem.Basis(msh, fem.ElementVector(fem.ElementQuad2()), intorder=6)
+        K = fem.asm(stiffness, ib)
+        f = fem.asm(fem.LinearForm(lambda v, w: fb[0](*w.x) * v.value[0]
+                                   + fb[1](*w.x) * v.value[1]), ib)
+        u = fem.solve(*fem.condense(K, f, D=ib.get_dofs()), solver=spla.spsolve)
+        ui = ib.interpolate(u)
+        xq, dx = ib.global_coordinates().value, ib.dx
+        e2 = sum(((ui.value[i] - uf[i](*xq)) ** 2 * dx).sum() for i in range(2))
+        n2 = sum((uf[i](*xq) ** 2 * dx).sum() for i in range(2))
+        g2 = sum(((ui.grad[i, j] - gf[i][j](*xq)) ** 2 * dx).sum()
+                 for i in range(2) for j in range(2))
+        gn = sum((gf[i][j](*xq) ** 2 * dx).sum() for i in range(2) for j in range(2))
+        rows.append({"n": n, "L2_rel": float(np.sqrt(e2 / n2)), "H1_semi_rel": float(
+            np.sqrt(g2 / gn))})
+    rate = lambda k: float(np.log(rows[-2][k] / rows[-1][k]) / np.log(2))
+    out = {"element": "Q9 (skfem ElementQuad2), plane stress", "rows": rows,
+           "rates": {"L2": rate("L2_rel"), "H1_semi": rate("H1_semi_rel")},
+           "expected": {"L2": 3, "H1_semi": 2}}
+    out["as_expected"] = bool(abs(out["rates"]["L2"] - 3) < 0.2
+                              and abs(out["rates"]["H1_semi"] - 2) < 0.2)
+    json.dump(out, open(MMS_OUT, "w"), indent=1)
+    return out
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--ms", default="2,4,8,16,32,64")
@@ -163,4 +241,10 @@ def main(argv=None):
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    if sys.argv[1:] == ["posthoc"]:
+        posthoc_update()
+    elif sys.argv[1:] == ["mms"]:
+        print(json.dumps(mms_check(), indent=1))
+    else:
+        main()

@@ -1,0 +1,12 @@
+{
+ "written_before_solving_m128": "2026-11-19",
+ "status": "POST HOC prediction (made after the pre-registered 6-level ladder, before m = 128 was solved)",
+ "basis": "corner von Mises (max within 0.1 of (0,0)/(0,2)) local log-log slopes -0.163, -0.201, -0.224, -0.235, -0.240 toward lambda - 1 = -0.242; hole peak von Mises converges with order 0.99 to about 3.392 MPa; power fit of the finest three corner values crosses 3.392 MPa at m = 106",
+ "predictions_for_m128": {
+  "global peak_von_mises located at a clamped/free corner (within 0.1 of (0,0) or (0,2))": true,
+  "corner von Mises": "3.55 MPa within 3% (fit of the finest three levels)",
+  "local corner slope between m = 64 and 128": "-0.242 within 0.03",
+  "hole_peak_sigma_xx": "between 3.375 and 3.392 MPa (monotone toward the Richardson limit)",
+  "displacements and strain energy": "change by less than 1e-4 relative from m = 64"
+ }
+}
