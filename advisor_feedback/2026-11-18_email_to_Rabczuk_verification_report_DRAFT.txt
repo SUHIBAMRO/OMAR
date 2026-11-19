@@ -9,15 +9,17 @@ In brief:
 1. B1: all smooth quantities converge with a demonstrated rate (uncertainty at most 0.02%), and the observed orders agree with corner theory. The corner peak stress grows as predicted by the singularity and is not usable as a reference.
 2. B3 (eight levels, up to 59,400 Q20 elements): the reaction moment and strain energy converge with a rate (uncertainty about 0.15%). The groove-region averages over the current sharp sphere are stable to about 1-2.4% but show no convergence rate. A Gaussian-weighted average of the same stresses is rate-certified (uncertainty 0.11-0.18%) and robust across six refinement strategies.
 3. Even the current sphere averages are accurate enough to show that the surrogates fail at the groove, where their errors exceed 600%.
+4. Held-out test: on B2, which was not used while designing the agent, the unchanged rules give the theoretical convergence rates and predict all verdicts correctly.
+5. The 3D Q20 element used for B3 is code-verified by a manufactured solution (theoretical rates 3 and 2, also at nu = 0.45), and a script recomputes every number in the report from the stored data.
 
-The report also lists what is still missing for a complete framework: a real literature agent, tests on independent benchmarks, surrogate active learning with multi-fidelity Bayesian optimisation, and an independent verification of the results.
+The report also lists what is still missing for a complete framework: a real literature agent, further held-out benchmarks (B2 is smooth and two-dimensional), surrogate active learning with multi-fidelity Bayesian optimisation, a measured comparison of the LLM against the rules alone, and an independent review of the results.
 
 I would be grateful for your view on the following:
 
 1. Should the B3 groove reference be redefined as a Gaussian-weighted region average? This would change the quantity reported in the manuscript, so I have not changed the manuscript.
 2. Is a margin of 3 (reference uncertainty at most one third of the surrogate error) acceptable as the acceptance criterion?
 3. Should the manuscript's wording be narrowed to "region-averaged normal stresses"?
-4. Which step should come next: tests on independent benchmarks, a literature agent, surrogate active learning, or an independent verification of the present results?
+4. Which step should come next: further held-out benchmarks, a literature agent, surrogate active learning, or an independent review of the present results?
 
 Best regards,
 Omar

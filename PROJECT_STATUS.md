@@ -25338,3 +25338,12 @@ Limits: the advisor audit checks verdict labels, not every sentence (run-3 advis
    test: B1 2 runs, agreement 1.0. New problem text `problems/b2_ring.txt`.
 Tests: 46 pass. NOTE: the technical report (not yet sent) still lists Q20
 MMS and B2 as missing -- update it before sending if Omar agrees.
+- 2026-11-19: technical report UPDATED with the new results (Claude Doc and
+  PDF, 24 pages, dated Nov 19): summary "Added after the first draft" (held-out
+  B2, Q20 MMS, checked numbers); Section 4.7 Q20 MMS table; new Section 11
+  "Experiment 5: held-out benchmark B2"; sections renumbered 12-15; issues
+  table + B2 query bug + report corrections; limitations rewritten (B2
+  done but smooth/2D; independent person still needed; ablation script
+  ready, not run; Q20 MMS no longer a gap); reproducibility table + new
+  commands and files. `verify_report.py` extended to the MMS and B2 numbers:
+  373 of 373 claims match. Email draft updated to match. NOT sent.

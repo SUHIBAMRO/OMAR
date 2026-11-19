@@ -2166,5 +2166,821 @@
   "recomputed": 28.0,
   "tolerance": 0,
   "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS reduced nu=0.3 L2 rate 0",
+  "printed": 3.21,
+  "recomputed": 3.2076134969584937,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS reduced nu=0.3 H1 rate 0",
+  "printed": 2.11,
+  "recomputed": 2.113638344159648,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS reduced nu=0.3 L2 rate 1",
+  "printed": 3.06,
+  "recomputed": 3.057542970395745,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS reduced nu=0.3 H1 rate 1",
+  "printed": 2.03,
+  "recomputed": 2.02876304709991,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS reduced nu=0.3 L2 rate 2",
+  "printed": 3.02,
+  "recomputed": 3.016660648424746,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS reduced nu=0.3 H1 rate 2",
+  "printed": 2.01,
+  "recomputed": 2.0068167766282095,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS full nu=0.3 L2 rate 0",
+  "printed": 3.28,
+  "recomputed": 3.2849589201451375,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS full nu=0.3 H1 rate 0",
+  "printed": 2.11,
+  "recomputed": 2.112607638181752,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS full nu=0.3 L2 rate 1",
+  "printed": 3.1,
+  "recomputed": 3.0970352450837195,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS full nu=0.3 H1 rate 1",
+  "printed": 2.02,
+  "recomputed": 2.0248998541406986,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS full nu=0.3 L2 rate 2",
+  "printed": 3.03,
+  "recomputed": 3.0277564151485525,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS full nu=0.3 H1 rate 2",
+  "printed": 2.01,
+  "recomputed": 2.0054977705187462,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS reduced nu=0.45 L2 rate 0",
+  "printed": 3.32,
+  "recomputed": 3.3189336637331373,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS reduced nu=0.45 H1 rate 0",
+  "printed": 2.11,
+  "recomputed": 2.114817751779009,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS reduced nu=0.45 L2 rate 1",
+  "printed": 3.32,
+  "recomputed": 3.316438011766648,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS reduced nu=0.45 H1 rate 1",
+  "printed": 2.13,
+  "recomputed": 2.129033673506155,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS reduced nu=0.45 L2 rate 2",
+  "printed": 3.14,
+  "recomputed": 3.1366586354420076,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS reduced nu=0.45 H1 rate 2",
+  "printed": 2.06,
+  "recomputed": 2.0583139155597556,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS full nu=0.45 L2 rate 0",
+  "printed": 3.31,
+  "recomputed": 3.3129162133089194,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS full nu=0.45 H1 rate 0",
+  "printed": 2.13,
+  "recomputed": 2.1316274118884313,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS full nu=0.45 L2 rate 1",
+  "printed": 3.34,
+  "recomputed": 3.342814761916164,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS full nu=0.45 H1 rate 1",
+  "printed": 2.1,
+  "recomputed": 2.09886118031974,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS full nu=0.45 L2 rate 2",
+  "printed": 3.16,
+  "recomputed": 3.1595102165337634,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS full nu=0.45 H1 rate 2",
+  "printed": 2.04,
+  "recomputed": 2.0443163353004894,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "4.7",
+  "claim": "Q20 MMS largest dof count",
+  "printed": 56355,
+  "recomputed": 56355.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 max_disp_mag 3-level p",
+  "printed": 2.0,
+  "recomputed": 1.998624759620547,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 max_disp_mag 5-level p",
+  "printed": 1.98,
+  "recomputed": 1.982487486675133,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 max_disp_mag LOO min",
+  "printed": 1.98,
+  "recomputed": 1.9812592159538118,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 max_disp_mag LOO max",
+  "printed": 2.0,
+  "recomputed": 1.9951847425782352,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 max_disp_mag PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 max_disp_mag U_fine below 0.01 %",
+  "printed": 0,
+  "recomputed": 0.0020576859220723946,
+  "tolerance": 0.01,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 u_inner 3-level p",
+  "printed": 2.0,
+  "recomputed": 1.9980835010050284,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 u_inner 5-level p",
+  "printed": 1.98,
+  "recomputed": 1.9755574244296397,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 u_inner LOO min",
+  "printed": 1.97,
+  "recomputed": 1.973833831085223,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 u_inner LOO max",
+  "printed": 1.99,
+  "recomputed": 1.9932836937999383,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 u_inner PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 u_inner U_fine below 0.01 %",
+  "printed": 0,
+  "recomputed": 0.0029838771808138945,
+  "tolerance": 0.01,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 v_inner 3-level p",
+  "printed": 2.0,
+  "recomputed": 1.9995013354402658,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 v_inner 5-level p",
+  "printed": 1.99,
+  "recomputed": 1.9939141216605838,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 v_inner LOO min",
+  "printed": 1.99,
+  "recomputed": 1.9934954104254625,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 v_inner LOO max",
+  "printed": 2.0,
+  "recomputed": 1.998270280971184,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 v_inner PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 v_inner U_fine below 0.01 %",
+  "printed": 0,
+  "recomputed": 0.0012494426849509758,
+  "tolerance": 0.01,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 u_mid 3-level p",
+  "printed": 2.0,
+  "recomputed": 1.9988303580836588,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 u_mid 5-level p",
+  "printed": 1.99,
+  "recomputed": 1.985566785837417,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 u_mid LOO min",
+  "printed": 1.98,
+  "recomputed": 1.9845646001822423,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 u_mid LOO max",
+  "printed": 2.0,
+  "recomputed": 1.995934506584388,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 u_mid PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 u_mid U_fine below 0.01 %",
+  "printed": 0,
+  "recomputed": 0.0019187929298420307,
+  "tolerance": 0.01,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 v_mid 3-level p",
+  "printed": 2.0,
+  "recomputed": 1.9992362566305801,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 v_mid 5-level p",
+  "printed": 1.99,
+  "recomputed": 1.9904809617439814,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 v_mid LOO min",
+  "printed": 1.99,
+  "recomputed": 1.9898203206369027,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 v_mid LOO max",
+  "printed": 2.0,
+  "recomputed": 1.9973455023687998,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 v_mid PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 v_mid U_fine below 0.01 %",
+  "printed": 0,
+  "recomputed": 0.0014623841079989476,
+  "tolerance": 0.01,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 strain_energy 3-level p",
+  "printed": 2.0,
+  "recomputed": 1.9997034869181696,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 strain_energy 5-level p",
+  "printed": 2.0,
+  "recomputed": 1.9961970869256818,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 strain_energy LOO min",
+  "printed": 2.0,
+  "recomputed": 1.99593234918564,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 strain_energy LOO max",
+  "printed": 2.0,
+  "recomputed": 1.9989637723986176,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 strain_energy PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 strain_energy U_fine below 0.01 %",
+  "printed": 0,
+  "recomputed": 0.0027621675712214936,
+  "tolerance": 0.01,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 interior_gk_PK1_frob 3-level p",
+  "printed": 2.0,
+  "recomputed": 1.9989270833793291,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 interior_gk_PK1_frob 5-level p",
+  "printed": 2.02,
+  "recomputed": 2.0240181742667946,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 interior_gk_PK1_frob LOO min",
+  "printed": 2.0,
+  "recomputed": 1.9973498546767277,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 interior_gk_PK1_frob LOO max",
+  "printed": 2.03,
+  "recomputed": 2.0263787259469863,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 interior_gk_PK1_frob PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 interior_gk_PK1_frob U_fine below 0.01 %",
+  "printed": 0,
+  "recomputed": 0.0013409880834845066,
+  "tolerance": 0.01,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 peak_PK1_frob 3-level p",
+  "printed": 1.01,
+  "recomputed": 1.0131221117855698,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 peak_PK1_frob 5-level p",
+  "printed": 1.03,
+  "recomputed": 1.0323811658423794,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 peak_PK1_frob LOO min",
+  "printed": 0.99,
+  "recomputed": 0.9919537935698233,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 peak_PK1_frob LOO max",
+  "printed": 1.04,
+  "recomputed": 1.0416955085802144,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 peak_PK1_frob PASS rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 peak U_fine %",
+  "printed": 0.2,
+  "recomputed": 0.19635370314254363,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 sharp average PASS band",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 sharp average finest-three spread %",
+  "printed": 0.04,
+  "recomputed": 0.039875225474406306,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 rule predictions correct",
+  "printed": 6,
+  "recomputed": 6.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 rule predictions made",
+  "printed": 6,
+  "recomputed": 6.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 level 0 N",
+  "printed": 7,
+  "recomputed": 7.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 level 0 elements",
+  "printed": 36,
+  "recomputed": 36.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 level 0 query points are nodes",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 1e-12,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 level 1 N",
+  "printed": 13,
+  "recomputed": 13.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 level 1 elements",
+  "printed": 144,
+  "recomputed": 144.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 level 1 query points are nodes",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 1e-12,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 level 2 N",
+  "printed": 25,
+  "recomputed": 25.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 level 2 elements",
+  "printed": 576,
+  "recomputed": 576.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 level 2 query points are nodes",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 1e-12,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 level 3 N",
+  "printed": 49,
+  "recomputed": 49.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 level 3 elements",
+  "printed": 2304,
+  "recomputed": 2304.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 level 3 query points are nodes",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 1e-12,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 level 4 N",
+  "printed": 97,
+  "recomputed": 97.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 level 4 elements",
+  "printed": 9216,
+  "recomputed": 9216.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 level 4 query points are nodes",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 1e-12,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 level 5 N",
+  "printed": 193,
+  "recomputed": 193.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 level 5 elements",
+  "printed": 36864,
+  "recomputed": 36864.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 level 5 query points are nodes",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 1e-12,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 N=193 solve time s",
+  "printed": 1268,
+  "recomputed": 1267.5419313907623,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 sharp disc points coarsest",
+  "printed": 6,
+  "recomputed": 6.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 sharp disc points finest",
+  "printed": 4426,
+  "recomputed": 4426.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 strategy spread displacements/energy max %",
+  "printed": 0.005,
+  "recomputed": 0.0048481817217872905,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 strategy spread Gaussian %",
+  "printed": 0.007,
+  "recomputed": 0.0069272138354541215,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 strategy spread sharp %",
+  "printed": 0.19,
+  "recomputed": 0.1898127310029929,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "11",
+  "claim": "B2 strategy spread peak %",
+  "printed": 0.95,
+  "recomputed": 0.9510871486235806,
+  "tolerance": 0.005,
+  "ok": true
  }
 ]

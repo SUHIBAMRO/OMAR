@@ -1,4 +1,4 @@
-"""Recompute the numbers of the technical report (2026-11-18,
+"""Recompute the numbers of the technical report (2026-11-18, updated 2026-11-19,
 advisor_feedback/2026-11-18_Verification_Framework_Technical_Report.pdf)
 from the stored data and compare them with the printed values.
 
@@ -290,6 +290,31 @@ def adaptive_matches_rules():
     return len(res["decisions"]) - len(bad)
 
 
+@lru_cache(maxsize=None)
+def mms():
+    return json.load(open(os.path.join(HERE, "mms_q20_result.json")))
+
+
+def mms_rates(quadrature, nu, key):
+    from omar_pfem.verification_agent.mms_q20 import rates
+    rows = sorted((r for r in mms() if r["quadrature"] == quadrature and r["nu"] == nu),
+                  key=lambda r: r["n"])
+    return rates(rows, key)
+
+
+@lru_cache(maxsize=None)
+def b2_rows():
+    from omar_pfem.verification_agent.orchestrate import B2Adapter
+    return B2Adapter().rows
+
+
+def b2_spread(q):
+    from omar_pfem.verification_agent.orchestrate import B2Adapter
+    from omar_pfem.verification_agent import gates
+    v, _ = B2Adapter().strategies(q)
+    return 100 * gates.strategy_robustness_gate(v, tol=1.0)["relative_spread"]
+
+
 def singular(*args, **kw):
     from omar_pfem.verification_agent import singularity as S
     return S.smallest_exponent(*args, **kw)
@@ -469,6 +494,53 @@ def claims():
         add("9", f"adaptive share up to {n} %", s, 0.5, lambda n=n: adaptive_share(n))
     add("9", "adaptive verdicts equal full-family convergence verdicts (of 28)", 28, 0,
         adaptive_matches_rules)
+    # Section 4.7: Q20 MMS
+    for (quad, nu), l2s, h1s in ((("reduced", 0.3), (3.21, 3.06, 3.02), (2.11, 2.03, 2.01)),
+                                 (("full", 0.3), (3.28, 3.10, 3.03), (2.11, 2.02, 2.01)),
+                                 (("reduced", 0.45), (3.32, 3.32, 3.14), (2.11, 2.13, 2.06)),
+                                 (("full", 0.45), (3.31, 3.34, 3.16), (2.13, 2.10, 2.04))):
+        for i, (l2, h1) in enumerate(zip(l2s, h1s)):
+            add("4.7", f"Q20 MMS {quad} nu={nu} L2 rate {i}", l2, h2,
+                lambda q=quad, n=nu, i=i: mms_rates(q, n, "L2_rel")[i])
+            add("4.7", f"Q20 MMS {quad} nu={nu} H1 rate {i}", h1, h2,
+                lambda q=quad, n=nu, i=i: mms_rates(q, n, "H1_rel")[i])
+    add("4.7", "Q20 MMS largest dof count", 56355, 0, lambda: max(r["n_dof"] for r in mms()))
+    # Section 11: held-out B2
+    B2 = "quarter_ring"
+    for q, a3, a5, lo, hi in (("max_disp_mag", 2.00, 1.98, 1.98, 2.00),
+                              ("u_inner", 2.00, 1.98, 1.97, 1.99), ("v_inner", 2.00, 1.99, 1.99, 2.00),
+                              ("u_mid", 2.00, 1.99, 1.98, 2.00), ("v_mid", 2.00, 1.99, 1.99, 2.00),
+                              ("strain_energy", 2.00, 2.00, 2.00, 2.00),
+                              ("interior_gk_PK1_frob", 2.00, 2.02, 2.00, 2.03),
+                              ("peak_PK1_frob", 1.01, 1.03, 0.99, 1.04)):
+        add("11", f"B2 {q} 3-level p", a3, h2, lambda q=q: p3(B2, q))
+        add("11", f"B2 {q} 5-level p", a5, h2, lambda q=q: p5(B2, q))
+        add("11", f"B2 {q} LOO min", lo, h2, lambda q=q: loo(B2, q, "min"))
+        add("11", f"B2 {q} LOO max", hi, h2, lambda q=q: loo(B2, q, "max"))
+        add("11", f"B2 {q} PASS rate", 1, 0, lambda q=q: float(
+            overall(B2, q) == "PASS" and evidence(B2, q) == "rate"))
+        if q != "peak_PK1_frob":
+            add("11", f"B2 {q} U_fine below 0.01 %", 0, 0.01, lambda q=q: U(B2, q))
+    add("11", "B2 peak U_fine %", 0.20, h2, lambda: U(B2, "peak_PK1_frob"))
+    add("11", "B2 sharp average PASS band", 1, 0, lambda: float(
+        (overall(B2, "interior_avg_PK1_frob"), evidence(B2, "interior_avg_PK1_frob")) == ("PASS", "band")))
+    add("11", "B2 sharp average finest-three spread %", 0.04, h2, lambda: 100 * g(
+        B2, "interior_avg_PK1_frob", "qoi_convergence", "relative_spread"))
+    add("11", "B2 rule predictions correct", 6, 0, lambda: rules(B2)["hits"])
+    add("11", "B2 rule predictions made", 6, 0, lambda: rules(B2)["n_pred"])
+    for i, (n, ne) in enumerate(((7, 36), (13, 144), (25, 576), (49, 2304), (97, 9216), (193, 36864))):
+        add("11", f"B2 level {i} N", n, 0, lambda i=i: b2_rows()[i]["N"])
+        add("11", f"B2 level {i} elements", ne, 0, lambda i=i: b2_rows()[i]["n_elem"])
+        add("11", f"B2 level {i} query points are nodes", 0, 1e-12, lambda i=i: max(
+            b2_rows()[i]["query_inner_node_distance"], b2_rows()[i]["query_mid_node_distance"]))
+    add("11", "B2 N=193 solve time s", 1268, 0.5, lambda: b2_rows()[5]["wall_clock_s"])
+    add("11", "B2 sharp disc points coarsest", 6, 0, lambda: b2_rows()[0]["interior_region_gauss_points"])
+    add("11", "B2 sharp disc points finest", 4426, 0, lambda: b2_rows()[5]["interior_region_gauss_points"])
+    add("11", "B2 strategy spread displacements/energy max %", 0.005, h3, lambda: max(
+        b2_spread(q) for q in ("max_disp_mag", "u_inner", "v_inner", "u_mid", "v_mid", "strain_energy")))
+    add("11", "B2 strategy spread Gaussian %", 0.007, h3, lambda: b2_spread("interior_gk_PK1_frob"))
+    add("11", "B2 strategy spread sharp %", 0.19, h2, lambda: b2_spread("interior_avg_PK1_frob"))
+    add("11", "B2 strategy spread peak %", 0.95, h2, lambda: b2_spread("peak_PK1_frob"))
     return c
 
 
