@@ -1,0 +1,10 @@
+Plate with a hole: a 2 m x 2 m steel plate (E = 210 GPa, nu = 0.3) in plane
+stress with a circular hole of radius 0.25 m at its centre. The left edge is
+fixed; the right edge carries a uniform tensile traction of 1 MPa; the top,
+bottom and hole edges are traction-free. Linear elasticity. The fixed edge
+meets the free top and bottom edges at two corners. The reference is computed
+with quadratic 9-node quadrilaterals on a structured mesh around the hole,
+uniformly refined, plus meshes of the same size graded toward the hole.
+Question: which displacement, energy and stress quantities can serve as
+trustworthy reference values for validating surrogate models (for example a
+PINN or neural operator whose displacement error is a few percent)?

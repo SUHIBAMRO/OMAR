@@ -1,0 +1,165 @@
+{
+ "written": "2026-11-19T23:41:12.707280+00:00",
+ "source": "Wang et al., OpenPINN/PINO, Sec. 5.3 (attachment of Professor Rabczuk, 19 Nov 2026); their reference is one FEM mesh, h = 0.025",
+ "spec": {
+  "name": "Plate with hole",
+  "geometry": "plate_hole",
+  "dim": 2,
+  "material": "linear_elastic",
+  "loading": "edge_traction",
+  "regularity": "clamped_free_corner",
+  "element": "Q9",
+  "reference": "mesh_refinement_family",
+  "qois": [
+   "u_right_mid",
+   "v_top_right",
+   "max_disp_mag",
+   "strain_energy",
+   "hole_avg_sigma_xx",
+   "hole_gk_avg_sigma_xx",
+   "hole_peak_sigma_xx",
+   "peak_von_mises"
+  ]
+ },
+ "adapter_description": "Plate with a hole: 2 m x 2 m plate, circular hole of radius 0.25 m centred at (1,1), plane stress, small-strain linear elasticity, E = 210 GPa, nu = 0.3. Left edge x = 0 fixed; right edge x = 2 loaded by a uniform traction t_x = 1 MPa; top, bottom and hole traction-free. Q2 (9-node) elements on a structured polar mesh around the hole (8m elements around, 3m radially, m = 2, 4, ..., 64, h = 1/m), mid-side nodes on the exact circle; strategies at m = 16: radial grading toward the hole g = 1.5, 2.0. QoIs: u_right_mid = u_x at (2,1); v_top_right = u_y at (2,2); max_disp_mag over the nodes; strain_energy = 1/2 u.K u; hole_avg_sigma_xx = weighted mean of sigma_xx over the Gauss points within 0.1 of the hole top (1,1.25); hole_gk_avg_sigma_xx = the same with the weight exp(-(d/0.05)^2); hole_peak_sigma_xx = max sigma_xx within 0.1 of the hole top (a smooth finite-radius concentration); peak_von_mises = max von Mises over all Gauss points. The fixed left edge meets the free top and bottom edges at 90-degree clamped/free corners (singular in plane stress); the hole is far from them. No surrogate errors are recorded for this case; the OpenPINN surrogate errors (relative L2 of displacement 3.5-6.3%) are against a single FEM mesh.",
+ "corner_exponent_lam": 0.758349157882492,
+ "theory": {
+  "energy_order": 1.516698315764984,
+  "displacement_order_at_least": 1.516698315764984,
+  "corner_peak_slope": -0.24165084211750798,
+  "singular_order_tol": 0.15,
+  "note": "Q2 elements, lam < 2: the corner limits the global rate to 2 lam (pollution); quantities at the hole are smooth locally but polluted by the corners, so their order is at most about 2 lam"
+ },
+ "rule_predictions": {
+  "u_right_mid": {
+   "predicted": "PASS",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ],
+   "rules": [
+    "R2",
+    "R5",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "v_top_right": {
+   "predicted": "PASS",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ],
+   "rules": [
+    "R2",
+    "R5",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "max_disp_mag": {
+   "predicted": "PASS",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ],
+   "rules": [
+    "R2",
+    "R5",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "strain_energy": {
+   "predicted": "PASS",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ],
+   "rules": [
+    "R2",
+    "R5",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "hole_avg_sigma_xx": {
+   "predicted": null,
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ],
+   "rules": [
+    "R2",
+    "R4",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "hole_gk_avg_sigma_xx": {
+   "predicted": null,
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ],
+   "rules": [
+    "R2",
+    "R4",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "hole_peak_sigma_xx": {
+   "predicted": "FAIL",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ],
+   "rules": [
+    "R2",
+    "R3",
+    "R8"
+   ],
+   "role": "diagnostic"
+  },
+  "peak_von_mises": {
+   "predicted": "FAIL",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ],
+   "rules": [
+    "R2",
+    "R3",
+    "R8"
+   ],
+   "role": "diagnostic"
+  }
+ },
+ "known_rule_limitation_stated_in_advance": "The rules classify by QoI class and problem regularity only. In a singular problem every pointwise_peak gets the singular-order check (slope lam - 1). hole_peak_sigma_xx is a peak at a smooth, finite-radius concentration far from the corners: it is expected to CONVERGE, so the singular-order gate is expected to FAIL for it although nothing is wrong. The rules do not know where a peak is; the diagnosis engine (location, h-trend) should separate the two peaks.",
+ "developer_expectations": {
+  "u_right_mid, v_top_right, max_disp_mag": "PASS with rate; fitted order >= 2 lam - 0.15 = 1.37",
+  "strain_energy": "PASS with rate; order 2 lam = 1.52 within 0.15",
+  "hole_avg_sigma_xx": "PASS (band or rate): sharp disc, Gauss points enter and leave the region between levels",
+  "hole_gk_avg_sigma_xx": "PASS with rate (smooth weight)",
+  "hole_peak_sigma_xx": "convergence PASS (bounded, converging; order about 1 from the Gauss-point offset from the hole surface, at most about 2 lam); singular_order FAIL (not a corner peak); located at the hole top (1, 1.25) within 0.05",
+  "peak_von_mises": "convergence FAIL (grows); log-log slope lam - 1 = -0.242 within 0.15; located at a clamped/free corner (0,0) or (0,2)"
+ },
+ "rules_changed_for_this_problem": false
+}

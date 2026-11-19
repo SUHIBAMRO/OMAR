@@ -168,6 +168,10 @@ if __name__ == "__main__":
         # full-integration displacement Q20 locks on these thin graded elements (moment
         # +0.9%, Gaussian averages -12% at h/rho = 0.25): mixed F-bar on the same meshes
         solve_sequence([SEQUENCE[1], SEQUENCE[3]], quadrature="full", formulation="fbar")
+    if sys.argv[1:] == ["solve-p1"]:
+        # Q20/P1 (projected dilatation, linear pressure per element), full rule
+        solve_sequence([SEQUENCE[1], SEQUENCE[3], SEQUENCE[4]], quadrature="full",
+                       formulation="fbar_p1")
     if sys.argv[1:] == ["solve-full"]:
         solve_sequence([SEQUENCE[1], SEQUENCE[3], SEQUENCE[4]], quadrature="full")
     if sys.argv[1:] == ["scan"]:

@@ -199,6 +199,51 @@ class CookAdapter:
         return [r[qoi] for r in self.strategy_rows], None
 
 
+class PlateHoleAdapter:
+    """HELD-OUT problem from the OpenPINN/PINO paper (plate_hole.py); spec,
+    description and predictions committed before any solve
+    (plate_hole_preregistration.json); rules unchanged."""
+    geometry = "plate_hole"
+    description = (
+        "Plate with a hole: 2 m x 2 m plate, circular hole of radius 0.25 m centred at (1,1), "
+        "plane stress, small-strain linear elasticity, E = 210 GPa, nu = 0.3. Left edge x = 0 "
+        "fixed; right edge x = 2 loaded by a uniform traction t_x = 1 MPa; top, bottom and hole "
+        "traction-free. Q2 (9-node) elements on a structured polar mesh around the hole "
+        "(8m elements around, 3m radially, m = 2, 4, ..., 64, h = 1/m), mid-side nodes on the "
+        "exact circle; strategies at m = 16: radial grading toward the hole g = 1.5, 2.0. QoIs: "
+        "u_right_mid = u_x at (2,1); v_top_right = u_y at (2,2); max_disp_mag over the nodes; "
+        "strain_energy = 1/2 u.K u; hole_avg_sigma_xx = weighted mean of sigma_xx over the "
+        "Gauss points within 0.1 of the hole top (1,1.25); hole_gk_avg_sigma_xx = the same with "
+        "the weight exp(-(d/0.05)^2); hole_peak_sigma_xx = max sigma_xx within 0.1 of the hole "
+        "top (a smooth finite-radius concentration); peak_von_mises = max von Mises over all "
+        "Gauss points. The fixed left edge meets the free top and bottom edges at 90-degree "
+        "clamped/free corners (singular in plane stress); the hole is far from them. No "
+        "surrogate errors are recorded for this case; the OpenPINN surrogate errors (relative "
+        "L2 of displacement 3.5-6.3%) are against a single FEM mesh.")
+    qois = ("u_right_mid", "v_top_right", "max_disp_mag", "strain_energy", "hole_avg_sigma_xx",
+            "hole_gk_avg_sigma_xx", "hole_peak_sigma_xx", "peak_von_mises")
+
+    def __init__(self, strategy_m=16):
+        from omar_pfem.verification_agent.plate_hole import CACHE
+        rows = json.load(open(CACHE)) if os.path.exists(CACHE) else []
+        self.rows = sorted((r for r in rows if r["g"] == 1.0), key=lambda r: r["m"])
+        self.hs = [r["h"] for r in self.rows]
+        self.strategy_rows = sorted((r for r in rows if r["m"] == strategy_m),
+                                    key=lambda r: r["g"])
+
+    def series(self, qoi):
+        return self.hs, [r[qoi] for r in self.rows], None
+
+    def singular_exponent(self):
+        from omar_pfem.verification_agent.plate_hole import corner_exponent
+        return corner_exponent()
+
+    def strategies(self, qoi):
+        if len(self.strategy_rows) < 2:
+            return None
+        return [r[qoi] for r in self.strategy_rows], None
+
+
 class B3Adapter:
     geometry = "bushing_groove"
     description = (
@@ -357,9 +402,10 @@ class B3Adapter:
 
 
 ADAPTERS = {"unit_square": B1Adapter, "quarter_ring": B2Adapter, "bushing_groove": B3Adapter,
-            "cook_membrane": CookAdapter}
+            "cook_membrane": CookAdapter, "plate_hole": PlateHoleAdapter}
 ADAPTER_VOCAB = {
     "cook_membrane": (CookAdapter.description, CookAdapter.qois),
+    "plate_hole": (PlateHoleAdapter.description, PlateHoleAdapter.qois),
     "unit_square": (B1Adapter.description, B1Adapter.qois),
     "quarter_ring": (B2Adapter.description, B2Adapter.qois),
     "bushing_groove": (B3Adapter.description,

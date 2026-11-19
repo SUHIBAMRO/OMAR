@@ -70,18 +70,34 @@ def det3(F):
             + F[..., 0, 2] * (F[..., 1, 0] * F[..., 2, 1] - F[..., 1, 1] * F[..., 2, 0]))
 
 
-def fbar(F, w, formulation):
+def projector(w, formulation, phi):
+    """(nq, nq) matrix mapping J at the quadrature points to theta, the
+    element-wise L2 projection of J: "fbar" onto constants (P0, mean
+    dilatation, Q20/P0); "fbar_p1" onto {1, xi, eta, zeta} (P1: the condensed
+    form of a three-field element with discontinuous LINEAR pressure and
+    dilatation, Q20/P1). Depends on geometry only, so it is built once, outside
+    the differentiation. w: (nq,) weights, phi: (nq, 4)."""
+    if formulation == "fbar":
+        return torch.ones(len(w), 1) @ (w / w.sum())[None, :]
+    if formulation == "fbar_p1":
+        M = torch.einsum("q,qa,qb->ab", w, phi, phi)
+        return phi @ torch.linalg.inv(M) @ (phi * w[:, None]).T
+    raise ValueError(formulation)
+
+
+def fbar(F, proj, formulation):
+    """F_bar = (theta / J)^(1/3) F with theta = proj @ J."""
     if formulation == "disp":
         return F
     J = det3(F)
-    theta = (w * J).sum() / w.sum()
+    theta = proj @ J
     return (theta / J)[:, None, None] ** (1.0 / 3.0) * F
 
 
-def element_energy(ue, dNdX, w, formulation):
-    """ue (20,3), dNdX (nq,20,3), w (nq,)."""
+def element_energy(ue, dNdX, w, proj, formulation):
+    """ue (20,3), dNdX (nq,20,3), w (nq,), proj (nq,nq)."""
     F = torch.eye(3) + torch.einsum("ai,qaj->qij", ue, dNdX)
-    return (w * psi(fbar(F, w, formulation))).sum()
+    return (w * psi(fbar(F, proj, formulation))).sum()
 
 
 class Problem:
@@ -112,7 +128,12 @@ class Problem:
         self.rows = np.repeat(dofs, 60, axis=1).ravel()
         self.cols = np.tile(dofs, (1, 60)).ravel()
         self.ndof = 3 * len(nodes)
-        f = lambda ue, d, w: element_energy(ue, d, w, formulation)
+        self.phi = torch.cat([torch.ones(len(ip), 1), ip], dim=1)      # P1 in (xi, eta, zeta)
+        nq = len(ip)
+        self.proj = (torch.stack([projector(self.w[e], formulation, self.phi)
+                                  for e in range(ne)]) if formulation != "disp"
+                     else torch.zeros(ne, nq, nq))
+        f = lambda ue, d, w, P: element_energy(ue, d, w, P, formulation)
         self._g = vmap(grad(f))
         self._h = vmap(jacfwd(grad(f)))
         fixed = np.zeros((len(nodes), 3), bool)
@@ -132,7 +153,8 @@ class Problem:
         R = np.zeros(self.ndof)
         ue = self._ue(u)
         for s in range(0, len(self.elements), chunk):
-            g = self._g(ue[s:s + chunk], self.dNdX[s:s + chunk], self.w[s:s + chunk])
+            g = self._g(ue[s:s + chunk], self.dNdX[s:s + chunk], self.w[s:s + chunk],
+                        self.proj[s:s + chunk])
             np.add.at(R, self.dofs[s:s + chunk].ravel(), g.reshape(-1).numpy())
         return R
 
@@ -140,7 +162,8 @@ class Problem:
         ue = self._ue(u)
         vals = []
         for s in range(0, len(self.elements), chunk):
-            h = self._h(ue[s:s + chunk], self.dNdX[s:s + chunk], self.w[s:s + chunk])
+            h = self._h(ue[s:s + chunk], self.dNdX[s:s + chunk], self.w[s:s + chunk],
+                        self.proj[s:s + chunk])
             vals.append(h.reshape(-1, 60, 60).numpy().ravel())
         return sp.csr_matrix((np.concatenate(vals), (self.rows, self.cols)),
                              shape=(self.ndof, self.ndof))
@@ -184,7 +207,8 @@ class Problem:
         element for fbar)."""
         ue = self._ue(self.u)
         F = torch.eye(3) + torch.einsum("eai,eqaj->eqij", ue, self.dNdX)
-        Fb = torch.stack([fbar(F[e], self.w[e], self.formulation) for e in range(len(F))]) \
+        Fb = torch.stack([fbar(F[e], self.proj[e], self.formulation)
+                          for e in range(len(F))]) \
             if self.formulation != "disp" else F
         Fb = Fb.detach().requires_grad_(True)
         (P,) = torch.autograd.grad(psi(Fb).sum(), Fb)
