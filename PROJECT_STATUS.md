@@ -25347,3 +25347,34 @@ MMS and B2 as missing -- update it before sending if Omar agrees.
   ready, not run; Q20 MMS no longer a gap); reproducibility table + new
   commands and files. `verify_report.py` extended to the MMS and B2 numbers:
   373 of 373 claims match. Email draft updated to match. NOT sent.
+
+### 2026-11-19 -- Prof. Rabczuk replied to the verification report
+Full text: `advisor_feedback/2026-11-19_Rabczuk_reply_verification_report.md`.
+Attachments (their arXiv paper; CSM and CFM papers) NOT yet in this session.
+Decisions / requests, in his order:
+1. Keep the sharp-sphere B3 QoI; add the Gaussian average as a SEPARATE QoI;
+   recompute the SURROGATE errors on the Gaussian definition. Bigger ask:
+   the agent must DIAGNOSE non-convergence (classes: mathematical/physical,
+   discretization, solver/implementation, QoI/post-processing, surrogate),
+   generate hypotheses from regularity/geometry/constitutive law/formulation,
+   select diagnostic tests and decide the next investigation itself;
+   distinguish math singularities (B1) from finite-radius concentrations
+   (B3); try alternative discretizations (FEM vs IGA, mixed, locking); keep
+   and learn a hierarchy of physical/numerical models (assumptions, limits,
+   accuracy, cost); tell numerical non-convergence from inadequate physics.
+2. Margin 3 is OK as an ad-hoc start; ALSO absolute accuracy requirements
+   for engineering QoIs; separate numerical convergence estimates from
+   mathematical certification; long-term link to their CSM/CFM
+   (certified constitutive bounds) for certified QoI bounds.
+3. YES to "region-averaged normal stresses" in the manuscript; distinguish
+   Gaussian from sharp-region averages; no general stress-accuracy claims
+   (shear, norms, maxima did not converge).
+4. PRIORITIES: (a) independent verification + unseen benchmarks, (b) agent
+   vs conventional deterministic verification (what the AI contributes),
+   quantify human intervention, independent solver checks, 3D MMS (done
+   2026-11-18), agent must recognise insufficient evidence and decide the
+   next investigation; THEN literature agent and active learning. Also look
+   at similar agents (FermiLINK, ALL-FEM).
+Already done before his reply: Q20 3D MMS, held-out B2, Gaussian QoIs in
+the adapter next to the sharp ones, claims-check script, ablation script.
+Nothing started on the new items yet -- plan proposed to Omar.
