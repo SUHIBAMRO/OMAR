@@ -1191,3 +1191,24 @@ if __name__ == "__main__":
         tol = float(sys.argv[2]) if len(sys.argv) > 2 else 1e-8
         ok, _rel_diff = _correctness_check(N, tol=tol)
         sys.exit(0 if ok else 1)
+
+
+def cauchy_from_torchfem_flux(flux, F, sym_tol=1e-8):
+    """Cauchy stress at the integration points from the stress torch-fem's
+    Solid.solve returns, whatever its convention.
+
+    torch-fem >= 0.13 (0.14.0 here) returns the CAUCHY stress for finite
+    strain (base.py: `flux = flux @ grad^T / J` before returning); older
+    releases returned the first Piola-Kirchhoff stress P. Converting the
+    returned flux with P F^T / J unconditionally therefore converted the
+    Cauchy stress a SECOND time (sigma F^T / J: non-symmetric, off by
+    O(|grad u|), a few % for B3) -- found 2026-11-19 by an independent
+    re-assembly of B3. The Cauchy stress is symmetric and P in general is
+    not, so: a symmetric flux is returned as is, a non-symmetric one is
+    converted. flux, F: numpy arrays (..., 3, 3)."""
+    import numpy as np
+    asym = np.abs(flux - np.swapaxes(flux, -1, -2)).max()
+    if asym <= sym_tol * max(np.abs(flux).max(), 1.0):
+        return flux
+    detF = np.linalg.det(F)
+    return np.einsum("...ij,...kj->...ik", flux, F) / detF[..., None, None]

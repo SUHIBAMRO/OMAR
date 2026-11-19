@@ -166,7 +166,10 @@ def solve_extended(Ntheta, Nr, Nz, z_beta=None, rtol=1e-8, atol=1e-8, dtype=torc
     F = F.transpose(0, 1).cpu().numpy()
     detF = np.linalg.det(F)
     w = model.etype.iweights.cpu().numpy()[None, :] * np.abs(detJ.transpose(0, 1).cpu().numpy())
-    sigma = np.einsum("egij,egkj->egik", P, F) / detF[..., None, None]
+    # torch-fem 0.14 already returns the Cauchy stress (see
+    # cauchy_from_torchfem_flux); results stored before 2026-11-19 converted it twice
+    from omar_pfem.torchfem_comparison import cauchy_from_torchfem_flux
+    sigma = cauchy_from_torchfem_flux(P, F)
     pos = torch.einsum("gn,enD->egD", N_gauss, nodes_t[elements_t]).cpu().numpy()
 
     # --- standard region QoIs (identical definitions to the stored data) ---

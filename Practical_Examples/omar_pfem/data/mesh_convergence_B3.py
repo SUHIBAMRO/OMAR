@@ -305,8 +305,9 @@ def solve_case(Ntheta, Nr, Nz, dtype=torch.float64, device=None, verbose=False, 
 
     P_gauss_np, F_gauss_np = P.cpu().numpy(), F.cpu().numpy()
     detF_gauss_np = detF_gauss.cpu().numpy()
-    sigma_gauss = (np.einsum("egij,egjk->egik", P_gauss_np, F_gauss_np.transpose(0, 1, 3, 2))
-                   / detF_gauss_np[..., None, None])  # (n_elem, n_gauss, 3, 3)
+    # torch-fem >= 0.13 returns Cauchy already; before 2026-11-19 this converted it twice
+    from omar_pfem.torchfem_comparison import cauchy_from_torchfem_flux
+    sigma_gauss = cauchy_from_torchfem_flux(P_gauss_np, F_gauss_np)  # (n_elem, n_gauss, 3, 3)
 
     theta_g, t_g, z_g = _gauss_point_parametric(Ntheta, Nr, Nz, r_grading, ipoints_np)
 

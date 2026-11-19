@@ -727,6 +727,11 @@ HYPOTHESES = [
 # --------------------------------------------------------------------------
 # Driver
 # --------------------------------------------------------------------------
+def _escalation(supported):
+    from omar_pfem.verification_agent.model_hierarchy import escalate
+    return escalate(supported)
+
+
 def diagnose_problem(geometry, qois=None):
     from omar_pfem.verification_agent import trees
     from omar_pfem.verification_agent.verify_report import rules
@@ -764,6 +769,7 @@ def diagnose_problem(geometry, qois=None):
                                    next((r["next_action"] for r in supported
                                          if r.get("next_action")), None)),
             "remedies": [r["remedy"] for r in supported if r.get("remedy")],
+            "escalation": _escalation([r["id"] for r in supported]),
             "tests": results,
         }
     return out
@@ -802,6 +808,116 @@ ACTIONS = {
     ("bushing_groove", "S2"): (_act_b3_direct_solver, 160,
                                "re-solve B3 at 2,376 el with a direct linear solver"),
 }
+
+
+# ---- confirmatory (costly) investigations ---------------------------------------------------
+# A SUPPORTED hypothesis predicts something that a further computation can
+# check. CONFIRM maps (geometry, hypothesis) -> (estimate() -> (seconds, GB,
+# what), run(), check() -> (confirmed: bool, evidence)). The agent runs one
+# only if the estimate fits the time budget and the memory limit.
+MEM_LIMIT_GB = 12.0
+
+
+def _power_cost(ns, ts, n_new):
+    """time ~ a n^alpha fitted on the two largest previous solves."""
+    (n1, t1), (n2, t2) = sorted(zip(ns, ts))[-2:]
+    alpha = np.log(t2 / t1) / np.log(n2 / n1)
+    return t2 * (n_new / n2) ** alpha, alpha
+
+
+def _cook_rows():
+    from omar_pfem.verification_agent.cook_ladder import CACHE
+    return sorted((r for r in json.load(open(CACHE)) if r["grading"] == 0.0),
+                  key=lambda r: r["N"])
+
+
+def _cook_finer_estimate():
+    rows = _cook_rows()
+    N = 2 * rows[-1]["N"]
+    t, a = _power_cost([r["n_dof"] for r in rows], [r["wall_clock_s"] for r in rows],
+                       rows[-1]["n_dof"] * 4)
+    gb = 3.3 * (N / 512) ** 2                       # measured 3.3 GB at N = 512
+    return t, gb, f"solve Cook at N = {N} (est. {t:,.0f} s from time ~ n^{a:.2f}, {gb:.1f} GB)"
+
+
+def _cook_finer_run():
+    from omar_pfem.verification_agent.cook_ladder import run_ladder
+    run_ladder([2 * _cook_rows()[-1]["N"]])
+
+
+def _local_order_check(values, theory):
+    v = np.asarray(values, float)
+    p = np.log2(np.abs(np.diff(v)[:-1] / np.diff(v)[1:]))
+    moved = abs(p[-1] - theory) < abs(p[-2] - theory)
+    return bool(moved), (f"local orders {p[-2]:.3f} -> {p[-1]:.3f} (theory {theory:.3f}): "
+                         + ("moving toward theory, as a pre-asymptotic sequence should"
+                            if moved else "NOT moving toward theory"))
+
+
+def _cook_finer_check():
+    lam = corner_lambda(FACTS["cook_membrane"])
+    return _local_order_check([r["strain_energy"] for r in _cook_rows()], 2 * lam)
+
+
+def _b3_fbar_estimate():
+    return 300.0, 3.0, "re-solve B3 at 2,376 el with the mean-dilatation (F-bar, Q20/P0) " \
+                       "formulation (mixed_b3.py)"
+
+
+def _b3_fbar_run():
+    from omar_pfem.verification_agent import mixed_b3
+    cache = json.load(open(mixed_b3.OUT)) if os.path.exists(mixed_b3.OUT) else {}
+    mixed_b3.run(2376, "reduced", "disp", cache)
+    mixed_b3.run(2376, "reduced", "fbar", cache)
+
+
+def _b3_fbar_check():
+    from omar_pfem.verification_agent import mixed_b3
+    m = json.load(open(mixed_b3.OUT))
+    d, f = m["2376:reduced:disp"], m["2376:reduced:fbar"]
+    ratio = d["pressure_std_2R0"] / f["pressure_std_2R0"]
+    return bool(ratio >= 2.0), (f"Gauss-point pressure std within 2R0: displacement "
+                                f"{d['pressure_std_2R0']:.3f}, F-bar {f['pressure_std_2R0']:.3f} "
+                                f"(factor {ratio:.1f}; prediction: >= 2)")
+
+
+CONFIRM = {
+    ("cook_membrane", "D4"): (_cook_finer_estimate, _cook_finer_run, _cook_finer_check),
+    ("bushing_groove", "D3"): (_b3_fbar_estimate, _b3_fbar_run, _b3_fbar_check),
+}
+
+
+def confirm(geometries, budget_s, res=None, log=print):
+    """Run the affordable confirmatory investigations for supported
+    hypotheses; record skipped ones with the reason."""
+    import time
+    res = res or {g: diagnose_problem(g) for g in geometries}
+    out, spent = [], 0.0
+    for (g, h), (est, run, check) in CONFIRM.items():
+        if g not in res or not any(h in d["supported"] for d in res[g].values()):
+            continue
+        t, gb, what = est()
+        rec = {"geometry": g, "hypothesis": h, "action": what, "est_seconds": t, "est_GB": gb}
+        if gb > MEM_LIMIT_GB:
+            rec["status"] = f"skipped: needs ~{gb:.0f} GB > {MEM_LIMIT_GB:g} GB"
+        elif spent + t > budget_s:
+            rec["status"] = f"skipped: ~{t:,.0f} s exceeds the remaining budget"
+        else:
+            log(f"[confirm] {FACTS[g]['name']} {h}: {what}")
+            t0 = time.time()
+            run()
+            spent += time.time() - t0
+            ok, ev = check()
+            rec.update(status="run", seconds=time.time() - t0, confirmed=ok, evidence=ev)
+        if rec["status"] != "run":
+            try:                                    # the check on data already present
+                ok, ev = check()
+                rec.update(existing_data_confirms=ok, evidence=ev)
+            except Exception as e:                  # no data yet
+                rec["evidence"] = f"no data yet ({type(e).__name__})"
+        log(f"[confirm] {g} {h}: {rec['status']}; {rec.get('evidence', '')}")
+        out.append(rec)
+    return out
 
 
 def investigate(geometries, budget_s, log=print):
@@ -876,6 +992,9 @@ def main(argv=None):
     ap.add_argument("--investigate", action="store_true",
                     help="run the cheap open tests the diagnosis asks for, then re-diagnose")
     ap.add_argument("--budget-s", type=float, default=600.0)
+    ap.add_argument("--confirm", action="store_true",
+                    help="also run affordable confirmatory investigations of SUPPORTED "
+                         "hypotheses (costly; same budget)")
     args = ap.parse_args(argv)
     geos = args.geometry.split(",")
     history = []
@@ -883,6 +1002,7 @@ def main(argv=None):
         res, history = investigate(geos, args.budget_s)
     else:
         res = {g: diagnose_problem(g) for g in geos}
+    confirmations = confirm(geos, args.budget_s, res) if args.confirm else []
     for geo in geos:
         print(f"\n=== {FACTS[geo]['name']} ({geo})")
         for q, d in res[geo].items():
@@ -900,7 +1020,7 @@ def main(argv=None):
     for g, q, ok, txt in rows:
         if not ok:
             print(f"  MISMATCH {g} {q}: {txt}")
-    json.dump({"diagnoses": res, "investigations": history,
+    json.dump({"diagnoses": res, "investigations": history, "confirmations": confirmations,
                "consistency": [{"geometry": g, "qoi": q, "ok": ok, "detail": t}
                                for g, q, ok, t in rows]},
               open(args.out, "w"), indent=1, default=str)
