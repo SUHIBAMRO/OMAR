@@ -870,7 +870,7 @@ def consistency(res):
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
-    ap.add_argument("--geometry", default="unit_square,quarter_ring,bushing_groove")
+    ap.add_argument("--geometry", default="unit_square,quarter_ring,bushing_groove,cook_membrane")
     ap.add_argument("--out", default=os.path.join(HERE, "diagnose_result.json"))
     ap.add_argument("--verbose", action="store_true")
     ap.add_argument("--investigate", action="store_true",

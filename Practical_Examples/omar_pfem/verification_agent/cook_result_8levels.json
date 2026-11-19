@@ -1,0 +1,101 @@
+{
+ "n_levels": 8,
+ "levels_N": [
+  4,
+  8,
+  16,
+  32,
+  64,
+  128,
+  256,
+  512
+ ],
+ "rule_hits": 4,
+ "rule_predictions": 5,
+ "qois": {
+  "u_tip": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "rule_prediction": "PASS",
+   "singular_order": {
+    "verdict": "PASS",
+    "observed": 1.2250949341220938,
+    "expected": 1.2884161428959555
+   },
+   "rule_hit": true
+  },
+  "v_tip": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "rule_prediction": "PASS",
+   "singular_order": {
+    "verdict": "PASS",
+    "observed": 1.328691005758098,
+    "expected": 1.2884161428959555
+   },
+   "rule_hit": true
+  },
+  "max_disp_mag": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "rule_prediction": "PASS",
+   "singular_order": {
+    "verdict": "PASS",
+    "observed": 1.2765407147000711,
+    "expected": 1.2884161428959555
+   },
+   "rule_hit": true
+  },
+  "strain_energy": {
+   "verdict": "FAIL",
+   "evidence": "rate",
+   "rule_prediction": "PASS",
+   "singular_order": {
+    "verdict": "FAIL",
+    "observed": 1.7147555577629487,
+    "expected": 1.2884161428959555
+   },
+   "rule_hit": false
+  },
+  "interior_avg_PK1_frob": {
+   "verdict": "PASS",
+   "evidence": "band",
+   "rule_prediction": null,
+   "singular_order": {
+    "verdict": "PASS",
+    "observed": 1.6158036657008292,
+    "expected": 1.2884161428959555
+   }
+  },
+  "interior_gk_PK1_frob": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "rule_prediction": null,
+   "singular_order": {
+    "verdict": "PASS",
+    "observed": 1.964795552177165,
+    "expected": 1.2884161428959555
+   }
+  },
+  "peak_PK1_frob": {
+   "verdict": "FAIL",
+   "evidence": "none",
+   "rule_prediction": "FAIL",
+   "singular_order": {
+    "verdict": "PASS",
+    "observed": -0.3412359227257364,
+    "expected": -0.35579192855202224
+   },
+   "rule_hit": true
+  }
+ },
+ "developer_expectations_met": {
+  "displacements PASS with rate, order >= 2 lam - 0.15": true,
+  "strain energy PASS with rate, order = 2 lam within 0.15": false,
+  "sharp disc average PASS (band or rate)": true,
+  "Gaussian average PASS with rate": true,
+  "peak convergence FAIL": true,
+  "peak slope = lam - 1 within 0.15": true,
+  "peak at the 108.4-degree corner (0,44)": true
+ }
+}

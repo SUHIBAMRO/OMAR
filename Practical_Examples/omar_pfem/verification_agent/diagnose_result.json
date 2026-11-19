@@ -4091,6 +4091,370 @@
      }
     ]
    }
+  },
+  "cook_membrane": {
+   "u_tip": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "diagnosis": [
+     "mathematical/physical"
+    ],
+    "supported": [
+     "M2"
+    ],
+    "refuted": [],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+    ],
+    "tests": [
+     {
+      "id": "M2",
+      "class": "mathematical/physical",
+      "hypothesis": "corner/edge singularities reduce the convergence order of global quantities",
+      "status": "supported",
+      "evidence": "observed order 1.23 below the element optimum 2; the corners/edges (clamped left edge meets the free top edge at (0,44); clamped left edge meets the free bottom edge at (0,0)) have lambda = 0.6442, predicting order 2 lambda = 1.29 for energy-type quantities",
+      "next_action": null,
+      "cost": null,
+      "remedy": "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+     }
+    ]
+   },
+   "v_tip": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "diagnosis": [
+     "mathematical/physical"
+    ],
+    "supported": [
+     "M2"
+    ],
+    "refuted": [],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+    ],
+    "tests": [
+     {
+      "id": "M2",
+      "class": "mathematical/physical",
+      "hypothesis": "corner/edge singularities reduce the convergence order of global quantities",
+      "status": "supported",
+      "evidence": "observed order 1.33 below the element optimum 2; the corners/edges (clamped left edge meets the free top edge at (0,44); clamped left edge meets the free bottom edge at (0,0)) have lambda = 0.6442, predicting order 2 lambda = 1.29 for energy-type quantities",
+      "next_action": null,
+      "cost": null,
+      "remedy": "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+     }
+    ]
+   },
+   "max_disp_mag": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "diagnosis": [
+     "mathematical/physical"
+    ],
+    "supported": [
+     "M2"
+    ],
+    "refuted": [],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+    ],
+    "tests": [
+     {
+      "id": "M2",
+      "class": "mathematical/physical",
+      "hypothesis": "corner/edge singularities reduce the convergence order of global quantities",
+      "status": "supported",
+      "evidence": "observed order 1.28 below the element optimum 2; the corners/edges (clamped left edge meets the free top edge at (0,44); clamped left edge meets the free bottom edge at (0,0)) have lambda = 0.6442, predicting order 2 lambda = 1.29 for energy-type quantities",
+      "next_action": null,
+      "cost": null,
+      "remedy": "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+     }
+    ]
+   },
+   "strain_energy": {
+    "verdict": "FAIL",
+    "evidence": "rate",
+    "diagnosis": [
+     "numerical discretization"
+    ],
+    "supported": [
+     "D4"
+    ],
+    "refuted": [
+     "P1",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": "add a finer level",
+    "remedies": [],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.928 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "supported",
+      "evidence": "increments over the finest five levels shrink (0.359 -> 0.0112) with 0 sign change(s): the sequence may still enter the asymptotic range",
+      "next_action": "add a finer level",
+      "cost": "see the adaptive controller",
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "N=64 solved at Newton tol 1e-9 and 1e-12 (final residuals 2.1e-11 / 2.0e-11): quantities change by at most 5.9e-15 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "direct sparse LU: exact up to round-off",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "scikit-fem residual/tangent reproduce the project's B1/B2 solvers to 2.0e-12; 2D MMS (Q4): rates L2 1.98 (theory 2), H1_semi 1.00 (theory 1)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     }
+    ]
+   },
+   "interior_avg_PK1_frob": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "diagnosis": [
+     "QoI/post-processing"
+    ],
+    "supported": [
+     "Q1"
+    ],
+    "refuted": [
+     "P1",
+     "D3",
+     "D4",
+     "S1",
+     "S2",
+     "S3",
+     "Q2"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "report interior_gk_PK1_frob as a separate QoI next to the sharp one"
+    ],
+    "tests": [
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.928 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "refuted",
+      "evidence": "nu = 0.3: far from incompressibility",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (2 sign changes, last/first 0.05)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "N=64 solved at Newton tol 1e-9 and 1e-12 (final residuals 2.1e-11 / 2.0e-11): quantities change by at most 5.9e-15 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "direct sparse LU: exact up to round-off",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "scikit-fem residual/tangent reproduce the project's B1/B2 solvers to 2.0e-12; 2D MMS (Q4): rates L2 1.98 (theory 2), H1_semi 1.00 (theory 1)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "Q1",
+      "class": "QoI/post-processing",
+      "hypothesis": "a sharp-edged region samples a changing set of Gauss points",
+      "status": "supported",
+      "evidence": "the same field averaged with a smooth weight (interior_gk_PK1_frob: PASS, rate) does better on the same solutions (PASS, band); the sharp cut-off samples a changing set of Gauss points from mesh to mesh",
+      "next_action": null,
+      "cost": null,
+      "remedy": "report interior_gk_PK1_frob as a separate QoI next to the sharp one"
+     },
+     {
+      "id": "Q2",
+      "class": "QoI/post-processing",
+      "hypothesis": "a magnitude measure accumulates point-to-point oscillation",
+      "status": "refuted",
+      "evidence": "the smooth average of the same magnitude (interior_gk_PK1_frob) converges with a rate: no point-to-point oscillation accumulates",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     }
+    ]
+   },
+   "peak_PK1_frob": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "diagnosis": [
+     "mathematical/physical"
+    ],
+    "supported": [
+     "M1"
+    ],
+    "refuted": [
+     "P1",
+     "D3",
+     "D4",
+     "S1",
+     "S2",
+     "S3"
+    ],
+    "open": [],
+    "evidence_sufficient": true,
+    "next_investigation": null,
+    "remedies": [
+     "not a usable reference value: no finite limit exists; use energy, displacements or region averages, or a singular-field quantity (stress-intensity factor)"
+    ],
+    "tests": [
+     {
+      "id": "M1",
+      "class": "mathematical/physical",
+      "hypothesis": "a geometric singularity makes the true peak unbounded",
+      "status": "supported",
+      "evidence": "peak grows like h^-0.341; theory h^(lambda-1) = h^-0.356 (lambda = 0.6442)",
+      "next_action": null,
+      "cost": null,
+      "remedy": "not a usable reference value: no finite limit exists; use energy, displacements or region averages, or a singular-field quantity (stress-intensity factor)"
+     },
+     {
+      "id": "P1",
+      "class": "mathematical/physical",
+      "hypothesis": "the physical/constitutive model is inadequate for the deformation reached",
+      "status": "refuted",
+      "evidence": "min det F >= 0.928 on every level: moderate deformation, within the range of the compressible neo-Hookean model; no sign that a different model or scale is needed",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D3",
+      "class": "numerical discretization",
+      "hypothesis": "near-incompressibility causes volumetric locking / pressure oscillation",
+      "status": "refuted",
+      "evidence": "nu = 0.3: far from incompressibility",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "D4",
+      "class": "numerical discretization",
+      "hypothesis": "the sequence is still pre-asymptotic",
+      "status": "refuted",
+      "evidence": "increments over the finest five levels do not settle (0 sign changes, last/first 2.30)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S1",
+      "class": "solver/implementation",
+      "hypothesis": "the Newton tolerance is too loose",
+      "status": "refuted",
+      "evidence": "N=64 solved at Newton tol 1e-9 and 1e-12 (final residuals 2.1e-11 / 2.0e-11): quantities change by at most 5.9e-15 (relative)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S2",
+      "class": "solver/implementation",
+      "hypothesis": "the linear solver is inaccurate",
+      "status": "refuted",
+      "evidence": "direct sparse LU: exact up to round-off",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     },
+     {
+      "id": "S3",
+      "class": "solver/implementation",
+      "hypothesis": "the element implementation is wrong",
+      "status": "refuted",
+      "evidence": "scikit-fem residual/tangent reproduce the project's B1/B2 solvers to 2.0e-12; 2D MMS (Q4): rates L2 1.98 (theory 2), H1_semi 1.00 (theory 1)",
+      "next_action": null,
+      "cost": null,
+      "remedy": null
+     }
+    ]
+   }
   }
  },
  "investigations": [],

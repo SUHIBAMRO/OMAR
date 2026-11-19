@@ -25455,3 +25455,42 @@ exact solutions, strategy robustness, singular-order checks,
 requirement-based tolerances or non-convergence diagnosis. Ideas to
 adopt: FermiLink's package knowledge bases (literature agent), PDE-Agents'
 knowledge graph of runs/failures (store diagnosis outcomes).
+
+### 2026-11-19 -- D3: held-out SINGULAR benchmark (Cook's membrane) -- done
+Pre-registered: spec (singular, Q4), adapter description, rule predictions
+(unchanged rules) and corner theory committed in c22bdcb BEFORE any Cook
+solve (`cook_preregistration.json`). Solver: scikit-fem with the D2
+residual/tangent (`cook_ladder.py`); E 1000, nu 0.3, plane strain neo-Hookean,
+dead shear 5 on the right edge; N = 4..256 (7 levels) + graded a = 0.5/0.8
+at N = 64. Corner theory: 108.4-deg clamped/free corner lam = 0.6442
+(energy order 2 lam = 1.29, peak slope -0.356); 47.5-deg corner regular.
+Result on the 7 pre-registered levels (`cook_result_7levels.json`):
+- Rule predictions 4/5; developer expectations 6/7.
+- Displacements PASS rate (5-level p 1.32-1.43 >= 1.29); Gaussian average
+  PASS rate (p 1.94); sharp disc average PASS band (non-monotone); peak
+  FAIL (divergent, strategy spread 57%), slope -0.328 vs theory -0.356
+  (PASS), located at the (0,44) corner.
+- MISS: strain energy converges cleanly (p 1.75, U 0.03%) but its order is
+  not 2 lam = 1.29 -> singular_order FAIL -> overall FAIL (rule R5
+  predicted PASS). Local orders 1.76 -> 1.74 -> 1.67: pre-asymptotic.
+  Remaining error <= 0.035% either way, so the VALUE is accurate; the RATE
+  claim is not asymptotic.
+- Diagnosis engine on Cook (only geometric facts added, tests unchanged;
+  this exposed and fixed a crash in corner_lambda for regular corners):
+  energy -> D4 pre-asymptotic, after running the Newton-tolerance check
+  itself (N=64 at tol 1e-12, S1 refuted); peak -> M1 corner singularity;
+  sharp average -> Q1; displacements -> M2. Next step it named: "add a
+  finer level".
+- That step was run (N=512, 262,144 el, 1,207 s, 3.3 GB): energy local
+  order falls further to 1.59; peak local slope -0.361 (theory -0.356);
+  8-level verdicts unchanged (energy still FAIL by singular order, 1.71).
+  Displacement local orders also still falling (u_tip 1.11 at the finest;
+  5-level fit 1.23 passes the >= bound only within tol) -- not yet settled.
+- Open design question (NOT changed, would be post hoc): the singular-order
+  gate requires energy order = 2 lam; with a weakly excited singular mode
+  the observed order approaches 2 lam from above only slowly. Options:
+  accept order in [2 lam, 2k] with a "pre-asymptotic" label, or estimate the
+  singular coefficient. Decide with Omar/Rabczuk.
+- diagnose.py default now includes cook_membrane; consistency with the
+  manual findings still 16/16; 52 tests pass. Human-intervention count now
+  53 (Cook facts by hand, post-hoc Q2 extrapolation, corner_lambda crash).
