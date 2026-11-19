@@ -218,7 +218,7 @@ def qois(pb):
     return out
 
 
-LEVELS = {2376: (13, 12, 19), 10200: (21, 18, 31)}
+LEVELS = {2376: (13, 12, 19), 10200: (21, 18, 31), 15960: (25, 20, 36)}
 
 
 def run(level, quadrature, formulation, cache):

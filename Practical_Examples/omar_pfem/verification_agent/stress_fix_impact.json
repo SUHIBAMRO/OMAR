@@ -1,0 +1,705 @@
+{
+ "rows": {
+  "sigma_frob_avg": {
+   "old": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 0.9088826554565627,
+    "fit_limit": 0.2732037601683431,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 0.9085646566743726,
+    "fit_limit": 0.273097366579552,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.0003498788102962916
+  },
+  "sigma_xx_avg": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.4385782781532101,
+    "fit_limit": 0.5662347984398642,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.45253165642836174,
+    "fit_limit": 0.5863310608959259,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.03181502361199306
+  },
+  "sigma_xx_max": {
+   "old": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 0.7685504563210734,
+    "fit_limit": 0.7761281193129107,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 0.784664100052756,
+    "fit_limit": 0.7961423425762455,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.02096627957104594
+  },
+  "sigma_yy_avg": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.38182808696848797,
+    "fit_limit": 0.463239412192158,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.3818828375507917,
+    "fit_limit": 0.46308005254874673,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.00014339066237490172
+  },
+  "sigma_yy_max": {
+   "old": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 0.6244058720111122,
+    "fit_limit": 0.6314532911420968,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 0.6245367159762214,
+    "fit_limit": 0.6315886052025899,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.00020954954297239186
+  },
+  "sigma_zz_avg": {
+   "old": {
+    "verdict": "FAIL",
+    "evidence": "band",
+    "finest": 0.4284022971508785,
+    "fit_limit": 0.48082324253542424,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.415145815945345,
+    "fit_limit": 0.4634514272826886,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.03094400121964037
+  },
+  "sigma_zz_max": {
+   "old": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 1.0005098151587124,
+    "fit_limit": 0.8330079606261414,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 0.9855303541277929,
+    "fit_limit": -3.3637679598759007,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.01497182816596687
+  },
+  "sigma_xy_avg": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": -0.0008419467606133074,
+    "fit_limit": -0.0008677822038111087,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": -0.0008435572515134268,
+    "fit_limit": -0.0008688434243417064,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.0019128179778806025
+  },
+  "sigma_xy_max": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.022987909078940622,
+    "fit_limit": 0.1528157308905522,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.022982696654944422,
+    "fit_limit": 0.15305133390122305,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.00022674632905066446
+  },
+  "sigma_xz_avg": {
+   "old": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": -0.2924493013047709,
+    "fit_limit": -0.30045196616827785,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": -0.26988745836146977,
+    "fit_limit": -0.27804563088106676,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.0771478777437349
+  },
+  "sigma_xz_max": {
+   "old": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 0.6084217413811013,
+    "fit_limit": 0.6988850716653294,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 0.5766574995917865,
+    "fit_limit": 0.6675398475016839,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.05220760474011139
+  },
+  "sigma_yz_avg": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": -0.013616032626802152,
+    "fit_limit": -0.013710259777529097,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": -0.013664347094180268,
+    "fit_limit": -0.013749780063551478,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.003548351322470586
+  },
+  "sigma_yz_max": {
+   "old": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 0.05322876797940491,
+    "fit_limit": 0.18115651195182228,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 0.05289621298100871,
+    "fit_limit": 0.15863452424049224,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.006247655375470439
+  },
+  "reaction_moment_y": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "finest": 34.51983933173489,
+    "fit_limit": 34.47885451374904,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "finest": 34.51983933173489,
+    "fit_limit": 34.47885451374904,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.0
+  },
+  "strain_energy": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "finest": 0.8636142611024635,
+    "fit_limit": 0.8626813327500318,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "finest": 0.8636142611024635,
+    "fit_limit": 0.8626813327500318,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.0
+  },
+  "von_mises_avg": {
+   "old": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 0.6179518463734256,
+    "fit_limit": 0.5538687055782152,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 0.615928835534042,
+    "fit_limit": 0.553856980237133,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.003273735407145484
+  },
+  "von_mises_max": {
+   "old": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 1.1113463132783858,
+    "fit_limit": -2.188440748154633,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 1.1095680141810393,
+    "fit_limit": -2.2387610174014743,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.0016001304688730714
+  },
+  "pressure_avg": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": -0.41626955409085886,
+    "fit_limit": -0.5034324843891543,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": -0.4165201033081662,
+    "fit_limit": -0.5042875135757866,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.0006018917666331187
+  },
+  "cyl_rr_avg": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.4381328188251419,
+    "fit_limit": 0.5660861259206437,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.4520806596801174,
+    "fit_limit": 0.5860010683995887,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.03183473197095077
+  },
+  "cyl_rr_max": {
+   "old": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 0.7686125385351381,
+    "fit_limit": 0.7761975567661225,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 0.784726417802094,
+    "fit_limit": 0.796211520696785,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.020964892529162373
+  },
+  "cyl_tt_avg": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.3822735462965561,
+    "fit_limit": 0.46338808471139176,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.382333834299036,
+    "fit_limit": 0.4634100450450763,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.00015770906217286358
+  },
+  "cyl_tt_max": {
+   "old": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 0.6244599252793891,
+    "fit_limit": 0.6315318510829782,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 0.6245930194747916,
+    "fit_limit": 0.6316703959056521,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.00021313488666703504
+  },
+  "cyl_zz_avg": {
+   "old": {
+    "verdict": "FAIL",
+    "evidence": "band",
+    "finest": 0.4284022971508785,
+    "fit_limit": 0.48082324253542424,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.415145815945345,
+    "fit_limit": 0.4634514272826886,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.03094400121964037
+  },
+  "cyl_zz_max": {
+   "old": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 1.0005098151587124,
+    "fit_limit": 0.8330079606261414,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 0.9855303541277929,
+    "fit_limit": -3.3637679598759007,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.01497182816596687
+  },
+  "cyl_rt_avg": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": -0.004077346641189116,
+    "fit_limit": -0.004105477716203724,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": -0.004830418624042571,
+    "fit_limit": -0.0048363653443283415,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.18469658067478645
+  },
+  "cyl_rt_max": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.012776214496468638,
+    "fit_limit": 0.012238881666009145,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.013529091828433266,
+    "fit_limit": 0.013005475850591655,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.05892804415366732
+  },
+  "cyl_rz_avg": {
+   "old": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": -0.29287280843014885,
+    "fit_limit": -0.30082942534405666,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": -0.2703639239920147,
+    "fit_limit": -0.2784760613652835,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.07685549422899939
+  },
+  "cyl_rz_max": {
+   "old": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 0.6085111417224688,
+    "fit_limit": 0.6990300552651898,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "FAIL",
+    "evidence": "none",
+    "finest": 0.5767401418657789,
+    "fit_limit": 0.667680932103901,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.05221104048605908
+  },
+  "cyl_tz_avg": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.002213566503876532,
+    "fit_limit": 0.0021284834093247685,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.000900631438208729,
+    "fit_limit": 0.0008120438331862365,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.5931310685125164
+  },
+  "cyl_tz_max": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.012772824805536934,
+    "fit_limit": 0.03239845824416959,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.009474366597531305,
+    "fit_limit": 0.009402362632740722,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.25824030770200257
+  },
+  "gk2_sigma_xx_avg": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "finest": 0.5397384536394042,
+    "fit_limit": 0.5439958138024945,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "finest": 0.5361371455667748,
+    "fit_limit": 0.5402131319527926,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.0066723207293201
+  },
+  "gk2_sigma_yy_avg": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "finest": 0.4210271435541001,
+    "fit_limit": 0.423904626777458,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "finest": 0.42277793777689165,
+    "fit_limit": 0.42556367774642523,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.004158388003234746
+  },
+  "gk2_sigma_zz_avg": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "finest": 0.4382120481895801,
+    "fit_limit": 0.4407077600440729,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "finest": 0.43181913188431104,
+    "fit_limit": 0.43430868133808265,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.014588636555477232
+  },
+  "gk2_pressure_avg": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "finest": -0.4663258817943616,
+    "fit_limit": -0.46948560243004467,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "finest": -0.4635780717426592,
+    "fit_limit": -0.466663217878193,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.005892467390248992
+  },
+  "gk2_cyl_rr_avg": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "finest": 0.53922159008878,
+    "fit_limit": 0.5434851754166843,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "finest": 0.5354455751057766,
+    "fit_limit": 0.5395206760991955,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.007002714751057527
+  },
+  "gk2_cyl_tt_avg": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "finest": 0.42154400710472445,
+    "fit_limit": 0.4244211281056548,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "finest": 0.4234695082378897,
+    "fit_limit": 0.42625920849970733,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.004567734567951998
+  },
+  "gk2_cyl_zz_avg": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "finest": 0.4382120481895801,
+    "fit_limit": 0.4407077600440729,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "rate",
+    "finest": 0.43181913188431104,
+    "fit_limit": 0.43430868133808265,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.014588636555477232
+  },
+  "gk2_cyl_rz_avg": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.043147336815993025,
+    "fit_limit": 0.0429509313852987,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.0683502314773228,
+    "fit_limit": 0.08510690155781234,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.5841124046383335
+  },
+  "gk2_sigma_xz_avg": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.04085814533925853,
+    "fit_limit": 0.04608509470514875,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 0.06643302549118313,
+    "fit_limit": 0.08653118336104701,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.6259432468010482
+  },
+  "gk2_sigma_frob_avg": {
+   "old": {
+    "verdict": "FAIL",
+    "evidence": "band",
+    "finest": 3.0978502271586357,
+    "fit_limit": 3.096369150238995,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "FAIL",
+    "evidence": "band",
+    "finest": 3.0965577895552623,
+    "fit_limit": 3.0950837145282404,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.0004172046769862134
+  },
+  "gk2_von_mises_avg": {
+   "old": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 2.2402469072293787,
+    "fit_limit": 2.2404543820934824,
+    "n_levels": 8
+   },
+   "new": {
+    "verdict": "PASS",
+    "evidence": "band",
+    "finest": 2.233113011612841,
+    "fit_limit": 2.2332028645438804,
+    "n_levels": 8
+   },
+   "finest_rel_change": 0.003184423821104929
+  }
+ },
+ "verdict_changes": [
+  "sigma_zz_avg",
+  "cyl_zz_avg"
+ ]
+}

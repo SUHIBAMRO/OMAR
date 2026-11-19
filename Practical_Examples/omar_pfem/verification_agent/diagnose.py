@@ -874,11 +874,17 @@ def _b3_fbar_run():
 def _b3_fbar_check():
     from omar_pfem.verification_agent import mixed_b3
     m = json.load(open(mixed_b3.OUT))
-    d, f = m["2376:reduced:disp"], m["2376:reduced:fbar"]
-    ratio = d["pressure_std_2R0"] / f["pressure_std_2R0"]
-    return bool(ratio >= 2.0), (f"Gauss-point pressure std within 2R0: displacement "
-                                f"{d['pressure_std_2R0']:.3f}, F-bar {f['pressure_std_2R0']:.3f} "
-                                f"(factor {ratio:.1f}; prediction: >= 2)")
+    levels = sorted(int(k.split(":")[0]) for k in m if k.endswith(":reduced:fbar")
+                    and f"{k.split(':')[0]}:reduced:disp" in m)
+    parts, ok = [], None
+    for lv in levels:
+        d, f = m[f"{lv}:reduced:disp"], m[f"{lv}:reduced:fbar"]
+        ratio = d["pressure_std_2R0"] / f["pressure_std_2R0"]
+        parts.append(f"{lv} el: displacement {d['pressure_std_2R0']:.3f}, F-bar "
+                     f"{f['pressure_std_2R0']:.3f} (factor {ratio:.1f})")
+        ok = ratio >= 2.0                       # judged on the finest level with both
+    return bool(ok), ("Gauss-point pressure std within 2R0 -- " + "; ".join(parts)
+                      + "; prediction: >= 2x lower with F-bar at the finest common level")
 
 
 CONFIRM = {

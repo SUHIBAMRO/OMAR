@@ -2,12 +2,12 @@
  {
   "n_elem": 2376,
   "linear_solver": "direct",
-  "elapsed_s": 86.21142268180847,
-  "reaction_moment_y": 34.66905677840365,
-  "strain_energy": 0.8672371793585671,
-  "region_avg_sigma_frob": 7.869526386188911,
-  "region_avg_pressure": -0.44309659353224173,
-  "region_max_von_mises": 1.9185702578988837,
-  "min_detF": 0.9424187958029271
+  "elapsed_s": 46.92435574531555,
+  "reaction_moment_y": 34.66905677840366,
+  "strain_energy": 0.8672371793585667,
+  "region_avg_sigma_frob": 7.871024743121694,
+  "region_avg_pressure": -0.4463778779528785,
+  "region_max_von_mises": 1.8957365791713827,
+  "min_detF": 0.9424187958029272
  }
 ]
