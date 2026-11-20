@@ -100,10 +100,12 @@ def reference_class(reference):
 
 
 _PATTERNS = [
-    ("error_norm", r"(L2|H1|energy_norm|_rel$)"),
+    ("error_norm", r"(L2|H1|energy_norm|_rel$|error_norm)"),
     ("pointwise_peak", r"(peak|_max$|^max_(?!disp)|scf)"),
     ("region_average", r"(_avg|avg_|average|interior)"),
-    ("global", r"(energy|reaction|force_total)"),
+    # compliance, eigenvalues (frequencies, buckling loads) are energy-type functionals
+    # of the whole solution (added 2026-11-20 for the literature agent's vocabulary gaps)
+    ("global", r"(energy|reaction|force_total|compliance|eigenvalue|frequenc|buckling)"),
     ("displacement", r"(disp|^u_|^v_|^w_)"),
 ]
 

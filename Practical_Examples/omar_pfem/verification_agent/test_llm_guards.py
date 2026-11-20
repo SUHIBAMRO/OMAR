@@ -638,7 +638,13 @@ def test_literature_agent_rejects_invented_quotes():
     assert ok["material"] is False and ok["geometry"] and ok["qois[0]"]
     assert "126" not in L.problem_text(card, ok)
     assert any(n.startswith("reference not verified") for n in L.needs(card, ok))
-    assert L.vocabulary(card)[1]          # compliance: vocabulary gap reported
+    rows, gaps = L.vocabulary(card)
+    assert not gaps and rows[0]["class"] == "global"     # compliance known since 2026-11-20
+    card["qois"].append({"name": "training loss", "kind": "other", "definition": "",
+                         "reported_value": "", "quote": "secant compliance"})
+    rows, gaps = L.vocabulary(card)
+    assert not gaps and rows[1]["class"] == "out_of_scope"
+    card["qois"].pop()
     # a finite concentration (singular=false) must not trigger the singular-order check
     card["singular_features"] = [{"description": "hole edge", "singular": False,
                                   "inferred": False, "quote": "secant compliance"}]

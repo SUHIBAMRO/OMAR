@@ -1,0 +1,394 @@
+/usr/local/lib/python3.11/dist-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+
+B1 neo_hookean (regularity clamped_free_corner, element Q4, order window (0.5, 3))
+QoI                     class           pred  conv3 evid  conv5 evid  strat  anchor       overall evidence
+max_disp_mag            displacement    PASS  PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=1.49, GCI_fine=0.01% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=1.54 (leave-one-out 1.51-1.54), U_fine=0.01% vs tol 1.00%
+    sing:  PASS fitted order 1.540 vs theory >= 1.422 (lam = 0.7112, tol 0.15)
+u_top_off_center        displacement    PASS  PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=1.97, GCI_fine=0.01% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=1.92 (leave-one-out 1.92-1.96), U_fine=0.02% vs tol 1.00%
+    sing:  PASS fitted order 1.923 vs theory >= 1.422 (lam = 0.7112, tol 0.15)
+v_top_off_center        displacement    PASS  PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=1.45, GCI_fine=0.01% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=1.48 (leave-one-out 1.46-1.48), U_fine=0.01% vs tol 1.00%
+    sing:  PASS fitted order 1.480 vs theory >= 1.422 (lam = 0.7112, tol 0.15)
+u_mid_domain            displacement    PASS  PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=1.42, GCI_fine=0.01% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=1.54 (leave-one-out 1.47-1.56), U_fine=0.01% vs tol 1.00%
+    sing:  PASS fitted order 1.542 vs theory >= 1.422 (lam = 0.7112, tol 0.15)
+v_mid_domain            displacement    PASS  PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=1.44, GCI_fine=0.01% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=1.47 (leave-one-out 1.45-1.47), U_fine=0.01% vs tol 1.00%
+    sing:  PASS fitted order 1.466 vs theory >= 1.422 (lam = 0.7112, tol 0.15)
+strain_energy           global          PASS  PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=1.42, GCI_fine=0.01% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=1.43 (leave-one-out 1.42-1.43), U_fine=0.01% vs tol 1.00%
+    sing:  PASS fitted order 1.433 vs theory = 1.422 (lam = 0.7112, tol 0.15)
+interior_avg_PK1_frob   region_average  -     PASS  rate  PASS  rate  PASS   PASS         PASS    rate
+    conv3: monotone, p=0.76, GCI_fine=0.01% vs tol 2.00%
+    conv5: 5 levels monotone, fitted p=2.34 (leave-one-out 1.49-2.44), U_fine=0.01% vs tol 2.00%
+    sing:  PASS fitted order 2.343 vs theory >= 1.422 (lam = 0.7112, tol 0.15)
+    strategy: spread across strategies 0.004% vs tol 2.00%
+    anchored: max deviation from Richardson extrapolate 0.018% vs tol 2.00%
+interior_gk_PK1_frob    region_average  -     PASS  rate  PASS  rate  PASS   PASS         PASS    rate
+    conv3: monotone, p=1.61, GCI_fine=0.00% vs tol 2.00%
+    conv5: 5 levels monotone, fitted p=1.79 (leave-one-out 1.69-1.80), U_fine=0.00% vs tol 2.00%
+    sing:  PASS fitted order 1.785 vs theory >= 1.422 (lam = 0.7112, tol 0.15)
+    strategy: spread across strategies 0.001% vs tol 2.00%
+    anchored: max deviation from Richardson extrapolate 0.007% vs tol 2.00%
+peak_PK1_frob           pointwise_peak  FAIL  FAIL  none  FAIL  none  FAIL   INCONCLUSIVE FAIL    none  [diagnostic]
+    conv3: divergent: successive differences do not decrease
+    conv5: no rate from 5 levels (failed: order_window, leave_one_out; fitted p=0.05) and finest-three spread 33.078% exceeds 1.00%
+    sing:  PASS log-log slope of the peak -0.275 vs theory = -0.289 (lam = 0.7112, tol 0.15)
+    strategy: spread across strategies 49.181% vs tol 2.00%
+    anchored: refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative
+rule predictions correct: 7/7
+
+B2 quarter ring (regularity smooth, element Q4, order window (0.5, 3))
+QoI                     class           pred  conv3 evid  conv5 evid  strat  anchor       overall evidence
+max_disp_mag            displacement    PASS  PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=2.00, GCI_fine=0.00% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=1.98 (leave-one-out 1.98-2.00), U_fine=0.00% vs tol 1.00%
+u_inner                 displacement    PASS  PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=2.00, GCI_fine=0.00% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=1.98 (leave-one-out 1.97-1.99), U_fine=0.00% vs tol 1.00%
+v_inner                 displacement    PASS  PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=2.00, GCI_fine=0.00% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=1.99 (leave-one-out 1.99-2.00), U_fine=0.00% vs tol 1.00%
+u_mid                   displacement    PASS  PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=2.00, GCI_fine=0.00% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=1.99 (leave-one-out 1.98-2.00), U_fine=0.00% vs tol 1.00%
+v_mid                   displacement    PASS  PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=2.00, GCI_fine=0.00% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=1.99 (leave-one-out 1.99-2.00), U_fine=0.00% vs tol 1.00%
+strain_energy           global          PASS  PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=2.00, GCI_fine=0.00% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=2.00 (leave-one-out 2.00-2.00), U_fine=0.00% vs tol 1.00%
+interior_avg_PK1_frob   region_average  -     PASS  band  PASS  band  -      -            PASS    band
+    conv3: finest three within 1.00% band (spread 0.040%); no convergence rate demonstrated
+    conv5: finest three within 1.00% band (spread 0.040%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=12.67)
+interior_gk_PK1_frob    region_average  -     PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=2.00, GCI_fine=0.00% vs tol 2.00%
+    conv5: 5 levels monotone, fitted p=2.02 (leave-one-out 2.00-2.03), U_fine=0.00% vs tol 2.00%
+peak_PK1_frob           pointwise_peak  -     PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=1.01, GCI_fine=0.20% vs tol 2.00%
+    conv5: 5 levels monotone, fitted p=1.03 (leave-one-out 0.99-1.04), U_fine=0.20% vs tol 2.00%
+rule predictions correct: 6/6
+
+Cook membrane (regularity clamped_free_corner, element Q4, order window (0.5, 3))
+QoI                     class           pred  conv3 evid  conv5 evid  strat  anchor       overall evidence
+u_tip                   displacement    PASS  PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=1.11, GCI_fine=0.11% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=1.23 (leave-one-out 1.16-1.24), U_fine=0.10% vs tol 1.00%
+    sing:  PASS fitted order 1.225 vs theory >= 1.288 (lam = 0.6442, tol 0.15)
+v_tip                   displacement    PASS  PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=1.19, GCI_fine=0.06% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=1.33 (leave-one-out 1.25-1.35), U_fine=0.05% vs tol 1.00%
+    sing:  PASS fitted order 1.329 vs theory >= 1.288 (lam = 0.6442, tol 0.15)
+max_disp_mag            displacement    PASS  PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=1.15, GCI_fine=0.08% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=1.28 (leave-one-out 1.20-1.29), U_fine=0.06% vs tol 1.00%
+    sing:  PASS fitted order 1.277 vs theory >= 1.288 (lam = 0.6442, tol 0.15)
+strain_energy           global          PASS  PASS  rate  PASS  rate  -      -            FAIL    rate
+    conv3: monotone, p=1.59, GCI_fine=0.01% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=1.71 (leave-one-out 1.66-1.72), U_fine=0.01% vs tol 1.00%
+    sing:  FAIL fitted order 1.715 vs theory = 1.288 (lam = 0.6442, tol 0.15)
+interior_avg_PK1_frob   region_average  -     PASS  band  PASS  band  PASS   PASS         PASS    band
+    conv3: finest three within 1.00% band (spread 0.071%); no convergence rate demonstrated
+    conv5: finest three within 1.00% band (spread 0.071%); no rate from 5 levels (failed: monotone, leave_one_out; fitted p=1.62)
+    sing:  PASS fitted order 1.616 vs theory >= 1.288 (lam = 0.6442, tol 0.15)
+    strategy: spread across strategies 0.888% vs tol 2.00%
+    anchored: max deviation from finest family value 1.241% vs tol 2.00%
+interior_gk_PK1_frob    region_average  -     PASS  rate  PASS  rate  PASS   PASS         PASS    rate
+    conv3: monotone, p=1.94, GCI_fine=0.01% vs tol 2.00%
+    conv5: 5 levels monotone, fitted p=1.96 (leave-one-out 1.96-1.97), U_fine=0.01% vs tol 2.00%
+    sing:  PASS fitted order 1.965 vs theory >= 1.288 (lam = 0.6442, tol 0.15)
+    strategy: spread across strategies 0.530% vs tol 2.00%
+    anchored: max deviation from Richardson extrapolate 0.893% vs tol 2.00%
+peak_PK1_frob           pointwise_peak  FAIL  FAIL  none  FAIL  none  FAIL   INCONCLUSIVE FAIL    none  [diagnostic]
+    conv3: divergent: successive differences do not decrease
+    conv5: no rate from 5 levels (failed: fit_quality, order_window, leave_one_out; fitted p=0.05) and finest-three spread 38.856% exceeds 1.00%
+    sing:  PASS log-log slope of the peak -0.341 vs theory = -0.356 (lam = 0.6442, tol 0.15)
+    strategy: spread across strategies 56.696% vs tol 2.00%
+    anchored: refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative
+rule predictions correct: 4/5
+
+Plate with hole (regularity clamped_free_corner, element Q9, order window (0.5, 5))
+QoI                     class           pred  conv3 evid  conv5 evid  strat  anchor       overall evidence
+u_right_mid             displacement    PASS  PASS  rate  PASS  rate  -      -            INCONCLUSIVErate
+    conv3: monotone, p=1.54, GCI_fine=0.00% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=1.66 (leave-one-out 1.57-1.68), U_fine=0.00% vs tol 1.00%
+    sing:  INCONCLUSIVE theory implemented for degree-1 elements only
+v_top_right             displacement    PASS  PASS  rate  PASS  rate  -      -            INCONCLUSIVErate
+    conv3: monotone, p=1.03, GCI_fine=0.00% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=3.29 (leave-one-out 1.28-3.43), U_fine=0.00% vs tol 1.00%
+    sing:  INCONCLUSIVE theory implemented for degree-1 elements only
+max_disp_mag            displacement    PASS  PASS  rate  PASS  rate  -      -            INCONCLUSIVErate
+    conv3: monotone, p=1.54, GCI_fine=0.00% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=1.66 (leave-one-out 1.57-1.68), U_fine=0.00% vs tol 1.00%
+    sing:  INCONCLUSIVE theory implemented for degree-1 elements only
+strain_energy           global          PASS  PASS  rate  PASS  rate  -      -            INCONCLUSIVErate
+    conv3: monotone, p=1.53, GCI_fine=0.00% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=1.59 (leave-one-out 1.54-1.60), U_fine=0.00% vs tol 1.00%
+    sing:  INCONCLUSIVE theory implemented for degree-1 elements only
+hole_avg_sigma_xx       region_average  -     PASS  band  PASS  band  PASS   PASS         INCONCLUSIVEband
+    conv3: finest three within 1.00% band (spread 0.006%); no convergence rate demonstrated
+    conv5: finest three within 1.00% band (spread 0.006%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=12.67)
+    sing:  INCONCLUSIVE theory implemented for degree-1 elements only
+    strategy: spread across strategies 0.114% vs tol 2.00%
+    anchored: max deviation from finest family value 0.083% vs tol 2.00%
+hole_gk_avg_sigma_xx    region_average  -     PASS  rate  PASS  band  PASS   PASS         INCONCLUSIVErate
+    conv3: monotone, p=1.50, GCI_fine=0.00% vs tol 2.00%
+    conv5: finest three within 1.00% band (spread 0.001%); no rate from 5 levels (failed: fit_quality, order_window, leave_one_out; fitted p=0.38)
+    sing:  INCONCLUSIVE theory implemented for degree-1 elements only
+    strategy: spread across strategies 0.000% vs tol 2.00%
+    anchored: max deviation from Richardson extrapolate 0.003% vs tol 2.00%
+hole_peak_sigma_xx      pointwise_peak  FAIL  PASS  rate  PASS  rate  PASS   PASS         INCONCLUSIVErate  [diagnostic]
+    conv3: monotone, p=0.98, GCI_fine=0.27% vs tol 2.00%
+    conv5: 5 levels monotone, fitted p=0.93 (leave-one-out 0.92-0.97), U_fine=0.32% vs tol 2.00%
+    sing:  INCONCLUSIVE theory implemented for degree-1 elements only
+    strategy: spread across strategies 1.609% vs tol 2.00%
+    anchored: max deviation from Richardson extrapolate 1.638% vs tol 2.00%
+peak_von_mises          pointwise_peak  FAIL  FAIL  none  FAIL  none  FAIL   INCONCLUSIVE FAIL    none  [diagnostic]
+    conv3: divergent: successive differences do not decrease
+    conv5: no rate from 5 levels (failed: fit_quality, order_window, leave_one_out; fitted p=0.05) and finest-three spread 5.763% exceeds 1.00%
+    sing:  INCONCLUSIVE theory implemented for degree-1 elements only
+    strategy: spread across strategies 2.036% vs tol 2.00%
+    anchored: refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative
+rule predictions correct: 1/6
+
+Open-hole lamina (CFM) (regularity smooth, element Q9, order window (0.5, 5))
+QoI                     class           pred  conv3 evid  conv5 evid  strat  anchor       overall evidence
+compliance              global          PASS  PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=3.98, GCI_fine=0.00% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=4.05 (leave-one-out 3.95-4.05), U_fine=0.00% vs tol 1.00%
+u_tip                   displacement    PASS  PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=3.40, GCI_fine=0.00% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=2.36 (leave-one-out 2.31-3.57), U_fine=0.00% vs tol 1.00%
+hole_gamma12_avg        region_average  -     PASS  band  PASS  band  -      -            PASS    band
+    conv3: finest three within 1.00% band (spread 0.069%); no convergence rate demonstrated (monotone but p=5.22 outside [0.5, 5])
+    conv5: finest three within 1.00% band (spread 0.069%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=12.67)
+hole_e22_avg            region_average  -     PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=3.92, GCI_fine=0.00% vs tol 2.00%
+    conv5: 5 levels monotone, fitted p=1.30 (leave-one-out 0.82-1.41), U_fine=0.05% vs tol 2.00%
+far_gamma12_avg         region_average  -     PASS  rate  PASS  band  -      -            PASS    band
+    conv3: monotone, p=2.74, GCI_fine=0.00% vs tol 2.00%
+    conv5: finest three within 1.00% band (spread 0.040%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=12.67)
+hole_gk_gamma12_avg     region_average  -     PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=4.01, GCI_fine=0.00% vs tol 2.00%
+    conv5: 5 levels monotone, fitted p=4.82 (leave-one-out 4.04-4.83), U_fine=0.00% vs tol 2.00%
+hole_gk_e22_avg         region_average  -     PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=3.98, GCI_fine=0.00% vs tol 2.00%
+    conv5: 5 levels monotone, fitted p=3.99 (leave-one-out 3.94-3.99), U_fine=0.00% vs tol 2.00%
+peak_e22                pointwise_peak  -     PASS  band  PASS  band  -      -            PASS    band
+    conv3: finest three within 1.00% band (spread 0.003%); no convergence rate demonstrated
+    conv5: finest three within 1.00% band (spread 0.003%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.18)
+rule predictions correct: 2/2
+
+B3 groove (regularity stress_concentration, element Q20, order window (0.5, 5))
+QoI                     class           pred  conv3 evid  conv5 evid  strat  anchor       overall evidence
+sigma_frob_avg          region_average  -     FAIL  none  FAIL  none  FAIL   INCONCLUSIVE FAIL    none
+    conv3: oscillatory: successive differences change sign
+    conv5: no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05) and finest-three spread 1.353% exceeds 1.00%
+    strategy: spread across strategies 20.147% vs tol 2.00%
+    anchored: refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative
+sigma_xx_avg            region_average  -     PASS  band  PASS  band  PASS   PASS         PASS    band
+    conv3: finest three within 1.00% band (spread 0.413%); no convergence rate demonstrated
+    conv5: finest three within 1.00% band (spread 0.413%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05)
+    strategy: spread across strategies 1.459% vs tol 2.00%
+    anchored: max deviation from finest family value 1.623% vs tol 2.00%
+sigma_xx_max            pointwise_peak  FAIL  FAIL  none  FAIL  none  FAIL   INCONCLUSIVE FAIL    none  [diagnostic]
+    conv3: oscillatory: successive differences change sign
+    conv5: no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00) and finest-three spread 19.935% exceeds 1.00%
+    strategy: spread across strategies 62.693% vs tol 2.00%
+    anchored: refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative
+sigma_yy_avg            region_average  -     PASS  band  PASS  band  PASS   PASS         PASS    band
+    conv3: finest three within 1.00% band (spread 0.392%); no convergence rate demonstrated (monotone but p=7.28 outside [0.5, 5])
+    conv5: finest three within 1.00% band (spread 0.392%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05)
+    strategy: spread across strategies 1.131% vs tol 2.00%
+    anchored: max deviation from finest family value 1.243% vs tol 2.00%
+sigma_yy_max            pointwise_peak  FAIL  FAIL  none  FAIL  none  FAIL   INCONCLUSIVE FAIL    none  [diagnostic]
+    conv3: oscillatory: successive differences change sign
+    conv5: no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00) and finest-three spread 11.183% exceeds 1.00%
+    strategy: spread across strategies 39.940% vs tol 2.00%
+    anchored: refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative
+sigma_zz_avg            region_average  -     PASS  band  PASS  band  PASS   PASS         PASS    band
+    conv3: finest three within 1.00% band (spread 0.693%); no convergence rate demonstrated
+    conv5: finest three within 1.00% band (spread 0.693%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05)
+    strategy: spread across strategies 1.964% vs tol 2.00%
+    anchored: max deviation from finest family value 1.178% vs tol 2.00%
+sigma_zz_max            pointwise_peak  FAIL  FAIL  none  FAIL  none  FAIL   INCONCLUSIVE FAIL    none  [diagnostic]
+    conv3: oscillatory: successive differences change sign
+    conv5: no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05) and finest-three spread 16.337% exceeds 1.00%
+    strategy: spread across strategies 63.326% vs tol 2.00%
+    anchored: refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative
+sigma_xy_avg            region_average  -     PASS  band  PASS  band  PASS   PASS         PASS    band
+    conv3: finest three within 1.00% band (spread 0.008%); no convergence rate demonstrated (monotone but p=37.56 outside [0.5, 5])
+    conv5: finest three within 1.00% band (spread 0.008%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00)
+    strategy: spread across strategies 0.026% vs tol 2.00%
+    anchored: max deviation from finest family value 0.019% vs tol 2.00%
+sigma_xy_max            pointwise_peak  FAIL  PASS  band  PASS  band  PASS   PASS         PASS    band  [diagnostic]
+    conv3: finest three within 1.00% band (spread 0.345%); no convergence rate demonstrated
+    conv5: finest three within 1.00% band (spread 0.345%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05)
+    strategy: spread across strategies 1.454% vs tol 2.00%
+    anchored: max deviation from finest family value 1.649% vs tol 2.00%
+sigma_xz_avg            region_average  -     FAIL  none  FAIL  none  FAIL   INCONCLUSIVE FAIL    none
+    conv3: oscillatory: successive differences change sign
+    conv5: no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00) and finest-three spread 3.453% exceeds 1.00%
+    strategy: spread across strategies 9.732% vs tol 2.00%
+    anchored: refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative
+sigma_xz_max            pointwise_peak  FAIL  FAIL  none  FAIL  none  FAIL   INCONCLUSIVE FAIL    none  [diagnostic]
+    conv3: divergent: successive differences do not decrease
+    conv5: no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00) and finest-three spread 12.824% exceeds 1.00%
+    strategy: spread across strategies 48.045% vs tol 2.00%
+    anchored: refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative
+sigma_yz_avg            region_average  -     PASS  rate  PASS  band  PASS   PASS         PASS    band
+    conv3: monotone, p=0.84, GCI_fine=1.46% vs tol 2.00%
+    conv5: finest three within 1.00% band (spread 0.208%); no rate from 5 levels (failed: monotone, fit_quality, leave_one_out; fitted p=4.82)
+    strategy: spread across strategies 0.451% vs tol 2.00%
+    anchored: max deviation from Richardson extrapolate 1.832% vs tol 2.00%
+sigma_yz_max            pointwise_peak  FAIL  FAIL  none  FAIL  none  PASS   INCONCLUSIVE FAIL    none  [diagnostic]
+    conv3: divergent: successive differences do not decrease
+    conv5: no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.46) and finest-three spread 1.911% exceeds 1.00%
+    strategy: spread across strategies 1.998% vs tol 2.00%
+    anchored: refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative
+reaction_moment_y       global          PASS  PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=1.35, GCI_fine=0.18% vs tol 0.46%
+    conv5: 5 levels monotone, fitted p=1.56 (leave-one-out 1.33-1.65), U_fine=0.15% vs tol 0.46%
+strain_energy           global          PASS  PASS  rate  PASS  rate  -      -            PASS    rate
+    conv3: monotone, p=1.41, GCI_fine=0.16% vs tol 1.00%
+    conv5: 5 levels monotone, fitted p=1.62 (leave-one-out 1.39-1.72), U_fine=0.14% vs tol 1.00%
+von_mises_avg           region_average  -     FAIL  none  FAIL  none  FAIL   INCONCLUSIVE FAIL    none
+    conv3: oscillatory: successive differences change sign
+    conv5: no rate from 5 levels (failed: monotone, fit_quality, leave_one_out; fitted p=0.52) and finest-three spread 3.926% exceeds 1.00%
+    strategy: spread across strategies 17.442% vs tol 2.00%
+    anchored: refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative
+von_mises_max           pointwise_peak  FAIL  FAIL  none  FAIL  none  FAIL   INCONCLUSIVE FAIL    none  [diagnostic]
+    conv3: oscillatory: successive differences change sign
+    conv5: no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05) and finest-three spread 14.598% exceeds 1.00%
+    strategy: spread across strategies 79.417% vs tol 2.00%
+    anchored: refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative
+pressure_avg            region_average  -     PASS  band  PASS  band  PASS   PASS         PASS    band
+    conv3: finest three within 1.00% band (spread 0.458%); no convergence rate demonstrated (monotone but p=10.58 outside [0.5, 5])
+    conv5: finest three within 1.00% band (spread 0.458%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05)
+    strategy: spread across strategies 1.270% vs tol 2.00%
+    anchored: max deviation from finest family value 1.328% vs tol 2.00%
+cyl_rr_avg              region_average  -     PASS  band  PASS  band  PASS   PASS         PASS    band
+    conv3: finest three within 1.00% band (spread 0.418%); no convergence rate demonstrated
+    conv5: finest three within 1.00% band (spread 0.418%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05)
+    strategy: spread across strategies 1.461% vs tol 2.00%
+    anchored: max deviation from finest family value 1.635% vs tol 2.00%
+cyl_rr_max              pointwise_peak  FAIL  FAIL  none  FAIL  none  FAIL   INCONCLUSIVE FAIL    none  [diagnostic]
+    conv3: oscillatory: successive differences change sign
+    conv5: no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00) and finest-three spread 19.939% exceeds 1.00%
+    strategy: spread across strategies 62.762% vs tol 2.00%
+    anchored: refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative
+cyl_tt_avg              region_average  -     PASS  band  PASS  band  PASS   PASS         PASS    band
+    conv3: finest three within 1.00% band (spread 0.388%); no convergence rate demonstrated (monotone but p=6.85 outside [0.5, 5])
+    conv5: finest three within 1.00% band (spread 0.388%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05)
+    strategy: spread across strategies 1.122% vs tol 2.00%
+    anchored: max deviation from finest family value 1.232% vs tol 2.00%
+cyl_tt_max              pointwise_peak  FAIL  FAIL  none  FAIL  none  FAIL   INCONCLUSIVE FAIL    none  [diagnostic]
+    conv3: oscillatory: successive differences change sign
+    conv5: no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00) and finest-three spread 11.190% exceeds 1.00%
+    strategy: spread across strategies 39.961% vs tol 2.00%
+    anchored: refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative
+cyl_zz_avg              region_average  -     PASS  band  PASS  band  PASS   PASS         PASS    band
+    conv3: finest three within 1.00% band (spread 0.693%); no convergence rate demonstrated
+    conv5: finest three within 1.00% band (spread 0.693%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05)
+    strategy: spread across strategies 1.964% vs tol 2.00%
+    anchored: max deviation from finest family value 1.178% vs tol 2.00%
+cyl_zz_max              pointwise_peak  FAIL  FAIL  none  FAIL  none  FAIL   INCONCLUSIVE FAIL    none  [diagnostic]
+    conv3: oscillatory: successive differences change sign
+    conv5: no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05) and finest-three spread 16.337% exceeds 1.00%
+    strategy: spread across strategies 63.326% vs tol 2.00%
+    anchored: refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative
+cyl_rt_avg              region_average  -     PASS  band  PASS  band  PASS   PASS         PASS    band
+    conv3: finest three within 1.00% band (spread 0.043%); no convergence rate demonstrated
+    conv5: finest three within 1.00% band (spread 0.043%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=7.16)
+    strategy: spread across strategies 0.094% vs tol 2.00%
+    anchored: max deviation from finest family value 0.066% vs tol 2.00%
+cyl_rt_max              pointwise_peak  FAIL  PASS  band  PASS  band  PASS   PASS         PASS    band  [diagnostic]
+    conv3: finest three within 1.00% band (spread 0.127%); no convergence rate demonstrated
+    conv5: finest three within 1.00% band (spread 0.127%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00)
+    strategy: spread across strategies 0.178% vs tol 2.00%
+    anchored: max deviation from finest family value 0.205% vs tol 2.00%
+cyl_rz_avg              region_average  -     FAIL  none  FAIL  none  FAIL   INCONCLUSIVE FAIL    none
+    conv3: oscillatory: successive differences change sign
+    conv5: no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00) and finest-three spread 3.454% exceeds 1.00%
+    strategy: spread across strategies 9.714% vs tol 2.00%
+    anchored: refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative
+cyl_rz_max              pointwise_peak  FAIL  FAIL  none  FAIL  none  FAIL   INCONCLUSIVE FAIL    none  [diagnostic]
+    conv3: divergent: successive differences do not decrease
+    conv5: no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00) and finest-three spread 12.833% exceeds 1.00%
+    strategy: spread across strategies 48.084% vs tol 2.00%
+    anchored: refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative
+cyl_tz_avg              region_average  -     PASS  band  PASS  band  PASS   PASS         PASS    band
+    conv3: finest three within 1.00% band (spread 0.021%); no convergence rate demonstrated
+    conv5: finest three within 1.00% band (spread 0.021%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=5.04)
+    strategy: spread across strategies 0.195% vs tol 2.00%
+    anchored: max deviation from finest family value 0.272% vs tol 2.00%
+cyl_tz_max              pointwise_peak  FAIL  PASS  band  PASS  band  PASS   PASS         PASS    band  [diagnostic]
+    conv3: finest three within 1.00% band (spread 0.170%); no convergence rate demonstrated
+    conv5: finest three within 1.00% band (spread 0.170%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00)
+    strategy: spread across strategies 0.827% vs tol 2.00%
+    anchored: max deviation from finest family value 0.649% vs tol 2.00%
+gk2_sigma_xx_avg        region_average  -     PASS  band  PASS  rate  PASS   PASS         PASS    rate
+    conv3: finest three within 1.00% band (spread 0.076%); no convergence rate demonstrated
+    conv5: 5 levels monotone, fitted p=2.27 (leave-one-out 1.43-3.21), U_fine=0.18% vs tol 2.00%
+    strategy: spread across strategies 0.469% vs tol 2.00%
+    anchored: max deviation from multilevel fit limit 0.523% vs tol 2.00%
+gk2_sigma_yy_avg        region_average  -     PASS  band  PASS  rate  PASS   PASS         PASS    rate
+    conv3: finest three within 1.00% band (spread 0.058%); no convergence rate demonstrated
+    conv5: 5 levels monotone, fitted p=2.48 (leave-one-out 1.80-3.41), U_fine=0.12% vs tol 2.00%
+    strategy: spread across strategies 0.329% vs tol 2.00%
+    anchored: max deviation from multilevel fit limit 0.388% vs tol 2.00%
+gk2_sigma_zz_avg        region_average  -     PASS  band  PASS  rate  PASS   PASS         PASS    rate
+    conv3: finest three within 1.00% band (spread 0.058%); no convergence rate demonstrated
+    conv5: 5 levels monotone, fitted p=2.72 (leave-one-out 2.11-3.70), U_fine=0.11% vs tol 2.00%
+    strategy: spread across strategies 0.307% vs tol 2.00%
+    anchored: max deviation from multilevel fit limit 0.393% vs tol 2.00%
+gk2_pressure_avg        region_average  -     PASS  band  PASS  rate  PASS   PASS         PASS    rate
+    conv3: finest three within 1.00% band (spread 0.064%); no convergence rate demonstrated
+    conv5: 5 levels monotone, fitted p=2.48 (leave-one-out 1.75-3.43), U_fine=0.14% vs tol 2.00%
+    strategy: spread across strategies 0.361% vs tol 2.00%
+    anchored: max deviation from multilevel fit limit 0.426% vs tol 2.00%
+gk2_cyl_rr_avg          region_average  -     PASS  band  PASS  rate  PASS   PASS         PASS    rate
+    conv3: finest three within 1.00% band (spread 0.076%); no convergence rate demonstrated
+    conv5: 5 levels monotone, fitted p=2.27 (leave-one-out 1.44-3.20), U_fine=0.18% vs tol 2.00%
+    strategy: spread across strategies 0.468% vs tol 2.00%
+    anchored: max deviation from multilevel fit limit 0.522% vs tol 2.00%
+gk2_cyl_tt_avg          region_average  -     PASS  band  PASS  rate  PASS   PASS         PASS    rate
+    conv3: finest three within 1.00% band (spread 0.058%); no convergence rate demonstrated
+    conv5: 5 levels monotone, fitted p=2.49 (leave-one-out 1.79-3.43), U_fine=0.12% vs tol 2.00%
+    strategy: spread across strategies 0.330% vs tol 2.00%
+    anchored: max deviation from multilevel fit limit 0.389% vs tol 2.00%
+gk2_cyl_zz_avg          region_average  -     PASS  band  PASS  rate  PASS   PASS         PASS    rate
+    conv3: finest three within 1.00% band (spread 0.058%); no convergence rate demonstrated
+    conv5: 5 levels monotone, fitted p=2.72 (leave-one-out 2.11-3.70), U_fine=0.11% vs tol 2.00%
+    strategy: spread across strategies 0.307% vs tol 2.00%
+    anchored: max deviation from multilevel fit limit 0.393% vs tol 2.00%
+gk2_cyl_rz_avg          region_average  -     PASS  band  PASS  band  PASS   PASS         PASS    band
+    conv3: finest three within 1.00% band (spread 0.020%); no convergence rate demonstrated (monotone but p=9.00 outside [0.5, 5])
+    conv5: finest three within 1.00% band (spread 0.020%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05)
+    strategy: spread across strategies 0.478% vs tol 2.00%
+    anchored: max deviation from finest family value 0.314% vs tol 2.00%
+gk2_sigma_xz_avg        region_average  -     PASS  band  PASS  band  PASS   PASS         PASS    band
+    conv3: finest three within 1.00% band (spread 0.020%); no convergence rate demonstrated (monotone but p=8.53 outside [0.5, 5])
+    conv5: finest three within 1.00% band (spread 0.020%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05)
+    strategy: spread across strategies 0.467% vs tol 2.00%
+    anchored: max deviation from finest family value 0.306% vs tol 2.00%
+gk2_sigma_frob_avg      region_average  -     PASS  band  PASS  band  FAIL   FAIL         FAIL    band
+    conv3: finest three within 1.00% band (spread 0.061%); no convergence rate demonstrated
+    conv5: finest three within 1.00% band (spread 0.061%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00)
+    strategy: spread across strategies 6.111% vs tol 2.00%
+    anchored: max deviation from finest family value 5.619% vs tol 2.00%
+gk2_von_mises_avg       region_average  -     PASS  band  PASS  band  PASS   PASS         PASS    band
+    conv3: finest three within 1.00% band (spread 0.292%); no convergence rate demonstrated
+    conv5: finest three within 1.00% band (spread 0.292%); no rate from 5 levels (failed: fit_quality, leave_one_out; fitted p=4.98)
+    strategy: spread across strategies 0.749% vs tol 2.00%
+    anchored: max deviation from finest family value 0.813% vs tol 2.00%
+rule predictions correct: 12/15

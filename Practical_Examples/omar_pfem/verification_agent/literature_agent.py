@@ -159,7 +159,7 @@ def check_quotes(card, text):
 KIND_TO_CLASS = {"displacement": "displacement", "global_energy": "global",
                  "compliance": "global", "reaction": "global",
                  "region_average": "region_average", "pointwise_peak": "pointwise_peak",
-                 "field_error_norm": "global", "eigenvalue": "global"}
+                 "field_error_norm": "error_norm", "eigenvalue": "global"}
 
 
 def vocabulary(card):
@@ -173,7 +173,11 @@ def vocabulary(card):
         probe = {"compliance": "compliance", "eigenvalue": "eigenvalue",
                  "reaction": "reaction_force", "field_error_norm": "field_error_norm"}.get(
             q["kind"])
-        if cls is None or (probe and trees.classify_qoi(probe) == "unknown"):
+        if q["kind"] == "other":
+            # not a reference quantity the rules could verify (e.g. a training loss or a
+            # residual of the surrogate): reported, but not a vocabulary gap
+            rows[-1]["class"] = "out_of_scope"
+        elif cls is None or (probe and trees.classify_qoi(probe) == "unknown"):
             gaps.append(f"'{q['name']}' ({q['kind']}): no rule class recognises this kind")
     return rows, gaps
 
