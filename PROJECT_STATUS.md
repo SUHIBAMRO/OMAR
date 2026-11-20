@@ -25864,3 +25864,13 @@ noise; own GP (Matern 5/2 ARD, no sklearn); strategies random / al_fine / mf_nai
 mf_verified, 5 seeds, 40 s budget. Expectations recorded before the table and runs
 (al_lamina_preregistration.json). lamina.py parametrised (theta_deg, rh); defaults reproduce
 the stored ladder to 1e-12. Simulation table (121 designs x 4 levels) running.
+**Active learning RESULT (al_lamina_result.json, al_lamina_scored.json):** 5 seeds, 40 s budget
+of solver time, RMS relative error of the GP surrogate of log-compliance over the 11 x 11
+design grid vs m = 8. Medians: random 0.97% (1% at 33-41 s, 1 seed never; 0.1% never);
+al_fine 0.26% (1% at 25-31 s; 0.1% never); mf_naive 1.12%, stalls (coarse-level bias treated
+as exact; never 1%); mf_verified 0.0135% (1% at 1.6-2.1 s, 0.1% at 19-20 s; uses m = 2 and
+m = 4 only). Speed-up to 1%: ~16x vs al_fine, ~21x vs random. Expectations 3 met, 1
+undetermined (al_fine vs random at 0.1%: neither reaches it). Verified nominal level errors
+hold over the design space (median/nominal 0.94-1.02, max/nominal <= 1.3). Changes after
+recording expectations (stated): no repeated picks, refit every 5 steps, cap 400 (the 40 s
+budget still the stop for all strategies).

@@ -1,0 +1,30 @@
+{
+ "expectations": {
+  "mf_verified reaches 0.1% RMS error at lower cost than al_fine": {
+   "met": true,
+   "note": "mf_verified reaches 0.1% in 19-20 s in all 5 seeds; al_fine never does within 40 s"
+  },
+  "al_fine reaches 0.1% at lower cost than random": {
+   "met": null,
+   "note": "undetermined: neither reaches 0.1% within 40 s; at 1% al_fine needs 25-31 s, random 33-41 s and fails in 1 of 5 seeds"
+  },
+  "mf_naive stalls above 0.1% (bias of the coarse levels)": {
+   "met": true,
+   "note": "stalls at 1.1%: it never reaches even 1%"
+  },
+  "nominal verified level errors describe the design space within a factor 3 (median)": {
+   "met": true,
+   "note": "median/nominal 1.02 (m=1), 1.00 (m=2), 0.94 (m=4); max/nominal at most 1.3"
+  }
+ },
+ "met": 3,
+ "undetermined": 1,
+ "speedup_to_1pct_vs_al_fine": 15.771972888455497,
+ "speedup_to_1pct_vs_random_median_of_reached": 20.752595905862496,
+ "levels_used_mf_verified_seed0": {
+  "1": 0,
+  "2": 99,
+  "4": 86,
+  "8": 0
+ }
+}
