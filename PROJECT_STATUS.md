@@ -25689,3 +25689,19 @@ x B1/B2/B3, 0 failed, total cost USD 7.66 (b1 2.06, b2 2.57, b3 3.03), 160-300 s
   tolerances per run.
 - Reading: the LLM adds problem formalisation from free text (9/9) and fewer misses on B3
   (1 vs 5), at the price of many, run-dependent false alarms; it adds nothing on B1/B2.
+
+**F1 -- manuscript groove numbers recomputed with the stress fix (DONE;
+manuscript_recompute/f1_values.py/.json; the contour figure is git-ignored, local only).**
+The pre-fix data reproduce the printed numbers exactly (mapping checked). Old -> corrected:
+- <sigma_xx> over eight resolutions 2,376-47,040: 0.38-0.44 -> 0.415-0.466 (47,040 level
+  (41,25,50) re-solved: avg 0.448, max 0.738, 2,107 s).
+- max|sigma_xx| first six levels 4.13 -> 0.706 => 4.164 -> 0.729 (still monotone
+  decreasing); rise at the seventh 26% (0.891 at 45,000) => 25% (0.910).
+- z_beta 0-3 at 10,200: 0.615-0.826 => 0.621-0.836.
+- inner wall, finest two levels, inside the region: 0.3-1.0% => unchanged (0.3-1.0%).
+- NOT affected (evaluator path, P by autograd, one conversion): 274% (839,040 vs
+  950,400) and the surrogate errors > 1,700%. (Earlier note "274% cannot be recomputed
+  here" withdrawn: it needs no recomputation.)
+- Wording error found: the stored `avg` is the SIGNED volume average; the old printout
+  said avg|sigma_xx| and the manuscript writes <|sigma_xx|> -> must read <sigma_xx>.
+- Eighth family level 59,400 (not in the manuscript): avg 0.453, max 0.785.
