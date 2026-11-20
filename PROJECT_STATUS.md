@@ -25900,3 +25900,37 @@ Report Sec. 24 + summary item + limitation "A real literature agent" + question 
 reproducibility rows added (AL, literature eval). Claims check 655/655. PDF v3 re-exported
 (49 pages, no "Timon"). Email draft point 9 and question 3 updated (NOT sent).
 NEXT (Omar): review + send report and email. Open: IGA vs unseen-paper test (question 3).
+
+### 2026-11-20 -- Round G ("اعملهم الي ضلو": do the remaining items) -- report Section 25
+All items doable without Prof. Rabczuk's decisions. Old 25-28 -> 26-29.
+- **G1 vocabulary:** compliance/eigenvalue -> global, error norms by name, kind 'other' ->
+  out of scope (not a gap). 0 gaps on all 4 eval cards. Rules re-run on all 6 problems: only
+  lamina compliance changes (unknown -> global, predicted PASS, correct, tol 2% -> 1%).
+- **G2 literature agent, unseen** (CSM Study 1 truss, Study 4 shell; truth committed f528488
+  BEFORE the run; analytical-reference needs() bug fixed before the run): truss 6/6, shell 8/8,
+  USD 0.43 (total literature agent USD 1.10). One correct shell quote rejected (NFD vs NFC
+  accent) -> quote check NFC-normalised (post hoc, labelled), 20/20; earlier runs unchanged.
+- **G3 L-shaped panel** (lshape.py, pre-registered c089293 before any solve; lam 0.5445, Q2,
+  n = 2..128): default rules 1/4 (all singular_order INCONCLUSIVE, as predicted); with
+  VERIF_POSTHOC_SINGULAR=1 rules 3/4, expectations 10/11: energy order 1.113 (2 lam 1.089),
+  peak slope -0.447 (-0.456), no pre-asymptotic label. MISS: v_right_top 5-level order 0.84
+  < 0.94; pairwise orders 0.53/0.76/0.90/0.97 -> approaching from BELOW (not covered by the
+  label). Rule NOT changed. Compare-script bug (lru_cache returned default for posthoc) fixed
+  before scoring.
+- **G5 goal-oriented one-mesh estimate** (goal_oriented.py; enriched degree-3 dual = J(u+) -
+  J(u_h)): effectivity 0.83-1.01 for u_tip and Gaussian strains at m >= 2 (0.90-0.97 strains);
+  compliance 0.03-0.08 because its error is GEOMETRIC (rel error = rel area error every level);
+  sharp regions erratic (quadrature-defined). lamina.py element factory, defaults to 1.5e-12.
+- **G7 IGA-type pilot** (iga_lamina.py, from scratch: C^(p-1) B-splines, exact analytic map,
+  not NURBS): p = 3, m = 16 (67k dof) vs FEM m = 32: compliance 1.6e-9, Gaussian strains
+  2.7e-7 / 1.7e-6 -> independent implementation agrees. Per dof (~66k) p3 better than Q2 by
+  ~5000x (compliance), 4x, 20x; at coarse levels worse for hole strains (9.2% vs 0.85% at
+  ~4.3k dof), not quadrature, not grading. 3D NURBS hyperelastic IGA for the groove NOT done.
+- **G6 AMG-CG** (mixed_b3.py VERIF_LINSOLVE=amg, pyamg SA + 6 rigid modes; chunked tangent):
+  at 2,376 el = Pardiso to 6e-13, same Newton, 128-142 CG its, 502 s vs 240 s, 3.5 vs 4.2 GB.
+- **G4** 23,520-el uniform P1 level with AMG: RUNNING (see next entry).
+- Not done: geometry families + industrial nonlinearities (AL covers hole radius + fibre
+  angle only); 3D IGA. Trustworthy-AI note written in Sec. 25.
+- Report: Sec. 25 + summary item + stale Sec. 27 fixed (held-out count, AL exists, CSM/CFM
+  papers DO exist, literature agent tested on 3 papers) + Sec. 28 table/questions; repro rows.
+  Claims check: my "0.98" caught -> 0.97. Email draft updated (NOT sent).
