@@ -891,6 +891,25 @@ def add_f_round(add, h1, h2, h3):
     add("24", "speed-up to 1% vs al_fine", 16, 0.5, lambda: _j("al_lamina_scored.json")[
         "speedup_to_1pct_vs_al_fine"])
     add("24", "expectations met", 3, 0, lambda: _j("al_lamina_scored.json")["met"])
+    # Section 24: literature agent, billed evaluation (run 1 as designed, run 2 post hoc)
+    lit = lambda r: _j("literature_eval_run1.json" if r == 1 else
+                       "literature_eval_run2_posthoc.json")
+    for r, want in ((1, 7), (2, 8)):
+        for p in ("openpinn_plate", "cfm_lamina"):
+            add("24", f"literature run {r} {p} checks passed", want, 0,
+                lambda r=r, p=p: sum(lit(r)[p][0]["score"].values()))
+            add("24", f"literature run {r} {p} checks total", 8, 0,
+                lambda r=r, p=p: len(lit(r)[p][0]["score"]))
+            add("24", f"literature run {r} {p} quotes found %", 100, 0,
+                lambda r=r, p=p: 100 * lit(r)[p][0]["quote_rate"])
+    add("24", "literature run 1 plate miss is discretisation", 1, 0,
+        lambda: int(not lit(1)["openpinn_plate"][0]["score"]["discretisation"]))
+    add("24", "literature run 1 lamina miss is singular features", 1, 0,
+        lambda: int(not lit(1)["cfm_lamina"][0]["score"]["singular features as expected"]))
+    add("24", "literature cost USD, two runs", 0.67, 0.005,
+        lambda: lit(1)["_cost_usd"] + lit(2)["_cost_usd"])
+    add("24", "literature run 2 lamina features flagged singular", 0, 0,
+        lambda: sum(s["singular"] for s in lit(2)["cfm_lamina"][0]["card"]["singular_features"]))
     m = lambda: json.load(open(os.path.join(HERE, "lamina_mms.json")))["rows"]
     add("23", "lamina MMS L2 rate", 3.00, h2, lambda: np.log2(m()[-2]["L2_rel"] / m()[-1]["L2_rel"]))
     add("23", "lamina MMS H1 rate", 2.00, h2, lambda: np.log2(m()[-2]["H1_semi_rel"] / m()[-1]["H1_semi_rel"]))

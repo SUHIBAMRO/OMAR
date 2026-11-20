@@ -25879,3 +25879,24 @@ Report: new Section 24 (literature agent + verification-aware active learning), 
 stale at the previous renumbering). Claims check 639 of 639 (it caught my 0.014% -> 0.013%).
 PDF v3 re-exported (no "Timon"). STILL WAITING FOR OMAR: OK for the billed literature-agent
 evaluation (~USD 1-3); review + send report and email.
+
+### 2026-11-20 -- Literature agent: billed evaluation (Omar approved, "موافق على تشغيل وكيل الأدبيات")
+Two runs, USD 0.67 in total (0.304 + 0.366), on the two papers formalised by hand (OpenPINN
+plate, report Sec. 18; CFM lamina, Sec. 23); 8 checks per card.
+- **Run 1, as designed** (literature_eval_run1.json): right section found in both (OpenPINN
+  5.3, CFM 9.3), quotes 100% found, CFM moduli not invented, both references flagged single-mesh
+  and unverified. 7/8 on each. Both misses are card-design faults, not invented content:
+  (a) plate: `discretisation` described the PINN, the FE mesh h = 0.025 sat in the reference
+  quote and not_stated (field never defined as the reference's); (b) lamina: the agent wrote
+  "a concentration, not a singularity", but needs() treated every listed feature as singular and
+  recommended the singular-order check (wrong downstream action).
+- **Post hoc fix (labelled)** in literature_agent.py: per-feature `singular` flag (true only for
+  unbounded continuum stress; needs() and score() use it), `discretisation` defined as the
+  reference solution's. Test extended (singular=false must not trigger the check); 56/56 pass.
+- **Run 2, after the fix, same papers** (literature_eval_run2_posthoc.json): 8/8 on both,
+  quotes 100%; plate corners singular, hole not; both lamina features finite. Same two papers,
+  so NOT evidence of generalisation: needs an unseen paper.
+Report Sec. 24 + summary item + limitation "A real literature agent" + question 3 updated,
+reproducibility rows added (AL, literature eval). Claims check 655/655. PDF v3 re-exported
+(49 pages, no "Timon"). Email draft point 9 and question 3 updated (NOT sent).
+NEXT (Omar): review + send report and email. Open: IGA vs unseen-paper test (question 3).
