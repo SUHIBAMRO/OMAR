@@ -609,3 +609,33 @@ def test_confirmation_respects_memory_limit():
     from omar_pfem.verification_agent import diagnose as D
     t, gb, what = D._cook_finer_estimate()
     assert gb > D.MEM_LIMIT_GB      # N = 1024 would need ~13 GB: the agent must not run it
+
+
+def test_literature_agent_rejects_invented_quotes():
+    """A card field whose quote is not in the paper is unsupported and is not
+    used in the problem text (CFM paper cites [49] for the moduli)."""
+    import os
+    import pytest
+    from omar_pfem.verification_agent import literature_agent as L
+    pdf = os.path.join(L.FEEDBACK, L.TRUTH["cfm_lamina"]["pdf"])
+    if not os.path.exists(pdf):
+        pytest.skip("CFM paper not present")
+    txt = L.extract_text(pdf)
+    sec, where = L.select_section(txt, "9.3", "open-hole lamina")
+    assert where.startswith("section 9.3")
+    f = lambda v, q: {"value": v, "quote": q}
+    card = {"title": "t", "geometry": f("g", "a central hole of radius 3 mm"),
+            "material": f("E1 = 126 GPa", "AS4/3501-6 has E1 = 126 GPa"),
+            "boundary_conditions": f("b", "three displacement components at the hole are fixed"),
+            "loading": f("l", "homogeneous uniaxial stress along the long axis"),
+            "discretisation": f("d", "4096 isoparametric quadratic triangles"),
+            "reference": {"type": "single_mesh", "convergence_evidence": "none_stated",
+                          "quote": "4096 isoparametric quadratic triangles"},
+            "qois": [{"name": "secant compliance", "kind": "compliance", "definition": "",
+                      "reported_value": "", "quote": "secant compliance"}],
+            "singular_features": [], "not_stated": []}
+    ok = L.check_quotes(card, txt)
+    assert ok["material"] is False and ok["geometry"] and ok["qois[0]"]
+    assert "126" not in L.problem_text(card, ok)
+    assert any(n.startswith("reference not verified") for n in L.needs(card, ok))
+    assert L.vocabulary(card)[1]          # compliance: vocabulary gap reported
