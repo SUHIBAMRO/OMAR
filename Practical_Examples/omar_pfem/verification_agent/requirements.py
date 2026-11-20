@@ -53,9 +53,42 @@ def surrogate_error(geometry, qoi):
     return None, "no surrogate error recorded for this QoI"
 
 
+# ABSOLUTE ACCURACY TARGETS: an engineering requirement on the reference value
+# itself, independent of any surrogate (e.g. a stiffness used in design must be
+# known to 1%). The required uncertainty is then the smaller of
+# (surrogate error / MARGIN) and the target. The values below are a PROPOSAL,
+# not decided: pending Professor Rabczuk (question 3 of the 20 Nov draft).
+# They are used only with VERIF_ABS_TARGETS=proposal; by default no absolute
+# target is applied and every stored verdict is unchanged.
+ABSOLUTE_TARGETS_PROPOSAL = [
+    (r"(reaction|strain_energy)", 0.01,
+     "global stiffness/energy quantities used in design: 1% (proposal)"),
+    (r"(disp|^u_|^v_|^w_)", 0.01, "displacements: 1% (proposal)"),
+    (r"(avg|gk)", 0.05, "region-averaged stresses (fatigue/strength screening): 5% "
+                        "(proposal)"),
+    (r"(peak|max)", 0.05, "peak stresses, only where a finite limit exists: 5% (proposal)"),
+]
+
+
+def absolute_target(qoi):
+    import os
+    if os.environ.get("VERIF_ABS_TARGETS") != "proposal":
+        return None, "no absolute target set"
+    for pat, t, src in ABSOLUTE_TARGETS_PROPOSAL:
+        if re.search(pat, qoi):
+            return t, src
+    return None, "no absolute target proposed for this QoI"
+
+
 def required_uncertainty(geometry, qoi):
     """(required relative uncertainty or None, explanation)."""
     err, src = surrogate_error(geometry, qoi)
-    if err is None:
+    tgt, tsrc = absolute_target(qoi)
+    cands = []
+    if err is not None:
+        cands.append((err / MARGIN, f"best surrogate error {err:.2%} / {MARGIN:g} ({src})"))
+    if tgt is not None:
+        cands.append((tgt, f"absolute target {tgt:.2%} ({tsrc})"))
+    if not cands:
         return None, src + "; the class ceiling applies"
-    return err / MARGIN, f"best surrogate error {err:.2%} / {MARGIN:g} ({src})"
+    return min(cands)

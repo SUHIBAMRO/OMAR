@@ -1,0 +1,86 @@
+{
+ "status": "POST HOC: singular-order gate extended to degree k (lam < k) and the pre-asymptotic label (VERIF_POSTHOC_SINGULAR=1); not the pre-registered score",
+ "n_levels": 7,
+ "verdicts": {
+  "u_right_mid": {
+   "overall": "PASS",
+   "evidence": "rate",
+   "singular_order": {
+    "verdict": "PASS",
+    "observed": 1.6636253147019242,
+    "expected": 1.516698315764984,
+    "label": null
+   }
+  },
+  "v_top_right": {
+   "overall": "PASS",
+   "evidence": "rate",
+   "singular_order": {
+    "verdict": "PASS",
+    "observed": 3.294655426269801,
+    "expected": 1.516698315764984,
+    "label": null
+   }
+  },
+  "max_disp_mag": {
+   "overall": "PASS",
+   "evidence": "rate",
+   "singular_order": {
+    "verdict": "PASS",
+    "observed": 1.6636253147019242,
+    "expected": 1.516698315764984,
+    "label": null
+   }
+  },
+  "strain_energy": {
+   "overall": "PASS",
+   "evidence": "rate",
+   "singular_order": {
+    "verdict": "PASS",
+    "observed": 1.5911574437615144,
+    "expected": 1.516698315764984,
+    "label": null
+   }
+  },
+  "hole_avg_sigma_xx": {
+   "overall": "PASS",
+   "evidence": "band",
+   "singular_order": {
+    "verdict": "PASS",
+    "observed": 12.669503857203916,
+    "expected": 1.516698315764984,
+    "label": null
+   }
+  },
+  "hole_gk_avg_sigma_xx": {
+   "overall": "FAIL",
+   "evidence": "rate",
+   "singular_order": {
+    "verdict": "FAIL",
+    "observed": 0.38285669525931276,
+    "expected": 1.516698315764984,
+    "label": null
+   }
+  },
+  "hole_peak_sigma_xx": {
+   "overall": "FAIL",
+   "evidence": "rate",
+   "singular_order": {
+    "verdict": "FAIL",
+    "observed": -0.01034861678022386,
+    "expected": -0.24165084211750798,
+    "label": null
+   }
+  },
+  "peak_von_mises": {
+   "overall": "FAIL",
+   "evidence": "none",
+   "singular_order": {
+    "verdict": "FAIL",
+    "observed": -0.02827198627147095,
+    "expected": -0.24165084211750798,
+    "label": null
+   }
+  }
+ }
+}

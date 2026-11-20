@@ -25613,3 +25613,65 @@ NEEDS OMAR: review report + email; manuscript groove stresses/SCF must be
 recomputed with the fixed code (his go-ahead); Gaussian surrogate errors
 (GPU); billed LLM ablation (~$6-9); absolute accuracy targets; Q20/P1 or IGA
 decision; CSM/CFM papers.
+
+### 2026-11-20 -- Omar: "complete all points, all approved; the report LAST, after the experiments; save everything" (F1-F9)
+Prof. Rabczuk's attachment = OpenPINN/PINO paper (Wang, ..., Rabczuk, ..., Sun),
+saved as advisor_feedback/2026-11-19_Rabczuk_attachment_OpenPINN.pdf; reading note
+advisor_feedback/2026-11-20_OpenPINN_reading_note.md (F7, done).
+
+**F9 -- plate with a hole (OpenPINN Sec. 5.3) as a held-out benchmark (DONE).**
+plate_hole.py (scikit-fem, Q9, plane stress, structured polar mesh, m = 2..64, h = 1/m;
+strategies g = 1.5/2.0 at m = 16). Spec, adapter, problem text, rule predictions and my
+expectations committed BEFORE any solve (692e140, plate_hole_preregistration.json).
+- Pre-registered score (6 levels, plate_hole_result_6levels.json): rules 1/6, my
+  expectations 1/9. Main reason: the singular-order gate is implemented for degree-1
+  elements only -> INCONCLUSIVE for every QoI (neither the rules nor I anticipated it).
+  All convergence gates PASS (hole peak too: order 0.86-0.96, Gauss-point offset).
+  The global von Mises peak stayed at the HOLE on all 6 levels (corner singularity
+  lambda = 0.758 is weak); my expectation "peak at a corner, diverging" was wrong
+  at these resolutions.
+- Post hoc (labelled): corner-region von Mises grows 1.44 -> 3.01 MPa, local slopes
+  -> -0.240 (theory lambda-1 = -0.242). Prediction recorded before solving m = 128
+  (plate_hole_m128_prediction.json, c10262d): the global peak moves to the corner
+  (crossover m ~ 106). m = 128 (3.15M dof; symmetric half model + chunked assembly +
+  Pardiso, checked against the full model to <= 4e-12): ALL 5 predictions met (peak at
+  (0, 2), 3.562 MPa vs 3.55 +-3%, slope -0.2414, hole peak 3.382 in [3.375, 3.392],
+  displacements/energy change 3e-6). 7-level score: rules 1/6, expectations 2/9.
+- Q9 plane-stress MMS: L2 3.00, H1 2.00 (plate_hole_mms.json).
+- Diagnosis (facts added post hoc): misattributes the INCONCLUSIVE verdicts to
+  "pre-asymptotic" (no hypothesis "check not implemented for this element"); for the
+  global peak at 7 levels it first found NO cause (M1 refuted: slope over the finest 5
+  dominated by hole values). Post hoc fix in t_point_singularity: if the finest maximum
+  lies at a listed singular corner, test the corner series -> M1 supported (h^-0.236).
+- Post hoc gate (VERIF_POSTHOC_SINGULAR=1, degree k with lambda < k): displacements
+  PASS; strain energy order 1.76 (6 levels) -> 1.59 (7 levels) vs 2 lambda = 1.52
+  (PASS at 7 levels: supports the pre-asymptotic reading, as in Cook); NEW false alarm:
+  the Gaussian hole average has converged to 1e-6, its fitted order (0.38) is noise and
+  the lower-bound check FAILs it (plate_hole_posthoc_rules.json). Not tuned further.
+- OpenPINN reference error (plate_hole_reference_error.json, energy norm from
+  ||e||_E^2 = 2(W - W_h)): Q4 at h = 0.025 (their h; stand-in for their unknown mesh)
+  1.07% energy norm, 0.015% point displacement; Q9 m = 128 0.125%. Their surrogate
+  errors 3.5-6.3% (relative L2 displacement) -> their reference is adequate for that
+  metric (margin > 3 even in the energy norm), NOT for a peak stress (corner unbounded).
+
+**F6 (DONE, as switches, default OFF; no stored verdict changes):**
+gates.singular_order_gate(preasymptotic=..., degree=...) + orchestrate
+VERIF_POSTHOC_SINGULAR=1 (degree k with lambda < k; global order in (2 lambda + tol,
+2k] -> PASS labelled "pre-asymptotic (post hoc rule)"). requirements.py
+ABSOLUTE_TARGETS_PROPOSAL (globals 1%, displacements 1%, region averages 5%, bounded
+peaks 5%; PROPOSAL pending Prof. Rabczuk), active only with VERIF_ABS_TARGETS=proposal;
+required uncertainty = min(surrogate error / 3, target). 55 tests pass.
+
+**F4 (script + job DONE; RUN NEEDS OMAR ON THE CLUSTER):**
+omar_pfem/evaluate_b3_checkpoints_gaussian.py + f4_gaussian_surrogate_errors_job.sh:
+every u-only checkpoint vs the CACHED 950,400-el reference, Gaussian weight
+exp(-(d/2R0)^2) within 0.25 of the groove root (the agent's gk2 definition), sharp
+sphere next to it; self- and scale-relative errors; prints the best error per gk2 QoI
+for requirements.py. CPU smoke test passed (13x12x19 mesh; the 11 smoke checkpoints are
+byte-identical untrained copies, so only the pipeline is tested); identity check
+(prediction = truth) gives exactly 0. Caveat: hex8 950,400 reference, not the Q20
+family the agent certified.
+
+Running / pending: F1 contour re-run -> 47,040 Q20 solve (background chain), then F3
+Q20/P1 runs (queued), F5 billed ablation (running, b1 done, b2 in progress), F2
+manuscript edits after F1, F8 report + email LAST.

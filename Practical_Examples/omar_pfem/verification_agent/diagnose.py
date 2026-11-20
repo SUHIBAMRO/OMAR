@@ -214,6 +214,21 @@ def _b3_pressure_scatter_uncached():
     return out
 
 
+def _plate_h_hole():
+    from omar_pfem.verification_agent.orchestrate import PlateHoleAdapter
+    from omar_pfem.verification_agent.plate_hole import hole_element_size
+    return {r["n_elem"]: {"h_max": hole_element_size(r["m"])} for r in PlateHoleAdapter().rows}
+
+
+def _plate_code_ok():
+    from omar_pfem.verification_agent.plate_hole import MMS_OUT
+    if not os.path.exists(MMS_OUT):
+        return None, "no MMS run for the Q9 plane-stress element"
+    d = json.load(open(MMS_OUT))
+    return d["as_expected"], (f"2D MMS ({d['element']}): rates L2 {d['rates']['L2']:.2f} "
+                              f"(theory 3), H1 {d['rates']['H1_semi']:.2f} (theory 2)")
+
+
 FACTS = {
     "unit_square": {
         "name": "B1", "element": "Q4", "degree": 1, "quadrature": "full", "nu": 0.3,
@@ -248,6 +263,27 @@ FACTS = {
         "linear_solver": ("direct sparse LU", None),
         "fullint": None,
     },
+    # plate with a hole (OpenPINN/PINO case). Facts written AFTER the
+    # pre-registered ladder was solved (post hoc); geometry/discretisation only.
+    "plate_hole": {
+        "name": "Plate with hole", "element": "Q9", "degree": 2, "quadrature": "full",
+        "nu": 0.3, "plane": "stress", "material": "small-strain linear elastic",
+        "corners": [{"where": "fixed left edge meets the free bottom edge at (0,0)",
+                     "angle": np.pi / 2, "bc": ("clamped", "free")},
+                    {"where": "fixed left edge meets the free top edge at (0,2)",
+                     "angle": np.pi / 2, "bc": ("clamped", "free")}],
+        # only the global maximum's region contains the corners; the hole QoIs
+        # are taken within 0.1 of (1, 1.25), 1 m from them
+        "corners_in_qoi_region": ("peak_von_mises",),
+        "corner_xy": [(0.0, 0.0), (0.0, 2.0)],
+        "corner_region_qoi": "posthoc_corner_peak_von_mises",   # post hoc
+        "feature_radius": {"name": "hole radius", "rho": 0.25, "h_root": _plate_h_hole},
+        "code_check": _plate_code_ok,
+        "tolerance_check": lambda: (0.0, "linear problem solved in one direct step (no "
+                                         "Newton iteration)"),
+        "linear_solver": ("direct sparse LU (SuperLU)", None),
+        "fullint": None,
+    },
     "bushing_groove": {
         "name": "B3", "element": "Q20", "degree": 2, "quadrature": "reduced", "nu": 0.45,
         "corners": [{"where": "Dirichlet inner/outer surfaces meet the free end faces "
@@ -271,7 +307,8 @@ def corner_lambda(facts):
     """Smallest singular exponent over the problem's corners/edges (plane
     strain eigenproblem), or None."""
     from omar_pfem.verification_agent import singularity as S
-    lams = [S.smallest_exponent(c["angle"], c["bc"][0], c["bc"][1], facts["nu"], "strain")
+    lams = [S.smallest_exponent(c["angle"], c["bc"][0], c["bc"][1], facts["nu"],
+                                facts.get("plane", "strain"))
             for c in facts["corners"]]
     lams = [l for l in lams if l is not None]      # regular corners have no exponent < 1
     return min(lams) if lams else None
@@ -325,6 +362,30 @@ def t_point_singularity(c):
         return _r(SUPPORTED, f"log-log slope of the peak {slope:.3f} matches lambda-1 = "
                              f"{lam - 1:.3f}",
                   remedy="not a usable reference value: no finite limit exists")
+    # POST HOC (added after the plate-with-hole 128 level): a weak singularity
+    # can stay below a finite concentration elsewhere for several levels; the
+    # maximum then jumps to the corner. Test the corner's own series when the
+    # finest maximum lies at a listed singular corner.
+    cq, xy = c.facts.get("corner_region_qoi"), c.facts.get("corner_xy")
+    rows = getattr(c.adapter, "rows", [])
+    if cq and xy and rows and rows[-1].get("peak_location") is not None:
+        loc = np.asarray(rows[-1]["peak_location"])
+        at_corner = min(np.linalg.norm(loc - np.asarray(p)) for p in xy) < 0.1
+        cv = [r.get(cq) for r in rows]
+        if at_corner and None not in cv:
+            cs = float(np.polyfit(np.log(hs[-5:]), np.log(np.abs(cv[-5:])), 1)[0])
+            if abs(cs - (lam - 1)) < 0.15:
+                where = [r["m"] if "m" in r else i for i, r in enumerate(rows)
+                         if min(np.linalg.norm(np.asarray(r["peak_location"]) - np.asarray(p))
+                                for p in xy) < 0.1]
+                return _r(SUPPORTED,
+                          f"the maximum lies at a singular corner on level(s) {where} (elsewhere "
+                          f"before: slope of the maximum {slope:.3f}); the corner-region peak "
+                          f"({cq}) grows like h^{cs:.3f}, theory h^{lam - 1:.3f}: the maximum "
+                          "is unbounded and switches to the corner once that dominates",
+                          remedy="not a usable reference value: no finite limit exists; report "
+                                 "the finite concentration as a region maximum away from the "
+                                 "corners, or a stress-intensity factor at the corner")
     return _r(REFUTED, f"peak slope {slope:.3f} does not match a growth h^{lam - 1:.3f}")
 
 
@@ -625,7 +686,8 @@ def t_physical_model(c):
     lo = min(dets)
     if 0.5 < lo < 2.0:
         return _r(REFUTED, f"min det F >= {lo:.3f} on every level: moderate deformation, within "
-                           "the range of the compressible neo-Hookean model; no sign that a "
+                           f"the range of the {c.facts.get('material', 'compressible neo-Hookean')}"
+                           " model; no sign that a "
                            "different model or scale is needed",
                   remedy=None)
     return _r(SUPPORTED, f"min det F reaches {lo:.3f}: extreme volume change; check whether "
@@ -673,6 +735,13 @@ class Hyp:
     order: int = 0              # tie-break for the next investigation (cheap first)
 
 
+def _corners_in_region(c):
+    """facts["corners_in_qoi_region"]: True/False for the whole problem, or
+    the collection of QoI names whose region contains a singular corner."""
+    f = c.facts["corners_in_qoi_region"]
+    return c.qoi in f if isinstance(f, (set, frozenset, tuple, list)) else bool(f)
+
+
 def _is_peak(c):
     return c.qoi_class == "pointwise_peak"
 
@@ -680,7 +749,7 @@ def _is_peak(c):
 HYPOTHESES = [
     Hyp("M1", "mathematical/physical",
         "a geometric singularity makes the true peak unbounded",
-        lambda c: _is_peak(c) and bool(c.facts["corners"]) and c.facts["corners_in_qoi_region"],
+        lambda c: _is_peak(c) and bool(c.facts["corners"]) and _corners_in_region(c),
         t_point_singularity),
     Hyp("M2", "mathematical/physical",
         "corner/edge singularities reduce the convergence order of global quantities",

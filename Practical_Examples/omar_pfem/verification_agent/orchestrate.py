@@ -234,6 +234,12 @@ class PlateHoleAdapter:
     def series(self, qoi):
         return self.hs, [r[qoi] for r in self.rows], None
 
+    @property
+    def family(self):
+        # for the diagnosis engine (post hoc): element counts and det F per level
+        return [{"n_elem": r["n_elem"], "min_detF": r.get("posthoc_min_detF")}
+                for r in self.rows]
+
     def singular_exponent(self):
         from omar_pfem.verification_agent.plate_hole import corner_exponent
         return corner_exponent()
@@ -476,10 +482,15 @@ def run_check(adapter, check, qoi, params, element=None, conv_params=None):
     if check == "singular_order":
         hs, vals, _ = adapter.series(qoi)
         lam = getattr(adapter, "singular_exponent", lambda: None)()
-        if element is not None and trees.ELEMENT_DEGREE.get(element) != 1:
+        k = trees.ELEMENT_DEGREE.get(element, 1) if element is not None else 1
+        # POST HOC switch (default off; see gates.singular_order_gate): degree k
+        # with lam < k (same rates: the corner limits them), pre-asymptotic label
+        posthoc = os.environ.get("VERIF_POSTHOC_SINGULAR") == "1"
+        if k != 1 and not (posthoc and lam is not None and lam < k):
             return {"gate": "singular_order", "verdict": "INCONCLUSIVE",
                     "reason": "theory implemented for degree-1 elements only"}
-        return gates.singular_order_gate(hs, vals, lam, trees.classify_qoi(qoi))
+        return gates.singular_order_gate(hs, vals, lam, trees.classify_qoi(qoi), degree=k,
+                                         preasymptotic=posthoc)
     if check == "anchored_robustness":
         s = adapter.strategies(qoi)
         if s is None:

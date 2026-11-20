@@ -168,6 +168,35 @@
   "posthoc_max_detF": 1.000011369621167
  },
  {
+  "posthoc_corner_peak_von_mises": 3562013.1650800915,
+  "posthoc_corner_peak_location": [
+   0.0016233197002764542,
+   1.9997584248312306
+  ],
+  "posthoc_min_detF": 0.9999956739050446,
+  "posthoc_max_detF": 1.0000134081742196,
+  "m": 128,
+  "g": 1.0,
+  "h": 0.0078125,
+  "n_elem": 393216,
+  "n_dof": 3149824,
+  "wall_clock_s": 54.5635781288147,
+  "linear_solver": "pardiso (chunked, low memory), symmetric half model y >= 1",
+  "u_right_mid": 1.1881910764499839e-05,
+  "v_top_right": -6.926466736766569e-07,
+  "max_disp_mag": 1.1881910764499839e-05,
+  "strain_energy": 11.003600566008357,
+  "hole_avg_sigma_xx": 2345344.544160649,
+  "hole_gk_avg_sigma_xx": 2639004.5686533186,
+  "hole_peak_sigma_xx": 3382258.295560207,
+  "peak_von_mises": 3562013.1650800915,
+  "peak_location": [
+   0.0016233197002764542,
+   1.9997584248312306
+  ],
+  "hole_region_points": 42910
+ },
+ {
   "m": 16,
   "g": 1.5,
   "h": 0.0625,

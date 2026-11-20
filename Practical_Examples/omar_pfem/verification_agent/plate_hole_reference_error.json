@@ -1,0 +1,123 @@
+{
+ "status": "post hoc",
+ "W_extrapolated": 11.003617816674348,
+ "W_order": 1.5303521951010433,
+ "W_finest": 11.003600566008357,
+ "u_right_mid_extrapolated": 1.1881930982206989e-05,
+ "note": "relative L2 displacement error (the paper's metric) is smaller than the relative energy-norm error, typically by a factor of order h",
+ "q2": [
+  {
+   "element": "Q9",
+   "m": 2,
+   "h_outer": 0.5,
+   "n_dof": 832,
+   "energy_norm_rel_error": 0.040184780854692306,
+   "u_right_mid_rel_error": 0.0023172551293165647
+  },
+  {
+   "element": "Q9",
+   "m": 4,
+   "h_outer": 0.25,
+   "n_dof": 3200,
+   "energy_norm_rel_error": 0.019609503356872157,
+   "u_right_mid_rel_error": 0.0004962828946286919
+  },
+  {
+   "element": "Q9",
+   "m": 8,
+   "h_outer": 0.125,
+   "n_dof": 12544,
+   "energy_norm_rel_error": 0.010701498750063812,
+   "u_right_mid_rel_error": 0.0001332884858196948
+  },
+  {
+   "element": "Q9",
+   "m": 16,
+   "h_outer": 0.0625,
+   "n_dof": 49664,
+   "energy_norm_rel_error": 0.006171848009683461,
+   "u_right_mid_rel_error": 4.2271540242728634e-05
+  },
+  {
+   "element": "Q9",
+   "m": 32,
+   "h_outer": 0.03125,
+   "n_dof": 197632,
+   "energy_norm_rel_error": 0.003616738414326162,
+   "u_right_mid_rel_error": 1.4271676737656503e-05
+  },
+  {
+   "element": "Q9",
+   "m": 64,
+   "h_outer": 0.015625,
+   "n_dof": 788480,
+   "energy_norm_rel_error": 0.002128022137809882,
+   "u_right_mid_rel_error": 4.915036992610194e-06
+  },
+  {
+   "element": "Q9",
+   "m": 128,
+   "h_outer": 0.0078125,
+   "n_dof": 3149824,
+   "energy_norm_rel_error": 0.0012520889542466847,
+   "u_right_mid_rel_error": 1.7015506301775976e-06
+  }
+ ],
+ "q1": [
+  {
+   "element": "Q4 (polygonal hole)",
+   "m": 8,
+   "h_outer": 0.125,
+   "n_dof": 3200,
+   "strain_energy": 10.982794261735233,
+   "u_right_mid": 1.1850802386058084e-05,
+   "v_top_right": -6.994533550762919e-07,
+   "energy_norm_rel_error": 0.043502046431887875,
+   "u_right_mid_rel_error": 0.002619826372962442
+  },
+  {
+   "element": "Q4 (polygonal hole)",
+   "m": 16,
+   "h_outer": 0.0625,
+   "n_dof": 12544,
+   "strain_energy": 10.997446963417081,
+   "u_right_mid": 1.1873008756186422e-05,
+   "v_top_right": -6.944023348256941e-07,
+   "energy_norm_rel_error": 0.02368126297625888,
+   "u_right_mid_rel_error": 0.0007509070734317244
+  },
+  {
+   "element": "Q4 (polygonal hole)",
+   "m": 32,
+   "h_outer": 0.03125,
+   "n_dof": 49664,
+   "strain_energy": 11.001756977661291,
+   "u_right_mid": 1.1879330453296374e-05,
+   "v_top_right": -6.931001429712054e-07,
+   "energy_norm_rel_error": 0.01300429019566156,
+   "u_right_mid_rel_error": 0.00021886416564022472
+  },
+  {
+   "element": "Q4 (polygonal hole)",
+   "m": 40,
+   "h_outer": 0.025,
+   "n_dof": 77440,
+   "strain_energy": 11.002346659193739,
+   "u_right_mid": 1.18801733524136e-05,
+   "v_top_right": -6.929412593520849e-07,
+   "energy_norm_rel_error": 0.010748105727390994,
+   "u_right_mid_rel_error": 0.0001479245920566906
+  },
+  {
+   "element": "Q4 (polygonal hole)",
+   "m": 64,
+   "h_outer": 0.015625,
+   "n_dof": 197632,
+   "strain_energy": 11.003043638095392,
+   "u_right_mid": 1.1881154013851584e-05,
+   "v_top_right": -6.927668126219869e-07,
+   "energy_norm_rel_error": 0.007223634177663487,
+   "u_right_mid_rel_error": 6.539074806685264e-05
+  }
+ ]
+}

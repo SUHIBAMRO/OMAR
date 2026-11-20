@@ -8,5 +8,31 @@
   "local corner slope between m = 64 and 128": "-0.242 within 0.03",
   "hole_peak_sigma_xx": "between 3.375 and 3.392 MPa (monotone toward the Richardson limit)",
   "displacements and strain energy": "change by less than 1e-4 relative from m = 64"
+ },
+ "outcome_after_solving_m128": {
+  "solved_with": "pardiso (chunked, low memory), symmetric half model y >= 1 (checked against the full model at m = 16 and 32: <= 4e-12)",
+  "global peak at a clamped/free corner": {
+   "met": true,
+   "location": [
+    0.0016233197002764542,
+    1.9997584248312306
+   ]
+  },
+  "corner von Mises 3.55 MPa within 3%": {
+   "met": true,
+   "value": 3562013.1650800915
+  },
+  "local corner slope -0.242 within 0.03": {
+   "met": true,
+   "value": -0.24143802969835382
+  },
+  "hole_peak_sigma_xx in [3.375, 3.392] MPa": {
+   "met": true,
+   "value": 3382258.295560207
+  },
+  "displacements and energy change < 1e-4": {
+   "met": true,
+   "max_change": 5.410836446229084e-06
+  }
  }
 }
