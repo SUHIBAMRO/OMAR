@@ -651,3 +651,11 @@ def test_literature_agent_rejects_invented_quotes():
     assert not any(n.startswith("singular features") for n in L.needs(card, ok))
     card["singular_features"][0]["singular"] = True
     assert any(n.startswith("singular features") for n in L.needs(card, ok))
+
+
+def test_literature_quote_check_is_unicode_normalised():
+    """A quote with a composed accent must match paper text that carries the
+    base letter + combining accent (pdftotext output)."""
+    from omar_pfem.verification_agent import literature_agent as L
+    paper = "the energy ⟨ĉref , T⟩ is the mechanism-controlled energy"
+    assert L.normalise("⟨ĉref , T⟩ is the mechanism") in L.normalise(paper)

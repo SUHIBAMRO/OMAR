@@ -1,0 +1,503 @@
+{
+ "csm_truss": [
+  {
+   "pdf": "2026-11-20_Rabczuk_CSM_Constitutive-Set_Mechanics_arXiv2610.07151.pdf",
+   "section_used": "section 4.1: Study 1: linear elasticity",
+   "card": {
+    "title": "Study 1: linear elasticity \u2014 13-member planar truss with uncertain member moduli (worst-case compliance under a constitutive knowledge set)",
+    "geometry": {
+     "value": "Planar truss, statically indeterminate to degree two, 13 members of unit cross-sectional area. Two members meet at an unloaded free node. Node coordinates, member lengths, span and height are not given in the text; there is only a figure (Fig. 2a).",
+     "quote": "The mechanics is a planar truss, statically indeterminate"
+    },
+    "material": {
+     "value": "Linear elastic bars with uncertain Young's moduli E in R^13. Per-member bounds are [0.8, 1.2]. One loaded member has [0.75, 1.25]. The two uninterrogated members have [0.6, 1.4]. A batch-mean constraint, |(1/13) sum_e E_e - 1| <= 0.03, couples the members. Moduli are dimensionless/normalised (nominal 1). Units are not stated.",
+     "quote": "per-member bounds [0.8, 1.2] (one loaded member [0.75, 1.25], the two uninterrogated members"
+    },
+    "boundary_conditions": {
+     "value": "Pinned at one support and on a roller at the other support.",
+     "quote": "to degree two, with thirteen members of unit area, pinned at one support and on a roller at"
+    },
+    "loading": {
+     "value": "A single nodal load at the top-middle node. Its magnitude and direction are not stated.",
+     "quote": "the other, loaded at the top-middle node."
+    },
+    "discretisation": {
+     "value": "Direct-stiffness truss model K(E) = sum_e E_e K_e with 13 bar elements, one per member. For a pin-jointed truss under nodal loads this is exact, so there is no mesh. Vertex enumeration in the visible quotient uses 2904 candidates.",
+     "quote": "with thirteen members of unit area"
+    },
+    "reference": {
+     "type": "analytical",
+     "convergence_evidence": "none_stated",
+     "quote": "where every\nquantity can be checked by hand"
+    },
+    "qois": [
+     {
+      "name": "Witness-certified endpoint W(P)",
+      "kind": "global_energy",
+      "definition": "Upper endpoint of the response interval of the value function f(E) = -1/2 c(E), i.e. the stiffest coherent material, obtained by the witness loop. It needed 4/8/11 solves to reach relative width 1e-3/1e-5/1e-7.",
+      "reported_value": "-1.60366 (4 / 8 / 11 solves)",
+      "quote": "\u22121.60366; 4 / 8 / 11"
+     },
+     {
+      "name": "inf_P f",
+      "kind": "global_energy",
+      "definition": "Lower endpoint of the value function over P, computed by vertex enumeration in the visible quotient (2904 candidates).",
+      "reported_value": "-2.30621",
+      "quote": "inf P f , vertex enumeration in the visible quotient (2904 candidates)"
+     },
+     {
+      "name": "Classical worst-case compliance max_P c",
+      "kind": "compliance",
+      "definition": "max_P c = -2 inf_P f",
+      "reported_value": "4.61242",
+      "quote": "classical worst-case compliance maxP c = \u22122 inf P f"
+     },
+     {
+      "name": "Active witnesses / visible members",
+      "kind": "other",
+      "definition": "Number of active witnesses in the dual certificate, and the number of visible members n_vis out of 13.",
+      "reported_value": "2; 8",
+      "quote": "active witnesses in the dual certificate; nvis of 13"
+     },
+     {
+      "name": "Value change under motion of uninterrogated members",
+      "kind": "other",
+      "definition": "Change in the value function when the two uninterrogated (invisible) members' moduli are varied. Their identification as invisible is reported as 'yes'.",
+      "reported_value": "yes; 1.3e-15",
+      "quote": "uninterrogated members identified as invisible; value change under their motion"
+     },
+     {
+      "name": "Random-sample containment check",
+      "kind": "other",
+      "definition": "Whether 22 119 admissible random samples all lie inside the certified interval.",
+      "reported_value": "yes",
+      "quote": "22 119 admissible random samples all inside the certified interval"
+     },
+     {
+      "name": "Coherence gap, stiff end",
+      "kind": "global_energy",
+      "definition": "f(E_hi) - W(P), where E_hi is not in P",
+      "reported_value": "4.26e-2 (2.66%)",
+      "quote": "4.26 \u00d7 10\u22122 (2.66%)"
+     },
+     {
+      "name": "Coherence gap, soft end",
+      "kind": "compliance",
+      "definition": "c(E_lo) - max_P c, where E_lo is not in P",
+      "reported_value": "1.08e-1 (2.33%)",
+      "quote": "1.08 \u00d7 10\u22121 (2.33%)"
+     },
+     {
+      "name": "Box-only set reproduces f(E_hi)",
+      "kind": "other",
+      "definition": "With per-member bounds only (a lattice), W = f(E_hi) exactly, in 2 solves.",
+      "reported_value": "yes",
+      "quote": "Box-only set (lattice): W = f (Ehi ) exactly, 2 solves"
+     },
+     {
+      "name": "Complementary principle, coupled set, hull certificate",
+      "kind": "other",
+      "definition": "sup f^c on the hull of mapped vertices compared with 1/2 max_P c.",
+      "reported_value": "equal to 1e-15",
+      "quote": "Complementary principle, coupled set, hull of mapped vertices: sup f c vs 21 maxP c"
+     },
+     {
+      "name": "Value-criterion gain G_W(e)",
+      "kind": "other",
+      "definition": "Value-criterion gain of measuring each member's modulus.",
+      "reported_value": "0 for every member",
+      "quote": "Value-criterion gain GW (e), every member"
+     },
+     {
+      "name": "Interval-criterion gain G_R, best member",
+      "kind": "other",
+      "definition": "Interval-criterion gain for the most heavily loaded member.",
+      "reported_value": "member 10: 0.121",
+      "quote": "member 10: 0.121"
+     },
+     {
+      "name": "Interval-criterion gain G_R, member chosen by parameter width",
+      "kind": "other",
+      "definition": "G_R of the (uninterrogated) member that the parameter-width criterion selects.",
+      "reported_value": "member 12: 0.060",
+      "quote": "member 12: 0.060"
+     }
+    ],
+    "singular_features": [
+     {
+      "description": "Nodal point load and pin/roller supports on a pin-jointed truss. In the bar (truss) model, member forces are finite, so there is no stress singularity. There are no corners, notches or cracks in a continuum sense.",
+      "singular": false,
+      "inferred": true,
+      "quote": "the other, loaded at the top-middle node."
+     }
+    ],
+    "not_stated": [
+     "Node coordinates, member lengths, span and height of the truss (shown only in Fig. 2a)",
+     "Load magnitude and direction at the top-middle node",
+     "Physical units of the moduli, areas, lengths and load (all appear normalised)",
+     "Index of the loaded member that has bounds [0.75, 1.25] (not explicitly identified in the text)",
+     "Indices of the two uninterrogated members (shown dashed in figure only)",
+     "Solver/optimiser details of the witness loop beyond the relative-width tolerances",
+     "Tolerance used in the G_R > 0 criterion |E*_e - E_*,e| > 2\u00b7tolerance"
+    ]
+   },
+   "quotes_found": {
+    "geometry": true,
+    "material": true,
+    "boundary_conditions": true,
+    "loading": true,
+    "discretisation": true,
+    "reference": true,
+    "qois[0]": true,
+    "qois[1]": true,
+    "qois[2]": true,
+    "qois[3]": true,
+    "qois[4]": true,
+    "qois[5]": true,
+    "qois[6]": true,
+    "qois[7]": true,
+    "qois[8]": true,
+    "qois[9]": true,
+    "qois[10]": true,
+    "qois[11]": true,
+    "qois[12]": true,
+    "singular_features[0]": true
+   },
+   "quote_rate": 1.0,
+   "qoi_classes": [
+    {
+     "name": "Witness-certified endpoint W(P)",
+     "kind": "global_energy",
+     "class": "global"
+    },
+    {
+     "name": "inf_P f",
+     "kind": "global_energy",
+     "class": "global"
+    },
+    {
+     "name": "Classical worst-case compliance max_P c",
+     "kind": "compliance",
+     "class": "global"
+    },
+    {
+     "name": "Active witnesses / visible members",
+     "kind": "other",
+     "class": "out_of_scope"
+    },
+    {
+     "name": "Value change under motion of uninterrogated members",
+     "kind": "other",
+     "class": "out_of_scope"
+    },
+    {
+     "name": "Random-sample containment check",
+     "kind": "other",
+     "class": "out_of_scope"
+    },
+    {
+     "name": "Coherence gap, stiff end",
+     "kind": "global_energy",
+     "class": "global"
+    },
+    {
+     "name": "Coherence gap, soft end",
+     "kind": "compliance",
+     "class": "global"
+    },
+    {
+     "name": "Box-only set reproduces f(E_hi)",
+     "kind": "other",
+     "class": "out_of_scope"
+    },
+    {
+     "name": "Complementary principle, coupled set, hull certificate",
+     "kind": "other",
+     "class": "out_of_scope"
+    },
+    {
+     "name": "Value-criterion gain G_W(e)",
+     "kind": "other",
+     "class": "out_of_scope"
+    },
+    {
+     "name": "Interval-criterion gain G_R, best member",
+     "kind": "other",
+     "class": "out_of_scope"
+    },
+    {
+     "name": "Interval-criterion gain G_R, member chosen by parameter width",
+     "kind": "other",
+     "class": "out_of_scope"
+    }
+   ],
+   "vocabulary_gaps": [],
+   "needs": [
+    "analytical reference: check that the closed form solves the problem as stated (no refinement family needed)",
+    "missing inputs must be fixed (and declared) before solving: Node coordinates, member lengths, span and height of the truss (shown only in Fig. 2a); Load magnitude and direction at the top-middle node; Physical units of the moduli, areas, lengths and load (all appear normalised); Index of the loaded member that has bounds [0.75, 1.25] (not explicitly identified in the text); Indices of the two uninterrogated members (shown dashed in figure only); Solver/optimiser details of the witness loop beyond the relative-width tolerances; Tolerance used in the G_R > 0 criterion |E*_e - E_*,e| > 2\u00b7tolerance"
+   ],
+   "problem_text": "Study 1: linear elasticity \u2014 13-member planar truss with uncertain member moduli (worst-case compliance under a constitutive knowledge set).\nGeometry: Planar truss, statically indeterminate to degree two, 13 members of unit cross-sectional area. Two members meet at an unloaded free node. Node coordinates, member lengths, span and height are not given in the text; there is only a figure (Fig. 2a).\nMaterial: Linear elastic bars with uncertain Young's moduli E in R^13. Per-member bounds are [0.8, 1.2]. One loaded member has [0.75, 1.25]. The two uninterrogated members have [0.6, 1.4]. A batch-mean constraint, |(1/13) sum_e E_e - 1| <= 0.03, couples the members. Moduli are dimensionless/normalised (nominal 1). Units are not stated.\nBoundary conditions: Pinned at one support and on a roller at the other support.\nLoading: A single nodal load at the top-middle node. Its magnitude and direction are not stated.\nDiscretisation in the paper: Direct-stiffness truss model K(E) = sum_e E_e K_e with 13 bar elements, one per member. For a pin-jointed truss under nodal loads this is exact, so there is no mesh. Vertex enumeration in the visible quotient uses 2904 candidates.\nFeatures: Nodal point load and pin/roller supports on a pin-jointed truss. In the bar (truss) model, member forces are finite, so there is no stress singularity. There are no corners, notches or cracks in a continuum sense..\nQuestion: which of these quantities can serve as trustworthy reference values: Witness-certified endpoint W(P) (Upper endpoint of the response interval of the value function f(E) = -1/2 c(E), i.e. the stiffest coherent material, obtained by the witness loop. It needed 4/8/11 solves to reach relative width 1e-3/1e-5/1e-7.); inf_P f (Lower endpoint of the value function over P, computed by vertex enumeration in the visible quotient (2904 candidates).); Classical worst-case compliance max_P c (max_P c = -2 inf_P f); Active witnesses / visible members (Number of active witnesses in the dual certificate, and the number of visible members n_vis out of 13.); Value change under motion of uninterrogated members (Change in the value function when the two uninterrogated (invisible) members' moduli are varied. Their identification as invisible is reported as 'yes'.); Random-sample containment check (Whether 22 119 admissible random samples all lie inside the certified interval.); Coherence gap, stiff end (f(E_hi) - W(P), where E_hi is not in P); Coherence gap, soft end (c(E_lo) - max_P c, where E_lo is not in P); Box-only set reproduces f(E_hi) (With per-member bounds only (a lattice), W = f(E_hi) exactly, in 2 solves.); Complementary principle, coupled set, hull certificate (sup f^c on the hull of mapped vertices compared with 1/2 max_P c.); Value-criterion gain G_W(e) (Value-criterion gain of measuring each member's modulus.); Interval-criterion gain G_R, best member (Interval-criterion gain for the most heavily loaded member.); Interval-criterion gain G_R, member chosen by parameter width (G_R of the (uninterrogated) member that the parameter-width criterion selects.)?",
+   "score": {
+    "geometry": true,
+    "material": true,
+    "reference.type": true,
+    "QoIs found": true,
+    "singular features as expected": true,
+    "reference not flagged (exact)": true
+   },
+   "quote_rate_after_nfc_fix_posthoc": 1.0
+  }
+ ],
+ "csm_shell": [
+  {
+   "pdf": "2026-11-20_Rabczuk_CSM_Constitutive-Set_Mechanics_arXiv2610.07151.pdf",
+   "section_used": "section 4.4: Study 4: an assembled composite shell",
+   "card": {
+    "title": "Study 4: assembled composite shell, single-edge-notched tension specimen (finite-strain Reissner\u2013Mindlin phase-field fracture), constitutive-set certification",
+    "geometry": {
+     "value": "Single-edge-notched tension specimen modelled as a shell, thickness 1 mm, seeded notch of length 14.4 mm, fibre orientation 30\u00b0 to the loading direction. In-plane specimen width and height are not stated.",
+     "quote": "thickness 1 mm, seeded notch of 14.4 mm, fibre orientation 30\u25e6 to the loading direction;"
+    },
+    "material": {
+     "value": "Transversely isotropic composite: matrix Em = 70 GPa, \u03bdm = 0.3; fibre Ef = 200 GPa, \u03bdf = 0.25; \u03bbmI = \u00b5mII = \u00b5LT = 1 GPa; Gc = 50 J/m2, Gc,int = 10 J/m2; \u2113c = \u2113\u03b2 = 5 mm; residual stiffness 1e-7. The energy is split into mechanism potentials \u03a8f(I4), \u03a8mx(IT, JT) and \u03a8int(Jft), plus closed-form terms. The three tensile potentials use the analytic reference law, are represented as cubic B-splines (nraw = 226), or are replaced by a learned law.",
+     "quote": "matrix Em = 70 GPa, \u03bdm = 0.3, fibre Ef = 200 GPa, \u03bdf = 0.25, \u03bbmI = \u00b5mII = \u00b5LT = 1 GPa,"
+    },
+    "boundary_conditions": {
+     "value": "Displacement control (tension) up to 20 \u00b5m. The section does not say which edges are clamped or loaded, or how the grips are constrained.",
+     "quote": "control to 20 \u00b5m in eight increments; increments are solved by alternate minimisation with"
+    },
+    "loading": {
+     "value": "Applied displacement up to 20 \u00b5m in eight increments, using alternate minimisation with load-step bisection. Increment 5 reached 11.25 \u00b5m of the scheduled 12.5 \u00b5m. The certified increments are k=2 (5.00 \u00b5m), k=4 (10.00 \u00b5m), k=5 (11.25 \u00b5m) and k=8 (20.00 \u00b5m). Bending is not exercised.",
+     "quote": "load-step bisection, the fifth reaching 11.25 \u00b5m of the scheduled 12.5 \u00b5m."
+    },
+    "discretisation": {
+     "value": "Structured mesh of 12 \u00d7 24 cells (576 triangles, 7100 DOF). Finite-strain Reissner\u2013Mindlin shell with quadratic displacements and rotations, linear phase fields, a 9-point surface quadrature rule and a 5-point through-thickness rule. Plane stress is enforced by a local Newton iteration on E33.",
+     "quote": "12 \u00d7 24 structured cells (576 triangles, 7100 degrees of"
+    },
+    "reference": {
+     "type": "single_mesh",
+     "convergence_evidence": "none_stated",
+     "quote": "A single-edge-notched tension specimen, 12 \u00d7 24 structured cells"
+    },
+    "qois": [
+     {
+      "name": "Peak reaction force",
+      "kind": "reaction",
+      "definition": "Maximum reaction force of the reference law against applied displacement. The paper calls it illustrative.",
+      "reported_value": "183 N at 11.25 \u00b5m",
+      "quote": "the reaction rises to a peak of 183 N at 11.25 \u00b5m and the crack traverses the specimen before"
+     },
+     {
+      "name": "Post-fracture reaction",
+      "kind": "reaction",
+      "definition": "Reaction force after the crack has crossed the specimen (illustrative)",
+      "reported_value": "28 N at 15 \u00b5m",
+      "quote": "15 \u00b5m, where the reaction has fallen to 28 N"
+     },
+     {
+      "name": "Mechanism-controlled energy <\u0109ref,T>",
+      "kind": "global_energy",
+      "definition": "Energy controlled by the three tensile mechanism potentials, evaluated at the reference law, at each certified increment",
+      "reported_value": "8.45, 29.07, 33.94, 46.72 \u00b5J at k=2,4,5,8",
+      "quote": "\u27e8\u0109ref , T \u27e9 is the mechanism-controlled energy"
+     },
+     {
+      "name": "Fracture energy of seeded notch",
+      "kind": "global_energy",
+      "definition": "Fracture energy of the seeded notch. It dominates the assembled energy.",
+      "reported_value": "1.887 J",
+      "quote": "The assembled energy is dominated by the fracture energy of the seeded notch, 1.887 J"
+     },
+     {
+      "name": "Worst-case upper bound Uk after one solve",
+      "kind": "other",
+      "definition": "Upper bound, after one solve, on the worst-case increase of the mechanism-controlled energy over the admissible set: Uk \u2212 fk(\u03c8ref)",
+      "reported_value": "0.282, 0.932, 1.081, 1.660 \u00b5J at k=2,4,5,8 (3.2%\u20133.6% of the mechanism-controlled energy)",
+      "quote": "At every certified increment a single mechanics solve furnishes an upper bound on the"
+     },
+     {
+      "name": "Uk after two solves and bracket width",
+      "kind": "other",
+      "definition": "Bound after a second solve at k=2 and k=8, and the width of the bracket |Uk \u2212 Lk|. The bracket is inverted.",
+      "reported_value": "Uk = 0.2808 \u00b5J (k=2), 1.6392 \u00b5J (k=8); bracket 6e-11 J and 3e-9 J",
+      "quote": "brings the bracket to 6 \u00d7 10\u221211 J and 3 \u00d7 10\u22129 J"
+     },
+     {
+      "name": "Cumulative visible dimension nvis",
+      "kind": "other",
+      "definition": "Number of constitutive directions that the visited states interrogate, out of nraw = 226",
+      "reported_value": "2, 2, 3, 4 at k=2,4,5,8",
+      "quote": "the cumulative visible dimension reaches 4 of 226"
+     },
+     {
+      "name": "Mechanism-resolved coherence gap",
+      "kind": "other",
+      "definition": "Coherence gap per mechanism under the certified regularity, at k=4 and k=8. With bounds, convexity and monotonicity only, all gaps are below 1e-4%.",
+      "reported_value": "fibre 0.029% (k=4) to 0.181% (k=8); matrix 0.003% after fracture; interaction 0",
+      "quote": "0.029% at initiation rising to 0.181% after fracture"
+     },
+     {
+      "name": "Socket consistency errors",
+      "kind": "other",
+      "definition": "Relative error of the spline socket at the reference coefficients compared with the original assembled code, for energy, residual norm and tangent Frobenius norm, over 8 states",
+      "reported_value": "4.7e-16, 4.9e-12, 1.6e-13",
+      "quote": "reproduced to 4.7 \u00d7 10\u221216 , 4.9 \u00d7 10\u221212 and 1.6 \u00d7 10\u221213 relative error"
+     },
+     {
+      "name": "Finite-difference residual check",
+      "kind": "other",
+      "definition": "Agreement between central finite differences of the assembled energy and the residual, over 20 DOFs, at a state perturbed by 1 \u00b5m",
+      "reported_value": "2.0e-8 max (median 3.5e-10)",
+      "quote": "of freedom of a state perturbed by 1 \u00b5m from equilibrium agree with the assembled residual to"
+     },
+     {
+      "name": "Learned ICNN held-out error",
+      "kind": "other",
+      "definition": "Held-out maximum relative error of the learned input-convex softplus networks (8 hidden units) for each mechanism. These are surrogates, not the reference.",
+      "reported_value": "\u03a8f 0.79%, \u03a8int 0.46%, \u03a8mx 25% (5% under another initialisation)",
+      "quote": "The held-out maximum relative errors are 0.79%"
+     },
+     {
+      "name": "Learned law slope at origin",
+      "kind": "other",
+      "definition": "Nonzero derivatives of the learned \u03a8f and \u03a8mx at zero strain. These break the stress-free condition, perturb the notch fracture energy by 1.1e-3 J, and make the shell fail to reach its first increment.",
+      "reported_value": "7.9 MPa and 10.5 MPa",
+      "quote": "7.9 MPa and 10.5 MPa"
+     }
+    ],
+    "singular_features": [
+     {
+      "description": "Tip of the seeded notch/crack (14.4 mm) in a single-edge-notched tension specimen. In the sharp-crack continuum the stress is singular; here it is regularised by a phase field with \u2113c = 5 mm.",
+      "singular": true,
+      "inferred": true,
+      "quote": "thickness 1 mm, seeded notch of 14.4 mm, fibre orientation 30\u25e6 to the loading direction;"
+     },
+     {
+      "description": "Possible corners where loaded or clamped grip edges meet traction-free lateral edges. The section does not state the boundary conditions, so this cannot be confirmed.",
+      "singular": true,
+      "inferred": true,
+      "quote": "A single-edge-notched tension specimen, 12 \u00d7 24 structured cells"
+     }
+    ],
+    "not_stated": [
+     "In-plane specimen width and height",
+     "Which edges are clamped or displaced, and the grip/rotation constraints",
+     "Geometry of the notch width and tip (radius) and how the notch is seeded",
+     "Exact element type label (triangles with quadratic displacements/rotations are implied, but no element name is given)",
+     "Mesh convergence study or error estimate for the reference solution",
+     "Explicit functional forms of the reference potentials and of the compressive branches",
+     "Grid extents I4max, ITmax, JTmax, Jftmax",
+     "Layup / ply stacking",
+     "Solver tolerances for the alternate minimisation and local Newton",
+     "Training-set size and training details of the learned network"
+    ]
+   },
+   "quotes_found": {
+    "geometry": true,
+    "material": true,
+    "boundary_conditions": true,
+    "loading": true,
+    "discretisation": true,
+    "reference": true,
+    "qois[0]": true,
+    "qois[1]": true,
+    "qois[2]": false,
+    "qois[3]": true,
+    "qois[4]": true,
+    "qois[5]": true,
+    "qois[6]": true,
+    "qois[7]": true,
+    "qois[8]": true,
+    "qois[9]": true,
+    "qois[10]": true,
+    "qois[11]": true,
+    "singular_features[0]": true,
+    "singular_features[1]": true
+   },
+   "quote_rate": 0.95,
+   "qoi_classes": [
+    {
+     "name": "Peak reaction force",
+     "kind": "reaction",
+     "class": "global"
+    },
+    {
+     "name": "Post-fracture reaction",
+     "kind": "reaction",
+     "class": "global"
+    },
+    {
+     "name": "Mechanism-controlled energy <\u0109ref,T>",
+     "kind": "global_energy",
+     "class": "global"
+    },
+    {
+     "name": "Fracture energy of seeded notch",
+     "kind": "global_energy",
+     "class": "global"
+    },
+    {
+     "name": "Worst-case upper bound Uk after one solve",
+     "kind": "other",
+     "class": "out_of_scope"
+    },
+    {
+     "name": "Uk after two solves and bracket width",
+     "kind": "other",
+     "class": "out_of_scope"
+    },
+    {
+     "name": "Cumulative visible dimension nvis",
+     "kind": "other",
+     "class": "out_of_scope"
+    },
+    {
+     "name": "Mechanism-resolved coherence gap",
+     "kind": "other",
+     "class": "out_of_scope"
+    },
+    {
+     "name": "Socket consistency errors",
+     "kind": "other",
+     "class": "out_of_scope"
+    },
+    {
+     "name": "Finite-difference residual check",
+     "kind": "other",
+     "class": "out_of_scope"
+    },
+    {
+     "name": "Learned ICNN held-out error",
+     "kind": "other",
+     "class": "out_of_scope"
+    },
+    {
+     "name": "Learned law slope at origin",
+     "kind": "other",
+     "class": "out_of_scope"
+    }
+   ],
+   "vocabulary_gaps": [],
+   "needs": [
+    "reference not verified: a refinement family (and strategies) is needed before its values can be used to measure surrogate errors",
+    "no independent code: cross-check with a second solver",
+    "singular features present: run the singular-order check; pointwise peaks there have no finite limit",
+    "missing inputs must be fixed (and declared) before solving: In-plane specimen width and height; Which edges are clamped or displaced, and the grip/rotation constraints; Geometry of the notch width and tip (radius) and how the notch is seeded; Exact element type label (triangles with quadratic displacements/rotations are implied, but no element name is given); Mesh convergence study or error estimate for the reference solution; Explicit functional forms of the reference potentials and of the compressive branches; Grid extents I4max, ITmax, JTmax, Jftmax; Layup / ply stacking; Solver tolerances for the alternate minimisation and local Newton; Training-set size and training details of the learned network",
+    "unsupported fields (quote not found in the paper), not used: qois[2]"
+   ],
+   "problem_text": "Study 4: assembled composite shell, single-edge-notched tension specimen (finite-strain Reissner\u2013Mindlin phase-field fracture), constitutive-set certification.\nGeometry: Single-edge-notched tension specimen modelled as a shell, thickness 1 mm, seeded notch of length 14.4 mm, fibre orientation 30\u00b0 to the loading direction. In-plane specimen width and height are not stated.\nMaterial: Transversely isotropic composite: matrix Em = 70 GPa, \u03bdm = 0.3; fibre Ef = 200 GPa, \u03bdf = 0.25; \u03bbmI = \u00b5mII = \u00b5LT = 1 GPa; Gc = 50 J/m2, Gc,int = 10 J/m2; \u2113c = \u2113\u03b2 = 5 mm; residual stiffness 1e-7. The energy is split into mechanism potentials \u03a8f(I4), \u03a8mx(IT, JT) and \u03a8int(Jft), plus closed-form terms. The three tensile potentials use the analytic reference law, are represented as cubic B-splines (nraw = 226), or are replaced by a learned law.\nBoundary conditions: Displacement control (tension) up to 20 \u00b5m. The section does not say which edges are clamped or loaded, or how the grips are constrained.\nLoading: Applied displacement up to 20 \u00b5m in eight increments, using alternate minimisation with load-step bisection. Increment 5 reached 11.25 \u00b5m of the scheduled 12.5 \u00b5m. The certified increments are k=2 (5.00 \u00b5m), k=4 (10.00 \u00b5m), k=5 (11.25 \u00b5m) and k=8 (20.00 \u00b5m). Bending is not exercised.\nDiscretisation in the paper: Structured mesh of 12 \u00d7 24 cells (576 triangles, 7100 DOF). Finite-strain Reissner\u2013Mindlin shell with quadratic displacements and rotations, linear phase fields, a 9-point surface quadrature rule and a 5-point through-thickness rule. Plane stress is enforced by a local Newton iteration on E33.\nFeatures: Tip of the seeded notch/crack (14.4 mm) in a single-edge-notched tension specimen. In the sharp-crack continuum the stress is singular; here it is regularised by a phase field with \u2113c = 5 mm.; Possible corners where loaded or clamped grip edges meet traction-free lateral edges. The section does not state the boundary conditions, so this cannot be confirmed..\nQuestion: which of these quantities can serve as trustworthy reference values: Peak reaction force (Maximum reaction force of the reference law against applied displacement. The paper calls it illustrative.); Post-fracture reaction (Reaction force after the crack has crossed the specimen (illustrative)); Fracture energy of seeded notch (Fracture energy of the seeded notch. It dominates the assembled energy.); Worst-case upper bound Uk after one solve (Upper bound, after one solve, on the worst-case increase of the mechanism-controlled energy over the admissible set: Uk \u2212 fk(\u03c8ref)); Uk after two solves and bracket width (Bound after a second solve at k=2 and k=8, and the width of the bracket |Uk \u2212 Lk|. The bracket is inverted.); Cumulative visible dimension nvis (Number of constitutive directions that the visited states interrogate, out of nraw = 226); Mechanism-resolved coherence gap (Coherence gap per mechanism under the certified regularity, at k=4 and k=8. With bounds, convexity and monotonicity only, all gaps are below 1e-4%.); Socket consistency errors (Relative error of the spline socket at the reference coefficients compared with the original assembled code, for energy, residual norm and tangent Frobenius norm, over 8 states); Finite-difference residual check (Agreement between central finite differences of the assembled energy and the residual, over 20 DOFs, at a state perturbed by 1 \u00b5m); Learned ICNN held-out error (Held-out maximum relative error of the learned input-convex softplus networks (8 hidden units) for each mechanism. These are surrogates, not the reference.); Learned law slope at origin (Nonzero derivatives of the learned \u03a8f and \u03a8mx at zero strain. These break the stress-free condition, perturb the notch fracture energy by 1.1e-3 J, and make the shell fail to reach its first increment.)?",
+   "score": {
+    "geometry": true,
+    "material": true,
+    "discretisation": true,
+    "reference.type": true,
+    "reference.convergence_evidence": true,
+    "QoIs found": true,
+    "reference flagged as unverified": true,
+    "missing input listed": true
+   },
+   "quote_rate_after_nfc_fix_posthoc": 1.0
+  }
+ ],
+ "_cost_usd": 0.4324046
+}

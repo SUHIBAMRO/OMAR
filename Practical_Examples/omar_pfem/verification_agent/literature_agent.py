@@ -23,6 +23,7 @@ import argparse
 import json
 import os
 import re
+import unicodedata
 import subprocess
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -99,6 +100,10 @@ def extract_text(pdf):
 
 
 def normalise(s):
+    # NFC: pdftotext can emit a base letter + combining accent where the model writes the
+    # composed letter (found 2026-11-20 on the unseen CSM shell card: a correct quote with
+    # "c-circumflex" was rejected); fixed after that run, labelled post hoc
+    s = unicodedata.normalize("NFC", s)
     s = s.replace("­", "")
     s = re.sub(r"-\s*\n\s*", "", s)                 # hyphenation at line breaks
     for a, b in (("–", "-"), ("—", "-"), ("−", "-"), ("‘", "'"),
