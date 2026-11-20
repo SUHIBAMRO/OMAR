@@ -78,12 +78,12 @@ def matern52(A, B, ls, var):
 
 
 class GP:
-    def __init__(self, X, y, noise_var):
+    def __init__(self, X, y, noise_var, hyper=None):
         self.X, self.noise = X, noise_var
         self.mu, self.sd = y.mean(), y.std() if y.std() > 0 else 1.0
         self.y = (y - self.mu) / self.sd
         self.nv = noise_var / self.sd ** 2
-        self._fit()
+        self._fit(hyper)
 
     def _nll(self, p):
         ls, var = np.exp(p[:2]), np.exp(p[2])
@@ -95,7 +95,13 @@ class GP:
         a = cho_solve(c, self.y)
         return 0.5 * self.y @ a + np.log(np.diag(c[0])).sum()
 
-    def _fit(self):
+    def _fit(self, hyper=None):
+        if hyper is not None:                      # reuse hyperparameters (refit every k steps)
+            self.ls, self.var = hyper
+            K = matern52(self.X, self.X, self.ls, self.var) + np.diag(self.nv + 1e-8)
+            self.c = cho_factor(K, lower=True)
+            self.alpha = cho_solve(self.c, self.y)
+            return
         best = None
         for p0 in ([np.log(0.3), np.log(0.3), 0.0], [np.log(1.0), np.log(1.0), 0.0]):
             r = minimize(self._nll, p0, method="L-BFGS-B",
@@ -133,7 +139,7 @@ def load_table():
     return X, val, {m: float(np.median(c)) for m, c in cost.items()}
 
 
-def run_strategy(name, X, val, cost, seed, budget, n_init=4):
+def run_strategy(name, X, val, cost, seed, budget, n_init=4, max_obs=400, refit_every=5):
     rng = np.random.default_rng(seed)
     truth = np.log(val[8])
     n = len(X)
@@ -151,18 +157,23 @@ def run_strategy(name, X, val, cost, seed, budget, n_init=4):
             return VERIFIED_REL_ERR[m] ** 2            # log-space variance
         return 1e-10                                   # treated as exact
 
+    hyper = None
     while True:
         Xo = X[[i for i, _ in obs]]
         yo = np.array([np.log(val[m][i]) for i, m in obs])
-        gp = GP(Xo, yo, np.array([noise(m) for _, m in obs]))
+        refit = hyper is None or len(obs) % refit_every == 0
+        gp = GP(Xo, yo, np.array([noise(m) for _, m in obs]), None if refit else hyper)
+        hyper = (gp.ls, gp.var)
         pred = gp.predict(X)
         rmse = float(np.sqrt(np.mean((pred - truth) ** 2)))
         hist.append({"cost_s": spent, "rmse_rel": rmse, "n_obs": len(obs),
                      "levels": {str(m): sum(1 for _, k in obs if k == m) for m in LEVELS}})
-        if spent >= budget:
+        if spent >= budget or len(obs) >= max_obs:
             break
+        taken = set(obs)
         if name == "random":
-            i, m = int(rng.integers(n)), 8
+            free = [j for j in range(n) if (j, 8) not in taken]
+            i, m = int(rng.choice(free)), 8
         else:
             C = gp.post_cov(X)
             v = np.clip(np.diag(C), 1e-30, None)
@@ -171,6 +182,7 @@ def run_strategy(name, X, val, cost, seed, budget, n_init=4):
                 nm = noise(m) / gp.sd ** 2
                 gain = (C ** 2).sum(axis=0) / (v + nm)     # integrated variance reduction
                 score = gain / cost[m] if name.startswith("mf") else gain
+                score = np.where([(jj, m) in taken for jj in range(n)], -np.inf, score)
                 j = int(np.argmax(score))
                 if score[j] > best:
                     best, choice = score[j], (j, m)
