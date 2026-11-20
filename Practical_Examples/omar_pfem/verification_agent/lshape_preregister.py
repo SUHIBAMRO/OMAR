@@ -86,7 +86,7 @@ def compare():
             os.environ["VERIF_POSTHOC_SINGULAR"] = "1"
         else:
             os.environ.pop("VERIF_POSTHOC_SINGULAR", None)
-        R = rules("l_shape")
+        R = rules.__wrapped__("l_shape")      # not the lru_cache: the mode differs
         rows, hits, n_pred = {}, 0, 0
         for q, pr in pre["rule_predictions"].items():
             ov, ev = R["combine"][q][:2]
