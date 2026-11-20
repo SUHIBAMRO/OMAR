@@ -55,12 +55,12 @@ FAR_CENTRE, FAR_RADIUS = (25.0, 0.0), 3.0
 GK_LEN = 1.5
 
 
-def stiffness_matrix():
+def stiffness_matrix(theta=THETA_F):
     """Plane-stress Qbar (Voigt, engineering shear) in global axes."""
     nu21 = NU12 * E2 / E1
     d = 1 - NU12 * nu21
     Q11, Q22, Q12, Q66 = E1 / d, E2 / d, NU12 * E2 / d, G12
-    c, s = np.cos(THETA_F), np.sin(THETA_F)
+    c, s = np.cos(theta), np.sin(theta)
     Qb = np.zeros((3, 3))
     Qb[0, 0] = Q11 * c**4 + 2 * (Q12 + 2 * Q66) * s**2 * c**2 + Q22 * s**4
     Qb[1, 1] = Q11 * s**4 + 2 * (Q12 + 2 * Q66) * s**2 * c**2 + Q22 * c**4
@@ -78,7 +78,7 @@ def ellipse_radius(th):
     return A_ELL * B_ELL / np.sqrt((B_ELL * np.cos(th)) ** 2 + (A_ELL * np.sin(th)) ** 2)
 
 
-def mesh(m, g=1.5):
+def mesh(m, g=1.5, rh=RH):
     nt, nr = 16 * m, 8 * m
     s1 = np.linspace(0.0, 1.0, nr + 1)
     t1 = 2 * np.pi * np.arange(nt) / nt
@@ -89,7 +89,7 @@ def mesh(m, g=1.5):
                   for i in range(nr) for j in range(nt)]).T
 
     def X(s, th):
-        rho = (1 - s ** g) * RH + s ** g * ellipse_radius(th)
+        rho = (1 - s ** g) * rh + s ** g * ellipse_radius(th)
         return np.array([rho * np.cos(th), rho * np.sin(th)])
 
     m1 = fem.MeshQuad(X(S, TH), t)
@@ -118,10 +118,10 @@ def stiffness(u, v, w):
     return THICK * sum(QB[i, j] * eu[j] * ev[i] for i in range(3) for j in range(3))
 
 
-def material_strains(gu):
+def material_strains(gu, theta=THETA_F):
     """(e11, e22, gamma12) in material axes from the displacement gradient."""
     exx, eyy, gxy = gu[0, 0], gu[1, 1], gu[0, 1] + gu[1, 0]
-    c, s = np.cos(THETA_F), np.sin(THETA_F)
+    c, s = np.cos(theta), np.sin(theta)
     e11 = c * c * exx + s * s * eyy + s * c * gxy
     e22 = s * s * exx + c * c * eyy - s * c * gxy
     g12 = -2 * s * c * exx + 2 * s * c * eyy + (c * c - s * s) * gxy
@@ -132,10 +132,24 @@ def _basis(msh, elements=None):
     return fem.Basis(msh, fem.ElementVector(fem.ElementQuad2()), intorder=4, elements=elements)
 
 
-def solve_level(m, g=1.5, chunk=15000):
+def solve_level(m, g=1.5, chunk=15000, theta_deg=None, rh=None):
+    """theta_deg, rh: design parameters (active_learning.py); defaults = the
+    pre-registered problem (15 deg, 3 mm). The hole zone and the Gaussian
+    weight scale with rh: annulus rh <= r <= 2 rh, length rh / 2."""
     import pypardiso
+    global QB
+    theta = THETA_F if theta_deg is None else np.deg2rad(theta_deg)
+    rh = RH if rh is None else rh
+    QB = stiffness_matrix(theta)
+    try:
+        return _solve_level(m, g, chunk, theta, rh, pypardiso)
+    finally:
+        QB = stiffness_matrix()
+
+
+def _solve_level(m, g, chunk, theta, rh, pypardiso):
     t0 = time.time()
-    msh = mesh(m, g)
+    msh = mesh(m, g, rh)
     nel = msh.t.shape[1]
     chunks = np.array_split(np.arange(nel), int(np.ceil(nel / chunk)))
     b0 = _basis(msh, chunks[0])
@@ -143,7 +157,7 @@ def solve_level(m, g=1.5, chunk=15000):
     for ch in chunks:
         Kc = fem.asm(stiffness, _basis(msh, ch))
         K = Kc if K is None else K + Kc
-    outer = msh.facets_satisfying(lambda x: np.hypot(x[0], x[1]) > RH + 1e-6, boundaries_only=True)
+    outer = msh.facets_satisfying(lambda x: np.hypot(x[0], x[1]) > rh + 1e-6, boundaries_only=True)
     fb = fem.FacetBasis(msh, fem.ElementVector(fem.ElementQuad2()), facets=outer, intorder=6)
     f = fem.asm(fem.LinearForm(lambda v, w: THICK * SIGMA0 * w.n[0] * v.value[0]), fb)
     # rigid motions: u_x, u_y at (3, 0), u_y at (-3, 0)
@@ -151,7 +165,7 @@ def solve_level(m, g=1.5, chunk=15000):
         j = int(np.argmin((msh.p[0] - px) ** 2 + (msh.p[1] - py) ** 2))
         assert np.hypot(msh.p[0, j] - px, msh.p[1, j] - py) < 1e-9
         return b0.nodal_dofs[comp, j]
-    fixed = np.array([nodal(RH, 0, 0), nodal(RH, 0, 1), nodal(-RH, 0, 1)])
+    fixed = np.array([nodal(rh, 0, 0), nodal(rh, 0, 1), nodal(-rh, 0, 1)])
     u = fem.solve(*fem.condense(K, f, D=fixed), solver=lambda A, b: pypardiso.spsolve(
         A.tocsr(), b))
     compliance = float(f @ u) / P ** 2
@@ -164,12 +178,12 @@ def solve_level(m, g=1.5, chunk=15000):
     for ch in chunks:
         bc = _basis(msh, ch)
         gu = bc.interpolate(u).grad
-        _, e22, g12 = material_strains(gu)
+        _, e22, g12 = material_strains(gu, theta)
         x, wq = bc.global_coordinates().value, bc.dx
         r = np.hypot(x[0], x[1])
-        hz = (r >= HOLE_ZONE[0]) & (r <= HOLE_ZONE[1])
+        hz = (r >= rh * HOLE_ZONE[0] / RH) & (r <= rh * HOLE_ZONE[1] / RH)
         ff = np.hypot(x[0] - FAR_CENTRE[0], x[1] - FAR_CENTRE[1]) <= FAR_RADIUS
-        kg = wq * np.exp(-((r - RH) / GK_LEN) ** 2)
+        kg = wq * np.exp(-((r - rh) / (GK_LEN * rh / RH)) ** 2)
         acc["hz_w"] += wq[hz].sum()
         acc["hz_g"] += (g12 * wq)[hz].sum()
         acc["hz_e"] += (e22 * wq)[hz].sum()

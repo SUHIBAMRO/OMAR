@@ -1,0 +1,12 @@
+{
+ "written": "2026-11-20T14:27:57.941089+00:00",
+ "status": "written before the simulation table was computed and before any strategy ran",
+ "design": "lamina compliance over theta in [0,90] deg x r in [1.5,5] mm, 11x11 grid; levels m=1,2,4,8; truth m=8; GP Matern52 ARD on log compliance; 5 seeds; budget 40 s of solver time; mf_verified uses levels 2,4,8 with the verified level errors as noise; mf_naive uses 1,2,4,8 as exact",
+ "expectations": {
+  "mf_verified reaches 0.1% RMS error at lower cost than al_fine": true,
+  "al_fine reaches 0.1% at lower cost than random": true,
+  "mf_naive stalls above 0.1% (bias of the coarse levels)": true,
+  "nominal verified level errors describe the design space within a factor 3 (median)": true
+ },
+ "note": "a strategy that never reaches a target is reported as not reached, not dropped"
+}
