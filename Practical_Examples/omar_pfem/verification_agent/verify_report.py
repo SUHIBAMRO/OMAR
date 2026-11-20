@@ -869,6 +869,28 @@ def add_f_round(add, h1, h2, h3):
                      ("far_gamma12_avg", 0.05, 50), ("hole_e22_avg", 0.37, 143)):
         add("23", f"lamina {q} error %", e, 0.0005 if e < 0.05 else h2, lambda q=q: num(q))
         add("23", f"lamina {q} margin", mg, 0.5, lambda q=q: cf(q)["margin_half_width_over_numerical"])
+    # Section 24: active learning
+    al = lambda: _j("al_lamina_result.json")
+    st = lambda n: al()["strategies"][n]
+    med = lambda n: float(np.median(st(n)["final_rmse_rel"])) * 100
+    add("24", "random final RMS %", 0.97, h2, lambda: med("random"))
+    add("24", "al_fine final RMS %", 0.26, h2, lambda: med("al_fine"))
+    add("24", "mf_naive final RMS %", 1.12, h2, lambda: med("mf_naive"))
+    add("24", "mf_verified final RMS %", 0.013, 0.0005, lambda: med("mf_verified"))
+    rch = lambda n, t: [x for x in st(n)["cost_to_reach"][t] if x is not None]
+    add("24", "mf_verified to 1% min s", 1.6, h1, lambda: min(rch("mf_verified", "0.01")))
+    add("24", "mf_verified to 1% max s", 2.1, h1, lambda: max(rch("mf_verified", "0.01")))
+    add("24", "mf_verified to 0.1% min s", 19, 0.5, lambda: min(rch("mf_verified", "0.001")))
+    add("24", "mf_verified to 0.1% max s", 20, 0.5, lambda: max(rch("mf_verified", "0.001")))
+    add("24", "al_fine to 1% min s", 25, 0.5, lambda: min(rch("al_fine", "0.01")))
+    add("24", "al_fine to 1% max s", 31, 0.5, lambda: max(rch("al_fine", "0.01")))
+    add("24", "random to 1% min s", 33, 0.5, lambda: min(rch("random", "0.01")))
+    add("24", "random to 1% max s", 41, 0.5, lambda: max(rch("random", "0.01")))
+    add("24", "random seeds never reaching 1%", 1, 0, lambda: sum(
+        x is None for x in st("random")["cost_to_reach"]["0.01"]))
+    add("24", "speed-up to 1% vs al_fine", 16, 0.5, lambda: _j("al_lamina_scored.json")[
+        "speedup_to_1pct_vs_al_fine"])
+    add("24", "expectations met", 3, 0, lambda: _j("al_lamina_scored.json")["met"])
     m = lambda: json.load(open(os.path.join(HERE, "lamina_mms.json")))["rows"]
     add("23", "lamina MMS L2 rate", 3.00, h2, lambda: np.log2(m()[-2]["L2_rel"] / m()[-1]["L2_rel"]))
     add("23", "lamina MMS H1 rate", 2.00, h2, lambda: np.log2(m()[-2]["H1_semi_rel"] / m()[-1]["H1_semi_rel"]))

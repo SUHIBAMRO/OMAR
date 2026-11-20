@@ -4976,6 +4976,126 @@
   "ok": true
  },
  {
+  "section": "24",
+  "claim": "random final RMS %",
+  "printed": 0.97,
+  "recomputed": 0.9662589673367021,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "al_fine final RMS %",
+  "printed": 0.26,
+  "recomputed": 0.25790338989482275,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "mf_naive final RMS %",
+  "printed": 1.12,
+  "recomputed": 1.123024045711571,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "mf_verified final RMS %",
+  "printed": 0.013,
+  "recomputed": 0.013466801757068856,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "mf_verified to 1% min s",
+  "printed": 1.6,
+  "recomputed": 1.5882644653320312,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "mf_verified to 1% max s",
+  "printed": 2.1,
+  "recomputed": 2.084597110748291,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "mf_verified to 0.1% min s",
+  "printed": 19,
+  "recomputed": 19.33258366584778,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "mf_verified to 0.1% max s",
+  "printed": 20,
+  "recomputed": 20.036672353744507,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "al_fine to 1% min s",
+  "printed": 25,
+  "recomputed": 25.050064086914062,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "al_fine to 1% max s",
+  "printed": 31,
+  "recomputed": 31.312580108642578,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "random to 1% min s",
+  "printed": 33,
+  "recomputed": 32.87820911407471,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "random to 1% max s",
+  "printed": 41,
+  "recomputed": 40.70635414123535,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "random seeds never reaching 1%",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "speed-up to 1% vs al_fine",
+  "printed": 16,
+  "recomputed": 15.771972888455497,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "expectations met",
+  "printed": 3,
+  "recomputed": 3.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
   "section": "23",
   "claim": "lamina MMS L2 rate",
   "printed": 3.0,

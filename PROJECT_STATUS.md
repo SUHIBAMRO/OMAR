@@ -25874,3 +25874,8 @@ undetermined (al_fine vs random at 0.1%: neither reaches it). Verified nominal l
 hold over the design space (median/nominal 0.94-1.02, max/nominal <= 1.3). Changes after
 recording expectations (stated): no repeated picks, refit every 5 steps, cap 400 (the 40 s
 budget still the stop for all strategies).
+Report: new Section 24 (literature agent + verification-aware active learning), old 24-27 ->
+25-28; summary item 7; email point 9 (and its section pointer fixed to 27, which had gone
+stale at the previous renumbering). Claims check 639 of 639 (it caught my 0.014% -> 0.013%).
+PDF v3 re-exported (no "Timon"). STILL WAITING FOR OMAR: OK for the billed literature-agent
+evaluation (~USD 1-3); review + send report and email.
