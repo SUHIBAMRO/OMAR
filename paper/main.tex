@@ -64,7 +64,8 @@ neither physics-informed nor data-driven operators are adequate there
 concentration factor at the groove do not converge satisfactorily even
 under refined quadratic finite-element calculations, so they cannot
 currently serve for trustworthy surrogate validation; the
-region-averaged stress is stable and is reported instead.
+region-averaged normal stresses are stable under mesh refinement and are
+reported instead.
 \end{abstract}
 
 \begin{keyword}
@@ -2566,17 +2567,17 @@ reference stays at $2.5$--$8.7\%$.
 A second, independent question is whether the finite-element reference
 itself converges at this feature. Two summary statistics of the same
 region behave very differently under mesh refinement. The volume-averaged
-stress, $\langle|\sigma_{xx}|\rangle$, is stable: across eight quadratic
+normal stress, $\langle\sigma_{xx}\rangle$, is stable: across eight quadratic
 resolutions from $2{,}376$ to $47{,}040$ elements it stays within
-$0.38$--$0.44$, without trend, and a pointwise comparison of the stress
+$0.42$--$0.47$, without trend, and a pointwise comparison of the stress
 along the inner wall at the two finest resolutions of a consistent
 refinement family differs by at most $0.3$--$1.0\%$ inside the region.
 The pointwise peak, $\max|\sigma_{xx}|$, does not converge
 satisfactorily. Under global refinement it decreases across the first six resolutions
-($4.13$ to $0.706$) and then rises by $26\%$ at the seventh
-($0.891$ at $45{,}000$ elements); under local axial clustering toward
+($4.16$ to $0.729$) and then rises by $25\%$ at the seventh
+($0.910$ at $45{,}000$ elements); under local axial clustering toward
 the groove at a fixed $10{,}200$ quadratic elements it varies
-non-monotonically between $0.615$ and $0.826$; local axial clustering
+non-monotonically between $0.621$ and $0.836$; local axial clustering
 with linear elements likewise rises and then reverses; and combined
 radial and axial grading either inverts an element at the groove corner
 or fails to converge within a two-hour solve budget. The stress
@@ -2585,8 +2586,8 @@ no-groove nominal stress at the same point, inherits this behaviour.
 The pointwise peak stress and the stress concentration factor at this
 groove therefore cannot currently be used for trustworthy surrogate-model
 validation, independently of any operator's accuracy; the
-region-averaged stress is stable and is the form in which regional
-stress is reported here.
+region-averaged normal stresses are stable under mesh refinement and are
+the form in which regional stress is reported here.
 
 A deformation-validity check ($J=\det\mathbf{F}$, over every element and
 Gauss point in the mesh, not only the stress region) was also run. The
@@ -2901,8 +2902,8 @@ stress and the stress concentration factor there do not converge
 satisfactorily under any of four refinement strategies applied to the
 finite-element reference itself, so this quantity cannot currently serve
 as a validation target for any surrogate model, however accurate. The
-region-averaged stress, by contrast, is stable across every refinement
-tested. Choosing quantities of interest whose reference values are
+region-averaged normal stresses, by contrast, are stable across every
+refinement tested. Choosing quantities of interest whose reference values are
 themselves verifiably converged is therefore a precondition for
 trustworthy surrogate validation, not a detail; automating that check is
 a natural next step.
@@ -2962,8 +2963,8 @@ physics-informed or data-driven, is adequate there (errors above
 $1{,}700\%$), and the pointwise peak stress and stress concentration
 factor do not converge satisfactorily even in refined quadratic
 finite-element calculations, so they cannot currently be used for
-trustworthy surrogate validation; the region-averaged stress is stable
-and remains reportable. Fourth, the manufactured-solution study
+trustworthy surrogate validation; the region-averaged normal stresses
+are stable under mesh refinement and remain reportable. Fourth, the manufactured-solution study
 shows that refining the operator's own spatial integration discretization
 is not uniformly beneficial at fixed training budget -- family-mean
 displacement and energy error both worsen, not improve, from $N{=}9$ to

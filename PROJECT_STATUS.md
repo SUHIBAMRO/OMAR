@@ -25705,3 +25705,16 @@ The pre-fix data reproduce the printed numbers exactly (mapping checked). Old ->
 - Wording error found: the stored `avg` is the SIGNED volume average; the old printout
   said avg|sigma_xx| and the manuscript writes <|sigma_xx|> -> must read <sigma_xx>.
 - Eighth family level 59,400 (not in the manuscript): avg 0.453, max 0.785.
+
+**F2 -- manuscript edits, part 1 (DONE, paper/main.tex):** groove passage numbers
+corrected from F1 (<sigma_xx> 0.42-0.47; max 4.16 -> 0.729, +25% to 0.910 at 45,000;
+z_beta 0.621-0.836); <|sigma_xx|> -> <sigma_xx> (signed average, "volume-averaged normal
+stress"); "region-averaged stress is stable" -> "region-averaged normal stresses are stable
+under mesh refinement" in the abstract, the groove passage, the discussion and the
+conclusion. Part 2 (after F3): sharp vs Gaussian averages, shear/magnitude averages not
+stable (sigma_xz, Frobenius, von Mises FAIL), formulation dependence (F-bar 3-8%; P1).
+Post-fix agent numbers for that text: sharp normal averages band 0.39-0.69%, strategy
+spread 1.13-1.96%; Gaussian normal averages p 2.27-2.72, U 0.11-0.18% (of the Frobenius
+scale), strategy spread <= 0.47%.
+F3: the worker restart killed the queued P1 runs before anything was saved; restarted
+(uniform 2,376/10,200/15,960 full:fbar_p1, then b3_local_refine solve-p1).
