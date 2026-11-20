@@ -5096,6 +5096,134 @@
   "ok": true
  },
  {
+  "section": "24",
+  "claim": "literature run 1 openpinn_plate checks passed",
+  "printed": 7,
+  "recomputed": 7.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "literature run 1 openpinn_plate checks total",
+  "printed": 8,
+  "recomputed": 8.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "literature run 1 openpinn_plate quotes found %",
+  "printed": 100,
+  "recomputed": 100.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "literature run 1 cfm_lamina checks passed",
+  "printed": 7,
+  "recomputed": 7.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "literature run 1 cfm_lamina checks total",
+  "printed": 8,
+  "recomputed": 8.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "literature run 1 cfm_lamina quotes found %",
+  "printed": 100,
+  "recomputed": 100.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "literature run 2 openpinn_plate checks passed",
+  "printed": 8,
+  "recomputed": 8.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "literature run 2 openpinn_plate checks total",
+  "printed": 8,
+  "recomputed": 8.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "literature run 2 openpinn_plate quotes found %",
+  "printed": 100,
+  "recomputed": 100.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "literature run 2 cfm_lamina checks passed",
+  "printed": 8,
+  "recomputed": 8.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "literature run 2 cfm_lamina checks total",
+  "printed": 8,
+  "recomputed": 8.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "literature run 2 cfm_lamina quotes found %",
+  "printed": 100,
+  "recomputed": 100.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "literature run 1 plate miss is discretisation",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "literature run 1 lamina miss is singular features",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "literature cost USD, two runs",
+  "printed": 0.67,
+  "recomputed": 0.6695678,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "24",
+  "claim": "literature run 2 lamina features flagged singular",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
   "section": "23",
   "claim": "lamina MMS L2 rate",
   "printed": 3.0,
