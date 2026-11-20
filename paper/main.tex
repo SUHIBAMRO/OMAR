@@ -2589,6 +2589,29 @@ validation, independently of any operator's accuracy; the
 region-averaged normal stresses are stable under mesh refinement and are
 the form in which regional stress is reported here.
 
+This stability holds for averages of the normal stress components and of
+the pressure, not for every stress measure. In a systematic check of the
+same quadratic refinement family (eight levels from $2{,}376$ to $59{,}400$
+elements, plus six axially or radially graded meshes at $10{,}200$
+elements), the averages of the normal components over the sharp-edged
+region stay within $0.4$--$0.7\%$ over the three finest levels and within
+$1.1$--$2.0\%$ across the graded meshes, but show no measurable rate of
+convergence; the averages of the shear component $\sigma_{xz}$ and of the
+stress magnitude (Frobenius norm, von Mises stress) fail the same test.
+Weighting the region smoothly instead -- a Gaussian weight of length twice
+the region radius, centred at the groove root -- gives normal-stress
+averages that converge with observed orders $2.3$--$2.7$ and an estimated
+discretization uncertainty of $0.11$--$0.18\%$ of the regional stress
+magnitude, varying by at most $0.5\%$ across the graded meshes. A mixed
+formulation with a projected (element-wise linear) dilatation changes
+these Gaussian averages by $1.6\%$ at $15{,}960$ elements, down from
+$1.9$--$2.1\%$ at $10{,}200$, so a formulation-dependent part of this order
+remains. None of this concerns the accuracy of a surrogate: against the
+$950{,}400$-element reference, the Gaussian-weighted normal-stress
+averages of the best operator variant still err by $146$--$173\%$, and
+those of the other variants by $290\%$ or more in $\sigma_{xx}$, $\sigma_{zz}$
+and the pressure.
+
 A deformation-validity check ($J=\det\mathbf{F}$, over every element and
 Gauss point in the mesh, not only the stress region) was also run. The
 true finite-element field has $\min J=0.801$, 1st percentile $0.977$,

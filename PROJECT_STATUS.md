@@ -25739,3 +25739,12 @@ Frobenius 577%. Sharp-sphere sigma_xx (signed average) on the same points 410-5,
 49-192%, looser than the 2% class ceiling -> no verdict changes). Caveat: errors are vs the
 hex8 950,400 reference; the agent certified the Q20 family. Full per-sample JSON stays on
 the cluster (/scratch/gole3157/pfem_run/b3_gaussian_checkpoints.json).
+
+**F2 part 2 (DONE, paper/main.tex, new paragraph after the groove passage):** stability
+holds for normal-stress and pressure averages only; sharp-region normal averages
+0.4-0.7% over the finest three levels / 1.1-2.0% across six graded meshes, no rate;
+sigma_xz, Frobenius, von Mises averages fail; Gaussian weight (length 2 R0) gives orders
+2.3-2.7, uncertainty 0.11-0.18% of the regional magnitude, <= 0.5% across graded meshes;
+Q20/P1 changes the Gaussian averages by 1.6% at 15,960 (1.9-2.1% at 10,200); surrogates
+still err 146-173% (best variant, F4) and >= 290% (others, xx/zz/p). Every number checked
+against the stored data. pdflatex compiles without errors.
