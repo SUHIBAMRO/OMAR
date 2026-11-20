@@ -19,11 +19,10 @@ What was done:
 
 Questions:
 
-1. Should the singular-order check accept energy orders above 2*lambda as "pre-asymptotic", and be extended to quadratic elements? Both changes came after seeing held-out results.
-2. Are the proposed absolute accuracy targets reasonable (1% for global quantities and displacements, 5% for region-averaged stresses)?
-3. Is an IGA discretization worth building for the groove peak, or should the peak be reported as not verifiable with the available elements?
-4. Would it be useful to make this agent the reference-verification step of OpenPINN, starting with the plate with a hole?
-5. Could you send the CSM and CFM papers? The attachment did not reach me.
+1. Singular-order check: I propose to adopt the extension to quadratic elements, which follows from standard corner theory, and to report an energy order above 2*lambda as "pre-asymptotic, a finer level is needed" rather than as a pass. Both changes came after seeing held-out results, so I would test them on the next unseen benchmark. Is that acceptable?
+2. Absolute requirements: following your point on CSM and CFM, I propose to set the numerical requirement of a quantity from its constitutive range (discretization uncertainty at most one third of the CSM/CFM half-width), with 1% for global quantities and displacements and 5% for region-averaged stresses as interim values where no such range exists. Is this the right direction?
+3. Groove peak: higher-order and mixed formulations are done; FEM against IGA, which you asked for, is what remains. Should IGA come next, or the literature agent and active learning, as in your priority list?
+4. CSM and CFM: I have read both papers on arXiv. The CFM open-hole lamina uses one mesh, and its certificate holds for that fixed discretization. A first joint test could report the agent's discretization uncertainty next to the CFM half-width for the same quantities. Would that be a good first step, and could I have access to the code?
 
 Best regards,
 Omar

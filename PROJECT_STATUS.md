@@ -25796,3 +25796,26 @@ mixed_b3.LEVELS now includes 23,520 (for a cluster run if wanted).
 NEEDS OMAR: review report v3 + email draft, then send them himself; decisions in the open
 questions (post hoc rules, absolute targets, IGA for the groove peak, OpenPINN
 collaboration); CSM/CFM papers.
+
+### 2026-11-20 -- CSM/CFM papers found; open questions re-aligned with Prof. Rabczuk's earlier answers
+- Found on arXiv (the attachment never arrived): CSM arXiv:2610.07151, CFM arXiv:2611.22187;
+  PDFs in advisor_feedback/2026-11-20_Rabczuk_CSM_*.pdf, ..._CFM_*.pdf; reading note
+  advisor_feedback/2026-11-20_CSM_CFM_reading_note.md. Both bound constitutive uncertainty on a
+  FIXED discretisation (CFM open-hole lamina: one mesh, FE operators not independently
+  reproduced, constitutive degree not converged) -> the agent supplies the numerical half
+  (his 19 Nov point 2). Report Section 17 got a CSM/CFM paragraph.
+- What he had already said: (a) absolute requirements needed, distinguish numerical estimates
+  from certification, connect with CSM/CFM (19 Nov, point 2) -- no values given; (b) IGA asked
+  for twice (10 Nov "higher-order elements or NURBS/IGA"; 19 Nov "FEM versus IGA, mixed
+  formulations and possible locking"); (c) pre-asymptotic / degree-k rule: never asked or
+  answered (our question was in an unsent draft); (d) OpenPINN: only "look into similar agents";
+  his stated next priorities after verification: literature agent, active learning.
+- Open questions in report Section 25 and the email rewritten accordingly: degree-k extension
+  + "pre-asymptotic" as INCONCLUSIVE (not PASS); requirement = numerical uncertainty <= 1/3 of
+  the CSM/CFM half-width, 1%/5% interim; IGA next or literature agent/active learning; first
+  joint CSM/CFM test (CFM open-hole lamina) + code access; OpenPINN offer.
+- gates.py (switch only, default off): pre-asymptotic -> INCONCLUSIVE (was PASS); guard: non-peak
+  quantity whose finest levels agree to 1e-4 (1/100 of the 1% band) passes the singular-order
+  check. With the switch: plate Gaussian false alarm removed, Cook energy INCONCLUSIVE, B1/B3
+  unchanged. Report wording fixed: the plate Gaussian average converged to ~1e-5 (not 1e-6).
+  55 tests pass; claims 607/607; PDF v3 re-exported (no "Timon").

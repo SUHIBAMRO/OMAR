@@ -239,10 +239,12 @@ def singular_order_gate(hs, values, lam, qoi_class, tol=0.15, n_levels=5, degree
 
     POST HOC option (orchestrate: VERIF_POSTHOC_SINGULAR=1; proposed after
     the Cook and plate-with-hole results, NOT used for any pre-registered
-    score): preasymptotic=True accepts a global order ABOVE 2 lam but not
-    above the element optimum 2*degree as "pre-asymptotic" (verdict PASS,
-    label set): the singular term's coefficient can be small, so the
-    smooth part still dominates the error at practical resolutions."""
+    score): preasymptotic=True reports a global order ABOVE 2 lam but not
+    above the element optimum 2*degree as "pre-asymptotic" (verdict
+    INCONCLUSIVE: a finer level is needed; the singular term's coefficient
+    can be small, so the smooth part still dominates at practical
+    resolutions), and passes a non-peak quantity whose finest levels agree
+    to 1e-4 (its fitted order is noise)."""
     if lam is None:
         return {"gate": "singular_order", "verdict": "INCONCLUSIVE",
                 "reason": "no singular exponent available for this problem"}
@@ -262,11 +264,22 @@ def singular_order_gate(hs, values, lam, qoi_class, tol=0.15, n_levels=5, degree
            "observed": p, "expected": expected, "mode": mode, "tol": tol, "lam": lam,
            "reason": f"{what} {p:.3f} vs theory {rel} {expected:.3f} (lam = {lam:.4f}, "
                      f"tol {tol})"}
-    if (not ok and preasymptotic and qoi_class == "global"
-            and expected + tol < p <= 2.0 * degree + tol):
-        out.update(verdict="PASS", label="pre-asymptotic (post hoc rule)",
-                   reason=out["reason"] + f"; above 2 lam but within the element optimum "
-                                          f"{2 * degree}: pre-asymptotic (post hoc rule)")
+    if preasymptotic and not ok:
+        if qoi_class == "global" and expected + tol < p <= 2.0 * degree + tol:
+            # not a pass: the asymptotic order has not been reached yet
+            out.update(verdict="INCONCLUSIVE", label="pre-asymptotic (post hoc rule)",
+                       reason=out["reason"] + f"; above 2 lam but within the element optimum "
+                                              f"{2 * degree}: pre-asymptotic, a finer level "
+                                              "is needed (post hoc rule)")
+        elif qoi_class != "pointwise_peak":
+            # guard: a quantity whose finest levels agree to 1e-4 (1/100 of the smallest
+            # band tolerance, 1%) has no measurable order; its fitted order is noise
+            vv = np.asarray(v, float)
+            if (vv.max() - vv.min()) <= 1e-4 * max(abs(float(np.median(vv))), 1e-30):
+                out.update(verdict="PASS", label="converged below 1e-4; order not measurable "
+                                                 "(post hoc rule)",
+                           reason=out["reason"] + "; the finest levels agree to 1e-4, the "
+                                                  "fitted order is noise (post hoc rule)")
     return out
 
 
