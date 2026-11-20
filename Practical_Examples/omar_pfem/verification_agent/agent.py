@@ -234,6 +234,12 @@ DEFAULT_SPECS = {
                              material="linear_orthotropic", loading="edge_traction",
                              regularity="smooth", element="Q9",
                              reference="mesh_refinement_family", qois=None),
+    # L-shaped panel: held-out test of the post hoc singular-order options, spec
+    # committed (lshape_preregistration.json) before any solve
+    "l_shape": dict(name="L-shaped panel", geometry="l_shape", dim=2,
+                    material="linear_elastic", loading="edge_traction",
+                    regularity="reentrant_corner", element="Q9",
+                    reference="mesh_refinement_family", qois=None),
     "bushing_groove": dict(name="B3 groove", geometry="bushing_groove", dim=3,
                            material="neo_hookean", loading="prescribed_rotation",
                            regularity="stress_concentration", element="Q20",

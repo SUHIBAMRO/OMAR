@@ -1,0 +1,153 @@
+{
+ "written": "2026-11-20T23:03:52.677392+00:00",
+ "purpose": "first unseen test of the post hoc singular-order options (degree-k elements, pre-asymptotic label), proposed after the Cook and plate-with-hole results",
+ "spec": {
+  "name": "L-shaped panel",
+  "geometry": "l_shape",
+  "dim": 2,
+  "material": "linear_elastic",
+  "loading": "edge_traction",
+  "regularity": "reentrant_corner",
+  "element": "Q9",
+  "reference": "mesh_refinement_family",
+  "qois": [
+   "strain_energy",
+   "u_top_left",
+   "v_right_top",
+   "corner_gk_avg_von_mises",
+   "corner_disc_avg_von_mises",
+   "far_gk_avg_syy",
+   "peak_von_mises"
+  ]
+ },
+ "adapter_description": "L-shaped panel: union of the unit squares [0,1]x[0,1], [1,2]x[0,1], [0,1]x[1,2]; plane strain, small-strain linear elasticity, E = 1000, nu = 0.3. Bottom edge y = 0 clamped; top edge of the vertical arm (y = 2, 0 <= x <= 1) loaded by a uniform traction t_x = 1; all other edges free. Re-entrant 270-degree free/free corner at (1,1) (lam = 0.5445); 90-degree clamped/free corners at (0,0) and (2,0) (lam = 0.7112). Q2 (9-node) elements, n x n per unit square (n = 2, 4, ..., 128, h = 1/n); strategies at n = 16: node coordinates graded toward x = 1 and y = 1 with g = 1.5, 2.0. QoIs: strain_energy = 1/2 u.K u; u_top_left = u_x at (0,2); v_right_top = u_y at (2,1); corner_gk_avg_von_mises = von Mises averaged with the weight exp(-(d/0.1)^2), d the distance to (1,1); corner_disc_avg_von_mises = its mean over the disc d < 0.2; far_gk_avg_syy = sigma_yy averaged with exp(-(d/0.1)^2) about (0.5,0.5); peak_von_mises = max von Mises over all Gauss points.",
+ "corner_exponent_lam": 0.5444837367824591,
+ "theory": {
+  "energy_order": 1.0889674735649182,
+  "displacement_and_region_order_at_least": 1.0889674735649182,
+  "corner_peak_slope": -0.4555162632175409,
+  "singular_order_tol": 0.15,
+  "note": "Q2, lam = 0.5445 < 2: the re-entrant corner limits every rate to 2 lam = 1.089 (pollution); the clamped/free corners (lam 0.711) are weaker"
+ },
+ "rule_predictions": {
+  "strain_energy": {
+   "predicted": "PASS",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ],
+   "rules": [
+    "R2",
+    "R5",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "u_top_left": {
+   "predicted": "PASS",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ],
+   "rules": [
+    "R2",
+    "R5",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "v_right_top": {
+   "predicted": "PASS",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ],
+   "rules": [
+    "R2",
+    "R5",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "corner_gk_avg_von_mises": {
+   "predicted": null,
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ],
+   "rules": [
+    "R2",
+    "R4",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "corner_disc_avg_von_mises": {
+   "predicted": null,
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ],
+   "rules": [
+    "R2",
+    "R4",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "far_gk_avg_syy": {
+   "predicted": null,
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ],
+   "rules": [
+    "R2",
+    "R4",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "peak_von_mises": {
+   "predicted": "FAIL",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ],
+   "rules": [
+    "R2",
+    "R3",
+    "R8"
+   ],
+   "role": "diagnostic"
+  }
+ },
+ "stated_in_advance": {
+  "without the post hoc option": "every singular_order check is INCONCLUSIVE (theory implemented for degree-1 elements only)",
+  "pre-asymptotic label": "NOT expected to trigger: the re-entrant corner is the strongest singularity of the classic cases and is loaded directly (the arm bends about it), so its coefficient is large and the asymptotic order should show at moderate h. If it does trigger, that counts against this expectation."
+ },
+ "developer_expectations": {
+  "strain_energy": "singular_order PASS (order 2 lam = 1.089 within 0.15); convergence PASS with rate",
+  "u_top_left, v_right_top": "singular_order PASS (order >= 0.939); convergence PASS with rate",
+  "far_gk_avg_syy": "singular_order PASS (order >= 0.939, polluted by the corner); convergence PASS with rate",
+  "corner_gk_avg_von_mises": "convergence PASS; singular_order PASS (order >= 0.939). LOW confidence: von Mises is not linear in the stress and the weight centred on the corner is not smooth in the stress direction, so the order may lie between lam and 2 lam",
+  "corner_disc_avg_von_mises": "convergence PASS (band or rate); singular_order not predicted (sharp disc: Gauss points enter and leave)",
+  "peak_von_mises": "convergence FAIL (grows); log-log slope lam - 1 = -0.456 within 0.15 (singular_order PASS); located within 0.1 of (1, 1) on the finest three levels"
+ },
+ "rules_changed_for_this_problem": false
+}
