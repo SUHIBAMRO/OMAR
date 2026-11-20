@@ -186,12 +186,18 @@ def needs(card, ok):
     """What verification the reference still needs, decided in code."""
     out = []
     ref = card["reference"]
-    if ref["type"] in ("single_mesh", "unspecified") or ref["convergence_evidence"] == \
-            "none_stated":
-        out.append("reference not verified: a refinement family (and strategies) is needed "
-                   "before its values can be used to measure surrogate errors")
-    if ref["convergence_evidence"] != "independent_code":
-        out.append("no independent code: cross-check with a second solver")
+    if ref["type"] == "analytical":
+        # added 2026-11-20 before the unseen-paper run: an exact solution needs no
+        # refinement family, only a check that it solves the problem as stated
+        out.append("analytical reference: check that the closed form solves the problem as "
+                   "stated (no refinement family needed)")
+    else:
+        if ref["type"] in ("single_mesh", "unspecified") or ref["convergence_evidence"] == \
+                "none_stated":
+            out.append("reference not verified: a refinement family (and strategies) is "
+                       "needed before its values can be used to measure surrogate errors")
+        if ref["convergence_evidence"] != "independent_code":
+            out.append("no independent code: cross-check with a second solver")
     peaks = [q["name"] for q in card["qois"] if q["kind"] == "pointwise_peak"]
     if any(s.get("singular", True) for s in card["singular_features"]):
         out.append("singular features present: run the singular-order check; pointwise "
@@ -276,7 +282,7 @@ def score(result, truth):
     for key, want in truth["must"].items():
         if "." in key:
             a, b = key.split(".")
-            hits[key] = card[a][b] == want
+            hits[key] = card[a][b] in want if isinstance(want, list) else card[a][b] == want
         else:
             v = card[key]["value"].lower()
             hits[key] = all(w in v for w in want)
@@ -289,17 +295,56 @@ def score(result, truth):
         hits["QoIs found"] = all(w in names for w in truth["qoi_names"])
     # post hoc (after run 1): only features flagged singular count; a card without the
     # flag (schema of run 1) counts every listed feature, as run 1 was scored
-    hits["singular features as expected"] = any(
-        s.get("singular", True) for s in card["singular_features"]) == \
-        truth["singular_expected"]
-    hits["reference flagged as unverified"] = any(n.startswith("reference not verified")
-                                                  for n in result["needs"])
+    if truth["singular_expected"] is not None:          # None: ambiguous, reported only
+        hits["singular features as expected"] = any(
+            s.get("singular", True) for s in card["singular_features"]) == \
+            truth["singular_expected"]
+    flagged = any(n.startswith("reference not verified") for n in result["needs"])
+    if truth.get("ref_unverified_expected", True):
+        hits["reference flagged as unverified"] = flagged
+    else:
+        hits["reference not flagged (exact)"] = not flagged
+    if "not_stated_any" in truth:
+        ns = " ".join(card["not_stated"]).lower()
+        hits["missing input listed"] = any(w in ns for w in truth["not_stated_any"])
     return hits
 
 
-def evaluate(backend, repeats=1):
+# Unseen-paper test (written and committed 2026-11-20 BEFORE the agent saw these
+# sections): CSM paper, Study 1 (truss) and Study 4 (assembled composite shell).
+CSM_PDF = "2026-11-20_Rabczuk_CSM_Constitutive-Set_Mechanics_arXiv2610.07151.pdf"
+TRUTH_UNSEEN = {
+    "csm_truss": {
+        "pdf": CSM_PDF, "hint": "linear elasticity truss", "section": "4.1",
+        # a statically indeterminate truss: the member model is solved exactly, so there
+        # is no discretisation error and no continuum singularity
+        "must": {"geometry": ["truss"], "material": ["0.8", "1.2"],
+                 "reference.type": ["analytical"]},
+        "qoi_names": ["compliance"],
+        "singular_expected": False,
+        "ref_unverified_expected": False,
+    },
+    "csm_shell": {
+        "pdf": CSM_PDF, "hint": "assembled composite shell", "section": "4.4",
+        # 576 triangles, 7100 dof, one mesh; specimen width/length NOT stated (only 12 x 24
+        # cells, 1 mm thickness, 14.4 mm notch); E_m 70 GPa, nu_m 0.3, E_f 200 GPa, nu_f 0.25
+        "must": {"geometry": ["14.4"], "material": ["70", "200", "0.3", "0.25"],
+                 "discretisation": ["576"],
+                 "reference.type": "single_mesh",
+                 "reference.convergence_evidence": "none_stated"},
+        "qoi_names": ["reaction", "energy"],
+        "not_stated_any": ["dimension", "width", "length", "size of the specimen",
+                           "specimen size"],
+        # seeded notch in a phase-field model: sharp-notch theory says singular, the
+        # regularised model is bounded; ambiguous, so reported but not scored
+        "singular_expected": None,
+    },
+}
+
+
+def evaluate(backend, repeats=1, truth=None):
     out = {}
-    for name, t in TRUTH.items():
+    for name, t in (truth or TRUTH).items():
         runs = []
         for _ in range(repeats):
             r = run_card(backend, os.path.join(FEEDBACK, t["pdf"]), t["section"], t["hint"])
@@ -317,7 +362,7 @@ def evaluate(backend, repeats=1):
 def main(argv=None):
     from omar_pfem.verification_agent.llm_roles import make_backend
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=["card", "eval"])
+    ap.add_argument("mode", choices=["card", "eval", "eval-unseen"])
     ap.add_argument("pdf", nargs="?")
     ap.add_argument("--section")
     ap.add_argument("--hint")
@@ -327,7 +372,8 @@ def main(argv=None):
     ap.add_argument("--out")
     a = ap.parse_args(argv)
     be = make_backend(a.backend, a.replay)
-    res = run_card(be, a.pdf, a.section, a.hint) if a.mode == "card" else evaluate(be, a.repeats)
+    res = run_card(be, a.pdf, a.section, a.hint) if a.mode == "card" else evaluate(
+        be, a.repeats, TRUTH_UNSEEN if a.mode == "eval-unseen" else TRUTH)
     if a.out:
         json.dump(res, open(a.out, "w"), indent=1)
     if a.mode == "card":
