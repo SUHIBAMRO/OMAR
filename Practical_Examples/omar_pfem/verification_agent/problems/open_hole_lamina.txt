@@ -1,0 +1,11 @@
+Open-hole composite lamina: an elliptical plate (semi-axes 50 mm and 10 mm, thickness
+1 mm) with a central circular hole of radius 3 mm, made of a unidirectional carbon/epoxy
+lamina (AS4/3501-6) with fibres at 15 degrees to the long axis, in plane stress. The outer
+boundary carries the tractions of a homogeneous uniaxial stress along the long axis; the
+hole is traction-free; three displacement components at the hole remove the rigid motions.
+Linear orthotropic material. The reference is computed with quadratic 9-node
+quadrilaterals on structured meshes around the hole, uniformly refined, plus meshes of the
+same size with different grading toward the hole.
+Question: which compliance, displacement and strain quantities can serve as trustworthy
+reference values, and how large is their discretization uncertainty compared with a
+constitutive uncertainty range of a few percent?

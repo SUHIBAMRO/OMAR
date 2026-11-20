@@ -250,6 +250,52 @@ class PlateHoleAdapter:
         return [r[qoi] for r in self.strategy_rows], None
 
 
+class LaminaAdapter:
+    """HELD-OUT problem: the open-hole lamina of the CFM paper (lamina.py), the
+    numerical half of its constitutive range; spec, QoI definitions and
+    predictions committed before any solve (lamina_preregistration.json)."""
+    geometry = "open_hole_lamina"
+    description = (
+        "Open-hole composite lamina (CFM paper, arXiv:2611.22187, Sec. 9.3): elliptical plate, "
+        "semi-axes 50 mm and 10 mm, thickness 1 mm, central hole of radius 3 mm, unidirectional "
+        "AS4/3501-6 with fibres at 15 degrees to the long axis, plane stress, linear orthotropic "
+        "reference law (E1 126 GPa, E2 11 GPa, G12 6.6 GPa, nu12 0.28). Boundary tractions of a "
+        "homogeneous uniaxial stress along the long axis; three displacement components at the "
+        "hole fixed (rigid motions of the balanced load). Q2 (9-node) mapped mesh, 16m x 8m "
+        "divisions around/radially (m = 4: the paper's 64 x 32), graded toward the hole g = 1.5; "
+        "strategies g = 1.0, 2.0 at m = 8. Smooth boundary everywhere: no corners. QoIs: "
+        "compliance = f.u/P^2; u_tip = u_x at (50,0); hole_gamma12_avg, hole_e22_avg = area means "
+        "of the material-axis shear and transverse strain over the annulus 3 <= r <= 6 mm; "
+        "far_gamma12_avg = mean shear strain over the disc of radius 3 mm at (25,0); "
+        "hole_gk_gamma12_avg, hole_gk_e22_avg = the hole means with the weight "
+        "exp(-((r-3)/1.5)^2); peak_e22 = max transverse strain over the Gauss points.")
+    qois = ("compliance", "u_tip", "hole_gamma12_avg", "hole_e22_avg", "far_gamma12_avg",
+            "hole_gk_gamma12_avg", "hole_gk_e22_avg", "peak_e22")
+
+    def __init__(self, strategy_m=8):
+        from omar_pfem.verification_agent.lamina import CACHE
+        rows = json.load(open(CACHE)) if os.path.exists(CACHE) else []
+        self.rows = sorted((r for r in rows if r["g"] == 1.5), key=lambda r: r["m"])
+        self.hs = [r["h"] for r in self.rows]
+        self.strategy_rows = sorted((r for r in rows if r["m"] == strategy_m),
+                                    key=lambda r: r["g"])
+
+    @property
+    def family(self):
+        return [{"n_elem": r["n_elem"], "min_detF": None} for r in self.rows]
+
+    def series(self, qoi):
+        return self.hs, [r[qoi] for r in self.rows], None
+
+    def singular_exponent(self):
+        return None
+
+    def strategies(self, qoi):
+        if len(self.strategy_rows) < 2:
+            return None
+        return [r[qoi] for r in self.strategy_rows], None
+
+
 class B3Adapter:
     geometry = "bushing_groove"
     description = (
@@ -408,10 +454,12 @@ class B3Adapter:
 
 
 ADAPTERS = {"unit_square": B1Adapter, "quarter_ring": B2Adapter, "bushing_groove": B3Adapter,
-            "cook_membrane": CookAdapter, "plate_hole": PlateHoleAdapter}
+            "cook_membrane": CookAdapter, "plate_hole": PlateHoleAdapter,
+            "open_hole_lamina": LaminaAdapter}
 ADAPTER_VOCAB = {
     "cook_membrane": (CookAdapter.description, CookAdapter.qois),
     "plate_hole": (PlateHoleAdapter.description, PlateHoleAdapter.qois),
+    "open_hole_lamina": (LaminaAdapter.description, LaminaAdapter.qois),
     "unit_square": (B1Adapter.description, B1Adapter.qois),
     "quarter_ring": (B2Adapter.description, B2Adapter.qois),
     "bushing_groove": (B3Adapter.description,

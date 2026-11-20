@@ -228,6 +228,12 @@ DEFAULT_SPECS = {
                        material="linear_elastic", loading="edge_traction",
                        regularity="clamped_free_corner", element="Q9",
                        reference="mesh_refinement_family", qois=None),
+    # open-hole lamina of the CFM paper: held-out, spec committed
+    # (lamina_preregistration.json) before any solve
+    "open_hole_lamina": dict(name="Open-hole lamina (CFM)", geometry="open_hole_lamina", dim=2,
+                             material="linear_orthotropic", loading="edge_traction",
+                             regularity="smooth", element="Q9",
+                             reference="mesh_refinement_family", qois=None),
     "bushing_groove": dict(name="B3 groove", geometry="bushing_groove", dim=3,
                            material="neo_hookean", loading="prescribed_rotation",
                            regularity="stress_concentration", element="Q20",
