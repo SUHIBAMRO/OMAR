@@ -53,7 +53,43 @@ from omar_pfem.evaluate_B3_qois_finer import (FINE_RESOLUTION_STRESS, apply_diri
                                               build_model, generate_fine_reference)
 from omar_pfem.run_b3_rabczuk_reeval_v2_local import U_ONLY_NAMES
 from omar_pfem.train_B1 import _apply_input_norm, install_input_norm_for_checkpoint
-from omar_pfem.verification_agent import region_study as RS
+
+assert abs(GROOVE_DEPTH - 0.20) < 1e-12, "old groove depth in this checkout (expected 0.20)"
+
+
+class RS:
+    """Copies of verification_agent/region_study.weights/qois, inlined so this
+    script runs on a checkout without the verification_agent package."""
+
+    @staticmethod
+    def weights(rec, kind, size):
+        d = np.linalg.norm(rec["pos"] - rec["ref"][None, :], axis=1)
+        if kind == "sharp":
+            return rec["w"] * (d < size), int((d < size).sum())
+        k = np.exp(-(d / size) ** 2)
+        return rec["w"] * k, float(k.sum() ** 2 / (k ** 2).sum())
+
+    @staticmethod
+    def qois(rec, wt):
+        s = rec["sigma"]
+        W = wt.sum()
+        avg = lambda v: float((v * wt).sum() / W)
+        p = -np.trace(s, axis1=1, axis2=2) / 3.0
+        dev = s + p[:, None, None] * np.eye(3)
+        th = np.arctan2(rec["pos"][:, 1], rec["pos"][:, 0])
+        c, sn = np.cos(th), np.sin(th)
+        Q = np.zeros((len(th), 3, 3))
+        Q[:, 0, 0], Q[:, 0, 1], Q[:, 1, 0], Q[:, 1, 1], Q[:, 2, 2] = c, sn, -sn, c, 1.0
+        sc = np.einsum("nai,nij,nbj->nab", Q, s, Q)
+        return {
+            "sigma_xx_avg": avg(s[:, 0, 0]), "sigma_yy_avg": avg(s[:, 1, 1]),
+            "sigma_zz_avg": avg(s[:, 2, 2]), "pressure_avg": avg(p),
+            "cyl_rr_avg": avg(sc[:, 0, 0]), "cyl_tt_avg": avg(sc[:, 1, 1]),
+            "cyl_rz_avg": avg(sc[:, 0, 2]), "cyl_zz_avg": avg(sc[:, 2, 2]),
+            "sigma_xz_avg": avg(s[:, 0, 2]),
+            "frob_avg": avg(np.sqrt(np.einsum("nij,nij->n", s, s))),
+            "von_mises_avg": avg(np.sqrt(1.5 * np.einsum("nij,nij->n", dev, dev))),
+        }
 
 DUMP_RADIUS = 0.25          # as in verification_agent/b3_global.py (Gauss-point dumps)
 MEASURES = ("sigma_xx_avg", "sigma_yy_avg", "sigma_zz_avg", "pressure_avg", "cyl_rr_avg",
