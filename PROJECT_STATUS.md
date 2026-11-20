@@ -25819,3 +25819,25 @@ collaboration); CSM/CFM papers.
   check. With the switch: plate Gaussian false alarm removed, Cook energy INCONCLUSIVE, B1/B3
   unchanged. Report wording fixed: the plate Gaussian average converged to ~1e-5 (not 1e-6).
   55 tests pass; claims 607/607; PDF v3 re-exported (no "Timon").
+
+### 2026-11-20 -- Experiment 16: CFM open-hole lamina, the numerical half (pre-registered)
+Omar: "do what needs to be done". First concrete step of Prof. Rabczuk's goal (19 Nov point
+2: connect numerical error control with CSM/CFM). lamina.py: the CFM open-hole lamina
+(arXiv:2611.22187 Sec. 9.3) with the paper's reference law (linear orthotropic AS4/3501-6,
+fibres 15 deg), plane stress, Q9 mapped mesh 16m x 8m (m = 4 = the paper's 64 x 32),
+g = 1.5; m = 1-32 (up to 1.05M dof, 35 s) + strategies g = 1.0/2.0 at m = 8. Our own zone
+definitions (paper gives none), fixed in lamina_preregistration.json (commit 7086c90, before
+any solve). Orthotropic MMS: L2 3.00, H1 2.00 (lamina_mms.json).
+- Independent check: compliance f.u/P^2 = 6.981e-5 mm/N, inside the paper's range
+  6.925-7.148e-5 -> geometry, material and definition consistent with the paper.
+- Rules 1/1 (only u_tip predicted: the vocabulary does not know "compliance" -- stated in
+  advance); expectations 5/6 (miss: u_tip 5-level order 2.36, outside [3, 5]; 3-level 3.40).
+  All 8 QoIs PASS: compliance rate p 3.98/4.05; Gaussian averages rate p ~4; sharp averages
+  band (hole e22 rate); peak_e22 band, at the hole edge.
+- Discretization error at the paper's resolution (m = 4 vs m = 32, or the strategy spread if
+  larger) against the CFM widths (Table 6, with/without convexity): compliance 0.012% vs
+  3.18/6.19% (margin 132 on the half-width); hole shear 0.097% vs 5.61/7.12% (29); far shear
+  0.047% vs 4.71/5.27% (50); hole transverse 0.37% vs 107/146% (143). => the paper's mesh
+  is adequate for its constitutive ranges by a large margin; the combined bound is
+  dominated by the constitutive part. Caveats: our zones, linear law, Q9 not their P2
+  triangles. (lamina_result_6levels.json)

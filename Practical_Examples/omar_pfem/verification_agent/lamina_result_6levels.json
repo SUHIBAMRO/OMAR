@@ -1,0 +1,126 @@
+{
+ "n_levels": 6,
+ "levels_m": [
+  1,
+  2,
+  4,
+  8,
+  16,
+  32
+ ],
+ "rule_hits": 1,
+ "rule_predictions": 1,
+ "qois": {
+  "compliance": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "rule_prediction": null,
+   "order_3level": 3.9836119255018456,
+   "order_5level": 4.045847380354228,
+   "U_fine": 6.487641579586858e-07
+  },
+  "u_tip": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "rule_prediction": "PASS",
+   "order_3level": 3.4030929936872503,
+   "order_5level": 2.3605043649963524,
+   "U_fine": 1.0228369557540785e-05,
+   "rule_hit": true
+  },
+  "hole_gamma12_avg": {
+   "verdict": "PASS",
+   "evidence": "band",
+   "rule_prediction": null,
+   "order_3level": null,
+   "order_5level": 12.669503857203916,
+   "U_fine": null
+  },
+  "hole_e22_avg": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "rule_prediction": null,
+   "order_3level": 3.9192644573193176,
+   "order_5level": 1.3021761105747447,
+   "U_fine": 0.00048655130539447024
+  },
+  "far_gamma12_avg": {
+   "verdict": "PASS",
+   "evidence": "band",
+   "rule_prediction": null,
+   "order_3level": 2.740742106816488,
+   "order_5level": 12.669503857203916,
+   "U_fine": null
+  },
+  "hole_gk_gamma12_avg": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "rule_prediction": null,
+   "order_3level": 4.01451325616275,
+   "order_5level": 4.821356557347617,
+   "U_fine": 6.477501335484111e-07
+  },
+  "hole_gk_e22_avg": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "rule_prediction": null,
+   "order_3level": 3.979582344953786,
+   "order_5level": 3.994235524713505,
+   "U_fine": 1.610841806694383e-06
+  },
+  "peak_e22": {
+   "verdict": "PASS",
+   "evidence": "band",
+   "rule_prediction": null,
+   "order_3level": null,
+   "order_5level": 0.17985169224110917,
+   "U_fine": null
+  }
+ },
+ "cfm_comparison": {
+  "compliance": {
+   "error_at_m4_vs_m32_pct": 0.012088926047748583,
+   "strategy_spread_m8_pct": 0.00010559941665882574,
+   "cfm_width_pct": [
+    6.19,
+    3.18
+   ],
+   "margin_half_width_over_numerical": 131.52533101119587
+  },
+  "hole_gamma12_avg": {
+   "error_at_m4_vs_m32_pct": 0.09718601718441411,
+   "strategy_spread_m8_pct": 0.09500487703307908,
+   "cfm_width_pct": [
+    7.12,
+    5.61
+   ],
+   "margin_half_width_over_numerical": 28.862176692326095
+  },
+  "hole_e22_avg": {
+   "error_at_m4_vs_m32_pct": 0.21862122558882202,
+   "strategy_spread_m8_pct": 0.3747610778966263,
+   "cfm_width_pct": [
+    146.0,
+    107.0
+   ],
+   "margin_half_width_over_numerical": 142.75762120301454
+  },
+  "far_gamma12_avg": {
+   "error_at_m4_vs_m32_pct": 0.0467167916992306,
+   "strategy_spread_m8_pct": 0.01195473956017585,
+   "cfm_width_pct": [
+    5.27,
+    4.71
+   ],
+   "margin_half_width_over_numerical": 50.41013978789099
+  }
+ },
+ "developer_expectations_met": {
+  "compliance and u_tip PASS with rate": true,
+  "compliance/u_tip 5-level order in [3, 5]": false,
+  "sharp averages PASS (band or rate)": true,
+  "Gaussian averages PASS with rate": true,
+  "peak PASS, at the hole edge": true,
+  "margin >= 3 at m = 4 for compliance and the shear strains": true
+ }
+}

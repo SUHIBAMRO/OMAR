@@ -63,5 +63,75 @@ def main():
     print(prereg["qoi_classes"])
 
 
+
+
+def compare():
+    """Score the unchanged rules and the stated expectations; compare the
+    discretization error at the paper's resolution (m = 4) with the CFM widths."""
+    import numpy as np
+    from omar_pfem.verification_agent.verify_report import rules
+    pre = json.load(open(OUT))
+    R = rules("open_hole_lamina")
+    ad = R["adapter"]
+    rows, hits, n_pred = {}, 0, 0
+    for q, pr in pre["rule_predictions"].items():
+        ov, ev = R["combine"][q][:2]
+        g3 = R["v"][q].get("qoi_convergence", {})
+        g5 = R["v"][q].get("qoi_convergence_multilevel", {})
+        row = {"verdict": ov, "evidence": ev, "rule_prediction": pr["predicted"],
+               "order_3level": g3.get("observed_order"), "order_5level": g5.get("fit_order"),
+               "U_fine": g5.get("uncertainty_fine")}
+        if pr["predicted"] is not None:
+            n_pred += 1
+            row["rule_hit"] = pr["predicted"] == ov
+            hits += row["rule_hit"]
+        rows[q] = row
+    byq = {r["m"]: r for r in ad.rows}
+    fine = byq[max(byq)]
+    strat = {r["g"]: r for r in ad.strategy_rows}
+    cfm = {}
+    for q, (w_nc, w_c) in pre["cfm_constitutive_width_percent_without_with_convexity"].items():
+        err4 = 100 * abs(byq[4][q] / fine[q] - 1)
+        spread = 100 * (max(r[q] for r in strat.values()) - min(r[q] for r in strat.values())) \
+            / abs(fine[q])
+        num = max(err4, spread)
+        cfm[q] = {"error_at_m4_vs_m%d_pct" % max(byq): err4, "strategy_spread_m8_pct": spread,
+                  "cfm_width_pct": [w_nc, w_c],
+                  "margin_half_width_over_numerical": (w_c / 2) / num if num > 0 else None}
+    peak_at_hole = all(abs(np.hypot(*r["peak_e22_location"]) - 3.0) < 0.5 for r in ad.rows[-3:])
+    expect = {
+        "compliance and u_tip PASS with rate": all(rows[q]["verdict"] == "PASS" and
+                                                   rows[q]["evidence"] == "rate"
+                                                   for q in ("compliance", "u_tip")),
+        "compliance/u_tip 5-level order in [3, 5]": all(
+            rows[q]["order_5level"] is not None and 3 <= rows[q]["order_5level"] <= 5
+            for q in ("compliance", "u_tip")),
+        "sharp averages PASS (band or rate)": all(rows[q]["verdict"] == "PASS" for q in (
+            "hole_gamma12_avg", "hole_e22_avg", "far_gamma12_avg")),
+        "Gaussian averages PASS with rate": all(rows[q]["verdict"] == "PASS" and
+                                                rows[q]["evidence"] == "rate"
+                                                for q in ("hole_gk_gamma12_avg",
+                                                          "hole_gk_e22_avg")),
+        "peak PASS, at the hole edge": rows["peak_e22"]["verdict"] == "PASS" and peak_at_hole,
+        "margin >= 3 at m = 4 for compliance and the shear strains": all(
+            (cfm[q]["margin_half_width_over_numerical"] or 0) >= 3
+            for q in ("compliance", "hole_gamma12_avg", "far_gamma12_avg")),
+    }
+    out = {"n_levels": len(ad.hs), "levels_m": [r["m"] for r in ad.rows], "rule_hits": hits,
+           "rule_predictions": n_pred, "qois": rows, "cfm_comparison": cfm,
+           "developer_expectations_met": expect}
+    path = os.path.join(HERE, f"lamina_result_{len(ad.hs)}levels.json")
+    json.dump(out, open(path, "w"), indent=1)
+    print(f"rules {hits}/{n_pred}; expectations {sum(expect.values())}/{len(expect)}")
+    for k, v in expect.items():
+        print(f"  {'met ' if v else 'MISS'} {k}")
+    for q, r in rows.items():
+        print(f"  {q:<22} {r['verdict']}/{r['evidence']:<5} p3={r['order_3level']} "
+              f"p5={r['order_5level']} U={r['U_fine']}")
+    for q, c in cfm.items():
+        print(f"  CFM {q:<18} {c}")
+
+
 if __name__ == "__main__":
-    main()
+    import sys
+    compare() if "--compare" in sys.argv else main()
