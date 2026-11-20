@@ -25748,3 +25748,26 @@ sigma_xz, Frobenius, von Mises averages fail; Gaussian weight (length 2 R0) give
 Q20/P1 changes the Gaussian averages by 1.6% at 15,960 (1.9-2.1% at 10,200); surrogates
 still err 146-173% (best variant, F4) and >= 290% (others, xx/zz/p). Every number checked
 against the stored data. pdflatex compiles without errors.
+
+**F3 -- Q20/P1 (projected dilatation, linear per element; mixed_b3 fbar_p1, full rule).**
+Uniform meshes (mixed_b3_result.json): moment 34.618 / 34.542 / 34.529 (2,376 / 10,200 /
+15,960) -- between displacement (34.669/34.577/34.560) and F-bar (34.206/34.332/34.354),
+near the displacement family limit ~34.46-34.5. Gaussian sigma_xx 0.5310/0.5378/0.5391,
+sigma_zz 0.4277/0.4286/0.4310, pressure -0.4594/-0.4627/-0.4645; P1 vs displacement (same
+code): 2.1 -> 1.6% (10,200 -> 15,960), shrinking. The displacement family (adapter
+definition) rises 0.5288 (15,960) -> 0.5361 (59,400), fitted limit 0.540: P1 at 15,960
+(0.539) is already near that limit -> P1 converges faster; the gap looks like the
+displacement formulation's own discretisation error, F-bar (P0) is the outlier
+(+4-10%). (Note: mixed_b3 and the adapter's gk2 definitions differ by ~0.36% at 15,960:
+0.5307 vs 0.5288 for the same displacement solution -- compare like with like.)
+Local refinement (b3_local_refine.json, exact mid-side meshes, h/rho 0.77/0.25/0.15):
+P1 moment 34.574/34.633/34.633 (+0.5% over the uniform limit; graded meshes coarsen the
+far field and/or lock partially); Gaussian sigma_xx 0.5257/0.5102/0.5104 (stable between
+0.25 and 0.15 but 5.5% BELOW the uniform limit); max|sigma_xx| in R0 1.725/1.671/2.195
+(rises 31% at the finest -> peak still NOT converged). On the same graded meshes the
+formulations scatter: Gaussian sigma_xx full-disp 0.471, P1 0.510, reduced-disp 0.546,
+F-bar 0.569 (vs uniform limit ~0.540). Reading: the strongly graded meshes themselves
+(Jacobian contrast up to 6e4, thin root elements) are not reliable for any formulation;
+P1 removes neither the peak problem nor the graded-mesh scatter. The groove peak remains
+unverified. Running: P1 and displacement at uniform 23,520 (same code) to check that both
+approach the same Gaussian limit.
