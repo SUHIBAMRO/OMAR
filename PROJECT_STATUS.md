@@ -25675,3 +25675,17 @@ family the agent certified.
 Running / pending: F1 contour re-run -> 47,040 Q20 solve (background chain), then F3
 Q20/P1 runs (queued), F5 billed ablation (running, b1 done, b2 in progress), F2
 manuscript edits after F1, F8 report + email LAST.
+
+**F5 -- live LLM vs rules ablation (DONE; billed, approved).** claude-cli backend, 3 runs
+x B1/B2/B3, 0 failed, total cost USD 7.66 (b1 2.06, b2 2.57, b3 3.03), 160-300 s per run
+(ablation_result_live.json, ablation_live_log.txt).
+- Formalizer recovered the reference spec (geometry, regularity, element, reference) 9/9.
+- Verdict agreement with rule-only 1.0 in all runs (verdicts are computed by code).
+- Failure predictions: B1/B2 rules miss 0 / false alarms 0; LLM misses 0 but 2-4 false
+  alarms per run. B3: rules miss 5 (cyl_rz_avg, gk2_sigma_frob_avg, sigma_frob_avg,
+  sigma_xz_avg, von_mises_avg) / false alarms 3; LLM misses 1 in every run
+  (gk2_sigma_frob_avg) but 2-10 false alarms (unstable across runs).
+- Plans: rules had to add 0-12 checks the LLM omitted; code replaced 24-106 LLM
+  tolerances per run.
+- Reading: the LLM adds problem formalisation from free text (9/9) and fewer misses on B3
+  (1 vs 5), at the price of many, run-dependent false alarms; it adds nothing on B1/B2.
