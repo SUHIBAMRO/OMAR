@@ -60,8 +60,9 @@ CARD_SCHEMA = {
                            "quote": {"type": "string"}}}},
         "singular_features": {"type": "array", "items": {
             "type": "object", "additionalProperties": False,
-            "required": ["description", "inferred", "quote"],
+            "required": ["description", "singular", "inferred", "quote"],
             "properties": {"description": {"type": "string"},
+                           "singular": {"type": "boolean"},
                            "inferred": {"type": "boolean"},
                            "quote": {"type": "string"}}}},
         "not_stated": {"type": "array", "items": {"type": "string"}},
@@ -82,7 +83,11 @@ PROMPT = (
     "kind; (5) singular_features: corners where a fixed edge meets a free edge, re-entrant "
     "corners, cracks, point loads or sharp notches; set inferred=true if you deduce it from "
     "the geometry and boundary conditions rather than from an explicit statement, and quote "
-    "the sentence it is deduced from.\n\nSECTION:\n")
+    "the sentence it is deduced from; set singular=true only where the stress is unbounded "
+    "in the continuum problem, singular=false for a finite concentration (e.g. a smooth "
+    "hole or a notch with a finite radius); (6) discretisation is that of the REFERENCE "
+    "solution (FE mesh size, element type and count); describe a surrogate or network "
+    "under qois or not_stated, not there.\n\nSECTION:\n")
 
 
 # ---------------------------------------------------------------------------
@@ -184,7 +189,7 @@ def needs(card, ok):
     if ref["convergence_evidence"] != "independent_code":
         out.append("no independent code: cross-check with a second solver")
     peaks = [q["name"] for q in card["qois"] if q["kind"] == "pointwise_peak"]
-    if card["singular_features"]:
+    if any(s.get("singular", True) for s in card["singular_features"]):
         out.append("singular features present: run the singular-order check; pointwise "
                    "peaks there have no finite limit" + (f" ({', '.join(peaks)})"
                                                          if peaks else ""))
@@ -278,7 +283,10 @@ def score(result, truth):
         names = " ".join(q["name"].lower() + " " + q["definition"].lower()
                          for q in card["qois"])
         hits["QoIs found"] = all(w in names for w in truth["qoi_names"])
-    hits["singular features as expected"] = bool(card["singular_features"]) == \
+    # post hoc (after run 1): only features flagged singular count; a card without the
+    # flag (schema of run 1) counts every listed feature, as run 1 was scored
+    hits["singular features as expected"] = any(
+        s.get("singular", True) for s in card["singular_features"]) == \
         truth["singular_expected"]
     hits["reference flagged as unverified"] = any(n.startswith("reference not verified")
                                                   for n in result["needs"])

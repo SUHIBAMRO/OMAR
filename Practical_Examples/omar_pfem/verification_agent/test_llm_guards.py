@@ -639,3 +639,9 @@ def test_literature_agent_rejects_invented_quotes():
     assert "126" not in L.problem_text(card, ok)
     assert any(n.startswith("reference not verified") for n in L.needs(card, ok))
     assert L.vocabulary(card)[1]          # compliance: vocabulary gap reported
+    # a finite concentration (singular=false) must not trigger the singular-order check
+    card["singular_features"] = [{"description": "hole edge", "singular": False,
+                                  "inferred": False, "quote": "secant compliance"}]
+    assert not any(n.startswith("singular features") for n in L.needs(card, ok))
+    card["singular_features"][0]["singular"] = True
+    assert any(n.startswith("singular features") for n in L.needs(card, ok))

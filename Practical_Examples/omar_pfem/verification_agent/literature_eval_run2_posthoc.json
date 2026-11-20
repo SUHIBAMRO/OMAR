@@ -1,0 +1,393 @@
+{
+ "openpinn_plate": [
+  {
+   "pdf": "2026-11-19_Rabczuk_attachment_OpenPINN.pdf",
+   "section_used": "section 5.3: Agent-assisted workflow demonstration",
+   "card": {
+    "title": "Plate with circular hole, 2D plane-stress linear elasticity (agent-assisted PINN workflow demonstration, Sec. 5.3)",
+    "geometry": {
+     "value": "Square plate [0,2]^2 m with a central circular hole of radius 0.25 m centered at (1,1) m; 2D plane stress",
+     "quote": "A square plate on [0, 2]2 m contains a circular hole of radius 0.25 m centered at"
+    },
+    "material": {
+     "value": "Isotropic linear elastic, plane stress, E = 210 GPa, nu = 0.3 (linear elasticity, not hyperelastic)",
+     "quote": "The solid is isotropic with E = 210 GPa and \u03bd = 0.3."
+    },
+    "boundary_conditions": {
+     "value": "Left edge fixed (taken as ux = uy = 0; components not spelled out); top and bottom outer edges and the hole boundary traction-free; right edge carries the applied traction",
+     "quote": "a uniform uniaxial traction of 1 MPa, and the remaining outer edges and the hole boundary are traction-free."
+    },
+    "loading": {
+     "value": "Uniform uniaxial traction of 1 MPa on the right edge (assumed normal/x-direction tension; sign and direction not stated explicitly)",
+     "quote": "a uniform uniaxial traction of 1 MPa, and the remaining outer edges and the hole boundary are traction-free."
+    },
+    "discretisation": {
+     "value": "FEM reference on a probe mesh with h = 0.025 (m); element type, element count and FE code not stated",
+     "quote": "show seed 0 predictions against an FEM reference on a probe mesh with h = 0.025, and that FEM solution"
+    },
+    "reference": {
+     "type": "single_mesh",
+     "convergence_evidence": "none_stated",
+     "quote": "show seed 0 predictions against an FEM reference on a probe mesh with h = 0.025, and that FEM solution"
+    },
+    "qois": [
+     {
+      "name": "FEM displacement magnitude",
+      "kind": "displacement",
+      "definition": "Order of magnitude of FEM reference displacements",
+      "reported_value": "order 10^-5 m (SI Adam PINN predicted order 10^-1 m)",
+      "quote": "while the FEM displacements are of order 10\u22125 m"
+     },
+     {
+      "name": "SI Adam PINN displacement relative L2 error",
+      "kind": "field_error_norm",
+      "definition": "Relative L2 error of PINN displacement (width-64 depth-4 MLP, 10000 Adam steps, SI units, seed 0) vs FEM on probe mesh",
+      "reported_value": "3.65 \u00d7 10^4",
+      "quote": "relative L2 on the FEM probe mesh is 3.65 \u00d7 104"
+     },
+     {
+      "name": "SI Adam final total loss",
+      "kind": "other",
+      "definition": "Final PINN total training loss, SI units; falls ~1.6% from initial value",
+      "reported_value": "2.19 \u00d7 10^22",
+      "quote": "It reports a final total loss of 2.19 \u00d7 1022 that falls only about 1.6% from the initial"
+     },
+     {
+      "name": "SI Adam PDE residual RMSE",
+      "kind": "other",
+      "definition": "RMSE of strong-form equilibrium residual; traction-boundary RMSEs of order 10^10",
+      "reported_value": "about 1.71 \u00d7 10^10",
+      "quote": "value over the full budget, PDE residual RMSE near 1.71 \u00d7 1010 , and traction-boundary RMSEs of order"
+     },
+     {
+      "name": "Nondimensional Adam displacement relative L2 error (3 seeds)",
+      "kind": "field_error_norm",
+      "definition": "Relative L2 displacement error vs held-out FEM probe mesh h = 0.025, scales L = 1 m, S = 10^6 Pa, U = SL/E, 10000 Adam steps",
+      "reported_value": "0.758, 0.765, 0.775",
+      "quote": "U = SL/E. Three seeds with 10000 Adam steps reach displacement relative L2 errors of 0.758, 0.765, and"
+     },
+     {
+      "name": "Final L-BFGS seed-0 displacement relative L2 error",
+      "kind": "field_error_norm",
+      "definition": "Relative L2 displacement error after 260 fixed-batch L-BFGS steps (2048 interior, 512 boundary points), vs FEM probe mesh and shifted held-out probe set",
+      "reported_value": "3.51 \u00d7 10^-2 (FEM probe mesh); 3.52 \u00d7 10^-2 (shifted probe set); down from 0.758",
+      "quote": "from 0.758 under nondimensional Adam to 3.51 \u00d7 10\u22122 on the FEM probe mesh, with 3.52 \u00d7 10\u22122 on"
+     },
+     {
+      "name": "Final L-BFGS seed-0 stress relative L2 error",
+      "kind": "field_error_norm",
+      "definition": "Relative L2 stress error vs FEM",
+      "reported_value": "3.66 \u00d7 10^-2 (down from 0.713 under nondimensional Adam)",
+      "quote": "The corresponding stress relative L2 falls from 0.713 to 3.66 \u00d7 10\u22122"
+     },
+     {
+      "name": "Nondimensional x-momentum residual RMSE (seed 0)",
+      "kind": "other",
+      "definition": "RMSE of nondimensional x-momentum residual, Adam vs L-BFGS",
+      "reported_value": "0.494 -> 0.113",
+      "quote": "the nondimensional x-momentum residual RMSE falls from 0.494 to 0.113."
+     },
+     {
+      "name": "Final L-BFGS displacement relative L2 error, seeds 1 and 2",
+      "kind": "field_error_norm",
+      "definition": "Relative L2 displacement error vs FEM probe mesh",
+      "reported_value": "4.13 \u00d7 10^-2 (seed 1), 6.31 \u00d7 10^-2 (seed 2)",
+      "quote": "L2 values of 4.13 \u00d7 10\u22122 and 6.31 \u00d7 10\u22122 on the same FEM probe mesh."
+     }
+    ],
+    "singular_features": [
+     {
+      "description": "Corners (0,0) and (0,2) where the fixed left edge meets the traction-free bottom/top edges: stress singularity in the continuum problem (relevant to pointwise stress and the stress relative L2 near those corners)",
+      "singular": true,
+      "inferred": true,
+      "quote": "The solid is isotropic with E = 210 GPa and \u03bd = 0.3. The left edge is fixed, the right edge carries"
+     },
+     {
+      "description": "Smooth circular hole of radius 0.25 m: finite stress concentration, not a singularity",
+      "singular": false,
+      "inferred": true,
+      "quote": "A square plate on [0, 2]2 m contains a circular hole of radius 0.25 m centered at"
+     }
+    ],
+    "not_stated": [
+     "FE element type (e.g. Q4/T3/Q9) and polynomial order of the reference",
+     "Number of elements / nodes of the FEM reference mesh",
+     "FE code/solver used for the reference",
+     "Any mesh-convergence study or error estimate for the FEM reference",
+     "Units of h = 0.025 (presumably m)",
+     "Exact direction/sign of the right-edge traction (tension assumed from 'uniaxial')",
+     "Exact components constrained on the 'fixed' left edge",
+     "Plate thickness (not needed for 2D plane stress with traction in Pa)",
+     "Treatment of fixed-free corner singularity in the error metrics",
+     "Surrogate details (not part of reference discretisation): PINN MLP tanh width-64 depth-4, Adam 10000 steps with 512 interior/128 boundary points resampled, then 260 L-BFGS steps with fixed 2048 interior/512 boundary points"
+    ]
+   },
+   "quotes_found": {
+    "geometry": true,
+    "material": true,
+    "boundary_conditions": true,
+    "loading": true,
+    "discretisation": true,
+    "reference": true,
+    "qois[0]": true,
+    "qois[1]": true,
+    "qois[2]": true,
+    "qois[3]": true,
+    "qois[4]": true,
+    "qois[5]": true,
+    "qois[6]": true,
+    "qois[7]": true,
+    "qois[8]": true,
+    "singular_features[0]": true,
+    "singular_features[1]": true
+   },
+   "quote_rate": 1.0,
+   "qoi_classes": [
+    {
+     "name": "FEM displacement magnitude",
+     "kind": "displacement",
+     "class": "displacement"
+    },
+    {
+     "name": "SI Adam PINN displacement relative L2 error",
+     "kind": "field_error_norm",
+     "class": "global"
+    },
+    {
+     "name": "SI Adam final total loss",
+     "kind": "other",
+     "class": null
+    },
+    {
+     "name": "SI Adam PDE residual RMSE",
+     "kind": "other",
+     "class": null
+    },
+    {
+     "name": "Nondimensional Adam displacement relative L2 error (3 seeds)",
+     "kind": "field_error_norm",
+     "class": "global"
+    },
+    {
+     "name": "Final L-BFGS seed-0 displacement relative L2 error",
+     "kind": "field_error_norm",
+     "class": "global"
+    },
+    {
+     "name": "Final L-BFGS seed-0 stress relative L2 error",
+     "kind": "field_error_norm",
+     "class": "global"
+    },
+    {
+     "name": "Nondimensional x-momentum residual RMSE (seed 0)",
+     "kind": "other",
+     "class": null
+    },
+    {
+     "name": "Final L-BFGS displacement relative L2 error, seeds 1 and 2",
+     "kind": "field_error_norm",
+     "class": "global"
+    }
+   ],
+   "vocabulary_gaps": [
+    "'SI Adam PINN displacement relative L2 error' (field_error_norm): no rule class recognises this kind",
+    "'SI Adam final total loss' (other): no rule class recognises this kind",
+    "'SI Adam PDE residual RMSE' (other): no rule class recognises this kind",
+    "'Nondimensional Adam displacement relative L2 error (3 seeds)' (field_error_norm): no rule class recognises this kind",
+    "'Final L-BFGS seed-0 displacement relative L2 error' (field_error_norm): no rule class recognises this kind",
+    "'Final L-BFGS seed-0 stress relative L2 error' (field_error_norm): no rule class recognises this kind",
+    "'Nondimensional x-momentum residual RMSE (seed 0)' (other): no rule class recognises this kind",
+    "'Final L-BFGS displacement relative L2 error, seeds 1 and 2' (field_error_norm): no rule class recognises this kind"
+   ],
+   "needs": [
+    "reference not verified: a refinement family (and strategies) is needed before its values can be used to measure surrogate errors",
+    "no independent code: cross-check with a second solver",
+    "singular features present: run the singular-order check; pointwise peaks there have no finite limit",
+    "missing inputs must be fixed (and declared) before solving: FE element type (e.g. Q4/T3/Q9) and polynomial order of the reference; Number of elements / nodes of the FEM reference mesh; FE code/solver used for the reference; Any mesh-convergence study or error estimate for the FEM reference; Units of h = 0.025 (presumably m); Exact direction/sign of the right-edge traction (tension assumed from 'uniaxial'); Exact components constrained on the 'fixed' left edge; Plate thickness (not needed for 2D plane stress with traction in Pa); Treatment of fixed-free corner singularity in the error metrics; Surrogate details (not part of reference discretisation): PINN MLP tanh width-64 depth-4, Adam 10000 steps with 512 interior/128 boundary points resampled, then 260 L-BFGS steps with fixed 2048 interior/512 boundary points"
+   ],
+   "problem_text": "Plate with circular hole, 2D plane-stress linear elasticity (agent-assisted PINN workflow demonstration, Sec. 5.3).\nGeometry: Square plate [0,2]^2 m with a central circular hole of radius 0.25 m centered at (1,1) m; 2D plane stress\nMaterial: Isotropic linear elastic, plane stress, E = 210 GPa, nu = 0.3 (linear elasticity, not hyperelastic)\nBoundary conditions: Left edge fixed (taken as ux = uy = 0; components not spelled out); top and bottom outer edges and the hole boundary traction-free; right edge carries the applied traction\nLoading: Uniform uniaxial traction of 1 MPa on the right edge (assumed normal/x-direction tension; sign and direction not stated explicitly)\nDiscretisation in the paper: FEM reference on a probe mesh with h = 0.025 (m); element type, element count and FE code not stated\nFeatures: Corners (0,0) and (0,2) where the fixed left edge meets the traction-free bottom/top edges: stress singularity in the continuum problem (relevant to pointwise stress and the stress relative L2 near those corners); Smooth circular hole of radius 0.25 m: finite stress concentration, not a singularity.\nQuestion: which of these quantities can serve as trustworthy reference values: FEM displacement magnitude (Order of magnitude of FEM reference displacements); SI Adam PINN displacement relative L2 error (Relative L2 error of PINN displacement (width-64 depth-4 MLP, 10000 Adam steps, SI units, seed 0) vs FEM on probe mesh); SI Adam final total loss (Final PINN total training loss, SI units; falls ~1.6% from initial value); SI Adam PDE residual RMSE (RMSE of strong-form equilibrium residual; traction-boundary RMSEs of order 10^10); Nondimensional Adam displacement relative L2 error (3 seeds) (Relative L2 displacement error vs held-out FEM probe mesh h = 0.025, scales L = 1 m, S = 10^6 Pa, U = SL/E, 10000 Adam steps); Final L-BFGS seed-0 displacement relative L2 error (Relative L2 displacement error after 260 fixed-batch L-BFGS steps (2048 interior, 512 boundary points), vs FEM probe mesh and shifted held-out probe set); Final L-BFGS seed-0 stress relative L2 error (Relative L2 stress error vs FEM); Nondimensional x-momentum residual RMSE (seed 0) (RMSE of nondimensional x-momentum residual, Adam vs L-BFGS); Final L-BFGS displacement relative L2 error, seeds 1 and 2 (Relative L2 displacement error vs FEM probe mesh)?",
+   "score": {
+    "geometry": true,
+    "material": true,
+    "reference.type": true,
+    "reference.convergence_evidence": true,
+    "discretisation": true,
+    "material invents nothing": true,
+    "singular features as expected": true,
+    "reference flagged as unverified": true
+   }
+  }
+ ],
+ "cfm_lamina": [
+  {
+   "pdf": "2026-11-20_Rabczuk_CFM_Constitutive-fibre_mechanics_arXiv2611.22187.pdf",
+   "section_used": "section 9.3: Open-hole composite lamina",
+   "card": {
+    "title": "Open-hole composite lamina (AS4/3501-6, plane stress, elliptical planform with central hole, fibres at 15\u00b0)",
+    "geometry": {
+     "value": "2D plane-stress unidirectional lamina with an elliptical planform (semi-axes 50 mm and 10 mm), thickness 1 mm, and a central circular hole of radius 3 mm. Fibres are at 15\u00b0 to the long axis.",
+     "quote": "has an elliptical planform with semi-axes 50 mm and 10 mm, thickness 1 mm and a central hole of radius 3 mm"
+    },
+    "material": {
+     "value": "AS4/3501-6 lamina. The reference law \u03c8ref is linear orthotropic with the moduli of [49] (World-Wide Failure Exercise); the moduli are not given in this section. Synthetic data come from a nonlinear law \u03c8\u2020 fitted to the shear and transverse-compression curves of [49]; its nonlinear part is 40% of the shear strain at failure. The unknown energy \u03c8(e11,e22,\u03b312) is restricted to a Sobolev ball of radius K = 64.156 on the strain box \u03a9c and discretised with polynomials of total degree \u226414 (dimension 680).",
+     "quote": "The reference \u03c8ref is the linear orthotropic law with the moduli of [49]."
+    },
+    "boundary_conditions": {
+     "value": "Pure traction problem with a self-balanced load. Three displacement components at the hole are fixed to remove rigid-body motions. The section does not say which nodes or components are fixed.",
+     "quote": "three displacement components at the hole are fixed to remove the rigid motions of the balanced load"
+    },
+    "loading": {
+     "value": "Boundary tractions of a homogeneous uniaxial stress along the long axis, with resultant P. Loads are given relative to PD = 1792 N, the load at which the plate with law \u03c8\u2020 first reaches the boundary of \u03a9c. Results are reported at 0.6PD, 0.7PD and 0.8PD. The certificate is at 0.3PD (537.6 N).",
+     "quote": "The boundary tractions are those of a homogeneous uniaxial stress along the long axis with resultant P"
+    },
+    "discretisation": {
+     "value": "4096 isoparametric quadratic (6-node) triangles on a mapped mesh: 64 divisions around the hole and 32 radially, graded towards the hole, 8320 nodes. A 7-point degree-5 quadrature rule gives 28 672 quadrature points. Strains are also sampled at 9 points per element edge on the hole.",
+     "quote": "The plate is discretised by 4096 isoparametric quadratic triangles on a mapped mesh with 64 divisions around the hole and 32 radially, graded towards the hole (8320 nodes)"
+    },
+    "reference": {
+     "type": "single_mesh",
+     "convergence_evidence": "none_stated",
+     "quote": "these come from one computational chain and have not been reproduced by an independent implementation"
+    },
+    "qois": [
+     {
+      "name": "secant compliance (range width)",
+      "kind": "compliance",
+      "definition": "Width of the first-order range of the secant compliance over the data-consistent set at 0.6PD, in % of the value. Finite-amplitude end points: 6.927e-5 and 7.153e-5 mm/N, against linear 6.925e-5 and 7.148e-5 mm/N.",
+      "reported_value": "6.19% without convexity, 3.18% with convexity",
+      "quote": "The secant compliance is predicted within a range of 6.2% without and 3.2% with the convexity condition"
+     },
+     {
+      "name": "mean shear strain, hole zone (range width)",
+      "kind": "region_average",
+      "definition": "Width of the first-order range of the mean shear strain in the zone around the hole at 0.6PD, in % of the value.",
+      "reported_value": "7.12% without convexity, 5.61% with convexity",
+      "quote": "mean shear strain, hole zone"
+     },
+     {
+      "name": "mean transverse strain, hole zone (range width)",
+      "kind": "region_average",
+      "definition": "Width of the first-order range of the mean transverse strain in the hole zone at 0.6PD, in % of the value.",
+      "reported_value": "146% without convexity, 107% with convexity",
+      "quote": "The mean transverse strain in the zone around the hole has a range larger than its value."
+     },
+     {
+      "name": "mean shear strain, far field (range width)",
+      "kind": "region_average",
+      "definition": "Width of the first-order range of the mean far-field shear strain at 0.6PD, in % of the value.",
+      "reported_value": "5.27% without convexity, 4.71% with convexity",
+      "quote": "mean shear strain, far field"
+     },
+     {
+      "name": "worst-case usage of strain domain \u03a9c",
+      "kind": "pointwise_peak",
+      "definition": "Largest ratio, over the fibre, of any strain component at any point of the plate to its bound in \u03a9c (first order). The binding state is the transverse strain at the hole edge.",
+      "reported_value": "reaches 1 at 0.70PD; 1.29 at 0.8PD; 1.15 with an added 15\u00b0 coupon; 0.84 with an added 40\u00b0 coupon",
+      "quote": "At 0.8PD the usage is 1.29 and the prediction is not valid."
+     },
+     {
+      "name": "certified gate margin at 0.3PD",
+      "kind": "other",
+      "definition": "Smallest certified excess of the capacity term over the residual bound in the sum-of-squares certificates, across 43 pieces on 8 parent boxes of one declared cell.",
+      "reported_value": "all 43 pieces accepted; smallest margins range from 4.52e-7 to 3.60e-5",
+      "quote": "All 43 pieces are accepted with positive margin."
+     }
+    ],
+    "singular_features": [
+     {
+      "description": "The circular hole (radius 3 mm) is smooth, so it gives a finite stress and strain concentration, not a singularity. The binding transverse strain occurs at the hole edge.",
+      "singular": false,
+      "inferred": true,
+      "quote": "the binding state is the transverse strain at the hole edge"
+     },
+     {
+      "description": "Point constraints (three displacement components fixed at the hole) remove rigid-body motion under a self-balanced load. Ideally the reactions are zero, so no point-load singularity is expected.",
+      "singular": false,
+      "inferred": true,
+      "quote": "three displacement components at the hole are fixed to remove the rigid motions of the balanced load"
+     }
+    ],
+    "not_stated": [
+     "Numerical values of the orthotropic moduli of AS4/3501-6 (taken from [49])",
+     "Functional form and parameters of the nonlinear data law \u03c8\u2020 (fitted to curves of [49])",
+     "Which nodes and displacement components are fixed at the hole",
+     "FE mesh-convergence study for the plate model (only the polynomial degree of the law space is varied, and it has not converged at degree 14)",
+     "Nonlinear solver type and tolerances for the state solves",
+     "Exact extent of the 'hole zone' and 'far field' averaging regions",
+     "Absolute values of the QoIs other than compliance (only range widths in % are given)"
+    ]
+   },
+   "quotes_found": {
+    "geometry": true,
+    "material": true,
+    "boundary_conditions": true,
+    "loading": true,
+    "discretisation": true,
+    "reference": true,
+    "qois[0]": true,
+    "qois[1]": true,
+    "qois[2]": true,
+    "qois[3]": true,
+    "qois[4]": true,
+    "qois[5]": true,
+    "singular_features[0]": true,
+    "singular_features[1]": true
+   },
+   "quote_rate": 1.0,
+   "qoi_classes": [
+    {
+     "name": "secant compliance (range width)",
+     "kind": "compliance",
+     "class": "global"
+    },
+    {
+     "name": "mean shear strain, hole zone (range width)",
+     "kind": "region_average",
+     "class": "region_average"
+    },
+    {
+     "name": "mean transverse strain, hole zone (range width)",
+     "kind": "region_average",
+     "class": "region_average"
+    },
+    {
+     "name": "mean shear strain, far field (range width)",
+     "kind": "region_average",
+     "class": "region_average"
+    },
+    {
+     "name": "worst-case usage of strain domain \u03a9c",
+     "kind": "pointwise_peak",
+     "class": "pointwise_peak"
+    },
+    {
+     "name": "certified gate margin at 0.3PD",
+     "kind": "other",
+     "class": null
+    }
+   ],
+   "vocabulary_gaps": [
+    "'secant compliance (range width)' (compliance): no rule class recognises this kind",
+    "'certified gate margin at 0.3PD' (other): no rule class recognises this kind"
+   ],
+   "needs": [
+    "reference not verified: a refinement family (and strategies) is needed before its values can be used to measure surrogate errors",
+    "no independent code: cross-check with a second solver",
+    "pointwise peaks: check boundedness (finite-radius concentration or singularity)",
+    "missing inputs must be fixed (and declared) before solving: Numerical values of the orthotropic moduli of AS4/3501-6 (taken from [49]); Functional form and parameters of the nonlinear data law \u03c8\u2020 (fitted to curves of [49]); Which nodes and displacement components are fixed at the hole; FE mesh-convergence study for the plate model (only the polynomial degree of the law space is varied, and it has not converged at degree 14); Nonlinear solver type and tolerances for the state solves; Exact extent of the 'hole zone' and 'far field' averaging regions; Absolute values of the QoIs other than compliance (only range widths in % are given)"
+   ],
+   "problem_text": "Open-hole composite lamina (AS4/3501-6, plane stress, elliptical planform with central hole, fibres at 15\u00b0).\nGeometry: 2D plane-stress unidirectional lamina with an elliptical planform (semi-axes 50 mm and 10 mm), thickness 1 mm, and a central circular hole of radius 3 mm. Fibres are at 15\u00b0 to the long axis.\nMaterial: AS4/3501-6 lamina. The reference law \u03c8ref is linear orthotropic with the moduli of [49] (World-Wide Failure Exercise); the moduli are not given in this section. Synthetic data come from a nonlinear law \u03c8\u2020 fitted to the shear and transverse-compression curves of [49]; its nonlinear part is 40% of the shear strain at failure. The unknown energy \u03c8(e11,e22,\u03b312) is restricted to a Sobolev ball of radius K = 64.156 on the strain box \u03a9c and discretised with polynomials of total degree \u226414 (dimension 680).\nBoundary conditions: Pure traction problem with a self-balanced load. Three displacement components at the hole are fixed to remove rigid-body motions. The section does not say which nodes or components are fixed.\nLoading: Boundary tractions of a homogeneous uniaxial stress along the long axis, with resultant P. Loads are given relative to PD = 1792 N, the load at which the plate with law \u03c8\u2020 first reaches the boundary of \u03a9c. Results are reported at 0.6PD, 0.7PD and 0.8PD. The certificate is at 0.3PD (537.6 N).\nDiscretisation in the paper: 4096 isoparametric quadratic (6-node) triangles on a mapped mesh: 64 divisions around the hole and 32 radially, graded towards the hole, 8320 nodes. A 7-point degree-5 quadrature rule gives 28 672 quadrature points. Strains are also sampled at 9 points per element edge on the hole.\nFeatures: The circular hole (radius 3 mm) is smooth, so it gives a finite stress and strain concentration, not a singularity. The binding transverse strain occurs at the hole edge.; Point constraints (three displacement components fixed at the hole) remove rigid-body motion under a self-balanced load. Ideally the reactions are zero, so no point-load singularity is expected..\nQuestion: which of these quantities can serve as trustworthy reference values: secant compliance (range width) (Width of the first-order range of the secant compliance over the data-consistent set at 0.6PD, in % of the value. Finite-amplitude end points: 6.927e-5 and 7.153e-5 mm/N, against linear 6.925e-5 and 7.148e-5 mm/N.); mean shear strain, hole zone (range width) (Width of the first-order range of the mean shear strain in the zone around the hole at 0.6PD, in % of the value.); mean transverse strain, hole zone (range width) (Width of the first-order range of the mean transverse strain in the hole zone at 0.6PD, in % of the value.); mean shear strain, far field (range width) (Width of the first-order range of the mean far-field shear strain at 0.6PD, in % of the value.); worst-case usage of strain domain \u03a9c (Largest ratio, over the fibre, of any strain component at any point of the plate to its bound in \u03a9c (first order). The binding state is the transverse strain at the hole edge.); certified gate margin at 0.3PD (Smallest certified excess of the capacity term over the residual bound in the sum-of-squares certificates, across 43 pieces on 8 parent boxes of one declared cell.)?",
+   "score": {
+    "geometry": true,
+    "material": true,
+    "discretisation": true,
+    "reference.type": true,
+    "material invents nothing": true,
+    "QoIs found": true,
+    "singular features as expected": true,
+    "reference flagged as unverified": true
+   }
+  }
+ ],
+ "_cost_usd": 0.36556
+}
