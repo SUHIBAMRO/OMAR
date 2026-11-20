@@ -910,10 +910,111 @@ def add_f_round(add, h1, h2, h3):
         lambda: lit(1)["_cost_usd"] + lit(2)["_cost_usd"])
     add("24", "literature run 2 lamina features flagged singular", 0, 0,
         lambda: sum(s["singular"] for s in lit(2)["cfm_lamina"][0]["card"]["singular_features"]))
+    add_g_round(add, h1, h2)
     m = lambda: json.load(open(os.path.join(HERE, "lamina_mms.json")))["rows"]
     add("23", "lamina MMS L2 rate", 3.00, h2, lambda: np.log2(m()[-2]["L2_rel"] / m()[-1]["L2_rel"]))
     add("23", "lamina MMS H1 rate", 2.00, h2, lambda: np.log2(m()[-2]["H1_semi_rel"] / m()[-1]["H1_semi_rel"]))
 
+
+
+def add_g_round(add, h1, h2):
+    """Section 25 (20 Nov, second round)."""
+    # 25.2 literature agent on unseen sections
+    un = lambda: _j("literature_eval_unseen.json")
+    add("25", "unseen truss checks passed", 6, 0, lambda: sum(un()["csm_truss"][0]["score"].values()))
+    add("25", "unseen truss checks total", 6, 0, lambda: len(un()["csm_truss"][0]["score"]))
+    add("25", "unseen shell checks passed", 8, 0, lambda: sum(un()["csm_shell"][0]["score"].values()))
+    add("25", "unseen shell checks total", 8, 0, lambda: len(un()["csm_shell"][0]["score"]))
+    add("25", "unseen shell quotes found", 19, 0,
+        lambda: sum(un()["csm_shell"][0]["quotes_found"].values()))
+    add("25", "unseen shell quotes total", 20, 0,
+        lambda: len(un()["csm_shell"][0]["quotes_found"]))
+    add("25", "unseen shell quote rate after NFC fix", 1.0, 0,
+        lambda: un()["csm_shell"][0]["quote_rate_after_nfc_fix_posthoc"])
+    add("25", "unseen truss reference type analytical", 1, 0,
+        lambda: int(un()["csm_truss"][0]["card"]["reference"]["type"] == "analytical"))
+    add("25", "unseen cost USD", 0.43, 0.005, lambda: un()["_cost_usd"])
+    add("25", "literature agent total cost USD", 1.10, 0.005,
+        lambda: un()["_cost_usd"] + _j("literature_eval_run1.json")["_cost_usd"]
+        + _j("literature_eval_run2_posthoc.json")["_cost_usd"])
+    # 25.3 L-shaped panel
+    ls = lambda: _j("lshape_result_7levels.json")
+    P = lambda q: ls()["modes"]["posthoc"]["qois"][q]["singular_order"]
+    add("25", "L-shape lam", 0.5445, 0.00005, lambda: ls()["lam"])
+    add("25", "L-shape rules default hits", 1, 0, lambda: ls()["modes"]["default"]["rule_hits"])
+    add("25", "L-shape rules posthoc hits", 3, 0, lambda: ls()["modes"]["posthoc"]["rule_hits"])
+    add("25", "L-shape rule predictions", 4, 0, lambda: ls()["modes"]["posthoc"]["rule_predictions"])
+    add("25", "L-shape expectations met", 10, 0,
+        lambda: sum(ls()["developer_expectations_met"].values()))
+    add("25", "L-shape expectations total", 11, 0, lambda: len(ls()["developer_expectations_met"]))
+    for q, v in (("strain_energy", 1.113), ("u_top_left", 1.087), ("far_gk_avg_syy", 1.097),
+                 ("corner_gk_avg_von_mises", 1.273), ("v_right_top", 0.84),
+                 ("peak_von_mises", -0.447)):
+        add("25", f"L-shape {q} observed order", v, 0.0005 if q != "v_right_top" else 0.005,
+            lambda q=q: P(q)["observed"])
+    lad = lambda: sorted((r for r in _j("lshape_ladder.json") if r["g"] == 1.0),
+                         key=lambda r: r["n"])
+    add("25", "L-shape finest elements", 49152, 0, lambda: lad()[-1]["n_elem"])
+    pair = lambda i: float(np.log2(abs((lad()[i]["v_right_top"] - lad()[i + 1]["v_right_top"])
+                                       / (lad()[i + 1]["v_right_top"] - lad()[i + 2]["v_right_top"]))))
+    for i, v in ((2, 0.53), (3, 0.76), (4, 0.90), (5, 0.97)):
+        add("25", f"L-shape v_right_top pairwise order {i}", v, 0.005, lambda i=i: pair(i - 1))
+    # 25.4 IGA-type pilot
+    ig = lambda: _j("iga_lamina_result.json")
+    row = lambda p, m, b: next(r for r in ig()["iga"] if r["p"] == p and r["m"] == m
+                               and r["beta"] == b)
+    fe = lambda m: next(r for r in ig()["fem"] if r["m"] == m)
+    add("25", "IGA p3 m16 dof", 67072, 0, lambda: row(3, 16, 2.8)["n_dof"])
+    add("25", "FEM m32 dof", 1050624, 0, lambda: fe(32)["n_dof"])
+    add("25", "IGA p3 m16 compliance diff", 1.6e-9, 0.05e-9,
+        lambda: abs(row(3, 16, 2.8)["rel_diff_vs_fem32"]["compliance"]))
+    add("25", "IGA p3 m16 gk gamma diff", 2.7e-7, 0.05e-7,
+        lambda: abs(row(3, 16, 2.8)["rel_diff_vs_fem32"]["hole_gk_gamma12_avg"]))
+    add("25", "IGA p3 m16 gk e22 diff", 1.7e-6, 0.05e-6,
+        lambda: abs(row(3, 16, 2.8)["rel_diff_vs_fem32"]["hole_gk_e22_avg"]))
+    add("25", "FEM m8 dof", 66048, 0, lambda: fe(8)["n_dof"])
+    add("25", "FEM m8 compliance err", 7.8e-6, 0.05e-6, lambda: abs(fe(8)["rel_err"]["compliance"]))
+    add("25", "FEM m8 gk gamma err", 1.2e-6, 0.05e-6,
+        lambda: abs(fe(8)["rel_err"]["hole_gk_gamma12_avg"]))
+    add("25", "FEM m8 gk e22 err", 3.5e-5, 0.05e-5, lambda: abs(fe(8)["rel_err"]["hole_gk_e22_avg"]))
+    add("25", "IGA p2 m4 dof", 4352, 0, lambda: row(2, 4, 2.8)["n_dof"])
+    add("25", "IGA p2 m4 gk e22 err %", 9.2, h1,
+        lambda: 100 * abs(row(2, 4, 2.8)["rel_diff_vs_fem32"]["hole_gk_e22_avg"]))
+    add("25", "FEM m2 dof", 4224, 0, lambda: fe(2)["n_dof"])
+    add("25", "FEM m2 gk e22 err %", 0.85, h2, lambda: 100 * abs(fe(2)["rel_err"]["hole_gk_e22_avg"]))
+    # 25.5 goal-oriented estimate
+    go = lambda: _j("goal_oriented_result.json")["rows"]
+    eff = lambda q: [r["qois"][q]["effectivity"] for r in go() if r["m"] >= 2]
+    add("25", "goal eff min (u_tip, gk) m>=2", 0.83, h2,
+        lambda: min(min(eff(q)) for q in ("u_tip", "hole_gk_gamma12_avg", "hole_gk_e22_avg")))
+    add("25", "goal eff max (u_tip, gk) m>=2", 1.01, h2,
+        lambda: max(max(eff(q)) for q in ("u_tip", "hole_gk_gamma12_avg", "hole_gk_e22_avg")))
+    add("25", "goal eff min gk m>=2", 0.90, h2,
+        lambda: min(min(eff(q)) for q in ("hole_gk_gamma12_avg", "hole_gk_e22_avg")))
+    add("25", "goal eff max gk m>=2", 0.97, h2,
+        lambda: max(max(eff(q)) for q in ("hole_gk_gamma12_avg", "hole_gk_e22_avg")))
+    add("25", "goal compliance eff min", 0.03, h2,
+        lambda: min(r["qois"]["compliance"]["effectivity"] for r in go()))
+    add("25", "goal compliance eff max", 0.08, h2,
+        lambda: max(r["qois"]["compliance"]["effectivity"] for r in go()))
+    g1 = lambda m: next(r for r in go() if r["m"] == m)
+    add("25", "m1 compliance rel err %", -2.37, h2,
+        lambda: -100 * g1(1)["qois"]["compliance"]["true_rel"])
+    add("25", "m1 area rel err %", -2.50, h2, lambda: 100 * g1(1)["area_rel_error"])
+    add("25", "m4 compliance rel err %", -0.0121, 0.00005,
+        lambda: -100 * g1(4)["qois"]["compliance"]["true_rel"])
+    add("25", "m4 area rel err %", -0.0122, 0.00005, lambda: 100 * g1(4)["area_rel_error"])
+    # 25.6 AMG against the direct solver
+    ap, aa = lambda: _j("amg_check_2376_pardiso.json"), lambda: _j("amg_check_2376_amg.json")
+    add("25", "AMG vs Pardiso max rel diff below 1e-12", 1, 0, lambda: int(max(
+        abs(aa()["qois"][k] - ap()["qois"][k]) / max(abs(ap()["qois"][k]), 1e-30)
+        for k in ap()["qois"] if isinstance(ap()["qois"][k], (int, float))) < 1e-12))
+    add("25", "AMG seconds", 502, 0.5, lambda: aa()["seconds"])
+    add("25", "Pardiso seconds", 240, 0.5, lambda: ap()["seconds"])
+    add("25", "AMG peak GB", 3.5, h1, lambda: aa()["peak_rss_gb"])
+    add("25", "Pardiso peak GB", 4.2, h1, lambda: ap()["peak_rss_gb"])
+    add("25", "AMG CG its min", 128, 0, lambda: min(aa()["krylov_its"]))
+    add("25", "AMG CG its max", 142, 0, lambda: max(aa()["krylov_its"]))
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
