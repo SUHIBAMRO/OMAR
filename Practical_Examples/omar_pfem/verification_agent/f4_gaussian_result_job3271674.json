@@ -1,0 +1,89 @@
+{
+ "job": 3271674,
+ "date": "2026-11-20",
+ "script": "omar_pfem/evaluate_b3_checkpoints_gaussian.py (md5 dc148db1...)",
+ "reference": "hex8 950,400 elements (101,100,97), cached, 10 held-out samples; 73,000 Gauss points within 0.25 of the groove root; R0 = 0.04559, kernel length 0.09119",
+ "full_json_on_cluster": "/scratch/gole3157/pfem_run/b3_gaussian_checkpoints.json (not copied; GitHub unreachable from the cluster)",
+ "mean_self_relative_error_percent": {
+  "PI baseline": {
+   "gk2_xx": 416.6,
+   "gk2_zz": 508.6,
+   "gk2_p": 443.7,
+   "sharp_xx": 599.2
+  },
+  "local-integration-refinement seed 1 (paper's headline run)": {
+   "gk2_xx": 367.1,
+   "gk2_zz": 341.8,
+   "gk2_p": 361.0,
+   "sharp_xx": 431.8
+  },
+  "local-integration-refinement seed 2": {
+   "gk2_xx": 430.2,
+   "gk2_zz": 475.1,
+   "gk2_p": 439.5,
+   "sharp_xx": 446.4
+  },
+  "local-integration-refinement seed 3": {
+   "gk2_xx": 173.4,
+   "gk2_zz": 155.1,
+   "gk2_p": 155.1,
+   "sharp_xx": 409.9
+  },
+  "equilibrium attempt 1 (w=1.0)": {
+   "gk2_xx": 1652.2,
+   "gk2_zz": 2335.6,
+   "gk2_p": 1898.1,
+   "sharp_xx": 1257.6
+  },
+  "equilibrium attempt 2 (w=0.12)": {
+   "gk2_xx": 4290.0,
+   "gk2_zz": 4088.8,
+   "gk2_p": 4192.3,
+   "sharp_xx": 5546.1
+  },
+  "DD rel_l2 N=50": {
+   "gk2_xx": 483.4,
+   "gk2_zz": 483.0,
+   "gk2_p": 490.7,
+   "sharp_xx": 2375.2
+  },
+  "DD rel_l2 N=200": {
+   "gk2_xx": 340.4,
+   "gk2_zz": 327.0,
+   "gk2_p": 326.9,
+   "sharp_xx": 915.9
+  },
+  "DD rel_l2 N=400": {
+   "gk2_xx": 290.0,
+   "gk2_zz": 328.2,
+   "gk2_p": 301.6,
+   "sharp_xx": 810.8
+  },
+  "DD sobolev": {
+   "gk2_xx": 435.1,
+   "gk2_zz": 450.4,
+   "gk2_p": 446.8,
+   "sharp_xx": 705.2
+  },
+  "DD hybrid": {
+   "gk2_xx": 349.8,
+   "gk2_zz": 346.1,
+   "gk2_p": 304.5,
+   "sharp_xx": 1445.1
+  }
+ },
+ "best_gk2_mean_self_relative_percent": {
+  "sigma_xx": 173.36,
+  "sigma_yy": 145.75,
+  "sigma_zz": 155.12,
+  "pressure": 155.08,
+  "cyl_rr": 165.28,
+  "cyl_tt": 149.43,
+  "cyl_zz": 155.12,
+  "cyl_rz": 280.15,
+  "sigma_xz": 287.31,
+  "sigma_frob": 576.5,
+  "von_mises": 176.36
+ },
+ "note": "sharp_xx here is the error of the signed sharp-sphere average, not the pooled field error of the manuscript (1,745-5,448%)"
+}

@@ -31,6 +31,50 @@ SURROGATE_ERRORS = {
         (r"^strain_energy$", 0.0413,
          "best energy error, local-integration-refinement seed 1 vs the 950,400-element "
          "reference (PROJECT_STATUS table: 4.13/5.22/4.41%, PI 5.33%)"),
+        (r"^gk2_sigma_xx_avg$", 1.7336,
+         "Gaussian-kernel definition: best mean self-relative error over 11 u-only checkpoints, "
+         "10 held-out samples, vs the 950,400-el hex8 reference (local-integration-refinement seed 3; cluster job 3271674, "
+         "2026-11-20, evaluate_b3_checkpoints_gaussian.py)"),
+        (r"^gk2_sigma_yy_avg$", 1.4575,
+         "Gaussian-kernel definition: best mean self-relative error over 11 u-only checkpoints, "
+         "10 held-out samples, vs the 950,400-el hex8 reference (local-integration-refinement seed 3; cluster job 3271674, "
+         "2026-11-20, evaluate_b3_checkpoints_gaussian.py)"),
+        (r"^gk2_sigma_zz_avg$", 1.5512,
+         "Gaussian-kernel definition: best mean self-relative error over 11 u-only checkpoints, "
+         "10 held-out samples, vs the 950,400-el hex8 reference (local-integration-refinement seed 3; cluster job 3271674, "
+         "2026-11-20, evaluate_b3_checkpoints_gaussian.py)"),
+        (r"^gk2_pressure_avg$", 1.5508,
+         "Gaussian-kernel definition: best mean self-relative error over 11 u-only checkpoints, "
+         "10 held-out samples, vs the 950,400-el hex8 reference (local-integration-refinement seed 3; cluster job 3271674, "
+         "2026-11-20, evaluate_b3_checkpoints_gaussian.py)"),
+        (r"^gk2_cyl_rr_avg$", 1.6528,
+         "Gaussian-kernel definition: best mean self-relative error over 11 u-only checkpoints, "
+         "10 held-out samples, vs the 950,400-el hex8 reference (local-integration-refinement seed 3; cluster job 3271674, "
+         "2026-11-20, evaluate_b3_checkpoints_gaussian.py)"),
+        (r"^gk2_cyl_tt_avg$", 1.4943,
+         "Gaussian-kernel definition: best mean self-relative error over 11 u-only checkpoints, "
+         "10 held-out samples, vs the 950,400-el hex8 reference (local-integration-refinement seed 3; cluster job 3271674, "
+         "2026-11-20, evaluate_b3_checkpoints_gaussian.py)"),
+        (r"^gk2_cyl_zz_avg$", 1.5512,
+         "Gaussian-kernel definition: best mean self-relative error over 11 u-only checkpoints, "
+         "10 held-out samples, vs the 950,400-el hex8 reference (local-integration-refinement seed 3; cluster job 3271674, "
+         "2026-11-20, evaluate_b3_checkpoints_gaussian.py)"),
+        (r"^gk2_cyl_rz_avg$", 2.8015,
+         "Gaussian-kernel definition: best mean self-relative error over 11 u-only checkpoints, "
+         "10 held-out samples, vs the 950,400-el hex8 reference (DD rel_l2 N=400; cluster job 3271674, "
+         "2026-11-20, evaluate_b3_checkpoints_gaussian.py)"),
+        (r"^gk2_sigma_xz_avg$", 2.8731,
+         "Gaussian-kernel definition: best mean self-relative error over 11 u-only checkpoints, "
+         "10 held-out samples, vs the 950,400-el hex8 reference (DD rel_l2 N=400; cluster job 3271674, "
+         "2026-11-20, evaluate_b3_checkpoints_gaussian.py)"),
+        (r"^gk2_sigma_frob_avg$", 5.765,
+         "Gaussian-kernel definition: best mean self-relative error over 11 u-only checkpoints, "
+         "10 held-out samples, vs the 950,400-el hex8 reference (DD hybrid; cluster job 3271674, "
+         "2026-11-20, evaluate_b3_checkpoints_gaussian.py)"),
+        (r"^gk2_von_mises_avg$", 1.7636,
+         "Gaussian-kernel definition: best mean self-relative error over 11 u-only checkpoints, "
+         "10 held-out samples, vs the 950,400-el hex8 reference (DD rel_l2 N=400; cluster job 3271674, "
+         "2026-11-20, evaluate_b3_checkpoints_gaussian.py)"),
         (r"(sigma|cyl|von_mises|pressure)", 5.995,
          "groove-region stress: smallest error of any checkpoint and component, "
          "sigma_xz 599.54% (seed 2 vs 950,400 el); other components 1,200-13,000%, "

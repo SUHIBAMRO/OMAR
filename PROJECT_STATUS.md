@@ -25726,3 +25726,16 @@ transferred as a base64/tar one-liner and verified by md5 (script dc148db1...,
 job eed9f926...). Note: `conda activate omar` is needed (the default (base) env has no
 numpy). Output: ~/OMAR/Practical_Examples/f4_gaussian.3271674.out and
 /scratch/gole3157/pfem_run/b3_gaussian_checkpoints.json -- AWAITING RESULT.
+
+**F4 RESULT (job 3271674, 131 s, cached 950,400-el reference, 10 samples, all 11
+checkpoints; f4_gaussian_result_job3271674.json):** mean self-relative errors of the
+Gaussian-kernel groove averages: best = local-integration-refinement seed 3 (gk2 sigma_xx
+173%, sigma_zz 155%, pressure 155%); others 290-508%; equilibrium attempts 1,652-4,290%.
+Best per gk2 QoI: normal components 146-176%, sigma_xz/cyl_rz 280-287%, von Mises 176%,
+Frobenius 577%. Sharp-sphere sigma_xx (signed average) on the same points 410-5,546%.
+=> With the converged Gaussian definition too, NO surrogate is adequate at the groove
+(>= 146%), while the certified Gaussian reference uncertainty is 0.11-0.18% (margin
+~1,000x). Recorded per QoI in requirements.py SURROGATE_ERRORS (requirement = error/3 =
+49-192%, looser than the 2% class ceiling -> no verdict changes). Caveat: errors are vs the
+hex8 950,400 reference; the agent certified the Q20 family. Full per-sample JSON stays on
+the cluster (/scratch/gole3157/pfem_run/b3_gaussian_checkpoints.json).
