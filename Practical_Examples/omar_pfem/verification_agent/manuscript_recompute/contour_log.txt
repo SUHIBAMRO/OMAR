@@ -1,0 +1,20 @@
+/usr/local/lib/python3.11/dist-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+solving Ntheta=13 Nr=12 Nz=19 ...
+  done, n_elem=2376, n_contour_gauss=144
+solving Ntheta=17 Nr=16 Nz=25 ...
+  done, n_elem=5760, n_contour_gauss=192
+solving Ntheta=21 Nr=18 Nz=31 ...
+  done, n_elem=10200, n_contour_gauss=240
+solving Ntheta=25 Nr=20 Nz=36 ...
+  done, n_elem=15960, n_contour_gauss=280
+
+Saved omar_pfem/verification_agent/manuscript_recompute/quadratic_contour_convergence.png
+
+=== Pointwise field convergence: finest two resolutions, interpolated onto a common grid ===
+  sigma_xx: whole-contour max pointwise rel. diff = 33.8% at z=0.9940  | within existing region mask: max=0.3% mean=0.1%
+  sigma_yy: whole-contour max pointwise rel. diff = 51.4% at z=0.9940  | within existing region mask: max=0.3% mean=0.1%
+  sigma_zz: whole-contour max pointwise rel. diff = 88.6% at z=0.9940  | within existing region mask: max=0.4% mean=0.2%
+  sigma_xy: whole-contour max pointwise rel. diff = 80.1% at z=0.9940  | within existing region mask: max=1.0% mean=0.2%
+  sigma_xz: whole-contour max pointwise rel. diff = 69.4% at z=0.9940  | within existing region mask: max=0.4% mean=0.1%
+  sigma_yz: whole-contour max pointwise rel. diff = 85.8% at z=0.0060  | within existing region mask: max=0.7% mean=0.3%
