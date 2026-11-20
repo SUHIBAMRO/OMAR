@@ -25771,3 +25771,28 @@ F-bar 0.569 (vs uniform limit ~0.540). Reading: the strongly graded meshes thems
 P1 removes neither the peak problem nor the graded-mesh scatter. The groove peak remains
 unverified. Running: P1 and displacement at uniform 23,520 (same code) to check that both
 approach the same Gaussian limit.
+
+**F3 closing note.** A 4th uniform P1 level (23,520 el) was attempted and killed by the
+memory limit (~14 GB); F3 rests on 3 uniform levels + 3 local meshes (see the F3 entry).
+mixed_b3.LEVELS now includes 23,520 (for a cluster run if wanted).
+
+### 2026-11-20 -- F8 DONE: report v3 + email draft (round complete; NOTHING sent)
+- Claude Doc GqEyA5JueG1SreZUSJf9DX updated (dated 2026-11-20): new Sections 18
+  (Experiment 12, plate with a hole), 19 (Exp. 13, Q20/P1), 20 (Exp. 14, Gaussian
+  surrogate errors), 21 (Exp. 15, LLM against rules), 22 (manuscript corrections + post hoc
+  rule options); old 18-21 renumbered to 23-26 with every cross-reference; summary list
+  "Added after the OpenPINN paper", limitations, "your answers" table (+ OpenPINN row),
+  six new open questions, reproducibility rows, stored-data list. Also fixed an old wrong
+  cross-reference (8.4 pointed to "Section 18" for the stress correction; now 13.3).
+- Claims check extended to Sections 18-22: 607 of 607 match. It caught two mistakes of mine
+  in the new text (max change 5e-6 not 3e-6; F-bar 0.552 not 0.553), corrected before
+  export; my own reread caught two more (Gaussian lower for 10 of 11, not 9; 146-173% not
+  146-176%) and the experiment numbering (now 12-15).
+- PDF: advisor_feedback/2026-11-20_Verification_Framework_Technical_Report_v3.pdf (45 pages,
+  A4; no "Timon").
+- Email draft (not sent) rewritten to cover both rounds:
+  advisor_feedback/2026-11-20_email_to_Rabczuk_reply_DRAFT.txt (8 points, 5 questions).
+- OpenPINN reading note updated with the F9 result.
+NEEDS OMAR: review report v3 + email draft, then send them himself; decisions in the open
+questions (post hoc rules, absolute targets, IGA for the groove peak, OpenPINN
+collaboration); CSM/CFM papers.

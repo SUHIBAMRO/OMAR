@@ -40,7 +40,7 @@ the PDF is `advisor_feedback/2026-11-19_Rabczuk_attachment_OpenPINN.pdf`.
 **Complementary, not competing.**
 - **Their diagnostic agent covers our "surrogate" cause class.** That is the class (U1) our engine leaves open.
 - **Our verification would sit between their FEM reference and their metrics.** Their 10% target is meaningful only if the reference uncertainty is well below it.
-- **Their plate with a hole is a natural held-out test for our agent.** The hole is a finite-radius concentration, as in B3. The clamped edge meets the free top and bottom edges at two corners: clamped/free singularities, as in B1. So the agent has to separate a converging hole peak from a diverging corner peak on one problem. This test is being run (task F9 in PROJECT_STATUS).
+- **Their plate with a hole is a natural held-out test for our agent.** The hole is a finite-radius concentration, as in B3. The clamped edge meets the free top and bottom edges at two corners: clamped/free singularities, as in B1. So the agent has to separate a converging hole peak from a diverging corner peak on one problem. **Result (report Section 18):** pre-registered, the unchanged rules predicted 1 of 6 verdicts, because the singular-order check exists only for degree-1 elements. Up to m = 64 the global maximum sits at the hole; a prediction committed before solving m = 128 (the maximum moves to a corner) held in all five parts. The paper's reference mesh (h = 0.025) has about 1% energy-norm error by our estimate (bilinear stand-in): adequate for its 3.5-6.3% displacement errors, not for a peak stress.
 
 ## Points to raise with Prof. Rabczuk
 

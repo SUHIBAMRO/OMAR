@@ -1,26 +1,28 @@
-Subject: Verification agent: diagnosis, independent checks, a second held-out benchmark, and a correction
+Subject: Verification agent: diagnosis, independent checks, the OpenPINN plate as a held-out test, and a correction
 
 Dear Professor Rabczuk,
 
-Thank you for your detailed reply. I have worked through your points in the order of your priorities. The updated technical report is attached; Section 20 maps each of your points to what was done.
+Thank you for your detailed reply and for the OpenPINN paper. I have worked through your points in the order of your priorities. The updated technical report is attached; Section 25 maps each of your points to what was done.
 
-First, a correction. While building an independent 3D assembly for the mixed-formulation check, I found that the stored B3 stresses had been converted to Cauchy stress twice: the FE library already returns the Cauchy stress, and our post-processing applied the conversion again. Displacements, the reaction moment, the strain energy and the surrogate-error evaluation are not affected. The groove stresses change by a few percent, and 2 of 41 verdicts change. I corrected the code and repeated every B3 solve; all numbers in the report are the corrected ones. The manuscript's Q20 groove-reference stresses are affected in the same way, and I would like to recompute them before revising the wording. The conclusion that the surrogates' groove-stress errors are hundreds of percent does not change.
+First, a correction. While building an independent 3D assembly for the mixed-formulation check, I found that the stored B3 stresses had been converted to Cauchy stress twice: the FE library already returns the Cauchy stress, and our post-processing applied the conversion again. Displacements, the reaction moment, the strain energy and the surrogate-error evaluation are not affected. I corrected the code, repeated every B3 solve, and recomputed the manuscript's groove-stress numbers; they change by a few percent (for example, the averaged sigma_xx range 0.38-0.44 becomes 0.42-0.47), and the conclusions do not change.
 
 What was done:
 
-1. Diagnosis of non-convergence. For every quantity without a demonstrated rate, the agent now assigns a cause from five classes (mathematical/physical, discretization, solver/implementation, QoI/post-processing, surrogate) using 15 hypotheses with tests on the stored data. It runs the cheap missing tests itself and names the next investigation. It separates the B1 corner singularity from the B3 finite-radius concentration, and it reproduces all 16 causes I had established by hand.
-2. Independent checks. A second FE code reproduces the B1 and B2 solvers to 1e-12, and its quadratic elements fall within the agent's stated uncertainty. A mixed F-bar formulation brackets the B3 reaction moment, but the groove stresses still differ by 3-8% between the formulations, so that question remains open.
-3. Unseen benchmark. On Cook's membrane, with the specification and predictions committed before any solve and the rules unchanged, the rules predicted 4 of 5 verdicts. The miss, the strain-energy order, was diagnosed by the agent as pre-asymptotic, and a finer level supports this.
-4. Local refinement at the B3 groove root (the next step the agent named) is now geometrically possible, down to h/rho = 0.15. At nu = 0.45, however, every available Q20 formulation fails on these meshes: the reduced rule shows spurious modes, the full rule locks, and F-bar is too soft. The groove peak is therefore still not verified, and a Q20/P1 or IGA discretization seems necessary.
-5. Human intervention. 59 interventions are counted and categorised. Developers found 36 and LLM critics 15; only 6 steps are now fully automated.
-6. Model hierarchy and related agents. There is a first registry of physical and numerical models with an escalation map. I also read FermiLink, ALL-FEM and PDE-Agents; none of them verifies a numerical reference without an exact solution.
+1. Diagnosis of non-convergence. For every quantity without a demonstrated rate, the agent now assigns a cause from five classes using 15 hypotheses with tests on the stored data, runs the cheap missing tests itself and names the next investigation. It separates the B1 corner singularity from the B3 finite-radius concentration.
+2. Independent checks. A second FE code reproduces the B1 and B2 solvers to 1e-12. On B3 I added two mixed formulations. With a linear dilatation per element (Q20/P1), the groove averages on uniform meshes agree with the displacement formulation within 1.6%, a gap that shrinks with refinement; the earlier 3-8% disagreement came mainly from the constant-pressure F-bar.
+3. Held-out benchmarks. On Cook's membrane, pre-registered, the unchanged rules predicted 4 of 5 verdicts. On the plate with a hole from the OpenPINN paper, also pre-registered, they predicted only 1 of 6, because the singular-order check exists only for linear elements. A prediction committed before the finest solve, that the stress maximum moves from the hole to a clamped corner, held in all five parts.
+4. The OpenPINN reference. Its single FE mesh (h = 0.025) has an energy-norm error of about 1% by our estimate, adequate for the 3.5-6.3% displacement errors reported, but not for a peak stress, which has no finite limit at the corners.
+5. Surrogate errors under the converged definition. With the Gaussian-weighted groove averages, which the agent certifies with an uncertainty of 0.11-0.18%, the best surrogate still errs by 146-173%. The groove peak itself remains unverified: on locally refined meshes every formulation I tried, including Q20/P1, fails.
+6. LLM against rules. In nine billed runs the LLM recovered the problem specification from text every time and missed fewer B3 failures than the rules, but raised many false alarms that varied from run to run.
+7. Manuscript. The groove numbers are corrected, and the text now limits the stability claim to region-averaged normal stresses.
+8. Human intervention. 59 interventions are counted and categorised; only 6 steps are fully automated.
 
 Questions:
 
-1. May I recompute the manuscript's groove-reference stresses with the corrected code before revising the wording to "region-averaged normal stresses"?
-2. Should the singular-order check accept energy orders between 2*lambda and the element optimum as "pre-asymptotic"? This would pass Cook, but the change would come after seeing the held-out result.
-3. Which engineering quantities should get absolute accuracy targets, and at what level?
-4. Is a Q20/P1 mixed element, or IGA, worth building to settle the formulation dependence of the groove stresses?
+1. Should the singular-order check accept energy orders above 2*lambda as "pre-asymptotic", and be extended to quadratic elements? Both changes came after seeing held-out results.
+2. Are the proposed absolute accuracy targets reasonable (1% for global quantities and displacements, 5% for region-averaged stresses)?
+3. Is an IGA discretization worth building for the groove peak, or should the peak be reported as not verifiable with the available elements?
+4. Would it be useful to make this agent the reference-verification step of OpenPINN, starting with the plate with a hole?
 5. Could you send the CSM and CFM papers? The attachment did not reach me.
 
 Best regards,

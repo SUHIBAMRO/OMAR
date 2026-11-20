@@ -697,7 +697,162 @@ def claims():
     add("16", "Omar decisions", 4, 0, lambda: hi_counts()[1][1]["Omar"])
     add("16", "now fully automated", 6, 0, lambda: hi_counts()[1][2]["yes"])
     add("16", "framework errors fixed", 22, 0, lambda: hi_counts()[1][0]["framework bug fixed"])
+    # ---------------- Sections 18-22 (after the OpenPINN paper) ----------------
+    add_f_round(add, h1, h2, h3)
     return c
+
+
+def _plate6(q, check, key):
+    """A gate of the plate with a hole on the six pre-registered levels (m <= 64)."""
+    from omar_pfem.verification_agent import trees
+    from omar_pfem.verification_agent.agent import _default_spec
+    from omar_pfem.verification_agent.orchestrate import (PlateHoleAdapter, run_check,
+                                                          convergence_params)
+    ad = PlateHoleAdapter()
+    ad.rows = [r for r in ad.rows if r["m"] <= 64]
+    ad.hs = [r["h"] for r in ad.rows]
+    sd = _default_spec("plate_hole").to_dict()
+    plan = trees.rule_plan(sd)
+    c = next(c for c in plan["checks"] if c["check"] == check and q in c["qois"])
+    return run_check(ad, check, q, c["params"], element="Q9",
+                     conv_params=convergence_params(plan).get(q))[key]
+
+
+def add_f_round(add, h1, h2, h3):
+    lad = lambda: {(r["m"], r["g"]): r for r in _j("plate_hole_ladder.json")}
+    # Section 18
+    r6 = lambda: _j("plate_hole_result_6levels.json")
+    add("18", "plate rule hits (6 levels)", 1, 0, lambda: r6()["rule_hits"])
+    add("18", "plate rule predictions", 6, 0, lambda: r6()["rule_predictions"])
+    add("18", "plate expectations met (6 levels)", 1, 0,
+        lambda: sum(r6()["developer_expectations_met"].values()))
+    add("18", "plate expectations (count)", 9, 0, lambda: len(r6()["developer_expectations_met"]))
+    add("18", "plate lambda", 0.7583, 0.00005, lambda: _j("plate_hole_preregistration.json")[
+        "corner_exponent_lam"])
+    add("18", "plate 2 lambda", 1.52, h2, lambda: 2 * _j("plate_hole_preregistration.json")[
+        "corner_exponent_lam"])
+    add("18", "plate dof m=2", 832, 0, lambda: lad()[(2, 1.0)]["n_dof"])
+    add("18", "plate dof m=64", 788480, 0, lambda: lad()[(64, 1.0)]["n_dof"])
+    for q, a, b in (("u_right_mid", 1.58, 1.92), ("v_top_right", 1.37, 2.98),
+                    ("max_disp_mag", 1.58, 1.92), ("strain_energy", 1.55, 1.76),
+                    ("hole_peak_sigma_xx", 0.96, 0.86), ("peak_von_mises", 0.99, 0.90)):
+        add("18", f"plate {q} 3-level order (6 levels)", a, h2,
+            lambda q=q: _plate6(q, "qoi_convergence", "observed_order"))
+        add("18", f"plate {q} 5-level order (6 levels)", b, h2,
+            lambda q=q: _plate6(q, "qoi_convergence_multilevel", "fit_order"))
+    add("18", "plate von Mises strategy spread %", 2.04, h2, lambda: 100 * float(
+        _plate6("peak_von_mises", "strategy_robustness", "reason").split("strategies ")[1]
+        .split("%")[0]) / 100)
+    add("18", "corner vM m=2 MPa", 1.44, h2, lambda: lad()[(2, 1.0)][
+        "posthoc_corner_peak_von_mises"] / 1e6)
+    add("18", "corner vM m=64 MPa", 3.01, h2, lambda: lad()[(64, 1.0)][
+        "posthoc_corner_peak_von_mises"] / 1e6)
+    add("18", "corner local slope m=32-64", -0.240, h3, lambda: np.log2(
+        lad()[(32, 1.0)]["posthoc_corner_peak_von_mises"]
+        / lad()[(64, 1.0)]["posthoc_corner_peak_von_mises"]))
+    m128 = lambda: _j("plate_hole_m128_prediction.json")["outcome_after_solving_m128"]
+    add("18", "m128 predictions met", 5, 0, lambda: sum(
+        v["met"] for v in m128().values() if isinstance(v, dict)))
+    add("18", "m128 corner vM MPa", 3.562, h3, lambda: lad()[(128, 1.0)][
+        "posthoc_corner_peak_von_mises"] / 1e6)
+    add("18", "m128 local slope", -0.241, h3, lambda: m128()["local corner slope -0.242 within 0.03"][
+        "value"])
+    add("18", "m128 hole peak MPa", 3.382, h3, lambda: lad()[(128, 1.0)]["hole_peak_sigma_xx"] / 1e6)
+    add("18", "m128 dof", 3149824, 0, lambda: lad()[(128, 1.0)]["n_dof"])
+    add("18", "m128 max change (5e-6)", 5, 0.5, lambda: m128()[
+        "displacements and energy change < 1e-4"]["max_change"] * 1e6)
+    ph = lambda q: _j("plate_hole_posthoc_rules.json")["verdicts"][q]["singular_order"]["observed"]
+    add("18", "post hoc energy order 7 levels", 1.59, h2, lambda: ph("strain_energy"))
+    add("18", "post hoc Gaussian false-alarm order", 0.38, h2, lambda: ph("hole_gk_avg_sigma_xx"))
+    add("18", "corner slope finest five (diagnosis)", -0.236, h3, lambda: float(np.polyfit(
+        np.log([1 / m for m in (8, 16, 32, 64, 128)]),
+        np.log([lad()[(m, 1.0)]["posthoc_corner_peak_von_mises"] for m in (8, 16, 32, 64, 128)]),
+        1)[0]))
+    mms = lambda: _j("plate_hole_mms.json")["rates"]
+    add("18", "plate MMS L2", 3.00, h2, lambda: mms()["L2"])
+    add("18", "plate MMS H1", 2.00, h2, lambda: mms()["H1_semi"])
+    re = lambda: _j("plate_hole_reference_error.json")
+    q1 = lambda m: next(r for r in re()["q1"] if r["m"] == m)
+    q2 = lambda m: next(r for r in re()["q2"] if r["m"] == m)
+    add("18", "Q4 m=40 energy-norm %", 1.07, h2, lambda: 100 * q1(40)["energy_norm_rel_error"])
+    add("18", "Q4 m=40 u error %", 0.015, h3, lambda: 100 * q1(40)["u_right_mid_rel_error"])
+    add("18", "Q4 m=40 dof", 77440, 0, lambda: q1(40)["n_dof"])
+    add("18", "Q9 m=64 energy-norm %", 0.21, h2, lambda: 100 * q2(64)["energy_norm_rel_error"])
+    add("18", "Q9 m=64 u error %", 0.0005, 0.00005, lambda: 100 * q2(64)["u_right_mid_rel_error"])
+    add("18", "Q9 m=128 energy-norm %", 0.13, h2, lambda: 100 * q2(128)["energy_norm_rel_error"])
+    add("18", "Q9 m=128 u error %", 0.0002, 0.00005, lambda: 100 * q2(128)["u_right_mid_rel_error"])
+    # Section 19: Q20/P1
+    mx = lambda k: _j("mixed_b3_result.json")[k]
+    for n, (md, mp, mf), (xd, xp, xf), (zd, zp, zf), dif in (
+            (2376, (34.669, 34.618, 34.206), (0.518, 0.531, 0.532), (0.407, 0.428, 0.488), 2.4),
+            (10200, (34.577, 34.542, 34.332), (0.527, 0.538, 0.549), (0.421, 0.429, 0.469), 2.1),
+            (15960, (34.560, 34.529, 34.354), (0.531, 0.539, 0.552), (0.424, 0.431, 0.466), 1.6)):
+        for form, (m_, x_, z_) in (("reduced:disp", (md, xd, zd)), ("full:fbar_p1", (mp, xp, zp)),
+                                   ("reduced:fbar", (mf, xf, zf))):
+            k = f"{n}:{form}"
+            add("19", f"{k} moment", m_, h3, lambda k=k: mx(k)["reaction_moment_y"])
+            add("19", f"{k} gk2 xx", x_, h3, lambda k=k: mx(k)["gk2_sigma_xx_avg"])
+            add("19", f"{k} gk2 zz", z_, h3, lambda k=k: mx(k)["gk2_sigma_zz_avg"])
+        add("19", f"{n} P1 vs disp xx %", dif, h1, lambda n=n: 100 * (
+            mx(f"{n}:full:fbar_p1")["gk2_sigma_xx_avg"] / mx(f"{n}:reduced:disp")["gk2_sigma_xx_avg"] - 1))
+    lr = lambda i, quad, form: next(r for r in _j("b3_local_refine.json") if r["case"] == list(
+        __import__("omar_pfem.verification_agent.b3_local_refine", fromlist=["SEQUENCE"]).SEQUENCE[i])
+        and r.get("quadrature", "reduced") == quad and r.get("formulation", "disp") == form)
+    for i, h, (m_, x_, p_) in ((1, 0.77, (34.57, 0.526, 1.73)), (3, 0.25, (34.63, 0.510, 1.67)),
+                              (4, 0.15, (34.63, 0.510, 2.20))):
+        add("19", f"P1 local h/rho {h} moment", m_, h2, lambda i=i: lr(i, "full", "fbar_p1")[
+            "reaction_moment_y"])
+        add("19", f"P1 local h/rho {h} gk2 xx", x_, h3, lambda i=i: lr(i, "full", "fbar_p1")[
+            "gk2_sigma_xx_avg"])
+        add("19", f"P1 local h/rho {h} max xx", p_, h2, lambda i=i: lr(i, "full", "fbar_p1")[
+            "max_sigma_xx_R0"])
+    add("19", "P1 local peak rise %", 31, 0.5, lambda: 100 * (
+        lr(4, "full", "fbar_p1")["max_sigma_xx_R0"] / lr(3, "full", "fbar_p1")["max_sigma_xx_R0"] - 1))
+    add("19", "graded spread low (full disp)", 0.471, h3, lambda: lr(3, "full", "disp")[
+        "gk2_sigma_xx_avg"])
+    add("19", "graded spread high (F-bar)", 0.569, h3, lambda: lr(3, "full", "fbar")[
+        "gk2_sigma_xx_avg"])
+    # Section 20: Gaussian surrogate errors (cluster job 3271674, transcribed output)
+    f4 = lambda: _j("f4_gaussian_result_job3271674.json")["mean_self_relative_error_percent"]
+    add("20", "best variant gk2 xx %", 173, 0.5, lambda: f4()["local-integration-refinement seed 3"][
+        "gk2_xx"])
+    add("20", "PI baseline gk2 xx %", 417, 0.5, lambda: f4()["PI baseline"]["gk2_xx"])
+    add("20", "equilibrium 2 gk2 xx %", 4290, 0.5, lambda: f4()["equilibrium attempt 2 (w=0.12)"][
+        "gk2_xx"])
+    add("20", "checkpoints where Gaussian < sharp (xx)", 10, 0, lambda: sum(
+        v["gk2_xx"] < v["sharp_xx"] for v in f4().values()))
+    add("20", "best normal gk2 min %", 146, 0.5, lambda: min(
+        v for k, v in _j("f4_gaussian_result_job3271674.json")["best_gk2_mean_self_relative_percent"]
+        .items() if k in ("sigma_xx", "sigma_yy", "sigma_zz", "pressure", "cyl_rr", "cyl_tt", "cyl_zz")))
+    # Section 21: LLM against rules
+    ab = lambda p: _j("ablation_result_live.json")["problems"][p]
+    for p, cost in (("b1", 2.06), ("b2", 2.57), ("b3", 3.03)):
+        add("21", f"ablation {p} cost USD", cost, h2, lambda p=p: sum(
+            r["llm_cost_usd"] for r in ab(p)["runs"]))
+    add("21", "ablation total USD", 7.66, h2, lambda: sum(
+        r["llm_cost_usd"] for p in ("b1", "b2", "b3") for r in ab(p)["runs"]))
+    add("21", "B3 rules missed", 5, 0, lambda: len(ab("b3")["rule_only"]["missed"]))
+    add("21", "B3 rules false alarms", 3, 0, lambda: len(ab("b3")["rule_only"]["false_alarm"]))
+    add("21", "B3 LLM missed (max)", 1, 0, lambda: max(r["llm_missed_n"] for r in ab("b3")["runs"]))
+    add("21", "B3 LLM false alarms max", 10, 0, lambda: max(
+        r["llm_false_alarm_n"] for r in ab("b3")["runs"]))
+    add("21", "spec recovered (of 9)", 9, 0, lambda: sum(all(r["spec_match"].values())
+                                                          for p in ("b1", "b2", "b3")
+                                                          for r in ab(p)["runs"]))
+    # Section 22: manuscript numbers
+    f1 = lambda: _j(os.path.join("manuscript_recompute", "f1_values.json"))["manuscript_vs_new"]
+    k = "avg range over eight resolutions 2,376-47,040 ('0.38-0.44')"
+    add("22", "avg range low", 0.42, h2, lambda: f1()[k]["new"][0])
+    add("22", "avg range high", 0.47, h2, lambda: f1()[k]["new"][1])
+    k2 = "max first six levels ('4.13 to 0.706')"
+    add("22", "max first level", 4.16, h2, lambda: f1()[k2]["new"][0])
+    add("22", "max sixth level", 0.729, h3, lambda: f1()[k2]["new"][1])
+    k3 = "rise at the seventh level ('26%', '0.891 at 45,000')"
+    add("22", "rise %", 25, 0.5, lambda: 100 * f1()[k3]["new"][0])
+    add("22", "max at 45,000", 0.910, h3, lambda: f1()[k3]["new"][1])
+    k4 = "z_beta 0-3 at 10,200 ('0.615-0.826')"
+    add("22", "z_beta low", 0.621, h3, lambda: f1()[k4]["new"][0])
+    add("22", "z_beta high", 0.836, h3, lambda: f1()[k4]["new"][1])
 
 
 def main(argv=None):
