@@ -25718,3 +25718,11 @@ spread 1.13-1.96%; Gaussian normal averages p 2.27-2.72, U 0.11-0.18% (of the Fr
 scale), strategy spread <= 0.47%.
 F3: the worker restart killed the queued P1 runs before anything was saved; restarted
 (uniform 2,376/10,200/15,960 full:fbar_p1, then b3_local_refine solve-p1).
+
+**F4 run submitted by Omar (2026-11-20 02:26 cluster time): LSF job 3271674**, queue
+BatchGPU, gmem=75G. GitHub is NOT reachable from the cluster any more (git fetch/pull:
+"Failed to connect to github.com port 443: Connection refused"); the two files were
+transferred as a base64/tar one-liner and verified by md5 (script dc148db1...,
+job eed9f926...). Note: `conda activate omar` is needed (the default (base) env has no
+numpy). Output: ~/OMAR/Practical_Examples/f4_gaussian.3271674.out and
+/scratch/gole3157/pfem_run/b3_gaussian_checkpoints.json -- AWAITING RESULT.
