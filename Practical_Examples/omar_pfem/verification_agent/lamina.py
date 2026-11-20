@@ -128,8 +128,14 @@ def material_strains(gu, theta=THETA_F):
     return e11, e22, g12
 
 
+# element factory and quadrature order: Q2 by default; goal_oriented.py swaps in a
+# hierarchical degree-3 element (same Q2 geometry) for the enriched solution
+ELEMENT = {"make": fem.ElementQuad2, "intorder": 4, "facet_intorder": 6}
+
+
 def _basis(msh, elements=None):
-    return fem.Basis(msh, fem.ElementVector(fem.ElementQuad2()), intorder=4, elements=elements)
+    return fem.Basis(msh, fem.ElementVector(ELEMENT["make"]()), intorder=ELEMENT["intorder"],
+                     elements=elements)
 
 
 def solve_level(m, g=1.5, chunk=15000, theta_deg=None, rh=None):
@@ -158,7 +164,8 @@ def _solve_level(m, g, chunk, theta, rh, pypardiso):
         Kc = fem.asm(stiffness, _basis(msh, ch))
         K = Kc if K is None else K + Kc
     outer = msh.facets_satisfying(lambda x: np.hypot(x[0], x[1]) > rh + 1e-6, boundaries_only=True)
-    fb = fem.FacetBasis(msh, fem.ElementVector(fem.ElementQuad2()), facets=outer, intorder=6)
+    fb = fem.FacetBasis(msh, fem.ElementVector(ELEMENT["make"]()), facets=outer,
+                        intorder=ELEMENT["facet_intorder"])
     f = fem.asm(fem.LinearForm(lambda v, w: THICK * SIGMA0 * w.n[0] * v.value[0]), fb)
     # rigid motions: u_x, u_y at (3, 0), u_y at (-3, 0)
     def nodal(px, py, comp):

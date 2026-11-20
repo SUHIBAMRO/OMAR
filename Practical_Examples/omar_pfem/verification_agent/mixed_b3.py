@@ -124,9 +124,7 @@ class Problem:
         self.pos = torch.einsum("qa,eai->eqi", N, X).numpy()
         ne = len(elements)
         dofs = (3 * elements[:, :, None] + np.arange(3)[None, None, :]).reshape(ne, 60)
-        self.dofs = dofs
-        self.rows = np.repeat(dofs, 60, axis=1).ravel()
-        self.cols = np.tile(dofs, (1, 60)).ravel()
+        self.dofs = dofs.astype(np.int64)
         self.ndof = 3 * len(nodes)
         self.phi = torch.cat([torch.ones(len(ip), 1), ip], dim=1)      # P1 in (xi, eta, zeta)
         nq = len(ip)
@@ -159,14 +157,45 @@ class Problem:
         return R
 
     def tangent(self, u, chunk=1000):
+        """Chunk-wise assembly summed into one CSR matrix (2026-11-20: never holds
+        all 60 x 60 element blocks and their int64 indices at once; same matrix)."""
         ue = self._ue(u)
-        vals = []
+        K = None
         for s in range(0, len(self.elements), chunk):
             h = self._h(ue[s:s + chunk], self.dNdX[s:s + chunk], self.w[s:s + chunk],
                         self.proj[s:s + chunk])
-            vals.append(h.reshape(-1, 60, 60).numpy().ravel())
-        return sp.csr_matrix((np.concatenate(vals), (self.rows, self.cols)),
-                             shape=(self.ndof, self.ndof))
+            d = self.dofs[s:s + chunk]
+            r = np.repeat(d, 60, axis=1).ravel()
+            c = np.tile(d, (1, 60)).ravel()
+            Kc = sp.csr_matrix((h.reshape(-1).numpy(), (r, c)), shape=(self.ndof, self.ndof))
+            K = Kc if K is None else K + Kc
+        return K
+
+    def _linsolve(self, A, b):
+        """Direct (Pardiso, default) or AMG-preconditioned CG (VERIF_LINSOLVE=amg,
+        2026-11-20): smoothed aggregation with the 6 rigid-body modes of the
+        free dofs as near-null space, CG to a relative residual of 1e-12."""
+        if os.environ.get("VERIF_LINSOLVE", "pardiso") != "amg":
+            import pypardiso
+            return pypardiso.spsolve(A.tocsr(), b)
+        import pyamg
+        A = A.tocsr()
+        if not hasattr(self, "_B"):
+            x = self.nodes
+            B = np.zeros((self.ndof, 6))
+            for i in range(3):
+                B[i::3, i] = 1.0
+            for k, (i, j) in enumerate(((0, 1), (1, 2), (2, 0))):
+                B[i::3, 3 + k] = -x[:, j]
+                B[j::3, 3 + k] = x[:, i]
+            self._B = B[self.free]
+        ml = pyamg.smoothed_aggregation_solver(A, B=self._B, symmetry="symmetric",
+                                               strength=("symmetric", {"theta": 0.0}),
+                                               max_coarse=2000)
+        res = []
+        x = ml.solve(b, tol=1e-12, accel="cg", maxiter=2000, residuals=res)
+        self.krylov_its = getattr(self, "krylov_its", []) + [len(res) - 1]
+        return x
 
     def solve(self, nsteps=10, tol=1e-9, newton_max=30, predictor=True):
         """predictor=True: each increment starts with the consistent
@@ -174,7 +203,6 @@ class Problem:
         so interior nodes move with the prescribed boundary increment (without
         it, thin graded layers at the groove invert in the first iteration).
         Converged results are unchanged (same equations, same tolerance)."""
-        import pypardiso
         u = np.zeros(self.ndof)
         hist = []
         for step in range(1, nsteps + 1):
@@ -184,7 +212,7 @@ class Problem:
                 R = self.residual(u)
                 du_c = target - u[self.fixed]
                 rhs = -R[self.free] - K[self.free][:, self.fixed] @ du_c
-                u[self.free] += pypardiso.spsolve(K[self.free][:, self.free].tocsr(), rhs)
+                u[self.free] += self._linsolve(K[self.free][:, self.free], rhs)
             u[self.fixed] = target
             for it in range(newton_max):
                 R = self.residual(u)
@@ -195,7 +223,7 @@ class Problem:
                     break
                 K = self.tangent(u)
                 Kff = K[self.free][:, self.free]
-                u[self.free] -= pypardiso.spsolve(Kff.tocsr(), R[self.free])
+                u[self.free] -= self._linsolve(Kff, R[self.free])
             else:
                 raise RuntimeError(f"step {step}: |R| = {Rn:.2e}")
             hist.append((it, float(Rn)))
