@@ -853,6 +853,25 @@ def add_f_round(add, h1, h2, h3):
     k4 = "z_beta 0-3 at 10,200 ('0.615-0.826')"
     add("22", "z_beta low", 0.621, h3, lambda: f1()[k4]["new"][0])
     add("22", "z_beta high", 0.836, h3, lambda: f1()[k4]["new"][1])
+    # Section 23: CFM open-hole lamina
+    lm = lambda: _j("lamina_result_6levels.json")
+    lr_ = lambda: {(r["m"], r["g"]): r for r in _j("lamina_ladder.json")}
+    add("23", "lamina compliance mm/N x1e5", 6.981, h3, lambda: 1e5 * lr_()[(32, 1.5)]["compliance"])
+    add("23", "lamina dof m=32", 1050624, 0, lambda: lr_()[(32, 1.5)]["n_dof"])
+    add("23", "lamina QoIs PASS", 8, 0, lambda: sum(r["verdict"] == "PASS" for r in lm()["qois"].values()))
+    add("23", "lamina rule predictions", 1, 0, lambda: lm()["rule_predictions"])
+    add("23", "lamina expectations met", 5, 0, lambda: sum(lm()["developer_expectations_met"].values()))
+    add("23", "lamina u_tip 5-level order", 2.36, h2, lambda: lm()["qois"]["u_tip"]["order_5level"])
+    add("23", "lamina u_tip 3-level order", 3.40, h2, lambda: lm()["qois"]["u_tip"]["order_3level"])
+    cf = lambda q: lm()["cfm_comparison"][q]
+    num = lambda q: max(cf(q)["error_at_m4_vs_m32_pct"], cf(q)["strategy_spread_m8_pct"])
+    for q, e, mg in (("compliance", 0.012, 132), ("hole_gamma12_avg", 0.10, 29),
+                     ("far_gamma12_avg", 0.05, 50), ("hole_e22_avg", 0.37, 143)):
+        add("23", f"lamina {q} error %", e, 0.0005 if e < 0.05 else h2, lambda q=q: num(q))
+        add("23", f"lamina {q} margin", mg, 0.5, lambda q=q: cf(q)["margin_half_width_over_numerical"])
+    m = lambda: json.load(open(os.path.join(HERE, "lamina_mms.json")))["rows"]
+    add("23", "lamina MMS L2 rate", 3.00, h2, lambda: np.log2(m()[-2]["L2_rel"] / m()[-1]["L2_rel"]))
+    add("23", "lamina MMS H1 rate", 2.00, h2, lambda: np.log2(m()[-2]["H1_semi_rel"] / m()[-1]["H1_semi_rel"]))
 
 
 def main(argv=None):

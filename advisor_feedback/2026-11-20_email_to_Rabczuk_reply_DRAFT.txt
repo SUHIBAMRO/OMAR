@@ -15,14 +15,15 @@ What was done:
 5. Surrogate errors under the converged definition. With the Gaussian-weighted groove averages, which the agent certifies with an uncertainty of 0.11-0.18%, the best surrogate still errs by 146-173%. The groove peak itself remains unverified: on locally refined meshes every formulation I tried, including Q20/P1, fails.
 6. LLM against rules. In nine billed runs the LLM recovered the problem specification from text every time and missed fewer B3 failures than the rules, but raised many false alarms that varied from run to run.
 7. Manuscript. The groove numbers are corrected, and the text now limits the stability claim to region-averaged normal stresses.
-8. Human intervention. 59 interventions are counted and categorised; only 6 steps are fully automated.
+8. CSM/CFM. On the open-hole lamina of the CFM paper, the agent's discretization uncertainty at the paper's mesh is far below the constitutive range (29-143 times below its half-width), so the combined bound is dominated by the constitutive part.
+9. Human intervention. 59 interventions are counted and categorised; only 6 steps are fully automated.
 
 Questions:
 
 1. Singular-order check: I propose to adopt the extension to quadratic elements, which follows from standard corner theory, and to report an energy order above 2*lambda as "pre-asymptotic, a finer level is needed" rather than as a pass. Both changes came after seeing held-out results, so I would test them on the next unseen benchmark. Is that acceptable?
 2. Absolute requirements: following your point on CSM and CFM, I propose to set the numerical requirement of a quantity from its constitutive range (discretization uncertainty at most one third of the CSM/CFM half-width), with 1% for global quantities and displacements and 5% for region-averaged stresses as interim values where no such range exists. Is this the right direction?
 3. Groove peak: higher-order and mixed formulations are done; FEM against IGA, which you asked for, is what remains. Should IGA come next, or the literature agent and active learning, as in your priority list?
-4. CSM and CFM: I have read both papers on arXiv. The CFM open-hole lamina uses one mesh, and its certificate holds for that fixed discretization. A first joint test could report the agent's discretization uncertainty next to the CFM half-width for the same quantities. Would that be a good first step, and could I have access to the code?
+4. CSM and CFM: I have read both papers on arXiv. As a first step towards your goal of certified bounds, I computed the numerical half for the CFM open-hole lamina (report Section 23, pre-registered): at the paper's resolution the discretization error of the compliance and the strain averages is 29 to 143 times smaller than the half-width of the constitutive range. Shall we combine it with your ranges on the same mesh family, and could I have access to the code?
 
 Best regards,
 Omar

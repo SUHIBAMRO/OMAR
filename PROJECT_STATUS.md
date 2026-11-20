@@ -25841,3 +25841,6 @@ any solve). Orthotropic MMS: L2 3.00, H1 2.00 (lamina_mms.json).
   is adequate for its constitutive ranges by a large margin; the combined bound is
   dominated by the constitutive part. Caveats: our zones, linear law, Q9 not their P2
   triangles. (lamina_result_6levels.json)
+Report: new Section 23 (Experiment 16), old 23-26 -> 24-27 with cross-references; summary
+item 6; open question 4 and the email (point 8 + question 4) now cite the result; claims
+check extended: 624 of 624; PDF v3 re-exported (no "Timon").
