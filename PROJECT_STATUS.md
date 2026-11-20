@@ -25844,3 +25844,23 @@ any solve). Orthotropic MMS: L2 3.00, H1 2.00 (lamina_mms.json).
 Report: new Section 23 (Experiment 16), old 23-26 -> 24-27 with cross-references; summary
 item 6; open question 4 and the email (point 8 + question 4) now cite the result; claims
 check extended: 624 of 624; PDF v3 re-exported (no "Timon").
+
+### 2026-11-20 -- Next priorities per Prof. Rabczuk (19 Nov point 4): literature agent, active learning
+**Literature agent (literature_agent.py, d2091bc).** Paper PDF -> text -> benchmark section
+(by number or hint) -> LLM role "librarian" fills a benchmark card (geometry, material,
+BCs, loading, discretisation, reference type + convergence evidence, QoIs with kinds,
+singular features, not-stated items), EVERY field with a verbatim quote -> code checks each
+quote against the paper (unsupported fields are dropped), maps QoI kinds to the rule classes
+(vocabulary gaps reported), decides the verification needs (single mesh -> refinement
+family; no independent code; singular features -> singular-order check; missing inputs),
+writes the problem text for the formalizer. Offline test passes (CFM 9.3 found; invented
+"E1 = 126 GPa" rejected; compliance gap reported). Evaluation `eval` against the two
+hand-formalised problems (OpenPINN plate, CFM lamina) is written, NOT RUN: billed (~USD
+1-3), needs Omar's OK.
+**Active learning (active_learning.py, a7fe6ed).** Verification-aware multi-fidelity AL on
+the lamina compliance over fibre angle [0, 90] deg x hole radius [1.5, 5] mm; levels
+m = 1/2/4/8 with the verified level errors (2.37% / 0.20% / 0.012% / 0.0008%) as observation
+noise; own GP (Matern 5/2 ARD, no sklearn); strategies random / al_fine / mf_naive /
+mf_verified, 5 seeds, 40 s budget. Expectations recorded before the table and runs
+(al_lamina_preregistration.json). lamina.py parametrised (theta_deg, rh); defaults reproduce
+the stored ladder to 1e-12. Simulation table (121 designs x 4 levels) running.
