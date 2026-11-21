@@ -5793,6 +5793,294 @@
  },
  {
   "section": "25",
+  "claim": "IGA3D L4 dof",
+  "printed": 319800,
+  "recomputed": 319800.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D L4 hours",
+  "printed": 2.2,
+  "recomputed": 2.1731742958890066,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D reaction_moment_y L1",
+  "printed": 35.112,
+  "recomputed": 35.11175634541478,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D reaction_moment_y L2",
+  "printed": 34.633,
+  "recomputed": 34.633057044869076,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D reaction_moment_y L3",
+  "printed": 34.555,
+  "recomputed": 34.55497279074566,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D reaction_moment_y L4",
+  "printed": 34.524,
+  "recomputed": 34.52359088996238,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D strain_energy L1",
+  "printed": 0.8782,
+  "recomputed": 0.8782476563172671,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D strain_energy L2",
+  "printed": 0.8664,
+  "recomputed": 0.8663845828089451,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D strain_energy L3",
+  "printed": 0.8645,
+  "recomputed": 0.8644788855487832,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D strain_energy L4",
+  "printed": 0.8637,
+  "recomputed": 0.8637228229728362,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D gk2_sigma_xx_avg L1",
+  "printed": 0.504,
+  "recomputed": 0.5036898159637192,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D gk2_sigma_xx_avg L2",
+  "printed": 0.525,
+  "recomputed": 0.5247170477920265,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D gk2_sigma_xx_avg L3",
+  "printed": 0.534,
+  "recomputed": 0.5339554599890586,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D gk2_sigma_xx_avg L4",
+  "printed": 0.539,
+  "recomputed": 0.5394644970831508,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D max_sigma_xx_R0 L1",
+  "printed": 14.4,
+  "recomputed": 14.382918293045236,
+  "tolerance": 0.05,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D max_sigma_xx_R0 L2",
+  "printed": 3.18,
+  "recomputed": 3.1840206888768976,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D max_sigma_xx_R0 L3",
+  "printed": 1.68,
+  "recomputed": 1.683853555339904,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D max_sigma_xx_R0 L4",
+  "printed": 1.28,
+  "recomputed": 1.2838728901960301,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D root_sigma_xx L1",
+  "printed": -0.8,
+  "recomputed": -0.8002933854228124,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D root_sigma_xx L2",
+  "printed": 0.505,
+  "recomputed": 0.5051418401056241,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D root_sigma_xx L3",
+  "printed": 0.441,
+  "recomputed": 0.44077698103817603,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D root_sigma_xx L4",
+  "printed": 0.4445,
+  "recomputed": 0.44453834517340646,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D moment p",
+  "printed": 2.1,
+  "recomputed": 2.1351121696387896,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D moment U %",
+  "printed": 0.12,
+  "recomputed": 0.12404694987250398,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D energy U %",
+  "printed": 0.12,
+  "recomputed": 0.1176514444491942,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D gk2 xx p",
+  "printed": 0.5,
+  "recomputed": 0.5112984252644394,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D gk2 xx U %",
+  "printed": 8.0,
+  "recomputed": 8.036437587052339,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D max R0 U %",
+  "printed": 41,
+  "recomputed": 41.11477141606021,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D root xx no rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D moment limit",
+  "printed": 34.493,
+  "recomputed": 34.49319237797835,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "FEM moment limit",
+  "printed": 34.479,
+  "recomputed": 34.47885451374904,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D energy limit",
+  "printed": 0.863,
+  "recomputed": 0.8630018238455314,
+  "tolerance": 5e-06,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "FEM energy limit",
+  "printed": 0.86268,
+  "recomputed": 0.8626813327500318,
+  "tolerance": 5e-06,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA vs FEM limits moment %",
+  "printed": 0.04,
+  "recomputed": 0.04158451442635158,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA vs FEM limits energy %",
+  "printed": 0.04,
+  "recomputed": 0.03715057731432658,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "IGA3D L4 vs FEM limit moment %",
+  "printed": 0.13,
+  "recomputed": 0.12975018121759163,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
   "claim": "P1 moment 4-level rate",
   "printed": 1,
   "recomputed": 1.0,

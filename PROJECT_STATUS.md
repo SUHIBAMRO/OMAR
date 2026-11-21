@@ -25959,3 +25959,23 @@ All items doable without Prof. Rabczuk's decisions. Old 25-28 -> 26-29.
 - 2026-11-21: manuscript (paper/main.tex) P1 sentence updated: formulation change of the
   Gaussian averages 1.4% at 23,520, down from 1.6% at 15,960 and 1.9-2.1% at 10,200 (same
   definition, mixed_b3); compiles. Nothing else open on our side; see "STILL OPEN" above.
+
+### 2026-11-21 -- 3D IGA-type splines on the B3 groove (Omar: "رقم 3 ليش ما تعملهم")
+- `iga_b3.py` (from scratch): trivariate C1 quadratic B-splines on the EXACT analytic
+  map of the half bushing (knots at the groove-profile breakpoints z = 0.35/0.5/0.65), same
+  neo-Hookean, BCs (Dirichlet L2-projected), Newton as Q20. Checks: volume exact 4e-16,
+  zero residual at u = 0, BC projection 0.2% at L1. Levels (theta,t,z spans) 12x6x20 ...
+  48x24x80: 7,392 / 45,864 / 141,360 / 319,800 dof (L4 2.2 h, AMG, ~11 GB).
+- RESULT: moment 35.112/34.633/34.555/34.524, energy 0.8782/0.8664/0.8645/0.8637 -> rate
+  p 2.1, U 0.12%; extrapolated limits 34.493 / 0.86300 vs Q20 family 34.479 / 0.86268
+  (0.04%): independent agreement. Gaussian sigma_xx 0.504/0.525/0.534/0.539 -> p 0.5, U 8%
+  (SLOWER than Q20). Groove PEAK does NOT converge with IGA either: max in R0 14.4/3.18/1.68/
+  1.28 (U 41%); stress AT the root point -0.800/0.505/0.441/0.4445 (last two 0.9% apart, no
+  rate). Hypothesis (untested): near-incompressibility (nu 0.45) in displacement-only splines.
+- Next (prepared, not run): `iga_b3_job.sh` (cluster CPU: L5 607k dof ~25 GB, p = 3 at L3).
+  Or a mixed spline formulation.
+- Item F (geometry families + industrial material models) NOT started: it is a surrogate-
+  training research phase whose scope Prof. Rabczuk has not set (my notes from that time say
+  so explicitly) -> email question 5 / report question 6.
+- Report Sec. 25 (3D paragraph), summary, Q3, Q6, table, repro row; claims 764/764; PDF 54 p.
+  Email draft points 10, Q3, Q5 updated. NOTHING sent.

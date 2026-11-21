@@ -1050,6 +1050,41 @@ def add_g_round(add, h1, h2):
     hsl = [1.0 / n ** (1 / 3) for l, n in zip(lv, lv)]
     g4 = lambda k: gates.multilevel_convergence_gate(hsl, p1(k), band_tol=0.01, gci_tol=0.02,
                                                      order_window=(0.5, 5))
+    # 3D IGA-type splines on the groove
+    ib = lambda: [_j("iga_b3_result.json")[f"L{l}:p2"] for l in (1, 2, 3, 4)]
+    ihs = lambda: [1.0 / r["spans"][0] for r in ib()]
+    add("25", "IGA3D L4 dof", 319800, 0, lambda: ib()[3]["n_dof"])
+    add("25", "IGA3D L4 hours", 2.2, h1, lambda: ib()[3]["seconds"] / 3600)
+    for k, vals, tol in (("reaction_moment_y", (35.112, 34.633, 34.555, 34.524), 0.0005),
+                         ("strain_energy", (0.8782, 0.8664, 0.8645, 0.8637), 0.00005),
+                         ("gk2_sigma_xx_avg", (0.504, 0.525, 0.534, 0.539), 0.0005),
+                         ("max_sigma_xx_R0", (14.4, 3.18, 1.68, 1.28), None),
+                         ("root_sigma_xx", (-0.800, 0.505, 0.441, 0.4445), 0.0005)):
+        for i, v in enumerate(vals):
+            t = tol if tol is not None else (0.05 if v > 10 else 0.005)
+            add("25", f"IGA3D {k} L{i + 1}", v, t, lambda k=k, i=i: ib()[i][k])
+    ig4 = lambda k: gates.multilevel_convergence_gate(ihs(), [r[k] for r in ib()], band_tol=0.01,
+                                                      gci_tol=0.02, order_window=(0.5, 5))
+    add("25", "IGA3D moment p", 2.1, h1, lambda: ig4("reaction_moment_y")["fit_order"])
+    add("25", "IGA3D moment U %", 0.12, h2, lambda: 100 * ig4("reaction_moment_y")["uncertainty_fine"])
+    add("25", "IGA3D energy U %", 0.12, h2, lambda: 100 * ig4("strain_energy")["uncertainty_fine"])
+    add("25", "IGA3D gk2 xx p", 0.5, h1, lambda: ig4("gk2_sigma_xx_avg")["fit_order"])
+    add("25", "IGA3D gk2 xx U %", 8.0, h1, lambda: 100 * ig4("gk2_sigma_xx_avg")["uncertainty_fine"])
+    add("25", "IGA3D max R0 U %", 41, 0.5, lambda: 100 * ig4("max_sigma_xx_R0")["uncertainty_fine"])
+    add("25", "IGA3D root xx no rate", 1, 0, lambda: int(ig4("root_sigma_xx")["evidence"] != "rate"))
+    ilim = lambda k: gates._power_fit(ihs(), [r[k] for r in ib()])["a"]
+    from omar_pfem.verification_agent.orchestrate import B3Adapter as _B3
+    flim = lambda k: gates._power_fit(list(_B3().series(k)[0][-5:]), list(_B3().series(k)[1][-5:]))["a"]
+    add("25", "IGA3D moment limit", 34.493, 0.0005, lambda: ilim("reaction_moment_y"))
+    add("25", "FEM moment limit", 34.479, 0.0005, lambda: flim("reaction_moment_y"))
+    add("25", "IGA3D energy limit", 0.86300, 0.000005, lambda: ilim("strain_energy"))
+    add("25", "FEM energy limit", 0.86268, 0.000005, lambda: flim("strain_energy"))
+    add("25", "IGA vs FEM limits moment %", 0.04, h2,
+        lambda: 100 * abs(ilim("reaction_moment_y") / flim("reaction_moment_y") - 1))
+    add("25", "IGA vs FEM limits energy %", 0.04, h2,
+        lambda: 100 * abs(ilim("strain_energy") / flim("strain_energy") - 1))
+    add("25", "IGA3D L4 vs FEM limit moment %", 0.13, h2,
+        lambda: 100 * (ib()[3]["reaction_moment_y"] / flim("reaction_moment_y") - 1))
     add("25", "P1 moment 4-level rate", 1, 0, lambda: int(g4("reaction_moment_y")["evidence"] == "rate"))
     add("25", "P1 sigma_xx 4-level no rate", 1, 0, lambda: int(g4("gk2_sigma_xx_avg")["evidence"] != "rate"))
 
