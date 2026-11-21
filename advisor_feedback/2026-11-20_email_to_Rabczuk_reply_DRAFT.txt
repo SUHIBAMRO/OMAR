@@ -26,6 +26,7 @@ Questions:
 2. Absolute requirements: following your point on CSM and CFM, I propose to set the numerical requirement of a quantity from its constitutive range (discretization uncertainty at most one third of the CSM/CFM half-width), with 1% for global quantities and displacements and 5% for region-averaged stresses as interim values where no such range exists. Is this the right direction?
 3. Groove peak: higher-order and mixed formulations are done; FEM against IGA, which you asked for, is what remains. A 2D spline pilot on the lamina shows the gain of exact geometry, but the groove needs a 3D NURBS hyperelastic solver. Should that come next?
 4. CSM and CFM: I have read both papers on arXiv. As a first step towards your goal of certified bounds, I computed the numerical half for the CFM open-hole lamina (report Section 23, pre-registered): at the paper's resolution the discretization error of the compliance and the strain averages is 29 to 143 times smaller than the half-width of the constitutive range, and an independent spline discretization reproduces the FE values to 2e-6. Shall we combine it with your ranges on the same mesh family, and could I have access to the code?
+5. Geometry families and industrial material models (your earlier point for the surrogate study): which should come first, for example the groove depth and width of B3 as operator inputs, and which material models beyond neo-Hookean, Mooney-Rivlin and Arruda-Boyce? I have not started this without your choice of scope.
 
 Best regards,
 Omar
