@@ -5570,10 +5570,10 @@
  {
   "section": "25",
   "claim": "goal eff max gk m>=2",
-  "printed": 0.98,
+  "printed": 0.97,
   "recomputed": 0.9748851246498093,
   "tolerance": 0.005,
-  "ok": false
+  "ok": true
  },
  {
   "section": "25",
@@ -5625,6 +5625,14 @@
  },
  {
   "section": "25",
+  "claim": "contended Pardiso seconds",
+  "printed": 240,
+  "recomputed": 240.22685360908508,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "25",
   "claim": "AMG vs Pardiso max rel diff below 1e-12",
   "printed": 1,
   "recomputed": 1.0,
@@ -5634,16 +5642,16 @@
  {
   "section": "25",
   "claim": "AMG seconds",
-  "printed": 502,
-  "recomputed": 501.70639395713806,
+  "printed": 318,
+  "recomputed": 317.59196281433105,
   "tolerance": 0.5,
   "ok": true
  },
  {
   "section": "25",
   "claim": "Pardiso seconds",
-  "printed": 240,
-  "recomputed": 240.22685360908508,
+  "printed": 146,
+  "recomputed": 146.09726190567017,
   "tolerance": 0.5,
   "ok": true
  },
@@ -5651,7 +5659,7 @@
   "section": "25",
   "claim": "AMG peak GB",
   "printed": 3.5,
-  "recomputed": 3.521272,
+  "recomputed": 3.509136,
   "tolerance": 2.04,
   "ok": true
  },
@@ -5659,7 +5667,7 @@
   "section": "25",
   "claim": "Pardiso peak GB",
   "printed": 4.2,
-  "recomputed": 4.15592,
+  "recomputed": 4.157468,
   "tolerance": 2.04,
   "ok": true
  },
@@ -5676,6 +5684,126 @@
   "claim": "AMG CG its max",
   "printed": 142,
   "recomputed": 142.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "P1 23520 seconds",
+  "printed": 6040,
+  "recomputed": 6039.810547113419,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "disp 23520 seconds",
+  "printed": 4678,
+  "recomputed": 4677.585319280624,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "disp 23520 AMG = stored family (moment) rel below 1e-12",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "gap sigma_xx 15960 %",
+  "printed": 1.6,
+  "recomputed": 1.5900071325531484,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "gap sigma_xx 23520 %",
+  "printed": 1.4,
+  "recomputed": 1.3953058192190246,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "gap gk2_sigma_yy_avg 23520 % (abs)",
+  "printed": 1.4,
+  "recomputed": 1.4062648194438367,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "gap gk2_sigma_zz_avg 23520 % (abs)",
+  "printed": 1.4,
+  "recomputed": 1.4259647074546935,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "gap gk2_pressure_avg 23520 % (abs)",
+  "printed": 1.4,
+  "recomputed": 1.408121284313693,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "truncation offset sigma_xx %",
+  "printed": 0.35,
+  "recomputed": 0.34978279501065024,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "P1 15960 gk2_sigma_xx_avg vs limit %",
+  "printed": -0.55,
+  "recomputed": -0.5548106855010615,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "P1 23520 gk2_sigma_xx_avg vs limit %",
+  "printed": -0.19,
+  "recomputed": -0.18564212276515057,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "P1 23520 gk2_pressure_avg vs limit %",
+  "printed": -0.08,
+  "recomputed": -0.0801158257966561,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "disp 23520 sigma_xx vs limit %",
+  "printed": -1.56,
+  "recomputed": -1.5591924391479162,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "P1 moment 4-level rate",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "P1 sigma_xx 4-level no rate",
+  "printed": 1,
+  "recomputed": 1.0,
   "tolerance": 0,
   "ok": true
  },

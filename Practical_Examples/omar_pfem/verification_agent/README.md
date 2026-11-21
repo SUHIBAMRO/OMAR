@@ -130,6 +130,23 @@ within the band. It does not show a convergence rate or monotonicity.
   compares with the 16 causes established by hand (currently 16/16).
   Output: `diagnose_result.json`.
 
+## Held-out problems, next agents and further tools (added 2026-11-20)
+
+- `cook_*.py`, `plate_hole*.py`, `lamina*.py`, `lshape*.py`: held-out problems, each
+  with a `*_preregister.py` that writes its predictions before any solve and scores
+  them afterwards (`--compare`).
+- `mixed_b3.py`: Q20 with F-bar (P0) and projected-dilatation (P1) formulations;
+  `VERIF_LINSOLVE=amg` switches the linear solver to AMG-preconditioned CG (pyamg),
+  which fits the 23,520-element level in memory.
+- `literature_agent.py`: paper PDF -> quote-checked benchmark card (`card`, `eval`,
+  `eval-unseen`; billed with a live backend).
+- `active_learning.py`: verification-aware multi-fidelity active learning on the lamina.
+- `goal_oriented.py`: one-mesh adjoint (enriched-dual) error estimate on the lamina.
+- `iga_lamina.py`: independent spline (IGA-type, exact geometry) discretization of the
+  lamina against the FEM ladder.
+- Post hoc rule options, off by default: `VERIF_POSTHOC_SINGULAR=1` (singular-order
+  check for degree-k elements, pre-asymptotic label), `VERIF_ABS_TARGETS=proposal`.
+
 ## Files
 
 | file | role |
@@ -146,14 +163,16 @@ within the band. It does not show a convergence rate or monotonicity.
 ## Known limits
 
 - The advisor audit checks verdict labels only, not every sentence.
-- Active learning for the surrogate is not implemented. It needs a
-  discussion with Prof. Rabczuk.
+- Active learning exists for the lamina only (`active_learning.py`).
 - The B3 region averages that get a rate (Gaussian kernel, `gk2_*`) are in
   the B3 adapter next to the sphere averages, but the manuscript still uses
   the sphere: switching would redefine the B3 validation target, which is
   Omar's and Prof. Rabczuk's decision.
-- No mixed u/p or F-bar formulation: torchfem has neither, so the pressure
-  oscillation at nu = 0.45 cannot be removed within this code.
+- Mixed formulations (F-bar, P1) are in `mixed_b3.py`, outside torchfem; on strongly
+  graded root meshes no formulation gives a converged groove peak.
+- Two versions of the Gaussian groove average exist: the B3 adapter (Section 8 of the
+  report) uses the Gauss points within 0.25 of the root (the stored dumps),
+  `mixed_b3.py` all Gauss points; they differ by about 0.35% on the same mesh.
 
 `PROJECT_STATUS.md` at the repository root holds the results and the
 history.

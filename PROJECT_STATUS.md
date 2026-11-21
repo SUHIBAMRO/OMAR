@@ -25934,3 +25934,25 @@ All items doable without Prof. Rabczuk's decisions. Old 25-28 -> 26-29.
 - Report: Sec. 25 + summary item + stale Sec. 27 fixed (held-out count, AL exists, CSM/CFM
   papers DO exist, literature agent tested on 3 papers) + Sec. 28 table/questions; repro rows.
   Claims check: my "0.98" caught -> 0.97. Email draft updated (NOT sent).
+
+### 2026-11-21 -- Round G finished (G4/G6 results; report v3 re-exported, 54 pages)
+- **G4 done:** uniform 23,520-el level with AMG-CG: P1 6,040 s / 6.6 GB, displacement
+  4,678 s / 5.0 GB (direct solver had run out of memory). Displacement = stored family
+  solve to 4e-14 (independent check of AMG at scale). P1 - displacement gap (same mesh):
+  1.6% (15,960) -> 1.4% (23,520), all normal averages; still shrinking.
+- **gk2 has TWO definitions** (found here): B3 adapter / Sec. 8 = Gauss points within 0.25
+  (stored dumps), mixed_b3 / Sec. 19 = all Gauss points; +0.35% on the same mesh (verified
+  exactly at 2,376: 0.51840 vs 0.51673). Sec. 19 had compared P1 (untruncated) with the
+  family limit (truncated) -> "P1 already at the limit at 15,960" overstated. On ONE
+  definition: P1 -0.55% (15,960), -0.19% (23,520) from the extrapolated displacement limit
+  (pressure -0.08%); displacement itself -1.56% at 23,520. Conclusion (P1 converges faster to
+  the same limit) supported. Disclosed in Sec. 19, 25, 26 (issues table), README.
+- P1 4 levels alone: moment/energy rate (p ~1.6); Gaussian normal averages no rate yet
+  (still rising; sigma_xx, pressure within 1% band, sigma_zz 1.006%).
+- **G6 timing re-measured alone:** Pardiso 146 s / 4.2 GB, AMG 318 s / 3.5 GB at 2,376 el
+  (first pair 240 / 502 s ran beside other jobs: issues table).
+- Claims check 728/728. Report: Sec. 25 complete, 19/26/27/28 updated, tests 57. Email draft
+  point 2 (1.4% at 23,520) updated. NOTHING sent.
+- STILL OPEN (need Prof. Rabczuk / big builds): 3D NURBS IGA for the groove; geometry
+  families + industrial nonlinearities; CSM/CFM combination (needs their code); decisions
+  on questions 1-4. NEXT (Omar): review + send report and email.

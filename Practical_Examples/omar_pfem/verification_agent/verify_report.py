@@ -919,6 +919,7 @@ def add_f_round(add, h1, h2, h3):
 
 def add_g_round(add, h1, h2):
     """Section 25 (20 Nov, second round)."""
+    from omar_pfem.verification_agent import gates
     # 25.2 literature agent on unseen sections
     un = lambda: _j("literature_eval_unseen.json")
     add("25", "unseen truss checks passed", 6, 0, lambda: sum(un()["csm_truss"][0]["score"].values()))
@@ -1005,16 +1006,52 @@ def add_g_round(add, h1, h2):
         lambda: -100 * g1(4)["qois"]["compliance"]["true_rel"])
     add("25", "m4 area rel err %", -0.0122, 0.00005, lambda: 100 * g1(4)["area_rel_error"])
     # 25.6 AMG against the direct solver
-    ap, aa = lambda: _j("amg_check_2376_pardiso.json"), lambda: _j("amg_check_2376_amg.json")
+    # timed alone (the first pair ran beside other jobs: 240 s / 502 s, kept as files)
+    ap = lambda: _j("amg_check_2376_pardiso_alone.json")
+    aa = lambda: _j("amg_check_2376_amg_alone.json")
+    add("25", "contended Pardiso seconds", 240, 0.5, lambda: _j("amg_check_2376_pardiso.json")["seconds"])
     add("25", "AMG vs Pardiso max rel diff below 1e-12", 1, 0, lambda: int(max(
         abs(aa()["qois"][k] - ap()["qois"][k]) / max(abs(ap()["qois"][k]), 1e-30)
         for k in ap()["qois"] if isinstance(ap()["qois"][k], (int, float))) < 1e-12))
-    add("25", "AMG seconds", 502, 0.5, lambda: aa()["seconds"])
-    add("25", "Pardiso seconds", 240, 0.5, lambda: ap()["seconds"])
+    add("25", "AMG seconds", 318, 0.5, lambda: aa()["seconds"])
+    add("25", "Pardiso seconds", 146, 0.5, lambda: ap()["seconds"])
     add("25", "AMG peak GB", 3.5, h1, lambda: aa()["peak_rss_gb"])
     add("25", "Pardiso peak GB", 4.2, h1, lambda: ap()["peak_rss_gb"])
     add("25", "AMG CG its min", 128, 0, lambda: min(aa()["krylov_its"]))
     add("25", "AMG CG its max", 142, 0, lambda: max(aa()["krylov_its"]))
+    # 23,520-element uniform level with AMG
+    mb = lambda: _j("mixed_b3_result.json")
+    add("25", "P1 23520 seconds", 6040, 0.5, lambda: mb()["23520:full:fbar_p1"]["seconds"])
+    add("25", "disp 23520 seconds", 4678, 0.5, lambda: mb()["23520:reduced:disp"]["seconds"])
+    from omar_pfem.verification_agent.orchestrate import B3Adapter
+    fam = lambda k: dict(zip([r["n_elem"] for r in B3Adapter().family], B3Adapter().series(k)[1]))
+    add("25", "disp 23520 AMG = stored family (moment) rel below 1e-12", 1, 0, lambda: int(abs(
+        mb()["23520:reduced:disp"]["reaction_moment_y"] / fam("reaction_moment_y")[23520] - 1) < 1e-12))
+    gap = lambda l, k: 100 * (mb()[f"{l}:full:fbar_p1"][k] - mb()[f"{l}:reduced:disp"][k]) / abs(
+        mb()[f"{l}:reduced:disp"][k])
+    add("25", "gap sigma_xx 15960 %", 1.6, h1, lambda: gap(15960, "gk2_sigma_xx_avg"))
+    add("25", "gap sigma_xx 23520 %", 1.4, h1, lambda: gap(23520, "gk2_sigma_xx_avg"))
+    for k in ("gk2_sigma_yy_avg", "gk2_sigma_zz_avg", "gk2_pressure_avg"):
+        add("25", f"gap {k} 23520 % (abs)", 1.4, h1, lambda k=k: abs(gap(23520, k)))
+    def lim(k):
+        hs, v, _ = B3Adapter().series(k)
+        f = fam(k)
+        off = np.mean([mb()[f"{l}:reduced:disp"][k] / f[l] - 1 for l in (2376, 10200, 15960, 23520)])
+        return gates._power_fit(list(hs[-5:]), list(v[-5:]))["a"] * (1 + off), off
+    add("25", "truncation offset sigma_xx %", 0.35, h2, lambda: 100 * lim("gk2_sigma_xx_avg")[1])
+    for l, k, v in ((15960, "gk2_sigma_xx_avg", -0.55), (23520, "gk2_sigma_xx_avg", -0.19),
+                    (23520, "gk2_pressure_avg", -0.08)):
+        add("25", f"P1 {l} {k} vs limit %", v, h2,
+            lambda l=l, k=k: 100 * (mb()[f"{l}:full:fbar_p1"][k] / lim(k)[0] - 1))
+    add("25", "disp 23520 sigma_xx vs limit %", -1.56, h2,
+        lambda: 100 * (mb()["23520:reduced:disp"]["gk2_sigma_xx_avg"] / lim("gk2_sigma_xx_avg")[0] - 1))
+    lv = [2376, 10200, 15960, 23520]
+    p1 = lambda k: [mb()[f"{l}:full:fbar_p1"][k] for l in lv]
+    hsl = [1.0 / n ** (1 / 3) for l, n in zip(lv, lv)]
+    g4 = lambda k: gates.multilevel_convergence_gate(hsl, p1(k), band_tol=0.01, gci_tol=0.02,
+                                                     order_window=(0.5, 5))
+    add("25", "P1 moment 4-level rate", 1, 0, lambda: int(g4("reaction_moment_y")["evidence"] == "rate"))
+    add("25", "P1 sigma_xx 4-level no rate", 1, 0, lambda: int(g4("gk2_sigma_xx_avg")["evidence"] != "rate"))
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
