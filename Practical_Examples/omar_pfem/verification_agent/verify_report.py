@@ -1085,6 +1085,38 @@ def add_g_round(add, h1, h2):
         lambda: 100 * abs(ilim("strain_energy") / flim("strain_energy") - 1))
     add("25", "IGA3D L4 vs FEM limit moment %", 0.13, h2,
         lambda: 100 * (ib()[3]["reaction_moment_y"] / flim("reaction_moment_y") - 1))
+    # spline P1 (projected dilatation) on the groove
+    sp = lambda: [_j("iga_b3_result.json")[f"L{l}:p2:fbar_p1"] for l in (1, 2, 3, 4)]
+    for k, vals, tol in (("reaction_moment_y", (34.848, 34.545, 34.504, 34.487), 0.0005),
+                         ("strain_energy", (0.8719, 0.8644, 0.8633, 0.8629), 0.00005),
+                         ("gk2_sigma_xx_avg", (0.547, 0.548, 0.550, 0.552), 0.0005),
+                         ("gk2_pressure_avg", (-0.483, -0.474, -0.475, -0.476), 0.0005),
+                         ("max_sigma_xx_R0", (17.2, 1.71, 1.06, 1.00), None)):
+        for i, v in enumerate(vals):
+            t = tol if tol is not None else (0.05 if abs(v) > 10 else 0.005)
+            add("25", f"splineP1 {k} L{i + 1}", v, t, lambda k=k, i=i: sp()[i][k])
+    add("25", "splineP1 L4 hours", 2.9, h1, lambda: sp()[3]["seconds"] / 3600)
+    sg4 = lambda k: gates.multilevel_convergence_gate([1.0 / r["spans"][0] for r in sp()],
+                                                      [r[k] for r in sp()], band_tol=0.01,
+                                                      gci_tol=0.02, order_window=(0.5, 5))
+    add("25", "splineP1 moment p", 2.4, h1, lambda: sg4("reaction_moment_y")["fit_order"])
+    add("25", "splineP1 moment U %", 0.06, h2, lambda: 100 * sg4("reaction_moment_y")["uncertainty_fine"])
+    add("25", "splineP1 energy U %", 0.05, h2, lambda: 100 * sg4("strain_energy")["uncertainty_fine"])
+    add("25", "splineP1 L4 moment vs FEM limit %", 0.02, h2,
+        lambda: 100 * (sp()[3]["reaction_moment_y"] / flim("reaction_moment_y") - 1))
+    pk = lambda: gates.qoi_convergence_gate([1.0 / r["spans"][0] for r in sp()[1:]],
+                                            [r["max_sigma_xx_R0"] for r in sp()[1:]],
+                                            band_tol=0.01, gci_tol=0.05, order_window=(0.5, 5))
+    add("25", "splineP1 peak 3-level order", 5.88, 0.005, lambda: pk()["observed_order"])
+    add("25", "splineP1 peak GCI %", 1.52, 0.005, lambda: 100 * pk()["gci_fine"])
+    add("25", "splineP1 peak not certified", 1, 0, lambda: int(pk()["verdict"] == "FAIL"))
+    add("25", "splineP1 peak last change %", 5.1, h1,
+        lambda: 100 * abs(sp()[3]["max_sigma_xx_R0"] / sp()[2]["max_sigma_xx_R0"] - 1))
+    ftl = lambda k: gates._power_fit(list(_B3().series(k)[0][-5:]), list(_B3().series(k)[1][-5:]))["a"]
+    add("25", "splineP1 trunc sxx vs Q20 limit %", 1.9, h1,
+        lambda: 100 * (sp()[3]["gk2trunc_sigma_xx_avg"] / ftl("gk2_sigma_xx_avg") - 1))
+    add("25", "splineP1 pressure vs Q20 limit %", 2.0, h1,
+        lambda: 100 * (sp()[3]["gk2trunc_pressure_avg"] / ftl("gk2_pressure_avg") - 1))
     add("25", "P1 moment 4-level rate", 1, 0, lambda: int(g4("reaction_moment_y")["evidence"] == "rate"))
     add("25", "P1 sigma_xx 4-level no rate", 1, 0, lambda: int(g4("gk2_sigma_xx_avg")["evidence"] != "rate"))
 

@@ -6081,6 +6081,254 @@
  },
  {
   "section": "25",
+  "claim": "splineP1 reaction_moment_y L1",
+  "printed": 34.848,
+  "recomputed": 34.847914280975516,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 reaction_moment_y L2",
+  "printed": 34.545,
+  "recomputed": 34.545332012332224,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 reaction_moment_y L3",
+  "printed": 34.504,
+  "recomputed": 34.50378231910062,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 reaction_moment_y L4",
+  "printed": 34.487,
+  "recomputed": 34.48693859318054,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 strain_energy L1",
+  "printed": 0.8719,
+  "recomputed": 0.8718704614411052,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 strain_energy L2",
+  "printed": 0.8644,
+  "recomputed": 0.864354016916533,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 strain_energy L3",
+  "printed": 0.8633,
+  "recomputed": 0.863335365214926,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 strain_energy L4",
+  "printed": 0.8629,
+  "recomputed": 0.8629269265467975,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 gk2_sigma_xx_avg L1",
+  "printed": 0.547,
+  "recomputed": 0.5467516589409985,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 gk2_sigma_xx_avg L2",
+  "printed": 0.548,
+  "recomputed": 0.5476792733869191,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 gk2_sigma_xx_avg L3",
+  "printed": 0.55,
+  "recomputed": 0.5502561788179541,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 gk2_sigma_xx_avg L4",
+  "printed": 0.552,
+  "recomputed": 0.5523534165070044,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 gk2_pressure_avg L1",
+  "printed": -0.483,
+  "recomputed": -0.4830415684052082,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 gk2_pressure_avg L2",
+  "printed": -0.474,
+  "recomputed": -0.4741778180829648,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 gk2_pressure_avg L3",
+  "printed": -0.475,
+  "recomputed": -0.4745795954424242,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 gk2_pressure_avg L4",
+  "printed": -0.476,
+  "recomputed": -0.4761743122631759,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 max_sigma_xx_R0 L1",
+  "printed": 17.2,
+  "recomputed": 17.175067512491147,
+  "tolerance": 0.05,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 max_sigma_xx_R0 L2",
+  "printed": 1.71,
+  "recomputed": 1.7080070229601512,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 max_sigma_xx_R0 L3",
+  "printed": 1.06,
+  "recomputed": 1.0552737223688162,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 max_sigma_xx_R0 L4",
+  "printed": 1.0,
+  "recomputed": 1.0012893097641755,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 L4 hours",
+  "printed": 2.9,
+  "recomputed": 2.8904109687275357,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 moment p",
+  "printed": 2.4,
+  "recomputed": 2.3863955139038633,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 moment U %",
+  "printed": 0.06,
+  "recomputed": 0.05582887598006022,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 energy U %",
+  "printed": 0.05,
+  "recomputed": 0.05347552869593979,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 L4 moment vs FEM limit %",
+  "printed": 0.02,
+  "recomputed": 0.02344648494130297,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 peak 3-level order",
+  "printed": 5.88,
+  "recomputed": 5.883700506061046,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 peak GCI %",
+  "printed": 1.52,
+  "recomputed": 1.5200035564456675,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 peak not certified",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 peak last change %",
+  "printed": 5.1,
+  "recomputed": 5.115678658562606,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 trunc sxx vs Q20 limit %",
+  "printed": 1.9,
+  "recomputed": 1.8987366975410813,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "splineP1 pressure vs Q20 limit %",
+  "printed": 2.0,
+  "recomputed": 2.0176662883689245,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "25",
   "claim": "P1 moment 4-level rate",
   "printed": 1,
   "recomputed": 1.0,

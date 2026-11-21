@@ -25979,3 +25979,21 @@ All items doable without Prof. Rabczuk's decisions. Old 25-28 -> 26-29.
   so explicitly) -> email question 5 / report question 6.
 - Report Sec. 25 (3D paragraph), summary, Q3, Q6, table, repro row; claims 764/764; PDF 54 p.
   Email draft points 10, Q3, Q5 updated. NOTHING sent.
+
+### 2026-11-21 -- Improvements round ("اذا في لسا تحسينات او تزبيطات اعملهم")
+- **Spline P1** (iga_b3.py formulation fbar_p1: projected dilatation, linear per span; checks:
+  disp regression 6e-13, projector exact on P1, residual 0 at u = 0). 4 levels (L4 2.9 h):
+  moment 34.848/34.545/34.504/34.487 (p 2.4, U 0.06%; L4 0.02% from Q20 limit); groove PEAK
+  max in R0 17.2/1.71/1.06/1.00 -> settles, but 3-level order 5.88 outside window -> agent
+  does NOT certify (GCI 1.52% not trusted). Near-incompressibility hypothesis supported.
+- **CORRECTION (important):** spline P1 Gaussian averages ~2% ABOVE the Q20-certified values
+  (sxx 0.550 vs 0.540 truncated; pressure 2.0%), all four sequences still rising. The Q20
+  "uncertainty 0.11-0.18%" = convergence of the Q20 sequence, NOT distance to the true value.
+  Corrected in report Sec. 1 (abstract + summary), 8, 19, 20, 25, issues table, new limitation
+  "A rate is not a distance to the truth" (rule to require an independent cross-check: NOT
+  implemented), manuscript (paper/main.tex, compiles), email point 5. Surrogate conclusions
+  (>= 146%) unaffected.
+- Tests: 5 new (lshape, lamina element factory, iga_lamina, iga_b3, AL GP) -> 62 pass.
+- Old sections 12/15/19 got forward references to Sec. 25 (IGA). Cluster job iga_b3_job.sh
+  now runs spline P1 + displacement at level 5 (607k dof, ~25-30 GB).
+- Claims 795/795; PDF re-exported. NOTHING sent.

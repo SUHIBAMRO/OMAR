@@ -119,14 +119,31 @@ def psi(F):
     return MU / 2 * ((F ** 2).sum((-2, -1)) - 3 - 2 * lnJ) + LAM / 2 * lnJ ** 2
 
 
+def fbar(F, proj):
+    """F_bar = (theta / J)^(1/3) F, theta = proj @ J (proj: element-wise L2 projection
+    of J onto linear polynomials, as Q20/P1 in mixed_b3.py); identity if proj is None."""
+    if proj is None:
+        return F
+    J = det3(F)
+    theta = torch.einsum("...qr,...r->...q", proj, J)
+    return (theta / J)[..., None, None] ** (1.0 / 3.0) * F
+
+
 def element_energy(ue, dNdX, w):
     F = torch.eye(3) + torch.einsum("ai,qaj->qij", ue, dNdX)
     return (w * psi(F)).sum()
 
 
+def element_energy_p1(ue, dNdX, w, proj):
+    F = torch.eye(3) + torch.einsum("ai,qaj->qij", ue, dNdX)
+    return (w * psi(fbar(F, proj))).sum()
+
+
 class Problem:
-    def __init__(self, level, p=2, nq=None):
-        self.level, self.p = level, p
+    def __init__(self, level, p=2, nq=None, formulation="disp"):
+        """formulation: "disp" (displacement only) or "fbar_p1" (projected
+        dilatation, linear per span: the spline analogue of Q20/P1)."""
+        self.level, self.p, self.formulation = level, p, formulation
         nq = nq or p + 1
         nth, nt, nz = LEVELS[level]
         self.bth, self.bt, self.bz = (Basis1D(0, np.pi, nth, p), Basis1D(0, 1, nt, p),
@@ -160,14 +177,23 @@ class Problem:
         dxi = np.stack([dth, dt_, dz_], -1)                                  # (e, q, l, 3)
         Ji = Jinv.reshape(self.ne, nq ** 3, 3, 3)                            # d xi / d x
         self.dNdX = torch.tensor(np.einsum("eqla,eqaj->eqlj", dxi, Ji))
-        self.N = N
         self.w = torch.tensor((wq * detJ).reshape(self.ne, nq ** 3))
         self.x = x.reshape(self.ne, nq ** 3, 3)
         ctrl = ((ia[A][:, :, None, None] * self.nb[1] + ib[B][:, None, :, None]) * self.nb[2]
                 + ic[C][:, None, None, :]).reshape(self.ne, nl)
         self.ctrl = ctrl
         self.dofs = (3 * ctrl[:, :, None] + np.arange(3)).reshape(self.ne, 3 * nl)
-        f = element_energy
+        g1 = np.polynomial.legendre.leggauss(nq)[0]
+        G = np.stack(np.meshgrid(g1, g1, g1, indexing="ij"), -1).reshape(-1, 3)
+        self.phi = torch.tensor(np.concatenate([np.ones((len(G), 1)), G], 1))   # (nq^3, 4)
+        if formulation == "fbar_p1":
+            M = torch.einsum("eq,qa,qb->eab", self.w, self.phi, self.phi)
+            self.Minv = torch.linalg.inv(M)
+            self.proj = torch.einsum("qa,eab,rb,er->eqr", self.phi, self.Minv, self.phi, self.w)
+            f = element_energy_p1
+        else:
+            self.proj = None
+            f = element_energy
         self._e = vmap(f)
         self._g = vmap(grad(f))
         self._h = vmap(jacfwd(grad(f)))
@@ -237,11 +263,15 @@ class Problem:
     def _ue(self, u):
         return torch.tensor(u.reshape(-1, 3))[torch.tensor(self.ctrl)]
 
+    def _args(self, s, e):
+        a = (self.dNdX[s:e], self.w[s:e])
+        return a + ((self.proj[s:e],) if self.proj is not None else ())
+
     def residual(self, u, chunk=4000):
         R = np.zeros(self.ndof)
         ue = self._ue(u)
         for s in range(0, self.ne, chunk):
-            gg = self._g(ue[s:s + chunk], self.dNdX[s:s + chunk], self.w[s:s + chunk])
+            gg = self._g(ue[s:s + chunk], *self._args(s, s + chunk))
             np.add.at(R, self.dofs[s:s + chunk].ravel(), gg.reshape(-1).numpy())
         return R
 
@@ -250,7 +280,7 @@ class Problem:
         K = None
         nd = self.dofs.shape[1]
         for s in range(0, self.ne, chunk):
-            h = self._h(ue[s:s + chunk], self.dNdX[s:s + chunk], self.w[s:s + chunk])
+            h = self._h(ue[s:s + chunk], *self._args(s, s + chunk))
             d = self.dofs[s:s + chunk]
             Kc = sp.csr_matrix((h.reshape(-1).numpy(), (np.repeat(d, nd, 1).ravel(),
                                                         np.tile(d, (1, nd)).ravel())),
@@ -259,7 +289,7 @@ class Problem:
         return K
 
     def energy(self, u):
-        return float(self._e(self._ue(u), self.dNdX, self.w).sum())
+        return float(self._e(self._ue(u), *self._args(0, self.ne)).sum())
 
     def _linsolve(self, A, b):
         if os.environ.get("VERIF_LINSOLVE", "pardiso") != "amg":
@@ -322,7 +352,10 @@ class Problem:
         return (torch.einsum("...ij,...kj->...ik", P, F) / det3(F)[..., None, None]).detach().numpy()
 
     def root_stress(self):
-        """Cauchy stress at the groove-root point (theta = 0, t = 0, z = 0.5)."""
+        """Cauchy stress at the groove-root point (theta = 0, t = 0, z = 0.5).
+        Displacement formulation: one value (C1 field). P1: the projected
+        dilatation is discontinuous between the spans below and above z = 0.5;
+        returns the mean of the two one-sided values and both sides."""
         th, t, z = np.array([0.0]), np.array([0.0]), np.array([ZC])
         (va, da), (vb, db), (vc, dc) = (self.bth.eval(th), self.bt.eval(t), self.bz.eval(z))
         N3 = lambda a, b, c: np.einsum("a,b,c->abc", a[0], b[0], c[0]).ravel()
@@ -330,12 +363,26 @@ class Problem:
         _, Jg = geometry(th, t, z)
         dNdX = dxi @ np.linalg.inv(Jg[0])
         U = self.u.reshape(-1, 3)
-        F = np.eye(3) + U.T @ dNdX
-        return self._cauchy(torch.tensor(F))
+        F = torch.tensor(np.eye(3) + U.T @ dNdX)
+        if self.proj is None:
+            return self._cauchy(F), None
+        nth, nt, nz = LEVELS[self.level]
+        ue = self._ue(self.u)
+        sides = []
+        for C, zeta in ((nz // 2 - 1, 1.0), (nz // 2, -1.0)):      # span below / above
+            e = (0 * nt + 0) * nz + C
+            Fq = torch.eye(3) + torch.einsum("ai,qaj->qij", ue[e], self.dNdX[e])
+            Jq = det3(Fq)
+            coef = self.Minv[e] @ (self.phi * (self.w[e] * Jq)[:, None]).sum(0)
+            theta = torch.tensor([1.0, -1.0, -1.0, zeta]) @ coef
+            sides.append(self._cauchy((theta / det3(F)) ** (1.0 / 3.0) * F))
+        return 0.5 * (sides[0] + sides[1]), sides
 
     def qois(self):
         ue = self._ue(self.u)
         F = torch.eye(3) + torch.einsum("eai,eqaj->eqij", ue, self.dNdX)
+        if self.proj is not None:
+            F = fbar(F, self.proj)
         s = self._cauchy(F).reshape(-1, 3, 3)
         w = self.w.numpy().ravel()
         pos = self.x.reshape(-1, 3)
@@ -356,20 +403,22 @@ class Problem:
         out["n_quad_R0"] = int(inside.sum())
         for k in ("sigma_xx", "sigma_zz", "pressure"):
             out[f"max_{k}_R0"] = float(np.abs(meas[k][inside]).max())
-        sr = self.root_stress()
+        sr, sides = self.root_stress()
         out.update(root_sigma_xx=float(sr[0, 0]), root_sigma_zz=float(sr[2, 2]),
                    root_sigma_xz=float(sr[0, 2]), root_pressure=float(-np.trace(sr) / 3))
+        if sides is not None:
+            out["root_sigma_xx_sides"] = [float(x[0, 0]) for x in sides]
         return out
 
 
-def run(level, p, cache):
-    key = f"L{level}:p{p}"
+def run(level, p, cache, formulation="disp"):
+    key = f"L{level}:p{p}" + ("" if formulation == "disp" else f":{formulation}")
     if key in cache:
         return cache[key]
     t0 = time.time()
-    pb = Problem(level, p)
+    pb = Problem(level, p, formulation=formulation)
     pb.solve()
-    row = {"level": level, "p": p, "spans": LEVELS[level], "n_elem": pb.ne, "n_dof": pb.ndof,
+    row = {"level": level, "p": p, "formulation": formulation, "spans": LEVELS[level], "n_elem": pb.ne, "n_dof": pb.ndof,
            "seconds": time.time() - t0, "newton": pb.hist,
            "linsolve": os.environ.get("VERIF_LINSOLVE", "pardiso"), **pb.qois()}
     cache[key] = row
@@ -384,10 +433,11 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--levels", default="1,2,3")
     ap.add_argument("--p", type=int, default=2)
+    ap.add_argument("--formulation", default="disp", choices=("disp", "fbar_p1"))
     a = ap.parse_args(argv)
     cache = json.load(open(OUT)) if os.path.exists(OUT) else {}
     for lv in map(int, a.levels.split(",")):
-        run(lv, a.p, cache)
+        run(lv, a.p, cache, a.formulation)
 
 
 if __name__ == "__main__":

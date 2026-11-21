@@ -659,3 +659,64 @@ def test_literature_quote_check_is_unicode_normalised():
     from omar_pfem.verification_agent import literature_agent as L
     paper = "the energy ⟨ĉref , T⟩ is the mechanism-controlled energy"
     assert L.normalise("⟨ĉref , T⟩ is the mechanism") in L.normalise(paper)
+
+
+# ---------------------------------------------------------------------------
+# Modules added on 2026-11-20/21 (held-out L-shape, spline discretizations,
+# goal-oriented estimate, active learning)
+# ---------------------------------------------------------------------------
+def test_lshape_mesh_and_exponent():
+    import numpy as np
+    from omar_pfem.verification_agent import lshape
+    for n, g in ((2, 1.0), (4, 2.0)):
+        m = lshape.mesh(n, g)
+        assert m.t.shape[1] == 3 * n * n
+        assert not np.any((m.p[0] > 1 + 1e-12) & (m.p[1] > 1 + 1e-12))
+    assert abs(lshape.corner_exponent() - 0.5444837) < 1e-6
+
+
+def test_lamina_element_factory_default_unchanged():
+    """The element switch used by goal_oriented.py leaves the Q2 results unchanged."""
+    import json
+    import os
+    import pytest
+    from omar_pfem.verification_agent import lamina
+    if not os.path.exists(lamina.CACHE):
+        pytest.skip("lamina ladder not present")
+    ref = next(r for r in json.load(open(lamina.CACHE)) if r["m"] == 1 and r["g"] == 1.5)
+    r = lamina.solve_level(1)
+    for q in ("compliance", "u_tip", "hole_gk_gamma12_avg"):
+        assert abs(r[q] / ref[q] - 1) < 1e-10
+
+
+def test_iga_lamina_exact_geometry_and_convergence():
+    import numpy as np
+    from omar_pfem.verification_agent import iga_lamina, lamina
+    r = iga_lamina.solve(2, 3)
+    exact = np.pi * lamina.A_ELL * lamina.B_ELL - np.pi * lamina.RH ** 2
+    assert abs(r["area_mm2"] / exact - 1) < 1e-7            # exact geometry (quadrature only)
+    assert abs(r["compliance"] / 6.980613985e-05 - 1) < 0.01  # FEM m = 32 value
+
+
+def test_iga_b3_geometry_residual_and_projector():
+    import numpy as np
+    import torch
+    from scipy.integrate import quad
+    from omar_pfem.verification_agent import iga_b3 as I
+    pb = I.Problem(1, formulation="fbar_p1")
+    ex = quad(lambda z: np.pi / 2 * (I.R_OUT ** 2 - I.R_in(np.array([z]))[0] ** 2), 0, 1,
+              points=[0.35, 0.5, 0.65], limit=200)[0]
+    assert abs(pb.w.numpy().sum() / ex - 1) < 1e-12           # exact volume
+    assert np.abs(pb.residual(np.zeros(pb.ndof))).max() < 1e-10
+    f = pb.phi @ torch.tensor([0.3, 0.1, -0.2, 0.05])
+    assert float((pb.proj[3] @ f - f).abs().max()) < 1e-12    # P1 projector is exact on P1
+
+
+def test_active_learning_gp_interpolates():
+    import numpy as np
+    from omar_pfem.verification_agent.active_learning import GP
+    rng = np.random.default_rng(0)
+    X = rng.random((12, 2))
+    y = np.sin(3 * X[:, 0]) + X[:, 1] ** 2
+    gp = GP(X, y, np.full(12, 1e-10))
+    assert np.abs(gp.predict(X) - y).max() < 1e-3
