@@ -25956,3 +25956,6 @@ All items doable without Prof. Rabczuk's decisions. Old 25-28 -> 26-29.
 - STILL OPEN (need Prof. Rabczuk / big builds): 3D NURBS IGA for the groove; geometry
   families + industrial nonlinearities; CSM/CFM combination (needs their code); decisions
   on questions 1-4. NEXT (Omar): review + send report and email.
+- 2026-11-21: manuscript (paper/main.tex) P1 sentence updated: formulation change of the
+  Gaussian averages 1.4% at 23,520, down from 1.6% at 15,960 and 1.9-2.1% at 10,200 (same
+  definition, mixed_b3); compiles. Nothing else open on our side; see "STILL OPEN" above.
