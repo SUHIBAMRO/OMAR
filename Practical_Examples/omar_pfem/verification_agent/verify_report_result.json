@@ -6553,6 +6553,46 @@
  },
  {
   "section": "25",
+  "claim": "Gaussian U, % of the averages, min",
+  "printed": 0.8,
+  "recomputed": 0.7943779871268636,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "Gaussian U, % of the averages, max",
+  "printed": 1.0,
+  "recomputed": 1.0084856010194776,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "Gaussian gap to spline P1, % of the averages, min",
+  "printed": 1.9,
+  "recomputed": 1.8987366975410709,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "Gaussian gap to spline P1, % of the averages, max",
+  "printed": 2.1,
+  "recomputed": 2.138402900484296,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "Fig 25.1 sigma_xx U absolute",
+  "printed": 0.0054,
+  "recomputed": 0.005447971650560266,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "25",
   "claim": "MMS spline disp L2 order (finest pair)",
   "printed": 3.38,
   "recomputed": 3.3834597803498125,

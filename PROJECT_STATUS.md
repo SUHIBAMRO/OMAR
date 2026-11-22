@@ -26028,3 +26028,22 @@ and a final-uncertainty rule.
   1.07% Q4 h=0.025, 21+5+8=34 cross-check, 46/62 of 68, 14 peaks, 10/11, 11/12, 146-173%, 2%,
   29-143x, 2e-6, 16x, 59 interventions / 6 automated, Q1 verdict INCONCLUSIVE as in gates.py).
   Section 28 exists in report v3. NOT sent; Omar sends it himself.
+
+### 2026-11-22 -- report v4: figures, typeset equations, one normalisation correction
+- Figures (new, from stored results only): `report_figures.py` -> advisor_feedback/report_build/
+  figures/verification/ (Fig 7.1 B1 convergence; 24.1 active learning; 25.1 B3 Gaussian sigma_xx
+  Q20 limit +- U vs splines; 25.2 groove peak, spline disp vs P1; 25.3 L-shape + crack orders and
+  peak slopes; 25.4 cross-check gap vs allowed U; 25.5 MMS of the new solvers). Inserted in the
+  Claude doc with captions.
+- Equations: the doc's PDF export printed the three LaTeX blocks of Section 4 as source code.
+  `report_equations.py` typesets them with pdflatex (PNG, 2000 px canvas); they replace the code
+  blocks. Inline caret exponents (h^-0.275, 10^-6, C^(p-1), dof^alpha, ...) rewritten with Unicode
+  superscripts ("h^a with a = -0.275"); U_fine / u_h / t_y / u_x / u_y in prose reworded.
+- CORRECTION found while drawing Fig 25.1: the Gaussian-average uncertainty 0.11-0.18% is relative
+  to the groove STRESS SCALE (3.10), the "about 2%" gap to spline P1 relative to the AVERAGES. On one
+  basis: U = 0.8-1.0% of the averages, gap 1.9-2.1% (gap/scale 0.28-0.33%). The contrast was
+  overstated ~6x; the cross-check verdict (contradicted) is unchanged because it uses one basis.
+  Report Sections 1, 20, 25 and issues table (new row) state both bases. Manuscript already says
+  "of the regional stress magnitude" -> no change. Email point 5 updated accordingly (not sent).
+- verify_report: +5 claims (838/838). Tests 63 pass. PDF:
+  advisor_feedback/2026-11-22_Verification_Framework_Technical_Report_v4.pdf (62 pages, no "Timon").

@@ -1147,6 +1147,21 @@ def add_g_round(add, h1, h2):
     add("25", "crosscheck contradicted", 5, 0, lambda: xc()["contradicted"])
     add("25", "crosscheck single_family", 8, 0, lambda: xc()["single_family"])
     add("25", "crosscheck rate-certified total", 34, 0, lambda: sum(xc().values()))
+    # the B3 Gaussian uncertainty and gap on one basis (2026-11-22): U is relative to the
+    # stress scale, the gap relative to the averages; both stated in Sections 1, 20, 25, 26
+    gk = lambda: [r for r in _j("crosscheck_result.json")["rows"]
+                  if r["problem"] == "bushing_groove" and r["qoi"] in
+                  ("gk2_sigma_xx_avg", "gk2_sigma_yy_avg", "gk2_sigma_zz_avg", "gk2_pressure_avg")]
+    u_val = lambda: [100 * r["U_rel"] * r["scale"] / abs(r["limit"]) for r in gk()]
+    gap_val = lambda: [100 * abs(r["independent"] - r["limit"]) / abs(r["limit"]) for r in gk()]
+    add("25", "Gaussian U, % of the averages, min", 0.8, h1, lambda: min(u_val()))
+    add("25", "Gaussian U, % of the averages, max", 1.0, h1, lambda: max(u_val()))
+    add("25", "Gaussian gap to spline P1, % of the averages, min", 1.9, h1,
+        lambda: min(gap_val()))
+    add("25", "Gaussian gap to spline P1, % of the averages, max", 2.1, h1,
+        lambda: max(gap_val()))
+    add("25", "Fig 25.1 sigma_xx U absolute", 0.0054, 0.00005,
+        lambda: next(r["U_rel"] * r["scale"] for r in gk() if r["qoi"] == "gk2_sigma_xx_avg"))
     # MMS of the new solvers
     mm = lambda: _j("mms_new_solvers.json")
     def mrow(name, lv):
