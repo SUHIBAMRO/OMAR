@@ -240,6 +240,12 @@ DEFAULT_SPECS = {
                     material="linear_elastic", loading="edge_traction",
                     regularity="reentrant_corner", element="Q9",
                     reference="mesh_refinement_family", qois=None),
+    # edge-cracked panel: second held-out test of the singular-order extension,
+    # spec committed (crack_preregistration.json) before any solve
+    "edge_crack": dict(name="Edge-cracked panel", geometry="edge_crack", dim=2,
+                       material="linear_elastic", loading="edge_traction",
+                       regularity="crack", element="Q9",
+                       reference="mesh_refinement_family", qois=None),
     "bushing_groove": dict(name="B3 groove", geometry="bushing_groove", dim=3,
                            material="neo_hookean", loading="prescribed_rotation",
                            regularity="stress_concentration", element="Q20",

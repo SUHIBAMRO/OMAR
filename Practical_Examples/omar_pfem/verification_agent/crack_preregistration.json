@@ -1,0 +1,154 @@
+{
+ "written": "2026-11-22T14:41:30.855141+00:00",
+ "purpose": "second unseen test of the current rules with the proposed singular-order extension (VERIF_POSTHOC_SINGULAR=1), in a new singularity class (crack); written after the L-shape result, whose lesson (a displacement may approach its rate from below) is used below",
+ "spec": {
+  "name": "Edge-cracked panel",
+  "geometry": "edge_crack",
+  "dim": 2,
+  "material": "linear_elastic",
+  "loading": "edge_traction",
+  "regularity": "crack",
+  "element": "Q9",
+  "reference": "mesh_refinement_family",
+  "qois": [
+   "strain_energy",
+   "u_cod_mouth",
+   "v_top_right",
+   "tip_gk_avg_von_mises",
+   "tip_disc_avg_von_mises",
+   "far_gk_avg_syy",
+   "peak_von_mises"
+  ]
+ },
+ "adapter_description": "Edge-cracked panel: domain [0,2]x[-1,1], traction-free edge crack along y = 0 from x = 0 to the tip at (1,0); plane strain, small-strain linear elasticity, E = 1000, nu = 0.3. Bottom edge y = -1 clamped; top edge y = 1 loaded by a uniform traction t_y = 1 (mode-I opening); other edges and crack faces free. Crack tip lam = 0.5; clamped/free corners (0,-1), (2,-1) lam = 0.7112. Q2 (9-node) elements, n x n per unit square (n = 2, 4, ..., 128, h = 1/n), separate nodes on the crack faces; strategies at n = 16: coordinates graded toward x = 1 and y = 0 with g = 1.5, 2.0. QoIs: strain_energy = 1/2 u.K u; u_cod_mouth = crack opening u_y(upper) - u_y(lower) at (0,0); v_top_right = u_y at (2,1); tip_gk_avg_von_mises = von Mises with weight exp(-(d/0.1)^2), d the distance to the tip; tip_disc_avg_von_mises = mean over d < 0.2; far_gk_avg_syy = sigma_yy with exp(-(d/0.1)^2) about (1.5,0.5); peak_von_mises = max von Mises over all Gauss points.",
+ "corner_exponent_lam": 0.5,
+ "theory": {
+  "energy_order": 1.0,
+  "displacement_and_region_order_at_least": 1.0,
+  "corner_peak_slope": -0.5,
+  "singular_order_tol": 0.15,
+  "note": "Q2, lam = 0.5 < 2: the crack tip limits every rate to 2 lam = 1.0 (pollution); the clamped/free corners (lam 0.711) are weaker"
+ },
+ "rule_predictions": {
+  "strain_energy": {
+   "predicted": "PASS",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ],
+   "rules": [
+    "R2",
+    "R5",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "u_cod_mouth": {
+   "predicted": "PASS",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ],
+   "rules": [
+    "R2",
+    "R5",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "v_top_right": {
+   "predicted": "PASS",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ],
+   "rules": [
+    "R2",
+    "R5",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "tip_gk_avg_von_mises": {
+   "predicted": null,
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ],
+   "rules": [
+    "R2",
+    "R4",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "tip_disc_avg_von_mises": {
+   "predicted": null,
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ],
+   "rules": [
+    "R2",
+    "R4",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "far_gk_avg_syy": {
+   "predicted": null,
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ],
+   "rules": [
+    "R2",
+    "R4",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "peak_von_mises": {
+   "predicted": "FAIL",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ],
+   "rules": [
+    "R2",
+    "R3",
+    "R8"
+   ],
+   "role": "diagnostic"
+  }
+ },
+ "stated_in_advance": {
+  "without the post hoc option": "every singular_order check is INCONCLUSIVE (theory implemented for degree-1 elements only)",
+  "pre-asymptotic label": "NOT expected to trigger: the tip is loaded directly in mode I (strong singular coefficient)"
+ },
+ "developer_expectations": {
+  "strain_energy": "singular_order PASS (order 2 lam = 1.0 within 0.15); convergence PASS with rate",
+  "u_cod_mouth": "singular_order PASS (order >= 0.85); convergence PASS with rate",
+  "v_top_right": "singular_order PASS (order >= 0.85); LOW confidence: a displacement at a domain corner approached its rate from below on the L-shape",
+  "far_gk_avg_syy": "singular_order PASS (order >= 0.85); convergence PASS with rate",
+  "tip_gk_avg_von_mises": "convergence PASS; singular_order PASS (order >= 0.85), LOW confidence (nonlinear in the stress, weight centred on the singular point)",
+  "tip_disc_avg_von_mises": "convergence PASS (band or rate); singular_order not predicted",
+  "peak_von_mises": "convergence FAIL (grows); log-log slope lam - 1 = -0.5 within 0.15 (singular_order PASS); located within 0.1 of the tip (1, 0) on the finest three levels"
+ },
+ "rules_changed_for_this_problem": false
+}

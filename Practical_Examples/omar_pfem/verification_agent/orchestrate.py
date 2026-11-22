@@ -342,6 +342,39 @@ class LShapeAdapter:
         return [r[qoi] for r in self.strategy_rows], None
 
 
+class CrackAdapter(LShapeAdapter):
+    """HELD-OUT edge-cracked panel (crack.py); spec, description and predictions
+    committed before any solve (crack_preregistration.json); rules unchanged."""
+    geometry = "edge_crack"
+    description = (
+        "Edge-cracked panel: domain [0,2]x[-1,1], traction-free edge crack along y = 0 from "
+        "x = 0 to the tip at (1,0); plane strain, small-strain linear elasticity, E = 1000, "
+        "nu = 0.3. Bottom edge y = -1 clamped; top edge y = 1 loaded by a uniform traction "
+        "t_y = 1 (mode-I opening); other edges and crack faces free. Crack tip lam = 0.5; "
+        "clamped/free corners (0,-1), (2,-1) lam = 0.7112. Q2 (9-node) elements, n x n per "
+        "unit square (n = 2, 4, ..., 128, h = 1/n), separate nodes on the crack faces; "
+        "strategies at n = 16: coordinates graded toward x = 1 and y = 0 with g = 1.5, 2.0. "
+        "QoIs: strain_energy = 1/2 u.K u; u_cod_mouth = crack opening u_y(upper) - u_y(lower) "
+        "at (0,0); v_top_right = u_y at (2,1); tip_gk_avg_von_mises = von Mises with weight "
+        "exp(-(d/0.1)^2), d the distance to the tip; tip_disc_avg_von_mises = mean over d < "
+        "0.2; far_gk_avg_syy = sigma_yy with exp(-(d/0.1)^2) about (1.5,0.5); peak_von_mises "
+        "= max von Mises over all Gauss points.")
+    qois = ("strain_energy", "u_cod_mouth", "v_top_right", "tip_gk_avg_von_mises",
+            "tip_disc_avg_von_mises", "far_gk_avg_syy", "peak_von_mises")
+
+    def __init__(self, strategy_n=16):
+        from omar_pfem.verification_agent.crack import CACHE
+        rows = json.load(open(CACHE)) if os.path.exists(CACHE) else []
+        self.rows = sorted((r for r in rows if r["g"] == 1.0), key=lambda r: r["n"])
+        self.hs = [r["h"] for r in self.rows]
+        self.strategy_rows = sorted((r for r in rows if r["n"] == strategy_n),
+                                    key=lambda r: r["g"])
+
+    def singular_exponent(self):
+        from omar_pfem.verification_agent.crack import corner_exponent
+        return corner_exponent()
+
+
 class B3Adapter:
     geometry = "bushing_groove"
     description = (
@@ -501,12 +534,14 @@ class B3Adapter:
 
 ADAPTERS = {"unit_square": B1Adapter, "quarter_ring": B2Adapter, "bushing_groove": B3Adapter,
             "cook_membrane": CookAdapter, "plate_hole": PlateHoleAdapter,
-            "open_hole_lamina": LaminaAdapter, "l_shape": LShapeAdapter}
+            "open_hole_lamina": LaminaAdapter, "l_shape": LShapeAdapter,
+            "edge_crack": CrackAdapter}
 ADAPTER_VOCAB = {
     "cook_membrane": (CookAdapter.description, CookAdapter.qois),
     "plate_hole": (PlateHoleAdapter.description, PlateHoleAdapter.qois),
     "open_hole_lamina": (LaminaAdapter.description, LaminaAdapter.qois),
     "l_shape": (LShapeAdapter.description, LShapeAdapter.qois),
+    "edge_crack": (CrackAdapter.description, CrackAdapter.qois),
     "unit_square": (B1Adapter.description, B1Adapter.qois),
     "quarter_ring": (B2Adapter.description, B2Adapter.qois),
     "bushing_groove": (B3Adapter.description,
