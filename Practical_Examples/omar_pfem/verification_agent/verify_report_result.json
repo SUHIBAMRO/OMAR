@@ -6329,6 +6329,310 @@
  },
  {
   "section": "25",
+  "claim": "conventional quantities",
+  "printed": 89,
+  "recomputed": 89.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "verifiable quantities",
+  "printed": 68,
+  "recomputed": 68.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "non-verifiable quantities",
+  "printed": 14,
+  "recomputed": 14.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "conventional certified",
+  "printed": 46,
+  "recomputed": 46.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "conventional wrongly_failed",
+  "printed": 22,
+  "recomputed": 22.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "agent certified",
+  "printed": 51,
+  "recomputed": 51.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "agent wrongly_failed",
+  "printed": 4,
+  "recomputed": 4.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "agent inconclusive",
+  "printed": 13,
+  "recomputed": 13.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "agent_posthoc certified",
+  "printed": 62,
+  "recomputed": 62.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "agent_posthoc wrongly_failed",
+  "printed": 5,
+  "recomputed": 5.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "agent_posthoc inconclusive",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "conventional missed_failures",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "agent missed_failures",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "agent_posthoc missed_failures",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "crack rules default",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "crack rules posthoc",
+  "printed": 4,
+  "recomputed": 4.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "crack expectations met",
+  "printed": 11,
+  "recomputed": 11.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "crack expectations total",
+  "printed": 12,
+  "recomputed": 12.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "crack strain_energy order",
+  "printed": 0.983,
+  "recomputed": 0.9833700959143199,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "crack u_cod_mouth order",
+  "printed": 0.983,
+  "recomputed": 0.98331471750796,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "crack v_top_right order",
+  "printed": 0.982,
+  "recomputed": 0.9821565430052357,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "crack far_gk_avg_syy order",
+  "printed": 0.968,
+  "recomputed": 0.9677790528991176,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "crack peak_von_mises order",
+  "printed": -0.511,
+  "recomputed": -0.5105429852458779,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "crack finest elements",
+  "printed": 65536,
+  "recomputed": 65536.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "crosscheck cross_checked",
+  "printed": 21,
+  "recomputed": 21.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "crosscheck contradicted",
+  "printed": 5,
+  "recomputed": 5.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "crosscheck single_family",
+  "printed": 8,
+  "recomputed": 8.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "crosscheck rate-certified total",
+  "printed": 34,
+  "recomputed": 34.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "MMS spline disp L2 order (finest pair)",
+  "printed": 3.38,
+  "recomputed": 3.3834597803498125,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "MMS spline disp H1 order (finest pair)",
+  "printed": 2.05,
+  "recomputed": 2.05110749819508,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "MMS spline fbar_p1 L2 order (finest pair)",
+  "printed": 3.26,
+  "recomputed": 3.2643969329711133,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "MMS spline fbar_p1 H1 order (finest pair)",
+  "printed": 2.05,
+  "recomputed": 2.0517018967678924,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "MMS Q20/P1 (mixed_b3), cartesian field L2 order (finest pair)",
+  "printed": 4.14,
+  "recomputed": 4.140881673728565,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "MMS Q20/P1 (mixed_b3), cartesian field H1 order (finest pair)",
+  "printed": 2.84,
+  "recomputed": 2.835385689795543,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "MMS Q20/P1 cart L2 order 1st pair",
+  "printed": 3.59,
+  "recomputed": 3.592865312668352,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "MMS Q20/P1 cart H1 order 1st pair",
+  "printed": 2.51,
+  "recomputed": 2.513930516143114,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "MMS Q20 groove field 2376 L2 %",
+  "printed": 4.0,
+  "recomputed": 4.027147782900592,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "MMS Q20 groove field 10200 L2 %",
+  "printed": 8.0,
+  "recomputed": 8.036957242228778,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "25",
   "claim": "P1 moment 4-level rate",
   "printed": 1,
   "recomputed": 1.0,

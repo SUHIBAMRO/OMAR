@@ -123,13 +123,26 @@ class IgaMMS(I.Problem):
         return errors(uh, gh, ue_, ge_, self.w.numpy().ravel())
 
 
+def u_star_cart(X):
+    """Smooth Cartesian manufactured field for the Q20 mesh (Dirichlet data = its
+    nodal values on every boundary node), independent of the C1 groove profile."""
+    x, y, z = X[0], X[1], X[2]
+    return A_MMS * torch.stack([torch.sin(np.pi * x) * torch.cos(np.pi * y / 2) * torch.sin(np.pi * z),
+                                torch.sin(np.pi * x / 2) * torch.sin(np.pi * y) * torch.cos(np.pi * z / 2),
+                                torch.cos(np.pi * x / 2) * torch.sin(np.pi * y / 2) * torch.sin(np.pi * z)])
+
+
 # ---------------------------------------------------------------------------
 # Q20 with projected dilatation (mixed_b3)
 # ---------------------------------------------------------------------------
-def q20_p1(level):
+def q20_p1(level, field="groove", formulation="fbar_p1"):
     from omar_pfem.verification_agent import mixed_b3 as M
     from torchfem.elements import Hexa2
-    pb = M.Problem(*M.LEVELS[level], quadrature="full", formulation="fbar_p1")
+    global u_star
+    keep = u_star
+    if field == "cartesian":
+        u_star = u_star_cart
+    pb = M.Problem(*M.LEVELS[level], quadrature="full", formulation=formulation)
     ip, _ = M.rule("full")
     N = Hexa2().N(ip).numpy()                                         # (nq, 20)
     pos = pb.pos.reshape(-1, 3)
@@ -146,6 +159,8 @@ def q20_p1(level):
     fixed = np.repeat(bnd, 3)
     pb.fixed, pb.free = np.where(fixed)[0], np.where(~fixed)[0]
     pb.ubar = np.zeros(pb.ndof)
+    if field == "cartesian":
+        pb.ubar = exact(X)[0].ravel()               # nodal values of u* (exact at nodes)
     base = pb.residual
     pb.residual = lambda u, chunk=4000: base(u, chunk) - f_ext
     t0 = time.time()
@@ -155,7 +170,10 @@ def q20_p1(level):
     uh = np.einsum("qa,eai->eqi", N, U).reshape(-1, 3)
     gh = np.einsum("eai,eqaj->eqij", U, pb.dNdX.numpy()).reshape(-1, 3, 3)
     l2, h1 = errors(uh, gh, ue_, ge_, w.ravel())
-    return {"solver": "Q20/P1 (mixed_b3)", "level": level, "n_dof": int(pb.ndof),
+    u_star = keep
+    name = {"fbar_p1": "Q20/P1 (mixed_b3)", "disp": "Q20 disp (mixed_b3)"}[formulation]
+    return {"solver": name + ("" if field == "groove" else ", cartesian field"),
+            "level": level, "n_dof": int(pb.ndof),
             "h": 1.0 / len(pb.elements) ** (1 / 3), "L2_rel": l2, "H1_rel": h1,
             "seconds": time.time() - t0, "boundary_nodes": int(bnd.sum())}
 

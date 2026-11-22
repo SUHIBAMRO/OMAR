@@ -25997,3 +25997,27 @@ All items doable without Prof. Rabczuk's decisions. Old 25-28 -> 26-29.
 - Old sections 12/15/19 got forward references to Sec. 25 (IGA). Cluster job iga_b3_job.sh
   now runs spline P1 + displacement at level 5 (607k dof, ~25-30 GB).
 - Claims 795/795; PDF re-exported. NOTHING sent.
+
+### 2026-11-22 -- Round H (ChatGPT gap list, Omar: "اعملهم كلهم الي ضلو ناقصين")
+Assessment: ChatGPT wrongly said 3D MMS missing (mms_q20.py exists for torchfem Q20); the
+real gaps were MMS of the NEW solvers, a conventional-verification baseline, more unseen tests,
+and a final-uncertainty rule.
+- **H1 MMS (mms_new_solvers.py):** spline disp L2 3.38 / H1 2.05, spline P1 3.26 / 2.05 (finest
+  pair, real curved geometry, field vanishing on all boundaries). Q20 (mixed_b3) with that
+  groove-parametrised field: errors GROW (4.0% -> 8.0% L2) for disp AND P1 -> the field, not the
+  element (disp path verified otherwise); cause NOT established. Smooth Cartesian field with exact
+  nodal Dirichlet: Q20/P1 L2 4.14 / H1 2.84 (finest pair), 3.59 / 2.51 (first pair); disp similar.
+- **H2 conventional (conventional.py):** 89 quantities (68 verifiable, 14 not, 7 band-only).
+  Certified: conventional GCI 46 (22 wrongly failed), agent 51 (4 failed, 13 inconclusive), agent +
+  posthoc 62 (5 / 1; partly in-sample). Missed failures: 0 for all. 3 B3 symmetry-zero maxima
+  relabelled verifiable after the first run (disclosed). Neither found the double-Cauchy bug or the
+  2% gap; independent implementations did.
+- **H3 edge crack (crack.py, pre-registered 64aea80):** rules default 1/4, posthoc 4/4, expectations
+  11/12; energy order 0.983 (1.0), COD 0.983, corner disp 0.982, far 0.968, peak slope -0.511.
+  Miss: tip Gaussian von Mises average band-only -> singular check FAILs it (likely false alarm).
+- **H4 rule (crosscheck.py, `agent crosscheck`):** 21 cross-checked, 5 contradicted (4 B3 Gaussian
+  vs spline P1; lamina sharp annulus: quadrature-defined region), 8 single-family (not final).
+- Report Sec. 25 (4 paragraphs), 27/28 updated; claims 833/833 (3 more of my slips caught:
+  0.98, 82->89, 4.15/2.83->4.14/2.84); tests 63; PDF re-exported. Email draft updated, NOT sent.
+- STILL OUTSIDE MY REACH: human independent review; Prof. Rabczuk's decisions (Q1-Q5);
+  CSM/CFM code; cluster run of spline level 5 (iga_b3_job.sh).

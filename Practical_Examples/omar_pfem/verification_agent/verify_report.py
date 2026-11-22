@@ -1117,6 +1117,58 @@ def add_g_round(add, h1, h2):
         lambda: 100 * (sp()[3]["gk2trunc_sigma_xx_avg"] / ftl("gk2_sigma_xx_avg") - 1))
     add("25", "splineP1 pressure vs Q20 limit %", 2.0, h1,
         lambda: 100 * (sp()[3]["gk2trunc_pressure_avg"] / ftl("gk2_pressure_avg") - 1))
+    # agent against conventional verification
+    cv = lambda: _j("conventional_result.json")
+    add("25", "conventional quantities", 89, 0, lambda: len(cv()["rows"]))
+    add("25", "verifiable quantities", 68, 0, lambda: cv()["conventional"]["verifiable"])
+    add("25", "non-verifiable quantities", 14, 0, lambda: cv()["conventional"]["not_verifiable"])
+    for k, key, v in (("conventional", "certified", 46), ("conventional", "wrongly_failed", 22),
+                      ("agent", "certified", 51), ("agent", "wrongly_failed", 4),
+                      ("agent", "inconclusive", 13), ("agent_posthoc", "certified", 62),
+                      ("agent_posthoc", "wrongly_failed", 5), ("agent_posthoc", "inconclusive", 1),
+                      ("conventional", "missed_failures", 0), ("agent", "missed_failures", 0),
+                      ("agent_posthoc", "missed_failures", 0)):
+        add("25", f"{k} {key}", v, 0, lambda k=k, key=key: cv()[k][key])
+    # edge crack
+    ck = lambda: _j("crack_result_7levels.json")
+    add("25", "crack rules default", 1, 0, lambda: ck()["modes"]["default"]["rule_hits"])
+    add("25", "crack rules posthoc", 4, 0, lambda: ck()["modes"]["posthoc"]["rule_hits"])
+    add("25", "crack expectations met", 11, 0, lambda: sum(ck()["developer_expectations_met"].values()))
+    add("25", "crack expectations total", 12, 0, lambda: len(ck()["developer_expectations_met"]))
+    CP = lambda q: ck()["modes"]["posthoc"]["qois"][q]["singular_order"]["observed"]
+    for q, v in (("strain_energy", 0.983), ("u_cod_mouth", 0.983), ("v_top_right", 0.982),
+                 ("far_gk_avg_syy", 0.968), ("peak_von_mises", -0.511)):
+        add("25", f"crack {q} order", v, 0.0005, lambda q=q: CP(q))
+    add("25", "crack finest elements", 65536, 0,
+        lambda: max(r["n_elem"] for r in _j("crack_ladder.json")))
+    # final-uncertainty rule
+    xc = lambda: _j("crosscheck_result.json")["summary"]
+    add("25", "crosscheck cross_checked", 21, 0, lambda: xc()["cross_checked"])
+    add("25", "crosscheck contradicted", 5, 0, lambda: xc()["contradicted"])
+    add("25", "crosscheck single_family", 8, 0, lambda: xc()["single_family"])
+    add("25", "crosscheck rate-certified total", 34, 0, lambda: sum(xc().values()))
+    # MMS of the new solvers
+    mm = lambda: _j("mms_new_solvers.json")
+    def mrow(name, lv):
+        return next(r for r in mm() if r["solver"] == name and r["level"] == lv)
+    def mord(name, l1, l2, key):
+        a, b = mrow(name, l1), mrow(name, l2)
+        return float(np.log(a[key] / b[key]) / np.log(a["h"] / b["h"]))
+    for name, (l1, l2, l3), vals in (
+            ("spline disp", (1, 2, 3), (3.38, 2.05)), ("spline fbar_p1", (1, 2, 3), (3.26, 2.05)),
+            ("Q20/P1 (mixed_b3), cartesian field", (2376, 10200, 15960), (4.14, 2.84))):
+        add("25", f"MMS {name} L2 order (finest pair)", vals[0], 0.005,
+            lambda name=name, l2=l2, l3=l3: mord(name, l2, l3, "L2_rel"))
+        add("25", f"MMS {name} H1 order (finest pair)", vals[1], 0.005,
+            lambda name=name, l2=l2, l3=l3: mord(name, l2, l3, "H1_rel"))
+    add("25", "MMS Q20/P1 cart L2 order 1st pair", 3.59, 0.005,
+        lambda: mord("Q20/P1 (mixed_b3), cartesian field", 2376, 10200, "L2_rel"))
+    add("25", "MMS Q20/P1 cart H1 order 1st pair", 2.51, 0.005,
+        lambda: mord("Q20/P1 (mixed_b3), cartesian field", 2376, 10200, "H1_rel"))
+    add("25", "MMS Q20 groove field 2376 L2 %", 4.0, h1,
+        lambda: 100 * mrow("Q20/P1 (mixed_b3)", 2376)["L2_rel"])
+    add("25", "MMS Q20 groove field 10200 L2 %", 8.0, h1,
+        lambda: 100 * mrow("Q20/P1 (mixed_b3)", 10200)["L2_rel"])
     add("25", "P1 moment 4-level rate", 1, 0, lambda: int(g4("reaction_moment_y")["evidence"] == "rate"))
     add("25", "P1 sigma_xx 4-level no rate", 1, 0, lambda: int(g4("gk2_sigma_xx_avg")["evidence"] != "rate"))
 
