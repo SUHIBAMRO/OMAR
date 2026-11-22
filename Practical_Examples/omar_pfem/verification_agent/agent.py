@@ -406,8 +406,22 @@ def main():
     a.add_argument("--min_levels", type=int, default=4,
                    help="levels before a PASS may be decided (5: full multilevel check)")
     a.set_defaults(fn=cmd_adaptive)
+    x = sub.add_parser("crosscheck", help="final-uncertainty rule: independent discretization "
+                                          "must agree (crosscheck.py)")
+    x.set_defaults(fn=cmd_crosscheck)
     args = p.parse_args()
     args.fn(args)
+
+
+def cmd_crosscheck(args):
+    from omar_pfem.verification_agent import crosscheck
+    res = crosscheck.run()
+    print(res["summary"])
+    for r in res["rows"]:
+        extra = (f"gap {100 * r['gap_rel']:.3f}% vs U {100 * r['U_rel']:.3f}% + "
+                 f"{100 * r['U_ind_rel']:.3f}% ({r['source']})" if "gap_rel" in r else
+                 "no independent discretization: uncertainty not final")
+        print(f"{r['problem']:<17}{r['qoi']:<26}{r['status']:<14}{extra}")
 
 
 if __name__ == "__main__":

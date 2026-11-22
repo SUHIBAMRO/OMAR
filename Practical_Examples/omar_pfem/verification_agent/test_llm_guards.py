@@ -720,3 +720,11 @@ def test_active_learning_gp_interpolates():
     y = np.sin(3 * X[:, 0]) + X[:, 1] ** 2
     gp = GP(X, y, np.full(12, 1e-10))
     assert np.abs(gp.predict(X) - y).max() < 1e-3
+
+
+def test_crosscheck_rule():
+    """A rate-certified uncertainty is final only if an independent value agrees."""
+    from omar_pfem.verification_agent.crosscheck import decide
+    assert decide(1.000, 0.002, 1.001, 0.0005, 1.0)[0] == "cross_checked"
+    assert decide(1.000, 0.002, 1.020, 0.0010, 1.0)[0] == "contradicted"   # B3-like 2% gap
+    assert decide(1.000, 0.002, None, None, 1.0)[0] == "single_family"
