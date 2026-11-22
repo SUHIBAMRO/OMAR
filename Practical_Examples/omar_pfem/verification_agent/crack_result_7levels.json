@@ -1,0 +1,217 @@
+{
+ "n_levels": 7,
+ "levels_n": [
+  2,
+  4,
+  8,
+  16,
+  32,
+  64,
+  128
+ ],
+ "lam": 0.5,
+ "modes": {
+  "default": {
+   "rule_hits": 1,
+   "rule_predictions": 4,
+   "qois": {
+    "strain_energy": {
+     "verdict": "INCONCLUSIVE",
+     "evidence": "rate",
+     "rule_prediction": "PASS",
+     "singular_order": {
+      "verdict": "INCONCLUSIVE",
+      "observed": null,
+      "expected": null,
+      "label": null
+     },
+     "convergence": "rate",
+     "rule_hit": false
+    },
+    "u_cod_mouth": {
+     "verdict": "INCONCLUSIVE",
+     "evidence": "rate",
+     "rule_prediction": "PASS",
+     "singular_order": {
+      "verdict": "INCONCLUSIVE",
+      "observed": null,
+      "expected": null,
+      "label": null
+     },
+     "convergence": "rate",
+     "rule_hit": false
+    },
+    "v_top_right": {
+     "verdict": "INCONCLUSIVE",
+     "evidence": "rate",
+     "rule_prediction": "PASS",
+     "singular_order": {
+      "verdict": "INCONCLUSIVE",
+      "observed": null,
+      "expected": null,
+      "label": null
+     },
+     "convergence": "rate",
+     "rule_hit": false
+    },
+    "tip_gk_avg_von_mises": {
+     "verdict": "INCONCLUSIVE",
+     "evidence": "band",
+     "rule_prediction": null,
+     "singular_order": {
+      "verdict": "INCONCLUSIVE",
+      "observed": null,
+      "expected": null,
+      "label": null
+     },
+     "convergence": "band"
+    },
+    "tip_disc_avg_von_mises": {
+     "verdict": "INCONCLUSIVE",
+     "evidence": "band",
+     "rule_prediction": null,
+     "singular_order": {
+      "verdict": "INCONCLUSIVE",
+      "observed": null,
+      "expected": null,
+      "label": null
+     },
+     "convergence": "band"
+    },
+    "far_gk_avg_syy": {
+     "verdict": "INCONCLUSIVE",
+     "evidence": "rate",
+     "rule_prediction": null,
+     "singular_order": {
+      "verdict": "INCONCLUSIVE",
+      "observed": null,
+      "expected": null,
+      "label": null
+     },
+     "convergence": "rate"
+    },
+    "peak_von_mises": {
+     "verdict": "FAIL",
+     "evidence": "none",
+     "rule_prediction": "FAIL",
+     "singular_order": {
+      "verdict": "INCONCLUSIVE",
+      "observed": null,
+      "expected": null,
+      "label": null
+     },
+     "convergence": "none",
+     "rule_hit": true
+    }
+   }
+  },
+  "posthoc": {
+   "rule_hits": 4,
+   "rule_predictions": 4,
+   "qois": {
+    "strain_energy": {
+     "verdict": "PASS",
+     "evidence": "rate",
+     "rule_prediction": "PASS",
+     "singular_order": {
+      "verdict": "PASS",
+      "observed": 0.9833700959143199,
+      "expected": 1.0,
+      "label": null
+     },
+     "convergence": "rate",
+     "rule_hit": true
+    },
+    "u_cod_mouth": {
+     "verdict": "PASS",
+     "evidence": "rate",
+     "rule_prediction": "PASS",
+     "singular_order": {
+      "verdict": "PASS",
+      "observed": 0.98331471750796,
+      "expected": 1.0,
+      "label": null
+     },
+     "convergence": "rate",
+     "rule_hit": true
+    },
+    "v_top_right": {
+     "verdict": "PASS",
+     "evidence": "rate",
+     "rule_prediction": "PASS",
+     "singular_order": {
+      "verdict": "PASS",
+      "observed": 0.9821565430052357,
+      "expected": 1.0,
+      "label": null
+     },
+     "convergence": "rate",
+     "rule_hit": true
+    },
+    "tip_gk_avg_von_mises": {
+     "verdict": "FAIL",
+     "evidence": "band",
+     "rule_prediction": null,
+     "singular_order": {
+      "verdict": "FAIL",
+      "observed": 0.050000001446839366,
+      "expected": 1.0,
+      "label": null
+     },
+     "convergence": "band"
+    },
+    "tip_disc_avg_von_mises": {
+     "verdict": "PASS",
+     "evidence": "band",
+     "rule_prediction": null,
+     "singular_order": {
+      "verdict": "PASS",
+      "observed": 12.669503857203916,
+      "expected": 1.0,
+      "label": null
+     },
+     "convergence": "band"
+    },
+    "far_gk_avg_syy": {
+     "verdict": "PASS",
+     "evidence": "rate",
+     "rule_prediction": null,
+     "singular_order": {
+      "verdict": "PASS",
+      "observed": 0.9677790528991176,
+      "expected": 1.0,
+      "label": null
+     },
+     "convergence": "rate"
+    },
+    "peak_von_mises": {
+     "verdict": "FAIL",
+     "evidence": "none",
+     "rule_prediction": "FAIL",
+     "singular_order": {
+      "verdict": "PASS",
+      "observed": -0.5105429852458779,
+      "expected": -0.5,
+      "label": null
+     },
+     "convergence": "none",
+     "rule_hit": true
+    }
+   }
+  }
+ },
+ "developer_expectations_met": {
+  "default: every singular_order INCONCLUSIVE": true,
+  "pre-asymptotic label not triggered": true,
+  "strain energy singular_order PASS, convergence rate": true,
+  "crack opening singular_order PASS, convergence rate": true,
+  "corner displacement singular_order PASS (low confidence)": true,
+  "far Gaussian average singular_order PASS, convergence rate": true,
+  "tip Gaussian average singular_order PASS (low confidence)": false,
+  "tip Gaussian average convergence PASS": true,
+  "tip disc average convergence PASS (band or rate)": true,
+  "peak convergence FAIL": true,
+  "peak slope = lam - 1 within 0.15": true,
+  "peak located at the crack tip": true
+ }
+}
