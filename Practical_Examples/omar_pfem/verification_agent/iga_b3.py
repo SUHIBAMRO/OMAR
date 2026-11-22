@@ -140,7 +140,7 @@ def element_energy_p1(ue, dNdX, w, proj):
 
 
 class Problem:
-    def __init__(self, level, p=2, nq=None, formulation="disp"):
+    def __init__(self, level, p=2, nq=None, formulation="disp", keep_N=False):
         """formulation: "disp" (displacement only) or "fbar_p1" (projected
         dilatation, linear per span: the spline analogue of Q20/P1)."""
         self.level, self.p, self.formulation = level, p, formulation
@@ -178,6 +178,7 @@ class Problem:
         Ji = Jinv.reshape(self.ne, nq ** 3, 3, 3)                            # d xi / d x
         self.dNdX = torch.tensor(np.einsum("eqla,eqaj->eqlj", dxi, Ji))
         self.w = torch.tensor((wq * detJ).reshape(self.ne, nq ** 3))
+        self.N = torch.tensor(N) if keep_N else None          # basis values (MMS loads)
         self.x = x.reshape(self.ne, nq ** 3, 3)
         ctrl = ((ia[A][:, :, None, None] * self.nb[1] + ib[B][:, None, :, None]) * self.nb[2]
                 + ic[C][:, None, None, :]).reshape(self.ne, nl)

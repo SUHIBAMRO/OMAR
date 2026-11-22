@@ -1,0 +1,1505 @@
+{
+ "conventional": {
+  "verifiable": 68,
+  "not_verifiable": 14,
+  "certified": 46,
+  "wrongly_failed": 22,
+  "inconclusive": 0,
+  "missed_failures": 0,
+  "band_only_passed": 3,
+  "band_only": 7
+ },
+ "agent": {
+  "verifiable": 68,
+  "not_verifiable": 14,
+  "certified": 51,
+  "wrongly_failed": 4,
+  "inconclusive": 13,
+  "missed_failures": 0,
+  "band_only_passed": 5,
+  "band_only": 7
+ },
+ "agent_posthoc": {
+  "verifiable": 68,
+  "not_verifiable": 14,
+  "certified": 62,
+  "wrongly_failed": 5,
+  "inconclusive": 1,
+  "missed_failures": 0,
+  "band_only_passed": 5,
+  "band_only": 7
+ },
+ "per_problem": {
+  "unit_square": {
+   "n": 9,
+   "conventional_missed": [],
+   "agent_missed": [],
+   "conventional_false_alarms": [],
+   "agent_false_alarms": [],
+   "agent_posthoc_not_passed": []
+  },
+  "quarter_ring": {
+   "n": 9,
+   "conventional_missed": [],
+   "agent_missed": [],
+   "conventional_false_alarms": [
+    "interior_avg_PK1_frob"
+   ],
+   "agent_false_alarms": [],
+   "agent_posthoc_not_passed": []
+  },
+  "bushing_groove": {
+   "n": 41,
+   "conventional_missed": [],
+   "agent_missed": [],
+   "conventional_false_alarms": [
+    "sigma_xy_max",
+    "von_mises_avg",
+    "cyl_rr_avg",
+    "cyl_zz_avg",
+    "cyl_rt_avg",
+    "cyl_rt_max",
+    "cyl_rz_avg",
+    "cyl_tz_avg",
+    "cyl_tz_max",
+    "gk2_sigma_xx_avg",
+    "gk2_sigma_yy_avg",
+    "gk2_sigma_zz_avg",
+    "gk2_pressure_avg",
+    "gk2_cyl_rr_avg",
+    "gk2_cyl_tt_avg",
+    "gk2_cyl_zz_avg",
+    "gk2_sigma_frob_avg",
+    "gk2_von_mises_avg"
+   ],
+   "agent_false_alarms": [
+    "von_mises_avg",
+    "cyl_rz_avg",
+    "gk2_sigma_frob_avg"
+   ],
+   "agent_posthoc_not_passed": [
+    "von_mises_avg",
+    "cyl_rz_avg",
+    "gk2_sigma_frob_avg"
+   ]
+  },
+  "cook_membrane": {
+   "n": 7,
+   "conventional_missed": [],
+   "agent_missed": [],
+   "conventional_false_alarms": [
+    "interior_avg_PK1_frob"
+   ],
+   "agent_false_alarms": [
+    "strain_energy"
+   ],
+   "agent_posthoc_not_passed": [
+    "strain_energy"
+   ]
+  },
+  "plate_hole": {
+   "n": 8,
+   "conventional_missed": [],
+   "agent_missed": [],
+   "conventional_false_alarms": [
+    "hole_avg_sigma_xx"
+   ],
+   "agent_false_alarms": [
+    "u_right_mid",
+    "v_top_right",
+    "max_disp_mag",
+    "strain_energy",
+    "hole_avg_sigma_xx",
+    "hole_gk_avg_sigma_xx",
+    "hole_peak_sigma_xx"
+   ],
+   "agent_posthoc_not_passed": [
+    "hole_peak_sigma_xx"
+   ]
+  },
+  "open_hole_lamina": {
+   "n": 8,
+   "conventional_missed": [],
+   "agent_missed": [],
+   "conventional_false_alarms": [
+    "peak_e22"
+   ],
+   "agent_false_alarms": [],
+   "agent_posthoc_not_passed": []
+  },
+  "l_shape": {
+   "n": 7,
+   "conventional_missed": [],
+   "agent_missed": [],
+   "conventional_false_alarms": [],
+   "agent_false_alarms": [
+    "strain_energy",
+    "u_top_left",
+    "v_right_top",
+    "corner_gk_avg_von_mises",
+    "corner_disc_avg_von_mises",
+    "far_gk_avg_syy"
+   ],
+   "agent_posthoc_not_passed": [
+    "v_right_top"
+   ]
+  }
+ },
+ "rows": [
+  {
+   "problem": "unit_square",
+   "qoi": "max_disp_mag",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.49, GCI_fine=0.01% vs tol 1.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 5
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "u_top_off_center",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.97, GCI_fine=0.01% vs tol 1.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 5
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "v_top_off_center",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.45, GCI_fine=0.01% vs tol 1.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 5
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "u_mid_domain",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.42, GCI_fine=0.01% vs tol 1.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 5
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "v_mid_domain",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.44, GCI_fine=0.01% vs tol 1.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 5
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "strain_energy",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.42, GCI_fine=0.01% vs tol 1.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 5
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "interior_avg_PK1_frob",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=0.76, GCI_fine=0.01% vs tol 2.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 5
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "interior_gk_PK1_frob",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.61, GCI_fine=0.00% vs tol 2.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 5
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "peak_PK1_frob",
+   "truth": "not_verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "FAIL",
+   "agent_evidence": "none",
+   "agent_posthoc": "FAIL",
+   "n_levels": 5
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "max_disp_mag",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=2.00, GCI_fine=0.00% vs tol 1.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 6
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "u_inner",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=2.00, GCI_fine=0.00% vs tol 1.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 6
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "v_inner",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=2.00, GCI_fine=0.00% vs tol 1.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 6
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "u_mid",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=2.00, GCI_fine=0.00% vs tol 1.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 6
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "v_mid",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=2.00, GCI_fine=0.00% vs tol 1.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 6
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "strain_energy",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=2.00, GCI_fine=0.00% vs tol 1.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 6
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "interior_avg_PK1_frob",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 6
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "interior_gk_PK1_frob",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=2.00, GCI_fine=0.00% vs tol 2.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 6
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "peak_PK1_frob",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.01, GCI_fine=0.20% vs tol 2.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 6
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_frob_avg",
+   "truth": "band_only",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "FAIL",
+   "agent_evidence": "none",
+   "agent_posthoc": "FAIL",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_xx_avg",
+   "truth": "band_only",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_xx_max",
+   "truth": "not_verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "FAIL",
+   "agent_evidence": "none",
+   "agent_posthoc": "FAIL",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_yy_avg",
+   "truth": "band_only",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=7.28, GCI_fine=0.16% vs tol 2.00%",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_yy_max",
+   "truth": "not_verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "FAIL",
+   "agent_evidence": "none",
+   "agent_posthoc": "FAIL",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_zz_avg",
+   "truth": "band_only",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_zz_max",
+   "truth": "not_verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "FAIL",
+   "agent_evidence": "none",
+   "agent_posthoc": "FAIL",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_xy_avg",
+   "truth": "band_only",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=37.56, GCI_fine=0.00% vs tol 2.00%",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_xy_max",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_xz_avg",
+   "truth": "band_only",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "FAIL",
+   "agent_evidence": "none",
+   "agent_posthoc": "FAIL",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_xz_max",
+   "truth": "not_verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "FAIL",
+   "agent_evidence": "none",
+   "agent_posthoc": "FAIL",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_yz_avg",
+   "truth": "band_only",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=0.84, GCI_fine=1.46% vs tol 2.00%",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_yz_max",
+   "truth": "not_verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "FAIL",
+   "agent_evidence": "none",
+   "agent_posthoc": "FAIL",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "reaction_moment_y",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.35, GCI_fine=0.18% vs tol 1.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "strain_energy",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.41, GCI_fine=0.16% vs tol 1.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "von_mises_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "FAIL",
+   "agent_evidence": "none",
+   "agent_posthoc": "FAIL",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "von_mises_max",
+   "truth": "not_verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "FAIL",
+   "agent_evidence": "none",
+   "agent_posthoc": "FAIL",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "pressure_avg",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=10.58, GCI_fine=0.08% vs tol 2.00%",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_rr_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_rr_max",
+   "truth": "not_verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "FAIL",
+   "agent_evidence": "none",
+   "agent_posthoc": "FAIL",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_tt_avg",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=6.85, GCI_fine=0.17% vs tol 2.00%",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_tt_max",
+   "truth": "not_verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "FAIL",
+   "agent_evidence": "none",
+   "agent_posthoc": "FAIL",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_zz_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_zz_max",
+   "truth": "not_verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "FAIL",
+   "agent_evidence": "none",
+   "agent_posthoc": "FAIL",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_rt_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_rt_max",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_rz_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "FAIL",
+   "agent_evidence": "none",
+   "agent_posthoc": "FAIL",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_rz_max",
+   "truth": "not_verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "FAIL",
+   "agent_evidence": "none",
+   "agent_posthoc": "FAIL",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_tz_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_tz_max",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_sigma_xx_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_sigma_yy_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_sigma_zz_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_pressure_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_cyl_rr_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_cyl_tt_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_cyl_zz_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_cyl_rz_avg",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=9.00, GCI_fine=0.01% vs tol 2.00%",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_sigma_xz_avg",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=8.53, GCI_fine=0.01% vs tol 2.00%",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_sigma_frob_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "FAIL",
+   "agent_evidence": "band",
+   "agent_posthoc": "FAIL",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_von_mises_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "cook_membrane",
+   "qoi": "u_tip",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.11, GCI_fine=0.11% vs tol 1.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "cook_membrane",
+   "qoi": "v_tip",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.19, GCI_fine=0.06% vs tol 1.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "cook_membrane",
+   "qoi": "max_disp_mag",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.15, GCI_fine=0.08% vs tol 1.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "cook_membrane",
+   "qoi": "strain_energy",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.59, GCI_fine=0.01% vs tol 1.00%",
+   "agent": "FAIL",
+   "agent_evidence": "rate",
+   "agent_posthoc": "INCONCLUSIVE",
+   "n_levels": 8
+  },
+  {
+   "problem": "cook_membrane",
+   "qoi": "interior_avg_PK1_frob",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "cook_membrane",
+   "qoi": "interior_gk_PK1_frob",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.94, GCI_fine=0.01% vs tol 2.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "cook_membrane",
+   "qoi": "peak_PK1_frob",
+   "truth": "not_verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "FAIL",
+   "agent_evidence": "none",
+   "agent_posthoc": "FAIL",
+   "n_levels": 8
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "u_right_mid",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.54, GCI_fine=0.00% vs tol 1.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "v_top_right",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.03, GCI_fine=0.00% vs tol 1.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "max_disp_mag",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.54, GCI_fine=0.00% vs tol 1.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "strain_energy",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.53, GCI_fine=0.00% vs tol 1.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "hole_avg_sigma_xx",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "hole_gk_avg_sigma_xx",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.50, GCI_fine=0.00% vs tol 2.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "hole_peak_sigma_xx",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=0.98, GCI_fine=0.27% vs tol 2.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "FAIL",
+   "n_levels": 7
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "peak_von_mises",
+   "truth": "not_verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "FAIL",
+   "agent_evidence": "none",
+   "agent_posthoc": "FAIL",
+   "n_levels": 7
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "compliance",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=3.98, GCI_fine=0.00% vs tol 1.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 6
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "u_tip",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=3.40, GCI_fine=0.00% vs tol 1.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 6
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "hole_gamma12_avg",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=5.22, GCI_fine=0.00% vs tol 2.00%",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 6
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "hole_e22_avg",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=3.92, GCI_fine=0.00% vs tol 2.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 6
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "far_gamma12_avg",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=2.74, GCI_fine=0.00% vs tol 2.00%",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 6
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "hole_gk_gamma12_avg",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=4.01, GCI_fine=0.00% vs tol 2.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 6
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "hole_gk_e22_avg",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=3.98, GCI_fine=0.00% vs tol 2.00%",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 6
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "peak_e22",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 6
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "strain_energy",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.10, GCI_fine=0.05% vs tol 1.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "u_top_left",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.08, GCI_fine=0.07% vs tol 1.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "v_right_top",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=0.97, GCI_fine=0.06% vs tol 1.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "FAIL",
+   "n_levels": 7
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "corner_gk_avg_von_mises",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.23, GCI_fine=0.10% vs tol 2.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "corner_disc_avg_von_mises",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.51, GCI_fine=0.04% vs tol 2.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "far_gk_avg_syy",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.09, GCI_fine=0.07% vs tol 2.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "peak_von_mises",
+   "truth": "not_verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "FAIL",
+   "agent_evidence": "none",
+   "agent_posthoc": "FAIL",
+   "n_levels": 7
+  }
+ ],
+ "disagreements": [
+  {
+   "problem": "quarter_ring",
+   "qoi": "interior_avg_PK1_frob",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 6
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_xx_avg",
+   "truth": "band_only",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_zz_avg",
+   "truth": "band_only",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_xy_max",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_rr_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_zz_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_rt_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_rt_max",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_tz_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_tz_max",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_sigma_xx_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_sigma_yy_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_sigma_zz_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_pressure_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_cyl_rr_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_cyl_tt_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_cyl_zz_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "PASS",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_von_mises_avg",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "divergent: successive differences do not decrease",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "cook_membrane",
+   "qoi": "strain_energy",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.59, GCI_fine=0.01% vs tol 1.00%",
+   "agent": "FAIL",
+   "agent_evidence": "rate",
+   "agent_posthoc": "INCONCLUSIVE",
+   "n_levels": 8
+  },
+  {
+   "problem": "cook_membrane",
+   "qoi": "interior_avg_PK1_frob",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 8
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "u_right_mid",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.54, GCI_fine=0.00% vs tol 1.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "v_top_right",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.03, GCI_fine=0.00% vs tol 1.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "max_disp_mag",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.54, GCI_fine=0.00% vs tol 1.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "strain_energy",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.53, GCI_fine=0.00% vs tol 1.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "hole_avg_sigma_xx",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "hole_gk_avg_sigma_xx",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.50, GCI_fine=0.00% vs tol 2.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "hole_peak_sigma_xx",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=0.98, GCI_fine=0.27% vs tol 2.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "FAIL",
+   "n_levels": 7
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "peak_e22",
+   "truth": "verifiable",
+   "conventional": "FAIL",
+   "conventional_reason": "oscillatory: successive differences change sign",
+   "agent": "PASS",
+   "agent_evidence": "band",
+   "agent_posthoc": "PASS",
+   "n_levels": 6
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "strain_energy",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.10, GCI_fine=0.05% vs tol 1.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "u_top_left",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.08, GCI_fine=0.07% vs tol 1.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "v_right_top",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=0.97, GCI_fine=0.06% vs tol 1.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "FAIL",
+   "n_levels": 7
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "corner_gk_avg_von_mises",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.23, GCI_fine=0.10% vs tol 2.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "corner_disc_avg_von_mises",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.51, GCI_fine=0.04% vs tol 2.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "far_gk_avg_syy",
+   "truth": "verifiable",
+   "conventional": "PASS",
+   "conventional_reason": "monotone, p=1.09, GCI_fine=0.07% vs tol 2.00%",
+   "agent": "INCONCLUSIVE",
+   "agent_evidence": "rate",
+   "agent_posthoc": "PASS",
+   "n_levels": 7
+  }
+ ]
+}
