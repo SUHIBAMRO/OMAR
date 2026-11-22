@@ -26021,3 +26021,10 @@ and a final-uncertainty rule.
   0.98, 82->89, 4.15/2.83->4.14/2.84); tests 63; PDF re-exported. Email draft updated, NOT sent.
 - STILL OUTSIDE MY REACH: human independent review; Prof. Rabczuk's decisions (Q1-Q5);
   CSM/CFM code; cluster run of spline level 5 (iga_b3_job.sh).
+
+### 2026-11-22 -- email draft: Omar's final wording saved
+- advisor_feedback/2026-11-20_email_to_Rabczuk_reply_DRAFT.txt replaced by Omar's own rewrite
+  (9 points + 5 questions), checked number by number against the stored results (2/41 verdicts,
+  1.07% Q4 h=0.025, 21+5+8=34 cross-check, 46/62 of 68, 14 peaks, 10/11, 11/12, 146-173%, 2%,
+  29-143x, 2e-6, 16x, 59 interventions / 6 automated, Q1 verdict INCONCLUSIVE as in gates.py).
+  Section 28 exists in report v3. NOT sent; Omar sends it himself.
