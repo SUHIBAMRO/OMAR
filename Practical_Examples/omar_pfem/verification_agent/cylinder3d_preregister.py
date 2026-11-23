@@ -124,7 +124,35 @@ def compare():
            "T2_covered": sum(rows[q]["T2_covered"] for q in rate), "T2_of": len(rate),
            "strategies": [{k: r[k] for k in ("grading",) + tuple(pre["rule_predictions"])}
                           for r in ad.strategy_rows]}
+    # developer expectations, scored mechanically as stated in the pre-registration
+    q = rows
+    rate = lambda k: q[k]["verdict"] == "PASS" and q[k]["evidence"] == "rate"
+    exp = {
+        "strain_energy PASS rate, order 3-5, T2": rate("strain_energy")
+        and 3 <= (q["strain_energy"]["fit_order"] or 0) <= 5 and q["strain_energy"]["T2_covered"],
+        "reaction_inner_radial PASS rate, T2": rate("reaction_inner_radial")
+        and q["reaction_inner_radial"]["T2_covered"],
+        "u_outer_radial PASS rate, T2": rate("u_outer_radial") and q["u_outer_radial"]["T2_covered"],
+        "gk_avg_hoop PASS rate, T2": rate("gk_avg_hoop") and q["gk_avg_hoop"]["T2_covered"],
+        "disc_avg_hoop PASS (band or rate)": q["disc_avg_hoop"]["verdict"] == "PASS",
+        "peak_hoop PASS rate, order near 1": rate("peak_hoop"),
+        "at least 5 of 6 PASS": sum(r["verdict"] == "PASS" for r in q.values()) >= 5,
+        "T2 holds for every rate-certified quantity": res["T2_covered"] == res["T2_of"],
+    }
+    res["developer_expectations_met"] = exp
+    ml = R["v"]["peak_hoop"].get("qoi_convergence_multilevel", {})
+    if ml.get("fit_limit") is not None:
+        _, pv, _ = ad.series("peak_hoop")
+        res["peak_hoop_interval_check"] = {
+            "fit_limit": ml["fit_limit"], "U_abs": ml["uncertainty_fine"] * abs(pv[-1]),
+            "exact": ex["peak_hoop"],
+            "covered": abs(ex["peak_hoop"] - ml["fit_limit"])
+            <= ml["uncertainty_fine"] * abs(pv[-1]),
+            "note": "not certified (U above the 2% tolerance); reported for the coverage question"}
     json.dump(res, open(os.path.join(HERE, "cylinder3d_result.json"), "w"), indent=1)
+    print(f"developer expectations {sum(exp.values())}/{len(exp)}")
+    for k, v in exp.items():
+        print(f"  {'met ' if v else 'MISS'} {k}")
     print(f"rule predictions {hits}/{npred}; T2 coverage {res['T2_covered']}/{res['T2_of']}")
     for q, r in rows.items():
         print(f"  {q:<24}{r['verdict']}/{r['evidence']:<5} p={r['fit_order']} "

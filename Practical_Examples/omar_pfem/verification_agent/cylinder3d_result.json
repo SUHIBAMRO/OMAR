@@ -1,0 +1,157 @@
+{
+ "levels_k": [
+  1,
+  2,
+  3,
+  4,
+  6,
+  8
+ ],
+ "n_dof": [
+  267,
+  1359,
+  3855,
+  8331,
+  25527,
+  57555
+ ],
+ "rule_hits": 3,
+ "rule_predictions": 3,
+ "qois": {
+  "strain_energy": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "fit_order": 3.944138060047126,
+   "multilevel_evidence": "rate",
+   "three_level_order": 3.981963094131574,
+   "finest": 1.936538813062927,
+   "exact": 1.9365388447555172,
+   "true_error_finest_rel": 1.6365584503327973e-08,
+   "rule_hit": true,
+   "limit": 1.936538847153191,
+   "U_rel_scale": 2.3493685424689354e-08,
+   "scale": 1.936538813062927,
+   "true_error_of_limit_rel_scale": 1.238123305909273e-09,
+   "T2_covered": true,
+   "T3_finest_within": true
+  },
+  "reaction_inner_radial": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "fit_order": 3.923874944406115,
+   "multilevel_evidence": "rate",
+   "three_level_order": 3.975445975666629,
+   "finest": 38.29966962156863,
+   "exact": 38.29967037996284,
+   "true_error_finest_rel": 1.9801585767038932e-08,
+   "rule_hit": true,
+   "limit": 38.29967045837223,
+   "U_rel_scale": 2.9763674790426847e-08,
+   "scale": 38.29966962156863,
+   "true_error_of_limit_rel_scale": 2.0472602905229205e-09,
+   "T2_covered": true,
+   "T3_finest_within": true
+  },
+  "u_outer_radial": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "fit_order": 3.7970939141025233,
+   "multilevel_evidence": "rate",
+   "three_level_order": 3.97317354318375,
+   "finest": 0.055283296610958224,
+   "exact": 0.055283294115949566,
+   "true_error_finest_rel": 4.513133122597656e-08,
+   "rule_hit": true,
+   "limit": 0.0552832931276769,
+   "U_rel_scale": 1.0345301642849572e-07,
+   "scale": 0.055283296610958224,
+   "true_error_of_limit_rel_scale": 1.7876514710166117e-08,
+   "T2_covered": true,
+   "T3_finest_within": true
+  },
+  "gk_avg_hoop": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "fit_order": 4.936919871704563,
+   "multilevel_evidence": "rate",
+   "three_level_order": 4.204575657558689,
+   "finest": 72.71252828410233,
+   "exact": 72.71213607187988,
+   "true_error_finest_rel": 5.394040715062626e-06,
+   "limit": 72.71264498536091,
+   "U_rel_scale": 1.2593357302646274e-05,
+   "scale": 72.71252828410233,
+   "true_error_of_limit_rel_scale": 6.9989793098547685e-06,
+   "T2_covered": true,
+   "T3_finest_within": true
+  },
+  "disc_avg_hoop": {
+   "verdict": "PASS",
+   "evidence": "band",
+   "fit_order": 1.5395510013688807,
+   "multilevel_evidence": "band",
+   "three_level_order": null,
+   "finest": 72.3786627903273,
+   "exact": 72.39426346024894,
+   "true_error_finest_rel": 0.00021549594092086182
+  },
+  "peak_hoop": {
+   "verdict": "FAIL",
+   "evidence": "none",
+   "fit_order": 0.9074606036998534,
+   "multilevel_evidence": "rate",
+   "three_level_order": 0.9431016561083072,
+   "finest": 83.27491456521706,
+   "exact": 85.00102695073399,
+   "true_error_finest_rel": 0.020306959191415067
+  }
+ },
+ "T2_covered": 4,
+ "T2_of": 4,
+ "strategies": [
+  {
+   "grading": 1.0,
+   "strain_energy": 1.9365383419337392,
+   "reaction_inner_radial": 38.29965838474622,
+   "u_outer_radial": 0.05528333346339824,
+   "gk_avg_hoop": 72.71902184655262,
+   "disc_avg_hoop": 72.25191567656472,
+   "peak_hoop": 81.6162281280484
+  },
+  {
+   "grading": 1.5,
+   "strain_energy": 1.9365384214185184,
+   "reaction_inner_radial": 38.29966117027475,
+   "u_outer_radial": 0.05528336570193004,
+   "gk_avg_hoop": 72.71204586864778,
+   "disc_avg_hoop": 72.1579397115334,
+   "peak_hoop": 83.7734509099865
+  },
+  {
+   "grading": 2.0,
+   "strain_energy": NaN,
+   "reaction_inner_radial": 33.28559699052221,
+   "u_outer_radial": 0.04703614499605053,
+   "gk_avg_hoop": 52.94185107165502,
+   "disc_avg_hoop": 54.033070409868095,
+   "peak_hoop": 69.77673659264781
+  }
+ ],
+ "developer_expectations_met": {
+  "strain_energy PASS rate, order 3-5, T2": true,
+  "reaction_inner_radial PASS rate, T2": true,
+  "u_outer_radial PASS rate, T2": true,
+  "gk_avg_hoop PASS rate, T2": true,
+  "disc_avg_hoop PASS (band or rate)": true,
+  "peak_hoop PASS rate, order near 1": false,
+  "at least 5 of 6 PASS": true,
+  "T2 holds for every rate-certified quantity": true
+ },
+ "peak_hoop_interval_check": {
+  "fit_limit": 85.1773462465772,
+  "U_abs": 2.3854198470214416,
+  "exact": 85.00102695073399,
+  "covered": true,
+  "note": "not certified (U above the 2% tolerance); reported for the coverage question"
+ }
+}
