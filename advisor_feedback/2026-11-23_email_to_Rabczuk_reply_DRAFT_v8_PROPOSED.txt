@@ -1,0 +1,42 @@
+Subject: Verification agent: diagnosis, independent checks, the OpenPINN plate as a held-out test, and a correction
+
+Dear Professor Rabczuk,
+
+Thank you for your detailed reply and for the OpenPINN paper.
+
+I have worked through your recommendations, prioritizing independent verification, previously unseen benchmarks, and comparison with conventional verification. The updated technical report (version 8) is attached; Section 28 maps your comments to the completed work and remaining questions. The report also tests the certification on a singular problem with an exact solution: the exact value lies inside the certified interval for 6 of 6 quantities, and for 12 of 12 over all quantities with an exact value, while conventional GCI gives two false certifications. It adds an automatic remedy: a mesh graded from the corner theory makes the L-shape energy error about 2,400 times smaller with a quarter of the unknowns (Sections 31-33).
+
+First, an important correction: While developing an independent 3D implementation, I discovered that the stored B3 stresses had undergone a double Cauchy-stress conversion. I corrected the post-processing, repeated the B3 calculations, and updated the affected manuscript results. The stress values changed by a few percent, and two of 41 verification verdicts changed, but the main conclusions remain unchanged. The manuscript now limits its stability claim to region-averaged normal stresses and clarifies that the estimated Gaussian-average uncertainty describes the Q20 refinement sequence, not necessarily the error relative to the continuum solution.
+
+The main developments are:
+
+1. Diagnosis of non-convergence: The agent now evaluates 15 diagnostic hypotheses across five cause categories, executes available low-cost tests, and identifies further investigations. It distinguishes the B1 corner singularity from the finite-radius stress concentration in B3.
+
+2. Independent numerical checks: A second FE implementation reproduces the B1 and B2 solutions to approximately 10^-12. For B3, the Q20/P1 mixed formulation agrees with the displacement formulation within 1.6% at 15,960 elements and 1.4% at 23,520 elements. The earlier 3-8% discrepancy arose mainly from the constant-pressure F-bar formulation. Additional spline-based discretizations and manufactured-solution checks were performed, including in 3D.
+
+3. Held-out benchmarks: The framework was tested on B2, Cook's membrane, the OpenPINN plate, the CFM lamina, an L-shaped panel, and an edge crack. The original rules revealed limitations for quadratic elements. A proposed singular-order extension was subsequently evaluated on the L-shaped panel and edge crack, confirming 10 of 11 and 11 of 12 pre-registered expectations, respectively.
+
+4. OpenPINN reference: A comparable Q4 FE mesh at the reported resolution (h = 0.025) gives an estimated energy-norm error of approximately 1.07%. This suggests that the reference is adequate for the reported displacement errors of 3.5-6.3%, but not as a converged reference for pointwise peak stress at the singular corners. The paper's exact reference mesh was not available for direct verification.
+
+5. B3 surrogate verification: The Gaussian-weighted groove averages show estimated uncertainties of 0.8-1.0% of their values (0.11-0.18% of the groove stress scale) within the Q20 family. However, an independent spline discretization gives values approximately 2% higher, about twice that uncertainty. The best surrogate still has errors of 146-173%, so the conclusion about its inadequate local stress accuracy is unaffected.
+To address this issue, the agent now requires agreement with an independent discretization, whose own sequence must converge, before treating an uncertainty estimate as final. Of 38 rate-certified quantities, 27 pass this cross-check and 11 remain inconclusive because the independent sequence has not yet converged (including the B3 Gaussian sigma_xx and sigma_zz averages); none is contradicted. The approximately 2% spline difference is therefore neither confirmed nor excluded.
+
+6. Agent versus conventional verification: Among 83 quantities classified as verifiable on ten problems, conventional three-level Richardson/GCI verification accepts 60, whereas the extended framework accepts 74 (60 after the independent cross-check). The singular-order extension was developed after some held-out results, so this improvement is not yet fully independently validated. None of them accepted any of the 17 quantities that must not be certified.
+Importantly, neither the agent nor conventional GCI detected the two largest discrepancies in this project - the double stress conversion and the approximately 2% Gaussian-average difference. Both were identified through independent implementations.
+
+7. CSM/CFM: For the CFM open-hole lamina, the estimated discretization uncertainty is 29-143 times smaller than the constitutive uncertainty half-width. An independent spline discretization reproduces the corresponding FE quantities to approximately 2 x 10^-6.
+
+8. Literature and active-learning agents: A source-checked literature agent has been tested on previously unseen sections of the CSM paper. A preliminary verification-aware multi-fidelity active learner reaches a 1% surrogate error at approximately 16 times lower computational cost than its fine-mesh-only baseline.
+
+9. Remaining limitations: The framework still requires substantial human involvement: 59 interventions were documented, of which only six are now fully automated. Although the solvers passed manufactured-solution verification cases, one groove-parametrised manufactured solution on the Q20 meshes remains unexplained. It fails for both formulations, suggesting an issue with the test field or setup rather than a formulation-specific solver defect.
+
+I would appreciate your guidance on the following questions:
+
+1. Would you support adopting the proposed quadratic-element singular-order extension, with an inconclusive verdict when the observed energy order exceeds 2*lambda and may still be pre-asymptotic? The current criterion does not cover cases approaching the theoretical order from below.
+2. For absolute accuracy requirements, would it be appropriate to require discretization uncertainty below one third of the CSM/CFM constitutive uncertainty half-width, with provisional limits of 1% for global quantities and displacements and 5% for region-averaged stresses?
+3. For the B3 groove peak, displacement-only splines have not converged, while projected-dilatation splines show the sequence 1.71, 1.06, and 1.00. This suggests that near-incompressibility is an important contributing factor, but the peak is not yet certified. Would you recommend running the next prepared spline refinement on the HPC cluster?
+4. Could we proceed toward combining numerical error estimates with your CSM/CFM uncertainty bounds, and would access to the corresponding code be possible?
+5. Regarding geometry families and industrial constitutive models, which parameters and material models would you recommend prioritizing for the next surrogate study?
+
+Best regards,
+Omar
