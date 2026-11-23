@@ -173,7 +173,7 @@ level 5, groove peak) and `iga_b3_cyl_job.sh` (cylindrical averages).
 
 # Round J (23 November 2026, later): everything that needs no approval
 
-Report: Section 31 of the technical report (v6 PDF). No billed LLM run, no cluster submission, no
+Report: Section 31 of `advisor_feedback/2026-11-23_Verification_Framework_Technical_Report_v6.pdf` (72 pages). No billed LLM run, no cluster submission, no
 email. Post hoc changes are marked **[post hoc]**; no criterion, tolerance or order window changed.
 
 ## Changes
