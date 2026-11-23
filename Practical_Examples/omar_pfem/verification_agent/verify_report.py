@@ -912,6 +912,7 @@ def add_f_round(add, h1, h2, h3):
         lambda: sum(s["singular"] for s in lit(2)["cfm_lamina"][0]["card"]["singular_features"]))
     add_g_round(add, h1, h2)
     add_i_round(add, h1, h2)
+    add_j_round(add, h1, h2, h3)
     m = lambda: json.load(open(os.path.join(HERE, "lamina_mms.json")))["rows"]
     add("23", "lamina MMS L2 rate", 3.00, h2, lambda: np.log2(m()[-2]["L2_rel"] / m()[-1]["L2_rel"]))
     add("23", "lamina MMS H1 rate", 2.00, h2, lambda: np.log2(m()[-2]["H1_semi_rel"] / m()[-1]["H1_semi_rel"]))
@@ -1300,6 +1301,78 @@ def add_i_round(add, h1, h2):
     add("30", "follow-up seconds", 41, 0.5, lambda: fu()["measured_seconds"])
     add("30", "follow-up estimate seconds", 29, 0.5, lambda: fu()["plan"]["seconds_estimate"])
     add("30", "follow-up estimate GB", 4.7, h1, lambda: fu()["plan"]["gb_estimate"])
+
+
+def add_j_round(add, h1, h2, h3):
+    """Section 31 (23 November, round J): graded failure, block, bug fix, hooks, normalisation."""
+    gq = lambda g, q, n: next(r for r in _j("graded_q20_study.json")
+                              if r["grading"] == g and r["quadrature"] == q
+                              and r.get("nsteps", 10) == n)
+    add("31", "g=2 reduced 10 min det F", -1.026, h3, lambda: gq(2.0, "reduced", 10)["min_detF"])
+    add("31", "g=2 full 10 min det F", -0.736, h3, lambda: gq(2.0, "full", 10)["min_detF"])
+    add("31", "g=2 reduced 40 min det F", 1.004, h3, lambda: gq(2.0, "reduced", 40)["min_detF"])
+    add("31", "g=2 full 40 min det F", 1.004, h3, lambda: gq(2.0, "full", 40)["min_detF"])
+    add("31", "g=2 reduced 10 gk hoop error %", 27, 0.5,
+        lambda: -100 * gq(2.0, "reduced", 10)["errors"]["gk_avg_hoop"])
+    add("31", "g=2 full 10 gk hoop error %", 23, 0.5,
+        lambda: -100 * gq(2.0, "full", 10)["errors"]["gk_avg_hoop"])
+    add("31", "g=2 full 40 global error max", 1.1e-5, 0.05e-5, lambda: max(
+        abs(gq(2.0, "full", 40)["errors"][q]) for q in ("reaction_inner_radial", "u_outer_radial")))
+    dg = lambda: _j("detf_guard.json")
+    add("31", "det F solves recorded", 64, 0, lambda: dg()["solves_with_min_detF_recorded"])
+    add("31", "det F inadmissible", 1, 0, lambda: len(dg()["inadmissible"]))
+    add("31", "det F inadmissible used by a verdict", 0, 0,
+        lambda: sum(r["consumed_by_a_verdict"] for r in dg()["inadmissible"]))
+    bk = lambda: _j("block3d_result.json")
+    add("31", "block default rule hits", 1, 0, lambda: bk()["modes"]["default"]["rule_hits"])
+    add("31", "block posthoc rule hits", 2, 0, lambda: bk()["modes"]["posthoc"]["rule_hits"])
+    add("31", "block expectations met", 8, 0, lambda: sum(bk()["developer_expectations_met"].values()))
+    add("31", "block peak slope", -0.281, h3, lambda: bk()["peak_slope_finest4"])
+    add("31", "block lam", 0.7112, 0.00005, lambda: bk()["lam"])
+    P = lambda q: bk()["modes"]["posthoc"]["qois"][q]
+    add("31", "block energy fit order", 1.68, h2, lambda: P("strain_energy")["fit_order"])
+    add("31", "block mid fit order", 4.41, h2, lambda: P("mid_gk_avg_sxx")["fit_order"])
+    add("31", "block root fit order", 2.11, h2, lambda: P("root_gk_avg_von_mises")["fit_order"])
+    from omar_pfem.verification_agent.diagnose import pairwise_orders
+    bl = lambda: sorted((r for r in _j("block3d_ladder.json") if r["grading"] == 1.0),
+                        key=lambda r: r["k"])
+    for i, v in enumerate((2.56, 1.84, 1.53, 1.38)):
+        add("31", f"block energy pairwise order {i}", v, h2, lambda i=i: pairwise_orders(
+            [r["h"] for r in bl()], [r["strain_energy"] for r in bl()])[i])
+    fb = lambda: _j("followup_clamped_block_3d_strain_energy.json")["plan"]
+    add("31", "block follow-up estimate s", 983, 0.5, lambda: fb()["seconds_estimate"])
+    add("31", "block follow-up estimate GB", 14.8, h1, lambda: fb()["gb_estimate"])
+    add("31", "block follow-up next k", 12, 0, lambda: fb()["n_next"])
+    hk = lambda: _j("followup_hooks_result.json")
+    add("31", "MMS L2 rate", 2.98, h2, lambda: hk()["mms:l_shape"]["rate_L2"])
+    add("31", "MMS H1 rate", 2.00, h2, lambda: hk()["mms:l_shape"]["rate_H1"])
+    add("31", "tol change cylinder", 2.6e-15, 0.05e-15,
+        lambda: hk()["tol:thick_cylinder_3d"]["max_rel_change"])
+    add("31", "tol change block", 9.6e-12, 0.05e-12,
+        lambda: hk()["tol:clamped_block_3d"]["max_rel_change"])
+    ns = lambda: _j("normalisation_study.json")
+    add("31", "normalisation rate-certified", 54, 0, lambda: ns()["rate_certified"])
+    add("31", "normalisation on larger scale", 7, 0,
+        lambda: ns()["judged_on_a_scale_larger_than_the_value"])
+    add("31", "normalisation max ratio", 7.3, h1, lambda: ns()["max_scale_over_value"])
+    add("31", "normalisation failures on own value", 0, 0, lambda: len(ns()["fail_tol_on_own_value"]))
+    sc = [r for r in _j("normalisation_study.json").get("rows", []) if r["scale_over_value"] > 1.01]
+    add("31", "normalisation min U of value %", 0.79, h2, lambda: 100 * min(r["U_of_value"] for r in sc))
+    add("31", "normalisation max U of value %", 1.01, h2, lambda: 100 * max(r["U_of_value"] for r in sc))
+    tw = lambda: _j("three_way_result.json")
+    add("31", "three-way quantities", 107, 0, lambda: tw()["scores"]["A"]["quantities"])
+    add("31", "three-way verifiable", 83, 0, lambda: tw()["scores"]["A"]["verifiable"])
+    add("31", "three-way must not certify", 17, 0, lambda: tw()["scores"]["A"]["must_not_certify"])
+    for k, v in (("A", 60), ("B", 56), ("Bp", 74), ("Bstar", 47)):
+        add("31", f"three-way {k} certified of 83", v, 0,
+            lambda k=k: tw()["scores"][k]["certified_correctly"])
+        add("31", f"three-way {k} missed failures", 0, 0,
+            lambda k=k: tw()["scores"][k]["missed_failures"])
+    for k, v in (("A", 54), ("Bp", 38), ("Bstar", 59)):
+        add("31", f"human proxy all {k} (ten problems)", v, 0, lambda k=k: tw()["human"][k]["total"])
+    add("31", "diagnosis independent correct", 13, 0, lambda: tw()["diagnosis"]["correct_excluding_C1"])
+    add("31", "diagnosis independent of", 13, 0, lambda: tw()["diagnosis"]["of_excluding_C1"])
+    add("31", "diagnosis C1 by construction", 22, 0, lambda: tw()["diagnosis"]["C1_cases_by_construction"])
 
 
 if __name__ == "__main__":

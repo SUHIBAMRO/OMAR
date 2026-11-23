@@ -1,8 +1,7 @@
 {
  "posthoc": true,
- "solves_with_min_detF_recorded": 49,
+ "solves_with_min_detF_recorded": 64,
  "problems_without_min_detF_records": [
-  "bushing_groove",
   "open_hole_lamina",
   "l_shape",
   "edge_crack"

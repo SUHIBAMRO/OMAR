@@ -7104,6 +7104,422 @@
   "ok": true
  },
  {
+  "section": "31",
+  "claim": "g=2 reduced 10 min det F",
+  "printed": -1.026,
+  "recomputed": -1.0260236311428674,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "g=2 full 10 min det F",
+  "printed": -0.736,
+  "recomputed": -0.7356981798768724,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "g=2 reduced 40 min det F",
+  "printed": 1.004,
+  "recomputed": 1.004187915825593,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "g=2 full 40 min det F",
+  "printed": 1.004,
+  "recomputed": 1.0041869446253626,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "g=2 reduced 10 gk hoop error %",
+  "printed": 27,
+  "recomputed": 27.189800861689417,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "g=2 full 10 gk hoop error %",
+  "printed": 23,
+  "recomputed": 23.41567491537142,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "g=2 full 40 global error max",
+  "printed": 1.1e-05,
+  "recomputed": 1.0572078746884372e-05,
+  "tolerance": 5e-07,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "det F solves recorded",
+  "printed": 64,
+  "recomputed": 64.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "det F inadmissible",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "det F inadmissible used by a verdict",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "block default rule hits",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "block posthoc rule hits",
+  "printed": 2,
+  "recomputed": 2.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "block expectations met",
+  "printed": 8,
+  "recomputed": 8.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "block peak slope",
+  "printed": -0.281,
+  "recomputed": -0.2814810986607706,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "block lam",
+  "printed": 0.7112,
+  "recomputed": 0.7111729329715548,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "block energy fit order",
+  "printed": 1.68,
+  "recomputed": 1.6791436153217507,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "block mid fit order",
+  "printed": 4.41,
+  "recomputed": 4.410834422475272,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "block root fit order",
+  "printed": 2.11,
+  "recomputed": 2.114528089928578,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "block energy pairwise order 0",
+  "printed": 2.56,
+  "recomputed": 2.5596996876082945,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "block energy pairwise order 1",
+  "printed": 1.84,
+  "recomputed": 1.8387324814832424,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "block energy pairwise order 2",
+  "printed": 1.53,
+  "recomputed": 1.5326856960561228,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "block energy pairwise order 3",
+  "printed": 1.38,
+  "recomputed": 1.3750074274035613,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "block follow-up estimate s",
+  "printed": 983,
+  "recomputed": 982.83377420334,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "block follow-up estimate GB",
+  "printed": 14.8,
+  "recomputed": 14.7628575,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "block follow-up next k",
+  "printed": 12,
+  "recomputed": 12.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "MMS L2 rate",
+  "printed": 2.98,
+  "recomputed": 2.9833936368258116,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "MMS H1 rate",
+  "printed": 2.0,
+  "recomputed": 2.001601926252146,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "tol change cylinder",
+  "printed": 2.6e-15,
+  "recomputed": 2.6117700562392435e-15,
+  "tolerance": 5e-17,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "tol change block",
+  "printed": 9.6e-12,
+  "recomputed": 9.594607847574516e-12,
+  "tolerance": 5e-14,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "normalisation rate-certified",
+  "printed": 54,
+  "recomputed": 54.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "normalisation on larger scale",
+  "printed": 7,
+  "recomputed": 7.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "normalisation max ratio",
+  "printed": 7.3,
+  "recomputed": 7.276367677695383,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "normalisation failures on own value",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "normalisation min U of value %",
+  "printed": 0.79,
+  "recomputed": 0.7943779871268637,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "normalisation max U of value %",
+  "printed": 1.01,
+  "recomputed": 1.0090527391473851,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "three-way quantities",
+  "printed": 107,
+  "recomputed": 107.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "three-way verifiable",
+  "printed": 83,
+  "recomputed": 83.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "three-way must not certify",
+  "printed": 17,
+  "recomputed": 17.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "three-way A certified of 83",
+  "printed": 60,
+  "recomputed": 60.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "three-way A missed failures",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "three-way B certified of 83",
+  "printed": 56,
+  "recomputed": 56.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "three-way B missed failures",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "three-way Bp certified of 83",
+  "printed": 74,
+  "recomputed": 74.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "three-way Bp missed failures",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "three-way Bstar certified of 83",
+  "printed": 47,
+  "recomputed": 47.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "three-way Bstar missed failures",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "human proxy all A (ten problems)",
+  "printed": 54,
+  "recomputed": 54.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "human proxy all Bp (ten problems)",
+  "printed": 38,
+  "recomputed": 38.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "human proxy all Bstar (ten problems)",
+  "printed": 59,
+  "recomputed": 59.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "diagnosis independent correct",
+  "printed": 13,
+  "recomputed": 13.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "diagnosis independent of",
+  "printed": 13,
+  "recomputed": 13.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "diagnosis C1 by construction",
+  "printed": 22,
+  "recomputed": 22.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
   "section": "23",
   "claim": "lamina MMS L2 rate",
   "printed": 3.0,

@@ -140,14 +140,18 @@ level 5, groove peak) and `iga_b3_cyl_job.sh` (cylindrical averages).
 2. **The normalisation scale is loose.** The B3 Gaussian-region stress scale (3.10) is inflated by
    the reduced-integration pressure oscillation, so tolerances and uncertainties relative to it are
    6-7x looser for the normal components than relative to their values. The cross-check passes for
-   sigma_yy and pressure rest on this.
+   sigma_yy and pressure rest on this. *Round J:* on their own values all seven B3 Gaussian
+   uncertainties are 0.79-1.01%, inside the 2% tolerance; no certification depends on the scale.
 3. **Certification by one refinement family bounds that family's sequence, not the continuum value.**
    The final, cross-checked status certifies 47 instead of 72 quantities. 11 are INCONCLUSIVE until
    independent solvers exist for them.
 4. **Independent solvers, data adapters and problem facts are written by hand for each problem class.**
    The diagnosis works with derived facts, but most solver/physics tests then stay NEEDS_DATA.
+   *Round J:* the solver and code tests (S1-S3) now have stored results for the L-shape, crack,
+   lamina and both 3D problems (`followup_hooks.py`); physics tests remain hand-written.
 5. **3D coverage.** One smooth 3D problem only: no singular or concentrated feature in 3D, no contact,
-   no other element types.
+   no other element types. *Round J:* a second, singular 3D problem (clamped block) was added; vertex
+   exponents are not computed, its energy is still pre-asymptotic, and it has no independent value.
 6. **The LLM agent was measured on B1-B3 only** (9 billed runs). The other problems need approved
    billed runs. Its added value is specification extraction; its predictions add false alarms.
 7. **The human-intervention numbers are a proxy** (set-up inputs plus quantities left to examine), not
@@ -158,5 +162,65 @@ level 5, groove peak) and `iga_b3_cyl_job.sh` (cylindrical averages).
    follow-up).
 9. **Strongly graded Q20 reduced-integration meshes are fragile.** An inverted Gauss point appeared in
    B3 and in the 3D benchmark. Hourglass control or full integration on such meshes is not implemented.
+   *Round J, correction:* for the 3D benchmark this attribution is wrong. The full 3x3x3 rule inverts
+   too; 40 load increments instead of 10 give the correct solution with either rule. The cause is a
+   Newton solve that converged silently to an inverted state (see the round J section below).
 10. **Independent human review** of the code is still missing. The claims checks (890/890, 28/28)
     check consistency with the stored data, not the correctness of the code that produced it.
+
+
+---
+
+# Round J (23 November 2026, later): everything that needs no approval
+
+Report: Section 31 of the technical report (v6 PDF). No billed LLM run, no cluster submission, no
+email. Post hoc changes are marked **[post hoc]**; no criterion, tolerance or order window changed.
+
+## Changes
+- **Graded-mesh failure explained** (`graded_q20_study.py`, `q20_full.py`, `graded_q20_study.json`):
+  cylinder k = 4, g = 2.0 inverts with the reduced (min det F -1.03) and the full rule (-0.74) at 10
+  increments, and is correct with both at 40 (min det F 1.004; reaction and displacement errors
+  <= 1.1e-5). My reduced-quadrature hypothesis is refuted.
+- **[post hoc] Admissibility guard** (`detf_guard.py`, `detf_guard.json`): 64 stored solves with min
+  det F on seven problems; one inadmissible (that strategy), used by no verdict. Proposed rule for
+  future runs (re-solve with 4x increments, else exclude): not applied to the frozen scoring.
+- **Second unseen 3D benchmark** (`block3d.py`, `block3d_preregister.py`; pre-registered in b850330):
+  default rules 1/3 predictions, post hoc extension 2/3, expectations 8/10; peak slope -0.281 against
+  lam - 1 = -0.289. Misses: energy labelled pre-asymptotic (order 1.68 vs 1.42); mid-span average only
+  band over five levels. Root average FAILs strategy robustness (3.5% > 2%).
+- **Bug fix, pairwise orders** (`diagnose.py`): the formula assumed a constant refinement ratio; the 3D
+  ladders have none (exact h^1.4 gave 3.28, 2.90, 0.33, 2.90). Now the three-level equation is solved;
+  unchanged for 2D. No supported cause changed. New test.
+- **3D follow-up** (`followup.py`): next level 1.5k, memory 76 kB/unknown (lower bound, measured at
+  k = 6). Block energy: chooses k = 12, declines (983 s, >= 14.8 GB vs 300 s, 8 GB). Predictions
+  committed before any solve (`block3d_followup.py`, `block3d_followup_preregistration.json`); job
+  `Practical_Examples/block3d_followup_job.sh` prepared for manual submission.
+- **Solver/code hooks** (`followup_hooks.py`): MMS through the L-shape/crack form, L2 2.98 / H1 2.00;
+  tighter Newton tolerance changes <= 2.6e-15 (cylinder) and 9.6e-12 (block).
+- **Normalisation analysis** (`normalisation_study.py`): 54 rate-certified, 7 on a larger scale (all B3
+  Gaussian, ratio 5.7-7.3), all within tolerance on their own values.
+- **Spline cylindrical rr/tt** (`iga_b3_cyl_local.py`, `iga_b3_cyl_result.json`): local run of the
+  prepared job; the cross-check reads it. See Section 31.7 for the state.
+- **Three-way on ten problems**: certified of 83 verifiable: GCI 60, deterministic 56, + extension 74,
+  final 47; missed failures 0 everywhere; diagnosis 13/13 on independent references (22 C1 apart).
+- Claims checks: Sections 25 and 30 now read snapshots `*_round_I.json`; 69 tests pass.
+
+## Reproduce
+    cd Practical_Examples
+    python -m omar_pfem.verification_agent.graded_q20_study
+    python -m omar_pfem.verification_agent.detf_guard
+    python -m omar_pfem.verification_agent.block3d_preregister --compare
+    python -m omar_pfem.verification_agent.followup_hooks
+    python -m omar_pfem.verification_agent.followup clamped_block_3d strain_energy
+    python -m omar_pfem.verification_agent.normalisation_study
+    python -m omar_pfem.verification_agent.crosscheck
+    python -m omar_pfem.verification_agent.three_way
+    python -m omar_pfem.verification_agent.verify_report
+    python -m pytest -q omar_pfem/verification_agent/test_llm_guards.py
+
+## Limitations added or changed in round J
+1. Inverted converged solves are detected, but the remedy is proposed, not in the frozen rules.
+2. 3D vertex singularities are not computed; the block energy needs the k = 12 cluster level.
+3. The 3D memory model is a lower bound from one level.
+4. The block has no independent value: its certifications are INCONCLUSIVE in the final status.
+5. The 2D code checks use the unit square, not the singular geometries.

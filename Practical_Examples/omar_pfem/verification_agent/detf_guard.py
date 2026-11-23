@@ -44,7 +44,10 @@ def scan():
         R = rules.__wrapped__(geo)
         ad = R["adapter"]
         fam = getattr(ad, "rows", None) or []
-        strat = getattr(ad, "strategy_rows", None) or []
+        if not any(_det(r) is not None for r in fam):       # B3 keeps them in .family
+            fam = list(getattr(ad, "family", None) or [])
+        strat = list(getattr(ad, "strategy_rows", None) or [])
+        strat += [z for _, z in getattr(ad, "zbeta", [])]   # B3 local-refinement meshes
         used = sorted(q for q, v in R["v"].items() if any(c in v for c in STRATEGY_CHECKS))
         n_with = 0
         for role, rows in (("family", fam), ("strategy", strat)):

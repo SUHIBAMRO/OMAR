@@ -26068,3 +26068,24 @@ Report v5: advisor_feedback/2026-11-23_Verification_Framework_Technical_Report_v
 - Claims 890/890; tests 69; email draft point 5 corrected (cross-check counts), NOT sent.
 NEEDS OMAR: review report v5 + email point 5 change; decide on manual submission of iga_b3_job.sh /
 iga_b3_cyl_job.sh; approve (or not) billed LLM runs on the other 6 problems.
+
+### 2026-11-23 -- Round J (everything that needs no approval)  [IN PROGRESS: spline rr/tt run]
+Change log: advisor_feedback/2026-11-23_CHANGELOG_and_limitations.md (round J section at the end).
+Report: Section 31 written in the Claude doc; PDF v6 after the spline run ends.
+- Graded 3D failure EXPLAINED: full 3x3x3 rule (q20_full.py) also inverts at 10 increments (det F
+  -0.74); 40 increments fix it with either rule (graded_q20_study.json). Reduced-rule hypothesis
+  refuted; 30.3 sentence + limitation 9 corrected. detf_guard.py [post hoc]: 64 solves, 1 inadmissible,
+  used by no verdict; proposed remedy not applied to frozen scoring.
+- block3d (pre-registered b850330): default 1/3, posthoc 2/3, expectations 8/10, peak slope -0.281
+  (lam-1 = -0.289); energy pre-asymptotic (1.68 vs 1.42); root avg FAILs strategy spread 3.5%.
+- BUG FIX diagnose.pairwise_orders (constant-ratio formula on 3D ladders); no supported cause changed.
+- followup.py 3D: block energy -> k = 12 declined (983 s, >= 14.8 GB). Predictions pre-registered
+  (block3d_followup_preregistration.json, 56b3719). Prepared, NOT submitted:
+  Practical_Examples/block3d_followup_job.sh.
+- followup_hooks.py: MMS L2 2.98 / H1 2.00; Newton tol change 2.6e-15 / 9.6e-12.
+- normalisation_study: 54 rate-certified, 7 on larger scale, all within tol on own value.
+- three_way on 10 problems: of 83: GCI 60, det 56, +posthoc 74, final 47; missed 0; diag 13/13.
+- Claims 942/942 (Sections 25/30 read *_round_I.json snapshots); tests 69 pass.
+- RUNNING locally (nohup, log scratchpad/cyl_iga.log): iga_b3_cyl_local.py, L1-L2 disp done; when it
+  ends: rerun crosscheck, three_way, normalisation_study, verify_report; update report 31.7; PDF v6.
+NEEDS OMAR: decide on manual submission of block3d_followup_job.sh (and the earlier two jobs).
