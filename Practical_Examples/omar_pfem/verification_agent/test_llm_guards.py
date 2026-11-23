@@ -891,3 +891,17 @@ def test_calibration_framework_covers_true_error():
     s = json.load(open(OUT))["summary"]
     assert s["framework_covered"] == s["framework_certified"] >= 12
     assert s["gci_covered"] < s["gci_certified"]            # GCI made false certifications
+
+
+def test_second_code_tangent():
+    """Round K: the second code's tangent tensor equals the derivative formula and the
+    finite-difference derivative of its first Piola-Kirchhoff stress."""
+    import numpy as np
+    from omar_pfem.verification_agent import independent_block3d as B
+    rng = np.random.default_rng(0)
+    F = np.eye(3)[:, :, None, None] + 0.1 * rng.standard_normal((3, 3, 2, 4))
+    dF = rng.standard_normal((3, 3, 2, 4))
+    assert np.abs(np.einsum("ijkl...,kl...->ij...", B.tangent(F), dF) - B.dpk1(F, dF)).max() < 1e-10
+    e = 1e-7
+    fd = (B.pk1(F + e * dF) - B.pk1(F - e * dF)) / (2 * e)
+    assert np.abs(fd - B.dpk1(F, dF)).max() / np.abs(B.dpk1(F, dF)).max() < 1e-7

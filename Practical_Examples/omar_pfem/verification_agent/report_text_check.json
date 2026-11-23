@@ -1,11 +1,11 @@
 {
  "pdf": "2026-11-23_Verification_Framework_Technical_Report_v7.pdf",
  "summary": {
-  "section": 871,
-  "elsewhere": 93,
+  "section": 880,
+  "elsewhere": 92,
   "backing": 32,
   "NOT FOUND": 0,
-  "flag (not textual)": 50
+  "flag (not textual)": 51
  },
  "rows": [
   {
@@ -637,7 +637,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.275",
+   "form": "0.275",
    "backing_reason": null,
    "section_found": true
   },
@@ -649,7 +649,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.010",
+   "form": "0.01",
    "backing_reason": null,
    "section_found": true
   },
@@ -913,7 +913,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "elsewhere",
-   "form": "4",
+   "form": "4.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -2629,7 +2629,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "0.18",
+   "form": "\u22120.18",
    "backing_reason": null,
    "section_found": true
   },
@@ -3532,7 +3532,7 @@
    "tolerance": 0.01,
    "ok": true,
    "text": "elsewhere",
-   "form": "0.00",
+   "form": "0",
    "backing_reason": null,
    "section_found": true
   },
@@ -3601,7 +3601,7 @@
    "tolerance": 0.01,
    "ok": true,
    "text": "elsewhere",
-   "form": "0.00",
+   "form": "0",
    "backing_reason": null,
    "section_found": true
   },
@@ -3670,7 +3670,7 @@
    "tolerance": 0.01,
    "ok": true,
    "text": "elsewhere",
-   "form": "0.00",
+   "form": "0",
    "backing_reason": null,
    "section_found": true
   },
@@ -3739,7 +3739,7 @@
    "tolerance": 0.01,
    "ok": true,
    "text": "elsewhere",
-   "form": "0.00",
+   "form": "0",
    "backing_reason": null,
    "section_found": true
   },
@@ -3808,7 +3808,7 @@
    "tolerance": 0.01,
    "ok": true,
    "text": "elsewhere",
-   "form": "0.00",
+   "form": "0",
    "backing_reason": null,
    "section_found": true
   },
@@ -3877,7 +3877,7 @@
    "tolerance": 0.01,
    "ok": true,
    "text": "elsewhere",
-   "form": "0.00",
+   "form": "0",
    "backing_reason": null,
    "section_found": true
   },
@@ -3946,7 +3946,7 @@
    "tolerance": 0.01,
    "ok": true,
    "text": "elsewhere",
-   "form": "0.00",
+   "form": "0",
    "backing_reason": null,
    "section_found": true
   },
@@ -4468,7 +4468,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "3",
+   "form": "2.9",
    "backing_reason": null,
    "section_found": true
   },
@@ -4648,7 +4648,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "24.9",
+   "form": "25",
    "backing_reason": null,
    "section_found": true
   },
@@ -4876,7 +4876,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.443",
+   "form": "\u22120.443",
    "backing_reason": null,
    "section_found": true
   },
@@ -4888,7 +4888,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.454",
+   "form": "\u22120.454",
    "backing_reason": null,
    "section_found": true
   },
@@ -4900,7 +4900,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.457",
+   "form": "\u22120.457",
    "backing_reason": null,
    "section_found": true
   },
@@ -5164,7 +5164,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.270",
+   "form": "\u22120.270",
    "backing_reason": null,
    "section_found": true
   },
@@ -5296,7 +5296,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "0.328",
+   "form": "\u22120.328",
    "backing_reason": null,
    "section_found": true
   },
@@ -5548,7 +5548,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "10",
+   "form": "10.1",
    "backing_reason": null,
    "section_found": true
   },
@@ -5776,7 +5776,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "29",
+   "form": "29.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -6184,7 +6184,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.240",
+   "form": "0.240",
    "backing_reason": null,
    "section_found": true
   },
@@ -6292,7 +6292,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.236",
+   "form": "\u22120.236",
    "backing_reason": null,
    "section_found": true
   },
@@ -7048,7 +7048,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -7528,7 +7528,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "elsewhere",
-   "form": "3",
+   "form": "3.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -7807,7 +7807,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -7855,7 +7855,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -7879,7 +7879,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "4.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -8023,7 +8023,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "0.90",
+   "form": "0.9",
    "backing_reason": null,
    "section_found": true
   },
@@ -8095,7 +8095,7 @@
    "tolerance": 5e-08,
    "ok": true,
    "text": "section",
-   "form": "0",
+   "form": "1.7 \u00d7 10\u207b\u2076",
    "backing_reason": null,
    "section_found": true
   },
@@ -8227,7 +8227,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "0.90",
+   "form": "0.9",
    "backing_reason": null,
    "section_found": true
   },
@@ -8299,7 +8299,7 @@
    "tolerance": 5e-05,
    "ok": true,
    "text": "section",
-   "form": "\u22120.0121",
+   "form": "0.0121",
    "backing_reason": null,
    "section_found": true
   },
@@ -8311,7 +8311,7 @@
    "tolerance": 5e-05,
    "ok": true,
    "text": "section",
-   "form": "0.0122",
+   "form": "\u22120.0122",
    "backing_reason": null,
    "section_found": true
   },
@@ -8335,7 +8335,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -8371,7 +8371,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "3.5",
    "backing_reason": null,
    "section_found": true
   },
@@ -8383,7 +8383,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "4.2",
    "backing_reason": null,
    "section_found": true
   },
@@ -8443,7 +8443,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -8791,7 +8791,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.800",
+   "form": "0.8",
    "backing_reason": "per-level spline values: plotted in Figures 25.1/25.2, the text prints limits, orders and selected levels",
    "section_found": true
   },
@@ -8875,7 +8875,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "0.5",
+   "form": "0",
    "backing_reason": null,
    "section_found": true
   },
@@ -9244,7 +9244,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "3",
+   "form": "2.9",
    "backing_reason": null,
    "section_found": true
   },
@@ -9328,7 +9328,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -9448,7 +9448,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "4.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -9496,7 +9496,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -9544,7 +9544,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -9556,7 +9556,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "4.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -9640,7 +9640,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.511",
+   "form": "0.511",
    "backing_reason": null,
    "section_found": true
   },
@@ -9784,7 +9784,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -9928,7 +9928,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "4.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -10042,7 +10042,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "3",
+   "form": "3.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -10102,7 +10102,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "3",
+   "form": "3.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -10522,7 +10522,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "4.7",
+   "form": "5",
    "backing_reason": null,
    "section_found": true
   },
@@ -10546,7 +10546,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.736",
+   "form": "\u22120.736",
    "backing_reason": null,
    "section_found": true
   },
@@ -10630,7 +10630,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -10654,7 +10654,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -11332,7 +11332,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "3",
+   "form": "3.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -11344,7 +11344,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "3",
+   "form": "3.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -11488,7 +11488,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -11500,7 +11500,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "4.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -11512,7 +11512,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "4.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -11848,7 +11848,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "4.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -11883,8 +11883,8 @@
    "recomputed": 1.5099772251716858e-07,
    "tolerance": 5e-09,
    "ok": true,
-   "text": "elsewhere",
-   "form": "0",
+   "text": "section",
+   "form": "1.5 \u00d7 10\u207b\u2077",
    "backing_reason": null,
    "section_found": true
   },
@@ -12004,7 +12004,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "4.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -12052,7 +12052,7 @@
    "tolerance": 5e-06,
    "ok": true,
    "text": "section",
-   "form": "1.2 \u00d7 10\u207b\u2074",
+   "form": "10\u207b\u2074",
    "backing_reason": null,
    "section_found": true
   },
@@ -12323,6 +12323,111 @@
    "ok": true,
    "text": "section",
    "form": "15",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "32",
+   "claim": "second code w_tip order",
+   "printed": 1.9,
+   "recomputed": 1.897889237410672,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "1.90",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "32",
+   "claim": "second code w_tip U %",
+   "printed": 0.1,
+   "recomputed": 0.10272199855545051,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "0.10",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "32",
+   "claim": "second code w_tip gap %",
+   "printed": 0.021,
+   "recomputed": 0.02130607309117096,
+   "tolerance": 0.0005,
+   "ok": true,
+   "text": "section",
+   "form": "0.021",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "32",
+   "claim": "second code w_tip cross-checked",
+   "printed": 1,
+   "recomputed": 1.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "flag (not textual)"
+  },
+  {
+   "section": "32",
+   "claim": "second code mid spread %",
+   "printed": 0.013,
+   "recomputed": 0.013,
+   "tolerance": 0.0005,
+   "ok": true,
+   "text": "section",
+   "form": "0.013",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "32",
+   "claim": "second code mid gap",
+   "printed": 1e-06,
+   "recomputed": 1.2827621739102975e-06,
+   "tolerance": 5e-07,
+   "ok": true,
+   "text": "section",
+   "form": "10\u207b\u2076",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "32",
+   "claim": "second code finest unknowns",
+   "printed": 47775,
+   "recomputed": 47775.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "section",
+   "form": "47,775",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "32",
+   "claim": "second code finest seconds",
+   "printed": 3730,
+   "recomputed": 3730.3541944026947,
+   "tolerance": 0.5,
+   "ok": true,
+   "text": "section",
+   "form": "3,730",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "32",
+   "claim": "second code levels",
+   "printed": 5,
+   "recomputed": 5.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "section",
+   "form": "5",
    "backing_reason": null,
    "section_found": true
   },

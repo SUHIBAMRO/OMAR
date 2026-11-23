@@ -67,7 +67,8 @@ def text_by_section(pdf):
 def forms(v, tol):
     """Strings the report may use for the printed value v (tolerance tol)."""
     out = set()
-    ds = {0 if float(v).is_integer() else len(repr(float(v)).split(".")[1])}   # as typed
+    from decimal import Decimal
+    ds = {max(0, -Decimal(repr(float(v))).as_tuple().exponent)}               # as typed
     if tol and tol > 0:
         ds.add(max(0, int(round(-math.log10(2 * tol)))))       # as the tolerance implies
     x = v
@@ -91,6 +92,7 @@ def forms(v, tol):
 
 
 def found(sec_text, v, tol):
+    sec_text = re.sub(r"\s+", " ", sec_text)          # a number may wrap across lines
     for f in forms(v, tol):
         pat = r"(?<![\d.,])" + re.escape(f) + r"(?![\d])(?!\.\d)"
         if re.search(pat, sec_text):

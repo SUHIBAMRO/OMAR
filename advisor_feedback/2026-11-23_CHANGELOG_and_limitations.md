@@ -263,7 +263,7 @@ email. Post hoc changes are marked **[post hoc]**; no criterion, tolerance or or
 # Round K (23 November 2026): certification tested on a singular exact solution; the first remedy
 
 Report: Section 32 of `advisor_feedback/2026-11-23_Verification_Framework_Technical_Report_v7.pdf`
-(79 pages, Figures 32.1-32.2). No billed run, no cluster submission, no email. Pre-registered work:
+(80 pages, Figures 32.1-32.2). No billed run, no cluster submission, no email. Pre-registered work:
 commits 338d7f1 (exact benchmark + remedy) and be9e643 (remedy on L-shape and crack).
 
 ## Changes
@@ -285,10 +285,14 @@ commits 338d7f1 (exact benchmark + remedy) and be9e643 (remedy on L-shape and cr
   sharp-disc averages, ratios 2.6 and 17.1).
 - **B3 graded inversion is geometric** (`b3_mesh_jacobian.py`): negative undeformed det J for
   r_grading >= 1.75 (480 / 840 points). Not a load-step effect; manuscript sentence correct as written.
-- **Second code for the block** (`independent_block3d.py`, scikit-fem Hex27, Newton from the energy):
-  running in the background (k = 1, 2, 3 done); tangent checked against the formula (9e-13) and finite
-  differences.
-- Report text check now covers v7: 1,046 claims, 0 missing. Claims 1,046/1,046; tests 74.
+- **Second code for the block** (`independent_block3d.py`, scikit-fem Hex27, Newton from the energy;
+  report 32.6): five levels up to 47,775 unknowns. Tip deflection cross-checked by a second code (order
+  1.90, U 0.10%, gap 0.021%); the mid-span average is flat in it (band, agrees to ~1e-6). Tangent checked
+  against the formula and finite differences (test).
+- **Frozen-file exemptions are now checked** (`prereg_util.py`): a scoring continues after a frozen file
+  changed only if the functions it uses are unchanged since the pre-registration commit (AST via git).
+- Report text check covers v7 (80 pages): 1,055 claims, 0 missing (numbers wrapped across lines handled).
+  Claims 1,055/1,055; tests 75; all pre-registered scorings reproduce.
 
 ## Reproduce
     cd Practical_Examples

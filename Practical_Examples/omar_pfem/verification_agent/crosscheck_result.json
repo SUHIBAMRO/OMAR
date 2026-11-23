@@ -1799,14 +1799,20 @@
     },
     {
      "source": "second code: scikit-fem, 27-node hexahedra",
-     "levels": 3,
-     "finest": -0.13086221177942917,
+     "levels": 5,
+     "finest": -0.1311541848495809,
      "assessment": {
-      "evidence": "too_few_levels",
-      "n_levels": 3
+      "evidence": "rate",
+      "fit_limit": -0.1312431947259418,
+      "fit_order": 1.897889237410672,
+      "uncertainty_fine": 0.0010272199855545052,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.90 (leave-one-out 1.64-1.95), U_fine=0.10% vs tol 1.00%",
+      "n_levels": 5
      },
-     "status": "independent_unconverged",
-     "gap_finest_rel": 0.0031173733788044545
+     "status": "cross_checked",
+     "gap_rel": 0.0002130607309117096,
+     "U_ind_rel": 0.0010272199855545052
     }
    ],
    "v1": {
@@ -1841,14 +1847,19 @@
     },
     {
      "source": "second code: scikit-fem, 27-node hexahedra",
-     "levels": 3,
-     "finest": 7.85730759005184,
+     "levels": 5,
+     "finest": 7.858298132750888,
      "assessment": {
-      "evidence": "too_few_levels",
-      "n_levels": 3
+      "evidence": "band",
+      "fit_limit": 7.85619471465281,
+      "fit_order": 19.604954161561903,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.013%); no rate from 5 levels (failed: monotone, order_window, leave_one_out; fitted p=19.60)",
+      "n_levels": 5
      },
      "status": "independent_unconverged",
-     "gap_finest_rel": 0.00012732725647650943
+     "gap_finest_rel": 1.2827621739102975e-06
     }
    ],
    "v1": {

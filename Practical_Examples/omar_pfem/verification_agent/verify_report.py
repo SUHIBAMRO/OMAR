@@ -1505,6 +1505,21 @@ def add_k_round(add, h1, h2, h3):
     add("32", "GCI cylinder disc ratio", 2.6, h1, lambda: cr("thick_cylinder_3d", "disc_avg_hoop")["gci"]["effectivity"])
     add("32", "framework median width factor", 15, 0.5,
         lambda: 1 / cs()["framework_effectivity_median"])
+    # 32.6 the second code for the block
+    sc2 = lambda q: next(s for r in _j("crosscheck_result.json")["rows_posthoc_only"]
+                         if r["problem"] == "clamped_block_3d" and r["qoi"] == q
+                         for s in r["independent_sources"] if s["source"].startswith("second code"))
+    add("32", "second code w_tip order", 1.90, h2, lambda: sc2("w_tip")["assessment"]["fit_order"])
+    add("32", "second code w_tip U %", 0.10, h2, lambda: 100 * sc2("w_tip")["U_ind_rel"])
+    add("32", "second code w_tip gap %", 0.021, h3, lambda: 100 * sc2("w_tip")["gap_rel"])
+    add("32", "second code w_tip cross-checked", 1, 0, lambda: int(sc2("w_tip")["status"] == "cross_checked"))
+    add("32", "second code mid spread %", 0.013, h3, lambda: float(
+        sc2("mid_gk_avg_sxx")["assessment"]["reason"].split("spread ")[1].split("%")[0]))
+    add("32", "second code mid gap", 1e-6, 0.5e-6, lambda: sc2("mid_gk_avg_sxx")["gap_finest_rel"])
+    hx = lambda: _j("block3d_hex27_ladder.json")
+    add("32", "second code finest unknowns", 47775, 0, lambda: max(r["n_dof"] for r in hx()))
+    add("32", "second code finest seconds", 3730, 0.5, lambda: max(r["seconds"] for r in hx()))
+    add("32", "second code levels", 5, 0, lambda: len(hx()))
     bj = lambda rg: next(r for r in _j("b3_mesh_jacobian.json")["rows"] if r["r_grading"] == rg)
     add("32", "B3 1.75 negative points", 480, 0, lambda: bj(1.75)["negative_points"])
     add("32", "B3 1.75 elements", 80, 0, lambda: bj(1.75)["elements_with_negative_points"])

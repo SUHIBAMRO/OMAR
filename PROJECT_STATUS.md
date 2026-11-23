@@ -26101,14 +26101,16 @@ Report v6: advisor_feedback/2026-11-23_Verification_Framework_Technical_Report_v
 NEEDS OMAR: decide on manual submission of block3d_followup_job.sh (and the earlier two jobs).
 
 ### 2026-11-23 -- Round K (exact singular benchmark, first remedy, calibration)
-Report v7: advisor_feedback/2026-11-23_Verification_Framework_Technical_Report_v7.pdf (79 pages, Section 32).
+Report v7: advisor_feedback/2026-11-23_Verification_Framework_Technical_Report_v7.pdf (80 pages, Section 32).
 - lshape_exact (pre-registered 338d7f1): post hoc 4/4 rules, exact inside certified interval 6/6,
   expectations 9/10; P2 cross-checks 4/6.
 - remedy.py: agent-graded g = 3.7 -> energy error 2,400x smaller with 1/4 unknowns (order 3.34).
 - corner analysis + remedy on L-shape/crack (pre-registered be9e643): 4/10 predictions; U 4-80x smaller.
 - calibration.py: framework 12/12 covered (median ratio 0.07); GCI 9/11 (two false certifications).
 - b3_mesh_jacobian.py: B3 inversion geometric (undeformed det J < 0 for r_grading >= 1.75).
-- Claims 1,046/1,046; report text check 0 missing; tests 74.
-- RUNNING (restart with setsid after any machine restart; both resume): iga_b3_cyl_local (L4 disp),
-  independent_block3d (k = 4, 6). Then: crosscheck, three_way, verify_report, report 31.7/31.10.
+- Second code for the block DONE (k = 1..6): tip deflection cross-checked by a second code (gap 0.021%).
+- prereg_util.py: frozen-file exemptions checked by function AST at the pre-registration commit.
+- Claims 1,055/1,055; report text check 0 missing; tests 75.
+- RUNNING (restart with setsid after any machine restart; resumes): iga_b3_cyl_local (L4 disp, then P1).
+  When done: crosscheck, three_way, verify_report, report 31.7, PDF.
 NEXT IDEA (not started): intensity-aware remedy (weight corners by estimated stress-intensity).
