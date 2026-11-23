@@ -915,6 +915,7 @@ def add_f_round(add, h1, h2, h3):
     add_j_round(add, h1, h2, h3)
     add_k_round(add, h1, h2, h3)
     add_l_round(add, h1, h2, h3)
+    add_m_round(add, h1, h2, h3)
     m = lambda: json.load(open(os.path.join(HERE, "lamina_mms.json")))["rows"]
     add("23", "lamina MMS L2 rate", 3.00, h2, lambda: np.log2(m()[-2]["L2_rel"] / m()[-1]["L2_rel"]))
     add("23", "lamina MMS H1 rate", 2.00, h2, lambda: np.log2(m()[-2]["H1_semi_rel"] / m()[-1]["H1_semi_rel"]))
@@ -1556,6 +1557,36 @@ def add_l_round(add, h1, h2, h3):
         ["uncertainty_fine"] / Q("strain_energy", "intensity")["uncertainty_fine"])
     add("33", "v_tip U gain vs uniform", 71, 0.5, lambda: Q("v_tip", "uniform")
         ["uncertainty_fine"] / Q("v_tip", "intensity")["uncertainty_fine"])
+
+
+def add_m_round(add, h1, h2, h3):
+    """Section 34 (round M): billed ablation on seven more problems; check-level det F guard."""
+    rm = lambda: _j("round_m_result.json")
+    A = lambda: rm()["ablation"]
+    P = lambda p: A()["problems"][p]
+    add("34", "ablation runs", 21, 0, lambda: A()["runs"])
+    add("34", "ablation cost USD", 12.16, h2, lambda: A()["cost_usd"])
+    add("34", "spec fully correct runs", 18, 0, lambda: A()["spec_fully_correct"])
+    add("34", "degenerate runs", 1, 0, lambda: A()["degenerate_runs"])
+    add("34", "block rule miss caught by LLM (runs)", 3, 0, lambda: A()["block_rule_miss_caught_by_llm"])
+    add("34", "cook energy caught by LLM (runs)", 1, 0, lambda: A()["cook_energy_caught_by_llm"])
+    for p, ag, fa in (("cook", 0.86, 1.0), ("plate", 1.0, 3.0), ("lamina", 1.0, 3.0),
+                      ("lshape", 1.0, 3.33), ("crack", 0.86, 3.0), ("cylinder", 0.17, 0.0),
+                      ("block", 1.0, 1.67)):
+        add("34", f"{p} agreement", ag, h2, lambda p=p: P(p)["agreement_mean"])
+        add("34", f"{p} LLM false alarms", fa, h2, lambda p=p: P(p)["llm_false_alarm_mean"])
+    add("34", "cylinder LLM missed", 3.67, h2, lambda: P("cylinder")["llm_missed_mean"])
+    add("34", "cook LLM missed", 1.67, h2, lambda: P("cook")["llm_missed_mean"])
+    C = lambda: rm()["cylinder_guard"]
+    add("34", "stored strategy min detF", -1.03, h2, lambda: C()["stored_min_detF"])
+    add("34", "guarded min detF", 1.004, h3, lambda: C()["guarded_min_detF"])
+    add("34", "guarded increments", 40, 0, lambda: C()["guarded_nsteps"])
+    add("34", "cylinder FAIL without guard", 6, 0, lambda: len(C()["fail_off"]))
+    add("34", "cylinder FAIL with guard", 1, 0, lambda: len(C()["fail_on"]))
+    add("34", "only peak_hoop fails with guard", 1, 0, lambda: int(C()["fail_on"] == ["peak_hoop"]))
+    add("34", "guarded energy vs uniform", 3e-8, 0.5e-8, lambda: C()["guarded_energy_rel_to_uniform"])
+    add("34", "peak_hoop spread with guard %", 3.5, h1, lambda: float(
+        C()["verdicts"]["peak_hoop"]["strategy_robustness:on"]["reason"].split()[3].rstrip("%")))
 
 
 if __name__ == "__main__":

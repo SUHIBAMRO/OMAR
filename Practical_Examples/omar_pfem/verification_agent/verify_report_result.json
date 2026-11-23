@@ -8664,6 +8664,246 @@
   "ok": true
  },
  {
+  "section": "34",
+  "claim": "ablation runs",
+  "printed": 21,
+  "recomputed": 21.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "ablation cost USD",
+  "printed": 12.16,
+  "recomputed": 12.1645772,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "spec fully correct runs",
+  "printed": 18,
+  "recomputed": 18.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "degenerate runs",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "block rule miss caught by LLM (runs)",
+  "printed": 3,
+  "recomputed": 3.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "cook energy caught by LLM (runs)",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "cook agreement",
+  "printed": 0.86,
+  "recomputed": 0.8571428571428572,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "cook LLM false alarms",
+  "printed": 1.0,
+  "recomputed": 1.0,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "plate agreement",
+  "printed": 1.0,
+  "recomputed": 1.0,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "plate LLM false alarms",
+  "printed": 3.0,
+  "recomputed": 3.0,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "lamina agreement",
+  "printed": 1.0,
+  "recomputed": 1.0,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "lamina LLM false alarms",
+  "printed": 3.0,
+  "recomputed": 3.0,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "lshape agreement",
+  "printed": 1.0,
+  "recomputed": 1.0,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "lshape LLM false alarms",
+  "printed": 3.33,
+  "recomputed": 3.3333333333333335,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "crack agreement",
+  "printed": 0.86,
+  "recomputed": 0.8571428571428572,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "crack LLM false alarms",
+  "printed": 3.0,
+  "recomputed": 3.0,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "cylinder agreement",
+  "printed": 0.17,
+  "recomputed": 0.16666666666666666,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "cylinder LLM false alarms",
+  "printed": 0.0,
+  "recomputed": 0.0,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "block agreement",
+  "printed": 1.0,
+  "recomputed": 1.0,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "block LLM false alarms",
+  "printed": 1.67,
+  "recomputed": 1.6666666666666667,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "cylinder LLM missed",
+  "printed": 3.67,
+  "recomputed": 3.6666666666666665,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "cook LLM missed",
+  "printed": 1.67,
+  "recomputed": 1.6666666666666667,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "stored strategy min detF",
+  "printed": -1.03,
+  "recomputed": -1.026023631142868,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "guarded min detF",
+  "printed": 1.004,
+  "recomputed": 1.0041879158255933,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "guarded increments",
+  "printed": 40,
+  "recomputed": 40.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "cylinder FAIL without guard",
+  "printed": 6,
+  "recomputed": 6.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "cylinder FAIL with guard",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "only peak_hoop fails with guard",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "guarded energy vs uniform",
+  "printed": 3e-08,
+  "recomputed": 3.1365705366326324e-08,
+  "tolerance": 5e-09,
+  "ok": true
+ },
+ {
+  "section": "34",
+  "claim": "peak_hoop spread with guard %",
+  "printed": 3.5,
+  "recomputed": 3.518,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
   "section": "23",
   "claim": "lamina MMS L2 rate",
   "printed": 3.0,

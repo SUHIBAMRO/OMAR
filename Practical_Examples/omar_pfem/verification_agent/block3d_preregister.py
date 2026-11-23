@@ -83,6 +83,13 @@ def compare():
     # crosscheck.py changed after scoring (2026-11-23, round J: this problem appended to
     # PROBLEMS as single_family, spline rr/tt read for B3); it decides none of the verdicts
     # scored here. Any other change refuses scoring.
+    # round M (post hoc switch): orchestrate.py gained blocks run only with VERIF_POSTHOC_DETF=1;
+    # allowed iff the module equals its b850330 version with those blocks removed
+    from omar_pfem.verification_agent.prereg_util import unchanged_except_switch
+    if "orchestrate.py" in changed and unchanged_except_switch("orchestrate.py", "b850330",
+                                                               "VERIF_POSTHOC_DETF"):
+        changed.remove("orchestrate.py")
+        print("note: orchestrate.py changed only by the off-by-default VERIF_POSTHOC_DETF switch")
     if set(changed) - {"crosscheck.py"}:
         raise SystemExit(f"frozen files changed since pre-registration: {changed}")
     if changed:

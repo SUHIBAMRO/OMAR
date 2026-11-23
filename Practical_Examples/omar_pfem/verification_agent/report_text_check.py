@@ -22,7 +22,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
-PDF = os.path.join(ROOT, "advisor_feedback", "2026-11-23_Verification_Framework_Technical_Report_v8.pdf")
+PDF = os.path.join(ROOT, "advisor_feedback", "2026-11-23_Verification_Framework_Technical_Report_v9.pdf")
 OUT = os.path.join(HERE, "report_text_check.json")
 SUP = str.maketrans("-0123456789", "⁻⁰¹²³⁴⁵⁶⁷⁸⁹")
 # Reviewed 2026-11-23: claims that back a figure or a derived statement and whose raw value
@@ -46,7 +46,7 @@ FLAG_WORDS = ("rate", "no rate", "PASS", "FAIL", "cross-checked", "is ", "has ",
 def text_by_section(pdf):
     t = subprocess.run(["pdftotext", "-layout", pdf, "-"], capture_output=True, text=True).stdout
     t = t.replace(" ", " ").replace(" ", " ")
-    heads = [(m.start(), m.group(1)) for m in re.finditer(r"(?m)^\s*(\d+(?:\.\d+)?)\.?\s+[A-Z]", t)
+    heads = [(m.start(), m.group(1)) for m in re.finditer(r"(?m)^(\d+(?:\.\d+)?)\.?\s+[A-Z]", t)
              if re.fullmatch(r"([1-9]|[1-3]\d)(\.([1-9]|1[0-2]))?", m.group(1))]   # not table rows
     # the body starts at the LAST occurrence of "1 " heading chain; take for every key the
     # last position (the table of contents comes first)

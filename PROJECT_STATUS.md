@@ -26153,3 +26153,9 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   checks turn a failed strategy solve (cylinder g = 2.0, NaN) into FAIL -> should be
   INCONCLUSIVE (proposed, not changed, post hoc). Not in report v8.
   Spline rr/tt L4 still running locally (check-in scheduled 2026-11-24 00:16 UTC).
+- 2026-11-23 Round M follow-up (Omar: "do and fix the non-urgent points"): check-level det F
+  guard (post hoc switch VERIF_POSTHOC_DETF, off by default) -> cylinder strategy checks FAIL
+  6 -> 1 (peak_hoop only). Report v9 = Section 34 + summary item 4; claims 1,115/1,115; tests
+  79/79; text check NOT FOUND 0 (heading regex fixed). FINAL email draft is now
+  `advisor_feedback/2026-11-23_email_to_Rabczuk_reply_DRAFT_v9.txt` (attach v9). Not sent.
+  Still waiting: Omar's cluster jobs (iga_b3_cyl, block3d_followup, iga_b3 L5).

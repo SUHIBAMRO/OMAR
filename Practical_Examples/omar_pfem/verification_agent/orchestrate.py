@@ -714,6 +714,11 @@ def run_check(adapter, check, qoi, params, element=None, conv_params=None):
                                          preasymptotic=posthoc)
     if check == "anchored_robustness":
         s = adapter.strategies(qoi)
+        if os.environ.get("VERIF_POSTHOC_DETF") == "1":       # post hoc, round M (detf_guard)
+            from omar_pfem.verification_agent.detf_guard import admissible_strategies
+            s = admissible_strategies(adapter, qoi, s)
+            if isinstance(s, str):
+                return {"gate": "anchored_robustness", "verdict": "INCONCLUSIVE", "reason": s}
         if s is None:
             return {"gate": "anchored_robustness", "verdict": "INCONCLUSIVE",
                     "reason": "no alternative refinement strategy computed for this problem"}
@@ -740,6 +745,11 @@ def run_check(adapter, check, qoi, params, element=None, conv_params=None):
                                               **params)
     if check == "strategy_robustness":
         s = adapter.strategies(qoi)
+        if os.environ.get("VERIF_POSTHOC_DETF") == "1":       # post hoc, round M (detf_guard)
+            from omar_pfem.verification_agent.detf_guard import admissible_strategies
+            s = admissible_strategies(adapter, qoi, s)
+            if isinstance(s, str):
+                return {"gate": "strategy_robustness", "verdict": "INCONCLUSIVE", "reason": s}
         if s is None:
             return {"gate": "strategy_robustness", "verdict": "INCONCLUSIVE",
                     "reason": "no alternative refinement strategy computed for this problem"}

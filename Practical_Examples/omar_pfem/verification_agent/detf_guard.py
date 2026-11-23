@@ -46,6 +46,38 @@ def guarded(solve_fn, *args, nsteps=10, **kw):
     return row
 
 
+GUARDED_RESOLVES = {"thick_cylinder_3d": "cylinder3d_strategy_guarded.json"}
+
+
+def admissible_strategies(adapter, qoi, s):
+    """POST HOC, round M (2026-11-23), active only with VERIF_POSTHOC_DETF=1: the check-level
+    half of the guard. Round J guarded the solver and scanned the stored solves, but a plan
+    chosen by the LLM (billed ablation, round M) ran the strategy checks on the cylinder and
+    consumed the stored inverted g = 2 row. Here every strategy row with min det F <= 0 is
+    replaced by its guarded re-solve (GUARDED_RESOLVES, four times the increments) when that
+    exists and is admissible; otherwise None is returned and the check is INCONCLUSIVE.
+    `s` is adapter.strategies(qoi); returns (values, scale), None, or a reason string."""
+    rows = getattr(adapter, "strategy_rows", None)
+    if s is None or not rows or len(rows) != len(s[0]):
+        return s
+    vals = list(s[0])
+    for i, r in enumerate(rows):
+        d = _det(r)
+        if d is None or d > 0:
+            continue
+        fn = GUARDED_RESOLVES.get(getattr(adapter, "geometry", None))
+        alt = None
+        if fn and os.path.exists(os.path.join(HERE, fn)):
+            alt = next((a for a in json.load(open(os.path.join(HERE, fn)))
+                        if a.get("k") == r.get("k") and a.get("grading") == r.get("grading")
+                        and _det(a) is not None and _det(a) > 0), None)
+        if alt is None or alt.get(qoi) is None:
+            return (f"strategy solve with min det F = {d:.3g} <= 0 is inadmissible and has no "
+                    "admissible re-solve (VERIF_POSTHOC_DETF)")
+        vals[i] = alt[qoi]
+    return vals, s[1]
+
+
 def _det(r):
     for k in ("min_detF", "posthoc_min_detF"):
         if r.get(k) is not None:

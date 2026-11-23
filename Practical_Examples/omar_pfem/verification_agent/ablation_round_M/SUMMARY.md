@@ -27,5 +27,5 @@ Findings (read with care; 3 runs per problem):
    too few load increments), and the robustness checks turn that into FAIL for 5 quantities
    the convergence checks certify (p = 3.8-4.0). The LLM did not predict those FAILs, hence the
    "misses". This is a weakness of the robustness checks (a failed solve should give
-   INCONCLUSIVE, not FAIL), not a real failure of the quantities. Not changed: changing a
-   check after seeing results would be post hoc.
+   INCONCLUSIVE, not FAIL), not a real failure of the quantities. FIXED afterwards, labelled post
+   hoc, behind VERIF_POSTHOC_DETF (round_m.py, report Section 34): with it only peak_hoop fails.

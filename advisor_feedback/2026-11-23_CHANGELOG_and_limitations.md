@@ -350,4 +350,20 @@ Pre-registered before any loaded solve: commit 4fd091f. No billed run, no cluste
   It should be INCONCLUSIVE. Not changed (would be post hoc); proposed for the next rule revision.
 - Scoring script limitation: a degenerate run (no quantities chosen; crack run 2) is counted
   as 0 misses / 0 false alarms; excluded by hand in SUMMARY.md.
-- Not yet in the technical report (v8 is what the approved email attaches).
+- FIXED (post hoc, labelled): check-level det F guard behind VERIF_POSTHOC_DETF (off by default).
+  `detf_guard.admissible_strategies` + two guarded blocks in `orchestrate.run_check`: an inverted
+  strategy solve is replaced by its guarded re-solve (`cylinder3d_strategy_guarded.json`, 40
+  increments, min det F 1.004, energy within 3e-8 of uniform) or the check is INCONCLUSIVE.
+  Cylinder: strategy checks FAIL 6 -> 1 quantity (only peak_hoop, the true failure).
+- Frozen pre-registrations (block, exact L-shape) still score via a CHECKED exemption
+  `prereg_util.unchanged_except_switch` (module == b850330 once the switch blocks are stripped;
+  negative control refused); their stored results are unchanged.
+- `round_m.py` -> `round_m_result.json`; degenerate runs excluded from the means.
+- Report v9 (`2026-11-23_Verification_Framework_Technical_Report_v9.pdf`, 84 pages): Section 34 +
+  Section 1 item 4. Claims 1,115/1,115. Tests 79/79.
+- `report_text_check.py`: headings must start at column 0, so indented list items ("1. The ...")
+  no longer split sections; on v9: section 1,001, elsewhere 28, NOT FOUND 0.
+- Email draft renamed to `2026-11-23_email_to_Rabczuk_reply_DRAFT_v9.txt`; only change:
+  "version 8" -> "version 9" (Omar asked for v9). Not sent.
+- Remaining limitations: 3 runs per problem; the LLM plans of round M were not stored, so the
+  guard's effect on the LLM's own agreement is inferred from the checks, not re-run (billed).

@@ -923,3 +923,48 @@ def test_intensity_plan_reproduces():
     assert all(c["graded"] == (c["share"] >= 0.10) for c in p["corners"])
     x = coords(8, {1: 3.7}, 0, 3)
     assert len(x) == 25 and x[8] == 1.0 and (x[1:] > x[:-1]).all()
+
+
+def test_detf_check_level_guard():
+    """Round M (post hoc, VERIF_POSTHOC_DETF): an inverted strategy row is replaced by its
+    admissible re-solve; without one the check is INCONCLUSIVE; with the switch off the
+    strategy values are unchanged."""
+    import os
+    from omar_pfem.verification_agent.detf_guard import admissible_strategies
+
+    class A:
+        geometry = "no_such_problem"
+        strategy_rows = [{"k": 4, "grading": 1.0, "min_detF": 1.0, "e": 1.0},
+                         {"k": 4, "grading": 2.0, "min_detF": -1.0, "e": 9.0}]
+    s = ([1.0, 9.0], None)
+    r = admissible_strategies(A(), "e", s)
+    assert isinstance(r, str) and "inadmissible" in r
+    A.strategy_rows[1]["min_detF"] = 0.5
+    assert admissible_strategies(A(), "e", s) == s
+    from omar_pfem.verification_agent.orchestrate import ADAPTERS, run_check
+    from omar_pfem.verification_agent import trees
+    ad = ADAPTERS["thick_cylinder_3d"]()
+    p = trees.check_params("strategy_robustness", "u_outer_radial", "thick_cylinder_3d")
+    os.environ.pop("VERIF_POSTHOC_DETF", None)
+    assert run_check(ad, "strategy_robustness", "u_outer_radial", p)["verdict"] == "FAIL"
+    os.environ["VERIF_POSTHOC_DETF"] = "1"
+    try:
+        assert run_check(ad, "strategy_robustness", "u_outer_radial", p)["verdict"] == "PASS"
+    finally:
+        os.environ.pop("VERIF_POSTHOC_DETF", None)
+
+
+def test_switch_exemption_is_checked():
+    """Round M: the frozen-file exemption accepts orchestrate.py only with the switch blocks
+    stripped; another switch name (negative control) is refused."""
+    from omar_pfem.verification_agent.prereg_util import unchanged_except_switch
+    assert unchanged_except_switch("orchestrate.py", "b850330", "VERIF_POSTHOC_DETF")
+    assert not unchanged_except_switch("orchestrate.py", "b850330", "VERIF_NOT_A_SWITCH")
+
+
+def test_round_m_excludes_degenerate_runs():
+    """Round M: a run in which the LLM chose no quantity is excluded from the means."""
+    from omar_pfem.verification_agent.round_m import ablation
+    a = ablation()
+    assert a["degenerate_runs"] == 1 and a["problems"]["crack"]["valid_runs"] == 2
+    assert a["runs"] == 21

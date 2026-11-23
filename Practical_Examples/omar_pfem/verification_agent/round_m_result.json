@@ -1,0 +1,296 @@
+{
+ "posthoc": "the check-level guard was added after seeing the ablation results",
+ "ablation": {
+  "problems": {
+   "cook": {
+    "runs": 3,
+    "valid_runs": 3,
+    "degenerate_runs": 0,
+    "spec_fully_correct": 3,
+    "spec_field_wrong": [],
+    "agreement_mean": 0.8571428571428572,
+    "llm_missed_mean": 1.6666666666666667,
+    "llm_false_alarm_mean": 1.0,
+    "llm_missed_runs": [
+     [
+      "max_disp_mag",
+      "strain_energy",
+      "u_tip"
+     ],
+     [],
+     [
+      "max_disp_mag",
+      "strain_energy"
+     ]
+    ],
+    "rules_missed": [
+     "strain_energy"
+    ],
+    "rules_false_alarm": [],
+    "cost_usd": 1.8103104
+   },
+   "plate": {
+    "runs": 3,
+    "valid_runs": 3,
+    "degenerate_runs": 0,
+    "spec_fully_correct": 3,
+    "spec_field_wrong": [],
+    "agreement_mean": 1.0,
+    "llm_missed_mean": 0.0,
+    "llm_false_alarm_mean": 3.0,
+    "llm_missed_runs": [
+     [],
+     [],
+     []
+    ],
+    "rules_missed": [],
+    "rules_false_alarm": [
+     "hole_peak_sigma_xx"
+    ],
+    "cost_usd": 1.757605
+   },
+   "lamina": {
+    "runs": 3,
+    "valid_runs": 3,
+    "degenerate_runs": 0,
+    "spec_fully_correct": 0,
+    "spec_field_wrong": [
+     "regularity"
+    ],
+    "agreement_mean": 1.0,
+    "llm_missed_mean": 0.0,
+    "llm_false_alarm_mean": 3.0,
+    "llm_missed_runs": [
+     [],
+     [],
+     []
+    ],
+    "rules_missed": [],
+    "rules_false_alarm": [],
+    "cost_usd": 1.7159334
+   },
+   "lshape": {
+    "runs": 3,
+    "valid_runs": 3,
+    "degenerate_runs": 0,
+    "spec_fully_correct": 3,
+    "spec_field_wrong": [],
+    "agreement_mean": 1.0,
+    "llm_missed_mean": 0.0,
+    "llm_false_alarm_mean": 3.3333333333333335,
+    "llm_missed_runs": [
+     [],
+     [],
+     []
+    ],
+    "rules_missed": [],
+    "rules_false_alarm": [],
+    "cost_usd": 1.720215
+   },
+   "crack": {
+    "runs": 3,
+    "valid_runs": 2,
+    "degenerate_runs": 1,
+    "spec_fully_correct": 3,
+    "spec_field_wrong": [],
+    "agreement_mean": 0.8571428571428572,
+    "llm_missed_mean": 0.0,
+    "llm_false_alarm_mean": 3.0,
+    "llm_missed_runs": [
+     [],
+     []
+    ],
+    "rules_missed": [],
+    "rules_false_alarm": [],
+    "cost_usd": 1.2928856
+   },
+   "cylinder": {
+    "runs": 3,
+    "valid_runs": 3,
+    "degenerate_runs": 0,
+    "spec_fully_correct": 3,
+    "spec_field_wrong": [],
+    "agreement_mean": 0.16666666666666666,
+    "llm_missed_mean": 3.6666666666666665,
+    "llm_false_alarm_mean": 0.0,
+    "llm_missed_runs": [
+     [
+      "gk_avg_hoop",
+      "reaction_inner_radial",
+      "strain_energy",
+      "u_outer_radial"
+     ],
+     [
+      "gk_avg_hoop",
+      "reaction_inner_radial",
+      "strain_energy",
+      "u_outer_radial"
+     ],
+     [
+      "gk_avg_hoop",
+      "reaction_inner_radial",
+      "u_outer_radial"
+     ]
+    ],
+    "rules_missed": [
+     "peak_hoop"
+    ],
+    "rules_false_alarm": [],
+    "cost_usd": 2.2202664
+   },
+   "block": {
+    "runs": 3,
+    "valid_runs": 3,
+    "degenerate_runs": 0,
+    "spec_fully_correct": 3,
+    "spec_field_wrong": [],
+    "agreement_mean": 1.0,
+    "llm_missed_mean": 0.0,
+    "llm_false_alarm_mean": 1.6666666666666667,
+    "llm_missed_runs": [
+     [],
+     [],
+     []
+    ],
+    "rules_missed": [
+     "root_gk_avg_von_mises"
+    ],
+    "rules_false_alarm": [],
+    "cost_usd": 1.6473614
+   }
+  },
+  "runs": 21,
+  "cost_usd": 12.1645772,
+  "spec_fully_correct": 18,
+  "degenerate_runs": 1,
+  "block_rule_miss_caught_by_llm": 3,
+  "cook_energy_caught_by_llm": 1
+ },
+ "cylinder_guard": {
+  "verdicts": {
+   "strain_energy": {
+    "strategy_robustness:off": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies nan% vs tol 1.00%"
+    },
+    "anchored_robustness:off": {
+     "verdict": "FAIL",
+     "reason": "max deviation from Richardson extrapolate nan% vs tol 1.00%"
+    },
+    "strategy_robustness:on": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.000% vs tol 1.00%"
+    },
+    "anchored_robustness:on": {
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 0.000% vs tol 1.00%"
+    }
+   },
+   "reaction_inner_radial": {
+    "strategy_robustness:off": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 13.092% vs tol 1.00%"
+    },
+    "anchored_robustness:off": {
+     "verdict": "FAIL",
+     "reason": "max deviation from Richardson extrapolate 13.092% vs tol 1.00%"
+    },
+    "strategy_robustness:on": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.000% vs tol 1.00%"
+    },
+    "anchored_robustness:on": {
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 0.000% vs tol 1.00%"
+    }
+   },
+   "u_outer_radial": {
+    "strategy_robustness:off": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 14.918% vs tol 1.00%"
+    },
+    "anchored_robustness:off": {
+     "verdict": "FAIL",
+     "reason": "max deviation from Richardson extrapolate 14.918% vs tol 1.00%"
+    },
+    "strategy_robustness:on": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.000% vs tol 1.00%"
+    },
+    "anchored_robustness:on": {
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 0.000% vs tol 1.00%"
+    }
+   },
+   "gk_avg_hoop": {
+    "strategy_robustness:off": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 27.199% vs tol 2.00%"
+    },
+    "anchored_robustness:off": {
+     "verdict": "FAIL",
+     "reason": "max deviation from Richardson extrapolate 27.190% vs tol 2.00%"
+    },
+    "strategy_robustness:on": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.011% vs tol 2.00%"
+    },
+    "anchored_robustness:on": {
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 0.009% vs tol 2.00%"
+    }
+   },
+   "disc_avg_hoop": {
+    "strategy_robustness:off": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 25.249% vs tol 2.00%"
+    },
+    "anchored_robustness:off": {
+     "verdict": "FAIL",
+     "reason": "max deviation from finest family value 25.347% vs tol 2.00%"
+    },
+    "strategy_robustness:on": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.130% vs tol 2.00%"
+    },
+    "anchored_robustness:on": {
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 0.305% vs tol 2.00%"
+    }
+   },
+   "peak_hoop": {
+    "strategy_robustness:off": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 17.149% vs tol 2.00%"
+    },
+    "anchored_robustness:off": {
+     "verdict": "INCONCLUSIVE",
+     "reason": "refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative"
+    },
+    "strategy_robustness:on": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 3.518% vs tol 2.00%"
+    },
+    "anchored_robustness:on": {
+     "verdict": "INCONCLUSIVE",
+     "reason": "refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative"
+    }
+   }
+  },
+  "stored_min_detF": -1.026023631142868,
+  "guarded_min_detF": 1.0041879158255933,
+  "guarded_nsteps": 40,
+  "guarded_energy_rel_to_uniform": 3.1365705366326324e-08,
+  "fail_off": [
+   "disc_avg_hoop",
+   "gk_avg_hoop",
+   "peak_hoop",
+   "reaction_inner_radial",
+   "strain_energy",
+   "u_outer_radial"
+  ],
+  "fail_on": [
+   "peak_hoop"
+  ]
+ }
+}
