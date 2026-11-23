@@ -1,0 +1,325 @@
+{
+ "modes": {
+  "default": {
+   "rule_hits": 1,
+   "rule_predictions": 4,
+   "qois": {
+    "strain_energy": {
+     "verdict": "INCONCLUSIVE",
+     "evidence": "rate",
+     "singular_order": {
+      "verdict": "INCONCLUSIVE",
+      "observed": null,
+      "label": null
+     },
+     "finest": 2662.70385324993,
+     "exact": 2661.7218834098253,
+     "true_error_finest_rel": 0.0003689227812361736,
+     "rule_hit": false
+    },
+    "u_mid_left": {
+     "verdict": "INCONCLUSIVE",
+     "evidence": "rate",
+     "singular_order": {
+      "verdict": "INCONCLUSIVE",
+      "observed": null,
+      "label": null
+     },
+     "finest": 1.17693026390413,
+     "exact": 1.1771004831839722,
+     "true_error_finest_rel": 0.00014460896267908798,
+     "rule_hit": false
+    },
+    "v_mid_right": {
+     "verdict": "INCONCLUSIVE",
+     "evidence": "rate",
+     "singular_order": {
+      "verdict": "INCONCLUSIVE",
+      "observed": null,
+      "label": null
+     },
+     "finest": 1.938759063636483,
+     "exact": 1.9389292630673192,
+     "true_error_finest_rel": 8.778011352865004e-05,
+     "rule_hit": false
+    },
+    "corner_gk_avg_von_mises": {
+     "verdict": "INCONCLUSIVE",
+     "evidence": "rate",
+     "singular_order": {
+      "verdict": "INCONCLUSIVE",
+      "observed": null,
+      "label": null
+     },
+     "finest": 2772.909937487123,
+     "exact": 2773.8667998189444,
+     "true_error_finest_rel": 0.00034495612113886234
+    },
+    "corner_disc_avg_von_mises": {
+     "verdict": "INCONCLUSIVE",
+     "evidence": "rate",
+     "singular_order": {
+      "verdict": "INCONCLUSIVE",
+      "observed": null,
+      "label": null
+     },
+     "finest": 2189.240092641955,
+     "exact": 2189.833493658453,
+     "true_error_finest_rel": 0.00027097997095043835
+    },
+    "far_gk_avg_syy": {
+     "verdict": "INCONCLUSIVE",
+     "evidence": "rate",
+     "singular_order": {
+      "verdict": "INCONCLUSIVE",
+      "observed": null,
+      "label": null
+     },
+     "finest": -1105.4187474397193,
+     "exact": -1105.509731726191,
+     "true_error_finest_rel": 8.230075580574017e-05
+    },
+    "peak_von_mises": {
+     "verdict": "FAIL",
+     "evidence": "none",
+     "singular_order": {
+      "verdict": "INCONCLUSIVE",
+      "observed": null,
+      "label": null
+     },
+     "finest": 20117.462449124614,
+     "exact": Infinity,
+     "rule_hit": true
+    }
+   },
+   "T2_covered": 0,
+   "T2_of": 0
+  },
+  "posthoc": {
+   "rule_hits": 4,
+   "rule_predictions": 4,
+   "qois": {
+    "strain_energy": {
+     "verdict": "PASS",
+     "evidence": "rate",
+     "singular_order": {
+      "verdict": "PASS",
+      "observed": 1.0926181045085621,
+      "label": null
+     },
+     "finest": 2662.70385324993,
+     "exact": 2661.7218834098253,
+     "true_error_finest_rel": 0.0003689227812361736,
+     "rule_hit": true,
+     "limit": 2661.729458405039,
+     "U_rel": 0.000458685889208515,
+     "fit_order": 1.0926181045085621,
+     "true_error_of_limit_rel": 2.8448508100615862e-06,
+     "T2_covered": true,
+     "effectivity": 0.006202176428340789
+    },
+    "u_mid_left": {
+     "verdict": "PASS",
+     "evidence": "rate",
+     "singular_order": {
+      "verdict": "PASS",
+      "observed": 1.115774242822287,
+      "label": null
+     },
+     "finest": 1.17693026390413,
+     "exact": 1.1771004831839722,
+     "true_error_finest_rel": 0.00014460896267908798,
+     "rule_hit": true,
+     "limit": 1.1770894472930011,
+     "U_rel": 0.0001740242354547185,
+     "fit_order": 1.115774242822287,
+     "true_error_of_limit_rel": 9.376843564595627e-06,
+     "T2_covered": true,
+     "effectivity": 0.05388240057538137
+    },
+    "v_mid_right": {
+     "verdict": "PASS",
+     "evidence": "rate",
+     "singular_order": {
+      "verdict": "PASS",
+      "observed": 1.1146583099130345,
+      "label": null
+     },
+     "finest": 1.938759063636483,
+     "exact": 1.9389292630673192,
+     "true_error_finest_rel": 8.778011352865004e-05,
+     "rule_hit": true,
+     "limit": 1.9389186327614172,
+     "U_rel": 0.00010578415600184808,
+     "fit_order": 1.1146583099130345,
+     "true_error_of_limit_rel": 5.4830463987840135e-06,
+     "T2_covered": true,
+     "effectivity": 0.051832397270232256
+    },
+    "corner_gk_avg_von_mises": {
+     "verdict": "PASS",
+     "evidence": "rate",
+     "singular_order": {
+      "verdict": "PASS",
+      "observed": 1.3667973520094778,
+      "label": null
+     },
+     "finest": 2772.909937487123,
+     "exact": 2773.8667998189444,
+     "true_error_finest_rel": 0.00034495612113886234,
+     "limit": 2773.853321593823,
+     "U_rel": 0.00046555345018543364,
+     "fit_order": 1.3667973520094778,
+     "true_error_of_limit_rel": 4.8606790070617475e-06,
+     "T2_covered": true,
+     "effectivity": 0.010440646514649822
+    },
+    "corner_disc_avg_von_mises": {
+     "verdict": "PASS",
+     "evidence": "rate",
+     "singular_order": {
+      "verdict": "PASS",
+      "observed": 3.850467432217689,
+      "label": null
+     },
+     "finest": 2189.240092641955,
+     "exact": 2189.833493658453,
+     "true_error_finest_rel": 0.00027097997095043835,
+     "limit": 2188.884637474488,
+     "U_rel": 0.0006185545259469647,
+     "fit_order": 3.850467432217689,
+     "true_error_of_limit_rel": 0.0004334180554951214,
+     "T2_covered": true,
+     "effectivity": 0.7006949869643068
+    },
+    "far_gk_avg_syy": {
+     "verdict": "PASS",
+     "evidence": "rate",
+     "singular_order": {
+      "verdict": "PASS",
+      "observed": 1.1362161954510757,
+      "label": null
+     },
+     "finest": -1105.4187474397193,
+     "exact": -1105.509731726191,
+     "true_error_finest_rel": 8.230075580574017e-05,
+     "limit": -1105.5024252528124,
+     "U_rel": 9.699494349985026e-05,
+     "fit_order": 1.1362161954510757,
+     "true_error_of_limit_rel": 6.6096883153748515e-06,
+     "T2_covered": true,
+     "effectivity": 0.0681446689577695
+    },
+    "peak_von_mises": {
+     "verdict": "FAIL",
+     "evidence": "none",
+     "singular_order": {
+      "verdict": "PASS",
+      "observed": -0.4516440881947494,
+      "label": null
+     },
+     "finest": 20117.462449124614,
+     "exact": Infinity,
+     "rule_hit": true
+    }
+   },
+   "T2_covered": 6,
+   "T2_of": 6
+  }
+ },
+ "remedy": {
+  "g": 3.7,
+  "levels": [
+   2,
+   4,
+   8,
+   16,
+   32,
+   64
+  ],
+  "n_dof": [
+   130,
+   450,
+   1666,
+   6402,
+   25090,
+   99330
+  ],
+  "qois": {
+   "strain_energy": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 3.34360875857578,
+    "U_rel": 5.345051529623682e-06,
+    "graded_true_error_finest_rel": 1.5099772251716858e-07,
+    "uniform_true_error_finest_rel": 0.0003689227812361736,
+    "graded_finest_dof": 99330,
+    "uniform_finest_dof": 395266,
+    "T2_covered": true
+   },
+   "u_mid_left": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 12.669503857203916,
+    "U_rel": null,
+    "graded_true_error_finest_rel": 4.0834435586809414e-07,
+    "uniform_true_error_finest_rel": 0.00014460896267908798,
+    "graded_finest_dof": 99330,
+    "uniform_finest_dof": 395266
+   },
+   "v_mid_right": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 12.669503857203916,
+    "U_rel": null,
+    "graded_true_error_finest_rel": 2.1360748561773504e-07,
+    "uniform_true_error_finest_rel": 8.778011352865004e-05,
+    "graded_finest_dof": 99330,
+    "uniform_finest_dof": 395266
+   },
+   "corner_gk_avg_von_mises": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 3.927041826421131,
+    "U_rel": 1.9496411777834494e-05,
+    "graded_true_error_finest_rel": 2.612540301077892e-07,
+    "uniform_true_error_finest_rel": 0.00034495612113886234,
+    "graded_finest_dof": 99330,
+    "uniform_finest_dof": 395266,
+    "T2_covered": true
+   },
+   "corner_disc_avg_von_mises": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 12.669503857203916,
+    "U_rel": null,
+    "graded_true_error_finest_rel": 0.000292980454843702,
+    "uniform_true_error_finest_rel": 0.00027097997095043835,
+    "graded_finest_dof": 99330,
+    "uniform_finest_dof": 395266
+   },
+   "far_gk_avg_syy": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 12.669503857203916,
+    "U_rel": null,
+    "graded_true_error_finest_rel": 6.784854951419707e-08,
+    "uniform_true_error_finest_rel": 8.230075580574017e-05,
+    "graded_finest_dof": 99330,
+    "uniform_finest_dof": 395266
+   }
+  }
+ },
+ "developer_expectations_met": {
+  "default: rule hits 1 of 4": true,
+  "posthoc energy PASS rate, order within 0.15 of 2 lam": true,
+  "posthoc both displacements PASS rate": true,
+  "posthoc far Gaussian average PASS": true,
+  "posthoc corner averages PASS": true,
+  "peak FAIL in both modes": true,
+  "T2 holds for every rate-certified quantity (posthoc)": true,
+  "remedy energy order 3.0-4.6": true,
+  "remedy energy error < 1/100 of uniform": true,
+  "remedy T2 for energy and both displacements": false
+ }
+}

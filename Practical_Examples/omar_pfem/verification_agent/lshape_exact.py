@@ -305,7 +305,7 @@ def solve_level(n, g=1.0):
         # AMENDMENT after the pre-registration (2026-11-23, before any scoring): graded
         # meshes have no node at the query points, so the displacement is interpolated in
         # its element (the same Q2 field). Uniform meshes always take the branch above,
-        # so their values are unchanged (checked bitwise in lshape_exact_preregister).
+        # so their values are unchanged (to round-off, checked in lshape_exact_preregister).
         lin = fem.Basis(fem.MeshQuad(msh.p, msh.t), fem.ElementVector(fem.ElementQuad2()),
                         intorder=4)
         assert np.allclose(lin.doflocs, b.doflocs)
