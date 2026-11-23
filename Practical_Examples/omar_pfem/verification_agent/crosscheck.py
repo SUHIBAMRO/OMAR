@@ -44,7 +44,8 @@ Independent sources:
                              iga_b3_cyl_result.json, added 2026-11-23, round J)
   l_shape, edge_crack,       6-node triangles P2, the same problem code with each Q2
   plate_hole                 quadrilateral split in two (independent_p2.py, round J;
-                             plate: hole mid-edge nodes on the exact circle)
+  l_shape_exact              plate: hole mid-edge nodes on the exact circle; l_shape_exact
+                             added in round K)
   clamped_block_3d           8-node hexahedra Q8, k = 2..16 (block3d.run_q8, round J;
                              order window of a linear element 0.5-3); and a second code,
                              scikit-fem with 27-node hexahedra (independent_block3d.py). Its certifications
@@ -68,7 +69,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "crosscheck_result.json")
 PROBLEMS = ("unit_square", "quarter_ring", "bushing_groove", "cook_membrane", "plate_hole",
             "open_hole_lamina", "l_shape", "edge_crack", "thick_cylinder_3d",
-            "clamped_block_3d")
+            "clamped_block_3d", "l_shape_exact")
 QUAD_WINDOW = (0.5, 5)
 LIN_WINDOW = (0.5, 3)
 
@@ -105,8 +106,9 @@ def independent_series(geometry, qoi):
         if rows:
             out.append(("splines p = 3, exact geometry", [1.0 / r["m"] for r in rows],
                         [r[qoi] for r in rows]))
-    elif geometry in ("l_shape", "edge_crack", "plate_hole"):
-        name = {"l_shape": "lshape", "edge_crack": "crack"}.get(geometry, geometry)
+    elif geometry in ("l_shape", "edge_crack", "plate_hole", "l_shape_exact"):
+        name = {"l_shape": "lshape", "edge_crack": "crack",
+                "l_shape_exact": "lshape_exact"}.get(geometry, geometry)
         rows = sorted(_j(f"{name}_p2_ladder.json"), key=lambda r: r.get("n", r.get("m")))
         rows = [r for r in rows if qoi in r]
         if rows:

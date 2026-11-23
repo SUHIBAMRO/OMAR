@@ -851,14 +851,14 @@
    "independent_sources": [
     {
      "source": "splines p = 2, displacement",
-     "levels": 2,
-     "finest": 0.5223371257963232,
+     "levels": 3,
+     "finest": 0.5314137295857023,
      "assessment": {
       "evidence": "too_few_levels",
-      "n_levels": 2
+      "n_levels": 3
      },
      "status": "independent_unconverged",
-     "gap_finest_rel": 0.0055492425689043215
+     "gap_finest_rel": 0.0026180510955868654
     }
    ],
    "v1": {
@@ -876,14 +876,14 @@
    "independent_sources": [
     {
      "source": "splines p = 2, displacement",
-     "levels": 2,
-     "finest": 0.4151231389560243,
+     "levels": 3,
+     "finest": 0.4207554437893631,
      "assessment": {
       "evidence": "too_few_levels",
-      "n_levels": 2
+      "n_levels": 3
      },
      "status": "independent_unconverged",
-     "gap_finest_rel": 0.003596273766065387
+     "gap_finest_rel": 0.0017773815586160006
     }
    ],
    "v1": {
@@ -1335,9 +1335,9 @@
   }
  ],
  "summary_posthoc_only": {
-  "cross_checked": 13,
+  "cross_checked": 17,
   "contradicted": 0,
-  "independent_unconverged": 3,
+  "independent_unconverged": 5,
   "conflicting_sources": 0,
   "single_family": 0
  },
@@ -1796,6 +1796,17 @@
      "status": "cross_checked",
      "gap_rel": 0.00022068008467622042,
      "U_ind_rel": 0.004586738959478555
+    },
+    {
+     "source": "second code: scikit-fem, 27-node hexahedra",
+     "levels": 3,
+     "finest": -0.13086221177942917,
+     "assessment": {
+      "evidence": "too_few_levels",
+      "n_levels": 3
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 0.0031173733788044545
     }
    ],
    "v1": {
@@ -1827,6 +1838,201 @@
      "status": "cross_checked",
      "gap_rel": 0.00023649624405022346,
      "U_ind_rel": 0.0023249292751453543
+    },
+    {
+     "source": "second code: scikit-fem, 27-node hexahedra",
+     "levels": 3,
+     "finest": 7.85730759005184,
+     "assessment": {
+      "evidence": "too_few_levels",
+      "n_levels": 3
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 0.00012732725647650943
+    }
+   ],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
+  },
+  {
+   "problem": "l_shape_exact",
+   "qoi": "strain_energy",
+   "limit": 2661.729458405039,
+   "U_rel": 0.000458685889208515,
+   "scale": 2662.70385324993,
+   "independent_sources": [
+    {
+     "source": "6-node triangles P2 (independent discretization)",
+     "levels": 7,
+     "finest": 2662.828576389794,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 2661.731455143846,
+      "fit_order": 1.0931027749156896,
+      "uncertainty_fine": 0.000516616772952807,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.09 (leave-one-out 1.09-1.09), U_fine=0.05% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 7.498914324150508e-07,
+     "U_ind_rel": 0.000516616772952807
+    }
+   ],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
+  },
+  {
+   "problem": "l_shape_exact",
+   "qoi": "u_mid_left",
+   "limit": 1.1770894472930011,
+   "U_rel": 0.0001740242354547185,
+   "scale": 1.17693026390413,
+   "independent_sources": [
+    {
+     "source": "6-node triangles P2 (independent discretization)",
+     "levels": 7,
+     "finest": 1.1769086387518248,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 1.1770901535343856,
+      "fit_order": 1.1123455881191868,
+      "uncertainty_fine": 0.00019719853113452811,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.11 (leave-one-out 1.10-1.12), U_fine=0.02% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 6.000707145911825e-07,
+     "U_ind_rel": 0.00019719853113452811
+    }
+   ],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
+  },
+  {
+   "problem": "l_shape_exact",
+   "qoi": "v_mid_right",
+   "limit": 1.9389186327614172,
+   "U_rel": 0.00010578415600184808,
+   "scale": 1.938759063636483,
+   "independent_sources": [
+    {
+     "source": "6-node triangles P2 (independent discretization)",
+     "levels": 7,
+     "finest": 1.9387374594603672,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 1.93891961684656,
+      "fit_order": 1.1105556014330167,
+      "uncertainty_fine": 0.0001199650350986914,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.11 (leave-one-out 1.10-1.11), U_fine=0.01% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 5.075850636448061e-07,
+     "U_ind_rel": 0.0001199650350986914
+    }
+   ],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
+  },
+  {
+   "problem": "l_shape_exact",
+   "qoi": "corner_gk_avg_von_mises",
+   "limit": 2773.853321593823,
+   "U_rel": 0.00046555345018543364,
+   "scale": 2772.909937487123,
+   "independent_sources": [
+    {
+     "source": "6-node triangles P2 (independent discretization)",
+     "levels": 7,
+     "finest": 2773.4559292621066,
+     "assessment": {
+      "evidence": "band",
+      "fit_limit": 2772.6261199646306,
+      "fit_order": 1.6842214750206141,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.012%); no rate from 5 levels (failed: monotone; fitted p=1.68)",
+      "n_levels": 5
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 0.00014331238326346267
+    }
+   ],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "independent_unconverged",
+   "final": "INCONCLUSIVE"
+  },
+  {
+   "problem": "l_shape_exact",
+   "qoi": "corner_disc_avg_von_mises",
+   "limit": 2188.884637474488,
+   "U_rel": 0.0006185545259469647,
+   "scale": 2189.240092641955,
+   "independent_sources": [
+    {
+     "source": "6-node triangles P2 (independent discretization)",
+     "levels": 7,
+     "finest": 2189.557588608517,
+     "assessment": {
+      "evidence": "band",
+      "fit_limit": 2191.6941424365173,
+      "fit_order": 1.3084071328361941,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.209%); no rate from 5 levels (failed: monotone, fit_quality, leave_one_out; fitted p=1.31)",
+      "n_levels": 5
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 0.00030739028409485755
+    }
+   ],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "independent_unconverged",
+   "final": "INCONCLUSIVE"
+  },
+  {
+   "problem": "l_shape_exact",
+   "qoi": "far_gk_avg_syy",
+   "limit": -1105.5024252528124,
+   "U_rel": 9.699494349985026e-05,
+   "scale": 1105.4187474397193,
+   "independent_sources": [
+    {
+     "source": "6-node triangles P2 (independent discretization)",
+     "levels": 7,
+     "finest": -1105.4069158822588,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": -1105.4825459892713,
+      "fit_order": 1.224063722183861,
+      "uncertainty_fine": 9.797006063459282e-05,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.22 (leave-one-out 1.16-1.24), U_fine=0.01% vs tol 2.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 1.7983468786905843e-05,
+     "U_ind_rel": 9.797006063459282e-05
     }
    ],
    "v1": {
