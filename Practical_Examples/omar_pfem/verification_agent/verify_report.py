@@ -1142,18 +1142,28 @@ def add_g_round(add, h1, h2):
     add("25", "crack finest elements", 65536, 0,
         lambda: max(r["n_elem"] for r in _j("crack_ladder.json")))
     # final-uncertainty rule
+    # v1 of the rule (2026-11-22), on the problems it covered (the 3D benchmark came later)
+    v1 = lambda st: sum(r["v1"]["status"] == st for r in _j("crosscheck_result.json")["rows"]
+                        if r["problem"] != "thick_cylinder_3d")
+    add("25", "crosscheck cross_checked", 21, 0, lambda: v1("cross_checked"))
+    add("25", "crosscheck contradicted", 5, 0, lambda: v1("contradicted"))
+    add("25", "crosscheck single_family", 8, 0, lambda: v1("single_family"))
+    add("25", "crosscheck rate-certified total", 34, 0,
+        lambda: sum(v1(s) for s in ("cross_checked", "contradicted", "single_family")))
+    # v2 (2026-11-23), all nine problems
     xc = lambda: _j("crosscheck_result.json")["summary"]
-    add("25", "crosscheck cross_checked", 21, 0, lambda: xc()["cross_checked"])
-    add("25", "crosscheck contradicted", 5, 0, lambda: xc()["contradicted"])
-    add("25", "crosscheck single_family", 8, 0, lambda: xc()["single_family"])
-    add("25", "crosscheck rate-certified total", 34, 0, lambda: sum(xc().values()))
+    add("25", "crosscheck v2 cross_checked", 27, 0, lambda: xc()["cross_checked"])
+    add("25", "crosscheck v2 contradicted", 0, 0, lambda: xc()["contradicted"])
+    add("25", "crosscheck v2 independent unconverged", 9, 0, lambda: xc()["independent_unconverged"])
+    add("25", "crosscheck v2 single_family", 2, 0, lambda: xc()["single_family"])
+    add("25", "crosscheck v2 rate-certified total", 38, 0, lambda: sum(xc().values()))
     # the B3 Gaussian uncertainty and gap on one basis (2026-11-22): U is relative to the
     # stress scale, the gap relative to the averages; both stated in Sections 1, 20, 25, 26
     gk = lambda: [r for r in _j("crosscheck_result.json")["rows"]
                   if r["problem"] == "bushing_groove" and r["qoi"] in
                   ("gk2_sigma_xx_avg", "gk2_sigma_yy_avg", "gk2_sigma_zz_avg", "gk2_pressure_avg")]
     u_val = lambda: [100 * r["U_rel"] * r["scale"] / abs(r["limit"]) for r in gk()]
-    gap_val = lambda: [100 * abs(r["independent"] - r["limit"]) / abs(r["limit"]) for r in gk()]
+    gap_val = lambda: [100 * abs(r["v1"]["independent"] - r["limit"]) / abs(r["limit"]) for r in gk()]
     add("25", "Gaussian U, % of the averages, min", 0.8, h1, lambda: min(u_val()))
     add("25", "Gaussian U, % of the averages, max", 1.0, h1, lambda: max(u_val()))
     add("25", "Gaussian gap to spline P1, % of the averages, min", 1.9, h1,

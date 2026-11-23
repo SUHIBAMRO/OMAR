@@ -59,7 +59,7 @@ def claims():
     gk_s = [_vr("8.3", f"gk2_{c}_avg strategy spread %") for c in comps]
     rows = _gk_rows()
     u_val = [100 * r["U_rel"] * r["scale"] / abs(r["limit"]) for r in rows]
-    gap_val = [100 * abs(r["independent"] - r["limit"]) / abs(r["limit"]) for r in rows]
+    gap_val = [100 * abs(r["v1"]["independent"] - r["limit"]) / abs(r["limit"]) for r in rows]
     mixed = _j("mixed_b3_result.json")
     p1_10200 = [100 * abs(mixed["10200:full:fbar_p1"][f"gk2_{c}_avg"]
                           / mixed["10200:reduced:disp"][f"gk2_{c}_avg"] - 1) for c in comps]

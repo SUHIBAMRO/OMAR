@@ -207,6 +207,7 @@ def _solve_level(m, g, chunk, theta, rh, pypardiso):
     return {"m": m, "g": g, "h": 1.0 / m, "n_elem": int(nel), "n_dof": int(b0.N),
             "wall_clock_s": time.time() - t0, "residual_rel": res_rel,
             "area_mm2": acc["area"],
+            "hole_zone_area_mm2": acc["hz_w"],     # added 2026-11-23 (definition study)
             "compliance": compliance,
             "u_tip": float(u[b0.nodal_dofs[0, j]]),
             "hole_gamma12_avg": acc["hz_g"] / acc["hz_w"],

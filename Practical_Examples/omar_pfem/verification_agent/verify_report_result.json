@@ -6553,6 +6553,46 @@
  },
  {
   "section": "25",
+  "claim": "crosscheck v2 cross_checked",
+  "printed": 27,
+  "recomputed": 27.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "crosscheck v2 contradicted",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "crosscheck v2 independent unconverged",
+  "printed": 9,
+  "recomputed": 9.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "crosscheck v2 single_family",
+  "printed": 2,
+  "recomputed": 2.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
+  "claim": "crosscheck v2 rate-certified total",
+  "printed": 38,
+  "recomputed": 38.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "25",
   "claim": "Gaussian U, % of the averages, min",
   "printed": 0.8,
   "recomputed": 0.7943779871268636,

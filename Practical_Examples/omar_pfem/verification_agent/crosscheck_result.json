@@ -1,8 +1,19 @@
 {
  "summary": {
+  "cross_checked": 27,
+  "contradicted": 0,
+  "independent_unconverged": 9,
+  "conflicting_sources": 0,
+  "single_family": 2
+ },
+ "summary_v1": {
   "cross_checked": 21,
   "contradicted": 5,
-  "single_family": 8
+  "single_family": 12
+ },
+ "final": {
+  "CERTIFIED": 27,
+  "INCONCLUSIVE": 11
  },
  "rows": [
   {
@@ -11,11 +22,34 @@
    "limit": 0.005967053838862865,
    "U_rel": 5.714340686078016e-05,
    "scale": 0.005966806206677958,
-   "independent": 0.005967057268383148,
-   "U_ind_rel": 1.2609876990300908e-05,
-   "gap_rel": 5.74766493757742e-07,
-   "source": "second FE code, Q2",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "second FE code, Q2",
+     "levels": 5,
+     "finest": 0.005967057268383148,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 0.005967094648807254,
+      "fit_order": 1.5030504890602951,
+      "uncertainty_fine": 8.750550837266392e-06,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.50 (leave-one-out 1.47-1.51), U_fine=0.00% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 6.8394955315552634e-06,
+     "U_ind_rel": 8.750550837266392e-06
+    }
+   ],
+   "v1": {
+    "source": "second FE code, Q2",
+    "independent": 0.005967057268383148,
+    "U_ind_rel": 1.2609876990300908e-05,
+    "gap_rel": 5.74766493757742e-07,
+    "status": "cross_checked"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "unit_square",
@@ -23,11 +57,34 @@
    "limit": 0.00046944097544491354,
    "U_rel": 0.0001852279494304489,
    "scale": 0.00046949885663452405,
-   "independent": 0.00046945149388448476,
-   "U_ind_rel": 2.0093081914261e-06,
-   "gap_rel": 2.2403546723445835e-05,
-   "source": "second FE code, Q2",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "second FE code, Q2",
+     "levels": 5,
+     "finest": 0.00046945149388448476,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 0.0004694522553657436,
+      "fit_order": 2.714917206789977,
+      "uncertainty_fine": 5.914947653046945e-06,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=2.71 (leave-one-out 1.30-2.85), U_fine=0.00% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 2.4025448988154535e-05,
+     "U_ind_rel": 5.914947653046945e-06
+    }
+   ],
+   "v1": {
+    "source": "second FE code, Q2",
+    "independent": 0.00046945149388448476,
+    "U_ind_rel": 2.0093081914261e-06,
+    "gap_rel": 2.2403546723445835e-05,
+    "status": "cross_checked"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "unit_square",
@@ -35,11 +92,34 @@
    "limit": -0.005771187563798909,
    "U_rel": 5.7218810268985845e-05,
    "scale": 0.005770940953755469,
-   "independent": -0.005771174467490763,
-   "U_ind_rel": 1.2722270403292574e-05,
-   "gap_rel": 2.2693540362646537e-06,
-   "source": "second FE code, Q2",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "second FE code, Q2",
+     "levels": 5,
+     "finest": -0.005771174467490763,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": -0.005771212676072599,
+      "fit_order": 1.4848140022729508,
+      "uncertainty_fine": 8.986655835274695e-06,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.48 (leave-one-out 1.46-1.49), U_fine=0.00% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 4.351504181281618e-06,
+     "U_ind_rel": 8.986655835274695e-06
+    }
+   ],
+   "v1": {
+    "source": "second FE code, Q2",
+    "independent": -0.005771174467490763,
+    "U_ind_rel": 1.2722270403292574e-05,
+    "gap_rel": 2.2693540362646537e-06,
+    "status": "cross_checked"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "unit_square",
@@ -47,11 +127,34 @@
    "limit": -0.0005847036142213615,
    "U_rel": 7.2108038112557e-05,
    "scale": 0.0005846783079227648,
-   "independent": -0.0005847104631694622,
-   "U_ind_rel": 1.8367613495148497e-05,
-   "gap_rel": 1.1714045155954827e-05,
-   "source": "second FE code, Q2",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "second FE code, Q2",
+     "levels": 5,
+     "finest": -0.0005847104631694622,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": -0.0005847177701593689,
+      "fit_order": 1.3714969156756884,
+      "uncertainty_fine": 1.6637796100012373e-05,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.37 (leave-one-out 1.37-1.40), U_fine=0.00% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 2.4211498554997717e-05,
+     "U_ind_rel": 1.6637796100012373e-05
+    }
+   ],
+   "v1": {
+    "source": "second FE code, Q2",
+    "independent": -0.0005847104631694622,
+    "U_ind_rel": 1.8367613495148497e-05,
+    "gap_rel": 1.1714045155954827e-05,
+    "status": "cross_checked"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "unit_square",
@@ -59,11 +162,34 @@
    "limit": -0.0030768024357991646,
    "U_rel": 0.00010589205539350495,
    "scale": 0.0030765541524340415,
-   "independent": -0.003076781370133899,
-   "U_ind_rel": 2.3262873377784826e-05,
-   "gap_rel": 6.847162189192055e-06,
-   "source": "second FE code, Q2",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "second FE code, Q2",
+     "levels": 5,
+     "finest": -0.003076781370133899,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": -0.0030768158842235283,
+      "fit_order": 1.51171274578216,
+      "uncertainty_fine": 1.604951707453246e-05,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.51 (leave-one-out 1.47-1.52), U_fine=0.00% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 4.371262034529846e-06,
+     "U_ind_rel": 1.604951707453246e-05
+    }
+   ],
+   "v1": {
+    "source": "second FE code, Q2",
+    "independent": -0.003076781370133899,
+    "U_ind_rel": 2.3262873377784826e-05,
+    "gap_rel": 6.847162189192055e-06,
+    "status": "cross_checked"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "unit_square",
@@ -71,11 +197,34 @@
    "limit": 0.017716271479652258,
    "U_rel": 5.8383967017699646e-05,
    "scale": 0.017715466391237517,
-   "independent": 0.01771617257205483,
-   "U_ind_rel": 1.2880112597198228e-05,
-   "gap_rel": 5.583121281929625e-06,
-   "source": "second FE code, Q2",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "second FE code, Q2",
+     "levels": 5,
+     "finest": 0.01771617257205483,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 0.017716285205109938,
+      "fit_order": 1.4988848300178044,
+      "uncertainty_fine": 9.002123090519115e-06,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.50 (leave-one-out 1.46-1.51), U_fine=0.00% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 7.747725844195065e-07,
+     "U_ind_rel": 9.002123090519115e-06
+    }
+   ],
+   "v1": {
+    "source": "second FE code, Q2",
+    "independent": 0.01771617257205483,
+    "U_ind_rel": 1.2880112597198228e-05,
+    "gap_rel": 5.583121281929625e-06,
+    "status": "cross_checked"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "unit_square",
@@ -83,11 +232,33 @@
    "limit": 6.620653211730369,
    "U_rel": 0.00013128469218172108,
    "scale": 6.620894397155796,
-   "independent": 6.62106879095811,
-   "U_ind_rel": 2.6330667283847044e-07,
-   "gap_rel": 6.276783812157448e-05,
-   "source": "second FE code, Q2",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "second FE code, Q2",
+     "levels": 5,
+     "finest": 6.62106879095811,
+     "assessment": {
+      "evidence": "band",
+      "fit_limit": 6.620881097626189,
+      "fit_order": 13.090065392237554,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.002%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=13.09)",
+      "n_levels": 5
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 6.276783812157448e-05
+    }
+   ],
+   "v1": {
+    "source": "second FE code, Q2",
+    "independent": 6.62106879095811,
+    "U_ind_rel": 2.6330667283847044e-07,
+    "gap_rel": 6.276783812157448e-05,
+    "status": "cross_checked"
+   },
+   "status": "independent_unconverged",
+   "final": "INCONCLUSIVE"
   },
   {
    "problem": "unit_square",
@@ -95,7 +266,30 @@
    "limit": 6.623659340064464,
    "U_rel": 2.671274493961588e-05,
    "scale": 6.62357943083463,
-   "status": "single_family"
+   "independent_sources": [
+    {
+     "source": "second FE code, Q2",
+     "levels": 5,
+     "finest": 6.6237289681537375,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 6.623759574608727,
+      "fit_order": 1.3171065564095843,
+      "uncertainty_fine": 6.3779252988617345e-06,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.32 (leave-one-out 1.31-1.37), U_fine=0.00% vs tol 2.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 1.5132987429298043e-05,
+     "U_ind_rel": 6.3779252988617345e-06
+    }
+   ],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "quarter_ring",
@@ -103,11 +297,34 @@
    "limit": 0.011008917297041142,
    "U_rel": 2.0576859220723946e-05,
    "scale": 0.011008750497150117,
-   "independent": 0.011008904457341064,
-   "U_ind_rel": 1.4803081274685215e-07,
-   "gap_rel": 1.1663176561934808e-06,
-   "source": "second FE code, Q2",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "second FE code, Q2",
+     "levels": 5,
+     "finest": 0.011008904457341064,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 0.011008902995734248,
+      "fit_order": 4.002286318828028,
+      "uncertainty_fine": 5.027466051710625e-07,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=4.00 (leave-one-out 3.59-4.01), U_fine=0.00% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 1.2990853864512057e-06,
+     "U_ind_rel": 5.027466051710625e-07
+    }
+   ],
+   "v1": {
+    "source": "second FE code, Q2",
+    "independent": 0.011008904457341064,
+    "U_ind_rel": 1.4803081274685215e-07,
+    "gap_rel": 1.1663176561934808e-06,
+    "status": "cross_checked"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "quarter_ring",
@@ -115,11 +332,34 @@
    "limit": 0.0057004877874646045,
    "U_rel": 2.9838771808138946e-05,
    "scale": 0.00570036599366265,
-   "independent": 0.0057004751848914155,
-   "U_ind_rel": 1.1492781778524964e-07,
-   "gap_rel": 2.2108357959871995e-06,
-   "source": "second FE code, Q2",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "second FE code, Q2",
+     "levels": 5,
+     "finest": 0.0057004751848914155,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 0.00570047456859267,
+      "fit_order": 4.251969758895068,
+      "uncertainty_fine": 4.0962638223127335e-07,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=4.25 (leave-one-out 3.90-4.26), U_fine=0.00% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 2.318951440882502e-06,
+     "U_ind_rel": 4.0962638223127335e-07
+    }
+   ],
+   "v1": {
+    "source": "second FE code, Q2",
+    "independent": 0.0057004751848914155,
+    "U_ind_rel": 1.1492781778524964e-07,
+    "gap_rel": 2.2108357959871995e-06,
+    "status": "cross_checked"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "quarter_ring",
@@ -127,11 +367,34 @@
    "limit": 0.009239720749909103,
    "U_rel": 1.2494426849509758e-05,
    "scale": 0.009239631188873583,
-   "independent": 0.00923971808488818,
-   "U_ind_rel": 1.6727072724471886e-07,
-   "gap_rel": 2.884336905029591e-07,
-   "source": "second FE code, Q2",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "second FE code, Q2",
+     "levels": 5,
+     "finest": 0.00923971808488818,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 0.009239717102095951,
+      "fit_order": 3.640386987935706,
+      "uncertainty_fine": 4.144107628873844e-07,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=3.64 (leave-one-out 3.31-3.65), U_fine=0.00% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 3.948007315084415e-07,
+     "U_ind_rel": 4.144107628873844e-07
+    }
+   ],
+   "v1": {
+    "source": "second FE code, Q2",
+    "independent": 0.00923971808488818,
+    "U_ind_rel": 1.6727072724471886e-07,
+    "gap_rel": 2.884336905029591e-07,
+    "status": "cross_checked"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "quarter_ring",
@@ -139,11 +402,34 @@
    "limit": 0.0042184479496616785,
    "U_rel": 1.9187929298420308e-05,
    "scale": 0.00421838752224781,
-   "independent": 0.004218444147285103,
-   "U_ind_rel": 2.583460945175127e-08,
-   "gap_rel": 9.013815243398647e-07,
-   "source": "second FE code, Q2",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "second FE code, Q2",
+     "levels": 5,
+     "finest": 0.004218444147285103,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 0.004218444070311788,
+      "fit_order": 4.3996754682271595,
+      "uncertainty_fine": 7.177195661705219e-08,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=4.40 (leave-one-out 4.20-4.40), U_fine=0.00% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 9.196286188365597e-07,
+     "U_ind_rel": 7.177195661705219e-08
+    }
+   ],
+   "v1": {
+    "source": "second FE code, Q2",
+    "independent": 0.004218444147285103,
+    "U_ind_rel": 2.583460945175127e-08,
+    "gap_rel": 9.013815243398647e-07,
+    "status": "cross_checked"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "quarter_ring",
@@ -151,11 +437,34 @@
    "limit": 0.006955631068250262,
    "U_rel": 1.4623841079989476e-05,
    "scale": 0.006955553451086621,
-   "independent": 0.006955627773422704,
-   "U_ind_rel": 1.8327731563379306e-08,
-   "gap_rel": 4.7369739599571226e-07,
-   "source": "second FE code, Q2",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "second FE code, Q2",
+     "levels": 5,
+     "finest": 0.006955627773422704,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 0.006955627680881041,
+      "fit_order": 4.396834466887863,
+      "uncertainty_fine": 5.235989112966621e-08,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=4.40 (leave-one-out 4.19-4.40), U_fine=0.00% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 4.870021120357933e-07,
+     "U_ind_rel": 5.235989112966621e-08
+    }
+   ],
+   "v1": {
+    "source": "second FE code, Q2",
+    "independent": 0.006955627773422704,
+    "U_ind_rel": 1.8327731563379306e-08,
+    "gap_rel": 4.7369739599571226e-07,
+    "status": "cross_checked"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "quarter_ring",
@@ -163,11 +472,34 @@
    "limit": 0.052744708142221174,
    "U_rel": 2.7621675712214936e-05,
    "scale": 0.05274356548798648,
-   "independent": 0.05274468821931409,
-   "U_ind_rel": 8.052849395092097e-09,
-   "gap_rel": 3.777315184648417e-07,
-   "source": "second FE code, Q2",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "second FE code, Q2",
+     "levels": 5,
+     "finest": 0.05274468821931409,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 0.05274468790692963,
+      "fit_order": 4.4294245651263395,
+      "uncertainty_fine": 2.3195037703953057e-08,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=4.43 (leave-one-out 4.22-4.43), U_fine=0.00% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 3.8365422131261263e-07,
+     "U_ind_rel": 2.3195037703953057e-08
+    }
+   ],
+   "v1": {
+    "source": "second FE code, Q2",
+    "independent": 0.05274468821931409,
+    "U_ind_rel": 8.052849395092097e-09,
+    "gap_rel": 3.777315184648417e-07,
+    "status": "cross_checked"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "quarter_ring",
@@ -175,11 +507,33 @@
    "limit": 6.113534876817331,
    "U_rel": 1.3409880834845065e-05,
    "scale": 6.113481209524879,
-   "independent": 6.11354407841893,
-   "U_ind_rel": 4.2105433746187575e-08,
-   "gap_rel": 1.5051328831369986e-06,
-   "source": "second FE code, Q2",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "second FE code, Q2",
+     "levels": 5,
+     "finest": 6.11354407841893,
+     "assessment": {
+      "evidence": "band",
+      "fit_limit": 6.113524325477221,
+      "fit_order": 3.2726664244222925,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.000%); no rate from 5 levels (failed: monotone, leave_one_out; fitted p=3.27)",
+      "n_levels": 5
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 1.5051328831369986e-06
+    }
+   ],
+   "v1": {
+    "source": "second FE code, Q2",
+    "independent": 6.11354407841893,
+    "U_ind_rel": 4.2105433746187575e-08,
+    "gap_rel": 1.5051328831369986e-06,
+    "status": "cross_checked"
+   },
+   "status": "independent_unconverged",
+   "final": "INCONCLUSIVE"
   },
   {
    "problem": "quarter_ring",
@@ -187,11 +541,34 @@
    "limit": 12.417158056872477,
    "U_rel": 0.0019635370314254365,
    "scale": 12.398684858733752,
-   "independent": 12.388292540433357,
-   "U_ind_rel": 0.0024669159237113557,
-   "gap_rel": 0.0023281111479164143,
-   "source": "second FE code, Q2",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "second FE code, Q2",
+     "levels": 5,
+     "finest": 12.388292540433357,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 12.414880448019474,
+      "fit_order": 1.0762496348434052,
+      "uncertainty_fine": 0.0028025808228569434,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.08 (leave-one-out 1.05-1.09), U_fine=0.28% vs tol 2.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 0.0001836976162353718,
+     "U_ind_rel": 0.0028025808228569434
+    }
+   ],
+   "v1": {
+    "source": "second FE code, Q2",
+    "independent": 12.388292540433357,
+    "U_ind_rel": 0.0024669159237113557,
+    "gap_rel": 0.0023281111479164143,
+    "status": "cross_checked"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "bushing_groove",
@@ -199,11 +576,34 @@
    "limit": 34.47885451374904,
    "U_rel": 0.001490525536675421,
    "scale": 34.51983933173489,
-   "independent": 34.49319237797835,
-   "U_ind_rel": 0.0012406043108691277,
-   "gap_rel": 0.0004153514183981256,
-   "source": "splines p = 2",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "splines p = 2, displacement",
+     "levels": 4,
+     "finest": 34.52359088996238,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 34.49319237765356,
+      "fit_order": 2.1351121653265794,
+      "uncertainty_fine": 0.0012406043192157803,
+      "verdict": "PASS",
+      "reason": "4 levels monotone, fitted p=2.14 (no leave-one-out check with 4 levels), U_fine=0.12% vs tol 0.46%",
+      "n_levels": 4
+     },
+     "status": "cross_checked",
+     "gap_rel": 0.00041535140898915396,
+     "U_ind_rel": 0.0012406043192157803
+    }
+   ],
+   "v1": {
+    "source": "splines p = 2",
+    "independent": 34.49319237797835,
+    "U_ind_rel": 0.0012406043108691277,
+    "gap_rel": 0.0004153514183981256,
+    "status": "cross_checked"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "bushing_groove",
@@ -211,11 +611,34 @@
    "limit": 0.8626813327500318,
    "U_rel": 0.0013565907997650038,
    "scale": 0.8636142611024635,
-   "independent": 0.8630018238455314,
-   "U_ind_rel": 0.0011766623399290224,
-   "gap_rel": 0.00037110445014010935,
-   "source": "splines p = 2",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "splines p = 2, displacement",
+     "levels": 4,
+     "finest": 0.8637228229728362,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 0.8630018239604355,
+      "fit_order": 2.1626061419021396,
+      "uncertainty_fine": 0.0011766622227931955,
+      "verdict": "PASS",
+      "reason": "4 levels monotone, fitted p=2.16 (no leave-one-out check with 4 levels), U_fine=0.12% vs tol 1.00%",
+      "n_levels": 4
+     },
+     "status": "cross_checked",
+     "gap_rel": 0.00037110458319035113,
+     "U_ind_rel": 0.0011766622227931955
+    }
+   ],
+   "v1": {
+    "source": "splines p = 2",
+    "independent": 0.8630018238455314,
+    "U_ind_rel": 0.0011766623399290224,
+    "gap_rel": 0.00037110445014010935,
+    "status": "cross_checked"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "bushing_groove",
@@ -223,11 +646,49 @@
    "limit": 0.5402131319527926,
    "U_rel": 0.0017593637906375779,
    "scale": 3.0965577895552623,
-   "independent": 0.5504703569341163,
-   "U_ind_rel": 0.0006780883661997954,
-   "gap_rel": 0.003312460376461057,
-   "source": "spline P1, finest level (not converged)",
-   "status": "contradicted"
+   "independent_sources": [
+    {
+     "source": "spline P1",
+     "levels": 4,
+     "finest": 0.5504703569341163,
+     "assessment": {
+      "evidence": "band",
+      "fit_limit": 0.6191949445858603,
+      "fit_order": 0.050000001446839366,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.149%); no rate from 4 levels (failed: fit_quality, order_window; fitted p=0.05)",
+      "n_levels": 4
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 0.003312460376461057
+    },
+    {
+     "source": "splines p = 2, displacement",
+     "levels": 4,
+     "finest": 0.5375908384290167,
+     "assessment": {
+      "evidence": "band",
+      "fit_limit": 0.5743766855788115,
+      "fit_order": 0.4828109387220213,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.472%); no rate from 4 levels (failed: order_window; fitted p=0.48)",
+      "n_levels": 4
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 0.0008468414613868993
+    }
+   ],
+   "v1": {
+    "source": "spline P1, finest level (not converged)",
+    "independent": 0.5504703569341163,
+    "U_ind_rel": 0.0006780883661997954,
+    "gap_rel": 0.003312460376461057,
+    "status": "contradicted"
+   },
+   "status": "independent_unconverged",
+   "final": "INCONCLUSIVE"
   },
   {
    "problem": "bushing_groove",
@@ -235,11 +696,50 @@
    "limit": 0.42556367774642523,
    "U_rel": 0.0012195878613160801,
    "scale": 3.0965577895552623,
-   "independent": 0.4341704652056293,
-   "U_ind_rel": 0.0004812882030402128,
-   "gap_rel": 0.0027794693476204113,
-   "source": "spline P1, finest level (not converged)",
-   "status": "contradicted"
+   "independent_sources": [
+    {
+     "source": "spline P1",
+     "levels": 4,
+     "finest": 0.4341704652056293,
+     "assessment": {
+      "evidence": "band",
+      "fit_limit": 0.4518174725405785,
+      "fit_order": 0.050000001446839366,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.071%); no rate from 4 levels (failed: monotone, fit_quality, order_window; fitted p=0.05)",
+      "n_levels": 4
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 0.0027794693476204113
+    },
+    {
+     "source": "splines p = 2, displacement",
+     "levels": 4,
+     "finest": 0.4240924245144223,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 0.4280782906085092,
+      "fit_order": 1.6352645981045266,
+      "uncertainty_fine": 0.0021000787925622567,
+      "verdict": "PASS",
+      "reason": "4 levels monotone, fitted p=1.64 (no leave-one-out check with 4 levels), U_fine=0.21% vs tol 2.00%",
+      "n_levels": 4
+     },
+     "status": "cross_checked",
+     "gap_rel": 0.0008120671510041942,
+     "U_ind_rel": 0.0021000787925622567
+    }
+   ],
+   "v1": {
+    "source": "spline P1, finest level (not converged)",
+    "independent": 0.4341704652056293,
+    "U_ind_rel": 0.0004812882030402128,
+    "gap_rel": 0.0027794693476204113,
+    "status": "contradicted"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "bushing_groove",
@@ -247,11 +747,49 @@
    "limit": 0.43430868133808265,
    "U_rel": 0.0011141573305583918,
    "scale": 3.0965577895552623,
-   "independent": 0.4435959507768713,
-   "U_ind_rel": 0.00037919319578492544,
-   "gap_rel": 0.002999223676727353,
-   "source": "spline P1, finest level (not converged)",
-   "status": "contradicted"
+   "independent_sources": [
+    {
+     "source": "spline P1",
+     "levels": 4,
+     "finest": 0.4435959507768713,
+     "assessment": {
+      "evidence": "band",
+      "fit_limit": 0.44291169504017935,
+      "fit_order": 4.2897311262092535,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.069%); no rate from 4 levels (failed: monotone; fitted p=4.29)",
+      "n_levels": 4
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 0.002999223676727353
+    },
+    {
+     "source": "splines p = 2, displacement",
+     "levels": 4,
+     "finest": 0.43347039860207404,
+     "assessment": {
+      "evidence": "band",
+      "fit_limit": 0.4643293225468567,
+      "fit_order": 0.22267098004008098,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.165%); no rate from 4 levels (failed: order_window; fitted p=0.22)",
+      "n_levels": 4
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 0.00027071438448077786
+    }
+   ],
+   "v1": {
+    "source": "spline P1, finest level (not converged)",
+    "independent": 0.4435959507768713,
+    "U_ind_rel": 0.00037919319578492544,
+    "gap_rel": 0.002999223676727353,
+    "status": "contradicted"
+   },
+   "status": "independent_unconverged",
+   "final": "INCONCLUSIVE"
   },
   {
    "problem": "bushing_groove",
@@ -259,11 +797,50 @@
    "limit": -0.466663217878193,
    "U_rel": 0.0013514343661384274,
    "scale": 3.0965577895552623,
-   "independent": -0.4760789243055389,
-   "U_ind_rel": 0.0005128565883416207,
-   "gap_rel": 0.0030407010194045884,
-   "source": "spline P1, finest level (not converged)",
-   "status": "contradicted"
+   "independent_sources": [
+    {
+     "source": "spline P1",
+     "levels": 4,
+     "finest": -0.4760789243055389,
+     "assessment": {
+      "evidence": "band",
+      "fit_limit": -0.47490130820451104,
+      "fit_order": 19.9999994229954,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.063%); no rate from 4 levels (failed: monotone, fit_quality, order_window; fitted p=20.00)",
+      "n_levels": 4
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 0.0030407010194045884
+    },
+    {
+     "source": "splines p = 2, displacement",
+     "levels": 4,
+     "finest": -0.46505122051517106,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": -0.4754358768734606,
+      "fit_order": 0.9318027956099397,
+      "uncertainty_fine": 0.004572683014502291,
+      "verdict": "PASS",
+      "reason": "4 levels monotone, fitted p=0.93 (no leave-one-out check with 4 levels), U_fine=0.46% vs tol 2.00%",
+      "n_levels": 4
+     },
+     "status": "cross_checked",
+     "gap_rel": 0.002833035774387273,
+     "U_ind_rel": 0.004572683014502291
+    }
+   ],
+   "v1": {
+    "source": "spline P1, finest level (not converged)",
+    "independent": -0.4760789243055389,
+    "U_ind_rel": 0.0005128565883416207,
+    "gap_rel": 0.0030407010194045884,
+    "status": "contradicted"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "bushing_groove",
@@ -271,7 +848,12 @@
    "limit": 0.5395206760991955,
    "U_rel": 0.0017580967417460394,
    "scale": 3.0965577895552623,
-   "status": "single_family"
+   "independent_sources": [],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "single_family",
+   "final": "INCONCLUSIVE"
   },
   {
    "problem": "bushing_groove",
@@ -279,7 +861,12 @@
    "limit": 0.42625920849970733,
    "U_rel": 0.0012220298716408699,
    "scale": 3.0965577895552623,
-   "status": "single_family"
+   "independent_sources": [],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "single_family",
+   "final": "INCONCLUSIVE"
   },
   {
    "problem": "bushing_groove",
@@ -287,7 +874,45 @@
    "limit": 0.43430868133808265,
    "U_rel": 0.0011141573305583918,
    "scale": 3.0965577895552623,
-   "status": "single_family"
+   "independent_sources": [
+    {
+     "source": "spline P1",
+     "levels": 4,
+     "finest": 0.4435959507768713,
+     "assessment": {
+      "evidence": "band",
+      "fit_limit": 0.44291169504017935,
+      "fit_order": 4.2897311262092535,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.069%); no rate from 4 levels (failed: monotone; fitted p=4.29)",
+      "n_levels": 4
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 0.002999223676727353
+    },
+    {
+     "source": "splines p = 2, displacement",
+     "levels": 4,
+     "finest": 0.43347039860207404,
+     "assessment": {
+      "evidence": "band",
+      "fit_limit": 0.4643293225468567,
+      "fit_order": 0.22267098004008098,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.165%); no rate from 4 levels (failed: order_window; fitted p=0.22)",
+      "n_levels": 4
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 0.00027071438448077786
+    }
+   ],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "independent_unconverged",
+   "final": "INCONCLUSIVE"
   },
   {
    "problem": "cook_membrane",
@@ -295,7 +920,30 @@
    "limit": -1.3832288887044788,
    "U_rel": 0.0009654075797310685,
    "scale": 1.382304625972033,
-   "status": "single_family"
+   "independent_sources": [
+    {
+     "source": "Q2, same code (independent discretization)",
+     "levels": 6,
+     "finest": -1.382515772077637,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": -1.3834349249285909,
+      "fit_order": 1.118864908552901,
+      "uncertainty_fine": 0.0009021838237221333,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.12 (leave-one-out 1.07-1.13), U_fine=0.09% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 0.00014905269087644023,
+     "U_ind_rel": 0.0009021838237221333
+    }
+   ],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "cook_membrane",
@@ -303,7 +951,30 @@
    "limit": 1.7734639599775357,
    "U_rel": 0.00046072973352515815,
    "scale": 1.7729336634558144,
-   "status": "single_family"
+   "independent_sources": [
+    {
+     "source": "Q2, same code (independent discretization)",
+     "levels": 6,
+     "finest": 1.7730202399372654,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 1.77361949028315,
+      "fit_order": 1.1782117515446557,
+      "uncertainty_fine": 0.0004713533226560762,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.18 (leave-one-out 1.12-1.19), U_fine=0.05% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 8.772483078191133e-05,
+     "U_ind_rel": 0.0004713533226560762
+    }
+   ],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "cook_membrane",
@@ -311,7 +982,30 @@
    "limit": 2.2490989610307937,
    "U_rel": 0.0006471948226764592,
    "scale": 2.2481236296072638,
-   "status": "single_family"
+   "independent_sources": [
+    {
+     "source": "Q2, same code (independent discretization)",
+     "levels": 6,
+     "finest": 2.2483217366005745,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 2.2493561954522567,
+      "fit_order": 1.1481323257620821,
+      "uncertainty_fine": 0.0006327862775464181,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.15 (leave-one-out 1.10-1.16), U_fine=0.06% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 0.0001144218307549302,
+     "U_ind_rel": 0.0006327862775464181
+    }
+   ],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "cook_membrane",
@@ -319,7 +1013,30 @@
    "limit": 4.2495469932302345,
    "U_rel": 7.79415677013345e-05,
    "scale": 4.249792018045248,
-   "status": "single_family"
+   "independent_sources": [
+    {
+     "source": "Q2, same code (independent discretization)",
+     "levels": 6,
+     "finest": 4.249576616831851,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 4.249628745001606,
+      "fit_order": 2.1938704441625014,
+      "uncertainty_fine": 4.8801467880522665e-05,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=2.19 (leave-one-out 1.23-2.31), U_fine=0.00% vs tol 2.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 1.923665229357631e-05,
+     "U_ind_rel": 4.8801467880522665e-05
+    }
+   ],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "open_hole_lamina",
@@ -327,11 +1044,34 @@
    "limit": 6.980612947352237e-05,
    "U_rel": 6.487641579586858e-07,
    "scale": 6.980613985079951e-05,
-   "independent": 6.98061399598625e-05,
-   "U_ind_rel": 2.826083970599489e-06,
-   "gap_rel": 1.5022088521713148e-07,
-   "source": "splines p = 3, exact geometry",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "splines p = 3, exact geometry",
+     "levels": 5,
+     "finest": 6.98061399598625e-05,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 6.981372866869704e-05,
+      "fit_order": 3.2016874383956284,
+      "uncertainty_fine": 0.0003822869024992492,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=3.20 (leave-one-out 3.19-3.92), U_fine=0.04% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 0.00010886141521231712,
+     "U_ind_rel": 0.0003822869024992492
+    }
+   ],
+   "v1": {
+    "source": "splines p = 3, exact geometry",
+    "independent": 6.98061399598625e-05,
+    "U_ind_rel": 2.826083970599489e-06,
+    "gap_rel": 1.5022088521713148e-07,
+    "status": "cross_checked"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "open_hole_lamina",
@@ -339,11 +1079,33 @@
    "limit": 3.3354249724604256e-05,
    "U_rel": 1.0228369557540785e-05,
    "scale": 3.335434865471125e-05,
-   "independent": 3.335447926050188e-05,
-   "U_ind_rel": 8.296266677502287e-05,
-   "gap_rel": 6.881738270560903e-06,
-   "source": "splines p = 3, exact geometry",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "splines p = 3, exact geometry",
+     "levels": 5,
+     "finest": 3.335447926050188e-05,
+     "assessment": {
+      "evidence": "none",
+      "fit_limit": 3.3530849389222774e-05,
+      "fit_order": 12.669503857203916,
+      "uncertainty_fine": null,
+      "verdict": "FAIL",
+      "reason": "no rate from 5 levels (failed: monotone, order_window, leave_one_out; fitted p=12.67) and finest-three spread 0.335% exceeds 0.20%",
+      "n_levels": 5
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 6.881738270560903e-06
+    }
+   ],
+   "v1": {
+    "source": "splines p = 3, exact geometry",
+    "independent": 3.335447926050188e-05,
+    "U_ind_rel": 8.296266677502287e-05,
+    "gap_rel": 6.881738270560903e-06,
+    "status": "cross_checked"
+   },
+   "status": "independent_unconverged",
+   "final": "INCONCLUSIVE"
   },
   {
    "problem": "open_hole_lamina",
@@ -351,11 +1113,33 @@
    "limit": 1.255198694691099e-07,
    "U_rel": 0.00048655130539447024,
    "scale": 1.255417408459848e-07,
-   "independent": 1.2563264081608092e-07,
-   "U_ind_rel": 0.00012413023975811144,
-   "gap_rel": 0.0008982777059732403,
-   "source": "splines p = 3, exact geometry",
-   "status": "contradicted"
+   "independent_sources": [
+    {
+     "source": "splines p = 3, exact geometry",
+     "levels": 5,
+     "finest": 1.2563264081608092e-07,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 1.2987090939850722e-07,
+      "fit_order": 1.2075933223514068,
+      "uncertainty_fine": 0.09478414495968308,
+      "verdict": "FAIL",
+      "reason": "5 levels monotone, fitted p=1.21 (leave-one-out 1.00-3.55), U_fine=9.48% vs tol 2.00%",
+      "n_levels": 5
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 0.0008982777059732403
+    }
+   ],
+   "v1": {
+    "source": "splines p = 3, exact geometry",
+    "independent": 1.2563264081608092e-07,
+    "U_ind_rel": 0.00012413023975811144,
+    "gap_rel": 0.0008982777059732403,
+    "status": "contradicted"
+   },
+   "status": "independent_unconverged",
+   "final": "INCONCLUSIVE"
   },
   {
    "problem": "open_hole_lamina",
@@ -363,11 +1147,33 @@
    "limit": -2.124232222472989e-06,
    "U_rel": 6.477501335484111e-07,
    "scale": 2.1242325798872823e-06,
-   "independent": -2.124231996170721e-06,
-   "U_ind_rel": 2.67832516846711e-05,
-   "gap_rel": 1.0653365824726362e-07,
-   "source": "splines p = 3, exact geometry",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "splines p = 3, exact geometry",
+     "levels": 5,
+     "finest": -2.124231996170721e-06,
+     "assessment": {
+      "evidence": "band",
+      "fit_limit": -2.4408781632377713e-06,
+      "fit_order": 0.050000001446839366,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.322%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05)",
+      "n_levels": 5
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 1.0653365824726362e-07
+    }
+   ],
+   "v1": {
+    "source": "splines p = 3, exact geometry",
+    "independent": -2.124231996170721e-06,
+    "U_ind_rel": 2.67832516846711e-05,
+    "gap_rel": 1.0653365824726362e-07,
+    "status": "cross_checked"
+   },
+   "status": "independent_unconverged",
+   "final": "INCONCLUSIVE"
   },
   {
    "problem": "open_hole_lamina",
@@ -375,11 +1181,133 @@
    "limit": 1.221853354270958e-07,
    "U_rel": 1.610841806694383e-06,
    "scale": 1.221852964344681e-07,
-   "independent": 1.2218508347845343e-07,
-   "U_ind_rel": 0.00015289380002402216,
-   "gap_rel": 2.0620209609551424e-06,
-   "source": "splines p = 3, exact geometry",
-   "status": "cross_checked"
+   "independent_sources": [
+    {
+     "source": "splines p = 3, exact geometry",
+     "levels": 5,
+     "finest": 1.2218508347845343e-07,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 1.261387045204364e-07,
+      "fit_order": 1.2730188691468216,
+      "uncertainty_fine": 0.09177043838799841,
+      "verdict": "FAIL",
+      "reason": "5 levels monotone, fitted p=1.27 (leave-one-out 1.08-3.41), U_fine=9.18% vs tol 2.00%",
+      "n_levels": 5
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 2.0620209609551424e-06
+    }
+   ],
+   "v1": {
+    "source": "splines p = 3, exact geometry",
+    "independent": 1.2218508347845343e-07,
+    "U_ind_rel": 0.00015289380002402216,
+    "gap_rel": 2.0620209609551424e-06,
+    "status": "cross_checked"
+   },
+   "status": "independent_unconverged",
+   "final": "INCONCLUSIVE"
+  },
+  {
+   "problem": "thick_cylinder_3d",
+   "qoi": "strain_energy",
+   "limit": 1.936538847153191,
+   "U_rel": 2.3493685424689354e-08,
+   "scale": 1.936538813062927,
+   "independent_sources": [
+    {
+     "source": "exact 1D solution",
+     "levels": 0,
+     "finest": 1.9365388447555172,
+     "assessment": {
+      "evidence": "exact"
+     },
+     "status": "cross_checked",
+     "gap_rel": 1.238123305909273e-09,
+     "U_ind_rel": 0.0
+    }
+   ],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
+  },
+  {
+   "problem": "thick_cylinder_3d",
+   "qoi": "reaction_inner_radial",
+   "limit": 38.29967045837223,
+   "U_rel": 2.9763674790426847e-08,
+   "scale": 38.29966962156863,
+   "independent_sources": [
+    {
+     "source": "exact 1D solution",
+     "levels": 0,
+     "finest": 38.29967037996284,
+     "assessment": {
+      "evidence": "exact"
+     },
+     "status": "cross_checked",
+     "gap_rel": 2.0472602905229205e-09,
+     "U_ind_rel": 0.0
+    }
+   ],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
+  },
+  {
+   "problem": "thick_cylinder_3d",
+   "qoi": "u_outer_radial",
+   "limit": 0.0552832931276769,
+   "U_rel": 1.0345301642849572e-07,
+   "scale": 0.055283296610958224,
+   "independent_sources": [
+    {
+     "source": "exact 1D solution",
+     "levels": 0,
+     "finest": 0.055283294115949566,
+     "assessment": {
+      "evidence": "exact"
+     },
+     "status": "cross_checked",
+     "gap_rel": 1.7876514710166117e-08,
+     "U_ind_rel": 0.0
+    }
+   ],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
+  },
+  {
+   "problem": "thick_cylinder_3d",
+   "qoi": "gk_avg_hoop",
+   "limit": 72.71264498536091,
+   "U_rel": 1.2593357302646274e-05,
+   "scale": 72.71252828410233,
+   "independent_sources": [
+    {
+     "source": "exact 1D solution",
+     "levels": 0,
+     "finest": 72.71213607187988,
+     "assessment": {
+      "evidence": "exact"
+     },
+     "status": "cross_checked",
+     "gap_rel": 6.9989793098547685e-06,
+     "U_ind_rel": 0.0
+    }
+   ],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   }
  ]
 }

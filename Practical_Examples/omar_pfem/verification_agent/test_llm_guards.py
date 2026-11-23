@@ -728,3 +728,31 @@ def test_crosscheck_rule():
     assert decide(1.000, 0.002, 1.001, 0.0005, 1.0)[0] == "cross_checked"
     assert decide(1.000, 0.002, 1.020, 0.0010, 1.0)[0] == "contradicted"   # B3-like 2% gap
     assert decide(1.000, 0.002, None, None, 1.0)[0] == "single_family"
+
+
+def test_crosscheck_v2_independent_must_converge():
+    """v2: an independent sequence counts only if it passes the gate itself (rate AND
+    within the tolerance); a non-converging or loose one leaves the quantity unresolved."""
+    from omar_pfem.verification_agent.crosscheck import assess_independent
+    ml = {"band_tol": 0.01, "gci_tol": 0.02}
+    hs = [1 / 4, 1 / 8, 1 / 16, 1 / 32, 1 / 64]
+    good = [1 + 0.5 * h ** 2 for h in hs]                         # clean order 2
+    a = assess_independent(hs, good, ml, 1.0)
+    assert a["evidence"] == "rate" and a["verdict"] == "PASS" and abs(a["fit_limit"] - 1) < 1e-6
+    wobble = [1.000, 1.004, 0.998, 1.003, 1.001]                 # no rate (band at best)
+    assert assess_independent(hs, wobble, ml, 1.0)["evidence"] != "rate"
+    slow = [1 + 0.5 * h ** 0.6 for h in hs]                       # rate, but U above 2%
+    s = assess_independent(hs, slow, ml, 1.0)
+    assert not (s["evidence"] == "rate" and s["verdict"] == "PASS")
+    assert assess_independent(hs[:3], good[:3], ml, 1.0)["evidence"] == "too_few_levels"
+
+
+def test_crosscheck_v2_stored_statuses():
+    """The stored v2 result keeps unresolved cases INCONCLUSIVE, never CERTIFIED."""
+    import json
+    import os
+    d = json.load(open(os.path.join(os.path.dirname(__file__), "crosscheck_result.json")))
+    for r in d["rows"]:
+        assert (r["final"] == "CERTIFIED") == (r["status"] == "cross_checked")
+    gk = {r["qoi"]: r["status"] for r in d["rows"] if r["problem"] == "bushing_groove"}
+    assert gk["gk2_sigma_xx_avg"] != "cross_checked"          # spline sequences unconverged

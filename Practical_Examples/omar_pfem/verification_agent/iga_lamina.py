@@ -171,7 +171,8 @@ def solve(m, p, nq=None, beta=0.0):
         acc["area"] += wa.sum()
     ut = float(bs1[ns - 1] * (bt0 @ u[2 * ((ns - 1) * nt + np.arange(nt))]))
     return {"m": m, "p": p, "beta": beta, "n_dof": ndof, "seconds": time.time() - t0,
-            "area_mm2": acc["area"], "compliance": compliance, "u_tip": ut,
+            "area_mm2": acc["area"], "hole_zone_area_mm2": acc["hz_w"],   # added 2026-11-23
+            "compliance": compliance, "u_tip": ut,
             "hole_gk_gamma12_avg": acc["gk_g"] / acc["gk_w"],
             "hole_gk_e22_avg": acc["gk_e"] / acc["gk_w"],
             "hole_gamma12_avg": acc["hz_g"] / acc["hz_w"],

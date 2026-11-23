@@ -393,8 +393,15 @@ class Problem:
         R0 = 2.0 * groove_radius_of_curvature(D, W)
         d = np.linalg.norm(pos - ref, axis=1)
         p = -np.trace(s, axis1=1, axis2=2) / 3.0
+        th = np.arctan2(pos[:, 1], pos[:, 0])
+        er = np.stack([np.cos(th), np.sin(th), np.zeros_like(th)], 1)
+        et = np.stack([-np.sin(th), np.cos(th), np.zeros_like(th)], 1)
         meas = {"sigma_xx": s[:, 0, 0], "sigma_yy": s[:, 1, 1], "sigma_zz": s[:, 2, 2],
-                "sigma_xz": s[:, 0, 2], "pressure": p}
+                "sigma_xz": s[:, 0, 2], "pressure": p,
+                # cylindrical components (added 2026-11-23 for the cross-check of the
+                # Q20 gk2_cyl_rr/tt averages; zz is sigma_zz)
+                "cyl_rr": np.einsum("ni,nij,nj->n", er, s, er),
+                "cyl_tt": np.einsum("ni,nij,nj->n", et, s, et)}
         out = {"reaction_moment_y": moment, "strain_energy": self.energy(self.u)}
         kg = w * np.exp(-(d / (2 * R0)) ** 2)
         for name, wt in (("gk2", kg), ("gk2trunc", kg * (d < 0.25)), ("sharp", w * (d < R0))):

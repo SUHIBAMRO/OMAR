@@ -1,0 +1,73 @@
+{
+ "exact_zone_area_mm2": 84.82300164692441,
+ "fem": [
+  {
+   "m": 1,
+   "hole_e22_avg": 1.298327433961063e-07,
+   "zone_area_error_rel": -0.008982502125237879,
+   "boundary_sensitivity_per_mm": 1.267285586110701e-07
+  },
+  {
+   "m": 2,
+   "hole_e22_avg": 1.263016226360396e-07,
+   "zone_area_error_rel": 0.0020658951174763462,
+   "boundary_sensitivity_per_mm": 1.9875903845276258e-08
+  },
+  {
+   "m": 4,
+   "hole_e22_avg": 1.2581620173841384e-07,
+   "zone_area_error_rel": 0.0022431562749634093,
+   "boundary_sensitivity_per_mm": 1.0811179943415944e-08
+  },
+  {
+   "m": 8,
+   "hole_e22_avg": 1.2568439104982864e-07,
+   "zone_area_error_rel": 1.052842011040056e-05,
+   "boundary_sensitivity_per_mm": 4.418326030829562e-09
+  },
+  {
+   "m": 16,
+   "hole_e22_avg": 1.255505850624605e-07,
+   "zone_area_error_rel": -3.9527971488095837e-05,
+   "boundary_sensitivity_per_mm": 3.3931580149536256e-09
+  },
+  {
+   "m": 32,
+   "hole_e22_avg": 1.255417408485186e-07,
+   "zone_area_error_rel": 0.00016300576594185934,
+   "boundary_sensitivity_per_mm": 3.2191171386818703e-09
+  }
+ ],
+ "spline": [
+  {
+   "m": 1,
+   "hole_e22_avg": 7.28872728413242e-08,
+   "zone_area_error_rel": -0.014058311904245446,
+   "boundary_sensitivity_per_mm": 1.6182883607415988e-08
+  },
+  {
+   "m": 2,
+   "hole_e22_avg": 1.014167818947192e-07,
+   "zone_area_error_rel": 0.002748622637318343,
+   "boundary_sensitivity_per_mm": 8.387573847166112e-09
+  },
+  {
+   "m": 4,
+   "hole_e22_avg": 1.2362782126099114e-07,
+   "zone_area_error_rel": -0.002079125144808791,
+   "boundary_sensitivity_per_mm": 2.7175441100661596e-09
+  },
+  {
+   "m": 8,
+   "hole_e22_avg": 1.2561705728969006e-07,
+   "zone_area_error_rel": -0.0009672733977476033,
+   "boundary_sensitivity_per_mm": 4.249184675456689e-10
+  },
+  {
+   "m": 16,
+   "hole_e22_avg": 1.2563264081608092e-07,
+   "zone_area_error_rel": -0.00039572087643102716,
+   "boundary_sensitivity_per_mm": 2.320663313164075e-09
+  }
+ ]
+}
