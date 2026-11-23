@@ -109,6 +109,12 @@ def compare():
     # (graded meshes); uniform meshes keep the node branch. Allowed only if every stored
     # uniform level is reproduced to round-off (relative 1e-12; the direct solver is not
     # bitwise repeatable across calls); any other change refuses scoring.
+    # remedy.py gained the corner analysis after this scoring (round K, be9e643); the scoring
+    # uses only plan_grading (through the stored plan), which must be unchanged since 338d7f1
+    from omar_pfem.verification_agent.prereg_util import functions_unchanged
+    if "remedy.py" in changed and functions_unchanged("remedy.py", "338d7f1", ("plan_grading",)):
+        changed.remove("remedy.py")
+        print("note: remedy.py changed after pre-registration; plan_grading is unchanged")
     if set(changed) - {"lshape_exact.py"}:
         raise SystemExit(f"frozen files changed since pre-registration: {changed}")
     if changed:

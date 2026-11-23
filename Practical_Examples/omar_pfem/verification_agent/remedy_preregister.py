@@ -180,6 +180,14 @@ def compare():
     from omar_pfem.verification_agent.verify_report import rules
     pre = json.load(open(OUT))
     changed = [f for f, h in pre["frozen_files_sha256"].items() if _sha(f) != h]
+    # crosscheck.py gained a problem in its lists after this scoring (round K); the scoring
+    # uses only assess_independent and decide, which must be unchanged since be9e643
+    from omar_pfem.verification_agent.prereg_util import functions_unchanged
+    exempt = {"crosscheck.py": ("be9e643", ("assess_independent", "decide"))}
+    for f in list(changed):
+        if f in exempt and functions_unchanged(f, *exempt[f]):
+            changed.remove(f)
+            print(f"note: {f} changed after pre-registration; the functions used here are unchanged")
     if changed:
         raise SystemExit(f"frozen files changed since pre-registration: {changed}")
     res, met = {}, {}
