@@ -26141,3 +26141,10 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   root_gk_avg_von_mises; false alarm plate hole_peak_sigma_xx. Tests 76/76.
 - WAITING FOR OMAR: (a) which jobs he submits; (b) billed ablation yes/no;
   (c) put rounds K/L into `paper/main.tex`? (d) email draft unchanged unless he asks.
+- 2026-11-23 approvals from Omar: he will submit all three cluster jobs himself; billed
+  ablation on 7 problems APPROVED and RUNNING (per-problem outputs in
+  `verification_agent/ablation_round_M/`, resumes per problem; log.txt); manuscript NOT
+  changed (v8 report suffices); email: FINAL draft is now
+  `advisor_feedback/2026-11-23_email_to_Rabczuk_reply_DRAFT_v8.txt` (attach v8; counts in
+  points 5/6 corrected to v8: 38/27/11 and 83 -> GCI 60, extension 74, final 60, 0 of 17
+  accepted; two sentences on Sections 31-33). The 2026-11-20 draft is superseded. Not sent.
