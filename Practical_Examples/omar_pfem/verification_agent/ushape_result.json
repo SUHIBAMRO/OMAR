@@ -1,0 +1,263 @@
+{
+ "plan": {
+  "corners": [
+   {
+    "x": 0,
+    "y": 0,
+    "lam": 0.7111729329714656,
+    "delta": 1.1547873545287093e-05,
+    "share": 0.1689259876372854,
+    "graded": true,
+    "g": 2.9
+   },
+   {
+    "x": 2,
+    "y": 1,
+    "lam": 0.544483736782464,
+    "delta": 9.50964383157095e-06,
+    "share": 0.1391101114873703,
+    "graded": true,
+    "g": 3.7
+   },
+   {
+    "x": 1,
+    "y": 1,
+    "lam": 0.544483736782464,
+    "delta": 4.7098438915951085e-05,
+    "share": 0.6889710282027162,
+    "graded": true,
+    "g": 3.7
+   },
+   {
+    "x": 0,
+    "y": 2,
+    "lam": 0.7111729329714656,
+    "delta": 2.0459442412652535e-07,
+    "share": 0.00299287267262812,
+    "graded": false
+   }
+  ],
+  "plan": {
+   "x": {
+    "0": 2.9,
+    "2": 3.7,
+    "1": 3.7
+   },
+   "y": {
+    "0": 2.9,
+    "1": 3.7
+   }
+  },
+  "share_min": 0.1,
+  "levels_used": [
+   32,
+   64
+  ]
+ },
+ "qois": {
+  "strain_energy": {
+   "uniform": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 1.1209071189800461,
+    "fit_limit": 0.12942931863985102,
+    "uncertainty_fine": 0.0009482846205639826,
+    "finest": 0.1293336892650867,
+    "finest_dof": 165378
+   },
+   "strongest": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.8266673370772777,
+    "fit_limit": 0.12943582697002712,
+    "uncertainty_fine": 3.768953395349245e-05,
+    "finest": 0.12943427870646954,
+    "finest_dof": 165378
+   },
+   "all": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.9125359635053405,
+    "fit_limit": 0.1294383924558234,
+    "uncertainty_fine": 7.653627859496719e-05,
+    "finest": 0.12943544492453035,
+    "finest_dof": 165378
+   },
+   "intensity": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.9011188735156153,
+    "fit_limit": 0.12943772856670363,
+    "uncertainty_fine": 6.472971349290386e-05,
+    "finest": 0.12943521173714168,
+    "finest_dof": 165378
+   },
+   "intensity_p2": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.5965377093667854,
+    "fit_limit": 0.12944345970844878,
+    "uncertainty_fine": 0.00021493086491848216,
+    "finest": 0.12943488833268657,
+    "finest_dof": 165378
+   },
+   "p2_crosscheck": {
+    "status": "cross_checked",
+    "gap_rel": 4.427807293112073e-05
+   }
+  },
+  "v_tip": {
+   "uniform": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 1.1180691308903365,
+    "fit_limit": -0.12835018933630363,
+    "uncertainty_fine": 0.0009802060875159877,
+    "finest": -0.12825224568826854,
+    "finest_dof": 165378
+   },
+   "strongest": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.6947857024651642,
+    "fit_limit": -0.1283498771134776,
+    "uncertainty_fine": 4.118424846719358e-05,
+    "finest": -0.12835101575626504,
+    "finest_dof": 165378
+   },
+   "all": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.7897715338807156,
+    "fit_limit": -0.1283536535852141,
+    "uncertainty_fine": 1.7457065276049054e-05,
+    "finest": -0.12835298391009933,
+    "finest_dof": 165378
+   },
+   "intensity": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.7827593665091377,
+    "fit_limit": -0.12835295790383727,
+    "uncertainty_fine": 1.3792123983483893e-05,
+    "finest": -0.12835275353247122,
+    "finest_dof": 165378
+   },
+   "intensity_p2": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.5225837949147936,
+    "fit_limit": -0.12835761854451355,
+    "uncertainty_fine": 0.0001526584843356578,
+    "finest": -0.12835128823193487,
+    "finest_dof": 165378
+   },
+   "p2_crosscheck": {
+    "status": "cross_checked",
+    "gap_rel": 3.631118575964482e-05
+   }
+  },
+  "left_gk_von_mises": {
+   "uniform": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 0.5208853606296548,
+    "fit_limit": 18.718332706634367,
+    "uncertainty_fine": null,
+    "finest": 18.51522482818663,
+    "finest_dof": 165378
+   },
+   "strongest": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 5.305625215352294,
+    "fit_limit": 18.54355294759526,
+    "uncertainty_fine": null,
+    "finest": 18.545996467167672,
+    "finest_dof": 165378
+   },
+   "all": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 5.2796426406407,
+    "fit_limit": 18.543596000155432,
+    "uncertainty_fine": null,
+    "finest": 18.546015315860426,
+    "finest_dof": 165378
+   },
+   "intensity": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 5.298251497138481,
+    "fit_limit": 18.54362382025857,
+    "uncertainty_fine": null,
+    "finest": 18.546021989485524,
+    "finest_dof": 165378
+   },
+   "intensity_p2": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 4.075835036061572,
+    "fit_limit": 18.542236060862823,
+    "uncertainty_fine": 0.0007730141376669458,
+    "finest": 18.54593613142878,
+    "finest_dof": 165378
+   }
+  },
+  "right_gk_von_mises": {
+   "uniform": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 0.7455862857506682,
+    "fit_limit": 7.39096795487057,
+    "uncertainty_fine": 0.0042555533885690906,
+    "finest": 7.374345352351597,
+    "finest_dof": 165378
+   },
+   "strongest": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 12.669503857203916,
+    "fit_limit": 7.376824844901483,
+    "uncertainty_fine": null,
+    "finest": 7.376986065545658,
+    "finest_dof": 165378
+   },
+   "all": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 12.669503857203916,
+    "fit_limit": 7.376740536441742,
+    "uncertainty_fine": null,
+    "finest": 7.376985595380247,
+    "finest_dof": 165378
+   },
+   "intensity": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 12.669503857203916,
+    "fit_limit": 7.376781346946967,
+    "uncertainty_fine": null,
+    "finest": 7.376985662847822,
+    "finest_dof": 165378
+   },
+   "intensity_p2": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 12.669503857203916,
+    "fit_limit": 7.377237452513717,
+    "uncertainty_fine": null,
+    "finest": 7.376962896772104,
+    "finest_dof": 165378
+   }
+  }
+ },
+ "predictions_met": {
+  "P0 plan grades (1, 1)": true,
+  "P1 smallest U": false,
+  "P2 order >= 2.5": true,
+  "P3 limit inside uniform interval": true,
+  "P4 P2 cross-checks the energy": true,
+  "P5 U at least 10x below uniform": true
+ }
+}
