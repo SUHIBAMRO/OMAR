@@ -1,0 +1,182 @@
+[
+ {
+  "posthoc_corner_peak_von_mises": 1499017.6832323265,
+  "posthoc_corner_peak_location": [
+   0.0662087160695382,
+   1.9874353878137105
+  ],
+  "posthoc_min_detF": 0.9999955921226623,
+  "posthoc_max_detF": 1.0000117858020774,
+  "m": 2,
+  "g": 1.0,
+  "h": 0.5,
+  "n_elem": 192,
+  "n_dof": 832,
+  "wall_clock_s": 0.08231902122497559,
+  "linear_solver": "pardiso",
+  "u_right_mid": 1.1818456901315503e-05,
+  "v_top_right": -7.031026828664919e-07,
+  "max_disp_mag": 1.1818457009005257e-05,
+  "strain_energy": 10.968577974967937,
+  "hole_avg_sigma_xx": 2358142.5371689745,
+  "hole_gk_avg_sigma_xx": 2641747.197867486,
+  "hole_peak_sigma_xx": 3163350.7742152857,
+  "peak_von_mises": 3067802.403069136,
+  "peak_location": [
+   1.0226645822944396,
+   1.259661781821962
+  ],
+  "hole_region_points": 14,
+  "element": "P2 triangles (independent discretization)"
+ },
+ {
+  "posthoc_corner_peak_von_mises": 1668772.467740512,
+  "posthoc_corner_peak_location": [
+   0.03666924999414972,
+   1.9937176939068548
+  ],
+  "posthoc_min_detF": 0.9999956570114682,
+  "posthoc_max_detF": 1.0000114209820257,
+  "m": 4,
+  "g": 1.0,
+  "h": 0.25,
+  "n_elem": 768,
+  "n_dof": 3200,
+  "wall_clock_s": 0.07413482666015625,
+  "linear_solver": "pardiso",
+  "u_right_mid": 1.1871464143019688e-05,
+  "v_top_right": -6.957979070279199e-07,
+  "max_disp_mag": 1.1871464148023896e-05,
+  "strain_energy": 10.996897042075453,
+  "hole_avg_sigma_xx": 2345778.880291928,
+  "hole_gk_avg_sigma_xx": 2640609.9046782865,
+  "hole_peak_sigma_xx": 3262729.8890688047,
+  "peak_von_mises": 3226659.4233889487,
+  "peak_location": [
+   1.0101138917733483,
+   1.2552388325952635
+  ],
+  "hole_region_points": 57,
+  "element": "P2 triangles (independent discretization)"
+ },
+ {
+  "posthoc_corner_peak_von_mises": 1905594.8544536096,
+  "posthoc_corner_peak_location": [
+   0.019562710384477208,
+   1.9968588469534274
+  ],
+  "posthoc_min_detF": 0.9999957304577031,
+  "posthoc_max_detF": 1.0000112609639666,
+  "m": 8,
+  "g": 1.0,
+  "h": 0.125,
+  "n_elem": 3072,
+  "n_dof": 12544,
+  "wall_clock_s": 0.16438007354736328,
+  "linear_solver": "pardiso",
+  "u_right_mid": 1.1879590500827347e-05,
+  "v_top_right": -6.930653198845885e-07,
+  "max_disp_mag": 1.1879590508960925e-05,
+  "strain_energy": 11.001823936953175,
+  "hole_avg_sigma_xx": 2342383.7462273245,
+  "hole_gk_avg_sigma_xx": 2638927.4168149023,
+  "hole_peak_sigma_xx": 3314660.3597522285,
+  "peak_von_mises": 3296074.758637322,
+  "peak_location": [
+   1.0047747513408083,
+   1.2527358637308654
+  ],
+  "hole_region_points": 224,
+  "element": "P2 triangles (independent discretization)"
+ },
+ {
+  "posthoc_corner_peak_von_mises": 2212589.334702485,
+  "posthoc_corner_peak_location": [
+   0.010146948168983302,
+   1.9984294234767135
+  ],
+  "posthoc_min_detF": 0.9999957211745867,
+  "posthoc_max_detF": 1.000011251432027,
+  "m": 16,
+  "g": 1.0,
+  "h": 0.0625,
+  "n_elem": 12288,
+  "n_dof": 49664,
+  "wall_clock_s": 0.8888194561004639,
+  "linear_solver": "pardiso",
+  "u_right_mid": 1.1881196211925678e-05,
+  "v_top_right": -6.927824579979637e-07,
+  "max_disp_mag": 1.188119621366539e-05,
+  "strain_energy": 11.003007564063257,
+  "hole_avg_sigma_xx": 2346732.372409885,
+  "hole_gk_avg_sigma_xx": 2638921.3739781883,
+  "hole_peak_sigma_xx": 3346953.732651632,
+  "peak_von_mises": 3339846.624030645,
+  "peak_location": [
+   1.0100207555733494,
+   0.7487925811098682
+  ],
+  "hole_region_points": 895,
+  "element": "P2 triangles (independent discretization)"
+ },
+ {
+  "posthoc_corner_peak_von_mises": 2593846.074606153,
+  "posthoc_corner_peak_location": [
+   0.005173698554929681,
+   1.9992147117383565
+  ],
+  "posthoc_min_detF": 0.9999956981553837,
+  "posthoc_max_detF": 1.000011269243496,
+  "m": 32,
+  "g": 1.0,
+  "h": 0.03125,
+  "n_elem": 49152,
+  "n_dof": 197632,
+  "wall_clock_s": 4.491299867630005,
+  "linear_solver": "pardiso",
+  "u_right_mid": 1.188167441913005e-05,
+  "v_top_right": -6.927274480451929e-07,
+  "max_disp_mag": 1.1881674419387983e-05,
+  "strain_energy": 11.003399840095415,
+  "hole_avg_sigma_xx": 2345305.185782726,
+  "hole_gk_avg_sigma_xx": 2638972.2924477058,
+  "hole_peak_sigma_xx": 3367122.6774372994,
+  "peak_von_mises": 3364479.6274312674,
+  "peak_location": [
+   1.0072936953541776,
+   1.2506046966156077
+  ],
+  "hole_region_points": 3572,
+  "element": "P2 triangles (independent discretization)"
+ },
+ {
+  "posthoc_corner_peak_von_mises": 3055712.1285622097,
+  "posthoc_corner_peak_location": [
+   0.0026131246376605837,
+   1.9996073558691778
+  ],
+  "posthoc_min_detF": 0.999995681029509,
+  "posthoc_max_detF": 1.000011554949268,
+  "m": 64,
+  "g": 1.0,
+  "h": 0.015625,
+  "n_elem": 196608,
+  "n_dof": 788480,
+  "wall_clock_s": 21.981730699539185,
+  "linear_solver": "pardiso",
+  "u_right_mid": 1.1881840299888894e-05,
+  "v_top_right": -6.926815750387787e-07,
+  "max_disp_mag": 1.1881840299922862e-05,
+  "strain_energy": 11.003540342266827,
+  "hole_avg_sigma_xx": 2345180.574376524,
+  "hole_gk_avg_sigma_xx": 2638994.6776270973,
+  "hole_peak_sigma_xx": 3377884.8483975637,
+  "peak_von_mises": 3377689.7072935365,
+  "peak_location": [
+   1.0086489946729997,
+   0.7497930046530709
+  ],
+  "hole_region_points": 14305,
+  "element": "P2 triangles (independent discretization)"
+ }
+]

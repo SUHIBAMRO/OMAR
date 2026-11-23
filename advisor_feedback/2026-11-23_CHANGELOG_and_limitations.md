@@ -173,7 +173,7 @@ level 5, groove peak) and `iga_b3_cyl_job.sh` (cylindrical averages).
 
 # Round J (23 November 2026, later): everything that needs no approval
 
-Report: Section 31 of `advisor_feedback/2026-11-23_Verification_Framework_Technical_Report_v6.pdf` (73 pages). No billed LLM run, no cluster submission, no
+Report: Section 31 of `advisor_feedback/2026-11-23_Verification_Framework_Technical_Report_v6.pdf` (74 pages). No billed LLM run, no cluster submission, no
 email. Post hoc changes are marked **[post hoc]**; no criterion, tolerance or order window changed.
 
 ## Changes
@@ -223,6 +223,18 @@ email. Post hoc changes are marked **[post hoc]**; no criterion, tolerance or or
 - Report wording: the mid-span "miss" is in the wording of my expectation; Sections 30.2/30.4 point to 31.
 - Claims 957/957.
 
+### Round J, third pass (report Section 31.11)
+- **Independent P2 discretizations** for the L-shape, edge crack and plate (`independent_p2.py`, ladders
+  `*_p2_ladder.json`, up to 526,850 unknowns): the problems' own code with 6-node triangles (each Q2
+  quad split in two; plate hole mid-edge nodes on the exact circle). Of the 16 quantities certified
+  only with the post hoc extension: 13 cross-checked, 3 independent-unconverged (L-shape corner
+  averages, plate Gaussian hole average: P2 flat but no rate). Final status: 60 of 83 (was 49).
+- **Report text check** (`report_text_check.py`): every claim's value is searched in the exported PDF.
+  965 claims: 794 in their section, 91 elsewhere (section boundaries), 48 flags, 32 backing values with
+  a recorded reason, 0 missing. Finds omissions, not proof (a number can match by coincidence).
+- Claims 965/965; tests 71; all pre-registered scorings reproduce (block 8/10, cylinder 7/8, L-shape
+  10/11, crack 11/12).
+
 ## Reproduce
     cd Practical_Examples
     python -m omar_pfem.verification_agent.graded_q20_study
@@ -240,7 +252,8 @@ email. Post hoc changes are marked **[post hoc]**; no criterion, tolerance or or
 1. Inverted converged solves are detected, but the remedy is proposed, not in the frozen rules.
 2. 3D vertex singularities are not computed; the block energy needs the k = 12 cluster level.
 3. The 3D memory model is a lower bound from one level.
-4. The block's independent value is another element family of the same code (Q8), not a second code.
+4. The independent values for the block (Q8) and the 2D singular problems (P2) are other element
+   families in the same code, not second codes.
 6. Not yet done (needs the memory the spline run uses): whether the B3 radial-grading inversions
    (>= 1.75) are also a load-step effect.
 5. The 2D code checks use the unit square, not the singular geometries.

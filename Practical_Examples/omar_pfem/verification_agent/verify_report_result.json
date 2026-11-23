@@ -7458,8 +7458,8 @@
  {
   "section": "31",
   "claim": "three-way Bstar certified of 83",
-  "printed": 49,
-  "recomputed": 49.0,
+  "printed": 60,
+  "recomputed": 60.0,
   "tolerance": 0,
   "ok": true
  },
@@ -7490,8 +7490,8 @@
  {
   "section": "31",
   "claim": "human proxy all Bstar (ten problems)",
-  "printed": 58,
-  "recomputed": 58.0,
+  "printed": 51,
+  "recomputed": 51.0,
   "tolerance": 0,
   "ok": true
  },
@@ -7626,17 +7626,81 @@
  {
   "section": "31",
   "claim": "posthoc-only cross-checked",
-  "printed": 2,
-  "recomputed": 2.0,
+  "printed": 13,
+  "recomputed": 13.0,
   "tolerance": 0,
   "ok": true
  },
  {
   "section": "31",
   "claim": "posthoc-only single family",
-  "printed": 14,
-  "recomputed": 14.0,
+  "printed": 0,
+  "recomputed": 0.0,
   "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "posthoc-only independent unconverged",
+  "printed": 3,
+  "recomputed": 3.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "P2 cross-checked L-shape",
+  "printed": 3,
+  "recomputed": 3.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "P2 cross-checked crack",
+  "printed": 4,
+  "recomputed": 4.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "P2 cross-checked plate",
+  "printed": 4,
+  "recomputed": 4.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "P2 crack v_top_right U %",
+  "printed": 0.7,
+  "recomputed": 0.6961960240643802,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "P2 L-shape energy order",
+  "printed": 1.13,
+  "recomputed": 1.1305262997925665,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "P2 crack energy order",
+  "printed": 0.98,
+  "recomputed": 0.9760952648427722,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "P2 plate hole gk spread %",
+  "printed": 0.003,
+  "recomputed": 0.003,
+  "tolerance": 0.0005,
   "ok": true
  },
  {

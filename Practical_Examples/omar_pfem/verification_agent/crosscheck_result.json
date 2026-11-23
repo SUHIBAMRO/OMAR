@@ -1335,11 +1335,11 @@
   }
  ],
  "summary_posthoc_only": {
-  "cross_checked": 2,
+  "cross_checked": 13,
   "contradicted": 0,
-  "independent_unconverged": 0,
+  "independent_unconverged": 3,
   "conflicting_sources": 0,
-  "single_family": 14
+  "single_family": 0
  },
  "rows_posthoc_only": [
   {
@@ -1348,12 +1348,30 @@
    "limit": 1.1881923112167425e-05,
    "U_rel": 1.9650914426509843e-06,
    "scale": 1.1881910764499839e-05,
-   "independent_sources": [],
+   "independent_sources": [
+    {
+     "source": "6-node triangles P2 (independent discretization)",
+     "levels": 6,
+     "finest": 1.1881840299888894e-05,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 1.1881788728491e-05,
+      "fit_order": 2.202474979473647,
+      "uncertainty_fine": 1.983628701858716e-05,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=2.20 (leave-one-out 1.70-2.25), U_fine=0.00% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 1.130993819832704e-05,
+     "U_ind_rel": 1.983628701858716e-05
+    }
+   ],
    "v1": {
     "status": "single_family"
    },
-   "status": "single_family",
-   "final": "INCONCLUSIVE"
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "plate_hole",
@@ -1361,12 +1379,30 @@
    "limit": -6.926503433711139e-07,
    "U_rel": 1.825942339957901e-05,
    "scale": 6.926466736766569e-07,
-   "independent_sources": [],
+   "independent_sources": [
+    {
+     "source": "6-node triangles P2 (independent discretization)",
+     "levels": 6,
+     "finest": -6.926815750387787e-07,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": -6.927126078797759e-07,
+      "fit_order": 3.1014206209182142,
+      "uncertainty_fine": 0.00014642577196663357,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=3.10 (leave-one-out 1.86-3.20), U_fine=0.01% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 8.98936081386771e-05,
+     "U_ind_rel": 0.00014642577196663357
+    }
+   ],
    "v1": {
     "status": "single_family"
    },
-   "status": "single_family",
-   "final": "INCONCLUSIVE"
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "plate_hole",
@@ -1374,12 +1410,30 @@
    "limit": 1.1881923112167425e-05,
    "U_rel": 1.9650914426509843e-06,
    "scale": 1.1881910764499839e-05,
-   "independent_sources": [],
+   "independent_sources": [
+    {
+     "source": "6-node triangles P2 (independent discretization)",
+     "levels": 6,
+     "finest": 1.1881840299922862e-05,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 1.188178872773015e-05,
+      "fit_order": 2.202479565034725,
+      "uncertainty_fine": 1.9836477591642813e-05,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=2.20 (leave-one-out 1.70-2.25), U_fine=0.00% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 1.1310002232702325e-05,
+     "U_ind_rel": 1.9836477591642813e-05
+    }
+   ],
    "v1": {
     "status": "single_family"
    },
-   "status": "single_family",
-   "final": "INCONCLUSIVE"
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "plate_hole",
@@ -1387,12 +1441,30 @@
    "limit": 11.00361438638063,
    "U_rel": 1.8861197208095932e-06,
    "scale": 11.003600566008357,
-   "independent_sources": [],
+   "independent_sources": [
+    {
+     "source": "6-node triangles P2 (independent discretization)",
+     "levels": 6,
+     "finest": 11.003540342266827,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 11.00352694486127,
+      "fit_order": 1.9328037472649664,
+      "uncertainty_fine": 1.1072851948937436e-05,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.93 (leave-one-out 1.57-1.98), U_fine=0.00% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 7.946627909274795e-06,
+     "U_ind_rel": 1.1072851948937436e-05
+    }
+   ],
    "v1": {
     "status": "single_family"
    },
-   "status": "single_family",
-   "final": "INCONCLUSIVE"
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "plate_hole",
@@ -1400,11 +1472,28 @@
    "limit": 2639007.5700370367,
    "U_rel": 1.4216457569363676e-06,
    "scale": 2639004.5686533186,
-   "independent_sources": [],
+   "independent_sources": [
+    {
+     "source": "6-node triangles P2 (independent discretization)",
+     "levels": 6,
+     "finest": 2638994.6776270973,
+     "assessment": {
+      "evidence": "band",
+      "fit_limit": 2638953.877684026,
+      "fit_order": 12.669503857203916,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.003%); no rate from 5 levels (failed: monotone, order_window, leave_one_out; fitted p=12.67)",
+      "n_levels": 5
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 4.885330663106006e-06
+    }
+   ],
    "v1": {
     "status": "single_family"
    },
-   "status": "single_family",
+   "status": "independent_unconverged",
    "final": "INCONCLUSIVE"
   },
   {
@@ -1413,12 +1502,30 @@
    "limit": 0.008583887052298586,
    "U_rel": 0.0005219254610269847,
    "scale": 0.008580354655599465,
-   "independent_sources": [],
+   "independent_sources": [
+    {
+     "source": "6-node triangles P2 (independent discretization)",
+     "levels": 7,
+     "finest": 0.00857984280693653,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 0.00858374971802031,
+      "fit_order": 1.1305262997925665,
+      "uncertainty_fine": 0.0005840287505104157,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.13 (leave-one-out 1.12-1.13), U_fine=0.06% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 1.6005664542819756e-05,
+     "U_ind_rel": 0.0005840287505104157
+    }
+   ],
    "v1": {
     "status": "single_family"
    },
-   "status": "single_family",
-   "final": "INCONCLUSIVE"
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "l_shape",
@@ -1426,12 +1533,30 @@
    "limit": 0.017464072033016406,
    "U_rel": 0.0006752848834642081,
    "scale": 0.01745473977895903,
-   "independent_sources": [],
+   "independent_sources": [
+    {
+     "source": "6-node triangles P2 (independent discretization)",
+     "levels": 7,
+     "finest": 0.017453030215667173,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 0.017463908421404106,
+      "fit_order": 1.0913149058779095,
+      "uncertainty_fine": 0.0007900626595427506,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.09 (leave-one-out 1.08-1.09), U_fine=0.08% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 9.373477598168951e-06,
+     "U_ind_rel": 0.0007900626595427506
+    }
+   ],
    "v1": {
     "status": "single_family"
    },
-   "status": "single_family",
-   "final": "INCONCLUSIVE"
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "l_shape",
@@ -1439,11 +1564,28 @@
    "limit": 5.216029545384181,
    "U_rel": 0.0009080456924786541,
    "scale": 5.212325665535667,
-   "independent_sources": [],
+   "independent_sources": [
+    {
+     "source": "6-node triangles P2 (independent discretization)",
+     "levels": 7,
+     "finest": 5.213057471796963,
+     "assessment": {
+      "evidence": "band",
+      "fit_limit": 5.325234888781996,
+      "fit_order": 0.050000001446839366,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.184%); no rate from 5 levels (failed: order_window, leave_one_out; fitted p=0.05)",
+      "n_levels": 5
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 0.000570201053796283
+    }
+   ],
    "v1": {
     "status": "single_family"
    },
-   "status": "single_family",
+   "status": "independent_unconverged",
    "final": "INCONCLUSIVE"
   },
   {
@@ -1452,11 +1594,28 @@
    "limit": 4.037593638532007,
    "U_rel": 0.002419718126012061,
    "scale": 4.040273090024942,
-   "independent_sources": [],
+   "independent_sources": [
+    {
+     "source": "6-node triangles P2 (independent discretization)",
+     "levels": 7,
+     "finest": 4.040642779389292,
+     "assessment": {
+      "evidence": "band",
+      "fit_limit": 4.0461868579367914,
+      "fit_order": 1.157113423823052,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.032%); no rate from 5 levels (failed: monotone, fit_quality, leave_one_out; fitted p=1.16)",
+      "n_levels": 5
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 0.0007546868217430275
+    }
+   ],
    "v1": {
     "status": "single_family"
    },
-   "status": "single_family",
+   "status": "independent_unconverged",
    "final": "INCONCLUSIVE"
   },
   {
@@ -1465,12 +1624,30 @@
    "limit": 0.8193816665392364,
    "U_rel": 0.0006498423029913657,
    "scale": 0.8198046667647935,
-   "independent_sources": [],
+   "independent_sources": [
+    {
+     "source": "6-node triangles P2 (independent discretization)",
+     "levels": 7,
+     "finest": 0.8198478681425062,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 0.8194201214308278,
+      "fit_order": 1.1296421220870219,
+      "uncertainty_fine": 0.0006753116217059677,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.13 (leave-one-out 1.11-1.14), U_fine=0.07% vs tol 2.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 4.690738312472952e-05,
+     "U_ind_rel": 0.0006753116217059677
+    }
+   ],
    "v1": {
     "status": "single_family"
    },
-   "status": "single_family",
-   "final": "INCONCLUSIVE"
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "edge_crack",
@@ -1478,12 +1655,30 @@
    "limit": 0.007551404793519872,
    "U_rel": 0.0024297320424720727,
    "scale": 0.007536882566380137,
-   "independent_sources": [],
+   "independent_sources": [
+    {
+     "source": "6-node triangles P2 (independent discretization)",
+     "levels": 7,
+     "finest": 0.007531552769522947,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 0.007551869791836832,
+      "fit_order": 0.9760952648427722,
+      "uncertainty_fine": 0.0034111583457474004,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=0.98 (leave-one-out 0.97-0.99), U_fine=0.34% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 6.16963728524761e-05,
+     "U_ind_rel": 0.0034111583457474004
+    }
+   ],
    "v1": {
     "status": "single_family"
    },
-   "status": "single_family",
-   "final": "INCONCLUSIVE"
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "edge_crack",
@@ -1491,12 +1686,30 @@
    "limit": 0.019148016984563657,
    "U_rel": 0.002545327278862331,
    "scale": 0.019109436268074195,
-   "independent_sources": [],
+   "independent_sources": [
+    {
+     "source": "6-node triangles P2 (independent discretization)",
+     "levels": 7,
+     "finest": 0.019095621280523282,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 0.019149211263460853,
+      "fit_order": 0.9760245536931274,
+      "uncertainty_fine": 0.003547166151181476,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=0.98 (leave-one-out 0.97-0.99), U_fine=0.35% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 6.249681468582963e-05,
+     "U_ind_rel": 0.003547166151181476
+    }
+   ],
    "v1": {
     "status": "single_family"
    },
-   "status": "single_family",
-   "final": "INCONCLUSIVE"
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "edge_crack",
@@ -1504,12 +1717,30 @@
    "limit": -0.0019344300539409012,
    "U_rel": 0.004742874982176789,
    "scale": 0.0019271912419063096,
-   "independent_sources": [],
+   "independent_sources": [
+    {
+     "source": "6-node triangles P2 (independent discretization)",
+     "levels": 7,
+     "finest": -0.0019240726565832563,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": -0.0019346640590158005,
+      "fit_order": 0.976521930936742,
+      "uncertainty_fine": 0.0069619602406438014,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=0.98 (leave-one-out 0.97-0.99), U_fine=0.70% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 0.00012142286131800636,
+     "U_ind_rel": 0.0069619602406438014
+    }
+   ],
    "v1": {
     "status": "single_family"
    },
-   "status": "single_family",
-   "final": "INCONCLUSIVE"
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "edge_crack",
@@ -1517,12 +1748,30 @@
    "limit": 1.1767816834477862,
    "U_rel": 0.0016478656255744398,
    "scale": 1.1752652924002145,
-   "independent_sources": [],
+   "independent_sources": [
+    {
+     "source": "6-node triangles P2 (independent discretization)",
+     "levels": 7,
+     "finest": 1.1746654646866745,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 1.176748256146691,
+      "fit_order": 0.9801394993255309,
+      "uncertainty_fine": 0.002233209258027777,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=0.98 (leave-one-out 0.98-0.99), U_fine=0.22% vs tol 2.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 2.844234515498698e-05,
+     "U_ind_rel": 0.002233209258027777
+    }
+   ],
    "v1": {
     "status": "single_family"
    },
-   "status": "single_family",
-   "final": "INCONCLUSIVE"
+   "status": "cross_checked",
+   "final": "CERTIFIED"
   },
   {
    "problem": "clamped_block_3d",

@@ -1,8 +1,8 @@
 {
  "pdf": "2026-11-23_Verification_Framework_Technical_Report_v6.pdf",
  "summary": {
-  "section": 787,
-  "elsewhere": 90,
+  "section": 794,
+  "elsewhere": 91,
   "backing": 32,
   "NOT FOUND": 0,
   "flag (not textual)": 48
@@ -637,7 +637,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.275",
+   "form": "\u22120.275",
    "backing_reason": null,
    "section_found": true
   },
@@ -649,7 +649,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.010",
+   "form": "0.01",
    "backing_reason": null,
    "section_found": true
   },
@@ -2557,7 +2557,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.07",
+   "form": "0.07",
    "backing_reason": null,
    "section_found": true
   },
@@ -2593,7 +2593,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "0.13",
+   "form": "\u22120.13",
    "backing_reason": null,
    "section_found": true
   },
@@ -3475,7 +3475,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3511,7 +3511,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3544,7 +3544,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3613,7 +3613,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3649,7 +3649,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3682,7 +3682,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3718,7 +3718,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3751,7 +3751,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3787,7 +3787,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3820,7 +3820,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3832,7 +3832,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3844,7 +3844,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3856,7 +3856,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3889,7 +3889,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3913,7 +3913,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -4468,7 +4468,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2.9",
+   "form": "3",
    "backing_reason": null,
    "section_found": true
   },
@@ -4480,7 +4480,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.1",
    "backing_reason": null,
    "section_found": true
   },
@@ -4504,7 +4504,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.2",
    "backing_reason": null,
    "section_found": true
   },
@@ -4876,7 +4876,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.443",
+   "form": "0.443",
    "backing_reason": null,
    "section_found": true
   },
@@ -4924,7 +4924,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.488",
+   "form": "0.488",
    "backing_reason": null,
    "section_found": true
   },
@@ -4936,7 +4936,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.488",
+   "form": "0.488",
    "backing_reason": null,
    "section_found": true
   },
@@ -5152,7 +5152,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.292",
+   "form": "\u22120.292",
    "backing_reason": null,
    "section_found": true
   },
@@ -5164,7 +5164,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.270",
+   "form": "0.270",
    "backing_reason": null,
    "section_found": true
   },
@@ -5560,7 +5560,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "10",
+   "form": "10.5",
    "backing_reason": null,
    "section_found": true
   },
@@ -6184,7 +6184,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.240",
+   "form": "\u22120.240",
    "backing_reason": null,
    "section_found": true
   },
@@ -6220,7 +6220,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.241",
+   "form": "\u22120.241",
    "backing_reason": null,
    "section_found": true
   },
@@ -6292,7 +6292,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.236",
+   "form": "\u22120.236",
    "backing_reason": null,
    "section_found": true
   },
@@ -6316,7 +6316,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -6520,7 +6520,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.4",
    "backing_reason": null,
    "section_found": true
   },
@@ -6640,7 +6640,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.1",
    "backing_reason": null,
    "section_found": true
   },
@@ -7420,7 +7420,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.1",
    "backing_reason": null,
    "section_found": true
   },
@@ -7975,7 +7975,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.447",
+   "form": "\u22120.447",
    "backing_reason": null,
    "section_found": true
   },
@@ -8071,7 +8071,7 @@
    "tolerance": 5e-11,
    "ok": true,
    "text": "section",
-   "form": "1.6 \u00d7 10\u207b\u2079",
+   "form": "0",
    "backing_reason": null,
    "section_found": true
   },
@@ -8083,7 +8083,7 @@
    "tolerance": 5e-09,
    "ok": true,
    "text": "section",
-   "form": "2.7 \u00d7 10\u207b\u2077",
+   "form": "0",
    "backing_reason": null,
    "section_found": true
   },
@@ -8095,7 +8095,7 @@
    "tolerance": 5e-08,
    "ok": true,
    "text": "section",
-   "form": "1.7 \u00d7 10\u207b\u2076",
+   "form": "0",
    "backing_reason": null,
    "section_found": true
   },
@@ -8299,7 +8299,7 @@
    "tolerance": 5e-05,
    "ok": true,
    "text": "section",
-   "form": "\u22120.0121",
+   "form": "0.0121",
    "backing_reason": null,
    "section_found": true
   },
@@ -8311,7 +8311,7 @@
    "tolerance": 5e-05,
    "ok": true,
    "text": "section",
-   "form": "\u22120.0122",
+   "form": "0.0122",
    "backing_reason": null,
    "section_found": true
   },
@@ -8467,7 +8467,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1.4",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -8479,7 +8479,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1.4",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -8491,7 +8491,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1.4",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -8503,7 +8503,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1.4",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -8587,7 +8587,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.2",
    "backing_reason": null,
    "section_found": true
   },
@@ -8791,7 +8791,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.800",
+   "form": "\u22120.800",
    "backing_reason": "per-level spline values: plotted in Figures 25.1/25.2, the text prints limits, orders and selected levels",
    "section_found": true
   },
@@ -8839,7 +8839,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.1",
    "backing_reason": null,
    "section_found": true
   },
@@ -9232,7 +9232,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "1.00",
+   "form": "1",
    "backing_reason": "per-level spline P1 values: behind the plotted sequences and the stated orders and limits",
    "section_found": true
   },
@@ -9244,7 +9244,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2.9",
+   "form": "3",
    "backing_reason": null,
    "section_found": true
   },
@@ -9256,7 +9256,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.4",
    "backing_reason": null,
    "section_found": true
   },
@@ -9352,7 +9352,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "1.9",
    "backing_reason": null,
    "section_found": true
   },
@@ -9640,7 +9640,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.511",
+   "form": "0.511",
    "backing_reason": null,
    "section_found": true
   },
@@ -9772,7 +9772,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "0.8",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -9796,7 +9796,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "1.9",
    "backing_reason": null,
    "section_found": true
   },
@@ -9808,7 +9808,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.1",
    "backing_reason": null,
    "section_found": true
   },
@@ -10030,7 +10030,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "1.5",
    "backing_reason": null,
    "section_found": true
   },
@@ -10606,7 +10606,7 @@
    "tolerance": 5e-07,
    "ok": true,
    "text": "section",
-   "form": "10\u207b\u2075",
+   "form": "1.1 \u00d7 10\u207b\u2075",
    "backing_reason": null,
    "section_found": true
   },
@@ -10846,7 +10846,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -10870,7 +10870,7 @@
    "tolerance": 5e-14,
    "ok": true,
    "text": "section",
-   "form": "9.6 \u00d7 10\u207b\u00b9\u00b2",
+   "form": "0",
    "backing_reason": null,
    "section_found": true
   },
@@ -11057,12 +11057,12 @@
   {
    "section": "31",
    "claim": "three-way Bstar certified of 83",
-   "printed": 49,
-   "recomputed": 49.0,
+   "printed": 60,
+   "recomputed": 60.0,
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "49",
+   "form": "60",
    "backing_reason": null,
    "section_found": true
   },
@@ -11105,12 +11105,12 @@
   {
    "section": "31",
    "claim": "human proxy all Bstar (ten problems)",
-   "printed": 58,
-   "recomputed": 58.0,
+   "printed": 51,
+   "recomputed": 51.0,
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "58",
+   "form": "51",
    "backing_reason": null,
    "section_found": true
   },
@@ -11303,24 +11303,120 @@
   {
    "section": "31",
    "claim": "posthoc-only cross-checked",
-   "printed": 2,
-   "recomputed": 2.0,
+   "printed": 13,
+   "recomputed": 13.0,
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "13",
    "backing_reason": null,
    "section_found": true
   },
   {
    "section": "31",
    "claim": "posthoc-only single family",
-   "printed": 14,
-   "recomputed": 14.0,
+   "printed": 0,
+   "recomputed": 0.0,
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "14",
+   "form": "0",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "31",
+   "claim": "posthoc-only independent unconverged",
+   "printed": 3,
+   "recomputed": 3.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "section",
+   "form": "3",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "31",
+   "claim": "P2 cross-checked L-shape",
+   "printed": 3,
+   "recomputed": 3.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "section",
+   "form": "3",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "31",
+   "claim": "P2 cross-checked crack",
+   "printed": 4,
+   "recomputed": 4.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "section",
+   "form": "4",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "31",
+   "claim": "P2 cross-checked plate",
+   "printed": 4,
+   "recomputed": 4.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "section",
+   "form": "4",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "31",
+   "claim": "P2 crack v_top_right U %",
+   "printed": 0.7,
+   "recomputed": 0.6961960240643802,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "0.70",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "31",
+   "claim": "P2 L-shape energy order",
+   "printed": 1.13,
+   "recomputed": 1.1305262997925665,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "1.13",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "31",
+   "claim": "P2 crack energy order",
+   "printed": 0.98,
+   "recomputed": 0.9760952648427722,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "0.98",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "31",
+   "claim": "P2 plate hole gk spread %",
+   "printed": 0.003,
+   "recomputed": 0.003,
+   "tolerance": 0.0005,
+   "ok": true,
+   "text": "section",
+   "form": "0.003",
    "backing_reason": null,
    "section_found": true
   },
@@ -11344,7 +11440,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   }

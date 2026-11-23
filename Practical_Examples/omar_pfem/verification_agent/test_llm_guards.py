@@ -836,3 +836,14 @@ def test_detf_guard_resolves_and_marks():
         assert r2["detf_inadmissible"] is True
     finally:
         os.environ.pop("VERIF_POSTHOC_DETF", None)
+
+
+def test_report_text_forms():
+    """Round J: the report text check looks for the printed value in the forms the report
+    uses (thousands separator, Unicode minus or 'below', x 10^n with superscripts)."""
+    from omar_pfem.verification_agent.report_text_check import forms, found
+    assert "109,395" in forms(109395, 0)
+    assert "0.5445" in forms(0.5445, 0.0005)            # typed digits, not only tol digits
+    assert "1.1 × 10⁻⁵" in forms(1.1e-5, 0.05e-5)
+    assert found("P1 is 0.55% below the limit", -0.55, 0.005) == "0.55"
+    assert found("value 10.55 here", 0.55, 0.005) is None   # no match inside a longer number

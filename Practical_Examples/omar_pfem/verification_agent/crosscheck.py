@@ -42,6 +42,9 @@ Independent sources:
                              cylindrical zz average is identical to sigma_zz; rr and tt
                              from the local spline re-run (iga_b3_cyl_local.py ->
                              iga_b3_cyl_result.json, added 2026-11-23, round J)
+  l_shape, edge_crack,       6-node triangles P2, the same problem code with each Q2
+  plate_hole                 quadrilateral split in two (independent_p2.py, round J;
+                             plate: hole mid-edge nodes on the exact circle)
   clamped_block_3d           8-node hexahedra Q8, k = 2..16 (block3d.run_q8, round J;
                              order window of a linear element 0.5-3). Its certifications
                              exist only with the post hoc singular-order extension, so
@@ -101,6 +104,13 @@ def independent_series(geometry, qoi):
         if rows:
             out.append(("splines p = 3, exact geometry", [1.0 / r["m"] for r in rows],
                         [r[qoi] for r in rows]))
+    elif geometry in ("l_shape", "edge_crack", "plate_hole"):
+        name = {"l_shape": "lshape", "edge_crack": "crack"}.get(geometry, geometry)
+        rows = sorted(_j(f"{name}_p2_ladder.json"), key=lambda r: r.get("n", r.get("m")))
+        rows = [r for r in rows if qoi in r]
+        if rows:
+            out.append(("6-node triangles P2 (independent discretization)",
+                        [r["h"] for r in rows], [r[qoi] for r in rows]))
     elif geometry == "clamped_block_3d":
         rows = sorted(_j("block3d_q8_ladder.json"), key=lambda r: r["k"])
         rows = [r for r in rows if qoi in r]

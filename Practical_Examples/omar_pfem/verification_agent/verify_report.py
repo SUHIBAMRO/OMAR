@@ -1363,12 +1363,12 @@ def add_j_round(add, h1, h2, h3):
     add("31", "three-way quantities", 107, 0, lambda: tw()["scores"]["A"]["quantities"])
     add("31", "three-way verifiable", 83, 0, lambda: tw()["scores"]["A"]["verifiable"])
     add("31", "three-way must not certify", 17, 0, lambda: tw()["scores"]["A"]["must_not_certify"])
-    for k, v in (("A", 60), ("B", 56), ("Bp", 74), ("Bstar", 49)):
+    for k, v in (("A", 60), ("B", 56), ("Bp", 74), ("Bstar", 60)):
         add("31", f"three-way {k} certified of 83", v, 0,
             lambda k=k: tw()["scores"][k]["certified_correctly"])
         add("31", f"three-way {k} missed failures", 0, 0,
             lambda k=k: tw()["scores"][k]["missed_failures"])
-    for k, v in (("A", 54), ("Bp", 38), ("Bstar", 58)):
+    for k, v in (("A", 54), ("Bp", 38), ("Bstar", 51)):
         add("31", f"human proxy all {k} (ten problems)", v, 0, lambda k=k: tw()["human"][k]["total"])
     add("31", "diagnosis independent correct", 13, 0, lambda: tw()["diagnosis"]["correct_excluding_C1"])
     add("31", "diagnosis independent of", 13, 0, lambda: tw()["diagnosis"]["of_excluding_C1"])
@@ -1391,8 +1391,29 @@ def add_j_round(add, h1, h2, h3):
         add("31", f"Q8 {q} gap %", gap, h3, lambda q=q: 100 * xp(q)["independent_sources"][0]["gap_rel"])
         add("31", f"Q8 {q} cross-checked", 1, 0, lambda q=q: int(xp(q)["status"] == "cross_checked"))
     sp = lambda: _j("crosscheck_result.json")["summary_posthoc_only"]
-    add("31", "posthoc-only cross-checked", 2, 0, lambda: sp()["cross_checked"])
-    add("31", "posthoc-only single family", 14, 0, lambda: sp()["single_family"])
+    add("31", "posthoc-only cross-checked", 13, 0, lambda: sp()["cross_checked"])
+    add("31", "posthoc-only single family", 0, 0, lambda: sp()["single_family"])
+    add("31", "posthoc-only independent unconverged", 3, 0, lambda: sp()["independent_unconverged"])
+    xq = lambda g, q: next(r for r in _j("crosscheck_result.json")["rows_posthoc_only"]
+                           if r["problem"] == g and r["qoi"] == q)
+    add("31", "P2 cross-checked L-shape", 3, 0, lambda: sum(
+        r["status"] == "cross_checked" for r in _j("crosscheck_result.json")["rows_posthoc_only"]
+        if r["problem"] == "l_shape"))
+    add("31", "P2 cross-checked crack", 4, 0, lambda: sum(
+        r["status"] == "cross_checked" for r in _j("crosscheck_result.json")["rows_posthoc_only"]
+        if r["problem"] == "edge_crack"))
+    add("31", "P2 cross-checked plate", 4, 0, lambda: sum(
+        r["status"] == "cross_checked" for r in _j("crosscheck_result.json")["rows_posthoc_only"]
+        if r["problem"] == "plate_hole"))
+    add("31", "P2 crack v_top_right U %", 0.70, h2,
+        lambda: 100 * xq("edge_crack", "v_top_right")["independent_sources"][0]["U_ind_rel"])
+    add("31", "P2 L-shape energy order", 1.13, h2,
+        lambda: xq("l_shape", "strain_energy")["independent_sources"][0]["assessment"]["fit_order"])
+    add("31", "P2 crack energy order", 0.98, h2,
+        lambda: xq("edge_crack", "strain_energy")["independent_sources"][0]["assessment"]["fit_order"])
+    add("31", "P2 plate hole gk spread %", 0.003, 0.0005, lambda: 100 * float(
+        xq("plate_hole", "hole_gk_avg_sigma_xx")["independent_sources"][0]["assessment"]["reason"]
+        .split("spread ")[1].split("%")[0]) / 100)
 
 
 if __name__ == "__main__":

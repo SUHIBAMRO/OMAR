@@ -26071,7 +26071,7 @@ iga_b3_cyl_job.sh; approve (or not) billed LLM runs on the other 6 problems.
 
 ### 2026-11-23 -- Round J (everything that needs no approval)  [IN PROGRESS: spline rr/tt run]
 Change log: advisor_feedback/2026-11-23_CHANGELOG_and_limitations.md (round J section at the end).
-Report v6: advisor_feedback/2026-11-23_Verification_Framework_Technical_Report_v6.pdf (73 pages, Section 31; 31.7 to be updated when the spline run ends).
+Report v6: advisor_feedback/2026-11-23_Verification_Framework_Technical_Report_v6.pdf (74 pages, Section 31; 31.7 to be updated when the spline run ends).
 - Graded 3D failure EXPLAINED: full 3x3x3 rule (q20_full.py) also inverts at 10 increments (det F
   -0.74); 40 increments fix it with either rule (graded_q20_study.json). Reduced-rule hypothesis
   refuted; 30.3 sentence + limitation 9 corrected. detf_guard.py [post hoc]: 64 solves, 1 inadmissible,
@@ -26092,5 +26092,7 @@ Report v6: advisor_feedback/2026-11-23_Verification_Framework_Technical_Report_v
 - Second pass: block strategies k = 6 (root spread 1.82% < 2%); Q8 independent ladder cross-checks
   w_tip + mid avg -> final 49/83; cross-check of posthoc-only certifications (separate list);
   det F guard switch VERIF_POSTHOC_DETF; claims 957/957, tests 70.
+- Third pass: P2 independent ladders (L-shape, crack, plate) -> posthoc-only 13/16 cross-checked,
+  final 60/83; report_text_check.py (0 missing of 965); claims 965/965, tests 71; report v6 74 pages.
 - PENDING after the spline run: B3 radial grading >= 1.75 with more load increments (load-step test).
 NEEDS OMAR: decide on manual submission of block3d_followup_job.sh (and the earlier two jobs).

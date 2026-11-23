@@ -1,0 +1,142 @@
+[
+ {
+  "n": 2,
+  "g": 1.0,
+  "h": 0.5,
+  "n_elem": 32,
+  "n_dof": 170,
+  "strain_energy": 0.006431266224090503,
+  "u_cod_mouth": 0.016221347047806367,
+  "v_top_right": -0.0013733740098563123,
+  "tip_gk_avg_von_mises": 4.163190747087681,
+  "tip_disc_avg_von_mises": 4.101059092712133,
+  "far_gk_avg_syy": 1.1136155667479026,
+  "peak_von_mises": 5.454270050308095,
+  "peak_location": [
+   0.9542118932451144,
+   -0.04578810675488494
+  ],
+  "wall_clock_s": 0.044577598571777344,
+  "element": "P2 triangles (independent discretization)"
+ },
+ {
+  "n": 4,
+  "g": 1.0,
+  "h": 0.25,
+  "n_elem": 128,
+  "n_dof": 594,
+  "strain_energy": 0.006963695936624212,
+  "u_cod_mouth": 0.017596872004526733,
+  "v_top_right": -0.0016304352032597376,
+  "tip_gk_avg_von_mises": 5.015221004003288,
+  "tip_disc_avg_von_mises": 3.886920387290561,
+  "far_gk_avg_syy": 1.1291485381192083,
+  "peak_von_mises": 8.042108167205638,
+  "peak_location": [
+   0.977105946622557,
+   -0.02289405337744247
+  ],
+  "wall_clock_s": 0.015709400177001953,
+  "element": "P2 triangles (independent discretization)"
+ },
+ {
+  "n": 8,
+  "g": 1.0,
+  "h": 0.125,
+  "n_elem": 512,
+  "n_dof": 2210,
+  "strain_energy": 0.007249538720954988,
+  "u_cod_mouth": 0.01835175068841727,
+  "v_top_right": -0.001776941113268799,
+  "tip_gk_avg_von_mises": 5.124825794850586,
+  "tip_disc_avg_von_mises": 3.799549672687279,
+  "far_gk_avg_syy": 1.145339906288087,
+  "peak_von_mises": 11.61211181626585,
+  "peak_location": [
+   0.9885529733112784,
+   -0.011447026688721235
+  ],
+  "wall_clock_s": 0.03212380409240723,
+  "element": "P2 triangles (independent discretization)"
+ },
+ {
+  "n": 16,
+  "g": 1.0,
+  "h": 0.0625,
+  "n_elem": 2048,
+  "n_dof": 8514,
+  "strain_energy": 0.007398002285123871,
+  "u_cod_mouth": 0.018743352766711848,
+  "v_top_right": -0.0018544064311297262,
+  "tip_gk_avg_von_mises": 5.049006766981689,
+  "tip_disc_avg_von_mises": 3.772193412854999,
+  "far_gk_avg_syy": 1.1608147642360496,
+  "peak_von_mises": 16.597187991300725,
+  "peak_location": [
+   0.9942764866556391,
+   -0.005723513344360618
+  ],
+  "wall_clock_s": 0.09919595718383789,
+  "element": "P2 triangles (independent discretization)"
+ },
+ {
+  "n": 32,
+  "g": 1.0,
+  "h": 0.03125,
+  "n_elem": 8192,
+  "n_dof": 33410,
+  "strain_energy": 0.007473871169014992,
+  "u_cod_mouth": 0.0189434373333449,
+  "v_top_right": -0.0018940072438237126,
+  "tip_gk_avg_von_mises": 4.9882962642376,
+  "tip_disc_avg_von_mises": 3.781010337428292,
+  "far_gk_avg_syy": 1.1686854072420005,
+  "peak_von_mises": 23.595670623164068,
+  "peak_location": [
+   0.9971382433278195,
+   -0.002861756672180309
+  ],
+  "wall_clock_s": 0.4497499465942383,
+  "element": "P2 triangles (independent discretization)"
+ },
+ {
+  "n": 64,
+  "g": 1.0,
+  "h": 0.015625,
+  "n_elem": 32768,
+  "n_dof": 132354,
+  "strain_energy": 0.007512249190303604,
+  "u_cod_mouth": 0.019044682855619555,
+  "v_top_right": -0.0019140134786433162,
+  "tip_gk_avg_von_mises": 4.957177896172958,
+  "tip_disc_avg_von_mises": 3.7703971278431463,
+  "far_gk_avg_syy": 1.1726635600040438,
+  "peak_von_mises": 33.45380329740933,
+  "peak_location": [
+   0.9985691216639097,
+   -0.0014308783360901544
+  ],
+  "wall_clock_s": 2.3193018436431885,
+  "element": "P2 triangles (independent discretization)"
+ },
+ {
+  "n": 128,
+  "g": 1.0,
+  "h": 0.0078125,
+  "n_elem": 131072,
+  "n_dof": 526850,
+  "strain_energy": 0.007531552769522947,
+  "u_cod_mouth": 0.019095621280523282,
+  "v_top_right": -0.0019240726565832563,
+  "tip_gk_avg_von_mises": 4.944241979241779,
+  "tip_disc_avg_von_mises": 3.7680952217716333,
+  "far_gk_avg_syy": 1.1746654646866745,
+  "peak_von_mises": 47.366448939758484,
+  "peak_location": [
+   0.9992845608319547,
+   -0.0007154391680450772
+  ],
+  "wall_clock_s": 11.002728939056396,
+  "element": "P2 triangles (independent discretization)"
+ }
+]
