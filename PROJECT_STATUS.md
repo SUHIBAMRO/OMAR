@@ -26086,6 +26086,7 @@ Report v6: advisor_feedback/2026-11-23_Verification_Framework_Technical_Report_v
 - normalisation_study: 54 rate-certified, 7 on larger scale, all within tol on own value.
 - three_way on 10 problems: of 83: GCI 60, det 56, +posthoc 74, final 47; missed 0; diag 13/13.
 - Claims 942/942 (Sections 25/30 read *_round_I.json snapshots); tests 69 pass.
-- RUNNING locally (nohup, log scratchpad/cyl_iga.log): iga_b3_cyl_local.py, L1-L2 disp done; when it
+- RUNNING locally (setsid, log scratchpad/cyl_iga.log; restarted 13:58 UTC after a worker restart,
+  resumes from cache): iga_b3_cyl_local.py, L1-L2 disp done; self check-in 20:38 UTC; when it
   ends: rerun crosscheck, three_way, normalisation_study, verify_report; update report 31.7; PDF v6.
 NEEDS OMAR: decide on manual submission of block3d_followup_job.sh (and the earlier two jobs).
