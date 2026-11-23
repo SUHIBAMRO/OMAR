@@ -905,3 +905,21 @@ def test_second_code_tangent():
     e = 1e-7
     fd = (B.pk1(F + e * dF) - B.pk1(F - e * dF)) / (2 * e)
     assert np.abs(fd - B.dpk1(F, dF)).max() / np.abs(B.dpk1(F, dF)).max() < 1e-7
+
+
+def test_intensity_plan_reproduces():
+    """Round L: the intensity-aware plan is a deterministic function of the uniform family
+    (stored ladder): it grades the corners with share >= 0.10, each with g > p / lam."""
+    import json
+    import os
+    from omar_pfem.verification_agent import ushape as U
+    from omar_pfem.verification_agent.remedy_intensity import coords, plan_intensity
+    here = os.path.dirname(U.__file__)
+    rows = [r for r in json.load(open(os.path.join(here, "ushape_ladder.json")))
+            if r["variant"] == "uniform"]
+    p = plan_intensity(U.POLYGON, U.NU, rows)
+    stored = json.load(open(os.path.join(here, "ushape_plan.json")))
+    assert {k: {str(a): b for a, b in v.items()} for k, v in p["plan"].items()} == stored["plan"]
+    assert all(c["graded"] == (c["share"] >= 0.10) for c in p["corners"])
+    x = coords(8, {1: 3.7}, 0, 3)
+    assert len(x) == 25 and x[8] == 1.0 and (x[1:] > x[:-1]).all()

@@ -914,6 +914,7 @@ def add_f_round(add, h1, h2, h3):
     add_i_round(add, h1, h2)
     add_j_round(add, h1, h2, h3)
     add_k_round(add, h1, h2, h3)
+    add_l_round(add, h1, h2, h3)
     m = lambda: json.load(open(os.path.join(HERE, "lamina_mms.json")))["rows"]
     add("23", "lamina MMS L2 rate", 3.00, h2, lambda: np.log2(m()[-2]["L2_rel"] / m()[-1]["L2_rel"]))
     add("23", "lamina MMS H1 rate", 2.00, h2, lambda: np.log2(m()[-2]["H1_semi_rel"] / m()[-1]["H1_semi_rel"]))
@@ -1526,6 +1527,35 @@ def add_k_round(add, h1, h2, h3):
     add("32", "B3 2.0 negative points", 840, 0, lambda: bj(2.0)["negative_points"])
     add("32", "B3 2.0 elements", 120, 0, lambda: bj(2.0)["elements_with_negative_points"])
     add("32", "B3 1.5 negative points", 0, 0, lambda: bj(1.5)["negative_points"])
+
+
+def add_l_round(add, h1, h2, h3):
+    """Section 33 (round L): intensity-aware remedy on the held-out U-shape."""
+    import math
+    sig2 = lambda v: 0.5 * 10 ** (math.floor(math.log10(abs(v))) - 1)
+    ur = lambda: _j("ushape_result.json")
+    cor = lambda x, y: next(c for c in ur()["plan"]["corners"] if (c["x"], c["y"]) == (x, y))
+    for (x, y), share, g in (((1, 1), 0.69, 3.7), ((0, 0), 0.17, 2.9), ((2, 1), 0.14, 3.7)):
+        add("33", f"share {x},{y}", share, h2, lambda x=x, y=y: cor(x, y)["share"])
+        add("33", f"g {x},{y}", g, 0, lambda x=x, y=y: cor(x, y)["g"])
+    add("33", "share 0,2", 0.003, h3, lambda: cor(0, 2)["share"])
+    add("33", "0,2 not graded", 0, 0, lambda: int(cor(0, 2)["graded"]))
+    Q = lambda q, v: ur()["qois"][q][v]
+    for q, vals in (("strain_energy", ((1.12, 9.5e-4), (2.83, 3.8e-5), (2.91, 7.7e-5), (2.90, 6.5e-5))),
+                    ("v_tip", ((1.12, 9.8e-4), (2.69, 4.1e-5), (2.79, 1.7e-5), (2.78, 1.4e-5)))):
+        for v, (p_, U) in zip(("uniform", "strongest", "all", "intensity"), vals):
+            add("33", f"{q} {v} order", p_, h2, lambda q=q, v=v: Q(q, v)["fit_order"])
+            add("33", f"{q} {v} U", U, sig2(U), lambda q=q, v=v: Q(q, v)["uncertainty_fine"])
+    add("33", "unknowns n=64", 165378, 0, lambda: Q("strain_energy", "intensity")["finest_dof"])
+    add("33", "predictions met", 5, 0, lambda: sum(ur()["predictions_met"].values()))
+    add("33", "energy P2 gap %", 0.004, h3,
+        lambda: 100 * ur()["qois"]["strain_energy"]["p2_crosscheck"]["gap_rel"])
+    add("33", "v_tip P2 cross-checked", 1, 0,
+        lambda: int(ur()["qois"]["v_tip"]["p2_crosscheck"]["status"] == "cross_checked"))
+    add("33", "energy U gain vs uniform", 15, 0.5, lambda: Q("strain_energy", "uniform")
+        ["uncertainty_fine"] / Q("strain_energy", "intensity")["uncertainty_fine"])
+    add("33", "v_tip U gain vs uniform", 71, 0.5, lambda: Q("v_tip", "uniform")
+        ["uncertainty_fine"] / Q("v_tip", "intensity")["uncertainty_fine"])
 
 
 if __name__ == "__main__":

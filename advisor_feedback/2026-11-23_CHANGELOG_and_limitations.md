@@ -309,3 +309,32 @@ commits 338d7f1 (exact benchmark + remedy) and be9e643 (remedy on L-shape and cr
 2. Sequences converged to round-off give band evidence only: no interval, cannot be certified with a rate.
 3. The remedy plans from exponents only; corner intensities must decide which corners to grade.
 4. Long background runs stop whenever the session machine restarts (they resume from the last level).
+
+---
+
+# Round L (23 November 2026): intensity-aware remedy on a held-out problem
+
+Report: Section 33 of `advisor_feedback/2026-11-23_Verification_Framework_Technical_Report_v8.pdf` (83 pages).
+Pre-registered before any loaded solve: commit 4fd091f. No billed run, no cluster job, no email.
+
+## Changes
+- `remedy_intensity.py`: grading plan weighted by corner intensity (local strain-energy change within
+  d < 0.25 of each rate-limiting corner between the two finest uniform levels; grade corners with share
+  >= 0.10, each with its own g > p/lam). Constants fixed before use.
+- `ushape.py` (held-out U-shaped panel, two re-entrant corners of equal exponent and different
+  intensity, two clamped corners) and `ushape_preregister.py`.
+- Result: plan shares 0.69 / 0.17 / 0.14 / 0.003 (upper clamped corner correctly left uniform);
+  5/6 predictions met. Energy U 15x below uniform (tip deflection 71x), order 2.90, P2 cross-checks
+  energy (gap 0.004%) and tip deflection. Miss: for the energy, grading only the two re-entrant corners
+  gives a smaller U (3.8e-5 vs 6.5e-5); the intensity plan beats the one-exponent "all corners" plan for
+  both quantities and is best of the three for the tip deflection.
+- Claims 1,085/1,085; report text check (v8): 0 missing; tests 76.
+
+## Reproduce
+    cd Practical_Examples
+    python -m omar_pfem.verification_agent.ushape_preregister --run
+    python -m omar_pfem.verification_agent.ushape_preregister --compare
+
+## Limitation changed
+- The remedy now uses intensities, but one held-out problem and one threshold; trading the grading of
+  each corner against its share (instead of a fixed 10% threshold) is the next step.

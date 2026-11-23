@@ -1,11 +1,11 @@
 {
- "pdf": "2026-11-23_Verification_Framework_Technical_Report_v7.pdf",
+ "pdf": "2026-11-23_Verification_Framework_Technical_Report_v8.pdf",
  "summary": {
   "section": 880,
-  "elsewhere": 92,
+  "elsewhere": 121,
   "backing": 32,
   "NOT FOUND": 0,
-  "flag (not textual)": 51
+  "flag (not textual)": 52
  },
  "rows": [
   {
@@ -649,7 +649,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.01",
+   "form": "0.010",
    "backing_reason": null,
    "section_found": true
   },
@@ -781,7 +781,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.281",
+   "form": "\u22120.281",
    "backing_reason": null,
    "section_found": true
   },
@@ -913,7 +913,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "elsewhere",
-   "form": "4.0",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -1309,7 +1309,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "elsewhere",
-   "form": "1.1",
+   "form": "1.10",
    "backing_reason": null,
    "section_found": true
   },
@@ -2557,7 +2557,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.07",
+   "form": "0.07",
    "backing_reason": null,
    "section_found": true
   },
@@ -2593,7 +2593,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "0.13",
+   "form": "\u22120.13",
    "backing_reason": null,
    "section_found": true
   },
@@ -3475,7 +3475,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3511,7 +3511,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3544,7 +3544,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3613,7 +3613,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3649,7 +3649,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3682,7 +3682,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3718,7 +3718,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3751,7 +3751,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3787,7 +3787,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3820,7 +3820,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3832,7 +3832,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3844,7 +3844,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3856,7 +3856,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3889,7 +3889,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -3913,7 +3913,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -4468,7 +4468,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2.9",
+   "form": "3",
    "backing_reason": null,
    "section_found": true
   },
@@ -4480,7 +4480,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.1",
    "backing_reason": null,
    "section_found": true
   },
@@ -4504,7 +4504,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.2",
    "backing_reason": null,
    "section_found": true
   },
@@ -4648,7 +4648,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "25",
+   "form": "24.9",
    "backing_reason": null,
    "section_found": true
   },
@@ -4876,7 +4876,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.443",
+   "form": "0.443",
    "backing_reason": null,
    "section_found": true
   },
@@ -4912,7 +4912,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.490",
+   "form": "\u22120.490",
    "backing_reason": null,
    "section_found": true
   },
@@ -4924,7 +4924,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.488",
+   "form": "\u22120.488",
    "backing_reason": null,
    "section_found": true
   },
@@ -4936,7 +4936,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.488",
+   "form": "\u22120.488",
    "backing_reason": null,
    "section_found": true
   },
@@ -5164,7 +5164,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.270",
+   "form": "0.270",
    "backing_reason": null,
    "section_found": true
   },
@@ -5296,7 +5296,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.328",
+   "form": "0.328",
    "backing_reason": null,
    "section_found": true
   },
@@ -5392,7 +5392,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.361",
+   "form": "0.361",
    "backing_reason": null,
    "section_found": true
   },
@@ -5548,7 +5548,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "10.1",
+   "form": "10",
    "backing_reason": null,
    "section_found": true
   },
@@ -6184,7 +6184,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.240",
+   "form": "\u22120.240",
    "backing_reason": null,
    "section_found": true
   },
@@ -6220,7 +6220,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.241",
+   "form": "\u22120.241",
    "backing_reason": null,
    "section_found": true
   },
@@ -6292,7 +6292,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.236",
+   "form": "0.236",
    "backing_reason": null,
    "section_found": true
   },
@@ -6304,7 +6304,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "3",
+   "form": "3.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -6316,7 +6316,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -6520,7 +6520,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.4",
    "backing_reason": null,
    "section_found": true
   },
@@ -6640,7 +6640,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.1",
    "backing_reason": null,
    "section_found": true
   },
@@ -6760,7 +6760,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "1.6",
    "backing_reason": null,
    "section_found": true
   },
@@ -7048,7 +7048,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -7408,7 +7408,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "1.6",
    "backing_reason": null,
    "section_found": true
   },
@@ -7420,7 +7420,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.1",
    "backing_reason": null,
    "section_found": true
   },
@@ -7528,7 +7528,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "elsewhere",
-   "form": "3.0",
+   "form": "3",
    "backing_reason": null,
    "section_found": true
   },
@@ -7807,7 +7807,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -7855,7 +7855,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -7879,7 +7879,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4.0",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -7975,7 +7975,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.447",
+   "form": "0.447",
    "backing_reason": null,
    "section_found": true
   },
@@ -8023,7 +8023,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "0.9",
+   "form": "0.90",
    "backing_reason": null,
    "section_found": true
   },
@@ -8167,7 +8167,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "9.2",
+   "form": "9",
    "backing_reason": null,
    "section_found": true
   },
@@ -8227,7 +8227,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "0.9",
+   "form": "0.90",
    "backing_reason": null,
    "section_found": true
   },
@@ -8287,7 +8287,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.50",
+   "form": "\u22122.50",
    "backing_reason": null,
    "section_found": true
   },
@@ -8299,7 +8299,7 @@
    "tolerance": 5e-05,
    "ok": true,
    "text": "section",
-   "form": "0.0121",
+   "form": "\u22120.0121",
    "backing_reason": null,
    "section_found": true
   },
@@ -8335,7 +8335,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -8371,7 +8371,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "3.5",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -8383,7 +8383,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "4.2",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -8443,7 +8443,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -8455,7 +8455,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "1.6",
    "backing_reason": null,
    "section_found": true
   },
@@ -8467,7 +8467,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1.4",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -8479,7 +8479,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1.4",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -8491,7 +8491,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1.4",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -8503,7 +8503,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1.4",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -8587,7 +8587,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.2",
    "backing_reason": null,
    "section_found": true
   },
@@ -8791,7 +8791,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.8",
+   "form": "\u22120.800",
    "backing_reason": "per-level spline values: plotted in Figures 25.1/25.2, the text prints limits, orders and selected levels",
    "section_found": true
   },
@@ -8839,7 +8839,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.1",
    "backing_reason": null,
    "section_found": true
   },
@@ -9232,7 +9232,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "1.00",
+   "form": "1",
    "backing_reason": "per-level spline P1 values: behind the plotted sequences and the stated orders and limits",
    "section_found": true
   },
@@ -9244,7 +9244,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2.9",
+   "form": "3",
    "backing_reason": null,
    "section_found": true
   },
@@ -9256,7 +9256,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.4",
    "backing_reason": null,
    "section_found": true
   },
@@ -9328,7 +9328,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -9352,7 +9352,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "1.9",
    "backing_reason": null,
    "section_found": true
   },
@@ -9448,7 +9448,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4.0",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -9496,7 +9496,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -9544,7 +9544,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -9556,7 +9556,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4.0",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -9640,7 +9640,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.511",
+   "form": "\u22120.511",
    "backing_reason": null,
    "section_found": true
   },
@@ -9772,7 +9772,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "0.8",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -9784,7 +9784,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -9796,7 +9796,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "1.9",
    "backing_reason": null,
    "section_found": true
   },
@@ -9808,7 +9808,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.1",
    "backing_reason": null,
    "section_found": true
   },
@@ -9928,7 +9928,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "4.0",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -10030,7 +10030,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "1.5",
    "backing_reason": null,
    "section_found": true
   },
@@ -10042,7 +10042,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "3.0",
+   "form": "3",
    "backing_reason": null,
    "section_found": true
   },
@@ -10102,7 +10102,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "3.0",
+   "form": "3",
    "backing_reason": null,
    "section_found": true
   },
@@ -10534,7 +10534,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "1.026",
+   "form": "\u22121.026",
    "backing_reason": null,
    "section_found": true
   },
@@ -10606,7 +10606,7 @@
    "tolerance": 5e-07,
    "ok": true,
    "text": "section",
-   "form": "1.1 \u00d7 10\u207b\u2075",
+   "form": "10\u207b\u2075",
    "backing_reason": null,
    "section_found": true
   },
@@ -10630,7 +10630,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -10654,7 +10654,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -10690,7 +10690,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.281",
+   "form": "\u22120.281",
    "backing_reason": null,
    "section_found": true
   },
@@ -10846,7 +10846,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -10906,7 +10906,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "7.3",
+   "form": "7",
    "backing_reason": null,
    "section_found": true
   },
@@ -11332,7 +11332,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "3.0",
+   "form": "3",
    "backing_reason": null,
    "section_found": true
   },
@@ -11344,7 +11344,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "3.0",
+   "form": "3",
    "backing_reason": null,
    "section_found": true
   },
@@ -11488,7 +11488,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -11500,7 +11500,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4.0",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -11512,7 +11512,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4.0",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -11680,7 +11680,7 @@
    "tolerance": 5e-06,
    "ok": true,
    "text": "section",
-   "form": "10\u207b\u2074",
+   "form": "1.1 \u00d7 10\u207b\u2074",
    "backing_reason": null,
    "section_found": true
   },
@@ -11848,7 +11848,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4.0",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -12004,7 +12004,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4.0",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -12052,7 +12052,7 @@
    "tolerance": 5e-06,
    "ok": true,
    "text": "section",
-   "form": "10\u207b\u2074",
+   "form": "1.2 \u00d7 10\u207b\u2074",
    "backing_reason": null,
    "section_found": true
   },
@@ -12492,6 +12492,363 @@
    "section_found": true
   },
   {
+   "section": "33",
+   "claim": "share 1,1",
+   "printed": 0.69,
+   "recomputed": 0.6889710282027162,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "0.69",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "g 1,1",
+   "printed": 3.7,
+   "recomputed": 3.7,
+   "tolerance": 0,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "3.7",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "share 0,0",
+   "printed": 0.17,
+   "recomputed": 0.1689259876372854,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "0.17",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "g 0,0",
+   "printed": 2.9,
+   "recomputed": 2.9,
+   "tolerance": 0,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "2.9",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "share 2,1",
+   "printed": 0.14,
+   "recomputed": 0.1391101114873703,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "0.14",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "g 2,1",
+   "printed": 3.7,
+   "recomputed": 3.7,
+   "tolerance": 0,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "3.7",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "share 0,2",
+   "printed": 0.003,
+   "recomputed": 0.00299287267262812,
+   "tolerance": 0.0005,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "0.003",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "0,2 not graded",
+   "printed": 0,
+   "recomputed": 0.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "0",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "strain_energy uniform order",
+   "printed": 1.12,
+   "recomputed": 1.1209071189800461,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "1.12",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "strain_energy uniform U",
+   "printed": 0.00095,
+   "recomputed": 0.0009482846205639826,
+   "tolerance": 5e-06,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "9.5 \u00d7 10\u207b\u2074",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "strain_energy strongest order",
+   "printed": 2.83,
+   "recomputed": 2.8266673370772777,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "2.83",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "strain_energy strongest U",
+   "printed": 3.8e-05,
+   "recomputed": 3.768953395349245e-05,
+   "tolerance": 5e-07,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "3.8 \u00d7 10\u207b\u2075",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "strain_energy all order",
+   "printed": 2.91,
+   "recomputed": 2.9125359635053405,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "2.91",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "strain_energy all U",
+   "printed": 7.7e-05,
+   "recomputed": 7.653627859496719e-05,
+   "tolerance": 5e-07,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "7.7 \u00d7 10\u207b\u2075",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "strain_energy intensity order",
+   "printed": 2.9,
+   "recomputed": 2.9011188735156153,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "2.90",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "strain_energy intensity U",
+   "printed": 6.5e-05,
+   "recomputed": 6.472971349290386e-05,
+   "tolerance": 5e-07,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "6.5 \u00d7 10\u207b\u2075",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "v_tip uniform order",
+   "printed": 1.12,
+   "recomputed": 1.1180691308903365,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "1.12",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "v_tip uniform U",
+   "printed": 0.00098,
+   "recomputed": 0.0009802060875159877,
+   "tolerance": 5e-06,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "9.8 \u00d7 10\u207b\u2074",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "v_tip strongest order",
+   "printed": 2.69,
+   "recomputed": 2.6947857024651642,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "2.69",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "v_tip strongest U",
+   "printed": 4.1e-05,
+   "recomputed": 4.118424846719358e-05,
+   "tolerance": 5e-07,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "4.1 \u00d7 10\u207b\u2075",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "v_tip all order",
+   "printed": 2.79,
+   "recomputed": 2.7897715338807156,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "2.79",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "v_tip all U",
+   "printed": 1.7e-05,
+   "recomputed": 1.7457065276049054e-05,
+   "tolerance": 5e-07,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "1.7 \u00d7 10\u207b\u2075",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "v_tip intensity order",
+   "printed": 2.78,
+   "recomputed": 2.7827593665091377,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "2.78",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "v_tip intensity U",
+   "printed": 1.4e-05,
+   "recomputed": 1.3792123983483893e-05,
+   "tolerance": 5e-07,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "1.4 \u00d7 10\u207b\u2075",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "unknowns n=64",
+   "printed": 165378,
+   "recomputed": 165378.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "165,378",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "predictions met",
+   "printed": 5,
+   "recomputed": 5.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "5",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "energy P2 gap %",
+   "printed": 0.004,
+   "recomputed": 0.0044278072931120726,
+   "tolerance": 0.0005,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "0.004",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "v_tip P2 cross-checked",
+   "printed": 1,
+   "recomputed": 1.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "flag (not textual)"
+  },
+  {
+   "section": "33",
+   "claim": "energy U gain vs uniform",
+   "printed": 15,
+   "recomputed": 14.649912217948259,
+   "tolerance": 0.5,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "15",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "33",
+   "claim": "v_tip U gain vs uniform",
+   "printed": 71,
+   "recomputed": 71.06998810986525,
+   "tolerance": 0.5,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "71",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
    "section": "23",
    "claim": "lamina MMS L2 rate",
    "printed": 3.0,
@@ -12499,7 +12856,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "3",
+   "form": "3.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -12511,7 +12868,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   }

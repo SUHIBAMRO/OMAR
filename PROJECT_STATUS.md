@@ -26114,3 +26114,13 @@ Report v7: advisor_feedback/2026-11-23_Verification_Framework_Technical_Report_v
 - RUNNING (restart with setsid after any machine restart; resumes): iga_b3_cyl_local (L4 disp, then P1).
   When done: crosscheck, three_way, verify_report, report 31.7, PDF.
 NEXT IDEA (not started): intensity-aware remedy (weight corners by estimated stress-intensity).
+
+### 2026-11-23 -- Round L (intensity-aware remedy, held-out U-shape)
+Report v8: advisor_feedback/2026-11-23_Verification_Framework_Technical_Report_v8.pdf (83 pages, Section 33).
+- remedy_intensity.py + ushape.py (pre-registered 4fd091f): 5/6 predictions; energy U 15x below uniform,
+  tip 71x; P2 cross-checks; miss: strongest-only plan gives smaller energy U.
+- Claims 1,085/1,085; text check 0 missing; tests 76.
+- RUNNING (restart with setsid after any machine restart; resumes): iga_b3_cyl_local (L4 disp, then P1).
+  The machine restarts whenever the session idles, so L4 (~2-3 h) may never finish locally; the
+  prepared Practical_Examples/iga_b3_cyl_job.sh is the reliable route (needs Omar's manual submission).
+NEXT IDEA (not started): share-weighted grading (trade each corner's grading against its share).
