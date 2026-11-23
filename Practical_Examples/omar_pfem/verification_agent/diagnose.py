@@ -331,13 +331,17 @@ def derived_facts(geometry):
         except Exception:
             pass
     unknown = lambda what: (lambda: (None, f"{what} not recorded for this problem"))
+    # solver and code checks from followup_hooks (2026-11-23): stored results only
+    from omar_pfem.verification_agent import followup_hooks as FH
+    ls = FH.linear_solver(geometry)
     return {"name": spec["name"], "element": spec["element"], "degree": deg,
             "quadrature": quad, "nu": float(m.group(1).rstrip(".")) if m else None,
             "material": spec["material"], "corners": corners,
             "corners_in_qoi_region": bool(corners), "feature_radius": None,
-            "code_check": unknown("a manufactured-solution test"),
-            "tolerance_check": unknown("a tighter-tolerance re-solve"),
-            "linear_solver": ("not recorded", unknown("a linear-solver cross-check")),
+            "code_check": lambda: FH.code_check(geometry),
+            "tolerance_check": lambda: FH.tolerance(geometry),
+            "linear_solver": ((ls, None) if ls else
+                              ("not recorded", unknown("a linear-solver cross-check"))),
             "fullint": None, "facts_source": "derived automatically"}
 
 

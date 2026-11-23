@@ -192,7 +192,7 @@ def mesh(k, g=1.0):
     return n20, e20
 
 
-def solve(k, g=1.0, nsteps=10, quadrature="reduced"):
+def solve(k, g=1.0, nsteps=10, quadrature="reduced", tol=1e-10):
     """quadrature: "reduced" (torch-fem default 2x2x2, the pre-registered setting) or
     "full" (3x3x3, q20_full.py; added 2026-11-23 for the graded-mesh study)."""
     if quadrature == "full":
@@ -221,7 +221,7 @@ def solve(k, g=1.0, nsteps=10, quadrature="reduced"):
     t0 = time.time()
     with torch.no_grad():
         u, f, S, F, _ = model.solve(increments=torch.linspace(0, 1, nsteps + 1), max_iter=30,
-                                    rtol=1e-10, atol=1e-10, stol=1e-10, method="direct",
+                                    rtol=tol, atol=tol, stol=tol, method="direct",
                                     aggregate_integration_points=False)
     sec = time.time() - t0
     S = S.transpose(0, 1).numpy()

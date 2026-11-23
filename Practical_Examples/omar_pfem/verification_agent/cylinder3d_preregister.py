@@ -91,7 +91,8 @@ def compare():
     # crosscheck.py was changed after the pre-registration (2026-11-23, cross-check v2:
     # an independent sequence must also meet the tolerance); it has no entry for this
     # problem and decides none of its verdicts. Any other change refuses scoring.
-    allowed = {"crosscheck.py"}
+    # orchestrate.py: Block3DAdapter appended (2026-11-23); existing code paths unchanged
+    allowed = {"crosscheck.py", "orchestrate.py"}
     if set(changed) - allowed:
         raise SystemExit(f"frozen files changed since pre-registration: {changed}")
     if changed:

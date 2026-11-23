@@ -86,7 +86,7 @@ def end_face_forces(X, el):
     return f
 
 
-def solve(k, g=1.0, nsteps=10, quadrature="reduced"):
+def solve(k, g=1.0, nsteps=10, quadrature="reduced", tol=1e-10):
     if quadrature == "full":
         from omar_pfem.verification_agent.q20_full import SolidFull as Solid
     else:
@@ -106,7 +106,7 @@ def solve(k, g=1.0, nsteps=10, quadrature="reduced"):
     t0 = time.time()
     with torch.no_grad():
         u, f, S, F, _ = model.solve(increments=torch.linspace(0, 1, nsteps + 1), max_iter=30,
-                                    rtol=1e-10, atol=1e-10, stol=1e-10, method="direct",
+                                    rtol=tol, atol=tol, stol=tol, method="direct",
                                     aggregate_integration_points=False)
     sec = time.time() - t0
     S = S.transpose(0, 1).numpy()
