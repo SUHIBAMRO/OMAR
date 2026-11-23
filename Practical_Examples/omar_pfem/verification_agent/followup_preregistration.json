@@ -1,0 +1,29 @@
+{
+ "written": "2026-11-23T01:04:14.513241+00:00",
+ "purpose": "first autonomous follow-up: the improved diagnosis (2026-11-23) supports D4 (pre-asymptotic, pairwise orders still rising) for the L-shape displacement v_right_top; the agent decides to add one finer level (n = 256) within a time and memory budget. Predictions written BEFORE that level is solved.",
+ "quantity": "l_shape / v_right_top",
+ "levels_before": [
+  2,
+  4,
+  8,
+  16,
+  32,
+  64,
+  128
+ ],
+ "pairwise_orders_before": [
+  2.1025578943805625,
+  0.5337044162721601,
+  0.7587310652791346,
+  0.9000191459059911,
+  0.9722961620747171
+ ],
+ "theory_2lam": 1.0889674735649182,
+ "storage": "the new level goes to lshape_followup.json; lshape_ladder.json (the pre-registered L-shape result) is not changed",
+ "predictions": {
+  "P1 next pairwise order (levels 64, 128, 256)": "between 0.97 and 1.15 (still rising toward 2 lambda = 1.089, or reached it)",
+  "P2 five-level fit over n = 16..256": "fitted order >= 0.94 = 2 lambda - 0.15, so the post hoc singular-order check PASSes (it FAILed with 0.84 on n = 8..128)",
+  "P3 strain energy, n = 16..256": "fitted order within 0.15 of 2 lambda (unchanged behaviour)",
+  "P4 cost": "the n = 256 level takes under 120 s and under 8 GB (n = 128: 7.3 s, 395,266 dof)"
+ }
+}

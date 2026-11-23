@@ -48,7 +48,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PKG = os.path.dirname(HERE)
 
 CLASSES = ("mathematical/physical", "numerical discretization", "solver/implementation",
-           "QoI/post-processing", "surrogate-related")
+           "QoI/post-processing", "surrogate-related",
+           # added 2026-11-23 (post hoc, after the plate misdiagnosis): the quantity may be
+           # fine, but the framework lacks the check its plan requires
+           "verification capability")
 SUPPORTED, REFUTED, NEEDS_DATA, NOT_APPLICABLE = "supported", "refuted", "needs data", "n/a"
 
 
@@ -303,11 +306,51 @@ FACTS = {
 }
 
 
+ELEMENT_FACTS = {"Q4": (1, "full"), "Q9": (2, "full"), "Q20": (2, "reduced")}
+
+
+def derived_facts(geometry):
+    """Facts derived automatically (2026-11-23) for a problem without hand-written
+    FACTS: element degree and quadrature from the specification, Poisson's ratio
+    from the adapter description, singular exponent from the adapter if it has one.
+    Everything else is unknown and makes the corresponding tests ask for data
+    (NEEDS_DATA) instead of guessing."""
+    import re
+    from omar_pfem.verification_agent.agent import DEFAULT_SPECS
+    from omar_pfem.verification_agent.orchestrate import ADAPTERS
+    spec = DEFAULT_SPECS[geometry]
+    ad_cls = ADAPTERS[geometry]
+    deg, quad = ELEMENT_FACTS.get(spec["element"], (None, "unknown"))
+    m = re.search(r"nu = ([0-9.]+)", getattr(ad_cls, "description", ""))
+    corners = []
+    if hasattr(ad_cls, "singular_exponent"):
+        try:
+            lam = ad_cls().singular_exponent()
+            if lam is not None:
+                corners = [{"where": "singular point given by the adapter", "lam": float(lam)}]
+        except Exception:
+            pass
+    unknown = lambda what: (lambda: (None, f"{what} not recorded for this problem"))
+    return {"name": spec["name"], "element": spec["element"], "degree": deg,
+            "quadrature": quad, "nu": float(m.group(1).rstrip(".")) if m else None,
+            "material": spec["material"], "corners": corners,
+            "corners_in_qoi_region": bool(corners), "feature_radius": None,
+            "code_check": unknown("a manufactured-solution test"),
+            "tolerance_check": unknown("a tighter-tolerance re-solve"),
+            "linear_solver": ("not recorded", unknown("a linear-solver cross-check")),
+            "fullint": None, "facts_source": "derived automatically"}
+
+
+def facts_for(geometry):
+    return FACTS[geometry] if geometry in FACTS else derived_facts(geometry)
+
+
 def corner_lambda(facts):
     """Smallest singular exponent over the problem's corners/edges (plane
     strain eigenproblem), or None."""
     from omar_pfem.verification_agent import singularity as S
-    lams = [S.smallest_exponent(c["angle"], c["bc"][0], c["bc"][1], facts["nu"],
+    lams = [c["lam"] if "lam" in c else
+            S.smallest_exponent(c["angle"], c["bc"][0], c["bc"][1], facts["nu"],
                                 facts.get("plane", "strain"))
             for c in facts["corners"]]
     lams = [l for l in lams if l is not None]      # regular corners have no exponent < 1
@@ -557,8 +600,30 @@ def t_norm_accumulation(c):
 
 
 def t_gauss_location(c):
-    if not c.qoi.endswith("_max"):
+    if not (c.qoi.endswith("_max") or c.qoi_class == "pointwise_peak"):
         return _r(NOT_APPLICABLE, "not a maximum")
+    if c.geometry != "bushing_groove":
+        # generic test (2026-11-23): without a singular point in the region, a maximum over
+        # interior Gauss points of a degree >= 2 element that rises with order ~1 is limited
+        # by the distance of the Gauss points from the surface, not by the element
+        if c.facts["corners"] and _corners_in_region(c):
+            return _r(NOT_APPLICABLE, "a singular point lies in the region (see M1)")
+        hs, vals, _ = c.adapter.series(c.qoi)
+        p = c.gates.get("qoi_convergence_multilevel", {}).get("fit_order")
+        v = np.abs(np.asarray(vals[-4:], float))
+        rising = bool(np.all(np.diff(v) > 0))
+        deg = c.facts.get("degree") or 1
+        if p is not None and p < 1.3 and rising and deg >= 2:
+            return _r(SUPPORTED, f"the maximum over Gauss points rises monotonically with order "
+                                 f"{p:.2f}, about 1 although the element has degree {deg}: the "
+                                 "Gauss points approach the surface maximum at O(h)",
+                      next_action="evaluate the stress at the surface point (nodal "
+                                  "extrapolation) or refine further; the order will not improve",
+                      cost="seconds from stored data (if nodal values are stored)",
+                      remedy="report the surface value at a fixed point, not a maximum over "
+                             "Gauss points")
+        return _r(REFUTED, f"order {p if p is None else round(p, 2)}, monotone rise {rising}, "
+                           f"degree {deg}: no sign of a Gauss-location limit")
     path = os.path.join(HERE, "surface_study_result.json")
     if not os.path.exists(path):
         return _r(NEEDS_DATA, "maxima are taken over Gauss points inside the body, not on the "
@@ -597,14 +662,17 @@ def t_reduced_integration(c):
 
 def t_volumetric(c):
     nu = c.facts["nu"]
+    if nu is None:
+        return _r(NEEDS_DATA, "Poisson's ratio not known to the agent",
+                  next_action="state nu in the problem description", cost="none")
     if nu < 0.4:
         return _r(REFUTED, f"nu = {nu}: far from incompressibility")
     sc = c.facts.get("pressure_scatter")
-    code_ok, code_txt = c.facts["code_check"]()
     if sc is None:
         return _r(NEEDS_DATA, f"nu = {nu}: near-incompressible; pressure oscillation possible",
                   next_action="measure the Gauss-point pressure scatter near the feature",
                   cost="seconds from stored data")
+    code_ok, code_txt = c.facts["code_check"]()
     d = sc()["reduced"]
     lv = sorted(d)
     scale = c.adapter.scale
@@ -659,11 +727,44 @@ def t_implementation(c):
     return _r(REFUTED if ok else SUPPORTED, txt + ("" if ok else ": rates off theory"))
 
 
+def pairwise_orders(hs, vals):
+    """Observed order between successive level triples (needs constant ratio ~)."""
+    h, v = np.asarray(hs, float), np.asarray(vals, float)
+    d = np.diff(v)
+    out = []
+    for i in range(len(d) - 1):
+        if d[i] == 0 or d[i + 1] == 0 or np.sign(d[i]) != np.sign(d[i + 1]):
+            out.append(None)
+            continue
+        out.append(float(np.log(abs(d[i]) / abs(d[i + 1])) / np.log(h[i + 1] / h[i + 2])))
+    return out
+
+
 def t_preasymptotic(c):
     hs, vals, _ = c.adapter.series(c.qoi)
     if len(vals) < 5:
         return _r(NEEDS_DATA, "fewer than five levels", next_action="add a finer level",
                   cost="see the adaptive controller's cost model")
+    # 2026-11-23 (post hoc, after the L-shape displacement that approached its rate from
+    # below, and the plate quantities that were called pre-asymptotic although they had
+    # converged): use the drift of the pairwise orders over the finest levels
+    po = pairwise_orders(hs[-5:], vals[-5:])
+    if None not in po and len(po) >= 3:
+        drift = po[-1] - po[0]
+        steady = max(po) - min(po) < 0.15
+        conv_rate = all(c.gates.get(k, {}).get("evidence") == "rate"
+                        and c.gates.get(k, {}).get("verdict") == "PASS"
+                        for k in ("qoi_convergence", "qoi_convergence_multilevel"))
+        txt = "pairwise orders " + ", ".join(f"{p:.2f}" for p in po)
+        if steady and conv_rate:
+            return _r(REFUTED, txt + ": steady and both convergence checks pass with a rate; "
+                                     "the sequence is in its asymptotic range")
+        monotone = all(np.sign(po[i + 1] - po[i]) == np.sign(drift) for i in range(len(po) - 1))
+        if monotone and abs(drift) >= 0.15:
+            return _r(SUPPORTED, txt + f": still drifting ({'rising' if drift > 0 else 'falling'}"
+                                       f" by {abs(drift):.2f}); the asymptotic order is not yet "
+                                       "reached",
+                      next_action="add a finer level", cost="see the adaptive controller")
     d = np.diff(np.asarray(vals[-5:], float))
     shrinking = abs(d[-1]) < abs(d[0])
     sign_changes = int(np.sum(np.sign(d[1:]) != np.sign(d[:-1])))
@@ -674,6 +775,31 @@ def t_preasymptotic(c):
                   next_action="add a finer level", cost="see the adaptive controller")
     return _r(REFUTED, f"increments over the finest five levels do not settle "
                        f"({sign_changes} sign changes, last/first {abs(d[-1]) / abs(d[0]):.2f})")
+
+
+CAPABILITY_PHRASES = ("implemented for", "not implemented", "no theory", "not available for")
+
+
+def t_capability_gap(c):
+    """2026-11-23 (post hoc, after the plate): a required check could not be applied
+    to this element or problem class, which is a gap of the framework, not evidence
+    about the quantity."""
+    gaps = {k: g.get("reason", "") for k, g in c.gates.items()
+            if g.get("verdict") == "INCONCLUSIVE"
+            and any(p in (g.get("reason") or "") for p in CAPABILITY_PHRASES)}
+    if not gaps:
+        return _r(NOT_APPLICABLE, "every required check could be applied")
+    failed = [k for k, g in c.gates.items() if g.get("verdict") == "FAIL" and k not in gaps]
+    txt = "; ".join(f"{k}: {r}" for k, r in gaps.items())
+    if failed:
+        return _r(SUPPORTED, txt + f"; other checks also fail ({', '.join(failed)})",
+                  next_action="extend the missing check; the failing checks decide meanwhile")
+    return _r(SUPPORTED, txt + "; every other check passed: the verdict is INCONCLUSIVE for "
+                               "lack of a check, not for lack of convergence",
+              next_action="extend the check to this element (e.g. degree-k corner theory) or "
+                          "verify the quantity against an independent discretization",
+              cost="development (the check) or one independent ladder",
+              remedy="do not read this INCONCLUSIVE as a convergence problem")
 
 
 def t_physical_model(c):
@@ -787,9 +913,13 @@ HYPOTHESES = [
         lambda c: c.qoi_class == "region_average", t_norm_accumulation),
     Hyp("Q3", "QoI/post-processing",
         "the maximum is taken at Gauss points inside the body, not on the surface",
-        lambda c: c.qoi.endswith("_max"), t_gauss_location),
+        # every pointwise peak (2026-11-23; was: names ending in _max)
+        lambda c: c.qoi.endswith("_max") or c.qoi_class == "pointwise_peak", t_gauss_location),
     Hyp("U1", "surrogate-related", "the surrogate, not the reference, fails",
         lambda c: True, t_surrogate),
+    Hyp("C1", "verification capability",
+        "a check the plan requires is not implemented for this element or problem class",
+        lambda c: c.verdict != "PASS", t_capability_gap),
 ]
 
 
@@ -805,7 +935,7 @@ def diagnose_problem(geometry, qois=None):
     from omar_pfem.verification_agent import trees
     from omar_pfem.verification_agent.verify_report import rules
     R = rules(geometry)
-    facts = FACTS[geometry]
+    facts = facts_for(geometry)
     out = {}
     targets = qois or list(R["combine"])
     for q in targets:
