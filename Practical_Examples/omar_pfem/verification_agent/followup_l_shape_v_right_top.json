@@ -1,0 +1,149 @@
+{
+ "diagnosis_supported": [
+  "D4"
+ ],
+ "next_investigation": "record min det F and the largest principal stretch",
+ "plan": {
+  "n_next": 256,
+  "dof_estimate": 1581064.0,
+  "alpha": 0.9942737838231615,
+  "seconds_estimate": 29.079453794222587,
+  "gb_estimate": 4.743192,
+  "budget_s": 300.0,
+  "budget_gb": 8.0,
+  "within_budget": true
+ },
+ "action": "ran n = 256",
+ "measured_seconds": 40.74415993690491,
+ "n_dof": 1576962,
+ "pairwise_orders_after": [
+  0.7587310652791346,
+  0.9000191459059911,
+  0.9722961620747171,
+  1.010009573759072
+ ],
+ "verdicts": {
+  "strain_energy": {
+   "before": [
+    "PASS",
+    "rate"
+   ],
+   "after": [
+    "PASS",
+    "rate"
+   ]
+  },
+  "u_top_left": {
+   "before": [
+    "PASS",
+    "rate"
+   ],
+   "after": [
+    "PASS",
+    "rate"
+   ]
+  },
+  "v_right_top": {
+   "before": [
+    "FAIL",
+    "rate"
+   ],
+   "after": [
+    "FAIL",
+    "rate"
+   ]
+  },
+  "corner_gk_avg_von_mises": {
+   "before": [
+    "PASS",
+    "rate"
+   ],
+   "after": [
+    "PASS",
+    "rate"
+   ]
+  },
+  "corner_disc_avg_von_mises": {
+   "before": [
+    "PASS",
+    "rate"
+   ],
+   "after": [
+    "PASS",
+    "rate"
+   ]
+  },
+  "far_gk_avg_syy": {
+   "before": [
+    "PASS",
+    "rate"
+   ],
+   "after": [
+    "PASS",
+    "rate"
+   ]
+  },
+  "peak_von_mises": {
+   "before": [
+    "FAIL",
+    "none"
+   ],
+   "after": [
+    "FAIL",
+    "none"
+   ]
+  }
+ },
+ "fit_after": {
+  "strain_energy": 1.1038829614349361,
+  "u_top_left": 1.0792075607048024,
+  "v_right_top": 0.9376809593985835,
+  "corner_gk_avg_von_mises": 1.2625626557505805,
+  "corner_disc_avg_von_mises": 1.0698866845423096,
+  "far_gk_avg_syy": 1.0909698612757093,
+  "peak_von_mises": 0.050000001446839366
+ },
+ "singular_order_after": {
+  "strain_energy": {
+   "verdict": "PASS",
+   "observed": 1.1038829614349361,
+   "expected": 1.0889674735649182
+  },
+  "u_top_left": {
+   "verdict": "PASS",
+   "observed": 1.0792075607048024,
+   "expected": 1.0889674735649182
+  },
+  "v_right_top": {
+   "verdict": "FAIL",
+   "observed": 0.9376809593985835,
+   "expected": 1.0889674735649182
+  },
+  "corner_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "observed": 1.2625626557505805,
+   "expected": 1.0889674735649182
+  },
+  "corner_disc_avg_von_mises": {
+   "verdict": "PASS",
+   "observed": 1.0698866845423096,
+   "expected": 1.0889674735649182
+  },
+  "far_gk_avg_syy": {
+   "verdict": "PASS",
+   "observed": 1.0909698612757093,
+   "expected": 1.0889674735649182
+  },
+  "peak_von_mises": {
+   "verdict": "PASS",
+   "observed": -0.4475637769511796,
+   "expected": -0.4555162632175409
+  }
+ },
+ "predictions_met": {
+  "P1 next pairwise order in [0.97, 1.15]": true,
+  "P2 v_right_top fit >= 0.94 and singular_order PASS": false,
+  "P3 energy fit within 0.15 of 2 lambda": true,
+  "P4 under 120 s": true
+ }
+}

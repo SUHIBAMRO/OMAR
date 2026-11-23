@@ -756,3 +756,49 @@ def test_crosscheck_v2_stored_statuses():
         assert (r["final"] == "CERTIFIED") == (r["status"] == "cross_checked")
     gk = {r["qoi"]: r["status"] for r in d["rows"] if r["problem"] == "bushing_groove"}
     assert gk["gk2_sigma_xx_avg"] != "cross_checked"          # spline sequences unconverged
+
+
+def test_diagnosis_pairwise_orders_and_drift():
+    """D4 uses pairwise orders: a clean sequence has steady orders, an approach from
+    below has rising ones (the L-shape displacement)."""
+    import numpy as np
+    from omar_pfem.verification_agent.diagnose import pairwise_orders
+    hs = [1 / 2 ** k for k in range(2, 8)]
+    clean = pairwise_orders(hs, [1 + h ** 2 for h in hs])
+    assert all(abs(p - 2) < 1e-6 for p in clean)
+    # two power terms of opposite sign: the observed order drifts toward the leading one
+    rising = pairwise_orders(hs, [1 + h ** 1.1 - 2 * h ** 1.6 for h in hs])
+    assert all(np.diff([p for p in rising if p is not None]) != 0)
+
+
+def test_capability_gap_hypothesis():
+    """C1: a check that reports it lacks the theory is a framework gap, not evidence
+    about the quantity; it must not be read as non-convergence."""
+    from types import SimpleNamespace
+    from omar_pfem.verification_agent.diagnose import SUPPORTED, NOT_APPLICABLE, t_capability_gap
+    c = SimpleNamespace(gates={
+        "qoi_convergence": {"verdict": "PASS", "evidence": "rate"},
+        "singular_order": {"verdict": "INCONCLUSIVE",
+                           "reason": "theory implemented for degree-1 elements only"}})
+    r = t_capability_gap(c)
+    assert r["status"] == SUPPORTED and "lack of a check" in r["evidence"]
+    c2 = SimpleNamespace(gates={"qoi_convergence": {"verdict": "PASS", "evidence": "rate"}})
+    assert t_capability_gap(c2)["status"] == NOT_APPLICABLE
+
+
+def test_derived_facts_never_guess():
+    """Facts derived for a problem without hand-written ones: known items from the
+    specification/adapter, unknown items make tests ask for data."""
+    from omar_pfem.verification_agent.diagnose import derived_facts
+    f = derived_facts("thick_cylinder_3d")
+    assert f["degree"] == 2 and f["quadrature"] == "reduced" and f["nu"] == 0.45
+    assert f["corners"] == [] and f["code_check"]()[0] is None
+    g = derived_facts("l_shape")
+    assert g["corners"] and abs(g["corners"][0]["lam"] - 0.5445) < 1e-3
+
+
+def test_followup_respects_budget():
+    """The autonomous follow-up runs a level only within its time/memory budget."""
+    from omar_pfem.verification_agent.followup import plan_next_level
+    p = plan_next_level("l_shape", budget_s=1e-3, budget_gb=1e-3)
+    assert p["within_budget"] is False and p["n_next"] >= 256

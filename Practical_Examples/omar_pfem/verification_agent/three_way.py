@@ -120,11 +120,10 @@ def run():
         os.environ.pop("VERIF_POSTHOC_SINGULAR", None)
         ad = R["adapter"]
         diag = {}
-        if geo in diagnose.FACTS:
-            try:
-                diag = diagnose.diagnose_problem(geo)
-            except Exception as e:                       # recorded, not hidden
-                diag = {"_error": repr(e)}
+        try:                                             # derived facts where none are written
+            diag = diagnose.diagnose_problem(geo)
+        except Exception as e:                           # recorded, not hidden
+            diag = {"_error": repr(e)}
         for q, comb in R["combine"].items():
             A, _ = conventional(ad, q)
             B, Bev = comb[0], comb[1]
@@ -138,7 +137,12 @@ def run():
             rows.append({"problem": geo, "qoi": q, "truth": label(geo, q), "A": A,
                          "B": B, "B_evidence": Bev, "Bp": Bp, "Bp_evidence": Bpev,
                          "Bstar": Bstar, "crosscheck": x["status"] if x else None,
-                         "diagnosis_covered": geo in diagnose.FACTS,
+                         "diagnosis_covered": "_error" not in diag,
+                         "facts": "hand-written" if geo in diagnose.FACTS else "derived",
+                         "capability_gap_reason": next(
+                             (g.get("reason") for g in R["v"][q].values()
+                              if g.get("verdict") == "INCONCLUSIVE" and "implemented for"
+                              in (g.get("reason") or "")), None),
                          "diagnosis_sufficient": bool(d and d.get("evidence_sufficient")),
                          "diagnosis_supported": (d or {}).get("supported", [])})
         fam, alls = family_and_all_dofs(geo, ad)
@@ -221,10 +225,13 @@ def run():
     human["Bp"]["total_on_B1_B3"] = sum(human["Bp"]["per_problem"][g] for g in LLM_KEYS)
     human["A"]["total_on_B1_B3"] = sum(human["A"]["per_problem"][g] for g in LLM_KEYS)
     sub = score("Bp", LLM_KEYS)
+    before = _j("three_way_result_before_P5.json").get("diagnosis", {})
     res = {"scores": scores, "scores_on_B1_B3": {"A": score("A", LLM_KEYS), "B+": sub},
            "true_coverage_3d": coverage, "per_problem": per_problem, "human": human,
            "llm": llm, "rows": rows,
-           "diagnosis": diagnosis_accuracy(rows)}
+           "diagnosis": diagnosis_accuracy(rows),
+           "diagnosis_before_P5": {"correct": before.get("correct"), "of": before.get("of"),
+                                   "note": "hand-written facts only (5 problems), no C1"}}
     json.dump(res, open(OUT, "w"), indent=1)
     return res
 
@@ -239,6 +246,9 @@ REFERENCE_CAUSE = {
     "Q3": "maximum taken at interior Gauss points",
     "C1": "verification capability missing (singular-order theory only for degree 1)",
 }
+# References are assigned only where the cause is established independently of the
+# hypothesis being scored (manual investigation, theory, or the exact 3D solution).
+# Quantities without such a reference are not scored.
 
 
 def reference_cause(geo, q, r):
@@ -247,8 +257,10 @@ def reference_cause(geo, q, r):
         return sorted(MANUAL[(geo, q)][0])
     if r["truth"] == "not_verifiable" and "peak" in q:
         return ["M1"]
-    if geo == "plate_hole" and r["Bp"] == "PASS" and r["B"] != "PASS":
-        return ["C1"]                    # INCONCLUSIVE by default only for lack of theory
+    if r["B"] == "INCONCLUSIVE" and r.get("capability_gap_reason"):
+        return ["C1"]                    # INCONCLUSIVE only for lack of a check
+    if geo == "thick_cylinder_3d" and q == "peak_hoop":
+        return ["Q3"]                    # exact solution: max over interior Gauss points, O(h)
     return None
 
 
@@ -263,7 +275,12 @@ def diagnosis_accuracy(rows):
         out.append({"problem": r["problem"], "qoi": r["qoi"], "reference": ref,
                     "supported": r["diagnosis_supported"],
                     "correct": set(ref) <= set(r["diagnosis_supported"])})
-    return {"cases": out, "correct": sum(c["correct"] for c in out), "of": len(out)}
+    indep = [c for c in out if c["reference"] != ["C1"]]
+    return {"cases": out, "correct": sum(c["correct"] for c in out), "of": len(out),
+            # C1 references come from the same gate message the C1 test reads: correct by
+            # construction, so they are reported apart and are no evidence of accuracy
+            "correct_excluding_C1": sum(c["correct"] for c in indep), "of_excluding_C1": len(indep),
+            "C1_cases_by_construction": len(out) - len(indep)}
 
 
 if __name__ == "__main__":

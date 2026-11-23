@@ -1,0 +1,25 @@
+[
+ {
+  "n": 256,
+  "g": 1.0,
+  "h": 0.00390625,
+  "n_elem": 196608,
+  "n_dof": 1576962,
+  "strain_energy": 0.008582308891336014,
+  "u_top_left": 0.017459782230917653,
+  "v_right_top": -0.0006493229748963808,
+  "corner_gk_avg_von_mises": 5.214684525523893,
+  "corner_disc_avg_von_mises": 4.042237398046828,
+  "far_gk_avg_syy": 0.8195748621886176,
+  "peak_von_mises": 53.51594102614632,
+  "peak_location": [
+   0.9995597591196124,
+   1.0004402408803876
+  ],
+  "wall_clock_s": 40.7285361289978,
+  "agent_followup": {
+   "reason": "D4 supported for v_right_top",
+   "seconds": 40.74415993690491
+  }
+ }
+]

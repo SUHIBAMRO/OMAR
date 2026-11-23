@@ -148,14 +148,14 @@
     "unit_square": 3,
     "quarter_ring": 3,
     "bushing_groove": 3,
-    "cook_membrane": 3,
+    "cook_membrane": 4,
     "plate_hole": 3,
     "open_hole_lamina": 3,
     "l_shape": 5,
     "edge_crack": 5,
     "thick_cylinder_3d": 4
    },
-   "total": 32,
+   "total": 33,
    "total_on_B1_B3": 9
   },
   "Bstar": {
@@ -163,14 +163,14 @@
     "unit_square": 4,
     "quarter_ring": 4,
     "bushing_groove": 8,
-    "cook_membrane": 3,
+    "cook_membrane": 4,
     "plate_hole": 3,
     "open_hole_lamina": 7,
     "l_shape": 10,
     "edge_crack": 9,
     "thick_cylinder_3d": 4
    },
-   "total": 52
+   "total": 53
   },
   "C": {
    "per_problem": {
@@ -343,6 +343,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "M2"
@@ -360,6 +362,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -375,6 +379,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "M2"
@@ -392,6 +398,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "M2"
@@ -409,6 +417,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "M2"
@@ -426,6 +436,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "M2"
@@ -443,6 +455,8 @@
    "Bstar": "INCONCLUSIVE",
    "crosscheck": "independent_unconverged",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -458,6 +472,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -473,6 +489,8 @@
    "Bstar": "FAIL",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "M1"
@@ -490,6 +508,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -505,6 +525,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -520,6 +542,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -535,6 +559,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -550,6 +576,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -565,6 +593,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -580,6 +610,8 @@
    "Bstar": "PASS",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "Q1"
@@ -597,6 +629,8 @@
    "Bstar": "INCONCLUSIVE",
    "crosscheck": "independent_unconverged",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -612,6 +646,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -627,6 +663,8 @@
    "Bstar": "FAIL",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1",
@@ -646,6 +684,8 @@
    "Bstar": "PASS",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "Q1"
@@ -663,6 +703,8 @@
    "Bstar": "FAIL",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1",
@@ -682,6 +724,8 @@
    "Bstar": "PASS",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "Q1"
@@ -699,6 +743,8 @@
    "Bstar": "FAIL",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1",
@@ -718,6 +764,8 @@
    "Bstar": "PASS",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "Q1"
@@ -735,6 +783,8 @@
    "Bstar": "FAIL",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1",
@@ -754,6 +804,8 @@
    "Bstar": "PASS",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D4",
@@ -772,6 +824,8 @@
    "Bstar": "PASS",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1",
@@ -791,6 +845,8 @@
    "Bstar": "FAIL",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1",
@@ -809,6 +865,8 @@
    "Bstar": "FAIL",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1",
@@ -829,6 +887,8 @@
    "Bstar": "PASS",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1"
@@ -846,6 +906,8 @@
    "Bstar": "FAIL",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1",
@@ -865,6 +927,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "M2"
@@ -882,6 +946,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "M2"
@@ -899,6 +965,8 @@
    "Bstar": "FAIL",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1",
@@ -919,6 +987,8 @@
    "Bstar": "FAIL",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1",
@@ -938,6 +1008,8 @@
    "Bstar": "PASS",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D3",
@@ -956,6 +1028,8 @@
    "Bstar": "PASS",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "Q1"
@@ -973,6 +1047,8 @@
    "Bstar": "FAIL",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1",
@@ -992,6 +1068,8 @@
    "Bstar": "PASS",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "Q1"
@@ -1009,6 +1087,8 @@
    "Bstar": "FAIL",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1",
@@ -1028,6 +1108,8 @@
    "Bstar": "PASS",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "Q1"
@@ -1045,6 +1127,8 @@
    "Bstar": "FAIL",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1",
@@ -1064,6 +1148,8 @@
    "Bstar": "PASS",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "Q1"
@@ -1081,6 +1167,8 @@
    "Bstar": "PASS",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1",
@@ -1100,6 +1188,8 @@
    "Bstar": "FAIL",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1",
@@ -1118,6 +1208,8 @@
    "Bstar": "FAIL",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1",
@@ -1138,6 +1230,8 @@
    "Bstar": "PASS",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1"
@@ -1155,6 +1249,8 @@
    "Bstar": "PASS",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1",
@@ -1174,6 +1270,8 @@
    "Bstar": "INCONCLUSIVE",
    "crosscheck": "independent_unconverged",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -1189,6 +1287,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -1204,6 +1304,8 @@
    "Bstar": "INCONCLUSIVE",
    "crosscheck": "independent_unconverged",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -1219,6 +1321,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -1234,6 +1338,8 @@
    "Bstar": "INCONCLUSIVE",
    "crosscheck": "single_family",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -1249,6 +1355,8 @@
    "Bstar": "INCONCLUSIVE",
    "crosscheck": "single_family",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -1264,6 +1372,8 @@
    "Bstar": "INCONCLUSIVE",
    "crosscheck": "independent_unconverged",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -1279,6 +1389,8 @@
    "Bstar": "PASS",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1"
@@ -1296,6 +1408,8 @@
    "Bstar": "PASS",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1"
@@ -1313,6 +1427,8 @@
    "Bstar": "FAIL",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1",
@@ -1333,6 +1449,8 @@
    "Bstar": "PASS",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "D1",
@@ -1353,6 +1471,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "M2"
@@ -1370,6 +1490,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "M2"
@@ -1387,6 +1509,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "M2"
@@ -1404,10 +1528,10 @@
    "Bstar": "INCONCLUSIVE",
    "crosscheck": null,
    "diagnosis_covered": true,
-   "diagnosis_sufficient": true,
-   "diagnosis_supported": [
-    "D4"
-   ]
+   "facts": "hand-written",
+   "capability_gap_reason": null,
+   "diagnosis_sufficient": false,
+   "diagnosis_supported": []
   },
   {
    "problem": "cook_membrane",
@@ -1421,6 +1545,8 @@
    "Bstar": "PASS",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "Q1"
@@ -1438,6 +1564,8 @@
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -1453,6 +1581,8 @@
    "Bstar": "FAIL",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
     "M1"
@@ -1470,9 +1600,12 @@
    "Bstar": "INCONCLUSIVE",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
-    "D4"
+    "D4",
+    "C1"
    ]
   },
   {
@@ -1487,9 +1620,12 @@
    "Bstar": "INCONCLUSIVE",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
-    "D4"
+    "D4",
+    "C1"
    ]
   },
   {
@@ -1504,9 +1640,12 @@
    "Bstar": "INCONCLUSIVE",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
-    "D4"
+    "D4",
+    "C1"
    ]
   },
   {
@@ -1521,9 +1660,11 @@
    "Bstar": "INCONCLUSIVE",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
-    "D4"
+    "C1"
    ]
   },
   {
@@ -1538,8 +1679,12 @@
    "Bstar": "PASS",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": false,
-   "diagnosis_supported": []
+   "diagnosis_supported": [
+    "C1"
+   ]
   },
   {
    "problem": "plate_hole",
@@ -1553,9 +1698,12 @@
    "Bstar": "INCONCLUSIVE",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
-    "D4"
+    "D4",
+    "C1"
    ]
   },
   {
@@ -1570,9 +1718,12 @@
    "Bstar": "FAIL",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
-    "D4"
+    "Q3",
+    "C1"
    ]
   },
   {
@@ -1587,9 +1738,12 @@
    "Bstar": "FAIL",
    "crosscheck": null,
    "diagnosis_covered": true,
+   "facts": "hand-written",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": true,
    "diagnosis_supported": [
-    "M1"
+    "M1",
+    "C1"
    ]
   },
   {
@@ -1603,7 +1757,9 @@
    "Bp_evidence": "rate",
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -1618,7 +1774,9 @@
    "Bp_evidence": "rate",
    "Bstar": "INCONCLUSIVE",
    "crosscheck": "independent_unconverged",
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -1633,7 +1791,9 @@
    "Bp_evidence": "band",
    "Bstar": "PASS",
    "crosscheck": null,
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -1648,7 +1808,9 @@
    "Bp_evidence": "rate",
    "Bstar": "INCONCLUSIVE",
    "crosscheck": "independent_unconverged",
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -1663,7 +1825,9 @@
    "Bp_evidence": "band",
    "Bstar": "PASS",
    "crosscheck": null,
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -1678,7 +1842,9 @@
    "Bp_evidence": "rate",
    "Bstar": "INCONCLUSIVE",
    "crosscheck": "independent_unconverged",
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -1693,7 +1859,9 @@
    "Bp_evidence": "rate",
    "Bstar": "INCONCLUSIVE",
    "crosscheck": "independent_unconverged",
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -1708,7 +1876,9 @@
    "Bp_evidence": "band",
    "Bstar": "PASS",
    "crosscheck": null,
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -1723,9 +1893,13 @@
    "Bp_evidence": "rate",
    "Bstar": "INCONCLUSIVE",
    "crosscheck": null,
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": false,
-   "diagnosis_supported": []
+   "diagnosis_supported": [
+    "C1"
+   ]
   },
   {
    "problem": "l_shape",
@@ -1738,9 +1912,13 @@
    "Bp_evidence": "rate",
    "Bstar": "INCONCLUSIVE",
    "crosscheck": null,
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": false,
-   "diagnosis_supported": []
+   "diagnosis_supported": [
+    "C1"
+   ]
   },
   {
    "problem": "l_shape",
@@ -1753,9 +1931,14 @@
    "Bp_evidence": "rate",
    "Bstar": "FAIL",
    "crosscheck": null,
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": false,
-   "diagnosis_supported": []
+   "diagnosis_supported": [
+    "D4",
+    "C1"
+   ]
   },
   {
    "problem": "l_shape",
@@ -1768,9 +1951,13 @@
    "Bp_evidence": "rate",
    "Bstar": "INCONCLUSIVE",
    "crosscheck": null,
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": false,
-   "diagnosis_supported": []
+   "diagnosis_supported": [
+    "C1"
+   ]
   },
   {
    "problem": "l_shape",
@@ -1783,9 +1970,14 @@
    "Bp_evidence": "rate",
    "Bstar": "INCONCLUSIVE",
    "crosscheck": null,
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": false,
-   "diagnosis_supported": []
+   "diagnosis_supported": [
+    "D4",
+    "C1"
+   ]
   },
   {
    "problem": "l_shape",
@@ -1798,9 +1990,13 @@
    "Bp_evidence": "rate",
    "Bstar": "INCONCLUSIVE",
    "crosscheck": null,
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": false,
-   "diagnosis_supported": []
+   "diagnosis_supported": [
+    "C1"
+   ]
   },
   {
    "problem": "l_shape",
@@ -1813,9 +2009,14 @@
    "Bp_evidence": "none",
    "Bstar": "FAIL",
    "crosscheck": null,
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": false,
-   "diagnosis_supported": []
+   "diagnosis_supported": [
+    "M1",
+    "C1"
+   ]
   },
   {
    "problem": "edge_crack",
@@ -1828,9 +2029,13 @@
    "Bp_evidence": "rate",
    "Bstar": "INCONCLUSIVE",
    "crosscheck": null,
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": false,
-   "diagnosis_supported": []
+   "diagnosis_supported": [
+    "C1"
+   ]
   },
   {
    "problem": "edge_crack",
@@ -1843,9 +2048,13 @@
    "Bp_evidence": "rate",
    "Bstar": "INCONCLUSIVE",
    "crosscheck": null,
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": false,
-   "diagnosis_supported": []
+   "diagnosis_supported": [
+    "C1"
+   ]
   },
   {
    "problem": "edge_crack",
@@ -1858,9 +2067,13 @@
    "Bp_evidence": "rate",
    "Bstar": "INCONCLUSIVE",
    "crosscheck": null,
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": false,
-   "diagnosis_supported": []
+   "diagnosis_supported": [
+    "C1"
+   ]
   },
   {
    "problem": "edge_crack",
@@ -1873,9 +2086,14 @@
    "Bp_evidence": "band",
    "Bstar": "FAIL",
    "crosscheck": null,
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": false,
-   "diagnosis_supported": []
+   "diagnosis_supported": [
+    "D4",
+    "C1"
+   ]
   },
   {
    "problem": "edge_crack",
@@ -1888,9 +2106,13 @@
    "Bp_evidence": "band",
    "Bstar": "PASS",
    "crosscheck": null,
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": false,
-   "diagnosis_supported": []
+   "diagnosis_supported": [
+    "C1"
+   ]
   },
   {
    "problem": "edge_crack",
@@ -1903,9 +2125,13 @@
    "Bp_evidence": "rate",
    "Bstar": "INCONCLUSIVE",
    "crosscheck": null,
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": false,
-   "diagnosis_supported": []
+   "diagnosis_supported": [
+    "C1"
+   ]
   },
   {
    "problem": "edge_crack",
@@ -1918,9 +2144,14 @@
    "Bp_evidence": "none",
    "Bstar": "FAIL",
    "crosscheck": null,
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
    "diagnosis_sufficient": false,
-   "diagnosis_supported": []
+   "diagnosis_supported": [
+    "M1",
+    "C1"
+   ]
   },
   {
    "problem": "thick_cylinder_3d",
@@ -1933,7 +2164,9 @@
    "Bp_evidence": "rate",
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -1948,7 +2181,9 @@
    "Bp_evidence": "rate",
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -1963,7 +2198,9 @@
    "Bp_evidence": "rate",
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -1978,7 +2215,9 @@
    "Bp_evidence": "rate",
    "Bstar": "PASS",
    "crosscheck": "cross_checked",
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
    "diagnosis_supported": []
   },
@@ -1993,9 +2232,13 @@
    "Bp_evidence": "band",
    "Bstar": "PASS",
    "crosscheck": null,
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
-   "diagnosis_supported": []
+   "diagnosis_supported": [
+    "D4"
+   ]
   },
   {
    "problem": "thick_cylinder_3d",
@@ -2008,9 +2251,14 @@
    "Bp_evidence": "none",
    "Bstar": "FAIL",
    "crosscheck": null,
-   "diagnosis_covered": false,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": null,
    "diagnosis_sufficient": false,
-   "diagnosis_supported": []
+   "diagnosis_supported": [
+    "D4",
+    "Q3"
+   ]
   }
  ],
  "diagnosis": {
@@ -2125,9 +2373,10 @@
      "C1"
     ],
     "supported": [
-     "D4"
+     "D4",
+     "C1"
     ],
-    "correct": false
+    "correct": true
    },
    {
     "problem": "plate_hole",
@@ -2136,9 +2385,10 @@
      "C1"
     ],
     "supported": [
-     "D4"
+     "D4",
+     "C1"
     ],
-    "correct": false
+    "correct": true
    },
    {
     "problem": "plate_hole",
@@ -2147,9 +2397,10 @@
      "C1"
     ],
     "supported": [
-     "D4"
+     "D4",
+     "C1"
     ],
-    "correct": false
+    "correct": true
    },
    {
     "problem": "plate_hole",
@@ -2158,9 +2409,9 @@
      "C1"
     ],
     "supported": [
-     "D4"
+     "C1"
     ],
-    "correct": false
+    "correct": true
    },
    {
     "problem": "plate_hole",
@@ -2168,8 +2419,10 @@
     "reference": [
      "C1"
     ],
-    "supported": [],
-    "correct": false
+    "supported": [
+     "C1"
+    ],
+    "correct": true
    },
    {
     "problem": "plate_hole",
@@ -2178,9 +2431,22 @@
      "C1"
     ],
     "supported": [
-     "D4"
+     "D4",
+     "C1"
     ],
-    "correct": false
+    "correct": true
+   },
+   {
+    "problem": "plate_hole",
+    "qoi": "hole_peak_sigma_xx",
+    "reference": [
+     "C1"
+    ],
+    "supported": [
+     "Q3",
+     "C1"
+    ],
+    "correct": true
    },
    {
     "problem": "plate_hole",
@@ -2189,12 +2455,192 @@
      "M1"
     ],
     "supported": [
+     "M1",
+     "C1"
+    ],
+    "correct": true
+   },
+   {
+    "problem": "l_shape",
+    "qoi": "strain_energy",
+    "reference": [
+     "C1"
+    ],
+    "supported": [
+     "C1"
+    ],
+    "correct": true
+   },
+   {
+    "problem": "l_shape",
+    "qoi": "u_top_left",
+    "reference": [
+     "C1"
+    ],
+    "supported": [
+     "C1"
+    ],
+    "correct": true
+   },
+   {
+    "problem": "l_shape",
+    "qoi": "v_right_top",
+    "reference": [
+     "C1"
+    ],
+    "supported": [
+     "D4",
+     "C1"
+    ],
+    "correct": true
+   },
+   {
+    "problem": "l_shape",
+    "qoi": "corner_gk_avg_von_mises",
+    "reference": [
+     "C1"
+    ],
+    "supported": [
+     "C1"
+    ],
+    "correct": true
+   },
+   {
+    "problem": "l_shape",
+    "qoi": "corner_disc_avg_von_mises",
+    "reference": [
+     "C1"
+    ],
+    "supported": [
+     "D4",
+     "C1"
+    ],
+    "correct": true
+   },
+   {
+    "problem": "l_shape",
+    "qoi": "far_gk_avg_syy",
+    "reference": [
+     "C1"
+    ],
+    "supported": [
+     "C1"
+    ],
+    "correct": true
+   },
+   {
+    "problem": "l_shape",
+    "qoi": "peak_von_mises",
+    "reference": [
      "M1"
+    ],
+    "supported": [
+     "M1",
+     "C1"
+    ],
+    "correct": true
+   },
+   {
+    "problem": "edge_crack",
+    "qoi": "strain_energy",
+    "reference": [
+     "C1"
+    ],
+    "supported": [
+     "C1"
+    ],
+    "correct": true
+   },
+   {
+    "problem": "edge_crack",
+    "qoi": "u_cod_mouth",
+    "reference": [
+     "C1"
+    ],
+    "supported": [
+     "C1"
+    ],
+    "correct": true
+   },
+   {
+    "problem": "edge_crack",
+    "qoi": "v_top_right",
+    "reference": [
+     "C1"
+    ],
+    "supported": [
+     "C1"
+    ],
+    "correct": true
+   },
+   {
+    "problem": "edge_crack",
+    "qoi": "tip_gk_avg_von_mises",
+    "reference": [
+     "C1"
+    ],
+    "supported": [
+     "D4",
+     "C1"
+    ],
+    "correct": true
+   },
+   {
+    "problem": "edge_crack",
+    "qoi": "tip_disc_avg_von_mises",
+    "reference": [
+     "C1"
+    ],
+    "supported": [
+     "C1"
+    ],
+    "correct": true
+   },
+   {
+    "problem": "edge_crack",
+    "qoi": "far_gk_avg_syy",
+    "reference": [
+     "C1"
+    ],
+    "supported": [
+     "C1"
+    ],
+    "correct": true
+   },
+   {
+    "problem": "edge_crack",
+    "qoi": "peak_von_mises",
+    "reference": [
+     "M1"
+    ],
+    "supported": [
+     "M1",
+     "C1"
+    ],
+    "correct": true
+   },
+   {
+    "problem": "thick_cylinder_3d",
+    "qoi": "peak_hoop",
+    "reference": [
+     "Q3"
+    ],
+    "supported": [
+     "D4",
+     "Q3"
     ],
     "correct": true
    }
   ],
+  "correct": 31,
+  "of": 31,
+  "correct_excluding_C1": 12,
+  "of_excluding_C1": 12,
+  "C1_cases_by_construction": 19
+ },
+ "diagnosis_before_P5": {
   "correct": 9,
-  "of": 15
+  "of": 15,
+  "note": "hand-written facts only (5 problems), no C1"
  }
 }
