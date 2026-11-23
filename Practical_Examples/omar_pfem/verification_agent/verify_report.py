@@ -911,6 +911,7 @@ def add_f_round(add, h1, h2, h3):
     add("24", "literature run 2 lamina features flagged singular", 0, 0,
         lambda: sum(s["singular"] for s in lit(2)["cfm_lamina"][0]["card"]["singular_features"]))
     add_g_round(add, h1, h2)
+    add_i_round(add, h1, h2)
     m = lambda: json.load(open(os.path.join(HERE, "lamina_mms.json")))["rows"]
     add("23", "lamina MMS L2 rate", 3.00, h2, lambda: np.log2(m()[-2]["L2_rel"] / m()[-1]["L2_rel"]))
     add("23", "lamina MMS H1 rate", 2.00, h2, lambda: np.log2(m()[-2]["H1_semi_rel"] / m()[-1]["H1_semi_rel"]))
@@ -1224,6 +1225,79 @@ def main(argv=None):
     print(f"{len(results) - n_bad} of {len(results)} claims match the stored data"
           + ("" if n_bad == 0 else f"; {n_bad} MISMATCH"))
     return 0 if n_bad == 0 else 1
+
+
+
+def add_i_round(add, h1, h2):
+    """Section 30 (23 November): audit, cross-check v2, 3D benchmark, three-way, follow-up."""
+    mc = lambda: _j("manuscript_claims_result.json")
+    add("30", "manuscript claims matching", 28, 0, lambda: sum(r["ok"] is True for r in mc()))
+    xr = lambda: _j("crosscheck_result.json")["rows"]
+    old = lambda st: sum(r["status"] == st for r in xr() if r["problem"] != "thick_cylinder_3d")
+    add("30", "v2 on the 34: cross-checked", 23, 0, lambda: old("cross_checked"))
+    add("30", "v2 on the 34: unconverged", 9, 0, lambda: old("independent_unconverged"))
+    add("30", "v2 on the 34: single family", 2, 0, lambda: old("single_family"))
+    add("30", "v2 on the 34: contradicted", 0, 0, lambda: old("contradicted"))
+    src = lambda q, s: next(x for r in xr() if r["problem"] == "bushing_groove" and r["qoi"] == q
+                            for x in r["independent_sources"] if x["source"].startswith(s))
+    for q, v in (("gk2_sigma_yy_avg", 1.5), ("gk2_pressure_avg", 3.0)):
+        add("30", f"{q} U_ind % of value", v, h1, lambda q=q: next(
+            100 * x["U_ind_rel"] * r["scale"] / abs(r["limit"]) for r in xr()
+            if r["problem"] == "bushing_groove" and r["qoi"] == q
+            for x in r["independent_sources"] if x["status"] == "cross_checked"))
+    iga = lambda: _j("iga_b3_result.json")
+    def three(key):
+        from omar_pfem.verification_agent import gates
+        d = iga()
+        v = [d[f"L{l}:p2{key}"]["gk2trunc_sigma_xx_avg"] for l in (2, 3, 4)]
+        h = [d[f"L{l}:p2{key}"]["n_elem"] ** (-1 / 3) for l in (2, 3, 4)]
+        return gates.qoi_convergence_gate(h, v)["observed_order"]
+    add("30", "spline disp 3-level order", 0.47, h2, lambda: three(""))
+    add("30", "spline P1 3-level order", 0.75, h2, lambda: three(":fbar_p1"))
+    zs = lambda: _j("lamina_zone_study.json")
+    add("30", "zone area error at compared levels, max (x1e-4)", 4, 0.05, lambda: 1e4 * max(
+        [abs(r["zone_area_error_rel"]) for r in zs()["fem"] if r["m"] >= 8]
+        + [abs(r["zone_area_error_rel"]) for r in zs()["spline"] if r["m"] == 16]))
+    lam_src = lambda: next(x for r in xr() if r["problem"] == "open_hole_lamina"
+                           and r["qoi"] == "hole_e22_avg" for x in r["independent_sources"])
+    add("30", "lamina spline U %", 9.5, h1, lambda: 100 * lam_src()["assessment"]["uncertainty_fine"])
+    cy = lambda: _j("cylinder3d_result.json")
+    add("30", "3D rule predictions correct", 3, 0, lambda: cy()["rule_hits"])
+    add("30", "3D T2 covered", 4, 0, lambda: cy()["T2_covered"])
+    add("30", "3D expectations met", 7, 0, lambda: sum(cy()["developer_expectations_met"].values()))
+    add("30", "3D finest unknowns", 57555, 0, lambda: cy()["n_dof"][-1])
+    add("30", "3D peak finest true error %", 2.03, h2,
+        lambda: 100 * cy()["qois"]["peak_hoop"]["true_error_finest_rel"])
+    add("30", "3D peak extrapolated", 85.18, h2, lambda: cy()["peak_hoop_interval_check"]["fit_limit"])
+    add("30", "3D peak U", 2.39, h2, lambda: cy()["peak_hoop_interval_check"]["U_abs"])
+    add("30", "3D gk order", 4.94, h2, lambda: cy()["qois"]["gk_avg_hoop"]["fit_order"])
+    tw = lambda: _j("three_way_result.json")
+    for k, v in (("A", 56), ("B", 56), ("Bp", 72), ("Bstar", 47)):
+        add("30", f"three-way {k} certified of 79", v, 0,
+            lambda k=k: tw()["scores"][k]["certified_correctly"])
+        add("30", f"three-way {k} missed failures", 0, 0,
+            lambda k=k: tw()["scores"][k]["missed_failures"])
+    add("30", "three-way B1-B3 GCI certified", 22, 0,
+        lambda: tw()["scores_on_B1_B3"]["A"]["certified_correctly"])
+    add("30", "three-way B1-B3 B+ certified", 38, 0,
+        lambda: tw()["scores_on_B1_B3"]["B+"]["certified_correctly"])
+    for k, v in (("A", 37), ("Bp", 9), ("C", 19)):
+        add("30", f"human proxy B1-B3 {k}", v, 0, lambda k=k: tw()["human"][k]["total_on_B1_B3"])
+    for k, v in (("A", 52), ("Bp", 33), ("Bstar", 53)):
+        add("30", f"human proxy all {k}", v, 0, lambda k=k: tw()["human"][k]["total"])
+    add("30", "B3 unknowns GCI (M)", 1.76, h2, lambda: tw()["per_problem"]["bushing_groove"]["unknowns_A"] / 1e6)
+    add("30", "B3 unknowns B (M)", 3.88, h2, lambda: tw()["per_problem"]["bushing_groove"]["unknowns_B"] / 1e6)
+    add("30", "B3 unknowns B* (M)", 4.91, h2, lambda: tw()["per_problem"]["bushing_groove"]["unknowns_Bstar"] / 1e6)
+    add("30", "diagnosis independent correct", 12, 0, lambda: tw()["diagnosis"]["correct_excluding_C1"])
+    add("30", "diagnosis independent of", 12, 0, lambda: tw()["diagnosis"]["of_excluding_C1"])
+    add("30", "diagnosis C1 by construction", 19, 0, lambda: tw()["diagnosis"]["C1_cases_by_construction"])
+    add("30", "diagnosis before P5 correct", 9, 0, lambda: tw()["diagnosis_before_P5"]["correct"])
+    fu = lambda: _j("followup_l_shape_v_right_top.json")
+    add("30", "follow-up new pairwise order", 1.01, h2, lambda: fu()["pairwise_orders_after"][-1])
+    add("30", "follow-up five-level order", 0.938, 0.0005, lambda: fu()["fit_after"]["v_right_top"])
+    add("30", "follow-up seconds", 41, 0.5, lambda: fu()["measured_seconds"])
+    add("30", "follow-up estimate seconds", 29, 0.5, lambda: fu()["plan"]["seconds_estimate"])
+    add("30", "follow-up estimate GB", 4.7, h1, lambda: fu()["plan"]["gb_estimate"])
 
 
 if __name__ == "__main__":

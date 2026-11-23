@@ -26047,3 +26047,24 @@ and a final-uncertainty rule.
   "of the regional stress magnitude" -> no change. Email point 5 updated accordingly (not sent).
 - verify_report: +5 claims (838/838). Tests 63 pass. PDF:
   advisor_feedback/2026-11-22_Verification_Framework_Technical_Report_v4.pdf (62 pages, no "Timon").
+
+### 2026-11-23 -- Round I (audit, cross-checks v2, unseen 3D benchmark, three-way, follow-up)
+Full change log + updated limitations: advisor_feedback/2026-11-23_CHANGELOG_and_limitations.md.
+Report v5: advisor_feedback/2026-11-23_Verification_Framework_Technical_Report_v5.pdf (Section 30).
+- P1 audit: manuscript_claims.py 28/28; main.tex states both bases (0.8-1.0% of the averages);
+  report: 82 -> 89, crack in held-out list, Sec. 27 groove/formulation and post hoc list fixed.
+- P2 cross-check v2 [post hoc, stricter]: independent sequence must pass the gate itself. 38 rate-
+  certified: 27 cross-checked, 9 independent unconverged, 2 none, 0 contradicted (v1: 21/5/8 on 34).
+  New independent values: B1 gk (Q2 2nd code), Cook 4 QoIs (Q2), 3D vs exact. Lamina zone-definition
+  explanation refuted (lamina_zone_study.json). B3 gk xx/zz unresolved (spline sequences p 0.47/0.75).
+  Prepared, NOT submitted: Practical_Examples/iga_b3_cyl_job.sh.
+- P3 cylinder3d (pre-registered 538f0fb): rules 3/3, true error inside certified U 4/4, expectations
+  7/8 (peak refused correctly: U 2.9% > 2%, true error 2.03%).
+- P4 three_way.py: certified of 79 verifiable: GCI 56, deterministic 56, +posthoc 72, final 47; missed
+  failures 0 for all; human proxy B1-B3: GCI 37, deterministic 9, LLM 19; no new billed run.
+- P5 diagnose.py: C1 capability gap, derived facts, pairwise-order D4, generic Q3 [post hoc];
+  independent causes 12/12 (was 9/9); followup.py first use: next order 1.01 (pred 0.97-1.15),
+  five-level 0.938 < 0.94 -> verdict stays FAIL; 41 s.
+- Claims 890/890; tests 69; email draft point 5 corrected (cross-check counts), NOT sent.
+NEEDS OMAR: review report v5 + email point 5 change; decide on manual submission of iga_b3_job.sh /
+iga_b3_cyl_job.sh; approve (or not) billed LLM runs on the other 6 problems.

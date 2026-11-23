@@ -6728,6 +6728,382 @@
   "ok": true
  },
  {
+  "section": "30",
+  "claim": "manuscript claims matching",
+  "printed": 28,
+  "recomputed": 28.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "v2 on the 34: cross-checked",
+  "printed": 23,
+  "recomputed": 23.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "v2 on the 34: unconverged",
+  "printed": 9,
+  "recomputed": 9.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "v2 on the 34: single family",
+  "printed": 2,
+  "recomputed": 2.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "v2 on the 34: contradicted",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "gk2_sigma_yy_avg U_ind % of value",
+  "printed": 1.5,
+  "recomputed": 1.528094544681355,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "gk2_pressure_avg U_ind % of value",
+  "printed": 3.0,
+  "recomputed": 3.0342175396004745,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "spline disp 3-level order",
+  "printed": 0.47,
+  "recomputed": 0.4671105257146217,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "spline P1 3-level order",
+  "printed": 0.75,
+  "recomputed": 0.7464405479791703,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "zone area error at compared levels, max (x1e-4)",
+  "printed": 4,
+  "recomputed": 3.9572087643102716,
+  "tolerance": 0.05,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "lamina spline U %",
+  "printed": 9.5,
+  "recomputed": 9.478414495968309,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "3D rule predictions correct",
+  "printed": 3,
+  "recomputed": 3.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "3D T2 covered",
+  "printed": 4,
+  "recomputed": 4.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "3D expectations met",
+  "printed": 7,
+  "recomputed": 7.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "3D finest unknowns",
+  "printed": 57555,
+  "recomputed": 57555.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "3D peak finest true error %",
+  "printed": 2.03,
+  "recomputed": 2.0306959191415066,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "3D peak extrapolated",
+  "printed": 85.18,
+  "recomputed": 85.1773462465772,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "3D peak U",
+  "printed": 2.39,
+  "recomputed": 2.3854198470214416,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "3D gk order",
+  "printed": 4.94,
+  "recomputed": 4.936919871704563,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "three-way A certified of 79",
+  "printed": 56,
+  "recomputed": 56.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "three-way A missed failures",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "three-way B certified of 79",
+  "printed": 56,
+  "recomputed": 56.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "three-way B missed failures",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "three-way Bp certified of 79",
+  "printed": 72,
+  "recomputed": 72.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "three-way Bp missed failures",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "three-way Bstar certified of 79",
+  "printed": 47,
+  "recomputed": 47.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "three-way Bstar missed failures",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "three-way B1-B3 GCI certified",
+  "printed": 22,
+  "recomputed": 22.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "three-way B1-B3 B+ certified",
+  "printed": 38,
+  "recomputed": 38.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "human proxy B1-B3 A",
+  "printed": 37,
+  "recomputed": 37.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "human proxy B1-B3 Bp",
+  "printed": 9,
+  "recomputed": 9.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "human proxy B1-B3 C",
+  "printed": 19,
+  "recomputed": 19.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "human proxy all A",
+  "printed": 52,
+  "recomputed": 52.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "human proxy all Bp",
+  "printed": 33,
+  "recomputed": 33.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "human proxy all Bstar",
+  "printed": 53,
+  "recomputed": 53.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "B3 unknowns GCI (M)",
+  "printed": 1.76,
+  "recomputed": 1.759581,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "B3 unknowns B (M)",
+  "printed": 3.88,
+  "recomputed": 3.881319,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "B3 unknowns B* (M)",
+  "printed": 4.91,
+  "recomputed": 4.910151,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "diagnosis independent correct",
+  "printed": 12,
+  "recomputed": 12.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "diagnosis independent of",
+  "printed": 12,
+  "recomputed": 12.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "diagnosis C1 by construction",
+  "printed": 19,
+  "recomputed": 19.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "diagnosis before P5 correct",
+  "printed": 9,
+  "recomputed": 9.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "follow-up new pairwise order",
+  "printed": 1.01,
+  "recomputed": 1.010009573759072,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "follow-up five-level order",
+  "printed": 0.938,
+  "recomputed": 0.9376809593985835,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "follow-up seconds",
+  "printed": 41,
+  "recomputed": 40.74415993690491,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "follow-up estimate seconds",
+  "printed": 29,
+  "recomputed": 29.079453794222587,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "30",
+  "claim": "follow-up estimate GB",
+  "printed": 4.7,
+  "recomputed": 4.743192,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
   "section": "23",
   "claim": "lamina MMS L2 rate",
   "printed": 3.0,
