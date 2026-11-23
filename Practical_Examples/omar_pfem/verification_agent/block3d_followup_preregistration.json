@@ -1,0 +1,40 @@
+{
+ "written": "2026-11-23T13:35:29.161049+00:00",
+ "agent_decision": {
+  "diagnosis_supported": [
+   "D4"
+  ],
+  "plan": {
+   "n_next": 12,
+   "dof_estimate": 194248.125,
+   "alpha": 1.3638562594228818,
+   "seconds_estimate": 982.83377420334,
+   "gb_estimate": 14.7628575,
+   "budget_s": 300.0,
+   "budget_gb": 8.0,
+   "within_budget": false,
+   "why_not": [
+    "time",
+    "memory"
+   ]
+  },
+  "action": "not run: estimate exceeds the budget (time, memory)"
+ },
+ "frozen_files_sha256": {
+  "gates.py": "232cab27ff8eed05dc62e481e2e2858e79f82fc9811a7f9f108b6909c8b03f95",
+  "trees.py": "2470e173544f15cdd74ca05e7874e4e459f87bf6730d023991fe684617b88ed3",
+  "orchestrate.py": "ec4725e68890baf31aa3a055b3660e89dec2dbffc0bce34f855e55141c776a13",
+  "diagnose.py": "e314ad52b25508dedb50cef50502c21251fe9713dfbdae508e7f3ca08d7c6c96",
+  "followup.py": "0a44243b32a2b5741566321a8cc4369249eeedcd7ed09df8627cfa437351d7fb"
+ },
+ "theory_2lam": 1.4223458659431096,
+ "lam_minus_1": -0.2888270670284452,
+ "predictions": {
+  "P1 pairwise order (k = 6, 8, 12) of strain_energy": "within 0.15 of 2 lam = 1.42 (medium confidence)",
+  "P2 five-level fit k = 3..12 of strain_energy": "within 0.15 of 2 lam, so the post hoc singular-order check PASSes and the B+ verdict becomes PASS with rate (low-medium confidence: the four vertex singularities may keep the fit away from 2 lam)",
+  "P3 w_tip": "stays PASS with rate (post hoc)",
+  "P4 peak_von_mises": "grows again; location at the clamped face (x < 0.1); slope over k = 4..12 within 0.15 of lam - 1 = -0.289 (low confidence)",
+  "P5 root_gk_avg_von_mises": "stays FAIL: its strategy checks use the k = 4 meshes, which a finer family level does not change",
+  "P6 cost": "under 2 h and under 48 GB on the cluster node"
+ }
+}

@@ -17,6 +17,7 @@ on record; a new level can only add evidence. Predictions for the first use
 (L-shape, v_right_top) were committed before the run (followup_preregistration.json).
 
     python -m omar_pfem.verification_agent.followup l_shape v_right_top
+    python -m omar_pfem.verification_agent.followup clamped_block_3d strain_energy   (round J)
 """
 import json
 import os
@@ -26,13 +27,25 @@ import time
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-RUNNERS = {"l_shape": "lshape", "edge_crack": "crack"}
+RUNNERS = {"l_shape": "lshape", "edge_crack": "crack", "clamped_block_3d": "block3d"}
 BYTES_PER_DOF = 3000.0
+# 3D (round J, 2026-11-23): torch-fem Q20 with the direct solver; measured peak RSS of the
+# whole process at k = 6 (25,527 unknowns): 1.94 GB, i.e. 76 kB per unknown. Direct-solver
+# fill grows faster than linearly in 3D, so this per-unknown figure is a LOWER bound for
+# finer levels (the budget test can only become stricter with a better model).
+BYTES_PER_DOF_3D = 76000.0
+THREE_D = {"clamped_block_3d"}
+
+
+def _key(geometry):
+    return "k" if geometry in THREE_D else "n"
 
 
 def _rows(geometry):
     mod = __import__(f"omar_pfem.verification_agent.{RUNNERS[geometry]}", fromlist=["CACHE"])
-    rows = sorted((r for r in json.load(open(mod.CACHE)) if r["g"] == 1.0), key=lambda r: r["n"])
+    key = _key(geometry)
+    rows = sorted((r for r in json.load(open(mod.CACHE)) if r.get("g", r.get("grading")) == 1.0),
+                  key=lambda r: r[key])
     fpath = os.path.join(HERE, f"{geometry}_followup.json")
     extra = json.load(open(fpath)) if os.path.exists(fpath) else []
     return mod, rows, extra, fpath
@@ -40,18 +53,26 @@ def _rows(geometry):
 
 def plan_next_level(geometry, budget_s=300.0, budget_gb=8.0):
     mod, rows, extra, _ = _rows(geometry)
-    fam = sorted(rows + extra, key=lambda r: r["n"])
-    n_next = 2 * fam[-1]["n"]
+    key = _key(geometry)
+    fam = sorted(rows + extra, key=lambda r: r[key])
     dof = np.array([r["n_dof"] for r in fam[-3:]], float)
-    t = np.array([r["wall_clock_s"] for r in fam[-3:]], float)
+    t = np.array([r.get("wall_clock_s", r.get("seconds")) for r in fam[-3:]], float)
     alpha = float(np.polyfit(np.log(dof), np.log(t), 1)[0])
-    dof_next = fam[-1]["n_dof"] * 4.0
+    if geometry in THREE_D:                  # 3D: next level 1.5 k (doubling is 8x unknowns)
+        n_next = int(round(1.5 * fam[-1][key]))
+        dof_next = fam[-1]["n_dof"] * (n_next / fam[-1][key]) ** 3
+        gb_next = dof_next * BYTES_PER_DOF_3D / 1e9
+    else:
+        n_next = 2 * fam[-1][key]
+        dof_next = fam[-1]["n_dof"] * 4.0
+        gb_next = dof_next * BYTES_PER_DOF / 1e9
     t_next = float(t[-1] * (dof_next / dof[-1]) ** alpha)
-    gb_next = dof_next * BYTES_PER_DOF / 1e9
     ok = t_next <= budget_s and gb_next <= budget_gb
     return {"n_next": n_next, "dof_estimate": dof_next, "alpha": alpha,
             "seconds_estimate": t_next, "gb_estimate": gb_next, "budget_s": budget_s,
-            "budget_gb": budget_gb, "within_budget": ok}
+            "budget_gb": budget_gb, "within_budget": ok,
+            "why_not": [w for w, bad in (("time", t_next > budget_s),
+                                         ("memory", gb_next > budget_gb)) if bad]}
 
 
 def evaluate(geometry, rows_extended):
@@ -89,17 +110,20 @@ def act(geometry, qoi, budget_s=300.0, budget_gb=8.0):
         plan = plan_next_level(geometry, budget_s, budget_gb)
         decision["plan"] = plan
         if not plan["within_budget"]:
-            decision["action"] = "not run: estimate exceeds the budget"
+            decision["action"] = ("not run: estimate exceeds the budget ("
+                                  + ", ".join(plan["why_not"]) + ")")
             return decision
         mod, rows, extra, fpath = _rows(geometry)
         t0 = time.time()
-        row = mod.solve_level(plan["n_next"], 1.0)
+        row = (mod.solve(plan["n_next"]) if geometry in THREE_D
+               else mod.solve_level(plan["n_next"], 1.0))
         row["agent_followup"] = {"reason": f"D4 supported for {qoi}", "seconds": time.time() - t0}
         extra.append(row)
         json.dump(extra, open(fpath, "w"), indent=1)
         before = evaluate(geometry, rows)
-        after = evaluate(geometry, sorted(rows + extra, key=lambda r: r["n"]))
-        ext = sorted(rows + extra, key=lambda r: r["n"])
+        key = _key(geometry)
+        after = evaluate(geometry, sorted(rows + extra, key=lambda r: r[key]))
+        ext = sorted(rows + extra, key=lambda r: r[key])
         decision.update(action=f"ran n = {plan['n_next']}",
                         measured_seconds=row["agent_followup"]["seconds"],
                         n_dof=row["n_dof"],
@@ -140,7 +164,12 @@ def main(argv=None):
     warnings.filterwarnings("ignore")
     argv = sys.argv[1:] if argv is None else argv
     geometry, qoi = argv[0], argv[1]
-    dec = act(geometry, qoi)
+    # a larger budget is a person's decision (the manual cluster job), never the agent's
+    opt = {a: float(argv[argv.index(a) + 1]) for a in ("--budget-s", "--budget-gb") if a in argv}
+    dec = act(geometry, qoi, budget_s=opt.get("--budget-s", 300.0),
+              budget_gb=opt.get("--budget-gb", 8.0))
+    if opt:
+        dec["budget_set_by_person"] = opt
     if geometry == "l_shape" and qoi == "v_right_top" and "verdicts" in dec:
         dec["predictions_met"] = score_lshape(dec)
     json.dump(dec, open(os.path.join(HERE, f"followup_{geometry}_{qoi}.json"), "w"), indent=1,

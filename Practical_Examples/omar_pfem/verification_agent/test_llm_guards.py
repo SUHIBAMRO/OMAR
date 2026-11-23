@@ -769,6 +769,10 @@ def test_diagnosis_pairwise_orders_and_drift():
     # two power terms of opposite sign: the observed order drifts toward the leading one
     rising = pairwise_orders(hs, [1 + h ** 1.1 - 2 * h ** 1.6 for h in hs])
     assert all(np.diff([p for p in rising if p is not None]) != 0)
+    # round J bug fix: the 3D ladders k = 1, 2, 3, 4, 6, 8 have no constant ratio; an exact
+    # h^1.4 sequence must still give 1.4 at every triple (the old formula gave 3.28, 2.90, 0.33, 2.90)
+    h3 = [1 / k for k in (1, 2, 3, 4, 6, 8)]
+    assert all(abs(p - 1.4) < 1e-8 for p in pairwise_orders(h3, [1 + h ** 1.4 for h in h3]))
 
 
 def test_capability_gap_hypothesis():

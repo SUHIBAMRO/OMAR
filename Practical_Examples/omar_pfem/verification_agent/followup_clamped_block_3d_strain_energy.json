@@ -1,0 +1,21 @@
+{
+ "diagnosis_supported": [
+  "D4"
+ ],
+ "next_investigation": "add a finer level",
+ "plan": {
+  "n_next": 12,
+  "dof_estimate": 194248.125,
+  "alpha": 1.3638562594228818,
+  "seconds_estimate": 982.83377420334,
+  "gb_estimate": 14.7628575,
+  "budget_s": 300.0,
+  "budget_gb": 8.0,
+  "within_budget": false,
+  "why_not": [
+   "time",
+   "memory"
+  ]
+ },
+ "action": "not run: estimate exceeds the budget (time, memory)"
+}

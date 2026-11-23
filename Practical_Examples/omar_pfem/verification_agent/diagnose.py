@@ -732,7 +732,13 @@ def t_implementation(c):
 
 
 def pairwise_orders(hs, vals):
-    """Observed order between successive level triples (needs constant ratio ~)."""
+    """Observed order of each successive level triple: the p > 0 that solves
+    (v1 - v2) / (v2 - v3) = (h1^p - h2^p) / (h2^p - h3^p), i.e. v = v_inf + C h^p through
+    the three points. For a constant ratio q this is log(d1/d2)/log q exactly.
+    BUG FIX 2026-11-23 (round J): the earlier version used log(d1/d2)/log(h2/h3), valid
+    only for a constant ratio; the 3D ladders (k = 1, 2, 3, 4, 6, 8) are not, and gave
+    artefact orders (block energy 0.44 then 2.87). None if no root in (0.05, 20)."""
+    from scipy.optimize import brentq
     h, v = np.asarray(hs, float), np.asarray(vals, float)
     d = np.diff(v)
     out = []
@@ -740,7 +746,17 @@ def pairwise_orders(hs, vals):
         if d[i] == 0 or d[i + 1] == 0 or np.sign(d[i]) != np.sign(d[i + 1]):
             out.append(None)
             continue
-        out.append(float(np.log(abs(d[i]) / abs(d[i + 1])) / np.log(h[i + 1] / h[i + 2])))
+        r = abs(d[i]) / abs(d[i + 1])
+        h1, h2, h3 = h[i], h[i + 1], h[i + 2]
+        q1, q2 = h1 / h2, h2 / h3
+        if np.isclose(q1, q2, rtol=1e-12):
+            out.append(float(np.log(r) / np.log(q2)))
+            continue
+        f = lambda p: np.log((h1 ** p - h2 ** p) / (h2 ** p - h3 ** p)) - np.log(r)
+        try:
+            out.append(float(brentq(f, 0.05, 20.0)))
+        except ValueError:
+            out.append(None)
     return out
 
 
