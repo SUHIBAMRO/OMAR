@@ -26165,3 +26165,7 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   omar_pfem backed up to ~/omar_pfem_backup_1123). Working bsub form: `-gpu
   "num=1:mode=exclusive_process" -q BatchGPU -R "span[hosts=1] rusage[mem=<MB>]"` ("16G" in
   rusage is rejected). Output: ~/OMAR/Practical_Examples/iga_b3_cyl.3280560.out/.err.
+- 23:08/23:09 Omar submitted **3280561** = block3d_followup_job.sh (48000 MB, 4 h) and
+  **3280562** = iga_b3_job.sh (spline L5, 32000 MB, 24 h). At 23:12 all three RUN
+  (3280560 on makalu95; 3280561/3280562 on makalu83); 3280560.err empty. Results come back by
+  scp -O to Omar's PC and then into the chat (GitHub unreachable from the HPC).
