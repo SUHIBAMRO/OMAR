@@ -1,0 +1,138 @@
+{
+ "written": "2026-11-23T16:51:27.014266+00:00",
+ "purpose": "first SINGULAR problem with an exact solution: does the certified uncertainty (post hoc singular-order extension) contain the true error? And does the agent's graded-mesh remedy recover the optimal order?",
+ "spec": {
+  "name": "L-shaped panel, exact singular solution",
+  "geometry": "l_shape_exact",
+  "dim": 2,
+  "material": "linear_elastic",
+  "loading": "prescribed_displacement",
+  "regularity": "reentrant_corner",
+  "element": "Q9",
+  "reference": "mesh_refinement_family",
+  "qois": [
+   "strain_energy",
+   "u_mid_left",
+   "v_mid_right",
+   "corner_gk_avg_von_mises",
+   "corner_disc_avg_von_mises",
+   "far_gk_avg_syy",
+   "peak_von_mises"
+  ]
+ },
+ "adapter_description": "L-shaped panel: union of the unit squares [0,1]x[0,1], [1,2]x[0,1], [0,1]x[1,2]; plane strain, small-strain linear elasticity, E = 1000, nu = 0.3. Prescribed displacements on the four outer edges x = 0, x = 2, y = 0, y = 2; the two edges through the re-entrant corner (1,1) are traction-free (270-degree free/free corner, lam = 0.5445). Q2 (9-node) elements, n x n per unit square (n = 2, 4, ..., 128, h = 1/n); strategies at n = 16: node coordinates graded toward x = 1 and y = 1 with g = 1.5, 2.0. QoIs: strain_energy = 1/2 u.K u; u_mid_left = u_x at (0.5,1.5); v_mid_right = u_y at (1.5,0.5); corner_gk_avg_von_mises = von Mises averaged with exp(-(d/0.1)^2), d the distance to (1,1); corner_disc_avg_von_mises = its mean over the disc d < 0.2; far_gk_avg_syy = sigma_yy averaged with exp(-(d/0.1)^2) about (0.5,0.5); peak_von_mises = max von Mises over all Gauss points.",
+ "frozen_files_sha256": {
+  "gates.py": "232cab27ff8eed05dc62e481e2e2858e79f82fc9811a7f9f108b6909c8b03f95",
+  "trees.py": "2470e173544f15cdd74ca05e7874e4e459f87bf6730d023991fe684617b88ed3",
+  "orchestrate.py": "ec4725e68890baf31aa3a055b3660e89dec2dbffc0bce34f855e55141c776a13",
+  "extra_adapters.py": "2adcd250c005364b8bf3316802fa76eacfeaf8f3084d9803fa679548bc86bae9",
+  "lshape_exact.py": "9f28333dcb1854f8cc8d0797c45ca6bd29bb33b146ac6d931f4cc02fac91c906",
+  "remedy.py": "21dc73f8cf2b3aa17899fb751151919cef309b790b5accb9927c769928de1ae9"
+ },
+ "exact_values_sha256": "8d199155d7135b20d6c2074e7a64d4a4c71f89ab4e8ab5c656740dc6aa9906a1",
+ "exponents": [
+  0.5444837367824591,
+  0.908529189846099
+ ],
+ "rule_predictions": {
+  "strain_energy": {
+   "predicted": "PASS",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ]
+  },
+  "u_mid_left": {
+   "predicted": "PASS",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ]
+  },
+  "v_mid_right": {
+   "predicted": "PASS",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ]
+  },
+  "corner_gk_avg_von_mises": {
+   "predicted": null,
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ]
+  },
+  "corner_disc_avg_von_mises": {
+   "predicted": null,
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ]
+  },
+  "far_gk_avg_syy": {
+   "predicted": null,
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ]
+  },
+  "peak_von_mises": {
+   "predicted": "FAIL",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ]
+  }
+ },
+ "scoring_tests": {
+  "T1 rule predictions": "default rules (and with VERIF_POSTHOC_SINGULAR=1); hits counted as before",
+  "T2 coverage": "for every quantity the agent passes with RATE evidence (in each mode): |exact - certified limit| <= U_fine x scale, scale = |finest value|; no tolerance added",
+  "T3 remedy": "graded family g from remedy.plan_grading, levels n = 2..64, the same five-level convergence check (qoi_convergence_multilevel with the class tolerances of trees.class_params, order window 0.5-5): fitted order, U, T2 coverage, and true error against the uniform family at comparable unknowns"
+ },
+ "developer_expectations": {
+  "default rules": "every singular_order check INCONCLUSIVE (degree-1 theory only), so the global and displacement quantities are INCONCLUSIVE; the peak FAILs (rule hits 1 of 4, as on the L-shape)",
+  "posthoc strain_energy": "PASS with rate, order within 0.15 of 2 lam = 1.089 (MEDIUM: the second mode adds terms h^1.45 and h^1.82)",
+  "posthoc displacements": "both PASS with rate (MEDIUM; on the L-shape one displacement fell just short)",
+  "posthoc region averages": "far Gaussian average PASS (rate); the two corner averages PASS (LOW)",
+  "peak": "FAIL in both modes (HIGH)",
+  "T2": "the exact value lies inside the certified interval for every rate-certified quantity (MEDIUM; this is the test the extension has not had)",
+  "remedy plan": "g = 3.7 (p / lam = 3.673)",
+  "remedy energy order": "five-level fitted order between 3.0 and 4.6 (theory 4)",
+  "remedy accuracy": "true energy error at graded n = 64 below 1/100 of the uniform error at n = 128 (fewer unknowns)",
+  "remedy coverage": "T2 holds for the graded energy and both displacements"
+ },
+ "remedy_plan": {
+  "lam": 0.5444837367824591,
+  "degree": 2,
+  "g_min": 3.6732042940688827,
+  "g": 3.7,
+  "predicted_energy_order_uniform": 1.0889674735649182,
+  "predicted_energy_order_graded": 4,
+  "rule": "g > p / lam (tensor-product grading toward the corner lines)"
+ },
+ "graded_levels": [
+  2,
+  4,
+  8,
+  16,
+  32,
+  64
+ ],
+ "rules_changed_for_this_problem": false
+}

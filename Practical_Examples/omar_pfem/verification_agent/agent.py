@@ -258,6 +258,12 @@ DEFAULT_SPECS = {
                              material="neo_hookean", loading="edge_traction",
                              regularity="clamped_free_corner", element="Q20",
                              reference="mesh_refinement_family", qois=None),
+    # L-shape with an exact singular solution (round K): held-out, spec committed
+    # (lshape_exact_preregistration.json) before any loaded solve
+    "l_shape_exact": dict(name="L-shaped panel, exact singular solution",
+                          geometry="l_shape_exact", dim=2, material="linear_elastic",
+                          loading="prescribed_displacement", regularity="reentrant_corner",
+                          element="Q9", reference="mesh_refinement_family", qois=None),
     "bushing_groove": dict(name="B3 groove", geometry="bushing_groove", dim=3,
                            material="neo_hookean", loading="prescribed_rotation",
                            regularity="stress_concentration", element="Q20",
@@ -266,6 +272,7 @@ DEFAULT_SPECS = {
 
 
 def _default_spec(geometry):
+    from omar_pfem.verification_agent import extra_adapters  # noqa: F401  (registers adapters)
     from omar_pfem.verification_agent.orchestrate import ADAPTER_VOCAB
     d = dict(DEFAULT_SPECS[geometry])
     d["qois"] = tuple(d["qois"] or ADAPTER_VOCAB[geometry][1])

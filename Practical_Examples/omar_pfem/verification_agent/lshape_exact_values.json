@@ -1,0 +1,32 @@
+{
+ "strain_energy": 2661.7218834098253,
+ "strain_energy_volume_check": 2661.7218834098703,
+ "energy_two_ways_rel": 1.6913858663583082e-14,
+ "u_mid_left": 1.1771004831839722,
+ "v_mid_right": 1.9389292630673192,
+ "corner_gk_avg_von_mises": 2773.8667998189444,
+ "corner_disc_avg_von_mises": 2189.833493658453,
+ "far_gk_avg_syy": -1105.509731726191,
+ "peak_von_mises": Infinity,
+ "lam": [
+  0.5444837367824591,
+  0.908529189846099
+ ],
+ "weights": [
+  1.0,
+  0.5
+ ],
+ "checks": {
+  "lam": [
+   0.5444837367824591,
+   0.908529189846099
+  ],
+  "smallest_singular_value": [
+   2.6195873353466224e-14,
+   6.138660624903439e-17
+  ],
+  "traction_on_free_edges_rel": 1.717539326464706e-14,
+  "equilibrium_residual_max": 1.0413714335300028e-05,
+  "hooke_residual_max": 6.610550826735562e-07
+ }
+}
