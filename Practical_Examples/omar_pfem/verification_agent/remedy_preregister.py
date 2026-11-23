@@ -77,6 +77,56 @@ def main():
                       for g, p in plans.items()}, indent=1))
 
 
+class _relaxed_invF:
+    """AMENDMENT (2026-11-23, after the first graded levels failed and before any scoring):
+    scikit-fem inverts its isoparametric map with an ABSOLUTE tolerance of 1e-12 on the
+    Newton step in reference coordinates. On elements of size ~1e-6..1e-8 the round-off of
+    the physical coordinates alone, amplified by the inverse Jacobian, exceeds it, so the
+    traction FacetBasis fails. During the graded solves the same Newton iteration is used
+    with the tolerance scaled to that floor: max(1e-12, 1e3 x eps x |x| x |DF^-1|) per point.
+    No criterion changed."""
+
+    def __enter__(self):
+        import numpy as np
+        from skfem.mapping import MappingIsoparametric as M
+        self.orig = M.invF
+        # AMENDMENT 2 (same reason, found when the all-graded energy jumped at n = 32): the
+        # problem modules select boundary facets with np.isclose (relative tolerance 1e-5,
+        # i.e. 2e-5 at y = 2); on rows of elements thinner than that the short facets
+        # across the row are selected too (the total top load came out 2.0 instead of 1.0).
+        # During the graded solves the modules' np.isclose uses an absolute 1e-12.
+        import types
+        self.mods = []
+        for name in ("lshape", "crack"):
+            mod = __import__(f"omar_pfem.verification_agent.{name}", fromlist=["np"])
+            proxy = types.ModuleType("np_strict_isclose")
+            proxy.__dict__.update(np.__dict__)
+            proxy.isclose = lambda a, b, **kw: np.isclose(a, b, rtol=0.0, atol=1e-12)
+            self.mods.append((mod, mod.np))
+            mod.np = proxy
+
+        def invF(s_, x, tind=None, newton_max_iters=50, newton_tol=1e-12):
+            X = np.zeros(x.shape) + .5
+            for _ in range(newton_max_iters):
+                F = s_.F(X, tind)
+                invDF = s_.invDF(X, tind)
+                dX = np.einsum("ijkl,jkl->ikl", invDF, x - F)
+                X = np.clip(X + dX, 0., 1.)
+                floor = 1e3 * np.finfo(float).eps * (np.abs(x).max() + 1) * np.abs(invDF).max(
+                    axis=(0, 1))
+                tol = np.maximum(newton_tol, floor.max(axis=-1))
+                if (np.linalg.norm(dX, 1, (0, 2)) < tol).all():
+                    return X
+            raise Exception("Newton iteration did not reach the round-off floor")
+        M.invF = invF
+
+    def __exit__(self, *a):
+        from skfem.mapping import MappingIsoparametric as M
+        M.invF = self.orig
+        for mod, orig_np in self.mods:
+            mod.np = orig_np
+
+
 def _solve(geo, n, g, variant):
     from omar_pfem.verification_agent import remedy as R
     mod = __import__(f"omar_pfem.verification_agent.{MODULES[geo]}", fromlist=["solve_level"])
@@ -114,7 +164,9 @@ def run():
             for n in LEVELS:
                 if (variant, n) in done:
                     continue
-                r = _solve_p2(geo, n, g) if variant == "all_p2" else _solve(geo, n, g, variant)
+                with _relaxed_invF():
+                    r = (_solve_p2(geo, n, g) if variant == "all_p2"
+                         else _solve(geo, n, g, variant))
                 r["variant"], r["g_plan"] = variant, g
                 rows.append(r)
                 json.dump(rows, open(path, "w"), indent=1)

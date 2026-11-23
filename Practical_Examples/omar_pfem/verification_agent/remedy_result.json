@@ -1,0 +1,451 @@
+{
+ "l_shape": {
+  "strain_energy": {
+   "strongest": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 1.9129958908128952,
+    "fit_limit": 0.008583070056803137,
+    "uncertainty_fine": 0.00012355611227206587,
+    "finest": 0.0085829707600401,
+    "finest_dof": 99330
+   },
+   "all": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.91580563501088,
+    "fit_limit": 0.008584274806637681,
+    "uncertainty_fine": 0.00010017033483115671,
+    "finest": 0.008584020362490017,
+    "finest_dof": 99330
+   },
+   "all_p2": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.601715918344876,
+    "fit_limit": 0.008584809713211489,
+    "uncertainty_fine": 0.0003090332375600418,
+    "finest": 0.008584005297785103,
+    "finest_dof": 99330
+   },
+   "uniform": {
+    "evidence": "rate",
+    "fit_order": 1.1133845695147346,
+    "fit_limit": 0.008583887052298586,
+    "uncertainty_fine": 0.0005219254610269847,
+    "finest": 0.008580354655599465,
+    "verdict": "PASS"
+   },
+   "p2_crosscheck": {
+    "status": "cross_checked",
+    "gap_rel": 6.23142247127815e-05,
+    "independent": {
+     "evidence": "rate",
+     "fit_order": 2.601715918344876,
+     "uncertainty_fine": 0.00030903269521573973
+    }
+   }
+  },
+  "u_top_left": {
+   "strongest": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 1.258211268558641,
+    "fit_limit": 0.017455494519637575,
+    "uncertainty_fine": 0.0009425742681136786,
+    "finest": 0.01744605558686734,
+    "finest_dof": 99330
+   },
+   "all": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.8387322124658434,
+    "fit_limit": 0.017465047669292362,
+    "uncertainty_fine": 0.00013677897056123763,
+    "finest": 0.017464329892588958,
+    "finest_dof": 99330
+   },
+   "all_p2": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.505264393412307,
+    "fit_limit": 0.017466464886920458,
+    "uncertainty_fine": 0.000403083682369655,
+    "finest": 0.0174642851669877,
+    "finest_dof": 99330
+   },
+   "uniform": {
+    "evidence": "rate",
+    "fit_order": 1.0865333822288072,
+    "fit_limit": 0.017464072033016406,
+    "uncertainty_fine": 0.0006752848834642081,
+    "finest": 0.01745473977895903,
+    "verdict": "PASS"
+   },
+   "p2_crosscheck": {
+    "status": "cross_checked",
+    "gap_rel": 8.114927035921287e-05,
+    "independent": {
+     "evidence": "rate",
+     "fit_order": 2.505264393412307,
+     "uncertainty_fine": 0.00040308265008498327
+    }
+   }
+  },
+  "v_right_top": {
+   "strongest": {
+    "evidence": "none",
+    "verdict": "FAIL",
+    "fit_order": 3.3495229058498217,
+    "fit_limit": -0.0006473625653212601,
+    "uncertainty_fine": null,
+    "finest": -0.0006485151184143029,
+    "finest_dof": 99330
+   },
+   "all": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.318338382617099,
+    "fit_limit": -0.0006491686670942627,
+    "uncertainty_fine": 0.00010339001120613153,
+    "finest": -0.0006491896840543444,
+    "finest_dof": 99330
+   },
+   "all_p2": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 0.5206002682523649,
+    "fit_limit": -0.000648397855886339,
+    "uncertainty_fine": null,
+    "finest": -0.0006491905635799221,
+    "finest_dof": 99330
+   },
+   "uniform": {
+    "evidence": "rate",
+    "fit_order": 0.8366674055681781,
+    "fit_limit": -0.0006490474739054817,
+    "uncertainty_fine": 0.0008663277392609709,
+    "finest": -0.0006494649417474964,
+    "verdict": "FAIL"
+   },
+   "p2_crosscheck": {
+    "status": "independent_unconverged",
+    "gap_rel": null,
+    "independent": {
+     "evidence": "band",
+     "fit_order": 0.5206002682523649,
+     "uncertainty_fine": null
+    }
+   }
+  },
+  "corner_gk_avg_von_mises": {
+   "strongest": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 3.5287367553517885,
+    "fit_limit": 5.216446213073197,
+    "uncertainty_fine": 6.173698517232656e-05,
+    "finest": 5.216533392824742,
+    "finest_dof": 99330
+   },
+   "all": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 4.947884373643247,
+    "fit_limit": 5.215825978653866,
+    "uncertainty_fine": 0.0005479759709764645,
+    "finest": 5.2165693962324315,
+    "finest_dof": 99330
+   },
+   "all_p2": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 3.864694774152056,
+    "fit_limit": 5.215272762225494,
+    "uncertainty_fine": 0.0009420238453317864,
+    "finest": 5.216533063929219,
+    "finest_dof": 99330
+   },
+   "uniform": {
+    "evidence": "rate",
+    "fit_order": 1.2730303899147055,
+    "fit_limit": 5.216029545384181,
+    "uncertainty_fine": 0.0009080456924786541,
+    "finest": 5.212325665535667,
+    "verdict": "PASS"
+   },
+   "p2_crosscheck": {
+    "status": "cross_checked",
+    "gap_rel": 0.00010604985505832409,
+    "independent": {
+     "evidence": "rate",
+     "fit_order": 3.864694774152056,
+     "uncertainty_fine": 0.0009420172843348204
+    }
+   }
+  },
+  "far_gk_avg_syy": {
+   "strongest": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 5.659554036676942,
+    "fit_limit": 0.8190800689050589,
+    "uncertainty_fine": null,
+    "finest": 0.8191417878405688,
+    "finest_dof": 99330
+   },
+   "all": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 12.669503857203916,
+    "fit_limit": 0.818130944633133,
+    "uncertainty_fine": null,
+    "finest": 0.8193730301479625,
+    "finest_dof": 99330
+   },
+   "all_p2": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 0.9954936166005673,
+    "fit_limit": 0.8241364764999505,
+    "uncertainty_fine": null,
+    "finest": 0.8193795547541363,
+    "finest_dof": 99330
+   },
+   "uniform": {
+    "evidence": "rate",
+    "fit_order": 1.0966203746336798,
+    "fit_limit": 0.8193816665392364,
+    "uncertainty_fine": 0.0006498423029913657,
+    "finest": 0.8198046667647935,
+    "verdict": "PASS"
+   }
+  }
+ },
+ "edge_crack": {
+  "strain_energy": {
+   "strongest": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.9325864061217355,
+    "fit_limit": 0.007550926520091768,
+    "uncertainty_fine": 3.082548909414582e-05,
+    "finest": 0.007550846062139365,
+    "finest_dof": 132354
+   },
+   "all": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.771895872187675,
+    "fit_limit": 0.0075517973955636,
+    "uncertainty_fine": 0.0003981813179539566,
+    "finest": 0.007550901356711652,
+    "finest_dof": 132354
+   },
+   "all_p2": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.353405689132292,
+    "fit_limit": 0.007554160432387937,
+    "uncertainty_fine": 0.0014004216602335855,
+    "finest": 0.007550829666401761,
+    "finest_dof": 132354
+   },
+   "uniform": {
+    "evidence": "rate",
+    "fit_order": 0.9833700959143199,
+    "fit_limit": 0.007551404793519872,
+    "uncertainty_fine": 0.0024297320424720727,
+    "finest": 0.007536882566380137,
+    "verdict": "PASS"
+   },
+   "p2_crosscheck": {
+    "status": "cross_checked",
+    "gap_rel": 0.0003129476485925226,
+    "independent": {
+     "evidence": "rate",
+     "fit_order": 2.353405689132292,
+     "uncertainty_fine": 0.0014004083642496945
+    }
+   }
+  },
+  "u_cod_mouth": {
+   "strongest": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.910505048718581,
+    "fit_limit": 0.01914820345362758,
+    "uncertainty_fine": 0.00022151781842823435,
+    "finest": 0.01914693322044141,
+    "finest_dof": 132354
+   },
+   "all": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.768114356686422,
+    "fit_limit": 0.019149160481825692,
+    "uncertainty_fine": 0.0004322829465890667,
+    "finest": 0.019146692767336437,
+    "finest_dof": 132354
+   },
+   "all_p2": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.325150167521368,
+    "fit_limit": 0.019155714209097594,
+    "uncertainty_fine": 0.001524654819736139,
+    "finest": 0.019146505405951884,
+    "finest_dof": 132354
+   },
+   "uniform": {
+    "evidence": "rate",
+    "fit_order": 0.98331471750796,
+    "fit_limit": 0.019148016984563657,
+    "uncertainty_fine": 0.002545327278862331,
+    "finest": 0.019109436268074195,
+    "verdict": "PASS"
+   },
+   "p2_crosscheck": {
+    "status": "cross_checked",
+    "gap_rel": 0.00034229030316307497,
+    "independent": {
+     "evidence": "rate",
+     "fit_order": 2.325150167521368,
+     "uncertainty_fine": 0.0015246399001131283
+    }
+   }
+  },
+  "v_top_right": {
+   "strongest": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 12.669503857203916,
+    "fit_limit": -0.0019351691623585568,
+    "uncertainty_fine": null,
+    "finest": -0.0019342633681809357,
+    "finest_dof": 132354
+   },
+   "all": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.7358940502256246,
+    "fit_limit": -0.001934611008517239,
+    "uncertainty_fine": 0.0007798928407615781,
+    "finest": -0.0019341598986443243,
+    "finest_dof": 132354
+   },
+   "all_p2": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.2806753605796537,
+    "fit_limit": -0.0019360355066601088,
+    "uncertainty_fine": 0.0031208758471748857,
+    "finest": -0.0019341204056095192,
+    "finest_dof": 132354
+   },
+   "uniform": {
+    "evidence": "rate",
+    "fit_order": 0.9821565430052357,
+    "fit_limit": -0.0019344300539409012,
+    "uncertainty_fine": 0.004742874982176789,
+    "finest": -0.0019271912419063096,
+    "verdict": "PASS"
+   },
+   "p2_crosscheck": {
+    "status": "cross_checked",
+    "gap_rel": 0.0007364945079609861,
+    "independent": {
+     "evidence": "rate",
+     "fit_order": 2.2806753605796537,
+     "uncertainty_fine": 0.0031208121229406374
+    }
+   }
+  },
+  "tip_gk_avg_von_mises": {
+   "strongest": {
+    "evidence": "rate",
+    "verdict": "PASS",
+    "fit_order": 2.713503781919273,
+    "fit_limit": 4.937466472089688,
+    "uncertainty_fine": 0.00013450235569039147,
+    "finest": 4.9372780042303335,
+    "finest_dof": 132354
+   },
+   "all": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 6.4004745779073735,
+    "fit_limit": 4.936792751335148,
+    "uncertainty_fine": null,
+    "finest": 4.937294003451404,
+    "finest_dof": 132354
+   },
+   "all_p2": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 5.749121852852907,
+    "fit_limit": 4.935765647305819,
+    "uncertainty_fine": null,
+    "finest": 4.937261646998337,
+    "finest_dof": 132354
+   },
+   "uniform": {
+    "evidence": "band",
+    "fit_order": 0.050000001446839366,
+    "fit_limit": 4.594719127604995,
+    "uncertainty_fine": null,
+    "finest": 4.940520647721724,
+    "verdict": "FAIL"
+   }
+  },
+  "far_gk_avg_syy": {
+   "strongest": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 12.669503857203916,
+    "fit_limit": 1.1755661469562202,
+    "uncertainty_fine": null,
+    "finest": 1.176680955363118,
+    "finest_dof": 132354
+   },
+   "all": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 12.669503857203916,
+    "fit_limit": 1.1807134198551954,
+    "uncertainty_fine": null,
+    "finest": 1.1766679440498966,
+    "finest_dof": 132354
+   },
+   "all_p2": {
+    "evidence": "band",
+    "verdict": "PASS",
+    "fit_order": 12.669503857203916,
+    "fit_limit": 1.1835294206956777,
+    "uncertainty_fine": null,
+    "finest": 1.1766290290664576,
+    "finest_dof": 132354
+   },
+   "uniform": {
+    "evidence": "rate",
+    "fit_order": 0.9677790528991176,
+    "fit_limit": 1.1767816834477862,
+    "uncertainty_fine": 0.0016478656255744398,
+    "finest": 1.1752652924002145,
+    "verdict": "PASS"
+   }
+  }
+ },
+ "predictions_met": {
+  "l_shape P1 strongest-only order within 0.2 of 1.42": false,
+  "l_shape P2 all-graded order 3.0-4.6": false,
+  "l_shape P3 U below 1/100 of uniform": false,
+  "l_shape P4 limit inside uniform interval": true,
+  "l_shape P5 P2 cross-checks the energy": true,
+  "edge_crack P1 strongest-only order within 0.2 of 1.42": false,
+  "edge_crack P2 all-graded order 3.0-4.6": false,
+  "edge_crack P3 U below 1/100 of uniform": false,
+  "edge_crack P4 limit inside uniform interval": true,
+  "edge_crack P5 P2 cross-checks the energy": true
+ }
+}
