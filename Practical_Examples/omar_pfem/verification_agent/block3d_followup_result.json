@@ -1,0 +1,78 @@
+{
+ "pairwise_orders": [
+  2.5596996876082945,
+  1.8387324814832424,
+  1.5326856960561228,
+  1.3750074274035613,
+  1.3168521365901806
+ ],
+ "fit_order_energy": 1.4307236425943564,
+ "singular_order_energy": {
+  "verdict": "PASS",
+  "observed": 1.4307236425943564,
+  "label": null
+ },
+ "peak_slope_k4_12": -0.31854106080997435,
+ "k12_seconds": 408.7556345462799,
+ "k12_n_dof": 184539,
+ "verdicts": {
+  "strain_energy": {
+   "before": [
+    "INCONCLUSIVE",
+    "rate"
+   ],
+   "after": [
+    "PASS",
+    "rate"
+   ]
+  },
+  "w_tip": {
+   "before": [
+    "PASS",
+    "rate"
+   ],
+   "after": [
+    "PASS",
+    "rate"
+   ]
+  },
+  "mid_gk_avg_sxx": {
+   "before": [
+    "PASS",
+    "rate"
+   ],
+   "after": [
+    "PASS",
+    "rate"
+   ]
+  },
+  "root_gk_avg_von_mises": {
+   "before": [
+    "FAIL",
+    "rate"
+   ],
+   "after": [
+    "FAIL",
+    "rate"
+   ]
+  },
+  "peak_von_mises": {
+   "before": [
+    "FAIL",
+    "none"
+   ],
+   "after": [
+    "FAIL",
+    "none"
+   ]
+  }
+ },
+ "predictions_met": {
+  "P1": true,
+  "P2": true,
+  "P3": true,
+  "P4": true,
+  "P5": true,
+  "P6": true
+ }
+}

@@ -26169,3 +26169,11 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   **3280562** = iga_b3_job.sh (spline L5, 32000 MB, 24 h). At 23:12 all three RUN
   (3280560 on makalu95; 3280561/3280562 on makalu83); 3280560.err empty. Results come back by
   scp -O to Omar's PC and then into the chat (GitHub unreachable from the HPC).
+- **Job 3280561 DONE (block k = 12, 467 s run time, 184,539 dof, peak mem ~40 GB):** result
+  `clamped_block_3d_followup.json` (copied from Omar's terminal), scored with
+  `block3d_followup --score` -> `block3d_followup_result.json`: **pre-registered predictions 6/6
+  met**. Pairwise energy orders 2.56, 1.84, 1.53, 1.38, 1.32 -> 2 lam = 1.42; five-level fit 1.43;
+  singular-order check PASS -> strain_energy INCONCLUSIVE -> PASS with rate; w_tip and mid
+  average stay PASS; root Gaussian von Mises stays FAIL; peak slope k = 4..12 = -0.32 (theory
+  -0.29). Scoring needed the same checked orchestrate.py exemption (pre-registered hash ==
+  b850330). NOT yet in the report: integrate with the spline jobs (3280560, 3280562) as v10.

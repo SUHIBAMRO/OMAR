@@ -69,6 +69,13 @@ def score():
     from omar_pfem.verification_agent.followup import _rows, evaluate
     pre = json.load(open(OUT))
     changed = [f for f, h in pre["frozen_files_sha256"].items() if _sha(f) != h]
+    # round M: orchestrate.py gained blocks that run only with VERIF_POSTHOC_DETF=1; the
+    # pre-registered hash is that of b850330; allowed iff equal to it with those blocks removed
+    from omar_pfem.verification_agent.prereg_util import unchanged_except_switch
+    if "orchestrate.py" in changed and unchanged_except_switch("orchestrate.py", "b850330",
+                                                               "VERIF_POSTHOC_DETF"):
+        changed.remove("orchestrate.py")
+        print("note: orchestrate.py changed only by the off-by-default VERIF_POSTHOC_DETF switch")
     if changed:
         raise SystemExit(f"frozen files changed since pre-registration: {changed}")
     os.environ["VERIF_POSTHOC_SINGULAR"] = "1"
