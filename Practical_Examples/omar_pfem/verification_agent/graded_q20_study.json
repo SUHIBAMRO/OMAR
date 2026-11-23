@@ -1,0 +1,164 @@
+[
+ {
+  "k": 4,
+  "grading": 1.0,
+  "quadrature": "reduced",
+  "seconds": 15.21547245979309,
+  "min_detF": 1.0042464036545589,
+  "min_detF_location": [
+   0.9399284299594423,
+   0.4123872058798288,
+   0.09858439182435161
+  ],
+  "errors": {
+   "strain_energy": -2.5964972516501206e-07,
+   "reaction_inner_radial": -3.1319373039462306e-07,
+   "u_outer_radial": 7.11742114578584e-07,
+   "gk_avg_hoop": 9.469911138260123e-05,
+   "disc_avg_hoop": -0.0019662854055055856,
+   "peak_hoop": -0.039820681515374656
+  }
+ },
+ {
+  "k": 4,
+  "grading": 1.0,
+  "quadrature": "full",
+  "seconds": 28.197729349136353,
+  "min_detF": 1.0040941367827882,
+  "min_detF_location": [
+   1.0003905692569592,
+   0.3579454692292338,
+   0.4375
+  ],
+  "errors": {
+   "strain_energy": 9.106620037391266e-06,
+   "reaction_inner_radial": 7.2415271703540895e-06,
+   "u_outer_radial": 8.927930186253263e-07,
+   "gk_avg_hoop": -9.23614927672567e-06,
+   "disc_avg_hoop": -0.0003702296601061361,
+   "peak_hoop": -0.014557974283056496
+  }
+ },
+ {
+  "k": 4,
+  "grading": 2.0,
+  "quadrature": "reduced",
+  "seconds": 20.92426085472107,
+  "min_detF": -1.0260236311428674,
+  "min_detF_location": [
+   1.000296435189617,
+   0.07759846719274838,
+   0.34858439182435164
+  ],
+  "errors": {
+   "strain_energy": null,
+   "reaction_inner_radial": -0.1309168809991592,
+   "u_outer_radial": -0.1491797703407759,
+   "gk_avg_hoop": -0.27189800861689417,
+   "disc_avg_hoop": -0.25362773475087186,
+   "peak_hoop": -0.1791071343986147
+  }
+ },
+ {
+  "k": 4,
+  "grading": 2.0,
+  "quadrature": "full",
+  "seconds": 59.67806673049927,
+  "min_detF": -0.7356981798768724,
+  "min_detF_location": [
+   0.10922014147178916,
+   0.995788953183773,
+   0.31249999999999994
+  ],
+  "errors": {
+   "strain_energy": null,
+   "reaction_inner_radial": -0.09284026577371807,
+   "u_outer_radial": -0.046775582801279914,
+   "gk_avg_hoop": -0.2341567491537142,
+   "disc_avg_hoop": -0.19793836050148983,
+   "peak_hoop": 13.181976026815716
+  }
+ },
+ {
+  "k": 4,
+  "grading": 1.5,
+  "quadrature": "reduced",
+  "seconds": 14.705683946609497,
+  "min_detF": 1.0042037842556757,
+  "min_detF_location": [
+   0.9403229147241431,
+   0.3668219817304865,
+   0.40141560817564825
+  ],
+  "errors": {
+   "strain_energy": -2.1860496024483922e-07,
+   "reaction_inner_radial": -2.40463900236243e-07,
+   "u_outer_radial": 1.2948935412815388e-06,
+   "gk_avg_hoop": -1.2405526370606879e-06,
+   "disc_avg_hoop": -0.003264398826922754,
+   "peak_hoop": -0.014441896583891944
+  }
+ },
+ {
+  "k": 4,
+  "grading": 1.5,
+  "quadrature": "full",
+  "seconds": 23.922632455825806,
+  "min_detF": 1.0042025324374024,
+  "min_detF_location": [
+   0.8209560781122097,
+   0.6088625237972679,
+   0.11091229182759274
+  ],
+  "errors": {
+   "strain_energy": 6.538656839749635e-06,
+   "reaction_inner_radial": 5.648581902883976e-06,
+   "u_outer_radial": 1.3615594582905288e-06,
+   "gk_avg_hoop": 6.404266611825804e-05,
+   "disc_avg_hoop": 0.00016195019850773207,
+   "peak_hoop": -0.006768074794994083
+  }
+ },
+ {
+  "k": 4,
+  "grading": 2.0,
+  "quadrature": "reduced",
+  "nsteps": 40,
+  "seconds": 34.61696982383728,
+  "min_detF": 1.004187915825593,
+  "min_detF_location": [
+   0.8944577551440992,
+   0.45448850879455494,
+   0.34858439182435164
+  ],
+  "errors": {
+   "strain_energy": -2.282840267930908e-07,
+   "reaction_inner_radial": -2.594413442968957e-07,
+   "u_outer_radial": 2.0889848020289037e-06,
+   "gk_avg_hoop": -1.3713910365198423e-05,
+   "disc_avg_hoop": -0.003125779345708568,
+   "peak_hoop": -0.005151737968145609
+  }
+ },
+ {
+  "k": 4,
+  "grading": 2.0,
+  "quadrature": "full",
+  "nsteps": 40,
+  "seconds": 68.28242135047913,
+  "min_detF": 1.0041869446253626,
+  "min_detF_location": [
+   0.826721434330483,
+   0.565735228357313,
+   0.31249999999999994
+  ],
+  "errors": {
+   "strain_energy": 1.1921920025637078e-05,
+   "reaction_inner_radial": 1.0572078746884372e-05,
+   "u_outer_radial": 2.5364278577466592e-06,
+   "gk_avg_hoop": 9.073713583740428e-05,
+   "disc_avg_hoop": -0.0003830708737581068,
+   "peak_hoop": -0.002625024871196313
+  }
+ }
+]
