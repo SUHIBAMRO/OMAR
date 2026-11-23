@@ -26094,5 +26094,8 @@ Report v6: advisor_feedback/2026-11-23_Verification_Framework_Technical_Report_v
   det F guard switch VERIF_POSTHOC_DETF; claims 957/957, tests 70.
 - Third pass: P2 independent ladders (L-shape, crack, plate) -> posthoc-only 13/16 cross-checked,
   final 60/83; report_text_check.py (0 missing of 965); claims 965/965, tests 71; report v6 74 pages.
+- RUNNING (setsid, log scratchpad/hex27.log): independent_block3d.py, a SECOND CODE for the block
+  (scikit-fem Hex27, Newton from the energy), k = 1,2,3,4,6 (~1.5 h); then rerun crosscheck,
+  three_way, verify_report; report 31.11.
 - PENDING after the spline run: B3 radial grading >= 1.75 with more load increments (load-step test).
 NEEDS OMAR: decide on manual submission of block3d_followup_job.sh (and the earlier two jobs).

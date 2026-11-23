@@ -46,7 +46,8 @@ Independent sources:
   plate_hole                 quadrilateral split in two (independent_p2.py, round J;
                              plate: hole mid-edge nodes on the exact circle)
   clamped_block_3d           8-node hexahedra Q8, k = 2..16 (block3d.run_q8, round J;
-                             order window of a linear element 0.5-3). Its certifications
+                             order window of a linear element 0.5-3); and a second code,
+                             scikit-fem with 27-node hexahedra (independent_block3d.py). Its certifications
                              exist only with the post hoc singular-order extension, so
                              they are in rows_posthoc_only (below), not in the summary
 
@@ -116,6 +117,11 @@ def independent_series(geometry, qoi):
         rows = [r for r in rows if qoi in r]
         if rows:
             out.append(("8-node hexahedra Q8 (independent discretization)",
+                        [r["h"] for r in rows], [r[qoi] for r in rows]))
+        rows = [r for r in sorted(_j("block3d_hex27_ladder.json"), key=lambda r: r["k"])
+                if qoi in r]
+        if rows:
+            out.append(("second code: scikit-fem, 27-node hexahedra",
                         [r["h"] for r in rows], [r[qoi] for r in rows]))
     elif geometry == "thick_cylinder_3d":
         ex = _j("cylinder3d_exact.json")
