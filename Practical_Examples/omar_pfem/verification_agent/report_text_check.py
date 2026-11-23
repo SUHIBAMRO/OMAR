@@ -22,7 +22,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
-PDF = os.path.join(ROOT, "advisor_feedback", "2026-11-23_Verification_Framework_Technical_Report_v6.pdf")
+PDF = os.path.join(ROOT, "advisor_feedback", "2026-11-23_Verification_Framework_Technical_Report_v7.pdf")
 OUT = os.path.join(HERE, "report_text_check.json")
 SUP = str.maketrans("-0123456789", "⁻⁰¹²³⁴⁵⁶⁷⁸⁹")
 # Reviewed 2026-11-23: claims that back a figure or a derived statement and whose raw value
@@ -78,7 +78,7 @@ def forms(v, tol):
             out.add(("-" if x < 0 else "") + core)
     if v < 0:                              # written as "x% below" in the text
         out |= {f.lstrip("-\u2212") for f in out}
-    if v != 0 and (abs(v) < 1e-3 or abs(v) >= 1e6):
+    if v != 0 and (abs(v) < 0.1 or abs(v) >= 1e6):
         e = int(math.floor(math.log10(abs(v))))
         m = abs(v) / 10 ** e
         for md in (0, 1, 2):

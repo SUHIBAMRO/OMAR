@@ -7704,6 +7704,654 @@
   "ok": true
  },
  {
+  "section": "32",
+  "claim": "exact lam1",
+  "printed": 0.5445,
+  "recomputed": 0.5444837367824591,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "exact lam2",
+  "printed": 0.9085,
+  "recomputed": 0.908529189846099,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "exact energy",
+  "printed": 2661.7219,
+  "recomputed": 2661.7218834098253,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "energy two ways",
+  "printed": 1.7e-14,
+  "recomputed": 1.6913858663583082e-14,
+  "tolerance": 5e-16,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "corner traction",
+  "printed": 1.7e-14,
+  "recomputed": 1.717539326464706e-14,
+  "tolerance": 5e-16,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "default rule hits",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "default rule predictions",
+  "printed": 4,
+  "recomputed": 4.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "posthoc rule hits",
+  "printed": 4,
+  "recomputed": 4.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "posthoc T2 covered",
+  "printed": 6,
+  "recomputed": 6.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "posthoc T2 of",
+  "printed": 6,
+  "recomputed": 6.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "expectations met",
+  "printed": 9,
+  "recomputed": 9.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "strain_energy order",
+  "printed": 1.09,
+  "recomputed": 1.0926181045085621,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "strain_energy true error",
+  "printed": 2.8e-06,
+  "recomputed": 2.8448508100615862e-06,
+  "tolerance": 5e-08,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "strain_energy U",
+  "printed": 0.00046,
+  "recomputed": 0.000458685889208515,
+  "tolerance": 5e-06,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "strain_energy ratio",
+  "printed": 0.006,
+  "recomputed": 0.006202176428340789,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "u_mid_left order",
+  "printed": 1.12,
+  "recomputed": 1.115774242822287,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "u_mid_left true error",
+  "printed": 9.4e-06,
+  "recomputed": 9.376843564595627e-06,
+  "tolerance": 5e-08,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "u_mid_left U",
+  "printed": 0.00017,
+  "recomputed": 0.0001740242354547185,
+  "tolerance": 5e-06,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "u_mid_left ratio",
+  "printed": 0.054,
+  "recomputed": 0.05388240057538137,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "v_mid_right order",
+  "printed": 1.11,
+  "recomputed": 1.1146583099130345,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "v_mid_right true error",
+  "printed": 5.5e-06,
+  "recomputed": 5.4830463987840135e-06,
+  "tolerance": 5e-08,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "v_mid_right U",
+  "printed": 0.00011,
+  "recomputed": 0.00010578415600184808,
+  "tolerance": 5e-06,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "v_mid_right ratio",
+  "printed": 0.052,
+  "recomputed": 0.051832397270232256,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "corner_gk_avg_von_mises order",
+  "printed": 1.37,
+  "recomputed": 1.3667973520094778,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "corner_gk_avg_von_mises true error",
+  "printed": 4.9e-06,
+  "recomputed": 4.8606790070617475e-06,
+  "tolerance": 5e-08,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "corner_gk_avg_von_mises U",
+  "printed": 0.00047,
+  "recomputed": 0.00046555345018543364,
+  "tolerance": 5e-06,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "corner_gk_avg_von_mises ratio",
+  "printed": 0.01,
+  "recomputed": 0.010440646514649822,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "corner_disc_avg_von_mises order",
+  "printed": 3.85,
+  "recomputed": 3.850467432217689,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "corner_disc_avg_von_mises true error",
+  "printed": 0.00043,
+  "recomputed": 0.0004334180554951214,
+  "tolerance": 5e-06,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "corner_disc_avg_von_mises U",
+  "printed": 0.00062,
+  "recomputed": 0.0006185545259469647,
+  "tolerance": 5e-06,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "corner_disc_avg_von_mises ratio",
+  "printed": 0.7,
+  "recomputed": 0.7006949869643068,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "far_gk_avg_syy order",
+  "printed": 1.14,
+  "recomputed": 1.1362161954510757,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "far_gk_avg_syy true error",
+  "printed": 6.6e-06,
+  "recomputed": 6.6096883153748515e-06,
+  "tolerance": 5e-08,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "far_gk_avg_syy U",
+  "printed": 9.7e-05,
+  "recomputed": 9.699494349985026e-05,
+  "tolerance": 5e-07,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "far_gk_avg_syy ratio",
+  "printed": 0.068,
+  "recomputed": 0.0681446689577695,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "exact benchmark P2 cross-checked",
+  "printed": 4,
+  "recomputed": 4.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy g",
+  "printed": 3.7,
+  "recomputed": 3.7,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy energy order",
+  "printed": 3.34,
+  "recomputed": 3.34360875857578,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy energy error graded",
+  "printed": 1.5e-07,
+  "recomputed": 1.5099772251716858e-07,
+  "tolerance": 5e-09,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy energy error uniform",
+  "printed": 0.00037,
+  "recomputed": 0.0003689227812361736,
+  "tolerance": 5e-06,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy energy gain",
+  "printed": 2400,
+  "recomputed": 2443.2340772174675,
+  "tolerance": 50,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy graded dof",
+  "printed": 99330,
+  "recomputed": 99330.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy uniform dof",
+  "printed": 395266,
+  "recomputed": 395266.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy corner gk order",
+  "printed": 3.93,
+  "recomputed": 3.927041826421131,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy corner gk error graded",
+  "printed": 2.6e-07,
+  "recomputed": 2.612540301077892e-07,
+  "tolerance": 5e-09,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy corner gk error uniform",
+  "printed": 0.00034,
+  "recomputed": 0.00034495612113886234,
+  "tolerance": 5e-06,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy disc error graded",
+  "printed": 0.00029,
+  "recomputed": 0.000292980454843702,
+  "tolerance": 5e-06,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy disc error uniform",
+  "printed": 0.00027,
+  "recomputed": 0.00027097997095043835,
+  "tolerance": 5e-06,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy predictions met",
+  "printed": 4,
+  "recomputed": 4.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy l_shape uniform order",
+  "printed": 1.11,
+  "recomputed": 1.1133845695147346,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy l_shape uniform U",
+  "printed": 0.00052,
+  "recomputed": 0.0005219254610269847,
+  "tolerance": 5e-06,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy l_shape strongest order",
+  "printed": 1.91,
+  "recomputed": 1.9129958908128952,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy l_shape strongest U",
+  "printed": 0.00012,
+  "recomputed": 0.00012355611227206587,
+  "tolerance": 5e-06,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy l_shape all order",
+  "printed": 2.92,
+  "recomputed": 2.91580563501088,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy l_shape all U",
+  "printed": 0.0001,
+  "recomputed": 0.00010017033483115671,
+  "tolerance": 5e-06,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy l_shape P2 cross-checked",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy edge_crack uniform order",
+  "printed": 0.98,
+  "recomputed": 0.9833700959143199,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy edge_crack uniform U",
+  "printed": 0.0024,
+  "recomputed": 0.0024297320424720727,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy edge_crack strongest order",
+  "printed": 2.93,
+  "recomputed": 2.9325864061217355,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy edge_crack strongest U",
+  "printed": 3.1e-05,
+  "recomputed": 3.082548909414582e-05,
+  "tolerance": 5e-07,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy edge_crack all order",
+  "printed": 2.77,
+  "recomputed": 2.771895872187675,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy edge_crack all U",
+  "printed": 0.0004,
+  "recomputed": 0.0003981813179539566,
+  "tolerance": 5e-06,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "remedy edge_crack P2 cross-checked",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "crack strongest U reduction",
+  "printed": 79,
+  "recomputed": 78.82217326872882,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "plan g L-shape",
+  "printed": 3.7,
+  "recomputed": 3.7,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "plan g crack",
+  "printed": 4.1,
+  "recomputed": 4.1,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "p over lam",
+  "printed": 3.673,
+  "recomputed": 3.67320429406885,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "calibration framework certified",
+  "printed": 12,
+  "recomputed": 12.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "calibration framework covered",
+  "printed": 12,
+  "recomputed": 12.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "calibration framework median ratio",
+  "printed": 0.07,
+  "recomputed": 0.06846426196999883,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "calibration framework max ratio",
+  "printed": 0.7,
+  "recomputed": 0.7006949869643068,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "calibration GCI certified",
+  "printed": 11,
+  "recomputed": 11.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "calibration GCI covered",
+  "printed": 9,
+  "recomputed": 9.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "calibration GCI max ratio",
+  "printed": 17.1,
+  "recomputed": 17.136394324965618,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "GCI cylinder disc ratio",
+  "printed": 2.6,
+  "recomputed": 2.634511137162345,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "framework median width factor",
+  "printed": 15,
+  "recomputed": 14.606160516828501,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "B3 1.75 negative points",
+  "printed": 480,
+  "recomputed": 480.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "B3 1.75 elements",
+  "printed": 80,
+  "recomputed": 80.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "B3 2.0 negative points",
+  "printed": 840,
+  "recomputed": 840.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "B3 2.0 elements",
+  "printed": 120,
+  "recomputed": 120.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "32",
+  "claim": "B3 1.5 negative points",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
   "section": "23",
   "claim": "lamina MMS L2 rate",
   "printed": 3.0,

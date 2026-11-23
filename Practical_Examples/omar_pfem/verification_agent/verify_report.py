@@ -913,6 +913,7 @@ def add_f_round(add, h1, h2, h3):
     add_g_round(add, h1, h2)
     add_i_round(add, h1, h2)
     add_j_round(add, h1, h2, h3)
+    add_k_round(add, h1, h2, h3)
     m = lambda: json.load(open(os.path.join(HERE, "lamina_mms.json")))["rows"]
     add("23", "lamina MMS L2 rate", 3.00, h2, lambda: np.log2(m()[-2]["L2_rel"] / m()[-1]["L2_rel"]))
     add("23", "lamina MMS H1 rate", 2.00, h2, lambda: np.log2(m()[-2]["H1_semi_rel"] / m()[-1]["H1_semi_rel"]))
@@ -1390,7 +1391,10 @@ def add_j_round(add, h1, h2, h3):
         add("31", f"Q8 {q} U %", u, h2, lambda q=q: 100 * xp(q)["independent_sources"][0]["U_ind_rel"])
         add("31", f"Q8 {q} gap %", gap, h3, lambda q=q: 100 * xp(q)["independent_sources"][0]["gap_rel"])
         add("31", f"Q8 {q} cross-checked", 1, 0, lambda q=q: int(xp(q)["status"] == "cross_checked"))
-    sp = lambda: _j("crosscheck_result.json")["summary_posthoc_only"]
+    # Section 31 covers the ten problems of round J; l_shape_exact (round K) is excluded
+    sp = lambda: {st: sum(r["status"] == st for r in _j("crosscheck_result.json")
+                          ["rows_posthoc_only"] if r["problem"] != "l_shape_exact")
+                  for st in ("cross_checked", "single_family", "independent_unconverged")}
     add("31", "posthoc-only cross-checked", 13, 0, lambda: sp()["cross_checked"])
     add("31", "posthoc-only single family", 0, 0, lambda: sp()["single_family"])
     add("31", "posthoc-only independent unconverged", 3, 0, lambda: sp()["independent_unconverged"])
@@ -1414,6 +1418,99 @@ def add_j_round(add, h1, h2, h3):
     add("31", "P2 plate hole gk spread %", 0.003, 0.0005, lambda: 100 * float(
         xq("plate_hole", "hole_gk_avg_sigma_xx")["independent_sources"][0]["assessment"]["reason"]
         .split("spread ")[1].split("%")[0]) / 100)
+
+
+def add_k_round(add, h1, h2, h3):
+    """Section 32 (round K): exact singular benchmark, remedy, calibration, B3 Jacobian."""
+    import math
+    sig2 = lambda v: 0.5 * 10 ** (math.floor(math.log10(abs(v))) - 1)   # half a unit, 2 digits
+    ev = lambda: _j("lshape_exact_values.json")
+    add("32", "exact lam1", 0.5445, 0.00005, lambda: ev()["lam"][0])
+    add("32", "exact lam2", 0.9085, 0.00005, lambda: ev()["lam"][1])
+    add("32", "exact energy", 2661.7219, 0.00005, lambda: ev()["strain_energy"])
+    add("32", "energy two ways", 1.7e-14, 0.05e-14, lambda: ev()["energy_two_ways_rel"])
+    add("32", "corner traction", 1.7e-14, 0.05e-14, lambda: ev()["checks"]["traction_on_free_edges_rel"])
+    lr = lambda: _j("lshape_exact_result.json")
+    add("32", "default rule hits", 1, 0, lambda: lr()["modes"]["default"]["rule_hits"])
+    add("32", "default rule predictions", 4, 0, lambda: lr()["modes"]["default"]["rule_predictions"])
+    add("32", "posthoc rule hits", 4, 0, lambda: lr()["modes"]["posthoc"]["rule_hits"])
+    add("32", "posthoc T2 covered", 6, 0, lambda: lr()["modes"]["posthoc"]["T2_covered"])
+    add("32", "posthoc T2 of", 6, 0, lambda: lr()["modes"]["posthoc"]["T2_of"])
+    add("32", "expectations met", 9, 0, lambda: sum(lr()["developer_expectations_met"].values()))
+    Q = lambda q: lr()["modes"]["posthoc"]["qois"][q]
+    for q, p_, err, U, ratio in (("strain_energy", 1.09, 2.8e-6, 4.6e-4, 0.006),
+                                 ("u_mid_left", 1.12, 9.4e-6, 1.7e-4, 0.054),
+                                 ("v_mid_right", 1.11, 5.5e-6, 1.1e-4, 0.052),
+                                 ("corner_gk_avg_von_mises", 1.37, 4.9e-6, 4.7e-4, 0.010),
+                                 ("corner_disc_avg_von_mises", 3.85, 4.3e-4, 6.2e-4, 0.70),
+                                 ("far_gk_avg_syy", 1.14, 6.6e-6, 9.7e-5, 0.068)):
+        add("32", f"{q} order", p_, h2, lambda q=q: Q(q)["fit_order"])
+        add("32", f"{q} true error", err, sig2(err), lambda q=q: Q(q)["true_error_of_limit_rel"])
+        add("32", f"{q} U", U, sig2(U), lambda q=q: Q(q)["U_rel"])
+        tol = 0.0005 if ratio < 0.1 else 0.005
+        add("32", f"{q} ratio", ratio, tol, lambda q=q: Q(q)["effectivity"])
+    xq = lambda q: next(r for r in _j("crosscheck_result.json")["rows_posthoc_only"]
+                        if r["problem"] == "l_shape_exact" and r["qoi"] == q)
+    add("32", "exact benchmark P2 cross-checked", 4, 0, lambda: sum(
+        r["status"] == "cross_checked" for r in _j("crosscheck_result.json")["rows_posthoc_only"]
+        if r["problem"] == "l_shape_exact"))
+    rm = lambda: lr()["remedy"]
+    add("32", "remedy g", 3.7, 0, lambda: rm()["g"])
+    add("32", "remedy energy order", 3.34, h2, lambda: rm()["qois"]["strain_energy"]["fit_order"])
+    add("32", "remedy energy error graded", 1.5e-7, 0.05e-7,
+        lambda: rm()["qois"]["strain_energy"]["graded_true_error_finest_rel"])
+    add("32", "remedy energy error uniform", 3.7e-4, 0.05e-4,
+        lambda: rm()["qois"]["strain_energy"]["uniform_true_error_finest_rel"])
+    add("32", "remedy energy gain", 2400, 50, lambda: rm()["qois"]["strain_energy"]
+        ["uniform_true_error_finest_rel"] / rm()["qois"]["strain_energy"]["graded_true_error_finest_rel"])
+    add("32", "remedy graded dof", 99330, 0, lambda: rm()["qois"]["strain_energy"]["graded_finest_dof"])
+    add("32", "remedy uniform dof", 395266, 0, lambda: rm()["qois"]["strain_energy"]["uniform_finest_dof"])
+    add("32", "remedy corner gk order", 3.93, h2,
+        lambda: rm()["qois"]["corner_gk_avg_von_mises"]["fit_order"])
+    add("32", "remedy corner gk error graded", 2.6e-7, 0.05e-7,
+        lambda: rm()["qois"]["corner_gk_avg_von_mises"]["graded_true_error_finest_rel"])
+    add("32", "remedy corner gk error uniform", 3.4e-4, 0.05e-4,
+        lambda: rm()["qois"]["corner_gk_avg_von_mises"]["uniform_true_error_finest_rel"])
+    add("32", "remedy disc error graded", 2.9e-4, 0.05e-4,
+        lambda: rm()["qois"]["corner_disc_avg_von_mises"]["graded_true_error_finest_rel"])
+    add("32", "remedy disc error uniform", 2.7e-4, 0.05e-4,
+        lambda: rm()["qois"]["corner_disc_avg_von_mises"]["uniform_true_error_finest_rel"])
+    rr = lambda: _j("remedy_result.json")
+    add("32", "remedy predictions met", 4, 0, lambda: sum(rr()["predictions_met"].values()))
+    for geo, vals in (("l_shape", ((1.11, 5.2e-4), (1.91, 1.2e-4), (2.92, 1.0e-4))),
+                      ("edge_crack", ((0.98, 2.4e-3), (2.93, 3.1e-5), (2.77, 4.0e-4)))):
+        for v, (p_, U) in zip(("uniform", "strongest", "all"), vals):
+            add("32", f"remedy {geo} {v} order", p_, h2,
+                lambda geo=geo, v=v: rr()[geo]["strain_energy"][v]["fit_order"])
+            add("32", f"remedy {geo} {v} U", U, sig2(U),
+                lambda geo=geo, v=v: rr()[geo]["strain_energy"][v]["uncertainty_fine"])
+        add("32", f"remedy {geo} P2 cross-checked", 1, 0, lambda geo=geo: int(
+            rr()[geo]["strain_energy"]["p2_crosscheck"]["status"] == "cross_checked"))
+    add("32", "crack strongest U reduction", 79, 0.5, lambda: rr()["edge_crack"]["strain_energy"]
+        ["uniform"]["uncertainty_fine"] / rr()["edge_crack"]["strain_energy"]["strongest"]["uncertainty_fine"])
+    from omar_pfem.verification_agent.remedy import POLYGONS, plan_problem
+    add("32", "plan g L-shape", 3.7, 0, lambda: plan_problem(POLYGONS["l_shape"], 0.3)["g"])
+    add("32", "plan g crack", 4.1, 0, lambda: plan_problem(POLYGONS["edge_crack"], 0.3)["g"])
+    add("32", "p over lam", 3.673, h3, lambda: plan_problem(POLYGONS["l_shape"], 0.3)["g_min"])
+    cs = lambda: _j("calibration_result.json")["summary"]
+    add("32", "calibration framework certified", 12, 0, lambda: cs()["framework_certified"])
+    add("32", "calibration framework covered", 12, 0, lambda: cs()["framework_covered"])
+    add("32", "calibration framework median ratio", 0.07, h2, lambda: cs()["framework_effectivity_median"])
+    add("32", "calibration framework max ratio", 0.70, h2, lambda: cs()["framework_effectivity_max"])
+    add("32", "calibration GCI certified", 11, 0, lambda: cs()["gci_certified"])
+    add("32", "calibration GCI covered", 9, 0, lambda: cs()["gci_covered"])
+    add("32", "calibration GCI max ratio", 17.1, h1, lambda: cs()["gci_effectivity_max"])
+    cr = lambda g, q: next(r for r in _j("calibration_result.json")["rows"]
+                           if r["problem"] == g and r["qoi"] == q and r["family"] == "uniform")
+    add("32", "GCI cylinder disc ratio", 2.6, h1, lambda: cr("thick_cylinder_3d", "disc_avg_hoop")["gci"]["effectivity"])
+    add("32", "framework median width factor", 15, 0.5,
+        lambda: 1 / cs()["framework_effectivity_median"])
+    bj = lambda rg: next(r for r in _j("b3_mesh_jacobian.json")["rows"] if r["r_grading"] == rg)
+    add("32", "B3 1.75 negative points", 480, 0, lambda: bj(1.75)["negative_points"])
+    add("32", "B3 1.75 elements", 80, 0, lambda: bj(1.75)["elements_with_negative_points"])
+    add("32", "B3 2.0 negative points", 840, 0, lambda: bj(2.0)["negative_points"])
+    add("32", "B3 2.0 elements", 120, 0, lambda: bj(2.0)["elements_with_negative_points"])
+    add("32", "B3 1.5 negative points", 0, 0, lambda: bj(1.5)["negative_points"])
 
 
 if __name__ == "__main__":

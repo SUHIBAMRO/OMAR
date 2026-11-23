@@ -847,3 +847,47 @@ def test_report_text_forms():
     assert "1.1 × 10⁻⁵" in forms(1.1e-5, 0.05e-5)
     assert found("P1 is 0.55% below the limit", -0.55, 0.005) == "0.55"
     assert found("value 10.55 here", 0.55, 0.005) is None   # no match inside a longer number
+
+
+def test_remedy_corner_analysis_and_plan():
+    """Round K: the corner analysis finds every rate-limiting corner of the L-shape and the
+    crack from the polygon alone, and the plan grades with g > p / lam."""
+    from omar_pfem.verification_agent.remedy import (POLYGONS, corner_analysis, graded_coords,
+                                                     plan_grading, plan_problem)
+    import numpy as np
+    assert plan_grading(0.5444837367824591, 2)["g"] == 3.7
+    assert plan_grading(0.5, 2)["g"] == 4.1                 # strictly above p / lam = 4
+    sing = [c for c in corner_analysis(POLYGONS["l_shape"], 0.3) if c["rate_limiting"]]
+    assert sorted((c["x"], c["y"]) for c in sing) == [(0, 0), (1, 1), (2, 0)]
+    re = next(c for c in sing if (c["x"], c["y"]) == (1, 1))
+    assert abs(re["angle_deg"] - 270) < 1e-9 and abs(re["rate_limiting"][0] - 0.5445) < 1e-4
+    tip = next(c for c in corner_analysis(POLYGONS["edge_crack"], 0.3) if c["x"] == 1)
+    assert tip["angle_deg"] == 360 and tip["rate_limiting"] == [0.5, 1.5]
+    p = plan_problem(POLYGONS["l_shape"], 0.3)
+    assert p["x_targets"] == [0, 1, 2] and p["y_targets"] == [0, 1]
+    x = graded_coords(8, 3.0, {0, 1, 2})
+    assert len(x) == 17 and np.all(np.diff(x) > 0) and x[8] == 1.0
+
+
+def test_exact_corner_solution():
+    """Round K: the exact solution of the singular benchmark is traction-free on the corner
+    edges and its energy agrees computed two independent ways."""
+    import json
+    import os
+    from omar_pfem.verification_agent import lshape_exact as X
+    c = X.self_checks()
+    assert c["traction_on_free_edges_rel"] < 1e-12
+    assert max(c["smallest_singular_value"]) < 1e-12
+    ex = json.load(open(os.path.join(X.HERE, "lshape_exact_values.json")))
+    assert ex["energy_two_ways_rel"] < 1e-12
+
+
+def test_calibration_framework_covers_true_error():
+    """Round K: on every quantity with an exact value, the framework's certified interval
+    contains it (stored result of calibration.py)."""
+    import json
+    import os
+    from omar_pfem.verification_agent.calibration import OUT
+    s = json.load(open(OUT))["summary"]
+    assert s["framework_covered"] == s["framework_certified"] >= 12
+    assert s["gci_covered"] < s["gci_certified"]            # GCI made false certifications

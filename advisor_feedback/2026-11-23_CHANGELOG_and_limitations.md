@@ -257,3 +257,51 @@ email. Post hoc changes are marked **[post hoc]**; no criterion, tolerance or or
 6. Not yet done (needs the memory the spline run uses): whether the B3 radial-grading inversions
    (>= 1.75) are also a load-step effect.
 5. The 2D code checks use the unit square, not the singular geometries.
+
+---
+
+# Round K (23 November 2026): certification tested on a singular exact solution; the first remedy
+
+Report: Section 32 of `advisor_feedback/2026-11-23_Verification_Framework_Technical_Report_v7.pdf`
+(79 pages, Figures 32.1-32.2). No billed run, no cluster submission, no email. Pre-registered work:
+commits 338d7f1 (exact benchmark + remedy) and be9e643 (remedy on L-shape and crack).
+
+## Changes
+- **Singular benchmark with an exact solution** (`lshape_exact.py`, `lshape_exact_preregister.py`,
+  `extra_adapters.py`): L-shape loaded by the exact Williams solution u1 + 0.5 u2 (lam 0.5445, 0.9085) on
+  the outer edges; exact energy two ways to 1.7e-14. Default rules 1/4, post hoc extension 4/4; **exact
+  value inside the certified interval for 6/6**; expectations 9/10; P2 cross-checks 4/6.
+  Amendment before scoring: interpolated query points on graded meshes (uniform values to round-off).
+- **First remedy** (`remedy.py`): g > p/lam (3.7). Energy order 3.34; true energy error 1.5e-7 at
+  99,330 unknowns against 3.7e-4 uniform at 395,266: ~2,400x smaller with a quarter of the unknowns.
+- **Automatic corner analysis** (`remedy.corner_analysis`, `remedy_preregister.py`): finds every
+  rate-limiting corner of the L-shape and the crack from polygon + edge conditions. Remedy on the real
+  problems: 4/10 pre-registered predictions; the exponent-only order predictions missed (weak corners
+  not yet dominant up to n = 64); U 4-80x smaller; energy cross-checked by P2 on graded meshes.
+  Amendments before scoring: size-scaled inverse-map tolerance; absolute facet-selection tolerance
+  (the modules' relative 1e-5 selected short facets across thin rows: top load 2.0 instead of 1.0).
+- **Calibration** (`calibration.py`): every quantity with an exact value. Framework 12/12 covered
+  (median ratio true error/U 0.07, max 0.70); conventional GCI 9/11 (false certifications on the two
+  sharp-disc averages, ratios 2.6 and 17.1).
+- **B3 graded inversion is geometric** (`b3_mesh_jacobian.py`): negative undeformed det J for
+  r_grading >= 1.75 (480 / 840 points). Not a load-step effect; manuscript sentence correct as written.
+- **Second code for the block** (`independent_block3d.py`, scikit-fem Hex27, Newton from the energy):
+  running in the background (k = 1, 2, 3 done); tangent checked against the formula (9e-13) and finite
+  differences.
+- Report text check now covers v7: 1,046 claims, 0 missing. Claims 1,046/1,046; tests 74.
+
+## Reproduce
+    cd Practical_Examples
+    python -m omar_pfem.verification_agent.lshape_exact exact
+    python -m omar_pfem.verification_agent.lshape_exact_preregister --compare
+    python -m omar_pfem.verification_agent.remedy_preregister --compare
+    python -m omar_pfem.verification_agent.calibration
+    python -m omar_pfem.verification_agent.b3_mesh_jacobian
+    python -m omar_pfem.verification_agent.verify_report
+    python -m omar_pfem.verification_agent.report_text_check
+
+## Limitations added or changed in round K
+1. One singular problem with an exact solution (coverage 6/6) - not a statistical guarantee.
+2. Sequences converged to round-off give band evidence only: no interval, cannot be certified with a rate.
+3. The remedy plans from exponents only; corner intensities must decide which corners to grade.
+4. Long background runs stop whenever the session machine restarts (they resume from the last level).
