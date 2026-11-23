@@ -10,6 +10,10 @@
 #   bsub -n 8 -R "rusage[mem=32G]" -q <cpu-queue> -W 24:00 \
 #        -o iga_b3.%J.out -e iga_b3.%J.err < iga_b3_job.sh
 # Results are appended to verification_agent/iga_b3_result.json (keys L5:p2:fbar_p1, L5:p2).
+# BEFORE submitting (on the login node, once): bring the clone up to date with
+#   cd ~/OMAR && git fetch origin claude/claude-code-question-d307wp && \
+#   git checkout claude/claude-code-question-d307wp && git pull --ff-only
+# Full instructions: advisor_feedback/2026-11-23_cluster_jobs.md
 set -e
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate omar

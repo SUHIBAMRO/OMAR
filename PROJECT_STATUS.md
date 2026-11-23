@@ -26124,3 +26124,20 @@ Report v8: advisor_feedback/2026-11-23_Verification_Framework_Technical_Report_v
   The machine restarts whenever the session idles, so L4 (~2-3 h) may never finish locally; the
   prepared Practical_Examples/iga_b3_cyl_job.sh is the reliable route (needs Omar's manual submission).
 NEXT IDEA (not started): share-weighted grading (trade each corner's grading against its share).
+
+## 2026-11-23 — cluster jobs handed over + ablation prepared (awaiting Omar's approval)
+
+- Jobs ready for MANUAL submission (no agent touches the HPC); guide with exact `bsub`
+  commands and how to return results: `advisor_feedback/2026-11-23_cluster_jobs.md`.
+  1. `iga_b3_cyl_job.sh` (priority 1; 5-8 h, 16 GB): spline cyl rr/tt averages; disp L1-L3
+     already in `iga_b3_cyl_result.json`, skipped. (Local L4 run keeps dying on idle restarts.)
+  2. `block3d_followup_job.sh` (0.3-2 h, 48 GB): k = 12, pre-registered.
+  3. `iga_b3_job.sh` (optional, ~13 h, 32 GB): spline level 5.
+  Each script now has a "git pull the branch first" header.
+- Billed ablation PREPARED, NOT RUN: new cards `problems/{l_shape,edge_crack,
+  thick_cylinder_3d,clamped_block_3d}.txt`; `ablation.PROBLEMS` gains cook, plate, lamina,
+  lshape, crack, cylinder, block. Estimate 7 x 3 runs x $0.55-1.09 = $12-23. Rule-only
+  baseline on them (free): misses cook strain_energy, cylinder peak_hoop, block
+  root_gk_avg_von_mises; false alarm plate hole_peak_sigma_xx. Tests 76/76.
+- WAITING FOR OMAR: (a) which jobs he submits; (b) billed ablation yes/no;
+  (c) put rounds K/L into `paper/main.tex`? (d) email draft unchanged unless he asks.

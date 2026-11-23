@@ -10,6 +10,10 @@
 # Result: verification_agent/clamped_block_3d_followup.json (the pre-registered ladder
 # block3d_ladder.json is not changed); then, on any machine:
 #   python -m omar_pfem.verification_agent.block3d_followup --score
+# BEFORE submitting (on the login node, once): bring the clone up to date with
+#   cd ~/OMAR && git fetch origin claude/claude-code-question-d307wp && \
+#   git checkout claude/claude-code-question-d307wp && git pull --ff-only
+# Full instructions: advisor_feedback/2026-11-23_cluster_jobs.md
 set -e
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate omar

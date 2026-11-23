@@ -1,0 +1,8 @@
+A 3D quarter of a thick-walled cylinder (inner radius 1, outer radius 2, height 0.5) of
+compressible neo-Hookean material with Poisson ratio 0.45 is expanded by a prescribed
+radial displacement of its inner surface; the outer surface is free, the two cut planes
+are symmetry planes and the end faces are on rollers. The reference is computed with
+20-node hexahedra (reduced integration) on uniformly refined meshes with nodes on the
+exact curved surfaces, plus meshes of the same size graded radially toward the inner surface.
+Question: which displacement, reaction, energy and stress quantities can serve as
+trustworthy reference values for validating surrogate models?

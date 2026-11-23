@@ -1,0 +1,8 @@
+A 2D L-shaped panel (the union of three unit squares: [0,1]x[0,1], [1,2]x[0,1] and
+[0,1]x[1,2]) of linear elastic material, plane strain, is clamped along its bottom edge
+and loaded by a uniform horizontal traction on the top edge of its vertical arm; all other
+edges are traction-free, including the two edges that meet at the re-entrant corner. The
+reference is computed with biquadratic quadrilaterals (Q9) on uniformly refined meshes,
+plus meshes of the same size graded toward the re-entrant corner.
+Question: which displacement, energy and stress quantities can serve as trustworthy
+reference values for validating surrogate models?

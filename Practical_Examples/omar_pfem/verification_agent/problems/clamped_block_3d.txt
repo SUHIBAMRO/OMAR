@@ -1,0 +1,7 @@
+A 3D rectangular block (2 x 1 x 0.5) of compressible neo-Hookean material is clamped on
+one end face and loaded by a uniform downward traction on the opposite end face; all other
+faces are free, so the clamped face meets free faces along straight edges. The reference
+is computed with 20-node hexahedra (reduced integration) on uniformly refined meshes, plus
+meshes of the same size graded toward the clamped face.
+Question: which displacement, energy and stress quantities can serve as trustworthy
+reference values for validating surrogate models?

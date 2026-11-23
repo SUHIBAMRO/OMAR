@@ -45,7 +45,15 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROBLEMS = {"b1": ("problems/b1_square.txt", "unit_square"),
             "b2": ("problems/b2_ring.txt", "quarter_ring"),
-            "b3": ("problems/b3_groove.txt", "bushing_groove")}
+            "b3": ("problems/b3_groove.txt", "bushing_groove"),
+            # added 2026-11-23 (round L), prepared for an approved billed run
+            "cook": ("problems/cook_membrane.txt", "cook_membrane"),
+            "plate": ("problems/plate_hole.txt", "plate_hole"),
+            "lamina": ("problems/open_hole_lamina.txt", "open_hole_lamina"),
+            "lshape": ("problems/l_shape.txt", "l_shape"),
+            "crack": ("problems/edge_crack.txt", "edge_crack"),
+            "cylinder": ("problems/thick_cylinder_3d.txt", "thick_cylinder_3d"),
+            "block": ("problems/clamped_block_3d.txt", "clamped_block_3d")}
 
 
 def rule_only(geometry):

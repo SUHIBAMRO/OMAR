@@ -1,0 +1,8 @@
+A 2D square panel with a straight edge crack running from the middle of its left edge to
+the centre (the crack faces are traction-free), of linear elastic material, plane strain,
+is clamped along its bottom edge and pulled by a uniform vertical traction on its top edge.
+The reference is computed with biquadratic quadrilaterals (Q9) on uniformly refined meshes
+with separate nodes on the two crack faces, plus meshes of the same size graded toward the
+crack tip.
+Question: which displacement, energy and stress quantities can serve as trustworthy
+reference values for validating surrogate models?
