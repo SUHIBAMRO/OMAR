@@ -12,6 +12,7 @@ This guard
   2. states for each whether any verdict check consumed it (the strategy checks are the
      only consumers of strategy rows),
   3. records the remedy and, where the re-solve exists (graded_q20_study.json), its result.
+guarded() implements that rule for the 3D solvers behind VERIF_POSTHOC_DETF=1.
 The rule it proposes, for future runs (not applied to the frozen pre-registered scoring):
 a solve with min det F <= 0 is re-solved with four times the increments; if it stays
 inverted, it is excluded and every check that needs it is INCONCLUSIVE.
@@ -26,6 +27,23 @@ OUT = os.path.join(HERE, "detf_guard.json")
 PROBLEMS = ("unit_square", "quarter_ring", "bushing_groove", "cook_membrane", "plate_hole",
             "open_hole_lamina", "l_shape", "edge_crack", "thick_cylinder_3d", "clamped_block_3d")
 STRATEGY_CHECKS = ("strategy_robustness", "anchored_robustness")
+
+
+def guarded(solve_fn, *args, nsteps=10, **kw):
+    """POST HOC switch VERIF_POSTHOC_DETF=1 (off by default, so every stored and
+    pre-registered result is unchanged): a converged solve with min det F <= 0 is
+    re-solved with four times the increments; if it is still inverted, the row is marked
+    inadmissible ("detf_inadmissible": True) so that no check may use it. The attempt is
+    recorded in row["detf_guard"]."""
+    row = solve_fn(*args, nsteps=nsteps, **kw)
+    if os.environ.get("VERIF_POSTHOC_DETF") != "1" or not (row["min_detF"] <= 0):
+        return row
+    first = row["min_detF"]
+    row = solve_fn(*args, nsteps=4 * nsteps, **kw)
+    row["detf_guard"] = {"first_min_detF": first, "first_nsteps": nsteps,
+                         "resolved_nsteps": 4 * nsteps, "min_detF": row["min_detF"]}
+    row["detf_inadmissible"] = not (row["min_detF"] > 0)
+    return row
 
 
 def _det(r):

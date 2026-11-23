@@ -53,7 +53,7 @@ def corner_exponent():
     return smallest_exponent(np.pi / 2, "clamped", "free", NU, "strain")
 
 
-def mesh(k, g=1.0):
+def mesh(k, g=1.0, element="Q20"):
     from torchfem.elements import linear_to_quadratic
     nx, ny, nz = 4 * k, 2 * k, k
     sx = np.linspace(0, 1, nx + 1)
@@ -65,6 +65,8 @@ def mesh(k, g=1.0):
     el = [[idx[i, j, m], idx[i + 1, j, m], idx[i + 1, j + 1, m], idx[i, j + 1, m],
            idx[i, j, m + 1], idx[i + 1, j, m + 1], idx[i + 1, j + 1, m + 1], idx[i, j + 1, m + 1]]
           for i in range(nx) for j in range(ny) for m in range(nz)]
+    if element == "Q8":                   # round J: linear hexahedra, independent discretization
+        return nodes, np.array(el)
     n20, e20 = linear_to_quadratic(torch.tensor(nodes), torch.tensor(np.array(el)))
     return n20.numpy(), e20.numpy()
 
@@ -74,6 +76,15 @@ def end_face_forces(X, el):
     8-node face, corner nodes -A/12, midside nodes A/3 (serendipity, uniform load)."""
     from torchfem.elements import Hexa2
     f = np.zeros((len(X), 3))
+    if el.shape[1] == 8:                  # Q8: bilinear face, each corner A/4
+        for e in el:
+            nn = e[[1, 2, 6, 5]]
+            if not np.allclose(X[nn, 0], LX):
+                continue
+            p = X[nn]
+            A = np.linalg.norm(p[1] - p[0]) * np.linalg.norm(p[3] - p[0])
+            f[nn, 2] += -TAU * A / 4.0
+        return f
     face = Hexa2.facets.numpy()[3]        # local nodes of the face xi = +1: [1,2,6,5,9,18,13,17]
     for e in el:
         nn = e[face]
@@ -86,14 +97,20 @@ def end_face_forces(X, el):
     return f
 
 
-def solve(k, g=1.0, nsteps=10, quadrature="reduced", tol=1e-10):
+def solve(k, g=1.0, nsteps=10, quadrature="reduced", tol=1e-10, element="Q20"):
+    """Guarded entry point: identical to _solve unless VERIF_POSTHOC_DETF=1 (detf_guard.py)."""
+    from omar_pfem.verification_agent.detf_guard import guarded
+    return guarded(_solve, k, g, nsteps=nsteps, quadrature=quadrature, tol=tol, element=element)
+
+
+def _solve(k, g=1.0, nsteps=10, quadrature="reduced", tol=1e-10, element="Q20"):
     if quadrature == "full":
         from omar_pfem.verification_agent.q20_full import SolidFull as Solid
     else:
         from torchfem import Solid
     from torchfem.materials import Hyperelastic3D
     from omar_pfem.torchfem_comparison import cauchy_from_torchfem_flux, neo_hookean_psi_3d
-    X, el = mesh(k, g)
+    X, el = mesh(k, g, element)
     model = Solid(torch.tensor(X), torch.tensor(el),
                   Hyperelastic3D(psi=neo_hookean_psi_3d, params=torch.tensor([MU, LAM])))
     n = len(X)
@@ -127,7 +144,7 @@ def solve(k, g=1.0, nsteps=10, quadrature="reduced", tol=1e-10):
     j = int(np.argmin(np.linalg.norm(X - TIP, axis=1)))
     assert np.linalg.norm(X[j] - TIP) < 1e-12
     ip = np.unravel_index(np.argmax(vm), vm.shape)
-    return {"k": k, "grading": g, "quadrature": quadrature, "h": 0.5 / k,
+    return {"k": k, "grading": g, "quadrature": quadrature, "element": element, "h": 0.5 / k,
             "n_elem": int(len(el)), "n_dof": int(3 * n), "seconds": sec,
             "min_detF": float(np.nanmin(J)),
             "min_detF_location": pos.reshape(-1, 3)[int(np.nanargmin(J.ravel()))].tolist(),
@@ -135,6 +152,27 @@ def solve(k, g=1.0, nsteps=10, quadrature="reduced", tol=1e-10):
             "mid_gk_avg_sxx": float((sig[..., 0, 0] * km).sum() / km.sum()),
             "root_gk_avg_von_mises": float((vm * kr).sum() / kr.sum()),
             "peak_von_mises": float(vm.max()), "peak_location": pos[ip].tolist()}
+
+
+Q8_CACHE = os.path.join(HERE, "block3d_q8_ladder.json")
+Q8_LEVELS = (2, 3, 4, 6, 8, 12, 16)
+
+
+def run_q8(levels=Q8_LEVELS):
+    """Round J: independent discretization for the cross-check (8-node hexahedra, torch-fem
+    Hexa1 with its default 2x2x2 rule); stored apart from the pre-registered ladder."""
+    rows = json.load(open(Q8_CACHE)) if os.path.exists(Q8_CACHE) else []
+    done = {r["k"] for r in rows}
+    for k in levels:
+        if k in done:
+            continue
+        row = solve(k, element="Q8")
+        rows.append(row)
+        rows.sort(key=lambda r: r["k"])
+        json.dump(rows, open(Q8_CACHE, "w"), indent=1)
+        print(f"Q8 k={k} dof={row['n_dof']} ({row['seconds']:.0f} s) w_tip={row['w_tip']:.6g} "
+              f"E={row['strain_energy']:.6g} min det F={row['min_detF']:.4f}", flush=True)
+    return rows
 
 
 def run(levels, g=1.0):
@@ -154,6 +192,8 @@ def run(levels, g=1.0):
 
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
+    if argv and argv[0] == "q8":
+        run_q8()
     if argv and argv[0] == "solve":
         run(LEVELS)
         for g in GRADINGS:

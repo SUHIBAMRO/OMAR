@@ -811,3 +811,28 @@ def test_followup_respects_budget():
     from omar_pfem.verification_agent.followup import plan_next_level
     p = plan_next_level("l_shape", budget_s=1e-3, budget_gb=1e-3)
     assert p["within_budget"] is False and p["n_next"] >= 256
+
+
+def test_detf_guard_resolves_and_marks():
+    """Round J (post hoc switch VERIF_POSTHOC_DETF): off by default; when on, an
+    inverted converged solve is re-solved with 4x increments, and still-inverted rows
+    are marked inadmissible."""
+    import os
+    from omar_pfem.verification_agent.detf_guard import guarded
+    calls = []
+
+    def fake(k, nsteps=10):
+        calls.append(nsteps)
+        return {"min_detF": -1.0 if nsteps < 40 else 1.0}
+
+    os.environ.pop("VERIF_POSTHOC_DETF", None)
+    assert guarded(fake, 4)["min_detF"] == -1.0 and calls == [10]
+    os.environ["VERIF_POSTHOC_DETF"] = "1"
+    try:
+        r = guarded(fake, 4)
+        assert calls == [10, 10, 40] and r["detf_inadmissible"] is False
+        assert r["detf_guard"]["first_min_detF"] == -1.0
+        r2 = guarded(lambda k, nsteps=10: {"min_detF": -0.5}, 4)
+        assert r2["detf_inadmissible"] is True
+    finally:
+        os.environ.pop("VERIF_POSTHOC_DETF", None)

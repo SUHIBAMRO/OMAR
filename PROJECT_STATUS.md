@@ -26089,4 +26089,8 @@ Report v6: advisor_feedback/2026-11-23_Verification_Framework_Technical_Report_v
 - RUNNING locally (setsid, log scratchpad/cyl_iga.log; restarted 13:58 UTC after a worker restart,
   resumes from cache): iga_b3_cyl_local.py, L1-L2 disp done; self check-in 20:38 UTC; when it
   ends: rerun crosscheck, three_way, normalisation_study, verify_report; update report 31.7; PDF v6.
+- Second pass: block strategies k = 6 (root spread 1.82% < 2%); Q8 independent ladder cross-checks
+  w_tip + mid avg -> final 49/83; cross-check of posthoc-only certifications (separate list);
+  det F guard switch VERIF_POSTHOC_DETF; claims 957/957, tests 70.
+- PENDING after the spline run: B3 radial grading >= 1.75 with more load increments (load-step test).
 NEEDS OMAR: decide on manual submission of block3d_followup_job.sh (and the earlier two jobs).

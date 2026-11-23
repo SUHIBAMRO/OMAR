@@ -1333,5 +1333,258 @@
    "status": "cross_checked",
    "final": "CERTIFIED"
   }
+ ],
+ "summary_posthoc_only": {
+  "cross_checked": 2,
+  "contradicted": 0,
+  "independent_unconverged": 0,
+  "conflicting_sources": 0,
+  "single_family": 14
+ },
+ "rows_posthoc_only": [
+  {
+   "problem": "plate_hole",
+   "qoi": "u_right_mid",
+   "limit": 1.1881923112167425e-05,
+   "U_rel": 1.9650914426509843e-06,
+   "scale": 1.1881910764499839e-05,
+   "independent_sources": [],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "single_family",
+   "final": "INCONCLUSIVE"
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "v_top_right",
+   "limit": -6.926503433711139e-07,
+   "U_rel": 1.825942339957901e-05,
+   "scale": 6.926466736766569e-07,
+   "independent_sources": [],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "single_family",
+   "final": "INCONCLUSIVE"
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "max_disp_mag",
+   "limit": 1.1881923112167425e-05,
+   "U_rel": 1.9650914426509843e-06,
+   "scale": 1.1881910764499839e-05,
+   "independent_sources": [],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "single_family",
+   "final": "INCONCLUSIVE"
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "strain_energy",
+   "limit": 11.00361438638063,
+   "U_rel": 1.8861197208095932e-06,
+   "scale": 11.003600566008357,
+   "independent_sources": [],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "single_family",
+   "final": "INCONCLUSIVE"
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "hole_gk_avg_sigma_xx",
+   "limit": 2639007.5700370367,
+   "U_rel": 1.4216457569363676e-06,
+   "scale": 2639004.5686533186,
+   "independent_sources": [],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "single_family",
+   "final": "INCONCLUSIVE"
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "strain_energy",
+   "limit": 0.008583887052298586,
+   "U_rel": 0.0005219254610269847,
+   "scale": 0.008580354655599465,
+   "independent_sources": [],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "single_family",
+   "final": "INCONCLUSIVE"
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "u_top_left",
+   "limit": 0.017464072033016406,
+   "U_rel": 0.0006752848834642081,
+   "scale": 0.01745473977895903,
+   "independent_sources": [],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "single_family",
+   "final": "INCONCLUSIVE"
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "corner_gk_avg_von_mises",
+   "limit": 5.216029545384181,
+   "U_rel": 0.0009080456924786541,
+   "scale": 5.212325665535667,
+   "independent_sources": [],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "single_family",
+   "final": "INCONCLUSIVE"
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "corner_disc_avg_von_mises",
+   "limit": 4.037593638532007,
+   "U_rel": 0.002419718126012061,
+   "scale": 4.040273090024942,
+   "independent_sources": [],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "single_family",
+   "final": "INCONCLUSIVE"
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "far_gk_avg_syy",
+   "limit": 0.8193816665392364,
+   "U_rel": 0.0006498423029913657,
+   "scale": 0.8198046667647935,
+   "independent_sources": [],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "single_family",
+   "final": "INCONCLUSIVE"
+  },
+  {
+   "problem": "edge_crack",
+   "qoi": "strain_energy",
+   "limit": 0.007551404793519872,
+   "U_rel": 0.0024297320424720727,
+   "scale": 0.007536882566380137,
+   "independent_sources": [],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "single_family",
+   "final": "INCONCLUSIVE"
+  },
+  {
+   "problem": "edge_crack",
+   "qoi": "u_cod_mouth",
+   "limit": 0.019148016984563657,
+   "U_rel": 0.002545327278862331,
+   "scale": 0.019109436268074195,
+   "independent_sources": [],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "single_family",
+   "final": "INCONCLUSIVE"
+  },
+  {
+   "problem": "edge_crack",
+   "qoi": "v_top_right",
+   "limit": -0.0019344300539409012,
+   "U_rel": 0.004742874982176789,
+   "scale": 0.0019271912419063096,
+   "independent_sources": [],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "single_family",
+   "final": "INCONCLUSIVE"
+  },
+  {
+   "problem": "edge_crack",
+   "qoi": "far_gk_avg_syy",
+   "limit": 1.1767816834477862,
+   "U_rel": 0.0016478656255744398,
+   "scale": 1.1752652924002145,
+   "independent_sources": [],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "single_family",
+   "final": "INCONCLUSIVE"
+  },
+  {
+   "problem": "clamped_block_3d",
+   "qoi": "w_tip",
+   "limit": -0.13127114368147444,
+   "U_rel": 0.0009585736649999986,
+   "scale": 0.13117835188613267,
+   "independent_sources": [
+    {
+     "source": "8-node hexahedra Q8 (independent discretization)",
+     "levels": 7,
+     "finest": -0.13082014502510603,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": -0.13130009213127636,
+      "fit_order": 1.7642173341079852,
+      "uncertainty_fine": 0.004586738959478555,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.76 (leave-one-out 1.76-1.77), U_fine=0.46% vs tol 1.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 0.00022068008467622042,
+     "U_ind_rel": 0.004586738959478555
+    }
+   ],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
+  },
+  {
+   "problem": "clamped_block_3d",
+   "qoi": "mid_gk_avg_sxx",
+   "limit": 7.85830821356174,
+   "U_rel": 5.831928785735903e-05,
+   "scale": 7.85867486341897,
+   "independent_sources": [
+    {
+     "source": "8-node hexahedra Q8 (independent discretization)",
+     "levels": 7,
+     "finest": 7.846028129381754,
+     "assessment": {
+      "evidence": "rate",
+      "fit_limit": 7.86016676065015,
+      "fit_order": 1.858132916337301,
+      "uncertainty_fine": 0.0023249292751453543,
+      "verdict": "PASS",
+      "reason": "5 levels monotone, fitted p=1.86 (leave-one-out 1.84-1.93), U_fine=0.23% vs tol 2.00%",
+      "n_levels": 5
+     },
+     "status": "cross_checked",
+     "gap_rel": 0.00023649624405022346,
+     "U_ind_rel": 0.0023249292751453543
+    }
+   ],
+   "v1": {
+    "status": "single_family"
+   },
+   "status": "cross_checked",
+   "final": "CERTIFIED"
+  }
  ]
 }

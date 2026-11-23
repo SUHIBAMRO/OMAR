@@ -1363,16 +1363,36 @@ def add_j_round(add, h1, h2, h3):
     add("31", "three-way quantities", 107, 0, lambda: tw()["scores"]["A"]["quantities"])
     add("31", "three-way verifiable", 83, 0, lambda: tw()["scores"]["A"]["verifiable"])
     add("31", "three-way must not certify", 17, 0, lambda: tw()["scores"]["A"]["must_not_certify"])
-    for k, v in (("A", 60), ("B", 56), ("Bp", 74), ("Bstar", 47)):
+    for k, v in (("A", 60), ("B", 56), ("Bp", 74), ("Bstar", 49)):
         add("31", f"three-way {k} certified of 83", v, 0,
             lambda k=k: tw()["scores"][k]["certified_correctly"])
         add("31", f"three-way {k} missed failures", 0, 0,
             lambda k=k: tw()["scores"][k]["missed_failures"])
-    for k, v in (("A", 54), ("Bp", 38), ("Bstar", 59)):
+    for k, v in (("A", 54), ("Bp", 38), ("Bstar", 58)):
         add("31", f"human proxy all {k} (ten problems)", v, 0, lambda k=k: tw()["human"][k]["total"])
     add("31", "diagnosis independent correct", 13, 0, lambda: tw()["diagnosis"]["correct_excluding_C1"])
     add("31", "diagnosis independent of", 13, 0, lambda: tw()["diagnosis"]["of_excluding_C1"])
     add("31", "diagnosis C1 by construction", 22, 0, lambda: tw()["diagnosis"]["C1_cases_by_construction"])
+    # 31.10 further checks on the block
+    k6 = lambda: _j("block3d_strategy_k6.json")["comparison"]["root_gk_avg_von_mises"]
+    add("31", "root avg k=6 spread %", 1.82, h2, lambda: 100 * k6()["k6_spread"])
+    add("31", "root avg k=4 spread %", 3.48, h2, lambda: 100 * k6()["k4_spread"])
+    add("31", "root avg k=6 dev from limit %", 0.95, h2, lambda: 100 * k6()["k6_max_dev_from_limit"])
+    add("31", "other quantities k=6 spread max %", 0.14, h2, lambda: 100 * max(
+        v["k6_spread"] for q, v in _j("block3d_strategy_k6.json")["comparison"].items()
+        if q != "root_gk_avg_von_mises"))
+    q8 = lambda: max(r["n_dof"] for r in _j("block3d_q8_ladder.json"))
+    add("31", "Q8 finest unknowns", 109395, 0, q8)
+    xp = lambda q: next(r for r in _j("crosscheck_result.json")["rows_posthoc_only"]
+                        if r["problem"] == "clamped_block_3d" and r["qoi"] == q)
+    for q, p_, u, gap in (("w_tip", 1.76, 0.46, 0.022), ("mid_gk_avg_sxx", 1.86, 0.23, 0.024)):
+        add("31", f"Q8 {q} order", p_, h2, lambda q=q: xp(q)["independent_sources"][0]["assessment"]["fit_order"])
+        add("31", f"Q8 {q} U %", u, h2, lambda q=q: 100 * xp(q)["independent_sources"][0]["U_ind_rel"])
+        add("31", f"Q8 {q} gap %", gap, h3, lambda q=q: 100 * xp(q)["independent_sources"][0]["gap_rel"])
+        add("31", f"Q8 {q} cross-checked", 1, 0, lambda q=q: int(xp(q)["status"] == "cross_checked"))
+    sp = lambda: _j("crosscheck_result.json")["summary_posthoc_only"]
+    add("31", "posthoc-only cross-checked", 2, 0, lambda: sp()["cross_checked"])
+    add("31", "posthoc-only single family", 14, 0, lambda: sp()["single_family"])
 
 
 if __name__ == "__main__":

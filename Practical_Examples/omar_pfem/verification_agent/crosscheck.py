@@ -42,7 +42,14 @@ Independent sources:
                              cylindrical zz average is identical to sigma_zz; rr and tt
                              from the local spline re-run (iga_b3_cyl_local.py ->
                              iga_b3_cyl_result.json, added 2026-11-23, round J)
-  clamped_block_3d           none (single_family; added 2026-11-23, round J)
+  clamped_block_3d           8-node hexahedra Q8, k = 2..16 (block3d.run_q8, round J;
+                             order window of a linear element 0.5-3). Its certifications
+                             exist only with the post hoc singular-order extension, so
+                             they are in rows_posthoc_only (below), not in the summary
+
+Round J (2026-11-23): quantities certified only WITH the post hoc singular-order
+extension (VERIF_POSTHOC_SINGULAR=1) are cross-checked too, in a separate list
+rows_posthoc_only with its own summary; the main summary keeps its old meaning.
 
     python -m omar_pfem.verification_agent.crosscheck
 """
@@ -59,6 +66,7 @@ PROBLEMS = ("unit_square", "quarter_ring", "bushing_groove", "cook_membrane", "p
             "open_hole_lamina", "l_shape", "edge_crack", "thick_cylinder_3d",
             "clamped_block_3d")
 QUAD_WINDOW = (0.5, 5)
+LIN_WINDOW = (0.5, 3)
 
 
 def _j(name):
@@ -93,6 +101,12 @@ def independent_series(geometry, qoi):
         if rows:
             out.append(("splines p = 3, exact geometry", [1.0 / r["m"] for r in rows],
                         [r[qoi] for r in rows]))
+    elif geometry == "clamped_block_3d":
+        rows = sorted(_j("block3d_q8_ladder.json"), key=lambda r: r["k"])
+        rows = [r for r in rows if qoi in r]
+        if rows:
+            out.append(("8-node hexahedra Q8 (independent discretization)",
+                        [r["h"] for r in rows], [r[qoi] for r in rows]))
     elif geometry == "thick_cylinder_3d":
         ex = _j("cylinder3d_exact.json")
         if qoi in ex and isinstance(ex[qoi], float):
@@ -170,13 +184,13 @@ def decide(limit, U_rel, independent_value, U_ind_abs, scale):
     return ("cross_checked" if gap <= U_rel + U_ind_abs / scale else "contradicted"), gap
 
 
-def assess_independent(hs, vals, ml, scale):
+def assess_independent(hs, vals, ml, scale, window=QUAD_WINDOW):
     """v2: run the agent's multilevel check on the independent sequence."""
     if len(vals) < 4:
         return {"evidence": "too_few_levels", "n_levels": len(vals)}
     g = gates.multilevel_convergence_gate(list(hs), list(vals), band_tol=ml["band_tol"],
                                           gci_tol=ml["gci_tol"], scale=scale,
-                                          order_window=QUAD_WINDOW)
+                                          order_window=window)
     return {k: g.get(k) for k in ("evidence", "fit_limit", "fit_order", "uncertainty_fine",
                                   "verdict", "reason", "n_levels")}
 
@@ -192,77 +206,94 @@ def agent_limit(R, qoi):
     return None
 
 
+def _row(geo, q, R, ad):
+    al = agent_limit(R, q)
+    if al is None:
+        return None
+    lim, U, ml = al
+    _, vals, scale = ad.series(q)
+    sc = scale if scale else abs(vals[-1])
+    row = {"problem": geo, "qoi": q, "limit": lim, "U_rel": U, "scale": sc,
+           "independent_sources": []}
+    series = independent_series(geo, q)
+    # v1: exactly the rule of 2026-11-22
+    ind = independent_v1(geo, q)
+    if ind is None or ind[0] is None:
+        row["v1"] = {"status": "single_family"}
+    else:
+        st, gap = decide(lim, U, ind[0], ind[1], sc)
+        row["v1"] = {"source": ind[2], "independent": ind[0], "U_ind_rel": ind[1] / sc,
+                     "gap_rel": gap, "status": st}
+    # v2: every source assessed; the quantity is cross_checked if a converged
+    # source agrees, contradicted if a converged source disagrees (and none agrees)
+    statuses = []
+    for src, hs, vs in series:
+        if hs == "exact":                  # an exact value: no uncertainty of its own
+            st, gap = decide(lim, U, vs, 0.0, sc)
+            row["independent_sources"].append(
+                {"source": src, "levels": 0, "finest": vs, "assessment":
+                 {"evidence": "exact"}, "status": st, "gap_rel": gap, "U_ind_rel": 0.0})
+            statuses.append(st)
+            continue
+        a = assess_independent(hs, vs, ml if ml else {"band_tol": 0.01, "gci_tol": 0.05},
+                               sc, LIN_WINDOW if "Q8" in src else QUAD_WINDOW)
+        ent = {"source": src, "levels": len(vs), "finest": vs[-1], "assessment": a}
+        if a.get("evidence") == "rate" and a.get("verdict") == "PASS":
+            st, gap = decide(lim, U, a["fit_limit"], a["uncertainty_fine"] * sc, sc)
+            ent.update(status=st, gap_rel=gap, U_ind_rel=a["uncertainty_fine"])
+        else:
+            ent.update(status="independent_unconverged",
+                       gap_finest_rel=abs(lim - vs[-1]) / sc)
+        row["independent_sources"].append(ent)
+        statuses.append(ent["status"])
+    if not series:
+        row["status"] = "single_family"
+    elif "cross_checked" in statuses:
+        row["status"] = ("cross_checked" if "contradicted" not in statuses
+                         else "conflicting_sources")
+    elif "contradicted" in statuses:
+        row["status"] = "contradicted"
+    else:
+        row["status"] = "independent_unconverged"
+    row["final"] = "CERTIFIED" if row["status"] == "cross_checked" else "INCONCLUSIVE"
+    return row
+
+
+STATUSES = ("cross_checked", "contradicted", "independent_unconverged", "conflicting_sources",
+            "single_family")
+
+
 def run():
     from omar_pfem.verification_agent.verify_report import rules
-    rows = []
+    rows, rows_ph = [], []
     for geo in PROBLEMS:
+        os.environ.pop("VERIF_POSTHOC_SINGULAR", None)
         R = rules.__wrapped__(geo)
-        ad = R["adapter"]
+        os.environ["VERIF_POSTHOC_SINGULAR"] = "1"
+        try:
+            Rp = rules.__wrapped__(geo)
+        finally:
+            os.environ.pop("VERIF_POSTHOC_SINGULAR", None)
         for q, comb in R["combine"].items():
-            if comb[0] != "PASS" or comb[1] != "rate":
-                continue
-            al = agent_limit(R, q)
-            if al is None:
-                continue
-            lim, U, ml = al
-            _, vals, scale = ad.series(q)
-            sc = scale if scale else abs(vals[-1])
-            row = {"problem": geo, "qoi": q, "limit": lim, "U_rel": U, "scale": sc,
-                   "independent_sources": []}
-            series = independent_series(geo, q)
-            # v1: exactly the rule of 2026-11-22
-            ind = independent_v1(geo, q)
-            if ind is None or ind[0] is None:
-                row["v1"] = {"status": "single_family"}
-            else:
-                st, gap = decide(lim, U, ind[0], ind[1], sc)
-                row["v1"] = {"source": ind[2], "independent": ind[0], "U_ind_rel": ind[1] / sc,
-                             "gap_rel": gap, "status": st}
-            # v2: every source assessed; the quantity is cross_checked if a converged
-            # source agrees, contradicted if a converged source disagrees (and none agrees)
-            statuses = []
-            for src, hs, vs in series:
-                if hs == "exact":                  # an exact value: no uncertainty of its own
-                    st, gap = decide(lim, U, vs, 0.0, sc)
-                    row["independent_sources"].append(
-                        {"source": src, "levels": 0, "finest": vs, "assessment":
-                         {"evidence": "exact"}, "status": st, "gap_rel": gap, "U_ind_rel": 0.0})
-                    statuses.append(st)
-                    continue
-                a = assess_independent(hs, vs, ml if ml else {"band_tol": 0.01, "gci_tol": 0.05},
-                                       sc)
-                ent = {"source": src, "levels": len(vs), "finest": vs[-1], "assessment": a}
-                if a.get("evidence") == "rate" and a.get("verdict") == "PASS":
-                    st, gap = decide(lim, U, a["fit_limit"], a["uncertainty_fine"] * sc, sc)
-                    ent.update(status=st, gap_rel=gap, U_ind_rel=a["uncertainty_fine"])
-                else:
-                    ent.update(status="independent_unconverged",
-                               gap_finest_rel=abs(lim - vs[-1]) / sc)
-                row["independent_sources"].append(ent)
-                statuses.append(ent["status"])
-            if not series:
-                row["status"] = "single_family"
-            elif "cross_checked" in statuses:
-                row["status"] = ("cross_checked" if "contradicted" not in statuses
-                                 else "conflicting_sources")
-            elif "contradicted" in statuses:
-                row["status"] = "contradicted"
-            else:
-                row["status"] = "independent_unconverged"
-            row["final"] = "CERTIFIED" if row["status"] == "cross_checked" else "INCONCLUSIVE"
-            rows.append(row)
-    summary = {s: sum(r["status"] == s for r in rows)
-               for s in ("cross_checked", "contradicted", "independent_unconverged",
-                         "conflicting_sources", "single_family")}
+            if comb[0] == "PASS" and comb[1] == "rate":
+                r = _row(geo, q, R, R["adapter"])
+                if r:
+                    rows.append(r)
+            elif Rp["combine"][q][0] == "PASS" and Rp["combine"][q][1] == "rate":
+                r = _row(geo, q, Rp, Rp["adapter"])
+                if r:
+                    rows_ph.append(r)
+    summary = {s: sum(r["status"] == s for r in rows) for s in STATUSES}
     summary_v1 = {s: sum(r["v1"]["status"] == s for r in rows)
                   for s in ("cross_checked", "contradicted", "single_family")}
     res = {"summary": summary, "summary_v1": summary_v1,
            "final": {s: sum(r["final"] == s for r in rows) for s in ("CERTIFIED",
                                                                        "INCONCLUSIVE")},
-           "rows": rows}
+           "rows": rows,
+           "summary_posthoc_only": {s: sum(r["status"] == s for r in rows_ph) for s in STATUSES},
+           "rows_posthoc_only": rows_ph}
     json.dump(res, open(OUT, "w"), indent=1)
     return res
-
 
 if __name__ == "__main__":
     import warnings
@@ -270,7 +301,8 @@ if __name__ == "__main__":
     res = run()
     print("v2", res["summary"], "final", res["final"])
     print("v1", res["summary_v1"])
-    for r in res["rows"]:
+    print("posthoc-only", res["summary_posthoc_only"])
+    for r in res["rows"] + res["rows_posthoc_only"]:
         srcs = "; ".join(f"{s['source']}: {s['status']} ({s['assessment'].get('evidence')})"
                          for s in r["independent_sources"]) or "-"
         print(f"{r['problem']:<17}{r['qoi']:<24}{r['status']:<24} v1 {r['v1']['status']:<14} {srcs}")

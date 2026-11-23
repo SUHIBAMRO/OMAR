@@ -193,6 +193,12 @@ def mesh(k, g=1.0):
 
 
 def solve(k, g=1.0, nsteps=10, quadrature="reduced", tol=1e-10):
+    """Guarded entry point: identical to _solve unless VERIF_POSTHOC_DETF=1 (detf_guard.py)."""
+    from omar_pfem.verification_agent.detf_guard import guarded
+    return guarded(_solve, k, g, nsteps=nsteps, quadrature=quadrature, tol=tol)
+
+
+def _solve(k, g=1.0, nsteps=10, quadrature="reduced", tol=1e-10):
     """quadrature: "reduced" (torch-fem default 2x2x2, the pre-registered setting) or
     "full" (3x3x3, q20_full.py; added 2026-11-23 for the graded-mesh study)."""
     if quadrature == "full":

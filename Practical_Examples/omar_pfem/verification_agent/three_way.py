@@ -111,7 +111,9 @@ def run():
     from omar_pfem.verification_agent import diagnose
     from omar_pfem.verification_agent.conventional import conventional
     from omar_pfem.verification_agent.verify_report import rules
-    xc = {(r["problem"], r["qoi"]): r for r in _j("crosscheck_result.json")["rows"]}
+    X = _j("crosscheck_result.json")
+    # round J: quantities certified only with the post hoc extension are cross-checked too
+    xc = {(r["problem"], r["qoi"]): r for r in X["rows"] + X.get("rows_posthoc_only", [])}
     rows, per_problem = [], {}
     for geo in PROBLEMS:
         os.environ.pop("VERIF_POSTHOC_SINGULAR", None)

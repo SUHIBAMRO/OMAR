@@ -205,6 +205,24 @@ email. Post hoc changes are marked **[post hoc]**; no criterion, tolerance or or
   final 47; missed failures 0 everywhere; diagnosis 13/13 on independent references (22 C1 apart).
 - Claims checks: Sections 25 and 30 now read snapshots `*_round_I.json`; 69 tests pass.
 
+### Round J, second pass (after reviewing Section 31; report Section 31.10)
+- **Block strategies at k = 6** (`block3d_strategy_k6.py`, stored apart): root average spread 1.82%
+  (k = 4: 3.48%), 0.95% from the family limit -> the k = 4 FAIL reflects coarse strategy meshes. The
+  pre-registered verdict stays FAIL; choosing the strategy level from the family's convergence is a
+  candidate rule, not adopted.
+- **Independent Q8 discretization for the block** (`block3d.run_q8`, `block3d_q8_ladder.json`, k = 2-16,
+  109,395 unknowns): tip deflection (Q8 order 1.76, U 0.46%, gap 0.022%) and mid-span average (1.86,
+  0.23%, 0.024%) cross-checked -> CERTIFIED. Same code, other element family.
+- **[post hoc] Cross-check scope:** quantities certified only with the singular-order extension are now
+  cross-checked in a separate list (`rows_posthoc_only`): 2 cross-checked, 14 without independent value
+  (L-shape, crack, plate). Main summary unchanged. Linear-element order window 0.5-3 (same outcome
+  with 0.5-5). Three-way final: 49 of 83 (was 47).
+- **[post hoc] det F guard as a switch** (`detf_guard.guarded`, VERIF_POSTHOC_DETF=1, off by default) in
+  the 3D solvers: re-solves with 4x increments (cylinder g = 2: -1.03 -> 1.004). The exclusion step
+  needs a change in the frozen `orchestrate.py`; not made. New test (70 tests).
+- Report wording: the mid-span "miss" is in the wording of my expectation; Sections 30.2/30.4 point to 31.
+- Claims 957/957.
+
 ## Reproduce
     cd Practical_Examples
     python -m omar_pfem.verification_agent.graded_q20_study
@@ -222,5 +240,7 @@ email. Post hoc changes are marked **[post hoc]**; no criterion, tolerance or or
 1. Inverted converged solves are detected, but the remedy is proposed, not in the frozen rules.
 2. 3D vertex singularities are not computed; the block energy needs the k = 12 cluster level.
 3. The 3D memory model is a lower bound from one level.
-4. The block has no independent value: its certifications are INCONCLUSIVE in the final status.
+4. The block's independent value is another element family of the same code (Q8), not a second code.
+6. Not yet done (needs the memory the spline run uses): whether the B3 radial-grading inversions
+   (>= 1.75) are also a load-step effect.
 5. The 2D code checks use the unit square, not the singular geometries.

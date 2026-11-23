@@ -7458,8 +7458,8 @@
  {
   "section": "31",
   "claim": "three-way Bstar certified of 83",
-  "printed": 47,
-  "recomputed": 47.0,
+  "printed": 49,
+  "recomputed": 49.0,
   "tolerance": 0,
   "ok": true
  },
@@ -7490,8 +7490,8 @@
  {
   "section": "31",
   "claim": "human proxy all Bstar (ten problems)",
-  "printed": 59,
-  "recomputed": 59.0,
+  "printed": 58,
+  "recomputed": 58.0,
   "tolerance": 0,
   "ok": true
  },
@@ -7516,6 +7516,126 @@
   "claim": "diagnosis C1 by construction",
   "printed": 22,
   "recomputed": 22.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "root avg k=6 spread %",
+  "printed": 1.82,
+  "recomputed": 1.8180815890962931,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "root avg k=4 spread %",
+  "printed": 3.48,
+  "recomputed": 3.477706639877686,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "root avg k=6 dev from limit %",
+  "printed": 0.95,
+  "recomputed": 0.9491510917393475,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "other quantities k=6 spread max %",
+  "printed": 0.14,
+  "recomputed": 0.14488213406813955,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "Q8 finest unknowns",
+  "printed": 109395,
+  "recomputed": 109395.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "Q8 w_tip order",
+  "printed": 1.76,
+  "recomputed": 1.7642173341079852,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "Q8 w_tip U %",
+  "printed": 0.46,
+  "recomputed": 0.45867389594785546,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "Q8 w_tip gap %",
+  "printed": 0.022,
+  "recomputed": 0.022068008467622042,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "Q8 w_tip cross-checked",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "Q8 mid_gk_avg_sxx order",
+  "printed": 1.86,
+  "recomputed": 1.858132916337301,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "Q8 mid_gk_avg_sxx U %",
+  "printed": 0.23,
+  "recomputed": 0.23249292751453543,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "Q8 mid_gk_avg_sxx gap %",
+  "printed": 0.024,
+  "recomputed": 0.023649624405022347,
+  "tolerance": 0.0005,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "Q8 mid_gk_avg_sxx cross-checked",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "posthoc-only cross-checked",
+  "printed": 2,
+  "recomputed": 2.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "31",
+  "claim": "posthoc-only single family",
+  "printed": 14,
+  "recomputed": 14.0,
   "tolerance": 0,
   "ok": true
  },
