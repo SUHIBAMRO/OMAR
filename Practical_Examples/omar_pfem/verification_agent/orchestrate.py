@@ -575,10 +575,56 @@ class Cylinder3DAdapter:
         return [r[qoi] for r in self.strategy_rows], None
 
 
+class Block3DAdapter:
+    """HELD-OUT 3D benchmark with singular edges (block3d.py); spec, description,
+    predictions and criteria committed before any loaded solve
+    (block3d_preregistration.json); rules unchanged."""
+    geometry = "clamped_block_3d"
+    description = (
+        "Clamped block in 3D: [0, 2] x [0, 1] x [0, 0.5]; face x = 0 clamped; face x = 2 loaded "
+        "by a uniform dead traction (0, 0, -1); other faces free. Compressible neo-Hookean, "
+        "E = 1000, nu = 0.3. The clamped face meets the free faces along four 90-degree "
+        "clamped/free edges (plane-strain exponent lam = 0.7112) and at four vertices (3D vertex "
+        "singularities, exponents not computed). 20-node hexahedra (torch-fem Hexa2, default "
+        "reduced rule); levels (n_x, n_y, n_z) = k (4, 2, 1), k = 1, 2, 3, 4, 6, 8 (h = 0.5/k); "
+        "strategies at k = 4: x-grading toward the clamp, exponent 1.5 and 2.0. QoIs: "
+        "strain_energy; w_tip = u_z at (2, 0.5, 0.5); mid_gk_avg_sxx = sigma_xx averaged with "
+        "exp(-(d/0.15)^2) about (1, 0.5, 0.5); root_gk_avg_von_mises = von Mises averaged with "
+        "exp(-(d/0.1)^2) about (0, 0.5, 0.5), on the clamped top edge; peak_von_mises = max von "
+        "Mises over all Gauss points.")
+    qois = ("strain_energy", "w_tip", "mid_gk_avg_sxx", "root_gk_avg_von_mises",
+            "peak_von_mises")
+
+    def __init__(self):
+        from omar_pfem.verification_agent.block3d import CACHE, STRATEGY_LEVEL
+        rows = json.load(open(CACHE)) if os.path.exists(CACHE) else []
+        self.rows = sorted((r for r in rows if r["grading"] == 1.0), key=lambda r: r["k"])
+        self.hs = [r["h"] for r in self.rows]
+        self.strategy_rows = sorted((r for r in rows if r["k"] == STRATEGY_LEVEL),
+                                    key=lambda r: r["grading"])
+
+    @property
+    def family(self):
+        return [{"n_elem": r["n_elem"], "min_detF": r.get("min_detF")} for r in self.rows]
+
+    def series(self, qoi):
+        return self.hs, [r[qoi] for r in self.rows], None
+
+    def singular_exponent(self):
+        from omar_pfem.verification_agent.block3d import corner_exponent
+        return corner_exponent()
+
+    def strategies(self, qoi):
+        if len(self.strategy_rows) < 2:
+            return None
+        return [r[qoi] for r in self.strategy_rows], None
+
+
 ADAPTERS = {"unit_square": B1Adapter, "quarter_ring": B2Adapter, "bushing_groove": B3Adapter,
             "cook_membrane": CookAdapter, "plate_hole": PlateHoleAdapter,
             "open_hole_lamina": LaminaAdapter, "l_shape": LShapeAdapter,
-            "edge_crack": CrackAdapter, "thick_cylinder_3d": Cylinder3DAdapter}
+            "edge_crack": CrackAdapter, "thick_cylinder_3d": Cylinder3DAdapter,
+            "clamped_block_3d": Block3DAdapter}
 ADAPTER_VOCAB = {
     "cook_membrane": (CookAdapter.description, CookAdapter.qois),
     "plate_hole": (PlateHoleAdapter.description, PlateHoleAdapter.qois),
@@ -586,6 +632,7 @@ ADAPTER_VOCAB = {
     "l_shape": (LShapeAdapter.description, LShapeAdapter.qois),
     "edge_crack": (CrackAdapter.description, CrackAdapter.qois),
     "thick_cylinder_3d": (Cylinder3DAdapter.description, Cylinder3DAdapter.qois),
+    "clamped_block_3d": (Block3DAdapter.description, Block3DAdapter.qois),
     "unit_square": (B1Adapter.description, B1Adapter.qois),
     "quarter_ring": (B2Adapter.description, B2Adapter.qois),
     "bushing_groove": (B3Adapter.description,

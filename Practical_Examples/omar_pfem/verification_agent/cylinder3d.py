@@ -192,8 +192,13 @@ def mesh(k, g=1.0):
     return n20, e20
 
 
-def solve(k, g=1.0, nsteps=10):
-    from torchfem import Solid
+def solve(k, g=1.0, nsteps=10, quadrature="reduced"):
+    """quadrature: "reduced" (torch-fem default 2x2x2, the pre-registered setting) or
+    "full" (3x3x3, q20_full.py; added 2026-11-23 for the graded-mesh study)."""
+    if quadrature == "full":
+        from omar_pfem.verification_agent.q20_full import SolidFull as Solid
+    else:
+        from torchfem import Solid
     from torchfem.materials import Hyperelastic3D
     from omar_pfem.torchfem_comparison import cauchy_from_torchfem_flux, neo_hookean_psi_3d
     X, el = mesh(k, g)
@@ -201,7 +206,7 @@ def solve(k, g=1.0, nsteps=10):
     inner = np.abs(r - A) < 1e-9
     model = Solid(torch.tensor(X), torch.tensor(el),
                   Hyperelastic3D(psi=neo_hookean_psi_3d, params=torch.tensor([MU, LAM])))
-    assert model.etype.__name__ == "Hexa2"
+    assert model.etype.__name__ == ("Hexa2" if quadrature == "reduced" else "Hexa2Full")
     n = len(X)
     con = torch.zeros(n, 3, dtype=torch.bool)
     dis = torch.zeros(n, 3)
@@ -240,7 +245,8 @@ def solve(k, g=1.0, nsteps=10):
     j = int(np.argmin(np.linalg.norm(X - np.array([B, 0.0, 0.0]), axis=1)))
     assert np.linalg.norm(X[j] - np.array([B, 0.0, 0.0])) < 1e-12
     disc = d < R_DISC
-    return {"k": k, "grading": g, "h": 1.0 / k, "n_elem": int(len(el)), "n_dof": int(3 * n),
+    return {"k": k, "grading": g, "h": 1.0 / k, "quadrature": quadrature,
+            "min_detF_location": pos.reshape(-1, 3)[int(np.argmin(J))].tolist(), "n_elem": int(len(el)), "n_dof": int(3 * n),
             "seconds": sec, "min_detF": float(J.min()),
             "strain_energy": float((psi * wq).sum()), "reaction_inner_radial": reac,
             "u_outer_radial": float(U[j, 0]),

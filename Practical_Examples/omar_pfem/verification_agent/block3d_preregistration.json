@@ -1,0 +1,126 @@
+{
+ "written": "2026-11-23T12:48:17.606093+00:00",
+ "purpose": "second held-out 3D problem: singular clamped/free edges with quadratic elements; first 3D test of the post hoc singular-order extension",
+ "spec": {
+  "name": "Clamped block (3D)",
+  "geometry": "clamped_block_3d",
+  "dim": 3,
+  "material": "neo_hookean",
+  "loading": "edge_traction",
+  "regularity": "clamped_free_corner",
+  "element": "Q20",
+  "reference": "mesh_refinement_family",
+  "qois": [
+   "strain_energy",
+   "w_tip",
+   "mid_gk_avg_sxx",
+   "root_gk_avg_von_mises",
+   "peak_von_mises"
+  ]
+ },
+ "adapter_description": "Clamped block in 3D: [0, 2] x [0, 1] x [0, 0.5]; face x = 0 clamped; face x = 2 loaded by a uniform dead traction (0, 0, -1); other faces free. Compressible neo-Hookean, E = 1000, nu = 0.3. The clamped face meets the free faces along four 90-degree clamped/free edges (plane-strain exponent lam = 0.7112) and at four vertices (3D vertex singularities, exponents not computed). 20-node hexahedra (torch-fem Hexa2, default reduced rule); levels (n_x, n_y, n_z) = k (4, 2, 1), k = 1, 2, 3, 4, 6, 8 (h = 0.5/k); strategies at k = 4: x-grading toward the clamp, exponent 1.5 and 2.0. QoIs: strain_energy; w_tip = u_z at (2, 0.5, 0.5); mid_gk_avg_sxx = sigma_xx averaged with exp(-(d/0.15)^2) about (1, 0.5, 0.5); root_gk_avg_von_mises = von Mises averaged with exp(-(d/0.1)^2) about (0, 0.5, 0.5), on the clamped top edge; peak_von_mises = max von Mises over all Gauss points.",
+ "frozen_files_sha256": {
+  "gates.py": "232cab27ff8eed05dc62e481e2e2858e79f82fc9811a7f9f108b6909c8b03f95",
+  "trees.py": "2470e173544f15cdd74ca05e7874e4e459f87bf6730d023991fe684617b88ed3",
+  "orchestrate.py": "ec4725e68890baf31aa3a055b3660e89dec2dbffc0bce34f855e55141c776a13",
+  "crosscheck.py": "5082b9cd2f8640a86d065232fb4cf60d6302c7bc5022522550ea1c6266e8416e"
+ },
+ "edge_exponent_lam": 0.7111729329715548,
+ "theory": {
+  "energy_order_if_edges_dominate": 1.4223458659431096,
+  "peak_slope_if_edges_dominate": -0.2888270670284452,
+  "singular_order_tol": 0.15,
+  "caveat": "the four vertices where two free faces meet the clamped face carry 3D vertex singularities whose exponents are not computed; they act on point neighbourhoods and are expected to affect the energy less than the edges, but may dominate the PEAK"
+ },
+ "rule_predictions": {
+  "strain_energy": {
+   "predicted": "PASS",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ],
+   "rules": [
+    "R2",
+    "R5",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "w_tip": {
+   "predicted": "PASS",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order"
+   ],
+   "rules": [
+    "R2",
+    "R5",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "mid_gk_avg_sxx": {
+   "predicted": null,
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ],
+   "rules": [
+    "R2",
+    "R4",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "root_gk_avg_von_mises": {
+   "predicted": null,
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ],
+   "rules": [
+    "R2",
+    "R4",
+    "R8"
+   ],
+   "role": "candidate"
+  },
+  "peak_von_mises": {
+   "predicted": "FAIL",
+   "required": [
+    "anchored_robustness",
+    "qoi_convergence",
+    "qoi_convergence_multilevel",
+    "singular_order",
+    "strategy_robustness"
+   ],
+   "rules": [
+    "R2",
+    "R3",
+    "R8"
+   ],
+   "role": "diagnostic"
+  }
+ },
+ "stated_in_advance": {
+  "default rules": "every singular_order check INCONCLUSIVE (theory for degree-1 elements only); verdicts therefore INCONCLUSIVE where that check is required (strain_energy, the two Gaussian averages)",
+  "pre-asymptotic label": "not expected to trigger for strain_energy"
+ },
+ "developer_expectations_posthoc": {
+  "strain_energy": "singular_order PASS (order 2 lam = 1.42 within 0.15) and convergence PASS with rate; MEDIUM confidence (vertex effect)",
+  "w_tip": "convergence PASS with rate, fitted order >= 1.27",
+  "mid_gk_avg_sxx": "convergence PASS with rate; singular_order PASS (order >= 1.27, pollution from the edges); MEDIUM confidence",
+  "root_gk_avg_von_mises": "convergence PASS (band or rate); LOW confidence (weight centred on the singular edge)",
+  "peak_von_mises": "convergence FAIL; located at the clamped face (x < 0.1) on the finest three levels; log-log slope negative; slope = lam - 1 = -0.289 within 0.15 with LOW confidence (vertices may give a steeper growth)",
+  "strategies": "both graded strategies solve with min det F > 0; LOW confidence (the reduced rule failed on a strongly graded mesh in cylinder3d)"
+ },
+ "rules_changed_for_this_problem": false
+}

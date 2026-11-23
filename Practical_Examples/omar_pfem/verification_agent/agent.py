@@ -252,6 +252,12 @@ DEFAULT_SPECS = {
                               dim=3, material="neo_hookean", loading="prescribed_displacement",
                               regularity="smooth", element="Q20",
                               reference="mesh_refinement_family", qois=None),
+    # clamped block, 3D Q20 with singular edges: held-out, spec committed
+    # (block3d_preregistration.json) before any loaded solve
+    "clamped_block_3d": dict(name="Clamped block (3D)", geometry="clamped_block_3d", dim=3,
+                             material="neo_hookean", loading="edge_traction",
+                             regularity="clamped_free_corner", element="Q20",
+                             reference="mesh_refinement_family", qois=None),
     "bushing_groove": dict(name="B3 groove", geometry="bushing_groove", dim=3,
                            material="neo_hookean", loading="prescribed_rotation",
                            regularity="stress_concentration", element="Q20",
