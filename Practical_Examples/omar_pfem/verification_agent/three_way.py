@@ -54,7 +54,8 @@ import statistics
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "three_way_result.json")
 PROBLEMS = ("unit_square", "quarter_ring", "bushing_groove", "cook_membrane", "plate_hole",
-            "open_hole_lamina", "l_shape", "edge_crack", "thick_cylinder_3d")
+            "open_hole_lamina", "l_shape", "edge_crack", "thick_cylinder_3d",
+            "clamped_block_3d")
 LLM_KEYS = {"unit_square": "b1", "quarter_ring": "b2", "bushing_groove": "b3"}
 
 

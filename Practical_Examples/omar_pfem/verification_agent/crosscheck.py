@@ -40,7 +40,9 @@ Independent sources:
   bushing_groove             moment, energy: splines p = 2 (iga_b3.py, displacement);
                              Gaussian averages: spline P1 and spline displacement; the
                              cylindrical zz average is identical to sigma_zz; rr and tt
-                             have no spline output yet (added to iga_b3 for the next run)
+                             from the local spline re-run (iga_b3_cyl_local.py ->
+                             iga_b3_cyl_result.json, added 2026-11-23, round J)
+  clamped_block_3d           none (single_family; added 2026-11-23, round J)
 
     python -m omar_pfem.verification_agent.crosscheck
 """
@@ -54,7 +56,8 @@ from omar_pfem.verification_agent import gates
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "crosscheck_result.json")
 PROBLEMS = ("unit_square", "quarter_ring", "bushing_groove", "cook_membrane", "plate_hole",
-            "open_hole_lamina", "l_shape", "edge_crack", "thick_cylinder_3d")
+            "open_hole_lamina", "l_shape", "edge_crack", "thick_cylinder_3d",
+            "clamped_block_3d")
 QUAD_WINDOW = (0.5, 5)
 
 
@@ -96,6 +99,9 @@ def independent_series(geometry, qoi):
             out.append(("exact 1D solution", "exact", ex[qoi]))
     elif geometry == "bushing_groove":
         d = _j("iga_b3_result.json")
+        for key, extra in _j("iga_b3_cyl_result.json").items():   # rr, tt (round J)
+            if key in d:
+                d[key] = dict(d[key], **{k: v for k, v in extra.items() if "cyl_" in k})
         if qoi in ("reaction_moment_y", "strain_energy"):
             keys = [("splines p = 2, displacement", "")]
             name = qoi
@@ -137,6 +143,9 @@ def independent_v1(geometry, qoi):
         return a[qoi], abs(a[qoi] - b[qoi]), "splines p = 3, exact geometry"
     if geometry == "bushing_groove":
         d = _j("iga_b3_result.json")
+        for key, extra in _j("iga_b3_cyl_result.json").items():   # rr, tt (round J)
+            if key in d:
+                d[key] = dict(d[key], **{k: v for k, v in extra.items() if "cyl_" in k})
         if qoi in ("reaction_moment_y", "strain_energy"):
             rows = [d[f"L{l}:p2"] for l in (1, 2, 3, 4)]
             g = gates.multilevel_convergence_gate([1.0 / r["spans"][0] for r in rows],

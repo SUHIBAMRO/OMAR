@@ -792,7 +792,12 @@ def test_derived_facts_never_guess():
     from omar_pfem.verification_agent.diagnose import derived_facts
     f = derived_facts("thick_cylinder_3d")
     assert f["degree"] == 2 and f["quadrature"] == "reduced" and f["nu"] == 0.45
-    assert f["corners"] == [] and f["code_check"]()[0] is None
+    # round J: the code check now reads the stored Q20 MMS (followup_hooks); a problem
+    # with no stored check still gets None, never a guessed value
+    assert f["corners"] == [] and f["code_check"]()[0] is True
+    from omar_pfem.verification_agent.followup_hooks import code_check, tolerance
+    assert code_check("no_such_problem")[0] is None
+    assert tolerance("thick_cylinder_3d")[0] < 1e-8
     g = derived_facts("l_shape")
     assert g["corners"] and abs(g["corners"][0]["lam"] - 0.5445) < 1e-3
 

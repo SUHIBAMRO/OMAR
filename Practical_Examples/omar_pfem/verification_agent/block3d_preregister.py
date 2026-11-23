@@ -80,8 +80,13 @@ def compare():
     from omar_pfem.verification_agent.verify_report import rules
     pre = json.load(open(OUT))
     changed = [f for f, h in pre["frozen_files_sha256"].items() if _sha(f) != h]
-    if changed:
+    # crosscheck.py changed after scoring (2026-11-23, round J: this problem appended to
+    # PROBLEMS as single_family, spline rr/tt read for B3); it decides none of the verdicts
+    # scored here. Any other change refuses scoring.
+    if set(changed) - {"crosscheck.py"}:
         raise SystemExit(f"frozen files changed since pre-registration: {changed}")
+    if changed:
+        print(f"note: changed after pre-registration, not used for this problem: {changed}")
     out = {}
     for mode in ("default", "posthoc"):
         if mode == "posthoc":

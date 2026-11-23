@@ -1,0 +1,719 @@
+{
+ "rate_certified": 52,
+ "judged_on_a_scale_larger_than_the_value": 7,
+ "fail_tol_on_own_value": [],
+ "near_zero_components": [],
+ "max_scale_over_value": 7.276367677695383,
+ "rows": [
+  {
+   "problem": "unit_square",
+   "qoi": "max_disp_mag",
+   "scale": 0.005966806206677958,
+   "value": 0.005967053838862865,
+   "scale_over_value": 0.9999585000920731,
+   "U_of_scale": 5.714340686078016e-05,
+   "U_of_value": 5.714103541465681e-05,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "u_top_off_center",
+   "scale": 0.00046949885663452405,
+   "value": 0.00046944097544491354,
+   "scale_over_value": 1.0001232981197596,
+   "U_of_scale": 0.0001852279494304489,
+   "U_of_value": 0.0001852507876883406,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "v_top_off_center",
+   "scale": 0.005770940953755469,
+   "value": -0.005771187563798909,
+   "scale_over_value": 0.9999572687526244,
+   "U_of_scale": 5.7218810268985845e-05,
+   "U_of_value": 5.72163652378497e-05,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "u_mid_domain",
+   "scale": 0.0005846783079227648,
+   "value": -0.0005847036142213615,
+   "scale_over_value": 0.9999567194421564,
+   "U_of_scale": 7.2108038112557e-05,
+   "U_of_value": 7.210491723644248e-05,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "v_mid_domain",
+   "scale": 0.0030765541524340415,
+   "value": -0.0030768024357991646,
+   "scale_over_value": 0.9999193047424059,
+   "U_of_scale": 0.00010589205539350495,
+   "U_of_value": 0.00010588351040681779,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "strain_energy",
+   "scale": 0.017715466391237517,
+   "value": 0.017716271479652258,
+   "scale_over_value": 0.9999545565546529,
+   "U_of_scale": 5.8383967017699646e-05,
+   "U_of_value": 5.8381313849085334e-05,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "interior_avg_PK1_frob",
+   "scale": 6.620894397155796,
+   "value": 6.620653211730369,
+   "scale_over_value": 1.0000364292491561,
+   "U_of_scale": 0.00013128469218172108,
+   "U_of_value": 0.00013128947478448295,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "interior_gk_PK1_frob",
+   "scale": 6.62357943083463,
+   "value": 6.623659340064464,
+   "scale_over_value": 0.9999879357880996,
+   "U_of_scale": 2.671274493961588e-05,
+   "U_of_value": 2.6712422671400488e-05,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "max_disp_mag",
+   "scale": 0.011008750497150117,
+   "value": 0.011008917297041142,
+   "scale_over_value": 0.9999848486561826,
+   "U_of_scale": 2.0576859220723946e-05,
+   "U_of_value": 2.057654745365521e-05,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "u_inner",
+   "scale": 0.00570036599366265,
+   "value": 0.0057004877874646045,
+   "scale_over_value": 0.9999786344947142,
+   "U_of_scale": 2.9838771808138946e-05,
+   "U_of_value": 2.983813428770216e-05,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "v_inner",
+   "scale": 0.009239631188873583,
+   "value": 0.009239720749909103,
+   "scale_over_value": 0.9999903069542961,
+   "U_of_scale": 1.2494426849509758e-05,
+   "U_of_value": 1.2494305740459262e-05,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "u_mid",
+   "scale": 0.00421838752224781,
+   "value": 0.0042184479496616785,
+   "scale_over_value": 0.9999856754392635,
+   "U_of_scale": 1.9187929298420308e-05,
+   "U_of_value": 1.9187654439761664e-05,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "v_mid",
+   "scale": 0.006955553451086621,
+   "value": 0.006955631068250262,
+   "scale_over_value": 0.9999888411040092,
+   "U_of_scale": 1.4623841079989476e-05,
+   "U_of_value": 1.4623677894067878e-05,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "strain_energy",
+   "scale": 0.05274356548798648,
+   "value": 0.052744708142221174,
+   "scale_over_value": 0.9999783361350372,
+   "U_of_scale": 2.7621675712214936e-05,
+   "U_of_value": 2.762107731996226e-05,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "interior_gk_PK1_frob",
+   "scale": 6.113481209524879,
+   "value": 6.113534876817331,
+   "scale_over_value": 0.9999912215610881,
+   "U_of_scale": 1.3409880834845065e-05,
+   "U_of_value": 1.340976311702534e-05,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "peak_PK1_frob",
+   "scale": 12.398684858733752,
+   "value": 12.417158056872477,
+   "scale_over_value": 0.9985122845296713,
+   "U_of_scale": 0.0019635370314254365,
+   "U_of_value": 0.0019606158470072215,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "reaction_moment_y",
+   "scale": 34.51983933173489,
+   "value": 34.47885451374904,
+   "scale_over_value": 1.0011886943044905,
+   "U_of_scale": 0.001490525536675421,
+   "U_of_value": 0.0014922973158915647,
+   "tol": 0.0046,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "strain_energy",
+   "scale": 0.8636142611024635,
+   "value": 0.8626813327500318,
+   "scale_over_value": 1.00108142870028,
+   "U_of_scale": 0.0013565907997650038,
+   "U_of_value": 0.0013580578559904055,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_sigma_xx_avg",
+   "scale": 3.0965577895552623,
+   "value": 0.5402131319527926,
+   "scale_over_value": 5.732103879744004,
+   "U_of_scale": 0.0017593637906375779,
+   "U_of_value": 0.010084856010194779,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_sigma_yy_avg",
+   "scale": 3.0965577895552623,
+   "value": 0.42556367774642523,
+   "scale_over_value": 7.276367677695383,
+   "U_of_scale": 0.0012195878613160801,
+   "U_of_value": 0.008874169694189965,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_sigma_zz_avg",
+   "scale": 3.0965577895552623,
+   "value": 0.43430868133808265,
+   "scale_over_value": 7.129854692323735,
+   "U_of_scale": 0.0011141573305583918,
+   "U_of_value": 0.007943779871268637,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_pressure_avg",
+   "scale": 3.0965577895552623,
+   "value": -0.466663217878193,
+   "scale_over_value": 6.63553001591721,
+   "U_of_scale": 0.0013514343661384274,
+   "U_of_value": 0.008967483301053583,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_cyl_rr_avg",
+   "scale": 3.0965577895552623,
+   "value": 0.5395206760991955,
+   "scale_over_value": 5.7394608339086775,
+   "U_of_scale": 0.0017580967417460394,
+   "U_of_value": 0.010090527391473852,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_cyl_tt_avg",
+   "scale": 3.0965577895552623,
+   "value": 0.42625920849970733,
+   "scale_over_value": 7.26449476705531,
+   "U_of_scale": 0.0012220298716408699,
+   "U_of_value": 0.008877429607720371,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_cyl_zz_avg",
+   "scale": 3.0965577895552623,
+   "value": 0.43430868133808265,
+   "scale_over_value": 7.129854692323735,
+   "U_of_scale": 0.0011141573305583918,
+   "U_of_value": 0.007943779871268637,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "cook_membrane",
+   "qoi": "u_tip",
+   "scale": 1.382304625972033,
+   "value": -1.3832288887044788,
+   "scale_over_value": 0.9993318078157611,
+   "U_of_scale": 0.0009654075797310685,
+   "U_of_value": 0.0009647625019316873,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "cook_membrane",
+   "qoi": "v_tip",
+   "scale": 1.7729336634558144,
+   "value": 1.7734639599775357,
+   "scale_over_value": 0.9997009826341618,
+   "U_of_scale": 0.00046072973352515815,
+   "U_of_value": 0.00046059196733387614,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "cook_membrane",
+   "qoi": "max_disp_mag",
+   "scale": 2.2481236296072638,
+   "value": 2.2490989610307937,
+   "scale_over_value": 0.9995663457053562,
+   "U_of_scale": 0.0006471948226764592,
+   "U_of_value": 0.0006469141638621343,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "cook_membrane",
+   "qoi": "interior_gk_PK1_frob",
+   "scale": 4.249792018045248,
+   "value": 4.2495469932302345,
+   "scale_over_value": 1.0000576590435177,
+   "U_of_scale": 7.79415677013345e-05,
+   "U_of_value": 7.794606173757843e-05,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "u_right_mid",
+   "scale": 1.1881910764499839e-05,
+   "value": 1.1881923112167425e-05,
+   "scale_over_value": 0.9999989608022649,
+   "U_of_scale": 1.9650914426509843e-06,
+   "U_of_value": 1.9650894005324078e-06,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "v_top_right",
+   "scale": 6.926466736766569e-07,
+   "value": -6.926503433711139e-07,
+   "scale_over_value": 0.9999947019524468,
+   "U_of_scale": 1.825942339957901e-05,
+   "U_of_value": 1.8259326660285545e-05,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "max_disp_mag",
+   "scale": 1.1881910764499839e-05,
+   "value": 1.1881923112167425e-05,
+   "scale_over_value": 0.9999989608022649,
+   "U_of_scale": 1.9650914426509843e-06,
+   "U_of_value": 1.9650894005324078e-06,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "strain_energy",
+   "scale": 11.003600566008357,
+   "value": 11.00361438638063,
+   "scale_over_value": 0.9999987440152129,
+   "U_of_scale": 1.8861197208095932e-06,
+   "U_of_value": 1.8861173518719173e-06,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "hole_gk_avg_sigma_xx",
+   "scale": 2639004.5686533186,
+   "value": 2639007.5700370367,
+   "scale_over_value": 0.999998862684688,
+   "U_of_scale": 1.4216457569363676e-06,
+   "U_of_value": 1.42164414007688e-06,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "compliance",
+   "scale": 6.980613985079951e-05,
+   "value": 6.980612947352237e-05,
+   "scale_over_value": 1.0000001486585377,
+   "U_of_scale": 6.487641579586858e-07,
+   "U_of_value": 6.487642544030169e-07,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "u_tip",
+   "scale": 3.335434865471125e-05,
+   "value": 3.3354249724604256e-05,
+   "scale_over_value": 1.0000029660420429,
+   "U_of_scale": 1.0228369557540785e-05,
+   "U_of_value": 1.0228399895314922e-05,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "hole_e22_avg",
+   "scale": 1.255417408459848e-07,
+   "value": 1.255198694691099e-07,
+   "scale_over_value": 1.0001742463322134,
+   "U_of_scale": 0.00048655130539447024,
+   "U_of_value": 0.0004866360851748689,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "hole_gk_gamma12_avg",
+   "scale": 2.1242325798872823e-06,
+   "value": -2.124232222472989e-06,
+   "scale_over_value": 1.0000001682557536,
+   "U_of_scale": 6.477501335484111e-07,
+   "U_of_value": 6.477502425360979e-07,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "hole_gk_e22_avg",
+   "scale": 1.221852964344681e-07,
+   "value": 1.221853354270958e-07,
+   "scale_over_value": 0.9999996808730969,
+   "U_of_scale": 1.610841806694383e-06,
+   "U_of_value": 1.6108412926314258e-06,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "strain_energy",
+   "scale": 0.008580354655599465,
+   "value": 0.008583887052298586,
+   "scale_over_value": 0.9995884851842063,
+   "U_of_scale": 0.0005219254610269847,
+   "U_of_value": 0.0005217106809670321,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "u_top_left",
+   "scale": 0.01745473977895903,
+   "value": 0.017464072033016406,
+   "scale_over_value": 0.9994656312663087,
+   "U_of_scale": 0.0006752848834642081,
+   "U_of_value": 0.0006749240323361505,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "corner_gk_avg_von_mises",
+   "scale": 5.212325665535667,
+   "value": 5.216029545384181,
+   "scale_over_value": 0.9992899043580397,
+   "U_of_scale": 0.0009080456924786541,
+   "U_of_value": 0.0009074008931897242,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "corner_disc_avg_von_mises",
+   "scale": 4.040273090024942,
+   "value": 4.037593638532007,
+   "scale_over_value": 1.000663625845693,
+   "U_of_scale": 0.002419718126012061,
+   "U_of_value": 0.002421323913499774,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "far_gk_avg_syy",
+   "scale": 0.8198046667647935,
+   "value": 0.8193816665392364,
+   "scale_over_value": 1.000516243214647,
+   "U_of_scale": 0.0006498423029913657,
+   "U_of_value": 0.0006501777796708757,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "edge_crack",
+   "qoi": "strain_energy",
+   "scale": 0.007536882566380137,
+   "value": 0.007551404793519872,
+   "scale_over_value": 0.9980768840319358,
+   "U_of_scale": 0.0024297320424720727,
+   "U_of_value": 0.0024250593859830773,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "edge_crack",
+   "qoi": "u_cod_mouth",
+   "scale": 0.019109436268074195,
+   "value": 0.019148016984563657,
+   "scale_over_value": 0.9979851325324934,
+   "U_of_scale": 0.002545327278862331,
+   "U_of_value": 0.002540198781733994,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "edge_crack",
+   "qoi": "v_top_right",
+   "scale": 0.0019271912419063096,
+   "value": -0.0019344300539409012,
+   "scale_over_value": 0.9962579096515564,
+   "U_of_scale": 0.004742874982176789,
+   "U_of_value": 0.004725126715482111,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "edge_crack",
+   "qoi": "far_gk_avg_syy",
+   "scale": 1.1752652924002145,
+   "value": 1.1767816834477862,
+   "scale_over_value": 0.9987114083530524,
+   "U_of_scale": 0.0016478656255744398,
+   "U_of_value": 0.0016457421996940325,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "thick_cylinder_3d",
+   "qoi": "strain_energy",
+   "scale": 1.936538813062927,
+   "value": 1.936538847153191,
+   "scale_over_value": 0.9999999823962923,
+   "U_of_scale": 2.3493685424689354e-08,
+   "U_of_value": 2.349368501111338e-08,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "thick_cylinder_3d",
+   "qoi": "reaction_inner_radial",
+   "scale": 38.29966962156863,
+   "value": 38.29967045837223,
+   "scale_over_value": 0.999999978151154,
+   "U_of_scale": 2.9763674790426847e-08,
+   "U_of_value": 2.9763674140124902e-08,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "thick_cylinder_3d",
+   "qoi": "u_outer_radial",
+   "scale": 0.055283296610958224,
+   "value": 0.0552832931276769,
+   "scale_over_value": 1.0000000630078478,
+   "U_of_scale": 1.0345301642849572e-07,
+   "U_of_value": 1.0345302294684763e-07,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "thick_cylinder_3d",
+   "qoi": "gk_avg_hoop",
+   "scale": 72.71252828410233,
+   "value": 72.71264498536091,
+   "scale_over_value": 0.9999983950348856,
+   "U_of_scale": 1.2593357302646274e-05,
+   "U_of_value": 1.259333709074713e-05,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  }
+ ],
+ "crosscheck_on_own_value": {
+  "bushing_groove:gk2_sigma_xx_avg": {
+   "status": "independent_unconverged",
+   "sources": [
+    {
+     "source": "spline P1",
+     "status": "independent_unconverged",
+     "reason": "finest three within 1.00% band (spread 0.851%); no rate from 4 levels (failed: fit_quality, order_window; fitted p=0.05)"
+    },
+    {
+     "source": "splines p = 2, displacement",
+     "status": "independent_unconverged",
+     "reason": "no rate from 4 levels (failed: order_window; fitted p=0.48) and finest-three spread 2.707% exceeds 1.00%"
+    }
+   ]
+  },
+  "bushing_groove:gk2_sigma_yy_avg": {
+   "status": "cross_checked",
+   "sources": [
+    {
+     "source": "spline P1",
+     "status": "independent_unconverged",
+     "reason": "finest three within 1.00% band (spread 0.516%); no rate from 4 levels (failed: monotone, fit_quality, order_window; fitted p=0.05)"
+    },
+    {
+     "source": "splines p = 2, displacement",
+     "status": "cross_checked",
+     "gap_of_value": 0.005908899169685094,
+     "U_ind_of_value": 0.01528094544681355
+    }
+   ]
+  },
+  "bushing_groove:gk2_sigma_zz_avg": {
+   "status": "independent_unconverged",
+   "sources": [
+    {
+     "source": "spline P1",
+     "status": "independent_unconverged",
+     "reason": "finest three within 1.00% band (spread 0.491%); no rate from 4 levels (failed: monotone; fitted p=4.29)"
+    },
+    {
+     "source": "splines p = 2, displacement",
+     "status": "independent_unconverged",
+     "reason": "no rate from 4 levels (failed: order_window; fitted p=0.22) and finest-three spread 1.174% exceeds 1.00%"
+    }
+   ]
+  },
+  "bushing_groove:gk2_pressure_avg": {
+   "status": "independent_unconverged",
+   "sources": [
+    {
+     "source": "spline P1",
+     "status": "independent_unconverged",
+     "reason": "finest three within 1.00% band (spread 0.417%); no rate from 4 levels (failed: monotone, fit_quality, order_window; fitted p=20.00)"
+    },
+    {
+     "source": "splines p = 2, displacement",
+     "status": "independent_unconverged",
+     "reason": "4 levels monotone, fitted p=0.93 (no leave-one-out check with 4 levels), U_fine=3.03% vs tol 2.00%"
+    }
+   ]
+  },
+  "bushing_groove:gk2_cyl_rr_avg": {
+   "status": "single_family",
+   "sources": []
+  },
+  "bushing_groove:gk2_cyl_tt_avg": {
+   "status": "single_family",
+   "sources": []
+  },
+  "bushing_groove:gk2_cyl_zz_avg": {
+   "status": "independent_unconverged",
+   "sources": [
+    {
+     "source": "spline P1",
+     "status": "independent_unconverged",
+     "reason": "finest three within 1.00% band (spread 0.491%); no rate from 4 levels (failed: monotone; fitted p=4.29)"
+    },
+    {
+     "source": "splines p = 2, displacement",
+     "status": "independent_unconverged",
+     "reason": "no rate from 4 levels (failed: order_window; fitted p=0.22) and finest-three spread 1.174% exceeds 1.00%"
+    }
+   ]
+  }
+ }
+}

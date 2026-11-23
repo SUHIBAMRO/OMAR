@@ -1,0 +1,80 @@
+{
+ "posthoc": true,
+ "solves_with_min_detF_recorded": 49,
+ "problems_without_min_detF_records": [
+  "bushing_groove",
+  "open_hole_lamina",
+  "l_shape",
+  "edge_crack"
+ ],
+ "inadmissible": [
+  {
+   "problem": "thick_cylinder_3d",
+   "role": "strategy",
+   "min_detF": -1.026023631142868,
+   "grading": 2.0,
+   "level": 4,
+   "consumed_by_a_verdict": false,
+   "strategy_checks_on": []
+  }
+ ],
+ "remedy_tested": {
+  "case": "thick_cylinder_3d, k = 4, g = 2.0",
+  "rows": [
+   {
+    "quadrature": "reduced",
+    "nsteps": null,
+    "min_detF": -1.0260236311428674,
+    "errors": {
+     "strain_energy": null,
+     "reaction_inner_radial": -0.1309168809991592,
+     "u_outer_radial": -0.1491797703407759,
+     "gk_avg_hoop": -0.27189800861689417,
+     "disc_avg_hoop": -0.25362773475087186,
+     "peak_hoop": -0.1791071343986147
+    }
+   },
+   {
+    "quadrature": "full",
+    "nsteps": null,
+    "min_detF": -0.7356981798768724,
+    "errors": {
+     "strain_energy": null,
+     "reaction_inner_radial": -0.09284026577371807,
+     "u_outer_radial": -0.046775582801279914,
+     "gk_avg_hoop": -0.2341567491537142,
+     "disc_avg_hoop": -0.19793836050148983,
+     "peak_hoop": 13.181976026815716
+    }
+   },
+   {
+    "quadrature": "reduced",
+    "nsteps": 40,
+    "min_detF": 1.004187915825593,
+    "errors": {
+     "strain_energy": -2.282840267930908e-07,
+     "reaction_inner_radial": -2.594413442968957e-07,
+     "u_outer_radial": 2.0889848020289037e-06,
+     "gk_avg_hoop": -1.3713910365198423e-05,
+     "disc_avg_hoop": -0.003125779345708568,
+     "peak_hoop": -0.005151737968145609
+    }
+   },
+   {
+    "quadrature": "full",
+    "nsteps": 40,
+    "min_detF": 1.0041869446253626,
+    "errors": {
+     "strain_energy": 1.1921920025637078e-05,
+     "reaction_inner_radial": 1.0572078746884372e-05,
+     "u_outer_radial": 2.5364278577466592e-06,
+     "gk_avg_hoop": 9.073713583740428e-05,
+     "disc_avg_hoop": -0.0003830708737581068,
+     "peak_hoop": -0.002625024871196313
+    }
+   }
+  ],
+  "conclusion": "10 increments: inverted with both rules (min det F -1.03 reduced, -0.74 full); 40 increments: min det F 1.004, every global quantity within 1.2e-5 of the exact value (reduced 2.6e-7)"
+ },
+ "proposed_rule_for_future_runs": "min det F <= 0 -> re-solve with 4x increments; still <= 0 -> exclude, dependent checks INCONCLUSIVE (not applied to the frozen scoring)"
+}

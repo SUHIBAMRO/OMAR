@@ -54,5 +54,21 @@
   "rate_L2": 2.9833936368258116,
   "rate_H1": 2.001601926252146,
   "as_expected": true
+ },
+ "tol:thick_cylinder_3d": {
+  "level_k": 4,
+  "max_rel_change": 2.6117700562392435e-15,
+  "tolerances": [
+   1e-10,
+   1e-12
+  ]
+ },
+ "tol:clamped_block_3d": {
+  "level_k": 3,
+  "max_rel_change": 9.594607847574516e-12,
+  "tolerances": [
+   1e-10,
+   1e-12
+  ]
  }
 }

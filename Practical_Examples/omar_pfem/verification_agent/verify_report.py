@@ -1143,8 +1143,10 @@ def add_g_round(add, h1, h2):
     add("25", "crack finest elements", 65536, 0,
         lambda: max(r["n_elem"] for r in _j("crack_ladder.json")))
     # final-uncertainty rule
+    # Sections 25 and 30 are checked against the round-I snapshots (committed outputs of
+    # 4c06d90); round J (Section 31) changes the live files and is checked there
     # v1 of the rule (2026-11-22), on the problems it covered (the 3D benchmark came later)
-    v1 = lambda st: sum(r["v1"]["status"] == st for r in _j("crosscheck_result.json")["rows"]
+    v1 = lambda st: sum(r["v1"]["status"] == st for r in _j("crosscheck_result_round_I.json")["rows"]
                         if r["problem"] != "thick_cylinder_3d")
     add("25", "crosscheck cross_checked", 21, 0, lambda: v1("cross_checked"))
     add("25", "crosscheck contradicted", 5, 0, lambda: v1("contradicted"))
@@ -1152,7 +1154,7 @@ def add_g_round(add, h1, h2):
     add("25", "crosscheck rate-certified total", 34, 0,
         lambda: sum(v1(s) for s in ("cross_checked", "contradicted", "single_family")))
     # v2 (2026-11-23), all nine problems
-    xc = lambda: _j("crosscheck_result.json")["summary"]
+    xc = lambda: _j("crosscheck_result_round_I.json")["summary"]
     add("25", "crosscheck v2 cross_checked", 27, 0, lambda: xc()["cross_checked"])
     add("25", "crosscheck v2 contradicted", 0, 0, lambda: xc()["contradicted"])
     add("25", "crosscheck v2 independent unconverged", 9, 0, lambda: xc()["independent_unconverged"])
@@ -1160,7 +1162,7 @@ def add_g_round(add, h1, h2):
     add("25", "crosscheck v2 rate-certified total", 38, 0, lambda: sum(xc().values()))
     # the B3 Gaussian uncertainty and gap on one basis (2026-11-22): U is relative to the
     # stress scale, the gap relative to the averages; both stated in Sections 1, 20, 25, 26
-    gk = lambda: [r for r in _j("crosscheck_result.json")["rows"]
+    gk = lambda: [r for r in _j("crosscheck_result_round_I.json")["rows"]
                   if r["problem"] == "bushing_groove" and r["qoi"] in
                   ("gk2_sigma_xx_avg", "gk2_sigma_yy_avg", "gk2_sigma_zz_avg", "gk2_pressure_avg")]
     u_val = lambda: [100 * r["U_rel"] * r["scale"] / abs(r["limit"]) for r in gk()]
@@ -1232,7 +1234,7 @@ def add_i_round(add, h1, h2):
     """Section 30 (23 November): audit, cross-check v2, 3D benchmark, three-way, follow-up."""
     mc = lambda: _j("manuscript_claims_result.json")
     add("30", "manuscript claims matching", 28, 0, lambda: sum(r["ok"] is True for r in mc()))
-    xr = lambda: _j("crosscheck_result.json")["rows"]
+    xr = lambda: _j("crosscheck_result_round_I.json")["rows"]
     old = lambda st: sum(r["status"] == st for r in xr() if r["problem"] != "thick_cylinder_3d")
     add("30", "v2 on the 34: cross-checked", 23, 0, lambda: old("cross_checked"))
     add("30", "v2 on the 34: unconverged", 9, 0, lambda: old("independent_unconverged"))
@@ -1271,7 +1273,7 @@ def add_i_round(add, h1, h2):
     add("30", "3D peak extrapolated", 85.18, h2, lambda: cy()["peak_hoop_interval_check"]["fit_limit"])
     add("30", "3D peak U", 2.39, h2, lambda: cy()["peak_hoop_interval_check"]["U_abs"])
     add("30", "3D gk order", 4.94, h2, lambda: cy()["qois"]["gk_avg_hoop"]["fit_order"])
-    tw = lambda: _j("three_way_result.json")
+    tw = lambda: _j("three_way_result_round_I.json")
     for k, v in (("A", 56), ("B", 56), ("Bp", 72), ("Bstar", 47)):
         add("30", f"three-way {k} certified of 79", v, 0,
             lambda k=k: tw()["scores"][k]["certified_correctly"])

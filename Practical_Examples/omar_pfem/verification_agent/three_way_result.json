@@ -1,45 +1,45 @@
 {
  "scores": {
   "A": {
-   "quantities": 102,
-   "verifiable": 79,
-   "must_not_certify": 16,
-   "certified_correctly": 56,
+   "quantities": 107,
+   "verifiable": 83,
+   "must_not_certify": 17,
+   "certified_correctly": 60,
    "false_alarms": 23,
    "false_alarms_FAIL": 23,
    "false_alarms_INCONCLUSIVE": 0,
    "missed_failures": 0
   },
   "B": {
-   "quantities": 102,
-   "verifiable": 79,
-   "must_not_certify": 16,
+   "quantities": 107,
+   "verifiable": 83,
+   "must_not_certify": 17,
    "certified_correctly": 56,
-   "false_alarms": 23,
-   "false_alarms_FAIL": 4,
-   "false_alarms_INCONCLUSIVE": 19,
+   "false_alarms": 27,
+   "false_alarms_FAIL": 5,
+   "false_alarms_INCONCLUSIVE": 22,
    "missed_failures": 0,
    "rate_certified": 38
   },
   "Bp": {
-   "quantities": 102,
-   "verifiable": 79,
-   "must_not_certify": 16,
-   "certified_correctly": 72,
-   "false_alarms": 7,
-   "false_alarms_FAIL": 6,
-   "false_alarms_INCONCLUSIVE": 1,
+   "quantities": 107,
+   "verifiable": 83,
+   "must_not_certify": 17,
+   "certified_correctly": 74,
+   "false_alarms": 9,
+   "false_alarms_FAIL": 7,
+   "false_alarms_INCONCLUSIVE": 2,
    "missed_failures": 0,
-   "rate_certified": 52
+   "rate_certified": 54
   },
   "Bstar": {
-   "quantities": 102,
-   "verifiable": 79,
-   "must_not_certify": 16,
+   "quantities": 107,
+   "verifiable": 83,
+   "must_not_certify": 17,
    "certified_correctly": 47,
-   "false_alarms": 32,
-   "false_alarms_FAIL": 6,
-   "false_alarms_INCONCLUSIVE": 26,
+   "false_alarms": 36,
+   "false_alarms_FAIL": 7,
+   "false_alarms_INCONCLUSIVE": 29,
    "missed_failures": 0,
    "rate_certified_and_cross_checked": 27
   }
@@ -125,6 +125,12 @@
    "unknowns_B": 113556,
    "unknowns_Bstar": 113556,
    "diagnosis_error": null
+  },
+  "clamped_block_3d": {
+   "unknowns_A": 91413,
+   "unknowns_B": 113556,
+   "unknowns_Bstar": 113556,
+   "diagnosis_error": null
   }
  },
  "human": {
@@ -138,9 +144,10 @@
     "open_hole_lamina": 2,
     "l_shape": 2,
     "edge_crack": 3,
-    "thick_cylinder_3d": 2
+    "thick_cylinder_3d": 2,
+    "clamped_block_3d": 2
    },
-   "total": 52,
+   "total": 54,
    "total_on_B1_B3": 37
   },
   "Bp": {
@@ -153,9 +160,10 @@
     "open_hole_lamina": 3,
     "l_shape": 5,
     "edge_crack": 5,
-    "thick_cylinder_3d": 4
+    "thick_cylinder_3d": 4,
+    "clamped_block_3d": 5
    },
-   "total": 33,
+   "total": 38,
    "total_on_B1_B3": 9
   },
   "Bstar": {
@@ -168,9 +176,10 @@
     "open_hole_lamina": 7,
     "l_shape": 10,
     "edge_crack": 9,
-    "thick_cylinder_3d": 4
+    "thick_cylinder_3d": 4,
+    "clamped_block_3d": 6
    },
-   "total": 53
+   "total": 59
   },
   "C": {
    "per_problem": {
@@ -1336,7 +1345,7 @@
    "Bp": "PASS",
    "Bp_evidence": "rate",
    "Bstar": "INCONCLUSIVE",
-   "crosscheck": "single_family",
+   "crosscheck": "independent_unconverged",
    "diagnosis_covered": true,
    "facts": "hand-written",
    "capability_gap_reason": null,
@@ -1353,7 +1362,7 @@
    "Bp": "PASS",
    "Bp_evidence": "rate",
    "Bstar": "INCONCLUSIVE",
-   "crosscheck": "single_family",
+   "crosscheck": "independent_unconverged",
    "diagnosis_covered": true,
    "facts": "hand-written",
    "capability_gap_reason": null,
@@ -2259,6 +2268,106 @@
     "D4",
     "Q3"
    ]
+  },
+  {
+   "problem": "clamped_block_3d",
+   "qoi": "strain_energy",
+   "truth": "verifiable",
+   "A": "PASS",
+   "B": "INCONCLUSIVE",
+   "B_evidence": "rate",
+   "Bp": "INCONCLUSIVE",
+   "Bp_evidence": "rate",
+   "Bstar": "INCONCLUSIVE",
+   "crosscheck": null,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
+   "diagnosis_sufficient": true,
+   "diagnosis_supported": [
+    "D4",
+    "C1"
+   ]
+  },
+  {
+   "problem": "clamped_block_3d",
+   "qoi": "w_tip",
+   "truth": "verifiable",
+   "A": "PASS",
+   "B": "INCONCLUSIVE",
+   "B_evidence": "rate",
+   "Bp": "PASS",
+   "Bp_evidence": "rate",
+   "Bstar": "INCONCLUSIVE",
+   "crosscheck": null,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
+   "diagnosis_sufficient": true,
+   "diagnosis_supported": [
+    "D4",
+    "C1"
+   ]
+  },
+  {
+   "problem": "clamped_block_3d",
+   "qoi": "mid_gk_avg_sxx",
+   "truth": "verifiable",
+   "A": "PASS",
+   "B": "INCONCLUSIVE",
+   "B_evidence": "rate",
+   "Bp": "PASS",
+   "Bp_evidence": "rate",
+   "Bstar": "INCONCLUSIVE",
+   "crosscheck": null,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
+   "diagnosis_sufficient": false,
+   "diagnosis_supported": [
+    "D4",
+    "C1"
+   ]
+  },
+  {
+   "problem": "clamped_block_3d",
+   "qoi": "root_gk_avg_von_mises",
+   "truth": "verifiable",
+   "A": "PASS",
+   "B": "FAIL",
+   "B_evidence": "rate",
+   "Bp": "FAIL",
+   "Bp_evidence": "rate",
+   "Bstar": "FAIL",
+   "crosscheck": null,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
+   "diagnosis_sufficient": false,
+   "diagnosis_supported": [
+    "D4",
+    "C1"
+   ]
+  },
+  {
+   "problem": "clamped_block_3d",
+   "qoi": "peak_von_mises",
+   "truth": "not_verifiable",
+   "A": "FAIL",
+   "B": "FAIL",
+   "B_evidence": "none",
+   "Bp": "FAIL",
+   "Bp_evidence": "none",
+   "Bstar": "FAIL",
+   "crosscheck": null,
+   "diagnosis_covered": true,
+   "facts": "derived",
+   "capability_gap_reason": "theory implemented for degree-1 elements only",
+   "diagnosis_sufficient": false,
+   "diagnosis_supported": [
+    "M1",
+    "C1"
+   ]
   }
  ],
  "diagnosis": {
@@ -2630,13 +2739,61 @@
      "Q3"
     ],
     "correct": true
+   },
+   {
+    "problem": "clamped_block_3d",
+    "qoi": "strain_energy",
+    "reference": [
+     "C1"
+    ],
+    "supported": [
+     "D4",
+     "C1"
+    ],
+    "correct": true
+   },
+   {
+    "problem": "clamped_block_3d",
+    "qoi": "w_tip",
+    "reference": [
+     "C1"
+    ],
+    "supported": [
+     "D4",
+     "C1"
+    ],
+    "correct": true
+   },
+   {
+    "problem": "clamped_block_3d",
+    "qoi": "mid_gk_avg_sxx",
+    "reference": [
+     "C1"
+    ],
+    "supported": [
+     "D4",
+     "C1"
+    ],
+    "correct": true
+   },
+   {
+    "problem": "clamped_block_3d",
+    "qoi": "peak_von_mises",
+    "reference": [
+     "M1"
+    ],
+    "supported": [
+     "M1",
+     "C1"
+    ],
+    "correct": true
    }
   ],
-  "correct": 31,
-  "of": 31,
-  "correct_excluding_C1": 12,
-  "of_excluding_C1": 12,
-  "C1_cases_by_construction": 19
+  "correct": 35,
+  "of": 35,
+  "correct_excluding_C1": 13,
+  "of_excluding_C1": 13,
+  "C1_cases_by_construction": 22
  },
  "diagnosis_before_P5": {
   "correct": 9,

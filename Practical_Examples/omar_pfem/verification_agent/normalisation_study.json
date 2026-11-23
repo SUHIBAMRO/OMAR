@@ -1,5 +1,5 @@
 {
- "rate_certified": 52,
+ "rate_certified": 54,
  "judged_on_a_scale_larger_than_the_value": 7,
  "fail_tol_on_own_value": [],
  "near_zero_components": [],
@@ -628,6 +628,30 @@
    "tol": 0.02,
    "meets_tol_on_own_value": true,
    "near_zero": false
+  },
+  {
+   "problem": "clamped_block_3d",
+   "qoi": "w_tip",
+   "scale": 0.13117835188613267,
+   "value": -0.13127114368147444,
+   "scale_over_value": 0.9992931287658549,
+   "U_of_scale": 0.0009585736649999986,
+   "U_of_value": 0.000957896076850401,
+   "tol": 0.01,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
+  },
+  {
+   "problem": "clamped_block_3d",
+   "qoi": "mid_gk_avg_sxx",
+   "scale": 7.85867486341897,
+   "value": 7.85830821356174,
+   "scale_over_value": 1.0000466576071168,
+   "U_of_scale": 5.831928785735903e-05,
+   "U_of_value": 5.832200889577921e-05,
+   "tol": 0.02,
+   "meets_tol_on_own_value": true,
+   "near_zero": false
   }
  ],
  "crosscheck_on_own_value": {
@@ -693,12 +717,24 @@
    ]
   },
   "bushing_groove:gk2_cyl_rr_avg": {
-   "status": "single_family",
-   "sources": []
+   "status": "independent_unconverged",
+   "sources": [
+    {
+     "source": "splines p = 2, displacement",
+     "status": "independent_unconverged",
+     "reason": null
+    }
+   ]
   },
   "bushing_groove:gk2_cyl_tt_avg": {
-   "status": "single_family",
-   "sources": []
+   "status": "independent_unconverged",
+   "sources": [
+    {
+     "source": "splines p = 2, displacement",
+     "status": "independent_unconverged",
+     "reason": null
+    }
+   ]
   },
   "bushing_groove:gk2_cyl_zz_avg": {
    "status": "independent_unconverged",
