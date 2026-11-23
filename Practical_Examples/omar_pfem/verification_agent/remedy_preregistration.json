@@ -1,0 +1,147 @@
+{
+ "written": "2026-11-23T16:57:06.454389+00:00",
+ "frozen_files_sha256": {
+  "gates.py": "232cab27ff8eed05dc62e481e2e2858e79f82fc9811a7f9f108b6909c8b03f95",
+  "trees.py": "2470e173544f15cdd74ca05e7874e4e459f87bf6730d023991fe684617b88ed3",
+  "remedy.py": "bc39ddca525060fec10543960e098c34ae4cb4cb941928373e4554f6e12b02a5",
+  "lshape.py": "39093fd3e8397d4c9d896344db7a0c9470e91e5d76dd3c9b9519a7ddf6c57e27",
+  "crack.py": "a94e985d08dcb626e41876be604c370ed5272f4abc1ffa6f7bf659c3691c1734",
+  "independent_p2.py": "8911440bb4d1f1f28794854550e5047abdc59efd7f23c247a1929859111ce309",
+  "crosscheck.py": "2c275cd06a2000356a74a012b91c0cb0006c53afd258311eb266f556cf91f8a5"
+ },
+ "plans": {
+  "l_shape": {
+   "lam": 0.544483736782464,
+   "degree": 2,
+   "g_min": 3.67320429406885,
+   "g": 3.7,
+   "predicted_energy_order_uniform": 1.088967473564928,
+   "predicted_energy_order_graded": 4,
+   "rule": "g > p / lam (tensor-product grading toward the corner lines)",
+   "singular_corners": [
+    {
+     "x": 0,
+     "y": 0,
+     "angle_deg": 90.0,
+     "edges": [
+      "free",
+      "clamped"
+     ],
+     "rate_limiting": [
+      0.7111729329714656
+     ]
+    },
+    {
+     "x": 2,
+     "y": 0,
+     "angle_deg": 90.0,
+     "edges": [
+      "clamped",
+      "free"
+     ],
+     "rate_limiting": [
+      0.7111729329714656
+     ]
+    },
+    {
+     "x": 1,
+     "y": 1,
+     "angle_deg": 270.0,
+     "edges": [
+      "free",
+      "free"
+     ],
+     "rate_limiting": [
+      0.544483736782464,
+      0.9085291898460989
+     ]
+    }
+   ],
+   "x_targets": [
+    0,
+    1,
+    2
+   ],
+   "y_targets": [
+    0,
+    1
+   ],
+   "predicted_energy_order_graded_strongest_only": 1.422345865942931
+  },
+  "edge_crack": {
+   "lam": 0.5,
+   "degree": 2,
+   "g_min": 4.0,
+   "g": 4.1,
+   "predicted_energy_order_uniform": 1.0,
+   "predicted_energy_order_graded": 4,
+   "rule": "g > p / lam (tensor-product grading toward the corner lines)",
+   "singular_corners": [
+    {
+     "x": 0,
+     "y": -1,
+     "angle_deg": 90.0,
+     "edges": [
+      "free",
+      "clamped"
+     ],
+     "rate_limiting": [
+      0.7111729329714656
+     ]
+    },
+    {
+     "x": 2,
+     "y": -1,
+     "angle_deg": 90.0,
+     "edges": [
+      "clamped",
+      "free"
+     ],
+     "rate_limiting": [
+      0.7111729329714656
+     ]
+    },
+    {
+     "x": 1,
+     "y": 0,
+     "angle_deg": 360.0,
+     "edges": [
+      "free",
+      "free"
+     ],
+     "rate_limiting": [
+      0.5,
+      1.5
+     ]
+    }
+   ],
+   "x_targets": [
+    0,
+    1,
+    2
+   ],
+   "y_targets": [
+    -1,
+    0
+   ],
+   "predicted_energy_order_graded_strongest_only": 1.422345865942931
+  }
+ },
+ "levels": [
+  2,
+  4,
+  8,
+  16,
+  32,
+  64
+ ],
+ "targets_note": "both modules use one coordinate function for x and for y (shifted by -1 for the crack); the all-graded variant grades toward the union of the x and the shifted y targets, {0, 1, 2}",
+ "predictions": {
+  "P1 strongest-only energy order": "within 0.2 of 2 x 0.7112 = 1.42 for both problems (the weaker corners limit it)",
+  "P2 all-graded energy order": "between 3.0 and 4.6 for both problems (theory 4)",
+  "P3 uncertainty": "five-level U of the energy, all-graded n = 64, below 1/100 of the uniform family's certified U (post hoc extension, n = 128)",
+  "P4 consistency": "the all-graded energy limit lies within the uniform family's certified interval",
+  "P5 P2 cross-check": "on the all-graded meshes the P2 sequence cross-checks the energy (rule v2)",
+  "confidence": "P1 MEDIUM (pre-asymptotic mixing); P2-P5 MEDIUM"
+ }
+}
