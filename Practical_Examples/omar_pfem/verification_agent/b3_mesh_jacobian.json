@@ -1,0 +1,58 @@
+{
+ "level": [
+  21,
+  18,
+  31
+ ],
+ "rows": [
+  {
+   "r_grading": 1.0,
+   "n_elem": 10200,
+   "min_detJ_undeformed": 7.760316665483107e-06,
+   "negative_points": 0,
+   "elements_with_negative_points": 0
+  },
+  {
+   "r_grading": 1.1,
+   "n_elem": 10200,
+   "min_detJ_undeformed": 5.379722615888177e-06,
+   "negative_points": 0,
+   "elements_with_negative_points": 0
+  },
+  {
+   "r_grading": 1.2,
+   "n_elem": 10200,
+   "min_detJ_undeformed": 3.5864742176570437e-06,
+   "negative_points": 0,
+   "elements_with_negative_points": 0
+  },
+  {
+   "r_grading": 1.3,
+   "n_elem": 10200,
+   "min_detJ_undeformed": 2.2356601978094365e-06,
+   "negative_points": 0,
+   "elements_with_negative_points": 0
+  },
+  {
+   "r_grading": 1.5,
+   "n_elem": 10200,
+   "min_detJ_undeformed": 4.516333939370787e-07,
+   "negative_points": 0,
+   "elements_with_negative_points": 0
+  },
+  {
+   "r_grading": 1.75,
+   "n_elem": 10200,
+   "min_detJ_undeformed": -7.360657251760101e-07,
+   "negative_points": 480,
+   "elements_with_negative_points": 80
+  },
+  {
+   "r_grading": 2.0,
+   "n_elem": 10200,
+   "min_detJ_undeformed": -1.3209826715199457e-06,
+   "negative_points": 840,
+   "elements_with_negative_points": 120
+  }
+ ]
+}
