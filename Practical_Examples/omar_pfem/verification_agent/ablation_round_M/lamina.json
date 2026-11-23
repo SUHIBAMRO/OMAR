@@ -1,0 +1,180 @@
+{
+ "backend": "claude-cli",
+ "repeats": 3,
+ "problems": {
+  "lamina": {
+   "rule_only": {
+    "missed": [],
+    "false_alarm": [],
+    "qois": [
+     "compliance",
+     "u_tip",
+     "hole_gamma12_avg",
+     "hole_e22_avg",
+     "far_gamma12_avg",
+     "hole_gk_gamma12_avg",
+     "hole_gk_e22_avg",
+     "peak_e22"
+    ]
+   },
+   "runs": [
+    {
+     "error": null,
+     "wall_s": 176.6249041557312,
+     "llm_calls": 5,
+     "llm_cost_usd": 0.6615101999999999,
+     "spec_match": {
+      "geometry": true,
+      "regularity": false,
+      "element": true,
+      "reference": true
+     },
+     "spec_errors": 0,
+     "checks_added_by_rules": 0,
+     "tolerances_replaced": 28,
+     "qois_evaluated": [
+      "compliance",
+      "far_gamma12_avg",
+      "hole_e22_avg",
+      "hole_gamma12_avg",
+      "hole_gk_e22_avg",
+      "hole_gk_gamma12_avg",
+      "peak_e22",
+      "u_tip"
+     ],
+     "qois_not_in_rule_list": [],
+     "rule_qois_not_chosen": [],
+     "verdict_agreement": 1.0,
+     "verdict_disagreements": [],
+     "llm_missed": [],
+     "llm_false_alarm": [
+      "hole_e22_avg",
+      "hole_gamma12_avg",
+      "peak_e22",
+      "u_tip"
+     ],
+     "advisor_flags": 1,
+     "llm_missed_n": 0,
+     "llm_false_alarm_n": 4
+    },
+    {
+     "error": null,
+     "wall_s": 160.91276597976685,
+     "llm_calls": 5,
+     "llm_cost_usd": 0.5372236,
+     "spec_match": {
+      "geometry": true,
+      "regularity": false,
+      "element": true,
+      "reference": true
+     },
+     "spec_errors": 0,
+     "checks_added_by_rules": 0,
+     "tolerances_replaced": 28,
+     "qois_evaluated": [
+      "compliance",
+      "far_gamma12_avg",
+      "hole_e22_avg",
+      "hole_gamma12_avg",
+      "hole_gk_e22_avg",
+      "hole_gk_gamma12_avg",
+      "peak_e22",
+      "u_tip"
+     ],
+     "qois_not_in_rule_list": [],
+     "rule_qois_not_chosen": [],
+     "verdict_agreement": 1.0,
+     "verdict_disagreements": [],
+     "llm_missed": [],
+     "llm_false_alarm": [
+      "hole_e22_avg",
+      "peak_e22"
+     ],
+     "advisor_flags": 1,
+     "llm_missed_n": 0,
+     "llm_false_alarm_n": 2
+    },
+    {
+     "error": null,
+     "wall_s": 142.20892333984375,
+     "llm_calls": 5,
+     "llm_cost_usd": 0.5171996000000001,
+     "spec_match": {
+      "geometry": true,
+      "regularity": false,
+      "element": true,
+      "reference": true
+     },
+     "spec_errors": 0,
+     "checks_added_by_rules": 0,
+     "tolerances_replaced": 28,
+     "qois_evaluated": [
+      "compliance",
+      "far_gamma12_avg",
+      "hole_e22_avg",
+      "hole_gamma12_avg",
+      "hole_gk_e22_avg",
+      "hole_gk_gamma12_avg",
+      "peak_e22",
+      "u_tip"
+     ],
+     "qois_not_in_rule_list": [],
+     "rule_qois_not_chosen": [],
+     "verdict_agreement": 1.0,
+     "verdict_disagreements": [],
+     "llm_missed": [],
+     "llm_false_alarm": [
+      "hole_e22_avg",
+      "hole_gamma12_avg",
+      "peak_e22"
+     ],
+     "advisor_flags": 1,
+     "llm_missed_n": 0,
+     "llm_false_alarm_n": 3
+    }
+   ],
+   "summary": {
+    "runs": 3,
+    "failed_runs": 0,
+    "spec_fully_correct": 0,
+    "verdict_agreement": {
+     "mean": 1.0,
+     "sd": 0.0,
+     "min": 1.0,
+     "max": 1.0
+    },
+    "checks_added_by_rules": {
+     "mean": 0,
+     "sd": 0.0,
+     "min": 0,
+     "max": 0
+    },
+    "tolerances_replaced": {
+     "mean": 28,
+     "sd": 0.0,
+     "min": 28,
+     "max": 28
+    },
+    "llm_missed_count": {
+     "mean": 0,
+     "sd": 0.0,
+     "min": 0,
+     "max": 0
+    },
+    "llm_false_alarm_count": {
+     "mean": 3,
+     "sd": 1.0,
+     "min": 2,
+     "max": 4
+    },
+    "advisor_flags": {
+     "mean": 1,
+     "sd": 0.0,
+     "min": 1,
+     "max": 1
+    },
+    "cost_usd_total": 1.7159334
+   }
+  }
+ }
+}

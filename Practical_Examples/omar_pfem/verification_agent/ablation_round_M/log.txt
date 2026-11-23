@@ -4,3 +4,34 @@ cook run 3/3: agreement 0.8571428571428571, missed ['max_disp_mag', 'strain_ener
 
 cook: 3 runs (0 failed), spec fully correct 3, verdict agreement {'mean': 0.8571428571428571, 'sd': 0.14285714285714285, 'min': 0.7142857142857143, 'max': 1.0}, rules missed ['strain_energy'] / false alarms [], LLM missed {'mean': 1.6666666666666667, 'sd': 1.5275252316519468, 'min': 0, 'max': 3} / false alarms {'mean': 1, 'sd': 1.0, 'min': 0, 'max': 2}, cost $1.81
 -> omar_pfem/verification_agent/ablation_round_M/cook.json
+plate run 1/3: agreement 1.0, missed [], false alarms ['hole_avg_sigma_xx', 'hole_peak_sigma_xx', 'strain_energy'], $0.63
+plate run 2/3: agreement 1.0, missed [], false alarms ['hole_avg_sigma_xx', 'hole_peak_sigma_xx', 'strain_energy'], $0.56
+plate run 3/3: agreement 1.0, missed [], false alarms ['hole_avg_sigma_xx', 'hole_peak_sigma_xx', 'u_right_mid'], $0.57
+
+plate: 3 runs (0 failed), spec fully correct 3, verdict agreement {'mean': 1.0, 'sd': 0.0, 'min': 1.0, 'max': 1.0}, rules missed [] / false alarms ['hole_peak_sigma_xx'], LLM missed {'mean': 0, 'sd': 0.0, 'min': 0, 'max': 0} / false alarms {'mean': 3, 'sd': 0.0, 'min': 3, 'max': 3}, cost $1.76
+-> omar_pfem/verification_agent/ablation_round_M/plate.json
+lamina run 1/3: agreement 1.0, missed [], false alarms ['hole_e22_avg', 'hole_gamma12_avg', 'peak_e22', 'u_tip'], $0.66
+lamina run 2/3: agreement 1.0, missed [], false alarms ['hole_e22_avg', 'peak_e22'], $0.54
+lamina run 3/3: agreement 1.0, missed [], false alarms ['hole_e22_avg', 'hole_gamma12_avg', 'peak_e22'], $0.52
+
+lamina: 3 runs (0 failed), spec fully correct 0, verdict agreement {'mean': 1.0, 'sd': 0.0, 'min': 1.0, 'max': 1.0}, rules missed [] / false alarms [], LLM missed {'mean': 0, 'sd': 0.0, 'min': 0, 'max': 0} / false alarms {'mean': 3, 'sd': 1.0, 'min': 2, 'max': 4}, cost $1.72
+-> omar_pfem/verification_agent/ablation_round_M/lamina.json
+lshape run 1/3: agreement 1.0, missed [], false alarms ['corner_disc_avg_von_mises', 'corner_gk_avg_von_mises', 'strain_energy', 'u_top_left'], $0.64
+lshape run 2/3: agreement 1.0, missed [], false alarms ['corner_disc_avg_von_mises', 'corner_gk_avg_von_mises', 'strain_energy'], $0.56
+lshape run 3/3: agreement 1.0, missed [], false alarms ['corner_disc_avg_von_mises', 'corner_gk_avg_von_mises', 'u_top_left'], $0.52
+
+lshape: 3 runs (0 failed), spec fully correct 3, verdict agreement {'mean': 1.0, 'sd': 0.0, 'min': 1.0, 'max': 1.0}, rules missed [] / false alarms [], LLM missed {'mean': 0, 'sd': 0.0, 'min': 0, 'max': 0} / false alarms {'mean': 3.3333333333333335, 'sd': 0.5773502691896257, 'min': 3, 'max': 4}, cost $1.72
+-> omar_pfem/verification_agent/ablation_round_M/lshape.json
+crack run 1/3: agreement 1.0, missed [], false alarms ['tip_disc_avg_von_mises', 'tip_gk_avg_von_mises'], $0.66
+crack run 2/3: agreement None, missed None, false alarms None, $0.08
+crack run 3/3: agreement 0.7142857142857143, missed [], false alarms ['far_gk_avg_syy', 'tip_disc_avg_von_mises', 'tip_gk_avg_von_mises', 'v_top_right'], $0.55
+
+crack: 3 runs (0 failed), spec fully correct 3, verdict agreement {'mean': 0.8571428571428572, 'sd': 0.20203050891044214, 'min': 0.7142857142857143, 'max': 1.0}, rules missed [] / false alarms [], LLM missed {'mean': 0, 'sd': 0.0, 'min': 0, 'max': 0} / false alarms {'mean': 2, 'sd': 2.0, 'min': 0, 'max': 4}, cost $1.29
+-> omar_pfem/verification_agent/ablation_round_M/crack.json
+cylinder run 1/3: agreement 0.16666666666666666, missed ['gk_avg_hoop', 'reaction_inner_radial', 'strain_energy', 'u_outer_radial'], false alarms [], $0.72
+cylinder run 2/3: agreement 0.16666666666666666, missed ['gk_avg_hoop', 'reaction_inner_radial', 'strain_energy', 'u_outer_radial'], false alarms [], $0.70
+cylinder run 3/3: agreement 0.16666666666666666, missed ['gk_avg_hoop', 'reaction_inner_radial', 'u_outer_radial'], false alarms [], $0.80
+
+cylinder: 3 runs (0 failed), spec fully correct 3, verdict agreement {'mean': 0.16666666666666666, 'sd': 0.0, 'min': 0.16666666666666666, 'max': 0.16666666666666666}, rules missed ['peak_hoop'] / false alarms [], LLM missed {'mean': 3.6666666666666665, 'sd': 0.5773502691896257, 'min': 3, 'max': 4} / false alarms {'mean': 0, 'sd': 0.0, 'min': 0, 'max': 0}, cost $2.22
+-> omar_pfem/verification_agent/ablation_round_M/cylinder.json
+block run 1/3: agreement 1.0, missed [], false alarms ['strain_energy'], $0.59
