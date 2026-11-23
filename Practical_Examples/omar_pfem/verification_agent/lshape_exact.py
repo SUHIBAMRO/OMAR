@@ -300,8 +300,16 @@ def solve_level(n, g=1.0):
 
     def node(px, py):
         j = int(np.argmin((msh.p[0] - px) ** 2 + (msh.p[1] - py) ** 2))
-        assert np.hypot(msh.p[0, j] - px, msh.p[1, j] - py) < 1e-9, (px, py)
-        return U[j]
+        if np.hypot(msh.p[0, j] - px, msh.p[1, j] - py) < 1e-9:
+            return U[j]
+        # AMENDMENT after the pre-registration (2026-11-23, before any scoring): graded
+        # meshes have no node at the query points, so the displacement is interpolated in
+        # its element (the same Q2 field). Uniform meshes always take the branch above,
+        # so their values are unchanged (checked bitwise in lshape_exact_preregister).
+        lin = fem.Basis(fem.MeshQuad(msh.p, msh.t), fem.ElementVector(fem.ElementQuad2()),
+                        intorder=4)
+        assert np.allclose(lin.doflocs, b.doflocs)
+        return lin.probes(np.array([[px], [py]])) @ u
     i = np.unravel_index(np.argmax(vm), vm.shape)
     return {"n": n, "g": g, "h": 1.0 / n, "n_elem": int(msh.t.shape[1]), "n_dof": int(u.size),
             "strain_energy": energy,

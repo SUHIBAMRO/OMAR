@@ -104,8 +104,22 @@ def compare():
     from omar_pfem.verification_agent.lshape_exact import CACHE, EXACT
     pre = json.load(open(OUT))
     changed = [f for f, h in pre["frozen_files_sha256"].items() if _sha(f) != h]
-    if changed:
+    # AMENDMENT (2026-11-23, after the uniform ladder and before any scoring):
+    # lshape_exact.py interpolates the displacement where the query point is not a node
+    # (graded meshes); uniform meshes keep the node branch. Allowed only if every stored
+    # uniform level is reproduced bitwise; any other change refuses scoring.
+    if set(changed) - {"lshape_exact.py"}:
         raise SystemExit(f"frozen files changed since pre-registration: {changed}")
+    if changed:
+        from omar_pfem.verification_agent import lshape_exact as LX
+        st = {r["n"]: r for r in json.load(open(CACHE)) if r["g"] == 1.0}
+        for n in (2, 4, 8, 16, 32, 64):
+            r = LX.solve_level(n)
+            assert all(r[k] == st[n][k] for k in r if k != "wall_clock_s"), n
+        print("note: lshape_exact.py amended (interpolated query points); uniform levels "
+              "reproduced bitwise")
+    if hashlib.sha256(open(EXACT, "rb").read()).hexdigest() != pre["exact_values_sha256"]:
+        raise SystemExit("exact values changed since pre-registration")
     ex = json.load(open(EXACT))
     out = {}
     for mode in ("default", "posthoc"):
