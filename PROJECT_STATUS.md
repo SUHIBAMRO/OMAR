@@ -26159,3 +26159,9 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   79/79; text check NOT FOUND 0 (heading regex fixed). FINAL email draft is now
   `advisor_feedback/2026-11-23_email_to_Rabczuk_reply_DRAFT_v9.txt` (attach v9). Not sent.
   Still waiting: Omar's cluster jobs (iga_b3_cyl, block3d_followup, iga_b3 L5).
+- 2026-11-23 23:07 (cluster time) Omar submitted **LSF job 3280560** = iga_b3_cyl_job.sh (spline
+  rr/tt). GitHub still unreachable from the HPC: code delivered as `transfer/cluster_update.tar.gz`
+  (md5 32e9f415..., downloaded by Omar in a browser, `scp -O` to ~/, extracted over ~/OMAR; old
+  omar_pfem backed up to ~/omar_pfem_backup_1123). Working bsub form: `-gpu
+  "num=1:mode=exclusive_process" -q BatchGPU -R "span[hosts=1] rusage[mem=<MB>]"` ("16G" in
+  rusage is rejected). Output: ~/OMAR/Practical_Examples/iga_b3_cyl.3280560.out/.err.
