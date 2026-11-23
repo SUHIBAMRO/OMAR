@@ -1,0 +1,129 @@
+{
+ "written": "2026-11-23T20:07:47.267233+00:00",
+ "purpose": "test the intensity-aware remedy (the lesson of round K) on a problem it was not designed on",
+ "frozen_files_sha256": {
+  "ushape.py": "6f0c08089b6822994b32bc4b897edb230c5b293f32704a73ae8ea3d589086f6a",
+  "remedy_intensity.py": "0424e6906d7e8020d2fc2e4319d889b3328d3e3092260593b0b5cfc3d38ce95d",
+  "remedy.py": "bc39ddca525060fec10543960e098c34ae4cb4cb941928373e4554f6e12b02a5",
+  "gates.py": "232cab27ff8eed05dc62e481e2e2858e79f82fc9811a7f9f108b6909c8b03f95",
+  "trees.py": "2470e173544f15cdd74ca05e7874e4e459f87bf6730d023991fe684617b88ed3",
+  "independent_p2.py": "8911440bb4d1f1f28794854550e5047abdc59efd7f23c247a1929859111ce309"
+ },
+ "corner_analysis": [
+  {
+   "x": 0,
+   "y": 0,
+   "angle_deg": 90.0,
+   "edges": [
+    "clamped",
+    "free"
+   ],
+   "exponents": [
+    0.7111729329714656
+   ],
+   "rate_limiting": [
+    0.7111729329714656
+   ]
+  },
+  {
+   "x": 2,
+   "y": 1,
+   "angle_deg": 270.0,
+   "edges": [
+    "free",
+    "free"
+   ],
+   "exponents": [
+    0.544483736782464,
+    0.9085291898460989,
+    1.0
+   ],
+   "rate_limiting": [
+    0.544483736782464,
+    0.9085291898460989
+   ]
+  },
+  {
+   "x": 1,
+   "y": 1,
+   "angle_deg": 270.0,
+   "edges": [
+    "free",
+    "free"
+   ],
+   "exponents": [
+    0.544483736782464,
+    0.9085291898460989,
+    1.0
+   ],
+   "rate_limiting": [
+    0.544483736782464,
+    0.9085291898460989
+   ]
+  },
+  {
+   "x": 0,
+   "y": 2,
+   "angle_deg": 90.0,
+   "edges": [
+    "free",
+    "clamped"
+   ],
+   "exponents": [
+    0.7111729329714656
+   ],
+   "rate_limiting": [
+    0.7111729329714656
+   ]
+  }
+ ],
+ "rule_constants": {
+  "share_min": 0.1,
+  "rho": 0.25,
+  "indicator": "|E_c(64) - E_c(32)| of the uniform family"
+ },
+ "fixed_plans": {
+  "uniform": {
+   "x": {},
+   "y": {}
+  },
+  "strongest": {
+   "x": {
+    "1": 3.7,
+    "2": 3.7
+   },
+   "y": {
+    "1": 3.7
+   }
+  },
+  "all": {
+   "x": {
+    "0": 3.7,
+    "1": 3.7,
+    "2": 3.7
+   },
+   "y": {
+    "0": 3.7,
+    "1": 3.7,
+    "2": 3.7
+   }
+  }
+ },
+ "levels": [
+  2,
+  4,
+  8,
+  16,
+  32,
+  64
+ ],
+ "check": "five-level convergence check (qoi_convergence_multilevel) with the class tolerances of trees.class_params, order window 0.5-5, on each variant",
+ "predictions": {
+  "P0 plan": "the plan grades the left re-entrant corner (1, 1), where the bending moment is larger than at (2, 1) (LOW-MEDIUM)",
+  "P1 smallest U": "the energy's five-level U at n = 64 is smallest for the intensity variant among strongest, all and intensity (MEDIUM)",
+  "P2 order": "the intensity variant's energy order is at least 2.5 (MEDIUM)",
+  "P3 consistency": "its energy limit lies inside the uniform family's interval (MEDIUM-HIGH)",
+  "P4 cross-check": "the P2 discretization on the intensity plan cross-checks the energy (MEDIUM)",
+  "P5 gain": "its energy U is at least 10 times smaller than the uniform family's at the same n (LOW-MEDIUM)"
+ }
+}
