@@ -246,6 +246,12 @@ DEFAULT_SPECS = {
                        material="linear_elastic", loading="edge_traction",
                        regularity="crack", element="Q9",
                        reference="mesh_refinement_family", qois=None),
+    # thick-walled cylinder, 3D Q20: held-out, spec committed
+    # (cylinder3d_preregistration.json) before any loaded solve
+    "thick_cylinder_3d": dict(name="Thick-walled cylinder (3D)", geometry="thick_cylinder_3d",
+                              dim=3, material="neo_hookean", loading="prescribed_displacement",
+                              regularity="smooth", element="Q20",
+                              reference="mesh_refinement_family", qois=None),
     "bushing_groove": dict(name="B3 groove", geometry="bushing_groove", dim=3,
                            material="neo_hookean", loading="prescribed_rotation",
                            regularity="stress_concentration", element="Q20",

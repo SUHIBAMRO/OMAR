@@ -1,0 +1,131 @@
+{
+ "written": "2026-11-23T00:37:02.621836+00:00",
+ "purpose": "first held-out 3D problem; same element (Q20, reduced rule), material (nu = 0.45) and curved iso-parametric boundaries as B3, but with an exact solution, so the certified uncertainty can be compared with the TRUE error",
+ "spec": {
+  "name": "Thick-walled cylinder (3D)",
+  "geometry": "thick_cylinder_3d",
+  "dim": 3,
+  "material": "neo_hookean",
+  "loading": "prescribed_displacement",
+  "regularity": "smooth",
+  "element": "Q20",
+  "reference": "mesh_refinement_family",
+  "qois": [
+   "strain_energy",
+   "reaction_inner_radial",
+   "u_outer_radial",
+   "gk_avg_hoop",
+   "disc_avg_hoop",
+   "peak_hoop"
+  ]
+ },
+ "adapter_description": "Thick-walled cylinder, quarter model in 3D: inner radius 1, outer radius 2, height 0.5, theta in [0, 90 deg]. Compressible neo-Hookean, E = 1000, nu = 0.45 (the B3 material). Inner surface: prescribed displacement u = 0.1 (x, y, 0); outer surface free; symmetry planes y = 0 and x = 0; rollers u_z = 0 on z = 0 and z = 0.5. 20-node hexahedra (torch-fem Hexa2, its default reduced rule, as B3) with every node on the exact geometry; levels (n_r, n_theta, n_z) = k (2, 4, 1), k = 1, 2, 3, 4, 6, 8 (h = 1/k); strategies at k = 4: radial grading toward the inner surface, exponent 1.5 and 2.0. QoIs: strain_energy; reaction_inner_radial = |sum of inner-node reactions . e_r|; u_outer_radial = u_x at (2, 0, 0); gk_avg_hoop = hoop Cauchy stress averaged with exp(-(d/0.2)^2), d the distance to (1, 0, 0.25); disc_avg_hoop = its mean over the Gauss points with d < 0.3; peak_hoop = max hoop stress over all Gauss points.",
+ "frozen_files_sha256": {
+  "gates.py": "232cab27ff8eed05dc62e481e2e2858e79f82fc9811a7f9f108b6909c8b03f95",
+  "trees.py": "2470e173544f15cdd74ca05e7874e4e459f87bf6730d023991fe684617b88ed3",
+  "orchestrate.py": "3c2f8fc9fda0cd4f8335853a4c12e544566f7679c1316d127b5edebeaf36c45a",
+  "crosscheck.py": "2c43ef109701ba27c0e5494287588eaf299619b2604b0d8cbebab7fadda6e354"
+ },
+ "posthoc_switches": {
+  "VERIF_POSTHOC_SINGULAR": "off (no singular feature here)"
+ },
+ "rule_predictions": {
+  "strain_energy": {
+   "predicted": "PASS",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel"
+   ],
+   "rules": [
+    "R2",
+    "R5"
+   ],
+   "role": "candidate"
+  },
+  "reaction_inner_radial": {
+   "predicted": "PASS",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel"
+   ],
+   "rules": [
+    "R2",
+    "R5"
+   ],
+   "role": "candidate"
+  },
+  "u_outer_radial": {
+   "predicted": "PASS",
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel"
+   ],
+   "rules": [
+    "R2",
+    "R5"
+   ],
+   "role": "candidate"
+  },
+  "gk_avg_hoop": {
+   "predicted": null,
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel"
+   ],
+   "rules": [
+    "R2"
+   ],
+   "role": "candidate"
+  },
+  "disc_avg_hoop": {
+   "predicted": null,
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel"
+   ],
+   "rules": [
+    "R2"
+   ],
+   "role": "candidate"
+  },
+  "peak_hoop": {
+   "predicted": null,
+   "required": [
+    "qoi_convergence",
+    "qoi_convergence_multilevel"
+   ],
+   "rules": [
+    "R2"
+   ],
+   "role": "candidate"
+  }
+ },
+ "exact_for_scoring_only": {
+  "rho_prime_at_A": 0.9128900504841945,
+  "strain_energy": 1.9365388447555172,
+  "reaction_inner_radial": 38.29967037996284,
+  "u_outer_radial": 0.055283294115949566,
+  "gk_avg_hoop": 72.71213607187988,
+  "disc_avg_hoop": 72.39426346024894,
+  "peak_hoop": 85.00102695073399,
+  "hoop_at_B": 34.266050185846204,
+  "radial_stress_at_B": 3.059579781278624e-13,
+  "note": "peak_hoop = hoop Cauchy stress at r = A (the maximum, hoop stress decreases with r); radial_stress_at_B should be ~0 (traction-free)"
+ },
+ "scoring_tests": {
+  "T1 rule predictions": "the unchanged rules predict PASS for strain_energy, reaction_inner_radial, u_outer_radial and nothing for the three stress quantities; hits counted as before",
+  "T2 coverage of the true error": "for every quantity the agent passes with RATE evidence: |exact - certified limit| <= U_fine x scale (the agent's own uncertainty). Counted per quantity; no tolerance added",
+  "T3 finest-level error inside U": "secondary: |exact - finest value| compared with |certified limit - finest value| + U x scale",
+  "T4 final status": "crosscheck v2 has no independent discretization here, so every rate-certified quantity is single_family -> INCONCLUSIVE (final); T2 says whether that caution was needed"
+ },
+ "developer_expectations": {
+  "strain_energy": "PASS rate; fitted order 3-5; T2 holds",
+  "reaction_inner_radial": "PASS rate; T2 holds",
+  "u_outer_radial": "PASS rate; T2 holds",
+  "gk_avg_hoop": "PASS rate; T2 holds (smooth weight, smooth field); MEDIUM confidence",
+  "disc_avg_hoop": "PASS, band or rate (sharp region cut by elements: irregular convergence); if rate, T2 holds with LOW confidence",
+  "peak_hoop": "PASS rate with an order near 1 (Gauss points approach the inner wall at O(h)), limit below the exact surface value only by the fit error; T2 holds with LOW confidence",
+  "overall": "at least 5 of 6 quantities PASS; T2 holds for every rate-certified quantity. A T2 failure would show that one-family certification can miss the true error even on a smooth 3D problem with this element"
+ },
+ "rules_changed_for_this_problem": false
+}

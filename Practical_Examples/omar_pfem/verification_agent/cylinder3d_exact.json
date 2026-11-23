@@ -1,0 +1,12 @@
+{
+ "rho_prime_at_A": 0.9128900504841945,
+ "strain_energy": 1.9365388447555172,
+ "reaction_inner_radial": 38.29967037996284,
+ "u_outer_radial": 0.055283294115949566,
+ "gk_avg_hoop": 72.71213607187988,
+ "disc_avg_hoop": 72.39426346024894,
+ "peak_hoop": 85.00102695073399,
+ "hoop_at_B": 34.266050185846204,
+ "radial_stress_at_B": 3.059579781278624e-13,
+ "note": "peak_hoop = hoop Cauchy stress at r = A (the maximum, hoop stress decreases with r); radial_stress_at_B should be ~0 (traction-free)"
+}

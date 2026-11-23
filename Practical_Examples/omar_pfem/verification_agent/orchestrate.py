@@ -532,16 +532,60 @@ class B3Adapter:
         return {"min_detF": min(r.get("min_detF", float("nan")) for r in rows)}
 
 
+class Cylinder3DAdapter:
+    """HELD-OUT 3D benchmark (cylinder3d.py): thick-walled cylinder, Q20 like B3;
+    spec, description, predictions and criteria committed before any loaded solve
+    (cylinder3d_preregistration.json); rules unchanged; the exact solution is not
+    available to the agent."""
+    geometry = "thick_cylinder_3d"
+    description = (
+        "Thick-walled cylinder, quarter model in 3D: inner radius 1, outer radius 2, height "
+        "0.5, theta in [0, 90 deg]. Compressible neo-Hookean, E = 1000, nu = 0.45 (the B3 "
+        "material). Inner surface: prescribed displacement u = 0.1 (x, y, 0); outer surface "
+        "free; symmetry planes y = 0 and x = 0; rollers u_z = 0 on z = 0 and z = 0.5. 20-node "
+        "hexahedra (torch-fem Hexa2, its default reduced rule, as B3) with every node on the "
+        "exact geometry; levels (n_r, n_theta, n_z) = k (2, 4, 1), k = 1, 2, 3, 4, 6, 8 "
+        "(h = 1/k); strategies at k = 4: radial grading toward the inner surface, exponent "
+        "1.5 and 2.0. QoIs: strain_energy; reaction_inner_radial = |sum of inner-node "
+        "reactions . e_r|; u_outer_radial = u_x at (2, 0, 0); gk_avg_hoop = hoop Cauchy "
+        "stress averaged with exp(-(d/0.2)^2), d the distance to (1, 0, 0.25); disc_avg_hoop "
+        "= its mean over the Gauss points with d < 0.3; peak_hoop = max hoop stress over all "
+        "Gauss points.")
+    qois = ("strain_energy", "reaction_inner_radial", "u_outer_radial", "gk_avg_hoop",
+            "disc_avg_hoop", "peak_hoop")
+
+    def __init__(self):
+        from omar_pfem.verification_agent.cylinder3d import CACHE, STRATEGY_LEVEL
+        rows = json.load(open(CACHE)) if os.path.exists(CACHE) else []
+        self.rows = sorted((r for r in rows if r["grading"] == 1.0), key=lambda r: r["k"])
+        self.hs = [r["h"] for r in self.rows]
+        self.strategy_rows = sorted((r for r in rows if r["k"] == STRATEGY_LEVEL),
+                                    key=lambda r: r["grading"])
+
+    @property
+    def family(self):
+        return [{"n_elem": r["n_elem"], "min_detF": r.get("min_detF")} for r in self.rows]
+
+    def series(self, qoi):
+        return self.hs, [r[qoi] for r in self.rows], None
+
+    def strategies(self, qoi):
+        if len(self.strategy_rows) < 2:
+            return None
+        return [r[qoi] for r in self.strategy_rows], None
+
+
 ADAPTERS = {"unit_square": B1Adapter, "quarter_ring": B2Adapter, "bushing_groove": B3Adapter,
             "cook_membrane": CookAdapter, "plate_hole": PlateHoleAdapter,
             "open_hole_lamina": LaminaAdapter, "l_shape": LShapeAdapter,
-            "edge_crack": CrackAdapter}
+            "edge_crack": CrackAdapter, "thick_cylinder_3d": Cylinder3DAdapter}
 ADAPTER_VOCAB = {
     "cook_membrane": (CookAdapter.description, CookAdapter.qois),
     "plate_hole": (PlateHoleAdapter.description, PlateHoleAdapter.qois),
     "open_hole_lamina": (LaminaAdapter.description, LaminaAdapter.qois),
     "l_shape": (LShapeAdapter.description, LShapeAdapter.qois),
     "edge_crack": (CrackAdapter.description, CrackAdapter.qois),
+    "thick_cylinder_3d": (Cylinder3DAdapter.description, Cylinder3DAdapter.qois),
     "unit_square": (B1Adapter.description, B1Adapter.qois),
     "quarter_ring": (B2Adapter.description, B2Adapter.qois),
     "bushing_groove": (B3Adapter.description,
