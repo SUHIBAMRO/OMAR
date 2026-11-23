@@ -26148,3 +26148,8 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   `advisor_feedback/2026-11-23_email_to_Rabczuk_reply_DRAFT_v8.txt` (attach v8; counts in
   points 5/6 corrected to v8: 38/27/11 and 83 -> GCI 60, extension 74, final 60, 0 of 17
   accepted; two sentences on Sections 31-33). The 2026-11-20 draft is superseded. Not sent.
+- 2026-11-23 Round M DONE: billed ablation 7 problems x 3 runs, USD 12.16, summary in
+  `verification_agent/ablation_round_M/SUMMARY.md`; change log updated. Found: robustness
+  checks turn a failed strategy solve (cylinder g = 2.0, NaN) into FAIL -> should be
+  INCONCLUSIVE (proposed, not changed, post hoc). Not in report v8.
+  Spline rr/tt L4 still running locally (check-in scheduled 2026-11-24 00:16 UTC).

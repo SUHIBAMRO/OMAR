@@ -338,3 +338,16 @@ Pre-registered before any loaded solve: commit 4fd091f. No billed run, no cluste
 ## Limitation changed
 - The remedy now uses intensities, but one held-out problem and one threshold; trading the grading of
   each corner against its share (instead of a fixed 10% threshold) is the next step.
+
+## Round M (2026-11-23): billed LLM-vs-rules ablation on 7 more problems (approved)
+
+- 21 runs, USD 12.16; per-problem results and table in
+  `Practical_Examples/omar_pfem/verification_agent/ablation_round_M/` (SUMMARY.md).
+- Pattern of B1-B3 confirmed: specification recovered (18/21), 1-3 false alarms per run;
+  the LLM caught the block failure the rules miss (3/3).
+- New limitation found: strategy_robustness / anchored_robustness turn a FAILED SOLVE in one
+  strategy (cylinder grading 2.0: inverted elements, NaN energy) into FAIL for every quantity.
+  It should be INCONCLUSIVE. Not changed (would be post hoc); proposed for the next rule revision.
+- Scoring script limitation: a degenerate run (no quantities chosen; crack run 2) is counted
+  as 0 misses / 0 false alarms; excluded by hand in SUMMARY.md.
+- Not yet in the technical report (v8 is what the approved email attaches).

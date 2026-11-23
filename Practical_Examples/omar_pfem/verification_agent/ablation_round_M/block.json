@@ -1,0 +1,166 @@
+{
+ "backend": "claude-cli",
+ "repeats": 3,
+ "problems": {
+  "block": {
+   "rule_only": {
+    "missed": [
+     "root_gk_avg_von_mises"
+    ],
+    "false_alarm": [],
+    "qois": [
+     "strain_energy",
+     "w_tip",
+     "mid_gk_avg_sxx",
+     "root_gk_avg_von_mises",
+     "peak_von_mises"
+    ]
+   },
+   "runs": [
+    {
+     "error": null,
+     "wall_s": 153.00127172470093,
+     "llm_calls": 5,
+     "llm_cost_usd": 0.5942382,
+     "spec_match": {
+      "geometry": true,
+      "regularity": true,
+      "element": true,
+      "reference": true
+     },
+     "spec_errors": 0,
+     "checks_added_by_rules": 2,
+     "tolerances_replaced": 18,
+     "qois_evaluated": [
+      "mid_gk_avg_sxx",
+      "peak_von_mises",
+      "root_gk_avg_von_mises",
+      "strain_energy",
+      "w_tip"
+     ],
+     "qois_not_in_rule_list": [],
+     "rule_qois_not_chosen": [],
+     "verdict_agreement": 1.0,
+     "verdict_disagreements": [],
+     "llm_missed": [],
+     "llm_false_alarm": [
+      "strain_energy"
+     ],
+     "advisor_flags": 0,
+     "llm_missed_n": 0,
+     "llm_false_alarm_n": 1
+    },
+    {
+     "error": null,
+     "wall_s": 163.13192582130432,
+     "llm_calls": 5,
+     "llm_cost_usd": 0.5328535999999999,
+     "spec_match": {
+      "geometry": true,
+      "regularity": true,
+      "element": true,
+      "reference": true
+     },
+     "spec_errors": 0,
+     "checks_added_by_rules": 0,
+     "tolerances_replaced": 18,
+     "qois_evaluated": [
+      "mid_gk_avg_sxx",
+      "peak_von_mises",
+      "root_gk_avg_von_mises",
+      "strain_energy",
+      "w_tip"
+     ],
+     "qois_not_in_rule_list": [],
+     "rule_qois_not_chosen": [],
+     "verdict_agreement": 1.0,
+     "verdict_disagreements": [],
+     "llm_missed": [],
+     "llm_false_alarm": [
+      "strain_energy",
+      "w_tip"
+     ],
+     "advisor_flags": 0,
+     "llm_missed_n": 0,
+     "llm_false_alarm_n": 2
+    },
+    {
+     "error": null,
+     "wall_s": 155.94449853897095,
+     "llm_calls": 5,
+     "llm_cost_usd": 0.5202696,
+     "spec_match": {
+      "geometry": true,
+      "regularity": true,
+      "element": true,
+      "reference": true
+     },
+     "spec_errors": 0,
+     "checks_added_by_rules": 0,
+     "tolerances_replaced": 16,
+     "qois_evaluated": [
+      "mid_gk_avg_sxx",
+      "peak_von_mises",
+      "root_gk_avg_von_mises",
+      "strain_energy",
+      "w_tip"
+     ],
+     "qois_not_in_rule_list": [],
+     "rule_qois_not_chosen": [],
+     "verdict_agreement": 1.0,
+     "verdict_disagreements": [],
+     "llm_missed": [],
+     "llm_false_alarm": [
+      "strain_energy",
+      "w_tip"
+     ],
+     "advisor_flags": 0,
+     "llm_missed_n": 0,
+     "llm_false_alarm_n": 2
+    }
+   ],
+   "summary": {
+    "runs": 3,
+    "failed_runs": 0,
+    "spec_fully_correct": 3,
+    "verdict_agreement": {
+     "mean": 1.0,
+     "sd": 0.0,
+     "min": 1.0,
+     "max": 1.0
+    },
+    "checks_added_by_rules": {
+     "mean": 0.6666666666666666,
+     "sd": 1.1547005383792515,
+     "min": 0,
+     "max": 2
+    },
+    "tolerances_replaced": {
+     "mean": 17.333333333333332,
+     "sd": 1.1547005383792515,
+     "min": 16,
+     "max": 18
+    },
+    "llm_missed_count": {
+     "mean": 0,
+     "sd": 0.0,
+     "min": 0,
+     "max": 0
+    },
+    "llm_false_alarm_count": {
+     "mean": 1.6666666666666667,
+     "sd": 0.5773502691896257,
+     "min": 1,
+     "max": 2
+    },
+    "advisor_flags": {
+     "mean": 0,
+     "sd": 0.0,
+     "min": 0,
+     "max": 0
+    },
+    "cost_usd_total": 1.6473614
+   }
+  }
+ }
+}
