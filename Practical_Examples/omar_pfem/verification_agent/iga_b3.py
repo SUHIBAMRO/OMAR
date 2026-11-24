@@ -268,7 +268,14 @@ class Problem:
         a = (self.dNdX[s:e], self.w[s:e])
         return a + ((self.proj[s:e],) if self.proj is not None else ())
 
-    def residual(self, u, chunk=4000):
+    def _chunk(self, base, power):
+        # sized for p = 2 (27 functions per element); higher degrees scale it down so the
+        # batched element derivatives fit in memory (p = 2 unchanged: 4000 and 600)
+        nl = (self.p + 1) ** 3
+        return max(10, int(base * (27 / nl) ** power))
+
+    def residual(self, u, chunk=None):
+        chunk = chunk or self._chunk(4000, 1)
         R = np.zeros(self.ndof)
         ue = self._ue(u)
         for s in range(0, self.ne, chunk):
@@ -276,7 +283,8 @@ class Problem:
             np.add.at(R, self.dofs[s:s + chunk].ravel(), gg.reshape(-1).numpy())
         return R
 
-    def tangent(self, u, chunk=600):
+    def tangent(self, u, chunk=None):
+        chunk = chunk or self._chunk(600, 2)
         ue = self._ue(u)
         K = None
         nd = self.dofs.shape[1]
