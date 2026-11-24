@@ -18,5 +18,10 @@
   "P4 remedy": "the remedy loop is triggered and the graded energy U is at least 10 times below the uniform one (MEDIUM)",
   "P5 peaks": "the peak von Mises is certified on neither ladder (HIGH)",
   "P6 plan": "the intensity plan grades both re-entrant corners (1,1) and (2,1) (LOW-MEDIUM: the load is symmetric, so their intensities are equal)"
+ },
+ "amendment": {
+  "written": "2026-11-24T09:10:58.241049+00:00",
+  "why": "the first graded solve crashed (scikit-fem inverse map: Newton did not reach TOL = 1e-12 on tiny graded elements); graded solves now use the size-scaled tolerance of rounds K/L (remedy_preregister._relaxed_invF). Uniform solves are unchanged and must be reproduced to 1e-12; no criterion or prediction changes. At this point the uniform Q2, strategy and P2 ladders existed; no graded result and no score did.",
+  "generic2d_sha256": "b6ebf7a1ec4c44cabb1a1c708a0feeca5a3d67689e2cf56748fbb4afa7636ad5"
  }
 }

@@ -42,10 +42,40 @@ def main():
     print(json.dumps(pre["predictions"], indent=1))
 
 
+def _check_uniform_reproduced():
+    from omar_pfem.verification_agent.generic2d import Problem, RUNS
+    cache = json.load(open(os.path.join(RUNS, "t_bracket", "ladders.json")))
+    prob = Problem(json.load(open(DESC)))
+    for key, el in (("Q2 uniform", "Q2"), ("P2 uniform", "P2")):
+        for row in cache.get(key, []):
+            if row["n"] <= 16:
+                new = prob.solve(row["n"], None, el)
+                assert abs(new["strain_energy"] / row["strain_energy"] - 1) < 1e-12, key
+
+
+def amend():
+    pre = json.load(open(OUT))
+    pre["amendment"] = {
+        "written": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "why": "the first graded solve crashed (scikit-fem inverse map: Newton did not reach "
+               "TOL = 1e-12 on tiny graded elements); graded solves now use the size-scaled "
+               "tolerance of rounds K/L (remedy_preregister._relaxed_invF). Uniform solves are "
+               "unchanged and must be reproduced to 1e-12; no criterion or prediction changes. "
+               "At this point the uniform Q2, strategy and P2 ladders existed; no graded "
+               "result and no score did.",
+        "generic2d_sha256": _sha("generic2d.py")}
+    json.dump(pre, open(OUT, "w"), indent=1)
+
+
 def run_and_score():
     from omar_pfem.verification_agent.generic2d import run
     pre = json.load(open(OUT))
     changed = [f for f, h in pre["frozen_files_sha256"].items() if _sha(f) != h]
+    am = pre.get("amendment")
+    if am and "generic2d.py" in changed and _sha("generic2d.py") == am["generic2d_sha256"]:
+        _check_uniform_reproduced()
+        changed.remove("generic2d.py")
+        print("note: generic2d.py amended (graded solves only); uniform levels reproduced")
     if changed:
         raise SystemExit(f"frozen files changed since pre-registration: {changed}")
     res = run(json.load(open(DESC)))
@@ -73,4 +103,9 @@ if __name__ == "__main__":
     import sys
     import warnings
     warnings.filterwarnings("ignore")
-    run_and_score() if "--run" in sys.argv else main()
+    if "--amend" in sys.argv:
+        amend()
+    elif "--run" in sys.argv:
+        run_and_score()
+    else:
+        main()

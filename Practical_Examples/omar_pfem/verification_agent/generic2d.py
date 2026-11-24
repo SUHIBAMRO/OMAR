@@ -136,8 +136,18 @@ class Problem:
         return fem.MeshQuad(np.array([X.ravel()[used], Y.ravel()[used]]), remap[t])
 
     def solve(self, n, plan=None, element="Q2"):
-        import pypardiso
         plan = plan or {"x": {}, "y": {}}
+        if plan["x"] or plan["y"]:
+            # graded meshes: scikit-fem's inverse map needs a size-scaled tolerance on tiny
+            # elements (the fix of rounds K/L, remedy_preregister._relaxed_invF; amendment
+            # recorded in generic2d_preregistration.json)
+            from omar_pfem.verification_agent.remedy_preregister import _relaxed_invF
+            with _relaxed_invF():
+                return self._solve(n, plan, element)
+        return self._solve(n, plan, element)
+
+    def _solve(self, n, plan, element):
+        import pypardiso
         t0 = time.time()
         mq = self.mesh(n, plan)
         if element == "Q2":
