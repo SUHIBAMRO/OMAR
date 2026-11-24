@@ -26249,3 +26249,8 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   Plan: corrections (double Cauchy conversion etc., already in paper/main.tex) go into the revision
   when the decision arrives, unless Professor Rabczuk prefers informing the editor now (asked in the
   round O reply draft, placeholder filled).
+- 2026-11-25 00:37 (cluster time): groove_l6 SUBMITTED by Omar as LSF job 3297326 (BatchGPU, 64000 MB,
+  -W 18:00; md5 of the bundle verified 7c2711606c28383988c0861189ee4b49). Expected ~12 h
+  (P1 then disp). When done: Omar pastes `md5sum` + `cat` of
+  ~/OMAR/Practical_Examples/omar_pfem/verification_agent/iga_b3_l6_result.json; then
+  `python -m omar_pfem.verification_agent.groove_experiment score` (frozen prediction sha a909b1f9bd88).
