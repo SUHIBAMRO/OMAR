@@ -917,6 +917,7 @@ def add_f_round(add, h1, h2, h3):
     add_l_round(add, h1, h2, h3)
     add_m_round(add, h1, h2, h3)
     add_n_round(add, h1, h2, h3)
+    add_o_round(add, h1, h2, h3)
     m = lambda: json.load(open(os.path.join(HERE, "lamina_mms.json")))["rows"]
     add("23", "lamina MMS L2 rate", 3.00, h2, lambda: np.log2(m()[-2]["L2_rel"] / m()[-1]["L2_rel"]))
     add("23", "lamina MMS H1 rate", 2.00, h2, lambda: np.log2(m()[-2]["H1_semi_rel"] / m()[-1]["H1_semi_rel"]))
@@ -1648,6 +1649,89 @@ def add_n_round(add, h1, h2, h3):
     add("35", "rr/tt job reproduces stored levels", 1, 0, lambda: int(all(
         abs(c()[k]["gk2trunc_sigma_xx_avg"] / d()[k]["gk2trunc_sigma_xx_avg"] - 1) < 1e-6
         for k in c() if k in d())))
+
+
+def add_o_round(add, h1, h2, h3):
+    """Section 36 (24 November, round N): exact-solution coverage, the generic 2D pipeline,
+    finite strain, the post hoc finest-four variant and the LLM vote."""
+    W = lambda: _j("wedge_result.json")["summary"]
+    add("36", "wedge problems", 32, 0, lambda: len(_j("wedge_preregistration.json")["cases"]))
+    add("36", "wedge quantities", 160, 0, lambda: W()["quantities"])
+    add("36", "wedge verifiable", 128, 0, lambda: W()["verifiable"])
+    add("36", "wedge framework certified", 82, 0, lambda: W()["framework_certified"])
+    add("36", "wedge framework covered", 81, 0, lambda: W()["framework_covered"])
+    add("36", "wedge framework coverage %", 98.8, h1, lambda: 100 * W()["framework_coverage"])
+    add("36", "wedge framework Wilson low %", 93.4, h1, lambda: 100 * W()["framework_coverage_wilson95"][0])
+    add("36", "wedge framework median effectivity", 0.10, h2, lambda: W()["framework_effectivity_median"])
+    add("36", "wedge framework max effectivity", 1.24, h2, lambda: W()["framework_effectivity_max"])
+    add("36", "wedge GCI certified", 120, 0, lambda: W()["gci_certified"])
+    add("36", "wedge GCI covered", 118, 0, lambda: W()["gci_covered"])
+    add("36", "wedge GCI worst effectivity", 10.3, h1, lambda: max(
+        r["gci"]["effectivity"] for r in _j("wedge_result.json")["rows"] if "gci" in r and r["verifiable"]))
+    add("36", "wedge peaks certified", 0, 0,
+        lambda: W()["peaks_certified_framework"] + W()["peaks_certified_gci"])
+    add("36", "wedge predictions met", 5, 0, lambda: sum(_j("wedge_result.json")["predictions_met"].values()))
+    add("36", "wedge energy two ways max rel diff below 1e-12", 1, 0, lambda: int(max(
+        v["exact"]["energy_two_ways_rel"] for v in _j("wedge_exact_values.json").values()) < 1e-12))
+    T = lambda: _j("generic2d_runs/t_bracket/result.json")
+    add("36", "T-bracket predictions met", 6, 0, lambda: sum(T()["predictions_met"].values()))
+    add("36", "T-bracket verifiable", 7, 0, lambda: T()["summary"]["verifiable"])
+    add("36", "T-bracket uniform certified", 4, 0, lambda: T()["summary"]["uniform"]["certified_rate"])
+    add("36", "T-bracket graded certified", 5, 0, lambda: T()["summary"]["graded"]["certified_rate"])
+    add("36", "T-bracket graded cross-checked", 5, 0, lambda: T()["summary"]["graded"]["cross_checked"])
+    for q, v in (("strain_energy", 28), ("v_left_tip", 18.8), ("u_left_top", 10.9),
+                 ("corner1_gk_avg_von_mises", 3.6)):
+        add("36", f"T-bracket U gain {q}", v, h1 if v < 20 else 0.5,
+            lambda q=q: T()["summary"]["U_gain_graded_vs_uniform"][q])
+    add("36", "T-bracket re-entrant exponent", 0.5445, 0.00005, lambda: T()["corners"][0]["exponents"][0])
+    add("36", "T-bracket grading exponent", 3.7, h1, lambda: T()["plan"]["plan"]["x"]["1"])
+    F = lambda: _j("finite_strain_result.json")["summary"]
+    add("36", "finite strain cases", 12, 0, lambda: len(_j("finite_strain_preregistration.json")["cases"]))
+    add("36", "finite strain quantities", 36, 0, lambda: F()["quantities"])
+    add("36", "finite strain framework certified", 21, 0, lambda: F()["framework_certified"])
+    add("36", "finite strain framework covered", 21, 0, lambda: F()["framework_covered"])
+    add("36", "finite strain Wilson low %", 84.5, h1, lambda: 100 * F()["framework_coverage_wilson95"][0])
+    add("36", "finite strain median effectivity", 0.27, h2, lambda: F()["framework_effectivity_median"])
+    add("36", "finite strain max effectivity", 0.35, h2, lambda: F()["framework_effectivity_max"])
+    add("36", "finite strain GCI certified", 36, 0, lambda: F()["gci_certified"])
+    add("36", "finite strain GCI covered", 32, 0, lambda: F()["gci_covered"])
+    add("36", "finite strain GCI worst effectivity", 1.49, h2, lambda: max(
+        r["gci"]["effectivity"] for r in _j("finite_strain_result.json")["rows"] if "gci" in r))
+    add("36", "finite strain predictions met", 3, 0,
+        lambda: sum(_j("finite_strain_result.json")["predictions_met"].values()))
+    add("36", "finite strain max Green strain %", 20, 0.5, lambda: 100 * max(
+        v["exact"]["max_green_strain"] for v in _j("finite_strain_exact_values.json").values()))
+    L = lambda: _j("finite_strain_exact_ladder.json")
+    add("36", "finite strain min J", 0.80, h2, lambda: min(r["min_J"] for r in L()))
+    add("36", "finite strain max Newton iterations", 4, 0, lambda: max(h[0] for r in L() for h in r["newton"]))
+    add("36", "finite strain FAIL verdicts", 7, 0, lambda: sum(
+        r["verdict"][0] == "FAIL" for r in _j("finite_strain_result.json")["rows"]))
+    P = lambda: _j("posthoc_window_result.json")
+    add("36", "post hoc finite strain certified", 36, 0, lambda: P()["finite_strain"]["variant"]["framework_certified"])
+    add("36", "post hoc finite strain covered", 36, 0, lambda: P()["finite_strain"]["variant"]["framework_covered"])
+    add("36", "post hoc finite strain max effectivity", 0.60, h2,
+        lambda: P()["finite_strain"]["variant"]["framework_effectivity_max"])
+    add("36", "post hoc wedge refits used", 0, 0, lambda: P()["wedge"]["refits_used"])
+    add("36", "post hoc wedge certified unchanged", 1, 0, lambda: int(
+        P()["wedge"]["variant"] == P()["wedge"]["pre_registered"]))
+    V = lambda: _j("llm_vote_result.json")
+    tot = lambda k, i: V()["totals_missed_false_alarm"][k][i]
+    add("36", "vote cost USD", 19.20, h2, lambda: V()["cost_usd"])
+    add("36", "vote problems scored", 9, 0, lambda: sum(r["runs_used"] > 0 for r in V()["per_problem"].values()))
+    add("36", "vote runs used", 26, 0, lambda: sum(r["runs_used"] for r in V()["per_problem"].values()))
+    add("36", "vote single false alarms", 21.7, h1, lambda: tot("single_mean", 1))
+    add("36", "vote majority false alarms", 20, 0, lambda: tot("majority", 1))
+    add("36", "vote unanimous false alarms", 15, 0, lambda: tot("unanimous", 1))
+    add("36", "vote rules false alarms", 4, 0, lambda: tot("rules", 1))
+    add("36", "vote single misses", 8.3, h1, lambda: tot("single_mean", 0))
+    add("36", "vote majority misses", 8, 0, lambda: tot("majority", 0))
+    add("36", "vote unanimous misses", 10, 0, lambda: tot("unanimous", 0))
+    add("36", "vote rules misses", 8, 0, lambda: tot("rules", 0))
+    add("36", "vote predictions met", 4, 0, lambda: sum(V()["predictions_met"].values()))
+    add("36", "vote B3 majority misses", 7, 0, lambda: V()["per_problem"]["b3"]["majority"][0])
+    add("36", "vote cylinder and block caught by majority, missed by rules", 2, 0, lambda: sum(
+        V()["per_problem"][p]["majority"][0] == 0 and V()["per_problem"][p]["rules"][0] == 1
+        for p in ("cylinder", "block")))
 
 
 if __name__ == "__main__":

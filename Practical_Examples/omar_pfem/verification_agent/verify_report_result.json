@@ -9224,6 +9224,486 @@
   "ok": true
  },
  {
+  "section": "36",
+  "claim": "wedge problems",
+  "printed": 32,
+  "recomputed": 32.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "wedge quantities",
+  "printed": 160,
+  "recomputed": 160.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "wedge verifiable",
+  "printed": 128,
+  "recomputed": 128.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "wedge framework certified",
+  "printed": 82,
+  "recomputed": 82.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "wedge framework covered",
+  "printed": 81,
+  "recomputed": 81.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "wedge framework coverage %",
+  "printed": 98.8,
+  "recomputed": 98.78048780487805,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "wedge framework Wilson low %",
+  "printed": 93.4,
+  "recomputed": 93.41050148733268,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "wedge framework median effectivity",
+  "printed": 0.1,
+  "recomputed": 0.10244681389543958,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "wedge framework max effectivity",
+  "printed": 1.24,
+  "recomputed": 1.2393053806517804,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "wedge GCI certified",
+  "printed": 120,
+  "recomputed": 120.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "wedge GCI covered",
+  "printed": 118,
+  "recomputed": 118.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "wedge GCI worst effectivity",
+  "printed": 10.3,
+  "recomputed": 10.325549516492032,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "wedge peaks certified",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "wedge predictions met",
+  "printed": 5,
+  "recomputed": 5.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "wedge energy two ways max rel diff below 1e-12",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "T-bracket predictions met",
+  "printed": 6,
+  "recomputed": 6.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "T-bracket verifiable",
+  "printed": 7,
+  "recomputed": 7.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "T-bracket uniform certified",
+  "printed": 4,
+  "recomputed": 4.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "T-bracket graded certified",
+  "printed": 5,
+  "recomputed": 5.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "T-bracket graded cross-checked",
+  "printed": 5,
+  "recomputed": 5.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "T-bracket U gain strain_energy",
+  "printed": 28,
+  "recomputed": 27.95276565225417,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "T-bracket U gain v_left_tip",
+  "printed": 18.8,
+  "recomputed": 18.798110078664894,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "T-bracket U gain u_left_top",
+  "printed": 10.9,
+  "recomputed": 10.919885643816865,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "T-bracket U gain corner1_gk_avg_von_mises",
+  "printed": 3.6,
+  "recomputed": 3.5571956912423595,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "T-bracket re-entrant exponent",
+  "printed": 0.5445,
+  "recomputed": 0.544483736782464,
+  "tolerance": 5e-05,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "T-bracket grading exponent",
+  "printed": 3.7,
+  "recomputed": 3.7,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "finite strain cases",
+  "printed": 12,
+  "recomputed": 12.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "finite strain quantities",
+  "printed": 36,
+  "recomputed": 36.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "finite strain framework certified",
+  "printed": 21,
+  "recomputed": 21.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "finite strain framework covered",
+  "printed": 21,
+  "recomputed": 21.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "finite strain Wilson low %",
+  "printed": 84.5,
+  "recomputed": 84.5356176735798,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "finite strain median effectivity",
+  "printed": 0.27,
+  "recomputed": 0.2684761862468366,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "finite strain max effectivity",
+  "printed": 0.35,
+  "recomputed": 0.3526726050234932,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "finite strain GCI certified",
+  "printed": 36,
+  "recomputed": 36.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "finite strain GCI covered",
+  "printed": 32,
+  "recomputed": 32.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "finite strain GCI worst effectivity",
+  "printed": 1.49,
+  "recomputed": 1.4905944044869797,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "finite strain predictions met",
+  "printed": 3,
+  "recomputed": 3.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "finite strain max Green strain %",
+  "printed": 20,
+  "recomputed": 20.003548507972504,
+  "tolerance": 0.5,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "finite strain min J",
+  "printed": 0.8,
+  "recomputed": 0.8025097643345537,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "finite strain max Newton iterations",
+  "printed": 4,
+  "recomputed": 4.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "finite strain FAIL verdicts",
+  "printed": 7,
+  "recomputed": 7.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "post hoc finite strain certified",
+  "printed": 36,
+  "recomputed": 36.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "post hoc finite strain covered",
+  "printed": 36,
+  "recomputed": 36.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "post hoc finite strain max effectivity",
+  "printed": 0.6,
+  "recomputed": 0.6015805627889933,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "post hoc wedge refits used",
+  "printed": 0,
+  "recomputed": 0.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "post hoc wedge certified unchanged",
+  "printed": 1,
+  "recomputed": 1.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "vote cost USD",
+  "printed": 19.2,
+  "recomputed": 19.203642600000002,
+  "tolerance": 0.005,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "vote problems scored",
+  "printed": 9,
+  "recomputed": 9.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "vote runs used",
+  "printed": 26,
+  "recomputed": 26.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "vote single false alarms",
+  "printed": 21.7,
+  "recomputed": 21.666666666666664,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "vote majority false alarms",
+  "printed": 20,
+  "recomputed": 20.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "vote unanimous false alarms",
+  "printed": 15,
+  "recomputed": 15.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "vote rules false alarms",
+  "printed": 4,
+  "recomputed": 4.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "vote single misses",
+  "printed": 8.3,
+  "recomputed": 8.333333333333334,
+  "tolerance": 2.04,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "vote majority misses",
+  "printed": 8,
+  "recomputed": 8.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "vote unanimous misses",
+  "printed": 10,
+  "recomputed": 10.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "vote rules misses",
+  "printed": 8,
+  "recomputed": 8.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "vote predictions met",
+  "printed": 4,
+  "recomputed": 4.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "vote B3 majority misses",
+  "printed": 7,
+  "recomputed": 7.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
+  "section": "36",
+  "claim": "vote cylinder and block caught by majority, missed by rules",
+  "printed": 2,
+  "recomputed": 2.0,
+  "tolerance": 0,
+  "ok": true
+ },
+ {
   "section": "23",
   "claim": "lamina MMS L2 rate",
   "printed": 3.0,

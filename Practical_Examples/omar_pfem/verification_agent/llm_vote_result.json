@@ -1,0 +1,485 @@
+{
+ "per_problem": {
+  "b1": {
+   "runs_used": 3,
+   "failed_by_rules": [
+    "peak_PK1_frob"
+   ],
+   "single": [
+    [
+     0,
+     2
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     0,
+     2
+    ]
+   ],
+   "single_mean": [
+    0.0,
+    2.0
+   ],
+   "majority": [
+    0,
+    2
+   ],
+   "unanimous": [
+    0,
+    2
+   ],
+   "rules": [
+    0,
+    0
+   ],
+   "majority_set": [
+    "interior_avg_PK1_frob",
+    "max_disp_mag",
+    "peak_PK1_frob"
+   ],
+   "unanimous_set": [
+    "interior_avg_PK1_frob",
+    "max_disp_mag",
+    "peak_PK1_frob"
+   ]
+  },
+  "b2": {
+   "runs_used": 3,
+   "failed_by_rules": [],
+   "single": [
+    [
+     0,
+     2
+    ],
+    [
+     0,
+     3
+    ],
+    [
+     0,
+     2
+    ]
+   ],
+   "single_mean": [
+    0.0,
+    2.3333333333333335
+   ],
+   "majority": [
+    0,
+    2
+   ],
+   "unanimous": [
+    0,
+    2
+   ],
+   "rules": [
+    0,
+    0
+   ],
+   "majority_set": [
+    "interior_avg_PK1_frob",
+    "peak_PK1_frob"
+   ],
+   "unanimous_set": [
+    "interior_avg_PK1_frob",
+    "peak_PK1_frob"
+   ]
+  },
+  "b3": {
+   "runs_used": 3,
+   "failed_by_rules": [
+    "cyl_rr_max",
+    "cyl_rz_avg",
+    "cyl_rz_max",
+    "cyl_tt_max",
+    "cyl_zz_max",
+    "gk2_sigma_frob_avg",
+    "sigma_frob_avg",
+    "sigma_xx_max",
+    "sigma_xz_avg",
+    "sigma_xz_max",
+    "sigma_yy_max",
+    "sigma_yz_max",
+    "sigma_zz_max",
+    "von_mises_avg",
+    "von_mises_max"
+   ],
+   "single": [
+    [
+     9,
+     6
+    ],
+    [
+     7,
+     4
+    ],
+    [
+     7,
+     5
+    ]
+   ],
+   "single_mean": [
+    7.666666666666667,
+    5.0
+   ],
+   "majority": [
+    7,
+    5
+   ],
+   "unanimous": [
+    9,
+    4
+   ],
+   "rules": [
+    5,
+    3
+   ],
+   "majority_set": [
+    "cyl_rr_avg",
+    "cyl_rr_max",
+    "cyl_rz_avg",
+    "cyl_rz_max",
+    "cyl_tt_avg",
+    "cyl_zz_avg",
+    "cyl_zz_max",
+    "gk2_pressure_avg",
+    "pressure_avg",
+    "sigma_frob_avg",
+    "sigma_xz_avg",
+    "von_mises_avg",
+    "von_mises_max"
+   ],
+   "unanimous_set": [
+    "cyl_rr_avg",
+    "cyl_rr_max",
+    "cyl_rz_avg",
+    "cyl_tt_avg",
+    "cyl_zz_avg",
+    "cyl_zz_max",
+    "pressure_avg",
+    "sigma_frob_avg",
+    "von_mises_avg",
+    "von_mises_max"
+   ]
+  },
+  "cook": {
+   "runs_used": 3,
+   "failed_by_rules": [
+    "peak_PK1_frob",
+    "strain_energy"
+   ],
+   "single": [
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "single_mean": [
+    0.6666666666666666,
+    1.6666666666666667
+   ],
+   "majority": [
+    1,
+    1
+   ],
+   "unanimous": [
+    1,
+    1
+   ],
+   "rules": [
+    1,
+    0
+   ],
+   "majority_set": [
+    "interior_avg_PK1_frob",
+    "peak_PK1_frob"
+   ],
+   "unanimous_set": [
+    "interior_avg_PK1_frob",
+    "peak_PK1_frob"
+   ]
+  },
+  "plate": {
+   "runs_used": 3,
+   "failed_by_rules": [
+    "peak_von_mises"
+   ],
+   "single": [
+    [
+     0,
+     2
+    ],
+    [
+     0,
+     3
+    ],
+    [
+     0,
+     2
+    ]
+   ],
+   "single_mean": [
+    0.0,
+    2.3333333333333335
+   ],
+   "majority": [
+    0,
+    2
+   ],
+   "unanimous": [
+    0,
+    0
+   ],
+   "rules": [
+    0,
+    1
+   ],
+   "majority_set": [
+    "hole_avg_sigma_xx",
+    "hole_peak_sigma_xx",
+    "peak_von_mises"
+   ],
+   "unanimous_set": [
+    "peak_von_mises"
+   ]
+  },
+  "lamina": {
+   "runs_used": 3,
+   "failed_by_rules": [],
+   "single": [
+    [
+     0,
+     5
+    ],
+    [
+     0,
+     3
+    ],
+    [
+     0,
+     3
+    ]
+   ],
+   "single_mean": [
+    0.0,
+    3.6666666666666665
+   ],
+   "majority": [
+    0,
+    4
+   ],
+   "unanimous": [
+    0,
+    2
+   ],
+   "rules": [
+    0,
+    0
+   ],
+   "majority_set": [
+    "hole_e22_avg",
+    "hole_gamma12_avg",
+    "peak_e22",
+    "u_tip"
+   ],
+   "unanimous_set": [
+    "hole_gamma12_avg",
+    "peak_e22"
+   ]
+  },
+  "lshape": {
+   "runs_used": 2,
+   "failed_by_rules": [
+    "peak_von_mises"
+   ],
+   "single": [
+    [
+     0,
+     2
+    ],
+    [
+     0,
+     2
+    ]
+   ],
+   "single_mean": [
+    0.0,
+    2.0
+   ],
+   "majority": [
+    0,
+    2
+   ],
+   "unanimous": [
+    0,
+    2
+   ],
+   "rules": [
+    0,
+    0
+   ],
+   "majority_set": [
+    "corner_disc_avg_von_mises",
+    "corner_gk_avg_von_mises",
+    "peak_von_mises"
+   ],
+   "unanimous_set": [
+    "corner_disc_avg_von_mises",
+    "corner_gk_avg_von_mises",
+    "peak_von_mises"
+   ]
+  },
+  "crack": {
+   "runs_used": 0,
+   "failed_by_rules": [
+    "peak_von_mises"
+   ],
+   "single": [],
+   "single_mean": [
+    null,
+    null
+   ],
+   "majority": [
+    1,
+    0
+   ],
+   "unanimous": [
+    1,
+    0
+   ],
+   "rules": [
+    0,
+    0
+   ],
+   "majority_set": [],
+   "unanimous_set": []
+  },
+  "cylinder": {
+   "runs_used": 3,
+   "failed_by_rules": [
+    "peak_hoop"
+   ],
+   "single": [
+    [
+     0,
+     2
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     1
+    ]
+   ],
+   "single_mean": [
+    0.0,
+    1.3333333333333333
+   ],
+   "majority": [
+    0,
+    1
+   ],
+   "unanimous": [
+    0,
+    1
+   ],
+   "rules": [
+    1,
+    0
+   ],
+   "majority_set": [
+    "disc_avg_hoop",
+    "peak_hoop"
+   ],
+   "unanimous_set": [
+    "disc_avg_hoop",
+    "peak_hoop"
+   ]
+  },
+  "block": {
+   "runs_used": 3,
+   "failed_by_rules": [
+    "peak_von_mises",
+    "root_gk_avg_von_mises"
+   ],
+   "single": [
+    [
+     0,
+     2
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     1
+    ]
+   ],
+   "single_mean": [
+    0.0,
+    1.3333333333333333
+   ],
+   "majority": [
+    0,
+    1
+   ],
+   "unanimous": [
+    0,
+    1
+   ],
+   "rules": [
+    1,
+    0
+   ],
+   "majority_set": [
+    "peak_von_mises",
+    "root_gk_avg_von_mises",
+    "strain_energy"
+   ],
+   "unanimous_set": [
+    "peak_von_mises",
+    "root_gk_avg_von_mises",
+    "strain_energy"
+   ]
+  }
+ },
+ "totals_missed_false_alarm": {
+  "single_mean": [
+   8.333333333333334,
+   21.666666666666664
+  ],
+  "majority": [
+   8,
+   20
+  ],
+  "unanimous": [
+   10,
+   15
+  ],
+  "rules": [
+   8,
+   4
+  ]
+ },
+ "cost_usd": 19.203642600000002,
+ "predictions_met": {
+  "V1 fewer false alarms": true,
+  "V2 no more misses": true,
+  "V3 still above rules": true,
+  "V4 unanimity": true
+ }
+}

@@ -26214,3 +26214,11 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   of 10 problems x 3 RUNNING (ablation_round_vote/). Finite-strain exact solutions:
   `finite_strain_exact.py` (12 manufactured neo-Hookean cases, 5%/20% strain), pre-registered,
   ladders RUNNING. Report section for round N not yet written.
+
+- 2026-11-24 round N DONE (report v11, Section 36, 90 pages; claims 1,215/1,215; text check 0
+  not found; CI green): wedge coverage 81/82 (GCI 118/120, worst 10.3 vs 1.24); generic 2D
+  pipeline + T-bracket 6/6; finite strain 21/21 (post hoc finest-four variant 36/36, wedge
+  unchanged); LLM vote USD 19.20, small effect (FA 21.7 -> 20 majority, 15 unanimous; rules 4);
+  job_factory, CI workflow, dashboard https://claude.ai/artifact/4YgnpJa9GcAWP5rSKYSXZt (not yet
+  opened by the user). p = 3 not feasible without faster tangent. Email draft still attaches
+  v10 (unchanged on purpose; switch to v11 only if the user asks). Nothing sent.

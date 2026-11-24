@@ -1,0 +1,203 @@
+{
+ "backend": "claude-cli",
+ "repeats": 3,
+ "problems": {
+  "cook": {
+   "rule_only": {
+    "missed": [
+     "strain_energy"
+    ],
+    "false_alarm": [],
+    "qois": [
+     "u_tip",
+     "v_tip",
+     "max_disp_mag",
+     "strain_energy",
+     "interior_avg_PK1_frob",
+     "interior_gk_PK1_frob",
+     "peak_PK1_frob"
+    ]
+   },
+   "runs": [
+    {
+     "error": null,
+     "wall_s": 234.08244633674622,
+     "llm_calls": 6,
+     "llm_cost_usd": 0.8208743999999999,
+     "spec_match": {
+      "geometry": true,
+      "regularity": true,
+      "element": true,
+      "reference": true
+     },
+     "spec_errors": 0,
+     "checks_added_by_rules": 4,
+     "tolerances_replaced": 25,
+     "qois_evaluated": [
+      "interior_avg_PK1_frob",
+      "interior_gk_PK1_frob",
+      "max_disp_mag",
+      "peak_PK1_frob",
+      "strain_energy",
+      "u_tip",
+      "v_tip"
+     ],
+     "qois_not_in_rule_list": [],
+     "rule_qois_not_chosen": [],
+     "verdict_agreement": 0.7142857142857143,
+     "verdict_disagreements": [
+      "max_disp_mag",
+      "u_tip"
+     ],
+     "llm_missed": [
+      "max_disp_mag"
+     ],
+     "llm_false_alarm": [
+      "interior_avg_PK1_frob"
+     ],
+     "llm_predicted_fail": [
+      "interior_avg_PK1_frob",
+      "peak_PK1_frob",
+      "strain_energy",
+      "u_tip"
+     ],
+     "advisor_flags": 0,
+     "llm_missed_n": 1,
+     "llm_false_alarm_n": 1
+    },
+    {
+     "error": null,
+     "wall_s": 245.76862406730652,
+     "llm_calls": 6,
+     "llm_cost_usd": 0.7908298,
+     "spec_match": {
+      "geometry": true,
+      "regularity": true,
+      "element": true,
+      "reference": true
+     },
+     "spec_errors": 0,
+     "checks_added_by_rules": 4,
+     "tolerances_replaced": 23,
+     "qois_evaluated": [
+      "interior_avg_PK1_frob",
+      "interior_gk_PK1_frob",
+      "max_disp_mag",
+      "peak_PK1_frob",
+      "strain_energy",
+      "u_tip",
+      "v_tip"
+     ],
+     "qois_not_in_rule_list": [],
+     "rule_qois_not_chosen": [],
+     "verdict_agreement": 1.0,
+     "verdict_disagreements": [],
+     "llm_missed": [
+      "strain_energy"
+     ],
+     "llm_false_alarm": [
+      "interior_avg_PK1_frob"
+     ],
+     "llm_predicted_fail": [
+      "interior_avg_PK1_frob",
+      "peak_PK1_frob"
+     ],
+     "advisor_flags": 0,
+     "llm_missed_n": 1,
+     "llm_false_alarm_n": 1
+    },
+    {
+     "error": null,
+     "wall_s": 257.35680055618286,
+     "llm_calls": 6,
+     "llm_cost_usd": 0.8611865999999999,
+     "spec_match": {
+      "geometry": true,
+      "regularity": true,
+      "element": true,
+      "reference": true
+     },
+     "spec_errors": 0,
+     "checks_added_by_rules": 8,
+     "tolerances_replaced": 20,
+     "qois_evaluated": [
+      "interior_avg_PK1_frob",
+      "interior_gk_PK1_frob",
+      "max_disp_mag",
+      "peak_PK1_frob",
+      "strain_energy",
+      "u_tip",
+      "v_tip"
+     ],
+     "qois_not_in_rule_list": [],
+     "rule_qois_not_chosen": [],
+     "verdict_agreement": 0.7142857142857143,
+     "verdict_disagreements": [
+      "max_disp_mag",
+      "u_tip"
+     ],
+     "llm_missed": [
+      "max_disp_mag",
+      "strain_energy",
+      "u_tip"
+     ],
+     "llm_false_alarm": [
+      "interior_avg_PK1_frob",
+      "v_tip"
+     ],
+     "llm_predicted_fail": [
+      "interior_avg_PK1_frob",
+      "peak_PK1_frob",
+      "v_tip"
+     ],
+     "advisor_flags": 1,
+     "llm_missed_n": 3,
+     "llm_false_alarm_n": 2
+    }
+   ],
+   "summary": {
+    "runs": 3,
+    "failed_runs": 0,
+    "degenerate_runs": 0,
+    "spec_fully_correct": 3,
+    "verdict_agreement": {
+     "mean": 0.8095238095238095,
+     "sd": 0.1649572197684645,
+     "min": 0.7142857142857143,
+     "max": 1.0
+    },
+    "checks_added_by_rules": {
+     "mean": 5.333333333333333,
+     "sd": 2.309401076758503,
+     "min": 4,
+     "max": 8
+    },
+    "tolerances_replaced": {
+     "mean": 22.666666666666668,
+     "sd": 2.516611478423583,
+     "min": 20,
+     "max": 25
+    },
+    "llm_missed_count": {
+     "mean": 1.6666666666666667,
+     "sd": 1.1547005383792515,
+     "min": 1,
+     "max": 3
+    },
+    "llm_false_alarm_count": {
+     "mean": 1.3333333333333333,
+     "sd": 0.5773502691896257,
+     "min": 1,
+     "max": 2
+    },
+    "advisor_flags": {
+     "mean": 0.3333333333333333,
+     "sd": 0.5773502691896257,
+     "min": 0,
+     "max": 1
+    },
+    "cost_usd_total": 2.4728908
+   }
+  }
+ }
+}

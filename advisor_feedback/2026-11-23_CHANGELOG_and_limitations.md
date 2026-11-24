@@ -390,3 +390,29 @@ Pre-registered before any loaded solve: commit 4fd091f. No billed run, no cluste
 - Claims 1,155/1,155; text check NOT FOUND 0; tests 79/79.
 - Email draft -> `2026-11-24_email_to_Rabczuk_reply_DRAFT_v10.txt`: factual corrections only
   (version 10; 25/13; 58; question 3 rewritten because the refinement it asked about has run).
+
+## 24 November, round N (report v11, Section 36)
+
+- **Wedge coverage (pre-registered, 32 exact Williams corner problems, 160 quantities, 128
+  verifiable):** framework certifies 82, covers 81 (98.8%, Wilson 93.4-99.8%), median
+  effectivity 0.10, worst 1.24; GCI certifies 120, covers 118, worst effectivity 10.3. No peak
+  certified. Predictions 5/6 (P3 "GCI misses >= 3" missed: 2).
+- **Generic 2D pipeline** (`generic2d.py`, JSON description -> verdicts): U-shape reproduced to
+  1e-12; T-bracket pre-registered 6/6; uniform 4/7, graded 5/7 certified and cross-checked;
+  U gains 28x energy, 18.8x tip, 10.9x, 3.6x. Amendment (before any graded result):
+  graded solves use the size-scaled inverse-map tolerance of rounds K/L.
+- **Finite strain** (12 manufactured neo-Hookean cases, up to 20% Green strain): framework 21/36
+  certified, 21/21 covered (Wilson from 84.5%), median eff. 0.27, worst 0.35; GCI 36 certified,
+  32 covered (worst 1.49). Predictions 3/4 (F2 liveness missed).
+- **POST HOC** (`posthoc_window.py`, not in the frozen framework): finest-four refit when the
+  five-level fit gives no rate. Finite strain 36/36 certified and covered (worst 0.60); 32
+  corner problems unchanged (no refit passes). Adoption needs a new pre-registered test.
+- **LLM vote (billed, USD 19.20):** 26 runs on 9 problems (usage limit killed crack x3 and one
+  lshape run; cylinder and block re-run after the reset). Missed/false alarms: single mean
+  8.3/21.7, majority 8/20, unanimous 10/15, rules 8/4. Predictions 4/4 but small effect.
+- **Automation:** `job_factory.py` (make/import with md5 + no-overwrite merge); GitHub workflow
+  (guard tests, claims check, text check) green after adding all third-party deps and a
+  matching CPU torch/torchvision pair; dashboard artifact (fixed data files).
+- **Not done:** p = 3 spline groove sequence (coarsest level > 14 min vs ~1 min at p = 2);
+  needs a faster tangent assembly before any cluster job.
+- Claims check 1,215/1,215; report text check 0 not found on v11 (90 pages).

@@ -1,0 +1,136 @@
+{
+ "backend": "claude-cli",
+ "repeats": 3,
+ "problems": {
+  "cylinder": {
+   "rule_only": {
+    "missed": [
+     "peak_hoop"
+    ],
+    "false_alarm": [],
+    "qois": [
+     "strain_energy",
+     "reaction_inner_radial",
+     "u_outer_radial",
+     "gk_avg_hoop",
+     "disc_avg_hoop",
+     "peak_hoop"
+    ]
+   },
+   "runs": [
+    {
+     "error": "RuntimeError: formalizer: claude CLI failed: ",
+     "wall_s": 1.5111868381500244,
+     "llm_calls": 0,
+     "llm_cost_usd": 0.0,
+     "spec_match": {
+      "geometry": false,
+      "regularity": false,
+      "element": false,
+      "reference": false
+     },
+     "spec_errors": 0,
+     "checks_added_by_rules": 0,
+     "tolerances_replaced": 0,
+     "qois_evaluated": [],
+     "qois_not_in_rule_list": [],
+     "rule_qois_not_chosen": [
+      "disc_avg_hoop",
+      "gk_avg_hoop",
+      "peak_hoop",
+      "reaction_inner_radial",
+      "strain_energy",
+      "u_outer_radial"
+     ],
+     "verdict_agreement": null,
+     "verdict_disagreements": [],
+     "llm_missed": null,
+     "llm_false_alarm": null,
+     "llm_predicted_fail": null,
+     "advisor_flags": 0,
+     "llm_missed_n": 0,
+     "llm_false_alarm_n": 0
+    },
+    {
+     "error": "RuntimeError: formalizer: claude CLI failed: ",
+     "wall_s": 1.5346219539642334,
+     "llm_calls": 0,
+     "llm_cost_usd": 0.0,
+     "spec_match": {
+      "geometry": false,
+      "regularity": false,
+      "element": false,
+      "reference": false
+     },
+     "spec_errors": 0,
+     "checks_added_by_rules": 0,
+     "tolerances_replaced": 0,
+     "qois_evaluated": [],
+     "qois_not_in_rule_list": [],
+     "rule_qois_not_chosen": [
+      "disc_avg_hoop",
+      "gk_avg_hoop",
+      "peak_hoop",
+      "reaction_inner_radial",
+      "strain_energy",
+      "u_outer_radial"
+     ],
+     "verdict_agreement": null,
+     "verdict_disagreements": [],
+     "llm_missed": null,
+     "llm_false_alarm": null,
+     "llm_predicted_fail": null,
+     "advisor_flags": 0,
+     "llm_missed_n": 0,
+     "llm_false_alarm_n": 0
+    },
+    {
+     "error": "RuntimeError: formalizer: claude CLI failed: ",
+     "wall_s": 1.4582924842834473,
+     "llm_calls": 0,
+     "llm_cost_usd": 0.0,
+     "spec_match": {
+      "geometry": false,
+      "regularity": false,
+      "element": false,
+      "reference": false
+     },
+     "spec_errors": 0,
+     "checks_added_by_rules": 0,
+     "tolerances_replaced": 0,
+     "qois_evaluated": [],
+     "qois_not_in_rule_list": [],
+     "rule_qois_not_chosen": [
+      "disc_avg_hoop",
+      "gk_avg_hoop",
+      "peak_hoop",
+      "reaction_inner_radial",
+      "strain_energy",
+      "u_outer_radial"
+     ],
+     "verdict_agreement": null,
+     "verdict_disagreements": [],
+     "llm_missed": null,
+     "llm_false_alarm": null,
+     "llm_predicted_fail": null,
+     "advisor_flags": 0,
+     "llm_missed_n": 0,
+     "llm_false_alarm_n": 0
+    }
+   ],
+   "summary": {
+    "runs": 3,
+    "failed_runs": 3,
+    "degenerate_runs": 0,
+    "spec_fully_correct": 0,
+    "verdict_agreement": null,
+    "checks_added_by_rules": null,
+    "tolerances_replaced": null,
+    "llm_missed_count": null,
+    "llm_false_alarm_count": null,
+    "advisor_flags": null,
+    "cost_usd_total": 0.0
+   }
+  }
+ }
+}
