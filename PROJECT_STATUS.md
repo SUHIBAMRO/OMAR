@@ -26190,3 +26190,27 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
 - 2026-11-24 small fixes: `ablation.summarise` now excludes degenerate runs (LLM chose no
   quantity) and reports `degenerate_runs`; report v10 re-exported with date 24 Nov and a
   formatting fix in Section 32's limitations list (no content change). Nothing else open.
+
+## 2026-11-24 Round N ("grow, automate, improve"): Omar chose all four packages
+
+- N1 DONE `wedge_exact.py` + `wedge_preregister.py`: 32 exact Williams corner solutions (FF 200-355,
+  CF 60-130, CC 200-315 deg; nu 0.3/0.45), P2 sector meshes, 160 quantities. Pre-registered (commit
+  f5fcdbe) before any ladder. Result `wedge_result.json`: framework certifies 82/128, covers 81
+  (98.8%, Wilson 93.4-99.8%), median effectivity 0.10, one miss (ff_355_nu45 far average, 1.24);
+  GCI certifies 120, covers 118 (98.3%), misses cf_90_nu45 / cf_110_nu45 corner averages (10.3, 1.63);
+  no peak certified. Predictions 5/6 (P3 "GCI misses >= 3" missed: 2).
+- N2 DONE `generic2d.py`: JSON description -> boundary/corners -> Q2+P2 ladders -> framework ->
+  cross-check -> intensity remedy. Reproduces ushape.py to 1e-12. Held-out T-bracket
+  (`problems2d/t_bracket.json`, pre-registered, one recorded amendment: graded solves use
+  _relaxed_invF): predictions 6/6; uniform 4/7 certified+cross-checked, graded 5/7; energy U 28x smaller.
+- N3: `job_factory.py` (job script + bundle + md5 + step-by-step md; import with md5 check and
+  no-overwrite merge, tested on the L5 data); CI `.github/workflows/verification.yml` (tests,
+  claims, PDF text gate; first runs failed on missing deps/history, fixed iteratively);
+  dashboard artifact https://claude.ai/artifact/4YgnpJa9GcAWP5rSKYSXZt (Data type; files
+  quantities.csv + coverage.csv; not yet opened/checked).
+- N4: p = 3 groove splines: iga_b3 chunking now scales with p (p = 2 reproduced to 1e-16) but
+  p = 3 level 1 took > 14 min (61 s at p = 2) -> NOT prepared as a cluster job (needs a faster
+  tangent first). LLM majority vote: pre-registered (`llm_vote_preregistration.json`), billed run
+  of 10 problems x 3 RUNNING (ablation_round_vote/). Finite-strain exact solutions:
+  `finite_strain_exact.py` (12 manufactured neo-Hookean cases, 5%/20% strain), pre-registered,
+  ladders RUNNING. Report section for round N not yet written.
