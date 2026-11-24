@@ -1,0 +1,267 @@
+{
+ "steps": [
+  {
+   "stage": "L",
+   "actor": "LLM",
+   "status": "done",
+   "detail": "card from section 30: S EPTEMBER 30, 2026; quotes found 100%",
+   "card": {
+    "pdf": "polivem_2609.35878.pdf",
+    "section_used": "section 30: S EPTEMBER 30, 2026",
+    "card": {
+     "title": "Perforated plate with a central circular hole under horizontal tension: k = 2 VEM on O-grid quadrilateral and clipped Voronoi meshes (hoop-stress concentration, strain energy, mean boundary displacement)",
+     "geometry": {
+      "value": "2D plate with a central circular hole of radius a. The outer boundaries of the computational domain are at 10a, so this is a finite domain and not the infinite Kirsch plate. The section does not state the exact outer shape (for example square vs rectangle), whether symmetry is used, or the thickness or plane-stress/plane-strain assumption. In the meshes the circular boundary is replaced by polygonal segments.",
+      "quote": "The outer boundaries of the computational domain are located at 10a, so"
+     },
+     "material": {
+      "value": "Not stated in this section. The constitutive model and its parameters (for example hyperelastic law, moduli, Poisson ratio) are not given here. The stress \u03c3h is reconstructed from the polynomial strain projection.",
+      "quote": "tensor reconstructed from the polynomial strain projection"
+     },
+     "boundary_conditions": {
+      "value": "Not specified in this section. The section only implies that Dirichlet constraints exist: the dof counts include the constrained dofs, and K is assembled before boundary conditions are applied. The section does not say which edges are fixed or traction-free, or whether symmetry conditions are used.",
+      "quote": "where uh is the discrete displacement field and K is the stiffness matrix before the boundary conditions are applied."
+     },
+     "loading": {
+      "value": "Horizontal tension with nominal applied stress \u03c30 on the loaded boundary (the boundary whose mean horizontal displacement is reported). The numerical value of \u03c30, whether it is a traction or an imposed displacement, and whether the analysis uses load steps are not stated.",
+      "quote": "is the location of the maximum tensile hoop stress in the classical infinite-plate solution under horizontal tension."
+     },
+     "discretisation": {
+      "value": "Virtual element method of order k = 2 on two mesh families, each with four levels h/a = 0.5, 0.25, 0.125, 0.0625. (i) Structured O-grid quadrilaterals: 216, 742, 2,756, 10,972 cells; 1,870, 6,206, 22,578, 88,830 vector dofs. (ii) Clipped Voronoi polygons with 4 to 9 vertices: 396, 1,585, 6,347, 25,393 cells; 4,854, 19,210, 76,594, 305,514 vector dofs. The dof counts include constrained dofs. The Voronoi levels are separately generated, non-nested realizations made with a fixed random seed, not successive refinements of one grid. In both families the hole is approximated by polygonal segments.",
+      "quote": "Table 7: Mesh sizes and vector degrees of freedom for the k = 2 perforated-plate calculations."
+     },
+     "reference": {
+      "type": "refinement_family",
+      "convergence_evidence": "none_stated",
+      "quote": "This value provides physical context but is not the convergence target for the present domain."
+     },
+     "qois": [
+      {
+       "name": "K_t,h^mid",
+       "kind": "pointwise_peak",
+       "definition": "Largest discrete hoop stress \u03c3\u03b8\u03b8,h = e\u03b8^T \u03c3h e\u03b8 over the midpoints of the hole edges, divided by \u03c30. Besides the stress-approximation error it contains a sampling error, because no midpoint lies exactly at \u03b8 = \u03c0/2.",
+       "reported_value": "not reported in this section",
+       "quote": "Consequently, Kt,h"
+      },
+      {
+       "name": "K_t,h^crown",
+       "kind": "pointwise_peak",
+       "definition": "Discrete hoop stress at the fixed crown point (0, a), divided by \u03c30. This is the quantity used for the convergence comparison. The infinite-plate Kirsch value is 3, but for the finite domain at 10a the value need not converge to 3.",
+       "reported_value": "not reported in this section (Kirsch infinite-plate value 3 given as context only, not as a target)",
+       "quote": "The crown value is used for the convergence comparison."
+      },
+      {
+       "name": "Discrete strain energy",
+       "kind": "global_energy",
+       "definition": "(1/2) uh^T K uh, where K is the stiffness matrix before boundary conditions are applied.",
+       "reported_value": "not reported in this section",
+       "quote": "Two global quantities accompany the local stress. The discrete strain energy is"
+      },
+      {
+       "name": "Mean horizontal displacement of the loaded boundary",
+       "kind": "displacement",
+       "definition": "Average of ux,h over the loaded boundary of height H, computed with the composite trapezoidal rule over the boundary edges.",
+       "reported_value": "not reported in this section",
+       "quote": "The mean horizontal displacement of the loaded boundary is approximated with the composite trapezoidal rule,"
+      }
+     ],
+     "singular_features": [
+      {
+       "description": "Smooth circular hole of radius a. It gives a finite hoop-stress concentration (Kirsch factor 3 for an infinite plate), not a singularity. In the discrete meshes the hole is polygonal, so the geometric approximation can limit how well quantities at the hole converge.",
+       "singular": false,
+       "inferred": false,
+       "quote": "boundary by polygonal segments, so the geometric approximation can limit the convergence of quantities evaluated at"
+      }
+     ],
+     "not_stated": [
+      "Material model and constants (hyperelastic law, moduli, Poisson ratio)",
+      "Plane stress vs plane strain, and thickness",
+      "Exact outer domain shape and dimensions apart from the boundaries being at 10a; height H",
+      "Boundary conditions: which edges are fixed, symmetric or traction-free",
+      "Magnitude of \u03c30, and whether the load is a traction or a displacement; load stepping or nonlinear solver settings",
+      "Numerical values of K_t,h^mid, K_t,h^crown, strain energy and mean displacement on any mesh",
+      "Convergence results or observed rates (the section defines the convergence comparison but reports no results); no extrapolated or overkill reference value",
+      "Whether the outer-boundary corners have fixed edges meeting free edges (possible corner singularities, cannot be judged without the BCs)",
+      "Any surrogate or neural-operator model for this example",
+      "O-grid construction details (deferred to Appendix A.1)"
+     ]
+    },
+    "quotes_found": {
+     "geometry": true,
+     "material": true,
+     "boundary_conditions": true,
+     "loading": true,
+     "discretisation": true,
+     "reference": true,
+     "qois[0]": true,
+     "qois[1]": true,
+     "qois[2]": true,
+     "qois[3]": true,
+     "singular_features[0]": true
+    },
+    "quote_rate": 1.0,
+    "qoi_classes": [
+     {
+      "name": "K_t,h^mid",
+      "kind": "pointwise_peak",
+      "class": "pointwise_peak"
+     },
+     {
+      "name": "K_t,h^crown",
+      "kind": "pointwise_peak",
+      "class": "pointwise_peak"
+     },
+     {
+      "name": "Discrete strain energy",
+      "kind": "global_energy",
+      "class": "global"
+     },
+     {
+      "name": "Mean horizontal displacement of the loaded boundary",
+      "kind": "displacement",
+      "class": "displacement"
+     }
+    ],
+    "vocabulary_gaps": [],
+    "needs": [
+     "reference not verified: a refinement family (and strategies) is needed before its values can be used to measure surrogate errors",
+     "no independent code: cross-check with a second solver",
+     "pointwise peaks: check boundedness (finite-radius concentration or singularity)",
+     "missing inputs must be fixed (and declared) before solving: Material model and constants (hyperelastic law, moduli, Poisson ratio); Plane stress vs plane strain, and thickness; Exact outer domain shape and dimensions apart from the boundaries being at 10a; height H; Boundary conditions: which edges are fixed, symmetric or traction-free; Magnitude of \u03c30, and whether the load is a traction or a displacement; load stepping or nonlinear solver settings; Numerical values of K_t,h^mid, K_t,h^crown, strain energy and mean displacement on any mesh; Convergence results or observed rates (the section defines the convergence comparison but reports no results); no extrapolated or overkill reference value; Whether the outer-boundary corners have fixed edges meeting free edges (possible corner singularities, cannot be judged without the BCs); Any surrogate or neural-operator model for this example; O-grid construction details (deferred to Appendix A.1)"
+    ],
+    "problem_text": "Perforated plate with a central circular hole under horizontal tension: k = 2 VEM on O-grid quadrilateral and clipped Voronoi meshes (hoop-stress concentration, strain energy, mean boundary displacement).\nGeometry: 2D plate with a central circular hole of radius a. The outer boundaries of the computational domain are at 10a, so this is a finite domain and not the infinite Kirsch plate. The section does not state the exact outer shape (for example square vs rectangle), whether symmetry is used, or the thickness or plane-stress/plane-strain assumption. In the meshes the circular boundary is replaced by polygonal segments.\nMaterial: Not stated in this section. The constitutive model and its parameters (for example hyperelastic law, moduli, Poisson ratio) are not given here. The stress \u03c3h is reconstructed from the polynomial strain projection.\nBoundary conditions: Not specified in this section. The section only implies that Dirichlet constraints exist: the dof counts include the constrained dofs, and K is assembled before boundary conditions are applied. The section does not say which edges are fixed or traction-free, or whether symmetry conditions are used.\nLoading: Horizontal tension with nominal applied stress \u03c30 on the loaded boundary (the boundary whose mean horizontal displacement is reported). The numerical value of \u03c30, whether it is a traction or an imposed displacement, and whether the analysis uses load steps are not stated.\nDiscretisation in the paper: Virtual element method of order k = 2 on two mesh families, each with four levels h/a = 0.5, 0.25, 0.125, 0.0625. (i) Structured O-grid quadrilaterals: 216, 742, 2,756, 10,972 cells; 1,870, 6,206, 22,578, 88,830 vector dofs. (ii) Clipped Voronoi polygons with 4 to 9 vertices: 396, 1,585, 6,347, 25,393 cells; 4,854, 19,210, 76,594, 305,514 vector dofs. The dof counts include constrained dofs. The Voronoi levels are separately generated, non-nested realizations made with a fixed random seed, not successive refinements of one grid. In both families the hole is approximated by polygonal segments.\nFeatures: Smooth circular hole of radius a. It gives a finite hoop-stress concentration (Kirsch factor 3 for an infinite plate), not a singularity. In the discrete meshes the hole is polygonal, so the geometric approximation can limit how well quantities at the hole converge..\nQuestion: which of these quantities can serve as trustworthy reference values: K_t,h^mid (Largest discrete hoop stress \u03c3\u03b8\u03b8,h = e\u03b8^T \u03c3h e\u03b8 over the midpoints of the hole edges, divided by \u03c30. Besides the stress-approximation error it contains a sampling error, because no midpoint lies exactly at \u03b8 = \u03c0/2.); K_t,h^crown (Discrete hoop stress at the fixed crown point (0, a), divided by \u03c30. This is the quantity used for the convergence comparison. The infinite-plate Kirsch value is 3, but for the finite domain at 10a the value need not converge to 3.); Discrete strain energy ((1/2) uh^T K uh, where K is the stiffness matrix before boundary conditions are applied.); Mean horizontal displacement of the loaded boundary (Average of ux,h over the loaded boundary of height H, computed with the composite trapezoidal rule over the boundary edges.)?"
+   }
+  },
+  {
+   "stage": "L",
+   "actor": "code",
+   "status": "done",
+   "detail": "section chosen by code from the hint"
+  },
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "paper and hint chosen by a person ('square plate with a central circular hole uniaxial tension quarter')"
+  },
+  {
+   "stage": "D",
+   "actor": "LLM",
+   "status": "done",
+   "detail": "formalizer specification; code check: no problems",
+   "spec": {
+    "name": "Perforated plate with central circular hole under horizontal tension, k=2 VEM on O-grid quadrilateral and clipped Voronoi meshes",
+    "geometry": "2D plate with a central circular hole of radius a. The outer boundaries are at 10a, so the domain is finite and is not the infinite Kirsch plate. The outer shape (square or rectangle), height H of the loaded boundary, any symmetry reduction, the thickness and the plane-stress/plane-strain assumption are not stated. In every mesh the circular hole is replaced by straight polygonal segments. Two mesh families with h/a = 0.5, 0.25, 0.125, 0.0625: (i) structured O-grid quadrilaterals with 216/742/2756/10972 cells and 1870/6206/22578/88830 vector dofs; (ii) clipped Voronoi polygons with 4 to 9 vertices, 396/1585/6347/25393 cells and 4854/19210/76594/305514 vector dofs. The Voronoi levels are separately generated non-nested realizations from a fixed seed. All dof counts include constrained dofs.",
+    "dim": 2,
+    "material": "Not stated. The constitutive law (linear elastic or hyperelastic, and which hyperelastic model), the moduli, the Poisson ratio and the compressibility are not given. Stress \u03c3h is recovered from the polynomial projection of the strain.",
+    "loading": "Horizontal tension with nominal stress \u03c30 on the loaded boundary. The value of \u03c30 is not given. It is not stated whether the load is a traction or an imposed displacement, or whether load stepping is used. Dirichlet constraints exist, but the constrained edges are not specified.",
+    "regularity": "stress_concentration",
+    "element": "Q9",
+    "reference": "mesh_refinement_family",
+    "qois": [
+     "K_t,h^crown: discrete hoop stress e_\u03b8^T \u03c3h e_\u03b8 at the fixed crown point (0,a), divided by \u03c30. This is the main convergence QoI. Its limit is the finite-domain (10a) value, which need not equal the Kirsch value 3.",
+     "K_t,h^mid: maximum discrete hoop stress over the midpoints of the hole edges, divided by \u03c30. Besides the stress error it has a sampling error because no midpoint lies at \u03b8=\u03c0/2, and the sampling locations move with h.",
+     "Discrete strain energy (1/2) uh^T K uh, with K assembled before boundary conditions are applied.",
+     "Mean horizontal displacement of the loaded boundary: average of u_x,h over a boundary of height H, computed with the composite trapezoidal rule over the boundary edges."
+    ],
+    "well_posedness": [
+     "Boundary conditions: the Dirichlet set must remove all rigid-body modes, for example symmetry rollers or a pinned point plus a roller. The paper does not state the constrained edges, so this cannot be confirmed yet. It must be confirmed before energy or displacement can serve as a reference value.",
+     "Corner singularities: the hole is smooth, so it gives a finite stress concentration, not a singularity. Singular points could still appear at outer corners where a clamped or roller edge meets a traction-free edge. They lie far from the hole, about 9a away. They would lower the global convergence rate but would affect hole stresses only weakly. Energy and the averaged boundary displacement should still converge, with a possibly reduced rate.",
+     "Material stability: if the material is hyperelastic, the strain-energy density must be polyconvex or at least stable, i.e. strongly elliptic, over the strain range reached. For near-incompressible parameters, k=2 VEM locking must be ruled out.",
+     "Load level against limit points: tension of a perforated plate normally has no buckling or limit point. At large stretch, though, necking or loss of ellipticity near the hole could occur. The load must stay below any such point so that the converged solution is unique.",
+     "Geometry error: the hole is approximated by straight segments, which gives an O(h^2) boundary approximation. This error can limit the rates of hole stresses below the optimal k=2 stress rate O(h^2). The rates of energy and displacement are less affected.",
+     "K_t^crown: this is well defined only if (0,a) lies on the discrete boundary, i.e. a mesh vertex sits at \u03b8=\u03c0/2 at every level. Otherwise the stress is evaluated at a point that moves with the mesh or lies outside the domain. It converges as a pointwise quantity at a smooth concentration. Pointwise stress from the projection is not superconvergent, so expect the stress rate, possibly limited by the geometry error.",
+     "K_t^mid: its target is not fixed because the sampling point moves with h. It converges only as max-over-samples \u2192 true max, with a mixed error (stress error plus O(h^2) angular sampling error). It should not be used as a primary reference value.",
+     "Energy: (1/2) u^T K u equals the stored strain energy only in linear elasticity. For hyperelasticity, K is a tangent matrix and this expression is not the strain energy W(uh). The material model decides whether this QoI is meaningful.",
+     "Mean displacement: this is a boundary-averaged quantity on smooth data, so it is expected to converge at a higher rate and is a good reference QoI. The trapezoidal rule is exact only for piecewise-linear traces, while k=2 traces are quadratic, so a small O(h^2) quadrature error is added. That error is consistent and still converges.",
+     "Voronoi family: the levels are non-nested random realizations, so the error does not decrease monotonically and Richardson extrapolation and observed-order estimates are noisy. The O-grid family is the better source for extrapolated reference values. The Voronoi family is better used for consistency checks.",
+     "Overall: strain energy (if linear elastic) and mean boundary displacement, once rigid-body modes are confirmed removed, can be used as trustworthy reference values. K_t^crown can be used only if a crown vertex exists at every level, and then with a geometry-limited rate. K_t^mid cannot be used as a reference value."
+    ],
+    "open_questions": [
+     "Element enum mismatch: the method is k=2 VEM on general polygons, which is not in the catalogue. Q9 was chosen as the closest analogue of a quadratic element. Should checks use quadratic rates: L2 O(h^3), H1/stress O(h^2), energy error O(h^4)?",
+     "Constitutive law and parameters: linear elastic or hyperelastic? Which model, which E/\u03bd or \u03bc/\u03ba, and is the material near-incompressible?",
+     "Plane stress or plane strain, and thickness?",
+     "Outer domain shape (square or rectangle at \u00b110a) and height H of the loaded boundary?",
+     "Which edges are Dirichlet-constrained? Is a symmetry quarter or half model used? Are all rigid-body modes removed?",
+     "Is the load \u03c30 a traction or an imposed displacement? What is its value? Are load steps or a Newton solver used, and does the load approach any instability?",
+     "Is there a mesh vertex exactly at (0,a) at every level of both families? If not, how is the crown stress evaluated?",
+     "Is (1/2) u^T K u computed with the linear stiffness or with a tangent stiffness? For hyperelasticity, is the true stored energy W(uh) available?",
+     "How is the stress reconstructed at a boundary point: from the element projection, by averaging between elements, or otherwise?",
+     "Is a reference value for the finite 10a domain available, for example an overkill solution or a curved-boundary solution? Or must it come from extrapolating the O-grid family?"
+    ]
+   }
+  },
+  {
+   "stage": "D",
+   "actor": "LLM",
+   "status": "unsupported",
+   "detail": "The domain is a plate with a central circular hole of radius a. The pipeline can only represent unions of equal square cells with no holes and no curved or inclined edges, so the circular hole cannot be represented exactly; a staircase approximation would be a silent geometric approximation, which is not allowed. The problem also leaves out the outer shape, the material model and parameters, plane stress vs strain, the boundary conditions, and the value and type of the load sigma0.",
+   "modeler": {
+    "supported": false,
+    "unsupported_reason": "The domain is a plate with a central circular hole of radius a. The pipeline can only represent unions of equal square cells with no holes and no curved or inclined edges, so the circular hole cannot be represented exactly; a staircase approximation would be a silent geometric approximation, which is not allowed. The problem also leaves out the outer shape, the material model and parameters, plane stress vs strain, the boundary conditions, and the value and type of the load sigma0.",
+    "description": {
+     "name": "perforated_plate_circular_hole_unsupported",
+     "cell_size": 0,
+     "cells": [],
+     "E": 0,
+     "nu": 0,
+     "plane": "stress",
+     "bcs": [],
+     "points": []
+    },
+    "sources": [
+     {
+      "item": "hole geometry (reason unsupported)",
+      "value": "radius a, outer boundaries at 10a",
+      "quote": "2D plate with a central circular hole of radius a. The outer boundaries of the computational domain are at 10a"
+     }
+    ],
+    "assumptions": [
+     "No input description was built because the geometry includes a circular hole; the description fields are placeholders and are not used.",
+     "Trust assessment (theory only): strain energy and mean loaded-boundary displacement are reliable reference values; K_t,h^crown is usable only as the extrapolated finite-domain (10a) value from the nested O-grid levels, not as 3 and not from the non-nested Voronoi levels; K_t,h^mid includes a sampling error (no midpoint at theta = pi/2) and can jump between meshes because the maximising midpoint changes, so it should not be used as a reference.",
+     "Hoop-stress quantities at the hole converge more slowly because the polygonal approximation of the hole adds a geometric error located exactly where they are sampled."
+    ]
+   }
+  }
+ ],
+ "human_points": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "paper and hint chosen by a person ('square plate with a central circular hole uniaxial tension quarter')"
+  }
+ ],
+ "wall_clock_s": 88.01210975646973,
+ "source": {
+  "pdf": "/home/user/OMAR/Practical_Examples/omar_pfem/verification_agent/autonomy_test/papers/polivem_2609.35878.pdf",
+  "text": null,
+  "description_given": false
+ },
+ "modeler": {
+  "supported": false,
+  "unsupported_reason": "The domain is a plate with a central circular hole of radius a. The pipeline can only represent unions of equal square cells with no holes and no curved or inclined edges, so the circular hole cannot be represented exactly; a staircase approximation would be a silent geometric approximation, which is not allowed. The problem also leaves out the outer shape, the material model and parameters, plane stress vs strain, the boundary conditions, and the value and type of the load sigma0.",
+  "description": {
+   "name": "perforated_plate_circular_hole_unsupported",
+   "cell_size": 0,
+   "cells": [],
+   "E": 0,
+   "nu": 0,
+   "plane": "stress",
+   "bcs": [],
+   "points": []
+  },
+  "sources": [
+   {
+    "item": "hole geometry (reason unsupported)",
+    "value": "radius a, outer boundaries at 10a",
+    "quote": "2D plate with a central circular hole of radius a. The outer boundaries of the computational domain are at 10a"
+   }
+  ],
+  "assumptions": [
+   "No input description was built because the geometry includes a circular hole; the description fields are placeholders and are not used.",
+   "Trust assessment (theory only): strain energy and mean loaded-boundary displacement are reliable reference values; K_t,h^crown is usable only as the extrapolated finite-domain (10a) value from the nested O-grid levels, not as 3 and not from the non-nested Voronoi levels; K_t,h^mid includes a sampling error (no midpoint at theta = pi/2) and can jump between meshes because the maximising midpoint changes, so it should not be used as a reference.",
+   "Hoop-stress quantities at the hole converge more slowly because the polygonal approximation of the hole adds a geometric error located exactly where they are sampled."
+  ]
+ }
+}

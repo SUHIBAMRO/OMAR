@@ -1,0 +1,378 @@
+{
+ "steps": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "problem text written by a person (literature step not used)"
+  },
+  {
+   "stage": "D",
+   "actor": "LLM",
+   "status": "done",
+   "detail": "formalizer specification; code check: no problems",
+   "spec": {
+    "name": "Timoshenko cantilever with parabolic end shear (plane stress, fully clamped root)",
+    "geometry": "Rectangle [0, 48] x [-6, 6] (L = 48, D = 12), unit thickness, 2D plane stress. Edge x = 0 is fully clamped (u_x = u_y = 0). Edge x = 48 is loaded. Edges y = \u00b16 are traction-free. The corners (0, \u00b16) are where the clamped edge meets a traction-free edge.",
+    "dim": 2,
+    "material": "E = 3.0e7, nu = 0.3, plane stress. The problem gives only small-strain constants (isotropic linear elastic). The pipeline is for hyperelasticity, so a hyperelastic model would have to reduce to these constants (for example St. Venant\u2013Kirchhoff or compressible neo-Hookean with mu = E/(2(1+nu)) and the matching plane-stress lambda). The model is not specified; see open_questions.",
+    "loading": "Dead traction on x = 48: t_y(y) = -(3P/(2D))(1 - 4y^2/D^2) with P = 1000, D = 12, and t_x = 0. Integrated over y in [-6, 6], this gives a net vertical force of -P = -1000, acting downward. There is no body force. The load is applied in one step or ramped, quasi-static.",
+    "regularity": "clamped_free_corner",
+    "element": "Q4",
+    "reference": "mesh_refinement_family",
+    "qois": [
+     "Vertical tip displacement u_y at (48, 0) (primary QoI)",
+     "Total strain energy / external work (secondary; converges despite the corner singularities)",
+     "Optional: region-averaged bending stress sigma_xx over a sub-domain away from x = 0 (e.g., x in [12, 36])"
+    ],
+    "well_posedness": [
+     "Boundary conditions: the full clamp at x = 0 removes all rigid-body modes, so the problem is well posed. This clamp is not the support condition of the Timoshenko\u2013Goodier closed-form solution, which assumes the exact parabolic shear traction at x = 0 or point constraints at (0, 0). So the closed-form displacement field is not the exact solution of this boundary-value problem.",
+     "Singular features: at (0, \u00b16) a clamped edge meets a traction-free edge. This gives a weak stress singularity, so peak or pointwise stresses at the root will not converge under refinement. Tip displacement, strain energy and region averages away from the root are integral-type quantities and should converge. Global convergence rates may be reduced from the smooth-solution rates (Q4: O(h^2) L2, O(h) H1) unless the mesh is graded toward the corners.",
+     "Material stability: E > 0 and 0 < nu = 0.3 < 0.5, so the small-strain response is positive definite. Any hyperelastic model calibrated to these constants is stable near the reference state.",
+     "Load level vs. limit points: P/(E\u00b7D) is of order 1e-6. Beam theory gives a tip deflection of a few thousandths of a unit against L = 48, so strains are tiny and rotations are small. The response is essentially linear, with no buckling or limit points. The nonlinear and linear solutions should agree to within a negligible geometric-nonlinearity correction.",
+     "Locking: a fully integrated Q4 suffers from parasitic shear (shear locking) in bending-dominated problems on coarse meshes, especially with elements elongated along x. It still converges, but the pre-asymptotic tip deflection can be badly underestimated, and the refinement study should be started at meshes fine enough to be in the asymptotic range. Q8/Q9 or incompatible-mode/reduced-integration elements reduce this effect.",
+     "Traction consistency: the parabolic traction integrates exactly to P over the height, so the load is statically consistent."
+    ],
+    "open_questions": [
+     "Which hyperelastic constitutive model, if any, is to be used (St. Venant\u2013Kirchhoff, compressible neo-Hookean, ...)? Should a geometrically nonlinear solve be run, or is linear elasticity intended?",
+     "Should the reference be the Timoshenko\u2013Goodier closed-form value? That value is consistent only with the matching root support, not a full clamp. Or should it be a mesh refinement family on the clamped problem, as assumed here? Is a reference tip deflection value supplied? None is given in the problem statement.",
+     "Which element is to be used? Q4 is assumed as the classic benchmark choice. Is it fully integrated, selectively reduced, or incompatible-mode (Q6/EAS), given shear locking in bending?",
+     "What are the mesh family and refinement ratio (e.g., 4x1, 8x2, 16x4, ... elements), and are the meshes uniform or graded toward the root corners?",
+     "Is the traction applied as a dead load (reference configuration) or a follower load? The difference is negligible at this load level but should be stated.",
+     "Is the tip displacement taken at the node at (48, 0)? That needs an even number of elements through the height; otherwise it must be interpolated.",
+     "What tolerance or acceptance criterion applies to the tip displacement (relative error, observed convergence order, GCI)?"
+    ]
+   }
+  },
+  {
+   "stage": "D",
+   "actor": "LLM",
+   "status": "unsupported",
+   "detail": "The free-end load is a parabolically distributed shear traction t_y(y) = -(3P/(2D))(1 - 4y^2/D^2), which varies along the edge x = 48. The pipeline only supports constant traction per boundary segment, so this load cannot be represented exactly. Replacing it with piecewise-constant steps would be an unstated approximation. The geometry (rectangle [0,48]x[-6,6]), the clamped edge at x = 0, the material and the point of interest are all representable; only the end load is not.",
+   "modeler": {
+    "supported": false,
+    "unsupported_reason": "The free-end load is a parabolically distributed shear traction t_y(y) = -(3P/(2D))(1 - 4y^2/D^2), which varies along the edge x = 48. The pipeline only supports constant traction per boundary segment, so this load cannot be represented exactly. Replacing it with piecewise-constant steps would be an unstated approximation. The geometry (rectangle [0,48]x[-6,6]), the clamped edge at x = 0, the material and the point of interest are all representable; only the end load is not.",
+    "description": {
+     "name": "timoshenko_cantilever",
+     "cell_size": 6,
+     "cells": [
+      [
+       0,
+       -1
+      ],
+      [
+       1,
+       -1
+      ],
+      [
+       2,
+       -1
+      ],
+      [
+       3,
+       -1
+      ],
+      [
+       4,
+       -1
+      ],
+      [
+       5,
+       -1
+      ],
+      [
+       6,
+       -1
+      ],
+      [
+       7,
+       -1
+      ],
+      [
+       0,
+       0
+      ],
+      [
+       1,
+       0
+      ],
+      [
+       2,
+       0
+      ],
+      [
+       3,
+       0
+      ],
+      [
+       4,
+       0
+      ],
+      [
+       5,
+       0
+      ],
+      [
+       6,
+       0
+      ],
+      [
+       7,
+       0
+      ]
+     ],
+     "E": 30000000,
+     "nu": 0.3,
+     "plane": "stress",
+     "bcs": [
+      {
+       "segment": [
+        [
+         0,
+         -6
+        ],
+        [
+         0,
+         6
+        ]
+       ],
+       "type": "clamped",
+       "t": [],
+       "p": 0,
+       "u": []
+      }
+     ],
+     "points": [
+      {
+       "name": "v_tip",
+       "x": 48,
+       "y": 0,
+       "component": "y"
+      }
+     ]
+    },
+    "sources": [
+     {
+      "item": "length L",
+      "value": "48",
+      "quote": "A cantilever beam of length L = 48 and height D = 12"
+     },
+     {
+      "item": "domain",
+      "value": "[0, 48] x [-6, 6]",
+      "quote": "The beam occupies [0, 48] x [-6, 6]"
+     },
+     {
+      "item": "height D",
+      "value": "12",
+      "quote": "height D = 12 (unit thickness, plane stress)"
+     },
+     {
+      "item": "Young's modulus",
+      "value": "30000000",
+      "quote": "made of a material with E = 30000000 and nu = 0.3"
+     },
+     {
+      "item": "Poisson ratio",
+      "value": "0.3",
+      "quote": "E = 30000000 and nu = 0.3"
+     },
+     {
+      "item": "plane stress",
+      "value": "stress",
+      "quote": "(unit thickness, plane stress)"
+     },
+     {
+      "item": "clamped edge",
+      "value": "x = 0",
+      "quote": "the edge x = 0 is clamped"
+     },
+     {
+      "item": "end load P",
+      "value": "1000",
+      "quote": "carries a total shear force P = 1000 distributed parabolically over the height, t_y(y) = -(3P / (2D)) (1 - 4 y^2 / D^2)"
+     },
+     {
+      "item": "point of interest",
+      "value": "(48, 0)",
+      "quote": "The quantity of interest is the vertical tip displacement at (48, 0)."
+     }
+    ],
+    "assumptions": [
+     "cell_size = 6 is taken from the domain bounds (half-height 6). It divides both 48 and 12, so the rectangle is tiled exactly by 8 x 2 cells with j = -1 and 0 covering y in [-6, 6].",
+     "The clamped edge is modelled as fully fixed (u = v = 0 along x = 0), as the problem states. Note that the analytical Timoshenko solution uses a different, partial constraint at x = 0, so even with a supported load the FE result would not match the analytical tip deflection exactly.",
+     "The parabolic end traction is deliberately left out of bcs because it cannot be represented. The description is incomplete and must not be run as is."
+    ]
+   }
+  }
+ ],
+ "human_points": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "problem text written by a person (literature step not used)"
+  }
+ ],
+ "wall_clock_s": 46.38433623313904,
+ "source": {
+  "pdf": null,
+  "text": "/home/user/OMAR/Practical_Examples/omar_pfem/verification_agent/autonomy_test/t6_cantilever_parabolic.txt",
+  "description_given": false
+ },
+ "modeler": {
+  "supported": false,
+  "unsupported_reason": "The free-end load is a parabolically distributed shear traction t_y(y) = -(3P/(2D))(1 - 4y^2/D^2), which varies along the edge x = 48. The pipeline only supports constant traction per boundary segment, so this load cannot be represented exactly. Replacing it with piecewise-constant steps would be an unstated approximation. The geometry (rectangle [0,48]x[-6,6]), the clamped edge at x = 0, the material and the point of interest are all representable; only the end load is not.",
+  "description": {
+   "name": "timoshenko_cantilever",
+   "cell_size": 6,
+   "cells": [
+    [
+     0,
+     -1
+    ],
+    [
+     1,
+     -1
+    ],
+    [
+     2,
+     -1
+    ],
+    [
+     3,
+     -1
+    ],
+    [
+     4,
+     -1
+    ],
+    [
+     5,
+     -1
+    ],
+    [
+     6,
+     -1
+    ],
+    [
+     7,
+     -1
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     2,
+     0
+    ],
+    [
+     3,
+     0
+    ],
+    [
+     4,
+     0
+    ],
+    [
+     5,
+     0
+    ],
+    [
+     6,
+     0
+    ],
+    [
+     7,
+     0
+    ]
+   ],
+   "E": 30000000,
+   "nu": 0.3,
+   "plane": "stress",
+   "bcs": [
+    {
+     "segment": [
+      [
+       0,
+       -6
+      ],
+      [
+       0,
+       6
+      ]
+     ],
+     "type": "clamped",
+     "t": [],
+     "p": 0,
+     "u": []
+    }
+   ],
+   "points": [
+    {
+     "name": "v_tip",
+     "x": 48,
+     "y": 0,
+     "component": "y"
+    }
+   ]
+  },
+  "sources": [
+   {
+    "item": "length L",
+    "value": "48",
+    "quote": "A cantilever beam of length L = 48 and height D = 12"
+   },
+   {
+    "item": "domain",
+    "value": "[0, 48] x [-6, 6]",
+    "quote": "The beam occupies [0, 48] x [-6, 6]"
+   },
+   {
+    "item": "height D",
+    "value": "12",
+    "quote": "height D = 12 (unit thickness, plane stress)"
+   },
+   {
+    "item": "Young's modulus",
+    "value": "30000000",
+    "quote": "made of a material with E = 30000000 and nu = 0.3"
+   },
+   {
+    "item": "Poisson ratio",
+    "value": "0.3",
+    "quote": "E = 30000000 and nu = 0.3"
+   },
+   {
+    "item": "plane stress",
+    "value": "stress",
+    "quote": "(unit thickness, plane stress)"
+   },
+   {
+    "item": "clamped edge",
+    "value": "x = 0",
+    "quote": "the edge x = 0 is clamped"
+   },
+   {
+    "item": "end load P",
+    "value": "1000",
+    "quote": "carries a total shear force P = 1000 distributed parabolically over the height, t_y(y) = -(3P / (2D)) (1 - 4 y^2 / D^2)"
+   },
+   {
+    "item": "point of interest",
+    "value": "(48, 0)",
+    "quote": "The quantity of interest is the vertical tip displacement at (48, 0)."
+   }
+  ],
+  "assumptions": [
+   "cell_size = 6 is taken from the domain bounds (half-height 6). It divides both 48 and 12, so the rectangle is tiled exactly by 8 x 2 cells with j = -1 and 0 covering y in [-6, 6].",
+   "The clamped edge is modelled as fully fixed (u = v = 0 along x = 0), as the problem states. Note that the analytical Timoshenko solution uses a different, partial constraint at x = 0, so even with a supported load the FE result would not match the analytical tip deflection exactly.",
+   "The parabolic end traction is deliberately left out of bcs because it cannot be represented. The description is incomplete and must not be run as is."
+  ]
+ }
+}

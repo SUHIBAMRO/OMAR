@@ -1,0 +1,1 @@
+Example: L-shaped bracket. The bracket is the union of three squares of side 1 m: [0, 1] x [0, 1], [1, 2] x [0, 1] and [0, 1] x [1, 2]. Plane strain, Poisson's ratio 0.25. The bottom edge y = 0 is clamped. A uniform pressure of 5 kPa acts on the top edge y = 2 of the vertical leg. The quantities of interest are the strain energy and the vertical displacement of the point (0, 2).

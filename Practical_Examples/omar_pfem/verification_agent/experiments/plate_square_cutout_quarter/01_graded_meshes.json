@@ -1,0 +1,45 @@
+{
+ "preregistration": {
+  "action": "graded_meshes",
+  "quantities": [
+   "corner0_gk_avg_von_mises",
+   "strain_energy"
+  ],
+  "situation": "corner_limited",
+  "justification": "rate-limiting corners [(2, 2, 0.5445)]; 2 quantities uncertified or with U above a tenth of the class tolerance",
+  "hypothesis": "the corner singularities limit the rate; grading toward the corners with the largest local-energy change restores it",
+  "prediction": {
+   "text": "more quantities are certified (and cross-checked) on the graded ladders than on the uniform ones, or the strain-energy U falls at least 3 times",
+   "criterion": "graded_better"
+  },
+  "run": {
+   "kind": "graded"
+  },
+  "cost": {
+   "dof": 265876,
+   "minutes": 0.07691439908437257
+  },
+  "prior": 0.5,
+  "prior_n": 2,
+  "score": 0.9285789110538705,
+  "problem": "plate_square_cutout_quarter",
+  "git_head": "f2089ecb263c4a998b8ae18d934843d99c0736e2",
+  "frozen_utc": "2026-11-24T17:12:39.082210+00:00",
+  "sha256": "58935c219a351b07982f008fd85e563d5fc8ceb796d41bcd5fea4b69665de94c"
+ },
+ "outcome": {
+  "confirmed": true,
+  "observed_minutes": 0.10054665009180705,
+  "after": {
+   "certified": [
+    "strain_energy",
+    "u_right_bottom",
+    "v_right_top"
+   ],
+   "open": [
+    "corner0_gk_avg_von_mises",
+    "peak_von_mises"
+   ]
+  }
+ }
+}

@@ -1,0 +1,365 @@
+{
+ "steps": [
+  {
+   "stage": "L",
+   "actor": "LLM",
+   "status": "done",
+   "detail": "card from section 5.2: Test case II: L-shape plate with corner singularity; quotes found 100%",
+   "card": {
+    "pdf": "deep_ritz_2305.15257.pdf",
+    "section_used": "section 5.2: Test case II: L-shape plate with corner singularity",
+    "card": {
+     "title": "Test case II: L-shape plate with re-entrant corner singularity (adaptive deep Ritz, linear elasticity, analytical reference)",
+     "geometry": {
+      "value": "L-shaped domain \u03a9 = (\u22121,1)^2 \\ ([0,1]\u00d7[\u22121,0]), with a re-entrant corner at (0,0) (interior angle 3\u03c0/2, \u03c9 = 3\u03c0/4).",
+      "quote": "The second test is a common benchmark problem with a re-entrant corner forming a typical point"
+     },
+     "material": {
+      "value": "Linear isotropic elasticity ('bronze'). E = 100000, \u03bd = 0.3. Lam\u00e9 parameters \u03bb, \u00b5 enter the analytical solution but are not given numerically. Plane strain vs plane stress is not stated. This is not a hyperelastic problem.",
+      "quote": "Young\u2019s modulus E = 100000 and Poisson\u2019s ratio \u03bd = 0.3 is tested with the Neumann BCs prescribed on"
+     },
+     "boundary_conditions": {
+      "value": "Neumann BC on \u0393N = {(1,y): y \u2208 (0,1)}. Dirichlet BC on the rest of the boundary, \u0393D = \u2202\u03a9 \\ \u0393N. The prescribed data are presumably taken from the analytical solution, but the section does not say so. Dirichlet BCs are imposed weakly with penalty \u03b3D = 1.",
+      "quote": "and Dirichlet BCs on \u0393D = \u2202\u03a9 \\ \u0393N"
+     },
+     "loading": {
+      "value": "Zero body force (f = 0). The loading comes only through the boundary data consistent with the analytical singular solution. The traction values on \u0393N are not stated explicitly.",
+      "quote": "force f = 0. The known analytical solution is,"
+     },
+     "discretisation": {
+      "value": "Reference is the closed-form analytical solution. There is no FE reference mesh. The section gives no FE element type, mesh size or element count. The surrogate (deep Ritz DNN 2-48-48-48-2 with uniform or AQR quadrature) is described under qois.",
+      "quote": "The known analytical solution is,"
+     },
+     "reference": {
+      "type": "analytical",
+      "convergence_evidence": "none_stated",
+      "quote": "The known analytical solution is,"
+     },
+     "qois": [
+      {
+       "name": "Relative energy-norm displacement error",
+       "kind": "field_error_norm",
+       "definition": "||u \u2212 uN||_a / ||u||_a of the deep Ritz DNN (2-48-48-48-2, 4898 parameters) against the analytical solution. Table 3 column 1.",
+       "reported_value": "Uniform fixed quadrature (120,000 points): 10.99%. AQR run 1 (30,000): 23.38%. Run 2 (42,897): 14.44%. Run 3 (60,306): 11.32%. Run 4 (90,237): 10.71%.",
+       "quote": "Table 3: Numerical results of adaptive deep Ritz for test case II using a DNN structure 2-48-48-48-2."
+      },
+      {
+       "name": "Relative stress L2 error",
+       "kind": "field_error_norm",
+       "definition": "||\u03c3 \u2212 \u03c3N|| / ||\u03c3|| of the deep Ritz DNN against the analytical stress. Table 3 column 2.",
+       "reported_value": "Uniform: 10.20%. AQR runs 1 to 4: 21.58%, 13.45%, 10.48%, 9.86%.",
+       "quote": "Table 3: Numerical results of adaptive deep Ritz for test case II using a DNN structure 2-48-48-48-2."
+      },
+      {
+       "name": "Relative displacement L2 error",
+       "kind": "field_error_norm",
+       "definition": "||u \u2212 uN|| / ||u|| of the deep Ritz DNN against the analytical displacement. Table 3 column 3.",
+       "reported_value": "Uniform: 1.83%. AQR runs 1 to 4: 3.31%, 1.78%, 1.69%, 1.68%.",
+       "quote": "Table 3: Numerical results of adaptive deep Ritz for test case II using a DNN structure 2-48-48-48-2."
+      },
+      {
+       "name": "Displacement and stress field plots plus AQR marked elements",
+       "kind": "other",
+       "definition": "Qualitative plots of ux, uy, \u03c3xx, \u03c3yy and \u03c3xy, the final quadrature points, and the elements marked at runs 2 to 4 (Figure 3). No numerical values are given.",
+       "reported_value": "qualitative only (figures)",
+       "quote": "The final numerical solutions obtained are plotted in"
+      }
+     ],
+     "singular_features": [
+      {
+       "description": "Re-entrant corner of the L-domain at (0,0). The analytical solution behaves like r^\u03b1 with \u03b1 \u2248 0.5445, so the stress (~r^(\u03b1\u22121)) is unbounded there.",
+       "singular": true,
+       "inferred": false,
+       "quote": "Due to a stress singularity at the corner point (0, 0), the direct LS physics-driven methods do not apply"
+      },
+      {
+       "description": "Dirichlet\u2013Neumann transition points at (1,0) and (1,1), where \u0393N meets \u0393D. The analytical solution is smooth away from the origin, so these are not expected to be singular, assuming the boundary data come from the exact solution.",
+       "singular": false,
+       "inferred": true,
+       "quote": "and Dirichlet BCs on \u0393D = \u2202\u03a9 \\ \u0393N"
+      }
+     ],
+     "not_stated": [
+      "Plane strain vs plane stress assumption",
+      "Numerical values of \u03bb and \u00b5 (only E and \u03bd are given; the conversion depends on the plane assumption)",
+      "Explicit Neumann traction data on \u0393N and Dirichlet data on \u0393D (presumably from the analytical solution)",
+      "Constants used in the analytical solution are cited from [38]; the \u03b1 equation contains an apparent typo ('sin(a\u03c9\u03b1)')",
+      "No FE reference mesh, element type or element count (the reference is analytical)",
+      "Details of the quadrature cells and the AQR marking parameters",
+      "Constitutive model is linear elastic, not hyperelastic; no finite-strain formulation is described",
+      "Table 2 in the section belongs to experiment 1, not to this test case"
+     ]
+    },
+    "quotes_found": {
+     "geometry": true,
+     "material": true,
+     "boundary_conditions": true,
+     "loading": true,
+     "discretisation": true,
+     "reference": true,
+     "qois[0]": true,
+     "qois[1]": true,
+     "qois[2]": true,
+     "qois[3]": true,
+     "singular_features[0]": true,
+     "singular_features[1]": true
+    },
+    "quote_rate": 1.0,
+    "qoi_classes": [
+     {
+      "name": "Relative energy-norm displacement error",
+      "kind": "field_error_norm",
+      "class": "error_norm"
+     },
+     {
+      "name": "Relative stress L2 error",
+      "kind": "field_error_norm",
+      "class": "error_norm"
+     },
+     {
+      "name": "Relative displacement L2 error",
+      "kind": "field_error_norm",
+      "class": "error_norm"
+     },
+     {
+      "name": "Displacement and stress field plots plus AQR marked elements",
+      "kind": "other",
+      "class": "out_of_scope"
+     }
+    ],
+    "vocabulary_gaps": [],
+    "needs": [
+     "analytical reference: check that the closed form solves the problem as stated (no refinement family needed)",
+     "singular features present: run the singular-order check; pointwise peaks there have no finite limit",
+     "missing inputs must be fixed (and declared) before solving: Plane strain vs plane stress assumption; Numerical values of \u03bb and \u00b5 (only E and \u03bd are given; the conversion depends on the plane assumption); Explicit Neumann traction data on \u0393N and Dirichlet data on \u0393D (presumably from the analytical solution); Constants used in the analytical solution are cited from [38]; the \u03b1 equation contains an apparent typo ('sin(a\u03c9\u03b1)'); No FE reference mesh, element type or element count (the reference is analytical); Details of the quadrature cells and the AQR marking parameters; Constitutive model is linear elastic, not hyperelastic; no finite-strain formulation is described; Table 2 in the section belongs to experiment 1, not to this test case"
+    ],
+    "problem_text": "Test case II: L-shape plate with re-entrant corner singularity (adaptive deep Ritz, linear elasticity, analytical reference).\nGeometry: L-shaped domain \u03a9 = (\u22121,1)^2 \\ ([0,1]\u00d7[\u22121,0]), with a re-entrant corner at (0,0) (interior angle 3\u03c0/2, \u03c9 = 3\u03c0/4).\nMaterial: Linear isotropic elasticity ('bronze'). E = 100000, \u03bd = 0.3. Lam\u00e9 parameters \u03bb, \u00b5 enter the analytical solution but are not given numerically. Plane strain vs plane stress is not stated. This is not a hyperelastic problem.\nBoundary conditions: Neumann BC on \u0393N = {(1,y): y \u2208 (0,1)}. Dirichlet BC on the rest of the boundary, \u0393D = \u2202\u03a9 \\ \u0393N. The prescribed data are presumably taken from the analytical solution, but the section does not say so. Dirichlet BCs are imposed weakly with penalty \u03b3D = 1.\nLoading: Zero body force (f = 0). The loading comes only through the boundary data consistent with the analytical singular solution. The traction values on \u0393N are not stated explicitly.\nDiscretisation in the paper: Reference is the closed-form analytical solution. There is no FE reference mesh. The section gives no FE element type, mesh size or element count. The surrogate (deep Ritz DNN 2-48-48-48-2 with uniform or AQR quadrature) is described under qois.\nFeatures: Re-entrant corner of the L-domain at (0,0). The analytical solution behaves like r^\u03b1 with \u03b1 \u2248 0.5445, so the stress (~r^(\u03b1\u22121)) is unbounded there.; Dirichlet\u2013Neumann transition points at (1,0) and (1,1), where \u0393N meets \u0393D. The analytical solution is smooth away from the origin, so these are not expected to be singular, assuming the boundary data come from the exact solution..\nQuestion: which of these quantities can serve as trustworthy reference values: Relative energy-norm displacement error (||u \u2212 uN||_a / ||u||_a of the deep Ritz DNN (2-48-48-48-2, 4898 parameters) against the analytical solution. Table 3 column 1.); Relative stress L2 error (||\u03c3 \u2212 \u03c3N|| / ||\u03c3|| of the deep Ritz DNN against the analytical stress. Table 3 column 2.); Relative displacement L2 error (||u \u2212 uN|| / ||u|| of the deep Ritz DNN against the analytical displacement. Table 3 column 3.); Displacement and stress field plots plus AQR marked elements (Qualitative plots of ux, uy, \u03c3xx, \u03c3yy and \u03c3xy, the final quadrature points, and the elements marked at runs 2 to 4 (Figure 3). No numerical values are given.)?"
+   }
+  },
+  {
+   "stage": "L",
+   "actor": "code",
+   "status": "done",
+   "detail": "section chosen by code from the hint"
+  },
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "paper and hint chosen by a person ('L-shape plate with corner singularity')"
+  },
+  {
+   "stage": "D",
+   "actor": "LLM",
+   "status": "checked",
+   "detail": "formalizer specification; code check: ['manufactured reference requires a smooth solution']",
+   "spec": {
+    "name": "Test case II: L-shaped plate with a re-entrant corner singularity (adaptive deep Ritz, linear elasticity, analytical reference)",
+    "geometry": "L-shaped domain \u03a9 = (\u22121,1)^2 \\ ([0,1]\u00d7[\u22121,0]). Re-entrant corner at (0,0) with interior angle 3\u03c0/2 (half-angle \u03c9 = 3\u03c0/4). Neumann boundary \u0393N = {(1,y): y \u2208 (0,1)}. Dirichlet boundary \u0393D = \u2202\u03a9 \\ \u0393N, which includes both edges that meet at the re-entrant corner. Dirichlet\u2013Neumann transition points at (1,0) and (1,1).",
+    "dim": 2,
+    "material": "Linear isotropic elasticity ('bronze'), E = 100000, \u03bd = 0.3. Small strain. This is not hyperelastic. The paper does not give \u03bb and \u00b5 numerically, and it does not say whether the problem is plane strain (\u03bb = E\u03bd/((1+\u03bd)(1\u22122\u03bd)) \u2248 57692) or plane stress (\u03bb* = E\u03bd/(1\u2212\u03bd\u00b2) \u2248 32967). In both cases \u00b5 = E/(2(1+\u03bd)) \u2248 38462. The candidate Lam\u00e9 values are derived from the standard formulas; the paper does not state them.",
+    "loading": "Zero body force (f = 0). The load comes only from boundary data that are presumably taken from the closed-form singular solution u ~ r^\u03b1 \u03a6(\u03b8), \u03b1 \u2248 0.5445: Dirichlet values on \u0393D and traction \u03c3(u)\u00b7n on \u0393N. Dirichlet data are imposed weakly with penalty \u03b3D = 1. The traction values are not given explicitly. Linear static problem, so there are no limit points or load-level issues.",
+    "regularity": "reentrant_corner",
+    "element": "T3",
+    "reference": "exact_manufactured",
+    "qois": [
+     "Relative energy-norm displacement error ||u \u2212 uN||_a / ||u||_a of the deep Ritz DNN (2-48-48-48-2, 4898 parameters) against the analytical solution (Table 3, column 1). This is a global integral measure and is finite because u \u2208 H^1 (\u03b1 > 0). The exact reference makes it trustworthy, provided the error integral is evaluated with quadrature that resolves the r^(\u03b1\u22121) gradient near (0,0) and the same Lam\u00e9 values as the analytical solution.",
+     "Relative stress L2 error ||\u03c3 \u2212 \u03c3N|| / ||\u03c3|| against the analytical stress (Table 3, column 2). This norm is well defined because |\u03c3|\u00b2 ~ r^(2\u03b1\u22122) is integrable in 2D (2\u03b1\u22122 \u2248 \u22120.91 > \u22122). It is trustworthy under the same quadrature caveat. Because the integrand is singular, how accurately this quantity is evaluated depends more strongly on corner-resolving quadrature than the displacement error does.",
+     "Relative displacement L2 error ||u \u2212 uN|| / ||u|| against the analytical displacement (Table 3, column 3). The integrand is bounded and continuous, so this is the most robust of the three norms.",
+     "Qualitative field plots of ux, uy, \u03c3xx, \u03c3yy and \u03c3xy, the final quadrature points, and the AQR-marked elements at runs 2\u20134 (Figure 3). These are only qualitative. The paper gives no numbers. Any stress values read near (0,0), including peak or colour-bar maxima, are not trustworthy reference values because the exact stress is unbounded there. The displacement plots and the marking pattern (expected to cluster at the corner) can only be checked qualitatively."
+    ],
+    "well_posedness": [
+     "The reference is the closed-form analytical solution. No FE discretisation is involved, so there is no discretisation error in the reference. The relevant question is whether each reported surrogate-error metric is well defined and accurately evaluated.",
+     "Re-entrant corner at (0,0), interior angle 3\u03c0/2: u ~ r^\u03b1 with \u03b1 \u2248 0.5445, so u \u2208 H^(1+\u03b1\u2212\u03b5) but not H^2, and \u03c3 ~ r^(\u03b1\u22121) is unbounded. Pointwise or peak stress at the corner has no finite reference value. The energy norm, the L2 norm of \u03c3 and the L2 norm of u are all finite. The listed exponent \u03b1 \u2248 0.5445 is consistent with the classical mode-I eigenvalue for a 3\u03c0/2 corner whose faces are traction-free. Here both corner faces belong to \u0393D, so the exponent is only correct if the Dirichlet data are the exact singular field. Whether the paper uses the Dirichlet-face eigenproblem or simply imposes the traction-free-face field through Dirichlet data is unclear.",
+     "Linear elasticity with Dirichlet data on most of the boundary excludes rigid-body modes. The problem is coercive if \u03bd = 0.3 < 0.5 and the Lam\u00e9 parameters are positive. There are no material-stability or limit-point issues.",
+     "Dirichlet\u2013Neumann transitions at (1,0) and (1,1): these points would normally be mildly singular. If the data are the exact traces of a solution that is smooth away from the origin, they introduce no singularity. This is still an assumption, because the boundary data are not stated.",
+     "Weak Dirichlet enforcement with \u03b3D = 1 is a non-consistent penalty and is very small compared with the stiffness scale E = 1e5. This mainly affects the accuracy of the surrogate, not the reference. However, it means the surrogate's Dirichlet error is part of all three reported norms.",
+     "Evaluating the error norms requires quadrature that resolves the corner singularity, especially for the stress L2 norm and the energy norm. Under uniform quadrature, the reported values may reflect integration error near (0,0)."
+    ],
+    "open_questions": [
+     "Plane strain or plane stress? This determines \u03bb and therefore the analytical field and its stress, which affects every reported norm.",
+     "What are the numerical values of \u03bb and \u00b5 used in the analytical solution? Does the analytical exponent depend on \u03bd, which it would for some corner boundary-condition combinations?",
+     "Are the Dirichlet data on \u0393D and the traction on \u0393N exactly the traces of the analytical solution? Which analytical solution is used: the classical mode-I field (Szab\u00f3\u2013Babu\u0161ka type), mode II, or a combination, and with what amplitude?",
+     "How are the error norms (Table 3) integrated, on which quadrature mesh, and how much is it refined toward (0,0)? Is the same quadrature used for training and for error evaluation? If so, the reported errors may be biased.",
+     "No FE element type, mesh size or element count is given. The element enum value T3 is a placeholder (the AQR background cells could be triangles or quadrilaterals) and does not describe the paper.",
+     "Are the Table 3 values from a single training run or averaged over random seeds? What is the run-to-run variability of the DNN optimiser?",
+     "Is the energy norm ||\u00b7||_a computed with the same \u03bb and \u00b5 as the analytical solution, and does it include the boundary penalty term?"
+    ]
+   }
+  },
+  {
+   "stage": "D",
+   "actor": "LLM",
+   "status": "unsupported",
+   "detail": "The geometry fits the grid: with a = 1 the L-domain (\u22121,1)^2 \\ ([0,1]\u00d7[\u22121,0]) is exactly cells [-1,-1], [-1,0] and [0,0]. The loading does not fit. All loading comes from boundary data taken from the analytical singular solution (u ~ r^\u03b1, \u03b1 \u2248 0.5445). On \u0393D that means a Dirichlet displacement that varies along each edge. On \u0393N = {x=1, 0<y<1} it means a traction that varies along the edge, and its values are not given. The pipeline only accepts a constant prescribed displacement and a constant traction per segment. The analytical solution's formula and the Lam\u00e9-dependent constants are also missing, so the boundary data cannot be built. The paper also imposes the Dirichlet condition weakly with a penalty (\u03b3D = 1), while the pipeline imposes it strongly. Replacing the data with constant values would solve a different problem, so the case is marked unsupported rather than approximated.",
+   "modeler": {
+    "supported": false,
+    "unsupported_reason": "The geometry fits the grid: with a = 1 the L-domain (\u22121,1)^2 \\ ([0,1]\u00d7[\u22121,0]) is exactly cells [-1,-1], [-1,0] and [0,0]. The loading does not fit. All loading comes from boundary data taken from the analytical singular solution (u ~ r^\u03b1, \u03b1 \u2248 0.5445). On \u0393D that means a Dirichlet displacement that varies along each edge. On \u0393N = {x=1, 0<y<1} it means a traction that varies along the edge, and its values are not given. The pipeline only accepts a constant prescribed displacement and a constant traction per segment. The analytical solution's formula and the Lam\u00e9-dependent constants are also missing, so the boundary data cannot be built. The paper also imposes the Dirichlet condition weakly with a penalty (\u03b3D = 1), while the pipeline imposes it strongly. Replacing the data with constant values would solve a different problem, so the case is marked unsupported rather than approximated.",
+    "description": {
+     "name": "l_shape_reentrant_corner_analytical",
+     "cell_size": 1,
+     "cells": [
+      [
+       -1,
+       -1
+      ],
+      [
+       -1,
+       0
+      ],
+      [
+       0,
+       0
+      ]
+     ],
+     "E": 100000,
+     "nu": 0.3,
+     "plane": "strain",
+     "bcs": [],
+     "points": [
+      {
+       "name": "u_corner_region",
+       "x": -0.5,
+       "y": 0.5,
+       "component": "x"
+      },
+      {
+       "name": "v_corner_region",
+       "x": -0.5,
+       "y": 0.5,
+       "component": "y"
+      }
+     ]
+    },
+    "sources": [
+     {
+      "item": "Domain",
+      "value": "(\u22121,1)^2 \\ ([0,1]\u00d7[\u22121,0])",
+      "quote": "L-shaped domain \u03a9 = (\u22121,1)^2 \\ ([0,1]\u00d7[\u22121,0]), with a re-entrant corner at (0,0)"
+     },
+     {
+      "item": "Young's modulus",
+      "value": "100000",
+      "quote": "E = 100000, \u03bd = 0.3"
+     },
+     {
+      "item": "Poisson ratio",
+      "value": "0.3",
+      "quote": "E = 100000, \u03bd = 0.3"
+     },
+     {
+      "item": "Singular exponent",
+      "value": "0.5445",
+      "quote": "The analytical solution behaves like r^\u03b1 with \u03b1 \u2248 0.5445"
+     },
+     {
+      "item": "Neumann boundary",
+      "value": "x = 1, y in (0,1)",
+      "quote": "Neumann BC on \u0393N = {(1,y): y \u2208 (0,1)}"
+     },
+     {
+      "item": "Dirichlet penalty",
+      "value": "1",
+      "quote": "Dirichlet BCs are imposed weakly with penalty \u03b3D = 1"
+     }
+    ],
+    "assumptions": [
+     "Plane strain was chosen for the description only because the problem does not say which applies. This choice changes the Lam\u00e9 constants and therefore the analytical reference.",
+     "No boundary conditions are listed in the description. The Dirichlet data on \u0393D and the traction on \u0393N vary along the edges and are not given, so they cannot be written as constant segment conditions.",
+     "The reference values themselves come from the closed-form solution. Any FE run here could only check convergence behaviour after the analytical boundary data are supplied, which the pipeline cannot do."
+    ]
+   }
+  }
+ ],
+ "human_points": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "paper and hint chosen by a person ('L-shape plate with corner singularity')"
+  }
+ ],
+ "wall_clock_s": 77.40211272239685,
+ "source": {
+  "pdf": "/home/user/OMAR/Practical_Examples/omar_pfem/verification_agent/autonomy_test/papers/deep_ritz_2305.15257.pdf",
+  "text": null,
+  "description_given": false
+ },
+ "modeler": {
+  "supported": false,
+  "unsupported_reason": "The geometry fits the grid: with a = 1 the L-domain (\u22121,1)^2 \\ ([0,1]\u00d7[\u22121,0]) is exactly cells [-1,-1], [-1,0] and [0,0]. The loading does not fit. All loading comes from boundary data taken from the analytical singular solution (u ~ r^\u03b1, \u03b1 \u2248 0.5445). On \u0393D that means a Dirichlet displacement that varies along each edge. On \u0393N = {x=1, 0<y<1} it means a traction that varies along the edge, and its values are not given. The pipeline only accepts a constant prescribed displacement and a constant traction per segment. The analytical solution's formula and the Lam\u00e9-dependent constants are also missing, so the boundary data cannot be built. The paper also imposes the Dirichlet condition weakly with a penalty (\u03b3D = 1), while the pipeline imposes it strongly. Replacing the data with constant values would solve a different problem, so the case is marked unsupported rather than approximated.",
+  "description": {
+   "name": "l_shape_reentrant_corner_analytical",
+   "cell_size": 1,
+   "cells": [
+    [
+     -1,
+     -1
+    ],
+    [
+     -1,
+     0
+    ],
+    [
+     0,
+     0
+    ]
+   ],
+   "E": 100000,
+   "nu": 0.3,
+   "plane": "strain",
+   "bcs": [],
+   "points": [
+    {
+     "name": "u_corner_region",
+     "x": -0.5,
+     "y": 0.5,
+     "component": "x"
+    },
+    {
+     "name": "v_corner_region",
+     "x": -0.5,
+     "y": 0.5,
+     "component": "y"
+    }
+   ]
+  },
+  "sources": [
+   {
+    "item": "Domain",
+    "value": "(\u22121,1)^2 \\ ([0,1]\u00d7[\u22121,0])",
+    "quote": "L-shaped domain \u03a9 = (\u22121,1)^2 \\ ([0,1]\u00d7[\u22121,0]), with a re-entrant corner at (0,0)"
+   },
+   {
+    "item": "Young's modulus",
+    "value": "100000",
+    "quote": "E = 100000, \u03bd = 0.3"
+   },
+   {
+    "item": "Poisson ratio",
+    "value": "0.3",
+    "quote": "E = 100000, \u03bd = 0.3"
+   },
+   {
+    "item": "Singular exponent",
+    "value": "0.5445",
+    "quote": "The analytical solution behaves like r^\u03b1 with \u03b1 \u2248 0.5445"
+   },
+   {
+    "item": "Neumann boundary",
+    "value": "x = 1, y in (0,1)",
+    "quote": "Neumann BC on \u0393N = {(1,y): y \u2208 (0,1)}"
+   },
+   {
+    "item": "Dirichlet penalty",
+    "value": "1",
+    "quote": "Dirichlet BCs are imposed weakly with penalty \u03b3D = 1"
+   }
+  ],
+  "assumptions": [
+   "Plane strain was chosen for the description only because the problem does not say which applies. This choice changes the Lam\u00e9 constants and therefore the analytical reference.",
+   "No boundary conditions are listed in the description. The Dirichlet data on \u0393D and the traction on \u0393N vary along the edges and are not given, so they cannot be written as constant segment conditions.",
+   "The reference values themselves come from the closed-form solution. Any FE run here could only check convergence behaviour after the analytical boundary data are supplied, which the pipeline cannot do."
+  ]
+ }
+}

@@ -194,5 +194,262 @@
   },
   "problem": "t_bracket",
   "reason": "no passing check on record for 4cbfae5f3d124464|P2|plane_strain|clamped+free+traction"
+ },
+ "4cbfae5f3d124464|Q2|plane_stress|clamped+free+traction": {
+  "verdict": "PASS",
+  "rates": {
+   "L2": {
+    "observed": 3.149470138127262,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 1.9998282839824848,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16
+  ],
+  "levels_added": [],
+  "errors": {
+   "L2": [
+    0.011486239278149,
+    0.000845468850596872,
+    8.888617354769241e-05,
+    1.0738105031672453e-05
+   ],
+   "H1": [
+    0.007081814525501446,
+    0.0017706009624381608,
+    0.0004427747757800226,
+    0.00011068890639400241
+   ]
+  },
+  "field": {
+   "ux": "0.05*sin(0.026*pi*x + 3/10)*cos(0.065*pi*y + 1/5)",
+   "uy": "0.05*sin(0.065*pi*y + 2/5)*cos(0.026*pi*x + 1/10)"
+  },
+  "problem": "stepped_plate_tension",
+  "reason": "no passing check on record for 4cbfae5f3d124464|Q2|plane_stress|clamped+free+traction"
+ },
+ "4cbfae5f3d124464|P2|plane_stress|clamped+free+traction": {
+  "verdict": "PASS",
+  "rates": {
+   "L2": {
+    "observed": 3.1537034222011426,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 1.9962390550135942,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16,
+   32
+  ],
+  "levels_added": [
+   "n=32: rates outside tolerance but moving toward theory"
+  ],
+  "errors": {
+   "L2": [
+    0.016368690223570785,
+    0.0015084097267379362,
+    0.00014588540474585747,
+    1.5716789383095284e-05,
+    1.8420151152152455e-06
+   ],
+   "H1": [
+    0.010038227439310463,
+    0.0025648978442731497,
+    0.0006470026376988807,
+    0.00016234120882685076,
+    4.0649048390592806e-05
+   ]
+  },
+  "field": {
+   "ux": "0.05*sin(0.026*pi*x + 3/10)*cos(0.065*pi*y + 1/5)",
+   "uy": "0.05*sin(0.065*pi*y + 2/5)*cos(0.026*pi*x + 1/10)"
+  },
+  "problem": "stepped_plate_tension",
+  "reason": "no passing check on record for 4cbfae5f3d124464|P2|plane_stress|clamped+free+traction"
+ },
+ "4cbfae5f3d124464|Q2|plane_strain|free+symmetry+traction": {
+  "verdict": "PASS",
+  "rates": {
+   "L2": {
+    "observed": 3.00678611307812,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 2.00352742949419,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16
+  ],
+  "levels_added": [],
+  "errors": {
+   "L2": [
+    0.001065399819819945,
+    0.0001312970216126589,
+    1.6306393515914332e-05,
+    2.032306720725676e-06
+   ],
+   "H1": [
+    0.0013677148097174094,
+    0.00033820642551907074,
+    8.42453272307761e-05,
+    2.1034788400618325e-05
+   ]
+  },
+  "field": {
+   "ux": "0.04*sin(0.0325*pi*x + 3/10)*cos(0.0325*pi*y + 1/5)",
+   "uy": "0.04*sin(0.0325*pi*y + 2/5)*cos(0.0325*pi*x + 1/10)"
+  },
+  "problem": "plate_square_cutout_quarter",
+  "reason": "no passing check on record for 4cbfae5f3d124464|Q2|plane_strain|free+symmetry+traction"
+ },
+ "4cbfae5f3d124464|P2|plane_strain|free+symmetry+traction": {
+  "verdict": "PASS",
+  "rates": {
+   "L2": {
+    "observed": 3.02466687120628,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 1.989907330941292,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16
+  ],
+  "levels_added": [],
+  "errors": {
+   "L2": [
+    0.002541085232698357,
+    0.000307946944598343,
+    3.764590554186017e-05,
+    4.649914733356227e-06
+   ],
+   "H1": [
+    0.003456615897610802,
+    0.0008864619303912586,
+    0.0002238057270065202,
+    5.618449722943772e-05
+   ]
+  },
+  "field": {
+   "ux": "0.04*sin(0.0325*pi*x + 3/10)*cos(0.0325*pi*y + 1/5)",
+   "uy": "0.04*sin(0.0325*pi*y + 2/5)*cos(0.0325*pi*x + 1/10)"
+  },
+  "problem": "plate_square_cutout_quarter",
+  "reason": "no passing check on record for 4cbfae5f3d124464|P2|plane_strain|free+symmetry+traction"
+ },
+ "4cbfae5f3d124464|Q2|plane_strain|clamped+free+pressure": {
+  "verdict": "PASS",
+  "rates": {
+   "L2": {
+    "observed": 3.009951174918626,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 2.002787981000743,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16
+  ],
+  "levels_added": [],
+  "errors": {
+   "L2": [
+    2.232801947928161e-05,
+    2.617303544735588e-06,
+    3.233712020152323e-07,
+    4.033507929710935e-08
+   ],
+   "H1": [
+    0.00026912822608169963,
+    6.713459673231085e-05,
+    1.67409834298661e-05,
+    4.179726551557709e-06
+   ]
+  },
+  "field": {
+   "ux": "0.002*sin(0.65*pi*x + 3/10)*cos(0.65*pi*y + 1/5)",
+   "uy": "0.002*sin(0.65*pi*y + 2/5)*cos(0.65*pi*x + 1/10)"
+  },
+  "problem": "l_shaped_bracket_top_pressure",
+  "reason": "no passing check on record for 4cbfae5f3d124464|Q2|plane_strain|clamped+free+pressure"
+ },
+ "4cbfae5f3d124464|P2|plane_strain|clamped+free+pressure": {
+  "verdict": "PASS",
+  "rates": {
+   "L2": {
+    "observed": 3.0247949427233283,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 1.9732267483490484,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16
+  ],
+  "levels_added": [],
+  "errors": {
+   "L2": [
+    4.8060425049946904e-05,
+    6.292835857181168e-06,
+    7.747264186406577e-07,
+    9.50032334320538e-08
+   ],
+   "H1": [
+    0.0006428001656208668,
+    0.00017220649137439836,
+    4.4207751946993385e-05,
+    1.1169883391061229e-05
+   ]
+  },
+  "field": {
+   "ux": "0.002*sin(0.65*pi*x + 3/10)*cos(0.65*pi*y + 1/5)",
+   "uy": "0.002*sin(0.65*pi*y + 2/5)*cos(0.65*pi*x + 1/10)"
+  },
+  "problem": "l_shaped_bracket_top_pressure",
+  "reason": "no passing check on record for 4cbfae5f3d124464|P2|plane_strain|clamped+free+pressure"
  }
 }

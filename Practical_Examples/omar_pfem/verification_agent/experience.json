@@ -42,5 +42,124 @@
   "predicted_minutes": 0.376526970951437,
   "observed_minutes": 0.5090469360351563,
   "file": "experiments/t_bracket/03_finer_graded_level.json"
+ },
+ {
+  "problem": "stepped_plate_tension",
+  "action": "graded_meshes",
+  "situation": "corner_limited",
+  "quantities": [
+   "corner0_gk_avg_von_mises",
+   "corner1_gk_avg_von_mises",
+   "corner2_gk_avg_von_mises",
+   "u_tip_top"
+  ],
+  "confirmed": false,
+  "predicted_minutes": 0.05031264704637936,
+  "observed_minutes": 0.09927857319513957,
+  "file": "experiments/stepped_plate_tension/01_graded_meshes.json"
+ },
+ {
+  "problem": "stepped_plate_tension",
+  "action": "finer_graded_level",
+  "situation": "region_average:band_only",
+  "quantities": [
+   "corner1_gk_avg_von_mises",
+   "corner2_gk_avg_von_mises"
+  ],
+  "confirmed": false,
+  "predicted_minutes": 3.5697326171669137,
+  "observed_minutes": 0.19260048468907673,
+  "file": "experiments/stepped_plate_tension/02_finer_graded_level.json"
+ },
+ {
+  "problem": "stepped_plate_tension",
+  "action": "finer_graded_level",
+  "situation": "region_average:band_only",
+  "quantities": [
+   "corner1_gk_avg_von_mises",
+   "corner2_gk_avg_von_mises"
+  ],
+  "confirmed": true,
+  "predicted_minutes": 14.15173047634151,
+  "observed_minutes": 0.75359734694163,
+  "file": "experiments/stepped_plate_tension/03_finer_graded_level.json"
+ },
+ {
+  "problem": "plate_square_cutout_quarter",
+  "action": "graded_meshes",
+  "situation": "corner_limited",
+  "quantities": [
+   "corner0_gk_avg_von_mises",
+   "strain_energy"
+  ],
+  "confirmed": true,
+  "predicted_minutes": 0.07691439908437257,
+  "observed_minutes": 0.10054665009180705,
+  "file": "experiments/plate_square_cutout_quarter/01_graded_meshes.json"
+ },
+ {
+  "problem": "plate_square_cutout_quarter",
+  "action": "finer_graded_level",
+  "situation": "region_average:band_only",
+  "quantities": [
+   "corner0_gk_avg_von_mises"
+  ],
+  "confirmed": false,
+  "predicted_minutes": 0.1881783376623115,
+  "observed_minutes": 0.31111651261647544,
+  "file": "experiments/plate_square_cutout_quarter/02_finer_graded_level.json"
+ },
+ {
+  "problem": "plate_square_cutout_quarter",
+  "action": "finer_graded_level",
+  "situation": "region_average:band_only",
+  "quantities": [
+   "corner0_gk_avg_von_mises"
+  ],
+  "confirmed": false,
+  "predicted_minutes": 0.7574777977612523,
+  "observed_minutes": 1.4483643134435018,
+  "file": "experiments/plate_square_cutout_quarter/03_finer_graded_level.json"
+ },
+ {
+  "problem": "l_shaped_bracket_top_pressure",
+  "action": "graded_meshes",
+  "situation": "corner_limited",
+  "quantities": [
+   "corner0_gk_avg_von_mises",
+   "corner1_gk_avg_von_mises",
+   "corner2_gk_avg_von_mises",
+   "strain_energy"
+  ],
+  "confirmed": true,
+  "predicted_minutes": 0.03806902921761169,
+  "observed_minutes": 0.0572745680809021,
+  "file": "experiments/l_shaped_bracket_top_pressure/01_graded_meshes.json"
+ },
+ {
+  "problem": "l_shaped_bracket_top_pressure",
+  "action": "finer_graded_level",
+  "situation": "region_average:band_only",
+  "quantities": [
+   "corner1_gk_avg_von_mises",
+   "corner2_gk_avg_von_mises"
+  ],
+  "confirmed": false,
+  "predicted_minutes": 0.09037899710682328,
+  "observed_minutes": 0.09857958952585856,
+  "file": "experiments/l_shaped_bracket_top_pressure/02_finer_graded_level.json"
+ },
+ {
+  "problem": "l_shaped_bracket_top_pressure",
+  "action": "finer_graded_level",
+  "situation": "region_average:band_only",
+  "quantities": [
+   "corner1_gk_avg_von_mises",
+   "corner2_gk_avg_von_mises"
+  ],
+  "confirmed": true,
+  "predicted_minutes": 0.3578057306744024,
+  "observed_minutes": 0.3157343029975891,
+  "file": "experiments/l_shaped_bracket_top_pressure/03_finer_graded_level.json"
  }
 ]

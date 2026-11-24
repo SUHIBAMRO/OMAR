@@ -1,0 +1,45 @@
+{
+ "preregistration": {
+  "action": "spline_level_6",
+  "situation": "pointwise_peak:finite_radius_not_contracting",
+  "quantities": [
+   "max_sigma_xx_R0"
+  ],
+  "justification": "The groove root has a finite radius (a problem fact), so the continuum stress is bounded and the peak has a finite limit; no singular exponent applies. The projected-dilatation (P1) peak changed 2->3: -38.2%, 3->4: -5.1%, 4->5: -11.0%: the last change is larger than the one before, so the sequence does not yet contract. The displacement-only peak approaches it: the gap L2: 1.476, L3: 0.629, L4: 0.283, L5: 0.151 shrinks every level. Without a contracting sequence no extrapolation or rate is possible; one more level is the cheapest test that can decide between a converging and a non-converging peak.",
+  "hypothesis": "H1: the P1 peak is converging and the L4->L5 drop is pre-asymptotic: at level 6 the change contracts and the formulations keep approaching.",
+  "prediction": {
+   "text": "|P1(L6)/P1(L5) - 1| < 0.110 (the L4->L5 change) AND |disp(L6) - P1(L6)| < 0.151 (the L5 gap)",
+   "criterion": "groove_contracts",
+   "last_change": 0.10999942077756264,
+   "last_gap": 0.15125673157492225
+  },
+  "if_confirmed": "the peak may become certifiable: at least one more level is needed for three contracting changes; still reported as not verified until then",
+  "if_refuted": "report the groove peak and the stress-concentration factor as not verifiable with the present discretizations; stop refining",
+  "confidence": "low-medium: theory says bounded, but the last change grew",
+  "prior": 0.5,
+  "prior_n": 0,
+  "run": {
+   "kind": "cluster_job",
+   "levels": {
+    "6": [
+     72,
+     36,
+     120
+    ]
+   },
+   "formulations": [
+    "fbar_p1",
+    "disp"
+   ]
+  },
+  "cost": {
+   "dof": 1029192,
+   "minutes": 714.4147559033075,
+   "where": "cluster (above the local budget)"
+  },
+  "problem": "bushing_groove",
+  "git_head": "d95f7480be0b56ae10e6e3529ae6041e286bf44d",
+  "frozen_utc": "2026-11-24T17:07:16.927498+00:00",
+  "sha256": "a909b1f9bd8875be6370256d6b4b15b90a4fce25adb8990e1d101bdc37aa5845"
+ }
+}

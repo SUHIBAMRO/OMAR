@@ -1,0 +1,49 @@
+{
+ "preregistration": {
+  "action": "finer_graded_level",
+  "quantities": [
+   "corner1_gk_avg_von_mises",
+   "corner2_gk_avg_von_mises"
+  ],
+  "situation": "region_average:band_only",
+  "justification": "corner1_gk_avg_von_mises: region_average:band_only; corner2_gk_avg_von_mises: region_average:band_only",
+  "hypothesis": "the sequences are pre-asymptotic; one finer graded level (n = 128) lets the checks decide",
+  "prediction": {
+   "text": "at least one listed quantity becomes certified with a rate and cross-checked",
+   "criterion": "any_certified"
+  },
+  "run": {
+   "kind": "graded_level",
+   "n": 128
+  },
+  "cost": {
+   "dof": 1587216,
+   "minutes": 14.15173047634151
+  },
+  "prior": 0.4,
+  "prior_n": 3,
+  "score": 0.05279924964670871,
+  "problem": "stepped_plate_tension",
+  "git_head": "f2089ecb263c4a998b8ae18d934843d99c0736e2",
+  "frozen_utc": "2026-11-24T17:10:56.980224+00:00",
+  "sha256": "981f2256c05f271570ae7df37f19d1433a7f33c4b5c2154c9489c3a423c51c72"
+ },
+ "outcome": {
+  "confirmed": true,
+  "observed_minutes": 0.75359734694163,
+  "after": {
+   "certified": [
+    "corner0_gk_avg_von_mises",
+    "corner1_gk_avg_von_mises",
+    "corner3_gk_avg_von_mises",
+    "strain_energy",
+    "u_tip_top",
+    "v_tip_bottom"
+   ],
+   "open": [
+    "corner2_gk_avg_von_mises",
+    "peak_von_mises"
+   ]
+  }
+ }
+}

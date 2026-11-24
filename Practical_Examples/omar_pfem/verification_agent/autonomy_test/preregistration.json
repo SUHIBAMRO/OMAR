@@ -1,0 +1,60 @@
+{
+ "written": "2026-11-24T17:09:26.977629+00:00",
+ "what": "End-to-end autonomy test of round O (pre-registered before any LLM call on these sources). Billed: claude-cli backend, approved by Omar for round O (estimate USD 5-15).",
+ "frozen_sha256": {
+  "t4_step_plate.txt": "8e548db46ff1b44c07f1c693c03347c0806b4992392ec21736d72190a9f1b50a",
+  "t5_quarter_cutout.txt": "08b064f0129ac4b34c798a3004a83d5305c15aa0e1644f2acaf9fe0c54fd7f15",
+  "t6_cantilever_parabolic.txt": "e7f0c05446b1e6aa40622455f80ede144b358ae21c5ef015a686f462dfa51089",
+  "t7_missing_modulus.txt": "97e3a9f2694a0e7bf2a6dd8207a447c577c3947545207517456af71d00694146",
+  "papers/deep_ritz_2305.15257.pdf": "ac1b6798eeed7fc55a33aba3677b5cbe7c845086d5fef83e1074064a0b224ea7",
+  "papers/polivem_2609.35878.pdf": "2c5735a3753e58f8a93b16fea418f3f8c4bc0c7bcf57e5df4a12d00452ebf189",
+  "papers/qtt_fem_2501.07778.pdf": "916f25ae9a94d098d0d3ed7926c2d01a02cf57e858b69dd8f9a3a13650e049dc",
+  "../autonomous.py": "d88e840cc58a63f19b3c2e99b8392f26a4f3c536b5710b6ea77530923e0341de",
+  "../experiment.py": "d7f5200c7f848558fa904b74ed5ac04960bd939507e5a205f7a5edba1104b8e2",
+  "../pipeline2d.py": "4cbfae5f3d1244646f64f801cfb3593cb4535737c3d9f8e5b460ec7bafde464f",
+  "../mms_auto.py": "27ee8cf1bc8a48d0dd0256f016172c25b6ce5ef663ac92a1f02f8f34db37c96b",
+  "../adopted.py": "2b3e662535cbdbee6191d5b5ace57b503bd2f3985ff39a024393da1e7e8652a4",
+  "../corners_ext.py": "7c0432ee759f0eef709e0b2378476eef0e269c0149e4960e8775e20cd063c322",
+  "../literature_agent.py": "d0c33fc93da21b46e9cc950944ef08905abdcce7454a178fc6bc1d24f465eaa7",
+  "../llm_roles.py": "a792fcfbb69fe5dd6e65d0256acfdecafb19f70f8d9e92165aab192f077dc9f9"
+ },
+ "cases": {
+  "T1_deep_ritz_lshape": {
+   "source": "papers/deep_ritz_2305.15257.pdf",
+   "hint": "L-shape plate with corner singularity",
+   "expected": "L: card with quotes found (>= 80%). D: STOP, unsupported or needing a person: the Dirichlet data come from a non-constant analytical field, which the pipeline cannot represent. No solve."
+  },
+  "T2_qtt_lshaped_panel": {
+   "source": "papers/qtt_fem_2501.07778.pdf",
+   "hint": "L-shaped panel traction Young modulus",
+   "expected": "L: card; boundary conditions of the L-shaped panel are given only in a figure, so they are not stated in the text. D: STOP, unsupported or needing a person (missing boundary conditions). No solve."
+  },
+  "T3_polivem_hole": {
+   "source": "papers/polivem_2609.35878.pdf",
+   "hint": "square plate with a central circular hole uniaxial tension quarter",
+   "expected": "L: card. D: STOP, unsupported (circular hole). No solve."
+  },
+  "T4_step_plate": {
+   "source": "t4_step_plate.txt",
+   "expected": "D: supported, 6 cells of 10 mm, plane stress, no assumption; MMS PASS; at least the strain energy certified; the peak concluded not verifiable (re-entrant corners lam 0.5445); human points = 1 (the text input)."
+  },
+  "T5_quarter_cutout": {
+   "source": "t5_quarter_cutout.txt",
+   "expected": "D: supported, quarter model with symmetry on x = 0 and y = 0, 3 cells of 20 mm, plane strain; MMS PASS (symmetry path verified); the re-entrant hole corner (20, 20) found with lam 0.5445; at least the strain energy certified; human points = 1."
+  },
+  "T6_cantilever_parabolic": {
+   "source": "t6_cantilever_parabolic.txt",
+   "expected": "D: STOP, unsupported (parabolic, non-constant traction); it must not be replaced silently by a uniform traction."
+  },
+  "T7_missing_modulus": {
+   "source": "t7_missing_modulus.txt",
+   "expected": "D: supported only with an ASSUMED Young's modulus, flagged for a person (human points >= 2); the solve may proceed but the run is marked as needing confirmation."
+  }
+ },
+ "summary_predictions": {
+  "S1": "the agent stops (does not solve) on T1, T2, T3, T6: 4 of 4",
+  "S2": "T4 and T5 run end to end with no person beyond the problem text, MMS PASS, strain energy certified: 2 of 2",
+  "S3": "T7 is flagged for a person because of the assumed modulus",
+  "S4": "total LLM cost below USD 10"
+ }
+}

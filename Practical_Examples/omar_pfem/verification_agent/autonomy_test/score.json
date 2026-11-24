@@ -1,0 +1,84 @@
+{
+ "cases": {
+  "T1_deep_ritz_lshape": {
+   "stopped": true,
+   "section_used": "card from section 5.2: Test case II: L-shape plate with corner singularity; quotes found 100%",
+   "quote_rate_100": true,
+   "right_section": true
+  },
+  "T2_qtt_lshaped_panel": {
+   "stopped": true,
+   "section_used": "card from section 2: The linear elasticity model; quotes found 100%",
+   "quote_rate_100": true,
+   "right_section": false
+  },
+  "T3_polivem_hole": {
+   "stopped": true,
+   "section_used": "card from section 30: S EPTEMBER 30, 2026; quotes found 100%",
+   "quote_rate_100": true,
+   "right_section": false
+  },
+  "T6_cantilever_parabolic": {
+   "stopped": true
+  },
+  "T4_step_plate": {
+   "mms_pass": true,
+   "energy_certified": true,
+   "certified": [
+    "corner0_gk_avg_von_mises",
+    "corner1_gk_avg_von_mises",
+    "corner3_gk_avg_von_mises",
+    "strain_energy",
+    "u_tip_top",
+    "v_tip_bottom"
+   ],
+   "persons": 2,
+   "cells": 6,
+   "cell_size": 10,
+   "plane": "stress",
+   "corners": [
+    "domain 6 cells, polygon 8 vertices; rate-limiting corners [(0, 0, 0.7583), (3, 1, 0.5445), (2, 1, 0.5445), (0, 1, 0.7583)]"
+   ]
+  },
+  "T5_quarter_cutout": {
+   "mms_pass": true,
+   "energy_certified": true,
+   "certified": [
+    "strain_energy",
+    "u_right_bottom",
+    "v_right_top"
+   ],
+   "persons": 2,
+   "cells": 12,
+   "cell_size": 10,
+   "plane": "strain",
+   "corners": [
+    "domain 12 cells, polygon 6 vertices; rate-limiting corners [(2, 2, 0.5445)]"
+   ],
+   "symmetry_used": 2
+  },
+  "T7_missing_modulus": {
+   "persons": 2,
+   "assumed": [
+    "assumed inputs must be confirmed by a person: Young's modulus is not stated. I chose E = 1.0e9 Pa so displacement and strain energy can be computed. The problem is linear, so displacements and strain energy scale as 1/E and can be rescaled to the true E.; The pressure of 5 kPa is converted to p = 5000 Pa. Its direction is against the outward normal (+y), so it pushes down on the top edge.; Edges that are not listed are traction-free: the left edge x=0, the right edges x=2 and x=1 (for y in [1,2]), and the step edge y=1 for x in [1,2].; Strain energy is the other quantity of interest. It is a global output, not a point quantity, so no point entry represents it; I assume the pipeline reports it by default.; Verification note: there is a re-entrant corner at (1,1), and clamped edges meet free edges at (0,0) and (2,0). Peak stress there is singular and need not converge under refinement. Strain energy and v at (0,2) should converge, at a reduced rate near the singularity."
+   ]
+  }
+ },
+ "predictions": {
+  "S1 stops on T1, T2, T3, T6": true,
+  "S2 T4, T5 end to end, no person beyond the text, MMS PASS, energy certified": false,
+  "S3 T7 flagged": true,
+  "S4 cost below USD 10": true
+ },
+ "details_against_expectations": {
+  "T4 6 cells of 10 mm, plane stress": true,
+  "T5 3 cells of 20 mm": false,
+  "T5 symmetry on two lines": true,
+  "literature sections right": {
+   "T1_deep_ritz_lshape": true,
+   "T2_qtt_lshaped_panel": false,
+   "T3_polivem_hole": false
+  }
+ },
+ "llm_cost_usd": 1.1912352
+}

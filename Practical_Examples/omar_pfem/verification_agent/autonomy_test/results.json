@@ -1,0 +1,85 @@
+{
+ "T4_step_plate": {
+  "run_dir": "autonomous_runs/t4_step_plate",
+  "llm_cost_usd": 0.154228,
+  "error": null,
+  "final": {
+   "certified": [
+    "corner0_gk_avg_von_mises",
+    "corner1_gk_avg_von_mises",
+    "corner3_gk_avg_von_mises",
+    "strain_energy",
+    "u_tip_top",
+    "v_tip_bottom"
+   ],
+   "open": [
+    "corner2_gk_avg_von_mises",
+    "peak_von_mises"
+   ]
+  },
+  "stopped_at_definition": false
+ },
+ "T5_quarter_cutout": {
+  "run_dir": "autonomous_runs/t5_quarter_cutout",
+  "llm_cost_usd": 0.13545200000000002,
+  "error": null,
+  "final": {
+   "certified": [
+    "strain_energy",
+    "u_right_bottom",
+    "v_right_top"
+   ],
+   "open": [
+    "corner0_gk_avg_von_mises",
+    "peak_von_mises"
+   ]
+  },
+  "stopped_at_definition": false
+ },
+ "T6_cantilever_parabolic": {
+  "run_dir": "autonomous_runs/t6_cantilever_parabolic",
+  "llm_cost_usd": 0.12152400000000001,
+  "error": null,
+  "final": null,
+  "stopped_at_definition": true
+ },
+ "T7_missing_modulus": {
+  "run_dir": "autonomous_runs/t7_missing_modulus",
+  "llm_cost_usd": 0.10962400000000001,
+  "error": null,
+  "final": {
+   "certified": [
+    "corner0_gk_avg_von_mises",
+    "corner1_gk_avg_von_mises",
+    "strain_energy",
+    "v_top_left"
+   ],
+   "open": [
+    "corner2_gk_avg_von_mises",
+    "peak_von_mises"
+   ]
+  },
+  "stopped_at_definition": false
+ },
+ "T1_deep_ritz_lshape": {
+  "run_dir": "autonomous_runs/deep_ritz_2305.15257",
+  "llm_cost_usd": 0.271312,
+  "error": null,
+  "final": null,
+  "stopped_at_definition": true
+ },
+ "T2_qtt_lshaped_panel": {
+  "run_dir": "autonomous_runs/qtt_fem_2501.07778",
+  "llm_cost_usd": 0.1434716,
+  "error": null,
+  "final": null,
+  "stopped_at_definition": true
+ },
+ "T3_polivem_hole": {
+  "run_dir": "autonomous_runs/polivem_2609.35878",
+  "llm_cost_usd": 0.25562359999999995,
+  "error": null,
+  "final": null,
+  "stopped_at_definition": true
+ }
+}

@@ -1,0 +1,1211 @@
+{
+ "steps": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "problem text written by a person (literature step not used)"
+  },
+  {
+   "stage": "D",
+   "actor": "LLM",
+   "status": "done",
+   "detail": "formalizer specification; code check: no problems",
+   "spec": {
+    "name": "Stepped plate in tension (plane stress, linear elastic)",
+    "geometry": "2D stepped (Z-shaped) plate: union of rectangles [0,30]x[0,10] mm and [20,50]x[10,20] mm. The two rectangles connect only along the segment 20<=x<=30, y=10. This gives two 270-degree re-entrant corners at (20,10) and (30,10). Convex corners are at (0,0), (0,10), (30,0), (20,20), (50,20) and (50,10). Thickness is not given.",
+    "dim": 2,
+    "material": "Isotropic linear elastic, plane stress, E = 210000 MPa, nu = 0.3 (small-strain, no hyperelastic model given)",
+    "loading": "Left edge x=0 (0<=y<=10) is clamped (u=0). A uniform traction t = (50, 0) MPa acts on the right edge x=50 (10<=y<=20). All other edges are traction-free. Because the load is offset from the clamp, the plate is loaded in tension, bending and shear across the step.",
+    "regularity": "reentrant_corner",
+    "element": "Q4",
+    "reference": "mesh_refinement_family",
+    "qois": [
+     "Strain energy (total, per unit thickness unless a thickness is given)",
+     "Horizontal displacement u_x at point (50, 20) mm",
+     "Vertical displacement u_y at point (50, 10) mm"
+    ],
+    "well_posedness": [
+     "Dirichlet clamp on x=0 (0<=y<=10) removes all rigid-body modes, so the linear elastic problem is well-posed: E>0 and -1<nu<0.5 make the energy coercive.",
+     "Linear elastic small-strain problem: there are no limit points, bifurcation or material instability. The response is linear in the 50 MPa load, so load level does not affect convergence.",
+     "Re-entrant 270-degree corners at (20,10) and (30,10), between free edges: stress is singular, roughly r^(lambda-1) with lambda about 0.544 (mode I). Peak or pointwise stress at these corners will not converge under refinement. Uniform-mesh energy-norm convergence is limited to about O(h^0.54) whatever the element order, and energy error to about O(h^1.09).",
+     "Clamped-to-free corners at (0,0) and (0,10): there is an additional weak singularity, so stresses there are also not reliable as QoIs.",
+     "Corners (50,10) and (50,20), where the loaded edge meets a free edge, have a jump in traction. This gives at most a mild non-smoothness. The displacement field is continuous there, so point displacements at these corners are well-defined and should converge.",
+     "Convergent QoIs are strain energy, displacements at (50,20) and (50,10), and region-averaged stresses away from the corners. Non-convergent QoIs are peak stresses at the re-entrant and clamped corners.",
+     "No exact solution is available. A mesh-refinement family (ideally graded toward (20,10) and (30,10)) with Richardson-type extrapolation is the reference. Observed rates should be checked against the singularity-limited rate, not the smooth-solution Q4 rates of O(h^2) in L2 and O(h) in H1."
+    ],
+    "open_questions": [
+     "Plate thickness is not given. Absolute strain energy (and the total applied force) depend on it. Should energy be reported per unit thickness?",
+     "Element type is not stated. Q4 is assumed; please confirm, or say whether Q8/Q9 should be used.",
+     "Does 'clamped' mean u_x = u_y = 0 on the whole edge x=0, 0<=y<=10? (Assumed yes.)",
+     "The pipeline targets hyperelasticity, but the material is stated as linear elastic and small strain. Should a hyperelastic model (e.g. St. Venant-Kirchhoff or neo-Hookean with matching small-strain moduli) and finite strain be used instead? At 50 MPa with E = 210 GPa the strains are about 2e-4, so the results should hardly differ.",
+     "Are mesh grading or adaptivity near the re-entrant corners allowed, or must refinement be uniform? This decides the expected convergence rates.",
+     "Is the traction a fixed (dead) load in the reference configuration? This only matters if a finite-strain formulation is used.",
+     "Sign convention and units for the displacement QoIs: mm assumed, positive in the +x/+y directions."
+    ]
+   }
+  },
+  {
+   "stage": "D",
+   "actor": "code",
+   "status": "checked",
+   "detail": "attempt 1: validation ok; untraced numbers none; assumptions none",
+   "description": {
+    "name": "stepped_plate_tension",
+    "cell_size": 10,
+    "cells": [
+     [
+      0,
+      0
+     ],
+     [
+      1,
+      0
+     ],
+     [
+      2,
+      0
+     ],
+     [
+      2,
+      1
+     ],
+     [
+      3,
+      1
+     ],
+     [
+      4,
+      1
+     ]
+    ],
+    "E": 210000,
+    "nu": 0.3,
+    "plane": "stress",
+    "bcs": [
+     {
+      "segment": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        10
+       ]
+      ],
+      "type": "clamped"
+     },
+     {
+      "segment": [
+       [
+        50,
+        10
+       ],
+       [
+        50,
+        20
+       ]
+      ],
+      "type": "traction",
+      "t": [
+       50,
+       0
+      ]
+     }
+    ],
+    "points": {
+     "u_tip_top": [
+      50,
+      20,
+      "x"
+     ],
+     "v_tip_bottom": [
+      50,
+      10,
+      "y"
+     ]
+    }
+   }
+  },
+  {
+   "stage": "D",
+   "actor": "person",
+   "status": "needs_person",
+   "detail": "assumed inputs must be confirmed by a person: Cell size 10 mm comes from the geometry: it is the largest size that fits every rectangle corner (0, 20, 30, 50 in x; 0, 10, 20 in y). The problem does not state it as a number.; Units are mm and MPa throughout, so displacements are in mm and strain energy is in N*mm per unit thickness. The plate thickness is not given, so energy is reported per unit thickness.; The clamped edge covers the whole left edge x = 0, 0 <= y <= 10. No prescribed displacement is set, so it is zero.; The 50 MPa traction is a force per unit area. In this 2D plane-stress model it is applied as t = [50, 0] per unit length per unit thickness.; The strain energy is a whole-domain quantity, not a point quantity. It is expected to come from the pipeline's standard energy output.; Both re-entrant corners, (20, 10) and (30, 10), produce singular stress, and so do the corners where the clamped edge meets free edges, (0, 0) and (0, 10). Peak stress near these points will not converge under refinement. Energy and the requested point displacements are away from these singularities and should converge."
+  },
+  {
+   "stage": "M",
+   "actor": "code",
+   "status": "done",
+   "detail": "domain 6 cells, polygon 8 vertices; rate-limiting corners [(0, 0, 0.7583), (3, 1, 0.5445), (2, 1, 0.5445), (0, 1, 0.7583)]"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "decided",
+   "detail": "Q2: needed (no passing check on record for 4cbfae5f3d124464|Q2|plane_stress|clamped+free+traction); P2: needed (no passing check on record for 4cbfae5f3d124464|P2|plane_stress|clamped+free+traction)"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "PASS",
+   "detail": "Q2 PASS (L2 3.15, H1 2.00, levels [2, 4, 8, 16]); P2 PASS (L2 3.15, H1 2.00, levels [2, 4, 8, 16, 32])"
+  },
+  {
+   "stage": "S",
+   "actor": "code",
+   "status": "done",
+   "detail": "Q2 and P2 ladders n = [2, 4, 8, 16, 32]"
+  },
+  {
+   "stage": "C",
+   "actor": "code",
+   "status": "done",
+   "detail": "adopted rules: {'certified': ['corner3_gk_avg_von_mises', 'strain_energy', 'u_tip_top', 'v_tip_bottom'], 'open': ['corner0_gk_avg_von_mises', 'corner1_gk_avg_von_mises', 'corner2_gk_avg_von_mises', 'peak_von_mises']}"
+  },
+  {
+   "stage": "G",
+   "actor": "code",
+   "status": "done",
+   "detail": "strain_energy: supported ['M2']; u_tip_top: supported ['M2']; v_tip_bottom: supported ['M2']; corner2_gk_avg_von_mises: supported []; peak_von_mises: supported ['M1']"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "concluded",
+   "detail": "peak_von_mises: not verifiable (a corner exponent 0.5445 < 1: the stress is unbounded (r^(lam-1)), the peak grows with refinement; no experiment can certify it)"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "pre-registered",
+   "detail": "#1 graded_meshes on ['corner0_gk_avg_von_mises', 'corner1_gk_avg_von_mises', 'corner2_gk_avg_von_mises', 'u_tip_top']: the corner singularities limit the rate; grading toward the corners with the largest local-energy change restores it; prediction: more quantities are certified (and cross-checked) on the graded ladders than on the uniform ones, or the strain-energy U falls at least 3 times; prior 0.67 (n=1); est. 0.1 min",
+   "file": "experiments/stepped_plate_tension/01_graded_meshes.json",
+   "sha256": "7e0a1903a3835fc423f76e299373c40997706f0d7a5270d85995498b476bb985"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "refuted",
+   "detail": "#1 graded_meshes: prediction refuted (0.1 min); certified so far ['corner0_gk_avg_von_mises', 'corner3_gk_avg_von_mises', 'strain_energy', 'u_tip_top', 'v_tip_bottom']"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "pre-registered",
+   "detail": "#2 finer_graded_level on ['corner1_gk_avg_von_mises', 'corner2_gk_avg_von_mises']: the sequences are pre-asymptotic; one finer graded level (n = 64) lets the checks decide; prediction: at least one listed quantity becomes certified with a rate and cross-checked; prior 0.50 (n=2); est. 3.6 min",
+   "file": "experiments/stepped_plate_tension/02_finer_graded_level.json",
+   "sha256": "e0c1733090f183a199d8b7149dbecfddaf409aa8ca5869e4bf4df84f4722aa6d"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "refuted",
+   "detail": "#2 finer_graded_level: prediction refuted (0.2 min); certified so far ['corner0_gk_avg_von_mises', 'corner3_gk_avg_von_mises', 'strain_energy', 'u_tip_top', 'v_tip_bottom']"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "pre-registered",
+   "detail": "#3 finer_graded_level on ['corner1_gk_avg_von_mises', 'corner2_gk_avg_von_mises']: the sequences are pre-asymptotic; one finer graded level (n = 128) lets the checks decide; prediction: at least one listed quantity becomes certified with a rate and cross-checked; prior 0.40 (n=3); est. 14.2 min",
+   "file": "experiments/stepped_plate_tension/03_finer_graded_level.json",
+   "sha256": "981f2256c05f271570ae7df37f19d1433a7f33c4b5c2154c9489c3a423c51c72"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "confirmed",
+   "detail": "#3 finer_graded_level: prediction confirmed (0.8 min); certified so far ['corner0_gk_avg_von_mises', 'corner1_gk_avg_von_mises', 'corner3_gk_avg_von_mises', 'strain_energy', 'u_tip_top', 'v_tip_bottom']"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "stop",
+   "detail": "no further experiment applies within the budget (1.0 of 15 min used)"
+  }
+ ],
+ "human_points": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "problem text written by a person (literature step not used)"
+  },
+  {
+   "stage": "D",
+   "actor": "person",
+   "status": "needs_person",
+   "detail": "assumed inputs must be confirmed by a person: Cell size 10 mm comes from the geometry: it is the largest size that fits every rectangle corner (0, 20, 30, 50 in x; 0, 10, 20 in y). The problem does not state it as a number.; Units are mm and MPa throughout, so displacements are in mm and strain energy is in N*mm per unit thickness. The plate thickness is not given, so energy is reported per unit thickness.; The clamped edge covers the whole left edge x = 0, 0 <= y <= 10. No prescribed displacement is set, so it is zero.; The 50 MPa traction is a force per unit area. In this 2D plane-stress model it is applied as t = [50, 0] per unit length per unit thickness.; The strain energy is a whole-domain quantity, not a point quantity. It is expected to come from the pipeline's standard energy output.; Both re-entrant corners, (20, 10) and (30, 10), produce singular stress, and so do the corners where the clamped edge meets free edges, (0, 0) and (0, 10). Peak stress near these points will not converge under refinement. Energy and the requested point displacements are away from these singularities and should converge."
+  }
+ ],
+ "wall_clock_s": 111.1222710609436,
+ "source": {
+  "pdf": null,
+  "text": "/home/user/OMAR/Practical_Examples/omar_pfem/verification_agent/autonomy_test/t4_step_plate.txt",
+  "description_given": false
+ },
+ "modeler": {
+  "supported": true,
+  "unsupported_reason": "",
+  "description": {
+   "name": "stepped_plate_tension",
+   "cell_size": 10,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     2,
+     0
+    ],
+    [
+     2,
+     1
+    ],
+    [
+     3,
+     1
+    ],
+    [
+     4,
+     1
+    ]
+   ],
+   "E": 210000,
+   "nu": 0.3,
+   "plane": "stress",
+   "bcs": [
+    {
+     "segment": [
+      [
+       0,
+       0
+      ],
+      [
+       0,
+       10
+      ]
+     ],
+     "type": "clamped",
+     "t": [],
+     "p": 0,
+     "u": []
+    },
+    {
+     "segment": [
+      [
+       50,
+       10
+      ],
+      [
+       50,
+       20
+      ]
+     ],
+     "type": "traction",
+     "t": [
+      50,
+      0
+     ],
+     "p": 0,
+     "u": []
+    }
+   ],
+   "points": [
+    {
+     "name": "u_tip_top",
+     "x": 50,
+     "y": 20,
+     "component": "x"
+    },
+    {
+     "name": "v_tip_bottom",
+     "x": 50,
+     "y": 10,
+     "component": "y"
+    }
+   ]
+  },
+  "sources": [
+   {
+    "item": "domain rectangle 1",
+    "value": "[0, 30] x [0, 10] mm",
+    "quote": "A thin plate occupies the union of the rectangles [0, 30] x [0, 10] mm"
+   },
+   {
+    "item": "domain rectangle 2",
+    "value": "[20, 50] x [10, 20] mm",
+    "quote": "and [20, 50] x [10, 20] mm (plane stress)"
+   },
+   {
+    "item": "Young's modulus",
+    "value": "210000 MPa",
+    "quote": "Young's modulus E = 210000 MPa"
+   },
+   {
+    "item": "Poisson's ratio",
+    "value": "0.3",
+    "quote": "Poisson's ratio nu = 0.3"
+   },
+   {
+    "item": "clamped edge",
+    "value": "x = 0",
+    "quote": "The left edge x = 0 is clamped."
+   },
+   {
+    "item": "traction magnitude and location",
+    "value": "50 MPa in x on x = 50, 10 <= y <= 20",
+    "quote": "A uniform traction of 50 MPa in the x-direction acts on the right edge x = 50 mm (10 <= y <= 20 mm)."
+   },
+   {
+    "item": "point for horizontal displacement",
+    "value": "(50, 20)",
+    "quote": "the horizontal displacement of the point (50, 20) mm"
+   },
+   {
+    "item": "point for vertical displacement",
+    "value": "(50, 10)",
+    "quote": "the vertical displacement of the point (50, 10) mm"
+   }
+  ],
+  "assumptions": [
+   "Cell size 10 mm comes from the geometry: it is the largest size that fits every rectangle corner (0, 20, 30, 50 in x; 0, 10, 20 in y). The problem does not state it as a number.",
+   "Units are mm and MPa throughout, so displacements are in mm and strain energy is in N*mm per unit thickness. The plate thickness is not given, so energy is reported per unit thickness.",
+   "The clamped edge covers the whole left edge x = 0, 0 <= y <= 10. No prescribed displacement is set, so it is zero.",
+   "The 50 MPa traction is a force per unit area. In this 2D plane-stress model it is applied as t = [50, 0] per unit length per unit thickness.",
+   "The strain energy is a whole-domain quantity, not a point quantity. It is expected to come from the pipeline's standard energy output.",
+   "Both re-entrant corners, (20, 10) and (30, 10), produce singular stress, and so do the corners where the clamped edge meets free edges, (0, 0) and (0, 10). Peak stress near these points will not converge under refinement. Energy and the requested point displacements are away from these singularities and should converge."
+  ]
+ },
+ "mms": {
+  "Q2": {
+   "verdict": "PASS",
+   "rates": {
+    "L2": {
+     "observed": 3.149470138127262,
+     "expected": 3.0,
+     "pass": true
+    },
+    "H1": {
+     "observed": 1.9998282839824848,
+     "expected": 2.0,
+     "pass": true
+    }
+   },
+   "levels": [
+    2,
+    4,
+    8,
+    16
+   ],
+   "levels_added": [],
+   "errors": {
+    "L2": [
+     0.011486239278149,
+     0.000845468850596872,
+     8.888617354769241e-05,
+     1.0738105031672453e-05
+    ],
+    "H1": [
+     0.007081814525501446,
+     0.0017706009624381608,
+     0.0004427747757800226,
+     0.00011068890639400241
+    ]
+   },
+   "field": {
+    "ux": "0.05*sin(0.026*pi*x + 3/10)*cos(0.065*pi*y + 1/5)",
+    "uy": "0.05*sin(0.065*pi*y + 2/5)*cos(0.026*pi*x + 1/10)"
+   },
+   "problem": "stepped_plate_tension",
+   "reason": "no passing check on record for 4cbfae5f3d124464|Q2|plane_stress|clamped+free+traction"
+  },
+  "P2": {
+   "verdict": "PASS",
+   "rates": {
+    "L2": {
+     "observed": 3.1537034222011426,
+     "expected": 3.0,
+     "pass": true
+    },
+    "H1": {
+     "observed": 1.9962390550135942,
+     "expected": 2.0,
+     "pass": true
+    }
+   },
+   "levels": [
+    2,
+    4,
+    8,
+    16,
+    32
+   ],
+   "levels_added": [
+    "n=32: rates outside tolerance but moving toward theory"
+   ],
+   "errors": {
+    "L2": [
+     0.016368690223570785,
+     0.0015084097267379362,
+     0.00014588540474585747,
+     1.5716789383095284e-05,
+     1.8420151152152455e-06
+    ],
+    "H1": [
+     0.010038227439310463,
+     0.0025648978442731497,
+     0.0006470026376988807,
+     0.00016234120882685076,
+     4.0649048390592806e-05
+    ]
+   },
+   "field": {
+    "ux": "0.05*sin(0.026*pi*x + 3/10)*cos(0.065*pi*y + 1/5)",
+    "uy": "0.05*sin(0.065*pi*y + 2/5)*cos(0.026*pi*x + 1/10)"
+   },
+   "problem": "stepped_plate_tension",
+   "reason": "no passing check on record for 4cbfae5f3d124464|P2|plane_stress|clamped+free+traction"
+  }
+ },
+ "graded_plan": {
+  "x": {
+   "0": 2.7,
+   "2": 3.7
+  },
+  "y": {
+   "0": 2.7,
+   "1": 3.7
+  }
+ },
+ "final": {
+  "certified": [
+   "corner0_gk_avg_von_mises",
+   "corner1_gk_avg_von_mises",
+   "corner3_gk_avg_von_mises",
+   "strain_energy",
+   "u_tip_top",
+   "v_tip_bottom"
+  ],
+  "open": [
+   "corner2_gk_avg_von_mises",
+   "peak_von_mises"
+  ]
+ },
+ "verdicts": {
+  "strain_energy": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "class": "global",
+   "finest": 20.96651910790738,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.11, GCI_fine=0.11% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=1.21 (leave-one-out 1.13-1.22), U_fine=0.09% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 1.207 vs theory = 1.089 (lam = 0.5445, tol 0.15)",
+     "label": null,
+     "evidence": null
+    }
+   },
+   "limit": 20.980196280421776,
+   "U": 0.0009423896781213676,
+   "crosscheck": "cross_checked",
+   "gap_rel": 1.3208106990499942e-05,
+   "final": "CERTIFIED"
+  },
+  "u_tip_top": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "class": "displacement",
+   "finest": 0.12269329506329334,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.10, GCI_fine=0.12% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=1.21 (leave-one-out 1.13-1.23), U_fine=0.10% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 1.210 vs theory >= 1.089 (lam = 0.5445, tol 0.15)",
+     "label": null,
+     "evidence": null
+    }
+   },
+   "limit": 0.1227786467360223,
+   "U": 0.0010283990473678602,
+   "crosscheck": "cross_checked",
+   "gap_rel": 5.6514254051043035e-05,
+   "final": "CERTIFIED"
+  },
+  "v_tip_bottom": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "class": "displacement",
+   "finest": -0.2839958020377962,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.11, GCI_fine=0.10% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=1.24 (leave-one-out 1.13-1.26), U_fine=0.09% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 1.237 vs theory >= 1.089 (lam = 0.5445, tol 0.15)",
+     "label": null,
+     "evidence": null
+    }
+   },
+   "limit": -0.2841500813125304,
+   "U": 0.0008521912657969435,
+   "crosscheck": "cross_checked",
+   "gap_rel": 0.00011957864486339684,
+   "final": "CERTIFIED"
+  },
+  "corner0_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "class": "region_average",
+   "finest": 209.82430226760144,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.50, GCI_fine=0.10% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=1.84 (leave-one-out 0.72-2.01), U_fine=0.33% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 1.838 vs theory >= 1.089 (lam = 0.5445, tol 0.15)",
+     "label": null,
+     "evidence": null
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.017% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    },
+    "anchored_robustness": {
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 0.624% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    }
+   },
+   "limit": 209.68351129289874,
+   "U": 0.003286546838479002,
+   "crosscheck": "independent_unconverged",
+   "gap_rel": null,
+   "final": "INCONCLUSIVE"
+  },
+  "corner1_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "class": "region_average",
+   "finest": 103.94891573394763,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.11, GCI_fine=0.17% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "finest three within 1.00% band (spread 0.494%); no rate from 5 levels (failed: leave_one_out; fitted p=3.58)",
+     "label": null,
+     "evidence": "band"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 3.582 vs theory >= 1.089 (lam = 0.5445, tol 0.15)",
+     "label": null,
+     "evidence": null
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.089% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    },
+    "anchored_robustness": {
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 0.627% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    }
+   },
+   "limit": 104.08822576819175,
+   "U": 0.0016752223106477017,
+   "crosscheck": "independent_unconverged",
+   "gap_rel": null,
+   "final": "INCONCLUSIVE"
+  },
+  "corner2_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "band",
+   "class": "region_average",
+   "finest": 327.3517575018148,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.19, GCI_fine=0.28% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "finest three within 1.00% band (spread 0.933%); no rate from 5 levels (failed: monotone, order_window, leave_one_out; fitted p=12.67)",
+     "label": null,
+     "evidence": "band"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 12.670 vs theory >= 1.089 (lam = 0.5445, tol 0.15)",
+     "label": null,
+     "evidence": null
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.318% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    },
+    "anchored_robustness": {
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 1.152% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    }
+   }
+  },
+  "corner3_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "class": "region_average",
+   "finest": 318.79531127882683,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.33, GCI_fine=0.11% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "finest three within 1.00% band (spread 0.476%); no rate from 5 levels (failed: leave_one_out; fitted p=2.51)",
+     "label": null,
+     "evidence": "band"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 2.511 vs theory >= 1.089 (lam = 0.5445, tol 0.15)",
+     "label": null,
+     "evidence": null
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.031% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    },
+    "anchored_robustness": {
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 0.566% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    }
+   },
+   "limit": 319.082279410244,
+   "U": 0.001125205269903493,
+   "crosscheck": "cross_checked",
+   "gap_rel": 0.000389179969103079,
+   "final": "CERTIFIED"
+  },
+  "peak_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "none",
+   "class": "pointwise_peak",
+   "finest": 1315.1904814216832,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "FAIL",
+     "reason": "divergent: successive differences do not decrease",
+     "label": null,
+     "evidence": "none"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "FAIL",
+     "reason": "no rate from 5 levels (failed: fit_quality, order_window, leave_one_out; fitted p=0.05) and finest-three spread 44.745% exceeds 1.00%",
+     "label": null,
+     "evidence": "none"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "log-log slope of the peak -0.428 vs theory = -0.456 (lam = 0.5445, tol 0.15)",
+     "label": null,
+     "evidence": null
+    },
+    "strategy_robustness": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 18.631% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    },
+    "anchored_robustness": {
+     "verdict": "INCONCLUSIVE",
+     "reason": "refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative",
+     "label": null,
+     "evidence": null
+    }
+   }
+  }
+ },
+ "graded": {
+  "strain_energy": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "finest": 20.984739182208312,
+   "fit_order": 3.0485956632510427,
+   "limit": 20.984700592594127,
+   "U": 6.606556903364542e-06,
+   "class": "global",
+   "checks": {},
+   "crosscheck": "cross_checked",
+   "gap_rel": 4.7572278314751064e-08,
+   "final": "CERTIFIED"
+  },
+  "u_tip_top": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "finest": 0.12281005867563598,
+   "fit_order": 2.687843968950981,
+   "limit": 0.12280931254972732,
+   "U": 2.1952321128484968e-05,
+   "class": "displacement",
+   "checks": {},
+   "crosscheck": "cross_checked",
+   "gap_rel": 4.076904791552551e-06,
+   "final": "CERTIFIED"
+  },
+  "v_tip_bottom": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "finest": -0.2842245846594947,
+   "fit_order": 2.3507296038170833,
+   "limit": -0.28422230141801447,
+   "U": 3.091346765410064e-05,
+   "class": "displacement",
+   "checks": {},
+   "crosscheck": "cross_checked",
+   "gap_rel": 8.745827448505644e-06,
+   "final": "CERTIFIED"
+  },
+  "corner0_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "finest": 210.00024551667383,
+   "fit_order": 3.012884832658169,
+   "limit": 210.00047349925515,
+   "U": 4.033761701927147e-06,
+   "class": "region_average",
+   "checks": {},
+   "crosscheck": "cross_checked",
+   "gap_rel": 3.352222795554612e-06,
+   "final": "CERTIFIED"
+  },
+  "corner1_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "finest": 104.10818536806491,
+   "fit_order": 1.050475790375867,
+   "limit": 104.09573673859889,
+   "U": 0.00021587466858471492,
+   "class": "region_average",
+   "checks": {},
+   "crosscheck": "cross_checked",
+   "gap_rel": 0.0001396350894970099,
+   "final": "CERTIFIED"
+  },
+  "corner2_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "band",
+   "finest": 327.9780237937387,
+   "fit_order": 0.8986436383361093,
+   "class": "region_average",
+   "checks": {}
+  },
+  "corner3_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "finest": 319.05633781739255,
+   "fit_order": 2.4347004871882136,
+   "limit": 319.0575199447854,
+   "U": 1.3173636655654605e-05,
+   "class": "region_average",
+   "checks": {},
+   "crosscheck": "cross_checked",
+   "gap_rel": 1.3855692035732338e-07,
+   "final": "CERTIFIED"
+  },
+  "peak_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "none",
+   "finest": 381215.1101148108,
+   "fit_order": 0.050000001446839366,
+   "class": "pointwise_peak",
+   "checks": {}
+  }
+ },
+ "diagnosis": {
+  "strain_energy": {
+   "supported": [
+    "M2"
+   ],
+   "diagnosis": [
+    "mathematical/physical"
+   ],
+   "open": [],
+   "tests": [
+    {
+     "id": "M2",
+     "class": "mathematical/physical",
+     "status": "supported",
+     "evidence": "observed order 1.21 below the element optimum 4; the corners/edges (corner (0, 0) ['clamped', 'free']; corner (3, 1) ['free', 'free']; corner (2, 1) ['free', 'free']; corner (0, 1) ['free', 'clamped']) have lambda = 0.5445, predicting order 2 lambda = 1.09 for energy-type quantities",
+     "next_action": null,
+     "cost": null,
+     "remedy": "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+    }
+   ]
+  },
+  "u_tip_top": {
+   "supported": [
+    "M2"
+   ],
+   "diagnosis": [
+    "mathematical/physical"
+   ],
+   "open": [],
+   "tests": [
+    {
+     "id": "M2",
+     "class": "mathematical/physical",
+     "status": "supported",
+     "evidence": "observed order 1.21 below the element optimum 3; the corners/edges (corner (0, 0) ['clamped', 'free']; corner (3, 1) ['free', 'free']; corner (2, 1) ['free', 'free']; corner (0, 1) ['free', 'clamped']) have lambda = 0.5445, predicting order 2 lambda = 1.09 for energy-type quantities",
+     "next_action": null,
+     "cost": null,
+     "remedy": "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+    }
+   ]
+  },
+  "v_tip_bottom": {
+   "supported": [
+    "M2"
+   ],
+   "diagnosis": [
+    "mathematical/physical"
+   ],
+   "open": [],
+   "tests": [
+    {
+     "id": "M2",
+     "class": "mathematical/physical",
+     "status": "supported",
+     "evidence": "observed order 1.24 below the element optimum 3; the corners/edges (corner (0, 0) ['clamped', 'free']; corner (3, 1) ['free', 'free']; corner (2, 1) ['free', 'free']; corner (0, 1) ['free', 'clamped']) have lambda = 0.5445, predicting order 2 lambda = 1.09 for energy-type quantities",
+     "next_action": null,
+     "cost": null,
+     "remedy": "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+    }
+   ]
+  },
+  "corner2_gk_avg_von_mises": {
+   "supported": [],
+   "diagnosis": [],
+   "open": [
+    "P1",
+    "S1",
+    "S2",
+    "Q2"
+   ],
+   "tests": [
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "needs data",
+     "evidence": "no deformation measures stored",
+     "next_action": "record min det F and the largest principal stretch",
+     "cost": "seconds per level",
+     "remedy": null
+    },
+    {
+     "id": "D3",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "nu = 0.3: far from incompressibility",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "increments over the finest five levels do not settle (2 sign changes, last/first 0.03)",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "Q2",
+     "class": "QoI/post-processing",
+     "status": "needs data",
+     "evidence": "no signed components of the same region evaluated",
+     "next_action": "evaluate the signed stress components over the same region",
+     "cost": "seconds",
+     "remedy": null
+    }
+   ]
+  },
+  "peak_von_mises": {
+   "supported": [
+    "M1"
+   ],
+   "diagnosis": [
+    "mathematical/physical"
+   ],
+   "open": [
+    "P1",
+    "S1",
+    "S2"
+   ],
+   "tests": [
+    {
+     "id": "M1",
+     "class": "mathematical/physical",
+     "status": "supported",
+     "evidence": "peak grows like h^-0.428; theory h^(lambda-1) = h^-0.456 (lambda = 0.5445)",
+     "next_action": null,
+     "cost": null,
+     "remedy": "not a usable reference value: no finite limit exists; use energy, displacements or region averages, or a singular-field quantity (stress-intensity factor)"
+    },
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "needs data",
+     "evidence": "no deformation measures stored",
+     "next_action": "record min det F and the largest principal stretch",
+     "cost": "seconds per level",
+     "remedy": null
+    },
+    {
+     "id": "D3",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "nu = 0.3: far from incompressibility",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "increments over the finest five levels do not settle (0 sign changes, last/first 2.41)",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    }
+   ]
+  }
+ },
+ "experiments": [
+  {
+   "quantity": "peak_von_mises",
+   "conclusion": "not verifiable",
+   "justification": "a corner exponent 0.5445 < 1: the stress is unbounded (r^(lam-1)), the peak grows with refinement; no experiment can certify it"
+  },
+  {
+   "k": 1,
+   "action": "graded_meshes",
+   "confirmed": false
+  },
+  {
+   "k": 2,
+   "action": "finer_graded_level",
+   "confirmed": false
+  },
+  {
+   "k": 3,
+   "action": "finer_graded_level",
+   "confirmed": true
+  }
+ ],
+ "description": {
+  "name": "stepped_plate_tension",
+  "cell_size": 10,
+  "cells": [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    0
+   ],
+   [
+    2,
+    0
+   ],
+   [
+    2,
+    1
+   ],
+   [
+    3,
+    1
+   ],
+   [
+    4,
+    1
+   ]
+  ],
+  "E": 210000,
+  "nu": 0.3,
+  "plane": "stress",
+  "bcs": [
+   {
+    "segment": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      10
+     ]
+    ],
+    "type": "clamped"
+   },
+   {
+    "segment": [
+     [
+      50,
+      10
+     ],
+     [
+      50,
+      20
+     ]
+    ],
+    "type": "traction",
+    "t": [
+     50,
+     0
+    ]
+   }
+  ],
+  "points": {
+   "u_tip_top": [
+    50,
+    20,
+    "x"
+   ],
+   "v_tip_bottom": [
+    50,
+    10,
+    "y"
+   ]
+  }
+ }
+}

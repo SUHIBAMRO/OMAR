@@ -1,0 +1,180 @@
+{
+ "steps": [
+  {
+   "stage": "L",
+   "actor": "LLM",
+   "status": "done",
+   "detail": "card from section 2: The linear elasticity model; quotes found 100%",
+   "card": {
+    "pdf": "qtt_fem_2501.07778.pdf",
+    "section_used": "section 2: The linear elasticity model",
+    "card": {
+     "title": "Linear elasticity model (Section 2): general 2D formulation, no specific numerical example",
+     "geometry": {
+      "value": "A general 2D domain \u03a9 \u2282 R2 whose boundary is split into a displacement part and a traction part. The section gives no specific shape or dimensions.",
+      "quote": "be a two-dimensional domain occupied by an elastic body"
+     },
+     "material": {
+      "value": "Linear elastic material following Hooke's law. In the isotropic case it is described by Young's modulus E and Poisson's ratio \u03bd, through the Lam\u00e9 constants \u03bb and \u03bc. The section gives no values. This is small-strain linear elasticity, not hyperelasticity.",
+      "quote": "characterized by only two independent constants"
+     },
+     "boundary_conditions": {
+      "value": "General mixed boundary conditions: prescribed displacement u0 on \u2202\u03a9u and prescribed traction t on \u2202\u03a9\u03c3, with the two parts assumed not to overlap. The section does not say which edges carry which condition.",
+      "quote": "is a prescribed displacement on the Dirichlet boundary"
+     },
+     "loading": {
+      "value": "General body force f and boundary traction t. The section gives no specific load magnitudes or distributions.",
+      "quote": "where the vector-valued field f represents the body forces"
+     },
+     "discretisation": {
+      "value": "Not stated. The section derives only the continuous weak form and gives no mesh, element type or element count.",
+      "quote": "we derive the weak form of problem (1)-(2)"
+     },
+     "reference": {
+      "type": "unspecified",
+      "convergence_evidence": "none_stated",
+      "quote": "The well-posedness of the variational formulation (3) follows"
+     },
+     "qois": [],
+     "singular_features": [],
+     "not_stated": [
+      "specific domain geometry and dimensions",
+      "which boundary segments are Dirichlet vs Neumann (so corner singularities cannot be assessed)",
+      "values of Young's modulus E and Poisson's ratio \u03bd",
+      "plane stress vs plane strain assumption",
+      "magnitudes/distributions of body force f, traction t and prescribed displacement u0",
+      "reference solution method (FE mesh, element type, element count)",
+      "mesh convergence study or error estimate",
+      "quantities of interest and reported values (strain energy density W is introduced but the section is truncated before its expression)",
+      "any surrogate/neural-operator model details"
+     ]
+    },
+    "quotes_found": {
+     "geometry": true,
+     "material": true,
+     "boundary_conditions": true,
+     "loading": true,
+     "discretisation": true,
+     "reference": true
+    },
+    "quote_rate": 1.0,
+    "qoi_classes": [],
+    "vocabulary_gaps": [],
+    "needs": [
+     "reference not verified: a refinement family (and strategies) is needed before its values can be used to measure surrogate errors",
+     "no independent code: cross-check with a second solver",
+     "missing inputs must be fixed (and declared) before solving: specific domain geometry and dimensions; which boundary segments are Dirichlet vs Neumann (so corner singularities cannot be assessed); values of Young's modulus E and Poisson's ratio \u03bd; plane stress vs plane strain assumption; magnitudes/distributions of body force f, traction t and prescribed displacement u0; reference solution method (FE mesh, element type, element count); mesh convergence study or error estimate; quantities of interest and reported values (strain energy density W is introduced but the section is truncated before its expression); any surrogate/neural-operator model details"
+    ],
+    "problem_text": "Linear elasticity model (Section 2): general 2D formulation, no specific numerical example.\nGeometry: A general 2D domain \u03a9 \u2282 R2 whose boundary is split into a displacement part and a traction part. The section gives no specific shape or dimensions.\nMaterial: Linear elastic material following Hooke's law. In the isotropic case it is described by Young's modulus E and Poisson's ratio \u03bd, through the Lam\u00e9 constants \u03bb and \u03bc. The section gives no values. This is small-strain linear elasticity, not hyperelasticity.\nBoundary conditions: General mixed boundary conditions: prescribed displacement u0 on \u2202\u03a9u and prescribed traction t on \u2202\u03a9\u03c3, with the two parts assumed not to overlap. The section does not say which edges carry which condition.\nLoading: General body force f and boundary traction t. The section gives no specific load magnitudes or distributions.\nDiscretisation in the paper: Not stated. The section derives only the continuous weak form and gives no mesh, element type or element count.\nQuestion: which of these quantities can serve as trustworthy reference values: ?"
+   }
+  },
+  {
+   "stage": "L",
+   "actor": "code",
+   "status": "done",
+   "detail": "section chosen by code from the hint"
+  },
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "paper and hint chosen by a person ('L-shaped panel traction Young modulus')"
+  },
+  {
+   "stage": "D",
+   "actor": "LLM",
+   "status": "checked",
+   "detail": "formalizer specification; code check: ['no QoIs named']",
+   "spec": {
+    "name": "General 2D small-strain linear elasticity, mixed BVP (Section 2 continuous weak form, no numerical example)",
+    "geometry": "General bounded 2D domain \u03a9 \u2282 R^2 with boundary \u2202\u03a9 = \u2202\u03a9_u \u222a \u2202\u03a9_\u03c3 (no overlap). Shape, dimensions, corners and the location of the Dirichlet/Neumann split are not specified.",
+    "dim": 2,
+    "material": "Linear elastic (Hooke's law), small strain; isotropic case given by E, \u03bd (equivalently Lam\u00e9 \u03bb, \u03bc). No values given. Not hyperelastic; no geometric or material nonlinearity.",
+    "loading": "General body force f in \u03a9, prescribed traction t on \u2202\u03a9_\u03c3, prescribed displacement u0 on \u2202\u03a9_u. No magnitudes or distributions given. Linear problem, so the load level plays no role (no limit points or bifurcation).",
+    "regularity": "unknown",
+    "element": "Q4",
+    "reference": "mesh_refinement_family",
+    "qois": [],
+    "well_posedness": [
+     "Existence and uniqueness (Lax\u2013Milgram plus Korn's inequality) need \u2202\u03a9_u to have positive measure and to remove all rigid-body modes (2 translations and 1 rotation in 2D). If \u2202\u03a9_u is empty (pure traction problem), f and t must be in global force and moment equilibrium, and the solution is unique only up to a rigid-body motion.",
+     "Material stability: \u03bc > 0 and \u03bb + \u03bc > 0 in plane strain (equivalently E > 0 and -1 < \u03bd < 0.5). For plane stress the condition is E > 0, -1 < \u03bd < 1 in the 2D constitutive law. As \u03bd \u2192 0.5 (nearly incompressible), standard displacement Q4/T3 elements lock, so stress and displacement convergence degrade unless reduced integration or a mixed formulation is used.",
+     "Plane strain versus plane stress is not stated. This changes the effective constitutive law and therefore every QoI value.",
+     "Data regularity: f \u2208 L2 (or H^-1), t \u2208 H^-1/2(\u2202\u03a9_\u03c3), u0 \u2208 H^1/2(\u2202\u03a9_u) give an H^1 weak solution. Higher regularity, and the optimal O(h^2) L2 / O(h) H1 rates for Q4, also need smooth data and a smooth or convex domain without singular points.",
+     "Singular features decide which QoIs can converge pointwise. Points where \u2202\u03a9_u meets \u2202\u03a9_\u03c3 (clamped\u2013free transition), re-entrant corners, cracks, or jumps in t give singular or near-singular stress. There, peak or pointwise stress may not converge under refinement, while strain energy, displacements and region-averaged stresses still do (at reduced rates).",
+     "Linear problem: no load-level limit points, buckling or loss of ellipticity. Solution uniqueness depends only on the boundary conditions and material constants above."
+    ],
+    "open_questions": [
+     "The question's list of candidate reference quantities is empty ('which of these quantities ... : ?'). Which QoIs should be assessed, e.g. strain energy, tip or point displacement, reaction force, peak von Mises stress, region-averaged stress?",
+     "No specific geometry, dimensions or corner angles are given, so the presence of re-entrant corners or cracks cannot be determined.",
+     "It is not stated which edges are \u2202\u03a9_u and which are \u2202\u03a9_\u03c3, or whether the Dirichlet part removes all rigid-body modes. Clamped\u2013free junctions, and therefore stress singularities, cannot be ruled out.",
+     "No values are given for E and \u03bd. Nearness to incompressibility (locking risk) is unknown.",
+     "Plane strain or plane stress is not specified.",
+     "No magnitudes or distributions are given for f, t or u0, including whether t has discontinuities.",
+     "Discretisation is not stated: element type, mesh, refinement strategy. Q4 is a placeholder because the schema requires a value. The paper gives no element.",
+     "No exact or manufactured solution is given. The reference type is assumed to be a mesh-refinement family unless the paper later supplies a manufactured solution.",
+     "The problem is described as part of a hyperelasticity verification pipeline but is small-strain linear elasticity. Is it intended as the linearized limit or baseline for later nonlinear examples?"
+    ]
+   }
+  },
+  {
+   "stage": "D",
+   "actor": "LLM",
+   "status": "unsupported",
+   "detail": "The problem describes only the general continuous formulation of small-strain linear elasticity (Section 2) and has no concrete instance. It gives no domain shape or dimensions, so no cell union can be built. It does not say which boundary segments carry the displacement condition and which carry the traction condition. It gives no values for E, \u03bd, the body force f, the prescribed displacement u0 or the traction t. It names no points or quantities of interest, and the question's list of quantities is empty. Any geometry, boundary condition or load I chose would be invented rather than taken from the problem, so the result could not be traced back to the source. For the same reason, none of the quantities can be offered as trustworthy reference values. The general formulation itself (Hooke's law with Lam\u00e9 constants and mixed displacement/traction boundary conditions) does fit the pipeline. A specific numerical example with stated geometry, boundary conditions, material values and loads would be needed before it can be formalized.",
+   "modeler": {
+    "supported": false,
+    "unsupported_reason": "The problem describes only the general continuous formulation of small-strain linear elasticity (Section 2) and has no concrete instance. It gives no domain shape or dimensions, so no cell union can be built. It does not say which boundary segments carry the displacement condition and which carry the traction condition. It gives no values for E, \u03bd, the body force f, the prescribed displacement u0 or the traction t. It names no points or quantities of interest, and the question's list of quantities is empty. Any geometry, boundary condition or load I chose would be invented rather than taken from the problem, so the result could not be traced back to the source. For the same reason, none of the quantities can be offered as trustworthy reference values. The general formulation itself (Hooke's law with Lam\u00e9 constants and mixed displacement/traction boundary conditions) does fit the pipeline. A specific numerical example with stated geometry, boundary conditions, material values and loads would be needed before it can be formalized.",
+    "description": {
+     "name": "general_linear_elasticity_formulation_unspecified",
+     "cell_size": 1,
+     "cells": [],
+     "E": 1,
+     "nu": 0.3,
+     "plane": "strain",
+     "bcs": [],
+     "points": []
+    },
+    "sources": [],
+    "assumptions": [
+     "No description is produced: the placeholder values in `description` (cell_size=1, E=1, nu=0.3, plane strain, empty cells/bcs/points) are fillers required by the output schema. They are not modeling choices and must not be run.",
+     "Open question: which concrete example (geometry, which edges are \u2202\u03a9u and \u2202\u03a9\u03c3, E, \u03bd, f, u0, t) should be used? The paper section gives none.",
+     "Open question: the list of quantities in the question is empty, so there are no candidate reference values to assess."
+    ]
+   }
+  }
+ ],
+ "human_points": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "paper and hint chosen by a person ('L-shaped panel traction Young modulus')"
+  }
+ ],
+ "wall_clock_s": 40.10052728652954,
+ "source": {
+  "pdf": "/home/user/OMAR/Practical_Examples/omar_pfem/verification_agent/autonomy_test/papers/qtt_fem_2501.07778.pdf",
+  "text": null,
+  "description_given": false
+ },
+ "modeler": {
+  "supported": false,
+  "unsupported_reason": "The problem describes only the general continuous formulation of small-strain linear elasticity (Section 2) and has no concrete instance. It gives no domain shape or dimensions, so no cell union can be built. It does not say which boundary segments carry the displacement condition and which carry the traction condition. It gives no values for E, \u03bd, the body force f, the prescribed displacement u0 or the traction t. It names no points or quantities of interest, and the question's list of quantities is empty. Any geometry, boundary condition or load I chose would be invented rather than taken from the problem, so the result could not be traced back to the source. For the same reason, none of the quantities can be offered as trustworthy reference values. The general formulation itself (Hooke's law with Lam\u00e9 constants and mixed displacement/traction boundary conditions) does fit the pipeline. A specific numerical example with stated geometry, boundary conditions, material values and loads would be needed before it can be formalized.",
+  "description": {
+   "name": "general_linear_elasticity_formulation_unspecified",
+   "cell_size": 1,
+   "cells": [],
+   "E": 1,
+   "nu": 0.3,
+   "plane": "strain",
+   "bcs": [],
+   "points": []
+  },
+  "sources": [],
+  "assumptions": [
+   "No description is produced: the placeholder values in `description` (cell_size=1, E=1, nu=0.3, plane strain, empty cells/bcs/points) are fillers required by the output schema. They are not modeling choices and must not be run.",
+   "Open question: which concrete example (geometry, which edges are \u2202\u03a9u and \u2202\u03a9\u03c3, E, \u03bd, f, u0, t) should be used? The paper section gives none.",
+   "Open question: the list of quantities in the question is empty, so there are no candidate reference values to assess."
+  ]
+ }
+}
