@@ -1,0 +1,31 @@
+{
+ "written": "2026-11-24T09:28:30.983616+00:00",
+ "frozen_files_sha256": {
+  "ablation.py": "fc65af0b00a1ae3128ec56e58771628a845ff63a89ac7e27ec4daddafaa12740",
+  "llm_vote.py": "3833daaaa4ae333722d98881737550ab4b4baf461e4b8ae1ae41db19dc88edab",
+  "orchestrate.py": "a3808b14a4fd9c849e858f3081e8bd73ff1c6c92a399e47cae4704c3645ad11e",
+  "llm_roles.py": "a792fcfbb69fe5dd6e65d0256acfdecafb19f70f8d9e92165aab192f077dc9f9",
+  "trees.py": "2470e173544f15cdd74ca05e7874e4e459f87bf6730d023991fe684617b88ed3",
+  "gates.py": "232cab27ff8eed05dc62e481e2e2858e79f82fc9811a7f9f108b6909c8b03f95"
+ },
+ "problems": [
+  "b1",
+  "b2",
+  "b3",
+  "cook",
+  "plate",
+  "lamina",
+  "lshape",
+  "crack",
+  "cylinder",
+  "block"
+ ],
+ "repeats": 3,
+ "backend": "claude-cli",
+ "predictions": {
+  "V1 fewer false alarms": "summed over the ten problems, the majority vote has fewer false alarms than the mean single run (MEDIUM)",
+  "V2 no more misses": "the majority vote misses no more failures than the mean single run (MEDIUM)",
+  "V3 still above rules": "the majority vote still has more false alarms than the rules' own predictions (MEDIUM)",
+  "V4 unanimity": "the unanimous vote has the fewest false alarms of the three LLM variants and misses more than the majority (LOW-MEDIUM)"
+ }
+}

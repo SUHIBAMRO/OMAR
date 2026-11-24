@@ -113,6 +113,7 @@ def one_run(backend_name, replay, problem_path, geometry, baseline):
         "verdict_agreement": (len(agree) / len(common)) if common else None,
         "verdict_disagreements": sorted(set(common) - set(agree)),
         "llm_missed": pred.get("missed"), "llm_false_alarm": pred.get("false_alarm"),
+        "llm_predicted_fail": pred.get("predicted_fail"),        # stored from 2026-11-24 (voting)
         "advisor_flags": len(trace.get("advisor_flags", []) or []),
     }
 
