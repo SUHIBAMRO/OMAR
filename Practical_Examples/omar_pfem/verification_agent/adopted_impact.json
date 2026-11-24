@@ -1,0 +1,1854 @@
+{
+ "ruleset": "adopted-2026-11-24",
+ "changed": [
+  {
+   "problem": "l_shape",
+   "qoi": "v_right_top",
+   "truth": "verifiable",
+   "Bp": [
+    "FAIL",
+    "rate"
+   ],
+   "adopted": [
+    "INCONCLUSIVE",
+    "rate"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "INCONCLUSIVE",
+   "below_rule": true,
+   "changed": true
+  }
+ ],
+ "below_rule_fired": 1,
+ "Bstar": {
+  "certified_of_verifiable": 58,
+  "verifiable": 83,
+  "missed_failures": 0
+ },
+ "adopted_star": {
+  "certified_of_verifiable": 58,
+  "verifiable": 83,
+  "missed_failures": 0
+ },
+ "rows": [
+  {
+   "problem": "unit_square",
+   "qoi": "max_disp_mag",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "u_top_off_center",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "v_top_off_center",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "u_mid_domain",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "v_mid_domain",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "strain_energy",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "interior_avg_PK1_frob",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "INCONCLUSIVE",
+   "adopted_star": "INCONCLUSIVE",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "interior_gk_PK1_frob",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "unit_square",
+   "qoi": "peak_PK1_frob",
+   "truth": "not_verifiable",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "max_disp_mag",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "u_inner",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "v_inner",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "u_mid",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "v_mid",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "strain_energy",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "interior_avg_PK1_frob",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "interior_gk_PK1_frob",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "INCONCLUSIVE",
+   "adopted_star": "INCONCLUSIVE",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "quarter_ring",
+   "qoi": "peak_PK1_frob",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_frob_avg",
+   "truth": "band_only",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_xx_avg",
+   "truth": "band_only",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_xx_max",
+   "truth": "not_verifiable",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_yy_avg",
+   "truth": "band_only",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_yy_max",
+   "truth": "not_verifiable",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_zz_avg",
+   "truth": "band_only",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_zz_max",
+   "truth": "not_verifiable",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_xy_avg",
+   "truth": "band_only",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_xy_max",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_xz_avg",
+   "truth": "band_only",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_xz_max",
+   "truth": "not_verifiable",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_yz_avg",
+   "truth": "band_only",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "sigma_yz_max",
+   "truth": "not_verifiable",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "reaction_moment_y",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "strain_energy",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "von_mises_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "von_mises_max",
+   "truth": "not_verifiable",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "pressure_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_rr_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_rr_max",
+   "truth": "not_verifiable",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_tt_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_tt_max",
+   "truth": "not_verifiable",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_zz_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_zz_max",
+   "truth": "not_verifiable",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_rt_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_rt_max",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_rz_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_rz_max",
+   "truth": "not_verifiable",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_tz_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "cyl_tz_max",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_sigma_xx_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "INCONCLUSIVE",
+   "adopted_star": "INCONCLUSIVE",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_sigma_yy_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "INCONCLUSIVE",
+   "adopted_star": "INCONCLUSIVE",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_sigma_zz_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "INCONCLUSIVE",
+   "adopted_star": "INCONCLUSIVE",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_pressure_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "INCONCLUSIVE",
+   "adopted_star": "INCONCLUSIVE",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_cyl_rr_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "INCONCLUSIVE",
+   "adopted_star": "INCONCLUSIVE",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_cyl_tt_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "INCONCLUSIVE",
+   "adopted_star": "INCONCLUSIVE",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_cyl_zz_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "INCONCLUSIVE",
+   "adopted_star": "INCONCLUSIVE",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_cyl_rz_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_sigma_xz_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_sigma_frob_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "FAIL",
+    "band"
+   ],
+   "adopted": [
+    "FAIL",
+    "band"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "bushing_groove",
+   "qoi": "gk2_von_mises_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "cook_membrane",
+   "qoi": "u_tip",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "cook_membrane",
+   "qoi": "v_tip",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "cook_membrane",
+   "qoi": "max_disp_mag",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "cook_membrane",
+   "qoi": "strain_energy",
+   "truth": "verifiable",
+   "Bp": [
+    "INCONCLUSIVE",
+    "rate"
+   ],
+   "adopted": [
+    "INCONCLUSIVE",
+    "rate"
+   ],
+   "Bstar": "INCONCLUSIVE",
+   "adopted_star": "INCONCLUSIVE",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "cook_membrane",
+   "qoi": "interior_avg_PK1_frob",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "cook_membrane",
+   "qoi": "interior_gk_PK1_frob",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "cook_membrane",
+   "qoi": "peak_PK1_frob",
+   "truth": "not_verifiable",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "u_right_mid",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "v_top_right",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "max_disp_mag",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "strain_energy",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "hole_avg_sigma_xx",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "hole_gk_avg_sigma_xx",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "INCONCLUSIVE",
+   "adopted_star": "INCONCLUSIVE",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "hole_peak_sigma_xx",
+   "truth": "verifiable",
+   "Bp": [
+    "FAIL",
+    "rate"
+   ],
+   "adopted": [
+    "FAIL",
+    "rate"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "plate_hole",
+   "qoi": "peak_von_mises",
+   "truth": "not_verifiable",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "compliance",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "u_tip",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "INCONCLUSIVE",
+   "adopted_star": "INCONCLUSIVE",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "hole_gamma12_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "hole_e22_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "INCONCLUSIVE",
+   "adopted_star": "INCONCLUSIVE",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "far_gamma12_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "hole_gk_gamma12_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "INCONCLUSIVE",
+   "adopted_star": "INCONCLUSIVE",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "hole_gk_e22_avg",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "INCONCLUSIVE",
+   "adopted_star": "INCONCLUSIVE",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "open_hole_lamina",
+   "qoi": "peak_e22",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "strain_energy",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "u_top_left",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "v_right_top",
+   "truth": "verifiable",
+   "Bp": [
+    "FAIL",
+    "rate"
+   ],
+   "adopted": [
+    "INCONCLUSIVE",
+    "rate"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "INCONCLUSIVE",
+   "below_rule": true,
+   "changed": true
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "corner_gk_avg_von_mises",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "INCONCLUSIVE",
+   "adopted_star": "INCONCLUSIVE",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "corner_disc_avg_von_mises",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "INCONCLUSIVE",
+   "adopted_star": "INCONCLUSIVE",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "far_gk_avg_syy",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "l_shape",
+   "qoi": "peak_von_mises",
+   "truth": "not_verifiable",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "edge_crack",
+   "qoi": "strain_energy",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "edge_crack",
+   "qoi": "u_cod_mouth",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "edge_crack",
+   "qoi": "v_top_right",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "edge_crack",
+   "qoi": "tip_gk_avg_von_mises",
+   "truth": "verifiable",
+   "Bp": [
+    "FAIL",
+    "band"
+   ],
+   "adopted": [
+    "FAIL",
+    "band"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "edge_crack",
+   "qoi": "tip_disc_avg_von_mises",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "edge_crack",
+   "qoi": "far_gk_avg_syy",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "edge_crack",
+   "qoi": "peak_von_mises",
+   "truth": "not_verifiable",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "thick_cylinder_3d",
+   "qoi": "strain_energy",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "thick_cylinder_3d",
+   "qoi": "reaction_inner_radial",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "thick_cylinder_3d",
+   "qoi": "u_outer_radial",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "thick_cylinder_3d",
+   "qoi": "gk_avg_hoop",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "thick_cylinder_3d",
+   "qoi": "disc_avg_hoop",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "band"
+   ],
+   "adopted": [
+    "PASS",
+    "band"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "thick_cylinder_3d",
+   "qoi": "peak_hoop",
+   "truth": "needs_finer",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "clamped_block_3d",
+   "qoi": "strain_energy",
+   "truth": "verifiable",
+   "Bp": [
+    "INCONCLUSIVE",
+    "rate"
+   ],
+   "adopted": [
+    "INCONCLUSIVE",
+    "rate"
+   ],
+   "Bstar": "INCONCLUSIVE",
+   "adopted_star": "INCONCLUSIVE",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "clamped_block_3d",
+   "qoi": "w_tip",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "clamped_block_3d",
+   "qoi": "mid_gk_avg_sxx",
+   "truth": "verifiable",
+   "Bp": [
+    "PASS",
+    "rate"
+   ],
+   "adopted": [
+    "PASS",
+    "rate"
+   ],
+   "Bstar": "PASS",
+   "adopted_star": "PASS",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "clamped_block_3d",
+   "qoi": "root_gk_avg_von_mises",
+   "truth": "verifiable",
+   "Bp": [
+    "FAIL",
+    "rate"
+   ],
+   "adopted": [
+    "FAIL",
+    "rate"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  },
+  {
+   "problem": "clamped_block_3d",
+   "qoi": "peak_von_mises",
+   "truth": "not_verifiable",
+   "Bp": [
+    "FAIL",
+    "none"
+   ],
+   "adopted": [
+    "FAIL",
+    "none"
+   ],
+   "Bstar": "FAIL",
+   "adopted_star": "FAIL",
+   "below_rule": false,
+   "changed": false
+  }
+ ]
+}

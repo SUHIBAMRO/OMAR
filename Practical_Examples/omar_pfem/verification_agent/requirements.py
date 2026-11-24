@@ -114,9 +114,36 @@ ABSOLUTE_TARGETS_PROPOSAL = [
 ]
 
 
+# ADOPTED 24 November 2026: Professor Rabczuk approved the one-third margin and the limits
+# of question 2 (1% for global quantities and displacements, 5% for region-averaged
+# stresses), QoI-dependent. Peak stresses were not part of the question: no target is
+# adopted for them. Used with VERIF_ABS_TARGETS=adopted (adopted.py sets it).
+ABSOLUTE_TARGETS_ADOPTED = [
+    (r"(reaction|strain_energy|compliance)", 0.01,
+     "global quantities: 1% (adopted 24 Nov 2026, advisor decision on question 2)"),
+    (r"(disp|^u_|^v_|^w_)", 0.01,
+     "displacements: 1% (adopted 24 Nov 2026, advisor decision on question 2)"),
+    (r"(avg|gk)", 0.05,
+     "region-averaged stresses: 5% (adopted 24 Nov 2026, advisor decision on question 2)"),
+]
+
+
+def constitutive_requirement(half_width_rel):
+    """Adopted 24 Nov 2026 (question 2): the discretization uncertainty of a quantity with a
+    constitutive (CSM/CFM) range must be below one third of the range's relative half-width."""
+    return half_width_rel / MARGIN, (f"one third of the constitutive half-width "
+                                     f"{half_width_rel:.2%} (adopted 24 Nov 2026)")
+
+
 def absolute_target(qoi):
     import os
-    if os.environ.get("VERIF_ABS_TARGETS") != "proposal":
+    mode = os.environ.get("VERIF_ABS_TARGETS")
+    if mode == "adopted":
+        for pat, t, src in ABSOLUTE_TARGETS_ADOPTED:
+            if re.search(pat, qoi):
+                return t, src
+        return None, "no absolute target adopted for this QoI"
+    if mode != "proposal":
         return None, "no absolute target set"
     for pat, t, src in ABSOLUTE_TARGETS_PROPOSAL:
         if re.search(pat, qoi):

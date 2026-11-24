@@ -968,3 +968,49 @@ def test_round_m_excludes_degenerate_runs():
     a = ablation()
     assert a["degenerate_runs"] == 1 and a["problems"]["crack"]["valid_runs"] == 2
     assert a["runs"] == 21
+
+
+# ---- adopted rule set, 24 Nov 2026 (advisor decisions Q1, Q2) ---------------------------
+def _sing(observed, expected=1.0, tol=0.15, mode="lower_bound"):
+    return {"gate": "singular_order", "verdict": "FAIL", "observed": observed,
+            "expected": expected, "mode": mode, "tol": tol, "reason": "r"}
+
+
+def test_adopted_below_rising_is_inconclusive():
+    from omar_pfem.verification_agent.adopted import below_rule
+    hs = [1 / 2 ** k for k in range(5)]
+    # error ~ h^p with p rising 0.4 -> 0.7 -> 0.85 -> 0.95 toward 1
+    errs, e = [], 1.0
+    for p in (0.0, 0.4, 0.7, 0.85, 0.95):
+        e *= 2 ** -p
+        errs.append(e)
+    vals = [1 + x for x in errs]
+    g = below_rule(_sing(0.6), hs, vals)
+    assert g["verdict"] == "INCONCLUSIVE" and "from below" in g["label"]
+
+
+def test_adopted_below_not_rising_stays_fail():
+    from omar_pfem.verification_agent.adopted import below_rule
+    hs = [1 / 2 ** k for k in range(5)]
+    vals = [1 + 2 ** (-0.5 * k) for k in range(5)]          # steady order 0.5 < 1
+    assert below_rule(_sing(0.5), hs, vals)["verdict"] == "FAIL"
+
+
+def test_adopted_above_and_peak_untouched():
+    from omar_pfem.verification_agent.adopted import below_rule
+    hs = [1 / 2 ** k for k in range(5)]
+    vals = [1 + 2 ** (-0.5 * k) for k in range(5)]
+    assert below_rule(_sing(1.8, mode="equal"), hs, vals)["verdict"] == "FAIL"
+    assert below_rule(_sing(-0.1, expected=-0.3, mode="equal"), hs, vals)["verdict"] == "FAIL"
+
+
+def test_adopted_absolute_targets_qoi_dependent():
+    from omar_pfem.verification_agent import requirements
+    from omar_pfem.verification_agent.adopted import ruleset
+    with ruleset():
+        assert requirements.absolute_target("strain_energy")[0] == 0.01
+        assert requirements.absolute_target("u_tip")[0] == 0.01
+        assert requirements.absolute_target("gk_avg_von_mises")[0] == 0.05
+        assert requirements.absolute_target("peak_von_mises")[0] is None
+    assert requirements.absolute_target("strain_energy")[0] is None      # default unchanged
+    assert abs(requirements.constitutive_requirement(0.06)[0] - 0.02) < 1e-15
