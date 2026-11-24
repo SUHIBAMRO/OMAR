@@ -96,5 +96,103 @@
   },
   "problem": "t_bracket",
   "reason": "no passing check on record for 9eeca07201f2fcae|P2|plane_strain|clamped+free+traction"
+ },
+ "4cbfae5f3d124464|Q2|plane_strain|clamped+free+traction": {
+  "verdict": "PASS",
+  "rates": {
+   "L2": {
+    "observed": 3.049608171025963,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 2.0024241083212466,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16,
+   32
+  ],
+  "levels_added": [
+   "n=32: rates outside tolerance but moving toward theory"
+  ],
+  "errors": {
+   "L2": [
+    2.825918984524093e-05,
+    2.044757900472796e-06,
+    2.0207128086092203e-07,
+    2.381935470345856e-08,
+    2.947525189904118e-09
+   ],
+   "H1": [
+    0.00016072604439408935,
+    3.94076116428243e-05,
+    9.801722592881457e-06,
+    2.4448696548401583e-06,
+    6.105524323020932e-07
+   ]
+  },
+  "field": {
+   "ux": "0.003*sin(0.433333333333333*pi*x + 3/10)*cos(0.433333333333333*pi*y + 1/5)",
+   "uy": "0.003*sin(0.433333333333333*pi*y + 2/5)*cos(0.433333333333333*pi*x + 1/10)"
+  },
+  "problem": "t_bracket",
+  "reason": "no passing check on record for 4cbfae5f3d124464|Q2|plane_strain|clamped+free+traction"
+ },
+ "4cbfae5f3d124464|P2|plane_strain|clamped+free+traction": {
+  "verdict": "PASS",
+  "rates": {
+   "L2": {
+    "observed": 3.1379328480468573,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 1.9957427873742188,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16,
+   32,
+   64
+  ],
+  "levels_added": [
+   "n=32: rates outside tolerance but moving toward theory",
+   "n=64: rates outside tolerance but moving toward theory"
+  ],
+  "errors": {
+   "L2": [
+    8.115112505947155e-05,
+    7.2739613874698745e-06,
+    6.85523535519396e-07,
+    6.97688237307395e-08,
+    7.691156727861003e-09,
+    9.004043360641272e-10
+   ],
+   "H1": [
+    0.00039699761059202796,
+    0.00010325566562025241,
+    2.631554115449153e-05,
+    6.635853577883677e-06,
+    1.665598731420607e-06,
+    4.171957824389281e-07
+   ]
+  },
+  "field": {
+   "ux": "0.003*sin(0.433333333333333*pi*x + 3/10)*cos(0.433333333333333*pi*y + 1/5)",
+   "uy": "0.003*sin(0.433333333333333*pi*y + 2/5)*cos(0.433333333333333*pi*x + 1/10)"
+  },
+  "problem": "t_bracket",
+  "reason": "no passing check on record for 4cbfae5f3d124464|P2|plane_strain|clamped+free+traction"
  }
 }

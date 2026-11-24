@@ -339,8 +339,9 @@ class Adapter:
         return [r[q] for r in self.strategy_rows], None
 
 
-def framework(prob, fam, strategies):
-    """The rule plan under the ADOPTED rule set (adopted.py)."""
+def framework(prob, fam, strategies, full=False):
+    """The rule plan under the ADOPTED rule set (adopted.py). full=True also returns the raw
+    check results and the adapter (for the diagnosis)."""
     from omar_pfem.verification_agent import adopted, trees
     from omar_pfem.verification_agent.calibration import _limit
     from omar_pfem.verification_agent import orchestrate
@@ -369,6 +370,8 @@ def framework(prob, fam, strategies):
         if comb[0] == "PASS" and comb[1] == "rate":
             r["limit"], r["U"] = _limit(v[q])
         out[q] = r
+    if full:
+        return out, v, ad
     return out
 
 

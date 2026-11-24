@@ -1,0 +1,1085 @@
+{
+ "steps": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "description written by a person (steps L, D skipped)"
+  },
+  {
+   "stage": "M",
+   "actor": "code",
+   "status": "done",
+   "detail": "domain 5 cells, polygon 8 vertices; rate-limiting corners [(2, 1, 0.5445), (2, 3, 0.7112), (1, 3, 0.7112), (1, 1, 0.5445)]"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "decided",
+   "detail": "Q2: not needed (passing check on record for 4cbfae5f3d124464|Q2|plane_strain|clamped+free+traction (t_bracket)); P2: not needed (passing check on record for 4cbfae5f3d124464|P2|plane_strain|clamped+free+traction (t_bracket))"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "PASS",
+   "detail": "Q2 PASS; P2 PASS"
+  },
+  {
+   "stage": "S",
+   "actor": "code",
+   "status": "done",
+   "detail": "Q2 and P2 ladders n = [2, 4, 8, 16, 32]"
+  },
+  {
+   "stage": "C",
+   "actor": "code",
+   "status": "done",
+   "detail": "adopted rules: {'certified': ['strain_energy', 'v_left_tip'], 'open': ['corner0_gk_avg_von_mises', 'corner1_gk_avg_von_mises', 'corner2_gk_avg_von_mises', 'corner3_gk_avg_von_mises', 'peak_von_mises', 'u_left_top']}"
+  },
+  {
+   "stage": "G",
+   "actor": "code",
+   "status": "done",
+   "detail": "strain_energy: supported ['M2']; v_left_tip: supported ['M2']; u_left_top: supported ['M2']; corner0_gk_avg_von_mises: supported ['D4']; corner1_gk_avg_von_mises: supported ['D4']; corner2_gk_avg_von_mises: supported ['D4']; corner3_gk_avg_von_mises: supported ['D4']; peak_von_mises: supported ['M1']"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "concluded",
+   "detail": "peak_von_mises: not verifiable (a corner exponent 0.5445 < 1: the stress is unbounded (r^(lam-1)), the peak grows with refinement; no experiment can certify it)"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "pre-registered",
+   "detail": "#1 graded_meshes on ['corner0_gk_avg_von_mises', 'corner1_gk_avg_von_mises', 'corner2_gk_avg_von_mises', 'corner3_gk_avg_von_mises', 'strain_energy', 'u_left_top', 'v_left_tip']: the corner singularities limit the rate; grading toward the corners with the largest local-energy change restores it; prediction: more quantities are certified (and cross-checked) on the graded ladders than on the uniform ones, or the strain-energy U falls at least 3 times; prior 0.50 (n=0); est. 0.0 min",
+   "file": "experiments/t_bracket/01_graded_meshes.json",
+   "sha256": "a7bcce5fb5652f8e46762af5602e87be158e8ea647fe1e7c2879eb86cec5d87d"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "confirmed",
+   "detail": "#1 graded_meshes: prediction confirmed (0.1 min); certified so far ['corner1_gk_avg_von_mises', 'corner2_gk_avg_von_mises', 'strain_energy', 'u_left_top', 'v_left_tip']"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "pre-registered",
+   "detail": "#2 finer_graded_level on ['corner0_gk_avg_von_mises', 'corner3_gk_avg_von_mises']: the sequences are pre-asymptotic; one finer graded level (n = 64) lets the checks decide; prediction: at least one listed quantity becomes certified with a rate and cross-checked; prior 0.50 (n=0); est. 0.1 min",
+   "file": "experiments/t_bracket/02_finer_graded_level.json",
+   "sha256": "6c6c8f7b787d1416f34c6067b1445a5946c5247c12c54799a720b2d0900d65cb"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "refuted",
+   "detail": "#2 finer_graded_level: prediction refuted (0.2 min); certified so far ['corner1_gk_avg_von_mises', 'corner2_gk_avg_von_mises', 'strain_energy', 'u_left_top', 'v_left_tip']"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "pre-registered",
+   "detail": "#3 finer_graded_level on ['corner0_gk_avg_von_mises', 'corner3_gk_avg_von_mises']: the sequences are pre-asymptotic; one finer graded level (n = 128) lets the checks decide; prediction: at least one listed quantity becomes certified with a rate and cross-checked; prior 0.33 (n=1); est. 0.4 min",
+   "file": "experiments/t_bracket/03_finer_graded_level.json",
+   "sha256": "886d928a6ce8d054f6cfc9305db1fa3153104be5e89fe45ce1e0cc15ff0067bf"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "confirmed",
+   "detail": "#3 finer_graded_level: prediction confirmed (0.5 min); certified so far ['corner0_gk_avg_von_mises', 'corner1_gk_avg_von_mises', 'corner2_gk_avg_von_mises', 'corner3_gk_avg_von_mises', 'strain_energy', 'u_left_top', 'v_left_tip']"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "stop",
+   "detail": "no further experiment applies within the budget (0.7 of 15.0 min used)"
+  }
+ ],
+ "human_points": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "description written by a person (steps L, D skipped)"
+  }
+ ],
+ "wall_clock_s": 48.56999635696411,
+ "source": {
+  "pdf": null,
+  "text": null,
+  "description_given": true
+ },
+ "mms": {
+  "Q2": {
+   "skipped": true,
+   "reason": "passing check on record for 4cbfae5f3d124464|Q2|plane_strain|clamped+free+traction (t_bracket)",
+   "verdict": "PASS"
+  },
+  "P2": {
+   "skipped": true,
+   "reason": "passing check on record for 4cbfae5f3d124464|P2|plane_strain|clamped+free+traction (t_bracket)",
+   "verdict": "PASS"
+  }
+ },
+ "graded_plan": {
+  "x": {
+   "2": 3.7,
+   "1": 3.7
+  },
+  "y": {
+   "1": 3.7,
+   "3": 2.9
+  }
+ },
+ "final": {
+  "certified": [
+   "corner0_gk_avg_von_mises",
+   "corner1_gk_avg_von_mises",
+   "corner2_gk_avg_von_mises",
+   "corner3_gk_avg_von_mises",
+   "strain_energy",
+   "u_left_top",
+   "v_left_tip"
+  ],
+  "open": [
+   "peak_von_mises"
+  ]
+ },
+ "verdicts": {
+  "strain_energy": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "class": "global",
+   "finest": 0.013169748278537017,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.10, GCI_fine=0.14% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=1.11 (leave-one-out 1.10-1.11), U_fine=0.14% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 1.106 vs theory = 1.089 (lam = 0.5445, tol 0.15)",
+     "label": null,
+     "evidence": null
+    }
+   },
+   "limit": 0.013184091845257153,
+   "U": 0.0013736877531667533,
+   "crosscheck": "cross_checked",
+   "gap_rel": 5.921953354339626e-05,
+   "final": "CERTIFIED"
+  },
+  "v_left_tip": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "class": "displacement",
+   "finest": -0.012051372120219237,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.09, GCI_fine=0.20% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=1.11 (leave-one-out 1.10-1.12), U_fine=0.20% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 1.114 vs theory >= 1.089 (lam = 0.5445, tol 0.15)",
+     "label": null,
+     "evidence": null
+    }
+   },
+   "limit": -0.012069720502886535,
+   "U": 0.001963196399622644,
+   "crosscheck": "cross_checked",
+   "gap_rel": 7.764249279947923e-05,
+   "final": "CERTIFIED"
+  },
+  "u_left_top": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "class": "displacement",
+   "finest": -0.0014073600831904594,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.07, GCI_fine=0.72% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=0.99 (leave-one-out 0.97-1.05), U_fine=0.96% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 0.991 vs theory >= 1.089 (lam = 0.5445, tol 0.15)",
+     "label": null,
+     "evidence": null
+    }
+   },
+   "limit": -0.0014174393389823953,
+   "U": 0.009640182596344596,
+   "crosscheck": "independent_unconverged",
+   "gap_rel": null,
+   "final": "INCONCLUSIVE"
+  },
+  "corner0_gk_avg_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "rate",
+   "class": "region_average",
+   "finest": 3.5324798137938753,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.25, GCI_fine=0.50% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "FAIL",
+     "reason": "no rate from 5 levels (failed: leave_one_out; fitted p=2.34) and finest-three spread 1.843% exceeds 1.00%",
+     "label": null,
+     "evidence": "none"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 2.342 vs theory >= 1.089 (lam = 0.5445, tol 0.15)",
+     "label": null,
+     "evidence": null
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 1.913% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    },
+    "anchored_robustness": {
+     "verdict": "FAIL",
+     "reason": "max deviation from Richardson extrapolate 2.232% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    }
+   }
+  },
+  "corner1_gk_avg_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "rate",
+   "class": "region_average",
+   "finest": 2.877858759641413,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.24, GCI_fine=0.46% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=1.65 (leave-one-out 0.92-1.77), U_fine=0.64% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 1.645 vs theory >= 1.089 (lam = 0.5445, tol 0.15)",
+     "label": null,
+     "evidence": null
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.222% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    },
+    "anchored_robustness": {
+     "verdict": "FAIL",
+     "reason": "max deviation from Richardson extrapolate 2.023% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    }
+   }
+  },
+  "corner2_gk_avg_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "rate",
+   "class": "region_average",
+   "finest": 2.877858759636581,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.24, GCI_fine=0.46% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=1.65 (leave-one-out 0.92-1.77), U_fine=0.64% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 1.645 vs theory >= 1.089 (lam = 0.5445, tol 0.15)",
+     "label": null,
+     "evidence": null
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.029% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    },
+    "anchored_robustness": {
+     "verdict": "FAIL",
+     "reason": "max deviation from Richardson extrapolate 2.052% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    }
+   }
+  },
+  "corner3_gk_avg_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "rate",
+   "class": "region_average",
+   "finest": 3.532479813801234,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.25, GCI_fine=0.50% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "FAIL",
+     "reason": "no rate from 5 levels (failed: leave_one_out; fitted p=2.34) and finest-three spread 1.843% exceeds 1.00%",
+     "label": null,
+     "evidence": "none"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 2.342 vs theory >= 1.089 (lam = 0.5445, tol 0.15)",
+     "label": null,
+     "evidence": null
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.555% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    },
+    "anchored_robustness": {
+     "verdict": "FAIL",
+     "reason": "max deviation from Richardson extrapolate 2.232% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    }
+   }
+  },
+  "peak_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "none",
+   "class": "pointwise_peak",
+   "finest": 13.857640615375576,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "FAIL",
+     "reason": "divergent: successive differences do not decrease",
+     "label": null,
+     "evidence": "none"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "FAIL",
+     "reason": "no rate from 5 levels (failed: fit_quality, order_window, leave_one_out; fitted p=0.05) and finest-three spread 46.070% exceeds 1.00%",
+     "label": null,
+     "evidence": "none"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "log-log slope of the peak -0.445 vs theory = -0.456 (lam = 0.5445, tol 0.15)",
+     "label": null,
+     "evidence": null
+    },
+    "strategy_robustness": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 62.883% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    },
+    "anchored_robustness": {
+     "verdict": "INCONCLUSIVE",
+     "reason": "refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative",
+     "label": null,
+     "evidence": null
+    }
+   }
+  }
+ },
+ "graded": {
+  "strain_energy": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "finest": 0.01318442238437247,
+   "fit_order": 3.3259879861228043,
+   "limit": 0.013184428911619056,
+   "U": 1.6663477998924685e-06,
+   "class": "global",
+   "checks": {},
+   "crosscheck": "cross_checked",
+   "gap_rel": 1.8839072377152445e-06,
+   "final": "CERTIFIED"
+  },
+  "v_left_tip": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "finest": -0.012071018137992261,
+   "fit_order": 3.332103068387441,
+   "limit": -0.012071027417803562,
+   "U": 2.580132695890911e-06,
+   "class": "displacement",
+   "checks": {},
+   "crosscheck": "cross_checked",
+   "gap_rel": 5.360774695736004e-06,
+   "final": "CERTIFIED"
+  },
+  "u_left_top": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "finest": -0.0014153857421436305,
+   "fit_order": 3.2841223474873393,
+   "limit": -0.0014153912036971215,
+   "U": 1.3493749915689557e-05,
+   "class": "displacement",
+   "checks": {},
+   "crosscheck": "cross_checked",
+   "gap_rel": 1.9416788727556772e-05,
+   "final": "CERTIFIED"
+  },
+  "corner0_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "finest": 3.5463914460093267,
+   "fit_order": 2.233456554936315,
+   "limit": 3.5464710664137806,
+   "U": 7.631493899685972e-05,
+   "class": "region_average",
+   "checks": {},
+   "crosscheck": "cross_checked",
+   "gap_rel": 8.115101431411223e-06,
+   "final": "CERTIFIED"
+  },
+  "corner1_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "finest": 2.886961741110038,
+   "fit_order": 2.923723604994501,
+   "limit": 2.8869771681827396,
+   "U": 1.904141440590676e-05,
+   "class": "region_average",
+   "checks": {},
+   "crosscheck": "cross_checked",
+   "gap_rel": 9.419156044996861e-06,
+   "final": "CERTIFIED"
+  },
+  "corner2_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "finest": 2.8869615667898625,
+   "fit_order": 2.9238868277589027,
+   "limit": 2.8869770896259435,
+   "U": 1.9136023971842792e-05,
+   "class": "region_average",
+   "checks": {},
+   "crosscheck": "cross_checked",
+   "gap_rel": 1.1890392077144534e-06,
+   "final": "CERTIFIED"
+  },
+  "corner3_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "finest": 3.54639138437148,
+   "fit_order": 2.233488600636236,
+   "limit": 3.546471032229583,
+   "U": 7.633824094987369e-05,
+   "class": "region_average",
+   "checks": {},
+   "crosscheck": "cross_checked",
+   "gap_rel": 3.3189139597310345e-05,
+   "final": "CERTIFIED"
+  },
+  "peak_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "none",
+   "finest": 4213.943582406279,
+   "fit_order": 0.050000001446839366,
+   "class": "pointwise_peak",
+   "checks": {}
+  }
+ },
+ "diagnosis": {
+  "strain_energy": {
+   "supported": [
+    "M2"
+   ],
+   "diagnosis": [
+    "mathematical/physical"
+   ],
+   "open": [],
+   "tests": [
+    {
+     "id": "M2",
+     "class": "mathematical/physical",
+     "status": "supported",
+     "evidence": "observed order 1.11 below the element optimum 4; the corners/edges (corner (2, 1) ['free', 'free']; corner (2, 3) ['free', 'clamped']; corner (1, 3) ['clamped', 'free']; corner (1, 1) ['free', 'free']) have lambda = 0.5445, predicting order 2 lambda = 1.09 for energy-type quantities",
+     "next_action": null,
+     "cost": null,
+     "remedy": "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+    }
+   ]
+  },
+  "v_left_tip": {
+   "supported": [
+    "M2"
+   ],
+   "diagnosis": [
+    "mathematical/physical"
+   ],
+   "open": [],
+   "tests": [
+    {
+     "id": "M2",
+     "class": "mathematical/physical",
+     "status": "supported",
+     "evidence": "observed order 1.11 below the element optimum 3; the corners/edges (corner (2, 1) ['free', 'free']; corner (2, 3) ['free', 'clamped']; corner (1, 3) ['clamped', 'free']; corner (1, 1) ['free', 'free']) have lambda = 0.5445, predicting order 2 lambda = 1.09 for energy-type quantities",
+     "next_action": null,
+     "cost": null,
+     "remedy": "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+    }
+   ]
+  },
+  "u_left_top": {
+   "supported": [
+    "M2"
+   ],
+   "diagnosis": [
+    "mathematical/physical"
+   ],
+   "open": [],
+   "tests": [
+    {
+     "id": "M2",
+     "class": "mathematical/physical",
+     "status": "supported",
+     "evidence": "observed order 0.99 below the element optimum 3; the corners/edges (corner (2, 1) ['free', 'free']; corner (2, 3) ['free', 'clamped']; corner (1, 3) ['clamped', 'free']; corner (1, 1) ['free', 'free']) have lambda = 0.5445, predicting order 2 lambda = 1.09 for energy-type quantities",
+     "next_action": null,
+     "cost": null,
+     "remedy": "expected for this geometry; to recover the element order, grade the mesh toward the singular edges"
+    }
+   ]
+  },
+  "corner0_gk_avg_von_mises": {
+   "supported": [
+    "D4"
+   ],
+   "diagnosis": [
+    "numerical discretization"
+   ],
+   "open": [
+    "P1",
+    "S1",
+    "S2",
+    "Q2"
+   ],
+   "tests": [
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "needs data",
+     "evidence": "no deformation measures stored",
+     "next_action": "record min det F and the largest principal stretch",
+     "cost": "seconds per level",
+     "remedy": null
+    },
+    {
+     "id": "D3",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "nu = 0.3: far from incompressibility",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "supported",
+     "evidence": "increments over the finest five levels shrink (0.388 -> 0.0193) with 0 sign change(s): the sequence may still enter the asymptotic range",
+     "next_action": "add a finer level",
+     "cost": "see the adaptive controller",
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "Q2",
+     "class": "QoI/post-processing",
+     "status": "needs data",
+     "evidence": "no signed components of the same region evaluated",
+     "next_action": "evaluate the signed stress components over the same region",
+     "cost": "seconds",
+     "remedy": null
+    }
+   ]
+  },
+  "corner1_gk_avg_von_mises": {
+   "supported": [
+    "D4"
+   ],
+   "diagnosis": [
+    "numerical discretization"
+   ],
+   "open": [
+    "P1",
+    "S1",
+    "S2",
+    "Q2"
+   ],
+   "tests": [
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "needs data",
+     "evidence": "no deformation measures stored",
+     "next_action": "record min det F and the largest principal stretch",
+     "cost": "seconds per level",
+     "remedy": null
+    },
+    {
+     "id": "D3",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "nu = 0.3: far from incompressibility",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "supported",
+     "evidence": "increments over the finest five levels shrink (0.241 -> 0.0143) with 0 sign change(s): the sequence may still enter the asymptotic range",
+     "next_action": "add a finer level",
+     "cost": "see the adaptive controller",
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "Q2",
+     "class": "QoI/post-processing",
+     "status": "needs data",
+     "evidence": "no signed components of the same region evaluated",
+     "next_action": "evaluate the signed stress components over the same region",
+     "cost": "seconds",
+     "remedy": null
+    }
+   ]
+  },
+  "corner2_gk_avg_von_mises": {
+   "supported": [
+    "D4"
+   ],
+   "diagnosis": [
+    "numerical discretization"
+   ],
+   "open": [
+    "P1",
+    "S1",
+    "S2",
+    "Q2"
+   ],
+   "tests": [
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "needs data",
+     "evidence": "no deformation measures stored",
+     "next_action": "record min det F and the largest principal stretch",
+     "cost": "seconds per level",
+     "remedy": null
+    },
+    {
+     "id": "D3",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "nu = 0.3: far from incompressibility",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "supported",
+     "evidence": "increments over the finest five levels shrink (0.241 -> 0.0143) with 0 sign change(s): the sequence may still enter the asymptotic range",
+     "next_action": "add a finer level",
+     "cost": "see the adaptive controller",
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "Q2",
+     "class": "QoI/post-processing",
+     "status": "needs data",
+     "evidence": "no signed components of the same region evaluated",
+     "next_action": "evaluate the signed stress components over the same region",
+     "cost": "seconds",
+     "remedy": null
+    }
+   ]
+  },
+  "corner3_gk_avg_von_mises": {
+   "supported": [
+    "D4"
+   ],
+   "diagnosis": [
+    "numerical discretization"
+   ],
+   "open": [
+    "P1",
+    "S1",
+    "S2",
+    "Q2"
+   ],
+   "tests": [
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "needs data",
+     "evidence": "no deformation measures stored",
+     "next_action": "record min det F and the largest principal stretch",
+     "cost": "seconds per level",
+     "remedy": null
+    },
+    {
+     "id": "D3",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "nu = 0.3: far from incompressibility",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "supported",
+     "evidence": "increments over the finest five levels shrink (0.388 -> 0.0193) with 0 sign change(s): the sequence may still enter the asymptotic range",
+     "next_action": "add a finer level",
+     "cost": "see the adaptive controller",
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "Q2",
+     "class": "QoI/post-processing",
+     "status": "needs data",
+     "evidence": "no signed components of the same region evaluated",
+     "next_action": "evaluate the signed stress components over the same region",
+     "cost": "seconds",
+     "remedy": null
+    }
+   ]
+  },
+  "peak_von_mises": {
+   "supported": [
+    "M1"
+   ],
+   "diagnosis": [
+    "mathematical/physical"
+   ],
+   "open": [
+    "P1",
+    "S1",
+    "S2"
+   ],
+   "tests": [
+    {
+     "id": "M1",
+     "class": "mathematical/physical",
+     "status": "supported",
+     "evidence": "peak grows like h^-0.445; theory h^(lambda-1) = h^-0.456 (lambda = 0.5445)",
+     "next_action": null,
+     "cost": null,
+     "remedy": "not a usable reference value: no finite limit exists; use energy, displacements or region averages, or a singular-field quantity (stress-intensity factor)"
+    },
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "needs data",
+     "evidence": "no deformation measures stored",
+     "next_action": "record min det F and the largest principal stretch",
+     "cost": "seconds per level",
+     "remedy": null
+    },
+    {
+     "id": "D3",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "nu = 0.3: far from incompressibility",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "increments over the finest five levels do not settle (0 sign changes, last/first 2.52)",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    }
+   ]
+  }
+ },
+ "experiments": [
+  {
+   "quantity": "peak_von_mises",
+   "conclusion": "not verifiable",
+   "justification": "a corner exponent 0.5445 < 1: the stress is unbounded (r^(lam-1)), the peak grows with refinement; no experiment can certify it"
+  },
+  {
+   "k": 1,
+   "action": "graded_meshes",
+   "confirmed": true
+  },
+  {
+   "k": 2,
+   "action": "finer_graded_level",
+   "confirmed": false
+  },
+  {
+   "k": 3,
+   "action": "finer_graded_level",
+   "confirmed": true
+  }
+ ],
+ "description": {
+  "name": "t_bracket",
+  "cells": [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    0
+   ],
+   [
+    2,
+    0
+   ],
+   [
+    1,
+    1
+   ],
+   [
+    1,
+    2
+   ]
+  ],
+  "E": 1000,
+  "nu": 0.3,
+  "bcs": [
+   {
+    "segment": [
+     [
+      1,
+      3
+     ],
+     [
+      2,
+      3
+     ]
+    ],
+    "type": "clamped"
+   },
+   {
+    "segment": [
+     [
+      0,
+      0
+     ],
+     [
+      3,
+      0
+     ]
+    ],
+    "type": "traction",
+    "t": [
+     0,
+     -1
+    ]
+   }
+  ],
+  "points": {
+   "v_left_tip": [
+    0,
+    0,
+    "y"
+   ],
+   "u_left_top": [
+    0,
+    1,
+    "x"
+   ]
+  }
+ }
+}

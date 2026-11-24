@@ -1,0 +1,49 @@
+{
+ "preregistration": {
+  "action": "finer_graded_level",
+  "quantities": [
+   "corner0_gk_avg_von_mises",
+   "corner3_gk_avg_von_mises"
+  ],
+  "situation": "region_average:band_only",
+  "justification": "corner0_gk_avg_von_mises: region_average:band_only + diagnosis D4 (pre-asymptotic); corner3_gk_avg_von_mises: region_average:band_only + diagnosis D4 (pre-asymptotic)",
+  "hypothesis": "the sequences are pre-asymptotic; one finer graded level (n = 64) lets the checks decide",
+  "prediction": {
+   "text": "at least one listed quantity becomes certified with a rate and cross-checked",
+   "criterion": "any_certified"
+  },
+  "run": {
+   "kind": "graded_level",
+   "n": 64
+  },
+  "cost": {
+   "dof": 333840,
+   "minutes": 0.09500943594555179
+  },
+  "prior": 0.5,
+  "prior_n": 0,
+  "score": 0.9132341395181585,
+  "problem": "t_bracket",
+  "git_head": "ecf44b13d648ebd749c5797037895efcf652d2de",
+  "frozen_utc": "2026-11-24T17:05:26.203182+00:00",
+  "sha256": "6c6c8f7b787d1416f34c6067b1445a5946c5247c12c54799a720b2d0900d65cb"
+ },
+ "outcome": {
+  "confirmed": false,
+  "observed_minutes": 0.15143514076868694,
+  "after": {
+   "certified": [
+    "corner1_gk_avg_von_mises",
+    "corner2_gk_avg_von_mises",
+    "strain_energy",
+    "u_left_top",
+    "v_left_tip"
+   ],
+   "open": [
+    "corner0_gk_avg_von_mises",
+    "corner3_gk_avg_von_mises",
+    "peak_von_mises"
+   ]
+  }
+ }
+}

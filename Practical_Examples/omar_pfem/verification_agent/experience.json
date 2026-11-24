@@ -1,0 +1,46 @@
+[
+ {
+  "problem": "t_bracket",
+  "action": "graded_meshes",
+  "situation": "corner_limited",
+  "quantities": [
+   "corner0_gk_avg_von_mises",
+   "corner1_gk_avg_von_mises",
+   "corner2_gk_avg_von_mises",
+   "corner3_gk_avg_von_mises",
+   "strain_energy",
+   "u_left_top",
+   "v_left_tip"
+  ],
+  "confirmed": true,
+  "predicted_minutes": 0.04428759620521467,
+  "observed_minutes": 0.055406550566355385,
+  "file": "experiments/t_bracket/01_graded_meshes.json"
+ },
+ {
+  "problem": "t_bracket",
+  "action": "finer_graded_level",
+  "situation": "region_average:band_only",
+  "quantities": [
+   "corner0_gk_avg_von_mises",
+   "corner3_gk_avg_von_mises"
+  ],
+  "confirmed": false,
+  "predicted_minutes": 0.09500943594555179,
+  "observed_minutes": 0.15143514076868694,
+  "file": "experiments/t_bracket/02_finer_graded_level.json"
+ },
+ {
+  "problem": "t_bracket",
+  "action": "finer_graded_level",
+  "situation": "region_average:band_only",
+  "quantities": [
+   "corner0_gk_avg_von_mises",
+   "corner3_gk_avg_von_mises"
+  ],
+  "confirmed": true,
+  "predicted_minutes": 0.376526970951437,
+  "observed_minutes": 0.5090469360351563,
+  "file": "experiments/t_bracket/03_finer_graded_level.json"
+ }
+]
