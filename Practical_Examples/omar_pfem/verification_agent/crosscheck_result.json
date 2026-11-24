@@ -1,19 +1,19 @@
 {
  "summary": {
-  "cross_checked": 27,
+  "cross_checked": 25,
   "contradicted": 0,
-  "independent_unconverged": 11,
+  "independent_unconverged": 13,
   "conflicting_sources": 0,
   "single_family": 0
  },
  "summary_v1": {
   "cross_checked": 21,
-  "contradicted": 5,
-  "single_family": 12
+  "contradicted": 7,
+  "single_family": 10
  },
  "final": {
-  "CERTIFIED": 27,
-  "INCONCLUSIVE": 11
+  "CERTIFIED": 25,
+  "INCONCLUSIVE": 13
  },
  "rows": [
   {
@@ -579,20 +579,20 @@
    "independent_sources": [
     {
      "source": "splines p = 2, displacement",
-     "levels": 4,
-     "finest": 34.52359088996238,
+     "levels": 5,
+     "finest": 34.50663571535213,
      "assessment": {
       "evidence": "rate",
-      "fit_limit": 34.49319237765356,
-      "fit_order": 2.1351121653265794,
-      "uncertainty_fine": 0.0012406043192157803,
+      "fit_limit": 34.487671949300676,
+      "fit_order": 2.0807307274611055,
+      "uncertainty_fine": 0.000882899413830864,
       "verdict": "PASS",
-      "reason": "4 levels monotone, fitted p=2.14 (no leave-one-out check with 4 levels), U_fine=0.12% vs tol 0.46%",
-      "n_levels": 4
+      "reason": "5 levels monotone, fitted p=2.08 (leave-one-out 1.57-2.14), U_fine=0.09% vs tol 0.46%",
+      "n_levels": 5
      },
      "status": "cross_checked",
-     "gap_rel": 0.00041535140898915396,
-     "U_ind_rel": 0.0012406043192157803
+     "gap_rel": 0.0002554309557150318,
+     "U_ind_rel": 0.000882899413830864
     }
    ],
    "v1": {
@@ -614,20 +614,20 @@
    "independent_sources": [
     {
      "source": "splines p = 2, displacement",
-     "levels": 4,
-     "finest": 0.8637228229728362,
+     "levels": 5,
+     "finest": 0.8633190089601828,
      "assessment": {
       "evidence": "rate",
-      "fit_limit": 0.8630018239604355,
-      "fit_order": 2.1626061419021396,
-      "uncertainty_fine": 0.0011766622227931955,
+      "fit_limit": 0.862873958137763,
+      "fit_order": 2.110120514211983,
+      "uncertainty_fine": 0.0008298197323178044,
       "verdict": "PASS",
-      "reason": "4 levels monotone, fitted p=2.16 (no leave-one-out check with 4 levels), U_fine=0.12% vs tol 1.00%",
-      "n_levels": 4
+      "reason": "5 levels monotone, fitted p=2.11 (leave-one-out 1.61-2.16), U_fine=0.08% vs tol 1.00%",
+      "n_levels": 5
      },
      "status": "cross_checked",
-     "gap_rel": 0.00037110458319035113,
-     "U_ind_rel": 0.0011766622227931955
+     "gap_rel": 0.00022304563091088625,
+     "U_ind_rel": 0.0008298197323178044
     }
    ],
    "v1": {
@@ -649,35 +649,35 @@
    "independent_sources": [
     {
      "source": "spline P1",
-     "levels": 4,
-     "finest": 0.5504703569341163,
+     "levels": 5,
+     "finest": 0.5518414623069143,
      "assessment": {
       "evidence": "band",
-      "fit_limit": 0.6191949445858603,
+      "fit_limit": 0.6309505915169995,
       "fit_order": 0.050000001446839366,
       "uncertainty_fine": null,
       "verdict": "PASS",
-      "reason": "finest three within 1.00% band (spread 0.149%); no rate from 4 levels (failed: fit_quality, order_window; fitted p=0.05)",
-      "n_levels": 4
+      "reason": "finest three within 1.00% band (spread 0.112%); no rate from 5 levels (failed: fit_quality, order_window, leave_one_out; fitted p=0.05)",
+      "n_levels": 5
      },
      "status": "independent_unconverged",
-     "gap_finest_rel": 0.003312460376461057
+     "gap_finest_rel": 0.0037552440950219743
     },
     {
      "source": "splines p = 2, displacement",
-     "levels": 4,
-     "finest": 0.5375908384290167,
+     "levels": 5,
+     "finest": 0.5410777711377203,
      "assessment": {
       "evidence": "band",
-      "fit_limit": 0.5743766855788115,
-      "fit_order": 0.4828109387220213,
+      "fit_limit": 0.5720934806679808,
+      "fit_order": 0.5036506674071237,
       "uncertainty_fine": null,
       "verdict": "PASS",
-      "reason": "finest three within 1.00% band (spread 0.472%); no rate from 4 levels (failed: order_window; fitted p=0.48)",
-      "n_levels": 4
+      "reason": "finest three within 1.00% band (spread 0.290%); no rate from 5 levels (failed: leave_one_out; fitted p=0.50)",
+      "n_levels": 5
      },
      "status": "independent_unconverged",
-     "gap_finest_rel": 0.0008468414613868993
+     "gap_finest_rel": 0.00027922591590057535
     }
    ],
    "v1": {
@@ -699,36 +699,35 @@
    "independent_sources": [
     {
      "source": "spline P1",
-     "levels": 4,
-     "finest": 0.4341704652056293,
+     "levels": 5,
+     "finest": 0.43520535053447323,
      "assessment": {
       "evidence": "band",
-      "fit_limit": 0.4518174725405785,
+      "fit_limit": 0.4647463516723453,
       "fit_order": 0.050000001446839366,
       "uncertainty_fine": null,
       "verdict": "PASS",
-      "reason": "finest three within 1.00% band (spread 0.071%); no rate from 4 levels (failed: monotone, fit_quality, order_window; fitted p=0.05)",
-      "n_levels": 4
+      "reason": "finest three within 1.00% band (spread 0.082%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05)",
+      "n_levels": 5
      },
      "status": "independent_unconverged",
-     "gap_finest_rel": 0.0027794693476204113
+     "gap_finest_rel": 0.0031136744227960216
     },
     {
      "source": "splines p = 2, displacement",
-     "levels": 4,
-     "finest": 0.4240924245144223,
+     "levels": 5,
+     "finest": 0.4267529433897128,
      "assessment": {
-      "evidence": "rate",
-      "fit_limit": 0.4280782906085092,
-      "fit_order": 1.6352645981045266,
-      "uncertainty_fine": 0.0021000787925622567,
+      "evidence": "band",
+      "fit_limit": 0.430449864819009,
+      "fit_order": 1.4511135029866107,
+      "uncertainty_fine": null,
       "verdict": "PASS",
-      "reason": "4 levels monotone, fitted p=1.64 (no leave-one-out check with 4 levels), U_fine=0.21% vs tol 2.00%",
-      "n_levels": 4
+      "reason": "finest three within 1.00% band (spread 0.216%); no rate from 5 levels (failed: leave_one_out; fitted p=1.45)",
+      "n_levels": 5
      },
-     "status": "cross_checked",
-     "gap_rel": 0.0008120671510041942,
-     "U_ind_rel": 0.0021000787925622567
+     "status": "independent_unconverged",
+     "gap_finest_rel": 0.0003840605356370213
     }
    ],
    "v1": {
@@ -738,8 +737,8 @@
     "gap_rel": 0.0027794693476204113,
     "status": "contradicted"
    },
-   "status": "cross_checked",
-   "final": "CERTIFIED"
+   "status": "independent_unconverged",
+   "final": "INCONCLUSIVE"
   },
   {
    "problem": "bushing_groove",
@@ -750,35 +749,35 @@
    "independent_sources": [
     {
      "source": "spline P1",
-     "levels": 4,
-     "finest": 0.4435959507768713,
+     "levels": 5,
+     "finest": 0.4445758920144845,
      "assessment": {
       "evidence": "band",
-      "fit_limit": 0.44291169504017935,
-      "fit_order": 4.2897311262092535,
+      "fit_limit": 0.44356212352318114,
+      "fit_order": 5.203292597513233,
       "uncertainty_fine": null,
       "verdict": "PASS",
-      "reason": "finest three within 1.00% band (spread 0.069%); no rate from 4 levels (failed: monotone; fitted p=4.29)",
-      "n_levels": 4
+      "reason": "finest three within 1.00% band (spread 0.070%); no rate from 5 levels (failed: monotone, order_window, leave_one_out; fitted p=5.20)",
+      "n_levels": 5
      },
      "status": "independent_unconverged",
-     "gap_finest_rel": 0.002999223676727353
+     "gap_finest_rel": 0.00331568514917865
     },
     {
      "source": "splines p = 2, displacement",
-     "levels": 4,
-     "finest": 0.43347039860207404,
+     "levels": 5,
+     "finest": 0.4360207919883575,
      "assessment": {
       "evidence": "band",
-      "fit_limit": 0.4643293225468567,
-      "fit_order": 0.22267098004008098,
+      "fit_limit": 0.6002942633325808,
+      "fit_order": 0.050000001446839366,
       "uncertainty_fine": null,
       "verdict": "PASS",
-      "reason": "finest three within 1.00% band (spread 0.165%); no rate from 4 levels (failed: order_window; fitted p=0.22)",
-      "n_levels": 4
+      "reason": "finest three within 1.00% band (spread 0.193%); no rate from 5 levels (failed: order_window, leave_one_out; fitted p=0.05)",
+      "n_levels": 5
      },
      "status": "independent_unconverged",
-     "gap_finest_rel": 0.00027071438448077786
+     "gap_finest_rel": 0.0005529077015936387
     }
    ],
    "v1": {
@@ -800,36 +799,35 @@
    "independent_sources": [
     {
      "source": "spline P1",
-     "levels": 4,
-     "finest": -0.4760789243055389,
+     "levels": 5,
+     "finest": -0.4772075682852907,
      "assessment": {
       "evidence": "band",
-      "fit_limit": -0.47490130820451104,
+      "fit_limit": -0.4754778734997166,
       "fit_order": 19.9999994229954,
       "uncertainty_fine": null,
       "verdict": "PASS",
-      "reason": "finest three within 1.00% band (spread 0.063%); no rate from 4 levels (failed: monotone, fit_quality, order_window; fitted p=20.00)",
-      "n_levels": 4
+      "reason": "finest three within 1.00% band (spread 0.088%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=20.00)",
+      "n_levels": 5
      },
      "status": "independent_unconverged",
-     "gap_finest_rel": 0.0030407010194045884
+     "gap_finest_rel": 0.0034051844414672264
     },
     {
      "source": "splines p = 2, displacement",
-     "levels": 4,
-     "finest": -0.46505122051517106,
+     "levels": 5,
+     "finest": -0.46795050217193007,
      "assessment": {
-      "evidence": "rate",
-      "fit_limit": -0.4754358768734606,
-      "fit_order": 0.9318027956099397,
-      "uncertainty_fine": 0.004572683014502291,
+      "evidence": "band",
+      "fit_limit": -0.47955247591861266,
+      "fit_order": 0.7944336506291813,
+      "uncertainty_fine": null,
       "verdict": "PASS",
-      "reason": "4 levels monotone, fitted p=0.93 (no leave-one-out check with 4 levels), U_fine=0.46% vs tol 2.00%",
-      "n_levels": 4
+      "reason": "finest three within 1.00% band (spread 0.233%); no rate from 5 levels (failed: leave_one_out; fitted p=0.79)",
+      "n_levels": 5
      },
-     "status": "cross_checked",
-     "gap_rel": 0.002833035774387273,
-     "U_ind_rel": 0.004572683014502291
+     "status": "independent_unconverged",
+     "gap_finest_rel": 0.00041571460351204164
     }
    ],
    "v1": {
@@ -839,8 +837,8 @@
     "gap_rel": 0.0030407010194045884,
     "status": "contradicted"
    },
-   "status": "cross_checked",
-   "final": "CERTIFIED"
+   "status": "independent_unconverged",
+   "final": "INCONCLUSIVE"
   },
   {
    "problem": "bushing_groove",
@@ -850,19 +848,44 @@
    "scale": 3.0965577895552623,
    "independent_sources": [
     {
-     "source": "splines p = 2, displacement",
-     "levels": 3,
-     "finest": 0.5314137295857023,
+     "source": "spline P1",
+     "levels": 5,
+     "finest": 0.5510860914104709,
      "assessment": {
-      "evidence": "too_few_levels",
-      "n_levels": 3
+      "evidence": "band",
+      "fit_limit": 0.6265368923204979,
+      "fit_order": 0.050000001446839366,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.112%); no rate from 5 levels (failed: fit_quality, order_window, leave_one_out; fitted p=0.05)",
+      "n_levels": 5
      },
      "status": "independent_unconverged",
-     "gap_finest_rel": 0.0026180510955868654
+     "gap_finest_rel": 0.0037349263592902234
+    },
+    {
+     "source": "splines p = 2, displacement",
+     "levels": 5,
+     "finest": 0.5403656015866404,
+     "assessment": {
+      "evidence": "band",
+      "fit_limit": 0.5747816369130158,
+      "fit_order": 0.46131314891932296,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.289%); no rate from 5 levels (failed: order_window, leave_one_out; fitted p=0.46)",
+      "n_levels": 5
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 0.0002728595895399742
     }
    ],
    "v1": {
-    "status": "single_family"
+    "source": "spline P1, finest level (not converged)",
+    "independent": 0.549719458306449,
+    "U_ind_rel": 0.0006761674352374041,
+    "gap_rel": 0.0032935869117812384,
+    "status": "contradicted"
    },
    "status": "independent_unconverged",
    "final": "INCONCLUSIVE"
@@ -875,19 +898,44 @@
    "scale": 3.0965577895552623,
    "independent_sources": [
     {
-     "source": "splines p = 2, displacement",
-     "levels": 3,
-     "finest": 0.4207554437893631,
+     "source": "spline P1",
+     "levels": 5,
+     "finest": 0.43596072143091663,
      "assessment": {
-      "evidence": "too_few_levels",
-      "n_levels": 3
+      "evidence": "band",
+      "fit_limit": 0.46916005086801704,
+      "fit_order": 0.050000001446839366,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.082%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.05)",
+      "n_levels": 5
      },
      "status": "independent_unconverged",
-     "gap_finest_rel": 0.0017773815586160006
+     "gap_finest_rel": 0.0031329991527794684
+    },
+    {
+     "source": "splines p = 2, displacement",
+     "levels": 5,
+     "finest": 0.4274651129407927,
+     "assessment": {
+      "evidence": "band",
+      "fit_limit": 0.4310097299869056,
+      "fit_order": 1.4802457368100892,
+      "uncertainty_fine": null,
+      "verdict": "PASS",
+      "reason": "finest three within 1.00% band (spread 0.217%); no rate from 5 levels (failed: leave_one_out; fitted p=1.48)",
+      "n_levels": 5
+     },
+     "status": "independent_unconverged",
+     "gap_finest_rel": 0.00038943385624931815
     }
    ],
    "v1": {
-    "status": "single_family"
+    "source": "spline P1, finest level (not converged)",
+    "independent": 0.4349213638333153,
+    "U_ind_rel": 0.0004832091340221621,
+    "gap_rel": 0.0027973498065579673,
+    "status": "contradicted"
    },
    "status": "independent_unconverged",
    "final": "INCONCLUSIVE"
@@ -901,35 +949,35 @@
    "independent_sources": [
     {
      "source": "spline P1",
-     "levels": 4,
-     "finest": 0.4435959507768713,
+     "levels": 5,
+     "finest": 0.4445758920144845,
      "assessment": {
       "evidence": "band",
-      "fit_limit": 0.44291169504017935,
-      "fit_order": 4.2897311262092535,
+      "fit_limit": 0.44356212352318114,
+      "fit_order": 5.203292597513233,
       "uncertainty_fine": null,
       "verdict": "PASS",
-      "reason": "finest three within 1.00% band (spread 0.069%); no rate from 4 levels (failed: monotone; fitted p=4.29)",
-      "n_levels": 4
+      "reason": "finest three within 1.00% band (spread 0.070%); no rate from 5 levels (failed: monotone, order_window, leave_one_out; fitted p=5.20)",
+      "n_levels": 5
      },
      "status": "independent_unconverged",
-     "gap_finest_rel": 0.002999223676727353
+     "gap_finest_rel": 0.00331568514917865
     },
     {
      "source": "splines p = 2, displacement",
-     "levels": 4,
-     "finest": 0.43347039860207404,
+     "levels": 5,
+     "finest": 0.4360207919883575,
      "assessment": {
       "evidence": "band",
-      "fit_limit": 0.4643293225468567,
-      "fit_order": 0.22267098004008098,
+      "fit_limit": 0.6002942633325808,
+      "fit_order": 0.050000001446839366,
       "uncertainty_fine": null,
       "verdict": "PASS",
-      "reason": "finest three within 1.00% band (spread 0.165%); no rate from 4 levels (failed: order_window; fitted p=0.22)",
-      "n_levels": 4
+      "reason": "finest three within 1.00% band (spread 0.193%); no rate from 5 levels (failed: order_window, leave_one_out; fitted p=0.05)",
+      "n_levels": 5
      },
      "status": "independent_unconverged",
-     "gap_finest_rel": 0.00027071438448077786
+     "gap_finest_rel": 0.0005529077015936387
     }
    ],
    "v1": {

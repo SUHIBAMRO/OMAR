@@ -36,12 +36,12 @@
    "quantities": 107,
    "verifiable": 83,
    "must_not_certify": 17,
-   "certified_correctly": 60,
-   "false_alarms": 23,
+   "certified_correctly": 58,
+   "false_alarms": 25,
    "false_alarms_FAIL": 7,
-   "false_alarms_INCONCLUSIVE": 16,
+   "false_alarms_INCONCLUSIVE": 18,
    "missed_failures": 0,
-   "rate_certified_and_cross_checked": 40
+   "rate_certified_and_cross_checked": 38
   }
  },
  "scores_on_B1_B3": {
@@ -87,7 +87,7 @@
   "bushing_groove": {
    "unknowns_A": 1759581,
    "unknowns_B": 3881319,
-   "unknowns_Bstar": 4910151,
+   "unknowns_Bstar": 6124359,
    "diagnosis_error": null
   },
   "cook_membrane": {
@@ -170,7 +170,7 @@
    "per_problem": {
     "unit_square": 4,
     "quarter_ring": 4,
-    "bushing_groove": 8,
+    "bushing_groove": 10,
     "cook_membrane": 4,
     "plate_hole": 3,
     "open_hole_lamina": 7,
@@ -179,7 +179,7 @@
     "thick_cylinder_3d": 4,
     "clamped_block_3d": 5
    },
-   "total": 51
+   "total": 53
   },
   "C": {
    "per_problem": {
@@ -1293,8 +1293,8 @@
    "B_evidence": "rate",
    "Bp": "PASS",
    "Bp_evidence": "rate",
-   "Bstar": "PASS",
-   "crosscheck": "cross_checked",
+   "Bstar": "INCONCLUSIVE",
+   "crosscheck": "independent_unconverged",
    "diagnosis_covered": true,
    "facts": "hand-written",
    "capability_gap_reason": null,
@@ -1327,8 +1327,8 @@
    "B_evidence": "rate",
    "Bp": "PASS",
    "Bp_evidence": "rate",
-   "Bstar": "PASS",
-   "crosscheck": "cross_checked",
+   "Bstar": "INCONCLUSIVE",
+   "crosscheck": "independent_unconverged",
    "diagnosis_covered": true,
    "facts": "hand-written",
    "capability_gap_reason": null,

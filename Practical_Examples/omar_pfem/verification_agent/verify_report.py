@@ -916,6 +916,7 @@ def add_f_round(add, h1, h2, h3):
     add_k_round(add, h1, h2, h3)
     add_l_round(add, h1, h2, h3)
     add_m_round(add, h1, h2, h3)
+    add_n_round(add, h1, h2, h3)
     m = lambda: json.load(open(os.path.join(HERE, "lamina_mms.json")))["rows"]
     add("23", "lamina MMS L2 rate", 3.00, h2, lambda: np.log2(m()[-2]["L2_rel"] / m()[-1]["L2_rel"]))
     add("23", "lamina MMS H1 rate", 2.00, h2, lambda: np.log2(m()[-2]["H1_semi_rel"] / m()[-1]["H1_semi_rel"]))
@@ -1362,7 +1363,7 @@ def add_j_round(add, h1, h2, h3):
     sc = [r for r in _j("normalisation_study.json").get("rows", []) if r["scale_over_value"] > 1.01]
     add("31", "normalisation min U of value %", 0.79, h2, lambda: 100 * min(r["U_of_value"] for r in sc))
     add("31", "normalisation max U of value %", 1.01, h2, lambda: 100 * max(r["U_of_value"] for r in sc))
-    tw = lambda: _j("three_way_result.json")
+    tw = lambda: _j("three_way_result_round_M_4levels.json")   # state before the L5 spline levels (Section 35)
     add("31", "three-way quantities", 107, 0, lambda: tw()["scores"]["A"]["quantities"])
     add("31", "three-way verifiable", 83, 0, lambda: tw()["scores"]["A"]["verifiable"])
     add("31", "three-way must not certify", 17, 0, lambda: tw()["scores"]["A"]["must_not_certify"])
@@ -1587,6 +1588,66 @@ def add_m_round(add, h1, h2, h3):
     add("34", "guarded energy vs uniform", 3e-8, 0.5e-8, lambda: C()["guarded_energy_rel_to_uniform"])
     add("34", "peak_hoop spread with guard %", 3.5, h1, lambda: float(
         C()["verdicts"]["peak_hoop"]["strategy_robustness:on"]["reason"].split()[3].rstrip("%")))
+
+
+def add_n_round(add, h1, h2, h3):
+    """Section 35 (24 November): the three cluster jobs (3280560, 3280561, 3280562)."""
+    d = lambda: _j("iga_b3_result.json")
+    c = lambda: _j("iga_b3_cyl_result.json")
+    fu = lambda: _j("block3d_followup_result.json")
+    raw = lambda: _j("clamped_block_3d_followup.json")[0]
+    add("35", "block k12 unknowns", 184539, 0, lambda: raw()["n_dof"])
+    add("35", "block predictions met", 6, 0, lambda: sum(fu()["predictions_met"].values()))
+    for i, v in enumerate((1.84, 1.53, 1.38, 1.32)):
+        add("35", f"block pairwise order {i + 2}", v, h2, lambda i=i: fu()["pairwise_orders"][i + 1])
+    add("35", "block five-level energy order", 1.43, h2, lambda: fu()["fit_order_energy"])
+    add("35", "block energy PASS after", 1, 0,
+        lambda: int(fu()["verdicts"]["strain_energy"]["after"] == ["PASS", "rate"]))
+    add("35", "block peak slope", -0.32, h2, lambda: fu()["peak_slope_k4_12"])
+    add("35", "spline L5 unknowns", 607104, 0, lambda: d()["L5:p2"]["n_dof"])
+    pk = lambda lv: d()[f"L{lv}:p2:fbar_p1"]["max_sigma_xx_R0"]
+    add("35", "P1 peak change L3-L4 %", 5, 0.5, lambda: 100 * abs(pk(4) / pk(3) - 1))
+    add("35", "P1 peak change L4-L5 %", 11, 0.5, lambda: 100 * abs(pk(5) / pk(4) - 1))
+    add("35", "block k12 solve time min", 7, 0.5, lambda: raw()["seconds"] / 60)
+    add("35", "L5 P1 hours", 3.0, h1, lambda: d()["L5:p2:fbar_p1"]["seconds"] / 3600)
+    for lv, v in ((2, 1.71), (3, 1.06), (4, 1.00), (5, 0.89)):
+        add("35", f"P1 peak L{lv}", v, h2, lambda lv=lv: d()[f"L{lv}:p2:fbar_p1"]["max_sigma_xx_R0"])
+    for lv, v in ((2, 3.18), (3, 1.68), (4, 1.28), (5, 1.04)):
+        add("35", f"disp peak L{lv}", v, h2, lambda lv=lv: d()[f"L{lv}:p2"]["max_sigma_xx_R0"])
+    xr = lambda q: next(r for r in _j("crosscheck_result.json")["rows"]
+                        if r["problem"] == "bushing_groove" and r["qoi"] == q)
+    lim = lambda: xr("gk2_sigma_xx_avg")["limit"]
+    add("35", "P1 L5 Gaussian sxx above Q20 %", 2.2, h1,
+        lambda: 100 * (d()["L5:p2:fbar_p1"]["gk2trunc_sigma_xx_avg"] / lim() - 1))
+    add("35", "disp L5 Gaussian sxx above Q20 %", 0.16, h2,
+        lambda: 100 * (d()["L5:p2"]["gk2trunc_sigma_xx_avg"] / lim() - 1))
+    for lv, v in ((2, 0.5459), (3, 0.5484), (4, 0.5505), (5, 0.5518)):
+        add("35", f"P1 Gaussian sxx L{lv}", v, 0.00005,
+            lambda lv=lv: d()[f"L{lv}:p2:fbar_p1"]["gk2trunc_sigma_xx_avg"])
+    add("35", "moment spline order 5 levels", 2.08, h2,
+        lambda: xr("reaction_moment_y")["independent_sources"][0]["assessment"]["fit_order"])
+    add("35", "energy spline order 5 levels", 2.11, h2,
+        lambda: xr("strain_energy")["independent_sources"][0]["assessment"]["fit_order"])
+    add("35", "moment spline gap %", 0.03, h2,
+        lambda: 100 * xr("reaction_moment_y")["independent_sources"][0]["gap_rel"])
+    add("35", "energy spline gap %", 0.02, h2,
+        lambda: 100 * xr("strain_energy")["independent_sources"][0]["gap_rel"])
+    X = lambda: _j("crosscheck_result.json")["summary"]
+    add("35", "cross-checked now", 25, 0, lambda: X()["cross_checked"])
+    add("35", "inconclusive now", 13, 0, lambda: X()["independent_unconverged"])
+    add("35", "contradicted now", 0, 0, lambda: X()["contradicted"])
+    add("35", "cross-checked with 4 levels", 27, 0,
+        lambda: _j("crosscheck_result_round_M_4levels.json")["summary"]["cross_checked"])
+    add("35", "spline Gaussian sources with a rate (5 levels)", 0, 0, lambda: sum(
+        s["assessment"]["evidence"] == "rate" for r in _j("crosscheck_result.json")["rows"]
+        if r["problem"] == "bushing_groove" and r["qoi"].startswith("gk2")
+        for s in r["independent_sources"]))
+    T = lambda: _j("three_way_result.json")["scores"]["Bstar"]
+    add("35", "final certified of 83", 58, 0, lambda: T()["certified_correctly"])
+    add("35", "final missed failures", 0, 0, lambda: T()["missed_failures"])
+    add("35", "rr/tt job reproduces stored levels", 1, 0, lambda: int(all(
+        abs(c()[k]["gk2trunc_sigma_xx_avg"] / d()[k]["gk2trunc_sigma_xx_avg"] - 1) < 1e-6
+        for k in c() if k in d())))
 
 
 if __name__ == "__main__":

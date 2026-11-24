@@ -22,7 +22,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
-PDF = os.path.join(ROOT, "advisor_feedback", "2026-11-23_Verification_Framework_Technical_Report_v9.pdf")
+PDF = os.path.join(ROOT, "advisor_feedback", "2026-11-24_Verification_Framework_Technical_Report_v10.pdf")
 OUT = os.path.join(HERE, "report_text_check.json")
 SUP = str.maketrans("-0123456789", "⁻⁰¹²³⁴⁵⁶⁷⁸⁹")
 # Reviewed 2026-11-23: claims that back a figure or a derived statement and whose raw value

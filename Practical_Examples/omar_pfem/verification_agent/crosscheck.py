@@ -146,7 +146,9 @@ def independent_series(geometry, qoi):
         else:
             return out
         for src, suffix in keys:
-            rows = [d.get(f"L{lv}:p2{suffix}") for lv in (1, 2, 3, 4)]
+            # every stored level (L5 added 2026-11-24 from cluster job 3280562; the rule is
+            # unchanged, only the data grew)
+            rows = [d.get(f"L{lv}:p2{suffix}") for lv in (1, 2, 3, 4, 5)]
             rows = [r for r in rows if r is not None and name in r]
             if len(rows) >= 2:
                 out.append((src, [r["n_elem"] ** (-1.0 / 3.0) for r in rows],

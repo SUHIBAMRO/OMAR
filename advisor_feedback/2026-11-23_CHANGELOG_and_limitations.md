@@ -367,3 +367,26 @@ Pre-registered before any loaded solve: commit 4fd091f. No billed run, no cluste
   "version 8" -> "version 9" (Omar asked for v9). Not sent.
 - Remaining limitations: 3 runs per problem; the LLM plans of round M were not stored, so the
   guard's effect on the LLM's own agreement is inferred from the checks, not re-run (billed).
+
+## 24 November: the three cluster jobs (report v10, Section 35)
+
+- Jobs 3280560 (spline rr/tt; P1 L1-L4 + disp L4), 3280561 (block k = 12), 3280562 (spline L5,
+  P1 + disp) ran on the cluster, submitted by Omar. GitHub is unreachable from the HPC: code went
+  as `transfer/cluster_update.tar.gz`; results came back by terminal copy, md5-verified.
+- Block k = 12: pre-registered predictions 6/6; energy INCONCLUSIVE -> PASS with rate (orders
+  1.84, 1.53, 1.38, 1.32 -> 2 lam 1.42; five-level 1.43). `block3d_followup.py` scoring got the
+  same checked orchestrate.py exemption (pre-registered hash == b850330).
+- **Correction (factual):** the groove peak does NOT settle. P1: 1.71, 1.06, 1.00, **0.89**; disp:
+  3.18, 1.68, 1.28, 1.04. Earlier "settles" statements (Sections 1, 15, 25, 28, Fig. 25.2,
+  scope table) corrected in the doc.
+- crosscheck.py now reads every stored spline level (1-5; data grew, rule unchanged). With five
+  levels the leave-one-out test runs and fails for every spline Gaussian-average sequence: no
+  rate. Cross-check: 25 cross-checked / 13 INCONCLUSIVE (was 27/11 with four levels; snapshot
+  `crosscheck_result_round_M_4levels.json`); sigma_yy and pressure averages lose their
+  cross-check. Three-way final: 58 of 83 (was 60; snapshot `three_way_result_round_M_4levels.json`,
+  which Section 31 now reads), missed failures 0.
+- P1 Gaussian sigma_xx keeps rising (0.5459 ... 0.5518), now 2.2% above the Q20 limit;
+  displacement splines 0.16% above. The ~2% question stays open.
+- Claims 1,155/1,155; text check NOT FOUND 0; tests 79/79.
+- Email draft -> `2026-11-24_email_to_Rabczuk_reply_DRAFT_v10.txt`: factual corrections only
+  (version 10; 25/13; 58; question 3 rewritten because the refinement it asked about has run).

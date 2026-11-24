@@ -1,11 +1,11 @@
 {
- "pdf": "2026-11-23_Verification_Framework_Technical_Report_v9.pdf",
+ "pdf": "2026-11-24_Verification_Framework_Technical_Report_v10.pdf",
  "summary": {
-  "section": 1001,
-  "elsewhere": 28,
+  "section": 1036,
+  "elsewhere": 30,
   "backing": 32,
   "NOT FOUND": 0,
-  "flag (not textual)": 54
+  "flag (not textual)": 57
  },
  "rows": [
   {
@@ -64,7 +64,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.289",
+   "form": "\u22120.289",
    "backing_reason": null,
    "section_found": true
   },
@@ -1309,7 +1309,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "1.10",
+   "form": "1.1",
    "backing_reason": null,
    "section_found": true
   },
@@ -2557,7 +2557,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.07",
+   "form": "0.07",
    "backing_reason": null,
    "section_found": true
   },
@@ -2593,7 +2593,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.13",
+   "form": "0.13",
    "backing_reason": null,
    "section_found": true
   },
@@ -4468,7 +4468,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "3",
+   "form": "2.9",
    "backing_reason": null,
    "section_found": true
   },
@@ -4504,7 +4504,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.2",
    "backing_reason": null,
    "section_found": true
   },
@@ -4636,7 +4636,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "11",
+   "form": "11.1",
    "backing_reason": null,
    "section_found": true
   },
@@ -4876,7 +4876,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.443",
+   "form": "\u22120.443",
    "backing_reason": null,
    "section_found": true
   },
@@ -4912,7 +4912,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.490",
+   "form": "\u22120.490",
    "backing_reason": null,
    "section_found": true
   },
@@ -4924,7 +4924,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.488",
+   "form": "\u22120.488",
    "backing_reason": null,
    "section_found": true
   },
@@ -4936,7 +4936,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.488",
+   "form": "\u22120.488",
    "backing_reason": null,
    "section_found": true
   },
@@ -5296,7 +5296,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.328",
+   "form": "0.328",
    "backing_reason": null,
    "section_found": true
   },
@@ -5548,7 +5548,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "10",
+   "form": "10.1",
    "backing_reason": null,
    "section_found": true
   },
@@ -5776,7 +5776,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "29",
+   "form": "29.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -6184,7 +6184,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.240",
+   "form": "\u22120.240",
    "backing_reason": null,
    "section_found": true
   },
@@ -6220,7 +6220,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.241",
+   "form": "\u22120.241",
    "backing_reason": null,
    "section_found": true
   },
@@ -6292,7 +6292,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.236",
+   "form": "\u22120.236",
    "backing_reason": null,
    "section_found": true
   },
@@ -6316,7 +6316,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.0",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -6520,7 +6520,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.4",
    "backing_reason": null,
    "section_found": true
   },
@@ -6760,7 +6760,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "1.6",
    "backing_reason": null,
    "section_found": true
   },
@@ -7048,7 +7048,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -7408,7 +7408,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "1.6",
    "backing_reason": null,
    "section_found": true
   },
@@ -7750,7 +7750,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "8",
+   "form": "8.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -7762,7 +7762,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "8",
+   "form": "8.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -7807,7 +7807,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -7855,7 +7855,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -7879,7 +7879,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "4.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -8023,7 +8023,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "0.9",
+   "form": "0.90",
    "backing_reason": null,
    "section_found": true
   },
@@ -8227,7 +8227,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "0.9",
+   "form": "0.90",
    "backing_reason": null,
    "section_found": true
   },
@@ -8275,7 +8275,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "\u22122.37",
+   "form": "2.37",
    "backing_reason": null,
    "section_found": true
   },
@@ -8335,7 +8335,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -8371,7 +8371,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "3.5",
    "backing_reason": null,
    "section_found": true
   },
@@ -8383,7 +8383,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "4.2",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -8443,7 +8443,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -8455,7 +8455,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "1.6",
    "backing_reason": null,
    "section_found": true
   },
@@ -8587,7 +8587,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.2",
    "backing_reason": null,
    "section_found": true
   },
@@ -8887,7 +8887,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "8",
+   "form": "8.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -9232,7 +9232,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": "per-level spline P1 values: behind the plotted sequences and the stated orders and limits",
    "section_found": true
   },
@@ -9244,7 +9244,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "3",
+   "form": "2.9",
    "backing_reason": null,
    "section_found": true
   },
@@ -9256,7 +9256,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "2.4",
    "backing_reason": null,
    "section_found": true
   },
@@ -9328,7 +9328,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -9352,7 +9352,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "1.9",
    "backing_reason": null,
    "section_found": true
   },
@@ -9448,7 +9448,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "4.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -9484,7 +9484,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "5.0",
+   "form": "5",
    "backing_reason": null,
    "section_found": true
   },
@@ -9496,7 +9496,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -9544,7 +9544,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -9556,7 +9556,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "4.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -9676,7 +9676,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "5.0",
+   "form": "5",
    "backing_reason": null,
    "section_found": true
   },
@@ -9688,7 +9688,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "8",
+   "form": "8.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -9748,7 +9748,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "2.0",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -9784,7 +9784,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -9796,7 +9796,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "1.9",
    "backing_reason": null,
    "section_found": true
   },
@@ -9928,7 +9928,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "4.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -9940,7 +9940,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "8",
+   "form": "8.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -10006,7 +10006,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "2.0",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -10030,7 +10030,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2",
+   "form": "1.5",
    "backing_reason": null,
    "section_found": true
   },
@@ -10090,7 +10090,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "10",
+   "form": "9.5",
    "backing_reason": null,
    "section_found": true
   },
@@ -10126,7 +10126,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "7",
+   "form": "7.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -10522,7 +10522,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "5",
+   "form": "4.7",
    "backing_reason": null,
    "section_found": true
   },
@@ -10630,7 +10630,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -10654,7 +10654,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -10666,7 +10666,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "2.0",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -10810,7 +10810,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "15",
+   "form": "14.8",
    "backing_reason": null,
    "section_found": true
   },
@@ -10846,7 +10846,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.0",
+   "form": "2.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -11488,7 +11488,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "1.0",
+   "form": "1",
    "backing_reason": null,
    "section_found": true
   },
@@ -11500,7 +11500,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "4.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -11512,7 +11512,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "4.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -11848,7 +11848,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "4.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -12004,7 +12004,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "4.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -12052,7 +12052,7 @@
    "tolerance": 5e-06,
    "ok": true,
    "text": "section",
-   "form": "10\u207b\u2074",
+   "form": "1.2 \u00d7 10\u207b\u2074",
    "backing_reason": null,
    "section_found": true
   },
@@ -12310,7 +12310,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2.6",
+   "form": "3",
    "backing_reason": null,
    "section_found": true
   },
@@ -13198,9 +13198,480 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "3.5",
    "backing_reason": null,
    "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "block k12 unknowns",
+   "printed": 184539,
+   "recomputed": 184539.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "section",
+   "form": "184,539",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "block predictions met",
+   "printed": 6,
+   "recomputed": 6.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "section",
+   "form": "6",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "block pairwise order 2",
+   "printed": 1.84,
+   "recomputed": 1.8387324814832424,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "1.84",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "block pairwise order 3",
+   "printed": 1.53,
+   "recomputed": 1.5326856960561228,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "1.53",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "block pairwise order 4",
+   "printed": 1.38,
+   "recomputed": 1.3750074274035613,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "1.38",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "block pairwise order 5",
+   "printed": 1.32,
+   "recomputed": 1.3168521365901806,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "1.32",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "block five-level energy order",
+   "printed": 1.43,
+   "recomputed": 1.4307236425943564,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "1.43",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "block energy PASS after",
+   "printed": 1,
+   "recomputed": 1.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "flag (not textual)"
+  },
+  {
+   "section": "35",
+   "claim": "block peak slope",
+   "printed": -0.32,
+   "recomputed": -0.31854106080997435,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "0.32",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "spline L5 unknowns",
+   "printed": 607104,
+   "recomputed": 607104.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "section",
+   "form": "607,104",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "P1 peak change L3-L4 %",
+   "printed": 5,
+   "recomputed": 5.115678658562606,
+   "tolerance": 0.5,
+   "ok": true,
+   "text": "section",
+   "form": "5",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "P1 peak change L4-L5 %",
+   "printed": 11,
+   "recomputed": 10.999942077756264,
+   "tolerance": 0.5,
+   "ok": true,
+   "text": "section",
+   "form": "11",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "block k12 solve time min",
+   "printed": 7,
+   "recomputed": 6.812593909104665,
+   "tolerance": 0.5,
+   "ok": true,
+   "text": "section",
+   "form": "7",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "L5 P1 hours",
+   "printed": 3.0,
+   "recomputed": 2.997546096245448,
+   "tolerance": 2.04,
+   "ok": true,
+   "text": "section",
+   "form": "3",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "P1 peak L2",
+   "printed": 1.71,
+   "recomputed": 1.7080070229601512,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "1.71",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "P1 peak L3",
+   "printed": 1.06,
+   "recomputed": 1.0552737223688162,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "1.06",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "P1 peak L4",
+   "printed": 1.0,
+   "recomputed": 1.0012893097641755,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "1",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "P1 peak L5",
+   "printed": 0.89,
+   "recomputed": 0.8911480656593507,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "0.89",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "disp peak L2",
+   "printed": 3.18,
+   "recomputed": 3.1840206888768976,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "3.18",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "disp peak L3",
+   "printed": 1.68,
+   "recomputed": 1.683853555339904,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "1.68",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "disp peak L4",
+   "printed": 1.28,
+   "recomputed": 1.2838728901960301,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "1.28",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "disp peak L5",
+   "printed": 1.04,
+   "recomputed": 1.042404797234273,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "1.04",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "P1 L5 Gaussian sxx above Q20 %",
+   "printed": 2.2,
+   "recomputed": 2.152544924646116,
+   "tolerance": 2.04,
+   "ok": true,
+   "text": "section",
+   "form": "2.2",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "disp L5 Gaussian sxx above Q20 %",
+   "printed": 0.16,
+   "recomputed": 0.1600551955858842,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "0.16",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "P1 Gaussian sxx L2",
+   "printed": 0.5459,
+   "recomputed": 0.5458710765866603,
+   "tolerance": 5e-05,
+   "ok": true,
+   "text": "section",
+   "form": "0.5459",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "P1 Gaussian sxx L3",
+   "printed": 0.5484,
+   "recomputed": 0.5483706171217535,
+   "tolerance": 5e-05,
+   "ok": true,
+   "text": "section",
+   "form": "0.5484",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "P1 Gaussian sxx L4",
+   "printed": 0.5505,
+   "recomputed": 0.5504703569341163,
+   "tolerance": 5e-05,
+   "ok": true,
+   "text": "section",
+   "form": "0.5505",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "P1 Gaussian sxx L5",
+   "printed": 0.5518,
+   "recomputed": 0.5518414623069143,
+   "tolerance": 5e-05,
+   "ok": true,
+   "text": "section",
+   "form": "0.5518",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "moment spline order 5 levels",
+   "printed": 2.08,
+   "recomputed": 2.0807307274611055,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "2.08",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "energy spline order 5 levels",
+   "printed": 2.11,
+   "recomputed": 2.110120514211983,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "2.11",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "moment spline gap %",
+   "printed": 0.03,
+   "recomputed": 0.02554309557150318,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "0.03",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "energy spline gap %",
+   "printed": 0.02,
+   "recomputed": 0.022304563091088626,
+   "tolerance": 0.005,
+   "ok": true,
+   "text": "section",
+   "form": "0.02",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "cross-checked now",
+   "printed": 25,
+   "recomputed": 25.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "section",
+   "form": "25",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "inconclusive now",
+   "printed": 13,
+   "recomputed": 13.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "section",
+   "form": "13",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "contradicted now",
+   "printed": 0,
+   "recomputed": 0.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "0",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "cross-checked with 4 levels",
+   "printed": 27,
+   "recomputed": 27.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "section",
+   "form": "27",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "spline Gaussian sources with a rate (5 levels)",
+   "printed": 0,
+   "recomputed": 0.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "flag (not textual)"
+  },
+  {
+   "section": "35",
+   "claim": "final certified of 83",
+   "printed": 58,
+   "recomputed": 58.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "section",
+   "form": "58",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "final missed failures",
+   "printed": 0,
+   "recomputed": 0.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "elsewhere",
+   "form": "0",
+   "backing_reason": null,
+   "section_found": true
+  },
+  {
+   "section": "35",
+   "claim": "rr/tt job reproduces stored levels",
+   "printed": 1,
+   "recomputed": 1.0,
+   "tolerance": 0,
+   "ok": true,
+   "text": "flag (not textual)"
   },
   {
    "section": "23",
