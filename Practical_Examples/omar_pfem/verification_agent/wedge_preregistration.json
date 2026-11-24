@@ -1,0 +1,53 @@
+{
+ "written": "2026-11-24T09:06:05.604794+00:00",
+ "frozen_files_sha256": {
+  "wedge_exact.py": "2ff53413c5982044758015df07ab97c6d5410cdeb32693a39b08521f6d78e366",
+  "gates.py": "232cab27ff8eed05dc62e481e2e2858e79f82fc9811a7f9f108b6909c8b03f95",
+  "trees.py": "2470e173544f15cdd74ca05e7874e4e459f87bf6730d023991fe684617b88ed3",
+  "orchestrate.py": "a3808b14a4fd9c849e858f3081e8bd73ff1c6c92a399e47cae4704c3645ad11e",
+  "conventional.py": "9b2f46aa1d03f3bd820e4fd494d3f37bf5040b23099a5fe8b6e667cd9b3f8571",
+  "calibration.py": "54006c533b0374f96223c294d24b132b4e80e2cfc94d8232ac2b3bc288b5cb0d"
+ },
+ "cases": [
+  "ff_200_nu30",
+  "ff_225_nu30",
+  "ff_250_nu30",
+  "ff_270_nu30",
+  "ff_290_nu30",
+  "ff_315_nu30",
+  "ff_340_nu30",
+  "ff_355_nu30",
+  "cf_60_nu30",
+  "cf_90_nu30",
+  "cf_110_nu30",
+  "cf_130_nu30",
+  "cc_200_nu30",
+  "cc_225_nu30",
+  "cc_270_nu30",
+  "cc_315_nu30",
+  "ff_200_nu45",
+  "ff_225_nu45",
+  "ff_250_nu45",
+  "ff_270_nu45",
+  "ff_290_nu45",
+  "ff_315_nu45",
+  "ff_340_nu45",
+  "ff_355_nu45",
+  "cf_60_nu45",
+  "cf_90_nu45",
+  "cf_110_nu45",
+  "cf_130_nu45",
+  "cc_200_nu45",
+  "cc_225_nu45",
+  "cc_270_nu45",
+  "cc_315_nu45"
+ ],
+ "predictions": {
+  "P1 coverage": "of the quantities the framework certifies with a rate, the exact value lies inside the certified interval for at least 90% (MEDIUM)",
+  "P2 GCI below": "conventional GCI covers a smaller fraction of what it certifies than the framework does (MEDIUM)",
+  "P3 GCI misses": "GCI certifies at least 3 quantities whose interval misses the exact value (LOW-MEDIUM)",
+  "P4 peaks": "no peak_von_mises is certified, by either method (HIGH)",
+  "P5 conservative": "the framework's median effectivity is at most 0.5 (MEDIUM)",
+  "P6 liveness": "the framework certifies at least half of the 128 verifiable quantities (LOW-MEDIUM: quadratic elements on singular corners often end pre-asymptotic or band-only)"
+ }
+}
