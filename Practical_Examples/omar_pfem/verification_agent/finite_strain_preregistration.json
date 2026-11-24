@@ -1,0 +1,32 @@
+{
+ "written": "2026-11-24T09:38:13.973460+00:00",
+ "frozen_files_sha256": {
+  "finite_strain_exact.py": "2d37a9199ceed0b77117626e0f4dd858cfc1d15d4d540d616276f0cdf15bf331",
+  "gates.py": "232cab27ff8eed05dc62e481e2e2858e79f82fc9811a7f9f108b6909c8b03f95",
+  "trees.py": "2470e173544f15cdd74ca05e7874e4e459f87bf6730d023991fe684617b88ed3",
+  "orchestrate.py": "a3808b14a4fd9c849e858f3081e8bd73ff1c6c92a399e47cae4704c3645ad11e",
+  "conventional.py": "9b2f46aa1d03f3bd820e4fd494d3f37bf5040b23099a5fe8b6e667cd9b3f8571",
+  "calibration.py": "54006c533b0374f96223c294d24b132b4e80e2cfc94d8232ac2b3bc288b5cb0d",
+  "wedge_preregister.py": "08060bfb7279a102f60543d6a08d00c0ca05a095a6fac3c4f3e287b6b74daedf"
+ },
+ "cases": [
+  "s30_e05_nu30",
+  "s30_e20_nu30",
+  "s15_e05_nu30",
+  "s15_e20_nu30",
+  "s08_e05_nu30",
+  "s08_e20_nu30",
+  "s30_e05_nu45",
+  "s30_e20_nu45",
+  "s15_e05_nu45",
+  "s15_e20_nu45",
+  "s08_e05_nu45",
+  "s08_e20_nu45"
+ ],
+ "predictions": {
+  "F1 coverage": "of the quantities the framework certifies, the exact value lies inside the interval for at least 90% (MEDIUM)",
+  "F2 liveness": "the framework certifies at least 27 of the 36 quantities (smooth fields, quadratic elements) (MEDIUM)",
+  "F3 conservative": "median framework effectivity at most 0.5 (MEDIUM)",
+  "F4 GCI": "GCI covers no larger a fraction of what it certifies than the framework (LOW-MEDIUM)"
+ }
+}
