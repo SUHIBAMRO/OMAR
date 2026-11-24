@@ -26187,3 +26187,6 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   Cross-check 25/13 (5 levels), final 58 of 83, missed 0. Block k = 12: 6/6. Claims 1,155/1,155.
   FINAL email draft: `advisor_feedback/2026-11-24_email_to_Rabczuk_reply_DRAFT_v10.txt` (attach
   v10; factual corrections only). Not sent. Nothing pending on the cluster.
+- 2026-11-24 small fixes: `ablation.summarise` now excludes degenerate runs (LLM chose no
+  quantity) and reports `degenerate_runs`; report v10 re-exported with date 24 Nov and a
+  formatting fix in Section 32's limitations list (no content change). Nothing else open.

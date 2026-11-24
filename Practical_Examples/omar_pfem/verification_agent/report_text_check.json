@@ -64,7 +64,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.289",
+   "form": "0.289",
    "backing_reason": null,
    "section_found": true
   },
@@ -637,7 +637,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.275",
+   "form": "\u22120.275",
    "backing_reason": null,
    "section_found": true
   },
@@ -781,7 +781,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.281",
+   "form": "\u22120.281",
    "backing_reason": null,
    "section_found": true
   },
@@ -2557,7 +2557,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "0.07",
+   "form": "\u22120.07",
    "backing_reason": null,
    "section_found": true
   },
@@ -2593,7 +2593,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "0.13",
+   "form": "\u22120.13",
    "backing_reason": null,
    "section_found": true
   },
@@ -2629,7 +2629,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "0.18",
+   "form": "\u22120.18",
    "backing_reason": null,
    "section_found": true
   },
@@ -3475,7 +3475,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.00",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -3511,7 +3511,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.00",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -3544,7 +3544,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.00",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -3613,7 +3613,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.00",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -3649,7 +3649,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.00",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -3682,7 +3682,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.00",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -3718,7 +3718,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.00",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -3751,7 +3751,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.00",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -3787,7 +3787,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.00",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -3820,7 +3820,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.00",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -3832,7 +3832,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.00",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -3844,7 +3844,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.00",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -3856,7 +3856,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.00",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -3889,7 +3889,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.00",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -3913,7 +3913,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.00",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -4504,7 +4504,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2.2",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -4636,7 +4636,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "11.1",
+   "form": "11",
    "backing_reason": null,
    "section_found": true
   },
@@ -4876,7 +4876,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.443",
+   "form": "0.443",
    "backing_reason": null,
    "section_found": true
   },
@@ -4900,7 +4900,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.457",
+   "form": "0.457",
    "backing_reason": null,
    "section_found": true
   },
@@ -4924,7 +4924,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.488",
+   "form": "0.488",
    "backing_reason": null,
    "section_found": true
   },
@@ -4936,7 +4936,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.488",
+   "form": "0.488",
    "backing_reason": null,
    "section_found": true
   },
@@ -5152,7 +5152,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.292",
+   "form": "0.292",
    "backing_reason": null,
    "section_found": true
   },
@@ -5164,7 +5164,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.270",
+   "form": "\u22120.270",
    "backing_reason": null,
    "section_found": true
   },
@@ -5392,7 +5392,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.361",
+   "form": "0.361",
    "backing_reason": null,
    "section_found": true
   },
@@ -5776,7 +5776,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "29.0",
+   "form": "29",
    "backing_reason": null,
    "section_found": true
   },
@@ -6316,7 +6316,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.00",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -6520,7 +6520,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2.4",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -6760,7 +6760,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1.6",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -7408,7 +7408,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1.6",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -7528,7 +7528,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "elsewhere",
-   "form": "3",
+   "form": "3.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -7879,7 +7879,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4.0",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -7975,7 +7975,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.447",
+   "form": "\u22120.447",
    "backing_reason": null,
    "section_found": true
   },
@@ -8023,7 +8023,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "0.90",
+   "form": "0.9",
    "backing_reason": null,
    "section_found": true
   },
@@ -8227,7 +8227,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "0.90",
+   "form": "0.9",
    "backing_reason": null,
    "section_found": true
   },
@@ -8371,7 +8371,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "3.5",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -8383,7 +8383,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "4",
+   "form": "4.2",
    "backing_reason": null,
    "section_found": true
   },
@@ -8455,7 +8455,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1.6",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -8467,7 +8467,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.4",
    "backing_reason": null,
    "section_found": true
   },
@@ -8479,7 +8479,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.4",
    "backing_reason": null,
    "section_found": true
   },
@@ -8491,7 +8491,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.4",
    "backing_reason": null,
    "section_found": true
   },
@@ -8503,7 +8503,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.4",
    "backing_reason": null,
    "section_found": true
   },
@@ -8587,7 +8587,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2.2",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -8875,7 +8875,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "0.5",
+   "form": "0",
    "backing_reason": null,
    "section_found": true
   },
@@ -9232,7 +9232,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.00",
    "backing_reason": "per-level spline P1 values: behind the plotted sequences and the stated orders and limits",
    "section_found": true
   },
@@ -9256,7 +9256,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2.4",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -9352,7 +9352,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1.9",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -9448,7 +9448,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4.0",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -9484,7 +9484,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "5",
+   "form": "5.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -9556,7 +9556,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4.0",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -9640,7 +9640,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22120.511",
+   "form": "0.511",
    "backing_reason": null,
    "section_found": true
   },
@@ -9676,7 +9676,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "5",
+   "form": "5.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -9772,7 +9772,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "0.8",
    "backing_reason": null,
    "section_found": true
   },
@@ -9796,7 +9796,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1.9",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -9928,7 +9928,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "4.0",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -10030,7 +10030,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "1.5",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -10042,7 +10042,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "3",
+   "form": "3.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -10102,7 +10102,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "3",
+   "form": "3.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -10126,7 +10126,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "7.0",
+   "form": "7",
    "backing_reason": null,
    "section_found": true
   },
@@ -10534,7 +10534,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "\u22121.026",
+   "form": "1.026",
    "backing_reason": null,
    "section_found": true
   },
@@ -10546,7 +10546,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.736",
+   "form": "\u22120.736",
    "backing_reason": null,
    "section_found": true
   },
@@ -10690,7 +10690,7 @@
    "tolerance": 0.0005,
    "ok": true,
    "text": "section",
-   "form": "0.281",
+   "form": "\u22120.281",
    "backing_reason": null,
    "section_found": true
   },
@@ -10810,7 +10810,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "14.8",
+   "form": "15",
    "backing_reason": null,
    "section_found": true
   },
@@ -10846,7 +10846,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.00",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -11332,7 +11332,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "3",
+   "form": "3.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -11344,7 +11344,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "3",
+   "form": "3.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -11500,7 +11500,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4.0",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -11512,7 +11512,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4.0",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -11848,7 +11848,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4.0",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -12004,7 +12004,7 @@
    "tolerance": 0,
    "ok": true,
    "text": "section",
-   "form": "4.0",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -12052,7 +12052,7 @@
    "tolerance": 5e-06,
    "ok": true,
    "text": "section",
-   "form": "1.2 \u00d7 10\u207b\u2074",
+   "form": "10\u207b\u2074",
    "backing_reason": null,
    "section_found": true
   },
@@ -12310,7 +12310,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "3",
+   "form": "2.6",
    "backing_reason": null,
    "section_found": true
   },
@@ -12667,7 +12667,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.9",
+   "form": "2.90",
    "backing_reason": null,
    "section_found": true
   },
@@ -12937,7 +12937,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -12949,7 +12949,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -12973,7 +12973,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -12997,7 +12997,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -13069,7 +13069,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -13198,7 +13198,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "3.5",
+   "form": "4",
    "backing_reason": null,
    "section_found": true
   },
@@ -13363,7 +13363,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "3",
+   "form": "3.0",
    "backing_reason": null,
    "section_found": true
   },
@@ -13399,7 +13399,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "1",
+   "form": "1.00",
    "backing_reason": null,
    "section_found": true
   },
@@ -13471,7 +13471,7 @@
    "tolerance": 2.04,
    "ok": true,
    "text": "section",
-   "form": "2.2",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   },
@@ -13693,7 +13693,7 @@
    "tolerance": 0.005,
    "ok": true,
    "text": "section",
-   "form": "2.00",
+   "form": "2",
    "backing_reason": null,
    "section_found": true
   }

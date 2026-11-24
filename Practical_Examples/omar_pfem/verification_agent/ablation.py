@@ -119,6 +119,10 @@ def one_run(backend_name, replay, problem_path, geometry, baseline):
 
 def summarise(runs):
     ok = [r for r in runs if r["error"] is None]
+    # a run in which the LLM chose no quantity at all (round M, edge crack) has no verdicts
+    # to agree with and must not count as zero misses / false alarms (2026-11-24)
+    degenerate = [r for r in ok if not r.get("qois_evaluated", [None])]
+    ok = [r for r in ok if r not in degenerate]
 
     def stat(key):
         vals = [r[key] for r in ok if r[key] is not None]
@@ -129,8 +133,9 @@ def summarise(runs):
                 "min": min(vals), "max": max(vals)}
 
     return {
-        "runs": len(runs), "failed_runs": len(runs) - len(ok),
-        "spec_fully_correct": sum(all(r["spec_match"].values()) for r in ok),
+        "runs": len(runs), "failed_runs": len(runs) - len(ok) - len(degenerate),
+        "degenerate_runs": len(degenerate),
+        "spec_fully_correct": sum(all(r["spec_match"].values()) for r in ok + degenerate),
         "verdict_agreement": stat("verdict_agreement"),
         "checks_added_by_rules": stat("checks_added_by_rules"),
         "tolerances_replaced": stat("tolerances_replaced"),
