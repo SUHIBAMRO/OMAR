@@ -416,3 +416,30 @@ Pre-registered before any loaded solve: commit 4fd091f. No billed run, no cluste
 - **Not done:** p = 3 spline groove sequence (coarsest level > 14 min vs ~1 min at p = 2);
   needs a faster tangent assembly before any cluster job.
 - Claims check 1,215/1,215; report text check 0 not found on v11 (90 pages).
+
+## 24 November, round O (after Professor Rabczuk's reply; new-results PDF only)
+
+- **Decisions Q1-Q3 implemented** as `adopted.py` (a layer; frozen modules unchanged): singular-order
+  extension adopted; pre-asymptotic from below (order below theory, pairwise orders rising by
+  > 0.02) is INCONCLUSIVE like from above; absolute targets 1% (global, displacement) / 5% (region
+  averages), U <= half-width/3 (`requirements.ABSOLUTE_TARGETS_ADOPTED`, `constitutive_requirement`).
+  Impact (`adopted_impact.json`): 1 of 83 verdicts changes (L-shape v_right_top FAIL ->
+  INCONCLUSIVE); B* 58/83, 0 missed failures. NOT blind (decided after held-out results).
+- **Autonomous loop** (`autonomous.py`): L literature -> D formalizer + modeler (code validation and
+  number tracing) -> M pipeline2d -> V mms_auto -> S/C ladders + adopted rules + cross-check -> G
+  diagnosis on derived facts -> N experiment protocol (`experiment.py`: candidates, prior x value /
+  cost, frozen prediction with sha256, scored by code, `experience.json`). Each step logs its actor.
+- `pipeline2d.py` (cell size, symmetry, pressure, plane stress, MMS inside the production solver;
+  reproduces generic2d to 0); `corners_ext.py` (symmetry edges, complex exponents: clamped-free 270
+  deg has Re 0.34; the old analysis gave 0.87 -- no earlier problem affected); `mms_auto.py`.
+- **Autonomy test, pre-registered** (`autonomy_test/`): S1 stops 4/4, S2 MISSED (T4/T5 end to end,
+  MMS PASS, energy certified, but flagged by prose assumptions), S3 met, S4 met (USD 1.19). Section
+  choice wrong in 2 of 3 papers. **POST HOC** fixes: passage selector (`literature_select.py`), flag
+  only assumed physical numbers, vertex tracing; post hoc rerun of T2/T3 right (USD 0.59).
+- **Decision 3:** `groove_experiment.py` froze the agent's proposal (sha a909b1f9bd88): prediction
+  |P1(L6)/P1(L5)-1| < 0.110 and gap < 0.151; cluster job `groove_l6` (1,029,192 unknowns, ~6 h per
+  formulation, 18 h, 64 GB), code path smoke-tested; NOT submitted.
+- New-results report: `2026-11-24_Autonomous_Workflow_New_Results.pdf` (6 pages), claims 36/36
+  (`round_o_claims.py`, also in CI). Reply draft `..._DRAFT_round_O.txt` has a placeholder for CAS.
+- Limits: 2D linear elasticity on unions of squares only; 3D/hyperelastic solvers not in the loop;
+  memory of 12 experiments; priors not calibrated; no open paper in the test was solvable from text.

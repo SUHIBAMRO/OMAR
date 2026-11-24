@@ -35,3 +35,5 @@ jobs:
         run: python -m omar_pfem.verification_agent.verify_report
       - name: Report text check (claims found in the PDF)
         run: python -m omar_pfem.verification_agent.ci_text_gate
+      - name: Round O new-results report (numbers recomputed and found in the PDF)
+        run: python -m omar_pfem.verification_agent.round_o_claims
