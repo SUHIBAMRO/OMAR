@@ -8,3 +8,6 @@ meshio==5.3.5
 matplotlib==3.11.2
 pytest==9.2.0
 torch-fem==0.14.0
+jax==0.10.2
+jaxlib==0.10.2
+h5py==3.16.0
