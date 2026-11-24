@@ -26243,3 +26243,9 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   advisor_feedback/2026-11-24_email_to_Rabczuk_reply_DRAFT_round_O.txt (CAS placeholder: ASK OMAR).
   LLM spend round O USD 1.78. Next per advisor: geometry families (holes, curved edges), then
   3D/hyperelastic solvers in the loop, CSM/CFM last.
+- 2026-11-24: CAS = Computers and Structures. Paper "Accuracy- and Hardware-Matched Comparison of
+  GPU-Native Finite Element Solvers and Neural Operators for Hyperelasticity", submitted 17 Oct 2026,
+  status Under Review, 2 reviews completed, last reviewer activity 16 Nov 2026 (no decision yet).
+  Plan: corrections (double Cauchy conversion etc., already in paper/main.tex) go into the revision
+  when the decision arrives, unless Professor Rabczuk prefers informing the editor now (asked in the
+  round O reply draft, placeholder filled).
