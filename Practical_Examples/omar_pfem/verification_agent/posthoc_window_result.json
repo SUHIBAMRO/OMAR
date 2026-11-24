@@ -1,0 +1,49 @@
+{
+ "label": "POST HOC variant: finest-four refit when the five-level fit gives no rate",
+ "finite_strain": {
+  "pre_registered": {
+   "framework_certified": 21,
+   "framework_covered": 21,
+   "framework_effectivity_median": 0.2684761862468366,
+   "framework_effectivity_max": 0.3526726050234932
+  },
+  "variant": {
+   "framework_certified": 36,
+   "framework_covered": 36,
+   "framework_effectivity_median": 0.3050317158822733,
+   "framework_effectivity_max": 0.6015805627889933
+  },
+  "variant_wilson95": [
+   0.9035781695514236,
+   1.0
+  ],
+  "refits_used": 18,
+  "variant_not_covered": []
+ },
+ "wedge": {
+  "pre_registered": {
+   "framework_certified": 82,
+   "framework_covered": 81,
+   "framework_effectivity_median": 0.10244681389543958,
+   "framework_effectivity_max": 1.2393053806517804
+  },
+  "variant": {
+   "framework_certified": 82,
+   "framework_covered": 81,
+   "framework_effectivity_median": 0.10244681389543958,
+   "framework_effectivity_max": 1.2393053806517804
+  },
+  "variant_wilson95": [
+   0.9341050148733268,
+   0.9978440634290349
+  ],
+  "refits_used": 0,
+  "variant_not_covered": [
+   {
+    "case": "ff_355_nu45",
+    "qoi": "far_gk_avg_von_mises",
+    "effectivity": 1.2393053806517804
+   }
+  ]
+ }
+}

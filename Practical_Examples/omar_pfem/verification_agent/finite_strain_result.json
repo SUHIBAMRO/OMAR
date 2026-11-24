@@ -1,0 +1,729 @@
+{
+ "summary": {
+  "quantities": 36,
+  "framework_certified": 21,
+  "framework_covered": 21,
+  "framework_coverage_wilson95": [
+   0.8453561767357979,
+   0.9999999999999999
+  ],
+  "framework_effectivity_median": 0.2684761862468366,
+  "framework_effectivity_max": 0.3526726050234932,
+  "gci_certified": 36,
+  "gci_covered": 32,
+  "gci_coverage_wilson95": [
+   0.7468487098496367,
+   0.9559343109125816
+  ]
+ },
+ "predictions_met": {
+  "F1 coverage >= 90%": true,
+  "F2 certifies >= 27 of 36": false,
+  "F3 median effectivity <= 0.5": true,
+  "F4 GCI coverage not above framework": true
+ },
+ "rows": [
+  {
+   "case": "s30_e05_nu30",
+   "qoi": "strain_energy",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 0.36329929907126013,
+   "finest_true_error": 1.7572686706799418e-07,
+   "framework": {
+    "limit": 0.36329804503859287,
+    "U": 1.284665243516573e-05,
+    "effectivity": 0.2686917870369686,
+    "covered": true
+   },
+   "gci": {
+    "limit": 0.36329929951766904,
+    "U": 2.21194538391044e-07,
+    "effectivity": 0.0055551267298118755,
+    "covered": true
+   }
+  },
+  {
+   "case": "s30_e05_nu30",
+   "qoi": "u_probe",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 0.006510029127021086,
+   "finest_true_error": 5.439934089703101e-08,
+   "framework": {
+    "limit": 0.006510021014729935,
+    "U": 4.623403089397507e-06,
+    "effectivity": 0.2695248805508016,
+    "covered": true
+   },
+   "gci": {
+    "limit": 0.006510029127166547,
+    "U": 6.802710631134792e-08,
+    "effectivity": 0.00032845915057680983,
+    "covered": true
+   }
+  },
+  {
+   "case": "s30_e05_nu30",
+   "qoi": "gk_avg_von_mises",
+   "verdict": [
+    "PASS",
+    "band"
+   ],
+   "exact": 22.00565066487178,
+   "finest_true_error": 3.0229698942418783e-06,
+   "gci": {
+    "limit": 22.005607603975438,
+    "U": 1.332691390741502e-06,
+    "effectivity": 1.4683195189212284,
+    "covered": false
+   }
+  },
+  {
+   "case": "s30_e20_nu30",
+   "qoi": "strain_energy",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 5.1504041532696,
+   "finest_true_error": 1.7392966534418546e-07,
+   "framework": {
+    "limit": 5.150387447398945,
+    "U": 1.2060906631778548e-05,
+    "effectivity": 0.2689353708252402,
+    "covered": true
+   },
+   "gci": {
+    "limit": 5.1504041598214325,
+    "U": 2.1900220786368382e-07,
+    "effectivity": 0.005808621556865995,
+    "covered": true
+   }
+  },
+  {
+   "case": "s30_e20_nu30",
+   "qoi": "u_probe",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 0.024432809182367544,
+   "finest_true_error": 8.102598988175496e-08,
+   "framework": {
+    "limit": 0.024432761695998582,
+    "U": 7.252846583910157e-06,
+    "effectivity": 0.2679705720961445,
+    "covered": true
+   },
+   "gci": {
+    "limit": 0.02443280921872045,
+    "U": 1.0314232829492281e-07,
+    "effectivity": 0.014425432541240618,
+    "covered": true
+   }
+  },
+  {
+   "case": "s30_e20_nu30",
+   "qoi": "gk_avg_von_mises",
+   "verdict": [
+    "PASS",
+    "band"
+   ],
+   "exact": 83.05098644836876,
+   "finest_true_error": 2.990770914977409e-06,
+   "gci": {
+    "limit": 83.05082481242773,
+    "U": 1.3056745922239517e-06,
+    "effectivity": 1.4905944044869797,
+    "covered": false
+   }
+  },
+  {
+   "case": "s15_e05_nu30",
+   "qoi": "strain_energy",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 0.10798961043142129,
+   "finest_true_error": 2.2870510526971665e-06,
+   "framework": {
+    "limit": 0.10799949219431244,
+    "U": 0.00035134877390754165,
+    "effectivity": 0.26044438897379235,
+    "covered": true
+   },
+   "gci": {
+    "limit": 0.10798961652838657,
+    "U": 2.9293874941393056e-06,
+    "effectivity": 0.019273292720601694,
+    "covered": true
+   }
+  },
+  {
+   "case": "s15_e05_nu30",
+   "qoi": "u_probe",
+   "verdict": [
+    "PASS",
+    "band"
+   ],
+   "exact": 0.0016535508959613845,
+   "finest_true_error": 1.4420845226038205e-07,
+   "gci": {
+    "limit": 0.0016535509406930273,
+    "U": 1.4644573344023725e-07,
+    "effectivity": 0.18472279700075597,
+    "covered": true
+   }
+  },
+  {
+   "case": "s15_e05_nu30",
+   "qoi": "gk_avg_von_mises",
+   "verdict": [
+    "PASS",
+    "band"
+   ],
+   "exact": 27.98828590400998,
+   "finest_true_error": 9.963623710916205e-06,
+   "gci": {
+    "limit": 27.988205732660273,
+    "U": 8.873917879283994e-06,
+    "effectivity": 0.3227987284131743,
+    "covered": true
+   }
+  },
+  {
+   "case": "s15_e20_nu30",
+   "qoi": "strain_energy",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 1.5308142784362078,
+   "finest_true_error": 2.2803929612059014e-06,
+   "framework": {
+    "limit": 1.5309550010908997,
+    "U": 0.0003523725418532832,
+    "effectivity": 0.26087979593374533,
+    "covered": true
+   },
+   "gci": {
+    "limit": 1.5308143658984639,
+    "U": 2.9219094467412645e-06,
+    "effectivity": 0.01955385585147737,
+    "covered": true
+   }
+  },
+  {
+   "case": "s15_e20_nu30",
+   "qoi": "u_probe",
+   "verdict": [
+    "PASS",
+    "band"
+   ],
+   "exact": 0.006206960565276809,
+   "finest_true_error": 2.458217459458727e-07,
+   "gci": {
+    "limit": 0.0062069607871517996,
+    "U": 2.625944963264245e-07,
+    "effectivity": 0.13612680126949445,
+    "covered": true
+   }
+  },
+  {
+   "case": "s15_e20_nu30",
+   "qoi": "gk_avg_von_mises",
+   "verdict": [
+    "PASS",
+    "band"
+   ],
+   "exact": 105.84836058773645,
+   "finest_true_error": 9.927923507314346e-06,
+   "gci": {
+    "limit": 105.84806077279495,
+    "U": 8.869250608673613e-06,
+    "effectivity": 0.31936441368057833,
+    "covered": true
+   }
+  },
+  {
+   "case": "s08_e05_nu30",
+   "qoi": "strain_energy",
+   "verdict": [
+    "FAIL",
+    "rate"
+   ],
+   "exact": 0.03129361065978101,
+   "finest_true_error": 2.721201304624614e-05,
+   "gci": {
+    "limit": 0.0312935695670363,
+    "U": 3.2373552521071074e-05,
+    "effectivity": 0.040563080883094814,
+    "covered": true
+   }
+  },
+  {
+   "case": "s08_e05_nu30",
+   "qoi": "u_probe",
+   "verdict": [
+    "PASS",
+    "band"
+   ],
+   "exact": 0.0007462387073062039,
+   "finest_true_error": 2.6712668330081506e-06,
+   "gci": {
+    "limit": 0.0007462387456924177,
+    "U": 3.2747842244237853e-06,
+    "effectivity": 0.015707738265383474,
+    "covered": true
+   }
+  },
+  {
+   "case": "s08_e05_nu30",
+   "qoi": "gk_avg_von_mises",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 22.199892468308757,
+   "finest_true_error": 4.648660102422515e-05,
+   "framework": {
+    "limit": 22.199831229714828,
+    "U": 5.465995525872987e-05,
+    "effectivity": 0.05046906467896884,
+    "covered": true
+   },
+   "gci": {
+    "limit": 22.199831229714828,
+    "U": 5.465995525872987e-05,
+    "effectivity": 0.05046906467896884,
+    "covered": true
+   }
+  },
+  {
+   "case": "s08_e20_nu30",
+   "qoi": "strain_energy",
+   "verdict": [
+    "FAIL",
+    "rate"
+   ],
+   "exact": 0.44360774375411693,
+   "finest_true_error": 2.7182533741525225e-05,
+   "gci": {
+    "limit": 0.44360717387499016,
+    "U": 3.237231542623631e-05,
+    "effectivity": 0.039684569473130066,
+    "covered": true
+   }
+  },
+  {
+   "case": "s08_e20_nu30",
+   "qoi": "u_probe",
+   "verdict": [
+    "PASS",
+    "band"
+   ],
+   "exact": 0.002801189614767835,
+   "finest_true_error": 2.8402852561925175e-06,
+   "gci": {
+    "limit": 0.0028011901381147617,
+    "U": 3.3168194342463245e-06,
+    "effectivity": 0.056327970977543794,
+    "covered": true
+   }
+  },
+  {
+   "case": "s08_e20_nu30",
+   "qoi": "gk_avg_von_mises",
+   "verdict": [
+    "FAIL",
+    "rate"
+   ],
+   "exact": 83.88553853153991,
+   "finest_true_error": 4.650191200528904e-05,
+   "gci": {
+    "limit": 83.88534148414261,
+    "U": 5.519099948228306e-05,
+    "effectivity": 0.04256332448139869,
+    "covered": true
+   }
+  },
+  {
+   "case": "s30_e05_nu45",
+   "qoi": "strain_energy",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 0.8688935714214852,
+   "finest_true_error": 1.758684931121781e-07,
+   "framework": {
+    "limit": 0.8688907843402716,
+    "U": 1.1947508448042291e-05,
+    "effectivity": 0.2684761862468366,
+    "covered": true
+   },
+   "gci": {
+    "limit": 0.8688935732005019,
+    "U": 2.2239493010222066e-07,
+    "effectivity": 0.009206374506378349,
+    "covered": true
+   }
+  },
+  {
+   "case": "s30_e05_nu45",
+   "qoi": "u_probe",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 0.006510029127021086,
+   "finest_true_error": 2.3719121465896292e-08,
+   "framework": {
+    "limit": 0.0065100291754339665,
+    "U": 3.894472841766128e-08,
+    "effectivity": 0.1909542470808206,
+    "covered": true
+   },
+   "gci": {
+    "limit": 0.0065100291754339665,
+    "U": 3.894472841766128e-08,
+    "effectivity": 0.1909542470808206,
+    "covered": true
+   }
+  },
+  {
+   "case": "s30_e05_nu45",
+   "qoi": "gk_avg_von_mises",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 19.7292040443679,
+   "finest_true_error": 3.3283798768123334e-06,
+   "framework": {
+    "limit": 19.75346393729415,
+    "U": 0.0037605869237537053,
+    "effectivity": 0.3269829662266947,
+    "covered": true
+   },
+   "gci": {
+    "limit": 19.729165598300785,
+    "U": 1.7246064886304684e-06,
+    "effectivity": 1.1299358426236608,
+    "covered": false
+   }
+  },
+  {
+   "case": "s30_e20_nu45",
+   "qoi": "strain_energy",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 12.37743534366082,
+   "finest_true_error": 1.8000174496910633e-07,
+   "framework": {
+    "limit": 12.377399563415887,
+    "U": 1.0754106399699026e-05,
+    "effectivity": 0.26880564945702257,
+    "covered": true
+   },
+   "gci": {
+    "limit": 12.377435372671819,
+    "U": 2.2793200895156868e-07,
+    "effectivity": 0.010283164027540499,
+    "covered": true
+   }
+  },
+  {
+   "case": "s30_e20_nu45",
+   "qoi": "u_probe",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 0.024432809182367544,
+   "finest_true_error": 1.5464220700535634e-07,
+   "framework": {
+    "limit": 0.024432743386791883,
+    "U": 1.053765054641482e-05,
+    "effectivity": 0.2555521639126454,
+    "covered": true
+   },
+   "gci": {
+    "limit": 0.02443280964550125,
+    "U": 2.1699701411455662e-07,
+    "effectivity": 0.08735329558770502,
+    "covered": true
+   }
+  },
+  {
+   "case": "s30_e20_nu45",
+   "qoi": "gk_avg_von_mises",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 74.45950509164075,
+   "finest_true_error": 3.3504515543906768e-06,
+   "framework": {
+    "limit": 74.55378072911549,
+    "U": 0.0038302617288138844,
+    "effectivity": 0.33056155010896,
+    "covered": true
+   },
+   "gci": {
+    "limit": 74.45936125644035,
+    "U": 1.7734015643700416e-06,
+    "effectivity": 1.0892796880381739,
+    "covered": false
+   }
+  },
+  {
+   "case": "s15_e05_nu45",
+   "qoi": "strain_energy",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 0.25826991981946956,
+   "finest_true_error": 2.2926139436907195e-06,
+   "framework": {
+    "limit": 0.25829475104374694,
+    "U": 0.00036674490029303225,
+    "effectivity": 0.2621568541480423,
+    "covered": true
+   },
+   "gci": {
+    "limit": 0.2582699417470292,
+    "U": 2.9718948192593723e-06,
+    "effectivity": 0.028568276089010573,
+    "covered": true
+   }
+  },
+  {
+   "case": "s15_e05_nu45",
+   "qoi": "u_probe",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 0.0016535508959613845,
+   "finest_true_error": 3.522667695677291e-06,
+   "framework": {
+    "limit": 0.0016508322137080383,
+    "U": 0.005478448289420771,
+    "effectivity": 0.30011091345139407,
+    "covered": true
+   },
+   "gci": {
+    "limit": 0.0016535510695487605,
+    "U": 4.27211189394096e-06,
+    "effectivity": 0.024572900517434257,
+    "covered": true
+   }
+  },
+  {
+   "case": "s15_e05_nu45",
+   "qoi": "gk_avg_von_mises",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 25.09294598290918,
+   "finest_true_error": 1.2490468692249468e-05,
+   "framework": {
+    "limit": 25.092878928063648,
+    "U": 1.2272720652676906e-05,
+    "effectivity": 0.2177424424302461,
+    "covered": true
+   },
+   "gci": {
+    "limit": 25.092878928063648,
+    "U": 1.2272720652676906e-05,
+    "effectivity": 0.2177424424302461,
+    "covered": true
+   }
+  },
+  {
+   "case": "s15_e20_nu45",
+   "qoi": "strain_energy",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 3.6776428929626306,
+   "finest_true_error": 2.4700185092101664e-06,
+   "framework": {
+    "limit": 3.6780902129082893,
+    "U": 0.000460339235895898,
+    "effectivity": 0.2642237108521129,
+    "covered": true
+   },
+   "gci": {
+    "limit": 3.677643264427544,
+    "U": 3.2137812595936184e-06,
+    "effectivity": 0.03142917649063522,
+    "covered": true
+   }
+  },
+  {
+   "case": "s15_e20_nu45",
+   "qoi": "u_probe",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 0.006206960565276809,
+   "finest_true_error": 4.639663176732321e-06,
+   "framework": {
+    "limit": 0.006188580662371886,
+    "U": 0.009553599747799197,
+    "effectivity": 0.30995251831315257,
+    "covered": true
+   },
+   "gci": {
+    "limit": 0.006206961038454172,
+    "U": 5.704287732520163e-06,
+    "effectivity": 0.013364155934075096,
+    "covered": true
+   }
+  },
+  {
+   "case": "s15_e20_nu45",
+   "qoi": "gk_avg_von_mises",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 94.89853018235031,
+   "finest_true_error": 1.3249474200287178e-05,
+   "framework": {
+    "limit": 94.8982919448956,
+    "U": 1.3423746054185335e-05,
+    "effectivity": 0.1870176437200584,
+    "covered": true
+   },
+   "gci": {
+    "limit": 94.8982919448956,
+    "U": 1.3423746054185335e-05,
+    "effectivity": 0.1870176437200584,
+    "covered": true
+   }
+  },
+  {
+   "case": "s08_e05_nu45",
+   "qoi": "strain_energy",
+   "verdict": [
+    "FAIL",
+    "rate"
+   ],
+   "exact": 0.07484233018059633,
+   "finest_true_error": 2.720845190215627e-05,
+   "gci": {
+    "limit": 0.07484228076856264,
+    "U": 3.31852735955288e-05,
+    "effectivity": 0.019895361835223363,
+    "covered": true
+   }
+  },
+  {
+   "case": "s08_e05_nu45",
+   "qoi": "u_probe",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 0.0007462387073062039,
+   "finest_true_error": 1.1254763758321611e-05,
+   "framework": {
+    "limit": 0.0007445159080253095,
+    "U": 0.008380344280426437,
+    "effectivity": 0.2754800551003475,
+    "covered": true
+   },
+   "gci": {
+    "limit": 0.0007462390285587571,
+    "U": 1.3530341131770856e-05,
+    "effectivity": 0.03181670356412634,
+    "covered": true
+   }
+  },
+  {
+   "case": "s08_e05_nu45",
+   "qoi": "gk_avg_von_mises",
+   "verdict": [
+    "FAIL",
+    "rate"
+   ],
+   "exact": 19.90335186813785,
+   "finest_true_error": 6.095320056849563e-05,
+   "gci": {
+    "limit": 19.90331697620444,
+    "U": 7.400003188071298e-05,
+    "effectivity": 0.023691544712040075,
+    "covered": true
+   }
+  },
+  {
+   "case": "s08_e20_nu45",
+   "qoi": "strain_energy",
+   "verdict": [
+    "FAIL",
+    "rate"
+   ],
+   "exact": 1.0657202138927642,
+   "finest_true_error": 2.965609609922819e-05,
+   "gci": {
+    "limit": 1.0657198715788987,
+    "U": 3.666860290050256e-05,
+    "effectivity": 0.00875991320925649,
+    "covered": true
+   }
+  },
+  {
+   "case": "s08_e20_nu45",
+   "qoi": "u_probe",
+   "verdict": [
+    "PASS",
+    "rate"
+   ],
+   "exact": 0.002801189614767835,
+   "finest_true_error": 1.069883574490025e-05,
+   "framework": {
+    "limit": 0.0028001831390170877,
+    "U": 0.001018789442947596,
+    "effectivity": 0.3526726050234932,
+    "covered": true
+   },
+   "gci": {
+    "limit": 0.0028012040559199855,
+    "U": 6.929408602854739e-06,
+    "effectivity": 0.7439753026679907,
+    "covered": true
+   }
+  },
+  {
+   "case": "s08_e20_nu45",
+   "qoi": "gk_avg_von_mises",
+   "verdict": [
+    "FAIL",
+    "rate"
+   ],
+   "exact": 75.20772420062926,
+   "finest_true_error": 6.861976373408596e-05,
+   "gci": {
+    "limit": 75.2077677238887,
+    "U": 8.649813843806503e-05,
+    "effectivity": 0.006690860946267245,
+    "covered": true
+   }
+  }
+ ]
+}
