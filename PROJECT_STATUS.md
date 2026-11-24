@@ -26177,3 +26177,7 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   average stay PASS; root Gaussian von Mises stays FAIL; peak slope k = 4..12 = -0.32 (theory
   -0.29). Scoring needed the same checked orchestrate.py exemption (pre-registered hash ==
   b850330). NOT yet in the report: integrate with the spline jobs (3280560, 3280562) as v10.
+- **Job 3280560 DONE (spline rr/tt):** `iga_b3_cyl_result.json` copied from Omar's terminal,
+  md5 03440b91... identical to the cluster file; adds P1 levels 1-4 and disp level 4 (stored
+  L1-L3 disp unchanged). Job 3280562 (spline L5, both formulations) DONE too; L5 entries being
+  transferred. Integration (crosscheck, three_way, verify_report, report v10) pending.
