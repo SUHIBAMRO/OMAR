@@ -1,0 +1,36 @@
+# Verification framework: guard tests, the claims check (every printed number against the
+# stored data) and the report text check (every claim found in the exported PDF).
+# Runs on every push to the working branch and on demand. No solver ladders are re-run here.
+name: verification
+on:
+  push:
+    branches: [claude/claude-code-question-d307wp]
+    paths: ["Practical_Examples/omar_pfem/**", "advisor_feedback/*.pdf", ".github/workflows/verification.yml"]
+  workflow_dispatch:
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: Practical_Examples
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install poppler (pdftotext)
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+      - name: Install Python packages (CPU torch)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -r omar_pfem/verification_agent/requirements-ci.txt
+      - name: Guard tests
+        run: python -m pytest -q omar_pfem/verification_agent/test_llm_guards.py
+      - name: Claims check (printed numbers vs stored data)
+        run: python -m omar_pfem.verification_agent.verify_report
+      - name: Report text check (claims found in the PDF)
+        run: python -m omar_pfem.verification_agent.ci_text_gate

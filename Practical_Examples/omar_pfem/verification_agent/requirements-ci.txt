@@ -1,0 +1,10 @@
+# pinned to the versions the stored results were produced with (2026-11-24)
+numpy==2.4.6
+scipy==1.17.1
+scikit-fem==12.0.2
+pypardiso==0.4.7
+pyamg==5.3.0
+meshio==5.3.5
+matplotlib==3.11.2
+pytest==9.2.0
+torch-fem==0.14.0

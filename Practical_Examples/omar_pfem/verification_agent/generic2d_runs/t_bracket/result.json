@@ -1,0 +1,424 @@
+{
+ "description": {
+  "name": "t_bracket",
+  "cells": [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    0
+   ],
+   [
+    2,
+    0
+   ],
+   [
+    1,
+    1
+   ],
+   [
+    1,
+    2
+   ]
+  ],
+  "E": 1000,
+  "nu": 0.3,
+  "bcs": [
+   {
+    "segment": [
+     [
+      1,
+      3
+     ],
+     [
+      2,
+      3
+     ]
+    ],
+    "type": "clamped"
+   },
+   {
+    "segment": [
+     [
+      0,
+      0
+     ],
+     [
+      3,
+      0
+     ]
+    ],
+    "type": "traction",
+    "t": [
+     0,
+     -1
+    ]
+   }
+  ],
+  "points": {
+   "v_left_tip": [
+    0,
+    0,
+    "y"
+   ],
+   "u_left_top": [
+    0,
+    1,
+    "x"
+   ]
+  }
+ },
+ "polygon": [
+  [
+   0,
+   0,
+   "free"
+  ],
+  [
+   3,
+   0,
+   "free"
+  ],
+  [
+   3,
+   1,
+   "free"
+  ],
+  [
+   2,
+   1,
+   "free"
+  ],
+  [
+   2,
+   3,
+   "clamped"
+  ],
+  [
+   1,
+   3,
+   "free"
+  ],
+  [
+   1,
+   1,
+   "free"
+  ],
+  [
+   0,
+   1,
+   "free"
+  ]
+ ],
+ "corners": [
+  {
+   "x": 2,
+   "y": 1,
+   "angle_deg": 270.0,
+   "edges": [
+    "free",
+    "free"
+   ],
+   "exponents": [
+    0.544483736782464,
+    0.9085291898460989,
+    1.0
+   ],
+   "rate_limiting": [
+    0.544483736782464,
+    0.9085291898460989
+   ]
+  },
+  {
+   "x": 2,
+   "y": 3,
+   "angle_deg": 90.0,
+   "edges": [
+    "free",
+    "clamped"
+   ],
+   "exponents": [
+    0.7111729329714656
+   ],
+   "rate_limiting": [
+    0.7111729329714656
+   ]
+  },
+  {
+   "x": 1,
+   "y": 3,
+   "angle_deg": 90.0,
+   "edges": [
+    "clamped",
+    "free"
+   ],
+   "exponents": [
+    0.7111729329714656
+   ],
+   "rate_limiting": [
+    0.7111729329714656
+   ]
+  },
+  {
+   "x": 1,
+   "y": 1,
+   "angle_deg": 270.0,
+   "edges": [
+    "free",
+    "free"
+   ],
+   "exponents": [
+    0.544483736782464,
+    0.9085291898460989,
+    1.0
+   ],
+   "rate_limiting": [
+    0.544483736782464,
+    0.9085291898460989
+   ]
+  }
+ ],
+ "qois": [
+  "strain_energy",
+  "v_left_tip",
+  "u_left_top",
+  "corner0_gk_avg_von_mises",
+  "corner1_gk_avg_von_mises",
+  "corner2_gk_avg_von_mises",
+  "corner3_gk_avg_von_mises",
+  "peak_von_mises"
+ ],
+ "uniform": {
+  "strain_energy": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "class": "global",
+   "finest": 0.013177554820394958,
+   "limit": 0.01318435998143062,
+   "U": 0.0006473073031736047,
+   "crosscheck": "cross_checked",
+   "gap_rel": 3.7807079425070257e-06,
+   "final": "CERTIFIED"
+  },
+  "v_left_tip": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "class": "displacement",
+   "finest": -0.012061792319057746,
+   "limit": -0.012070894572169687,
+   "U": 0.0009503914794966221,
+   "crosscheck": "cross_checked",
+   "gap_rel": 4.245739335622716e-05,
+   "final": "CERTIFIED"
+  },
+  "u_left_top": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "class": "displacement",
+   "finest": -0.0014116003766773842,
+   "limit": -0.0014156362835050433,
+   "U": 0.0036554331935447306,
+   "crosscheck": "cross_checked",
+   "gap_rel": 0.0004412870153515264,
+   "final": "CERTIFIED"
+  },
+  "corner0_gk_avg_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "rate",
+   "class": "region_average",
+   "finest": 3.540403406621519
+  },
+  "corner1_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "class": "region_average",
+   "finest": 2.8834966686079495,
+   "limit": 2.892372208615385,
+   "U": 0.004951596935626343,
+   "crosscheck": "cross_checked",
+   "gap_rel": 0.0015296594546443693,
+   "final": "CERTIFIED"
+  },
+  "corner2_gk_avg_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "rate",
+   "class": "region_average",
+   "finest": 2.8834966684810013
+  },
+  "corner3_gk_avg_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "rate",
+   "class": "region_average",
+   "finest": 3.540403406567831
+  },
+  "peak_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "none",
+   "class": "pointwise_peak",
+   "finest": 18.906427464247457
+  }
+ },
+ "remedy_triggered_by": [
+  "u_left_top",
+  "corner0_gk_avg_von_mises",
+  "corner1_gk_avg_von_mises",
+  "corner2_gk_avg_von_mises",
+  "corner3_gk_avg_von_mises"
+ ],
+ "plan": {
+  "corners": [
+   {
+    "x": 2,
+    "y": 1,
+    "lam": 0.544483736782464,
+    "delta": 1.777332895026222e-06,
+    "share": 0.4086218699301656,
+    "graded": true,
+    "g": 3.7
+   },
+   {
+    "x": 2,
+    "y": 3,
+    "lam": 0.7111729329714656,
+    "delta": 3.9745637202682864e-07,
+    "share": 0.09137813541163664,
+    "graded": false
+   },
+   {
+    "x": 1,
+    "y": 3,
+    "lam": 0.7111729329714656,
+    "delta": 3.9745635488423704e-07,
+    "share": 0.09137813147042909,
+    "graded": false
+   },
+   {
+    "x": 1,
+    "y": 1,
+    "lam": 0.544483736782464,
+    "delta": 1.7773328656996374e-06,
+    "share": 0.40862186318776866,
+    "graded": true,
+    "g": 3.7
+   }
+  ],
+  "plan": {
+   "x": {
+    "2": 3.7,
+    "1": 3.7
+   },
+   "y": {
+    "1": 3.7
+   }
+  },
+  "share_min": 0.1,
+  "levels_used": [
+   32,
+   64
+  ]
+ },
+ "graded": {
+  "strain_energy": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "finest": 0.013184327808399123,
+   "fit_order": 2.7770280829034752,
+   "limit": 0.013184427284030697,
+   "U": 2.3157182771337136e-05,
+   "crosscheck": "cross_checked",
+   "gap_rel": 3.787616042617696e-05,
+   "final": "CERTIFIED"
+  },
+  "v_left_tip": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "finest": -0.012070950608933921,
+   "fit_order": 2.8270101397715046,
+   "limit": -0.012071138384955906,
+   "U": 5.055782073407893e-05,
+   "crosscheck": "cross_checked",
+   "gap_rel": 0.00010482211703191756,
+   "final": "CERTIFIED"
+  },
+  "u_left_top": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "finest": -0.0014153822422674975,
+   "fit_order": 2.6552227489507936,
+   "limit": -0.001415524387772815,
+   "U": 0.0003347501350084683,
+   "crosscheck": "cross_checked",
+   "gap_rel": 0.0005939176592565674,
+   "final": "CERTIFIED"
+  },
+  "corner0_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "band",
+   "finest": 3.546382166710175,
+   "fit_order": 5.113191015939794
+  },
+  "corner1_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "finest": 2.8848063554779073,
+   "fit_order": 2.045162701761794,
+   "limit": 2.8841482115119974,
+   "U": 0.0013919945275479026,
+   "crosscheck": "cross_checked",
+   "gap_rel": 0.0014610583600320934,
+   "final": "CERTIFIED"
+  },
+  "corner2_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "finest": 2.8848063451800763,
+   "fit_order": 2.0451628739344527,
+   "limit": 2.884148206174419,
+   "U": 0.001391989260540287,
+   "crosscheck": "cross_checked",
+   "gap_rel": 0.0005570372460122891,
+   "final": "CERTIFIED"
+  },
+  "corner3_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "band",
+   "finest": 3.54638216429,
+   "fit_order": 5.113191110726956
+  },
+  "peak_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "none",
+   "finest": 1310.654872430052,
+   "fit_order": 0.050000001446839366
+  }
+ },
+ "summary": {
+  "verifiable": 7,
+  "uniform": {
+   "certified_rate": 4,
+   "cross_checked": 4,
+   "peaks_certified": 0
+  },
+  "graded": {
+   "certified_rate": 5,
+   "cross_checked": 5,
+   "peaks_certified": 0
+  },
+  "U_gain_graded_vs_uniform": {
+   "strain_energy": 27.95276565225417,
+   "v_left_tip": 18.798110078664894,
+   "u_left_top": 10.919885643816865,
+   "corner1_gk_avg_von_mises": 3.5571956912423595
+  }
+ },
+ "predictions_met": {
+  "P1 end to end": true,
+  "P2 energy": true,
+  "P3 cross-check": true,
+  "P4 remedy": true,
+  "P5 peaks": true,
+  "P6 plan": true
+ }
+}
