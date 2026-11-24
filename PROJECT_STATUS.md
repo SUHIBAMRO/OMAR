@@ -26222,3 +26222,15 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   job_factory, CI workflow, dashboard https://claude.ai/artifact/4YgnpJa9GcAWP5rSKYSXZt (not yet
   opened by the user). p = 3 not feasible without faster tangent. Email draft still attaches
   v10 (unchanged on purpose; switch to v11 only if the user asks). Nothing sent.
+
+## 2026-11-24 Professor Rabczuk's reply to the v10 email (pasted by Omar) -> round O
+- Priorities: autonomous end-to-end workflow FIRST (literature -> problem definition -> meshing ->
+  MMS if suitable -> simulation -> convergence -> diagnosis; agent decides next and learns);
+  then new geometry families; CSM/CFM at the very end. "We certainly should correct the paper.
+  I suppose CAS did not respond yet?" (ASK OMAR what CAS refers to / journal status.)
+- Answers: Q1 adopt singular-order extension, pre-asymptotic from EITHER direction ->
+  INCONCLUSIVE until verified on further unseen benchmarks; Q2 1/3 margin + limits OK, stay
+  QoI-dependent; Q3 one more targeted spline refinement OK only if the agent justifies it,
+  predicts the outcome and evaluates the hypothesis; Q4, Q5 later.
+- Next PDF: ONLY the new results.
+- Audit + plan: advisor_feedback/2026-11-24_autonomy_audit_and_plan.md (tasks O1-O6).
