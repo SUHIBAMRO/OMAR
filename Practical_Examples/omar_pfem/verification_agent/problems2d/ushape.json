@@ -1,0 +1,4 @@
+{"name": "ushape_reproduction", "cells": [[0, 0], [0, 1], [1, 0], [2, 0], [2, 1]], "E": 1000, "nu": 0.3,
+ "bcs": [{"segment": [[0, 0], [0, 2]], "type": "clamped"},
+         {"segment": [[3, 0], [3, 2]], "type": "traction", "t": [0, -1]}],
+ "points": {"v_tip": [3, 0, "y"]}}

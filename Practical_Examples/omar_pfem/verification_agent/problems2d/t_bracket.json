@@ -1,0 +1,4 @@
+{"name": "t_bracket", "cells": [[0, 0], [1, 0], [2, 0], [1, 1], [1, 2]], "E": 1000, "nu": 0.3,
+ "bcs": [{"segment": [[1, 3], [2, 3]], "type": "clamped"},
+         {"segment": [[0, 0], [3, 0]], "type": "traction", "t": [0, -1]}],
+ "points": {"v_left_tip": [0, 0, "y"], "u_left_top": [0, 1, "x"]}}

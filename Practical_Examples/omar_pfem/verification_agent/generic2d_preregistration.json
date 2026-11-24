@@ -1,0 +1,22 @@
+{
+ "written": "2026-11-24T09:08:29.340955+00:00",
+ "frozen_files_sha256": {
+  "generic2d.py": "c2cb36c47cc54b6b1ce844bb335bc10908ad7effb1132eeb7c317cbc31a6bcec",
+  "gates.py": "232cab27ff8eed05dc62e481e2e2858e79f82fc9811a7f9f108b6909c8b03f95",
+  "trees.py": "2470e173544f15cdd74ca05e7874e4e459f87bf6730d023991fe684617b88ed3",
+  "orchestrate.py": "a3808b14a4fd9c849e858f3081e8bd73ff1c6c92a399e47cae4704c3645ad11e",
+  "crosscheck.py": "27dcc8c9111326b77d304a4783ba5c1fbe090267e99bf92e7cfe47cee3b8f48b",
+  "remedy.py": "bc39ddca525060fec10543960e098c34ae4cb4cb941928373e4554f6e12b02a5",
+  "remedy_intensity.py": "0424e6906d7e8020d2fc2e4319d889b3328d3e3092260593b0b5cfc3d38ce95d",
+  "calibration.py": "54006c533b0374f96223c294d24b132b4e80e2cfc94d8232ac2b3bc288b5cb0d",
+  "problems2d/t_bracket.json": "b517437fecc6fe381109e48be2d6820e1908e761d38fb57a386b3419dd4f1c35"
+ },
+ "predictions": {
+  "P1 end to end": "the pipeline runs from the JSON description with no problem code (HIGH)",
+  "P2 energy": "the strain energy is certified with a rate on the uniform Q2 ladder (MEDIUM)",
+  "P3 cross-check": "the independent P2 ladder cross-checks the uniform energy (MEDIUM)",
+  "P4 remedy": "the remedy loop is triggered and the graded energy U is at least 10 times below the uniform one (MEDIUM)",
+  "P5 peaks": "the peak von Mises is certified on neither ladder (HIGH)",
+  "P6 plan": "the intensity plan grades both re-entrant corners (1,1) and (2,1) (LOW-MEDIUM: the load is symmetric, so their intensities are equal)"
+ }
+}
