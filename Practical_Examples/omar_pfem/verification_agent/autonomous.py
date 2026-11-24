@@ -143,27 +143,31 @@ def numbers_in(text):
 
 def trace_numbers(desc, text, assumptions):
     """Every physical number of the description must be found in the source text (relative
-    1e-9), be a multiple of the cell size, be 0, or be declared as an assumption."""
+    1e-9), be 0, or be declared as an assumption.
+    POST HOC (24 Nov, after the pre-registered autonomy test): the cell size is a meshing
+    choice, not a physical input, so it is no longer traced; instead every vertex coordinate of
+    the domain (physical units) must be a stated number, or half or a quarter of one
+    (symmetry models), or 0."""
     src = numbers_in(text)
     declared = numbers_in(" ".join(assumptions))
     found = lambda v: any(abs(v - s) <= 1e-9 * max(1.0, abs(s)) for s in src)
     assumed = lambda v: any(abs(v - s) <= 1e-9 * max(1.0, abs(s)) for s in declared)
     a = float(desc["cell_size"])
-    items = [("E", desc["E"]), ("nu", desc["nu"]), ("cell_size", a)]
+    items = [("E", desc["E"]), ("nu", desc["nu"])]
     for k, b in enumerate(desc["bcs"]):
         items += [(f"bcs[{k}].t", v) for v in b.get("t", [])]
         if b["type"] == "pressure":
             items.append((f"bcs[{k}].p", b["p"]))
         items += [(f"bcs[{k}].u", v) for v in b.get("u", [])]
-    xs = [c[0] for c in desc["cells"]] + [c[0] + 1 for c in desc["cells"]]
-    ys = [c[1] for c in desc["cells"]] + [c[1] + 1 for c in desc["cells"]]
-    items += [("width", (max(xs) - min(xs)) * a), ("height", (max(ys) - min(ys)) * a)]
+    from omar_pfem.verification_agent.pipeline2d import polygon
+    for x, y, _ in polygon(desc):
+        items += [("vertex x", abs(x * a)), ("vertex y", abs(y * a))]
     unsupported, flagged = [], []
     for name, v in items:
-        if v == 0 or found(v) or (name in ("width", "height") and found(v / a)):
+        if v == 0 or found(v):
             continue
-        if name in ("width", "height") and any(found(v / k) for k in (2, 4)):
-            continue        # half or quarter models (symmetry) of a stated dimension
+        if name.startswith("vertex") and any(found(v * k) for k in (2, 4)):
+            continue        # half or quarter of a stated dimension (symmetry models)
         if assumed(v):
             flagged.append(f"{name} = {v:g} (declared assumption)")
         else:
@@ -208,10 +212,14 @@ def define(backend, text, log, retries=2):
                  f"{errs or 'ok'}; untraced numbers {unsup or 'none'}; assumptions {flagged or 'none'}",
                  description=desc)
         if not errs and not unsup:
-            if flagged or m["assumptions"]:
+            # POST HOC (24 Nov): only an assumed PHYSICAL number needs a person; prose
+            # clarifications in `assumptions` are recorded but not flagged
+            if flagged:
                 log.step("D", "person", "needs_person",
-                         "assumed inputs must be confirmed by a person: "
-                         + "; ".join(m["assumptions"]))
+                         "assumed inputs must be confirmed by a person: " + "; ".join(flagged))
+            elif m["assumptions"]:
+                log.step("D", "LLM", "noted", "modeler notes (no assumed physical input): "
+                         + "; ".join(m["assumptions"])[:400])
             return desc, m
         feedback = ("\n\nYOUR PREVIOUS DESCRIPTION WAS REJECTED BY CODE:\n- "
                     + "\n- ".join(errs + unsup) + "\nCorrect it.")
@@ -310,8 +318,12 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
     result = {"source": {"pdf": pdf, "text": text, "description_given": desc is not None}}
     # L
     if pdf:
-        from omar_pfem.verification_agent.literature_agent import run_card
-        card = run_card(backend, pdf, section, hint)
+        if section is None:       # POST HOC (24 Nov): passage selector, not headings
+            from omar_pfem.verification_agent.literature_select import run_card as rc
+            card = rc(backend, pdf, hint)
+        else:
+            from omar_pfem.verification_agent.literature_agent import run_card
+            card = run_card(backend, pdf, section, hint)
         log.step("L", "LLM", "done", f"card from {card['section_used']}; quotes found "
                  f"{card['quote_rate']:.0%}", card=card)
         if section is None:

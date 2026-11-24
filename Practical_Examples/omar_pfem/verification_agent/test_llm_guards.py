@@ -1014,3 +1014,56 @@ def test_adopted_absolute_targets_qoi_dependent():
         assert requirements.absolute_target("peak_von_mises")[0] is None
     assert requirements.absolute_target("strain_energy")[0] is None      # default unchanged
     assert abs(requirements.constitutive_requirement(0.06)[0] - 0.02) < 1e-15
+
+
+# ---- round O: autonomous workflow ---------------------------------------------------------
+def test_symmetry_edge_exponents_match_mirror_argument():
+    import numpy as np
+    from omar_pfem.verification_agent.corners_ext import exponents
+    assert not [l for l in exponents(np.pi / 2, "free", "symmetry", 0.3) if abs(l - round(l)) > 1e-6]
+    assert abs(min(exponents(np.pi, "free", "symmetry", 0.3)) - 0.5) < 1e-8
+
+
+def test_complex_exponent_of_clamped_free_corner():
+    import numpy as np
+    from omar_pfem.verification_agent.corners_ext import complex_exponents
+    re_, im = complex_exponents(np.pi, "clamped", "free", 0.3)[0]
+    assert abs(re_ - 0.5) < 1e-6 and abs(im - np.log(3 - 4 * 0.3) / (2 * np.pi)) < 1e-6
+    assert abs(complex_exponents(1.5 * np.pi, "clamped", "free", 0.3)[0][0] - 0.3417) < 1e-3
+
+
+def test_pipeline2d_reproduces_generic2d():
+    import json, os
+    from omar_pfem.verification_agent.generic2d import Problem
+    from omar_pfem.verification_agent.pipeline2d import Problem2D
+    d = json.load(open(os.path.join(os.path.dirname(__file__), "problems2d", "t_bracket.json")))
+    a, b = Problem2D(d).solve(4), Problem(d).solve(4)
+    assert abs(a["strain_energy"] / b["strain_energy"] - 1) < 1e-12
+    assert abs(a["v_left_tip"] / b["v_left_tip"] - 1) < 1e-12
+
+
+def test_experiment_freeze_detects_tampering(tmp_path, monkeypatch):
+    import json
+    import pytest
+    from omar_pfem.verification_agent import experiment as X
+    monkeypatch.setattr(X, "EXP_DIR", str(tmp_path))
+    monkeypatch.setattr(X, "MEMORY", str(tmp_path / "mem.json"))
+    path, rec = X.freeze("p", 1, {"action": "a", "situation": "s", "quantities": ["q"],
+                                  "prediction": {"text": "t", "criterion": "c"},
+                                  "cost": {"minutes": 1.0}})
+    d = json.load(open(path))
+    d["preregistration"]["prediction"]["text"] = "changed"
+    json.dump(d, open(path, "w"))
+    with pytest.raises(RuntimeError):
+        X.complete(path, {"confirmed": True})
+
+
+def test_untraced_numbers_are_rejected():
+    from omar_pfem.verification_agent.autonomous import trace_numbers
+    d = {"name": "x", "cell_size": 10.0, "cells": [[0, 0], [1, 0]], "E": 210000.0, "nu": 0.3,
+         "plane": "stress", "bcs": [{"segment": [[0, 0], [0, 10]], "type": "clamped"},
+                                    {"segment": [[20, 0], [20, 10]], "type": "traction",
+                                     "t": [77.0, 0.0]}], "points": {}}
+    text = "A 20 by 10 mm plate, E = 210000 MPa, nu = 0.3, clamped left, traction 50 MPa."
+    unsup, flagged = trace_numbers(d, text, [])
+    assert any("77" in u for u in unsup) and not flagged

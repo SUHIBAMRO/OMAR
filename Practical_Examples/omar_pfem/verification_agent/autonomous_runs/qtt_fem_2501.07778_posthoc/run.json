@@ -1,0 +1,371 @@
+{
+ "steps": [
+  {
+   "stage": "L",
+   "actor": "LLM",
+   "status": "done",
+   "detail": "card from passage at character 48721 (score 51.6); quotes found 100%",
+   "card": {
+    "pdf": "qtt_fem_2501.07778_posthoc.pdf",
+    "section_used": "passage at character 48721 (score 51.6)",
+    "card": {
+     "title": "QTT-FEM vs FEniCS convergence on three linear-elastic plane-stress benchmarks: cantilever beam, single-edge notched (SEN) tensile specimen, and L-shaped plate",
+     "geometry": {
+      "value": "Three 2D plane-stress domains. (a) A cantilever beam with a stated height-to-length ratio of 20 (probably meant as length-to-height). It is split into q = 20 subdomains, and the absolute dimensions are not stated in the text. (b) A single-edge notched (SEN) tensile specimen with l = 1 mm. (c) An L-shaped plate with l = 1 mm. The notch dimensions and the full SEN and L-plate layouts are given only in Fig. 2, not in the text.",
+      "quote": "Both the SEN and the L-shaped plate have a length of \u2113 = 1 mm and are subjected to a traction t = 3 MPa."
+     },
+     "material": {
+      "value": "Linear isotropic elasticity with E = 64 MPa and Poisson ratio = 0. This is a linear problem, not a hyperelastic one.",
+      "quote": "we assume the material to be isotropic with Young modulus E = 64 MPa and a vanishing Poisson ratio."
+     },
+     "boundary_conditions": {
+      "value": "The boundary conditions appear only in Figure 2 and are not described in the text. The cantilever is presumably clamped at one end. The supports for the SEN and L-shaped plate are not stated in the text.",
+      "quote": "Figure 2: Geometry, boundary conditions, and representative meshes for the test cases of Section 5."
+     },
+     "loading": {
+      "value": "The SEN and L-shaped plate carry a traction t = 3 MPa, but the text does not say which edges it acts on. The cantilever carries a load labelled P in Fig. 2. Its magnitude and whether it is a point load or distributed are not stated.",
+      "quote": "are subjected to a traction t = 3 MPa"
+     },
+     "discretisation": {
+      "value": "The reference is a FEniCS solution on one over-refined mesh with 7,242,852 DOFs. The element type of the reference mesh is not stated explicitly; the expected slopes quoted are for P1. The mesh size and element count are not stated.",
+      "quote": "evaluated with FEniCS with an overrefined mesh consisting of 7242852 degrees of freedom (dofs)"
+     },
+     "reference": {
+      "type": "single_mesh",
+      "convergence_evidence": "none_stated",
+      "quote": "evaluated with FEniCS with an overrefined mesh consisting of 7242852 degrees of freedom (dofs)"
+     },
+     "qois": [
+      {
+       "name": "Energy-seminorm displacement error E",
+       "kind": "field_error_norm",
+       "definition": "Energy-seminorm norm of u_QTT minus u_ref, plotted against DOFs for all three cases (Figs 3a and 4).",
+       "reported_value": "Plots only; no number is given in the text. The figure annotations suggest slopes of 0.5 for the cantilever and 0.25 and 0.45 for the SEN and L-plate panels, but the text does not state these values.",
+       "quote": "we evaluate E = \u2225uQT T \u2212 uref \u2225, the error in the energy seminorm"
+      },
+      {
+       "name": "L2-norm displacement error E_L2",
+       "kind": "field_error_norm",
+       "definition": "L2 norm of u_QTT minus u_ref, plotted against DOFs for the cantilever (Fig. 3b).",
+       "reported_value": "Plots only; no number is given in the text. The figure annotation suggests a slope of about 1.",
+       "quote": "the error in the L2 -norm"
+      },
+      {
+       "name": "Exponential-convergence exponent alpha and singularity parameter beta",
+       "kind": "other",
+       "definition": "Fit of E = C_alpha 2^(-alpha d) against the level number d, with alpha = min(1, beta) and beta equal to twice the singularity order.",
+       "reported_value": "beta = 2 (cantilever), 0.5 (SEN), 0.9 (L-shaped)",
+       "quote": "\u03b2 = 2, 0.5, 0.9 for the cantilever beam, the SEN plate, and the L-shaped panel test cases, respectively."
+      },
+      {
+       "name": "Memory storage (QTT vs FEniCS)",
+       "kind": "other",
+       "definition": "Memory needed by each solver as DOFs increase (Figs 5a, 5c, 5e).",
+       "reported_value": "Plots only; no number is given in the text.",
+       "quote": "highlight the drastic memory cut of the QTT memory storage compared to the memory storage required by FEniCS for increasing degrees of freedom"
+      },
+      {
+       "name": "Effective rank r_e",
+       "kind": "other",
+       "definition": "Effective QTT rank against DOFs (Figs 5b, 5d, 5f).",
+       "reported_value": "Plots only; the text describes an asymptotic trend but gives no number.",
+       "quote": "The effective rank re (erank) is also plotted as a function of the dofs"
+      },
+      {
+       "name": "Maximum QTT rank R_d and parameter count N_d",
+       "kind": "other",
+       "definition": "Maximum rank R_d is compared against the reference growth R_d = c_alpha d^theta. The parameter count N_d is related to E through log E = -b_alpha N_d^kappa.",
+       "reported_value": "Plots only; no number is given in the text.",
+       "quote": "The maximum rank of QTT approximation Rd also displays an exponential convergence in terms of the d level number."
+      }
+     ],
+     "singular_features": [
+      {
+       "description": "Tip of the notch in the SEN specimen. If it is a sharp crack-like notch, the stress is unbounded there. The stated beta = 0.5 matches a crack-tip singularity.",
+       "singular": true,
+       "inferred": false,
+       "quote": "\u03b2 = 2, 0.5, 0.9 for the cantilever beam, the SEN plate, and the L-shaped panel test cases, respectively."
+      },
+      {
+       "description": "Re-entrant corner of the L-shaped plate. The stress is singular there; the stated beta = 0.9 corresponds to a singularity order of about 0.45.",
+       "singular": true,
+       "inferred": false,
+       "quote": "\u03b2 = 2, 0.5, 0.9 for the cantilever beam, the SEN plate, and the L-shaped panel test cases, respectively."
+      },
+      {
+       "description": "Corners of the cantilever where the clamped edge meets a traction-free edge. This is inferred from the geometry and the figure, and gives a weak singularity. The paper reports beta = 2, i.e. it does not limit the observed rate.",
+       "singular": true,
+       "inferred": true,
+       "quote": "bending in the cantilever beam as in Figure 2(a) is studied having a height-to-length ratio equal to 20"
+      },
+      {
+       "description": "The cantilever load P may be a concentrated point load; the figure label suggests this, but the text does not confirm it. If it is a point load, the stress is singular at the point where it is applied.",
+       "singular": true,
+       "inferred": true,
+       "quote": "bending in the cantilever beam as in Figure 2(a) is studied having a height-to-length ratio equal to 20"
+      }
+     ],
+     "not_stated": [
+      "Absolute length and height of the cantilever (only the ratio of 20 is given, and its direction is unclear)",
+      "Magnitude and distribution of the cantilever load P",
+      "Supports and boundary conditions in the text (shown only in Fig. 2)",
+      "Which edges carry the traction t = 3 MPa",
+      "SEN notch length, width and tip radius",
+      "Full dimensions of the L-shaped plate beyond l = 1 mm",
+      "Plate thickness",
+      "Element type, mesh size and element count of the FEniCS reference (only the 7,242,852 DOF count is given)",
+      "Any convergence check of the reference solution itself",
+      "Numerical error values and convergence slopes (given only in figures)"
+     ]
+    },
+    "quotes_found": {
+     "geometry": true,
+     "material": true,
+     "boundary_conditions": true,
+     "loading": true,
+     "discretisation": true,
+     "reference": true,
+     "qois[0]": true,
+     "qois[1]": true,
+     "qois[2]": true,
+     "qois[3]": true,
+     "qois[4]": true,
+     "qois[5]": true,
+     "singular_features[0]": true,
+     "singular_features[1]": true,
+     "singular_features[2]": true,
+     "singular_features[3]": true
+    },
+    "quote_rate": 1.0,
+    "qoi_classes": [
+     {
+      "name": "Energy-seminorm displacement error E",
+      "kind": "field_error_norm",
+      "class": "error_norm"
+     },
+     {
+      "name": "L2-norm displacement error E_L2",
+      "kind": "field_error_norm",
+      "class": "error_norm"
+     },
+     {
+      "name": "Exponential-convergence exponent alpha and singularity parameter beta",
+      "kind": "other",
+      "class": "out_of_scope"
+     },
+     {
+      "name": "Memory storage (QTT vs FEniCS)",
+      "kind": "other",
+      "class": "out_of_scope"
+     },
+     {
+      "name": "Effective rank r_e",
+      "kind": "other",
+      "class": "out_of_scope"
+     },
+     {
+      "name": "Maximum QTT rank R_d and parameter count N_d",
+      "kind": "other",
+      "class": "out_of_scope"
+     }
+    ],
+    "vocabulary_gaps": [],
+    "needs": [
+     "reference not verified: a refinement family (and strategies) is needed before its values can be used to measure surrogate errors",
+     "no independent code: cross-check with a second solver",
+     "singular features present: run the singular-order check; pointwise peaks there have no finite limit",
+     "missing inputs must be fixed (and declared) before solving: Absolute length and height of the cantilever (only the ratio of 20 is given, and its direction is unclear); Magnitude and distribution of the cantilever load P; Supports and boundary conditions in the text (shown only in Fig. 2); Which edges carry the traction t = 3 MPa; SEN notch length, width and tip radius; Full dimensions of the L-shaped plate beyond l = 1 mm; Plate thickness; Element type, mesh size and element count of the FEniCS reference (only the 7,242,852 DOF count is given); Any convergence check of the reference solution itself; Numerical error values and convergence slopes (given only in figures)"
+    ],
+    "problem_text": "QTT-FEM vs FEniCS convergence on three linear-elastic plane-stress benchmarks: cantilever beam, single-edge notched (SEN) tensile specimen, and L-shaped plate.\nGeometry: Three 2D plane-stress domains. (a) A cantilever beam with a stated height-to-length ratio of 20 (probably meant as length-to-height). It is split into q = 20 subdomains, and the absolute dimensions are not stated in the text. (b) A single-edge notched (SEN) tensile specimen with l = 1 mm. (c) An L-shaped plate with l = 1 mm. The notch dimensions and the full SEN and L-plate layouts are given only in Fig. 2, not in the text.\nMaterial: Linear isotropic elasticity with E = 64 MPa and Poisson ratio = 0. This is a linear problem, not a hyperelastic one.\nBoundary conditions: The boundary conditions appear only in Figure 2 and are not described in the text. The cantilever is presumably clamped at one end. The supports for the SEN and L-shaped plate are not stated in the text.\nLoading: The SEN and L-shaped plate carry a traction t = 3 MPa, but the text does not say which edges it acts on. The cantilever carries a load labelled P in Fig. 2. Its magnitude and whether it is a point load or distributed are not stated.\nDiscretisation in the paper: The reference is a FEniCS solution on one over-refined mesh with 7,242,852 DOFs. The element type of the reference mesh is not stated explicitly; the expected slopes quoted are for P1. The mesh size and element count are not stated.\nFeatures: Tip of the notch in the SEN specimen. If it is a sharp crack-like notch, the stress is unbounded there. The stated beta = 0.5 matches a crack-tip singularity.; Re-entrant corner of the L-shaped plate. The stress is singular there; the stated beta = 0.9 corresponds to a singularity order of about 0.45.; Corners of the cantilever where the clamped edge meets a traction-free edge. This is inferred from the geometry and the figure, and gives a weak singularity. The paper reports beta = 2, i.e. it does not limit the observed rate.; The cantilever load P may be a concentrated point load; the figure label suggests this, but the text does not confirm it. If it is a point load, the stress is singular at the point where it is applied..\nQuestion: which of these quantities can serve as trustworthy reference values: Energy-seminorm displacement error E (Energy-seminorm norm of u_QTT minus u_ref, plotted against DOFs for all three cases (Figs 3a and 4).); L2-norm displacement error E_L2 (L2 norm of u_QTT minus u_ref, plotted against DOFs for the cantilever (Fig. 3b).); Exponential-convergence exponent alpha and singularity parameter beta (Fit of E = C_alpha 2^(-alpha d) against the level number d, with alpha = min(1, beta) and beta equal to twice the singularity order.); Memory storage (QTT vs FEniCS) (Memory needed by each solver as DOFs increase (Figs 5a, 5c, 5e).); Effective rank r_e (Effective QTT rank against DOFs (Figs 5b, 5d, 5f).); Maximum QTT rank R_d and parameter count N_d (Maximum rank R_d is compared against the reference growth R_d = c_alpha d^theta. The parameter count N_d is related to E through log E = -b_alpha N_d^kappa.)?"
+   }
+  },
+  {
+   "stage": "L",
+   "actor": "code",
+   "status": "done",
+   "detail": "section chosen by code from the hint"
+  },
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "paper and hint chosen by a person ('L-shaped panel traction Young modulus')"
+  },
+  {
+   "stage": "D",
+   "actor": "LLM",
+   "status": "done",
+   "detail": "formalizer specification; code check: no problems",
+   "spec": {
+    "name": "QTT-FEM vs FEniCS overkill reference: linear-elastic plane-stress cantilever, SEN specimen and L-shaped plate",
+    "geometry": "Three 2D plane-stress domains. (a) A cantilever beam with aspect ratio 20 (stated as height-to-length, probably meant as length-to-height). It is split into q = 20 subdomains, and its absolute dimensions are not stated. (b) A single-edge notched tensile specimen with characteristic length l = 1 mm. The notch geometry (sharp crack or finite-radius notch, its length and width) appears only in Fig. 2. (c) An L-shaped plate with l = 1 mm and one re-entrant corner (interior angle presumably 270\u00b0). Its full layout appears only in Fig. 2.",
+    "dim": 2,
+    "material": "Linear isotropic elasticity under plane stress, with E = 64 MPa and Poisson ratio = 0. This is a small-strain linear problem, not a hyperelastic one, so no material-instability or limit-point issues arise. With Poisson ratio = 0 there is no volumetric locking.",
+    "loading": "SEN and L-plate: a traction t = 3 MPa on edges that are not identified in the text (presumably a remote tensile traction). Cantilever: a load P whose magnitude and type (point load or distributed) are not stated in the text. A single linear load step is applied in each case.",
+    "regularity": "crack",
+    "element": "T3",
+    "reference": "mesh_refinement_family",
+    "qois": [
+     "Energy-seminorm displacement error E = |u_QTT - u_ref|_E against DOFs (all three cases). This is a candidate trustworthy QoI only if the reference error is shown to be much smaller than the QTT errors being plotted. Energy converges despite the crack-tip and re-entrant singularities, but at reduced algebraic rates (about h^0.5 for SEN and about h^0.54 for the L-plate with P1 elements), so the 7.2M-DOF FEniCS solution carries a non-negligible error near the singular points. The curves will flatten once the QTT error approaches the reference error, and that floor is not quantified. For the cantilever, E is ill-defined if P is a true point load, because in 2D a point load gives infinite strain energy.",
+     "L2 displacement error E_L2 (cantilever only). This is the most trustworthy quantity if the cantilever is smooth apart from the weak clamped\u2013free corner singularities and is loaded by a distributed load. P1 L2 convergence is O(h^2), so the overkill reference is likely accurate enough. With a point load, u is only in W^{1,p} for p<2 and the L2 error still converges, but more slowly; this must be confirmed.",
+     "Exponential-convergence exponent alpha and singularity parameter beta. These are fitted, derived quantities, not reference values. The fit of E = C 2^(-alpha d) is contaminated by the reference error floor at large d. The values beta = 0.5 (SEN) and beta = 0.9 (L-plate, about 2 \u00d7 0.4555 for a 270\u00b0 corner) agree with corner-asymptotic theory, but they are taken from theory rather than verified. beta = 2 for the cantilever is asserted, not derived from the clamped\u2013free corner exponent or the load type.",
+     "Memory storage, QTT vs FEniCS. This is a computational-cost metric, not a converging QoI. It depends on the implementation (sparse matrix storage, solver workspace, whether assembly is counted), so it cannot serve as a reference value. At best it can be compared like for like at matched error.",
+     "Effective QTT rank r_e against DOFs. This is a diagnostic of the method itself, depending on the truncation tolerance, rounding strategy and ordering, and it has no independent reference. It is not a verification QoI.",
+     "Maximum QTT rank R_d and parameter count N_d. Fitting R_d = c d^theta and log E = -b N_d^kappa gives empirical complexity exponents, not reference values. They inherit the reference error floor through E, and they depend on the truncation tolerance."
+    ],
+    "well_posedness": [
+     "Dirichlet supports must remove all rigid-body modes in each case. The supports for the SEN and L-plate are not stated in the text. If they are pure-traction problems, they are well posed only with self-equilibrated loads and with rigid-body modes removed by constraints.",
+     "The problems are linear elastic with E > 0 and Poisson ratio = 0, so the material is stable. There are no limit points or bifurcations, and the load level does not affect convergence apart from linear scaling.",
+     "SEN notch tip: a sharp crack gives the stress singularity r^-1/2 (lambda = 0.5). Energy and displacement norms converge, but at an algebraic rate limited to about h^0.5 for uniform P1 elements. Peak and pointwise stress at the tip do not converge.",
+     "L-plate re-entrant corner (270\u00b0): the singularity exponent is lambda \u2248 0.5445 (stress ~ r^-0.4555). Global energy and L2 converge, and region averages away from the corner converge. The corner peak stress does not converge.",
+     "Cantilever clamped\u2013free corners: weak singularities. With Poisson ratio = 0 the exponent may differ from the usual value, and in principle it should be checked before assuming the cantilever is smooth (beta = 2).",
+     "Cantilever load P: if it is a concentrated point load in 2D, the exact solution has infinite energy. The energy-norm error against any reference is then not convergent or meaningful, and only displacement away from the load point or L2-type quantities are usable. A distributed end traction avoids this.",
+     "A single overkill reference (7,242,852 DOFs) contains no internal estimate of its own error. Trust in E and E_L2 requires either a reference refinement family with the observed rate shown, or a reference error demonstrably far below the smallest plotted QTT error. Without this, the low-error tail of every curve and the fitted alpha are unverified.",
+     "Comparing u_QTT and u_ref requires transferring or interpolating them onto a common mesh. The interpolation or projection error must also stay below the measured errors."
+    ],
+    "open_questions": [
+     "What are the boundary conditions for each benchmark? Fig. 2 is not reproduced in the text, in particular the supports for the SEN and L-plate.",
+     "Cantilever: is the aspect ratio L/H = 20? What are the absolute dimensions, and how are the q = 20 subdomains arranged?",
+     "Cantilever load P: what is its magnitude, and is it a point load or a distributed traction? This decides whether the energy error is well defined.",
+     "SEN notch: is it a sharp crack (zero width) or a finite-radius notch? What are its length and width? Which edges carry t = 3 MPa?",
+     "L-plate: what are the dimensions, the re-entrant angle, and the edges where t = 3 MPa is applied?",
+     "What element type and polynomial order is the FEniCS reference (P1 or P2)? Is its mesh uniform or graded towards the singular points? What are the mesh size and element count?",
+     "What is the estimated discretisation error of the 7.2M-DOF reference relative to the smallest QTT error plotted? Was any refinement study of the reference performed?",
+     "The QTT discretisation (element type on the tensorised uniform grid, presumably bilinear Q4 rather than T3) is not stated; the element enum T3 was chosen to match the P1 slopes and the FEniCS reference. How is u_QTT mapped onto the reference mesh to compute E and E_L2?",
+     "What QTT truncation and rounding tolerance and solver settings were used? These affect r_e, R_d, N_d and the error floor.",
+     "How was memory measured for each solver (matrix storage only, or peak process memory)?",
+     "Is beta = 2 for the cantilever derived from the clamped\u2013free corner exponent with Poisson ratio = 0, or simply assumed?",
+     "The reference-type enum has no option for a single overkill mesh; mesh_refinement_family was chosen as the closest fit, although only one reference mesh is reported."
+    ]
+   }
+  },
+  {
+   "stage": "D",
+   "actor": "LLM",
+   "status": "unsupported",
+   "detail": "None of the three benchmarks can be described exactly from the text. (a) Cantilever: the actual dimensions are missing. The ratio of 20 is labelled 'height-to-length' and probably means length-to-height. The load P has no stated magnitude and may be a point load, which the pipeline cannot represent. The supports appear only in Fig. 2. (b) SEN specimen: the notch size and the full layout appear only in Fig. 2. A sharp, crack-like notch has zero width, so a union of square cells cannot represent it. The supports and the edges carrying t = 3 MPa are not stated. (c) L-shaped plate: a union of cells could represent it, but the arm lengths, the supports and the loaded edges are not stated. Building any of these would mean inventing geometry and boundary conditions. Separately, several of the requested quantities are about the solver, not the mechanics: memory use, effective QTT rank r_e, maximum rank R_d and parameter count N_d. The FE pipeline cannot check those in any case.",
+   "modeler": {
+    "supported": false,
+    "unsupported_reason": "None of the three benchmarks can be described exactly from the text. (a) Cantilever: the actual dimensions are missing. The ratio of 20 is labelled 'height-to-length' and probably means length-to-height. The load P has no stated magnitude and may be a point load, which the pipeline cannot represent. The supports appear only in Fig. 2. (b) SEN specimen: the notch size and the full layout appear only in Fig. 2. A sharp, crack-like notch has zero width, so a union of square cells cannot represent it. The supports and the edges carrying t = 3 MPa are not stated. (c) L-shaped plate: a union of cells could represent it, but the arm lengths, the supports and the loaded edges are not stated. Building any of these would mean inventing geometry and boundary conditions. Separately, several of the requested quantities are about the solver, not the mechanics: memory use, effective QTT rank r_e, maximum rank R_d and parameter count N_d. The FE pipeline cannot check those in any case.",
+    "description": {
+     "name": "qtt_fem_benchmarks_unsupported",
+     "cell_size": 1,
+     "cells": [],
+     "E": 64,
+     "nu": 0,
+     "plane": "stress",
+     "bcs": [],
+     "points": []
+    },
+    "sources": [
+     {
+      "item": "Young's modulus",
+      "value": "64 MPa",
+      "quote": "Linear isotropic elasticity with E = 64 MPa and Poisson ratio = 0."
+     },
+     {
+      "item": "Poisson ratio",
+      "value": "0",
+      "quote": "Linear isotropic elasticity with E = 64 MPa and Poisson ratio = 0."
+     },
+     {
+      "item": "Plane stress",
+      "value": "plane stress",
+      "quote": "Three 2D plane-stress domains."
+     },
+     {
+      "item": "Traction magnitude (SEN, L-plate)",
+      "value": "3 MPa",
+      "quote": "The SEN and L-shaped plate carry a traction t = 3 MPa, but the text does not say which edges it acts on."
+     },
+     {
+      "item": "Characteristic length",
+      "value": "1 mm",
+      "quote": "(b) A single-edge notched (SEN) tensile specimen with l = 1 mm. (c) An L-shaped plate with l = 1 mm."
+     },
+     {
+      "item": "Cantilever aspect ratio",
+      "value": "20",
+      "quote": "A cantilever beam with a stated height-to-length ratio of 20 (probably meant as length-to-height)."
+     }
+    ],
+    "assumptions": [
+     "No geometry was built. The description holds only the stated material data (E = 64, nu = 0, plane stress). Its cells, bcs and points are empty on purpose and must not be treated as a model.",
+     "Energy-seminorm error E: useful as a global measure. The energy norm converges even at the crack tip and at the re-entrant corner. The limit is the single over-refined FEniCS reference (7,242,852 DOFs, element order not stated): its own error, which converges slowly at the singularities, puts a floor under E. Once the QTT error approaches that floor, the curves no longer show the true error. This matters most for the SEN and L-plate cases.",
+     "L2 error E_L2 (cantilever only): trustworthy relative to the reference. Displacement L2 converges even if P is a point load, provided the load is modelled the same way in both solvers.",
+     "alpha and beta: alpha comes from a fit, so its value depends on which levels d are included and on the reference error at large d. The beta values agree with theory (0.5 for a crack tip, about 0.9 for twice the L-corner singularity order of about 0.45). Treat them as consistency checks, not independent reference values.",
+     "Memory use, r_e, R_d and N_d are properties of the solver implementation. A displacement-field reference cannot verify them, and this FE pipeline cannot check them.",
+     "Pointwise peak stresses at the notch tip, the re-entrant corner or the clamped corners would not converge and must not be used as reference values."
+    ]
+   }
+  }
+ ],
+ "human_points": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "paper and hint chosen by a person ('L-shaped panel traction Young modulus')"
+  }
+ ],
+ "wall_clock_s": 113.04759097099304,
+ "source": {
+  "pdf": "omar_pfem/verification_agent/autonomy_test/posthoc/qtt_fem_2501.07778_posthoc.pdf",
+  "text": null,
+  "description_given": false
+ },
+ "modeler": {
+  "supported": false,
+  "unsupported_reason": "None of the three benchmarks can be described exactly from the text. (a) Cantilever: the actual dimensions are missing. The ratio of 20 is labelled 'height-to-length' and probably means length-to-height. The load P has no stated magnitude and may be a point load, which the pipeline cannot represent. The supports appear only in Fig. 2. (b) SEN specimen: the notch size and the full layout appear only in Fig. 2. A sharp, crack-like notch has zero width, so a union of square cells cannot represent it. The supports and the edges carrying t = 3 MPa are not stated. (c) L-shaped plate: a union of cells could represent it, but the arm lengths, the supports and the loaded edges are not stated. Building any of these would mean inventing geometry and boundary conditions. Separately, several of the requested quantities are about the solver, not the mechanics: memory use, effective QTT rank r_e, maximum rank R_d and parameter count N_d. The FE pipeline cannot check those in any case.",
+  "description": {
+   "name": "qtt_fem_benchmarks_unsupported",
+   "cell_size": 1,
+   "cells": [],
+   "E": 64,
+   "nu": 0,
+   "plane": "stress",
+   "bcs": [],
+   "points": []
+  },
+  "sources": [
+   {
+    "item": "Young's modulus",
+    "value": "64 MPa",
+    "quote": "Linear isotropic elasticity with E = 64 MPa and Poisson ratio = 0."
+   },
+   {
+    "item": "Poisson ratio",
+    "value": "0",
+    "quote": "Linear isotropic elasticity with E = 64 MPa and Poisson ratio = 0."
+   },
+   {
+    "item": "Plane stress",
+    "value": "plane stress",
+    "quote": "Three 2D plane-stress domains."
+   },
+   {
+    "item": "Traction magnitude (SEN, L-plate)",
+    "value": "3 MPa",
+    "quote": "The SEN and L-shaped plate carry a traction t = 3 MPa, but the text does not say which edges it acts on."
+   },
+   {
+    "item": "Characteristic length",
+    "value": "1 mm",
+    "quote": "(b) A single-edge notched (SEN) tensile specimen with l = 1 mm. (c) An L-shaped plate with l = 1 mm."
+   },
+   {
+    "item": "Cantilever aspect ratio",
+    "value": "20",
+    "quote": "A cantilever beam with a stated height-to-length ratio of 20 (probably meant as length-to-height)."
+   }
+  ],
+  "assumptions": [
+   "No geometry was built. The description holds only the stated material data (E = 64, nu = 0, plane stress). Its cells, bcs and points are empty on purpose and must not be treated as a model.",
+   "Energy-seminorm error E: useful as a global measure. The energy norm converges even at the crack tip and at the re-entrant corner. The limit is the single over-refined FEniCS reference (7,242,852 DOFs, element order not stated): its own error, which converges slowly at the singularities, puts a floor under E. Once the QTT error approaches that floor, the curves no longer show the true error. This matters most for the SEN and L-plate cases.",
+   "L2 error E_L2 (cantilever only): trustworthy relative to the reference. Displacement L2 converges even if P is a point load, provided the load is modelled the same way in both solvers.",
+   "alpha and beta: alpha comes from a fit, so its value depends on which levels d are included and on the reference error at large d. The beta values agree with theory (0.5 for a crack tip, about 0.9 for twice the L-corner singularity order of about 0.45). Treat them as consistency checks, not independent reference values.",
+   "Memory use, r_e, R_d and N_d are properties of the solver implementation. A displacement-field reference cannot verify them, and this FE pipeline cannot check them.",
+   "Pointwise peak stresses at the notch tip, the re-entrant corner or the clamped corners would not converge and must not be used as reference values."
+  ]
+ }
+}

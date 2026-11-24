@@ -1,0 +1,312 @@
+{
+ "steps": [
+  {
+   "stage": "L",
+   "actor": "LLM",
+   "status": "done",
+   "detail": "card from passage at character 89484 (score 188.0); quotes found 100%",
+   "card": {
+    "pdf": "polivem_2609.35878_posthoc.pdf",
+    "section_used": "passage at character 89484 (score 188.0)",
+    "card": {
+     "title": "Quarter perforated plate (circular hole) under uniaxial tension, plane-stress linear elasticity, higher-order VEM (k = 1, 2, 3) on O-grid and Voronoi meshes",
+     "geometry": {
+      "value": "Square plate with a central circular hole; quarter domain [0,W]x[0,H] minus the hole by symmetry. Hole radius a = 1, W = H = 10 (= 10a), out-of-plane thickness tp = 1.",
+      "quote": "A square plate with a central circular hole is subjected to uniaxial tension."
+     },
+     "material": {
+      "value": "Isotropic linear elasticity, plane stress, E_Y = 1, nu = 0.3 (the section says 'higher-order elasticity', meaning higher-order VEM elements, not a hyperelastic law).",
+      "quote": "The parameters are a = 1, W = H = 10, EY = 1, \u03bd = 0.3,"
+     },
+     "boundary_conditions": {
+      "value": "Symmetry: ux = 0 on x = 0 and uy = 0 on y = 0. Top edge y = H and the hole are traction free. For k >= 2 the edge moments of the constrained component are also prescribed on the symmetry edges.",
+      "quote": "Symmetry is enforced by prescribing ux = 0 on x = 0 and uy = 0 on y = 0."
+     },
+     "loading": {
+      "value": "Uniform horizontal traction (sigma0, 0) with sigma0 = 1 on x = W. No body force.",
+      "quote": "uniform traction (\u03c30 , 0)T acts on x = W , while the boundary y = H and the hole are traction free."
+     },
+     "discretisation": {
+      "value": "Reference: biquadratic Q9 finite elements with a curved quadratic hole representation, on four successively refined meshes. The Q9 mesh sizes, element counts and DOF counts are not stated. (The VEM meshes under test use h/a = 0.5, 0.25, 0.125, 0.0625. For k = 2 the O-grid has 216/742/2,756/10,972 cells and the Voronoi family has 396/1,585/6,347/25,393 cells. These are the meshes under test, not the reference.)",
+      "quote": "An independent reference was computed with biquadratic Q9 finite elements and a curved quadratic representation"
+     },
+     "reference": {
+      "type": "refinement_family",
+      "convergence_evidence": "mesh_study",
+      "quote": "Four successively refined meshes were used, and the crown stress was recovered both by direct nodal"
+     },
+     "qois": [
+      {
+       "name": "K_t,h^crown",
+       "kind": "pointwise_peak",
+       "definition": "Hoop stress sigma_thetatheta,h at the hole crown (0, a), divided by sigma0. Used as the convergence quantity. It need not converge to the Kirsch value of 3 because the domain is finite.",
+       "reported_value": "3.0861 (Q9 reference). Infinite-plate Kirsch value is 3, given for context only.",
+       "quote": "The Q9 crown concentration is 3.0861, about 2.9% above the infinite-plate Kirsch value of 3."
+      },
+      {
+       "name": "K_t,h^mid",
+       "kind": "pointwise_peak",
+       "definition": "Maximum of sigma_thetatheta,h / sigma0 over the midpoints of the polygonal hole edges. It includes a sampling error because no midpoint lies at theta = pi/2.",
+       "reported_value": "not stated in this section",
+       "quote": "where M\u25e6h is the set of hole-edge midpoints."
+      },
+      {
+       "name": "U_h (discrete strain energy)",
+       "kind": "global_energy",
+       "definition": "U_h = 1/2 u_h^T K u_h, using the stiffness matrix before boundary conditions are applied.",
+       "reported_value": "not stated in this section",
+       "quote": "Two global quantities accompany the local stress. The discrete strain energy is"
+      },
+      {
+       "name": "mean u_x on x = W",
+       "kind": "displacement",
+       "definition": "Edge-length-weighted (composite trapezoidal) mean of u_x,h over the loaded boundary x = W, normalised by H.",
+       "reported_value": "not stated in this section",
+       "quote": "The mean horizontal displacement of the loaded boundary is approximated with the composite trapezoidal rule,"
+      }
+     ],
+     "singular_features": [
+      {
+       "description": "Smooth circular hole, giving a finite stress concentration at the crown (about 3). It is not singular in the continuum. The polygonal hole approximation in the VEM meshes adds a geometric error, not a true singularity.",
+       "singular": false,
+       "inferred": false,
+       "quote": "Both families replace the circular boundary by polygonal segments, so the geometric approximation can limit the convergence of quantities evaluated at"
+      },
+      {
+       "description": "Convex 90-degree corners of the quarter domain: (0,H) where the ux = 0 symmetry edge meets the traction-free top edge, (W,0) where the uy = 0 symmetry edge meets the loaded edge, and the free/loaded corner (W,H). Symmetry (roller) edges are not clamped and these corners are not re-entrant, so no stress singularity is expected.",
+       "singular": false,
+       "inferred": true,
+       "quote": "Symmetry is enforced by prescribing ux = 0 on x = 0 and uy = 0 on y = 0."
+      }
+     ],
+     "not_stated": [
+      "Q9 reference mesh sizes, element counts and DOF counts",
+      "Q9 reference values for strain energy and mean boundary displacement (Table 8 contents are not in the section)",
+      "Discrete VEM values of K_t,h^crown, K_t,h^mid, U_h and mean u_x (Table 8 not included)",
+      "Which Q9 crown estimate (nodal or interior extrapolation) gives 3.0861",
+      "Stabilisation details of the VEM strain-projection formulation (cited to [13])",
+      "Details of the O-grid construction (cited to Appendix A.1)",
+      "VEM DOF counts for k = 1 and k = 3"
+     ]
+    },
+    "quotes_found": {
+     "geometry": true,
+     "material": true,
+     "boundary_conditions": true,
+     "loading": true,
+     "discretisation": true,
+     "reference": true,
+     "qois[0]": true,
+     "qois[1]": true,
+     "qois[2]": true,
+     "qois[3]": true,
+     "singular_features[0]": true,
+     "singular_features[1]": true
+    },
+    "quote_rate": 1.0,
+    "qoi_classes": [
+     {
+      "name": "K_t,h^crown",
+      "kind": "pointwise_peak",
+      "class": "pointwise_peak"
+     },
+     {
+      "name": "K_t,h^mid",
+      "kind": "pointwise_peak",
+      "class": "pointwise_peak"
+     },
+     {
+      "name": "U_h (discrete strain energy)",
+      "kind": "global_energy",
+      "class": "global"
+     },
+     {
+      "name": "mean u_x on x = W",
+      "kind": "displacement",
+      "class": "displacement"
+     }
+    ],
+    "vocabulary_gaps": [],
+    "needs": [
+     "no independent code: cross-check with a second solver",
+     "pointwise peaks: check boundedness (finite-radius concentration or singularity)",
+     "missing inputs must be fixed (and declared) before solving: Q9 reference mesh sizes, element counts and DOF counts; Q9 reference values for strain energy and mean boundary displacement (Table 8 contents are not in the section); Discrete VEM values of K_t,h^crown, K_t,h^mid, U_h and mean u_x (Table 8 not included); Which Q9 crown estimate (nodal or interior extrapolation) gives 3.0861; Stabilisation details of the VEM strain-projection formulation (cited to [13]); Details of the O-grid construction (cited to Appendix A.1); VEM DOF counts for k = 1 and k = 3"
+    ],
+    "problem_text": "Quarter perforated plate (circular hole) under uniaxial tension, plane-stress linear elasticity, higher-order VEM (k = 1, 2, 3) on O-grid and Voronoi meshes.\nGeometry: Square plate with a central circular hole; quarter domain [0,W]x[0,H] minus the hole by symmetry. Hole radius a = 1, W = H = 10 (= 10a), out-of-plane thickness tp = 1.\nMaterial: Isotropic linear elasticity, plane stress, E_Y = 1, nu = 0.3 (the section says 'higher-order elasticity', meaning higher-order VEM elements, not a hyperelastic law).\nBoundary conditions: Symmetry: ux = 0 on x = 0 and uy = 0 on y = 0. Top edge y = H and the hole are traction free. For k >= 2 the edge moments of the constrained component are also prescribed on the symmetry edges.\nLoading: Uniform horizontal traction (sigma0, 0) with sigma0 = 1 on x = W. No body force.\nDiscretisation in the paper: Reference: biquadratic Q9 finite elements with a curved quadratic hole representation, on four successively refined meshes. The Q9 mesh sizes, element counts and DOF counts are not stated. (The VEM meshes under test use h/a = 0.5, 0.25, 0.125, 0.0625. For k = 2 the O-grid has 216/742/2,756/10,972 cells and the Voronoi family has 396/1,585/6,347/25,393 cells. These are the meshes under test, not the reference.)\nFeatures: Smooth circular hole, giving a finite stress concentration at the crown (about 3). It is not singular in the continuum. The polygonal hole approximation in the VEM meshes adds a geometric error, not a true singularity.; Convex 90-degree corners of the quarter domain: (0,H) where the ux = 0 symmetry edge meets the traction-free top edge, (W,0) where the uy = 0 symmetry edge meets the loaded edge, and the free/loaded corner (W,H). Symmetry (roller) edges are not clamped and these corners are not re-entrant, so no stress singularity is expected..\nQuestion: which of these quantities can serve as trustworthy reference values: K_t,h^crown (Hoop stress sigma_thetatheta,h at the hole crown (0, a), divided by sigma0. Used as the convergence quantity. It need not converge to the Kirsch value of 3 because the domain is finite.); K_t,h^mid (Maximum of sigma_thetatheta,h / sigma0 over the midpoints of the polygonal hole edges. It includes a sampling error because no midpoint lies at theta = pi/2.); U_h (discrete strain energy) (U_h = 1/2 u_h^T K u_h, using the stiffness matrix before boundary conditions are applied.); mean u_x on x = W (Edge-length-weighted (composite trapezoidal) mean of u_x,h over the loaded boundary x = W, normalised by H.)?"
+   }
+  },
+  {
+   "stage": "L",
+   "actor": "code",
+   "status": "done",
+   "detail": "section chosen by code from the hint"
+  },
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "paper and hint chosen by a person ('square plate with a central circular hole uniaxial tension quarter')"
+  },
+  {
+   "stage": "D",
+   "actor": "LLM",
+   "status": "done",
+   "detail": "formalizer specification; code check: no problems",
+   "spec": {
+    "name": "Quarter perforated plate (circular hole, a=1, W=H=10) under uniaxial tension, plane-stress linear elasticity; higher-order VEM (k=1,2,3) on O-grid and Voronoi meshes checked against a Q9 refinement-family reference",
+    "geometry": "2D quarter domain [0,10]x[0,10] minus a quarter disc of radius a=1 centred at the origin. Out-of-plane thickness tp=1. Symmetry edges are x=0 (a<=y<=H) and y=0 (a<=x<=W). The loaded edge is x=W, and the free edges are y=H and the hole arc. In the VEM meshes the hole is approximated by straight polygon edges. The Q9 reference uses curved quadratic hole edges. The meshes under test have h/a = 0.5, 0.25, 0.125, 0.0625. For k=2 the O-grid has 216/742/2,756/10,972 cells and the Voronoi family has 396/1,585/6,347/25,393 cells.",
+    "dim": 2,
+    "material": "Isotropic linear elasticity, plane stress, E=1, nu=0.3. Not hyperelastic: 'higher-order' refers to the VEM order k, not to the constitutive law. The material is unconditionally stable because the elastic tensor is positive definite for -1<nu<0.5.",
+    "loading": "A uniform traction (sigma0, 0) with sigma0=1 acts on x=W. There is no body force. The top edge y=H and the hole are traction free. Symmetry conditions are ux=0 on x=0 and uy=0 on y=0. For k>=2 the edge moments of the constrained displacement component are also prescribed on the symmetry edges. The problem is linear, so there are no load-level effects and no limit points.",
+    "regularity": "stress_concentration",
+    "element": "Q9",
+    "reference": "mesh_refinement_family",
+    "qois": [
+     "K_t,h^crown = sigma_thetatheta,h(0,a)/sigma0: a pointwise hoop stress at a smooth boundary point. The continuum value is finite (about 3, adjusted for the finite width) and is not singular, so it can converge. It is a valid reference candidate if the Q9 sequence shows asymptotic convergence. It is the most sensitive of the four quantities to stress recovery and to how the hole geometry is represented.",
+     "K_t,h^mid = max over polygonal hole-edge midpoints of sigma_thetatheta,h/sigma0: this mixes discretisation error with a mesh-dependent sampling error, because no midpoint lies at theta=pi/2. The sampling error vanishes only as h->0, possibly non-monotonically, and differs between O-grid and Voronoi meshes. It is not recommended as a reference value. Use it as a mesh-dependent diagnostic only.",
+     "U_h = 1/2 u_h^T K u_h (stiffness before boundary conditions are applied): a global energy quantity. It converges at about twice the H1 rate for smooth solutions and equals half the external work of the traction on x=W. It is a trustworthy reference candidate.",
+     "mean u_x on x=W (edge-length-weighted trapezoidal mean, normalised by H): a boundary average of displacement. It is proportional to the compliance and therefore closely tied to U_h. It converges robustly and is a trustworthy reference candidate."
+    ],
+    "well_posedness": [
+     "Rigid-body modes are removed: ux=0 on x=0 fixes the x-translation, uy=0 on y=0 fixes the y-translation, and the two orthogonal roller edges together fix the rotation. The problem is uniquely solvable.",
+     "Material stability: the plane-stress isotropic law with E=1, nu=0.3 is positive definite. The problem is linear, so there are no limit points, bifurcations or load-level dependence.",
+     "No singular features. The convex 90-degree corners (0,H), (W,0) and (W,H) join symmetry (roller) edges to free or loaded edges, or a free edge to a loaded edge. None is clamped-free and none is re-entrant, so the continuum stress is bounded everywhere.",
+     "The traction is uniform on x=W and the top is free. At corner (W,H) the traction vectors are compatible with the edge conditions (sigma_xx=1 on x=W and zero traction on y=H, with sigma_xy=0 on both), so no corner incompatibility arises.",
+     "The hole is smooth (circular), giving a finite stress concentration at the crown (0,a). It is not singular, so pointwise crown stress, energy and displacement averages can all converge under refinement.",
+     "In the VEM meshes the hole is a polygon. The kinks between straight edges are obtuse convex vertices (interior angle > 180 deg measured inside the solid? No: the material lies outside the hole, so each polygon vertex on the hole is a re-entrant vertex of the solid with an angle slightly above 180 deg). This gives a weak, mesh-scale singularity at each vertex that fades as h->0. It also gives a geometric error of O(h^2) that may cap the convergence rate of k=2,3 for every quantity, and especially for pointwise hole stresses.",
+     "The Q9 reference uses curved quadratic hole edges (geometry error about O(h^3)), so the reference and the meshes under test solve slightly different discrete geometries. That difference must vanish for the comparison to be meaningful."
+    ],
+    "open_questions": [
+     "The Q9 reference mesh sizes, element counts and DOF counts are not stated. Without them, a refinement ratio, an observed convergence order or a Richardson-extrapolated reference with an error bar cannot be computed for any quantity.",
+     "Whether the Q9 sequence of K_t,h^crown is in the asymptotic range (monotone, with a consistent observed order) is unknown. It must be checked before K_t^crown is used as a reference.",
+     "How sigma_thetatheta,h at (0,a) is evaluated in the VEM (a projection Pi^0 of the strain, nodal averaging, or a choice of element or vertex at the crown), and in Q9 (Gauss-point extrapolation or direct evaluation at the node), is not specified. The convergence behaviour of the crown quantity depends on this choice.",
+     "Do the O-grid and Voronoi meshes all place a vertex exactly at the crown (0,a), and do the polygonal hole vertices lie on the true circle? This decides whether the K_t^crown samples the same point and how large the geometric error is.",
+     "Whether the polygonal hole limits the k=3 (and k=2) convergence rates through an O(h^2) geometric error: no curved-edge VEM is mentioned.",
+     "For k>=2 the exact form of the prescribed edge moments on the symmetry edges is not given. Are they set to zero consistently with the constraint?",
+     "Is the reference meant to be the finite-domain value, or is a comparison with the Kirsch infinite-plate value of 3 intended? The finite-width correction for W/a=10 is not quantified.",
+     "Are the U_h and mean u_x values reported per unit thickness (tp=1) consistently in both the VEM and the Q9 results?"
+    ]
+   }
+  },
+  {
+   "stage": "D",
+   "actor": "LLM",
+   "status": "unsupported",
+   "detail": "The domain is the quarter plate [0,10]x[0,10] minus a circular hole of radius 1 centred at the origin. The pipeline can only build domains from equal square cells, with no holes and no curved or inclined edges. Its boundary has to be made of axis-parallel straight segments. The quarter-circle hole edge from (1,0) to (0,1) cannot be represented exactly by such cells. Any staircase approximation would add a re-entrant-corner geometry, which creates singular stress where the continuum has a smooth, finite stress concentration. That would change the problem and invalidate the quantities asked about. K_t^crown and K_t^mid in particular depend directly on the hole's curvature. The rules forbid approximating silently, so the problem is reported as not supported. All the other ingredients could be represented: the symmetry edges at x=0 (from y=1 to y=10) and y=0 (from x=1 to x=10), the uniform traction (1,0) on x=10, the traction-free top edge, plane stress with E=1 and nu=0.3, and no body force. The circular hole is the only blocker.",
+   "modeler": {
+    "supported": false,
+    "unsupported_reason": "The domain is the quarter plate [0,10]x[0,10] minus a circular hole of radius 1 centred at the origin. The pipeline can only build domains from equal square cells, with no holes and no curved or inclined edges. Its boundary has to be made of axis-parallel straight segments. The quarter-circle hole edge from (1,0) to (0,1) cannot be represented exactly by such cells. Any staircase approximation would add a re-entrant-corner geometry, which creates singular stress where the continuum has a smooth, finite stress concentration. That would change the problem and invalidate the quantities asked about. K_t^crown and K_t^mid in particular depend directly on the hole's curvature. The rules forbid approximating silently, so the problem is reported as not supported. All the other ingredients could be represented: the symmetry edges at x=0 (from y=1 to y=10) and y=0 (from x=1 to x=10), the uniform traction (1,0) on x=10, the traction-free top edge, plane stress with E=1 and nu=0.3, and no body force. The circular hole is the only blocker.",
+    "description": {
+     "name": "quarter_plate_circular_hole_tension_unsupported",
+     "cell_size": 1,
+     "cells": [],
+     "E": 1,
+     "nu": 0.3,
+     "plane": "stress",
+     "bcs": [],
+     "points": []
+    },
+    "sources": [
+     {
+      "item": "hole radius",
+      "value": "1",
+      "quote": "Hole radius a = 1, W = H = 10 (= 10a)"
+     },
+     {
+      "item": "plate width/height",
+      "value": "10",
+      "quote": "Hole radius a = 1, W = H = 10 (= 10a)"
+     },
+     {
+      "item": "Young's modulus",
+      "value": "1",
+      "quote": "E_Y = 1, nu = 0.3"
+     },
+     {
+      "item": "Poisson ratio",
+      "value": "0.3",
+      "quote": "E_Y = 1, nu = 0.3"
+     },
+     {
+      "item": "applied traction",
+      "value": "1",
+      "quote": "Uniform horizontal traction (sigma0, 0) with sigma0 = 1 on x = W"
+     },
+     {
+      "item": "geometry type",
+      "value": "circular hole",
+      "quote": "Square plate with a central circular hole; quarter domain [0,W]x[0,H] minus the hole by symmetry."
+     }
+    ],
+    "assumptions": [
+     "No value was assumed. The problem is unsupported, so the description is only a placeholder: cells and boundary conditions are left empty on purpose. cell_size = 1 is a placeholder and is not used.",
+     "Note on the question asked, for downstream roles and not a verdict: in the continuum, none of the four quantities is affected by a singularity. The hole is smooth, and the 90-degree corners are convex and meet symmetry, free or loaded edges, not clamped ones. U_h and the mean u_x on x=W are global or averaged quantities and are expected to converge robustly. K_t^crown is a pointwise stress, but the solution is smooth there, so it should converge, more slowly, and is affected by the polygonal hole approximation. K_t^mid also has a sampling error that depends on the mesh, because no edge midpoint lies at theta = pi/2. The Q9 reference mesh sizes are not stated, so the accuracy of the reference itself cannot be checked from the information given."
+    ]
+   }
+  }
+ ],
+ "human_points": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "paper and hint chosen by a person ('square plate with a central circular hole uniaxial tension quarter')"
+  }
+ ],
+ "wall_clock_s": 68.7191424369812,
+ "source": {
+  "pdf": "omar_pfem/verification_agent/autonomy_test/posthoc/polivem_2609.35878_posthoc.pdf",
+  "text": null,
+  "description_given": false
+ },
+ "modeler": {
+  "supported": false,
+  "unsupported_reason": "The domain is the quarter plate [0,10]x[0,10] minus a circular hole of radius 1 centred at the origin. The pipeline can only build domains from equal square cells, with no holes and no curved or inclined edges. Its boundary has to be made of axis-parallel straight segments. The quarter-circle hole edge from (1,0) to (0,1) cannot be represented exactly by such cells. Any staircase approximation would add a re-entrant-corner geometry, which creates singular stress where the continuum has a smooth, finite stress concentration. That would change the problem and invalidate the quantities asked about. K_t^crown and K_t^mid in particular depend directly on the hole's curvature. The rules forbid approximating silently, so the problem is reported as not supported. All the other ingredients could be represented: the symmetry edges at x=0 (from y=1 to y=10) and y=0 (from x=1 to x=10), the uniform traction (1,0) on x=10, the traction-free top edge, plane stress with E=1 and nu=0.3, and no body force. The circular hole is the only blocker.",
+  "description": {
+   "name": "quarter_plate_circular_hole_tension_unsupported",
+   "cell_size": 1,
+   "cells": [],
+   "E": 1,
+   "nu": 0.3,
+   "plane": "stress",
+   "bcs": [],
+   "points": []
+  },
+  "sources": [
+   {
+    "item": "hole radius",
+    "value": "1",
+    "quote": "Hole radius a = 1, W = H = 10 (= 10a)"
+   },
+   {
+    "item": "plate width/height",
+    "value": "10",
+    "quote": "Hole radius a = 1, W = H = 10 (= 10a)"
+   },
+   {
+    "item": "Young's modulus",
+    "value": "1",
+    "quote": "E_Y = 1, nu = 0.3"
+   },
+   {
+    "item": "Poisson ratio",
+    "value": "0.3",
+    "quote": "E_Y = 1, nu = 0.3"
+   },
+   {
+    "item": "applied traction",
+    "value": "1",
+    "quote": "Uniform horizontal traction (sigma0, 0) with sigma0 = 1 on x = W"
+   },
+   {
+    "item": "geometry type",
+    "value": "circular hole",
+    "quote": "Square plate with a central circular hole; quarter domain [0,W]x[0,H] minus the hole by symmetry."
+   }
+  ],
+  "assumptions": [
+   "No value was assumed. The problem is unsupported, so the description is only a placeholder: cells and boundary conditions are left empty on purpose. cell_size = 1 is a placeholder and is not used.",
+   "Note on the question asked, for downstream roles and not a verdict: in the continuum, none of the four quantities is affected by a singularity. The hole is smooth, and the 90-degree corners are convex and meet symmetry, free or loaded edges, not clamped ones. U_h and the mean u_x on x=W are global or averaged quantities and are expected to converge robustly. K_t^crown is a pointwise stress, but the solution is smooth there, so it should converge, more slowly, and is affected by the polygonal hole approximation. K_t^mid also has a sampling error that depends on the mesh, because no edge midpoint lies at theta = pi/2. The Q9 reference mesh sizes are not stated, so the accuracy of the reference itself cannot be checked from the information given."
+  ]
+ }
+}
