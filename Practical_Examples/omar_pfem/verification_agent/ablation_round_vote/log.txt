@@ -8,3 +8,59 @@ b1: 3 runs (0 failed), spec fully correct 3, verdict agreement {'mean': 1.0, 'sd
 -> omar_pfem/verification_agent/ablation_round_vote/b1.json
 /usr/local/lib/python3.11/dist-packages/timm/models/layers/__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
   warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+b2 run 1/3: agreement 1.0, missed [], false alarms ['interior_avg_PK1_frob', 'peak_PK1_frob'], $0.86
+b2 run 2/3: agreement 1.0, missed [], false alarms ['interior_avg_PK1_frob', 'max_disp_mag', 'peak_PK1_frob'], $0.83
+b2 run 3/3: agreement 1.0, missed [], false alarms ['interior_avg_PK1_frob', 'peak_PK1_frob', 'u_inner / v_inner / u_mid / v_mid (conditional)'], $0.86
+
+b2: 3 runs (0 failed), spec fully correct 3, verdict agreement {'mean': 1.0, 'sd': 0.0, 'min': 1.0, 'max': 1.0}, rules missed [] / false alarms [], LLM missed {'mean': 0, 'sd': 0.0, 'min': 0, 'max': 0} / false alarms {'mean': 2.6666666666666665, 'sd': 0.5773502691896257, 'min': 2, 'max': 3}, cost $2.55
+-> omar_pfem/verification_agent/ablation_round_vote/b2.json
+b3 run 1/3: agreement 1.0, missed ['gk2_sigma_frob_avg'], false alarms ['cyl_rr_avg', 'cyl_tt_avg', 'cyl_zz_avg', 'gk2_cyl_rz_avg', 'gk2_pressure_avg', 'pressure_avg'], $1.06
+b3 run 2/3: agreement 1.0, missed ['gk2_sigma_frob_avg'], false alarms ['cyl_rr_avg', 'cyl_tt_avg', 'cyl_zz_avg', 'pressure_avg'], $0.98
+b3 run 3/3: agreement 1.0, missed ['gk2_sigma_frob_avg'], false alarms ['cyl_rr_avg', 'cyl_tt_avg', 'cyl_zz_avg', 'gk2_pressure_avg', 'pressure_avg'], $1.00
+
+b3: 3 runs (0 failed), spec fully correct 3, verdict agreement {'mean': 1.0, 'sd': 0.0, 'min': 1.0, 'max': 1.0}, rules missed ['cyl_rz_avg', 'gk2_sigma_frob_avg', 'sigma_frob_avg', 'sigma_xz_avg', 'von_mises_avg'] / false alarms ['cyl_rt_max', 'cyl_tz_max', 'sigma_xy_max'], LLM missed {'mean': 1, 'sd': 0.0, 'min': 1, 'max': 1} / false alarms {'mean': 5, 'sd': 1.0, 'min': 4, 'max': 6}, cost $3.04
+-> omar_pfem/verification_agent/ablation_round_vote/b3.json
+cook run 1/3: agreement 0.7142857142857143, missed ['max_disp_mag'], false alarms ['interior_avg_PK1_frob'], $0.82
+cook run 2/3: agreement 1.0, missed ['strain_energy'], false alarms ['interior_avg_PK1_frob'], $0.79
+cook run 3/3: agreement 0.7142857142857143, missed ['max_disp_mag', 'strain_energy', 'u_tip'], false alarms ['interior_avg_PK1_frob', 'v_tip'], $0.86
+
+cook: 3 runs (0 failed), spec fully correct 3, verdict agreement {'mean': 0.8095238095238095, 'sd': 0.1649572197684645, 'min': 0.7142857142857143, 'max': 1.0}, rules missed ['strain_energy'] / false alarms [], LLM missed {'mean': 1.6666666666666667, 'sd': 1.1547005383792515, 'min': 1, 'max': 3} / false alarms {'mean': 1.3333333333333333, 'sd': 0.5773502691896257, 'min': 1, 'max': 2}, cost $2.47
+-> omar_pfem/verification_agent/ablation_round_vote/cook.json
+plate run 1/3: agreement 1.0, missed [], false alarms ['hole_peak_sigma_xx', 'v_top_right'], $0.64
+plate run 2/3: agreement 1.0, missed [], false alarms ['hole_avg_sigma_xx', 'hole_peak_sigma_xx', 'u_right_mid'], $0.58
+plate run 3/3: agreement 1.0, missed [], false alarms ['hole_avg_sigma_xx', 'strain_energy'], $0.57
+
+plate: 3 runs (0 failed), spec fully correct 3, verdict agreement {'mean': 1.0, 'sd': 0.0, 'min': 1.0, 'max': 1.0}, rules missed [] / false alarms ['hole_peak_sigma_xx'], LLM missed {'mean': 0, 'sd': 0.0, 'min': 0, 'max': 0} / false alarms {'mean': 2.3333333333333335, 'sd': 0.5773502691896257, 'min': 2, 'max': 3}, cost $1.79
+-> omar_pfem/verification_agent/ablation_round_vote/plate.json
+lamina run 1/3: agreement 1.0, missed [], false alarms ['far_gamma12_avg', 'hole_e22_avg', 'hole_gamma12_avg', 'peak_e22', 'u_tip'], $0.86
+lamina run 2/3: agreement 1.0, missed [], false alarms ['hole_gamma12_avg', 'peak_e22', 'u_tip'], $0.54
+lamina run 3/3: agreement 1.0, missed [], false alarms ['hole_e22_avg', 'hole_gamma12_avg', 'peak_e22'], $0.77
+
+lamina: 3 runs (0 failed), spec fully correct 0, verdict agreement {'mean': 1.0, 'sd': 0.0, 'min': 1.0, 'max': 1.0}, rules missed [] / false alarms [], LLM missed {'mean': 0, 'sd': 0.0, 'min': 0, 'max': 0} / false alarms {'mean': 3.6666666666666665, 'sd': 1.1547005383792515, 'min': 3, 'max': 5}, cost $2.16
+-> omar_pfem/verification_agent/ablation_round_vote/lamina.json
+lshape run 1/3: agreement 1.0, missed [], false alarms ['corner_disc_avg_von_mises', 'corner_gk_avg_von_mises'], $0.62
+lshape run 2/3: agreement 1.0, missed [], false alarms ['corner_disc_avg_von_mises', 'corner_gk_avg_von_mises'], $0.57
+lshape run 3/3: ERROR RuntimeError: proposer: claude CLI failed: 
+
+lshape: 3 runs (1 failed), spec fully correct 2, verdict agreement {'mean': 1.0, 'sd': 0.0, 'min': 1.0, 'max': 1.0}, rules missed [] / false alarms [], LLM missed {'mean': 0, 'sd': 0.0, 'min': 0, 'max': 0} / false alarms {'mean': 2, 'sd': 0.0, 'min': 2, 'max': 2}, cost $1.34
+-> omar_pfem/verification_agent/ablation_round_vote/lshape.json
+crack run 1/3: ERROR RuntimeError: formalizer: claude CLI failed: 
+crack run 2/3: ERROR RuntimeError: formalizer: claude CLI failed: 
+crack run 3/3: ERROR RuntimeError: formalizer: claude CLI failed: 
+
+crack: 3 runs (3 failed), spec fully correct 0, verdict agreement None, rules missed [] / false alarms [], LLM missed None / false alarms None, cost $0.00
+-> omar_pfem/verification_agent/ablation_round_vote/crack.json
+cylinder run 1/3: ERROR RuntimeError: formalizer: claude CLI failed: 
+cylinder run 2/3: ERROR RuntimeError: formalizer: claude CLI failed: 
+cylinder run 3/3: ERROR RuntimeError: formalizer: claude CLI failed: 
+
+cylinder: 3 runs (3 failed), spec fully correct 0, verdict agreement None, rules missed ['peak_hoop'] / false alarms [], LLM missed None / false alarms None, cost $0.00
+-> omar_pfem/verification_agent/ablation_round_vote/cylinder.json
+block run 1/3: ERROR RuntimeError: formalizer: claude CLI failed: 
+block run 2/3: ERROR RuntimeError: formalizer: claude CLI failed: 
+block run 3/3: ERROR RuntimeError: formalizer: claude CLI failed: 
+
+block: 3 runs (3 failed), spec fully correct 0, verdict agreement None, rules missed ['root_gk_avg_von_mises'] / false alarms [], LLM missed None / false alarms None, cost $0.00
+-> omar_pfem/verification_agent/ablation_round_vote/block.json
+ALLDONE
+cylinder run 1/3: agreement 0.16666666666666666, missed ['gk_avg_hoop', 'reaction_inner_radial', 'u_outer_radial'], false alarms [], $0.90

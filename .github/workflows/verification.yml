@@ -27,7 +27,7 @@ jobs:
       - name: Install Python packages (CPU torch)
         run: |
           python -m pip install --upgrade pip
-          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install torch==2.14.1 torchvision==0.29.1 --index-url https://download.pytorch.org/whl/cpu
           python -m pip install -r omar_pfem/verification_agent/requirements-ci.txt
       - name: Guard tests
         run: python -m pytest -q omar_pfem/verification_agent/test_llm_guards.py
