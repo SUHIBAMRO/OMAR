@@ -1,0 +1,44 @@
+{
+ "preregistration": {
+  "action": "finer_independent_level",
+  "quantities": [
+   "v_hole_top"
+  ],
+  "situation": "any:independent_unconverged",
+  "justification": "['v_hole_top'] are rate-certified but their independent P2 sequence has no rate yet",
+  "hypothesis": "the independent sequence is pre-asymptotic; one more level gives it a rate that agrees",
+  "prediction": {
+   "text": "at least one listed quantity becomes cross-checked",
+   "criterion": "any_crosschecked"
+  },
+  "run": {
+   "kind": "p2_level",
+   "n": 64
+  },
+  "cost": {
+   "dof": 889104,
+   "minutes": 0.37225759133547776
+  },
+  "prior": 0.5,
+  "prior_n": 2,
+  "score": 0.3643630781545914,
+  "problem": "plate_hole_quarter",
+  "git_head": "f13eda20b5ba17c1425e1049446406dd3e8ed76e",
+  "frozen_utc": "2026-11-25T17:15:16.876245+00:00",
+  "sha256": "684ec978bd7c403844bb6048abda88375b0985f285f1a2911b6f1de95df14a1c"
+ },
+ "outcome": {
+  "confirmed": false,
+  "observed_minutes": 0.036576310793558754,
+  "after": {
+   "certified": [
+    "peak_von_mises",
+    "strain_energy"
+   ],
+   "open": [
+    "u_right",
+    "v_hole_top"
+   ]
+  }
+ }
+}

@@ -10,11 +10,16 @@
  "kirsch": {
   "description": "quarter plate 40 x 40 with a hole of radius 1 (d/W = 0.025), uniaxial traction 1; same description as problems2d/plate_hole_quarter.json with a larger plate",
   "reference": "stress concentration 3.00 (Kirsch, infinite plate; finite-width correction below 0.5 percent at d/W = 0.025)",
-  "peak_von_mises_Q2": {"64": 2.9464, "128": 2.9755, "256": 2.9903},
+  "peak_von_mises_Q2": {
+   "64": 2.9464,
+   "128": 2.9755,
+   "256": 2.9903
+  },
   "extrapolated": 3.005,
   "note": "pairwise order about 1 (peak sampled at quadrature points); not run by the agent, a check by hand script"
  },
  "plate_hole_quarter_10x10": {
-  "agent_certified": "peak_von_mises limit 3.0865 +- 0.0034 (finite square plate, d/W = 0.1, so above 3 as expected), strain_energy, u_right, v_hole_top"
+  "agent_certified": "peak_von_mises limit 3.07565 +- 0.0136 (U relative 0.441%; latest run), strain_energy, u_right, v_hole_top; finite square plate, d/W = 0.1, so above 3 as expected",
+  "correction_25_Nov": "the first version of this record wrote '3.0865 +- 0.0034' (that run): 0.0034 is the RELATIVE uncertainty (0.34%), i.e. +- 0.0104"
  }
 }

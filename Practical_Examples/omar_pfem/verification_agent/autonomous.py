@@ -513,7 +513,11 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
     def note_certified(state):
         for q, r in state.items():
             if not q.startswith("_") and r.get("final") == "CERTIFIED" and q not in cert_info:
-                cert_info[q] = {"U": r.get("U"), "limit": r.get("limit"), "finest": r.get("finest")}
+                # the framework's U is RELATIVE (gates: uncertainty_fine); both forms stored
+                lim, u = r.get("limit"), r.get("U")
+                cert_info[q] = {"U": u, "U_rel": u, "U_abs": (abs(u * lim) if None not in (u, lim)
+                                                              else None),
+                                "limit": lim, "finest": r.get("finest")}
     note_certified(V)
     banned, small_load_done = set(), False
     while k < max_experiments:
@@ -583,17 +587,17 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
         rec = SE.analyse({k: v for k, v in desc.items() if k != "assumed"}, assumed, cert_info,
                          log=lambda s: None)
         result["sensitivity"] = rec
-        for name, r in rec["params"].items():
+        for pname, r in rec["params"].items():
             if r.get("needs_person"):
                 why = (r["status"] if "status" in r else "changes " + ", ".join(
                     f"{q} by {r['quantities'][q]['change_rel']:.3g} (numerical U "
                     f"{r['quantities'][q]['U_rel']:.2g})" for q in r["matters_for"])
                     + f" [post hoc proposal: person needed only for "
                     f"{r['posthoc_person_needed_for'] or 'none'}]")
-                log.step("A", "person", "needs_person", f"assumed {name}: {why}; a person "
+                log.step("A", "person", "needs_person", f"assumed {pname}: {why}; a person "
                          "must confirm this input")
             else:
-                log.step("A", "code", "negligible", f"assumed {name}: changes every certified "
+                log.step("A", "code", "negligible", f"assumed {pname}: changes every certified "
                          "quantity by less than its numerical uncertainty over the range; "
                          "no person needed")
     elif assumed:
@@ -602,6 +606,12 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
     result.update(final=final, verdicts=V, graded=graded, diagnosis=diag, experiments=history,
                   description=desc)
     log.save(result)
+    # item 3 (25 Nov): the per-run report is written automatically from the stored files
+    try:
+        from omar_pfem.verification_agent import run_report
+        result["report"] = [os.path.relpath(p, HERE) for p in run_report.build(os.path.basename(log.dir)) if p]
+    except Exception as e:                   # a report failure must not hide the run
+        print(f"report not written: {e!s:.200}")
     auto = [s for s in log.steps if s["actor"] in ("code", "LLM")]
     print(f"steps by code or LLM: {len(auto)}; points needing a person: {len(log.human_points())}")
     return result

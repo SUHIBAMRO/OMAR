@@ -22,13 +22,13 @@
    "stage": "V",
    "actor": "code",
    "status": "decided",
-   "detail": "Q2: needed (no passing check on record for 4945351442d930f9|Q2|plane_stress|clamped+free+traction+general_domain); P2: needed (no passing check on record for 4945351442d930f9|P2|plane_stress|clamped+free+traction+general_domain)"
+   "detail": "Q2: not needed (passing check on record for 4945351442d930f9|Q2|plane_stress|clamped+free+traction+general_domain (cook_linear)); P2: not needed (passing check on record for 4945351442d930f9|P2|plane_stress|clamped+free+traction+general_domain (cook_linear))"
   },
   {
    "stage": "V",
    "actor": "code",
    "status": "PASS",
-   "detail": "Q2 PASS (L2 3.10, H1 2.04, levels [2, 4, 8, 16, 32]); P2 PASS (L2 3.08, H1 2.03, levels [2, 4, 8, 16])"
+   "detail": "Q2 PASS; P2 PASS"
   },
   {
    "stage": "S",
@@ -59,66 +59,66 @@
    "actor": "code",
    "status": "pre-registered",
    "detail": "#1 graded_meshes on ['corner1_gk_avg_von_mises', 'strain_energy']: the corner singularities limit the rate; grading toward the corners with the largest local-energy change restores it; prediction: more quantities are certified (and cross-checked) on the graded ladders than on the uniform ones, or the strain-energy U falls at least 3 times; prior 0.50 (n=6); est. 0.1 min",
-   "file": "experiments/cook_linear/01_graded_meshes_run2.json",
-   "sha256": "4a195af9181ee68eb53b5d9f82be58b08e99ffeaa86e8de4c0ccf76db0c2ccad"
+   "file": "experiments/cook_linear/01_graded_meshes_run3.json",
+   "sha256": "d0ad7d856855c4e0cc4504af88c2a2fca50f9d733816cb0b5c7d66ce901c3652"
   },
   {
    "stage": "N",
    "actor": "code",
    "status": "refuted",
-   "detail": "#1 graded_meshes: prediction refuted (0.1 min); certified so far ['corner0_gk_avg_von_mises', 'corner2_gk_avg_von_mises', 'strain_energy', 'v_C']"
+   "detail": "#1 graded_meshes: prediction refuted (0.0 min); certified so far ['corner0_gk_avg_von_mises', 'corner2_gk_avg_von_mises', 'strain_energy', 'v_C']"
   },
   {
    "stage": "N",
    "actor": "code",
    "status": "pre-registered",
-   "detail": "#2 finer_graded_level on ['corner1_gk_avg_von_mises']: the sequences are pre-asymptotic; one finer graded level (n = 64) lets the checks decide; prediction: at least one listed quantity becomes certified with a rate and cross-checked; prior 0.33 (n=10); est. 0.4 min",
-   "file": "experiments/cook_linear/02_finer_graded_level_run2.json",
-   "sha256": "5bbf855189728a65f53ec40a9363bdc34f65643f8628fd182ec85d3337049eaf"
+   "detail": "#2 finer_graded_level on ['corner1_gk_avg_von_mises']: the sequences are pre-asymptotic; one finer graded level (n = 64) lets the checks decide; prediction: at least one listed quantity becomes certified with a rate and cross-checked; prior 0.33 (n=10); est. 6.1 min",
+   "file": "experiments/cook_linear/02_finer_graded_level_run3.json",
+   "sha256": "865d056aca3914ec5c8c705162c1ab13d501bacc62b257bc438e18d536a526ee"
   },
   {
    "stage": "N",
    "actor": "code",
    "status": "refuted",
-   "detail": "#2 finer_graded_level: prediction refuted (0.1 min); certified so far ['corner0_gk_avg_von_mises', 'corner2_gk_avg_von_mises', 'strain_energy', 'v_C']"
+   "detail": "#2 finer_graded_level: prediction refuted (0.0 min); certified so far ['corner0_gk_avg_von_mises', 'corner2_gk_avg_von_mises', 'strain_energy', 'v_C']"
   },
   {
    "stage": "N",
    "actor": "code",
    "status": "pre-registered",
-   "detail": "#3 finer_graded_level on ['corner1_gk_avg_von_mises']: the sequences are pre-asymptotic; one finer graded level (n = 128) lets the checks decide; prediction: at least one listed quantity becomes certified with a rate and cross-checked; prior 0.33 (n=10); est. 1.6 min",
-   "file": "experiments/cook_linear/03_finer_graded_level_run2.json",
-   "sha256": "be66fd15cc07937afb9d8ab2b0deb3ef557ce8d72eaba1d84a2f4a455740680d"
+   "detail": "#3 finer_graded_level on ['corner1_gk_avg_von_mises']: the sequences are pre-asymptotic; one finer graded level (n = 128) lets the checks decide; prediction: at least one listed quantity becomes certified with a rate and cross-checked; prior 0.33 (n=10); est. 6.1 min",
+   "file": "experiments/cook_linear/03_finer_graded_level_run3.json",
+   "sha256": "179e753031110878c1432fb012b20b2a2e1864d0519f7680ab41b3a4c0ccd047"
   },
   {
    "stage": "N",
    "actor": "code",
    "status": "refuted",
-   "detail": "#3 finer_graded_level: prediction refuted (0.3 min); certified so far ['corner0_gk_avg_von_mises', 'corner2_gk_avg_von_mises', 'strain_energy', 'v_C']"
+   "detail": "#3 finer_graded_level: prediction refuted (0.0 min); certified so far ['corner0_gk_avg_von_mises', 'corner2_gk_avg_von_mises', 'strain_energy', 'v_C']"
   },
   {
    "stage": "N",
    "actor": "code",
    "status": "stop",
-   "detail": "no further experiment applies within the budget (0.4 of 20.0 min used)"
+   "detail": "no further experiment applies within the budget (0.1 of 20.0 min used)"
   },
   {
    "stage": "A",
    "actor": "person",
    "status": "needs_person",
-   "detail": "assumed E: changes strain_energy by 11.1% (numerical U 0.00%), v_C by 11.1% (numerical U 0.00%); a person must confirm this input"
+   "detail": "assumed E: changes strain_energy by 0.111 (numerical U 3.8e-05), v_C by 0.111 (numerical U 0.00032) [post hoc proposal: person needed only for ['strain_energy', 'v_C']]; a person must confirm this input"
   },
   {
    "stage": "A",
    "actor": "person",
    "status": "needs_person",
-   "detail": "assumed nu: changes corner0_gk_avg_von_mises by 2.7% (numerical U 1.08%), strain_energy by 0.3% (numerical U 0.00%), v_C by 0.3% (numerical U 0.00%); a person must confirm this input"
+   "detail": "assumed nu: changes corner0_gk_avg_von_mises by 0.0273 (numerical U 0.00093), corner2_gk_avg_von_mises by 0.00266 (numerical U 0.0007), strain_energy by 0.00343 (numerical U 3.8e-05), v_C by 0.00345 (numerical U 0.00032) [post hoc proposal: person needed only for none]; a person must confirm this input"
   },
   {
    "stage": "A",
    "actor": "person",
    "status": "needs_person",
-   "detail": "assumed bcs[1].t: changes corner0_gk_avg_von_mises by 10.0% (numerical U 1.08%), corner2_gk_avg_von_mises by 10.0% (numerical U 0.37%), strain_energy by 21.0% (numerical U 0.00%), v_C by 10.0% (numerical U 0.00%); a person must confirm this input"
+   "detail": "assumed bcs[1].t: changes corner0_gk_avg_von_mises by 0.1 (numerical U 0.00093), corner2_gk_avg_von_mises by 0.1 (numerical U 0.0007), strain_energy by 0.21 (numerical U 3.8e-05), v_C by 0.1 (numerical U 0.00032) [post hoc proposal: person needed only for ['corner0_gk_avg_von_mises', 'corner2_gk_avg_von_mises', 'strain_energy', 'v_C']]; a person must confirm this input"
   }
  ],
  "human_points": [
@@ -132,22 +132,22 @@
    "stage": "A",
    "actor": "person",
    "status": "needs_person",
-   "detail": "assumed E: changes strain_energy by 11.1% (numerical U 0.00%), v_C by 11.1% (numerical U 0.00%); a person must confirm this input"
+   "detail": "assumed E: changes strain_energy by 0.111 (numerical U 3.8e-05), v_C by 0.111 (numerical U 0.00032) [post hoc proposal: person needed only for ['strain_energy', 'v_C']]; a person must confirm this input"
   },
   {
    "stage": "A",
    "actor": "person",
    "status": "needs_person",
-   "detail": "assumed nu: changes corner0_gk_avg_von_mises by 2.7% (numerical U 1.08%), strain_energy by 0.3% (numerical U 0.00%), v_C by 0.3% (numerical U 0.00%); a person must confirm this input"
+   "detail": "assumed nu: changes corner0_gk_avg_von_mises by 0.0273 (numerical U 0.00093), corner2_gk_avg_von_mises by 0.00266 (numerical U 0.0007), strain_energy by 0.00343 (numerical U 3.8e-05), v_C by 0.00345 (numerical U 0.00032) [post hoc proposal: person needed only for none]; a person must confirm this input"
   },
   {
    "stage": "A",
    "actor": "person",
    "status": "needs_person",
-   "detail": "assumed bcs[1].t: changes corner0_gk_avg_von_mises by 10.0% (numerical U 1.08%), corner2_gk_avg_von_mises by 10.0% (numerical U 0.37%), strain_energy by 21.0% (numerical U 0.00%), v_C by 10.0% (numerical U 0.00%); a person must confirm this input"
+   "detail": "assumed bcs[1].t: changes corner0_gk_avg_von_mises by 0.1 (numerical U 0.00093), corner2_gk_avg_von_mises by 0.1 (numerical U 0.0007), strain_energy by 0.21 (numerical U 3.8e-05), v_C by 0.1 (numerical U 0.00032) [post hoc proposal: person needed only for ['corner0_gk_avg_von_mises', 'corner2_gk_avg_von_mises', 'strain_energy', 'v_C']]; a person must confirm this input"
   }
  ],
- "wall_clock_s": 44.275014877319336,
+ "wall_clock_s": 21.211344242095947,
  "source": {
   "pdf": null,
   "text": null,
@@ -155,93 +155,14 @@
  },
  "mms": {
   "Q2": {
-   "verdict": "PASS",
-   "rates": {
-    "L2": {
-     "observed": 3.098249074039749,
-     "expected": 3.0,
-     "pass": true
-    },
-    "H1": {
-     "observed": 2.040713747100261,
-     "expected": 2.0,
-     "pass": true
-    }
-   },
-   "levels": [
-    2,
-    4,
-    8,
-    16,
-    32
-   ],
-   "levels_added": [
-    "n=32: rates outside tolerance but moving toward theory"
-   ],
-   "errors": {
-    "L2": [
-     0.008382707838416556,
-     0.003019519109080673,
-     0.00042451053073836484,
-     6.500892395833687e-05,
-     8.351830989428092e-06
-    ],
-    "H1": [
-     0.0057852925008544005,
-     0.0026676744951849526,
-     0.000771629576097832,
-     0.00022475698451786792,
-     5.803474605173102e-05
-    ]
-   },
-   "field": {
-    "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)",
-    "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)"
-   },
-   "problem": "cook_linear",
-   "reason": "no passing check on record for 4945351442d930f9|Q2|plane_stress|clamped+free+traction+general_domain"
+   "skipped": true,
+   "reason": "passing check on record for 4945351442d930f9|Q2|plane_stress|clamped+free+traction+general_domain (cook_linear)",
+   "verdict": "PASS"
   },
   "P2": {
-   "verdict": "PASS",
-   "rates": {
-    "L2": {
-     "observed": 3.082097754760966,
-     "expected": 3.0,
-     "pass": true
-    },
-    "H1": {
-     "observed": 2.028779279669934,
-     "expected": 2.0,
-     "pass": true
-    }
-   },
-   "levels": [
-    2,
-    4,
-    8,
-    16
-   ],
-   "levels_added": [],
-   "errors": {
-    "L2": [
-     0.06808718061088433,
-     0.01639375403930963,
-     0.002756205256866612,
-     0.00036497557229129375
-    ],
-    "H1": [
-     0.021702884675674772,
-     0.009628589347957232,
-     0.0029580591333048735,
-     0.0007867446823708336
-    ]
-   },
-   "field": {
-    "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)",
-    "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)"
-   },
-   "problem": "cook_linear",
-   "reason": "no passing check on record for 4945351442d930f9|P2|plane_stress|clamped+free+traction+general_domain"
+   "skipped": true,
+   "reason": "passing check on record for 4945351442d930f9|P2|plane_stress|clamped+free+traction+general_domain (cook_linear)",
+   "verdict": "PASS"
   }
  },
  "graded_plan": {
@@ -257,21 +178,29 @@
  "certified_info": {
   "v_C": {
    "U": 0.0003166211137258756,
+   "U_rel": 0.0003166211137258756,
+   "U_abs": 0.007586983358473012,
    "limit": 23.962341832458065,
    "finest": 23.964158231800727
   },
   "corner0_gk_avg_von_mises": {
    "U": 0.0009259074493338369,
+   "U_rel": 0.0009259074493338369,
+   "U_abs": 7.922518943787018e-05,
    "limit": 0.08556491201671437,
    "finest": 0.08558419805098448
   },
   "corner2_gk_avg_von_mises": {
    "U": 0.000697100849348227,
+   "U_rel": 0.000697100849348227,
+   "U_abs": 0.00013276980094386318,
    "limit": 0.19045996152206648,
    "finest": 0.1904421784936722
   },
   "strain_energy": {
    "U": 3.805957806288491e-05,
+   "U_rel": 3.805957806288491e-05,
+   "U_abs": 0.0004575096673905175,
    "limit": 12.020881225603329,
    "finest": 12.020667782841183
   }
@@ -301,9 +230,12 @@
       "asymmetry": 4.362229102167182,
       "S_previous_level": -3.640120459137894e-13,
       "settled": true,
-      "U_rel": 0.010821111452238375,
-      "ratio_to_U": 3.895751371863182e-11,
-      "decision": "negligible"
+      "U_rel": 0.0009259074493338369,
+      "ratio_to_U": 4.552977710188237e-10,
+      "decision": "negligible",
+      "posthoc_numerics_adequate": null,
+      "posthoc_target": 0.05,
+      "posthoc_person_needed": false
      },
      "corner2_gk_avg_von_mises": {
       "Q0": 0.19013490732634647,
@@ -315,9 +247,12 @@
       "asymmetry": 4.605985037406484,
       "S_previous_level": -4.862993385525033e-13,
       "settled": true,
-      "U_rel": 0.003660091306211157,
-      "ratio_to_U": 8.965876830113508e-11,
-      "decision": "negligible"
+      "U_rel": 0.000697100849348227,
+      "ratio_to_U": 4.707486423110892e-10,
+      "decision": "negligible",
+      "posthoc_numerics_adequate": null,
+      "posthoc_target": 0.05,
+      "posthoc_person_needed": false
      },
      "strain_energy": {
       "Q0": 12.015741291432088,
@@ -329,9 +264,12 @@
       "asymmetry": 0.1000000000010496,
       "S_previous_level": -1.0101010101016443,
       "settled": true,
-      "U_rel": 3.166122129367824e-06,
-      "ratio_to_U": 35093.75399021137,
-      "decision": "matters"
+      "U_rel": 3.805957806288491e-05,
+      "ratio_to_U": 2919.3994459794703,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.01,
+      "posthoc_person_needed": true
      },
      "v_C": {
       "Q0": 23.95866844420762,
@@ -343,11 +281,18 @@
       "asymmetry": 0.09999999999747522,
       "S_previous_level": -1.0101010101015888,
       "settled": true,
-      "U_rel": 1.3213279233709877e-05,
-      "ratio_to_U": 8409.048892818839,
-      "decision": "matters"
+      "U_rel": 0.0003166211137258756,
+      "ratio_to_U": 350.927674415712,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.01,
+      "posthoc_person_needed": true
      }
     },
+    "posthoc_person_needed_for": [
+     "strain_energy",
+     "v_C"
+    ],
     "matters_for": [
      "strain_energy",
      "v_C"
@@ -371,9 +316,12 @@
       "asymmetry": 0.01244248350615828,
       "S_previous_level": 0.17819205341870475,
       "settled": true,
-      "U_rel": 0.010821111452238375,
-      "ratio_to_U": 2.521907252486194,
-      "decision": "matters"
+      "U_rel": 0.0009259074493338369,
+      "ratio_to_U": 29.473614745183877,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.05,
+      "posthoc_person_needed": false
      },
      "corner2_gk_avg_von_mises": {
       "Q0": 0.19013490732634647,
@@ -385,9 +333,12 @@
       "asymmetry": 0.1421348939925742,
       "S_previous_level": -0.016697987670766756,
       "settled": true,
-      "U_rel": 0.003660091306211157,
-      "ratio_to_U": 0.7277277755268444,
-      "decision": "negligible"
+      "U_rel": 0.000697100849348227,
+      "ratio_to_U": 3.820896369563378,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.05,
+      "posthoc_person_needed": false
      },
      "strain_energy": {
       "Q0": 12.015741291432088,
@@ -399,9 +350,12 @@
       "asymmetry": 0.03337115293223547,
       "S_previous_level": 0.021494131267055974,
       "settled": true,
-      "U_rel": 3.166122129367824e-06,
-      "ratio_to_U": 1084.746175845836,
-      "decision": "matters"
+      "U_rel": 3.805957806288491e-05,
+      "ratio_to_U": 90.23849046402938,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.01,
+      "posthoc_person_needed": false
      },
      "v_C": {
       "Q0": 23.95866844420762,
@@ -413,13 +367,18 @@
       "asymmetry": 0.03334468285285939,
       "S_previous_level": 0.021569264209965407,
       "settled": true,
-      "U_rel": 1.3213279233709877e-05,
-      "ratio_to_U": 260.73953027689777,
-      "decision": "matters"
+      "U_rel": 0.0003166211137258756,
+      "ratio_to_U": 10.881220712898536,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.01,
+      "posthoc_person_needed": false
      }
     },
+    "posthoc_person_needed_for": [],
     "matters_for": [
      "corner0_gk_avg_von_mises",
+     "corner2_gk_avg_von_mises",
      "strain_energy",
      "v_C"
     ],
@@ -445,9 +404,12 @@
       "asymmetry": 1.7435338179031261e-12,
       "S_previous_level": 0.9999999999999615,
       "settled": true,
-      "U_rel": 0.010821111452238375,
-      "ratio_to_U": 9.241194903275426,
-      "decision": "matters"
+      "U_rel": 0.0009259074493338369,
+      "ratio_to_U": 108.00215515292341,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.05,
+      "posthoc_person_needed": true
      },
      "corner2_gk_avg_von_mises": {
       "Q0": 0.19013490732634647,
@@ -459,9 +421,12 @@
       "asymmetry": 1.5262034054763008e-12,
       "S_previous_level": 0.9999999999997613,
       "settled": true,
-      "U_rel": 0.003660091306211157,
-      "ratio_to_U": 27.32172277518224,
-      "decision": "matters"
+      "U_rel": 0.000697100849348227,
+      "ratio_to_U": 143.45126690586238,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.05,
+      "posthoc_person_needed": true
      },
      "strain_energy": {
       "Q0": 12.015741291432088,
@@ -473,9 +438,12 @@
       "asymmetry": 0.050000000002946424,
       "S_previous_level": 1.9999999999991864,
       "settled": true,
-      "U_rel": 3.166122129367824e-06,
-      "ratio_to_U": 66327.19504180782,
-      "decision": "matters"
+      "U_rel": 3.805957806288491e-05,
+      "ratio_to_U": 5517.664952926848,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.01,
+      "posthoc_person_needed": true
      },
      "v_C": {
       "Q0": 23.95866844420762,
@@ -487,11 +455,20 @@
       "asymmetry": 1.5036109701556281e-12,
       "S_previous_level": 0.9999999999999634,
       "settled": true,
-      "U_rel": 1.3213279233709877e-05,
-      "ratio_to_U": 7568.144003575064,
-      "decision": "matters"
+      "U_rel": 0.0003166211137258756,
+      "ratio_to_U": 315.83490697573114,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.01,
+      "posthoc_person_needed": true
      }
     },
+    "posthoc_person_needed_for": [
+     "corner0_gk_avg_von_mises",
+     "corner2_gk_avg_von_mises",
+     "strain_energy",
+     "v_C"
+    ],
     "matters_for": [
      "corner0_gk_avg_von_mises",
      "corner2_gk_avg_von_mises",
@@ -501,7 +478,7 @@
     "needs_person": true
    }
   },
-  "minutes": 0.18128885428110758
+  "minutes": 0.16963922182718913
  },
  "final": {
   "certified": [

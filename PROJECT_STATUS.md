@@ -26278,3 +26278,8 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   - pre-registered "change > numerical U" flags everything on smooth problems; post hoc proposal
   "change > adopted accuracy target". Loop uses the pre-registered rule meanwhile. NEXT: item 3
   (automatic per-run report), then item 4 (3D in the loop).
+- 2026-11-25 DONE item 3: automatic per-run report (`run_report.py`; HTML + PDF after every loop run,
+  autonomous_runs/<name>/report.pdf). It exposed a units bug in my item-2 code (U is relative) ->
+  fixed, recomputed, corrected in change log. Open questions for Professor Rabczuk: (a) sensitivity
+  threshold (U vs accuracy target), (b) should a later non-certifying state remove an earlier
+  certificate. NEXT: item 4 (3D in the loop).

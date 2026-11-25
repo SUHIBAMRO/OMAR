@@ -1196,3 +1196,29 @@ def test_experiment_memory_counts_a_repeat_once_and_records_are_not_overwritten(
     p1, _ = X.freeze("p", 1, rec)
     p2, _ = X.freeze("p", 1, rec)
     assert p1 != p2 and p2.endswith("_run2.json")
+
+
+def test_sensitivity_treats_certified_U_as_relative(tmp_path, monkeypatch):
+    """The framework's U is relative (gates.uncertainty_fine). With limit 100 and U 0.5 (50%),
+    a 10% change of E is negligible; dividing U by |limit| again (the first version) made it
+    'matters'."""
+    from omar_pfem.verification_agent import sensitivity as S
+    monkeypatch.setattr(S, "OUT", str(tmp_path))
+    monkeypatch.setattr(S, "LEVELS", (2, 4))
+    r = S.analyse(_beam(), ["E"], {"v_tip": {"U": 0.5, "limit": 100.0}}, log=lambda *_: None)
+    assert r["params"]["E"]["quantities"]["v_tip"]["U_rel"] == 0.5
+    assert not r["params"]["E"]["needs_person"]
+
+
+def test_run_report_is_built_from_stored_files_only():
+    """The per-run report states the stored certified values (relative U turned into +- abs)."""
+    import json, os, re
+    from omar_pfem.verification_agent import run_report
+    here = os.path.dirname(__file__)
+    h, _ = run_report.build("cook_linear", pdf=False)
+    page = open(h).read()
+    c = json.load(open(os.path.join(here, "autonomous_runs", "cook_linear", "run.json")))["certified_info"]
+    for q, x in c.items():
+        u = abs(x.get("U_rel", x["U"]))
+        assert f"{x['limit']:.6g} &plusmn; {u * abs(x['limit']):.3g}" in page, q
+    assert "&amp;lambda;" not in page

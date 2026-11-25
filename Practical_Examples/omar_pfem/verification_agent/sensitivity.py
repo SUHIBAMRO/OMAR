@@ -172,7 +172,9 @@ def analyse(desc, params, certified=None, log=print):
             r["settled"] = q not in bad
             if certified is not None:
                 c = certified[q]
-                u_rel = abs(c["U"]) / abs(c["limit"]) if c.get("limit") else float("inf")
+                # FIX (25 Nov): the framework's U is already RELATIVE (gates.uncertainty_fine);
+                # the first version divided it by |limit| again
+                u_rel = abs(c.get("U_rel", c["U"]))
                 r["U_rel"] = u_rel
                 r["ratio_to_U"] = r["change_rel"] / u_rel if u_rel else float("inf")
                 if not r["settled"]:

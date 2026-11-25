@@ -22,13 +22,13 @@
    "stage": "V",
    "actor": "code",
    "status": "decided",
-   "detail": "Q2: needed (no passing check on record for 4945351442d930f9|Q2|plane_stress|free+symmetry+traction+general_domain_holes); P2: needed (no passing check on record for 4945351442d930f9|P2|plane_stress|free+symmetry+traction+general_domain_holes)"
+   "detail": "Q2: not needed (passing check on record for 4945351442d930f9|Q2|plane_stress|free+symmetry+traction+general_domain_holes (plate_hole_quarter)); P2: not needed (passing check on record for 4945351442d930f9|P2|plane_stress|free+symmetry+traction+general_domain_holes (plate_hole_quarter))"
   },
   {
    "stage": "V",
    "actor": "code",
    "status": "PASS",
-   "detail": "Q2 PASS (L2 3.12, H1 2.08, levels [2, 4, 8, 16, 32]); P2 PASS (L2 3.18, H1 2.13, levels [2, 4, 8, 16])"
+   "detail": "Q2 PASS; P2 PASS"
   },
   {
    "stage": "S",
@@ -52,59 +52,59 @@
    "stage": "N",
    "actor": "code",
    "status": "pre-registered",
-   "detail": "#1 finer_independent_level on ['v_hole_top']: the independent sequence is pre-asymptotic; one more level gives it a rate that agrees; prediction: at least one listed quantity becomes cross-checked; prior 0.50 (n=2); est. 0.1 min",
-   "file": "experiments/plate_hole_quarter/01_finer_independent_level_run2.json",
-   "sha256": "e3f6ce3d6fb121bc8e478200afdcd7b597e874aee571263e2fa3d9bc09fffea7"
+   "detail": "#1 finer_independent_level on ['v_hole_top']: the independent sequence is pre-asymptotic; one more level gives it a rate that agrees; prediction: at least one listed quantity becomes cross-checked; prior 0.50 (n=2); est. 0.4 min",
+   "file": "experiments/plate_hole_quarter/01_finer_independent_level_run3.json",
+   "sha256": "684ec978bd7c403844bb6048abda88375b0985f285f1a2911b6f1de95df14a1c"
   },
   {
    "stage": "N",
    "actor": "code",
    "status": "refuted",
-   "detail": "#1 finer_independent_level: prediction refuted (0.2 min); certified so far ['peak_von_mises', 'strain_energy', 'u_right']"
+   "detail": "#1 finer_independent_level: prediction refuted (0.0 min); certified so far ['peak_von_mises', 'strain_energy', 'u_right']"
   },
   {
    "stage": "N",
    "actor": "code",
    "status": "pre-registered",
-   "detail": "#2 finer_independent_level on ['u_right', 'v_hole_top']: the independent sequence is pre-asymptotic; one more level gives it a rate that agrees; prediction: at least one listed quantity becomes cross-checked; prior 0.50 (n=2); est. 0.1 min",
-   "file": "experiments/plate_hole_quarter/02_finer_independent_level_run2.json",
-   "sha256": "d0bf4ad0c979774840c0ee9743a651576290e0503dd44496a128a9124104b006"
+   "detail": "#2 finer_independent_level on ['u_right', 'v_hole_top']: the independent sequence is pre-asymptotic; one more level gives it a rate that agrees; prediction: at least one listed quantity becomes cross-checked; prior 0.50 (n=2); est. 0.4 min",
+   "file": "experiments/plate_hole_quarter/02_finer_independent_level_run3.json",
+   "sha256": "e5f416a330ad74440941e1f44671099c637e2553b3db3d08f98fd6737e547244"
   },
   {
    "stage": "N",
    "actor": "code",
    "status": "confirmed",
-   "detail": "#2 finer_independent_level: prediction confirmed (0.6 min); certified so far ['peak_von_mises', 'strain_energy', 'u_right', 'v_hole_top']"
+   "detail": "#2 finer_independent_level: prediction confirmed (0.0 min); certified so far ['peak_von_mises', 'strain_energy', 'u_right', 'v_hole_top']"
   },
   {
    "stage": "N",
    "actor": "code",
    "status": "stop",
-   "detail": "no further experiment applies within the budget (0.8 of 20.0 min used)"
+   "detail": "no further experiment applies within the budget (0.1 of 20.0 min used)"
   },
   {
    "stage": "A",
    "actor": "person",
    "status": "needs_person",
-   "detail": "assumed E: changes strain_energy by 11.1% (numerical U 0.00%), u_right by 11.1% (numerical U 0.00%), v_hole_top by 11.1% (numerical U 0.00%); a person must confirm this input"
+   "detail": "assumed E: changes strain_energy by 0.111 (numerical U 5.3e-09), u_right by 0.111 (numerical U 2.8e-08), v_hole_top by 0.111 (numerical U 1.7e-07) [post hoc proposal: person needed only for ['strain_energy', 'u_right', 'v_hole_top']]; a person must confirm this input"
   },
   {
    "stage": "A",
    "actor": "person",
    "status": "needs_person",
-   "detail": "assumed nu: changes strain_energy by 0.0% (numerical U 0.00%), u_right by 0.0% (numerical U 0.00%), v_hole_top by 0.0% (numerical U 0.00%); a person must confirm this input"
+   "detail": "assumed nu: changes u_right by 3.26e-08 (numerical U 2.8e-08), v_hole_top by 1.28e-06 (numerical U 1.7e-07) [post hoc proposal: person needed only for none]; a person must confirm this input"
   },
   {
    "stage": "A",
    "actor": "person",
    "status": "needs_person",
-   "detail": "assumed bcs[2].t: changes peak_von_mises by 10.0% (numerical U 0.14%), strain_energy by 21.0% (numerical U 0.00%), u_right by 10.0% (numerical U 0.00%), v_hole_top by 10.0% (numerical U 0.00%); a person must confirm this input"
+   "detail": "assumed bcs[2].t: changes peak_von_mises by 0.1 (numerical U 0.0044), strain_energy by 0.21 (numerical U 5.3e-09), u_right by 0.1 (numerical U 2.8e-08), v_hole_top by 0.1 (numerical U 1.7e-07) [post hoc proposal: person needed only for ['peak_von_mises', 'strain_energy', 'u_right', 'v_hole_top']]; a person must confirm this input"
   },
   {
    "stage": "A",
    "actor": "person",
    "status": "needs_person",
-   "detail": "assumed hole[0].radius: changes peak_von_mises by 0.8% (numerical U 0.14%), strain_energy by 0.5% (numerical U 0.00%), u_right by 1.1% (numerical U 0.00%), v_hole_top by 11.5% (numerical U 0.00%); a person must confirm this input"
+   "detail": "assumed hole[0].radius: changes peak_von_mises by 0.00794 (numerical U 0.0044), strain_energy by 0.00514 (numerical U 5.3e-09), u_right by 0.0107 (numerical U 2.8e-08), v_hole_top by 0.115 (numerical U 1.7e-07) [post hoc proposal: person needed only for ['peak_von_mises', 'u_right', 'v_hole_top']]; a person must confirm this input"
   }
  ],
  "human_points": [
@@ -118,28 +118,28 @@
    "stage": "A",
    "actor": "person",
    "status": "needs_person",
-   "detail": "assumed E: changes strain_energy by 11.1% (numerical U 0.00%), u_right by 11.1% (numerical U 0.00%), v_hole_top by 11.1% (numerical U 0.00%); a person must confirm this input"
+   "detail": "assumed E: changes strain_energy by 0.111 (numerical U 5.3e-09), u_right by 0.111 (numerical U 2.8e-08), v_hole_top by 0.111 (numerical U 1.7e-07) [post hoc proposal: person needed only for ['strain_energy', 'u_right', 'v_hole_top']]; a person must confirm this input"
   },
   {
    "stage": "A",
    "actor": "person",
    "status": "needs_person",
-   "detail": "assumed nu: changes strain_energy by 0.0% (numerical U 0.00%), u_right by 0.0% (numerical U 0.00%), v_hole_top by 0.0% (numerical U 0.00%); a person must confirm this input"
+   "detail": "assumed nu: changes u_right by 3.26e-08 (numerical U 2.8e-08), v_hole_top by 1.28e-06 (numerical U 1.7e-07) [post hoc proposal: person needed only for none]; a person must confirm this input"
   },
   {
    "stage": "A",
    "actor": "person",
    "status": "needs_person",
-   "detail": "assumed bcs[2].t: changes peak_von_mises by 10.0% (numerical U 0.14%), strain_energy by 21.0% (numerical U 0.00%), u_right by 10.0% (numerical U 0.00%), v_hole_top by 10.0% (numerical U 0.00%); a person must confirm this input"
+   "detail": "assumed bcs[2].t: changes peak_von_mises by 0.1 (numerical U 0.0044), strain_energy by 0.21 (numerical U 5.3e-09), u_right by 0.1 (numerical U 2.8e-08), v_hole_top by 0.1 (numerical U 1.7e-07) [post hoc proposal: person needed only for ['peak_von_mises', 'strain_energy', 'u_right', 'v_hole_top']]; a person must confirm this input"
   },
   {
    "stage": "A",
    "actor": "person",
    "status": "needs_person",
-   "detail": "assumed hole[0].radius: changes peak_von_mises by 0.8% (numerical U 0.14%), strain_energy by 0.5% (numerical U 0.00%), u_right by 1.1% (numerical U 0.00%), v_hole_top by 11.5% (numerical U 0.00%); a person must confirm this input"
+   "detail": "assumed hole[0].radius: changes peak_von_mises by 0.00794 (numerical U 0.0044), strain_energy by 0.00514 (numerical U 5.3e-09), u_right by 0.0107 (numerical U 2.8e-08), v_hole_top by 0.115 (numerical U 1.7e-07) [post hoc proposal: person needed only for ['peak_von_mises', 'u_right', 'v_hole_top']]; a person must confirm this input"
   }
  ],
- "wall_clock_s": 67.11543941497803,
+ "wall_clock_s": 21.306808471679688,
  "source": {
   "pdf": null,
   "text": null,
@@ -147,113 +147,42 @@
  },
  "mms": {
   "Q2": {
-   "verdict": "PASS",
-   "rates": {
-    "L2": {
-     "observed": 3.124385938947604,
-     "expected": 3.0,
-     "pass": true
-    },
-    "H1": {
-     "observed": 2.082133836240743,
-     "expected": 2.0,
-     "pass": true
-    }
-   },
-   "levels": [
-    2,
-    4,
-    8,
-    16,
-    32
-   ],
-   "levels_added": [
-    "n=32: rates outside tolerance but moving toward theory"
-   ],
-   "errors": {
-    "L2": [
-     0.000538609641310974,
-     7.52755121091286e-05,
-     9.031113378265381e-06,
-     1.173500971732992e-06,
-     1.4855363968969923e-07
-    ],
-    "H1": [
-     0.001669841915250436,
-     0.0004051536702686392,
-     9.674826269676827e-05,
-     2.47116580554835e-05,
-     6.263663130203269e-06
-    ]
-   },
-   "field": {
-    "ux": "0.01*sin(0.13*pi*x + 3/10)*cos(0.13*pi*y + 1/5)",
-    "uy": "0.01*sin(0.13*pi*y + 2/5)*cos(0.13*pi*x + 1/10)"
-   },
-   "problem": "plate_hole_quarter",
-   "reason": "no passing check on record for 4945351442d930f9|Q2|plane_stress|free+symmetry+traction+general_domain_holes"
+   "skipped": true,
+   "reason": "passing check on record for 4945351442d930f9|Q2|plane_stress|free+symmetry+traction+general_domain_holes (plate_hole_quarter)",
+   "verdict": "PASS"
   },
   "P2": {
-   "verdict": "PASS",
-   "rates": {
-    "L2": {
-     "observed": 3.1803794455463827,
-     "expected": 3.0,
-     "pass": true
-    },
-    "H1": {
-     "observed": 2.1321820262662086,
-     "expected": 2.0,
-     "pass": true
-    }
-   },
-   "levels": [
-    2,
-    4,
-    8,
-    16
-   ],
-   "levels_added": [],
-   "errors": {
-    "L2": [
-     0.004101603553687458,
-     0.0005539439290123278,
-     7.530064512873803e-05,
-     1.0457487572328992e-05
-    ],
-    "H1": [
-     0.00707594358278444,
-     0.0019161726304493002,
-     0.0004979145142998256,
-     0.00013381079242053646
-    ]
-   },
-   "field": {
-    "ux": "0.01*sin(0.13*pi*x + 3/10)*cos(0.13*pi*y + 1/5)",
-    "uy": "0.01*sin(0.13*pi*y + 2/5)*cos(0.13*pi*x + 1/10)"
-   },
-   "problem": "plate_hole_quarter",
-   "reason": "no passing check on record for 4945351442d930f9|P2|plane_stress|free+symmetry+traction+general_domain_holes"
+   "skipped": true,
+   "reason": "passing check on record for 4945351442d930f9|P2|plane_stress|free+symmetry+traction+general_domain_holes (plate_hole_quarter)",
+   "verdict": "PASS"
   }
  },
  "certified_info": {
   "strain_energy": {
    "U": 5.322987518016259e-09,
+   "U_rel": 5.322987518016259e-09,
+   "U_abs": 2.726017782452538e-07,
    "limit": 51.212176869211504,
    "finest": 51.21217665113008
   },
   "u_right": {
    "U": 2.763883751452563e-08,
+   "U_rel": 2.763883751452563e-08,
+   "U_abs": 2.906913889205449e-07,
    "limit": 10.5174969376976,
    "finest": 10.517496705144495
   },
   "peak_von_mises": {
    "U": 0.004410344232543687,
+   "U_rel": 0.004410344232543687,
+   "U_abs": 0.013564684118480247,
    "limit": 3.0756520133705645,
    "finest": 3.0704734517817154
   },
   "v_hole_top": {
    "U": 1.6856959334926208e-07,
+   "U_rel": 1.6856959334926208e-07,
+   "U_abs": 1.8016276936121056e-07,
    "limit": -1.0687738267715245,
    "finest": -1.0687738508845444
   }
@@ -283,9 +212,12 @@
       "asymmetry": 2.5400696864111496,
       "S_previous_level": 5.832517307196695e-14,
       "settled": true,
-      "U_rel": 0.0014339542358403712,
-      "ratio_to_U": 5.201615438811212e-11,
-      "decision": "negligible"
+      "U_rel": 0.004410344232543687,
+      "ratio_to_U": 1.691223654756324e-11,
+      "decision": "negligible",
+      "posthoc_numerics_adequate": null,
+      "posthoc_target": null,
+      "posthoc_person_needed": false
      },
      "strain_energy": {
       "Q0": 51.212173893910474,
@@ -297,9 +229,12 @@
       "asymmetry": 0.10000000000025047,
       "S_previous_level": -1.0101010101009624,
       "settled": true,
-      "U_rel": 1.0393987999397877e-10,
-      "ratio_to_U": 1068994029.217579,
-      "decision": "matters"
+      "U_rel": 5.322987518016259e-09,
+      "ratio_to_U": 20873825.22222469,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.01,
+      "posthoc_person_needed": true
      },
      "u_right": {
       "Q0": 10.517494309353609,
@@ -311,9 +246,12 @@
       "asymmetry": 0.10000000000039687,
       "S_previous_level": -1.010101010101036,
       "settled": true,
-      "U_rel": 2.6278911872520194e-09,
-      "ratio_to_U": 42281473.31601197,
-      "decision": "matters"
+      "U_rel": 2.763883751452563e-08,
+      "ratio_to_U": 4020107.9749748767,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.01,
+      "posthoc_person_needed": true
      },
      "v_hole_top": {
       "Q0": -1.0687611150604668,
@@ -325,11 +263,19 @@
       "asymmetry": 0.10000000000121027,
       "S_previous_level": -1.0101010101008578,
       "settled": true,
-      "U_rel": 1.5772241902523478e-07,
-      "ratio_to_U": 704472.527101604,
-      "decision": "matters"
+      "U_rel": 1.6856959334926208e-07,
+      "ratio_to_U": 659140.8859904665,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.01,
+      "posthoc_person_needed": true
      }
     },
+    "posthoc_person_needed_for": [
+     "strain_energy",
+     "u_right",
+     "v_hole_top"
+    ],
     "matters_for": [
      "strain_energy",
      "u_right",
@@ -354,9 +300,12 @@
       "asymmetry": 0.10042181457998609,
       "S_previous_level": 0.0008853945607333677,
       "settled": true,
-      "U_rel": 0.0014339542358403712,
-      "ratio_to_U": 0.03418655334373592,
-      "decision": "negligible"
+      "U_rel": 0.004410344232543687,
+      "ratio_to_U": 0.011115221486409758,
+      "decision": "negligible",
+      "posthoc_numerics_adequate": null,
+      "posthoc_target": null,
+      "posthoc_person_needed": false
      },
      "strain_energy": {
       "Q0": 51.212173893910474,
@@ -368,9 +317,12 @@
       "asymmetry": 0.0801804098571018,
       "S_previous_level": -3.1416869430200593e-07,
       "settled": true,
-      "U_rel": 1.0393987999397877e-10,
-      "ratio_to_U": 41.54436292464324,
-      "decision": "matters"
+      "U_rel": 5.322987518016259e-09,
+      "ratio_to_U": 0.8112204062471614,
+      "decision": "negligible",
+      "posthoc_numerics_adequate": null,
+      "posthoc_target": 0.01,
+      "posthoc_person_needed": false
      },
      "u_right": {
       "Q0": 10.517494309353609,
@@ -382,9 +334,12 @@
       "asymmetry": 0.05564612981668247,
       "S_previous_level": -1.6871186485960285e-06,
       "settled": true,
-      "U_rel": 2.6278911872520194e-09,
-      "ratio_to_U": 12.414906012685268,
-      "decision": "matters"
+      "U_rel": 2.763883751452563e-08,
+      "ratio_to_U": 1.1804050037977032,
+      "decision": "matters",
+      "posthoc_numerics_adequate": false,
+      "posthoc_target": 0.01,
+      "posthoc_person_needed": false
      },
      "v_hole_top": {
       "Q0": -1.0687611150604668,
@@ -396,13 +351,16 @@
       "asymmetry": 0.07878487972936328,
       "S_previous_level": -4.050977906768375e-05,
       "settled": true,
-      "U_rel": 1.5772241902523478e-07,
-      "ratio_to_U": 8.093808625950718,
-      "decision": "matters"
+      "U_rel": 1.6856959334926208e-07,
+      "ratio_to_U": 7.572985437339831,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.01,
+      "posthoc_person_needed": false
      }
     },
+    "posthoc_person_needed_for": [],
     "matters_for": [
-     "strain_energy",
      "u_right",
      "v_hole_top"
     ],
@@ -428,9 +386,12 @@
       "asymmetry": 4.3828252554550236e-13,
       "S_previous_level": 1.0000000000000409,
       "settled": true,
-      "U_rel": 0.0014339542358403712,
-      "ratio_to_U": 69.73723254246217,
-      "decision": "matters"
+      "U_rel": 0.004410344232543687,
+      "ratio_to_U": 22.673967093578348,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": null,
+      "posthoc_person_needed": true
      },
      "strain_energy": {
       "Q0": 51.212173893910474,
@@ -442,9 +403,12 @@
       "asymmetry": 0.050000000000025094,
       "S_previous_level": 1.9999999999999558,
       "settled": true,
-      "U_rel": 1.0393987999397877e-10,
-      "ratio_to_U": 2020398715.2205515,
-      "decision": "matters"
+      "U_rel": 5.322987518016259e-09,
+      "ratio_to_U": 39451529.66999152,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.01,
+      "posthoc_person_needed": true
      },
      "u_right": {
       "Q0": 10.517494309353609,
@@ -456,9 +420,12 @@
       "asymmetry": 2.423649578086555e-13,
       "S_previous_level": 1.0000000000000113,
       "settled": true,
-      "U_rel": 2.6278911872520194e-09,
-      "ratio_to_U": 38053325.98439811,
-      "decision": "matters"
+      "U_rel": 2.763883751452563e-08,
+      "ratio_to_U": 3618097.177476185,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.01,
+      "posthoc_person_needed": true
      },
      "v_hole_top": {
       "Q0": -1.0687611150604668,
@@ -470,11 +437,20 @@
       "asymmetry": 5.51599808197178e-13,
       "S_previous_level": 1.0000000000000937,
       "settled": true,
-      "U_rel": 1.5772241902523478e-07,
-      "ratio_to_U": 634025.2743908025,
-      "decision": "matters"
+      "U_rel": 1.6856959334926208e-07,
+      "ratio_to_U": 593226.7973908199,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.01,
+      "posthoc_person_needed": true
      }
     },
+    "posthoc_person_needed_for": [
+     "peak_von_mises",
+     "strain_energy",
+     "u_right",
+     "v_hole_top"
+    ],
     "matters_for": [
      "peak_von_mises",
      "strain_energy",
@@ -500,9 +476,12 @@
       "asymmetry": 0.016893763704754157,
       "S_previous_level": 0.09680688476850459,
       "settled": true,
-      "U_rel": 0.0014339542358403712,
-      "ratio_to_U": 5.534419306027085,
-      "decision": "matters"
+      "U_rel": 0.004410344232543687,
+      "ratio_to_U": 1.79942961101181,
+      "decision": "matters",
+      "posthoc_numerics_adequate": false,
+      "posthoc_target": null,
+      "posthoc_person_needed": true
      },
      "strain_energy": {
       "Q0": 51.212173893910474,
@@ -514,9 +493,12 @@
       "asymmetry": 0.055696802142016964,
       "S_previous_level": 0.04872927617912519,
       "settled": true,
-      "U_rel": 1.0393987999397877e-10,
-      "ratio_to_U": 49493306.25619845,
-      "decision": "matters"
+      "U_rel": 5.322987518016259e-09,
+      "ratio_to_U": 966436.2907789919,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.01,
+      "posthoc_person_needed": false
      },
      "u_right": {
       "Q0": 10.517494309353609,
@@ -528,9 +510,12 @@
       "asymmetry": 0.055632647334730084,
       "S_previous_level": 0.1012651198177594,
       "settled": true,
-      "U_rel": 2.6278911872520194e-09,
-      "ratio_to_U": 4067897.419471717,
-      "decision": "matters"
+      "U_rel": 2.763883751452563e-08,
+      "ratio_to_U": 386774.2908382748,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.01,
+      "posthoc_person_needed": true
      },
      "v_hole_top": {
       "Q0": -1.0687611150604668,
@@ -542,11 +527,19 @@
       "asymmetry": 0.018139178532204012,
       "S_previous_level": 1.133636457304413,
       "settled": true,
-      "U_rel": 1.5772241902523478e-07,
-      "ratio_to_U": 731472.7686714234,
-      "decision": "matters"
+      "U_rel": 1.6856959334926208e-07,
+      "ratio_to_U": 684403.7067047235,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.01,
+      "posthoc_person_needed": true
      }
     },
+    "posthoc_person_needed_for": [
+     "peak_von_mises",
+     "u_right",
+     "v_hole_top"
+    ],
     "matters_for": [
      "peak_von_mises",
      "strain_energy",
@@ -556,7 +549,7 @@
     "needs_person": true
    }
   },
-  "minutes": 0.21766632795333862
+  "minutes": 0.23556110858917237
  },
  "final": {
   "certified": [

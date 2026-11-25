@@ -518,3 +518,27 @@ Pre-registered before any loaded solve: commit 4fd091f. No billed run, no cluste
 - Bookkeeping fixes: a repeat run no longer overwrites frozen experiment records (`_run2` files); the
   same experiment with the same outcome on the same problem is counted once in memory; the cache
   fingerprint ignores the `assumed` metadata. Loop CLI `--assume`. Tests 99 pass.
+
+## 25 November: automatic per-run report (item 3) and a correction to item 2
+
+- `run_report.py`: after every loop run, autonomous_runs/<name>/report.html and report.pdf (Chromium)
+  are written from the stored files only (run.json, ladders.json, the frozen experiment records):
+  summary, problem with domain/boundary-condition and mesh figures, code verification, results with
+  convergence plots against the certified band, experiments (hypothesis, prediction, prior, outcome),
+  assumed-input sensitivities, every point needing a person, full log, sha256 of each input, and
+  whether the stored ladders still match the current code (fingerprint). Test added.
+- CORRECTION (found by the first report): the framework's U is RELATIVE (gates.uncertainty_fine).
+  The first sensitivity.py and the first report divided it by |limit| again. Consequences, now fixed
+  and recomputed: (1) the remark "Cook corner0 average fails the one-third rule under nu" was wrong
+  (true U 0.093% < 2.7%/3); (2) the one-third rule fails instead for the plate peak stress under
+  hole radius +-10% (change 0.79%, U 0.44% > 0.26%); (3) geometry2d_validation.json and the entry
+  above ("3.0865 +- 0.0034"): 0.0034 is relative (+- 0.0104). Pre-registered decisions after the fix:
+  plate - person for every input (nu only for u_right, change 3e-8 vs U 3e-8, and v_hole_top);
+  Cook - person for every input; post hoc proposal clears nu on both. Prediction score unchanged (4/8;
+  predictions use S only). cert_info now stores U_rel and U_abs explicitly; test added.
+- Shown by the report (open question, rule NOT changed): the loop keeps a quantity certified at an
+  earlier stage (certified_any). Plate u_right was certified with levels up to 32; after the agent
+  added finer P2 levels the independent family reached round-off (~1e-8) and the latest state is
+  INCONCLUSIVE (independent_unconverged). The report now flags this; a later "contradicted" would
+  not remove a certificate either.
+- Tests 101 pass.
