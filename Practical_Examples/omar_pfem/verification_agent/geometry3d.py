@@ -43,7 +43,8 @@ from skfem.helpers import ddot, sym_grad, trace
 from omar_pfem.verification_agent import geometry2d as G2
 from omar_pfem.verification_agent import pipeline2d as P2
 
-MAX_DOF = 450_000
+# local guard (15 GB machine); a cluster job sets VERIF_MAX_DOF for its larger memory
+MAX_DOF = int(os.environ.get("VERIF_MAX_DOF", 450_000))
 FACES = ("z0", "z1")
 
 
@@ -253,8 +254,9 @@ class Extruded3D:
                 raise RuntimeError(f"unexpected 3D element types {bad} (want only "
                                    f"{'27-node hexahedra' if rec else '10-node tetrahedra'})")
             nn = len(gmsh.model.mesh.getNodes()[0])
-            if 3 * nn > MAX_DOF:
-                raise MemoryError(f"level n = {n} ({element}) has {3 * nn} DOF > {MAX_DOF}: too "
+            max_dof = int(os.environ.get("VERIF_MAX_DOF", MAX_DOF))
+            if 3 * nn > max_dof:
+                raise MemoryError(f"level n = {n} ({element}) has {3 * nn} DOF > {max_dof}: too "
                                   "large for this machine (prepare a cluster job)")
             fd_, path = tempfile.mkstemp(suffix=".msh")
             os.close(fd_)
@@ -488,4 +490,7 @@ class Manufactured3D:
 
 
 def make(desc):
+    if desc.get("material") == "neo_hookean":
+        from omar_pfem.verification_agent.geometry3d_nh import Extruded3DNH
+        return Extruded3DNH(desc)
     return Extruded3D(desc)

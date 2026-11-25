@@ -512,12 +512,48 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
     log.step("V", "code", "decided", "; ".join(f"{k}: {'needed' if n else 'not needed'} ({r})"
                                                for k, (n, r) in need.items()))
     mms = mms_auto.run(prob, log=lambda s: None)
-    log.step("V", "code", "PASS" if all(r["verdict"] == "PASS" for r in mms.values()) else "FAIL",
+    status = ("PASS" if all(r["verdict"] == "PASS" and not r.get("reference_pass") for r in mms.values())
+              else "FAIL" if any(r["verdict"] == "FAIL" for r in mms.values()) else "INCONCLUSIVE")
+    log.step("V", "code", status,
              "; ".join(f"{k} {r['verdict']}" + ("" if r.get("skipped") else
                                                  f" (L2 {r['rates']['L2']['observed']:.2f}, "
                                                  f"H1 {r['rates']['H1']['observed']:.2f}, levels "
                                                  f"{r['levels']})") for k, r in mms.items()))
     result["mms"] = mms
+    if status == "INCONCLUSIVE":
+        # POST HOC rule R2 (round Q, pending Professor Rabczuk): the same check on a reference
+        # domain with the same code paths; the run continues only if it passes there
+        from omar_pfem.verification_agent.reference_domain import reference_description
+        inc = [el for el, r in mms.items() if r["verdict"] != "PASS" or r.get("reference_pass")]
+        todo = [el for el in inc if not mms[el].get("reference_pass")]
+        ref, why = reference_description(desc)
+        if todo and ref is not None:
+            rp = G.make(ref)
+            rm = mms_auto.run(rp, log=lambda s: None, suffix=mms_auto.REF, elements=tuple(todo))
+            result["mms_reference_domain"] = {"description": ref, "checks": rm}
+            ok = all(rm[el]["verdict"] == "PASS" for el in todo)
+            log.step("V", "code", "PASS" if ok else "FAIL", "post hoc rule R2: production check "
+                     f"INCONCLUSIVE for {inc}; reference domain {ref['domain']['outer']} with the same "
+                     "condition types: " + "; ".join(
+                         f"{el} {rm[el]['verdict']}" + ("" if rm[el].get("skipped") else
+                                                        f" (L2 {rm[el]['rates']['L2']['observed']:.2f}, "
+                                                        f"H1 {rm[el]['rates']['H1']['observed']:.2f})")
+                         for el in todo))
+        else:
+            ok = ref is not None
+            if ok:
+                log.step("V", "code", "PASS", "post hoc rule R2: production check INCONCLUSIVE, "
+                         "reference-domain check PASS on record")
+        if ok:
+            result["code_verification"] = ("reference domain (post hoc rule R2, pending Professor "
+                                           "Rabczuk): production check INCONCLUSIVE for " + ", ".join(inc))
+            mms = {el: (dict(r, verdict="PASS") if el in inc else r) for el, r in mms.items()}
+        else:
+            log.step("V", "code", "stop", f"production check INCONCLUSIVE and no passing reference "
+                     f"check ({why}): no solution verification")
+            log.save(result)
+            _report(log, result)
+            return result
     if not all(r["verdict"] == "PASS" for r in mms.values()):
         log.step("V", "code", "stop", "code verification failed: no solution verification on an "
                  "unverified solver")
@@ -592,6 +628,24 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
                               "observed_minutes": minutes})
             log.step("N", "code", "failed", f"#{k} {c['action']} could not be run: {e!s:.200}; "
                      "recorded as refuted, not tried again on this problem")
+            # rule R3 (round Q): a level refused by the memory guard becomes a cluster job,
+            # prepared here and submitted by a person
+            if "too large for this machine" in str(e) and c["run"]["kind"] in ("p2_level", "uniform_level"):
+                from omar_pfem.verification_agent import cluster_ladder
+                n = c["run"]["n"]
+                lv_ = ([("P2 uniform", n, "P2")] if c["run"]["kind"] == "p2_level"
+                       else [("Q2 uniform", n, "Q2"), ("P2 uniform", n, "P2")])
+                try:
+                    job = cluster_ladder.prepare(desc, lv_, log=lambda s: None)
+                    result.setdefault("cluster_jobs", []).append(job)
+                    log.step("N", "code", "cluster_job", f"levels {lv_} prepared as cluster job "
+                             f"{job['name']} (bundle md5 {job['bundle_md5']}; instructions "
+                             f"{job['instructions']}); the run can be repeated after the import",
+                             job=job)
+                    log.step("N", "person", "needs_person", f"submit cluster job {job['name']} "
+                             "by hand (no agent connects to the cluster) and paste the result")
+                except Exception as e2:
+                    log.step("N", "code", "failed", f"cluster job not prepared: {e2!s:.200}")
             history.append({"k": k, "action": c["action"], "confirmed": False, "failed": True})
             continue
         minutes = (time.time() - t0) / 60

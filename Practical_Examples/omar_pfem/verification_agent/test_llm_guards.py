@@ -1272,3 +1272,68 @@ def test_3d_cook_singular_edges():
     assert len(p.corners) == 3
     assert {(e["face"], e["side"]) for e in p.face_edges} == {("z0", "clamped"), ("z1", "clamped")}
     assert p.lam_min < 1
+
+
+
+# ---- round Q (25 Nov) ----
+def test_code_verification_classes():
+    from omar_pfem.verification_agent.mms_auto import classify
+    assert classify("PASS", {"L2": [1, 2]}) == "PASS"
+    assert classify("FAIL", {"L2": [1, .2, .03], "H1": [1, .5, .2]}) == "INCONCLUSIVE"
+    assert classify("FAIL", {"L2": [1, .2, .3], "H1": [1, .5, .2]}) == "FAIL"
+
+
+def test_reference_domain_keeps_the_condition_types():
+    from omar_pfem.verification_agent.reference_domain import reference_description
+    ref, _ = reference_description(_load3("cook_3d.json"))
+    assert sorted(b["type"] for b in ref["bcs"]) == ["clamped", "traction"]
+    ref, _ = reference_description(_load3("plate_hole_quarter_3d_pe.json"))
+    kinds = sorted((b.get("face", "side"), b["type"]) for b in ref["bcs"])
+    assert kinds == [("side", "symmetry"), ("side", "symmetry"), ("side", "traction"),
+                     ("z0", "symmetry"), ("z1", "symmetry")] and ref["domain"]["holes"]
+
+
+def test_nh3d_body_force_matches_finite_differences_of_P():
+    import numpy as np
+    from omar_pfem.verification_agent.geometry2d import make
+    m = make(_load3("nh_plate_hole_3d_pe.json")).manufactured()
+    x, y, z, h = np.array([[3.3]]), np.array([[4.1]]), np.array([[0.4]]), 1e-5
+    b = [float(np.ravel(v)[0]) for v in m.body(x, y, z)]
+    for i in range(3):
+        s = 0
+        for j, d in enumerate(np.eye(3) * h):
+            s += (m._P(x + d[0], y + d[1], z + d[2], m.amp)[0][i, j]
+                  - m._P(x - d[0], y - d[1], z - d[2], m.amp)[0][i, j]) / (2 * h)
+        assert abs(b[i] + float(np.ravel(s)[0])) < 1e-6 * max(1, abs(b[i]))
+
+
+def test_nh3d_small_load_equals_linear_3d():
+    from omar_pfem.verification_agent.geometry2d import make
+    d = _load3("nh_plate_hole_3d_pe.json")
+    for bc in d["bcs"]:
+        if bc["type"] == "traction":
+            bc["t"] = [v * 1e-4 for v in bc["t"]]
+    lin = dict(d, material="linear_elastic")
+    a, b = make(d).solve(2, element="Q2"), make(lin).solve(2, element="Q2")
+    assert abs(a["u_right"] / b["u_right"] - 1) < 1e-3
+
+
+def test_cluster_import_refuses_wrong_md5_and_other_code(tmp_path, monkeypatch):
+    import json, hashlib, pytest
+    from omar_pfem.verification_agent import cluster_ladder as C
+    monkeypatch.setattr(C, "JOBS", str(tmp_path))
+    d = _load3("cook_3d.json")
+    json.dump({"description": d}, open(tmp_path / "x_spec.json", "w"))
+    f = tmp_path / "ret.json"
+    json.dump({"name": "x", "fingerprint": "not-this-code", "rows": {}}, open(f, "w"))
+    with pytest.raises(SystemExit, match="md5"):
+        C.import_result(str(f), "0" * 32)
+    md5 = hashlib.md5(open(f, "rb").read()).hexdigest()
+    with pytest.raises(SystemExit, match="changed since the job"):
+        C.import_result(str(f), md5)
+
+
+def test_campaign_index_builds():
+    from omar_pfem.verification_agent import campaign
+    f = campaign.index(pdf=False)
+    assert "Open questions" in open(f).read()

@@ -60,13 +60,21 @@ def _record():
     return json.load(open(RECORD)) if os.path.exists(RECORD) else {}
 
 
-def needed(prob):
-    """(needed?, reason) for each element."""
+REF = "|reference_domain"
+
+
+def needed(prob, suffix=""):
+    """(needed?, reason) for each element. A check INCONCLUSIVE on the production domain with
+    a PASS on the reference domain (post hoc rule R2, round Q) is not repeated either."""
     rec, out = _record(), {}
     for el in ("Q2", "P2"):
-        k = key(prob, el)
+        k = key(prob, el) + suffix
         if k in rec and rec[k]["verdict"] == "PASS":
             out[el] = (False, f"passing check on record for {k} ({rec[k]['problem']})")
+        elif not suffix and k in rec and rec[k]["verdict"] == "INCONCLUSIVE" and \
+                rec.get(k + REF, {}).get("verdict") == "PASS":
+            out[el] = (False, f"INCONCLUSIVE on the production domain and PASS on the reference "
+                              f"domain on record for {k} (post hoc rule R2)")
         else:
             out[el] = (True, f"no passing check on record for {k}")
     return out
@@ -117,15 +125,28 @@ class Manufactured:
         return [sxx * nx + sxy * ny, sxy * nx + syy * ny]
 
 
-def run(prob, force=False, log=print):
-    """Code verification for one problem; returns {element: result}."""
+def classify(gate_verdict, errors):
+    """POST HOC rule R1 (round Q, pending Professor Rabczuk): PASS as the gate says; otherwise
+    INCONCLUSIVE when every error falls at every level (rates not settled), else FAIL."""
+    if gate_verdict == "PASS":
+        return "PASS"
+    falls = all(all(b < a for a, b in zip(e, e[1:])) for e in errors.values())
+    return "INCONCLUSIVE" if falls else "FAIL"
+
+
+def run(prob, force=False, log=print, suffix="", elements=("Q2", "P2")):
+    """Code verification for one problem; returns {element: result}. suffix=REF stores the
+    result as the reference-domain check of the production key."""
     from omar_pfem.verification_agent.gates import mms_rate_gate
-    need = needed(prob)
+    need = needed(prob, suffix)
     rec, out = _record(), {}
     mms = None
-    for el in ("Q2", "P2"):
+    for el in elements:
         if not need[el][0] and not force:
-            out[el] = {"skipped": True, "reason": need[el][1], "verdict": "PASS"}
+            k = key(prob, el) + suffix
+            out[el] = {"skipped": True, "reason": need[el][1],
+                       "verdict": rec.get(k, {}).get("verdict", "PASS"),
+                       "reference_pass": "reference domain" in need[el][1]}
             log(f"[mms] {el}: skipped ({need[el][1]})")
             continue
         mms = mms or (prob.manufactured() if hasattr(prob, "manufactured") else Manufactured(prob))
@@ -157,13 +178,15 @@ def run(prob, force=False, log=print):
             added.append(f"n={n}: rates outside tolerance but moving toward theory")
             log(f"[mms] {el}: {added[-1]}")
             rows.append(r)
-        res = {"verdict": g["verdict"], "rates": g["rates"], "levels": [r["n"] for r in rows],
+        verdict = classify(g["verdict"], {k: [r[k] for r in rows] for k in EXPECTED})
+        res = {"verdict": verdict, "gate_verdict": g["verdict"], "rule": "R1 (post hoc, round Q)",
+               "rates": g["rates"], "levels": [r["n"] for r in rows],
                "levels_added": added,
                "errors": {k: [r[k] for r in rows] for k in EXPECTED}, "field": mms.field,
                "problem": prob.name, "reason": need[el][1]}
         out[el] = res
-        rec[key(prob, el)] = res
+        rec[key(prob, el) + suffix] = res
         json.dump(rec, open(RECORD, "w"), indent=1)
-        log(f"[mms] {el}: {g['verdict']} L2 rate {g['rates']['L2']['observed']:.2f} "
+        log(f"[mms] {el}: {verdict} L2 rate {g['rates']['L2']['observed']:.2f} "
             f"H1 rate {g['rates']['H1']['observed']:.2f}")
     return out

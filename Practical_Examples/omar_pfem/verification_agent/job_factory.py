@@ -51,7 +51,10 @@ python -u {command}
 """
 
 
-def make_job(name, command, mem_mb, hours, outputs, include=("Practical_Examples/omar_pfem",)):
+def make_job(name, command, mem_mb, hours, outputs, include=("Practical_Examples/omar_pfem",),
+             extra=()):
+    """extra: files (absolute paths in the repository) added to the bundle although not yet
+    committed, e.g. a job spec written just now."""
     script = os.path.join(PE, f"{name}_job.sh")
     open(script, "w").write(job_script(name, command, mem_mb, hours, outputs))
     os.makedirs(os.path.join(ROOT, "transfer"), exist_ok=True)
@@ -61,6 +64,8 @@ def make_job(name, command, mem_mb, hours, outputs, include=("Practical_Examples
     subprocess.run(["git", "archive", "--format=tar", "-o", tar + ".tar", "HEAD", *include],
                    cwd=ROOT, check=True)
     subprocess.run(["tar", "rf", tar + ".tar", rel_script], cwd=ROOT, check=True)
+    for e in extra:
+        subprocess.run(["tar", "rf", tar + ".tar", os.path.relpath(e, ROOT)], cwd=ROOT, check=True)
     subprocess.run(["gzip", "-9", "-n", "-f", tar + ".tar"], cwd=ROOT, check=True)
     os.replace(tar + ".tar.gz", tar)
     md5 = _md5(tar)
