@@ -72,8 +72,41 @@ def claims():
         ("predicted gap", g["prediction"]["last_gap"], "{:.3f}", None),
         ("L6 unknowns", a["dof6"], "{:,}", None),
         ("hours per formulation", a["hours_per_formulation"], "{:.0f}", None),
-    ]
+    ] + claims_25nov()
     return C
+
+
+def claims_25nov():
+    """Section 8 (25 November): neo-Hookean in the loop and the literature search."""
+    from omar_pfem.verification_agent import gates
+    rec = j("code_verification_record.json")
+    nh = next(v for k, v in rec.items() if k.endswith("|neo_hookean") and "|Q2|" in k
+              and v["problem"] == "nh_l_bracket_demo")
+    lad = sorted(j("pipeline2d_runs/nh_l_bracket_demo/ladders.json")["Q2 uniform"], key=lambda r: r["n"])
+    r5 = [r for r in lad if r["n"] <= 32]
+    g = gates.multilevel_convergence_gate([r["h"] for r in r5], [r["strain_energy"] for r in r5],
+                                          order_window=(0.5, 5))
+    run = j("autonomous_runs/nh_l_bracket_demo/run.json")
+    import glob
+    fail = json.load(open(sorted(glob.glob(os.path.join(HERE, "experiments/nh_l_bracket_demo/*graded_meshes.json")))[0]))
+    sc = j("literature_search_score.json")
+    return [
+        ("NH MMS L2", nh["rates"]["L2"]["observed"], "{:.2f}", None),
+        ("NH MMS H1", nh["rates"]["H1"]["observed"], "{:.2f}", None),
+        ("NH energy order", g["fit_order"], "{:.2f}", None),
+        ("NH 2 lam", run["small_load_check"]["linearized_2lam"], "{:.2f}", None),
+        ("NH min J n=2", lad[0]["min_detF"], "{:.2f}", lambda v: lad[0]["n"] == 2),
+        ("NH min J n=64", lad[-1]["min_detF"], "{:.2f}", lambda v: lad[-1]["n"] == 64),
+        ("graded failed with 64 steps", int("64]" in fail["outcome"]["failed"]) * 64, "{:d}", lambda v: v == 64),
+        ("small-load order", run["small_load_check"]["energy_order"], "{:.2f}", None),
+        ("papers found", sc["candidates"], "{:d}", None),
+        ("abstract screen", sc["keyword_pass"], "{:d}", None),
+        ("judged by LLM", sc["scouted"], "{:d}", None),
+        ("rated representable", sc["scout_positive"], "{:d}", lambda v: v == 1),
+        ("search cost", sc["llm_cost_usd"], "{:.2f}", None),
+        ("Cook mentions", len(sc["cook_membrane_mentions"]), "{:d}", lambda v: v == 4),
+        ("search predictions met", sum(sc["predictions"].values()), "{:d}", lambda v: v == 3),
+    ]
 
 
 def main():

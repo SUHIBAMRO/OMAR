@@ -443,3 +443,21 @@ Pre-registered before any loaded solve: commit 4fd091f. No billed run, no cluste
   (`round_o_claims.py`, also in CI). Reply draft `..._DRAFT_round_O.txt` has a placeholder for CAS.
 - Limits: 2D linear elasticity on unions of squares only; 3D/hyperelastic solvers not in the loop;
   memory of 12 experiments; priors not calibrated; no open paper in the test was solvable from text.
+
+## 25 November: neo-Hookean in the loop, automatic literature search (new-results PDF Section 8)
+
+- `pipeline2d_nh.py`: compressible neo-Hookean, plane strain, dead tractions (pressure and plane
+  stress refused); load steps 4 -> 64 doubled on Newton failure or J <= 0; MMS (`ManufacturedNH`,
+  ~10% strain) PASS (Q2 L2 3.05, H1 2.01). Newton stopping-criterion bug at tiny loads found by a
+  new test and fixed (update at round-off level counts as converged).
+- Loop: failed experiments are recorded (refuted) and banned per problem; new diagnostic action
+  `small_load_check`. Demo (L-bracket, neo-Hookean): nothing certified at the stated load (energy
+  order 0.69 vs linearized 1.09; min det F 0.87 -> 0.32), graded meshes invert at the corner, the
+  agent's small-load hypothesis confirmed (order 1.17). n = 128 run killed by time limit (cost
+  model underestimate) -> level capped at 64 for neo-Hookean; the killed run's two memory entries
+  were removed (development run).
+- `literature_search.py` (pre-registered): 66 papers, 27 abstract screen, 12 scouted, 1 positive,
+  read and refused correctly (Mooney-Rivlin, Cook's membrane); 3/5 predictions (L2, L3 missed);
+  USD 0.84. Log attribution bug ("chosen by a person") fixed post hoc (`chosen_by`).
+- Cook's membrane named in 4 of 12 scouted papers -> first geometry family: inclined edges.
+- New-results PDF now 8 pages (Section 8 added, Sections 3, 4 and 7 updated), claims 51/51.

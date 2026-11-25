@@ -1,0 +1,269 @@
+{
+ "steps": [
+  {
+   "stage": "L",
+   "actor": "LLM",
+   "status": "done",
+   "detail": "card from passage at character 18577 (score 105.6); quotes found 100%",
+   "card": {
+    "pdf": "1910.09459.pdf",
+    "section_used": "passage at character 18577 (score 105.6)",
+    "card": {
+     "title": "Cook's membrane (Mooney-Rivlin, near-incompressible) \u2013 VEM mesh-type comparison with Q2 reference formulation",
+     "geometry": {
+      "value": "Uniformly tapered panel (Cook's membrane), plane problem. The figure labels extracted from the section are 16, 44 and 60. The panel width (horizontal length), units and the thickness/plane-strain assumption are not stated in the text.",
+      "quote": "This problem consists of a uniformly tapered panel, fully constrained on its left edge,"
+     },
+     "material": {
+      "value": "Mooney-Rivlin hyperelastic, Psi = C10(I_C-3) + C01(II_C-3) + kappa/2 ln(J)^2, with kappa = Ey/(3(1-2nu)), mu = 2(C10+C01), C10 = r C01, r = 4, Ey = 200 Pa. Main case nu = 0.49995; H1 study uses 'a variety of choices of Poisson's ratio', including -0.95, 0.3 and 0.49995.",
+      "quote": "we set C10 = rC01 and choose r = 4"
+     },
+     "boundary_conditions": {
+      "value": "Left edge fully clamped. The right edge carries the load. The top and bottom edges are presumably traction-free; this is inferred, not stated.",
+      "quote": "fully constrained on its left edge,"
+     },
+     "loading": {
+      "value": "Uniformly distributed load qc on the right edge with total magnitude Qc = 10 N. The text does not state the direction (the figure presumably shows vertical shear). The load-stepping scheme is not stated.",
+      "quote": "subject to a uniformly distributed load qc with a total magnitude Qc = 10 N on its right edge"
+     },
+     "discretisation": {
+      "value": "The standard Q2 finite element is included as a 'reference formulation' and compared against VEM meshes (SQ1, DQ2S, S&S, IS&S, VRN). For Q2, the number of elements is nel = 2^(2N), where N is the refinement level. The section does not state which N values were used for the Q2 reference or for the H1-error reference solution. The stabilization is alpha = T5(lambda)/Ey, or alpha = 0 in Fig. 10(b) and 11(b).",
+      "quote": "we include the standard Q2 finite element"
+     },
+     "reference": {
+      "type": "unspecified",
+      "convergence_evidence": "none_stated",
+      "quote": "Figure 11(a) shows a plot of H1 error vs mean element diameter h\u0304 on a loglog scale for Cook\u2019s membrane"
+     },
+     "qois": [
+      {
+       "name": "Tip deflection",
+       "kind": "displacement",
+       "definition": "Vertical displacement of the upper right-hand corner vs mesh refinement level N, for nu = 0.49995, with alpha = T5(lambda)/Ey and with alpha = 0",
+       "reported_value": "Values are given only graphically (Fig. 10). The text reports smooth monotonic convergence and locking-free behaviour, with SQ1 and VRN less accurate.",
+       "quote": "Figure 10(a) shows the vertical displacement of the upper right hand corner of the body vs mesh refinement"
+      },
+      {
+       "name": "H1 error convergence rate",
+       "kind": "field_error_norm",
+       "definition": "H1 error vs mean element diameter h-bar on IS&S meshes for several Poisson's ratios, with and without the incompressibility factor",
+       "reported_value": "Approximately 1.5 (greater than expected) for alpha = 0. Coarse-mesh behaviour is suboptimal for nu = -0.95 with alpha = T5(lambda)/Ey. No numeric error values are given in the text.",
+       "quote": "we observe a greater than expected order of accuracy with a convergence rate"
+      }
+     ],
+     "singular_features": [
+      {
+       "description": "Corners where the clamped left edge meets the traction-free top and bottom edges. Clamped\u2013free corners are known to cause singular stress, especially near incompressibility.",
+       "singular": true,
+       "inferred": true,
+       "quote": "fully constrained on its left edge,"
+      }
+     ],
+     "not_stated": [
+      "panel width (horizontal dimension) and units of the 16/44/60 dimensions in the text",
+      "plane strain vs plane stress / thickness",
+      "direction of load qc",
+      "mesh refinement levels N used for each curve",
+      "how the reference solution for H1 error is obtained",
+      "load increments / nonlinear solver settings",
+      "numerical values of tip deflection",
+      "definition of T5(lambda) (refers to an earlier section)"
+     ]
+    },
+    "quotes_found": {
+     "geometry": true,
+     "material": true,
+     "boundary_conditions": true,
+     "loading": true,
+     "discretisation": true,
+     "reference": true,
+     "qois[0]": true,
+     "qois[1]": true,
+     "singular_features[0]": true
+    },
+    "quote_rate": 1.0,
+    "qoi_classes": [
+     {
+      "name": "Tip deflection",
+      "kind": "displacement",
+      "class": "displacement"
+     },
+     {
+      "name": "H1 error convergence rate",
+      "kind": "field_error_norm",
+      "class": "error_norm"
+     }
+    ],
+    "vocabulary_gaps": [],
+    "needs": [
+     "reference not verified: a refinement family (and strategies) is needed before its values can be used to measure surrogate errors",
+     "no independent code: cross-check with a second solver",
+     "singular features present: run the singular-order check; pointwise peaks there have no finite limit",
+     "missing inputs must be fixed (and declared) before solving: panel width (horizontal dimension) and units of the 16/44/60 dimensions in the text; plane strain vs plane stress / thickness; direction of load qc; mesh refinement levels N used for each curve; how the reference solution for H1 error is obtained; load increments / nonlinear solver settings; numerical values of tip deflection; definition of T5(lambda) (refers to an earlier section)"
+    ],
+    "problem_text": "Cook's membrane (Mooney-Rivlin, near-incompressible) \u2013 VEM mesh-type comparison with Q2 reference formulation.\nGeometry: Uniformly tapered panel (Cook's membrane), plane problem. The figure labels extracted from the section are 16, 44 and 60. The panel width (horizontal length), units and the thickness/plane-strain assumption are not stated in the text.\nMaterial: Mooney-Rivlin hyperelastic, Psi = C10(I_C-3) + C01(II_C-3) + kappa/2 ln(J)^2, with kappa = Ey/(3(1-2nu)), mu = 2(C10+C01), C10 = r C01, r = 4, Ey = 200 Pa. Main case nu = 0.49995; H1 study uses 'a variety of choices of Poisson's ratio', including -0.95, 0.3 and 0.49995.\nBoundary conditions: Left edge fully clamped. The right edge carries the load. The top and bottom edges are presumably traction-free; this is inferred, not stated.\nLoading: Uniformly distributed load qc on the right edge with total magnitude Qc = 10 N. The text does not state the direction (the figure presumably shows vertical shear). The load-stepping scheme is not stated.\nDiscretisation in the paper: The standard Q2 finite element is included as a 'reference formulation' and compared against VEM meshes (SQ1, DQ2S, S&S, IS&S, VRN). For Q2, the number of elements is nel = 2^(2N), where N is the refinement level. The section does not state which N values were used for the Q2 reference or for the H1-error reference solution. The stabilization is alpha = T5(lambda)/Ey, or alpha = 0 in Fig. 10(b) and 11(b).\nFeatures: Corners where the clamped left edge meets the traction-free top and bottom edges. Clamped\u2013free corners are known to cause singular stress, especially near incompressibility..\nQuestion: which of these quantities can serve as trustworthy reference values: Tip deflection (Vertical displacement of the upper right-hand corner vs mesh refinement level N, for nu = 0.49995, with alpha = T5(lambda)/Ey and with alpha = 0); H1 error convergence rate (H1 error vs mean element diameter h-bar on IS&S meshes for several Poisson's ratios, with and without the incompressibility factor)?"
+   }
+  },
+  {
+   "stage": "L",
+   "actor": "code",
+   "status": "done",
+   "detail": "section chosen by code from the hint"
+  },
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "paper and hint chosen by a person ('Simple shear of unit square')"
+  },
+  {
+   "stage": "D",
+   "actor": "LLM",
+   "status": "done",
+   "detail": "formalizer specification; code check: no problems",
+   "spec": {
+    "name": "Cook's membrane, Mooney-Rivlin near-incompressible, VEM mesh-type comparison against Q2 (Q9) reference",
+    "geometry": "Cook's membrane: uniformly tapered quadrilateral panel, plane problem. Extracted figure labels are 16, 44 and 60. The standard Cook geometry is a 48 wide panel with a left edge from 0 to 44 and a right edge from 44 to 60, but the source does not state the horizontal width, the units, the thickness, or whether it is plane strain or plane stress. The vertex coordinates are therefore not confirmed.",
+    "dim": 2,
+    "material": "Compressible Mooney-Rivlin: Psi = C10(I_C-3) + C01(II_C-3) + kappa/2 (ln J)^2, with kappa = Ey/(3(1-2nu)), mu = 2(C10+C01), C10 = 4 C01 and Ey = 200 Pa. The main case is nu = 0.49995 (kappa/mu \u2248 1e4, near-incompressible). The H1 study also uses nu = -0.95, 0.3 and 0.49995, among others. The (ln J)^2 volumetric term is not convex for large J, so material stability is guaranteed only for moderate volume change.",
+    "loading": "Uniformly distributed edge load qc on the right edge with total magnitude Qc = 10 N. The direction is not stated; vertical shear is presumed from the standard Cook problem. The load-stepping scheme and the number of increments are not stated. The load is large relative to Ey = 200 Pa, so the deformation is strongly geometrically nonlinear.",
+    "regularity": "clamped_free_corner",
+    "element": "Q9",
+    "reference": "mesh_refinement_family",
+    "qois": [
+     "Tip deflection: vertical displacement of the upper right-hand corner vs refinement level N (nel = 2^(2N)), nu = 0.49995, with alpha = T5(lambda)/Ey and with alpha = 0. Conditionally trustworthy as a reference value. It is a point displacement far from the singular clamped corners, so it should converge under refinement. However, the reference must come from a locking-free or converged Q2 sequence: plain displacement-based Q2 still locks volumetrically at nu = 0.49995, and converges slowly and from below. The alpha = 0 (unstabilized VEM) curves are comparison data, not reference data.",
+     "H1 error convergence rate vs mean element diameter h-bar on IS&S meshes for several nu, with and without the incompressibility factor. Not trustworthy as a measure of optimal rate. The clamped-free corner singularities limit the global H1 error to about h^min(k, lambda_corner) on quasi-uniform meshes, and lambda_corner depends on nu and on the deformed state. The rate is also measured against a numerical reference solution of unstated refinement, which biases the rate at fine h. Observed rates are meaningful only as comparisons between methods under the same singularity limit. Each rate must be paired with the reference level used."
+    ],
+    "well_posedness": [
+     "Dirichlet: the left edge is fully clamped (u = 0), which removes rigid-body modes, so the problem is well posed for displacement.",
+     "Neumann: the right edge carries a uniform traction with resultant 10 N. Traction-free top and bottom edges are inferred, not stated.",
+     "Singular features: two clamped-free re-entrant-type corners on the left edge. Stress and strain are singular there, more strongly near incompressibility. Pointwise peak stress and corner stresses do not converge. Energy, the tip displacement and region-averaged quantities do converge. The global H1 rate is capped below the optimal Q2 rate of O(h^2).",
+     "Near-incompressibility (nu = 0.49995, kappa/mu \u2248 1e4): displacement-based Q2 suffers volumetric locking, so convergence is pre-asymptotic over practical N and the reference value is biased low unless a mixed or F-bar Q2 is used. The VEM incompressibility factor and the stabilization alpha affect locking robustness.",
+     "Stabilization: alpha = 0 removes the VEM stabilization. This risks rank deficiency or hourglass modes, so a convergent or unique discrete solution is not guaranteed and alpha = 0 results cannot serve as reference.",
+     "Material stability: mu > 0 and kappa > 0 for all listed nu, including nu = -0.95 (kappa > 0 since nu > -1). The (ln J)^2 term loses convexity for J > e, so ellipticity must be checked at the final load state.",
+     "Load level vs. limit points: Qc = 10 N on Ey = 200 Pa produces large deformation. No limit points or bifurcations are reported, and the load stepping is unstated, so uniqueness of the path to the final state is unverified."
+    ],
+    "open_questions": [
+     "What are the exact panel vertex coordinates? Is the width 48? What are the units of length and the thickness?",
+     "Is the problem plane strain or plane stress?",
+     "What is the direction of the edge load qc (vertical shear assumed)? Is it a dead load or a follower load?",
+     "What load-stepping scheme, number of increments and Newton tolerance were used?",
+     "Which refinement levels N were used for the Q2 reference curve? Which mesh or level defines the reference solution for the H1 error?",
+     "Is the Q2 reference a pure displacement formulation or a mixed / F-bar formulation? This decides whether it locks at nu = 0.49995.",
+     "What is the exact definition of T5(lambda) in the stabilization parameter alpha?",
+     "What exactly is the 'incompressibility factor' in the H1 study, and how is it applied?",
+     "What is the complete list of Poisson's ratios used in the H1 study?",
+     "How is the H1 error defined: absolute or relative, in reference or current configuration, and at which load level?",
+     "Are the top and bottom edges explicitly traction-free?",
+     "Is there a mismatch in the unit system (Ey in Pa, load in N)? Is the load per unit thickness?"
+    ]
+   }
+  },
+  {
+   "stage": "D",
+   "actor": "LLM",
+   "status": "unsupported",
+   "detail": "Two blocking reasons. (1) Material: the problem uses a Mooney-Rivlin model with near-incompressibility, Psi = C10(I_C-3) + C01(II_C-3) + kappa/2 ln(J)^2 with C10 = 4 C01 and nu = 0.49995. The pipeline only supports compressible neo-Hookean, and Mooney-Rivlin is explicitly excluded. Setting C01 = 0 to turn it into neo-Hookean would change the problem, so that is not done. (2) Geometry: Cook's membrane is a tapered quadrilateral with inclined top and bottom edges. It cannot be built exactly from equal square cells. Other inputs are also missing: the panel width, units, plane strain vs. plane stress, the load direction (vertical shear is only presumed), and which refinement levels N were used for the Q2 reference. On the question asked: (a) Tip deflection, meaning the vertical displacement of the upper-right corner. As a displacement far from the clamped-free corner singularities, it would normally converge under refinement and could serve as a reference value. Here it cannot be confirmed, because the paper's refinement levels are not stated and near-incompressibility can cause volumetric locking. The alpha = 0 case in particular may not converge to the same value. Treat it as a plausible reference only after a refinement study shows its values settling. (b) H1 error convergence rate on IS&S meshes. This is not a trustworthy reference value. Clamped-free corners make the solution singular, especially near incompressibility, so the observed rate depends on the strength of the singularity and on nu rather than the smooth-solution theoretical rate. Also, the reference solution used to compute the H1 error is not specified.",
+   "modeler": {
+    "supported": false,
+    "unsupported_reason": "Two blocking reasons. (1) Material: the problem uses a Mooney-Rivlin model with near-incompressibility, Psi = C10(I_C-3) + C01(II_C-3) + kappa/2 ln(J)^2 with C10 = 4 C01 and nu = 0.49995. The pipeline only supports compressible neo-Hookean, and Mooney-Rivlin is explicitly excluded. Setting C01 = 0 to turn it into neo-Hookean would change the problem, so that is not done. (2) Geometry: Cook's membrane is a tapered quadrilateral with inclined top and bottom edges. It cannot be built exactly from equal square cells. Other inputs are also missing: the panel width, units, plane strain vs. plane stress, the load direction (vertical shear is only presumed), and which refinement levels N were used for the Q2 reference. On the question asked: (a) Tip deflection, meaning the vertical displacement of the upper-right corner. As a displacement far from the clamped-free corner singularities, it would normally converge under refinement and could serve as a reference value. Here it cannot be confirmed, because the paper's refinement levels are not stated and near-incompressibility can cause volumetric locking. The alpha = 0 case in particular may not converge to the same value. Treat it as a plausible reference only after a refinement study shows its values settling. (b) H1 error convergence rate on IS&S meshes. This is not a trustworthy reference value. Clamped-free corners make the solution singular, especially near incompressibility, so the observed rate depends on the strength of the singularity and on nu rather than the smooth-solution theoretical rate. Also, the reference solution used to compute the H1 error is not specified.",
+    "description": {
+     "name": "cooks_membrane_mooney_rivlin_unsupported",
+     "material": "neo_hookean",
+     "cell_size": 1,
+     "cells": [],
+     "E": 200,
+     "nu": 0.49995,
+     "plane": "strain",
+     "bcs": [],
+     "points": []
+    },
+    "sources": [
+     {
+      "item": "Young's modulus",
+      "value": "200",
+      "quote": "Ey = 200 Pa"
+     },
+     {
+      "item": "Poisson's ratio (main case)",
+      "value": "0.49995",
+      "quote": "Main case nu = 0.49995"
+     },
+     {
+      "item": "Total load",
+      "value": "10",
+      "quote": "total magnitude Qc = 10 N"
+     },
+     {
+      "item": "Mooney-Rivlin ratio",
+      "value": "4",
+      "quote": "C10 = r C01, r = 4"
+     }
+    ],
+    "assumptions": [
+     "No model was built. The description object is only a placeholder because supported=false: empty cells, no boundary conditions, cell_size = 1 chosen arbitrarily, and plane strain chosen only to fill the schema field.",
+     "The figure labels 16, 44 and 60 were not interpreted as dimensions, because the text does not say which length each one is or give units.",
+     "Open question: is the load direction vertical shear? It is presumed, not stated.",
+     "Open question: which refinement levels N were used for the Q2 reference and for the H1-error reference solution?"
+    ]
+   }
+  }
+ ],
+ "human_points": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "paper and hint chosen by a person ('Simple shear of unit square')"
+  }
+ ],
+ "wall_clock_s": 67.8528003692627,
+ "source": {
+  "pdf": "/home/user/OMAR/Practical_Examples/omar_pfem/verification_agent/literature_search_runs/papers/1910.09459.pdf",
+  "text": null,
+  "description_given": false
+ },
+ "modeler": {
+  "supported": false,
+  "unsupported_reason": "Two blocking reasons. (1) Material: the problem uses a Mooney-Rivlin model with near-incompressibility, Psi = C10(I_C-3) + C01(II_C-3) + kappa/2 ln(J)^2 with C10 = 4 C01 and nu = 0.49995. The pipeline only supports compressible neo-Hookean, and Mooney-Rivlin is explicitly excluded. Setting C01 = 0 to turn it into neo-Hookean would change the problem, so that is not done. (2) Geometry: Cook's membrane is a tapered quadrilateral with inclined top and bottom edges. It cannot be built exactly from equal square cells. Other inputs are also missing: the panel width, units, plane strain vs. plane stress, the load direction (vertical shear is only presumed), and which refinement levels N were used for the Q2 reference. On the question asked: (a) Tip deflection, meaning the vertical displacement of the upper-right corner. As a displacement far from the clamped-free corner singularities, it would normally converge under refinement and could serve as a reference value. Here it cannot be confirmed, because the paper's refinement levels are not stated and near-incompressibility can cause volumetric locking. The alpha = 0 case in particular may not converge to the same value. Treat it as a plausible reference only after a refinement study shows its values settling. (b) H1 error convergence rate on IS&S meshes. This is not a trustworthy reference value. Clamped-free corners make the solution singular, especially near incompressibility, so the observed rate depends on the strength of the singularity and on nu rather than the smooth-solution theoretical rate. Also, the reference solution used to compute the H1 error is not specified.",
+  "description": {
+   "name": "cooks_membrane_mooney_rivlin_unsupported",
+   "material": "neo_hookean",
+   "cell_size": 1,
+   "cells": [],
+   "E": 200,
+   "nu": 0.49995,
+   "plane": "strain",
+   "bcs": [],
+   "points": []
+  },
+  "sources": [
+   {
+    "item": "Young's modulus",
+    "value": "200",
+    "quote": "Ey = 200 Pa"
+   },
+   {
+    "item": "Poisson's ratio (main case)",
+    "value": "0.49995",
+    "quote": "Main case nu = 0.49995"
+   },
+   {
+    "item": "Total load",
+    "value": "10",
+    "quote": "total magnitude Qc = 10 N"
+   },
+   {
+    "item": "Mooney-Rivlin ratio",
+    "value": "4",
+    "quote": "C10 = r C01, r = 4"
+   }
+  ],
+  "assumptions": [
+   "No model was built. The description object is only a placeholder because supported=false: empty cells, no boundary conditions, cell_size = 1 chosen arbitrarily, and plane strain chosen only to fill the schema field.",
+   "The figure labels 16, 44 and 60 were not interpreted as dimensions, because the text does not say which length each one is or give units.",
+   "Open question: is the load direction vertical shear? It is presumed, not stated.",
+   "Open question: which refinement levels N were used for the Q2 reference and for the H1-error reference solution?"
+  ]
+ }
+}

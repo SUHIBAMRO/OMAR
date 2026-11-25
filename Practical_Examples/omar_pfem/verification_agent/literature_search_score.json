@@ -1,0 +1,30 @@
+{
+ "search_record": "literature_search_runs/20261125_003649.json",
+ "candidates": 66,
+ "keyword_pass": 27,
+ "scouted": 12,
+ "scout_positive": 1,
+ "papers_read": 1,
+ "reached_verdicts": 0,
+ "llm_cost_usd": 0.843609,
+ "scout_vs_definition": [
+  {
+   "id": "1910.09459",
+   "scout": true,
+   "definition_supported": false
+  }
+ ],
+ "cook_membrane_mentions": [
+  "1910.09459",
+  "2410.22562",
+  "2001.03438",
+  "2206.14610"
+ ],
+ "predictions": {
+  "L1 step L without a person (search record: queries, ranking, choice and hint by code/LLM; NOTE the run log wrongly said 'chosen by a person', fixed post hoc)": true,
+  "L2 a paper read reaches verdicts": false,
+  "L3 scout agrees with definition on >= 2 papers": false,
+  "L4 cost <= 5": true,
+  "L5 no untraced number solved": true
+ }
+}

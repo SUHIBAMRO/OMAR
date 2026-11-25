@@ -365,7 +365,8 @@ def _execute(c, prob, ladders, V, v, ad, graded, lv, glv, result, small_load_don
 
 
 def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="replay",
-        replay=None, budget_minutes=20.0, max_experiments=4, levels=(2, 4, 8, 16, 32)):
+        replay=None, budget_minutes=20.0, max_experiments=4, levels=(2, 4, 8, 16, 32),
+        chosen_by="person"):
     from omar_pfem.verification_agent import experiment as X
     from omar_pfem.verification_agent import llm_roles, mms_auto
     from omar_pfem.verification_agent import pipeline2d as P
@@ -386,7 +387,10 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
         if section is None:
             log.step("L", "code", "done", "section chosen by code from the hint")
         problem_text = card["problem_text"]
-        log.step("L", "person", "input", f"paper and hint chosen by a person ({hint!r})")
+        if chosen_by == "person":
+            log.step("L", "person", "input", f"paper and hint chosen by a person ({hint!r})")
+        else:       # 2026-11-25: the literature search chose them (fixed after its first run)
+            log.step("L", "code", "done", f"paper and hint chosen by {chosen_by} ({hint!r})")
     elif text:
         problem_text = open(text).read() if os.path.exists(text) else text
         log.step("L", "person", "input", "problem text written by a person (literature step "

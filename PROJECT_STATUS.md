@@ -26254,3 +26254,7 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   (P1 then disp). When done: Omar pastes `md5sum` + `cat` of
   ~/OMAR/Practical_Examples/omar_pfem/verification_agent/iga_b3_l6_result.json; then
   `python -m omar_pfem.verification_agent.groove_experiment score` (frozen prediction sha a909b1f9bd88).
+- 2026-11-25 DONE: neo-Hookean in the autonomous loop + automatic arXiv literature search (see
+  CHANGELOG 25 Nov). New-results PDF 8 pages, claims 51/51; reply draft updated (8 pages, Section 8
+  paragraph). Tests 91 pass. Groove L6 job 3297326 still running. Next (advisor order): geometry
+  family with inclined edges (Cook's membrane), then holes/curved edges; 3D solvers; CSM/CFM last.

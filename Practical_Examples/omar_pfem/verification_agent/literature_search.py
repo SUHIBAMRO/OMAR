@@ -200,7 +200,8 @@ def search(backend_name="claude-cli", max_read=3, per_query=15, budget_usd=5.0,
                 pdf = download(c["id"], os.path.join(OUTDIR, "papers"))
                 log(f"[search] reading {c['id']}: {c['title'][:80]} (hint {c['scout']['example']!r})")
                 res = autonomous.run(pdf=pdf, hint=c["scout"]["example"], backend_name=backend_name,
-                                     budget_minutes=budget_minutes, max_experiments=4)
+                                     budget_minutes=budget_minutes, max_experiments=4,
+                                     chosen_by="the literature search (code + scout)")
                 seen.add(c["id"])
                 rec["read"].append({"id": c["id"], "title": c["title"], "material": material,
                                     "hint": c["scout"]["example"],
