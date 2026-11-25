@@ -1,0 +1,93 @@
+{
+ "name": "plate_hole_quarter_pe",
+ "material": "linear_elastic",
+ "E": 1.0,
+ "nu": 0.3,
+ "plane": "strain",
+ "domain": {
+  "outer": [
+   [
+    0,
+    0
+   ],
+   [
+    10,
+    0
+   ],
+   [
+    10,
+    10
+   ],
+   [
+    0,
+    10
+   ]
+  ],
+  "holes": [
+   {
+    "circle": [
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "bcs": [
+  {
+   "segment": [
+    [
+     1,
+     0
+    ],
+    [
+     10,
+     0
+    ]
+   ],
+   "type": "symmetry"
+  },
+  {
+   "segment": [
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     10
+    ]
+   ],
+   "type": "symmetry"
+  },
+  {
+   "segment": [
+    [
+     10,
+     0
+    ],
+    [
+     10,
+     10
+    ]
+   ],
+   "type": "traction",
+   "t": [
+    1.0,
+    0.0
+   ]
+  }
+ ],
+ "points": {
+  "u_right": [
+   10,
+   0,
+   "x"
+  ],
+  "v_hole_top": [
+   0,
+   1,
+   "y"
+  ]
+ }
+}

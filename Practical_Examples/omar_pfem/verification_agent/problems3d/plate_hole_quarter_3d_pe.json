@@ -1,0 +1,103 @@
+{
+ "name": "plate_hole_quarter_3d_pe",
+ "dim": 3,
+ "domain": {
+  "outer": [
+   [
+    0,
+    0
+   ],
+   [
+    10,
+    0
+   ],
+   [
+    10,
+    10
+   ],
+   [
+    0,
+    10
+   ]
+  ],
+  "holes": [
+   {
+    "circle": [
+     0,
+     0,
+     1
+    ]
+   }
+  ]
+ },
+ "thickness": 1.0,
+ "E": 1.0,
+ "nu": 0.3,
+ "bcs": [
+  {
+   "segment": [
+    [
+     1,
+     0
+    ],
+    [
+     10,
+     0
+    ]
+   ],
+   "type": "symmetry"
+  },
+  {
+   "segment": [
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     10
+    ]
+   ],
+   "type": "symmetry"
+  },
+  {
+   "segment": [
+    [
+     10,
+     0
+    ],
+    [
+     10,
+     10
+    ]
+   ],
+   "type": "traction",
+   "t": [
+    1.0,
+    0.0
+   ]
+  },
+  {
+   "face": "z0",
+   "type": "symmetry"
+  },
+  {
+   "face": "z1",
+   "type": "symmetry"
+  }
+ ],
+ "points": {
+  "u_right": [
+   10,
+   0,
+   0.0,
+   "x"
+  ],
+  "v_hole_top": [
+   0,
+   1,
+   0.0,
+   "y"
+  ]
+ }
+}

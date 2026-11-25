@@ -1,0 +1,19 @@
+{
+ "date": "2026-11-25",
+ "written_before_any_3d_result": true,
+ "purpose": "Item 4 of 'automate everything': 3D (extruded 2D sections) in the autonomous loop. Predictions fixed before any 3D solve.",
+ "problems": {
+  "plate_hole_quarter_3d_pe": "problems3d/plate_hole_quarter_3d_pe.json: the quarter plate with a hole (10 x 10, r = 1, E and nu of the 2D problem), thickness 1, rollers on both z faces (plane strain); 2D counterpart problems2d/plate_hole_quarter_pe.json (plane strain)",
+  "cook_3d": "problems3d/cook_3d.json: Cook's membrane section, thickness 1, z faces free, clamped x = 0, shear traction 0.0625 per unit area on x = 48 (total 1 per unit thickness, as in 2D)"
+ },
+ "predictions": {
+  "P1_mms": "3D manufactured-solution check PASS for both elements (27-node hexahedra and 10-node tetrahedra; L2 rate within 0.2 of 3, H1 within 0.2 of 2), on both problems (levels may be added by the toward-theory rule)",
+  "P2_planestrain_identity": "plate 3D plane strain, Q2 hexahedra: at every level n = 2..16 the 3D solution equals the 2D plane-strain Q2 solution of the same level (same in-plane mesh; z-independent field exactly representable): strain_energy / thickness, u_right, v_hole_top and peak_von_mises agree to 1e-8 relative",
+  "P3_planestrain_limits": "plate 3D plane strain: every quantity certified in 3D has a certified limit within the combined uncertainty (U3D + U2D, absolute) of the 2D plane-strain certified limit (strain energy per unit thickness)",
+  "P4_plate_loop": "the loop on plate_hole_quarter_3d_pe finds no singular edges (corners and face edges empty) and certifies at least 3 of its 4 quantities",
+  "P5_cook_edges": "cook_3d: the three 2D corners of the 2D Cook run are singular z edges, and the clamped side meeting the free z faces gives singular face edges with an in-plane exponent below 1",
+  "P6_cook_values": "cook_3d: the certified (or, if not certified, finest Q2) v_C is within 2% of the 2D plane-stress reference 23.96, and strain_energy / thickness within 2% of the 2D plane-stress certified 12.02",
+  "P7_cook_peak": "cook_3d: peak_von_mises is concluded not verifiable (an exponent below 1)",
+  "P8_memory_guard": "on cook_3d a Q2 level n = 32 exceeds the 450,000-DOF guard (if the agent proposes it, the solve is refused before it starts and recorded as a failed experiment, not a crash)"
+ }
+}
