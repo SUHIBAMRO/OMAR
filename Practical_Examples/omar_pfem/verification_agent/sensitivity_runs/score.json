@@ -1,0 +1,146 @@
+{
+ "P1_plate_E": {
+  "confirmed": false,
+  "evidence": {
+   "u_right": -1.0101010101012653,
+   "v_hole_top": -1.0101010101014818,
+   "strain_energy": -1.0101010101011791,
+   "peak_von_mises": -2.1069863455873565e-13
+  }
+ },
+ "P2_plate_load": {
+  "confirmed": true,
+  "evidence": {
+   "peak_von_mises": 1.0000000000000475,
+   "strain_energy": 2.000000000000076,
+   "u_right": 1.0000000000000382,
+   "v_hole_top": 1.0000000000000042
+  }
+ },
+ "P3_plate_nu_michell": {
+  "confirmed": false,
+  "evidence": {
+   "peak_von_mises": 0.0002672899736801957,
+   "strain_energy": -2.3985527180880655e-08,
+   "u_right": -1.8543158268555324e-07,
+   "v_hole_top": -7.100072125218417e-06
+  }
+ },
+ "P4_plate_radius": {
+  "confirmed": true,
+  "evidence": {
+   "change_rel": 0.007936104006794266,
+   "S": 0.07804260671125958
+  }
+ },
+ "P5_cook_E": {
+  "confirmed": false,
+  "evidence": {
+   "corner0_gk_avg_von_mises": 7.861722985335379e-13,
+   "corner2_gk_avg_von_mises": 5.853730900009723e-13,
+   "strain_energy": -1.0101010100990233,
+   "v_C": -1.010101010099902
+  }
+ },
+ "P6_cook_nu": {
+  "confirmed": true,
+  "evidence": {
+   "corner0_gk_avg_von_mises": 0.17969639359564588,
+   "corner2_gk_avg_von_mises": -0.015547200939246825
+  }
+ },
+ "P7_nh_identity": {
+  "confirmed": false,
+  "evidence": {
+   "strain_energy": [
+    -1.0426790867112212,
+    2.0321837982061046
+   ],
+   "u_top_left": [
+    -1.0863630646559175,
+    1.074291621757561
+   ],
+   "v_right_top": [
+    -0.8297337404488816,
+    0.825837470845997
+   ],
+   "corner0_gk_avg_von_mises": [
+    -0.03436786462644654,
+    1.0341148752144196
+   ],
+   "corner1_gk_avg_von_mises": [
+    0.0890809290957781,
+    0.9120579995683804
+   ],
+   "corner2_gk_avg_von_mises": [
+    -0.012869947089706978,
+    1.0127910920390366
+   ],
+   "peak_von_mises": [
+    -0.9851574511543587,
+    1.965714586979755
+   ]
+  }
+ },
+ "P8_selfcheck": {
+  "confirmed": true,
+  "evidence": [
+   [
+    "plate",
+    "E",
+    [
+     8,
+     16
+    ]
+   ],
+   [
+    "plate",
+    "nu",
+    [
+     8,
+     16
+    ]
+   ],
+   [
+    "plate",
+    "bcs[2].t",
+    [
+     8,
+     16
+    ]
+   ],
+   [
+    "plate",
+    "hole[0].radius",
+    [
+     8,
+     16
+    ]
+   ],
+   [
+    "cook",
+    "E",
+    [
+     8,
+     16
+    ]
+   ],
+   [
+    "cook",
+    "nu",
+    [
+     8,
+     16
+    ]
+   ],
+   [
+    "cook",
+    "bcs[1].t",
+    [
+     8,
+     16
+    ]
+   ]
+  ]
+ }
+}

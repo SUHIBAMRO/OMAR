@@ -490,3 +490,31 @@ Pre-registered before any loaded solve: commit 4fd091f. No billed run, no cluste
   (40 x 40): peak 2.946, 2.976, 2.990 -> about 3.005 vs 3.00. Record: geometry2d_validation.json.
 - Tests 95 pass (point outside the domain refused, Cook mid-edge value, plate corners none and
   regular convergence, cache invalidation). CI installs gmsh and its system libraries.
+
+## 25 November: automatic sensitivity check of assumed inputs (item 2 of "automate everything")
+
+- `sensitivity.py`; rule and 8 predictions pre-registered and committed before any run
+  (`sensitivity_preregistration.json`, commit b596650). Assumed inputs (E, nu, loads, prescribed u,
+  hole radius) are perturbed (+-10%, nu +-0.05) on the same mesh; the sensitivity is computed at
+  n = 8 and 16 and checked for agreement (doubled up to 64 if not). In the loop (step A, after
+  certification) a person is asked only where an input changes a CERTIFIED quantity by more than
+  its numerical uncertainty U (pre-registered rule; replaces "every assumed number needs a person").
+  Inputs that cannot be perturbed (vertices) still go to a person.
+- Runs: plate with hole (E, nu, load, hole radius), Cook (E, nu, load), neo-Hookean L-bracket
+  (E, load; all quantities, diagnostic). All linear sensitivities settled at n = 8/16. Plate: nu does
+  not change the peak stress (|S| 2.7e-4, Michell); E does not change any stress (S ~ 1e-13).
+- Predictions 4/8 confirmed (P2 load, P4 radius 0.8% < 3%, P6 Cook nu, P8 self-check). The 4 misses
+  are errors in the written expectations, not in the code (post hoc explanation,
+  sensitivity_runs/score_posthoc_explanation.json): central difference of 1/E is -1.0101, not -1
+  (observed to 2e-12); Kirsch hole-edge and axis displacements do not depend on nu; neo-Hookean
+  stresses and energy follow S_E = 1 - S_t, displacements S_E = -S_t.
+- Finding: with U ~ 1e-9 (smooth problems) the pre-registered rule asks a person for every input with
+  any effect (plate 4/4, Cook 3/3 inputs). POST HOC, reported only (the loop keeps the pre-registered
+  rule until Professor Rabczuk decides): (a) the adopted one-third rule (question 2) applied to the
+  input range; it fails for Cook corner0 average under nu +-0.05 (U 1.08% > 2.7%/3); (b) proposal:
+  a person only if the input changes the quantity by more than the adopted accuracy target (1%
+  displacement/global, 5% averages) -> nu cleared on both problems (plate 3/4, Cook 2/3 inputs).
+  Also post hoc: S_log = ln(Q+/Q-)/ln(p+/p-), exact for power laws.
+- Bookkeeping fixes: a repeat run no longer overwrites frozen experiment records (`_run2` files); the
+  same experiment with the same outcome on the same problem is counted once in memory; the cache
+  fingerprint ignores the `assumed` metadata. Loop CLI `--assume`. Tests 99 pass.

@@ -26272,3 +26272,9 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   NEXT (user asked "automate everything", order agreed): (2) automatic sensitivity check of assumed
   inputs, (3) automatic per-run report, (4) 3D in the loop. Kept manual: cluster submission, emails.
   Email + new-results PDF still to be sent by Omar (geometry results NOT in that PDF; next PDF).
+- 2026-11-25 DONE item 2: automatic sensitivity of assumed inputs (`sensitivity.py`, step A of the loop;
+  pre-registered b596650; predictions 4/8, all misses = wrong written expectations, code agrees with
+  corrected theory). OPEN QUESTION for Professor Rabczuk (next email/PDF): threshold for asking a person
+  - pre-registered "change > numerical U" flags everything on smooth problems; post hoc proposal
+  "change > adopted accuracy target". Loop uses the pre-registered rule meanwhile. NEXT: item 3
+  (automatic per-run report), then item 4 (3D in the loop).

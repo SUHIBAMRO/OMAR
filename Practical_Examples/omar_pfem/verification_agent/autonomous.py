@@ -276,8 +276,19 @@ def define(backend, text, log, retries=2):
             # POST HOC (24 Nov): only an assumed PHYSICAL number needs a person; prose
             # clarifications in `assumptions` are recorded but not flagged
             if flagged:
-                log.step("D", "person", "needs_person",
-                         "assumed inputs must be confirmed by a person: " + "; ".join(flagged))
+                # NEW RULE (25 Nov, sensitivity_preregistration.json, defined before any run):
+                # assumed inputs are checked by the sensitivity step after certification; a
+                # person is asked only where an input matters for a certified quantity, or
+                # where it cannot be perturbed automatically
+                from omar_pfem.verification_agent.sensitivity import param_name
+                names = [param_name(f) for f in flagged]
+                desc["assumed"] = sorted({n for n in names if n})
+                manual = [f for f, n in zip(flagged, names) if n is None]
+                log.step("D", "code", "deferred", "assumed inputs, checked by sensitivity after "
+                         "certification: " + "; ".join(flagged))
+                if manual:
+                    log.step("D", "person", "needs_person", "assumed inputs that cannot be "
+                             "perturbed automatically: " + "; ".join(manual))
             elif m["assumptions"]:
                 log.step("D", "LLM", "noted", "modeler notes (no assumed physical input): "
                          + "; ".join(m["assumptions"])[:400])
@@ -497,6 +508,13 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
     graded, spent, k = None, 0.0, 0
     history, glv = [], list(lv)
     certified_any = set(summary(V)["certified"])
+    cert_info = {}
+
+    def note_certified(state):
+        for q, r in state.items():
+            if not q.startswith("_") and r.get("final") == "CERTIFIED" and q not in cert_info:
+                cert_info[q] = {"U": r.get("U"), "limit": r.get("limit"), "finest": r.get("finest")}
+    note_certified(V)
     banned, small_load_done = set(), False
     while k < max_experiments:
         cur = graded if graded is not None else V
@@ -546,6 +564,7 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
         old = {q: ({**old[q], "final": "CERTIFIED"} if q in certified_any else old[q]) for q in old}
         ok = X.evaluate(c, old, new)
         certified_any |= set(summary({q: r for q, r in new.items() if not q.startswith("_")})["certified"])
+        note_certified({q: r for q, r in new.items() if not q.startswith("_")})
         X.complete(path, {"confirmed": ok, "observed_minutes": minutes,
                           "after": summary({q: r for q, r in new.items() if not q.startswith("_")}),
                           **({"small_load_order": new["_small_load_order"]}
@@ -556,6 +575,30 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
         history.append({"k": k, "action": c["action"], "confirmed": ok})
     final = {"certified": sorted(certified_any),
              "open": sorted(q for q in prob.qois if q not in certified_any)}
+    result["certified_info"] = cert_info
+    # A: sensitivity of assumed inputs (only certified quantities have a known accuracy)
+    assumed = desc.get("assumed", [])
+    if assumed and cert_info:
+        from omar_pfem.verification_agent import sensitivity as SE
+        rec = SE.analyse({k: v for k, v in desc.items() if k != "assumed"}, assumed, cert_info,
+                         log=lambda s: None)
+        result["sensitivity"] = rec
+        for name, r in rec["params"].items():
+            if r.get("needs_person"):
+                why = (r["status"] if "status" in r else "changes " + ", ".join(
+                    f"{q} by {r['quantities'][q]['change_rel']:.3g} (numerical U "
+                    f"{r['quantities'][q]['U_rel']:.2g})" for q in r["matters_for"])
+                    + f" [post hoc proposal: person needed only for "
+                    f"{r['posthoc_person_needed_for'] or 'none'}]")
+                log.step("A", "person", "needs_person", f"assumed {name}: {why}; a person "
+                         "must confirm this input")
+            else:
+                log.step("A", "code", "negligible", f"assumed {name}: changes every certified "
+                         "quantity by less than its numerical uncertainty over the range; "
+                         "no person needed")
+    elif assumed:
+        log.step("A", "person", "needs_person", f"assumed inputs {assumed}: nothing certified, "
+                 "their effect cannot be judged; a person must confirm them")
     result.update(final=final, verdicts=V, graded=graded, diagnosis=diag, experiments=history,
                   description=desc)
     log.save(result)
@@ -577,8 +620,12 @@ def main(argv=None):
     ap.add_argument("--replay")
     ap.add_argument("--budget-minutes", type=float, default=20.0)
     ap.add_argument("--max-experiments", type=int, default=4)
+    ap.add_argument("--assume", nargs="+", help="inputs of a given description to treat as "
+                    "assumed (checked by the sensitivity step), e.g. E nu 'bcs[2].t'")
     a = ap.parse_args(argv)
     desc = json.load(open(a.description)) if a.description else None
+    if desc is not None and a.assume:
+        desc["assumed"] = a.assume
     run(desc, a.text, a.pdf, a.hint, a.section, a.backend, a.replay, a.budget_minutes,
         a.max_experiments)
 

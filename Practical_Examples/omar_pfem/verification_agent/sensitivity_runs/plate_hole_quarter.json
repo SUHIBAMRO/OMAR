@@ -1,0 +1,365 @@
+{
+ "problem": "plate_hole_quarter",
+ "rule": "sensitivity_preregistration.json",
+ "range": {
+  "relative": 0.1,
+  "nu_absolute": 0.05
+ },
+ "params": {
+  "E": {
+   "value": 1.0,
+   "levels": [
+    8,
+    16
+   ],
+   "quantities": {
+    "peak_von_mises": {
+     "Q0": 3.0245474417499896,
+     "Q+": 3.0245474417500877,
+     "Q-": 3.024547441750215,
+     "S": -2.1069863455873565e-13,
+     "S_log_posthoc": -2.102373485007135e-13,
+     "change_rel": 7.458878491696008e-14,
+     "asymmetry": 2.5400696864111496,
+     "S_previous_level": 5.832517307196695e-14,
+     "settled": true,
+     "U_rel": 0.0014339542358403712,
+     "ratio_to_U": 5.201615438811212e-11,
+     "decision": "negligible",
+     "posthoc_numerics_adequate": null,
+     "posthoc_target": null,
+     "posthoc_person_needed": false
+    },
+    "strain_energy": {
+     "Q0": 51.212173893910474,
+     "Q+": 46.55652172173731,
+     "Q-": 56.90241543768055,
+     "S": -1.0101010101011791,
+     "S_log_posthoc": -1.0000000000001412,
+     "change_rel": 0.111111111111155,
+     "asymmetry": 0.10000000000025047,
+     "S_previous_level": -1.0101010101009624,
+     "settled": true,
+     "U_rel": 1.0393987999397877e-10,
+     "ratio_to_U": 1068994029.217579,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": 0.01,
+     "posthoc_person_needed": true
+    },
+    "u_right": {
+     "Q0": 10.517494309353609,
+     "Q+": 9.561358463048915,
+     "Q-": 11.686104788171393,
+     "S": -1.0101010101012653,
+     "S_log_posthoc": -1.0000000000002116,
+     "change_rel": 0.11111111111117929,
+     "asymmetry": 0.10000000000039687,
+     "S_previous_level": -1.010101010101036,
+     "settled": true,
+     "U_rel": 2.6278911872520194e-09,
+     "ratio_to_U": 42281473.31601197,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": 0.01,
+     "posthoc_person_needed": true
+    },
+    "v_hole_top": {
+     "Q0": -1.0687611150604668,
+     "Q+": -0.9716010136914187,
+     "Q-": -1.1875123500673714,
+     "S": -1.0101010101014818,
+     "S_log_posthoc": -1.0000000000003435,
+     "change_rel": 0.11111111111128526,
+     "asymmetry": 0.10000000000121027,
+     "S_previous_level": -1.0101010101008578,
+     "settled": true,
+     "U_rel": 1.5772241902523478e-07,
+     "ratio_to_U": 704472.527101604,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": 0.01,
+     "posthoc_person_needed": true
+    }
+   },
+   "posthoc_person_needed_for": [
+    "strain_energy",
+    "u_right",
+    "v_hole_top"
+   ],
+   "matters_for": [
+    "strain_energy",
+    "u_right",
+    "v_hole_top"
+   ],
+   "needs_person": true
+  },
+  "nu": {
+   "value": 0.3,
+   "levels": [
+    8,
+    16
+   ],
+   "quantities": {
+    "peak_von_mises": {
+     "Q0": 3.0245474417499896,
+     "Q+": 3.024695710972453,
+     "Q-": 3.024426233903753,
+     "S": 0.0002672899736801957,
+     "S_log_posthoc": 0.0002647952778032525,
+     "change_rel": 4.9021952976032936e-05,
+     "asymmetry": 0.10042181457998609,
+     "S_previous_level": 0.0008853945607333677,
+     "settled": true,
+     "U_rel": 0.0014339542358403712,
+     "ratio_to_U": 0.03418655334373592,
+     "decision": "negligible",
+     "posthoc_numerics_adequate": null,
+     "posthoc_target": null,
+     "posthoc_person_needed": false
+    },
+    "strain_energy": {
+     "Q0": 51.212173893910474,
+     "Q+": 51.21217367277036,
+     "Q-": 51.21217408222069,
+     "S": -2.3985527180880655e-08,
+     "S_log_posthoc": -2.3761769636412303e-08,
+     "change_rel": 4.318116096813719e-09,
+     "asymmetry": 0.0801804098571018,
+     "S_previous_level": -3.1416869430200593e-07,
+     "settled": true,
+     "U_rel": 1.0393987999397877e-10,
+     "ratio_to_U": 41.54436292464324,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": 0.01,
+     "posthoc_person_needed": false
+    },
+    "u_right": {
+     "Q0": 10.517494309353609,
+     "Q+": 10.517493966220124,
+     "Q-": 10.517494616311996,
+     "S": -1.8543158268555324e-07,
+     "S_log_posthoc": -1.8370171738310577e-07,
+     "change_rel": 3.2625022101297725e-08,
+     "asymmetry": 0.05564612981668247,
+     "S_previous_level": -1.6871186485960285e-06,
+     "settled": true,
+     "U_rel": 2.6278911872520194e-09,
+     "ratio_to_U": 12.414906012685268,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": 0.01,
+     "posthoc_person_needed": false
+    },
+    "v_hole_top": {
+     "Q0": -1.0687611150604668,
+     "Q+": -1.0687597507066655,
+     "Q-": -1.068762280133666,
+     "S": -7.100072125218417e-06,
+     "S_log_posthoc": -7.033837183272895e-06,
+     "change_rel": 1.276575075612259e-06,
+     "asymmetry": 0.07878487972936328,
+     "S_previous_level": -4.050977906768375e-05,
+     "settled": true,
+     "U_rel": 1.5772241902523478e-07,
+     "ratio_to_U": 8.093808625950718,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": 0.01,
+     "posthoc_person_needed": false
+    }
+   },
+   "posthoc_person_needed_for": [],
+   "matters_for": [
+    "strain_energy",
+    "u_right",
+    "v_hole_top"
+   ],
+   "needs_person": true
+  },
+  "bcs[2].t": {
+   "value": [
+    1.0,
+    0.0
+   ],
+   "levels": [
+    8,
+    16
+   ],
+   "quantities": {
+    "peak_von_mises": {
+     "Q0": 3.0245474417499896,
+     "Q+": 3.3270021859251355,
+     "Q-": 2.7220926975751087,
+     "S": 1.0000000000000475,
+     "S_log_posthoc": 1.0000000000000036,
+     "change_rel": 0.1000000000000486,
+     "asymmetry": 4.3828252554550236e-13,
+     "S_previous_level": 1.0000000000000409,
+     "settled": true,
+     "U_rel": 0.0014339542358403712,
+     "ratio_to_U": 69.73723254246217,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": null,
+     "posthoc_person_needed": true
+    },
+    "strain_energy": {
+     "Q0": 51.212173893910474,
+     "Q+": 61.96673041163234,
+     "Q-": 41.48186085406737,
+     "S": 2.000000000000076,
+     "S_log_posthoc": 2.000000000000066,
+     "change_rel": 0.210000000000013,
+     "asymmetry": 0.050000000000025094,
+     "S_previous_level": 1.9999999999999558,
+     "settled": true,
+     "U_rel": 1.0393987999397877e-10,
+     "ratio_to_U": 2020398715.2205515,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": 0.01,
+     "posthoc_person_needed": true
+    },
+    "u_right": {
+     "Q0": 10.517494309353609,
+     "Q+": 11.569243740289265,
+     "Q-": 9.465744878418462,
+     "S": 1.0000000000000382,
+     "S_log_posthoc": 1.0000000000000135,
+     "change_rel": 0.10000000000002807,
+     "asymmetry": 2.423649578086555e-13,
+     "S_previous_level": 1.0000000000000113,
+     "settled": true,
+     "U_rel": 2.6278911872520194e-09,
+     "ratio_to_U": 38053325.98439811,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": 0.01,
+     "posthoc_person_needed": true
+    },
+    "v_hole_top": {
+     "Q0": -1.0687611150604668,
+     "Q+": -1.1756372265665729,
+     "Q-": -0.9618850035544786,
+     "S": 1.0000000000000042,
+     "S_log_posthoc": 0.9999999999999484,
+     "change_rel": 0.1000000000000556,
+     "asymmetry": 5.51599808197178e-13,
+     "S_previous_level": 1.0000000000000937,
+     "settled": true,
+     "U_rel": 1.5772241902523478e-07,
+     "ratio_to_U": 634025.2743908025,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": 0.01,
+     "posthoc_person_needed": true
+    }
+   },
+   "posthoc_person_needed_for": [
+    "peak_von_mises",
+    "strain_energy",
+    "u_right",
+    "v_hole_top"
+   ],
+   "matters_for": [
+    "peak_von_mises",
+    "strain_energy",
+    "u_right",
+    "v_hole_top"
+   ],
+   "needs_person": true
+  },
+  "hole[0].radius": {
+   "value": 1.0,
+   "levels": [
+    8,
+    16
+   ],
+   "quantities": {
+    "peak_von_mises": {
+     "Q0": 3.0245474417499896,
+     "Q+": 3.048550564821201,
+     "Q-": 3.001341851525993,
+     "S": 0.07804260671125958,
+     "S_log_posthoc": 0.0777730922348282,
+     "change_rel": 0.007936104006794266,
+     "asymmetry": 0.016893763704754157,
+     "S_previous_level": 0.09680688476850459,
+     "settled": true,
+     "U_rel": 0.0014339542358403712,
+     "ratio_to_U": 5.534419306027085,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": null,
+     "posthoc_person_needed": true
+    },
+    "strain_energy": {
+     "Q0": 51.212173893910474,
+     "Q+": 51.47562613003165,
+     "Q-": 50.97652025874999,
+     "S": 0.04872922132885715,
+     "S_log_posthoc": 0.048553561627671264,
+     "change_rel": 0.005144328312774506,
+     "asymmetry": 0.055696802142016964,
+     "S_previous_level": 0.04872927617912519,
+     "settled": true,
+     "U_rel": 1.0393987999397877e-10,
+     "ratio_to_U": 49493306.25619845,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": 0.01,
+     "posthoc_person_needed": false
+    },
+    "u_right": {
+     "Q0": 10.517494309353609,
+     "Q+": 10.62992623705917,
+     "Q-": 10.416912878691692,
+     "S": 0.10126621042144854,
+     "S_log_posthoc": 0.10087436815242953,
+     "change_rel": 0.010689991779274956,
+     "asymmetry": 0.055632647334730084,
+     "S_previous_level": 0.1012651198177594,
+     "settled": true,
+     "U_rel": 2.6278911872520194e-09,
+     "ratio_to_U": 4067897.419471717,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": 0.01,
+     "posthoc_person_needed": true
+    },
+    "v_hole_top": {
+     "Q0": -1.0687611150604668,
+     "Q+": -1.1920637156757543,
+     "Q-": -0.9498520353570651,
+     "S": 1.1331422752267035,
+     "S_log_posthoc": 1.1318796609217947,
+     "change_rel": 0.11536965452594287,
+     "asymmetry": 0.018139178532204012,
+     "S_previous_level": 1.133636457304413,
+     "settled": true,
+     "U_rel": 1.5772241902523478e-07,
+     "ratio_to_U": 731472.7686714234,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": 0.01,
+     "posthoc_person_needed": true
+    }
+   },
+   "posthoc_person_needed_for": [
+    "peak_von_mises",
+    "u_right",
+    "v_hole_top"
+   ],
+   "matters_for": [
+    "peak_von_mises",
+    "strain_energy",
+    "u_right",
+    "v_hole_top"
+   ],
+   "needs_person": true
+  }
+ },
+ "minutes": 0.2491857926050822
+}

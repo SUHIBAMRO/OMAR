@@ -1,0 +1,7 @@
+{
+ "label": "POST HOC explanation of the 4 missed predictions (written after scoring; the pre-registration and the score are unchanged)",
+ "P1_P5_E": "wrong expectation in the pre-registration: for Q ~ 1/E the pre-registered central difference with +-10% gives exactly -1/(1 - 0.1^2) = -1.010101, not -1; observed values match that to 2e-12 (stresses 0 to 1e-12, as predicted). The post hoc S_log gives -1.",
+ "P3_plate_nu": "the Michell part held (peak |S_nu| = 2.7e-4 < 1e-3); the displacement part was wrong physics: at the hole edge the Kirsch displacement u_r = (sigma a / E)(1 + 2 cos 2 theta) does not contain nu, and on the axis y = 0 u_x = sigma x / E; observed |S_nu| 1.9e-7 (u_right), 7.1e-6 (v_hole_top), energy 2.4e-8",
+ "P7_nh": "wrong identity for energy and stresses: with energy density proportional to E, u(E, t) = u(1, t/E) gives S_E = -S_t for displacements (observed sums -0.012, -0.004), but stresses and energy carry a factor E, so S_E = 1 - S_t (observed residuals -0.0105 energy, -0.0003/0.0011/-0.0001 corner averages, -0.019 peak). Nonlinearity part held (S_t(energy) = 2.032).",
+ "conclusion": "every miss is an error in the written expectation, not in the code; with the corrected theory all observed sensitivities agree"
+}

@@ -52,6 +52,11 @@ def prior(action, situation):
 
 def remember(entry):
     mem = memory()
+    # BOOKKEEPING RULE (25 Nov): the same experiment on the same problem with the same outcome
+    # (e.g. a repeat run from cached solutions) is not new evidence and is counted once
+    same = ("problem", "action", "situation", "quantities", "confirmed")
+    if any(all(m.get(k) == entry.get(k) for k in same) for m in mem):
+        return
     mem.append(entry)
     json.dump(mem, open(MEMORY, "w"), indent=1)
 
@@ -73,6 +78,10 @@ def freeze(problem, k, record):
     body = json.dumps(rec, sort_keys=True, default=float)
     rec["sha256"] = hashlib.sha256(body.encode()).hexdigest()
     path = os.path.join(d, f"{k:02d}_{record['action']}.json")
+    run = 2
+    while os.path.exists(path):        # FIX (25 Nov): a repeat run never overwrites a record
+        path = os.path.join(d, f"{k:02d}_{record['action']}_run{run}.json")
+        run += 1
     json.dump({"preregistration": rec}, open(path, "w"), indent=1, default=float)
     if os.environ.get("AGENT_GIT_COMMIT") == "1":
         subprocess.run(["git", "add", path], cwd=ROOT, check=False)

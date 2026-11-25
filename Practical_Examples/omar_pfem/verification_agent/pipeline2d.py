@@ -421,7 +421,8 @@ def plan_intensity(prob, uniform_rows, degree=2, share_min=None):
 def fingerprint(prob):
     """sha256 of the problem description and every code file the solve depends on."""
     import hashlib
-    h = hashlib.sha256(json.dumps(prob.desc, sort_keys=True).encode())
+    d = {k: v for k, v in prob.desc.items() if k != "assumed"}      # metadata, not physics
+    h = hashlib.sha256(json.dumps(d, sort_keys=True).encode())
     here = os.path.dirname(os.path.abspath(__file__))
     files = ["pipeline2d.py"]
     if "domain" in prob.desc:

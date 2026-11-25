@@ -1142,3 +1142,57 @@ def test_ladder_cache_is_invalidated_when_description_changes(tmp_path, monkeypa
     b = P.Ladders(P.Problem2D(d), log=lambda *_: None).get("Q2 uniform", (2,), None, "Q2")[0]
     assert abs(b["strain_energy"] / a["strain_energy"] - 0.5) < 1e-9
     assert any(f.name.startswith("ladders_stale_") for f in (tmp_path / "c").iterdir())
+
+
+# ---- sensitivity of assumed inputs (25 Nov) ----
+def _beam():
+    return {"name": "sens_beam", "cell_size": 1.0, "cells": [[0, 0], [1, 0]], "E": 1000.0,
+            "nu": 0.3, "plane": "strain",
+            "bcs": [{"segment": [[0, 0], [0, 1]], "type": "clamped"},
+                    {"segment": [[2, 0], [2, 1]], "type": "traction", "t": [0.0, 1.0]}],
+            "points": {"v_tip": [2, 1, "y"]}}
+
+
+def test_sensitivity_recovers_exact_scalings(tmp_path, monkeypatch):
+    """Linear, zero-displacement + traction: displacement ~ t / E, energy ~ t^2 / E."""
+    from omar_pfem.verification_agent import sensitivity as S
+    monkeypatch.setattr(S, "OUT", str(tmp_path))
+    monkeypatch.setattr(S, "LEVELS", (2, 4))
+    r = S.analyse(_beam(), ["E", "bcs[1].t"], None, log=lambda *_: None)["params"]
+    assert abs(r["E"]["quantities"]["v_tip"]["S_log_posthoc"] + 1) < 1e-9
+    assert abs(r["E"]["quantities"]["v_tip"]["S"] + 1 / (1 - S.REL ** 2)) < 1e-9
+    assert abs(r["bcs[1].t"]["quantities"]["strain_energy"]["S_log_posthoc"] - 2) < 1e-9
+
+
+def test_sensitivity_decision_against_certified_uncertainty(tmp_path, monkeypatch):
+    from omar_pfem.verification_agent import sensitivity as S
+    monkeypatch.setattr(S, "OUT", str(tmp_path))
+    monkeypatch.setattr(S, "LEVELS", (2, 4))
+    cert = {"v_tip": {"U": 1e-9, "limit": 1.0}}
+    r = S.analyse(_beam(), ["E", "vertex x"], cert, log=lambda *_: None)["params"]
+    assert r["E"]["needs_person"] and r["E"]["matters_for"] == ["v_tip"]
+    assert r["vertex x"]["needs_person"]                   # cannot be perturbed automatically
+    cert = {"v_tip": {"U": 0.5, "limit": 1.0}}              # 50% numerical uncertainty
+    r = S.analyse(_beam(), ["E"], cert, log=lambda *_: None)["params"]
+    assert not r["E"]["needs_person"]
+
+
+def test_hole_radius_perturbation_moves_points_on_the_hole():
+    from omar_pfem.verification_agent import sensitivity as S
+    from omar_pfem.verification_agent.geometry2d import validate
+    d, step = S.perturbed(_load("plate_hole_quarter.json"), "hole[0].radius", +1)
+    assert abs(step - 0.1) < 1e-12 and d["points"]["v_hole_top"][:2] == [0.0, 1.1]
+    assert d["bcs"][0]["segment"][0] == [1.1, 0.0] and validate(d) == []
+
+
+def test_experiment_memory_counts_a_repeat_once_and_records_are_not_overwritten(tmp_path, monkeypatch):
+    from omar_pfem.verification_agent import experiment as X
+    monkeypatch.setattr(X, "MEMORY", str(tmp_path / "m.json"))
+    monkeypatch.setattr(X, "EXP_DIR", str(tmp_path))
+    e = {"problem": "p", "action": "a", "situation": "s", "quantities": ["q"], "confirmed": True}
+    X.remember(dict(e)); X.remember(dict(e)); X.remember(dict(e, confirmed=False))
+    assert len(X.memory()) == 2
+    rec = {"action": "a", "situation": "s", "quantities": ["q"], "cost": {"minutes": 1}}
+    p1, _ = X.freeze("p", 1, rec)
+    p2, _ = X.freeze("p", 1, rec)
+    assert p1 != p2 and p2.endswith("_run2.json")

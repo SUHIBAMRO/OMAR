@@ -22,7 +22,7 @@
    "stage": "V",
    "actor": "code",
    "status": "decided",
-   "detail": "Q2: needed (no passing check on record for 8a9db25865c49e1f|Q2|plane_stress|clamped+free+traction+general_domain); P2: needed (no passing check on record for 8a9db25865c49e1f|P2|plane_stress|clamped+free+traction+general_domain)"
+   "detail": "Q2: needed (no passing check on record for 4945351442d930f9|Q2|plane_stress|clamped+free+traction+general_domain); P2: needed (no passing check on record for 4945351442d930f9|P2|plane_stress|clamped+free+traction+general_domain)"
   },
   {
    "stage": "V",
@@ -58,9 +58,9 @@
    "stage": "N",
    "actor": "code",
    "status": "pre-registered",
-   "detail": "#1 graded_meshes on ['corner1_gk_avg_von_mises', 'strain_energy']: the corner singularities limit the rate; grading toward the corners with the largest local-energy change restores it; prediction: more quantities are certified (and cross-checked) on the graded ladders than on the uniform ones, or the strain-energy U falls at least 3 times; prior 0.57 (n=5); est. 0.1 min",
-   "file": "experiments/cook_linear/01_graded_meshes.json",
-   "sha256": "3c056816e188c24d37dc4b66146345652b41aaa3b6c4687e668cf3d81c1c43b1"
+   "detail": "#1 graded_meshes on ['corner1_gk_avg_von_mises', 'strain_energy']: the corner singularities limit the rate; grading toward the corners with the largest local-energy change restores it; prediction: more quantities are certified (and cross-checked) on the graded ladders than on the uniform ones, or the strain-energy U falls at least 3 times; prior 0.50 (n=6); est. 0.1 min",
+   "file": "experiments/cook_linear/01_graded_meshes_run2.json",
+   "sha256": "4a195af9181ee68eb53b5d9f82be58b08e99ffeaa86e8de4c0ccf76db0c2ccad"
   },
   {
    "stage": "N",
@@ -72,9 +72,9 @@
    "stage": "N",
    "actor": "code",
    "status": "pre-registered",
-   "detail": "#2 finer_graded_level on ['corner1_gk_avg_von_mises']: the sequences are pre-asymptotic; one finer graded level (n = 64) lets the checks decide; prediction: at least one listed quantity becomes certified with a rate and cross-checked; prior 0.40 (n=8); est. 0.4 min",
-   "file": "experiments/cook_linear/02_finer_graded_level.json",
-   "sha256": "b6d93b8bbe9956c049eb3c14d5987177aec8db1f6062ea005d01130e43913eac"
+   "detail": "#2 finer_graded_level on ['corner1_gk_avg_von_mises']: the sequences are pre-asymptotic; one finer graded level (n = 64) lets the checks decide; prediction: at least one listed quantity becomes certified with a rate and cross-checked; prior 0.33 (n=10); est. 0.4 min",
+   "file": "experiments/cook_linear/02_finer_graded_level_run2.json",
+   "sha256": "5bbf855189728a65f53ec40a9363bdc34f65643f8628fd182ec85d3337049eaf"
   },
   {
    "stage": "N",
@@ -86,9 +86,9 @@
    "stage": "N",
    "actor": "code",
    "status": "pre-registered",
-   "detail": "#3 finer_graded_level on ['corner1_gk_avg_von_mises']: the sequences are pre-asymptotic; one finer graded level (n = 128) lets the checks decide; prediction: at least one listed quantity becomes certified with a rate and cross-checked; prior 0.36 (n=9); est. 1.5 min",
-   "file": "experiments/cook_linear/03_finer_graded_level.json",
-   "sha256": "ac069b3a8cbede50f629a8005f39870b1680f1f1679020b88a6d1e47739c1e9b"
+   "detail": "#3 finer_graded_level on ['corner1_gk_avg_von_mises']: the sequences are pre-asymptotic; one finer graded level (n = 128) lets the checks decide; prediction: at least one listed quantity becomes certified with a rate and cross-checked; prior 0.33 (n=10); est. 1.6 min",
+   "file": "experiments/cook_linear/03_finer_graded_level_run2.json",
+   "sha256": "be66fd15cc07937afb9d8ab2b0deb3ef557ce8d72eaba1d84a2f4a455740680d"
   },
   {
    "stage": "N",
@@ -100,7 +100,25 @@
    "stage": "N",
    "actor": "code",
    "status": "stop",
-   "detail": "no further experiment applies within the budget (0.5 of 20.0 min used)"
+   "detail": "no further experiment applies within the budget (0.4 of 20.0 min used)"
+  },
+  {
+   "stage": "A",
+   "actor": "person",
+   "status": "needs_person",
+   "detail": "assumed E: changes strain_energy by 11.1% (numerical U 0.00%), v_C by 11.1% (numerical U 0.00%); a person must confirm this input"
+  },
+  {
+   "stage": "A",
+   "actor": "person",
+   "status": "needs_person",
+   "detail": "assumed nu: changes corner0_gk_avg_von_mises by 2.7% (numerical U 1.08%), strain_energy by 0.3% (numerical U 0.00%), v_C by 0.3% (numerical U 0.00%); a person must confirm this input"
+  },
+  {
+   "stage": "A",
+   "actor": "person",
+   "status": "needs_person",
+   "detail": "assumed bcs[1].t: changes corner0_gk_avg_von_mises by 10.0% (numerical U 1.08%), corner2_gk_avg_von_mises by 10.0% (numerical U 0.37%), strain_energy by 21.0% (numerical U 0.00%), v_C by 10.0% (numerical U 0.00%); a person must confirm this input"
   }
  ],
  "human_points": [
@@ -109,9 +127,27 @@
    "actor": "person",
    "status": "input",
    "detail": "description written by a person (steps L, D skipped)"
+  },
+  {
+   "stage": "A",
+   "actor": "person",
+   "status": "needs_person",
+   "detail": "assumed E: changes strain_energy by 11.1% (numerical U 0.00%), v_C by 11.1% (numerical U 0.00%); a person must confirm this input"
+  },
+  {
+   "stage": "A",
+   "actor": "person",
+   "status": "needs_person",
+   "detail": "assumed nu: changes corner0_gk_avg_von_mises by 2.7% (numerical U 1.08%), strain_energy by 0.3% (numerical U 0.00%), v_C by 0.3% (numerical U 0.00%); a person must confirm this input"
+  },
+  {
+   "stage": "A",
+   "actor": "person",
+   "status": "needs_person",
+   "detail": "assumed bcs[1].t: changes corner0_gk_avg_von_mises by 10.0% (numerical U 1.08%), corner2_gk_avg_von_mises by 10.0% (numerical U 0.37%), strain_energy by 21.0% (numerical U 0.00%), v_C by 10.0% (numerical U 0.00%); a person must confirm this input"
   }
  ],
- "wall_clock_s": 33.64860224723816,
+ "wall_clock_s": 44.275014877319336,
  "source": {
   "pdf": null,
   "text": null,
@@ -122,12 +158,12 @@
    "verdict": "PASS",
    "rates": {
     "L2": {
-     "observed": 3.098249073596168,
+     "observed": 3.098249074039749,
      "expected": 3.0,
      "pass": true
     },
     "H1": {
-     "observed": 2.0407137471002414,
+     "observed": 2.040713747100261,
      "expected": 2.0,
      "pass": true
     }
@@ -147,15 +183,15 @@
      0.008382707838416556,
      0.003019519109080673,
      0.00042451053073836484,
-     6.500892395294588e-05,
-     8.351830994028543e-06
+     6.500892395833687e-05,
+     8.351830989428092e-06
     ],
     "H1": [
      0.0057852925008544005,
      0.0026676744951849526,
      0.000771629576097832,
-     0.00022475698451786366,
-     5.803474605173195e-05
+     0.00022475698451786792,
+     5.803474605173102e-05
     ]
    },
    "field": {
@@ -163,7 +199,7 @@
     "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)"
    },
    "problem": "cook_linear",
-   "reason": "no passing check on record for 8a9db25865c49e1f|Q2|plane_stress|clamped+free+traction+general_domain"
+   "reason": "no passing check on record for 4945351442d930f9|Q2|plane_stress|clamped+free+traction+general_domain"
   },
   "P2": {
    "verdict": "PASS",
@@ -205,7 +241,7 @@
     "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)"
    },
    "problem": "cook_linear",
-   "reason": "no passing check on record for 8a9db25865c49e1f|P2|plane_stress|clamped+free+traction+general_domain"
+   "reason": "no passing check on record for 4945351442d930f9|P2|plane_stress|clamped+free+traction+general_domain"
   }
  },
  "graded_plan": {
@@ -217,6 +253,255 @@
    "0.0": 1.7,
    "0.7333333333333333": 3.0
   }
+ },
+ "certified_info": {
+  "v_C": {
+   "U": 0.0003166211137258756,
+   "limit": 23.962341832458065,
+   "finest": 23.964158231800727
+  },
+  "corner0_gk_avg_von_mises": {
+   "U": 0.0009259074493338369,
+   "limit": 0.08556491201671437,
+   "finest": 0.08558419805098448
+  },
+  "corner2_gk_avg_von_mises": {
+   "U": 0.000697100849348227,
+   "limit": 0.19045996152206648,
+   "finest": 0.1904421784936722
+  },
+  "strain_energy": {
+   "U": 3.805957806288491e-05,
+   "limit": 12.020881225603329,
+   "finest": 12.020667782841183
+  }
+ },
+ "sensitivity": {
+  "problem": "cook_linear",
+  "rule": "sensitivity_preregistration.json",
+  "range": {
+   "relative": 0.1,
+   "nu_absolute": 0.05
+  },
+  "params": {
+   "E": {
+    "value": 1.0,
+    "levels": [
+     8,
+     16
+    ],
+    "quantities": {
+     "corner0_gk_avg_von_mises": {
+      "Q0": 0.0855256310280598,
+      "Q+": 0.08552563102803719,
+      "Q-": 0.08552563102802374,
+      "S": 7.861722985335379e-13,
+      "S_log_posthoc": 7.834107512552122e-13,
+      "change_rel": 4.2156359785142035e-13,
+      "asymmetry": 4.362229102167182,
+      "S_previous_level": -3.640120459137894e-13,
+      "settled": true,
+      "U_rel": 0.010821111452238375,
+      "ratio_to_U": 3.895751371863182e-11,
+      "decision": "negligible"
+     },
+     "corner2_gk_avg_von_mises": {
+      "Q0": 0.19013490732634647,
+      "Q+": 0.19013490732630633,
+      "Q-": 0.19013490732628407,
+      "S": 5.853730900009723e-13,
+      "S_log_posthoc": 5.83132013999301e-13,
+      "change_rel": 3.28159278384585e-13,
+      "asymmetry": 4.605985037406484,
+      "S_previous_level": -4.862993385525033e-13,
+      "settled": true,
+      "U_rel": 0.003660091306211157,
+      "ratio_to_U": 8.965876830113508e-11,
+      "decision": "negligible"
+     },
+     "strain_energy": {
+      "Q0": 12.015741291432088,
+      "Q+": 10.923401174032593,
+      "Q-": 13.350823657145412,
+      "S": -1.0101010100990233,
+      "S_log_posthoc": -0.9999999999979334,
+      "change_rel": 0.1111111111109986,
+      "asymmetry": 0.1000000000010496,
+      "S_previous_level": -1.0101010101016443,
+      "settled": true,
+      "U_rel": 3.166122129367824e-06,
+      "ratio_to_U": 35093.75399021137,
+      "decision": "matters"
+     },
+     "v_C": {
+      "Q0": 23.95866844420762,
+      "Q+": 21.780607676548662,
+      "Q-": 26.620742715777215,
+      "S": -1.010101010099902,
+      "S_log_posthoc": -0.9999999999991601,
+      "change_rel": 0.11111111111073418,
+      "asymmetry": 0.09999999999747522,
+      "S_previous_level": -1.0101010101015888,
+      "settled": true,
+      "U_rel": 1.3213279233709877e-05,
+      "ratio_to_U": 8409.048892818839,
+      "decision": "matters"
+     }
+    },
+    "matters_for": [
+     "strain_energy",
+     "v_C"
+    ],
+    "needs_person": true
+   },
+   "nu": {
+    "value": 0.3333333333333333,
+    "levels": [
+     8,
+     16
+    ],
+    "quantities": {
+     "corner0_gk_avg_von_mises": {
+      "Q0": 0.0855256310280598,
+      "Q+": 0.08780224452504794,
+      "Q-": 0.08319165028832767,
+      "S": 0.17969639359564588,
+      "S_log_posthoc": 0.17844357258566565,
+      "change_rel": 0.027289839451361368,
+      "asymmetry": 0.01244248350615828,
+      "S_previous_level": 0.17819205341870475,
+      "settled": true,
+      "U_rel": 0.010821111452238375,
+      "ratio_to_U": 2.521907252486194,
+      "decision": "matters"
+     },
+     "corner2_gk_avg_von_mises": {
+      "Q0": 0.19013490732634647,
+      "Q+": 0.18975452149569322,
+      "Q-": 0.19064134117862355,
+      "S": -0.015547200939246825,
+      "S_log_posthoc": -0.015424804034936523,
+      "change_rel": 0.002663550104494188,
+      "asymmetry": 0.1421348939925742,
+      "S_previous_level": -0.016697987670766756,
+      "settled": true,
+      "U_rel": 0.003660091306211157,
+      "ratio_to_U": 0.7277277755268444,
+      "decision": "negligible"
+     },
+     "strain_energy": {
+      "Q0": 12.015741291432088,
+      "Q+": 12.05434328889351,
+      "Q-": 11.974473962463785,
+      "S": 0.02215685921008635,
+      "S_log_posthoc": 0.021992193919362434,
+      "change_rel": 0.003434438872092622,
+      "asymmetry": 0.03337115293223547,
+      "S_previous_level": 0.021494131267055974,
+      "settled": true,
+      "U_rel": 3.166122129367824e-06,
+      "ratio_to_U": 1084.746175845836,
+      "decision": "matters"
+     },
+     "v_C": {
+      "Q0": 23.95866844420762,
+      "Q+": 24.035884320474135,
+      "Q-": 23.87612545938516,
+      "S": 0.02222700890925328,
+      "S_log_posthoc": 0.022061828596068995,
+      "change_rel": 0.0034452242208150006,
+      "asymmetry": 0.03334468285285939,
+      "S_previous_level": 0.021569264209965407,
+      "settled": true,
+      "U_rel": 1.3213279233709877e-05,
+      "ratio_to_U": 260.73953027689777,
+      "decision": "matters"
+     }
+    },
+    "matters_for": [
+     "corner0_gk_avg_von_mises",
+     "strain_energy",
+     "v_C"
+    ],
+    "needs_person": true
+   },
+   "bcs[1].t": {
+    "value": [
+     0.0,
+     0.0625
+    ],
+    "levels": [
+     8,
+     16
+    ],
+    "quantities": {
+     "corner0_gk_avg_von_mises": {
+      "Q0": 0.0855256310280598,
+      "Q+": 0.09407819413088293,
+      "Q-": 0.07697306792526648,
+      "S": 1.0000000000002627,
+      "S_log_posthoc": 1.0000000000000886,
+      "change_rel": 0.10000000000020062,
+      "asymmetry": 1.7435338179031261e-12,
+      "S_previous_level": 0.9999999999999615,
+      "settled": true,
+      "U_rel": 0.010821111452238375,
+      "ratio_to_U": 9.241194903275426,
+      "decision": "matters"
+     },
+     "corner2_gk_avg_von_mises": {
+      "Q0": 0.19013490732634647,
+      "Q+": 0.20914839805901075,
+      "Q-": 0.17112141659374022,
+      "S": 1.0000000000000324,
+      "S_log_posthoc": 0.9999999999998787,
+      "change_rel": 0.10000000000015588,
+      "asymmetry": 1.5262034054763008e-12,
+      "S_previous_level": 0.9999999999997613,
+      "settled": true,
+      "U_rel": 0.003660091306211157,
+      "ratio_to_U": 27.32172277518224,
+      "decision": "matters"
+     },
+     "strain_energy": {
+      "Q0": 12.015741291432088,
+      "Q+": 14.539046962642,
+      "Q-": 9.732750446065177,
+      "S": 2.0000000000016596,
+      "S_log_posthoc": 2.000000000000489,
+      "change_rel": 0.21000000000076355,
+      "asymmetry": 0.050000000002946424,
+      "S_previous_level": 1.9999999999991864,
+      "settled": true,
+      "U_rel": 3.166122129367824e-06,
+      "ratio_to_U": 66327.19504180782,
+      "decision": "matters"
+     },
+     "v_C": {
+      "Q0": 23.95866844420762,
+      "Q+": 26.35453528863232,
+      "Q-": 21.562801599790127,
+      "S": 1.0000000000001394,
+      "S_log_posthoc": 0.9999999999999891,
+      "change_rel": 0.10000000000016432,
+      "asymmetry": 1.5036109701556281e-12,
+      "S_previous_level": 0.9999999999999634,
+      "settled": true,
+      "U_rel": 1.3213279233709877e-05,
+      "ratio_to_U": 7568.144003575064,
+      "decision": "matters"
+     }
+    },
+    "matters_for": [
+     "corner0_gk_avg_von_mises",
+     "corner2_gk_avg_von_mises",
+     "strain_energy",
+     "v_C"
+    ],
+    "needs_person": true
+   }
+  },
+  "minutes": 0.18128885428110758
  },
  "final": {
   "certified": [
@@ -816,6 +1101,11 @@
     52,
     "y"
    ]
-  }
+  },
+  "assumed": [
+   "E",
+   "nu",
+   "bcs[1].t"
+  ]
  }
 }
