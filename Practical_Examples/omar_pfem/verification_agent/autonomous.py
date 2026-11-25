@@ -581,7 +581,28 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
     # S, C
     ladders = P.Ladders(prob, log=lambda s: None)
     lv = list(levels)
-    V, v, ad = verify_state(prob, ladders, lv)
+    while True:
+        try:
+            V, v, ad = verify_state(prob, ladders, lv)
+            break
+        except RuntimeError as e:
+            # a base level refused by the memory guard (3D): use the levels that fit (at least
+            # 3) and prepare the refused one as a cluster job (rule R3, round Q)
+            if "too large for this machine" not in str(e) or len(lv) <= 3:
+                raise
+            drop = lv.pop()
+            log.step("S", "code", "note", f"level n = {drop} refused by the memory guard "
+                     f"({e!s:.160}); the ladders use n = {lv}")
+            from omar_pfem.verification_agent import cluster_ladder
+            try:
+                job = cluster_ladder.prepare(desc, [("Q2 uniform", drop, "Q2"), ("P2 uniform", drop, "P2")],
+                                             log=lambda s: None)
+                result.setdefault("cluster_jobs", []).append(job)
+                log.step("S", "code", "cluster_job", f"level n = {drop} prepared as cluster job "
+                         f"{job['name']} (bundle md5 {job['bundle_md5']})", job=job)
+                log.step("S", "person", "needs_person", f"submit cluster job {job['name']} by hand")
+            except Exception as e2:
+                log.step("S", "code", "failed", f"cluster job not prepared: {e2!s:.200}")
     log.step("S", "code", "done", f"Q2 and P2 ladders n = {lv}")
     log.step("C", "code", "done", f"adopted rules: {summary(V)}")
     # G

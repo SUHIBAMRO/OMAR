@@ -50,6 +50,9 @@ def validate_nh(desc):
 
 class Extruded3DNH(G3.Extruded3D):
     material = "neo_hookean"
+    # measured peak / basis estimate, plate, n = 8: Q2 2.21 / 0.82 GB = 2.71, P2 1.27 (25 Nov;
+    # the first estimate, calibrated on the linear solver, let a run be killed)
+    mem_factor = 2.8
     code_files = ["pipeline2d.py", "geometry2d.py", "geometry3d.py", "geometry3d_nh.py",
                   "pipeline2d_nh.py"]
 

@@ -150,13 +150,27 @@ def run(prob, force=False, log=print, suffix="", elements=("Q2", "P2")):
             log(f"[mms] {el}: skipped ({need[el][1]})")
             continue
         mms = mms or (prob.manufactured() if hasattr(prob, "manufactured") else Manufactured(prob))
-        rows = [prob.solve(n, None, el, mms=mms) for n in LEVELS]
-        added = []
+        rows, added = [], []
+        for n in LEVELS:                 # a level refused by the memory guard ends the ladder
+            r = prob.solve(n, None, el, mms=mms)
+            if r.get("failed"):
+                added.append(f"n={n}: refused ({r.get('reason', 'failed')})")
+                break
+            rows.append(r)
+        if len(rows) < 3:
+            res = {"verdict": "INCONCLUSIVE", "gate_verdict": None, "rule": "R1 (post hoc, round Q)",
+                   "levels": [r["n"] for r in rows], "levels_added": added,
+                   "errors": {k: [r[k] for r in rows] for k in EXPECTED}, "field": mms.field,
+                   "problem": prob.name, "reason": need[el][1] + "; fewer than 3 levels fit"}
+            out[el] = res
+            rec[key(prob, el) + suffix] = res
+            json.dump(rec, open(RECORD, "w"), indent=1)
+            continue
         while True:
             hs = [r["h"] for r in rows]
             g = mms_rate_gate(hs[-3:], {k: [r[k] for r in rows][-3:] for k in EXPECTED},
                               EXPECTED, tol=0.2)
-            if g["verdict"] == "PASS" or rows[-1]["n"] >= MAX_N:
+            if g["verdict"] == "PASS" or rows[-1]["n"] >= MAX_N or added:   # added: a level refused
                 break
             # pre-asymptotic? every failing norm's pairwise rate must be moving toward theory
             toward = True

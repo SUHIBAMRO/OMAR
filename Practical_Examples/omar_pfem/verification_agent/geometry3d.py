@@ -124,6 +124,7 @@ def _limiting(lams):
 
 class Extruded3D:
     material = "linear_elastic"
+    mem_factor = 1.85          # measured peak / basis estimate (plate, Q2, n = 8: 1.51 / 0.82 GB)
     dim = 3
     plane = "3d"
     code_files = ["pipeline2d.py", "geometry2d.py", "geometry3d.py"]
@@ -276,11 +277,11 @@ class Extruded3D:
         # the DOF count. Estimate from the stored basis values (elements x quadrature points x
         # vector basis functions x 9 gradient entries x 8 bytes x 3 copies), calibrated on the
         # plate, Q2, n = 8: measured peak 1.51 GB vs estimate 0.82 GB -> factor 1.85 (it includes
-        # the sparse factorization). Refused before assembly when above VERIF_MAX_GB (12 of 15 GB).
+        # the sparse factorization). Refused before assembly when above VERIF_MAX_GB (13 of 15 GB).
         nqp = 27 if element == "Q2" else 24
         nbf = 3 * (27 if element == "Q2" else 10)
-        peak = 1.85 * msh.t.shape[1] * nqp * nbf * 9 * 8 * 3 / 1e9
-        max_gb = float(os.environ.get("VERIF_MAX_GB", 12.0))
+        peak = self.mem_factor * msh.t.shape[1] * nqp * nbf * 9 * 8 * 3 / 1e9
+        max_gb = float(os.environ.get("VERIF_MAX_GB", 13.0))
         if peak > max_gb:
             raise MemoryError(f"level n = {n} ({element}) needs about {peak:.1f} GB > {max_gb:g} GB: "
                               "too large for this machine (prepare a cluster job)")
