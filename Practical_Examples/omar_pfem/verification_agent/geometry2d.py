@@ -433,7 +433,11 @@ class GeneralProblem(GeneralGeometry, P2.Problem2D):
 
 
 def make(desc):
-    """The problem class for a description: general geometry (key 'domain') or cells."""
+    """The problem class for a description: 3D extruded ("dim": 3), general 2D geometry
+    (key 'domain') or cells."""
+    if desc.get("dim") == 3:
+        from omar_pfem.verification_agent import geometry3d
+        return geometry3d.make(desc)
     if "domain" not in desc:
         if desc.get("material") == "neo_hookean":
             from omar_pfem.verification_agent.pipeline2d_nh import Problem2DNH

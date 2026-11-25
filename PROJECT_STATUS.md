@@ -26283,3 +26283,9 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   fixed, recomputed, corrected in change log. Open questions for Professor Rabczuk: (a) sensitivity
   threshold (U vs accuracy target), (b) should a later non-certifying state remove an earlier
   certificate. NEXT: item 4 (3D in the loop).
+- 2026-11-25 DONE item 4: 3D (extruded sections) in the loop (`geometry3d.py`; pre-registered 46e4ab2,
+  4/8). 3D = 2D plane strain to 1e-13; 3D plate 2/4 certified; Cook 3D stopped at code verification (finer
+  levels exceed the 15 GB machine). Volume-guard bug (dropped prisms) found before results; experiment bug
+  (independent level refined both families) fixed. NEXT options: cluster jobs for 3D levels 32 (manual
+  submission), code verification on a reference domain when the production domain is too coarse
+  (needs a decision: it changes the code-verification rule), neo-Hookean 3D. All four automation items done.

@@ -1,0 +1,148 @@
+{
+ "P1_mms": {
+  "confirmed": false,
+  "evidence": {
+   "plate": {
+    "Q2": [
+     "PASS",
+     null,
+     null,
+     null
+    ],
+    "P2": [
+     "PASS",
+     null,
+     null,
+     null
+    ]
+   },
+   "cook": {
+    "Q2": [
+     "FAIL",
+     3.298191952179851,
+     2.139058523611811,
+     [
+      2,
+      4,
+      8,
+      16
+     ]
+    ],
+    "P2": [
+     "FAIL",
+     2.736019125337105,
+     2.3147063958319563,
+     [
+      2,
+      4,
+      8,
+      16
+     ]
+    ]
+   }
+  }
+ },
+ "P2_planestrain_identity": {
+  "confirmed": true,
+  "evidence": {
+   "strain_energy": 6.838973831690964e-14,
+   "u_right": 2.1760371282653068e-14,
+   "v_hole_top": 8.01581023779363e-14,
+   "peak_von_mises": 1.0480505352461478e-13
+  }
+ },
+ "P3_planestrain_limits": {
+  "confirmed": true,
+  "evidence": {
+   "strain_energy": [
+    4.0886763414960114e-06,
+    7.728017545927987e-06
+   ],
+   "u_right": [
+    1.4283224807343231e-06,
+    1.0598517970150111e-05
+   ]
+  }
+ },
+ "P4_plate_loop": {
+  "confirmed": false,
+  "evidence": {
+   "corners": 0,
+   "face_edges": 0,
+   "certified": [
+    "strain_energy",
+    "u_right"
+   ]
+  }
+ },
+ "P5_cook_edges": {
+  "confirmed": true,
+  "evidence": {
+   "3d": [
+    [
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     44.0
+    ],
+    [
+     48.0,
+     44.0
+    ]
+   ],
+   "2d": [
+    [
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     44.0
+    ],
+    [
+     48.0,
+     44.0
+    ]
+   ],
+   "face_edges": [
+    [
+     "z0",
+     "clamped",
+     [
+      0.689983535889627
+     ]
+    ],
+    [
+     "z1",
+     "clamped",
+     [
+      0.689983535889627
+     ]
+    ]
+   ]
+  }
+ },
+ "P6_cook_values": {
+  "confirmed": false,
+  "evidence": {
+   "not_evaluable": "the loop stopped at code verification; no certified value and no ladder",
+   "supplementary_outside_loop_Q2_16": {
+    "n_dof": 103275,
+    "v_C": 23.92261400318695,
+    "strain_energy": 11.997621272985434
+   },
+   "supplementary_rel_v_C": -0.0015603504512958777,
+   "supplementary_rel_energy": -0.0018617909329921023
+  }
+ },
+ "P7_cook_peak": {
+  "confirmed": false,
+  "evidence": "not reached: the loop stopped at code verification"
+ },
+ "P8_memory_guard": {
+  "confirmed": true,
+  "evidence": "level n = 32 (Q2) has 797427 DOF > 450000: too large for this machine (prepare a cluster job)"
+ }
+}

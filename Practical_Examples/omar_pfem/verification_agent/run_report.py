@@ -95,7 +95,8 @@ def fig_domain(desc, prob):
             cx, cy, r = desc["domain"]["holes"][b["hole"]]["circle"]
             t = np.linspace(0, 2 * np.pi, 200)
             ax.plot(cx + r * np.cos(t), cy + r * np.sin(t), color=col, lw=3.5, label=lab)
-    for name, (x, y, c) in desc.get("points", {}).items():
+    for name, pt in desc.get("points", {}).items():
+        x, y, c = pt[0], pt[1], pt[-1]
         ax.plot([x], [y], "ko", ms=4)
         ax.annotate(f"{name} ({c})", (x, y), fontsize=8, xytext=(4, 4), textcoords="offset points")
     for c in getattr(prob, "corners", []):
@@ -186,6 +187,11 @@ def build(name, pdf=True):
     rdir = os.path.join(HERE, "autonomous_runs", name)
     run_f = os.path.join(rdir, "run.json")
     run = json.load(open(run_f))
+    if "description" not in run:                    # a run that stopped early
+        src = [s for s in run["steps"] if s.get("description")]
+        run["description"] = src[-1]["description"] if src else json.load(open(os.path.join(
+            HERE, "problems3d" if os.path.exists(os.path.join(HERE, "problems3d", name + ".json"))
+            else "problems2d", name + ".json")))
     desc = {k: v for k, v in run["description"].items() if k != "assumed"}
     prob = make(desc)
     lad_f = os.path.join(HERE, "pipeline2d_runs", name, "ladders.json")
@@ -194,7 +200,8 @@ def build(name, pdf=True):
     fp_ok = ladders.get("_fingerprint") == fp_now
     head = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=HERE, capture_output=True,
                           text=True).stdout.strip()
-    final, cert = run["final"], run.get("certified_info", {})
+    final = run.get("final") or {"certified": [], "open": list(prob.qois)}
+    cert = run.get("certified_info", {})
     steps = run["steps"]
     persons = [s for s in steps if s["actor"] == "person" or s["status"] == "needs_person"]
     by_actor = {a: sum(s["actor"] == a for s in steps) for a in ("code", "LLM", "person")}
@@ -218,17 +225,27 @@ def build(name, pdf=True):
             f"{k} {r['verdict']}" for k, r in mms.items())) + ".</li>")
     w(f"<li>Steps by code {by_actor['code']}, by LLM {by_actor['LLM']}; "
       f"points needing a person: <b>{len(persons)}</b>.</li>")
-    w(f"<li>Stored ladders {'match' if fp_ok else '<b>DO NOT match</b>'} the current solver and "
-      f"mesh code (fingerprint {esc(str(ladders.get('_fingerprint', 'none'))[:12])}"
-      f"{'' if fp_ok else ' vs current ' + fp_now[:12]}).</li></ul>")
+    stops = [s for s in steps if s["status"] == "stop"]
+    if stops and stops[-1]["stage"] != "N":
+        w(f"<li class=warn><b>The run stopped at stage {esc(stops[-1]['stage'])} "
+          f"({esc(STAGES.get(stops[-1]['stage'], ''))})</b>: {esc(stops[-1]['detail'])}</li>")
+    if not ladders:
+        w("<li>No mesh ladders were solved in this run.</li></ul>")
+    else:
+        w(f"<li>Stored ladders {'match' if fp_ok else '<b>DO NOT match</b>'} the current solver and "
+          f"mesh code (fingerprint {esc(str(ladders.get('_fingerprint', 'none'))[:12])}"
+          f"{'' if fp_ok else ' vs current ' + fp_now[:12]}).</li></ul>")
     # problem
     w("<h2>2. Problem</h2>")
     w(f"<p>Material {esc(desc.get('material', 'linear_elastic'))}, E = {fmt(desc['E'])}, "
-      f"&nu; = {fmt(desc['nu'])}, plane {esc(desc.get('plane', 'strain'))}. Source: "
+      f"&nu; = {fmt(desc['nu'])}, "
+      f"{'3D' if desc.get('dim') == 3 else 'plane ' + esc(desc.get('plane', 'strain'))}. Source: "
       f"{esc(steps[0]['detail'])}.</p>")
     w("<table><tr><th>boundary</th><th>type</th><th>values</th></tr>")
     for k, b in enumerate(desc["bcs"]):
-        where = (f"segment {b['segment']}" if "segment" in b else f"hole {b['hole']}")
+        where = (f"segment {b['segment']}" if "segment" in b else f"hole {b['hole']}"
+                 if "hole" in b else f"face {b['face']} (z = "
+                 f"{0 if b['face'] == 'z0' else desc['thickness']})")
         vals = ", ".join(f"{key} = {b[key]}" for key in ("t", "p", "u") if key in b)
         w(f"<tr><td>bcs[{k}]: {esc(where)}</td><td>{esc(b['type'])}</td><td>{esc(vals)}</td></tr>")
     w("</table>")
@@ -237,7 +254,17 @@ def build(name, pdf=True):
           "stress): " + esc("; ".join(f"({fmt(c['x'] * prob.a, 4)}, {fmt(c['y'] * prob.a, 4)}) "
                                       f"λ = {fmt(min(c['rate_limiting']), 4)}"
                                       for c in prob.corners)) + "</p>")
-    w("<div class=row>" + fig_domain(desc, prob) + fig_mesh(prob) + "</div>")
+    if getattr(prob, "dim", 2) == 3:
+        w(f"<p>3D: the section below extruded to thickness {fmt(prob.T)} in n/2 x {prob.kz} layers; "
+          "27-node hexahedra (Q2) and 10-node tetrahedra (P2); z faces free unless listed in the table. "
+          "Singular edges: the extruded-edge "
+          "approximation (vertex singularities not analysed). Edges where a side face meets a z face: "
+          + esc("; ".join(f"{e['face']} / {e['side']}: λ = {fmt(min(e['rate_limiting']), 4)}"
+                          for e in prob.face_edges) or "none singular") + ".</p>")
+        prob.g2.corners = prob.corners
+        w("<div class=row>" + fig_domain(desc, prob) + fig_mesh(prob.g2) + "</div>")
+    else:
+        w("<div class=row>" + fig_domain(desc, prob) + fig_mesh(prob) + "</div>")
     # code verification
     w("<h2>3. Code verification</h2><table><tr><th>element</th><th>verdict</th><th>L2 rate "
       "(expected 3)</th><th>H1 rate (expected 2)</th><th>levels</th><th>note</th></tr>")

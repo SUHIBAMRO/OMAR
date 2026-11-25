@@ -1,0 +1,35 @@
+{
+ "label": "SUPPLEMENTARY (25 Nov): Cook 3D solved by hand outside the loop, NOT verified (the loop stopped at code verification); for orientation only",
+ "rows": {
+  "Q2_4": {
+   "n_dof": 4275,
+   "v_C": 23.815037780120036,
+   "strain_energy": 11.939185132647856
+  },
+  "Q2_8": {
+   "n_dof": 17091,
+   "v_C": 23.89035414220474,
+   "strain_energy": 11.980462074747656
+  },
+  "Q2_16": {
+   "n_dof": 103275,
+   "v_C": 23.92261400318695,
+   "strain_energy": 11.997621272985434
+  },
+  "P2_4": {
+   "n_dof": 885,
+   "v_C": 23.63213366074305,
+   "strain_energy": 11.79982901356098
+  },
+  "P2_8": {
+   "n_dof": 4725,
+   "v_C": 23.783844093200397,
+   "strain_energy": 11.918557636727924
+  },
+  "P2_16": {
+   "n_dof": 29121,
+   "v_C": 23.878459287810603,
+   "strain_energy": 11.973386960825414
+  }
+ }
+}

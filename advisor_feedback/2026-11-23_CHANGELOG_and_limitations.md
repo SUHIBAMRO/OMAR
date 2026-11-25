@@ -542,3 +542,31 @@ Pre-registered before any loaded solve: commit 4fd091f. No billed run, no cluste
   INCONCLUSIVE (independent_unconverged). The report now flags this; a later "contradicted" would
   not remove a certificate either.
 - Tests 101 pass.
+
+## 25 November: 3D in the autonomous loop (item 4)
+
+- `geometry3d.py`: general 2D sections (geometry2d) extruded to a thickness; conditions on side faces
+  (as 2D) and on the z faces (free, rollers, clamped, traction); 27-node hexahedra (main) and 10-node
+  tetrahedra (independent); section meshed as in 2D and then extruded in n/2 x k layers (self-similar);
+  h measured; singular edges = 2D corners as z edges (plane-strain in-plane + anti-plane exponents) and
+  side/z-face edges with different conditions (extruded-edge approximation; vertex singularities not
+  analysed); 3D manufactured solution; memory guard (450,000 DOF) refuses a level before it is built;
+  volume guard refuses any mesh that does not fill the domain. Loop: levels up to 16 in 3D, experiments
+  up to 32; cost model 8x per level; the report handles 3D.
+- Pre-registered before any 3D solve (commit 46e4ab2, 8 predictions); amendments before scoring recorded
+  in the file: A1 (found by the volume check: the first mesher dropped prisms, up to 21% of the volume
+  missing, unnoticed by the manufactured-solution check), A2 (round-off-scaled inverse-map tolerance, as
+  rounds K/L), A3 (manufactured field: gentler through-thickness wavenumber on thin plates).
+- Score 4/8 (geometry3d_score.json). HIT: P2 3D plane strain = 2D plane strain at every level to 1e-13
+  (energy, displacements, peak stress); P3 certified 3D limits within the combined uncertainty of the 2D
+  ones; P5 Cook singular edges (3 z edges + clamped/free face edges, lambda 0.69); P8 memory guard
+  (Cook Q2 n = 32: 797,427 DOF refused). MISS: P1 Cook manufactured-solution check FAIL (Q2 L2 3.30;
+  P2 L2 2.74, H1 2.31; the finer level it asked for exceeds memory) -> the loop stopped correctly at code
+  verification, so P6 and P7 could not be evaluated; P4 plate certified 2 of 4 (energy, u_right): the
+  finer independent level needs 712,701 DOF. Supplementary, outside the loop, NOT verified: Cook 3D Q2
+  n = 16 v_C 23.923 (2D plane stress 23.96, -0.16%), energy 11.998 (-0.19%).
+- BUG found and fixed: the experiment "finer_independent_level" refined the main family as well, although
+  its hypothesis and cost concern the independent family only (in 3D it asked for 2.5 million DOF).
+- The per-run report is now also written when a run stops early, with the stop reason at the top.
+- Limitation: 3D on this machine is limited to n = 16; further levels need the cluster (manual submission).
+- Tests 105 pass.

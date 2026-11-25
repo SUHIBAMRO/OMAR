@@ -360,7 +360,7 @@ def framework(prob, fam, strategies, full=False):
     from omar_pfem.verification_agent import orchestrate
     reentrant = any(c["angle_deg"] > 180.5 for c in prob.corners)
     reg = ("reentrant_corner" if reentrant else "clamped_free_corner") if prob.corners else "smooth"
-    sd = dict(name=prob.name, geometry="pipeline2d_" + prob.name, dim=2,
+    sd = dict(name=prob.name, geometry="pipeline2d_" + prob.name, dim=getattr(prob, "dim", 2),
               material=getattr(prob, "material", "linear_elastic"), loading="traction", regularity=reg, element="Q9",
               reference="mesh_refinement_family", qois=list(prob.qois), well_posedness=[],
               open_questions=[])
@@ -426,7 +426,7 @@ def fingerprint(prob):
     here = os.path.dirname(os.path.abspath(__file__))
     files = ["pipeline2d.py"]
     if "domain" in prob.desc:
-        files.append("geometry2d.py")
+        files += [f for f in getattr(prob, "code_files", ["geometry2d.py"]) if f != "pipeline2d.py"]
     if getattr(prob, "material", "linear_elastic") == "neo_hookean":
         files.append("pipeline2d_nh.py")
     for f in files:

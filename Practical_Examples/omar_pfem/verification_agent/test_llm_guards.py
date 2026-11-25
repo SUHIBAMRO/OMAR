@@ -1222,3 +1222,53 @@ def test_run_report_is_built_from_stored_files_only():
         u = abs(x.get("U_rel", x["U"]))
         assert f"{x['limit']:.6g} &plusmn; {u * abs(x['limit']):.3g}" in page, q
     assert "&amp;lambda;" not in page
+
+
+# ---- 3D extruded problems (geometry3d, 25 Nov) ----
+def _load3(name):
+    import json, os
+    return json.load(open(os.path.join(os.path.dirname(__file__), "problems3d", name)))
+
+
+def test_3d_validate_rejects_bad_points_and_free_z_motion():
+    from omar_pfem.verification_agent.geometry3d import validate
+    d = _load3("plate_hole_quarter_3d_pe.json")
+    d["points"] = {"mid": [10, 0, 0.5, "x"]}                 # not on a z face
+    assert any("z must be 0" in e for e in validate(d))
+    d = _load3("plate_hole_quarter_3d_pe.json")
+    d["bcs"] = [b for b in d["bcs"] if "face" not in b]       # nothing holds z
+    assert any("rigid-body" in e for e in validate(d))
+
+
+def test_3d_meshes_fill_the_domain_and_match_the_2d_section():
+    """The volume guard (elements silently dropped on loading, found 25 Nov) and the layered
+    structure: the Q2 hexahedral mesh is the 2D Q2 mesh of the same level times the layers."""
+    import skfem as fem
+    from omar_pfem.verification_agent.geometry2d import make
+    p3 = make(_load3("cook_3d.json"))
+    p2 = make(_load("cook_linear.json"))
+    for n in (2, 4):
+        for el in ("Q2", "P2"):
+            m, e = p3.build_mesh(n, None, el)
+            assert abs(fem.Basis(m, e, intorder=4).dx.sum() / p3.volume() - 1) < 1e-6
+        assert p3.build_mesh(n, None, "Q2")[0].t.shape[1] == \
+            p2.build_mesh(n, None, "Q2")[0].t.shape[1] * p3.n_layers(n)
+
+
+def test_2d_meshes_fill_the_domain():
+    import skfem as fem
+    from omar_pfem.verification_agent.geometry2d import make
+    for f in ("cook_linear.json", "plate_hole_quarter.json"):
+        p = make(_load(f))
+        for n in (2, 4, 8):
+            for el in ("Q2", "P2"):
+                m, e = p.build_mesh(n, None, el)
+                assert abs(fem.Basis(m, e, intorder=4).dx.sum() / p.area() - 1) < 1e-4, (f, n, el)
+
+
+def test_3d_cook_singular_edges():
+    from omar_pfem.verification_agent.geometry2d import make
+    p = make(_load3("cook_3d.json"))
+    assert len(p.corners) == 3
+    assert {(e["face"], e["side"]) for e in p.face_edges} == {("z0", "clamped"), ("z1", "clamped")}
+    assert p.lam_min < 1

@@ -1,0 +1,148 @@
+{
+ "steps": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "description written by a person (steps L, D skipped)"
+  },
+  {
+   "stage": "M",
+   "actor": "code",
+   "status": "note",
+   "detail": "3D extruded domain (thickness 1, layers n/2 x 1); Q2 = 27-node hexahedra, P2 = 10-node tetrahedra; singular edges: extruded-edge approximation (vertex singularities not analysed); face edges [('z0', 'clamped', 0.69), ('z1', 'clamped', 0.69)]"
+  },
+  {
+   "stage": "M",
+   "actor": "code",
+   "status": "note",
+   "detail": "general domain meshed by gmsh (quadratic triangles and independent quadratic quadrilaterals, curved edges on circles); corners from the real boundary after the holes are cut"
+  },
+  {
+   "stage": "M",
+   "actor": "code",
+   "status": "done",
+   "detail": "rate-limiting corners (x, y, smallest exponent) [(0.0, 0.0, 1.1309), (48.0, 44.0, 1.3584), (0.0, 44.0, 0.6244)]"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "decided",
+   "detail": "Q2: needed (no passing check on record for 43bc3fbab4f150c0|Q2|plane_3d|clamped+free+traction+general_domain); P2: needed (no passing check on record for 43bc3fbab4f150c0|P2|plane_3d|clamped+free+traction+general_domain)"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "FAIL",
+   "detail": "Q2 FAIL (L2 3.30, H1 2.14, levels [2, 4, 8, 16]); P2 FAIL (L2 2.74, H1 2.31, levels [2, 4, 8, 16])"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "stop",
+   "detail": "code verification failed: no solution verification on an unverified solver"
+  }
+ ],
+ "human_points": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "description written by a person (steps L, D skipped)"
+  }
+ ],
+ "wall_clock_s": 137.40380930900574,
+ "source": {
+  "pdf": null,
+  "text": null,
+  "description_given": true
+ },
+ "mms": {
+  "Q2": {
+   "verdict": "FAIL",
+   "rates": {
+    "L2": {
+     "observed": 3.298191952179851,
+     "expected": 3.0,
+     "pass": false
+    },
+    "H1": {
+     "observed": 2.139058523611811,
+     "expected": 2.0,
+     "pass": true
+    }
+   },
+   "levels": [
+    2,
+    4,
+    8,
+    16
+   ],
+   "levels_added": [],
+   "errors": {
+    "L2": [
+     0.030211248812009393,
+     0.005209651718310849,
+     0.0014576319910864395,
+     0.0001230034367890231
+    ],
+    "H1": [
+     0.0073986024842594015,
+     0.0023903696467397514,
+     0.0006950081690788494,
+     0.0002047811911647132
+    ]
+   },
+   "field": {
+    "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)*cos(0.0270833333333333*pi*z + 1/2)",
+    "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)*cos(0.0270833333333333*pi*z + 7/10)",
+    "uz": "0.06*sin(0.0270833333333333*pi*x + 1/5)*sin(0.0216666666666667*pi*y + 3/5)*sin(0.0270833333333333*pi*z + 1/10)"
+   },
+   "problem": "cook_3d",
+   "reason": "no passing check on record for 43bc3fbab4f150c0|Q2|plane_3d|clamped+free+traction+general_domain"
+  },
+  "P2": {
+   "verdict": "FAIL",
+   "rates": {
+    "L2": {
+     "observed": 2.736019125337105,
+     "expected": 3.0,
+     "pass": false
+    },
+    "H1": {
+     "observed": 2.3147063958319563,
+     "expected": 2.0,
+     "pass": false
+    }
+   },
+   "levels": [
+    2,
+    4,
+    8,
+    16
+   ],
+   "levels_added": [],
+   "errors": {
+    "L2": [
+     0.4738541447139193,
+     0.21991301038739716,
+     0.04810480875369382,
+     0.006541964066371588
+    ],
+    "H1": [
+     0.05438138429117204,
+     0.018884139605303576,
+     0.0046843485059657585,
+     0.0009644280043294214
+    ]
+   },
+   "field": {
+    "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)*cos(0.0270833333333333*pi*z + 1/2)",
+    "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)*cos(0.0270833333333333*pi*z + 7/10)",
+    "uz": "0.06*sin(0.0270833333333333*pi*x + 1/5)*sin(0.0216666666666667*pi*y + 3/5)*sin(0.0270833333333333*pi*z + 1/10)"
+   },
+   "problem": "cook_3d",
+   "reason": "no passing check on record for 43bc3fbab4f150c0|P2|plane_3d|clamped+free+traction+general_domain"
+  }
+ }
+}

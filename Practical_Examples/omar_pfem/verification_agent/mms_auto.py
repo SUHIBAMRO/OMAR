@@ -42,12 +42,15 @@ def solver_sha(material="linear_elastic"):
 
 
 def key(prob, element):
-    kinds = sorted({b["type"] for b in prob.desc["bcs"]} | {"free"})
+    kinds = sorted({(("face_" if "face" in b else "") + b["type"]) for b in prob.desc["bcs"]}
+                   | {"free"})
     mat = getattr(prob, "material", "linear_elastic")
     sha = solver_sha(mat)
     if "domain" in prob.desc:      # general domains: the geometry and mesh code is part of it
-        sha = hashlib.sha256((sha + hashlib.sha256(open(os.path.join(HERE, "geometry2d.py"), "rb")
-                                                   .read()).hexdigest()).encode()).hexdigest()
+        files = [f for f in getattr(prob, "code_files", ["geometry2d.py"]) if f != "pipeline2d.py"]
+        for f in files:
+            sha = hashlib.sha256((sha + hashlib.sha256(open(os.path.join(HERE, f), "rb")
+                                                       .read()).hexdigest()).encode()).hexdigest()
         kinds.append("general_domain" + ("_holes" if prob.desc["domain"].get("holes") else ""))
     base = f"{sha[:16]}|{element}|plane_{prob.plane}|{'+'.join(kinds)}"
     return base if mat == "linear_elastic" else base + f"|{mat}"
@@ -146,9 +149,14 @@ def run(prob, force=False, log=print):
             if not toward:
                 break
             n = 2 * rows[-1]["n"]
+            r = prob.solve(n, None, el, mms=mms)
+            if r.get("failed"):                    # e.g. the 3D memory guard refused the level
+                added.append(f"n={n}: refused ({r.get('reason', 'failed')})")
+                log(f"[mms] {el}: {added[-1]}")
+                break
             added.append(f"n={n}: rates outside tolerance but moving toward theory")
             log(f"[mms] {el}: {added[-1]}")
-            rows.append(prob.solve(n, None, el, mms=mms))
+            rows.append(r)
         res = {"verdict": g["verdict"], "rates": g["rates"], "levels": [r["n"] for r in rows],
                "levels_added": added,
                "errors": {k: [r[k] for r in rows] for k in EXPECTED}, "field": mms.field,

@@ -346,7 +346,21 @@ def diagnose_generic(prob, verdicts, v, ad, mms):
 
 
 # ------------------------------------------------------------------ the loop --------------
-def verify_state(prob, ladders, levels):
+def _report(log, result):
+    """item 3 (25 Nov): the per-run report, written from the stored files at every end of a
+    run (also when it stops early)."""
+    try:
+        from omar_pfem.verification_agent import run_report
+        result["report"] = [os.path.relpath(p, HERE) for p in run_report.build(os.path.basename(log.dir)) if p]
+    except Exception as e:                   # a report failure must not hide the run
+        print(f"report not written: {e!s:.200}")
+
+
+def verify_state(prob, ladders, levels, p2_levels=None):
+    """p2_levels: the independent family's levels when they differ (FIX 25 Nov: the
+    'finer_independent_level' experiment refined the main family as well, although its cost
+    and hypothesis concern the independent family only; found in 3D, where it asked for 2.5
+    million DOF)."""
     from omar_pfem.verification_agent import pipeline2d as P
     uni = ladders.get("Q2 uniform", levels, None, "Q2")
     strongest = min(prob.corners, key=lambda c: min(c["rate_limiting"])) if prob.corners else None
@@ -356,7 +370,7 @@ def verify_state(prob, ladders, levels):
             strat += ladders.get(f"Q2 strategy g={g}", (P.STRATEGY_N,),
                                  {"x": {strongest["x"]: g}, "y": {strongest["y"]: g}}, "Q2")
     strat = [r for r in uni if r["n"] == P.STRATEGY_N] + strat
-    p2 = ladders.get("P2 uniform", levels, None, "P2")
+    p2 = ladders.get("P2 uniform", p2_levels or levels, None, "P2")
     out, v, ad = P.framework(prob, uni[-5:] if len(uni) > 5 else uni, strat, full=True)
     return P.cross_check(out, p2[-5:] if len(p2) > 5 else p2), v, ad
 
@@ -400,9 +414,17 @@ def _small_load(prob, factor, levels):
 
 def _execute(c, prob, ladders, V, v, ad, graded, lv, glv, result, small_load_done):
     kind = c["run"]["kind"]
-    if kind in ("uniform_level", "p2_level"):
+    p2lv = result.get("p2_levels") or list(lv)
+    if kind == "uniform_level":
         lv = lv + [c["run"]["n"]]
-        V, v, ad = verify_state(prob, ladders, lv)
+        p2lv = p2lv + [c["run"]["n"]]
+        result["p2_levels"] = p2lv
+        V, v, ad = verify_state(prob, ladders, lv, p2lv)
+        new = V
+    elif kind == "p2_level":                  # the independent family only
+        p2lv = p2lv + [c["run"]["n"]]
+        result["p2_levels"] = p2lv
+        V, v, ad = verify_state(prob, ladders, lv, p2lv)
         new = V
     elif kind == "graded_level":
         glv = glv + [c["run"]["n"]]
@@ -469,6 +491,12 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
             return result
     from omar_pfem.verification_agent import geometry2d as G
     prob = G.make(desc)
+    if getattr(prob, "dim", 2) == 3:
+        levels = tuple(l for l in levels if l <= 16)      # 3D: 8x DOF per level
+        log.step("M", "code", "note", f"3D extruded domain (thickness {prob.T:g}, layers n/2 x "
+                 f"{prob.kz}); Q2 = 27-node hexahedra, P2 = 10-node tetrahedra; singular edges: "
+                 "extruded-edge approximation (vertex singularities not analysed); face edges "
+                 f"{[(e['face'], e['side'], round(min(e['rate_limiting']), 4)) for e in prob.face_edges]}")
     if "domain" in desc:
         log.step("M", "code", "note", "general domain meshed by gmsh (quadratic triangles and "
                  "independent quadratic quadrilaterals, curved edges on circles); corners from "
@@ -494,6 +522,7 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
         log.step("V", "code", "stop", "code verification failed: no solution verification on an "
                  "unverified solver")
         log.save(result)
+        _report(log, result)
         return result
     # S, C
     ladders = P.Ladders(prob, log=lambda s: None)
@@ -524,12 +553,14 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
         cur = graded if graded is not None else V
         cands, concl = X.candidates({"prob": prob, "verdicts": cur, "graded": graded,
                                      "levels": glv if graded is not None else lv,
+                                     "p2_levels": result.get("p2_levels") or lv,
                                      "ladders": ladders, "diagnosis": diag,
                                      "certified_any": certified_any, "banned": banned,
                                      "small_load_done": small_load_done,
                                      # 2026-11-25: n = 128 neo-Hookean solves took far longer
                                      # than the cost model predicted; cap the level
-                                     "max_n": 64 if getattr(prob, "material", "") == "neo_hookean"
+                                     "max_n": 32 if getattr(prob, "dim", 2) == 3 else
+                                     64 if getattr(prob, "material", "") == "neo_hookean"
                                      else 128})
         for c in concl:
             if not any(h.get("quantity") == c["quantity"] for h in history):
@@ -606,12 +637,7 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
     result.update(final=final, verdicts=V, graded=graded, diagnosis=diag, experiments=history,
                   description=desc)
     log.save(result)
-    # item 3 (25 Nov): the per-run report is written automatically from the stored files
-    try:
-        from omar_pfem.verification_agent import run_report
-        result["report"] = [os.path.relpath(p, HERE) for p in run_report.build(os.path.basename(log.dir)) if p]
-    except Exception as e:                   # a report failure must not hide the run
-        print(f"report not written: {e!s:.200}")
+    _report(log, result)
     auto = [s for s in log.steps if s["actor"] in ("code", "LLM")]
     print(f"steps by code or LLM: {len(auto)}; points needing a person: {len(log.human_points())}")
     return result

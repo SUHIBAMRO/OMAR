@@ -282,5 +282,42 @@
   "predicted_minutes": 1.462646653347389,
   "observed_minutes": 0.28419718345006306,
   "file": "experiments/cook_linear/03_finer_graded_level.json"
+ },
+ {
+  "problem": "plate_hole_quarter_pe",
+  "action": "finer_independent_level",
+  "situation": "any:independent_unconverged",
+  "quantities": [
+   "v_hole_top"
+  ],
+  "confirmed": false,
+  "predicted_minutes": 0.11725213768859818,
+  "observed_minutes": 0.15382924874623616,
+  "file": "experiments/plate_hole_quarter_pe/01_finer_independent_level.json"
+ },
+ {
+  "problem": "plate_hole_quarter_pe",
+  "action": "finer_independent_level",
+  "situation": "any:independent_unconverged",
+  "quantities": [
+   "u_right",
+   "v_hole_top"
+  ],
+  "confirmed": true,
+  "predicted_minutes": 0.10243660993266203,
+  "observed_minutes": 0.6265770276387532,
+  "file": "experiments/plate_hole_quarter_pe/02_finer_independent_level.json"
+ },
+ {
+  "problem": "plate_hole_quarter_3d_pe",
+  "action": "finer_independent_level",
+  "situation": "any:independent_unconverged",
+  "quantities": [
+   "v_hole_top"
+  ],
+  "confirmed": false,
+  "predicted_minutes": 3.5818388158160754,
+  "observed_minutes": 0.04404048124949137,
+  "file": "experiments/plate_hole_quarter_3d_pe/01_finer_independent_level.json"
  }
 ]

@@ -1086,5 +1086,266 @@
   },
   "problem": "cook_linear",
   "reason": "no passing check on record for 4945351442d930f9|P2|plane_stress|clamped+free+traction+general_domain"
+ },
+ "464e0a1256c93451|Q2|plane_strain|free+symmetry+traction+general_domain_holes": {
+  "verdict": "PASS",
+  "rates": {
+   "L2": {
+    "observed": 3.126717691962747,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 2.083731100802724,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16,
+   32
+  ],
+  "levels_added": [
+   "n=32: rates outside tolerance but moving toward theory"
+  ],
+  "errors": {
+   "L2": [
+    0.0005539641099709563,
+    7.595648076411036e-05,
+    9.071639082227292e-06,
+    1.1765139098312617e-06,
+    1.4876278121151113e-07
+   ],
+   "H1": [
+    0.0016922835956439137,
+    0.0004076932362631765,
+    9.703263006861125e-05,
+    2.4745689858408694e-05,
+    6.268854655303452e-06
+   ]
+  },
+  "field": {
+   "ux": "0.01*sin(0.13*pi*x + 3/10)*cos(0.13*pi*y + 1/5)",
+   "uy": "0.01*sin(0.13*pi*y + 2/5)*cos(0.13*pi*x + 1/10)"
+  },
+  "problem": "plate_hole_quarter_pe",
+  "reason": "no passing check on record for 464e0a1256c93451|Q2|plane_strain|free+symmetry+traction+general_domain_holes"
+ },
+ "464e0a1256c93451|P2|plane_strain|free+symmetry+traction+general_domain_holes": {
+  "verdict": "PASS",
+  "rates": {
+   "L2": {
+    "observed": 3.1894979949169726,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 2.136840544941577,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16
+  ],
+  "levels_added": [],
+  "errors": {
+   "L2": [
+    0.0041336332962088555,
+    0.00056255665523307,
+    7.589060004913193e-05,
+    1.0499336480409894e-05
+   ],
+   "H1": [
+    0.007129253732227365,
+    0.0019346938990001139,
+    0.0005014119072189753,
+    0.00013432198751785096
+   ]
+  },
+  "field": {
+   "ux": "0.01*sin(0.13*pi*x + 3/10)*cos(0.13*pi*y + 1/5)",
+   "uy": "0.01*sin(0.13*pi*y + 2/5)*cos(0.13*pi*x + 1/10)"
+  },
+  "problem": "plate_hole_quarter_pe",
+  "reason": "no passing check on record for 464e0a1256c93451|P2|plane_strain|free+symmetry+traction+general_domain_holes"
+ },
+ "43bc3fbab4f150c0|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes": {
+  "verdict": "PASS",
+  "rates": {
+   "L2": {
+    "observed": 3.1661502385357823,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 2.134233714886136,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16
+  ],
+  "levels_added": [],
+  "errors": {
+   "L2": [
+    0.0004069105659618257,
+    5.581802364807407e-05,
+    6.6306661595823585e-06,
+    8.577492306851902e-07
+   ],
+   "H1": [
+    0.0012824828734424765,
+    0.00030438884287001326,
+    7.187255275527323e-05,
+    1.8240674760737707e-05
+   ]
+  },
+  "field": {
+   "ux": "0.01*sin(0.13*pi*x + 3/10)*cos(0.13*pi*y + 1/5)*cos(0.13*pi*z + 1/2)",
+   "uy": "0.01*sin(0.13*pi*y + 2/5)*cos(0.13*pi*x + 1/10)*cos(0.13*pi*z + 7/10)",
+   "uz": "0.01*sin(0.13*pi*x + 1/5)*sin(0.13*pi*y + 3/5)*sin(0.13*pi*z + 1/10)"
+  },
+  "problem": "plate_hole_quarter_3d_pe",
+  "reason": "no passing check on record for 43bc3fbab4f150c0|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes"
+ },
+ "43bc3fbab4f150c0|P2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes": {
+  "verdict": "PASS",
+  "rates": {
+   "L2": {
+    "observed": 3.0676155228649034,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 2.0230962345910695,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16
+  ],
+  "levels_added": [],
+  "errors": {
+   "L2": [
+    0.002729444895325584,
+    0.00041466703005822806,
+    5.66631519286404e-05,
+    7.829574091376877e-06
+   ],
+   "H1": [
+    0.0072301403815759014,
+    0.0021424157979387697,
+    0.0005779563738447722,
+    0.00015630330649077902
+   ]
+  },
+  "field": {
+   "ux": "0.01*sin(0.13*pi*x + 3/10)*cos(0.13*pi*y + 1/5)*cos(0.13*pi*z + 1/2)",
+   "uy": "0.01*sin(0.13*pi*y + 2/5)*cos(0.13*pi*x + 1/10)*cos(0.13*pi*z + 7/10)",
+   "uz": "0.01*sin(0.13*pi*x + 1/5)*sin(0.13*pi*y + 3/5)*sin(0.13*pi*z + 1/10)"
+  },
+  "problem": "plate_hole_quarter_3d_pe",
+  "reason": "no passing check on record for 43bc3fbab4f150c0|P2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes"
+ },
+ "43bc3fbab4f150c0|Q2|plane_3d|clamped+free+traction+general_domain": {
+  "verdict": "FAIL",
+  "rates": {
+   "L2": {
+    "observed": 3.298191952179851,
+    "expected": 3.0,
+    "pass": false
+   },
+   "H1": {
+    "observed": 2.139058523611811,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16
+  ],
+  "levels_added": [],
+  "errors": {
+   "L2": [
+    0.030211248812009393,
+    0.005209651718310849,
+    0.0014576319910864395,
+    0.0001230034367890231
+   ],
+   "H1": [
+    0.0073986024842594015,
+    0.0023903696467397514,
+    0.0006950081690788494,
+    0.0002047811911647132
+   ]
+  },
+  "field": {
+   "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)*cos(0.0270833333333333*pi*z + 1/2)",
+   "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)*cos(0.0270833333333333*pi*z + 7/10)",
+   "uz": "0.06*sin(0.0270833333333333*pi*x + 1/5)*sin(0.0216666666666667*pi*y + 3/5)*sin(0.0270833333333333*pi*z + 1/10)"
+  },
+  "problem": "cook_3d",
+  "reason": "no passing check on record for 43bc3fbab4f150c0|Q2|plane_3d|clamped+free+traction+general_domain"
+ },
+ "43bc3fbab4f150c0|P2|plane_3d|clamped+free+traction+general_domain": {
+  "verdict": "FAIL",
+  "rates": {
+   "L2": {
+    "observed": 2.736019125337105,
+    "expected": 3.0,
+    "pass": false
+   },
+   "H1": {
+    "observed": 2.3147063958319563,
+    "expected": 2.0,
+    "pass": false
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16
+  ],
+  "levels_added": [],
+  "errors": {
+   "L2": [
+    0.4738541447139193,
+    0.21991301038739716,
+    0.04810480875369382,
+    0.006541964066371588
+   ],
+   "H1": [
+    0.05438138429117204,
+    0.018884139605303576,
+    0.0046843485059657585,
+    0.0009644280043294214
+   ]
+  },
+  "field": {
+   "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)*cos(0.0270833333333333*pi*z + 1/2)",
+   "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)*cos(0.0270833333333333*pi*z + 7/10)",
+   "uz": "0.06*sin(0.0270833333333333*pi*x + 1/5)*sin(0.0216666666666667*pi*y + 3/5)*sin(0.0270833333333333*pi*z + 1/10)"
+  },
+  "problem": "cook_3d",
+  "reason": "no passing check on record for 43bc3fbab4f150c0|P2|plane_3d|clamped+free+traction+general_domain"
  }
 }

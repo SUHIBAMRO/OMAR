@@ -157,8 +157,9 @@ def candidates(state):
     p2 = state["ladders"].cache.get("P2 uniform", [])
     cm_q2, cm_p2 = _cost_model(uni), _cost_model(p2)
     n_next = 2 * max(state["levels"])
-    dof_next = 4 * max(r["n_dof"] for r in uni)
-    dof_next_p2 = 4 * max(r["n_dof"] for r in p2)
+    grow = 2 ** getattr(state["prob"], "dim", 2)       # DOF per level: 4 in 2D, 8 in 3D
+    dof_next = grow * max(r["n_dof"] for r in uni)
+    dof_next_p2 = grow * max(r["n_dof"] for r in p2)
     out, conclusions = [], []
     done = set(state.get("certified_any", ()))
     diag = state.get("diagnosis", {})
@@ -178,8 +179,8 @@ def candidates(state):
     graded = state.get("graded") is not None
     if graded:
         gq = state["ladders"].cache.get("Q2 graded", [])
-        dof_next = 4 * max(r["n_dof"] for r in gq)
-        dof_next_p2 = 4 * max(r["n_dof"] for r in state["ladders"].cache.get("P2 graded", gq))
+        dof_next = grow * max(r["n_dof"] for r in gq)
+        dof_next_p2 = grow * max(r["n_dof"] for r in state["ladders"].cache.get("P2 graded", gq))
     if pre and n_next <= state.get("max_n", 128):
         minutes = cm_q2(dof_next) + cm_p2(dof_next_p2)
         fam = "graded" if graded else "uniform"
@@ -216,7 +217,8 @@ def candidates(state):
                     "cost": {"dof": dof, "minutes": cm_q2(dof / 2) * 2}})
     # A3 finer independent level
     ind = [q for q, r in V.items() if r.get("crosscheck") == "independent_unconverged"]
-    if ind and n_next <= state.get("max_n", 128):
+    n_next_p2 = 2 * max(state.get("p2_levels") or state["levels"])
+    if ind and n_next_p2 <= state.get("max_n", 128):
         out.append({"action": "finer_independent_level", "quantities": ind,
                     "situation": "any:independent_unconverged",
                     "justification": f"{ind} are rate-certified but their independent P2 "
@@ -225,7 +227,7 @@ def candidates(state):
                                   "gives it a rate that agrees",
                     "prediction": {"text": "at least one listed quantity becomes cross-checked",
                                    "criterion": "any_crosschecked"},
-                    "run": {"kind": "p2_level", "n": n_next},
+                    "run": {"kind": "p2_level", "n": n_next_p2},
                     "cost": {"dof": dof_next_p2, "minutes": cm_p2(dof_next_p2)}})
     # A4 (2026-11-25) finite-strain corner check: a neo-Hookean problem whose global quantities
     # converge more slowly than the linearized corner theory while min det F falls with refinement

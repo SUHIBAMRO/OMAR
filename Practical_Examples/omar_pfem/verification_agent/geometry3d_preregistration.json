@@ -15,5 +15,10 @@
   "P6_cook_values": "cook_3d: the certified (or, if not certified, finest Q2) v_C is within 2% of the 2D plane-stress reference 23.96, and strain_energy / thickness within 2% of the 2D plane-stress certified 12.02",
   "P7_cook_peak": "cook_3d: peak_von_mises is concluded not verifiable (an exponent below 1)",
   "P8_memory_guard": "on cook_3d a Q2 level n = 32 exceeds the 450,000-DOF guard (if the agent proposes it, the solve is refused before it starts and recorded as a failed experiment, not a crash)"
- }
+ },
+ "amendments_before_scoring": [
+  "A1 (code fix, found by a volume check before any loop result): the first 3D mesher meshed section and volume in one step; coarse quadrilateral sections kept triangles whose prisms were dropped on loading (up to 21% of the volume missing; the manufactured-solution check did not notice because it imposes exact tractions on every boundary, including the holes left). Now the section is meshed first as in 2D and then extruded; a volume guard refuses any mesh that does not fill the domain. Prediction P2 (same in-plane mesh as 2D) relies on this.",
+  "A2 (same remedy as rounds K/L): scikit-fem's inverse isoparametric map tolerance scaled to the round-off floor (27-node hexahedra with coordinates ~ 50 failed at n = 16).",
+  "A3 (test design, after the first Cook manufactured-solution levels, before scoring): the through-thickness wavenumber of the manufactured field changed from 0.7 pi / T to 1.3 pi / max(T, smallest section side). With the first field the thin Cook plate (elements 24 times wider than thick) converged too slowly for the memory-limited levels: with the original field, tetrahedra L2 errors 1.166e3, 23.06, 1.534, 0.3555 at n = 2, 4, 8, 16 (orders 5.7, 3.9, 2.1 with the nominal h; not settled: below the theoretical 3 at n = 16 and still changing), hexahedra failed at n = 16 (A2). No prediction text changed."
+ ]
 }
