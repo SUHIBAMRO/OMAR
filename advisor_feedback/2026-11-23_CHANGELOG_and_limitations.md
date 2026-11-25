@@ -607,4 +607,4 @@ become cluster jobs, manual submission).
   round_q_posthoc.json (memory limits; Q5 = integration rule, not the solver).
 - Fixes: the experiment executor refines only the family the experiment is about; reports and index handle
   runs that stop early (description stored at the start); report shows the reference-domain label and
-  pending cluster jobs. Tests 113 pass.
+  pending cluster jobs. Tests 112 pass.
