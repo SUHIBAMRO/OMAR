@@ -123,7 +123,50 @@ def score():
     print("confirmed" if ok else "refuted", change, gap)
 
 
+
+def value_of_information(level=7, grid=126):
+    """(2026-11-25) Before proposing another level: can ANY outcome of it change the verdict
+    under the frozen rules? Every candidate value of the next peak is run through the same two
+    convergence checks (three- and five-level, peak class tolerances); the verdict combination
+    fails if either check fails. Writes the decision to experiments/bushing_groove/."""
+    import numpy as np
+    from omar_pfem.verification_agent import experiment as X
+    from omar_pfem.verification_agent import gates, trees
+    d, n = json.load(open(DATA)), json.load(open(OUT6))
+    P = [d[f"L{l}:p2:fbar_p1"]["max_sigma_xx_R0"] for l in (2, 3, 4, 5)] + \
+        [n["L6:p2:fbar_p1"]["max_sigma_xx_R0"]]
+    spans = {l: 12 * l for l in range(2, 12)}
+    cp = trees.class_params("qoi_convergence_multilevel", "pointwise_peak")
+    hs = [1 / spans[l] for l in range(level - 4, level + 1)]
+    certifying = []
+    for x in np.linspace(0.8 * P[-1], 1.2 * P[-1], grid):
+        seq = (P + [x])[-5:]
+        g5 = gates.multilevel_convergence_gate(hs, seq, order_window=trees.order_window("Q20"), **cp)
+        g3 = gates.qoi_convergence_gate(hs[-3:], seq[-3:], order_window=trees.order_window("Q20"), **cp)
+        if g5["verdict"] == "PASS" and g3["verdict"] == "PASS":
+            certifying.append(float(x))
+    dof = lambda l: 3 * (12 * l + 2) * (6 * l + 2) * (20 * l + 2)
+    t6 = max(n["L6:p2:fbar_p1"]["seconds"], n["L6:p2"]["seconds"]) / 3600
+    hours = {l: t6 * (dof(l) / dof(6)) ** 1.3 for l in (7, 8, 9)}
+    rec = {"action": "spline_level_7_declined", "situation": "pointwise_peak:non_monotone",
+           "quantities": ["max_sigma_xx_R0"],
+           "decision": "not proposed" if not certifying else "proposed",
+           "justification": (f"P1 peak sequence {[round(p, 3) for p in P]}: the five-level window "
+                             f"L{level - 4}-L{level} contains the reversal; of {grid} candidate values "
+                             f"of L{level} ({0.8 * P[-1]:.3f}-{1.2 * P[-1]:.3f}), "
+                             f"{len(certifying)} pass both convergence checks. A monotone five-level "
+                             "window needs levels up to 9."),
+           "hours_per_formulation_estimate": hours,
+           "prediction": {"text": "none (no experiment)", "criterion": "none"},
+           "cost": {"minutes": 0.0}}
+    path, frozen = X.freeze(PROBLEM, 2, rec)
+    print(json.dumps({k: rec[k] for k in ("decision", "justification", "hours_per_formulation_estimate")},
+                     indent=1, default=float))
+    return rec
+
+
 if __name__ == "__main__":
     import warnings
     warnings.filterwarnings("ignore")
-    {"propose": propose, "run-l6": run_l6, "score": score}[sys.argv[1]]()
+    {"propose": propose, "run-l6": run_l6, "score": score,
+     "voi": value_of_information}[sys.argv[1]]()

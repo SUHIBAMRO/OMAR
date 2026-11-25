@@ -26261,3 +26261,8 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
 - 2026-11-25 groove L6 imported + scored: prediction confirmed, peak not monotone (1.00, 0.89, 0.92)
   -> not verified; both spline Gaussian sxx now above the Q20 limit. New-results PDF Section 8.3,
   claims 66/66; reply draft updated. Nothing running on the cluster.
+- 2026-11-25 L7 for the groove peak: NOT proposed by the agent (value-of-information check,
+  `groove_experiment voi`, record experiments/bushing_groove/02_spline_level_7_declined.json): no
+  value of L7 can pass both convergence checks (the L3-L7 window contains the 1.00 -> 0.89 -> 0.92
+  reversal); a monotone window needs L9; estimates 9.5 / 15.8 / 24.8 h per formulation for L7-L9.
+  Recommendation to Omar: ask Professor Rabczuk before any further refinement (he approved one).

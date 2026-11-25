@@ -1,0 +1,27 @@
+{
+ "preregistration": {
+  "action": "spline_level_7_declined",
+  "situation": "pointwise_peak:non_monotone",
+  "quantities": [
+   "max_sigma_xx_R0"
+  ],
+  "decision": "not proposed",
+  "justification": "P1 peak sequence [1.708, 1.055, 1.001, 0.891, 0.924]: the five-level window L3-L7 contains the reversal; of 126 candidate values of L7 (0.739-1.108), 0 pass both convergence checks. A monotone five-level window needs levels up to 9.",
+  "hours_per_formulation_estimate": {
+   "7": 9.532874175577355,
+   "8": 15.83204333734211,
+   "9": 24.80049089622258
+  },
+  "prediction": {
+   "text": "none (no experiment)",
+   "criterion": "none"
+  },
+  "cost": {
+   "minutes": 0.0
+  },
+  "problem": "bushing_groove",
+  "git_head": "ed3fe89c6a0aa7e7e3db2c045ff328593fa89544",
+  "frozen_utc": "2026-11-25T10:45:18.169487+00:00",
+  "sha256": "8496e5476c32de04c00221408273dd8e37887f6fa47c359fef67204033139526"
+ }
+}
