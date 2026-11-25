@@ -1,0 +1,24 @@
+{
+ "date": "2026-11-25",
+ "round": "Q (after 'do all three and widen the automation')",
+ "written_before_any_code_or_result_of_this_round": true,
+ "new_rules_labelled_post_hoc": {
+  "R1_code_verification_classes": "POST HOC (decided after the Cook 3D check, pending Professor Rabczuk): a manufactured-solution check is PASS (rates within 0.2 of theory, unchanged), INCONCLUSIVE (errors fall at every level but the rates are not within tolerance at the finest affordable levels) or FAIL (an error does not fall). Before, everything not PASS was FAIL.",
+  "R2_reference_domain": "POST HOC, pending Professor Rabczuk: when the production-domain check is INCONCLUSIVE, the same check is run on a reference domain (the bounding rectangle of the section, same thickness, the same boundary-condition types, a circular hole if the problem has one). If that PASSES, the loop continues and every result of the run is labelled 'code verified on the reference domain'. A FAIL still stops the loop.",
+  "R3_cluster": "when the memory guard refuses a level, the agent writes a cluster job (bundle, md5, step-by-step instructions) for MANUAL submission, records the person point, and the imported rows are accepted only with the identical code fingerprint."
+ },
+ "problems": {
+  "nh_plate_hole_3d_pe": "problems3d/nh_plate_hole_3d_pe.json: the 3D plane-strain plate with a hole, neo-Hookean, E = 50, nu = 0.3, traction 1",
+  "nh_plate_hole_pe": "problems2d/nh_plate_hole_pe.json: its 2D plane-strain counterpart"
+ },
+ "predictions": {
+  "Q1_cook_classes": "cook_3d: the production-domain check is INCONCLUSIVE for both elements under R1 (all errors fall)",
+  "Q2_cook_reference": "cook_3d: the reference-domain check PASSES for both elements, and the loop then certifies v_C with a limit within 1% of 23.96",
+  "Q3_cook_peak": "cook_3d: peak_von_mises concluded not verifiable",
+  "Q4_nh3d_mms": "3D neo-Hookean manufactured-solution check (peak strain ~10%) PASS for both elements on nh_plate_hole_3d_pe (or INCONCLUSIVE then PASS on the reference domain)",
+  "Q5_nh3d_identity": "nh_plate_hole_3d_pe Q2 hexahedra = nh_plate_hole_pe Q2 quadrilaterals at every level n = 2..16 to 1e-7 relative (strain energy per thickness, u_right, v_hole_top)",
+  "Q6_nh3d_small_load": "3D neo-Hookean with the load times 1e-4 equals 3D linear elasticity to 1e-3 relative (u_right)",
+  "Q7_nh3d_loop": "the loop on nh_plate_hole_3d_pe certifies at least 2 quantities",
+  "Q8_cluster_job": "the loop on plate_hole_quarter_3d_pe prepares a cluster job automatically when the guard refuses the finer independent level; the job spec carries the local fingerprint, the bundle md5 is recorded and the log has one person point for the submission"
+ }
+}
