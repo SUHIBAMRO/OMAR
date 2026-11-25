@@ -549,8 +549,26 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
                                            "Rabczuk): production check INCONCLUSIVE for " + ", ".join(inc))
             mms = {el: (dict(r, verdict="PASS") if el in inc else r) for el, r in mms.items()}
         else:
-            log.step("V", "code", "stop", f"production check INCONCLUSIVE and no passing reference "
-                     f"check ({why}): no solution verification")
+            refused = any("refused" in s for r in list(mms.values()) + list(
+                (result.get("mms_reference_domain") or {}).get("checks", {}).values())
+                for s in r.get("levels_added", []))
+            log.step("V", "code", "stop", "production check INCONCLUSIVE and the reference check "
+                     f"did not pass ({why if ref is None else 'reference INCONCLUSIVE'}): no "
+                     "solution verification")
+            # rule R3 (round Q): a check that needs levels this machine refuses becomes a
+            # cluster job (production and reference domain, levels up to 32), submitted by hand
+            if refused:
+                from omar_pfem.verification_agent import cluster_ladder
+                try:
+                    job = cluster_ladder.prepare_mms(desc, tuple(inc), log=lambda s: None)
+                    result.setdefault("cluster_jobs", []).append(job)
+                    log.step("V", "code", "cluster_job", f"code-verification levels up to 32 prepared "
+                             f"as cluster job {job['name']} (bundle md5 {job['bundle_md5']}; "
+                             f"instructions {job['instructions']})", job=job)
+                    log.step("V", "person", "needs_person", f"submit cluster job {job['name']} by "
+                             "hand and paste the result; then the run is repeated")
+                except Exception as e2:
+                    log.step("V", "code", "failed", f"cluster job not prepared: {e2!s:.200}")
             log.save(result)
             _report(log, result)
             return result

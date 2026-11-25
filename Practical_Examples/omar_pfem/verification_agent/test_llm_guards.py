@@ -1337,3 +1337,23 @@ def test_campaign_index_builds():
     from omar_pfem.verification_agent import campaign
     f = campaign.index(pdf=False)
     assert "Open questions" in open(f).read()
+
+
+def test_cluster_mms_import_only_under_local_keys(tmp_path, monkeypatch):
+    import json, pytest
+    from omar_pfem.verification_agent import cluster_ladder as C, mms_auto
+    from omar_pfem.verification_agent.geometry2d import make
+    monkeypatch.setattr(C, "JOBS", str(tmp_path))
+    monkeypatch.setattr(mms_auto, "RECORD", str(tmp_path / "rec.json"))
+    d = _load3("cook_3d.json")
+    k = mms_auto.key(make(d), "Q2")
+    json.dump({"checks": [{"description": d, "suffix": ""}], "elements": ["Q2"]},
+              open(tmp_path / "m_spec.json", "w"))
+    good = {"verdict": "PASS", "levels": [2, 4, 8, 16, 32]}
+    r = C._import_mms({"name": "m", "results": {k: good, "other-code|Q2": good}})
+    assert r["added"] == [(k, "PASS")] and r["refused"] == ["other-code|Q2"]
+    with pytest.raises(SystemExit, match="PASS is on record"):          # never downgrade a PASS
+        C._import_mms({"name": "m", "results": {k: {"verdict": "FAIL"}}})
+    assert json.load(open(tmp_path / "rec.json"))[k]["verdict"] == "PASS"
+    with pytest.raises(SystemExit):
+        C._import_mms({"name": "m", "results": {"x|Q2": good}})
