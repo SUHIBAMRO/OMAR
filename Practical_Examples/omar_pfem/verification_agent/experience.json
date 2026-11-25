@@ -208,5 +208,17 @@
   "predicted_minutes": 19.851967464511123,
   "observed_minutes": 0.07046945492426554,
   "file": "experiments/nh_l_bracket_demo/03_finer_uniform_level.json"
+ },
+ {
+  "problem": "bushing_groove",
+  "action": "spline_level_6",
+  "situation": "pointwise_peak:finite_radius_not_contracting",
+  "quantities": [
+   "max_sigma_xx_R0"
+  ],
+  "confirmed": true,
+  "predicted_minutes": 714.4147559033075,
+  "observed_minutes": 616.4605648716291,
+  "file": "experiments/bushing_groove/01_spline_level_6.json"
  }
 ]

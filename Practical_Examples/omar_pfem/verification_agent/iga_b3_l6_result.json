@@ -1,0 +1,140 @@
+{
+ "L6:p2:fbar_p1": {
+  "level": 6,
+  "p": 2,
+  "formulation": "fbar_p1",
+  "spans": [
+   72,
+   36,
+   120
+  ],
+  "n_elem": 311040,
+  "n_dof": 1029192,
+  "seconds": 17836.136355638504,
+  "newton": [
+   [
+    2,
+    1.1212204714389636e-11
+   ],
+   [
+    2,
+    4.421722050382484e-11
+   ],
+   [
+    2,
+    1.5703016095722322e-10
+   ],
+   [
+    2,
+    4.891445163301776e-10
+   ],
+   [
+    3,
+    4.776271802525536e-14
+   ]
+  ],
+  "linsolve": "amg",
+  "reaction_moment_y": 34.47204999578349,
+  "strain_energy": 0.8625708018882138,
+  "gk2_sigma_xx_avg": 0.5546384538154255,
+  "gk2_sigma_yy_avg": 0.4356974272959029,
+  "gk2_sigma_zz_avg": 0.44392769425097595,
+  "gk2_sigma_xz_avg": 0.09190499878713909,
+  "gk2_pressure_avg": -0.47808785845410157,
+  "gk2_cyl_rr_avg": 0.5539467112894336,
+  "gk2_cyl_tt_avg": 0.4363891698218951,
+  "gk2trunc_sigma_xx_avg": 0.5527659661892201,
+  "gk2trunc_sigma_yy_avg": 0.4359236956748481,
+  "gk2trunc_sigma_zz_avg": 0.4452888611441147,
+  "gk2trunc_sigma_xz_avg": 0.06693570745319734,
+  "gk2trunc_pressure_avg": -0.4779928410027276,
+  "gk2trunc_cyl_rr_avg": 0.5520072928342157,
+  "gk2trunc_cyl_tt_avg": 0.43668236902985264,
+  "sharp_sigma_xx_avg": 0.46573689398764645,
+  "sharp_sigma_yy_avg": 0.393190025346105,
+  "sharp_sigma_zz_avg": 0.4274549814127401,
+  "sharp_sigma_xz_avg": -0.27750032816133896,
+  "sharp_pressure_avg": -0.4287939669154971,
+  "sharp_cyl_rr_avg": 0.46526351090502427,
+  "sharp_cyl_tt_avg": 0.3936634084287271,
+  "n_quad_R0": 888,
+  "max_sigma_xx_R0": 0.9235036804134938,
+  "max_sigma_zz_R0": 1.154671359843098,
+  "max_pressure_R0": 0.7450554243519543,
+  "root_sigma_xx": 0.45346227164744046,
+  "root_sigma_zz": 0.3771746431338777,
+  "root_sigma_xz": -0.03692362324247328,
+  "root_pressure": -0.4014375873636978,
+  "root_sigma_xx_sides": [
+   0.3927481358755583,
+   0.5141764074193226
+  ]
+ },
+ "L6:p2": {
+  "level": 6,
+  "p": 2,
+  "formulation": "disp",
+  "spans": [
+   72,
+   36,
+   120
+  ],
+  "n_elem": 311040,
+  "n_dof": 1029192,
+  "seconds": 19151.49753665924,
+  "newton": [
+   [
+    2,
+    5.04061940841979e-12
+   ],
+   [
+    2,
+    1.8091470592965263e-11
+   ],
+   [
+    2,
+    6.226129745849916e-11
+   ],
+   [
+    2,
+    1.9365537504101315e-10
+   ],
+   [
+    2,
+    5.626471732483607e-10
+   ]
+  ],
+  "linsolve": "amg",
+  "reaction_moment_y": 34.49600003331395,
+  "strain_energy": 0.8630683749161211,
+  "gk2_sigma_xx_avg": 0.5453206275250255,
+  "gk2_sigma_yy_avg": 0.42837336434428497,
+  "gk2_sigma_zz_avg": 0.4364848681393716,
+  "gk2_sigma_xz_avg": 0.09104180448790469,
+  "gk2_pressure_avg": -0.4700596200028941,
+  "gk2_cyl_rr_avg": 0.5446671529559217,
+  "gk2_cyl_tt_avg": 0.4290268389133889,
+  "gk2trunc_sigma_xx_avg": 0.5434528005190574,
+  "gk2trunc_sigma_yy_avg": 0.42860116178488705,
+  "gk2trunc_sigma_zz_avg": 0.4378546507903876,
+  "gk2trunc_sigma_xz_avg": 0.06610343497896667,
+  "gk2trunc_pressure_avg": -0.46996953769811073,
+  "gk2trunc_cyl_rr_avg": 0.5427315738151769,
+  "gk2trunc_cyl_tt_avg": 0.42932238848876764,
+  "sharp_sigma_xx_avg": 0.4577154897413814,
+  "sharp_sigma_yy_avg": 0.3866292111412415,
+  "sharp_sigma_zz_avg": 0.4208295596831329,
+  "sharp_sigma_xz_avg": -0.277053230086132,
+  "sharp_pressure_avg": -0.42172475352191857,
+  "sharp_cyl_rr_avg": 0.45724381385556795,
+  "sharp_cyl_tt_avg": 0.387100887027055,
+  "n_quad_R0": 888,
+  "max_sigma_xx_R0": 1.0587497601997111,
+  "max_sigma_zz_R0": 1.3849978264433047,
+  "max_pressure_R0": 0.8763654747681217,
+  "root_sigma_xx": 0.4471297377646744,
+  "root_sigma_zz": 0.3719870261861728,
+  "root_sigma_xz": -0.03580905792075674,
+  "root_pressure": -0.39590453431131567
+ }
+}

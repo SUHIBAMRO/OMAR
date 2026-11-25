@@ -26258,3 +26258,6 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   CHANGELOG 25 Nov). New-results PDF 8 pages, claims 51/51; reply draft updated (8 pages, Section 8
   paragraph). Tests 91 pass. Groove L6 job 3297326 still running. Next (advisor order): geometry
   family with inclined edges (Cook's membrane), then holes/curved edges; 3D solvers; CSM/CFM last.
+- 2026-11-25 groove L6 imported + scored: prediction confirmed, peak not monotone (1.00, 0.89, 0.92)
+  -> not verified; both spline Gaussian sxx now above the Q20 limit. New-results PDF Section 8.3,
+  claims 66/66; reply draft updated. Nothing running on the cluster.

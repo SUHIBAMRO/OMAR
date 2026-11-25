@@ -461,3 +461,10 @@ Pre-registered before any loaded solve: commit 4fd091f. No billed run, no cluste
   USD 0.84. Log attribution bug ("chosen by a person") fixed post hoc (`chosen_by`).
 - Cook's membrane named in 4 of 12 scouted papers -> first geometry family: inclined edges.
 - New-results PDF now 8 pages (Section 8 added, Sections 3, 4 and 7 updated), claims 51/51.
+- 25 Nov, groove L6 (job 3297326, md5 706016932817b103b0df0dfc2f6ab63e, imported with job_factory):
+  P1 peak 0.92 (L5 0.89), disp 1.06; agent prediction CONFIRMED (change 3.6% < 11.0%, gap 0.135 <
+  0.151) but the P1 sequence is not monotone -> peak stays not verified (frozen rule). L2-L6: moment
+  and energy rate (1.51, 1.54 P1); Gaussian averages no rate; P1 sxx 2.3% and disp 0.60% above the
+  Q20 limit, both rising -> Q20 Gaussian likely below the continuum value. Times 5.0 / 5.3 h (est. 6).
+  Crosscheck/three-way of report v11 NOT recomputed with L6 (kept reproducible; L6 in new-results
+  PDF Section 8.3). New-results PDF claims 66/66 (memory claims now matched as phrases).

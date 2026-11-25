@@ -41,5 +41,14 @@
   "git_head": "d95f7480be0b56ae10e6e3529ae6041e286bf44d",
   "frozen_utc": "2026-11-24T17:07:16.927498+00:00",
   "sha256": "a909b1f9bd8875be6370256d6b4b15b90a4fce25adb8990e1d101bdc37aa5845"
+ },
+ "outcome": {
+  "confirmed": true,
+  "P1_L6": 0.9235036804134938,
+  "disp_L6": 1.0587497601997111,
+  "change_L5_L6": 0.03630778767409826,
+  "gap_L6": 0.13524607978621728,
+  "observed_minutes": 616.4605648716291,
+  "conclusion": "the peak may become certifiable: at least one more level is needed for three contracting changes; still reported as not verified until then"
  }
 }

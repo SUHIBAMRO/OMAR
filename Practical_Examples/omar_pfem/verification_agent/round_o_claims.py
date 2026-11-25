@@ -46,12 +46,12 @@ def claims():
         ("pairwise 3", lsh["pairwise_orders"][2], "{:.2f}", None),
         ("bound", lsh["expected"], "{:.2f}", None),
         ("T-bracket certified", len(run("t_bracket")["final"]["certified"]), "{:d}", lambda v: v == 7),
-        ("experiments", len(mem), "{:d}", None),
-        ("confirmed", sum(m["confirmed"] for m in mem), "{:d}", None),
-        ("prior graded", prior("graded_meshes", "corner_limited")[0], "{:.2f}", None),
-        ("trials graded", prior("graded_meshes", "corner_limited")[1], "{:d}", None),
-        ("prior finer graded", prior("finer_graded_level", "region_average:band_only")[0], "{:.2f}", None),
-        ("trials finer graded", prior("finer_graded_level", "region_average:band_only")[1], "{:d}", None),
+        ("experiments", len(mem), "made {:d} experiments", None),
+        ("confirmed", sum(m["confirmed"] for m in mem), "and {:d} confirmed", None),
+        ("prior graded", prior("graded_meshes", "corner_limited")[0], "now {:.2f} for graded", None),
+        ("trials graded", prior("graded_meshes", "corner_limited")[1], "problems ({:d} trials)", None),
+        ("prior finer graded", prior("finer_graded_level", "region_average:band_only")[0], "and {:.2f} for a further", None),
+        ("trials finer graded", prior("finer_graded_level", "region_average:band_only")[1], "level ({:d} trials)", None),
         ("MMS pairwise 1", pw[0], "{:.2f}", None), ("MMS pairwise 2", pw[1], "{:.2f}", None),
         ("MMS pairwise 3", pw[2], "{:.2f}", None),
         ("MMS fitted after level", tb["rates"]["L2"]["observed"], "{:.2f}", None),
@@ -106,6 +106,38 @@ def claims_25nov():
         ("search cost", sc["llm_cost_usd"], "{:.2f}", None),
         ("Cook mentions", len(sc["cook_membrane_mentions"]), "{:d}", lambda v: v == 4),
         ("search predictions met", sum(sc["predictions"].values()), "{:d}", lambda v: v == 3),
+    ] + claims_l6()
+
+
+def claims_l6():
+    """Section 8.3: the level-6 groove experiment."""
+    from omar_pfem.verification_agent import gates, trees
+    d, n = j("iga_b3_result.json"), j("iga_b3_l6_result.json")
+    o = j("experiments/bushing_groove/01_spline_level_6.json")["outcome"]
+    row = lambda lv, f: (d.get(f"L{lv}:p2{f}") or n.get(f"L{lv}:p2{f}"))
+    h = {lv: 1.0 / row(lv, "")["spans"][0] for lv in (2, 3, 4, 5, 6)}
+    fit = lambda q, f: gates.multilevel_convergence_gate(
+        [h[l] for l in (2, 3, 4, 5, 6)], [row(l, f)[q] for l in (2, 3, 4, 5, 6)],
+        order_window=trees.order_window("Q20"), **trees.class_params(
+            "qoi_convergence_multilevel", trees.classify_qoi(q)))
+    xr = next(r for r in j("crosscheck_result.json")["rows"]
+              if r["problem"] == "bushing_groove" and r["qoi"] == "gk2_sigma_xx_avg")
+    return [
+        ("prediction confirmed", int(o["confirmed"]), "{:d}", lambda v: v == 1),
+        ("P1 hours", n["L6:p2:fbar_p1"]["seconds"] / 3600, "{:.1f}", None),
+        ("disp hours", n["L6:p2"]["seconds"] / 3600, "{:.1f}", None),
+        ("P1 peak L6", n["L6:p2:fbar_p1"]["max_sigma_xx_R0"], "{:.2f}", None),
+        ("disp peak L6", n["L6:p2"]["max_sigma_xx_R0"], "{:.2f}", None),
+        ("change L5-L6 %", 100 * o["change_L5_L6"], "{:.1f}", None),
+        ("gap L6", o["gap_L6"], "{:.3f}", None),
+        ("moment order P1", fit("reaction_moment_y", ":fbar_p1")["fit_order"], "{:.2f}", None),
+        ("energy order P1", fit("strain_energy", ":fbar_p1")["fit_order"], "{:.2f}", None),
+        ("moment rate", int(fit("reaction_moment_y", ":fbar_p1")["evidence"] == "rate"), "{:d}", lambda v: v == 1),
+        ("Gaussian P1 no rate", int(fit("gk2trunc_sigma_xx_avg", ":fbar_p1").get("evidence") != "rate"), "{:d}", lambda v: v == 1),
+        ("P1 Gaussian L5", d["L5:p2:fbar_p1"]["gk2trunc_sigma_xx_avg"], "{:.4f}", None),
+        ("P1 Gaussian L6", n["L6:p2:fbar_p1"]["gk2trunc_sigma_xx_avg"], "{:.4f}", None),
+        ("P1 above Q20 %", 100 * (n["L6:p2:fbar_p1"]["gk2trunc_sigma_xx_avg"] / xr["limit"] - 1), "{:.1f}", None),
+        ("disp above Q20 %", 100 * (n["L6:p2"]["gk2trunc_sigma_xx_avg"] / xr["limit"] - 1), "{:.2f}", None),
     ]
 
 
