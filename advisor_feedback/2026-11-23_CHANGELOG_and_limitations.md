@@ -570,3 +570,41 @@ Pre-registered before any loaded solve: commit 4fd091f. No billed run, no cluste
 - The per-run report is now also written when a run stops early, with the stop reason at the top.
 - Limitation: 3D on this machine is limited to n = 16; further levels need the cluster (manual submission).
 - Tests 105 pass.
+
+## 25-26 November, round Q: neo-Hookean 3D, code-verification classes, cluster jobs, campaign
+
+Pre-registered before any code or result (round_q_preregistration.json, commit 3020da3); new rules
+labelled POST HOC, pending Professor Rabczuk: R1 (code verification PASS / INCONCLUSIVE / FAIL; INCONCLUSIVE
+= every error falls but the rates have not settled), R2 (reference domain: the bounding rectangle with the
+same condition types, used only when the production check is INCONCLUSIVE), R3 (levels refused by memory
+become cluster jobs, manual submission).
+
+- `geometry3d_nh.py`: 3D neo-Hookean on extruded sections (load stepping, Newton; P and the tangent
+  computed once per iteration, assembled per displacement component on the scalar basis: n = 4 from 103 s
+  to 12 s); manufactured solution with the exact chain-rule body force (checked against finite differences
+  of P to 1e-8). Small load = linear 3D (1.4e-6). With the same integration order as 2D, 3D = 2D plane strain
+  to 1e-14 (the 27-point rule used for speed gives 8e-5 at n = 2, 2.3e-6 at n = 4).
+- Newton stopping criterion (3D): also converged when the residual has stalled at the round-off floor
+  (found by the small-load test; the 3D floor lies just above the 2D thresholds).
+- Memory: the DOF guard was not enough - two campaign runs were killed by the operating system (basis
+  values at integration order 6; neo-Hookean). Now a peak-memory guard calibrated on measurements (linear
+  Q2 n = 8: 1.51 GB measured vs 0.82 estimate -> factor 1.85; neo-Hookean 2.71 -> 2.8; limit 13 of 15 GB)
+  and a 27-point rule for the 3D manufactured check. Refused base levels no longer crash a run: the code
+  check uses the levels that fit (INCONCLUSIVE if fewer than 3), the ladders drop the refused level and a
+  cluster job is prepared.
+- `cluster_ladder.py`: cluster jobs for refused ladder levels and for code-verification checks that cannot
+  settle locally; one combined job for all pending jobs (batch_20261125_3jobs, md5 9428977744c73be914a70145af143166,
+  120 GB, 24 h, package check before submission); import only with the same md5 and the same code
+  (fingerprint / record key); a PASS on record is never downgraded.
+- `campaign.py`: run many problems, index of all runs (autonomous_runs/index.pdf) with status, open
+  questions (open_questions.json), draft summary advisor_feedback/2026-11-25_new_results_DRAFT.md (not sent).
+- Results: 2D neo-Hookean plate (plane strain) 3/4 certified; 3D plate 2/4 (cluster job prepared for P2 n = 32);
+  Cook 3D: production and reference checks INCONCLUSIVE (thin plate, rates above theory and not settled by
+  n = 16) -> stopped, cluster job prepared; 3D neo-Hookean plate: P2 check PASS (3.08 / 2.02), Q2 INCONCLUSIVE
+  (n = 16 needs ~18 GB) -> stopped, cluster job prepared.
+- Score 3/8 (round_q_score.json): HIT Q1 (Cook INCONCLUSIVE, not FAIL), Q6 (small load), Q8 (cluster job
+  prepared with the matching fingerprint, one person point). MISS Q2-Q5, Q7 - explanations in
+  round_q_posthoc.json (memory limits; Q5 = integration rule, not the solver).
+- Fixes: the experiment executor refines only the family the experiment is about; reports and index handle
+  runs that stop early (description stored at the start); report shows the reference-domain label and
+  pending cluster jobs. Tests 113 pass.

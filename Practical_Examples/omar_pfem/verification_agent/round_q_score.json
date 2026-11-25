@@ -1,0 +1,89 @@
+{
+ "Q1_cook_classes": {
+  "confirmed": true,
+  "evidence": {
+   "Q2": "INCONCLUSIVE",
+   "P2": "INCONCLUSIVE"
+  }
+ },
+ "Q2_cook_reference": {
+  "confirmed": false,
+  "evidence": {
+   "reference": {
+    "Q2": "INCONCLUSIVE",
+    "P2": "INCONCLUSIVE"
+   },
+   "v_C_limit": null,
+   "rel": null
+  }
+ },
+ "Q3_cook_peak": {
+  "confirmed": false,
+  "evidence": "not reached"
+ },
+ "Q4_nh3d_mms": {
+  "confirmed": false,
+  "evidence": {
+   "Q2": [
+    "INCONCLUSIVE",
+    null
+   ],
+   "P2": [
+    "PASS",
+    null
+   ]
+  }
+ },
+ "Q5_nh3d_identity": {
+  "confirmed": false,
+  "evidence": {
+   "max_rel_dev": {
+    "strain_energy": 8.171462175798894e-07,
+    "u_right": 2.538034299170988e-06,
+    "v_hole_top": 8.035538167328049e-05
+   },
+   "levels": [
+    2,
+    4,
+    8
+   ],
+   "all_levels_2_to_16": false,
+   "source": "solved by the scorer (loop stopped at code verification); levels [2, 4, 8]"
+  }
+ },
+ "Q6_nh3d_small_load": {
+  "confirmed": true,
+  "evidence": {
+   "level": 4,
+   "u_nh": 1.9141004579743013e-05,
+   "u_linear": 1.9140978230532724e-05,
+   "rel": 1.3765863986492377e-06
+  }
+ },
+ "Q7_nh3d_loop": {
+  "confirmed": false,
+  "evidence": []
+ },
+ "Q8_cluster_job": {
+  "confirmed": true,
+  "evidence": {
+   "jobs": [
+    {
+     "name": "ladder_plate_hole_quarter_3d_pe_P232",
+     "bundle_md5": "1570ddddf27d672b3a3517b479b03feb",
+     "levels": [
+      [
+       "P2 uniform",
+       32,
+       "P2"
+      ]
+     ]
+    }
+   ],
+   "fingerprint_matches": [
+    true
+   ],
+   "person_points": 1
+  }
+ }
+}

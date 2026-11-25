@@ -1,0 +1,165 @@
+{
+ "kind": "mms",
+ "name": "mms_cook_3d_Q2_P2_n32",
+ "checks": [
+  {
+   "description": {
+    "name": "cook_3d",
+    "dim": 3,
+    "domain": {
+     "outer": [
+      [
+       0,
+       0
+      ],
+      [
+       48,
+       44
+      ],
+      [
+       48,
+       60
+      ],
+      [
+       0,
+       44
+      ]
+     ]
+    },
+    "thickness": 1.0,
+    "E": 1.0,
+    "nu": 0.3333333333333333,
+    "bcs": [
+     {
+      "segment": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        44
+       ]
+      ],
+      "type": "clamped"
+     },
+     {
+      "segment": [
+       [
+        48,
+        44
+       ],
+       [
+        48,
+        60
+       ]
+      ],
+      "type": "traction",
+      "t": [
+       0.0,
+       0.0625,
+       0.0
+      ]
+     }
+    ],
+    "points": {
+     "v_C": [
+      48,
+      52,
+      0.0,
+      "y"
+     ]
+    }
+   },
+   "suffix": "",
+   "keys": {
+    "Q2": "676df723c16cb30d|Q2|plane_3d|clamped+free+traction+general_domain",
+    "P2": "676df723c16cb30d|P2|plane_3d|clamped+free+traction+general_domain"
+   }
+  },
+  {
+   "description": {
+    "dim": 3,
+    "thickness": 1.0,
+    "E": 1.0,
+    "nu": 0.3333333333333333,
+    "name": "cook_3d_reference_domain",
+    "domain": {
+     "outer": [
+      [
+       0,
+       0
+      ],
+      [
+       48,
+       0
+      ],
+      [
+       48,
+       60
+      ],
+      [
+       0,
+       60
+      ]
+     ],
+     "holes": []
+    },
+    "bcs": [
+     {
+      "segment": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        60
+       ]
+      ],
+      "type": "clamped"
+     },
+     {
+      "segment": [
+       [
+        48,
+        0
+       ],
+       [
+        48,
+        60
+       ]
+      ],
+      "type": "traction",
+      "t": [
+       0.0,
+       0.0625,
+       0.0
+      ]
+     }
+    ],
+    "points": {}
+   },
+   "suffix": "|reference_domain",
+   "keys": {
+    "Q2": "676df723c16cb30d|Q2|plane_3d|clamped+free+traction+general_domain|reference_domain",
+    "P2": "676df723c16cb30d|P2|plane_3d|clamped+free+traction+general_domain|reference_domain"
+   }
+  }
+ ],
+ "elements": [
+  "Q2",
+  "P2"
+ ],
+ "levels": [
+  2,
+  4,
+  8,
+  16,
+  32
+ ],
+ "max_dof": 6000000,
+ "mem_mb": 64000,
+ "output": "cluster_jobs/mms_cook_3d_Q2_P2_n32_result.json",
+ "note": "prepared automatically: the manufactured-solution check could not settle within this machine's memory"
+}

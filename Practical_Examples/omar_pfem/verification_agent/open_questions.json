@@ -15,9 +15,24 @@
   "evidence": "round_q_preregistration.json; autonomous_runs/cook_3d/report.pdf"
  },
  {
+  "id": "job-mms_cook_3d_Q2_P2_n32",
+  "question": "Submit cluster job mms_cook_3d_Q2_P2_n32 (manual) - the levels this machine refused for cook_3d.",
+  "evidence": "cluster_jobs/mms_cook_3d_Q2_P2_n32_job.json"
+ },
+ {
   "id": "stop-cook_3d",
-  "question": "cook_3d stopped: production check INCONCLUSIVE and no passing reference check (ok): no solution verification",
+  "question": "(status) cook_3d stopped: production check INCONCLUSIVE and the reference check did not pass (reference INCONCLUSIVE): no solution verification; cluster job mms_cook_3d_Q2_P2_n32 prepared",
   "evidence": "autonomous_runs/cook_3d/report.pdf"
+ },
+ {
+  "id": "job-mms_nh_plate_hole_3d_pe_Q2_n32",
+  "question": "Submit cluster job mms_nh_plate_hole_3d_pe_Q2_n32 (manual) - the levels this machine refused for nh_plate_hole_3d_pe.",
+  "evidence": "cluster_jobs/mms_nh_plate_hole_3d_pe_Q2_n32_job.json"
+ },
+ {
+  "id": "stop-nh_plate_hole_3d_pe",
+  "question": "(status) nh_plate_hole_3d_pe stopped: production check INCONCLUSIVE and the reference check did not pass (reference INCONCLUSIVE): no solution verification; cluster job mms_nh_plate_hole_3d_pe_Q2_n32 prepared",
+  "evidence": "autonomous_runs/nh_plate_hole_3d_pe/report.pdf"
  },
  {
   "id": "job-ladder_plate_hole_quarter_3d_pe_P232",

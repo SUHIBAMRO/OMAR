@@ -1,0 +1,8 @@
+{
+ "label": "POST HOC explanations of the round Q outcomes (written after scoring; predictions and score unchanged)",
+ "Q2_cook_reference": "the reference rectangle (48 x 60, thickness 1) is also INCONCLUSIVE: Q2 L2 rates 1.5 -> 3.35 -> 3.6 move AWAY from 3 (above it), P2 needs n = 32 (26.8 GB, refused). The thin plate keeps elements 24 times wider than thick at every level; the pre-asymptotic range is not over by n = 16. A cluster job for n = 32 was prepared by the agent.",
+ "Q3_Q7": "not reached: the loops stopped at code verification (correct behaviour under the rules).",
+ "Q4_nh3d_mms": "P2 PASS (L2 3.08, H1 2.02); Q2 INCONCLUSIVE: n = 16 needs about 18 GB with neo-Hookean (memory factor measured 2.71), so only n = 2, 4, 8 fit; the reference domain also INCONCLUSIVE. Cluster job prepared.",
+ "Q5_nh3d_identity": "the gap (up to 8e-5 at n = 2, 2.3e-6 at n = 4) is the integration rule: 3D neo-Hookean uses 27 Gauss points per hexahedron, 2D uses order 6. With order 6 in 3D the two agree to 1e-14 at n = 2 and 4 (checked by hand). The 3D solver is correct; the prediction did not account for quadrature in a non-polynomial integrand.",
+ "memory": "two campaign runs were killed by the operating system before the guards were complete (basis memory at intorder 6; neo-Hookean factor); both guards were added and calibrated on measurements before the final runs."
+}

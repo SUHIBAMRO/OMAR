@@ -1,0 +1,35 @@
+{
+ "preregistration": {
+  "action": "finer_independent_level",
+  "quantities": [
+   "v_hole_top"
+  ],
+  "situation": "any:independent_unconverged",
+  "justification": "['v_hole_top'] are rate-certified but their independent P2 sequence has no rate yet",
+  "hypothesis": "the independent sequence is pre-asymptotic; one more level gives it a rate that agrees",
+  "prediction": {
+   "text": "at least one listed quantity becomes cross-checked",
+   "criterion": "any_crosschecked"
+  },
+  "run": {
+   "kind": "p2_level",
+   "n": 32
+  },
+  "cost": {
+   "dof": 787440,
+   "minutes": 3.0760804544596754
+  },
+  "prior": 0.375,
+  "prior_n": 6,
+  "score": 0.09200014675610958,
+  "problem": "plate_hole_quarter_3d_pe",
+  "git_head": "fd076e0e53900572668d56ac0a3a4156bfd8ca37",
+  "frozen_utc": "2026-11-25T23:37:35.121722+00:00",
+  "sha256": "051c69e6bed009d4946847f4c2ac8fe48364ef61892848970e0c7fce3a0dda6b"
+ },
+ "outcome": {
+  "confirmed": false,
+  "failed": "RuntimeError(\"P2 uniform n=32: the nonlinear solve failed with None load steps: ['level n = 32 (P2) has 712701 DOF > 450000: too large for this machine (prepare a cluster job)']\")",
+  "observed_minutes": 0.032814462979634605
+ }
+}

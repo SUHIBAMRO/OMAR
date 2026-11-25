@@ -490,6 +490,7 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
             log.save(result)
             return result
     from omar_pfem.verification_agent import geometry2d as G
+    result["description"] = desc                # stored early: runs that stop keep it too
     prob = G.make(desc)
     if getattr(prob, "dim", 2) == 3:
         levels = tuple(l for l in levels if l <= 16)      # 3D: 8x DOF per level

@@ -49,13 +49,27 @@ def score():
     m = {el: (r.get("verdict"), r.get("reference_pass")) for el, r in nh3.get("mms", {}).items()}
     out["Q4_nh3d_mms"] = (bool(m) and all(v[0] == "PASS" for v in m.values()), m)
     a, b = _rows("nh_plate_hole_3d_pe", "Q2 uniform"), _rows("nh_plate_hole_pe", "Q2 uniform")
+    note = "from the loop's ladders"
+    if not a:
+        # the loop stopped at code verification: the scorer solves the levels that fit here
+        # (n = 16 is refused by the memory guard), labelled as such
+        p3 = make(_j("problems3d", "nh_plate_hole_3d_pe.json"))
+        for n in (2, 4, 8, 16):
+            r = p3.solve(n, element="Q2")
+            if r.get("failed"):
+                break
+            a[n] = r
+        note = f"solved by the scorer (loop stopped at code verification); levels {sorted(a)}"
     dev = {}
     for n in sorted(set(a) & set(b)):
         if n <= 16:
             for q in ("strain_energy", "u_right", "v_hole_top"):
                 dev.setdefault(q, []).append(abs(a[n][q] / b[n][q] - 1))
-    out["Q5_nh3d_identity"] = (bool(dev) and all(max(v) < 1e-7 for v in dev.values()),
-                               {q: max(v) for q, v in dev.items()} or "no common levels")
+    lv = sorted(set(a) & set(b))
+    full = [n for n in (2, 4, 8, 16) if n in lv] == [2, 4, 8, 16]
+    out["Q5_nh3d_identity"] = (bool(dev) and full and all(max(v) < 1e-7 for v in dev.values()),
+                               {"max_rel_dev": {q: max(v) for q, v in dev.items()}, "levels": lv,
+                                "all_levels_2_to_16": full, "source": note})
     d = _j("problems3d", "nh_plate_hole_3d_pe.json")
     for bc in d["bcs"]:
         if bc["type"] == "traction":

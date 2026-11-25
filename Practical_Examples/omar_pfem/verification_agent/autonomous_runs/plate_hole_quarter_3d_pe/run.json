@@ -28,7 +28,7 @@
    "stage": "V",
    "actor": "code",
    "status": "decided",
-   "detail": "Q2: needed (no passing check on record for e492de715ef13e0e|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes); P2: needed (no passing check on record for e492de715ef13e0e|P2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes)"
+   "detail": "Q2: needed (no passing check on record for 676df723c16cb30d|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes); P2: needed (no passing check on record for 676df723c16cb30d|P2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes)"
   },
   {
    "stage": "V",
@@ -58,9 +58,9 @@
    "stage": "N",
    "actor": "code",
    "status": "pre-registered",
-   "detail": "#1 finer_independent_level on ['v_hole_top']: the independent sequence is pre-asymptotic; one more level gives it a rate that agrees; prediction: at least one listed quantity becomes cross-checked; prior 0.38 (n=6); est. 2.3 min",
-   "file": "experiments/plate_hole_quarter_3d_pe/01_finer_independent_level_run3.json",
-   "sha256": "75efeb8517af860bb30f1f3fdb92c0b0752579b80c7709f76b944a80e2b44bcc"
+   "detail": "#1 finer_independent_level on ['v_hole_top']: the independent sequence is pre-asymptotic; one more level gives it a rate that agrees; prediction: at least one listed quantity becomes cross-checked; prior 0.38 (n=6); est. 3.1 min",
+   "file": "experiments/plate_hole_quarter_3d_pe/01_finer_independent_level_run4.json",
+   "sha256": "051c69e6bed009d4946847f4c2ac8fe48364ef61892848970e0c7fce3a0dda6b"
   },
   {
    "stage": "N",
@@ -72,12 +72,12 @@
    "stage": "N",
    "actor": "code",
    "status": "cluster_job",
-   "detail": "levels [('P2 uniform', 32, 'P2')] prepared as cluster job ladder_plate_hole_quarter_3d_pe_P232 (bundle md5 cc7f91d8fb340f09954f65f8fa757ad6; instructions ../../../transfer/ladder_plate_hole_quarter_3d_pe_P232.md); the run can be repeated after the import",
+   "detail": "levels [('P2 uniform', 32, 'P2')] prepared as cluster job ladder_plate_hole_quarter_3d_pe_P232 (bundle md5 1570ddddf27d672b3a3517b479b03feb; instructions ../../../transfer/ladder_plate_hole_quarter_3d_pe_P232.md); the run can be repeated after the import",
    "job": {
     "name": "ladder_plate_hole_quarter_3d_pe_P232",
     "spec": "cluster_jobs/ladder_plate_hole_quarter_3d_pe_P232_spec.json",
-    "fingerprint": "87f86ace78ecf43abe659ceeb169d9f6bfd1bc0e4cdece0111e29f0e6d7d71d7",
-    "bundle_md5": "cc7f91d8fb340f09954f65f8fa757ad6",
+    "fingerprint": "b912bd8d9a7a76eb514f3554817225ae552064a27be4c70fe4697fc40a01972d",
+    "bundle_md5": "1570ddddf27d672b3a3517b479b03feb",
     "instructions": "../../../transfer/ladder_plate_hole_quarter_3d_pe_P232.md",
     "levels": [
      [
@@ -86,11 +86,7 @@
       "P2"
      ]
     ],
-    "uncommitted_code": [
-     " M Practical_Examples/omar_pfem/verification_agent/autonomous.py",
-     " M Practical_Examples/omar_pfem/verification_agent/cluster_ladder.py",
-     " M Practical_Examples/omar_pfem/verification_agent/test_llm_guards.py"
-    ]
+    "uncommitted_code": []
    }
   },
   {
@@ -120,7 +116,7 @@
    "detail": "submit cluster job ladder_plate_hole_quarter_3d_pe_P232 by hand (no agent connects to the cluster) and paste the result"
   }
  ],
- "wall_clock_s": 372.22813296318054,
+ "wall_clock_s": 411.5549898147583,
  "source": {
   "pdf": null,
   "text": null,
@@ -133,12 +129,12 @@
    "rule": "R1 (post hoc, round Q)",
    "rates": {
     "L2": {
-     "observed": 3.170395804415212,
+     "observed": 3.170395804416827,
      "expected": 3.0,
      "pass": true
     },
     "H1": {
-     "observed": 2.1330718525805445,
+     "observed": 2.1330718525805428,
      "expected": 2.0,
      "pass": true
     }
@@ -153,15 +149,15 @@
    "errors": {
     "L2": [
      0.00035101556769624335,
-     4.710191859804217e-05,
-     5.577933489978107e-06,
-     7.197682432839752e-07
+     4.710191859803683e-05,
+     5.5779334899779404e-06,
+     7.197682432823607e-07
     ],
     "H1": [
      0.001278322316575579,
-     0.0003038827730936496,
-     7.183843922163172e-05,
-     1.8238283090218097e-05
+     0.0003038827730936494,
+     7.18384392216317e-05,
+     1.823828309021816e-05
     ]
    },
    "field": {
@@ -170,7 +166,7 @@
     "uz": "0.01*sin(0.13*pi*x + 1/5)*sin(0.13*pi*y + 3/5)*sin(0.13*pi*z + 1/10)"
    },
    "problem": "plate_hole_quarter_3d_pe",
-   "reason": "no passing check on record for e492de715ef13e0e|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes"
+   "reason": "no passing check on record for 676df723c16cb30d|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes"
   },
   "P2": {
    "verdict": "PASS",
@@ -178,7 +174,7 @@
    "rule": "R1 (post hoc, round Q)",
    "rates": {
     "L2": {
-     "observed": 3.0798821085557244,
+     "observed": 3.0798821085557297,
      "expected": 3.0,
      "pass": true
     },
@@ -198,14 +194,14 @@
    "errors": {
     "L2": [
      0.002552869614396632,
-     0.0003904581930079098,
-     5.279432134569099e-05,
+     0.00039045819300791374,
+     5.2794321345688235e-05,
      7.256032419878427e-06
     ],
     "H1": [
      0.007231356703174586,
-     0.0021415382670211484,
-     0.0005779536780254594,
+     0.002141538267021148,
+     0.0005779536780254585,
      0.00015630297679618876
     ]
    },
@@ -215,7 +211,7 @@
     "uz": "0.01*sin(0.13*pi*x + 1/5)*sin(0.13*pi*y + 3/5)*sin(0.13*pi*z + 1/10)"
    },
    "problem": "plate_hole_quarter_3d_pe",
-   "reason": "no passing check on record for e492de715ef13e0e|P2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes"
+   "reason": "no passing check on record for 676df723c16cb30d|P2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes"
   }
  },
  "p2_levels": [
@@ -229,8 +225,8 @@
   {
    "name": "ladder_plate_hole_quarter_3d_pe_P232",
    "spec": "cluster_jobs/ladder_plate_hole_quarter_3d_pe_P232_spec.json",
-   "fingerprint": "87f86ace78ecf43abe659ceeb169d9f6bfd1bc0e4cdece0111e29f0e6d7d71d7",
-   "bundle_md5": "cc7f91d8fb340f09954f65f8fa757ad6",
+   "fingerprint": "b912bd8d9a7a76eb514f3554817225ae552064a27be4c70fe4697fc40a01972d",
+   "bundle_md5": "1570ddddf27d672b3a3517b479b03feb",
    "instructions": "../../../transfer/ladder_plate_hole_quarter_3d_pe_P232.md",
    "levels": [
     [
@@ -239,11 +235,7 @@
      "P2"
     ]
    ],
-   "uncommitted_code": [
-    " M Practical_Examples/omar_pfem/verification_agent/autonomous.py",
-    " M Practical_Examples/omar_pfem/verification_agent/cluster_ladder.py",
-    " M Practical_Examples/omar_pfem/verification_agent/test_llm_guards.py"
-   ]
+   "uncommitted_code": []
   }
  ],
  "certified_info": {

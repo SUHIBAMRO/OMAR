@@ -1,8 +1,8 @@
 {
  "name": "ladder_plate_hole_quarter_3d_pe_P232",
  "spec": "cluster_jobs/ladder_plate_hole_quarter_3d_pe_P232_spec.json",
- "fingerprint": "87f86ace78ecf43abe659ceeb169d9f6bfd1bc0e4cdece0111e29f0e6d7d71d7",
- "bundle_md5": "cc7f91d8fb340f09954f65f8fa757ad6",
+ "fingerprint": "b912bd8d9a7a76eb514f3554817225ae552064a27be4c70fe4697fc40a01972d",
+ "bundle_md5": "1570ddddf27d672b3a3517b479b03feb",
  "instructions": "../../../transfer/ladder_plate_hole_quarter_3d_pe_P232.md",
  "levels": [
   [
@@ -11,9 +11,6 @@
    "P2"
   ]
  ],
- "uncommitted_code": [
-  " M Practical_Examples/omar_pfem/verification_agent/autonomous.py",
-  " M Practical_Examples/omar_pfem/verification_agent/cluster_ladder.py",
-  " M Practical_Examples/omar_pfem/verification_agent/test_llm_guards.py"
- ]
+ "uncommitted_code": [],
+ "superseded_by": "batch_20261125_3jobs"
 }

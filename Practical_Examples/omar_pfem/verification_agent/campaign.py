@@ -64,9 +64,19 @@ def run(files, budget_minutes=20.0, max_experiments=4):
     return done
 
 
+def _desc(name, r):
+    if r.get("description"):
+        return r["description"]
+    for d in ("problems3d", "problems2d"):
+        f = os.path.join(HERE, d, name + ".json")
+        if os.path.exists(f):
+            return _j(f)
+    return {}
+
+
 def _row(name):
     r = _j(os.path.join(RUNS, name, "run.json"))
-    desc = r.get("description") or {}
+    desc = _desc(name, r)
     mms = r.get("mms", {})
     cv = ("reference domain (R2)" if r.get("code_verification") else
           ", ".join(f"{k} {v.get('verdict')}" for k, v in mms.items()) or "-")
@@ -74,10 +84,16 @@ def _row(name):
     steps = r.get("steps", [])
     stop = [s for s in steps if s["status"] == "stop" and s["stage"] != "N"]
     persons = [s for s in steps if s["actor"] == "person" or s["status"] == "needs_person"]
-    return {"name": name, "dim": desc.get("dim", 2),
+    last = steps[-1] if steps else {}
+    status = ("complete" if r.get("final") else
+              f"stopped at {last.get('stage')} ({last.get('status')})" if last else "-")
+    if not r.get("final") and stop:
+        status = f"stopped at {stop[-1]['stage']}"
+    return {"name": name, "dim": desc.get("dim", 2), "status": status,
             "material": desc.get("material", "linear_elastic"),
             "code_verification": cv, "certified": final.get("certified", []),
-            "open": final.get("open", []), "persons": [s["detail"] for s in persons],
+            "open": final.get("open", ["(not reached)"] if not r.get("final") else []),
+            "persons": [s["detail"] for s in persons],
             "stopped": stop[-1]["detail"] if stop else None,
             "cluster_jobs": [j["name"] for j in r.get("cluster_jobs", [])],
             "report": os.path.exists(os.path.join(RUNS, name, "report.pdf"))}
@@ -91,8 +107,10 @@ def collect_questions(rows):
                        f"levels this machine refused for {r['name']}.",
                        "evidence": f"cluster_jobs/{j}_job.json"})
         if r["stopped"]:
-            qs.append({"id": f"stop-{r['name']}", "question": f"{r['name']} stopped: "
-                       f"{r['stopped']}", "evidence": f"autonomous_runs/{r['name']}/report.pdf"})
+            qs.append({"id": f"stop-{r['name']}", "question": f"(status) {r['name']} stopped: "
+                       f"{r['stopped']}" + (f"; cluster job {', '.join(r['cluster_jobs'])} prepared"
+                                            if r["cluster_jobs"] else ""),
+                       "evidence": f"autonomous_runs/{r['name']}/report.pdf"})
     json.dump(qs, open(QUESTIONS, "w"), indent=1)
     return qs
 
@@ -105,11 +123,11 @@ def index(pdf=True):
     t = ["<h1>Autonomous verification: all runs</h1>",
          f"<p class=meta>built {datetime.date.today()} from autonomous_runs/*/run.json; "
          f"{len(rows)} runs</p>",
-         "<table><tr><th>run</th><th>dim</th><th>material</th><th>code verification</th>"
+         "<table><tr><th>run</th><th>status</th><th>dim</th><th>material</th><th>code verification</th>"
          "<th>certified</th><th>open</th><th>person points</th><th>stopped / jobs</th></tr>"]
     for r in rows:
         link = f"<a href='{e(r['name'])}/report.pdf'>{e(r['name'])}</a>" if r["report"] else e(r["name"])
-        t.append(f"<tr><td>{link}</td><td>{r['dim']}D</td><td>{e(r['material'])}</td>"
+        t.append(f"<tr><td>{link}</td><td>{e(r['status'])}</td><td>{r['dim']}D</td><td>{e(r['material'])}</td>"
                  f"<td>{e(r['code_verification'])}</td><td>{len(r['certified'])}: "
                  f"{e(', '.join(r['certified']))}</td><td>{e(', '.join(r['open']))}</td>"
                  f"<td>{len(r['persons'])}</td><td>{e(r['stopped'] or '')} "
@@ -143,15 +161,18 @@ def draft(names=None):
     qs = _j(QUESTIONS) if os.path.exists(QUESTIONS) else collect_questions(rows)
     out = [f"# New results - DRAFT ({datetime.date.today()}), generated from the stored runs",
            "", "Not sent. Every line below is written by campaign.py from autonomous_runs/*/run.json.",
-           "", "| run | dim | material | code verification | certified | open | person points |",
-           "|---|---|---|---|---|---|---|"]
+           "", "| run | status | dim | material | code verification | certified | open | person points |",
+           "|---|---|---|---|---|---|---|---|"]
     for r in rows:
-        out.append(f"| {r['name']} | {r['dim']}D | {r['material']} | {r['code_verification']} | "
+        out.append(f"| {r['name']} | {r['status']} | {r['dim']}D | {r['material']} | {r['code_verification']} | "
                    f"{len(r['certified'])} ({', '.join(r['certified'])}) | {', '.join(r['open'])} | "
                    f"{len(r['persons'])} |")
     out += ["", "## Questions for Professor Rabczuk", ""]
     out += [f"{i + 1}. {q['question']} (evidence: {q['evidence']})" for i, q in
-            enumerate(q for q in qs if not q["id"].startswith("job-"))]
+            enumerate(q for q in qs if not q["id"].startswith(("job-", "stop-")))]
+    stops = [q for q in qs if q["id"].startswith("stop-")]
+    if stops:
+        out += ["", "## Runs waiting for the cluster", ""] + [f"- {q['question'][9:]}" for q in stops]
     os.makedirs(ADVISOR, exist_ok=True)
     f = os.path.join(ADVISOR, f"{datetime.date.today()}_new_results_DRAFT.md")
     open(f, "w").write("\n".join(out) + "\n")

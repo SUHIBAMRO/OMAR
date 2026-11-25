@@ -1,0 +1,374 @@
+{
+ "steps": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "description written by a person (steps L, D skipped)"
+  },
+  {
+   "stage": "M",
+   "actor": "code",
+   "status": "note",
+   "detail": "3D extruded domain (thickness 1, layers n/2 x 1); Q2 = 27-node hexahedra, P2 = 10-node tetrahedra; singular edges: extruded-edge approximation (vertex singularities not analysed); face edges []"
+  },
+  {
+   "stage": "M",
+   "actor": "code",
+   "status": "note",
+   "detail": "general domain meshed by gmsh (quadratic triangles and independent quadratic quadrilaterals, curved edges on circles); corners from the real boundary after the holes are cut"
+  },
+  {
+   "stage": "M",
+   "actor": "code",
+   "status": "note",
+   "detail": "neo-Hookean: corner exponents from the linearized theory (a hypothesis for the practical mesh range); dead loads; load steps chosen by the solver (doubled on Newton failure or J <= 0)"
+  },
+  {
+   "stage": "M",
+   "actor": "code",
+   "status": "done",
+   "detail": "rate-limiting corners (x, y, smallest exponent) []"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "decided",
+   "detail": "Q2: needed (no passing check on record for 72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean); P2: needed (no passing check on record for 72d6a1e90181c881|P2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean)"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "INCONCLUSIVE",
+   "detail": "Q2 INCONCLUSIVE (L2 3.71, H1 2.57, levels [2, 4, 8]); P2 PASS (L2 3.08, H1 2.02, levels [2, 4, 8, 16])"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "FAIL",
+   "detail": "post hoc rule R2: production check INCONCLUSIVE for ['Q2']; reference domain [[0, 0], [10, 0], [10, 10], [0, 10]] with the same condition types: Q2 INCONCLUSIVE (L2 2.75, H1 1.93)"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "stop",
+   "detail": "production check INCONCLUSIVE and the reference check did not pass (reference INCONCLUSIVE): no solution verification"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "cluster_job",
+   "detail": "code-verification levels up to 32 prepared as cluster job mms_nh_plate_hole_3d_pe_Q2_n32 (bundle md5 b1231d1f1fa70bd1bc2240364c4bb41d; instructions ../../../transfer/mms_nh_plate_hole_3d_pe_Q2_n32.md)",
+   "job": {
+    "name": "mms_nh_plate_hole_3d_pe_Q2_n32",
+    "kind": "mms",
+    "spec": "cluster_jobs/mms_nh_plate_hole_3d_pe_Q2_n32_spec.json",
+    "keys": [
+     {
+      "Q2": "72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean"
+     },
+     {
+      "Q2": "72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean|reference_domain"
+     }
+    ],
+    "bundle_md5": "b1231d1f1fa70bd1bc2240364c4bb41d",
+    "instructions": "../../../transfer/mms_nh_plate_hole_3d_pe_Q2_n32.md",
+    "levels": [
+     2,
+     4,
+     8,
+     16,
+     32
+    ],
+    "uncommitted_code": []
+   }
+  },
+  {
+   "stage": "V",
+   "actor": "person",
+   "status": "needs_person",
+   "detail": "submit cluster job mms_nh_plate_hole_3d_pe_Q2_n32 by hand and paste the result; then the run is repeated"
+  }
+ ],
+ "human_points": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "description written by a person (steps L, D skipped)"
+  },
+  {
+   "stage": "V",
+   "actor": "person",
+   "status": "needs_person",
+   "detail": "submit cluster job mms_nh_plate_hole_3d_pe_Q2_n32 by hand and paste the result; then the run is repeated"
+  }
+ ],
+ "wall_clock_s": 629.7337608337402,
+ "source": {
+  "pdf": null,
+  "text": null,
+  "description_given": true
+ },
+ "mms": {
+  "Q2": {
+   "verdict": "INCONCLUSIVE",
+   "gate_verdict": "FAIL",
+   "rule": "R1 (post hoc, round Q)",
+   "rates": {
+    "L2": {
+     "observed": 3.7071923090648506,
+     "expected": 3.0,
+     "pass": false
+    },
+    "H1": {
+     "observed": 2.567833176446296,
+     "expected": 2.0,
+     "pass": false
+    }
+   },
+   "levels": [
+    2,
+    4,
+    8
+   ],
+   "levels_added": [
+    "n=16: refused (level n = 16 (Q2) needs about 16.6 GB > 13 GB: too large for this machine (prepare a cluster job))"
+   ],
+   "errors": {
+    "L2": [
+     0.008195478886109261,
+     0.0010926753990352345,
+     0.0001289288476641079
+    ],
+    "H1": [
+     0.02961907100054563,
+     0.007039508652979874,
+     0.001661312369328914
+    ]
+   },
+   "field": {
+    "ux": "a * (sin(0.13*pi*x + 3/10)*cos(0.13*pi*y + 1/5)*cos(0.13*pi*z + 1/2))",
+    "uy": "a * (sin(0.13*pi*y + 2/5)*cos(0.13*pi*x + 1/10)*cos(0.13*pi*z + 7/10))",
+    "uz": "a * (sin(0.13*pi*x + 1/5)*sin(0.13*pi*y + 3/5)*sin(0.13*pi*z + 1/10))",
+    "amplitude": 0.2313849465699297,
+    "peak_strain": 0.1
+   },
+   "problem": "nh_plate_hole_3d_pe",
+   "reason": "no passing check on record for 72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean"
+  },
+  "P2": {
+   "verdict": "PASS",
+   "gate_verdict": "PASS",
+   "rule": "R1 (post hoc, round Q)",
+   "rates": {
+    "L2": {
+     "observed": 3.084860662173986,
+     "expected": 3.0,
+     "pass": true
+    },
+    "H1": {
+     "observed": 2.0225067783140194,
+     "expected": 2.0,
+     "pass": true
+    }
+   },
+   "levels": [
+    2,
+    4,
+    8,
+    16
+   ],
+   "levels_added": [],
+   "errors": {
+    "L2": [
+     0.06028491626873989,
+     0.009104962639469643,
+     0.0012209562895660545,
+     0.00016809923740562327
+    ],
+    "H1": [
+     0.1674028958622757,
+     0.049543869426614276,
+     0.013371413990945952,
+     0.003617313345961901
+    ]
+   },
+   "field": {
+    "ux": "a * (sin(0.13*pi*x + 3/10)*cos(0.13*pi*y + 1/5)*cos(0.13*pi*z + 1/2))",
+    "uy": "a * (sin(0.13*pi*y + 2/5)*cos(0.13*pi*x + 1/10)*cos(0.13*pi*z + 7/10))",
+    "uz": "a * (sin(0.13*pi*x + 1/5)*sin(0.13*pi*y + 3/5)*sin(0.13*pi*z + 1/10))",
+    "amplitude": 0.2313849465699297,
+    "peak_strain": 0.1
+   },
+   "problem": "nh_plate_hole_3d_pe",
+   "reason": "no passing check on record for 72d6a1e90181c881|P2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean"
+  }
+ },
+ "mms_reference_domain": {
+  "description": {
+   "dim": 3,
+   "thickness": 1.0,
+   "E": 50.0,
+   "nu": 0.3,
+   "material": "neo_hookean",
+   "name": "nh_plate_hole_3d_pe_reference_domain",
+   "domain": {
+    "outer": [
+     [
+      0,
+      0
+     ],
+     [
+      10,
+      0
+     ],
+     [
+      10,
+      10
+     ],
+     [
+      0,
+      10
+     ]
+    ],
+    "holes": [
+     {
+      "circle": [
+       5.0,
+       5.0,
+       1.5
+      ]
+     }
+    ]
+   },
+   "bcs": [
+    {
+     "segment": [
+      [
+       0,
+       0
+      ],
+      [
+       0,
+       10
+      ]
+     ],
+     "type": "symmetry"
+    },
+    {
+     "segment": [
+      [
+       0,
+       0
+      ],
+      [
+       10,
+       0
+      ]
+     ],
+     "type": "symmetry"
+    },
+    {
+     "segment": [
+      [
+       10,
+       0
+      ],
+      [
+       10,
+       10
+      ]
+     ],
+     "type": "traction",
+     "t": [
+      1.0,
+      0.0
+     ]
+    },
+    {
+     "face": "z0",
+     "type": "symmetry"
+    },
+    {
+     "face": "z1",
+     "type": "symmetry"
+    }
+   ],
+   "points": {}
+  },
+  "checks": {
+   "Q2": {
+    "verdict": "INCONCLUSIVE",
+    "gate_verdict": "FAIL",
+    "rule": "R1 (post hoc, round Q)",
+    "rates": {
+     "L2": {
+      "observed": 2.7538448477616027,
+      "expected": 3.0,
+      "pass": false
+     },
+     "H1": {
+      "observed": 1.9291782910846864,
+      "expected": 2.0,
+      "pass": true
+     }
+    },
+    "levels": [
+     2,
+     4,
+     8
+    ],
+    "levels_added": [
+     "n=16: refused (level n = 16 (Q2) has 769272 DOF > 450000: too large for this machine (prepare a cluster job))"
+    ],
+    "errors": {
+     "L2": [
+      0.0016119243341394804,
+      0.0002934017305030113,
+      6.537022059626786e-05
+     ],
+     "H1": [
+      0.009913852149868025,
+      0.0029256755023821775,
+      0.0010486727267543143
+     ]
+    },
+    "field": {
+     "ux": "a * (sin(0.13*pi*x + 3/10)*cos(0.13*pi*y + 1/5)*cos(0.13*pi*z + 1/2))",
+     "uy": "a * (sin(0.13*pi*y + 2/5)*cos(0.13*pi*x + 1/10)*cos(0.13*pi*z + 7/10))",
+     "uz": "a * (sin(0.13*pi*x + 1/5)*sin(0.13*pi*y + 3/5)*sin(0.13*pi*z + 1/10))",
+     "amplitude": 0.2313849465699297,
+     "peak_strain": 0.1
+    },
+    "problem": "nh_plate_hole_3d_pe_reference_domain",
+    "reason": "no passing check on record for 72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean|reference_domain"
+   }
+  }
+ },
+ "cluster_jobs": [
+  {
+   "name": "mms_nh_plate_hole_3d_pe_Q2_n32",
+   "kind": "mms",
+   "spec": "cluster_jobs/mms_nh_plate_hole_3d_pe_Q2_n32_spec.json",
+   "keys": [
+    {
+     "Q2": "72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean"
+    },
+    {
+     "Q2": "72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean|reference_domain"
+    }
+   ],
+   "bundle_md5": "b1231d1f1fa70bd1bc2240364c4bb41d",
+   "instructions": "../../../transfer/mms_nh_plate_hole_3d_pe_Q2_n32.md",
+   "levels": [
+    2,
+    4,
+    8,
+    16,
+    32
+   ],
+   "uncommitted_code": []
+  }
+ ]
+}

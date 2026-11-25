@@ -1,0 +1,20 @@
+{
+ "name": "batch_20261125_3jobs",
+ "kind": "batch",
+ "jobs": [
+  "ladder_plate_hole_quarter_3d_pe_P232",
+  "mms_cook_3d_Q2_P2_n32",
+  "mms_nh_plate_hole_3d_pe_Q2_n32"
+ ],
+ "outputs": [
+  "cluster_jobs/ladder_plate_hole_quarter_3d_pe_P232_result.json",
+  "cluster_jobs/mms_cook_3d_Q2_P2_n32_result.json",
+  "cluster_jobs/mms_nh_plate_hole_3d_pe_Q2_n32_result.json"
+ ],
+ "bundle_md5": "9428977744c73be914a70145af143166",
+ "instructions": "../../../transfer/batch_20261125_3jobs.md",
+ "uncommitted_code": [
+  " M Practical_Examples/omar_pfem/verification_agent/cluster_ladder.py",
+  " M Practical_Examples/omar_pfem/verification_agent/round_q_score.py"
+ ]
+}

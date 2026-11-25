@@ -1,0 +1,24 @@
+{
+ "name": "mms_nh_plate_hole_3d_pe_Q2_n32",
+ "kind": "mms",
+ "spec": "cluster_jobs/mms_nh_plate_hole_3d_pe_Q2_n32_spec.json",
+ "keys": [
+  {
+   "Q2": "72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean"
+  },
+  {
+   "Q2": "72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean|reference_domain"
+  }
+ ],
+ "bundle_md5": "b1231d1f1fa70bd1bc2240364c4bb41d",
+ "instructions": "../../../transfer/mms_nh_plate_hole_3d_pe_Q2_n32.md",
+ "levels": [
+  2,
+  4,
+  8,
+  16,
+  32
+ ],
+ "uncommitted_code": [],
+ "superseded_by": "batch_20261125_3jobs"
+}

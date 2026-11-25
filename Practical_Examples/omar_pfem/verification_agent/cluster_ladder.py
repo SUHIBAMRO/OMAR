@@ -218,6 +218,26 @@ def batch(names=None, mem_mb=64000, hours=48):
     job = make_job(name, "-m omar_pfem.verification_agent.cluster_ladder run-many " + " ".join(
         "omar_pfem/verification_agent/" + os.path.relpath(s, HERE) for s in specs),
                    mem_mb, hours, outs, include=("Practical_Examples/omar_pfem",), extra=specs)
+    md = job["instructions"]
+    txt = open(md).read()
+    pre = ("\n## Before step 3 (once): check the Python packages on the cluster\n\n"
+           "On the cluster, one line at a time:\n```\nsource ~/miniconda3/etc/profile.d/conda.sh\n"
+           "conda activate omar\npython -c \"import gmsh, skfem, pypardiso, sympy; print('ok')\"\n```\n"
+           "If it prints `ok`, continue with step 3. If it prints an error, run once:\n```\n"
+           "pip install gmsh==4.13.1 scikit-fem==12.0.2 pypardiso==0.4.7 sympy==1.14.0\n```\n"
+           "and check again. If `import gmsh` still fails (a missing system library), paste the "
+           "error into the chat.\n")
+    open(md, "w").write(txt.replace("3. **On the cluster**", pre + "\n3. **On the cluster**", 1))
+    for r in recs:                     # the single bundles are superseded by the batch
+        r["superseded_by"] = name
+        json.dump(r, open(os.path.join(JOBS, f"{r['name']}_job.json"), "w"), indent=1)
+        for ext in (".tar.gz", ".md"):
+            f = os.path.join(os.path.dirname(os.path.dirname(md)), "transfer", r["name"] + ext)
+            if os.path.exists(f):
+                os.remove(f)
+        sh = os.path.join(os.path.dirname(os.path.dirname(HERE)), f"{r['name']}_job.sh")
+        if os.path.exists(sh):
+            os.remove(sh)
     rec = {"name": name, "kind": "batch", "jobs": [r["name"] for r in recs], "outputs": outs,
            "bundle_md5": job["md5"], "instructions": os.path.relpath(job["instructions"], HERE),
            "uncommitted_code": _dirty()}

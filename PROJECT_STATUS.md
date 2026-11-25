@@ -26289,3 +26289,9 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   (independent level refined both families) fixed. NEXT options: cluster jobs for 3D levels 32 (manual
   submission), code verification on a reference domain when the production domain is too coarse
   (needs a decision: it changes the code-verification rule), neo-Hookean 3D. All four automation items done.
+- 2026-11-26 round Q DONE (see change log): neo-Hookean 3D, code-verification classes + reference domain
+  (post hoc R1/R2, pending Professor Rabczuk), automatic cluster jobs (R3), campaign index + draft summary.
+  Score 3/8. WAITING FOR OMAR: one combined cluster job transfer/batch_20261125_3jobs (md5 9428977744c7...,
+  instructions transfer/batch_20261125_3jobs.md; check packages first). After the results come back:
+  `cluster_ladder import <file> <md5>` for each output, then `campaign run` on cook_3d,
+  plate_hole_quarter_3d_pe, nh_plate_hole_3d_pe. Questions for the advisor: open_questions.json (3 standing).

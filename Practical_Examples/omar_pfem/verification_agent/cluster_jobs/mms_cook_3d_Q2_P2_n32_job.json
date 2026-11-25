@@ -1,0 +1,26 @@
+{
+ "name": "mms_cook_3d_Q2_P2_n32",
+ "kind": "mms",
+ "spec": "cluster_jobs/mms_cook_3d_Q2_P2_n32_spec.json",
+ "keys": [
+  {
+   "Q2": "676df723c16cb30d|Q2|plane_3d|clamped+free+traction+general_domain",
+   "P2": "676df723c16cb30d|P2|plane_3d|clamped+free+traction+general_domain"
+  },
+  {
+   "Q2": "676df723c16cb30d|Q2|plane_3d|clamped+free+traction+general_domain|reference_domain",
+   "P2": "676df723c16cb30d|P2|plane_3d|clamped+free+traction+general_domain|reference_domain"
+  }
+ ],
+ "bundle_md5": "1e7e76a7a94812bc471a37af36a89878",
+ "instructions": "../../../transfer/mms_cook_3d_Q2_P2_n32.md",
+ "levels": [
+  2,
+  4,
+  8,
+  16,
+  32
+ ],
+ "uncommitted_code": [],
+ "superseded_by": "batch_20261125_3jobs"
+}
