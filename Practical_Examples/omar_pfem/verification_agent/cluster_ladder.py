@@ -45,7 +45,7 @@ def prepare(desc, levels, mem_mb=120000, hours=24, log=print):
     name = f"ladder_{desc['name']}_" + "_".join(f"{el}{n}" for _, n, el in levels)
     os.makedirs(JOBS, exist_ok=True)
     spec = {"name": name, "description": desc, "levels": [list(l) for l in levels],
-            "fingerprint": fp, "max_dof": 4_000_000,
+            "fingerprint": fp, "max_dof": 4_000_000, "mem_mb": mem_mb,
             "output": f"cluster_jobs/{name}_result.json",
             "note": "prepared automatically after the local memory guard refused these levels"}
     spec_f = os.path.join(JOBS, f"{name}_spec.json")
@@ -76,6 +76,7 @@ def run(spec_f):
                          " pip install --user gmsh==4.13.1 scikit-fem==12.0.2 pypardiso==0.4.7 "
                          "sympy==1.14.0   and submit again.")
     os.environ["VERIF_MAX_DOF"] = str(spec["max_dof"])
+    os.environ["VERIF_MAX_GB"] = str(spec.get("max_gb", 0.8 * spec.get("mem_mb", 120000) / 1000))
     from omar_pfem.verification_agent import pipeline2d as P
     prob = _prob(spec["description"])
     fp = P.fingerprint(prob)

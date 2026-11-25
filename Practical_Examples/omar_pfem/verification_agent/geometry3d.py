@@ -272,6 +272,18 @@ class Extruded3D:
         if not isinstance(msh, want):
             raise RuntimeError(f"gmsh did not return {want.__name__} ({type(msh).__name__})")
         el = fem.ElementHex2() if element == "Q2" else fem.ElementTetP2()
+        # GUARD 2 (25 Nov, after the operating system killed a run): the peak memory, not only
+        # the DOF count. Estimate from the stored basis values (elements x quadrature points x
+        # vector basis functions x 9 gradient entries x 8 bytes x 3 copies), calibrated on the
+        # plate, Q2, n = 8: measured peak 1.51 GB vs estimate 0.82 GB -> factor 1.85 (it includes
+        # the sparse factorization). Refused before assembly when above VERIF_MAX_GB (12 of 15 GB).
+        nqp = 27 if element == "Q2" else 24
+        nbf = 3 * (27 if element == "Q2" else 10)
+        peak = 1.85 * msh.t.shape[1] * nqp * nbf * 9 * 8 * 3 / 1e9
+        max_gb = float(os.environ.get("VERIF_MAX_GB", 12.0))
+        if peak > max_gb:
+            raise MemoryError(f"level n = {n} ({element}) needs about {peak:.1f} GB > {max_gb:g} GB: "
+                              "too large for this machine (prepare a cluster job)")
         # GUARD: the mesh must fill the domain (no element silently dropped). Curved faces
         # are quadratic, so the volume matches to ~1e-5 at the coarsest level.
         vol = fem.Basis(msh, el, intorder=4).dx.sum()
@@ -322,7 +334,8 @@ class Extruded3D:
             eu, ev = sym_grad(u), sym_grad(v)
             return 2 * mu * ddot(eu, ev) + lame * trace(eu) * trace(ev)
 
-        io = 6 if mms else 4
+        io = 4        # 27 points per hexahedron (exact for degree 5 per direction); the
+        # manufactured check used 6 (216 points), which at n = 32 needed ~16 GB (run killed)
         b = fem.Basis(msh, E3, intorder=io)
         K = fem.asm(stiffness, b)
         f = np.zeros(K.shape[0])

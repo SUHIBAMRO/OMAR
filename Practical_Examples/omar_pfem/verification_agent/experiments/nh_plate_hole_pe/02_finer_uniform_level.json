@@ -1,0 +1,44 @@
+{
+ "preregistration": {
+  "action": "finer_uniform_level",
+  "quantities": [
+   "peak_von_mises"
+  ],
+  "situation": "pointwise_peak:fail",
+  "justification": "peak_von_mises: pointwise_peak:fail + diagnosis D4 (pre-asymptotic)",
+  "hypothesis": "the sequences are pre-asymptotic; one finer uniform level (n = 64) lets the checks decide",
+  "prediction": {
+   "text": "at least one listed quantity becomes certified with a rate and cross-checked",
+   "criterion": "any_certified"
+  },
+  "run": {
+   "kind": "uniform_level",
+   "n": 64
+  },
+  "cost": {
+   "dof": 420568,
+   "minutes": 4.575645371730399
+  },
+  "prior": 0.5,
+  "prior_n": 0,
+  "score": 0.08967571763711817,
+  "problem": "nh_plate_hole_pe",
+  "git_head": "3b6fbe7ffd9f1e993583f4914489d7e481c5bdf2",
+  "frozen_utc": "2026-11-25T22:55:30.824677+00:00",
+  "sha256": "181c23cd46b87a148313e603afe4926eb6ccaa2a9f9e3eca124e44dc22793edb"
+ },
+ "outcome": {
+  "confirmed": true,
+  "observed_minutes": 2.781917218367259,
+  "after": {
+   "certified": [
+    "peak_von_mises",
+    "strain_energy"
+   ],
+   "open": [
+    "u_right",
+    "v_hole_top"
+   ]
+  }
+ }
+}

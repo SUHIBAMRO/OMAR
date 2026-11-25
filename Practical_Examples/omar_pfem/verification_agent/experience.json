@@ -319,5 +319,29 @@
   "predicted_minutes": 3.5818388158160754,
   "observed_minutes": 0.04404048124949137,
   "file": "experiments/plate_hole_quarter_3d_pe/01_finer_independent_level.json"
+ },
+ {
+  "problem": "nh_plate_hole_pe",
+  "action": "finer_independent_level",
+  "situation": "any:independent_unconverged",
+  "quantities": [
+   "v_hole_top"
+  ],
+  "confirmed": false,
+  "predicted_minutes": 0.4814372909274388,
+  "observed_minutes": 0.5499186674753825,
+  "file": "experiments/nh_plate_hole_pe/01_finer_independent_level.json"
+ },
+ {
+  "problem": "nh_plate_hole_pe",
+  "action": "finer_uniform_level",
+  "situation": "pointwise_peak:fail",
+  "quantities": [
+   "peak_von_mises"
+  ],
+  "confirmed": true,
+  "predicted_minutes": 4.575645371730399,
+  "observed_minutes": 2.781917218367259,
+  "file": "experiments/nh_plate_hole_pe/02_finer_uniform_level.json"
  }
 ]

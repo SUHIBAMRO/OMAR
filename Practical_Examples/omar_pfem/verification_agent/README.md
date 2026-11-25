@@ -176,3 +176,36 @@ within the band. It does not show a convergence rate or monotonicity.
 
 `PROJECT_STATUS.md` at the repository root holds the results and the
 history.
+
+## Autonomous workflow: one command per problem (25 Nov, rounds O-Q)
+
+Run from `Practical_Examples`:
+
+```
+# one problem (2D cells, general 2D domain, or 3D extruded section; linear or neo-Hookean)
+python -m omar_pfem.verification_agent.autonomous --description omar_pfem/verification_agent/problems3d/cook_3d.json
+# many problems, then the index of all runs and a draft summary (nothing is sent)
+python -m omar_pfem.verification_agent.campaign run omar_pfem/verification_agent/problems3d/*.json
+python -m omar_pfem.verification_agent.campaign index      # autonomous_runs/index.html + .pdf
+python -m omar_pfem.verification_agent.campaign draft      # advisor_feedback/<date>_new_results_DRAFT.md
+```
+
+What one run does, by itself (log in `autonomous_runs/<name>/run.json`, report in `report.pdf`):
+
+| stage | what | module |
+|---|---|---|
+| D | problem definition from a paper or text (LLM), every number traced to the source | `autonomous.py`, `literature_search.py` |
+| M | geometry and meshes: cells, general polygons with holes (gmsh), 3D extrusion; corner and edge singularities | `pipeline2d.py`, `geometry2d.py`, `geometry3d.py`, `corners_ext.py` |
+| V | code verification by a manufactured solution on the problem's own domain; PASS / INCONCLUSIVE / FAIL; reference domain if INCONCLUSIVE (post hoc rules R1/R2) | `mms_auto.py`, `reference_domain.py` |
+| S, C | two independent element families, adopted convergence rules, cross-check | `pipeline2d.py`, `adopted.py` |
+| G | diagnosis of what is not certified | `diagnose.py` |
+| N | experiments chosen, frozen (sha256), run and scored by the agent; memory of outcomes; levels too large for this machine become cluster jobs (manual submission) | `experiment.py`, `cluster_ladder.py` |
+| A | sensitivity of assumed inputs | `sensitivity.py` |
+| report | per-run PDF from the stored files only | `run_report.py` |
+
+Materials: linear elastic (2D plane strain/stress, 3D) and compressible neo-Hookean (2D plane
+strain, 3D; dead loads). Guards: ladder cache tied to a fingerprint of description + code;
+mesh volume must equal the domain volume; 3D memory guard (`VERIF_MAX_DOF`, default 450,000).
+
+Cluster jobs: `python -m omar_pfem.verification_agent.cluster_ladder import <returned.json> <md5>`
+merges returned levels only if the md5 and the code fingerprint match; then run the problem again.

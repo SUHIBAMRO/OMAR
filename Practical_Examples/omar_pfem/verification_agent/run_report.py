@@ -225,6 +225,13 @@ def build(name, pdf=True):
             f"{k} {r['verdict']}" for k, r in mms.items())) + ".</li>")
     w(f"<li>Steps by code {by_actor['code']}, by LLM {by_actor['LLM']}; "
       f"points needing a person: <b>{len(persons)}</b>.</li>")
+    if run.get("code_verification"):
+        w(f"<li class=warn><b>Code verification on the reference domain</b>: "
+          f"{esc(run['code_verification'])}. Every result of this run carries this label.</li>")
+    for job in run.get("cluster_jobs", []):
+        w(f"<li class=warn>Cluster job prepared (manual submission): {esc(job['name'])}, levels "
+          f"{esc(job['levels'])}, bundle md5 <code>{esc(job['bundle_md5'])}</code>, instructions "
+          f"{esc(job['instructions'])}.</li>")
     stops = [s for s in steps if s["status"] == "stop"]
     if stops and stops[-1]["stage"] != "N":
         w(f"<li class=warn><b>The run stopped at stage {esc(stops[-1]['stage'])} "
@@ -266,7 +273,16 @@ def build(name, pdf=True):
     else:
         w("<div class=row>" + fig_domain(desc, prob) + fig_mesh(prob) + "</div>")
     # code verification
-    w("<h2>3. Code verification</h2><table><tr><th>element</th><th>verdict</th><th>L2 rate "
+    refc = run.get("mms_reference_domain")
+    w("<h2>3. Code verification</h2>")
+    if refc:
+        w("<p>Production domain INCONCLUSIVE (post hoc rule R1); the same check on the reference "
+          f"domain {esc(refc['description']['domain'])} (post hoc rule R2): "
+          + esc("; ".join(f"{el} {c['verdict']}" + ("" if c.get("skipped") else
+                                                     f" (L2 {c['rates']['L2']['observed']:.2f}, H1 "
+                                                     f"{c['rates']['H1']['observed']:.2f}, levels {c['levels']})")
+                          for el, c in refc["checks"].items())) + "</p>")
+    w("<table><tr><th>element</th><th>verdict</th><th>L2 rate "
       "(expected 3)</th><th>H1 rate (expected 2)</th><th>levels</th><th>note</th></tr>")
     for el, r in mms.items():
         if r.get("skipped"):

@@ -1347,5 +1347,237 @@
   },
   "problem": "cook_3d",
   "reason": "no passing check on record for 43bc3fbab4f150c0|P2|plane_3d|clamped+free+traction+general_domain"
+ },
+ "503fa30b5ee8cf71|Q2|plane_strain|free+symmetry+traction+general_domain_holes|neo_hookean": {
+  "verdict": "PASS",
+  "gate_verdict": "PASS",
+  "rule": "R1 (post hoc, round Q)",
+  "rates": {
+   "L2": {
+    "observed": 3.126144973779063,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 2.0833645414969757,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16,
+   32
+  ],
+  "levels_added": [
+   "n=32: rates outside tolerance but moving toward theory"
+  ],
+  "errors": {
+   "L2": [
+    0.012812155824946752,
+    0.0017494439569527185,
+    0.00020862632182834704,
+    2.707314820601813e-05,
+    3.423779969278741e-06
+   ],
+   "H1": [
+    0.038929673759633514,
+    0.009391283807785365,
+    0.0022320394331053666,
+    0.0005694542804536932,
+    0.00014427213508276746
+   ]
+  },
+  "field": {
+   "ux": "a*sin(0.13*pi*x + 3/10)*cos(0.13*pi*y + 1/5)",
+   "uy": "a*sin(0.13*pi*y + 2/5)*cos(0.13*pi*x + 1/10)",
+   "amplitude": 0.23011487971076788,
+   "peak_strain": 0.1
+  },
+  "problem": "nh_plate_hole_pe",
+  "reason": "no passing check on record for 503fa30b5ee8cf71|Q2|plane_strain|free+symmetry+traction+general_domain_holes|neo_hookean"
+ },
+ "503fa30b5ee8cf71|P2|plane_strain|free+symmetry+traction+general_domain_holes|neo_hookean": {
+  "verdict": "PASS",
+  "gate_verdict": "PASS",
+  "rule": "R1 (post hoc, round Q)",
+  "rates": {
+   "L2": {
+    "observed": 3.1883601902517213,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 2.1354732637400082,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16
+  ],
+  "levels_added": [],
+  "errors": {
+   "L2": [
+    0.09704895830185205,
+    0.012947496753953704,
+    0.0017463587312302373,
+    0.00024198448838801497
+   ],
+   "H1": [
+    0.1642424870223058,
+    0.04449815785739218,
+    0.011547475331304846,
+    0.003094734069178745
+   ]
+  },
+  "field": {
+   "ux": "a*sin(0.13*pi*x + 3/10)*cos(0.13*pi*y + 1/5)",
+   "uy": "a*sin(0.13*pi*y + 2/5)*cos(0.13*pi*x + 1/10)",
+   "amplitude": 0.23011487971076788,
+   "peak_strain": 0.1
+  },
+  "problem": "nh_plate_hole_pe",
+  "reason": "no passing check on record for 503fa30b5ee8cf71|P2|plane_strain|free+symmetry+traction+general_domain_holes|neo_hookean"
+ },
+ "14d45cac29e3f9f4|Q2|plane_3d|clamped+free+traction+general_domain": {
+  "verdict": "INCONCLUSIVE",
+  "gate_verdict": "FAIL",
+  "rule": "R1 (post hoc, round Q)",
+  "rates": {
+   "L2": {
+    "observed": 3.2981878644449507,
+    "expected": 3.0,
+    "pass": false
+   },
+   "H1": {
+    "observed": 2.13905852173099,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16
+  ],
+  "levels_added": [],
+  "errors": {
+   "L2": [
+    0.030211248812009393,
+    0.005209651775314738,
+    0.001457632283739166,
+    0.00012300399763881417
+   ],
+   "H1": [
+    0.0073986024842594015,
+    0.002390369646770072,
+    0.0006950081703828464,
+    0.0002047811916205538
+   ]
+  },
+  "field": {
+   "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)*cos(0.0270833333333333*pi*z + 1/2)",
+   "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)*cos(0.0270833333333333*pi*z + 7/10)",
+   "uz": "0.06*sin(0.0270833333333333*pi*x + 1/5)*sin(0.0216666666666667*pi*y + 3/5)*sin(0.0270833333333333*pi*z + 1/10)"
+  },
+  "problem": "cook_3d",
+  "reason": "no passing check on record for 14d45cac29e3f9f4|Q2|plane_3d|clamped+free+traction+general_domain"
+ },
+ "14d45cac29e3f9f4|P2|plane_3d|clamped+free+traction+general_domain": {
+  "verdict": "INCONCLUSIVE",
+  "gate_verdict": "FAIL",
+  "rule": "R1 (post hoc, round Q)",
+  "rates": {
+   "L2": {
+    "observed": 2.736019125337105,
+    "expected": 3.0,
+    "pass": false
+   },
+   "H1": {
+    "observed": 2.3147063958319563,
+    "expected": 2.0,
+    "pass": false
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16
+  ],
+  "levels_added": [],
+  "errors": {
+   "L2": [
+    0.4738541447139193,
+    0.21991301038739716,
+    0.04810480875369382,
+    0.006541964066371588
+   ],
+   "H1": [
+    0.05438138429117204,
+    0.018884139605303576,
+    0.0046843485059657585,
+    0.0009644280043294214
+   ]
+  },
+  "field": {
+   "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)*cos(0.0270833333333333*pi*z + 1/2)",
+   "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)*cos(0.0270833333333333*pi*z + 7/10)",
+   "uz": "0.06*sin(0.0270833333333333*pi*x + 1/5)*sin(0.0216666666666667*pi*y + 3/5)*sin(0.0270833333333333*pi*z + 1/10)"
+  },
+  "problem": "cook_3d",
+  "reason": "no passing check on record for 14d45cac29e3f9f4|P2|plane_3d|clamped+free+traction+general_domain"
+ },
+ "14d45cac29e3f9f4|Q2|plane_3d|clamped+free+traction+general_domain|reference_domain": {
+  "verdict": "INCONCLUSIVE",
+  "gate_verdict": "FAIL",
+  "rule": "R1 (post hoc, round Q)",
+  "rates": {
+   "L2": {
+    "observed": 3.69590687993627,
+    "expected": 3.0,
+    "pass": false
+   },
+   "H1": {
+    "observed": 2.552383758743392,
+    "expected": 2.0,
+    "pass": false
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16
+  ],
+  "levels_added": [],
+  "errors": {
+   "L2": [
+    0.02787526811675736,
+    0.012481702417485661,
+    0.001074785833046253,
+    8.759547431238858e-05
+   ],
+   "H1": [
+    0.008766704549064348,
+    0.006044078478018176,
+    0.001178692477615908,
+    0.0001968888498839628
+   ]
+  },
+  "field": {
+   "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)*cos(0.0270833333333333*pi*z + 1/2)",
+   "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)*cos(0.0270833333333333*pi*z + 7/10)",
+   "uz": "0.06*sin(0.0270833333333333*pi*x + 1/5)*sin(0.0216666666666667*pi*y + 3/5)*sin(0.0270833333333333*pi*z + 1/10)"
+  },
+  "problem": "cook_3d_reference_domain",
+  "reason": "no passing check on record for 14d45cac29e3f9f4|Q2|plane_3d|clamped+free+traction+general_domain|reference_domain"
  }
 }
