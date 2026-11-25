@@ -1,0 +1,27 @@
+{
+ "date": "2026-11-25",
+ "written_before_any_sensitivity_run": true,
+ "purpose": "Item 2 of 'automate everything': the agent checks automatically how much each assumed input (a number not found in the source text) changes each CERTIFIED quantity, and asks a person only where it matters.",
+ "method": {
+  "perturbation": "central: relative +-10% for E, loads (traction vector t, pressure p, prescribed u) and hole radius; absolute +-0.05 for nu (clipped to [0, 0.49])",
+  "mesh": "the same mesh for base and perturbed solves (Q2, uniform); geometry perturbations remesh",
+  "self_check": "the normalized sensitivity S = (dQ/Q)/(dp/p) is computed at n = 8 and n = 16; if they differ by more than max(0.02, 5% of |S|) the level is doubled (up to 64); otherwise 'unresolved'",
+  "linearity": "asymmetry |(Q+ - Q0) + (Q- - Q0)| / |Q+ - Q-| reported (0 for an exactly linear dependence)"
+ },
+ "decision_rule": {
+  "matters": "the change of the quantity over the range, max(|Q+ - Q0|, |Q- - Q0|) / |Q0|, exceeds the certified relative numerical uncertainty U / |limit| of that quantity: the assumption error then dominates the numerical error, a person must confirm the input (the record says for which quantities and by how much)",
+  "negligible": "otherwise: no person is needed for that input and quantity",
+  "uncertified_quantities": "not analysed (their value is not known well enough)",
+  "new_rule_note": "this replaces the earlier rule 'every assumed physical number needs a person' (24 Nov): the person is now asked only for inputs that matter for a certified quantity. Defined here before any run."
+ },
+ "predictions": {
+  "P1_plate_E": "plate with hole (traction-loaded, plane stress, linear): S_E = -1 for u_right, v_hole_top and strain_energy, S_E = 0 for peak_von_mises (|S + 1| and |S| below 1e-6)",
+  "P2_plate_load": "plate, scaling the traction on x = 10: S = +1 for displacements and peak_von_mises, S = +2 for strain_energy (within 1e-6)",
+  "P3_plate_nu_michell": "plate: peak_von_mises independent of nu (Michell: traction boundary conditions, zero resultant on the hole): |S_nu| < 1e-3; displacements depend on nu (|S_nu| > 0.01)",
+  "P4_plate_radius": "plate, hole radius +-10%: peak_von_mises changes by less than 3% (Kirsch value 3 slightly raised by finite width)",
+  "P5_cook_E": "Cook (clamped with zero displacement, traction): S_E = -1 for v_C and strain_energy, S_E = 0 for the corner stress averages (within 1e-6)",
+  "P6_cook_nu": "Cook: the corner stress averages depend on nu (|S_nu| > 1e-3; clamped edge, Michell does not apply)",
+  "P7_nh_identity": "neo-Hookean L-bracket demo (energy density proportional to E at fixed nu, dead loads): S_E = -S_load for every quantity to O(delta^2): |S_E + S_load| < 0.03; and the response is nonlinear: |S_load(strain_energy) - 2| > 0.02",
+  "P8_selfcheck": "every sensitivity on the linear problems passes the n = 8 / 16 self-check without doubling"
+ }
+}
