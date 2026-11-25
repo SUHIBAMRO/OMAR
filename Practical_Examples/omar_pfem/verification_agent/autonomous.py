@@ -46,10 +46,19 @@ MODELER_SCHEMA = {
         "unsupported_reason": {"type": "string"},
         "description": {
             "type": "object", "additionalProperties": False,
-            "required": ["name", "material", "cell_size", "cells", "E", "nu", "plane", "bcs",
-                         "points"],
+            "required": ["name", "material", "geometry_kind", "cell_size", "cells", "outer",
+                         "holes", "E", "nu", "plane", "bcs", "points"],
             "properties": {
                 "name": {"type": "string"},
+                "geometry_kind": {"type": "string", "enum": ["cells", "polygon"]},
+                "outer": {"type": "array", "items": {"type": "array", "items": {"type": "number"}}},
+                "holes": {"type": "array", "items": {
+                    "type": "object", "additionalProperties": False,
+                    "required": ["kind", "circle", "polygon"],
+                    "properties": {"kind": {"type": "string", "enum": ["circle", "polygon"]},
+                                   "circle": {"type": "array", "items": {"type": "number"}},
+                                   "polygon": {"type": "array", "items": {
+                                       "type": "array", "items": {"type": "number"}}}}}},
                 "material": {"type": "string", "enum": ["linear_elastic", "neo_hookean"]},
                 "cell_size": {"type": "number"},
                 "cells": {"type": "array", "items": {"type": "array", "items": {"type": "integer"}}},
@@ -57,8 +66,9 @@ MODELER_SCHEMA = {
                 "plane": {"type": "string", "enum": ["strain", "stress"]},
                 "bcs": {"type": "array", "items": {
                     "type": "object", "additionalProperties": False,
-                    "required": ["segment", "type", "t", "p", "u"],
+                    "required": ["segment", "hole", "type", "t", "p", "u"],
                     "properties": {
+                        "hole": {"type": "integer"},
                         "segment": {"type": "array", "items": {"type": "array",
                                                                "items": {"type": "number"}}},
                         "type": {"type": "string",
@@ -89,9 +99,17 @@ MODELER_PROMPT = (
     "(ln J)^2 with mu, lam from E and nu; plane strain only; only dead tractions, no pressure "
     "and no prescribed non-zero displacement). Choose neo_hookean only if the problem states a "
     "neo-Hookean (or compatible hyperelastic) material; another hyperelastic model "
-    "(Mooney-Rivlin, Ogden, incompressible) is NOT supported. The pipeline can only represent domains that are unions of equal square "
+    "(Mooney-Rivlin, Ogden, incompressible) is NOT supported. Geometry: either "
+    "geometry_kind='polygon' (preferred for anything but a union of squares): `outer` lists "
+    "the vertices of a straight-edged outer boundary (inclined edges allowed), `holes` lists "
+    "circular holes (kind='circle', circle=[cx, cy, r], polygon=[]) or polygonal holes "
+    "(kind='polygon', circle=[], polygon=[[x, y], ...]); holes may cut the outer boundary (e.g. "
+    "a quarter model of a plate with a hole); set cell_size=1 and cells=[] then; a boundary "
+    "condition on a whole hole uses hole=<index> and segment=[]; on a straight edge it uses "
+    "hole=-1 and a segment; points of interest may lie anywhere in the domain. Or "
+    "geometry_kind='cells' as described next (outer=[], holes=[]). For geometry_kind='cells' the pipeline can only represent domains that are unions of equal square "
     "cells: cell [i, j] covers [i a, (i+1) a] x [j a, (j+1) a] with a = cell_size; no holes, "
-    "no curved or inclined edges. Boundary conditions act on straight boundary segments "
+    "no curved or inclined edges (use geometry_kind='polygon' for those). Boundary conditions act on straight boundary segments "
     "given by their end points in physical coordinates: clamped (all displacement zero; "
     "optionally a constant prescribed displacement u = [ux, uy]), symmetry (normal "
     "displacement zero, shear traction zero; only on segments parallel to an axis), traction "
@@ -103,8 +121,8 @@ MODELER_PROMPT = (
     "you use, add a `sources` entry with a verbatim quote containing it; (2) if the problem "
     "does not state a value the pipeline needs (e.g. Young's modulus for a displacement "
     "quantity), choose a value, and list it in `assumptions` with the reason; (3) if the "
-    "geometry or a condition cannot be represented exactly (a hole, a curved edge, a "
-    "distributed load that is not constant, a point load, contact, nonlinearity), set "
+    "geometry or a condition cannot be represented exactly (a curved OUTER edge, an ellipse, "
+    "a distributed load that is not constant, a point load, contact, another nonlinearity), set "
     "supported=false and explain in unsupported_reason; never approximate silently.\n\n"
     "PROBLEM:\n")
 
@@ -159,21 +177,34 @@ def trace_numbers(desc, text, assumptions):
     declared = numbers_in(" ".join(assumptions))
     found = lambda v: any(abs(v - s) <= 1e-9 * max(1.0, abs(s)) for s in src)
     assumed = lambda v: any(abs(v - s) <= 1e-9 * max(1.0, abs(s)) for s in declared)
-    a = float(desc["cell_size"])
+    a = float(desc.get("cell_size", 1.0))
     items = [("E", desc["E"]), ("nu", desc["nu"])]
     for k, b in enumerate(desc["bcs"]):
         items += [(f"bcs[{k}].t", v) for v in b.get("t", [])]
         if b["type"] == "pressure":
             items.append((f"bcs[{k}].p", b["p"]))
         items += [(f"bcs[{k}].u", v) for v in b.get("u", [])]
-    from omar_pfem.verification_agent.pipeline2d import polygon
-    for x, y, _ in polygon(desc):
-        items += [("vertex x", abs(x * a)), ("vertex y", abs(y * a))]
+    if "domain" in desc:
+        a = 1.0
+        for x, y in desc["domain"]["outer"]:
+            items += [("vertex x", abs(x)), ("vertex y", abs(y))]
+        for h in desc["domain"].get("holes", []):
+            if "circle" in h:
+                items += [("hole centre", abs(h["circle"][0])), ("hole centre", abs(h["circle"][1])),
+                          ("hole radius", abs(h["circle"][2]))]
+            else:
+                for x, y in h["polygon"]:
+                    items += [("vertex x", abs(x)), ("vertex y", abs(y))]
+    else:
+        from omar_pfem.verification_agent.pipeline2d import polygon
+        for x, y, _ in polygon(desc):
+            items += [("vertex x", abs(x * a)), ("vertex y", abs(y * a))]
     unsupported, flagged = [], []
     for name, v in items:
         if v == 0 or found(v):
             continue
-        if name.startswith("vertex") and any(found(v * k) for k in (2, 4)):
+        if (name.startswith("vertex") or name.startswith("hole")) and any(
+                found(v * k) for k in (2, 4)):
             continue        # half or quarter of a stated dimension (symmetry models)
         if assumed(v):
             flagged.append(f"{name} = {v:g} (declared assumption)")
@@ -183,12 +214,21 @@ def trace_numbers(desc, text, assumptions):
 
 
 def to_pipeline(desc):
-    """Modeler output -> pipeline2d description (drop empty optional fields)."""
-    out = {k: desc[k] for k in ("name", "cell_size", "cells", "E", "nu", "plane")}
+    """Modeler output -> pipeline2d / geometry2d description (drop empty optional fields)."""
+    if desc.get("geometry_kind") == "polygon":
+        out = {k: desc[k] for k in ("name", "E", "nu", "plane")}
+        holes = [{"circle": h["circle"]} if h["kind"] == "circle" else {"polygon": h["polygon"]}
+                 for h in desc.get("holes", [])]
+        out["domain"] = {"outer": desc["outer"], "holes": holes}
+    else:
+        out = {k: desc[k] for k in ("name", "cell_size", "cells", "E", "nu", "plane")}
     out["material"] = desc.get("material", "linear_elastic")
     out["bcs"] = []
     for b in desc["bcs"]:
-        d = {"segment": b["segment"], "type": b["type"]}
+        if b.get("hole", -1) is not None and b.get("hole", -1) >= 0:
+            d = {"hole": b["hole"], "type": b["type"]}
+        else:
+            d = {"segment": b["segment"], "type": b["type"]}
         if b["type"] == "traction":
             d["t"] = b["t"]
         if b["type"] == "pressure":
@@ -204,7 +244,18 @@ def define(backend, text, log, retries=2):
     from omar_pfem.verification_agent import llm_roles
     from omar_pfem.verification_agent.pipeline2d import validate as validate_le
     from omar_pfem.verification_agent.pipeline2d_nh import validate as validate_nh
-    validate = lambda d: validate_nh(d) if d.get("material") == "neo_hookean" else validate_le(d)
+    from omar_pfem.verification_agent import geometry2d as G
+
+    def validate(d):
+        if "domain" in d:
+            e = G.validate(d)
+            if not e:
+                try:
+                    G.make(d)
+                except ValueError as ex:
+                    e = [str(ex)]
+            return e
+        return validate_nh(d) if d.get("material") == "neo_hookean" else validate_le(d)
     spec, problems = llm_roles.formalize(backend, text)
     log.step("D", "LLM", "done" if not problems else "checked",
              f"formalizer specification; code check: {problems or 'no problems'}",
@@ -405,16 +456,18 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
         if desc is None:
             log.save(result)
             return result
+    from omar_pfem.verification_agent import geometry2d as G
+    prob = G.make(desc)
+    if "domain" in desc:
+        log.step("M", "code", "note", "general domain meshed by gmsh (quadratic triangles and "
+                 "independent quadratic quadrilaterals, curved edges on circles); corners from "
+                 "the real boundary after the holes are cut")
     if desc.get("material") == "neo_hookean":
-        from omar_pfem.verification_agent.pipeline2d_nh import Problem2DNH
-        prob = Problem2DNH(desc)
         log.step("M", "code", "note", "neo-Hookean: corner exponents from the linearized theory "
                  "(a hypothesis for the practical mesh range); dead loads; load steps chosen by "
                  "the solver (doubled on Newton failure or J <= 0)")
-    else:
-        prob = P.Problem2D(desc)
-    log.step("M", "code", "done", f"domain {len(prob.cells)} cells, polygon {len(prob.polygon)} "
-             f"vertices; rate-limiting corners {[(c['x'], c['y'], round(min(c['rate_limiting']), 4)) for c in prob.corners]}")
+    log.step("M", "code", "done", f"rate-limiting corners (x, y, smallest exponent) "
+             f"{[(round(c['x'] * prob.a, 6), round(c['y'] * prob.a, 6), round(min(c['rate_limiting']), 4)) for c in prob.corners]}")
     # V
     need = mms_auto.needed(prob)
     log.step("V", "code", "decided", "; ".join(f"{k}: {'needed' if n else 'not needed'} ({r})"

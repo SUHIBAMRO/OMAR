@@ -70,11 +70,7 @@ class Problem2DNH(P2.Problem2D):
     def _solve(self, n, plan, element, mms):
         import pypardiso
         t0 = time.time()
-        mq = self.mesh(n, plan)
-        if element == "Q2":
-            msh, el = fem.MeshQuad2.from_mesh(mq), fem.ElementQuad2()
-        else:
-            msh, el = fem.MeshTri2.from_mesh(mq.to_meshtri()), fem.ElementTriP2()
+        msh, el = self.build_mesh(n, plan, element)
         mu, lam = self.mu, self.lame
         E2 = fem.ElementVector(el)
         iorder = 6
@@ -87,8 +83,8 @@ class Problem2DNH(P2.Problem2D):
         neu = []                                   # (FacetBasis, traction function(frac, w))
         dl = b.doflocs
         for bc in self.desc["bcs"]:
-            seg = [[c / self.a for c in p] for p in bc["segment"]]
-            m = np.array([P2._on_seg(mid[0, f_], mid[1, f_], seg) for f_ in bf])
+            seg = [[c / self.a for c in p] for p in bc.get("segment", [[0, 0], [1, 0]])]
+            m = self.facet_mask(mid, bf, bc)
             sel = bf[m & ~used]
             used |= m
             if sel.size == 0:
@@ -220,12 +216,7 @@ class Problem2DNH(P2.Problem2D):
         s33 = lam * np.log(J) / J
         vm = np.sqrt(0.5 * ((sig[0, 0] - sig[1, 1]) ** 2 + (sig[1, 1] - s33) ** 2
                             + (s33 - sig[0, 0]) ** 2) + 3 * sig[0, 1] ** 2)
-        U = u[b.nodal_dofs].T
-        for name, (px, py, comp) in self.desc.get("points", {}).items():
-            j = int(np.argmin((msh.p[0] - px) ** 2 + (msh.p[1] - py) ** 2))
-            if math.hypot(msh.p[0, j] - px, msh.p[1, j] - py) > 1e-9 * self.a:
-                raise ValueError(f"{name} is not a mesh node")
-            row[name] = float(U[j, 0 if comp == "x" else 1])
+        row.update(self.point_values(u, b, msh))
         wq = b.dx
         for k, c in enumerate(self.corners):
             d = np.hypot(X[0] - c["x"] * self.a, X[1] - c["y"] * self.a)

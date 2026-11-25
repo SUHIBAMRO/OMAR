@@ -1095,3 +1095,50 @@ def test_literature_code_screen_excludes_shells():
     ok, why = code_screen({"title": "A shell element", "abstract": "finite element benchmark "
                            "for Reissner-Mindlin shell elasticity, numerical examples"})
     assert not ok and why["excluded_by"]
+
+
+# ---- general 2D geometry (geometry2d, 25 Nov) ----
+def _load(name):
+    import json, os
+    return json.load(open(os.path.join(os.path.dirname(__file__), "problems2d", name)))
+
+
+def test_geometry_validate_rejects_point_outside_domain():
+    from omar_pfem.verification_agent.geometry2d import validate
+    d = _load("plate_hole_quarter.json")
+    d["points"] = {"bad": [0.2, 0.2, "x"]}           # inside the hole
+    assert validate(d)
+
+
+def test_cook_membrane_matches_literature_at_mid_edge():
+    """Cook's membrane, plane stress, E = 1, nu = 1/3: the reference tip value 23.96 is the
+    vertical displacement at the mid-point of the loaded edge (48, 52)."""
+    from omar_pfem.verification_agent.geometry2d import make
+    r = make(_load("cook_linear.json")).solve(32, element="Q2")
+    assert abs(r["v_C"] - 23.96) < 0.01
+
+
+def test_plate_with_hole_has_no_singular_corners_and_converges_regularly():
+    """Corners come from the real gmsh boundary: where the hole meets a symmetry edge the angle
+    is 90 deg with symmetry on one side and a free curve on the other -> no singularity.
+    Self-similar refinement: energy differences drop at least 4x per level."""
+    from omar_pfem.verification_agent.geometry2d import make
+    p = make(_load("plate_hole_quarter.json"))
+    assert p.corners == []
+    e = [p.solve(n, element="Q2")["strain_energy"] for n in (4, 8, 16)]
+    assert abs(e[2] - e[1]) < abs(e[1] - e[0]) / 4
+
+
+def test_ladder_cache_is_invalidated_when_description_changes(tmp_path, monkeypatch):
+    """A cached ladder made for another description (or other code) must not be reused."""
+    from omar_pfem.verification_agent import pipeline2d as P
+    monkeypatch.setattr(P, "RUNS", str(tmp_path))
+    d = {"name": "c", "cell_size": 1.0, "cells": [[0, 0], [1, 0]], "E": 1.0, "nu": 0.3,
+         "plane": "strain", "bcs": [{"segment": [[0, 0], [0, 1]], "type": "clamped"},
+                                    {"segment": [[2, 0], [2, 1]], "type": "traction",
+                                     "t": [0.0, 0.01]}]}
+    a = P.Ladders(P.Problem2D(d), log=lambda *_: None).get("Q2 uniform", (2,), None, "Q2")[0]
+    d["E"] = 2.0
+    b = P.Ladders(P.Problem2D(d), log=lambda *_: None).get("Q2 uniform", (2,), None, "Q2")[0]
+    assert abs(b["strain_energy"] / a["strain_energy"] - 0.5) < 1e-9
+    assert any(f.name.startswith("ladders_stale_") for f in (tmp_path / "c").iterdir())

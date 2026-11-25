@@ -26266,3 +26266,9 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   value of L7 can pass both convergence checks (the L3-L7 window contains the 1.00 -> 0.89 -> 0.92
   reversal); a monotone window needs L9; estimates 9.5 / 15.8 / 24.8 h per formulation for L7-L9.
   Recommendation to Omar: ask Professor Rabczuk before any further refinement (he approved one).
+- 2026-11-25 DONE: general 2D geometry in the autonomous loop (`geometry2d.py`, gmsh): Cook's membrane
+  (inclined edges) and plate with a circular hole. Cook v_C 23.964 vs 23.96; plate 4/4 certified; Kirsch
+  check ~3.005 vs 3.00. Ladder-cache bug fixed (cache now fingerprinted by description + code). Tests 95.
+  NEXT (user asked "automate everything", order agreed): (2) automatic sensitivity check of assumed
+  inputs, (3) automatic per-run report, (4) 3D in the loop. Kept manual: cluster submission, emails.
+  Email + new-results PDF still to be sent by Omar (geometry results NOT in that PDF; next PDF).

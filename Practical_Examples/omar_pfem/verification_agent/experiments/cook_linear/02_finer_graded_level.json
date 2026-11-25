@@ -1,0 +1,46 @@
+{
+ "preregistration": {
+  "action": "finer_graded_level",
+  "quantities": [
+   "corner1_gk_avg_von_mises"
+  ],
+  "situation": "region_average:band_only",
+  "justification": "corner1_gk_avg_von_mises: region_average:band_only + diagnosis D4 (pre-asymptotic)",
+  "hypothesis": "the sequences are pre-asymptotic; one finer graded level (n = 64) lets the checks decide",
+  "prediction": {
+   "text": "at least one listed quantity becomes certified with a rate and cross-checked",
+   "criterion": "any_certified"
+  },
+  "run": {
+   "kind": "graded_level",
+   "n": 64
+  },
+  "cost": {
+   "dof": 146736,
+   "minutes": 0.40802114250819643
+  },
+  "prior": 0.4,
+  "prior_n": 8,
+  "score": 0.2840866432498697,
+  "problem": "cook_linear",
+  "git_head": "d71f40522dca8fdf018f373a6bfaee627e648897",
+  "frozen_utc": "2026-11-25T11:54:21.549588+00:00",
+  "sha256": "b6d93b8bbe9956c049eb3c14d5987177aec8db1f6062ea005d01130e43913eac"
+ },
+ "outcome": {
+  "confirmed": false,
+  "observed_minutes": 0.09730048179626465,
+  "after": {
+   "certified": [
+    "strain_energy"
+   ],
+   "open": [
+    "corner0_gk_avg_von_mises",
+    "corner1_gk_avg_von_mises",
+    "corner2_gk_avg_von_mises",
+    "peak_von_mises",
+    "v_C"
+   ]
+  }
+ }
+}

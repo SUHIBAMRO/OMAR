@@ -1,0 +1,490 @@
+{
+ "steps": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "description written by a person (steps L, D skipped)"
+  },
+  {
+   "stage": "M",
+   "actor": "code",
+   "status": "note",
+   "detail": "general domain meshed by gmsh (quadratic triangles and independent quadratic quadrilaterals, curved edges on circles); corners from the real boundary after the holes are cut"
+  },
+  {
+   "stage": "M",
+   "actor": "code",
+   "status": "done",
+   "detail": "rate-limiting corners (x, y, smallest exponent) []"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "decided",
+   "detail": "Q2: needed (no passing check on record for 8a9db25865c49e1f|Q2|plane_stress|free+symmetry+traction+general_domain_holes); P2: needed (no passing check on record for 8a9db25865c49e1f|P2|plane_stress|free+symmetry+traction+general_domain_holes)"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "PASS",
+   "detail": "Q2 PASS (L2 3.12, H1 2.08, levels [2, 4, 8, 16, 32]); P2 PASS (L2 3.18, H1 2.13, levels [2, 4, 8, 16])"
+  },
+  {
+   "stage": "S",
+   "actor": "code",
+   "status": "done",
+   "detail": "Q2 and P2 ladders n = [2, 4, 8, 16, 32]"
+  },
+  {
+   "stage": "C",
+   "actor": "code",
+   "status": "done",
+   "detail": "adopted rules: {'certified': ['strain_energy', 'u_right'], 'open': ['peak_von_mises', 'v_hole_top']}"
+  },
+  {
+   "stage": "G",
+   "actor": "code",
+   "status": "done",
+   "detail": "peak_von_mises: supported ['D4', 'Q3']"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "pre-registered",
+   "detail": "#1 finer_independent_level on ['v_hole_top']: the independent sequence is pre-asymptotic; one more level gives it a rate that agrees; prediction: at least one listed quantity becomes cross-checked; prior 0.50 (n=0); est. 0.2 min",
+   "file": "experiments/plate_hole_quarter/01_finer_independent_level.json",
+   "sha256": "a1621d3c37f30d7c4a373f0bafb1429b422be2cc544b870d0a8edd063c08ccc3"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "refuted",
+   "detail": "#1 finer_independent_level: prediction refuted (0.2 min); certified so far ['peak_von_mises', 'strain_energy', 'u_right']"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "pre-registered",
+   "detail": "#2 finer_independent_level on ['u_right', 'v_hole_top']: the independent sequence is pre-asymptotic; one more level gives it a rate that agrees; prediction: at least one listed quantity becomes cross-checked; prior 0.33 (n=1); est. 0.1 min",
+   "file": "experiments/plate_hole_quarter/02_finer_independent_level.json",
+   "sha256": "c21ba429ade8a9a28601eb596ba97d1f8daab27abca2ffe9b400c21f97507e98"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "confirmed",
+   "detail": "#2 finer_independent_level: prediction confirmed (0.7 min); certified so far ['peak_von_mises', 'strain_energy', 'u_right', 'v_hole_top']"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "stop",
+   "detail": "no further experiment applies within the budget (0.8 of 20.0 min used)"
+  }
+ ],
+ "human_points": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "description written by a person (steps L, D skipped)"
+  }
+ ],
+ "wall_clock_s": 57.973955392837524,
+ "source": {
+  "pdf": null,
+  "text": null,
+  "description_given": true
+ },
+ "mms": {
+  "Q2": {
+   "verdict": "PASS",
+   "rates": {
+    "L2": {
+     "observed": 3.124385938937823,
+     "expected": 3.0,
+     "pass": true
+    },
+    "H1": {
+     "observed": 2.0821338362407165,
+     "expected": 2.0,
+     "pass": true
+    }
+   },
+   "levels": [
+    2,
+    4,
+    8,
+    16,
+    32
+   ],
+   "levels_added": [
+    "n=32: rates outside tolerance but moving toward theory"
+   ],
+   "errors": {
+    "L2": [
+     0.000538609641310974,
+     7.52755121091286e-05,
+     9.031113378266176e-06,
+     1.1735009717353952e-06,
+     1.4855363969161395e-07
+    ],
+    "H1": [
+     0.001669841915250436,
+     0.0004051536702686392,
+     9.674826269676788e-05,
+     2.471165805548296e-05,
+     6.2636631302034325e-06
+    ]
+   },
+   "field": {
+    "ux": "0.01*sin(0.13*pi*x + 3/10)*cos(0.13*pi*y + 1/5)",
+    "uy": "0.01*sin(0.13*pi*y + 2/5)*cos(0.13*pi*x + 1/10)"
+   },
+   "problem": "plate_hole_quarter",
+   "reason": "no passing check on record for 8a9db25865c49e1f|Q2|plane_stress|free+symmetry+traction+general_domain_holes"
+  },
+  "P2": {
+   "verdict": "PASS",
+   "rates": {
+    "L2": {
+     "observed": 3.180379445546396,
+     "expected": 3.0,
+     "pass": true
+    },
+    "H1": {
+     "observed": 2.132182026266214,
+     "expected": 2.0,
+     "pass": true
+    }
+   },
+   "levels": [
+    2,
+    4,
+    8,
+    16
+   ],
+   "levels_added": [],
+   "errors": {
+    "L2": [
+     0.004101603553687458,
+     0.0005539439290123278,
+     7.530064512873803e-05,
+     1.0457487572328833e-05
+    ],
+    "H1": [
+     0.00707594358278444,
+     0.0019161726304493002,
+     0.0004979145142998256,
+     0.0001338107924205362
+    ]
+   },
+   "field": {
+    "ux": "0.01*sin(0.13*pi*x + 3/10)*cos(0.13*pi*y + 1/5)",
+    "uy": "0.01*sin(0.13*pi*y + 2/5)*cos(0.13*pi*x + 1/10)"
+   },
+   "problem": "plate_hole_quarter",
+   "reason": "no passing check on record for 8a9db25865c49e1f|P2|plane_stress|free+symmetry+traction+general_domain_holes"
+  }
+ },
+ "final": {
+  "certified": [
+   "peak_von_mises",
+   "strain_energy",
+   "u_right",
+   "v_hole_top"
+  ],
+  "open": []
+ },
+ "verdicts": {
+  "strain_energy": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "class": "global",
+   "finest": 51.21217686226016,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=3.92, GCI_fine=0.00% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=3.90 (leave-one-out 3.90-3.94), U_fine=0.00% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    }
+   },
+   "limit": 51.212176865005226,
+   "U": 1.591749081647588e-10,
+   "crosscheck": "cross_checked",
+   "gap_rel": 3.2023611515835604e-09,
+   "final": "CERTIFIED"
+  },
+  "u_right": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "class": "displacement",
+   "finest": 10.517496957974066,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=3.33, GCI_fine=0.00% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=3.61 (leave-one-out 3.50-3.61), U_fine=0.00% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    }
+   },
+   "limit": 10.517496952132602,
+   "U": 2.3477214727972597e-09,
+   "crosscheck": "independent_unconverged",
+   "gap_rel": null,
+   "final": "INCONCLUSIVE"
+  },
+  "v_hole_top": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "class": "displacement",
+   "finest": -1.0687738508845444,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=3.11, GCI_fine=0.00% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=3.01 (leave-one-out 2.86-3.02), U_fine=0.00% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    }
+   },
+   "limit": -1.0687738267715245,
+   "U": 1.6856959334926208e-07,
+   "crosscheck": "cross_checked",
+   "gap_rel": 3.350480439065246e-05,
+   "final": "CERTIFIED"
+  },
+  "peak_von_mises": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "class": "pointwise_peak",
+   "finest": 3.0783185158944937,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.02, GCI_fine=0.31% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=0.99 (leave-one-out 0.98-0.99), U_fine=0.34% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    }
+   },
+   "limit": 3.0865239476331854,
+   "U": 0.003369249529493377,
+   "crosscheck": "cross_checked",
+   "gap_rel": 0.0006512694838159115,
+   "final": "CERTIFIED"
+  }
+ },
+ "graded": null,
+ "diagnosis": {
+  "peak_von_mises": {
+   "supported": [
+    "D4",
+    "Q3"
+   ],
+   "diagnosis": [
+    "QoI/post-processing",
+    "numerical discretization"
+   ],
+   "open": [
+    "P1",
+    "S1",
+    "S2"
+   ],
+   "tests": [
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "needs data",
+     "evidence": "no deformation measures stored",
+     "next_action": "record min det F and the largest principal stretch",
+     "cost": "seconds per level",
+     "remedy": null
+    },
+    {
+     "id": "D3",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "nu = 0.3: far from incompressibility",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "supported",
+     "evidence": "increments over the finest five levels shrink (0.0599 -> 0.03) with 0 sign change(s): the sequence may still enter the asymptotic range",
+     "next_action": "add a finer level",
+     "cost": "see the adaptive controller",
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "Q3",
+     "class": "QoI/post-processing",
+     "status": "supported",
+     "evidence": "the maximum over Gauss points rises monotonically with order 0.88, about 1 although the element has degree 2: the Gauss points approach the surface maximum at O(h)",
+     "next_action": "evaluate the stress at the surface point (nodal extrapolation) or refine further; the order will not improve",
+     "cost": "seconds from stored data (if nodal values are stored)",
+     "remedy": "report the surface value at a fixed point, not a maximum over Gauss points"
+    }
+   ]
+  }
+ },
+ "experiments": [
+  {
+   "k": 1,
+   "action": "finer_independent_level",
+   "confirmed": false
+  },
+  {
+   "k": 2,
+   "action": "finer_independent_level",
+   "confirmed": true
+  }
+ ],
+ "description": {
+  "name": "plate_hole_quarter",
+  "material": "linear_elastic",
+  "E": 1.0,
+  "nu": 0.3,
+  "plane": "stress",
+  "domain": {
+   "outer": [
+    [
+     0,
+     0
+    ],
+    [
+     10,
+     0
+    ],
+    [
+     10,
+     10
+    ],
+    [
+     0,
+     10
+    ]
+   ],
+   "holes": [
+    {
+     "circle": [
+      0,
+      0,
+      1
+     ]
+    }
+   ]
+  },
+  "bcs": [
+   {
+    "segment": [
+     [
+      1,
+      0
+     ],
+     [
+      10,
+      0
+     ]
+    ],
+    "type": "symmetry"
+   },
+   {
+    "segment": [
+     [
+      0,
+      1
+     ],
+     [
+      0,
+      10
+     ]
+    ],
+    "type": "symmetry"
+   },
+   {
+    "segment": [
+     [
+      10,
+      0
+     ],
+     [
+      10,
+      10
+     ]
+    ],
+    "type": "traction",
+    "t": [
+     1.0,
+     0.0
+    ]
+   }
+  ],
+  "points": {
+   "u_right": [
+    10,
+    0,
+    "x"
+   ],
+   "v_hole_top": [
+    0,
+    1,
+    "y"
+   ]
+  }
+ }
+}

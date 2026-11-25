@@ -1,0 +1,20 @@
+{
+ "date": "2026-11-25",
+ "purpose": "independent checks of the general-geometry path (geometry2d.py: gmsh meshes, holes, inclined edges) against known values",
+ "cook_membrane": {
+  "description": "problems2d/cook_linear.json (E = 1, nu = 1/3, plane stress, shear load 1 on the right edge)",
+  "reference": "vertical displacement 23.96 at the mid-point (48, 52) of the loaded edge (standard benchmark value)",
+  "agent_certified": "v_C CERTIFIED, finest Q2 (n = 32) 23.964158, P2 23.95919",
+  "note": "an earlier comparison at the corner (48, 60) gave 25.2 with three codes agreeing; the reference point is the edge mid-point"
+ },
+ "kirsch": {
+  "description": "quarter plate 40 x 40 with a hole of radius 1 (d/W = 0.025), uniaxial traction 1; same description as problems2d/plate_hole_quarter.json with a larger plate",
+  "reference": "stress concentration 3.00 (Kirsch, infinite plate; finite-width correction below 0.5 percent at d/W = 0.025)",
+  "peak_von_mises_Q2": {"64": 2.9464, "128": 2.9755, "256": 2.9903},
+  "extrapolated": 3.005,
+  "note": "pairwise order about 1 (peak sampled at quadrature points); not run by the agent, a check by hand script"
+ },
+ "plate_hole_quarter_10x10": {
+  "agent_certified": "peak_von_mises limit 3.0865 +- 0.0034 (finite square plate, d/W = 0.1, so above 3 as expected), strain_energy, u_right, v_hole_top"
+ }
+}

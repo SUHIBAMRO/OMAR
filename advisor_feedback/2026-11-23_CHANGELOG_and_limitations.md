@@ -468,3 +468,25 @@ Pre-registered before any loaded solve: commit 4fd091f. No billed run, no cluste
   Q20 limit, both rising -> Q20 Gaussian likely below the continuum value. Times 5.0 / 5.3 h (est. 6).
   Crosscheck/three-way of report v11 NOT recomputed with L6 (kept reproducible; L6 in new-results
   PDF Section 8.3). New-results PDF claims 66/66 (memory claims now matched as phrases).
+
+## 25 November: general 2D geometry in the loop (inclined edges, holes, curved edges)
+
+- `geometry2d.py` (gmsh 4.13.1): polygons with circular or polygonal holes, quadratic P2 triangles
+  and independent Q2 quadrilaterals, curved edges on circles, points of interest embedded as nodes,
+  corners and their exponents taken from the real meshed boundary (corners_ext), measured
+  h = sqrt(area / elements). The modeler schema accepts `geometry_kind: polygon`.
+- Self-similar refinement (fix): the size field is the same at every level, scaled by h = L/n
+  (0.2 h at holes growing to h at L/2). Curvature-based sizing changed regime between levels and
+  made the plate ladders irregular (nothing certified); now energy differences fall about 10x per level.
+- BUG found and fixed: the ladder cache (pipeline2d_runs/<name>/ladders.json) was keyed by the problem
+  name only, so a changed mesh generator silently reused old solutions (experiments "took 0.0 min").
+  It is now tied to a sha256 fingerprint of the description and the solver/mesh code; a mismatched
+  cache is moved aside (ladders_stale_*.json) and recomputed. Development memory entries and MMS
+  records from the affected runs (10 and 8) were removed. The mms_auto key now includes geometry2d.py.
+- Results (fresh solves): MMS PASS on both (Q2 L2 3.10-3.12, H1 2.04-2.08; P2 L2 3.08-3.18).
+  Cook's membrane: v_C, strain energy and two corner averages certified; peak concluded unbounded
+  (corner exponent 0.677 < 1); v_C 23.964 vs reference 23.96 at (48, 52). Plate with hole
+  (10 x 10, r = 1): all 4 quantities certified (peak von Mises 3.0865 +- 0.0034). Kirsch check by hand
+  (40 x 40): peak 2.946, 2.976, 2.990 -> about 3.005 vs 3.00. Record: geometry2d_validation.json.
+- Tests 95 pass (point outside the domain refused, Cook mid-edge value, plate corners none and
+  regular convergence, cache invalidation). CI installs gmsh and its system libraries.

@@ -14,12 +14,21 @@ PDF = os.path.join(HERE, "..", "..", "..", "advisor_feedback",
 j = lambda p: json.load(open(os.path.join(HERE, p)))
 
 
+PDF_MEMORY_ENTRIES = 16
+
+
 def claims():
-    from omar_pfem.verification_agent.experiment import prior
     imp = j("adopted_impact.json")
     ch = imp["changed"]
     run = lambda p: j(f"autonomous_runs/{p}/run.json")
-    mem = j("experience.json")
+    # the PDF describes the memory as it was when it was written (25 Nov, before the general-
+    # geometry runs): the first PDF_MEMORY_ENTRIES entries; later entries are new results
+    mem = j("experience.json")[:PDF_MEMORY_ENTRIES]
+
+    def prior(action, situation):
+        rec = [m for m in mem if m["action"] == action and m["situation"] == situation
+               and m.get("confirmed") is not None]
+        return (sum(m["confirmed"] for m in rec) + 1) / (len(rec) + 2), len(rec)
     sc = j("autonomy_test/score.json")
     ph = j("autonomy_test/posthoc/results_posthoc.json")
     g = j("experiments/bushing_groove/01_spline_level_6.json")["preregistration"]

@@ -1,0 +1,5 @@
+{"name": "cook_linear", "material": "linear_elastic", "E": 1.0, "nu": 0.3333333333333333, "plane": "stress",
+ "domain": {"outer": [[0, 0], [48, 44], [48, 60], [0, 44]]},
+ "bcs": [{"segment": [[0, 0], [0, 44]], "type": "clamped"},
+         {"segment": [[48, 44], [48, 60]], "type": "traction", "t": [0.0, 0.0625]}],
+ "points": {"v_C": [48, 52, "y"]}}

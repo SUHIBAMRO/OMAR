@@ -220,5 +220,67 @@
   "predicted_minutes": 714.4147559033075,
   "observed_minutes": 616.4605648716291,
   "file": "experiments/bushing_groove/01_spline_level_6.json"
+ },
+ {
+  "problem": "plate_hole_quarter",
+  "action": "finer_independent_level",
+  "situation": "any:independent_unconverged",
+  "quantities": [
+   "v_hole_top"
+  ],
+  "confirmed": false,
+  "predicted_minutes": 0.22154346665497873,
+  "observed_minutes": 0.15353819926579793,
+  "file": "experiments/plate_hole_quarter/01_finer_independent_level.json"
+ },
+ {
+  "problem": "plate_hole_quarter",
+  "action": "finer_independent_level",
+  "situation": "any:independent_unconverged",
+  "quantities": [
+   "u_right",
+   "v_hole_top"
+  ],
+  "confirmed": true,
+  "predicted_minutes": 0.07578554397414838,
+  "observed_minutes": 0.6816585977872213,
+  "file": "experiments/plate_hole_quarter/02_finer_independent_level.json"
+ },
+ {
+  "problem": "cook_linear",
+  "action": "graded_meshes",
+  "situation": "corner_limited",
+  "quantities": [
+   "corner1_gk_avg_von_mises",
+   "strain_energy"
+  ],
+  "confirmed": false,
+  "predicted_minutes": 0.05619169279191805,
+  "observed_minutes": 0.06934237480163574,
+  "file": "experiments/cook_linear/01_graded_meshes.json"
+ },
+ {
+  "problem": "cook_linear",
+  "action": "finer_graded_level",
+  "situation": "region_average:band_only",
+  "quantities": [
+   "corner1_gk_avg_von_mises"
+  ],
+  "confirmed": false,
+  "predicted_minutes": 0.40802114250819643,
+  "observed_minutes": 0.09730048179626465,
+  "file": "experiments/cook_linear/02_finer_graded_level.json"
+ },
+ {
+  "problem": "cook_linear",
+  "action": "finer_graded_level",
+  "situation": "region_average:band_only",
+  "quantities": [
+   "corner1_gk_avg_von_mises"
+  ],
+  "confirmed": false,
+  "predicted_minutes": 1.462646653347389,
+  "observed_minutes": 0.28419718345006306,
+  "file": "experiments/cook_linear/03_finer_graded_level.json"
  }
 ]

@@ -44,7 +44,12 @@ def solver_sha(material="linear_elastic"):
 def key(prob, element):
     kinds = sorted({b["type"] for b in prob.desc["bcs"]} | {"free"})
     mat = getattr(prob, "material", "linear_elastic")
-    base = f"{solver_sha(mat)[:16]}|{element}|plane_{prob.plane}|{'+'.join(kinds)}"
+    sha = solver_sha(mat)
+    if "domain" in prob.desc:      # general domains: the geometry and mesh code is part of it
+        sha = hashlib.sha256((sha + hashlib.sha256(open(os.path.join(HERE, "geometry2d.py"), "rb")
+                                                   .read()).hexdigest()).encode()).hexdigest()
+        kinds.append("general_domain" + ("_holes" if prob.desc["domain"].get("holes") else ""))
+    base = f"{sha[:16]}|{element}|plane_{prob.plane}|{'+'.join(kinds)}"
     return base if mat == "linear_elastic" else base + f"|{mat}"
 
 

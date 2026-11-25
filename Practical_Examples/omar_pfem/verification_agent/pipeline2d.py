@@ -190,6 +190,28 @@ class Problem2D:
         p = np.array([X.ravel()[used], Y.ravel()[used]]) * self.a
         return fem.MeshQuad(p, remap[t])
 
+    # ---- hooks (2026-11-25), overridden by geometry2d for general domains ----
+    def build_mesh(self, n, plan, element):
+        mq = self.mesh(n, plan)
+        if element == "Q2":
+            return fem.MeshQuad2.from_mesh(mq), fem.ElementQuad2()
+        return fem.MeshTri2.from_mesh(mq.to_meshtri()), fem.ElementTriP2()
+
+    def facet_mask(self, mid, bf, bc):
+        """mid: facet midpoints in cell units; bc: a boundary condition with a segment."""
+        seg = [[c / self.a for c in p] for p in bc["segment"]]
+        return np.array([_on_seg(mid[0, f_], mid[1, f_], seg) for f_ in bf], bool)
+
+    def point_values(self, u, b, msh):
+        U = u[b.nodal_dofs].T
+        out = {}
+        for name, (px, py, comp) in self.desc.get("points", {}).items():
+            j = int(np.argmin((msh.p[0] - px) ** 2 + (msh.p[1] - py) ** 2))
+            if math.hypot(msh.p[0, j] - px, msh.p[1, j] - py) > 1e-9 * self.a:
+                raise ValueError(f"{name} is not a mesh node")
+            out[name] = float(U[j, 0 if comp == "x" else 1])
+        return out
+
     def solve(self, n, plan=None, element="Q2", mms=None):
         plan = plan or {"x": {}, "y": {}}
         if plan["x"] or plan["y"]:
@@ -209,11 +231,7 @@ class Problem2D:
     def _solve(self, n, plan, element, mms):
         import pypardiso
         t0 = time.time()
-        mq = self.mesh(n, plan)
-        if element == "Q2":
-            msh, el = fem.MeshQuad2.from_mesh(mq), fem.ElementQuad2()
-        else:
-            msh, el = fem.MeshTri2.from_mesh(mq.to_meshtri()), fem.ElementTriP2()
+        msh, el = self.build_mesh(n, plan, element)
         mu, lame = self.mu, self.lame
         E2 = fem.ElementVector(el)
 
@@ -242,8 +260,8 @@ class Problem2D:
                                            + tfun(w)[1] * v.value[1]), fb)
 
         for bc in self.desc["bcs"]:
-            seg = [[c / self.a for c in p] for p in bc["segment"]]
-            m = np.array([_on_seg(mid[0, f_], mid[1, f_], seg) for f_ in bf])
+            seg = [[c / self.a for c in p] for p in bc.get("segment", [[0, 0], [1, 0]])]
+            m = self.facet_mask(mid, bf, bc)
             sel = bf[m & ~used]
             used |= m
             if bc["type"] == "clamped":
@@ -295,12 +313,7 @@ class Problem2D:
             row["wall_clock_s"] = time.time() - t0
             return row
         row["strain_energy"] = float(0.5 * u @ (K @ u))
-        U = u[b.nodal_dofs].T
-        for name, (px, py, comp) in self.desc.get("points", {}).items():
-            j = int(np.argmin((msh.p[0] - px) ** 2 + (msh.p[1] - py) ** 2))
-            if math.hypot(msh.p[0, j] - px, msh.p[1, j] - py) > 1e-9 * self.a:
-                raise ValueError(f"{name} is not a mesh node")
-            row[name] = float(U[j, 0 if comp == "x" else 1])
+        row.update(self.point_values(u, b, msh))
         gu = b.interpolate(u).grad
         eps = 0.5 * (gu + np.einsum("ij...->ji...", gu))
         sxx, syy, sxy, szz = self._stress(eps)
@@ -405,6 +418,21 @@ def plan_intensity(prob, uniform_rows, degree=2, share_min=None):
             "levels_used": [coarse["n"], fine["n"]]}
 
 
+def fingerprint(prob):
+    """sha256 of the problem description and every code file the solve depends on."""
+    import hashlib
+    h = hashlib.sha256(json.dumps(prob.desc, sort_keys=True).encode())
+    here = os.path.dirname(os.path.abspath(__file__))
+    files = ["pipeline2d.py"]
+    if "domain" in prob.desc:
+        files.append("geometry2d.py")
+    if getattr(prob, "material", "linear_elastic") == "neo_hookean":
+        files.append("pipeline2d_nh.py")
+    for f in files:
+        h.update(open(os.path.join(here, f), "rb").read())
+    return h.hexdigest()
+
+
 class Ladders:
     """Cached solves of one problem (pipeline2d_runs/<name>/ladders.json)."""
 
@@ -414,6 +442,17 @@ class Ladders:
         os.makedirs(self.dir, exist_ok=True)
         self.f = os.path.join(self.dir, "ladders.json")
         self.cache = json.load(open(self.f)) if os.path.exists(self.f) else {}
+        # FIX (25 Nov): the cache is valid only for the same description AND the same solver and
+        # mesh code. Before, it was keyed by the problem name alone, so a changed mesh generator
+        # silently reused old solutions. A mismatched or unmarked cache is moved aside (kept).
+        fp = fingerprint(prob)
+        if self.cache and self.cache.get("_fingerprint") != fp:
+            old = self.cache.get("_fingerprint", "unmarked")[:12]
+            os.replace(self.f, os.path.join(self.dir, f"ladders_stale_{old}.json"))
+            self.log(f"  ladder cache for {prob.name} was made with other code or another "
+                     f"description ({old}); moved aside, recomputing")
+            self.cache = {}
+        self.cache["_fingerprint"] = fp
 
     def get(self, key, n_list, plan, element):
         rows = self.cache.setdefault(key, [])
