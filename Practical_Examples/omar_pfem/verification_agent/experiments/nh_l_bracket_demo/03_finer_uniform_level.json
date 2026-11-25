@@ -1,0 +1,51 @@
+{
+ "preregistration": {
+  "action": "finer_uniform_level",
+  "quantities": [
+   "strain_energy",
+   "u_top_left",
+   "v_right_top",
+   "corner0_gk_avg_von_mises",
+   "corner1_gk_avg_von_mises",
+   "corner2_gk_avg_von_mises"
+  ],
+  "situation": "global:fail",
+  "justification": "strain_energy: global:fail + diagnosis D4 (pre-asymptotic); u_top_left: displacement:fail + diagnosis D4 (pre-asymptotic); v_right_top: displacement:preasymptotic_below + diagnosis D4 (pre-asymptotic); corner0_gk_avg_von_mises: region_average:fail + diagnosis D4 (pre-asymptotic); corner1_gk_avg_von_mises: region_average:band_only + diagnosis D4 (pre-asymptotic); corner2_gk_avg_von_mises: region_average:preasymptotic_below + diagnosis D4 (pre-asymptotic)",
+  "hypothesis": "the sequences are pre-asymptotic; one finer uniform level (n = 64) lets the checks decide",
+  "prediction": {
+   "text": "at least one listed quantity becomes certified with a rate and cross-checked",
+   "criterion": "any_certified"
+  },
+  "run": {
+   "kind": "uniform_level",
+   "n": 64
+  },
+  "cost": {
+   "dof": 794640,
+   "minutes": 19.851967464511123
+  },
+  "prior": 0.5,
+  "prior_n": 0,
+  "score": 0.1438713159852101,
+  "problem": "nh_l_bracket_demo",
+  "git_head": "0fc54f173c24004165528391610c37381df00923",
+  "frozen_utc": "2026-11-25T00:33:02.388349+00:00",
+  "sha256": "4f79b360301c9abcba184aead88af37a5d146d34503d2af8b2427b3286e724be"
+ },
+ "outcome": {
+  "confirmed": false,
+  "observed_minutes": 0.07046945492426554,
+  "after": {
+   "certified": [],
+   "open": [
+    "corner0_gk_avg_von_mises",
+    "corner1_gk_avg_von_mises",
+    "corner2_gk_avg_von_mises",
+    "peak_von_mises",
+    "strain_energy",
+    "u_top_left",
+    "v_right_top"
+   ]
+  }
+ }
+}

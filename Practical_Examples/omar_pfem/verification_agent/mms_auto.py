@@ -32,13 +32,20 @@ MAX_N = 64                 # finer levels are added only while the rates move to
 EXPECTED = {"L2": 3.0, "H1": 2.0}
 
 
-def solver_sha():
-    return hashlib.sha256(open(os.path.join(HERE, "pipeline2d.py"), "rb").read()).hexdigest()
+def solver_sha(material="linear_elastic"):
+    files = ["pipeline2d.py"] + (["pipeline2d_nh.py"] if material == "neo_hookean" else [])
+    h = hashlib.sha256()
+    for f in files:
+        h.update(open(os.path.join(HERE, f), "rb").read())
+    return h.hexdigest() if material == "neo_hookean" else hashlib.sha256(
+        open(os.path.join(HERE, "pipeline2d.py"), "rb").read()).hexdigest()
 
 
 def key(prob, element):
     kinds = sorted({b["type"] for b in prob.desc["bcs"]} | {"free"})
-    return f"{solver_sha()[:16]}|{element}|plane_{prob.plane}|{'+'.join(kinds)}"
+    mat = getattr(prob, "material", "linear_elastic")
+    base = f"{solver_sha(mat)[:16]}|{element}|plane_{prob.plane}|{'+'.join(kinds)}"
+    return base if mat == "linear_elastic" else base + f"|{mat}"
 
 
 def _record():
@@ -113,7 +120,7 @@ def run(prob, force=False, log=print):
             out[el] = {"skipped": True, "reason": need[el][1], "verdict": "PASS"}
             log(f"[mms] {el}: skipped ({need[el][1]})")
             continue
-        mms = mms or Manufactured(prob)
+        mms = mms or (prob.manufactured() if hasattr(prob, "manufactured") else Manufactured(prob))
         rows = [prob.solve(n, None, el, mms=mms) for n in LEVELS]
         added = []
         while True:

@@ -1,0 +1,29 @@
+{
+ "written": "2026-11-25T00:33:34.824172+00:00",
+ "frozen_sha256": {
+  "autonomous.py": "89f06a3c3712193451434c808df31c4af69226feb32fd55afba584f5d16007dd",
+  "experiment.py": "c2a43bddcdd1f465790110d346b4dd393e67abcc30bdb93a21e33ef79cd51503",
+  "pipeline2d.py": "9fb38ebc569daf22c1b4b9b78a60ed6985d7258278241626c0b1b6329a6ff8aa",
+  "pipeline2d_nh.py": "a38ea746b230305242f56f0aea2bfc75f82d295b3796ff34a015c5ea9fcb86b7",
+  "literature_search.py": "33e485ca129e274082cfd2638f4854cbcdf3db235cc68f59ca620a26b6c6a41c",
+  "literature_select.py": "182db345d57237aef0b6eea699e6fe353fe4f6e9b0ef9e07ed40e0feb0a5efbc",
+  "literature_agent.py": "d0c33fc93da21b46e9cc950944ef08905abdcce7454a178fc6bc1d24f465eaa7",
+  "llm_roles.py": "a792fcfbb69fe5dd6e65d0256acfdecafb19f70f8d9e92165aab192f077dc9f9",
+  "mms_auto.py": "799d3fcf732c394868554a3ebfc344cd6e731c5b4b9502c0ab714d3ba24fcf30",
+  "adopted.py": "2b3e662535cbdbee6191d5b5ace57b503bd2f3985ff39a024393da1e7e8652a4",
+  "corners_ext.py": "7c0432ee759f0eef709e0b2378476eef0e269c0149e4960e8775e20cd063c322",
+  "literature_search_preregistration.md": "395eb610cdba846c216394c8e3ae3b04a879a85f1e727832bd12174178c6b482"
+ },
+ "predictions": {
+  "L1": "step L needs no person (HIGH)",
+  "L2": "at least one paper read reaches verdicts (LOW)",
+  "L3": "scout agrees with the definition step on >= 2 of the papers read (LOW-MEDIUM)",
+  "L4": "LLM cost <= USD 5 (HIGH)",
+  "L5": "no paper solved with an untraced number (HIGH)"
+ },
+ "run": {
+  "backend": "claude-cli",
+  "max_read": 3,
+  "budget_usd": 5.0
+ }
+}

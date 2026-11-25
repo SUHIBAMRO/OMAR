@@ -1,0 +1,1051 @@
+{
+ "steps": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "description written by a person (steps L, D skipped)"
+  },
+  {
+   "stage": "M",
+   "actor": "code",
+   "status": "note",
+   "detail": "neo-Hookean: corner exponents from the linearized theory (a hypothesis for the practical mesh range); dead loads; load steps chosen by the solver (doubled on Newton failure or J <= 0)"
+  },
+  {
+   "stage": "M",
+   "actor": "code",
+   "status": "done",
+   "detail": "domain 3 cells, polygon 6 vertices; rate-limiting corners [(0, 0, 0.7112), (2, 0, 0.7112), (1, 1, 0.5445)]"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "decided",
+   "detail": "Q2: needed (no passing check on record for 7adbf17779d847f7|Q2|plane_strain|clamped+free+traction|neo_hookean); P2: needed (no passing check on record for 7adbf17779d847f7|P2|plane_strain|clamped+free+traction|neo_hookean)"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "PASS",
+   "detail": "Q2 PASS (L2 3.05, H1 2.01, levels [2, 4, 8, 16]); P2 PASS (L2 3.20, H1 1.99, levels [2, 4, 8, 16, 32])"
+  },
+  {
+   "stage": "S",
+   "actor": "code",
+   "status": "done",
+   "detail": "Q2 and P2 ladders n = [2, 4, 8, 16, 32]"
+  },
+  {
+   "stage": "C",
+   "actor": "code",
+   "status": "done",
+   "detail": "adopted rules: {'certified': [], 'open': ['corner0_gk_avg_von_mises', 'corner1_gk_avg_von_mises', 'corner2_gk_avg_von_mises', 'peak_von_mises', 'strain_energy', 'u_top_left', 'v_right_top']}"
+  },
+  {
+   "stage": "G",
+   "actor": "code",
+   "status": "done",
+   "detail": "strain_energy: supported ['D4']; u_top_left: supported ['D4']; v_right_top: supported ['D4']; corner0_gk_avg_von_mises: supported ['D4']; corner1_gk_avg_von_mises: supported ['D4']; corner2_gk_avg_von_mises: supported ['D4']; peak_von_mises: supported ['M1']"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "concluded",
+   "detail": "peak_von_mises: not verifiable (a corner exponent 0.5445 < 1: the stress is unbounded (r^(lam-1)), the peak grows with refinement; no experiment can certify it)"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "pre-registered",
+   "detail": "#1 graded_meshes on ['corner0_gk_avg_von_mises', 'corner1_gk_avg_von_mises', 'corner2_gk_avg_von_mises', 'strain_energy', 'u_top_left', 'v_right_top']: the corner singularities limit the rate; grading toward the corners with the largest local-energy change restores it; prediction: more quantities are certified (and cross-checked) on the graded ladders than on the uniform ones, or the strain-energy U falls at least 3 times; prior 0.67 (n=4); est. 7.1 min",
+   "file": "experiments/nh_l_bracket_demo/01_graded_meshes.json",
+   "sha256": "4729f604179ed773dac23dcdaa1f6f264c3502b74c4d500afbcb605e8df36a67"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "failed",
+   "detail": "#1 graded_meshes could not be run: Q2 graded n=8: the nonlinear solve failed with [4, 8, 16, 32, 64] load steps: [[48, 15, 'J<=0']]; recorded as refuted, not tried again on this problem"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "pre-registered",
+   "detail": "#2 small_load_check on ['strain_energy', 'u_top_left']: the loss of rate is a finite-strain effect at the corner: at one tenth of the load the strain energy converges with the linearized order 2 lam; prediction: at 1/10 of the load the five-level energy order is within 0.15 of 2 lam = 1.089; prior 0.50 (n=0); est. 3.6 min",
+   "file": "experiments/nh_l_bracket_demo/02_small_load_check.json",
+   "sha256": "a117e7a2cb8291b0277f9431cdffb25315059c1c10792e3bce0c426865ffb99c"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "confirmed",
+   "detail": "#2 small_load_check: prediction confirmed (0.5 min); certified so far []"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "pre-registered",
+   "detail": "#3 finer_uniform_level on ['strain_energy', 'u_top_left', 'v_right_top', 'corner0_gk_avg_von_mises', 'corner1_gk_avg_von_mises', 'corner2_gk_avg_von_mises']: the sequences are pre-asymptotic; one finer uniform level (n = 64) lets the checks decide; prediction: at least one listed quantity becomes certified with a rate and cross-checked; prior 0.50 (n=0); est. 19.9 min",
+   "file": "experiments/nh_l_bracket_demo/03_finer_uniform_level.json",
+   "sha256": "4f79b360301c9abcba184aead88af37a5d146d34503d2af8b2427b3286e724be"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "refuted",
+   "detail": "#3 finer_uniform_level: prediction refuted (0.1 min); certified so far []"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "stop",
+   "detail": "no further experiment applies within the budget (1.4 of 30.0 min used)"
+  }
+ ],
+ "human_points": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "description written by a person (steps L, D skipped)"
+  }
+ ],
+ "wall_clock_s": 140.099347114563,
+ "source": {
+  "pdf": null,
+  "text": null,
+  "description_given": true
+ },
+ "mms": {
+  "Q2": {
+   "verdict": "PASS",
+   "rates": {
+    "L2": {
+     "observed": 3.0463079978508336,
+     "expected": 3.0,
+     "pass": true
+    },
+    "H1": {
+     "observed": 2.0059731566676193,
+     "expected": 2.0,
+     "pass": true
+    }
+   },
+   "levels": [
+    2,
+    4,
+    8,
+    16
+   ],
+   "levels_added": [],
+   "errors": {
+    "L2": [
+     0.0007559274812796407,
+     6.340792323226167e-05,
+     7.486523266260386e-06,
+     9.291447181317149e-07
+    ],
+    "H1": [
+     0.006375132482586047,
+     0.0015533105300771866,
+     0.0003861142363160183,
+     9.62813353719367e-05
+    ]
+   },
+   "field": {
+    "ux": "a*sin(0.65*pi*x + 3/10)*cos(0.65*pi*y + 1/5)",
+    "uy": "a*sin(0.65*pi*y + 2/5)*cos(0.65*pi*x + 1/10)",
+    "amplitude": 0.04602297594215357,
+    "peak_strain": 0.1
+   },
+   "problem": "nh_l_bracket_demo",
+   "reason": "no passing check on record for 7adbf17779d847f7|Q2|plane_strain|clamped+free+traction|neo_hookean"
+  },
+  "P2": {
+   "verdict": "PASS",
+   "rates": {
+    "L2": {
+     "observed": 3.1956690859496604,
+     "expected": 3.0,
+     "pass": true
+    },
+    "H1": {
+     "observed": 1.9897322304292182,
+     "expected": 2.0,
+     "pass": true
+    }
+   },
+   "levels": [
+    2,
+    4,
+    8,
+    16,
+    32
+   ],
+   "levels_added": [
+    "n=32: rates outside tolerance but moving toward theory"
+   ],
+   "errors": {
+    "L2": [
+     0.0030177465045222195,
+     0.00026021495689233077,
+     2.3284512448477264e-05,
+     2.4062182539929386e-06,
+     2.7738479196789293e-07
+    ],
+    "H1": [
+     0.01560157999157477,
+     0.003987448618677113,
+     0.0010184074041021274,
+     0.00025712156728182765,
+     6.45629519056688e-05
+    ]
+   },
+   "field": {
+    "ux": "a*sin(0.65*pi*x + 3/10)*cos(0.65*pi*y + 1/5)",
+    "uy": "a*sin(0.65*pi*y + 2/5)*cos(0.65*pi*x + 1/10)",
+    "amplitude": 0.04602297594215357,
+    "peak_strain": 0.1
+   },
+   "problem": "nh_l_bracket_demo",
+   "reason": "no passing check on record for 7adbf17779d847f7|P2|plane_strain|clamped+free+traction|neo_hookean"
+  }
+ },
+ "small_load_check": {
+  "factor": 0.1,
+  "energy_order": 1.1748297588372376,
+  "min_detF": [
+   0.9863136956311311,
+   0.9809293902383743,
+   0.9738164239871258,
+   0.9642143693739792,
+   0.9511367606724432
+  ],
+  "linearized_2lam": 1.088967473564928
+ },
+ "final": {
+  "certified": [],
+  "open": [
+   "corner0_gk_avg_von_mises",
+   "corner1_gk_avg_von_mises",
+   "corner2_gk_avg_von_mises",
+   "peak_von_mises",
+   "strain_energy",
+   "u_top_left",
+   "v_right_top"
+  ]
+ },
+ "verdicts": {
+  "strain_energy": {
+   "verdict": "FAIL",
+   "evidence": "none",
+   "class": "global",
+   "finest": 3.5915780087636135,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "FAIL",
+     "reason": "monotone, p=0.71, GCI_fine=1.02% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "FAIL",
+     "reason": "5 levels monotone, fitted p=0.55 (leave-one-out 0.53-0.56), U_fine=1.54% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "singular_order": {
+     "verdict": "INCONCLUSIVE",
+     "reason": "fitted order 0.551 vs theory = 1.089 (lam = 0.5445, tol 0.15); pairwise orders 0.58, 0.46, 0.71 still rising toward theory: pre-asymptotic from below (adopted rule)",
+     "label": "pre-asymptotic from below: order still rising toward theory; INCONCLUSIVE until independently verified (adopted 24 Nov 2026, advisor decision on Q1)",
+     "evidence": null
+    }
+   }
+  },
+  "u_top_left": {
+   "verdict": "INCONCLUSIVE",
+   "evidence": "rate",
+   "class": "displacement",
+   "finest": 0.3794965062531636,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=0.71, GCI_fine=0.89% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=0.66 (leave-one-out 0.63-0.68), U_fine=0.98% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "singular_order": {
+     "verdict": "INCONCLUSIVE",
+     "reason": "fitted order 0.665 vs theory >= 1.089 (lam = 0.5445, tol 0.15); pairwise orders 0.72, 0.58, 0.71 still rising toward theory: pre-asymptotic from below (adopted rule)",
+     "label": "pre-asymptotic from below: order still rising toward theory; INCONCLUSIVE until independently verified (adopted 24 Nov 2026, advisor decision on Q1)",
+     "evidence": null
+    }
+   }
+  },
+  "v_right_top": {
+   "verdict": "FAIL",
+   "evidence": "none",
+   "class": "displacement",
+   "finest": -0.01159018184555971,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "FAIL",
+     "reason": "monotone, p=0.59, GCI_fine=1.70% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "FAIL",
+     "reason": "no rate from 5 levels (failed: order_window, leave_one_out; fitted p=0.31) and finest-three spread 1.729% exceeds 0.20%",
+     "label": null,
+     "evidence": "none"
+    },
+    "singular_order": {
+     "verdict": "INCONCLUSIVE",
+     "reason": "fitted order 0.309 vs theory >= 1.089 (lam = 0.5445, tol 0.15); pairwise orders 0.18, 0.28, 0.59 still rising toward theory: pre-asymptotic from below (adopted rule)",
+     "label": "pre-asymptotic from below: order still rising toward theory; INCONCLUSIVE until independently verified (adopted 24 Nov 2026, advisor decision on Q1)",
+     "evidence": null
+    }
+   }
+  },
+  "corner0_gk_avg_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "rate",
+   "class": "region_average",
+   "finest": 80.70413236700526,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.08, GCI_fine=0.43% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=1.26 (leave-one-out 1.17-1.28), U_fine=0.33% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 1.258 vs theory >= 1.089 (lam = 0.5445, tol 0.15)",
+     "label": null,
+     "evidence": null
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.838% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    },
+    "anchored_robustness": {
+     "verdict": "FAIL",
+     "reason": "max deviation from Richardson extrapolate 3.368% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    }
+   }
+  },
+  "corner1_gk_avg_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "band",
+   "class": "region_average",
+   "finest": 43.29263671900126,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "finest three within 1.00% band (spread 0.194%); no convergence rate demonstrated",
+     "label": null,
+     "evidence": "band"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "finest three within 1.00% band (spread 0.194%); no rate from 5 levels (failed: monotone, fit_quality, order_window, leave_one_out; fitted p=0.25)",
+     "label": null,
+     "evidence": "band"
+    },
+    "singular_order": {
+     "verdict": "FAIL",
+     "reason": "fitted order 0.245 vs theory >= 1.089 (lam = 0.5445, tol 0.15)",
+     "label": null,
+     "evidence": null
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.988% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    },
+    "anchored_robustness": {
+     "verdict": "PASS",
+     "reason": "max deviation from finest family value 1.903% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    }
+   }
+  },
+  "corner2_gk_avg_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "rate",
+   "class": "region_average",
+   "finest": 104.09766008866215,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.86, GCI_fine=0.25% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "FAIL",
+     "reason": "no rate from 5 levels (failed: leave_one_out; fitted p=0.62) and finest-three spread 2.441% exceeds 1.00%",
+     "label": null,
+     "evidence": "none"
+    },
+    "singular_order": {
+     "verdict": "INCONCLUSIVE",
+     "reason": "fitted order 0.617 vs theory >= 1.089 (lam = 0.5445, tol 0.15); pairwise orders -0.05, 1.02, 1.86 still rising toward theory: pre-asymptotic from below (adopted rule)",
+     "label": "pre-asymptotic from below: order still rising toward theory; INCONCLUSIVE until independently verified (adopted 24 Nov 2026, advisor decision on Q1)",
+     "evidence": null
+    },
+    "strategy_robustness": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 5.434% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    },
+    "anchored_robustness": {
+     "verdict": "FAIL",
+     "reason": "max deviation from Richardson extrapolate 6.499% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    }
+   }
+  },
+  "peak_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "none",
+   "class": "pointwise_peak",
+   "finest": 880.5419617250315,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "FAIL",
+     "reason": "divergent: successive differences do not decrease",
+     "label": null,
+     "evidence": "none"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "FAIL",
+     "reason": "no rate from 5 levels (failed: fit_quality, order_window, leave_one_out; fitted p=0.05) and finest-three spread 56.820% exceeds 1.00%",
+     "label": null,
+     "evidence": "none"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "log-log slope of the peak -0.551 vs theory = -0.456 (lam = 0.5445, tol 0.15)",
+     "label": null,
+     "evidence": null
+    },
+    "strategy_robustness": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 75.919% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    },
+    "anchored_robustness": {
+     "verdict": "INCONCLUSIVE",
+     "reason": "refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative",
+     "label": null,
+     "evidence": null
+    }
+   }
+  }
+ },
+ "graded": null,
+ "diagnosis": {
+  "strain_energy": {
+   "supported": [
+    "D4"
+   ],
+   "diagnosis": [
+    "numerical discretization"
+   ],
+   "open": [
+    "S1",
+    "S2"
+   ],
+   "tests": [
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "refuted",
+     "evidence": "min det F >= 0.524 on every level: moderate deformation, within the range of the neo_hookean model; no sign that a different model or scale is needed",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "supported",
+     "evidence": "pairwise orders 0.86, 0.58, 0.46: still drifting (falling by 0.40); the asymptotic order is not yet reached",
+     "next_action": "add a finer level",
+     "cost": "see the adaptive controller",
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    }
+   ]
+  },
+  "u_top_left": {
+   "supported": [
+    "D4"
+   ],
+   "diagnosis": [
+    "numerical discretization"
+   ],
+   "open": [
+    "S1",
+    "S2"
+   ],
+   "tests": [
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "refuted",
+     "evidence": "min det F >= 0.524 on every level: moderate deformation, within the range of the neo_hookean model; no sign that a different model or scale is needed",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "supported",
+     "evidence": "pairwise orders 0.95, 0.72, 0.58: still drifting (falling by 0.37); the asymptotic order is not yet reached",
+     "next_action": "add a finer level",
+     "cost": "see the adaptive controller",
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    }
+   ]
+  },
+  "v_right_top": {
+   "supported": [
+    "D4"
+   ],
+   "diagnosis": [
+    "numerical discretization"
+   ],
+   "open": [
+    "S1",
+    "S2"
+   ],
+   "tests": [
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "refuted",
+     "evidence": "min det F >= 0.524 on every level: moderate deformation, within the range of the neo_hookean model; no sign that a different model or scale is needed",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "supported",
+     "evidence": "increments over the finest five levels shrink (0.000318 -> 0.00012) with 0 sign change(s): the sequence may still enter the asymptotic range",
+     "next_action": "add a finer level",
+     "cost": "see the adaptive controller",
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    }
+   ]
+  },
+  "corner0_gk_avg_von_mises": {
+   "supported": [
+    "D4"
+   ],
+   "diagnosis": [
+    "numerical discretization"
+   ],
+   "open": [
+    "S1",
+    "S2",
+    "Q2"
+   ],
+   "tests": [
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "refuted",
+     "evidence": "min det F >= 0.524 on every level: moderate deformation, within the range of the neo_hookean model; no sign that a different model or scale is needed",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D3",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "nu = 0.3: far from incompressibility",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "supported",
+     "evidence": "increments over the finest five levels shrink (6.51 -> 0.651) with 0 sign change(s): the sequence may still enter the asymptotic range",
+     "next_action": "add a finer level",
+     "cost": "see the adaptive controller",
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "Q2",
+     "class": "QoI/post-processing",
+     "status": "needs data",
+     "evidence": "no signed components of the same region evaluated",
+     "next_action": "evaluate the signed stress components over the same region",
+     "cost": "seconds",
+     "remedy": null
+    }
+   ]
+  },
+  "corner1_gk_avg_von_mises": {
+   "supported": [
+    "D4"
+   ],
+   "diagnosis": [
+    "numerical discretization"
+   ],
+   "open": [
+    "S1",
+    "S2",
+    "Q2"
+   ],
+   "tests": [
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "refuted",
+     "evidence": "min det F >= 0.524 on every level: moderate deformation, within the range of the neo_hookean model; no sign that a different model or scale is needed",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D3",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "nu = 0.3: far from incompressibility",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "supported",
+     "evidence": "increments over the finest five levels shrink (1.75 -> 0.084) with 1 sign change(s): the sequence may still enter the asymptotic range",
+     "next_action": "add a finer level",
+     "cost": "see the adaptive controller",
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "Q2",
+     "class": "QoI/post-processing",
+     "status": "needs data",
+     "evidence": "no signed components of the same region evaluated",
+     "next_action": "evaluate the signed stress components over the same region",
+     "cost": "seconds",
+     "remedy": null
+    }
+   ]
+  },
+  "corner2_gk_avg_von_mises": {
+   "supported": [
+    "D4"
+   ],
+   "diagnosis": [
+    "numerical discretization"
+   ],
+   "open": [
+    "S1",
+    "S2",
+    "Q2"
+   ],
+   "tests": [
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "refuted",
+     "evidence": "min det F >= 0.524 on every level: moderate deformation, within the range of the neo_hookean model; no sign that a different model or scale is needed",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D3",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "nu = 0.3: far from incompressibility",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "supported",
+     "evidence": "pairwise orders -0.79, -0.05, 1.02: still drifting (rising by 1.81); the asymptotic order is not yet reached",
+     "next_action": "add a finer level",
+     "cost": "see the adaptive controller",
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "Q2",
+     "class": "QoI/post-processing",
+     "status": "needs data",
+     "evidence": "no signed components of the same region evaluated",
+     "next_action": "evaluate the signed stress components over the same region",
+     "cost": "seconds",
+     "remedy": null
+    }
+   ]
+  },
+  "peak_von_mises": {
+   "supported": [
+    "M1"
+   ],
+   "diagnosis": [
+    "mathematical/physical"
+   ],
+   "open": [
+    "S1",
+    "S2"
+   ],
+   "tests": [
+    {
+     "id": "M1",
+     "class": "mathematical/physical",
+     "status": "supported",
+     "evidence": "peak grows like h^-0.513; theory h^(lambda-1) = h^-0.456 (lambda = 0.5445)",
+     "next_action": null,
+     "cost": null,
+     "remedy": "not a usable reference value: no finite limit exists; use energy, displacements or region averages, or a singular-field quantity (stress-intensity factor)"
+    },
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "refuted",
+     "evidence": "min det F >= 0.524 on every level: moderate deformation, within the range of the neo_hookean model; no sign that a different model or scale is needed",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D3",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "nu = 0.3: far from incompressibility",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "increments over the finest five levels do not settle (0 sign changes, last/first 3.18)",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    }
+   ]
+  }
+ },
+ "experiments": [
+  {
+   "quantity": "peak_von_mises",
+   "conclusion": "not verifiable",
+   "justification": "a corner exponent 0.5445 < 1: the stress is unbounded (r^(lam-1)), the peak grows with refinement; no experiment can certify it"
+  },
+  {
+   "k": 1,
+   "action": "graded_meshes",
+   "confirmed": false,
+   "failed": true
+  },
+  {
+   "k": 2,
+   "action": "small_load_check",
+   "confirmed": true
+  },
+  {
+   "k": 3,
+   "action": "finer_uniform_level",
+   "confirmed": false
+  }
+ ],
+ "description": {
+  "name": "nh_l_bracket_demo",
+  "material": "neo_hookean",
+  "cell_size": 1.0,
+  "cells": [
+   [
+    0,
+    0
+   ],
+   [
+    1,
+    0
+   ],
+   [
+    0,
+    1
+   ]
+  ],
+  "E": 1000.0,
+  "nu": 0.3,
+  "plane": "strain",
+  "bcs": [
+   {
+    "segment": [
+     [
+      0,
+      0
+     ],
+     [
+      2,
+      0
+     ]
+    ],
+    "type": "clamped"
+   },
+   {
+    "segment": [
+     [
+      0,
+      2
+     ],
+     [
+      1,
+      2
+     ]
+    ],
+    "type": "traction",
+    "t": [
+     20.0,
+     0.0
+    ]
+   }
+  ],
+  "points": {
+   "u_top_left": [
+    0,
+    2,
+    "x"
+   ],
+   "v_right_top": [
+    2,
+    1,
+    "y"
+   ]
+  }
+ }
+}

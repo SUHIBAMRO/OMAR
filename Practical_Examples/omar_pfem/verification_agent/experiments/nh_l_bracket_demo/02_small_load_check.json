@@ -1,0 +1,50 @@
+{
+ "preregistration": {
+  "action": "small_load_check",
+  "quantities": [
+   "strain_energy",
+   "u_top_left"
+  ],
+  "situation": "neo_hookean:order_below_linearized_and_J_falling",
+  "justification": "orders below the linearized corner theory for ['strain_energy', 'u_top_left']; min det F falls with refinement [0.866, 0.814, 0.746, 0.664, 0.524, 0.322]",
+  "hypothesis": "the loss of rate is a finite-strain effect at the corner: at one tenth of the load the strain energy converges with the linearized order 2 lam",
+  "prediction": {
+   "text": "at 1/10 of the load the five-level energy order is within 0.15 of 2 lam = 1.089",
+   "criterion": "order_near_linear",
+   "target": 1.088967473564928,
+   "tol": 0.15
+  },
+  "run": {
+   "kind": "small_load",
+   "factor": 0.1
+  },
+  "cost": {
+   "dof": 133068,
+   "minutes": 3.566830503082038
+  },
+  "prior": 0.5,
+  "prior_n": 0,
+  "score": 0.21897024628462244,
+  "problem": "nh_l_bracket_demo",
+  "git_head": "0fc54f173c24004165528391610c37381df00923",
+  "frozen_utc": "2026-11-25T00:32:31.340943+00:00",
+  "sha256": "a117e7a2cb8291b0277f9431cdffb25315059c1c10792e3bce0c426865ffb99c"
+ },
+ "outcome": {
+  "confirmed": true,
+  "observed_minutes": 0.51737060546875,
+  "after": {
+   "certified": [],
+   "open": [
+    "corner0_gk_avg_von_mises",
+    "corner1_gk_avg_von_mises",
+    "corner2_gk_avg_von_mises",
+    "peak_von_mises",
+    "strain_energy",
+    "u_top_left",
+    "v_right_top"
+   ]
+  },
+  "small_load_order": 1.1748297588372376
+ }
+}

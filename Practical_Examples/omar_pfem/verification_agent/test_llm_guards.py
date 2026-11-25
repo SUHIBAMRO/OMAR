@@ -1067,3 +1067,31 @@ def test_untraced_numbers_are_rejected():
     text = "A 20 by 10 mm plate, E = 210000 MPa, nu = 0.3, clamped left, traction 50 MPa."
     unsup, flagged = trace_numbers(d, text, [])
     assert any("77" in u for u in unsup) and not flagged
+
+
+# ---- neo-Hookean in the loop, literature search (2026-11-25) -------------------------------
+def test_neo_hookean_refuses_follower_pressure_and_plane_stress():
+    from omar_pfem.verification_agent.pipeline2d_nh import validate
+    d = {"name": "x", "cell_size": 1.0, "cells": [[0, 0], [1, 0]], "E": 1.0, "nu": 0.3,
+         "plane": "stress", "bcs": [{"segment": [[0, 0], [0, 1]], "type": "clamped"},
+                                    {"segment": [[2, 0], [2, 1]], "type": "pressure", "p": 1.0}]}
+    e = validate(d)
+    assert any("plane strain" in x for x in e) and any("follower" in x for x in e)
+
+
+def test_neo_hookean_small_load_matches_linear():
+    from omar_pfem.verification_agent.pipeline2d import Problem2D
+    from omar_pfem.verification_agent.pipeline2d_nh import Problem2DNH
+    d = {"name": "x", "cell_size": 1.0, "cells": [[0, 0], [1, 0]], "E": 1000.0, "nu": 0.3,
+         "plane": "strain", "bcs": [{"segment": [[0, 0], [0, 1]], "type": "clamped"},
+                                    {"segment": [[2, 0], [2, 1]], "type": "traction",
+                                     "t": [0.0, 0.01]}], "points": {"v_tip": [2, 1, "y"]}}
+    a, b = Problem2DNH(d).solve(4), Problem2D(d).solve(4)
+    assert abs(a["v_tip"] / b["v_tip"] - 1) < 1e-3      # finite strain -> linear as load -> 0
+
+
+def test_literature_code_screen_excludes_shells():
+    from omar_pfem.verification_agent.literature_search import code_screen
+    ok, why = code_screen({"title": "A shell element", "abstract": "finite element benchmark "
+                           "for Reissner-Mindlin shell elasticity, numerical examples"})
+    assert not ok and why["excluded_by"]

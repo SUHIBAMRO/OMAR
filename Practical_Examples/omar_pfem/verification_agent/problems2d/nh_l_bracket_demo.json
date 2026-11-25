@@ -1,0 +1,5 @@
+{"name": "nh_l_bracket_demo", "material": "neo_hookean", "cell_size": 1.0, "cells": [[0, 0], [1, 0], [0, 1]],
+ "E": 1000.0, "nu": 0.3, "plane": "strain",
+ "bcs": [{"segment": [[0, 0], [2, 0]], "type": "clamped"},
+         {"segment": [[0, 2], [1, 2]], "type": "traction", "t": [20.0, 0.0]}],
+ "points": {"u_top_left": [0, 2, "x"], "v_right_top": [2, 1, "y"]}}

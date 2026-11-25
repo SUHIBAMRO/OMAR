@@ -46,9 +46,11 @@ MODELER_SCHEMA = {
         "unsupported_reason": {"type": "string"},
         "description": {
             "type": "object", "additionalProperties": False,
-            "required": ["name", "cell_size", "cells", "E", "nu", "plane", "bcs", "points"],
+            "required": ["name", "material", "cell_size", "cells", "E", "nu", "plane", "bcs",
+                         "points"],
             "properties": {
                 "name": {"type": "string"},
+                "material": {"type": "string", "enum": ["linear_elastic", "neo_hookean"]},
                 "cell_size": {"type": "number"},
                 "cells": {"type": "array", "items": {"type": "array", "items": {"type": "integer"}}},
                 "E": {"type": "number"}, "nu": {"type": "number"},
@@ -81,8 +83,13 @@ MODELER_SCHEMA = {
 
 MODELER_PROMPT = (
     "You are the modeler of a verification framework. Turn the problem below into an input "
-    "description for a 2D linear-elastic finite element pipeline, or say it is not "
-    "supported. The pipeline can only represent domains that are unions of equal square "
+    "description for a 2D finite element pipeline, or say it is not supported. Materials: "
+    "linear_elastic (small strain; plane strain or plane stress) or neo_hookean (compressible "
+    "neo-Hookean hyperelasticity at finite strain, W = mu/2 (tr C - 3 - 2 ln J) + lam/2 "
+    "(ln J)^2 with mu, lam from E and nu; plane strain only; only dead tractions, no pressure "
+    "and no prescribed non-zero displacement). Choose neo_hookean only if the problem states a "
+    "neo-Hookean (or compatible hyperelastic) material; another hyperelastic model "
+    "(Mooney-Rivlin, Ogden, incompressible) is NOT supported. The pipeline can only represent domains that are unions of equal square "
     "cells: cell [i, j] covers [i a, (i+1) a] x [j a, (j+1) a] with a = cell_size; no holes, "
     "no curved or inclined edges. Boundary conditions act on straight boundary segments "
     "given by their end points in physical coordinates: clamped (all displacement zero; "
@@ -178,6 +185,7 @@ def trace_numbers(desc, text, assumptions):
 def to_pipeline(desc):
     """Modeler output -> pipeline2d description (drop empty optional fields)."""
     out = {k: desc[k] for k in ("name", "cell_size", "cells", "E", "nu", "plane")}
+    out["material"] = desc.get("material", "linear_elastic")
     out["bcs"] = []
     for b in desc["bcs"]:
         d = {"segment": b["segment"], "type": b["type"]}
@@ -194,7 +202,9 @@ def to_pipeline(desc):
 
 def define(backend, text, log, retries=2):
     from omar_pfem.verification_agent import llm_roles
-    from omar_pfem.verification_agent.pipeline2d import validate
+    from omar_pfem.verification_agent.pipeline2d import validate as validate_le
+    from omar_pfem.verification_agent.pipeline2d_nh import validate as validate_nh
+    validate = lambda d: validate_nh(d) if d.get("material") == "neo_hookean" else validate_le(d)
     spec, problems = llm_roles.formalize(backend, text)
     log.step("D", "LLM", "done" if not problems else "checked",
              f"formalizer specification; code check: {problems or 'no problems'}",
@@ -235,7 +245,8 @@ def diagnose_generic(prob, verdicts, v, ad, mms):
     from omar_pfem.verification_agent import trees
     code_ok = all(r.get("verdict") == "PASS" for r in mms.values())
     facts = {"name": prob.name, "element": "Q9", "degree": 2, "quadrature": "full",
-             "nu": prob.nu, "material": "linear_elastic", "plane": prob.plane,
+             "nu": prob.nu, "material": getattr(prob, "material", "linear_elastic"),
+             "plane": prob.plane,
              "corners": [{"where": f"corner ({c['x']}, {c['y']}) {c['edges']}",
                           "lam": min(c["rate_limiting"])} for c in prob.corners],
              "corners_in_qoi_region": bool(prob.corners), "feature_radius": None,
@@ -307,6 +318,52 @@ def summary(V):
             "open": sorted(q for q, r in V.items() if r.get("final") != "CERTIFIED")}
 
 
+def _small_load(prob, factor, levels):
+    """The same problem with every traction scaled by `factor` (a diagnostic, not the
+    problem asked): its five-level strain-energy order."""
+    import copy
+    from omar_pfem.verification_agent import gates
+    from omar_pfem.verification_agent import pipeline2d as P
+    d = copy.deepcopy(prob.desc)
+    d["name"] = prob.name + f"_load{factor:g}"
+    for b in d["bcs"]:
+        if b["type"] == "traction":
+            b["t"] = [factor * t for t in b["t"]]
+    p2 = type(prob)(d)
+    rows = P.Ladders(p2, log=lambda s: None).get("Q2 uniform", levels, None, "Q2")
+    g = gates.multilevel_convergence_gate([r["h"] for r in rows], [r["strain_energy"] for r in rows],
+                                          order_window=(0.05, 20))
+    return g["fit_order"], [r["min_detF"] for r in rows]
+
+
+def _execute(c, prob, ladders, V, v, ad, graded, lv, glv, result, small_load_done):
+    kind = c["run"]["kind"]
+    if kind in ("uniform_level", "p2_level"):
+        lv = lv + [c["run"]["n"]]
+        V, v, ad = verify_state(prob, ladders, lv)
+        new = V
+    elif kind == "graded_level":
+        glv = glv + [c["run"]["n"]]
+        uni = ladders.get("Q2 uniform", lv, None, "Q2")
+        graded, plan = graded_state(prob, ladders, glv[-5:], uni)
+        new = graded
+    elif kind == "graded":
+        uni = ladders.get("Q2 uniform", lv, None, "Q2")
+        graded, plan = graded_state(prob, ladders, glv, uni)
+        new = graded
+        result["graded_plan"] = plan["plan"]
+    elif kind == "small_load":
+        order, js = _small_load(prob, c["run"]["factor"], lv)
+        new = dict(V)
+        new["_small_load_order"] = order
+        result["small_load_check"] = {"factor": c["run"]["factor"], "energy_order": order,
+                                      "min_detF": js, "linearized_2lam": 2 * prob.lam_min}
+        small_load_done = True
+    else:
+        raise ValueError(kind)
+    return new, V, v, ad, graded, lv, glv, small_load_done
+
+
 def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="replay",
         replay=None, budget_minutes=20.0, max_experiments=4, levels=(2, 4, 8, 16, 32)):
     from omar_pfem.verification_agent import experiment as X
@@ -344,7 +401,14 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
         if desc is None:
             log.save(result)
             return result
-    prob = P.Problem2D(desc)
+    if desc.get("material") == "neo_hookean":
+        from omar_pfem.verification_agent.pipeline2d_nh import Problem2DNH
+        prob = Problem2DNH(desc)
+        log.step("M", "code", "note", "neo-Hookean: corner exponents from the linearized theory "
+                 "(a hypothesis for the practical mesh range); dead loads; load steps chosen by "
+                 "the solver (doubled on Newton failure or J <= 0)")
+    else:
+        prob = P.Problem2D(desc)
     log.step("M", "code", "done", f"domain {len(prob.cells)} cells, polygon {len(prob.polygon)} "
              f"vertices; rate-limiting corners {[(c['x'], c['y'], round(min(c['rate_limiting']), 4)) for c in prob.corners]}")
     # V
@@ -376,12 +440,18 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
     graded, spent, k = None, 0.0, 0
     history, glv = [], list(lv)
     certified_any = set(summary(V)["certified"])
+    banned, small_load_done = set(), False
     while k < max_experiments:
         cur = graded if graded is not None else V
         cands, concl = X.candidates({"prob": prob, "verdicts": cur, "graded": graded,
                                      "levels": glv if graded is not None else lv,
                                      "ladders": ladders, "diagnosis": diag,
-                                     "certified_any": certified_any})
+                                     "certified_any": certified_any, "banned": banned,
+                                     "small_load_done": small_load_done,
+                                     # 2026-11-25: n = 128 neo-Hookean solves took far longer
+                                     # than the cost model predicted; cap the level
+                                     "max_n": 64 if getattr(prob, "material", "") == "neo_hookean"
+                                     else 128})
         for c in concl:
             if not any(h.get("quantity") == c["quantity"] for h in history):
                 log.step("N", "code", "concluded", f"{c['quantity']}: {c['conclusion']} "
@@ -401,31 +471,28 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
                  file=os.path.relpath(path, HERE), sha256=rec["sha256"])
         t0 = time.time()
         old = V
-        if c["run"]["kind"] == "uniform_level":
-            lv = lv + [c["run"]["n"]]
-            V, v, ad = verify_state(prob, ladders, lv)
-            new = V
-        elif c["run"]["kind"] == "graded_level":
-            glv = glv + [c["run"]["n"]]
-            uni = ladders.get("Q2 uniform", lv, None, "Q2")
-            graded, plan = graded_state(prob, ladders, glv[-5:], uni)
-            new = graded
-        elif c["run"]["kind"] == "p2_level":
-            lv = lv + [c["run"]["n"]]
-            V, v, ad = verify_state(prob, ladders, lv)
-            new = V
-        elif c["run"]["kind"] == "graded":
-            uni = ladders.get("Q2 uniform", lv, None, "Q2")
-            graded, plan = graded_state(prob, ladders, glv, uni)
-            new = graded
-            result["graded_plan"] = plan["plan"]
+        try:
+            new, V, v, ad, graded, lv, glv, small_load_done = _execute(
+                c, prob, ladders, V, v, ad, graded, lv, glv, result, small_load_done)
+        except Exception as e:                          # a failed experiment is an outcome
+            minutes = (time.time() - t0) / 60
+            spent += minutes
+            banned.add(c["action"])
+            X.complete(path, {"confirmed": False, "failed": repr(e)[:300],
+                              "observed_minutes": minutes})
+            log.step("N", "code", "failed", f"#{k} {c['action']} could not be run: {e!s:.200}; "
+                     "recorded as refuted, not tried again on this problem")
+            history.append({"k": k, "action": c["action"], "confirmed": False, "failed": True})
+            continue
         minutes = (time.time() - t0) / 60
         spent += minutes
         old = {q: ({**old[q], "final": "CERTIFIED"} if q in certified_any else old[q]) for q in old}
         ok = X.evaluate(c, old, new)
-        certified_any |= set(summary(new)["certified"])
+        certified_any |= set(summary({q: r for q, r in new.items() if not q.startswith("_")})["certified"])
         X.complete(path, {"confirmed": ok, "observed_minutes": minutes,
-                          "after": summary(new)})
+                          "after": summary({q: r for q, r in new.items() if not q.startswith("_")}),
+                          **({"small_load_order": new["_small_load_order"]}
+                             if "_small_load_order" in new else {})})
         log.step("N", "code", "confirmed" if ok else "refuted",
                  f"#{k} {c['action']}: prediction {'confirmed' if ok else 'refuted'} "
                  f"({minutes:.1f} min); certified so far {sorted(certified_any)}")

@@ -218,6 +218,30 @@ def candidates(state):
                                    "criterion": "any_crosschecked"},
                     "run": {"kind": "p2_level", "n": n_next},
                     "cost": {"dof": dof_next_p2, "minutes": cm_p2(dof_next_p2)}})
+    # A4 (2026-11-25) finite-strain corner check: a neo-Hookean problem whose global quantities
+    # converge more slowly than the linearized corner theory while min det F falls with refinement
+    if getattr(prob, "material", "") == "neo_hookean" and prob.corners \
+            and "small_load_check" not in state.get("banned", ()):
+        js = [r.get("min_detF") for r in sorted(uni, key=lambda r: r["n"])]
+        falling = len(js) >= 3 and all(js[i + 1] < js[i] for i in range(len(js) - 1))
+        slow = [q for q, r in V.items() if r["class"] in ("global", "displacement")
+                and (r.get("checks", {}).get("singular_order", {}).get("verdict") == "FAIL")]
+        if falling and slow and not state.get("small_load_done"):
+            dof = sum(r["n_dof"] for r in uni)
+            out.append({"action": "small_load_check", "quantities": slow,
+                        "situation": "neo_hookean:order_below_linearized_and_J_falling",
+                        "justification": f"orders below the linearized corner theory for {slow}; "
+                                         f"min det F falls with refinement {[round(j, 3) for j in js]}",
+                        "hypothesis": "the loss of rate is a finite-strain effect at the corner: at "
+                                      "one tenth of the load the strain energy converges with the "
+                                      "linearized order 2 lam",
+                        "prediction": {"text": "at 1/10 of the load the five-level energy order is "
+                                               f"within 0.15 of 2 lam = {2 * prob.lam_min:.3f}",
+                                       "criterion": "order_near_linear",
+                                       "target": 2 * prob.lam_min, "tol": 0.15},
+                        "run": {"kind": "small_load", "factor": 0.1},
+                        "cost": {"dof": dof, "minutes": cm_q2(dof)}})
+    out = [c for c in out if c["action"] not in state.get("banned", ())]
     for c in out:
         p, n = prior(c["action"], c["situation"])
         c["prior"], c["prior_n"] = p, n
@@ -233,6 +257,9 @@ def evaluate(c, old, new):
                  for q in qs)
     elif crit == "any_crosschecked":
         ok = any(new.get(q, {}).get("crosscheck") == "cross_checked" for q in qs)
+    elif crit == "order_near_linear":
+        p = new.get("_small_load_order")
+        ok = p is not None and abs(p - c["prediction"]["target"]) <= c["prediction"]["tol"]
     elif crit == "graded_better":
         n_old = sum(r.get("final") == "CERTIFIED" for r in old.values())
         n_new = sum(r.get("final") == "CERTIFIED" for r in new.values())

@@ -451,5 +451,284 @@
   },
   "problem": "l_shaped_bracket_top_pressure",
   "reason": "no passing check on record for 4cbfae5f3d124464|P2|plane_strain|clamped+free+pressure"
+ },
+ "8c322f76d49d00d3|Q2|plane_strain|clamped+free+traction|neo_hookean": {
+  "verdict": "PASS",
+  "rates": {
+   "L2": {
+    "observed": 3.0463079978518905,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 2.005973156667618,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16
+  ],
+  "levels_added": [],
+  "errors": {
+   "L2": [
+    0.0007559274812795382,
+    6.340792323232346e-05,
+    7.486523266255692e-06,
+    9.291447181312593e-07
+   ],
+   "H1": [
+    0.006375132482585963,
+    0.0015533105300771998,
+    0.00038611423631601397,
+    9.62813353719376e-05
+   ]
+  },
+  "field": {
+   "ux": "a*sin(0.65*pi*x + 3/10)*cos(0.65*pi*y + 1/5)",
+   "uy": "a*sin(0.65*pi*y + 2/5)*cos(0.65*pi*x + 1/10)",
+   "amplitude": 0.04602297594215357,
+   "peak_strain": 0.1
+  },
+  "problem": "nh_test",
+  "reason": "no passing check on record for 8c322f76d49d00d3|Q2|plane_strain|clamped+free+traction|neo_hookean"
+ },
+ "8c322f76d49d00d3|P2|plane_strain|clamped+free+traction|neo_hookean": {
+  "verdict": "PASS",
+  "rates": {
+   "L2": {
+    "observed": 3.1956690859557515,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 1.9897322304292142,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16,
+   32
+  ],
+  "levels_added": [
+   "n=32: rates outside tolerance but moving toward theory"
+  ],
+  "errors": {
+   "L2": [
+    0.0030177465045218995,
+    0.00026021495689231786,
+    2.328451244869477e-05,
+    2.4062182540389096e-06,
+    2.773847919681431e-07
+   ],
+   "H1": [
+    0.01560157999157454,
+    0.003987448618677103,
+    0.001018407404102147,
+    0.0002571215672818304,
+    6.456295190567021e-05
+   ]
+  },
+  "field": {
+   "ux": "a*sin(0.65*pi*x + 3/10)*cos(0.65*pi*y + 1/5)",
+   "uy": "a*sin(0.65*pi*y + 2/5)*cos(0.65*pi*x + 1/10)",
+   "amplitude": 0.04602297594215357,
+   "peak_strain": 0.1
+  },
+  "problem": "nh_test",
+  "reason": "no passing check on record for 8c322f76d49d00d3|P2|plane_strain|clamped+free+traction|neo_hookean"
+ },
+ "95d36d979e701ba5|Q2|plane_strain|clamped+free+traction|neo_hookean": {
+  "verdict": "PASS",
+  "rates": {
+   "L2": {
+    "observed": 3.046307997851797,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 2.005973156667607,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16
+  ],
+  "levels_added": [],
+  "errors": {
+   "L2": [
+    0.0007559274812795382,
+    6.340792323232346e-05,
+    7.486523266255692e-06,
+    9.291447181313786e-07
+   ],
+   "H1": [
+    0.006375132482585963,
+    0.0015533105300771998,
+    0.00038611423631601397,
+    9.62813353719392e-05
+   ]
+  },
+  "field": {
+   "ux": "a*sin(0.65*pi*x + 3/10)*cos(0.65*pi*y + 1/5)",
+   "uy": "a*sin(0.65*pi*y + 2/5)*cos(0.65*pi*x + 1/10)",
+   "amplitude": 0.04602297594215357,
+   "peak_strain": 0.1
+  },
+  "problem": "nh_l_bracket_demo",
+  "reason": "no passing check on record for 95d36d979e701ba5|Q2|plane_strain|clamped+free+traction|neo_hookean"
+ },
+ "95d36d979e701ba5|P2|plane_strain|clamped+free+traction|neo_hookean": {
+  "verdict": "PASS",
+  "rates": {
+   "L2": {
+    "observed": 3.1956690858394206,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 1.9897322304291865,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16,
+   32
+  ],
+  "levels_added": [
+   "n=32: rates outside tolerance but moving toward theory"
+  ],
+  "errors": {
+   "L2": [
+    0.0030177465045218995,
+    0.00026021495689231786,
+    2.328451244869477e-05,
+    2.406218253994387e-06,
+    2.773847920128761e-07
+   ],
+   "H1": [
+    0.01560157999157454,
+    0.003987448618677103,
+    0.001018407404102147,
+    0.0002571215672818269,
+    6.456295190567292e-05
+   ]
+  },
+  "field": {
+   "ux": "a*sin(0.65*pi*x + 3/10)*cos(0.65*pi*y + 1/5)",
+   "uy": "a*sin(0.65*pi*y + 2/5)*cos(0.65*pi*x + 1/10)",
+   "amplitude": 0.04602297594215357,
+   "peak_strain": 0.1
+  },
+  "problem": "nh_l_bracket_demo",
+  "reason": "no passing check on record for 95d36d979e701ba5|P2|plane_strain|clamped+free+traction|neo_hookean"
+ },
+ "7adbf17779d847f7|Q2|plane_strain|clamped+free+traction|neo_hookean": {
+  "verdict": "PASS",
+  "rates": {
+   "L2": {
+    "observed": 3.0463079978508336,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 2.0059731566676193,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16
+  ],
+  "levels_added": [],
+  "errors": {
+   "L2": [
+    0.0007559274812796407,
+    6.340792323226167e-05,
+    7.486523266260386e-06,
+    9.291447181317149e-07
+   ],
+   "H1": [
+    0.006375132482586047,
+    0.0015533105300771866,
+    0.0003861142363160183,
+    9.62813353719367e-05
+   ]
+  },
+  "field": {
+   "ux": "a*sin(0.65*pi*x + 3/10)*cos(0.65*pi*y + 1/5)",
+   "uy": "a*sin(0.65*pi*y + 2/5)*cos(0.65*pi*x + 1/10)",
+   "amplitude": 0.04602297594215357,
+   "peak_strain": 0.1
+  },
+  "problem": "nh_l_bracket_demo",
+  "reason": "no passing check on record for 7adbf17779d847f7|Q2|plane_strain|clamped+free+traction|neo_hookean"
+ },
+ "7adbf17779d847f7|P2|plane_strain|clamped+free+traction|neo_hookean": {
+  "verdict": "PASS",
+  "rates": {
+   "L2": {
+    "observed": 3.1956690859496604,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 1.9897322304292182,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16,
+   32
+  ],
+  "levels_added": [
+   "n=32: rates outside tolerance but moving toward theory"
+  ],
+  "errors": {
+   "L2": [
+    0.0030177465045222195,
+    0.00026021495689233077,
+    2.3284512448477264e-05,
+    2.4062182539929386e-06,
+    2.7738479196789293e-07
+   ],
+   "H1": [
+    0.01560157999157477,
+    0.003987448618677113,
+    0.0010184074041021274,
+    0.00025712156728182765,
+    6.45629519056688e-05
+   ]
+  },
+  "field": {
+   "ux": "a*sin(0.65*pi*x + 3/10)*cos(0.65*pi*y + 1/5)",
+   "uy": "a*sin(0.65*pi*y + 2/5)*cos(0.65*pi*x + 1/10)",
+   "amplitude": 0.04602297594215357,
+   "peak_strain": 0.1
+  },
+  "problem": "nh_l_bracket_demo",
+  "reason": "no passing check on record for 7adbf17779d847f7|P2|plane_strain|clamped+free+traction|neo_hookean"
  }
 }

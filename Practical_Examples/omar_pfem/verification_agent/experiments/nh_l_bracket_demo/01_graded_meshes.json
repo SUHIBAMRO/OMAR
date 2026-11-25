@@ -1,0 +1,39 @@
+{
+ "preregistration": {
+  "action": "graded_meshes",
+  "quantities": [
+   "corner0_gk_avg_von_mises",
+   "corner1_gk_avg_von_mises",
+   "corner2_gk_avg_von_mises",
+   "strain_energy",
+   "u_top_left",
+   "v_right_top"
+  ],
+  "situation": "corner_limited",
+  "justification": "rate-limiting corners [(0, 0, 0.7112), (2, 0, 0.7112), (1, 1, 0.5445)]; 6 quantities uncertified or with U above a tenth of the class tolerance",
+  "hypothesis": "the corner singularities limit the rate; grading toward the corners with the largest local-energy change restores it",
+  "prediction": {
+   "text": "more quantities are certified (and cross-checked) on the graded ladders than on the uniform ones, or the strain-energy U falls at least 3 times",
+   "criterion": "graded_better"
+  },
+  "run": {
+   "kind": "graded"
+  },
+  "cost": {
+   "dof": 266136,
+   "minutes": 7.133661006164076
+  },
+  "prior": 0.6666666666666666,
+  "prior_n": 4,
+  "score": 0.4917834658917564,
+  "problem": "nh_l_bracket_demo",
+  "git_head": "0fc54f173c24004165528391610c37381df00923",
+  "frozen_utc": "2026-11-25T00:31:42.800362+00:00",
+  "sha256": "4729f604179ed773dac23dcdaa1f6f264c3502b74c4d500afbcb605e8df36a67"
+ },
+ "outcome": {
+  "confirmed": false,
+  "failed": "RuntimeError(\"Q2 graded n=8: the nonlinear solve failed with [4, 8, 16, 32, 64] load steps: [[48, 15, 'J<=0']]\")",
+  "observed_minutes": 0.8089189410209656
+ }
+}

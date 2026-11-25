@@ -325,7 +325,7 @@ class Adapter:
 
     @property
     def family(self):
-        return [{"n_elem": r["n_elem"], "min_detF": None} for r in self.rows]
+        return [{"n_elem": r["n_elem"], "min_detF": r.get("min_detF")} for r in self.rows]
 
     def series(self, q):
         return self.hs, [r[q] for r in self.rows], None
@@ -348,7 +348,7 @@ def framework(prob, fam, strategies, full=False):
     reentrant = any(c["angle_deg"] > 180.5 for c in prob.corners)
     reg = ("reentrant_corner" if reentrant else "clamped_free_corner") if prob.corners else "smooth"
     sd = dict(name=prob.name, geometry="pipeline2d_" + prob.name, dim=2,
-              material="linear_elastic", loading="traction", regularity=reg, element="Q9",
+              material=getattr(prob, "material", "linear_elastic"), loading="traction", regularity=reg, element="Q9",
               reference="mesh_refinement_family", qois=list(prob.qois), well_posedness=[],
               open_questions=[])
     ad = Adapter(fam, strategies, prob.lam_min)
@@ -420,7 +420,11 @@ class Ladders:
         done = {r["n"] for r in rows}
         for n in n_list:
             if n not in done:
-                rows.append(self.prob.solve(n, plan, element))
+                r = self.prob.solve(n, plan, element)
+                if r.get("failed"):
+                    raise RuntimeError(f"{key} n={n}: the nonlinear solve failed with "
+                                       f"{r['load_steps_tried']} load steps: {r['newton'][-1:]}")
+                rows.append(r)
                 rows.sort(key=lambda r: r["n"])
                 json.dump(self.cache, open(self.f, "w"), indent=1)
                 self.log(f"  {key} n={n} dof={rows[-1]['n_dof']}")
