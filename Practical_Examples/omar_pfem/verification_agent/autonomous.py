@@ -123,7 +123,13 @@ MODELER_PROMPT = (
     "quantity), choose a value, and list it in `assumptions` with the reason; (3) if the "
     "geometry or a condition cannot be represented exactly (a curved OUTER edge, an ellipse, "
     "a distributed load that is not constant, a point load, contact, another nonlinearity), set "
-    "supported=false and explain in unsupported_reason; never approximate silently.\n\n"
+    "supported=false and explain in unsupported_reason; never approximate silently. (4) A named "
+    "standard benchmark whose coordinates the text gives only in a figure may use its standard "
+    "geometry: Cook's membrane = outer [[0, 0], [48, 44], [48, 60], [0, 44]] (clamped edge x = 0, "
+    "loaded edge x = 48); code checks that the text names it. (5) If the problem states several "
+    "cases (e.g. a compressible and a nearly incompressible one), model a case the pipeline "
+    "supports (Poisson ratio at most 0.49, a listed material), even if only another case has a "
+    "reference value, and name the chosen case in `name`.\n\n"
     "PROBLEM:\n")
 
 
@@ -163,6 +169,10 @@ def numbers_in(text):
     for m in re.finditer(r"(\d+(?:\.\d+)?)\s*[x*]?\s*10\^\{?([-+]?\d+)\}?", text):
         out.append(float(m.group(1)) * 10 ** int(m.group(2)) if "x" in m.group(0) or "*" in
                    m.group(0) else 10 ** int(m.group(2)))
+    # 26 Nov: simple fractions as written in papers ("nu = 1/3", "g = (0, 1/16)")
+    for m in re.finditer(r"(?<![\d.])(\d+)\s*/\s*(\d+)(?![\d.])", text):
+        if int(m.group(2)):
+            out.append(int(m.group(1)) / int(m.group(2)))
     return out
 
 
@@ -200,8 +210,16 @@ def trace_numbers(desc, text, assumptions):
         for x, y, _ in polygon(desc):
             items += [("vertex x", abs(x * a)), ("vertex y", abs(y * a))]
     unsupported, flagged = [], []
+    # POST HOC (26 Nov, Omar's decision after the round-2 search): the outer vertices of a named
+    # standard benchmark may come from standard_geometries.TABLE (the text names it, the polygon
+    # is exactly the table's); define() logs the citation
+    from omar_pfem.verification_agent.standard_geometries import TABLE, match
+    std = match(desc, text)
+    std_nums = {abs(float(c)) for p in TABLE[std]["outer"] for c in p} if std else set()
     for name, v in items:
         if v == 0 or found(v):
+            continue
+        if name.startswith("vertex") and v in std_nums:
             continue
         if (name.startswith("vertex") or name.startswith("hole")) and any(
                 found(v * k) for k in (2, 4)):
@@ -282,6 +300,12 @@ def define(backend, text, log, retries=2):
         log.step("D", "code", "checked", f"attempt {attempt + 1}: validation "
                  f"{errs or 'ok'}; untraced numbers {unsup or 'none'}; assumptions {flagged or 'none'}",
                  description=desc)
+        from omar_pfem.verification_agent.standard_geometries import TABLE, match
+        std = match(desc, text)
+        if std and not errs and not unsup:
+            log.step("D", "code", "note", "outer geometry taken from the standard-benchmark table "
+                     f"(post hoc rule, 26 Nov): {std}: {TABLE[std]['citation']}")
+            desc["geometry_source"] = {"table": std, "citation": TABLE[std]["citation"]}
         if not errs and not unsup:
             # POST HOC (24 Nov): only an assumed PHYSICAL number needs a person; prose
             # clarifications in `assumptions` are recorded but not flagged

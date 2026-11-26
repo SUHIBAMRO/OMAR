@@ -1469,3 +1469,16 @@ def test_scout_prompt_contains_the_paper():
             "linear_elastic")
     assert "A plate with a hole" in seen["p"] and "E = 210 GPa" in seen["p"]
     assert "{c[" not in seen["p"] and "{CAPABILITIES" not in seen["p"] and "{DOMAIN" not in seen["p"]
+
+
+def test_standard_geometry_only_when_named_and_exact():
+    """26 Nov (post hoc rule): Cook vertices may come from the table only if the text names the
+    benchmark and the polygon is exactly the table's."""
+    from omar_pfem.verification_agent.autonomous import trace_numbers
+    d = {"E": 1.0, "nu": 1 / 3, "bcs": [{"type": "traction", "t": [0, 0.0625]}],
+         "domain": {"outer": [[0, 0], [48, 44], [48, 60], [0, 44]], "holes": []}}
+    named = "Cook's membrane with E = 1, nu = 1/3, g = (0, 1/16), Q = (48, 52)"
+    assert trace_numbers(d, named, [])[0] == []
+    assert any("44" in u for u in trace_numbers(d, named.replace("Cook's membrane", "panel"), [])[0])
+    d2 = {**d, "domain": {"outer": [[0, 0], [48, 44], [48, 61], [0, 44]], "holes": []}}
+    assert trace_numbers(d2, named, [])[0] != []

@@ -1,0 +1,23 @@
+{
+ "name": "literature round 3 (after the round-2 lessons; POST HOC changes, decided by Omar on 26 Nov)",
+ "frozen_utc": "2026-11-26T23:45:37.193038",
+ "post_hoc_changes": [
+  "standard_geometries.py: the outer vertices of a named benchmark (Cook's membrane) may come from a cited table if the text names it and the polygon is exactly the table's; logged with the citation",
+  "modeler rule 5: of several stated cases, model one the pipeline supports (nu <= 0.49) even without a reference value",
+  "scout: one representable case of several counts; named benchmark geometry counts",
+  "number tracer reads simple fractions (1/3, 1/16)"
+ ],
+ "not_changed": "gates, tolerances, acceptance criteria and the code verification are unchanged",
+ "runs": {
+  "R3a": "autonomous.run on 1911.08728 (already read in round 2) with hint \"Cook's membrane, case 1 (E = 1, nu = 1/3)\"; NOT independent evidence: the paper and the failure are known",
+  "R3b": "literature_search --max-read 3 (papers already read are skipped)"
+ },
+ "budget_usd": 4.0,
+ "predictions": {
+  "Q1_cook_defined": "R3a: the definition step produces a valid description of case 1 with nu = 1/3, the geometry from the table (logged), and no untraced number",
+  "Q2_cook_verified": "R3a: code verification on Cook's membrane is not FAIL (PASS or INCONCLUSIVE)",
+  "Q3_cook_end_to_end": "R3a: v_Q (the displacement at (48, 52)) is certified; its limit lies within 1% of 23.96 if the load is the plane-stress Cook load, otherwise no claim about the value",
+  "Q4_new_paper": "R3b: at least one newly read paper reaches verdicts",
+  "Q5_cost": "R3a + R3b cost at most USD 4"
+ }
+}

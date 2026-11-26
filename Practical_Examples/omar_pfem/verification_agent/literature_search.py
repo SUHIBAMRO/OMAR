@@ -137,7 +137,9 @@ def scout(backend, c, material):
               "under compression'). Straight inclined edges and circular or polygonal holes ARE "
               "representable. Be strict otherwise: curved outer edges, 3D, shells, contact, "
               "near-incompressible materials (Poisson ratio above 0.49), other material models, "
-              "or data given only in figures are not representable."
+              "or data given only in figures are not representable, except the geometry of a "
+              "named standard benchmark (Cook's membrane). If one case of several is "
+              "representable (e.g. Poisson ratio 1/3 next to 0.4999), answer yes and name it."
               f"\n\nTITLE: {c['title']}\n\nPASSAGE:\n{c['text_screen']['passage'][:6000]}")
     return backend.ask("scout", prompt, SCOUT_SCHEMA)
 
