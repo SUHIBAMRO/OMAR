@@ -26344,3 +26344,9 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   ~/OMAR/Practical_Examples/omar_pfem/verification_agent/cluster_jobs/ladder_nh_plate_hole_3d_pe_Q216_P216_result.json;
   rebuild it byte-exactly (no trailing newline), `cluster_ladder import <file> <md5>`, then
   `campaign run omar_pfem/verification_agent/problems3d/nh_plate_hole_3d_pe.json`.
+- 2026-11-26 SENT: Omar sent his own version of the email (advisor_feedback/2026-11-26_email_to_Rabczuk_SENT.txt)
+  with the progress report (2026-11-26_Autonomous_Workflow_Progress_Report.pdf, 18 pages). WAITING FOR:
+  (1) Professor Rabczuk's answers to the four open points (report Section 12: assumed-input referral rule;
+  earlier certificates; R1-R3 / reference-domain code check - Cook 3D waits on it; groove spline levels 7-9);
+  (2) C&S editorial decision; (3) cluster job 3356483 (NH 3D plate n = 16). Next work after the reply:
+  further geometry families, then CSM/CFM. Do not contact Professor Rabczuk; Omar sends all emails.

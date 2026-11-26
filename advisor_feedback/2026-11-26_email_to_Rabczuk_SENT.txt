@@ -1,0 +1,21 @@
+(Sent by Omar on 26 November 2026, with attachment 2026-11-26_Autonomous_Workflow_Progress_Report.pdf.
+Text as sent, pasted by Omar; it replaces the draft 2026-11-26_email_to_Rabczuk_DRAFT_round_R.txt.)
+
+Dear Professor Rabczuk,
+Thank you very much for your encouraging feedback and clear guidance.
+Regarding CAS, the manuscript is still under review, with two completed reviews and no editorial decision yet. I will incorporate the corrections in the revision.
+Following your priorities, I have focused on completing the autonomous end-to-end verification workflow. I have attached a shorter progress report containing only the new results from 24–26 November.
+The main progress is that the supported workflow can now carry out problem definition, meshing, MMS, simulation, convergence analysis, diagnosis, and selection of follow-up experiments without manual transitions. The literature agent can also search and extract problems autonomously, although a complete literature-to-certified-result demonstration from a newly discovered paper is still pending.
+The agent now independently justifies experiments, records numerical predictions before execution, evaluates the outcomes, and updates its experience.
+Some encouraging results include:
+
+* Cook's membrane: 23.9623 ± 0.0076, compared with the reference value of 23.96.
+* Independent 2D/3D plane-strain agreement to approximately 10⁻¹³.
+* The additional groove spline experiment confirmed the agent's prediction, but the peak remains unverified. The agent independently decided not to propose the next refinement.
+
+Cluster-job submission, confirmation of important assumed inputs, and unsupported geometries or material models still require human involvement.
+I have also implemented your recommendations regarding singular-order verification and QoI-dependent accuracy requirements.
+Four remaining methodological questions are summarized in Section 12 of the report. I would be very grateful for your thoughts on them, particularly how to handle inconclusive code-verification checks and whether further groove refinement is justified.
+Thank you again for your continued guidance and support.
+Best regards,
+Omar
