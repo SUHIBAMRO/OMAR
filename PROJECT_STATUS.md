@@ -26328,3 +26328,7 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
     claims 50/50 (round_r_claims.py; the PDF-time 3D runs frozen as autonomous_runs/*/run_as_in_pdf_2026-11-26.json).
     Email draft: three factual corrections only (page count, "job running", "when results are back").
     STILL NOT SENT - Omar sends it with BOTH PDFs; check the C&S status line first.
+- 2026-11-26: at Omar's request the two PDFs are merged into ONE attachment:
+  advisor_feedback/2026-11-26_Autonomous_Workflow_New_Results_combined.pdf (16 pages = 24-25 Nov PDF + part2;
+  pdfunite; round_r_claims.py checks pages 9-16 equal the part-2 PDF). Email draft updated to one PDF in two
+  parts (subject, attachment list, "second PDF" -> "Part 2"). Attach ONLY the combined PDF. Still NOT SENT.

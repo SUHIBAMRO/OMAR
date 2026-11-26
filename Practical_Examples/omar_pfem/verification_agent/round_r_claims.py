@@ -136,9 +136,20 @@ def claims():
     return c
 
 
+# the email attaches one PDF: the 24-25 November PDF followed by this one (pdfunite)
+COMBINED = PDF.replace("_part2.pdf", "_combined.pdf")
+
+
 def main():
     text = subprocess.run(["pdftotext", PDF, "-"], capture_output=True, text=True).stdout
     flat = re.sub(r"\s+", " ", text)
+    if os.path.exists(COMBINED):
+        both = subprocess.run(["pdftotext", "-f", "9", COMBINED, "-"], capture_output=True,
+                              text=True).stdout
+        if re.sub(r"\s+", " ", both) != flat:
+            print("FAIL the combined PDF (pages 9-16) is not the current part-2 PDF")
+            raise SystemExit(1)
+        print("ok   combined PDF pages 9-16 = part-2 PDF")
     bad = 0
     for name, computed, printed in claims():
         ok = computed == printed and printed in flat

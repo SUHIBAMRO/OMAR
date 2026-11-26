@@ -635,3 +635,5 @@ become cluster jobs, manual submission).
   the PDF was first written (run_as_in_pdf_2026-11-26.json).
 - Email draft: three factual corrections only (second PDF 8 pages; the combined job has run; the cluster
   results are back).
+- At Omar's request the two PDFs are sent as one (…_combined.pdf, 16 pages, the two PDFs unchanged and
+  joined); the email draft refers to "Part 1" and "Part 2" of that one PDF.
