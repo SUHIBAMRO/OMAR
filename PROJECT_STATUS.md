@@ -26295,3 +26295,10 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   instructions transfer/batch_20261125_3jobs.md; check packages first). After the results come back:
   `cluster_ladder import <file> <md5>` for each output, then `campaign run` on cook_3d,
   plate_hole_quarter_3d_pe, nh_plate_hole_3d_pe. Questions for the advisor: open_questions.json (3 standing).
+- 2026-11-26 02:20 (cluster time): batch_20261125_3jobs SUBMITTED by Omar as LSF job 3322812 (BatchGPU,
+  120000 MB, -W 24:00; bundle md5 9428977744c73be914a70145af143166 verified on the cluster). The cluster has
+  NO internet: gmsh 4.13.1 and scikit-fem 12.0.2 were missing in env `omar` and were installed from wheels
+  copied by scp (pip install --no-index --no-deps); system libraries for gmsh are present. When done: Omar
+  pastes md5sum + cat of the three outputs in ~/OMAR/Practical_Examples/omar_pfem/verification_agent/
+  cluster_jobs/*_result.json; then `cluster_ladder import <file> <md5>` each, then `campaign run` on
+  cook_3d, plate_hole_quarter_3d_pe, nh_plate_hole_3d_pe.
