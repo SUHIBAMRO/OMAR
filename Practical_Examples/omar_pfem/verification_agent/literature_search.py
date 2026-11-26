@@ -8,7 +8,7 @@ Until now a person chose the paper and wrote a hint. Here the agent:
   2. SEARCHES  the arXiv API (titles, abstracts, PDF links);
   3. SCREENS   by code on the abstract (keywords; excluded: shells, plates in bending, dynamics,
                fracture, contact, fluids), then by code on the FULL TEXT (the passage that best
-               matches the class's hint, penalised for holes, curved edges, 3D, other materials),
+               matches the class's hint, penalised for curved edges, 3D, other materials),
                then by the LLM on the best few passages only ("scout": is a representable example
                stated in this passage, and what is it called?);
   4. READS     the most promising papers: the passage is chosen by literature_select from the
@@ -37,23 +37,32 @@ CAPABILITIES = {
     "linear_elastic": {"queries": [
         'abs:"linear elasticity" AND abs:"numerical examples"',
         'abs:elasticity AND abs:"L-shaped"',
-        'abs:"plane stress" AND abs:"finite element" AND abs:numerical'],
-        "hint": "L-shaped plate clamped traction Young modulus Poisson ratio plane strain",
+        'abs:"plane stress" AND abs:"finite element" AND abs:numerical',
+        'abs:"plate with a hole" AND abs:"finite element"',
+        'abs:"Cook" AND abs:membrane AND abs:"linear elasticity"'],
+        "hint": "plate hole L-shaped Cook membrane clamped traction Young modulus Poisson "
+                "ratio plane strain plane stress",
         "text": "2D small-strain linear elasticity, plane strain or plane stress"},
     "neo_hookean": {"queries": [
         'abs:"neo-Hookean" AND abs:"numerical examples"',
         'abs:hyperelastic AND abs:"finite element" AND abs:"numerical examples"',
-        'abs:"neo-Hookean" AND abs:"plane strain"'],
+        'abs:"neo-Hookean" AND abs:"plane strain"',
+        'abs:"neo-Hookean" AND abs:"Cook"'],
         "hint": "neo-Hookean plane strain block clamped traction compression Young modulus "
                 "Poisson ratio",
         "text": "2D compressible neo-Hookean hyperelasticity at finite strain, plane strain, "
                 "dead tractions"},
 }
-PENALTY = ("hole", "circular", "curved", "three-dimensional", "3d", "cylinder", "sphere",
-           "shell", "contact", "incompressible", "mooney", "ogden", "crack")
-DOMAIN_TEXT = ("domains that are unions of equal squares (rectangles, L-, T-, U- and stepped "
-               "shapes; no holes, no curved or inclined edges); clamped, symmetry and constant "
-               "traction boundary conditions (pressure for linear elasticity only)")
+# 26 Nov: brought in line with what the problem definition (autonomous.MODELER) and geometry2d
+# represent since 25 Nov: straight-edged polygons (inclined edges allowed) with circular or
+# polygonal holes. Before, holes and inclined edges were penalised and declared not
+# representable, so the search could not find the problems the pipeline now solves.
+PENALTY = ("three-dimensional", "3d", "cylinder", "sphere", "ellipse", "elliptical", "spline",
+           "nurbs", "shell", "contact", "incompressible", "mooney", "ogden", "crack")
+DOMAIN_TEXT = ("2D domains bounded by straight edges (inclined edges allowed, e.g. Cook's "
+               "membrane or a trapezoid) with circular or polygonal holes (e.g. a plate with a "
+               "hole, also as a quarter model with symmetry edges); clamped, symmetry, roller and "
+               "constant traction boundary conditions (pressure for linear elasticity only)")
 
 INCLUDE = ("numerical example", "benchmark", "test case", "finite element", "plane strain",
            "plane stress", "elasticity", "hyperelastic", "neo-hookean")
@@ -125,9 +134,10 @@ def scout(backend, c, material):
               "contain an example that this pipeline can represent exactly from the text "
               "(geometry, material constants, supports and loads stated)? If yes, name the "
               "example in a few words that would find it again (e.g. 'L-shaped panel', 'block "
-              "under compression'). Be strict: holes, curved or inclined edges, 3D, shells, "
-              "contact, other material models, or data given only in figures are not "
-              f"representable.\n\nTITLE: {c['title']}\n\nPASSAGE:\n{c['text_screen']['passage'][:6000]}")
+              "under compression'). Straight inclined edges and circular or polygonal holes ARE "
+              "representable. Be strict otherwise: curved outer edges, 3D, shells, contact, "
+              "near-incompressible materials (Poisson ratio above 0.49), other material models, "
+              "or data given only in figures are not representable.\n\nTITLE: {c['title']}\n\nPASSAGE:\n{c['text_screen']['passage'][:6000]}")
     return backend.ask("scout", prompt, SCOUT_SCHEMA)
 
 

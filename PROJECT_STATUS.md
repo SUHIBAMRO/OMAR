@@ -26357,3 +26357,7 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   (CRLF / echo newline handled), checks md5, imports, records cluster_jobs/imported.json (no double import),
   and re-runs the loop on the affected problems. job_factory writes this command into new job instructions;
   transfer/ladder_nh_plate_hole_3d_pe_Q216_P216.md updated. Tests 116 pass.
+- 2026-11-26 (automation): literature search brought in line with general 2D geometry (holes, inclined edges
+  no longer penalised; queries for plate with a hole / Cook; scout prompt updated); definition step refuses
+  nu > 0.49 by code (test). Round-2 search PRE-REGISTERED (literature_search_round2_preregistration.json,
+  5 predictions, budget USD 5). NOT RUN: billed LLM run waits for Omar's approval.

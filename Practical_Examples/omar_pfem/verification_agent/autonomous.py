@@ -240,6 +240,9 @@ def to_pipeline(desc):
     return out
 
 
+NU_MAX = 0.49
+
+
 def define(backend, text, log, retries=2):
     from omar_pfem.verification_agent import llm_roles
     from omar_pfem.verification_agent.pipeline2d import validate as validate_le
@@ -267,6 +270,13 @@ def define(backend, text, log, retries=2):
             log.step("D", "LLM", "unsupported", m["unsupported_reason"], modeler=m)
             return None, m
         desc = to_pipeline(m["description"])
+        # 26 Nov: refused by CODE, not sent back to the LLM for "correction" (that would invite
+        # a silent change of nu): pure-displacement Q2/P2 elements lock when nearly incompressible
+        if float(desc.get("nu", 0.0)) > NU_MAX:
+            why = (f"nu = {desc['nu']} > {NU_MAX}: nearly incompressible; the pipeline's "
+                   "displacement-only elements lock (no mixed formulation yet)")
+            log.step("D", "code", "unsupported", why, description=desc)
+            return None, dict(m, supported=False, unsupported_reason=why)
         errs = validate(desc)
         unsup, flagged = trace_numbers(desc, text, m["assumptions"])
         log.step("D", "code", "checked", f"attempt {attempt + 1}: validation "

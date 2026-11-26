@@ -1424,3 +1424,32 @@ def test_cluster_paste_is_rebuilt_byte_for_byte():
     got = {n: d for n, _, d in parse_paste(paste)}
     assert got["a_result.json"] == a.encode() and got["b_result.json"] == b.encode()
     assert got["c_result.json"] is None
+
+
+def test_nearly_incompressible_description_is_refused_by_code():
+    """26 Nov: nu > 0.49 is refused by code (displacement elements lock); it is not sent back to
+    the LLM for correction, which could change nu silently."""
+    from omar_pfem.verification_agent import autonomous as A
+
+    class Log:
+        steps = []
+
+        def step(self, *a, **k):
+            self.steps.append(a)
+    desc = {"name": "cook_nearly_incompressible", "material": "linear_elastic",
+            "geometry_kind": "polygon", "cell_size": 1, "cells": [],
+            "outer": [[0, 0], [48, 44], [48, 60], [0, 44]], "holes": [], "E": 1.0, "nu": 0.4999,
+            "plane": "strain", "bcs": [], "points": []}
+
+    class B:
+        def ask(self, role, prompt, schema):
+            return {"supported": True, "unsupported_reason": "", "description": desc,
+                    "sources": [], "assumptions": []}
+    import omar_pfem.verification_agent.llm_roles as R
+    orig = R.formalize
+    R.formalize = lambda b, t: ({}, [])
+    try:
+        d, m = A.define(B(), "text", Log())
+    finally:
+        R.formalize = orig
+    assert d is None and m["supported"] is False and "incompressible" in m["unsupported_reason"]
