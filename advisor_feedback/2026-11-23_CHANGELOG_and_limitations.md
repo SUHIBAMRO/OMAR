@@ -641,3 +641,16 @@ become cluster jobs, manual submission).
   drawn from the stored files (2026-11-26_Autonomous_Workflow_Progress_Report.pdf, 18 pages). Content and
   numbers are those of the two PDFs; the local Cook 3D code check (n <= 16) is replaced by the cluster
   result (n = 32). Claims 113 / 113 (progress_report_claims.py). The email draft refers to its sections.
+
+## 2026-11-26 — literature to certified result (rounds 2 and 3)
+
+- Round 2 (pre-registered): attempt 1 invalid (a code error emptied the scout prompt; fixed, test); attempt 2
+  read one paper (1911.08728, Cook's membrane), whose modeled case was nearly incompressible and was refused
+  by a new code rule (nu > 0.49). Score 3/5.
+- POST HOC changes (decided by Omar, labelled): a table of named standard geometries (Cook's membrane, cited
+  to Cook 1974), used only if the text names the benchmark and the polygon is exactly the table's; the modeler
+  models a supported case when several are stated; the tracer reads simple fractions and finds E / nu stated
+  next to their name anywhere in the paper.
+- Round 3 (pre-registered): the Cook paper ran end to end: code check PASS, v_Q = 21.5141 +- 0.0133 certified
+  (plane strain, E = 1, nu = 1/3). Not independent evidence (known paper, rules changed afterwards). A new
+  paper (2206.14610) failed at the passage selection. Score 4/5.

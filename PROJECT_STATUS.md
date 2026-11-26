@@ -26368,3 +26368,10 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   P4 not tested (literature_search_round2_score.json). Lesson: benchmark geometry is usually only in figures.
   Option for later (needs a decision, changes the tracing rule): a table of named standard geometries
   (e.g. Cook vertices) cited instead of read from the text.
+- 2026-11-26 DONE: literature round 3 (Omar: "redo and continue"; post hoc rules labelled): standard-geometry
+  table (Cook), modeler picks a supported case, fractions traced, E/nu traced next to their name anywhere in
+  the paper, runs save their LLM cost. R3a: paper 1911.08728 (Cook, case 1 nu = 1/3) END TO END: code check PASS,
+  v_Q = 21.5141 +- 0.0133 certified (plane strain), energy and one corner average certified, peak unbounded.
+  R3b: new paper 2206.14610 read, wrong example selected (L-shape MMS), refused correctly. Score 4/5
+  (literature_round3_score.json). Spent: round 2 USD 1.09, round 3 USD 0.82 + R3a (not recorded, <= ~0.7).
+  Next automation candidate: passage selection when a paper has several examples.

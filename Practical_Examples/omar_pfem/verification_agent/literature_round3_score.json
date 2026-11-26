@@ -1,0 +1,40 @@
+{
+ "preregistration": "literature_round3_preregistration.json",
+ "runs": {
+  "R3a": {
+   "run": "autonomous_runs/1911.08728/run.json (round-2 record kept as run_round2.json)",
+   "cost_usd": null,
+   "cost_note": "not recorded (runs did not save their LLM cost until 26 Nov, fixed after R3a); estimated at most USD 0.7 from round 2"
+  },
+  "R3b": {
+   "run": "literature_search_runs (latest)",
+   "cost_usd": 0.82
+  }
+ },
+ "predictions": {
+  "Q1_cook_defined": {
+   "confirmed": true,
+   "evidence": "valid description of case 1 (E = 1, nu = 1/3, plane strain, traction (0, 1/16)); geometry from the standard table, logged with the citation; no untraced number (nu was declared as assumed: the value is in the paper but outside the selected passage)"
+  },
+  "Q2_cook_verified": {
+   "confirmed": true,
+   "evidence": "code verification PASS: Q2 L2 3.10 / H1 2.04 (n = 2..32), P2 3.09 / 2.03 (n = 2..16)"
+  },
+  "Q3_cook_end_to_end": {
+   "confirmed": true,
+   "evidence": "v_Q certified 21.5141 +- 0.0133 (U 0.062%); also strain energy 10.7953 +- 0.0009 and one corner average; plane strain, so no claim against 23.96 (plane stress); peak concluded unbounded (corner exponent 0.6244)"
+  },
+  "Q4_new_paper": {
+   "confirmed": false,
+   "evidence": "one new paper read (2206.14610); the passage selector chose the L-shape manufactured-solution example instead of the hinted Cook section, which the modeler refused correctly (corner-singular boundary data)"
+  },
+  "Q5_cost": {
+   "confirmed": true,
+   "evidence": "R3b USD 0.82 + R3a (estimated <= 0.7) < USD 4"
+  }
+ },
+ "summary": "4 of 5 confirmed. First end-to-end run from a paper found by the agent to certified results (R3a; not independent: the paper and its round-2 failure were known, and the rules were changed post hoc). Remaining person point of R3a (nu outside the passage) is cleared by the tracer change of 26 Nov on re-evaluation of the stored output.",
+ "post_round_findings": [
+  "passage selection can miss the hinted example when a paper has several (2206.14610)"
+ ]
+}
