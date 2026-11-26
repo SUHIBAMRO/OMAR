@@ -1,0 +1,34 @@
+Subject: Autonomous verification workflow: new results (two short PDFs)
+
+Dear Professor Rabczuk,
+
+Thank you for your reply and for setting the priorities so clearly.
+
+Regarding the paper: Computers and Structures has not sent a decision yet. The status is still "Under Review"; two reviews have been completed, and the last reviewer activity was on 16 November. I will include the corrections in the revision as soon as the decision arrives, unless you prefer that I inform the editor about the stress-conversion correction now.
+
+As you suggested, the two attached PDFs contain only new results:
+- "Autonomous Verification Workflow: New Results" (8 pages, 24-25 November): your answers implemented, and which steps of the workflow are autonomous;
+- "Autonomous Workflow - New Results (26 November)" (7 pages): what was added since.
+
+Your answers to my questions are implemented: the singular-order extension is adopted, and pre-asymptotic convergence from either direction is classified as inconclusive until independently verified; the one-third margin and the QoI-dependent limits are in place; and the further spline refinement of the groove peak goes only through an experiment that the agent justifies and predicts itself. That experiment ran on the cluster: the agent's prediction held, but the peak is not yet monotone, so it stays not verified. For the next level the agent itself declined to propose it, because none of the possible outcomes could pass both convergence checks (second PDF, question 4).
+
+Following your order, the work went into the autonomous end-to-end workflow. For linear elastic and compressible neo-Hookean problems, in 2D (now including inclined edges and holes) and in 3D (extruded sections), the steps from choosing the paper to diagnosis now run without a person: literature search, problem definition, meshing, a manufactured-solution check, simulation, convergence analysis, diagnosis and the choice of the next experiments, each frozen with a numerical prediction before it runs and scored afterwards. In addition, the agent now checks how much each assumed input changes the certified results, writes its own report for every run, and prepares a cluster job when a level does not fit the local machine.
+
+Still manual are: submitting cluster jobs (one combined job is running now), confirming assumed inputs where they matter, general 3D geometries beyond extruded sections, and other material models.
+
+Main results in the second PDF:
+- Cook's membrane: v_C = 23.9623 +- 0.0076, against the reference 23.96;
+- 3D in plane strain reproduces 2D at every level to 1.05e-13;
+- in three pre-registered tests, 4 of 8, 4 of 8 and 3 of 8 predictions held. The misses are reported with their causes: mostly the memory limit of the local machine, and in several cases errors in the written expectations rather than in the code;
+- seven errors in the new code were found by checks and tests during this work and fixed before any affected number reached you (second PDF, Section 6).
+
+Four questions need your decision; they are listed in Section 7 of the second PDF:
+1. When should the agent ask a person to confirm an assumed input?
+2. Should an earlier certificate stand when a later state no longer certifies the quantity?
+3. May a code check on a reference domain replace an inconclusive check on the problem's own domain (rules R1 to R3)?
+4. Should we compute spline levels 7 to 9 for the groove peak, or stop there?
+
+When the cluster results are back, Cook's membrane in 3D and the neo-Hookean 3D plate go through the loop again. After that, as you suggested, come further geometry families, with CSM/CFM at the end.
+
+Best regards,
+Omar
