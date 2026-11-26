@@ -1,289 +1,337 @@
-"""Figures for the technical report, drawn only from the stored results (no new solves).
+"""Figures of the combined progress report (24-26 November): every figure is drawn from the
+stored files only.
 
-    python -m omar_pfem.verification_agent.report_figures
+    cd Practical_Examples && python -m omar_pfem.verification_agent.report_figures
 
-Writes PNG files to advisor_feedback/report_build/figures/verification/:
-  fig_b1_convergence.png        B1: errors against the fitted limit; corner peak growth
-  fig_singular_unseen.png       L-shape and edge crack: energy error and peak growth vs theory
-  fig_b3_gaussian_crosscheck.png  B3 Gaussian sigma_xx: Q20 family, its certified limit +- U, splines
-  fig_b3_groove_peak.png        B3 groove peak: displacement vs projected-dilatation splines
-  fig_mms.png                   manufactured-solution errors of the new solvers
-  fig_crosscheck.png            gap to the independent value against the allowed uncertainty
-  fig_active_learning.png       surrogate error against cost for the four strategies
+Writes advisor_feedback/figures_2026-11-26/fig*.png.
 """
 import json
 import os
 
-import matplotlib
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
-import numpy as np  # noqa: E402
+import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
-OUT = os.path.join(ROOT, "advisor_feedback", "report_build", "figures", "verification")
-
-# Okabe-Ito (colour-blind safe)
-C = {"blue": "#0072B2", "orange": "#E69F00", "green": "#009E73", "red": "#D55E00",
-     "purple": "#CC79A7", "sky": "#56B4E9", "black": "#000000", "grey": "#7f7f7f"}
-plt.rcParams.update({"font.size": 9, "axes.titlesize": 9.5, "axes.labelsize": 9,
-                     "legend.fontsize": 7.5, "xtick.labelsize": 8, "ytick.labelsize": 8,
-                     "axes.spines.top": False, "axes.spines.right": False,
-                     "savefig.dpi": 220, "savefig.bbox": "tight", "font.family": "DejaVu Sans",
-                     "mathtext.fontset": "dejavusans"})
+OUT = os.path.abspath(os.path.join(HERE, "..", "..", "..", "advisor_feedback", "figures_2026-11-26"))
+# categorical slots 1-4 (validated: CVD separation and normal-vision floor pass; contrast below
+# 3:1 for slots 2-4, so every series also has its own marker and a legend or direct label)
+C1, C2, C3, C4 = "#257de0", "#f47230", "#00b894", "#f2a600"
+INK, INK2, GRID = "#1f1f1f", "#5f5f5f", "#e3e3e3"
+EL_STYLE = {"Q2": dict(color=C1, marker="o"), "P2": dict(color=C2, marker="s")}
 
 
-def _j(name):
-    return json.load(open(os.path.join(HERE, name)))
+def _j(*p):
+    return json.load(open(os.path.join(HERE, *p)))
+
+
+def _style():
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    plt.rcParams.update({
+        "font.size": 9, "axes.edgecolor": INK2, "axes.labelcolor": INK, "xtick.color": INK2,
+        "ytick.color": INK2, "axes.grid": True, "grid.color": GRID, "grid.linewidth": 0.6,
+        "axes.spines.top": False, "axes.spines.right": False, "lines.linewidth": 2,
+        "lines.markersize": 6, "legend.frameon": False, "savefig.dpi": 200,
+        "figure.dpi": 100})
+    return plt
 
 
 def _save(fig, name):
     os.makedirs(OUT, exist_ok=True)
-    fig.savefig(os.path.join(OUT, name))
+    p = os.path.join(OUT, name)
+    fig.savefig(p, bbox_inches="tight", facecolor="white")
+    import matplotlib.pyplot as plt
     plt.close(fig)
-    print("wrote", name)
+    return p
 
 
-def slope_triangle(ax, x0, y0, slope, dx=1.6, label=None, below=True, color="0.3"):
-    """A log-log slope triangle anchored at (x0, y0), going right by factor dx."""
-    x1 = x0 * dx
-    y1 = y0 * dx ** slope
-    ax.plot([x0, x1, x1 if below else x0, x0], [y0, y1, y0 if below else y1, y0],
-            color=color, lw=0.8)
-    ax.text(x1 * 1.04 if below else x0 / 1.04, np.sqrt(y0 * y1),
-            label or f"{slope:g}", fontsize=7.5, color=color,
-            ha="left" if below else "right", va="center")
+# ---------------------------------------------------------------- 1 workflow -------------
+def fig_workflow():
+    plt = _style()
+    from matplotlib.patches import FancyBboxPatch
+    stages = [("L", "Literature\nsearch", "LLM + code"), ("D", "Problem\ndefinition", "LLM + code"),
+              ("M", "Meshing", "code"), ("V", "Code check\n(MMS)", "code"),
+              ("S", "Simulation\nladders", "code"), ("C", "Convergence\nanalysis", "code"),
+              ("G", "Diagnosis", "code"), ("N", "Next\nexperiment", "code"),
+              ("A", "Input\nsensitivity", "code"), ("R", "Run\nreport", "code")]
+    col = {"code": C1, "LLM + code": C3}
+    fig, ax = plt.subplots(figsize=(10, 2.9))
+    w, h, gap = 0.96, 0.95, 0.08
+    for i, (k, name, actor) in enumerate(stages):
+        x = i * (w + gap)
+        ax.add_patch(FancyBboxPatch((x, 0), w, h, boxstyle="round,pad=0.02,rounding_size=0.06",
+                                    fc="white", ec=col[actor], lw=2))
+        ax.text(x + w / 2, h * 0.70, k, ha="center", va="center", fontsize=11, weight="bold",
+                color=INK)
+        ax.text(x + w / 2, h * 0.33, name, ha="center", va="center", fontsize=7, color=INK)
+        if i:
+            ax.annotate("", (x - 0.01, h / 2), (x - gap + 0.01, h / 2),
+                        arrowprops=dict(arrowstyle="-|>", color=INK2, lw=1))
+    # loop back from N to S, and the cluster branch
+    xs, xn = 4 * (w + gap) + w / 2, 7 * (w + gap) + w / 2
+    ax.annotate("", (xs, -0.04), (xn, -0.04), arrowprops=dict(
+        arrowstyle="-|>", color=INK2, lw=1, connectionstyle="arc3,rad=-0.25"))
+    ax.text((xs + xn) / 2, -0.62, "frozen prediction -> run -> scored by code -> next choice",
+            ha="center", fontsize=7.5, color=INK2)
+    ax.annotate("", (xs, h + 0.42), (xs, h + 0.05), arrowprops=dict(arrowstyle="-|>", color=C2,
+                                                                     lw=1.5))
+    ax.text(xs, h + 0.5, "level too large for the local machine:\ncluster job prepared by code, "
+            "submitted by a person", ha="center", va="bottom", fontsize=7.5, color=INK)
+    for i, (lab, c) in enumerate((("code only", C1), ("LLM proposes, code validates", C3),
+                                  ("person", C2))):
+        ax.plot([0.05 + 2.6 * i], [-1.05], "s", ms=9, mfc="white", mec=c, mew=2)
+        ax.text(0.22 + 2.6 * i, -1.05, lab, va="center", fontsize=7.5, color=INK)
+    ax.set_xlim(-0.1, 10 * (w + gap))
+    ax.set_ylim(-1.3, h + 1.15)
+    ax.axis("off")
+    return _save(fig, "fig1_workflow.png")
 
 
-def plain(ax, axis="y"):
-    from matplotlib.ticker import FuncFormatter, LogLocator
-    f = FuncFormatter(lambda v, _: f"{v:g}")
-    for a in (("x", ax.xaxis), ("y", ax.yaxis)):
-        if a[0] in axis:
-            a[1].set_major_formatter(f)
-            a[1].set_minor_formatter(FuncFormatter(lambda v, _: ""))
+# ---------------------------------------------------------------- 2 meshes ---------------
+def _mesh_ax(ax, desc, n, title):
+    from matplotlib.collections import PolyCollection
+    from omar_pfem.verification_agent.geometry2d import make
+    msh, _ = make(desc).build_mesh(n, None, "Q2")
+    k = 4 if "Quad" in type(msh).__name__ else 3
+    polys = [msh.p[:, msh.t[:k, i]].T for i in range(msh.t.shape[1])]
+    ax.add_collection(PolyCollection(polys, facecolors="#f4f8fd", edgecolors=INK2, lw=0.35))
+    ax.autoscale()
+    ax.set_aspect("equal")
+    ax.grid(False)
+    ax.set_title(f"{title}\nQ2 mesh, level n = {n} ({msh.t.shape[1]} elements)", fontsize=8.5)
+    ax.tick_params(labelsize=7)
+    return msh
 
 
-def _ml(R, q):
-    return R["v"][q].get("qoi_convergence_multilevel", {})
+def fig_meshes():
+    plt = _style()
+    fig, ax = plt.subplots(1, 2, figsize=(9, 4.2))
+    _mesh_ax(ax[0], _j("problems2d", "cook_linear.json"), 8, "Cook's membrane")
+    ax[0].plot([48], [52], "o", color=C2, ms=6)
+    ax[0].annotate("C (48, 52): v_C", (48, 52), xytext=(-70, 8), textcoords="offset points",
+                   fontsize=7.5, color=INK)
+    _mesh_ax(ax[1], _j("problems2d", "plate_hole_quarter.json"), 8,
+             "Quarter plate with a hole (10 x 10, r = 1)")
+    return _save(fig, "fig2_meshes.png")
 
 
-def fig_b1(rules):
-    R = rules("unit_square")
-    ad = R["adapter"]
-    fig, (a, b) = plt.subplots(1, 2, figsize=(7.0, 2.9))
-    names = {"strain_energy": "strain energy", "max_disp_mag": "max |u|",
-             "v_top_off_center": "v, top", "u_mid_domain": "u, mid-domain",
-             "interior_gk_PK1_frob": "Gaussian interior |P|"}
-    cols = [C["blue"], C["orange"], C["green"], C["purple"], C["sky"]]
-    for (q, lab), c in zip(names.items(), cols):
-        hs, vals, _ = ad.series(q)
-        m = _ml(R, q)
-        lim, p = m["fit_limit"], m["fit_order"]
-        e = np.abs(np.array(vals) - lim) / abs(lim)
-        a.loglog(hs, e, "o-", color=c, ms=3.5, lw=1.1, label=f"{lab} (p = {p:.2f})")
-    slope_triangle(a, 0.012, 2.2e-5, 2 * 0.7112, label="2λ = 1.42")
-    a.set_xlabel("element size h")
-    a.set_ylabel("|v(h) − v∞| / |v∞|")
-    a.set_title("(a) smooth quantities: error to the fitted limit")
-    a.legend(frameon=False, loc="upper left")
-    hs, vals, _ = ad.series("peak_PK1_frob")
-    b.loglog(hs, vals, "s-", color=C["red"], ms=3.5, lw=1.1, label="corner peak |P|")
-    slope_triangle(b, 0.03, vals[-2] * 0.95, 0.7112 - 1, label="λ − 1 = −0.289", below=False)
-    b.set_xlabel("element size h")
-    b.set_ylabel("peak |P|")
-    b.set_title("(b) corner peak grows: no limit exists")
-    plain(b, "y")
-    b.legend(frameon=False, loc="upper right")
+# ---------------------------------------------------------------- 3 Cook v_C -------------
+def fig_cook():
+    plt = _style()
+    lad = _j("pipeline2d_runs", "cook_linear", "ladders.json")
+    ci = _j("autonomous_runs", "cook_linear", "run.json")["certified_info"]["v_C"]
+    fig, ax = plt.subplots(figsize=(6.4, 3.6))
+    lim, ua = ci["limit"], ci["U_abs"]
+    ax.axhspan(lim - ua, lim + ua, color=C3, alpha=0.18, lw=0)
+    ax.axhline(23.96, color=INK2, lw=1, ls=":")
+    ax.text(70, 23.96 - 0.012, "reference 23.96", fontsize=7.5, color=INK2, va="top")
+    for key, c, m, ls in (("Q2 uniform", C1, "o", "-"), ("P2 uniform", C2, "s", "-"),
+                          ("Q2 graded", C1, "^", "--"), ("P2 graded", C2, "v", "--")):
+        rows = sorted(lad[key], key=lambda r: r["n"])
+        ax.semilogx([r["n_dof"] for r in rows], [r["v_C"] for r in rows], ls, color=c,
+                    marker=m, label=key)
+    ax.text(3.3e5, lim + ua + 0.003, f"certified {lim:.4f} ± {ua:.4f}", fontsize=7.5,
+            color=INK, ha="right", va="bottom")
+    ax.set_ylim(23.80, 24.0)
+    ax.set_xlabel("degrees of freedom")
+    ax.set_ylabel("v_C")
+    ax.legend(fontsize=7.5, loc="lower right", ncol=2)
+    return _save(fig, "fig3_cook_vC.png")
+
+
+# ---------------------------------------------------------------- 4 sensitivity ----------
+def fig_sensitivity():
+    """Rows: certified quantities; colour: the perturbed input (same colour in both panels);
+    black tick: the quantity's certified relative uncertainty U; dashed: the 1% target."""
+    plt = _style()
+    inp = {"E": ("E ±10%", C1, "o"), "nu": ("ν ±0.05", C2, "s"), "load": ("load ±10%", C3, "^"),
+           "hole[0].radius": ("hole radius ±10%", C4, "D")}
+    floor = 1e-10
+    panels = (("plate_hole_quarter", "Quarter plate with a hole"), ("cook_linear", "Cook's membrane"))
+    fig, axes = plt.subplots(1, 2, figsize=(10, 3.3), sharex=True)
+    for ax, (prob, title) in zip(axes, panels):
+        rec = _j("sensitivity_runs", prob + ".json")["params"]
+        qs = list(next(v for v in rec.values() if "quantities" in v)["quantities"])
+        for i, q in enumerate(qs):
+            for k, r in rec.items():
+                if "quantities" not in r:
+                    continue
+                lab, c, m = inp["load" if ".t" in k else k]
+                ch = r["quantities"][q]["change_rel"]
+                off = {"E": -0.18, "nu": -0.06, "load": 0.06}.get("load" if ".t" in k else k, 0.18)
+                ax.semilogx([max(ch, floor)], [i + off], m, color=c, ms=7, mec="white", mew=0.6,
+                            mfc=c if ch >= floor else "white", label=lab)
+            u = r["quantities"][q].get("U_rel")
+            ax.plot([u, u], [i - 0.32, i + 0.32], color=INK, lw=2, solid_capstyle="butt",
+                    label="certified uncertainty U")
+        ax.axvline(0.01, color=INK2, lw=1, ls="--")
+        ax.set_yticks(range(len(qs)), [q.replace("_gk_avg_von_mises", " average") for q in qs],
+                      fontsize=8)
+        ax.set_ylim(-0.6, len(qs) - 0.4)
+        ax.set_xlim(floor / 2, 1)
+        ax.set_title(title, fontsize=9)
+        ax.set_xlabel("relative change of the quantity")
+        ax.text(0.0115, len(qs) - 0.5, "1%", fontsize=7.5, color=INK2, va="top")
+    h, lab = [], []
+    for a in axes:
+        for hh, ll in zip(*a.get_legend_handles_labels()):
+            if ll not in lab:
+                h.append(hh)
+                lab.append(ll)
+    fig.legend(h, lab, loc="lower center", ncol=len(lab), fontsize=7.5, bbox_to_anchor=(0.5, -0.1))
+    fig.text(0.5, -0.15, f"a change below {floor:.0e} (none in theory) is drawn hollow at the left edge",
+             ha="center", fontsize=7.5, color=INK2)
     fig.tight_layout()
-    _save(fig, "fig_b1_convergence.png")
+    return _save(fig, "fig4_sensitivity.png")
 
 
-def fig_singular(rules):
-    fig, (a, b) = plt.subplots(1, 2, figsize=(7.0, 2.9))
-    specs = [("l_shape", "L-shaped panel", 0.5445, C["blue"]),
-             ("edge_crack", "edge crack", 0.5, C["red"])]
-    for geo, lab, lam, c in specs:
-        R = rules(geo)
-        ad = R["adapter"]
-        hs, vals, _ = ad.series("strain_energy")
-        m = _ml(R, "strain_energy")
-        e = np.abs(np.array(vals) - m["fit_limit"]) / abs(m["fit_limit"])
-        a.loglog(hs, e, "o-", color=c, ms=3.5, lw=1.1,
-                 label=f"{lab}: {m['fit_order']:.2f} (2λ = {2 * lam:.2f})")
-        hs, vals, _ = ad.series("peak_von_mises")
-        sl = np.polyfit(np.log(hs[-4:]), np.log(vals[-4:]), 1)[0]
-        b.loglog(hs, vals, "s-", color=c, ms=3.5, lw=1.1,
-                 label=f"{lab}: slope {sl:.2f} (theory {lam - 1:.2f})".replace(" -", " −").replace("(-", "(−"))
-    a.set_xlabel("element size h")
-    a.set_ylabel("|W(h) − W∞| / W∞")
-    a.set_title("(a) strain energy, Q9 elements")
-    a.legend(frameon=False, loc="upper left", title="observed order", title_fontsize=7.5)
-    b.set_xlabel("element size h")
-    b.set_ylabel("peak von Mises stress")
-    b.set_yticks([5, 10, 20, 40])
-    b.set_title("(b) peak at the singular point")
-    b.legend(frameon=False, loc="lower left")
-    b.set_ylim(3.2, None)
-    lo, hi = a.get_ylim()
-    a.set_ylim(lo, hi * 8)
-    plain(b, "y")
-    fig.tight_layout()
-    _save(fig, "fig_singular_unseen.png")
+# ---------------------------------------------------------------- 5 3D mesh --------------
+def fig_mesh3d():
+    plt = _style()
+    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+    from omar_pfem.verification_agent.geometry2d import make
+    fig = plt.figure(figsize=(9.4, 4.0))
+    for i, (f, n, title) in enumerate((("cook_3d.json", 4, "Cook's membrane, extruded"),
+                                       ("plate_hole_quarter_3d_pe.json", 4,
+                                        "Quarter plate with a hole, extruded"))):
+        prob = make(_j("problems3d", f))
+        msh, _ = prob.build_mesh(n, None, "Q2")
+        ax = fig.add_subplot(1, 2, i + 1, projection="3d")
+        # boundary faces of the hexahedra (corner nodes of each quadrilateral face)
+        fac = msh.facets[:4, msh.boundary_facets()] if msh.facets.shape[0] >= 4 else None
+        polys = [msh.p[:, fac[:, k]].T for k in range(fac.shape[1])]
+        polys = [p[[0, 1, 3, 2]] if _crossed(p) else p for p in polys]
+        ax.add_collection3d(Poly3DCollection(polys, facecolor="#dbe9fa", edgecolor=INK2,
+                                             linewidths=0.25, alpha=1.0))
+        lo, hi = msh.p.min(axis=1), msh.p.max(axis=1)
+        ax.set_xlim(lo[0], hi[0])
+        ax.set_ylim(lo[1], hi[1])
+        ax.set_zlim(lo[2], hi[2])
+        ax.set_box_aspect(hi - lo)
+        ax.view_init(elev=28, azim=-60)
+        ax.set_axis_off()
+        ax.set_title(f"{title}\n27-node hexahedra, n = {n} ({msh.t.shape[1]} elements)",
+                     fontsize=8.5)
+    return _save(fig, "fig5_mesh3d.png")
 
 
-def fig_b3_gaussian(rules):
-    R = rules("bushing_groove")
-    ad = R["adapter"]
-    q = "gk2_sigma_xx_avg"
-    hs, vals, scale = ad.series(q)
-    m = _ml(R, q)
-    lim, U = m["fit_limit"], m["uncertainty_fine"] * scale
-    d = _j("iga_b3_result.json")
-    fig, ax = plt.subplots(figsize=(6.2, 3.1))
-    ax.axhspan(lim - U, lim + U, color=C["blue"], alpha=0.12, lw=0)
-    ax.axhline(lim, color=C["blue"], lw=0.8, ls="--")
-    ax.text(0.066, lim - 0.0009, f"certified Q20 limit {lim:.3f} ± {U:.4f}",
-            color=C["blue"], fontsize=7.5, ha="left", va="top")
-    ax.plot(hs, vals, "o-", color=C["blue"], ms=3.5, lw=1.1, label="Q20, displacement (8 levels)")
-    for key, lab, c, mk in (("", "splines p = 2, displacement", C["orange"], "^"),
-                            (":fbar_p1", "splines p = 2, projected dilatation", C["red"], "s")):
-        rows = [d[f"L{lv}:p2{key}"] for lv in (1, 2, 3, 4)]
-        h = [r["n_elem"] ** (-1 / 3) for r in rows]
-        ax.plot(h, [r["gk2trunc_sigma_xx_avg"] for r in rows], mk + "-", color=c, ms=4,
-                lw=1.1, label=lab)
-    ax.invert_xaxis()
-    ax.set_xlabel(r"$h = N_{\mathrm{el}}^{-1/3}$  ($N_{\mathrm{el}}$: number of elements; finer to the right)")
-    ax.set_ylabel("Gaussian average of σxx")
-    ax.set_title("B3 groove: the certified Q20 limit and an independent discretization")
-    ax.legend(frameon=False, loc="lower right")
-    fig.tight_layout()
-    _save(fig, "fig_b3_gaussian_crosscheck.png")
+def _crossed(p):
+    """A quadrilateral given in tensor order (0,1,2,3 = bottom-left, bottom-right, top-left,
+    top-right) is drawn as a bow-tie; detect it by the diagonals' direction."""
+    a, b = p[1] - p[0], p[3] - p[2]
+    return np.dot(a, b) > 0 and np.dot(p[2] - p[0], p[3] - p[1]) > 0 and \
+        np.linalg.norm(p[0] + p[3] - p[1] - p[2]) < np.linalg.norm(p[0] + p[2] - p[1] - p[3])
 
 
-def fig_b3_peak():
-    d = _j("iga_b3_result.json")
-    fig, ax = plt.subplots(figsize=(6.2, 2.9))
-    for key, lab, c, mk in (("", "displacement", C["orange"], "^"),
-                            (":fbar_p1", "projected dilatation (P1)", C["red"], "s")):
-        rows = [d[f"L{lv}:p2{key}"] for lv in (1, 2, 3, 4)]
-        x = [r["n_dof"] for r in rows]
-        y = [r["max_sigma_xx_R0"] for r in rows]
-        ax.loglog(x, y, mk + "-", color=c, ms=4, lw=1.1, label=f"splines p = 2, {lab}")
-        for i, (xi, yi) in enumerate(zip(x, y)):
-            off = {(0, ""): (8, -4), (0, ":fbar_p1"): (-34, 2)}.get((i, key), (4, 4))
-            ax.annotate(f"{yi:.2f}", (xi, yi), textcoords="offset points", xytext=off,
-                        fontsize=7, color=c)
-    ax.set_xlim(5e3, 6e5)
-    plain(ax, "y")
-    ax.set_xlabel("unknowns")
-    ax.set_ylabel("max σxx at the groove root (R₀)")
-    ax.set_title("B3 groove peak: settles only with a projected dilatation (not yet certified)")
-    ax.legend(frameon=False, loc="upper right")
-    fig.tight_layout()
-    _save(fig, "fig_b3_groove_peak.png")
-
-
+# ---------------------------------------------------------------- 6 code checks ----------
 def fig_mms():
-    rows = _j("mms_new_solvers.json")
-    series = [("spline disp", "splines, displacement", C["orange"], "^"),
-              ("spline fbar_p1", "splines, projected dilatation", C["red"], "s"),
-              ("Q20 disp (mixed_b3), cartesian field", "Q20, displacement", C["blue"], "o"),
-              ("Q20/P1 (mixed_b3), cartesian field", "Q20/P1", C["green"], "D")]
-    fig, (a, b) = plt.subplots(1, 2, figsize=(7.0, 2.9))
-    for name, lab, c, mk in series:
-        rr = sorted((r for r in rows if r["solver"] == name), key=lambda r: -r["h"])
-        h = [r["h"] for r in rr]
-        a.loglog(h, [r["L2_rel"] for r in rr], mk + "-", color=c, ms=3.5, lw=1.1, label=lab)
-        b.loglog(h, [r["H1_rel"] for r in rr], mk + "-", color=c, ms=3.5, lw=1.1, label=lab)
-    slope_triangle(a, 0.03, 3e-5, 3, dx=1.5)
-    slope_triangle(b, 0.03, 1.2e-3, 2, dx=1.5)
-    for ax, t in ((a, "(a) relative L2 error"), (b, "(b) relative H1 error")):
-        ax.set_xlabel("h")
-        ax.set_title(t)
-    a.set_ylabel("error against the manufactured solution")
-    a.legend(frameon=False, loc="upper left")
-    b.text(0.05, 0.97, "spline curves coincide", transform=b.transAxes, fontsize=7, color="0.4",
-           va="top")
-    plain(a, "x")
-    plain(b, "xy")
-    for ax in (a, b):
-        ax.set_xticks([0.03, 0.04, 0.06, 0.08])
-    b.set_yticks([0.003, 0.01, 0.03])
-    fig.tight_layout()
-    _save(fig, "fig_mms.png")
+    plt = _style()
+    rec = _j("code_verification_record.json")
+
+    def best(problem, el, mat=None):
+        cand = [v for k, v in rec.items() if v.get("problem") == problem and
+                k.split("|")[1] == el and (mat is None or k.endswith(mat))]
+        return max(cand, key=lambda v: (len(v["levels"]), "computed on the cluster" in
+                                         v.get("levels_added", [])))
+    panels = [("3D plate, plane strain", "plate_hole_quarter_3d_pe", None),
+              ("3D neo-Hookean plate", "nh_plate_hole_3d_pe", "neo_hookean"),
+              ("Cook 3D (n = 32 on the cluster)", "cook_3d", None)]
+    fig, axes = plt.subplots(1, 3, figsize=(10.2, 3.5), sharey=False)
+    for ax, (title, prob, mat) in zip(axes, panels):
+        verdicts = []
+        for el in ("Q2", "P2"):
+            try:
+                r = best(prob, el, mat)
+            except ValueError:
+                continue
+            n = np.array(r["levels"], float)
+            st = EL_STYLE[el]
+            for norm, ls in (("L2", "-"), ("H1", "--")):
+                e = np.array(r["errors"][norm], float)
+                ax.loglog(n, e, ls, color=st["color"], marker=st["marker"], ms=5,
+                          label=f"{el} {norm}")
+            verdicts.append(f"{el}: {r['verdict']}")
+        _slope(ax, 3)
+        _slope(ax, 2, low=True)
+        ax.set_title(title + "\n" + "; ".join(verdicts), fontsize=8.5)
+        ax.set_xlabel("level n (h ~ 1/n)")
+        ax.set_xticks([2, 4, 8, 16, 32], ["2", "4", "8", "16", "32"])
+        ax.minorticks_off()
+    axes[0].set_ylabel("relative error of the manufactured solution")
+    h, lab = axes[0].get_legend_handles_labels()
+    fig.legend(h, lab, loc="lower center", ncol=4, fontsize=7.5, bbox_to_anchor=(0.5, -0.1))
+    return _save(fig, "fig6_mms.png")
 
 
-def fig_crosscheck():
-    d = _j("crosscheck_result.json")
-    rows = [r for r in d["rows"] if "gap_rel" in r]
-    fig, ax = plt.subplots(figsize=(5.4, 3.6))
-    allow = np.array([r["U_rel"] + r["U_ind_rel"] for r in rows])
-    gap = np.maximum(np.array([r["gap_rel"] for r in rows]), 1e-8)
-    bad = np.array([r["status"] == "contradicted" for r in rows])
-    lo, hi = 1e-7, 1e-2
-    ax.loglog([lo, hi], [lo, hi], color="0.5", lw=0.8)
-    ax.fill_between([lo, hi], [lo, hi], [hi, hi], color=C["red"], alpha=0.06, lw=0)
-    ax.text(2e-7, 3e-3, "contradicted:\ngap larger than allowed", fontsize=7.5, color=C["red"])
-    ax.loglog(allow[~bad], gap[~bad], "o", color=C["green"], ms=4,
-              label=f"cross-checked ({(~bad).sum()})")
-    ax.loglog(allow[bad], gap[bad], "o", color=C["red"], ms=5,
-              label=f"contradicted ({bad.sum()})")
-    b3 = [i for i, r in enumerate(rows) if r["status"] == "contradicted"
-          and r["problem"] == "bushing_groove"]
-    lam = [i for i, r in enumerate(rows) if r["status"] == "contradicted"
-           and r["problem"] != "bushing_groove"]
-    ax.annotate(f"B3 Gaussian groove averages ({len(b3)})", (allow[b3].min(), gap[b3].mean()),
-                textcoords="offset points", xytext=(-8, 0), fontsize=7, ha="right",
-                va="center", color=C["red"])
-    for i in lam:
-        ax.annotate("lamina sharp hole average", (allow[i], gap[i]), textcoords="offset points",
-                    xytext=(-8, 0), fontsize=7, ha="right", va="center", color=C["red"])
-    ax.set_xlim(lo, hi)
-    ax.set_ylim(lo, hi)
-    ax.set_xlabel("allowed: certified U + independent U (relative to scale)")
-    ax.set_ylabel("gap: |certified limit − independent value|")
-    ax.set_title(f"Cross-check of {len(rows)} quantities with an independent value")
-    ax.legend(frameon=False, loc="lower right", bbox_to_anchor=(1.0, 0.08))
-    fig.tight_layout()
-    _save(fig, "fig_crosscheck.png")
+def _slope(ax, p, low=False):
+    ys = np.concatenate([l.get_ydata() for l in ax.get_lines()])
+    m = ys.min()
+    y0 = m * (2.5 if low else 40)
+    x0, x1 = 2.0, 4.0
+    y1 = y0 * (x1 / x0) ** (-p)
+    ax.plot([x0, x1, x0, x0], [y0, y1, y1, y0], color=INK2, lw=0.8)
+    ax.text(x1 * 1.06, y1, f"slope {p}", fontsize=7, color=INK2, va="center", ha="left")
 
 
-def fig_al():
-    d = _j("al_lamina_result.json")["strategies"]
-    labs = {"random": ("random sampling, fine mesh", C["grey"]),
-            "al_fine": ("active learning, fine mesh", C["blue"]),
-            "mf_naive": ("multi-fidelity, unverified levels", C["green"]),
-            "mf_verified": ("multi-fidelity, verified levels", C["red"])}
-    fig, ax = plt.subplots(figsize=(6.2, 3.1))
-    for k, (lab, c) in labs.items():
-        for i, hist in enumerate(d[k]["history"]):
-            ax.loglog([h["cost_s"] for h in hist], [h["rmse_rel"] for h in hist], "-", color=c,
-                      lw=1.0, alpha=0.75, label=lab if i == 0 else None)
-    for t in (1e-2, 1e-3):
-        ax.axhline(t, color="0.6", lw=0.7, ls=":")
-        ax.text(4.0, t * 1.12, f"{100 * t:g}% target", fontsize=7, color="0.4")
-    ax.set_xlabel("cumulative solver cost (s)")
-    ax.set_ylabel("surrogate error (relative RMSE)")
-    ax.set_title("CFM lamina surrogate: error against cost (five seeds per strategy)")
-    ax.legend(frameon=False, loc="lower left")
-    fig.tight_layout()
-    _save(fig, "fig_active_learning.png")
+# ---------------------------------------------------------------- 7 groove peak ----------
+def fig_groove():
+    plt = _style()
+    d, n = _j("iga_b3_result.json"), _j("iga_b3_l6_result.json")
+    row = lambda lv, f: (d.get(f"L{lv}:p2{f}") or n.get(f"L{lv}:p2{f}"))
+    lv = [2, 3, 4, 5, 6]
+    fig, ax = plt.subplots(figsize=(6.0, 3.4))
+    for f, lab, c, m in ((":fbar_p1", "splines with projected dilatation (P1)", C1, "o"),
+                         ("", "splines, displacement only", C2, "s")):
+        y = [row(l, f)["max_sigma_xx_R0"] for l in lv]
+        ax.plot(lv, y, "-", color=c, marker=m, label=lab)
+        ax.annotate(f"{y[-1]:.2f}", (lv[-1], y[-1]), xytext=(6, 0), textcoords="offset points",
+                    fontsize=7.5, color=INK, va="center")
+    ax.axvspan(5.5, 6.5, color=C4, alpha=0.15, lw=0)
+    ax.text(6, ax.get_ylim()[1] * 0.97, "level 6:\ncluster", ha="center", va="top", fontsize=7.5,
+            color=INK2)
+    ax.set_xticks(lv)
+    ax.set_xlabel("spline level")
+    ax.set_ylabel("maximum of σxx within R₀")
+    ax.legend(fontsize=7.5)
+    return _save(fig, "fig7_groove.png")
+
+
+# ---------------------------------------------------------------- 8 plate cross-check ----
+def fig_plate_crosscheck():
+    plt = _style()
+    lad = _j("pipeline2d_runs", "plate_hole_quarter_3d_pe", "ladders.json")
+    v = _j("autonomous_runs", "plate_hole_quarter_3d_pe", "run.json")["verdicts"]["v_hole_top"]
+    fig, ax = plt.subplots(figsize=(6.0, 3.4))
+    for key, el in (("Q2 uniform", "Q2"), ("P2 uniform", "P2")):
+        rows = sorted(lad[key], key=lambda r: r["n"])[1:]
+        ax.semilogx([r["n_dof"] for r in rows], [r["v_hole_top"] for r in rows], "-",
+                    label=f"{el} ({'27-node hexahedra' if el == 'Q2' else '10-node tetrahedra'})",
+                    **EL_STYLE[el])
+    p32 = max(lad["P2 uniform"], key=lambda r: r["n"])
+    ax.annotate("P2, n = 32\n(cluster)", (p32["n_dof"], p32["v_hole_top"]), xytext=(-20, -34),
+                textcoords="offset points", fontsize=7.5, color=INK, ha="center",
+                arrowprops=dict(arrowstyle="-", color=INK2, lw=0.8))
+    ua = abs(v["U"] * v["limit"])
+    ax.axhspan(v["limit"] - ua, v["limit"] + ua, color=C3, alpha=0.25, lw=0)
+    ax.text(3e3, v["limit"] + ua, f"Q2 limit {v['limit']:.5f}", fontsize=7.5, color=INK,
+            va="bottom")
+    ax.set_xlabel("degrees of freedom")
+    ax.set_ylabel("v_hole_top")
+    ax.legend(fontsize=7.5, loc="lower right")
+    return _save(fig, "fig8_plate_crosscheck.png")
 
 
 def main():
     import warnings
     warnings.filterwarnings("ignore")
-    from omar_pfem.verification_agent.verify_report import rules
-    r = rules.__wrapped__
-    fig_b1(r)
-    fig_singular(r)
-    fig_b3_gaussian(r)
-    fig_b3_peak()
-    fig_mms()
-    fig_crosscheck()
-    fig_al()
+    for f in (fig_workflow, fig_meshes, fig_cook, fig_sensitivity, fig_mesh3d, fig_mms,
+              fig_groove, fig_plate_crosscheck):
+        try:
+            print("ok  ", f())
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print("FAIL", f.__name__, e)
 
 
 if __name__ == "__main__":
