@@ -26332,3 +26332,9 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   advisor_feedback/2026-11-26_Autonomous_Workflow_New_Results_combined.pdf (16 pages = 24-25 Nov PDF + part2;
   pdfunite; round_r_claims.py checks pages 9-16 equal the part-2 PDF). Email draft updated to one PDF in two
   parts (subject, attachment list, "second PDF" -> "Part 2"). Attach ONLY the combined PDF. Still NOT SENT.
+- 2026-11-26: at Omar's request ONE technical progress report replaces the two PDFs (impersonal report
+  language, 8 figures from the stored data): advisor_feedback/2026-11-26_Autonomous_Workflow_Progress_Report.pdf
+  (18 pages; Claude Doc https://claude.ai/artifact/Wuii38iULsytcjtDwGAona; figures by report_figures.py into
+  advisor_feedback/figures_2026-11-26/; claims 113/113 by progress_report_claims.py, in CI; the superseded
+  local Cook 3D numbers are listed there). Email draft points to this report's sections (9, 10, 11, 12).
+  ATTACH ONLY THIS REPORT. Still NOT SENT. The combined/part PDFs are kept as records, not to be sent.

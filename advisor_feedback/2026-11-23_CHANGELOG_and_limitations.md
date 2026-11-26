@@ -637,3 +637,7 @@ become cluster jobs, manual submission).
   results are back).
 - At Omar's request the two PDFs are sent as one (…_combined.pdf, 16 pages, the two PDFs unchanged and
   joined); the email draft refers to "Part 1" and "Part 2" of that one PDF.
+- The two PDFs are replaced, for sending, by one progress report in report language with eight figures
+  drawn from the stored files (2026-11-26_Autonomous_Workflow_Progress_Report.pdf, 18 pages). Content and
+  numbers are those of the two PDFs; the local Cook 3D code check (n <= 16) is replaced by the cluster
+  result (n = 32). Claims 113 / 113 (progress_report_claims.py). The email draft refers to its sections.

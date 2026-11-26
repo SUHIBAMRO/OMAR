@@ -39,3 +39,6 @@ jobs:
         run: python -m omar_pfem.verification_agent.round_o_claims
       - name: 26 November new-results PDF (numbers recomputed and found in the PDF)
         run: python -m omar_pfem.verification_agent.round_r_claims
+
+      - name: Claims check of the combined progress report
+        run: python -m omar_pfem.verification_agent.progress_report_claims
