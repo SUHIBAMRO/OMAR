@@ -51,6 +51,12 @@ python -u {command}
 """
 
 
+def _print_command(outputs):
+    from omar_pfem.verification_agent.cluster_ladder import print_command
+    rel = [o.replace("omar_pfem/verification_agent/", "") for o in outputs]
+    return print_command(rel)
+
+
 def make_job(name, command, mem_mb, hours, outputs, include=("Practical_Examples/omar_pfem",),
              extra=()):
     """extra: files (absolute paths in the repository) added to the bundle although not yet
@@ -87,13 +93,12 @@ def make_job(name, command, mem_mb, hours, outputs, include=("Practical_Examples
    bsub -gpu "num=1:mode=exclusive_process" -q BatchGPU -R "span[hosts=1] rusage[mem={mem_mb}]" -n 8 -W {hours}:00 -o {name}.%J.out -e {name}.%J.err < {name}_job.sh
    ```
    Expected: `Job <number> is submitted to queue <BatchGPU>.`
-4. **When `bjobs` no longer lists it**, for each output:
+4. **When `bjobs` no longer lists it**, run this one line and paste everything it prints into
+   the chat:
    ```
-   cd ~/OMAR/Practical_Examples/omar_pfem/verification_agent
-   md5sum <output>
-   cat <output>
+   {_print_command(outputs)}
    ```
-   and paste both into the chat. Outputs: {', '.join(outputs)}
+   (Outputs: {', '.join(outputs)}. The chat side rebuilds each file, checks its md5 and imports it.)
 """
     md = os.path.join(ROOT, "transfer", f"{name}.md")
     open(md, "w").write(steps)

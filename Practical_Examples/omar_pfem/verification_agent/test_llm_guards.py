@@ -1408,3 +1408,19 @@ def test_machine_refused_experiment_is_not_evidence(tmp_path, monkeypatch):
     assert X.prior("a", "s") == (0.5, 0)
     X.complete(str(f), {"confirmed": False, "failed": "J<=0"})
     assert X.prior("a", "s") == (1 / 3, 1)
+
+
+def test_cluster_paste_is_rebuilt_byte_for_byte():
+    """26 Nov: the pasted cluster print (prompt lines around it, CRLF line ends, the newline that
+    echo adds) is rebuilt to the exact bytes; a changed file is detected by its md5."""
+    import hashlib
+    from omar_pfem.verification_agent.cluster_ladder import parse_paste, print_command
+    a, b = '{\n "x": 1\n}', '{\n "y": [\n  2\n ]\n}\n'
+    md = lambda t: hashlib.md5(t.encode()).hexdigest()
+    paste = ("(base) $ " + print_command(["cluster_jobs/a_result.json"]) + "\r\n"
+             f"=== a_result.json {md(a)}\r\n{a}\r\n\r\n=== end\r\n"
+             f"=== b_result.json {md(b)}\r\n{b}\r\n=== end\r\n"
+             f"=== c_result.json {md(a)}\r\n{a} \r\nX\r\n\r\n=== end\r\n(base) $ ")
+    got = {n: d for n, _, d in parse_paste(paste)}
+    assert got["a_result.json"] == a.encode() and got["b_result.json"] == b.encode()
+    assert got["c_result.json"] is None

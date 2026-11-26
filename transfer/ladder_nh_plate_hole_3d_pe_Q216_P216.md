@@ -16,10 +16,9 @@
    bsub -gpu "num=1:mode=exclusive_process" -q BatchGPU -R "span[hosts=1] rusage[mem=120000]" -n 8 -W 24:00 -o ladder_nh_plate_hole_3d_pe_Q216_P216.%J.out -e ladder_nh_plate_hole_3d_pe_Q216_P216.%J.err < ladder_nh_plate_hole_3d_pe_Q216_P216_job.sh
    ```
    Expected: `Job <number> is submitted to queue <BatchGPU>.`
-4. **When `bjobs` no longer lists it**, for each output:
+4. **When `bjobs` no longer lists it**, run this one line and paste everything it prints into
+   the chat:
    ```
-   cd ~/OMAR/Practical_Examples/omar_pfem/verification_agent
-   md5sum <output>
-   cat <output>
+   cd ~/OMAR/Practical_Examples/omar_pfem/verification_agent && for f in cluster_jobs/ladder_nh_plate_hole_3d_pe_Q216_P216_result.json; do echo "=== $(basename $f) $(md5sum < $f | cut -c1-32)"; cat $f; echo; echo "=== end"; done
    ```
-   and paste both into the chat. Outputs: cluster_jobs/ladder_nh_plate_hole_3d_pe_Q216_P216_result.json
+   (The chat side rebuilds the file, checks its md5, imports it and runs the loop again.)

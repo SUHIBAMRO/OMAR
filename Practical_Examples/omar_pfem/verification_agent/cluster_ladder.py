@@ -14,6 +14,13 @@ Then the loop is simply run again: the imported levels are taken from the cache.
            "Q2 uniform:32:Q2" ["P2 uniform:32:P2" ...] [--mem-mb 120000 --hours 24]
     python -m omar_pfem.verification_agent.cluster_ladder run <spec.json>        (on the cluster)
     python -m omar_pfem.verification_agent.cluster_ladder import <returned.json> <md5>
+    python -m omar_pfem.verification_agent.cluster_ladder ingest <pasted.txt> [--no-rerun]
+
+`ingest` (26 Nov) takes the text a person pasted from the cluster after running the one command
+of the job instructions (print_command): for each result file a header line with its name and
+md5, the file, and an end line. It rebuilds each file byte for byte, checks the md5, imports it
+(same checks as `import`), records it in cluster_jobs/imported.json, and runs the loop again on
+the problems the results belong to. A file whose md5 is already recorded is not imported twice.
 """
 import argparse
 import json
@@ -271,6 +278,93 @@ def _import_mms(res):
     return {"added": added, "refused": refused}
 
 
+# ------------------------------------------------------------------ ingest (26 Nov) -------
+LEDGER = os.path.join(JOBS, "imported.json")
+
+
+def print_command(outputs):
+    """The one command a person runs on the cluster after the job: prints every output with a
+    header 'file md5' and an end line, ready to paste into the chat."""
+    files = " ".join(outputs)
+    return ("cd ~/OMAR/Practical_Examples/omar_pfem/verification_agent && for f in " + files +
+            "; do echo \"=== $(basename $f) $(md5sum < $f | cut -c1-32)\"; cat $f; echo; "
+            "echo \"=== end\"; done")
+
+
+def parse_paste(text):
+    """[(file name, md5, rebuilt bytes or None)] from a pasted cluster print. The echo after cat
+    adds one newline; terminals may turn line ends into CRLF. The variant whose md5 matches is
+    kept; None if none does."""
+    import hashlib
+    import re
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    out = []
+    for m in re.finditer(r"^=== (\S+_result\.json) ([0-9a-f]{32})[ \t]*\n(.*?)\n=== end[ \t]*$",
+                         text, re.S | re.M):
+        name, md5, body = m.group(1), m.group(2), m.group(3)
+        hit = None
+        for cand in (body, body[:-1] if body.endswith("\n") else None, body + "\n",
+                     "\n".join(l.rstrip() for l in body.split("\n"))):
+            if cand is not None and hashlib.md5(cand.encode()).hexdigest() == md5:
+                hit = cand.encode()
+                break
+        out.append((name, md5, hit))
+    return out
+
+
+def _problems_of(res):
+    """Problem description files (problems2d/3d) whose results these are (production only)."""
+    spec = json.load(open(os.path.join(JOBS, f"{res['name']}_spec.json")))
+    names = ([spec["description"]["name"]] if "description" in spec else
+             [c["description"]["name"] for c in spec.get("checks", []) if not c.get("suffix")])
+    files = []
+    for n in names:
+        for d in ("problems3d", "problems2d"):
+            f = os.path.join(HERE, d, n + ".json")
+            if os.path.exists(f) and f not in files:
+                files.append(f)
+    return files
+
+
+def ingest(paste_file, rerun=True, log=print):
+    import datetime
+    ledger = json.load(open(LEDGER)) if os.path.exists(LEDGER) else {}
+    report, rerun_files = [], []
+    blocks = parse_paste(open(paste_file, encoding="utf-8", errors="replace").read())
+    if not blocks:
+        raise SystemExit("no '=== <file> <md5>' blocks found in the pasted text")
+    for name, md5, data in blocks:
+        if data is None:
+            report.append((name, "md5 does not match any reading of the pasted text: NOT imported "
+                                 "(paste the output again, without editing)"))
+            continue
+        if md5 in ledger:
+            report.append((name, f"already imported on {ledger[md5]['utc'][:10]}"))
+            continue
+        f = os.path.join(JOBS, name)
+        if os.path.exists(f) and open(f, "rb").read() != data:
+            report.append((name, "a different file with this name exists locally: NOT imported"))
+            continue
+        open(f, "wb").write(data)
+        try:
+            r = import_result(f, md5)
+        except SystemExit as e:
+            report.append((name, f"NOT imported: {e}"))
+            continue
+        res = json.load(open(f))
+        ledger[md5] = {"file": name, "utc": datetime.datetime.utcnow().isoformat(), "result": r}
+        json.dump(ledger, open(LEDGER, "w"), indent=1, default=str)
+        report.append((name, f"imported: {json.dumps(r, default=str)[:300]}"))
+        rerun_files += [p for p in _problems_of(res) if p not in rerun_files]
+    for name, msg in report:
+        log(f"[ingest] {name}: {msg}")
+    if rerun and rerun_files:
+        from omar_pfem.verification_agent import campaign
+        log(f"[ingest] running the loop again on {[os.path.basename(p) for p in rerun_files]}")
+        campaign.run(rerun_files)
+    return {"report": report, "rerun": [os.path.basename(p) for p in rerun_files]}
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -288,6 +382,9 @@ def main(argv=None):
     i = sub.add_parser("import")
     i.add_argument("returned")
     i.add_argument("md5")
+    g = sub.add_parser("ingest")
+    g.add_argument("paste")
+    g.add_argument("--no-rerun", action="store_true")
     a = ap.parse_args(argv)
     if a.cmd == "prepare":
         lv = [(s.rsplit(":", 2)[0], int(s.rsplit(":", 2)[1]), s.rsplit(":", 2)[2]) for s in a.levels]
@@ -302,6 +399,8 @@ def main(argv=None):
                 print(f"{s}: {e!s:.300}", flush=True)
     elif a.cmd == "batch":
         print(json.dumps(batch(a.names or None), indent=1))
+    elif a.cmd == "ingest":
+        print(json.dumps(ingest(a.paste, rerun=not a.no_rerun), indent=1, default=str))
     else:
         print(json.dumps(import_result(a.returned, a.md5), indent=1))
 

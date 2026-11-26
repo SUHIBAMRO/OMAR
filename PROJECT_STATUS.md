@@ -26350,3 +26350,10 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   earlier certificates; R1-R3 / reference-domain code check - Cook 3D waits on it; groove spline levels 7-9);
   (2) C&S editorial decision; (3) cluster job 3356483 (NH 3D plate n = 16). Next work after the reply:
   further geometry families, then CSM/CFM. Do not contact Professor Rabczuk; Omar sends all emails.
+- 2026-11-26 DONE (automation): cluster results come back with ONE cluster command and ONE local command.
+  Cluster: the line in step 4 of transfer/<job>.md (prints "=== <file> <md5>", the file, "=== end").
+  Here: save Omar's paste to a file, then
+  `python -m omar_pfem.verification_agent.cluster_ladder ingest <paste.txt>`: rebuilds each file byte for byte
+  (CRLF / echo newline handled), checks md5, imports, records cluster_jobs/imported.json (no double import),
+  and re-runs the loop on the affected problems. job_factory writes this command into new job instructions;
+  transfer/ladder_nh_plate_hole_3d_pe_Q216_P216.md updated. Tests 116 pass.

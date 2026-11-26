@@ -1,0 +1,52 @@
+{
+ "087186624ba15aca578799c5766c91ec": {
+  "file": "ladder_plate_hole_quarter_3d_pe_P232_result.json",
+  "utc": "2026-11-26T22:47:38.499534",
+  "result": {
+   "added": [],
+   "problem": "plate_hole_quarter_3d_pe"
+  }
+ },
+ "5a76ec295f2637acc2c11df7f43a2f21": {
+  "file": "mms_cook_3d_Q2_P2_n32_result.json",
+  "utc": "2026-11-26T22:47:40.044909",
+  "result": {
+   "added": [
+    [
+     "676df723c16cb30d|Q2|plane_3d|clamped+free+traction+general_domain",
+     "INCONCLUSIVE"
+    ],
+    [
+     "676df723c16cb30d|P2|plane_3d|clamped+free+traction+general_domain",
+     "INCONCLUSIVE"
+    ],
+    [
+     "676df723c16cb30d|Q2|plane_3d|clamped+free+traction+general_domain|reference_domain",
+     "INCONCLUSIVE"
+    ],
+    [
+     "676df723c16cb30d|P2|plane_3d|clamped+free+traction+general_domain|reference_domain",
+     "INCONCLUSIVE"
+    ]
+   ],
+   "refused": []
+  }
+ },
+ "a5e88d20cadca9f4aee0ecedb9959735": {
+  "file": "mms_nh_plate_hole_3d_pe_Q2_n32_result.json",
+  "utc": "2026-11-26T22:47:41.337473",
+  "result": {
+   "added": [
+    [
+     "72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean",
+     "PASS"
+    ],
+    [
+     "72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean|reference_domain",
+     "INCONCLUSIVE"
+    ]
+   ],
+   "refused": []
+  }
+ }
+}
