@@ -1,0 +1,206 @@
+{
+ "kind": "mms",
+ "name": "mms_cook_3d_Q2_P2_n32",
+ "results": {
+  "676df723c16cb30d|Q2|plane_3d|clamped+free+traction+general_domain": {
+   "verdict": "INCONCLUSIVE",
+   "gate_verdict": "FAIL",
+   "rule": "R1 (post hoc, round Q)",
+   "rates": {
+    "L2": {
+     "observed": 3.786168792604369,
+     "expected": 3.0,
+     "pass": false
+    },
+    "H1": {
+     "observed": 1.9857617374619736,
+     "expected": 2.0,
+     "pass": true
+    }
+   },
+   "levels": [
+    2,
+    4,
+    8,
+    16,
+    32
+   ],
+   "levels_added": [
+    "computed on the cluster"
+   ],
+   "errors": {
+    "L2": [
+     0.026766616846260468,
+     0.005755681440310949,
+     0.0014486846638964409,
+     0.00011982054963142645,
+     1.0242566474091384e-05
+    ],
+    "H1": [
+     0.007413490910223037,
+     0.002393827833999642,
+     0.0006948127263204722,
+     0.0002047738911968421,
+     5.184911827552154e-05
+    ]
+   },
+   "field": {
+    "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)*cos(0.0270833333333333*pi*z + 1/2)",
+    "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)*cos(0.0270833333333333*pi*z + 7/10)",
+    "uz": "0.06*sin(0.0270833333333333*pi*x + 1/5)*sin(0.0216666666666667*pi*y + 3/5)*sin(0.0270833333333333*pi*z + 1/10)"
+   },
+   "problem": "cook_3d",
+   "reason": "cluster job mms_cook_3d_Q2_P2_n32"
+  },
+  "676df723c16cb30d|P2|plane_3d|clamped+free+traction+general_domain": {
+   "verdict": "INCONCLUSIVE",
+   "gate_verdict": "FAIL",
+   "rule": "R1 (post hoc, round Q)",
+   "rates": {
+    "L2": {
+     "observed": 3.243888331515971,
+     "expected": 3.0,
+     "pass": false
+    },
+    "H1": {
+     "observed": 2.267062823811794,
+     "expected": 2.0,
+     "pass": false
+    }
+   },
+   "levels": [
+    2,
+    4,
+    8,
+    16,
+    32
+   ],
+   "levels_added": [
+    "computed on the cluster"
+   ],
+   "errors": {
+    "L2": [
+     0.29812360703906426,
+     0.21838675790144899,
+     0.04805331912449493,
+     0.006541706616008378,
+     0.0006521376295037617
+    ],
+    "H1": [
+     0.06161960393328336,
+     0.01883178497146724,
+     0.0046856716551547245,
+     0.0009644825111719617,
+     0.00023155233608171833
+    ]
+   },
+   "field": {
+    "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)*cos(0.0270833333333333*pi*z + 1/2)",
+    "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)*cos(0.0270833333333333*pi*z + 7/10)",
+    "uz": "0.06*sin(0.0270833333333333*pi*x + 1/5)*sin(0.0216666666666667*pi*y + 3/5)*sin(0.0270833333333333*pi*z + 1/10)"
+   },
+   "problem": "cook_3d",
+   "reason": "cluster job mms_cook_3d_Q2_P2_n32"
+  },
+  "676df723c16cb30d|Q2|plane_3d|clamped+free+traction+general_domain|reference_domain": {
+   "verdict": "INCONCLUSIVE",
+   "gate_verdict": "FAIL",
+   "rule": "R1 (post hoc, round Q)",
+   "rates": {
+    "L2": {
+     "observed": 3.5221707312088224,
+     "expected": 3.0,
+     "pass": false
+    },
+    "H1": {
+     "observed": 2.421016936175815,
+     "expected": 2.0,
+     "pass": false
+    }
+   },
+   "levels": [
+    2,
+    4,
+    8,
+    16,
+    32
+   ],
+   "levels_added": [
+    "computed on the cluster"
+   ],
+   "errors": {
+    "L2": [
+     0.028989369343576904,
+     0.010193213797715501,
+     0.0010003381144217084,
+     8.274048468409238e-05,
+     8.268787571098011e-06
+    ],
+    "H1": [
+     0.008787985771607255,
+     0.0060036698475706765,
+     0.0011786523519122147,
+     0.00019686840740197663,
+     4.3637986741960285e-05
+    ]
+   },
+   "field": {
+    "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)*cos(0.0270833333333333*pi*z + 1/2)",
+    "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)*cos(0.0270833333333333*pi*z + 7/10)",
+    "uz": "0.06*sin(0.0270833333333333*pi*x + 1/5)*sin(0.0216666666666667*pi*y + 3/5)*sin(0.0270833333333333*pi*z + 1/10)"
+   },
+   "problem": "cook_3d_reference_domain",
+   "reason": "cluster job mms_cook_3d_Q2_P2_n32"
+  },
+  "676df723c16cb30d|P2|plane_3d|clamped+free+traction+general_domain|reference_domain": {
+   "verdict": "INCONCLUSIVE",
+   "gate_verdict": "FAIL",
+   "rule": "R1 (post hoc, round Q)",
+   "rates": {
+    "L2": {
+     "observed": 3.117113249754753,
+     "expected": 3.0,
+     "pass": true
+    },
+    "H1": {
+     "observed": 2.2925921552365294,
+     "expected": 2.0,
+     "pass": false
+    }
+   },
+   "levels": [
+    2,
+    4,
+    8,
+    16,
+    32
+   ],
+   "levels_added": [
+    "computed on the cluster"
+   ],
+   "errors": {
+    "L2": [
+     3.3616107599803735,
+     0.2418588178531752,
+     0.04116719669017443,
+     0.005528495557034722,
+     0.0006071043986271554
+    ],
+    "H1": [
+     0.23331703693049047,
+     0.03178940800182761,
+     0.007119518609796028,
+     0.0013706455213256322,
+     0.00031981256298355045
+    ]
+   },
+   "field": {
+    "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)*cos(0.0270833333333333*pi*z + 1/2)",
+    "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)*cos(0.0270833333333333*pi*z + 7/10)",
+    "uz": "0.06*sin(0.0270833333333333*pi*x + 1/5)*sin(0.0216666666666667*pi*y + 3/5)*sin(0.0270833333333333*pi*z + 1/10)"
+   },
+   "problem": "cook_3d_reference_domain",
+   "reason": "cluster job mms_cook_3d_Q2_P2_n32"
+  }
+ }
+}

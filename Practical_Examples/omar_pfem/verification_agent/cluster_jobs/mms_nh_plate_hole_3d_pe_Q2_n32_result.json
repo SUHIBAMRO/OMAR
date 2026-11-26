@@ -1,0 +1,104 @@
+{
+ "kind": "mms",
+ "name": "mms_nh_plate_hole_3d_pe_Q2_n32",
+ "results": {
+  "72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean": {
+   "verdict": "PASS",
+   "gate_verdict": "PASS",
+   "rule": "R1 (post hoc, round Q)",
+   "rates": {
+    "L2": {
+     "observed": 3.1726922728443387,
+     "expected": 3.0,
+     "pass": true
+    },
+    "H1": {
+     "observed": 2.1340574680100555,
+     "expected": 2.0,
+     "pass": true
+    }
+   },
+   "levels": [
+    2,
+    4,
+    8,
+    16
+   ],
+   "levels_added": [
+    "computed on the cluster"
+   ],
+   "errors": {
+    "L2": [
+     0.008195478886109253,
+     0.0010926753990352504,
+     0.0001289288476641052,
+     1.6646720850822294e-05
+    ],
+    "H1": [
+     0.029619071000545626,
+     0.0070395086529798714,
+     0.001661312369328912,
+     0.0004219442573157583
+    ]
+   },
+   "field": {
+    "ux": "a * (sin(0.13*pi*x + 3/10)*cos(0.13*pi*y + 1/5)*cos(0.13*pi*z + 1/2))",
+    "uy": "a * (sin(0.13*pi*y + 2/5)*cos(0.13*pi*x + 1/10)*cos(0.13*pi*z + 7/10))",
+    "uz": "a * (sin(0.13*pi*x + 1/5)*sin(0.13*pi*y + 3/5)*sin(0.13*pi*z + 1/10))",
+    "amplitude": 0.2313849465699297,
+    "peak_strain": 0.1
+   },
+   "problem": "nh_plate_hole_3d_pe",
+   "reason": "cluster job mms_nh_plate_hole_3d_pe_Q2_n32"
+  },
+  "72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean|reference_domain": {
+   "verdict": "INCONCLUSIVE",
+   "gate_verdict": "FAIL",
+   "rule": "R1 (post hoc, round Q)",
+   "rates": {
+    "L2": {
+     "observed": 2.6735595147555498,
+     "expected": 3.0,
+     "pass": false
+    },
+    "H1": {
+     "observed": 1.823091013193453,
+     "expected": 2.0,
+     "pass": true
+    }
+   },
+   "levels": [
+    2,
+    4,
+    8,
+    16
+   ],
+   "levels_added": [
+    "computed on the cluster"
+   ],
+   "errors": {
+    "L2": [
+     0.0016119243341394943,
+     0.000293401730503011,
+     6.537022059627376e-05,
+     9.670152779015144e-06
+    ],
+    "H1": [
+     0.009913852149868028,
+     0.0029256755023821814,
+     0.0010486727267543154,
+     0.0002855051975590452
+    ]
+   },
+   "field": {
+    "ux": "a * (sin(0.13*pi*x + 3/10)*cos(0.13*pi*y + 1/5)*cos(0.13*pi*z + 1/2))",
+    "uy": "a * (sin(0.13*pi*y + 2/5)*cos(0.13*pi*x + 1/10)*cos(0.13*pi*z + 7/10))",
+    "uz": "a * (sin(0.13*pi*x + 1/5)*sin(0.13*pi*y + 3/5)*sin(0.13*pi*z + 1/10))",
+    "amplitude": 0.2313849465699297,
+    "peak_strain": 0.1
+   },
+   "problem": "nh_plate_hole_3d_pe_reference_domain",
+   "reason": "cluster job mms_nh_plate_hole_3d_pe_Q2_n32"
+  }
+ }
+}

@@ -1,0 +1,27 @@
+{
+ "name": "ladder_plate_hole_quarter_3d_pe_P232",
+ "fingerprint": "b912bd8d9a7a76eb514f3554817225ae552064a27be4c70fe4697fc40a01972d",
+ "spec_fingerprint": "b912bd8d9a7a76eb514f3554817225ae552064a27be4c70fe4697fc40a01972d",
+ "rows": {
+  "P2 uniform": [
+   {
+    "n": 32,
+    "h_nominal": 0.3125,
+    "layers": 16,
+    "element": "P2",
+    "plan": {
+     "x": {},
+     "y": {}
+    },
+    "n_elem": 168576,
+    "n_dof": 712701,
+    "h": 0.08380308763039457,
+    "strain_energy": 46.603074801950775,
+    "u_right": 9.570923938539924,
+    "v_hole_top": -0.9726713523895261,
+    "peak_von_mises": 2.7194043966296335,
+    "wall_clock_s": 239.21154880523682
+   }
+  ]
+ }
+}

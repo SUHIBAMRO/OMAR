@@ -1858,12 +1858,12 @@
   "rule": "R1 (post hoc, round Q)",
   "rates": {
    "L2": {
-    "observed": 3.4051817326826836,
+    "observed": 3.786168792604369,
     "expected": 3.0,
     "pass": false
    },
    "H1": {
-    "observed": 2.1402880166181775,
+    "observed": 1.9857617374619736,
     "expected": 2.0,
     "pass": true
    }
@@ -1872,21 +1872,26 @@
    2,
    4,
    8,
-   16
+   16,
+   32
   ],
-  "levels_added": [],
+  "levels_added": [
+   "computed on the cluster"
+  ],
   "errors": {
    "L2": [
-    0.026766616864282382,
-    0.005755681450238867,
-    0.0014486848444325061,
-    0.0001198206093932164
+    0.026766616846260468,
+    0.005755681440310949,
+    0.0014486846638964409,
+    0.00011982054963142645,
+    1.0242566474091384e-05
    ],
    "H1": [
-    0.0074134909098194654,
-    0.002393827834111285,
-    0.0006948127270850052,
-    0.00020477389104337545
+    0.007413490910223037,
+    0.002393827833999642,
+    0.0006948127263204722,
+    0.0002047738911968421,
+    5.184911827552154e-05
    ]
   },
   "field": {
@@ -1895,7 +1900,7 @@
    "uz": "0.06*sin(0.0270833333333333*pi*x + 1/5)*sin(0.0216666666666667*pi*y + 3/5)*sin(0.0270833333333333*pi*z + 1/10)"
   },
   "problem": "cook_3d",
-  "reason": "no passing check on record for 676df723c16cb30d|Q2|plane_3d|clamped+free+traction+general_domain"
+  "reason": "cluster job mms_cook_3d_Q2_P2_n32"
  },
  "676df723c16cb30d|P2|plane_3d|clamped+free+traction+general_domain": {
   "verdict": "INCONCLUSIVE",
@@ -1903,12 +1908,12 @@
   "rule": "R1 (post hoc, round Q)",
   "rates": {
    "L2": {
-    "observed": 2.730645659206739,
+    "observed": 3.243888331515971,
     "expected": 3.0,
     "pass": false
    },
    "H1": {
-    "observed": 2.312512148762493,
+    "observed": 2.267062823811794,
     "expected": 2.0,
     "pass": false
    }
@@ -1917,21 +1922,26 @@
    2,
    4,
    8,
-   16
+   16,
+   32
   ],
-  "levels_added": [],
+  "levels_added": [
+   "computed on the cluster"
+  ],
   "errors": {
    "L2": [
-    0.2981236068435246,
-    0.21838675683908187,
-    0.04805331812414022,
-    0.0065417072100447385
+    0.29812360703906426,
+    0.21838675790144899,
+    0.04805331912449493,
+    0.006541706616008378,
+    0.0006521376295037617
    ],
    "H1": [
-    0.061619603922181396,
-    0.018831784934633965,
-    0.0046856716264349445,
-    0.000964482518573759
+    0.06161960393328336,
+    0.01883178497146724,
+    0.0046856716551547245,
+    0.0009644825111719617,
+    0.00023155233608171833
    ]
   },
   "field": {
@@ -1940,7 +1950,7 @@
    "uz": "0.06*sin(0.0270833333333333*pi*x + 1/5)*sin(0.0216666666666667*pi*y + 3/5)*sin(0.0270833333333333*pi*z + 1/10)"
   },
   "problem": "cook_3d",
-  "reason": "no passing check on record for 676df723c16cb30d|P2|plane_3d|clamped+free+traction+general_domain"
+  "reason": "cluster job mms_cook_3d_Q2_P2_n32"
  },
  "676df723c16cb30d|Q2|plane_3d|clamped+free+traction+general_domain|reference_domain": {
   "verdict": "INCONCLUSIVE",
@@ -1948,12 +1958,12 @@
   "rule": "R1 (post hoc, round Q)",
   "rates": {
    "L2": {
-    "observed": 3.5879659734868254,
+    "observed": 3.5221707312088224,
     "expected": 3.0,
     "pass": false
    },
    "H1": {
-    "observed": 2.5474913940438912,
+    "observed": 2.421016936175815,
     "expected": 2.0,
     "pass": false
    }
@@ -1962,21 +1972,26 @@
    2,
    4,
    8,
-   16
+   16,
+   32
   ],
-  "levels_added": [],
+  "levels_added": [
+   "computed on the cluster"
+  ],
   "errors": {
    "L2": [
-    0.028989369336834665,
-    0.010193213751819544,
-    0.001000338268043183,
-    8.274043687304696e-05
+    0.028989369343576904,
+    0.010193213797715501,
+    0.0010003381144217084,
+    8.274048468409238e-05,
+    8.268787571098011e-06
    ],
    "H1": [
-    0.008787985771528155,
-    0.006003669846906671,
-    0.0011786523505470077,
-    0.0001968684067008328
+    0.008787985771607255,
+    0.0060036698475706765,
+    0.0011786523519122147,
+    0.00019686840740197663,
+    4.3637986741960285e-05
    ]
   },
   "field": {
@@ -1985,7 +2000,7 @@
    "uz": "0.06*sin(0.0270833333333333*pi*x + 1/5)*sin(0.0216666666666667*pi*y + 3/5)*sin(0.0270833333333333*pi*z + 1/10)"
   },
   "problem": "cook_3d_reference_domain",
-  "reason": "no passing check on record for 676df723c16cb30d|Q2|plane_3d|clamped+free+traction+general_domain|reference_domain"
+  "reason": "cluster job mms_cook_3d_Q2_P2_n32"
  },
  "676df723c16cb30d|P2|plane_3d|clamped+free+traction+general_domain|reference_domain": {
   "verdict": "INCONCLUSIVE",
@@ -1993,12 +2008,12 @@
   "rule": "R1 (post hoc, round Q)",
   "rates": {
    "L2": {
-    "observed": 2.9767631865285185,
+    "observed": 3.117113249754753,
     "expected": 3.0,
     "pass": true
    },
    "H1": {
-    "observed": 2.4761997730538896,
+    "observed": 2.2925921552365294,
     "expected": 2.0,
     "pass": false
    }
@@ -2007,23 +2022,26 @@
    2,
    4,
    8,
-   16
+   16,
+   32
   ],
   "levels_added": [
-   "n=32: refused (level n = 32 (P2) needs about 26.8 GB > 13 GB: too large for this machine (prepare a cluster job))"
+   "computed on the cluster"
   ],
   "errors": {
    "L2": [
-    3.361610755228807,
-    0.24185881785875382,
-    0.041167196259594,
-    0.005528495419061667
+    3.3616107599803735,
+    0.2418588178531752,
+    0.04116719669017443,
+    0.005528495557034722,
+    0.0006071043986271554
    ],
    "H1": [
-    0.23331703662948197,
-    0.0317894080030947,
-    0.0071195185972703565,
-    0.001370645519860243
+    0.23331703693049047,
+    0.03178940800182761,
+    0.007119518609796028,
+    0.0013706455213256322,
+    0.00031981256298355045
    ]
   },
   "field": {
@@ -2032,7 +2050,7 @@
    "uz": "0.06*sin(0.0270833333333333*pi*x + 1/5)*sin(0.0216666666666667*pi*y + 3/5)*sin(0.0270833333333333*pi*z + 1/10)"
   },
   "problem": "cook_3d_reference_domain",
-  "reason": "no passing check on record for 676df723c16cb30d|P2|plane_3d|clamped+free+traction+general_domain|reference_domain"
+  "reason": "cluster job mms_cook_3d_Q2_P2_n32"
  },
  "676df723c16cb30d|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes": {
   "verdict": "PASS",
@@ -2125,39 +2143,42 @@
   "reason": "no passing check on record for 676df723c16cb30d|P2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes"
  },
  "72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean": {
-  "verdict": "INCONCLUSIVE",
-  "gate_verdict": "FAIL",
+  "verdict": "PASS",
+  "gate_verdict": "PASS",
   "rule": "R1 (post hoc, round Q)",
   "rates": {
    "L2": {
-    "observed": 3.7071923090648506,
+    "observed": 3.1726922728443387,
     "expected": 3.0,
-    "pass": false
+    "pass": true
    },
    "H1": {
-    "observed": 2.567833176446296,
+    "observed": 2.1340574680100555,
     "expected": 2.0,
-    "pass": false
+    "pass": true
    }
   },
   "levels": [
    2,
    4,
-   8
+   8,
+   16
   ],
   "levels_added": [
-   "n=16: refused (level n = 16 (Q2) needs about 16.6 GB > 13 GB: too large for this machine (prepare a cluster job))"
+   "computed on the cluster"
   ],
   "errors": {
    "L2": [
-    0.008195478886109261,
-    0.0010926753990352345,
-    0.0001289288476641079
+    0.008195478886109253,
+    0.0010926753990352504,
+    0.0001289288476641052,
+    1.6646720850822294e-05
    ],
    "H1": [
-    0.02961907100054563,
-    0.007039508652979874,
-    0.001661312369328914
+    0.029619071000545626,
+    0.0070395086529798714,
+    0.001661312369328912,
+    0.0004219442573157583
    ]
   },
   "field": {
@@ -2168,7 +2189,7 @@
    "peak_strain": 0.1
   },
   "problem": "nh_plate_hole_3d_pe",
-  "reason": "no passing check on record for 72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean"
+  "reason": "cluster job mms_nh_plate_hole_3d_pe_Q2_n32"
  },
  "72d6a1e90181c881|P2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean": {
   "verdict": "PASS",
@@ -2223,12 +2244,12 @@
   "rule": "R1 (post hoc, round Q)",
   "rates": {
    "L2": {
-    "observed": 2.7538448477616027,
+    "observed": 2.6735595147555498,
     "expected": 3.0,
     "pass": false
    },
    "H1": {
-    "observed": 1.9291782910846864,
+    "observed": 1.823091013193453,
     "expected": 2.0,
     "pass": true
    }
@@ -2236,21 +2257,24 @@
   "levels": [
    2,
    4,
-   8
+   8,
+   16
   ],
   "levels_added": [
-   "n=16: refused (level n = 16 (Q2) has 769272 DOF > 450000: too large for this machine (prepare a cluster job))"
+   "computed on the cluster"
   ],
   "errors": {
    "L2": [
-    0.0016119243341394804,
-    0.0002934017305030113,
-    6.537022059626786e-05
+    0.0016119243341394943,
+    0.000293401730503011,
+    6.537022059627376e-05,
+    9.670152779015144e-06
    ],
    "H1": [
-    0.009913852149868025,
-    0.0029256755023821775,
-    0.0010486727267543143
+    0.009913852149868028,
+    0.0029256755023821814,
+    0.0010486727267543154,
+    0.0002855051975590452
    ]
   },
   "field": {
@@ -2261,6 +2285,6 @@
    "peak_strain": 0.1
   },
   "problem": "nh_plate_hole_3d_pe_reference_domain",
-  "reason": "no passing check on record for 72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean|reference_domain"
+  "reason": "cluster job mms_nh_plate_hole_3d_pe_Q2_n32"
  }
 }
