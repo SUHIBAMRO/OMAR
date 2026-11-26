@@ -26361,3 +26361,10 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   no longer penalised; queries for plate with a hole / Cook; scout prompt updated); definition step refuses
   nu > 0.49 by code (test). Round-2 search PRE-REGISTERED (literature_search_round2_preregistration.json,
   5 predictions, budget USD 5). NOT RUN: billed LLM run waits for Omar's approval.
+- 2026-11-26 DONE: round-2 literature search (approved by Omar, cap USD 5; spent USD 1.09). Attempt 1 invalid
+  (my code error: scout prompt lost its f-prefix; fixed + test). Attempt 2: 82 papers, 12 scouted, 1 read
+  (1911.08728, Cook's membrane): the modeler chose the nearly incompressible case (nu = 0.499999975, the only one
+  with a reference value); code refused it (nu > 0.49). Score 3/5 (P3 by human judgement), P1 end-to-end MISSED,
+  P4 not tested (literature_search_round2_score.json). Lesson: benchmark geometry is usually only in figures.
+  Option for later (needs a decision, changes the tracing rule): a table of named standard geometries
+  (e.g. Cook vertices) cited instead of read from the text.

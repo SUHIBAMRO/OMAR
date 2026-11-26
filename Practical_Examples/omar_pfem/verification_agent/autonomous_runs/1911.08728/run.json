@@ -1,0 +1,375 @@
+{
+ "steps": [
+  {
+   "stage": "L",
+   "actor": "LLM",
+   "status": "done",
+   "detail": "card from passage at character 67660 (score 158.2); quotes found 100%",
+   "card": {
+    "pdf": "1911.08728.pdf",
+    "section_used": "passage at character 67660 (score 158.2)",
+    "card": {
+     "title": "Cook's membrane (linear elasticity, compressible and nearly incompressible), SWG method on polygonal meshes",
+     "geometry": {
+      "value": "A 2D tapered plate (Cook's membrane), shown in Fig. 10.4. The text gives no vertex coordinates. It gives only the evaluation point Q = (48, 52), the midpoint of the right end. No thickness or plane-strain/plane-stress assumption is stated.",
+      "quote": "The problem consists of a tapered plate clamped on one end and subject to a shear load, taken as g = (0, 1/16) in our numerical experiments, on the opposite end, as illustrated in Figure 10.4."
+     },
+     "material": {
+      "value": "Linear isotropic elasticity, not hyperelastic. Case 1: E = 1, nu = 1/3. Case 2 (nearly incompressible): E = 1.12499998125, nu = 0.499999975. The reference value applies to case 2 only.",
+      "quote": "the second case is concerned with a nearly incompressible material with Young\u2019s modulus E = 1.12499998125 and Poisson ratio \u03bd = 0.499999975"
+     },
+     "boundary_conditions": {
+      "value": "Clamped on one end (the left end, by inference from Q being on the right end). A shear traction acts on the opposite end. The remaining edges are presumably traction-free, but the text does not say so.",
+      "quote": "a tapered plate clamped on one end"
+     },
+     "loading": {
+      "value": "Shear traction g = (0, 1/16) on the end opposite the clamp. The text does not say whether it is distributed uniformly or is a resultant.",
+      "quote": "subject to a shear load, taken as g = (0, 1/16) in our numerical experiments"
+     },
+     "discretisation": {
+      "value": "The reference value 16.442 is taken from [2, 22]. Its mesh, element type and element count are not stated in this section. (The paper's own SWG runs use triangle, quadrilateral, hexagonal and octagonal partitions, e.g. h = 1/16. Those are the method under test, not the reference.)",
+      "quote": "compared against the reference values reported in [2, 22], given by 16.442 for the second test case."
+     },
+     "reference": {
+      "type": "unspecified",
+      "convergence_evidence": "none_stated",
+      "quote": "As there is no analytical solution available, the vertical displacement at the mid point of the right end of the plate, Q = (48, 52), is compared against the reference values reported in [2, 22]"
+     },
+     "qois": [
+      {
+       "name": "Vertical displacement at Q",
+       "kind": "displacement",
+       "definition": "Vertical displacement u2 at Q = (48, 52), the midpoint of the right end. Case 2 (nu = 0.499999975).",
+       "reported_value": "Reference 16.442 (from [2, 22]). The SWG triangular-mesh value is within 1% of it at the fifth refinement (12,416 DOF, 8,192 elements). The exact SWG value is shown only in Fig. 10.8, not stated as a number.",
+       "quote": "convergence occurs in the fifth refinement for the triangular mesh, with 12, 416 degree of freedom (i.e. 8, 192 triangular elements)"
+      },
+      {
+       "name": "Relative error of tip displacement vs reference, all mesh types",
+       "kind": "displacement",
+       "definition": "Relative difference between the computed u2(Q) and 16.442, as a function of total DOF for each polygonal mesh type",
+       "reported_value": "Below 5% with fewer than 18,000 DOF for all mesh types",
+       "quote": "we need less than 18, 000 degree of freedoms to achieve an error less than 5% with respect to the reference value for all type of meshes."
+      },
+      {
+       "name": "Displacement and pseudo-pressure fields",
+       "kind": "other",
+       "definition": "Contour plots of the deformed shape coloured by pseudo-pressure (kappa = 1), and contour plots of u1 and u2 for kappa = 1 and kappa = 0 on the quadrilateral mesh with h = 1/16",
+       "reported_value": "Qualitative only: the kappa = 0 results are very close to the kappa = 1 results",
+       "quote": "the approximate solution obtained from the SWG scheme with \u03ba = 0 are very close to those obtained with \u03ba = 1 for both cases"
+      }
+     ],
+     "singular_features": [
+      {
+       "description": "The corners where the clamped end meets the traction-free top and bottom edges give a corner singularity in the continuum stress. This is made more severe by near-incompressibility.",
+       "singular": true,
+       "inferred": true,
+       "quote": "The problem consists of a tapered plate clamped on one end"
+      },
+      {
+       "description": "The corners where the end carrying the shear traction meets the free edges. With a smooth traction distribution, these give no strong singularity. The load distribution is not stated.",
+       "singular": false,
+       "inferred": true,
+       "quote": "subject to a shear load, taken as g = (0, 1/16) in our numerical experiments, on the opposite end"
+      }
+     ],
+     "not_stated": [
+      "Vertex coordinates and dimensions of the tapered plate (only Q = (48, 52) is given; the figure is not reproduced in the text)",
+      "Plane strain vs plane stress assumption and thickness",
+      "Whether the traction g is uniformly distributed or a total resultant",
+      "Explicit statement that the top and bottom edges are traction-free",
+      "Reference value for case 1 (E = 1, nu = 1/3)",
+      "Mesh, element type, element count and convergence evidence behind the reference value 16.442 from [2, 22]",
+      "Numerical values of the SWG tip displacement for each mesh (shown only graphically in Fig. 10.8)",
+      "Mesh sizes and DOF counts for each refinement level of the non-triangular partitions",
+      "The problem is linear elasticity, not hyperelasticity; no nonlinear constitutive model is given"
+     ]
+    },
+    "quotes_found": {
+     "geometry": true,
+     "material": true,
+     "boundary_conditions": true,
+     "loading": true,
+     "discretisation": true,
+     "reference": true,
+     "qois[0]": true,
+     "qois[1]": true,
+     "qois[2]": true,
+     "singular_features[0]": true,
+     "singular_features[1]": true
+    },
+    "quote_rate": 1.0,
+    "qoi_classes": [
+     {
+      "name": "Vertical displacement at Q",
+      "kind": "displacement",
+      "class": "displacement"
+     },
+     {
+      "name": "Relative error of tip displacement vs reference, all mesh types",
+      "kind": "displacement",
+      "class": "displacement"
+     },
+     {
+      "name": "Displacement and pseudo-pressure fields",
+      "kind": "other",
+      "class": "out_of_scope"
+     }
+    ],
+    "vocabulary_gaps": [],
+    "needs": [
+     "reference not verified: a refinement family (and strategies) is needed before its values can be used to measure surrogate errors",
+     "no independent code: cross-check with a second solver",
+     "singular features present: run the singular-order check; pointwise peaks there have no finite limit",
+     "missing inputs must be fixed (and declared) before solving: Vertex coordinates and dimensions of the tapered plate (only Q = (48, 52) is given; the figure is not reproduced in the text); Plane strain vs plane stress assumption and thickness; Whether the traction g is uniformly distributed or a total resultant; Explicit statement that the top and bottom edges are traction-free; Reference value for case 1 (E = 1, nu = 1/3); Mesh, element type, element count and convergence evidence behind the reference value 16.442 from [2, 22]; Numerical values of the SWG tip displacement for each mesh (shown only graphically in Fig. 10.8); Mesh sizes and DOF counts for each refinement level of the non-triangular partitions; The problem is linear elasticity, not hyperelasticity; no nonlinear constitutive model is given"
+    ],
+    "problem_text": "Cook's membrane (linear elasticity, compressible and nearly incompressible), SWG method on polygonal meshes.\nGeometry: A 2D tapered plate (Cook's membrane), shown in Fig. 10.4. The text gives no vertex coordinates. It gives only the evaluation point Q = (48, 52), the midpoint of the right end. No thickness or plane-strain/plane-stress assumption is stated.\nMaterial: Linear isotropic elasticity, not hyperelastic. Case 1: E = 1, nu = 1/3. Case 2 (nearly incompressible): E = 1.12499998125, nu = 0.499999975. The reference value applies to case 2 only.\nBoundary conditions: Clamped on one end (the left end, by inference from Q being on the right end). A shear traction acts on the opposite end. The remaining edges are presumably traction-free, but the text does not say so.\nLoading: Shear traction g = (0, 1/16) on the end opposite the clamp. The text does not say whether it is distributed uniformly or is a resultant.\nDiscretisation in the paper: The reference value 16.442 is taken from [2, 22]. Its mesh, element type and element count are not stated in this section. (The paper's own SWG runs use triangle, quadrilateral, hexagonal and octagonal partitions, e.g. h = 1/16. Those are the method under test, not the reference.)\nFeatures: The corners where the clamped end meets the traction-free top and bottom edges give a corner singularity in the continuum stress. This is made more severe by near-incompressibility.; The corners where the end carrying the shear traction meets the free edges. With a smooth traction distribution, these give no strong singularity. The load distribution is not stated..\nQuestion: which of these quantities can serve as trustworthy reference values: Vertical displacement at Q (Vertical displacement u2 at Q = (48, 52), the midpoint of the right end. Case 2 (nu = 0.499999975).); Relative error of tip displacement vs reference, all mesh types (Relative difference between the computed u2(Q) and 16.442, as a function of total DOF for each polygonal mesh type); Displacement and pseudo-pressure fields (Contour plots of the deformed shape coloured by pseudo-pressure (kappa = 1), and contour plots of u1 and u2 for kappa = 1 and kappa = 0 on the quadrilateral mesh with h = 1/16)?"
+   }
+  },
+  {
+   "stage": "L",
+   "actor": "code",
+   "status": "done",
+   "detail": "section chosen by code from the hint"
+  },
+  {
+   "stage": "L",
+   "actor": "code",
+   "status": "done",
+   "detail": "paper and hint chosen by the literature search (code + scout) (\"Cook's membrane (case 1, E=1, nu=1/3)\")"
+  },
+  {
+   "stage": "D",
+   "actor": "LLM",
+   "status": "done",
+   "detail": "formalizer specification; code check: no problems",
+   "spec": {
+    "name": "Cook's membrane, linear elasticity (compressible nu=1/3 and nearly incompressible nu=0.499999975), SWG method on polygonal meshes: tip vertical displacement u2(Q) compared with the literature reference 16.442",
+    "geometry": "2D tapered plate (Cook's membrane, paper Fig. 10.4). The text gives no vertex coordinates. The only coordinate given is the evaluation point Q = (48, 52), stated to be the midpoint of the right end, so the right end is the vertical segment x = 48 centred at y = 52. The left end is clamped (inferred). The top and bottom edges are inclined and presumably traction-free. Thickness and the plane-strain/plane-stress assumption are not stated.",
+    "dim": 2,
+    "material": "Linear isotropic elasticity (small strain), not hyperelastic. Case 1: E = 1, nu = 1/3 (compressible). Case 2: E = 1.12499998125, nu = 0.499999975 (nearly incompressible, so lambda/mu is very large and low-order displacement elements can lock). The reference value 16.442 applies to case 2 only. The paper uses a pseudo-pressure variable and a parameter kappa in {0, 1}. What kappa means (formulation variant or stabilisation) is not defined in the excerpt.",
+    "loading": "Shear traction g = (0, 1/16) on the right end x = 48. The edge opposite the clamp is the right end by inference. The text does not say whether g is a uniform traction density or whether it stands for a total resultant. The left end is fully clamped (u = 0). The top and bottom edges are presumably traction-free (not stated). No body force is mentioned. The load is static and linear, so there are no limit points or load-level issues.",
+    "regularity": "clamped_free_corner",
+    "element": "Q4",
+    "reference": "mesh_refinement_family",
+    "qois": [
+     "u2(Q): vertical displacement at Q = (48, 52), the midpoint of the right end, for case 2 (nu = 0.499999975), compared with the reference 16.442 from [2, 22]. This is a pointwise displacement far from the clamped-corner singularities. For a locking-free discretisation it converges under refinement (for a uniform load it is the midpoint of a smooth edge). It is a usable QoI, but the reference can only be trusted if [2, 22] report a converged refinement study under the same BCs, load distribution and plane assumption.",
+     "Relative error |u2_h(Q) - 16.442| / 16.442 against total DOF for each polygonal mesh type (triangle, quadrilateral, hexagonal, octagonal). This is a derived quantity. It can only resolve errors larger than the error of the reference itself, so the curves will level off at about the reference's own accuracy (unknown: 16.442 is given to 5 significant figures, i.e. about 1e-4 relative at best). Rates read from it are not trustworthy beyond that point. Because of the corner singularities, the observed rates will be below the smooth-solution rates.",
+     "Displacement fields u1 and u2 and the pseudo-pressure field (deformed shape coloured by pseudo-pressure for kappa = 1, plus u1 and u2 contours for kappa = 1 and kappa = 0) on the quadrilateral mesh with h = 1/16. These are qualitative only. The displacement contours can be checked for smoothness and for the absence of locking or checkerboarding. The pseudo-pressure, like the stress, is singular at the clamped-free corners, so its peak values do not converge and cannot be a reference. Away from the corners it could be compared through region averages, but the paper gives no reference field values."
+    ],
+    "well_posedness": [
+     "Dirichlet condition: the left end is fully clamped (u = 0). This removes rigid-body modes, so the linear elastic problem has a unique solution as long as the clamp has positive length.",
+     "Material stability: the linear isotropic material with E > 0 and -1 < nu < 0.5 is strongly elliptic and coercive in both cases. For case 2, nu = 0.499999975 is very close to 0.5, so the problem is nearly incompressible. Only locking-free or mixed discretisations (the SWG pseudo-pressure formulation is meant to be one) converge uniformly in lambda. For a locking discretisation, u2(Q) will be far too small on practical meshes.",
+     "Loading: linear static problem with no geometric or material nonlinearity, so there are no limit points or bifurcations, and the solution scales linearly with g.",
+     "Singular features: where the clamped left end meets the traction-free top and bottom edges, the stress and pressure are singular (near-incompressibility makes it worse). So the peak stress or peak pseudo-pressure at those corners does not converge. Energy, displacements (including u2(Q)) and region averages away from the corners do converge, at reduced rates set by the corner singularity exponent.",
+     "Corners at the loaded end: for a uniform traction no strong singularity is expected, but the traction distribution is not stated. A non-smooth or point-like load would add a singularity near Q.",
+     "Reference consistency: 16.442 is only valid if [2, 22] used the same geometry, the same plane assumption (plane strain vs plane stress gives different results for the nu = 0.4999 case), the same traction distribution and the same thickness. None of these are confirmed in the text.",
+     "Case 1 (nu = 1/3) has no reference value given. It can only be checked through a self-convergence (mesh refinement) study."
+    ],
+    "open_questions": [
+     "Vertex coordinates of the membrane are not given. The usual Cook geometry is consistent with Q = (48, 52), but the text does not state it.",
+     "Plane strain or plane stress? Thickness? The text states neither, and both change u2(Q) for the nearly incompressible case.",
+     "Is g = (0, 1/16) a uniform traction density on the right end, or a total shear force (resultant) spread in some other way?",
+     "Are the top and bottom edges traction-free? This is presumed but not stated.",
+     "Is the clamped end the left end (x = 0 side)? This is inferred only from Q being on the right end.",
+     "How was the reference 16.442 from [2, 22] obtained: element type, mesh family, number of DOF, whether it was extrapolated, and its estimated error? The element enum value 'Q4' and reference type 'mesh_refinement_family' are placeholders. The SWG polygonal method under test is not in the element enum, and the excerpt does not specify the reference discretisation.",
+     "What is the parameter kappa (0 vs 1)? How is the pseudo-pressure defined (e.g. -lambda div u, or a scaled variant)?",
+     "Is there any reference value for case 1 (nu = 1/3)? Only case 2 is covered by 16.442.",
+     "Is u2(Q) evaluated at the node at Q, or interpolated? The SWG approximation may be discontinuous, so it may matter which element trace is used."
+    ]
+   }
+  },
+  {
+   "stage": "D",
+   "actor": "code",
+   "status": "unsupported",
+   "detail": "nu = 0.499999975 > 0.49: nearly incompressible; the pipeline's displacement-only elements lock (no mixed formulation yet)",
+   "description": {
+    "name": "cooks_membrane_linear_nearly_incompressible",
+    "E": 1.12499998125,
+    "nu": 0.499999975,
+    "plane": "strain",
+    "domain": {
+     "outer": [
+      [
+       0,
+       0
+      ],
+      [
+       48,
+       44
+      ],
+      [
+       48,
+       60
+      ],
+      [
+       0,
+       44
+      ]
+     ],
+     "holes": []
+    },
+    "material": "linear_elastic",
+    "bcs": [
+     {
+      "segment": [
+       [
+        0,
+        0
+       ],
+       [
+        0,
+        44
+       ]
+      ],
+      "type": "clamped"
+     },
+     {
+      "segment": [
+       [
+        48,
+        44
+       ],
+       [
+        48,
+        60
+       ]
+      ],
+      "type": "traction",
+      "t": [
+       0,
+       0.0625
+      ]
+     }
+    ],
+    "points": {
+     "v_q": [
+      48,
+      52,
+      "y"
+     ]
+    }
+   }
+  }
+ ],
+ "human_points": [],
+ "wall_clock_s": 80.97142171859741,
+ "source": {
+  "pdf": "/home/user/OMAR/Practical_Examples/omar_pfem/verification_agent/literature_search_runs/papers/1911.08728.pdf",
+  "text": null,
+  "description_given": false
+ },
+ "modeler": {
+  "supported": false,
+  "unsupported_reason": "nu = 0.499999975 > 0.49: nearly incompressible; the pipeline's displacement-only elements lock (no mixed formulation yet)",
+  "description": {
+   "name": "cooks_membrane_linear_nearly_incompressible",
+   "material": "linear_elastic",
+   "geometry_kind": "polygon",
+   "cell_size": 1,
+   "cells": [],
+   "outer": [
+    [
+     0,
+     0
+    ],
+    [
+     48,
+     44
+    ],
+    [
+     48,
+     60
+    ],
+    [
+     0,
+     44
+    ]
+   ],
+   "holes": [],
+   "E": 1.12499998125,
+   "nu": 0.499999975,
+   "plane": "strain",
+   "bcs": [
+    {
+     "segment": [
+      [
+       0,
+       0
+      ],
+      [
+       0,
+       44
+      ]
+     ],
+     "hole": -1,
+     "type": "clamped",
+     "t": [],
+     "p": 0,
+     "u": []
+    },
+    {
+     "segment": [
+      [
+       48,
+       44
+      ],
+      [
+       48,
+       60
+      ]
+     ],
+     "hole": -1,
+     "type": "traction",
+     "t": [
+      0,
+      0.0625
+     ],
+     "p": 0,
+     "u": []
+    }
+   ],
+   "points": [
+    {
+     "name": "v_q",
+     "x": 48,
+     "y": 52,
+     "component": "y"
+    }
+   ]
+  },
+  "sources": [
+   {
+    "item": "evaluation point Q",
+    "value": "(48, 52)",
+    "quote": "It gives only the evaluation point Q = (48, 52), the midpoint of the right end."
+   },
+   {
+    "item": "Young's modulus and Poisson ratio (case 2)",
+    "value": "E = 1.12499998125, nu = 0.499999975",
+    "quote": "Case 2 (nearly incompressible): E = 1.12499998125, nu = 0.499999975."
+   },
+   {
+    "item": "shear traction",
+    "value": "(0, 1/16) = (0, 0.0625)",
+    "quote": "Shear traction g = (0, 1/16) on the end opposite the clamp."
+   },
+   {
+    "item": "reference value",
+    "value": "16.442",
+    "quote": "The reference value 16.442 is taken from [2, 22]."
+   }
+  ],
+  "assumptions": [
+   "The vertex coordinates aren't stated. I used the standard Cook's membrane geometry (0,0), (48,44), (48,60), (0,44). This fits the given Q = (48,52), which is the midpoint of the right edge x=48 between y=44 and y=60. That edge has length 16, which also fits g = 1/16 giving a unit total shear force. If the paper's Fig. 10.4 is different, this model is wrong.",
+   "The text names no plane condition. I chose plane strain, because nu -> 0.5 near-incompressibility is a plane-strain (or 3D) concept and plane stress would remove the volumetric constraint. Thickness is taken as 1.",
+   "I applied g = (0, 1/16) as a uniform traction per unit length on the right edge, not as a resultant. This matches the standard Cook's membrane setup and the reference 16.442. The text doesn't say so explicitly.",
+   "The clamp is on the left edge x=0, inferred from Q lying on the right end.",
+   "The top and bottom inclined edges are traction-free. The text says 'presumably' but does not confirm it.",
+   "Only case 2 is modelled (E = 1.12499998125, nu = 0.499999975), because the reference value applies to case 2 only. Case 1 (E = 1, nu = 1/3) would be the same description with those constants.",
+   "Trustworthiness: u2(Q) is a displacement, a global quantity. It converges under refinement despite the singularities at the clamped corners (0,0) and (0,44), so it can serve as a reference value if a locking-free discretisation is refined to convergence. At nu = 0.499999975, standard displacement-based Q4/Q9 elements will lock and underestimate u2(Q) badly, so the pipeline must use a mixed or locking-free formulation or a strongly refined higher-order mesh. The quoted 16.442 comes from [2, 22] with an unstated mesh and element. It is a literature value to compare against, not independently verified.",
+   "The relative-error-vs-DOF curves are derived from u2(Q) and 16.442. They are only as trustworthy as that reference: the 16.442 has 5 significant figures, so relative errors below about 1e-4 to 1e-5 can't be resolved. They show the method's convergence; they are not reference data in their own right.",
+   "The contour plots of u1 and u2 (displacement fields) are smooth and converge, but they are qualitative only. The pseudo-pressure field is singular at the clamped corners (0,0) and (0,44), and near-incompressibility makes this worse. Its peak values there don't converge under refinement, so pointwise or peak pressure from these plots can't serve as a trustworthy reference. Pressure away from the corners or averaged over regions can."
+  ]
+ }
+}

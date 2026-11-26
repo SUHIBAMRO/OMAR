@@ -1,0 +1,54 @@
+{
+ "preregistration": "literature_search_round2_preregistration.json",
+ "attempts": {
+  "1": {
+   "run": "literature_search_runs/20261126_232807.json",
+   "status": "invalid: code error in the scout prompt (no paper screened)",
+   "cost_usd": 0.2
+  },
+  "2": {
+   "run": "literature_search_runs/20261126_233251.json",
+   "status": "scored",
+   "cost_usd": 0.89
+  }
+ },
+ "total_cost_usd": 1.09,
+ "facts": {
+  "papers_found": 82,
+  "scouted": 12,
+  "scout_positive": 1,
+  "read": [
+   "1911.08728"
+  ],
+  "read_outcome": "definition step: the modeler chose the nearly incompressible case (nu = 0.499999975, the only case with a reference value 16.442); code refused it (nu > 0.49, displacement elements lock). The compressible case (nu = 1/3) has no reference value in the paper and the Cook vertices (44, 60) are given only in a figure, so it would not have passed the trace check either.",
+  "scout_error": "the scout rated 1911.08728 representable although the geometry is only in a figure"
+ },
+ "predictions": {
+  "P1_end_to_end": {
+   "confirmed": false,
+   "evidence": "no paper reached verdicts"
+  },
+  "P2_general_geometry_used": {
+   "confirmed": true,
+   "evidence": "the description of 1911.08728 uses a polygon with inclined edges (Cook's membrane)"
+  },
+  "P3_refusals_correct": {
+   "confirmed": true,
+   "evidence": "human judgement: nu = 0.499999975 is nearly incompressible, and the paper itself states that low-order displacement elements lock; the reason is true for the paper",
+   "human_judgement": true
+  },
+  "P4_no_silent_change": {
+   "confirmed": null,
+   "evidence": "not tested: no description passed the code check (the refusal came first); the refused description contains vertices 44 and 60 that are not in the text"
+  },
+  "P5_cost": {
+   "confirmed": true,
+   "evidence": "USD 1.09 for both attempts, below USD 5"
+  }
+ },
+ "summary": "3 of 5 confirmed (P3 by human judgement), P1 missed, P4 not tested",
+ "lessons": [
+  "benchmark geometries are usually given only in figures: either a table of named standard geometries traced to a citation (a change of the tracing rule, needs a decision) or papers that state coordinates",
+  "the scout should be told explicitly that coordinates must be in the text"
+ ]
+}
