@@ -17,5 +17,13 @@
   "P5_cost": "the LLM cost stays at or below USD 5"
  },
  "scoring": "by hand from literature_search_runs/<stamp>.json and autonomous_runs/<paper id>/run.json; P3 is a human judgement and is reported as such",
- "not_changed": "acceptance criteria, gates and tolerances are unchanged"
+ "not_changed": "acceptance criteria, gates and tolerances are unchanged",
+ "attempts": [
+  {
+   "run": "literature_search_runs/20261126_232807.json",
+   "status": "invalid (code error, see the run file)",
+   "cost_usd": 0.20054399999999997
+  }
+ ],
+ "budget_note": "the USD 5 approval covers both attempts together: attempt 2 runs with budget 5 minus the cost of attempt 1"
 }

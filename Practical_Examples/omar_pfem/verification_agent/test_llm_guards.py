@@ -1453,3 +1453,19 @@ def test_nearly_incompressible_description_is_refused_by_code():
     finally:
         R.formalize = orig
     assert d is None and m["supported"] is False and "incompressible" in m["unsupported_reason"]
+
+
+def test_scout_prompt_contains_the_paper():
+    """26 Nov: an edit dropped the f-prefix and the scout received '{c['title']}' instead of the
+    paper (round-2 search attempt 1, all scouts empty). The prompt must carry title and passage."""
+    from omar_pfem.verification_agent import literature_search as L
+    seen = {}
+
+    class B:
+        def ask(self, role, prompt, schema):
+            seen["p"] = prompt
+            return {"likely_representable": False, "example": "", "reason": ""}
+    L.scout(B(), {"title": "A plate with a hole", "text_screen": {"passage": "E = 210 GPa"}},
+            "linear_elastic")
+    assert "A plate with a hole" in seen["p"] and "E = 210 GPa" in seen["p"]
+    assert "{c[" not in seen["p"] and "{CAPABILITIES" not in seen["p"] and "{DOMAIN" not in seen["p"]
