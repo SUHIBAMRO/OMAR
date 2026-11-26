@@ -180,7 +180,29 @@ def numbers_in(text):
     return out
 
 
-def trace_numbers(desc, text, assumptions):
+_NAMED = {"E": r"(?:\bE\b|Young[’']?s modulus|modulus of elasticity)",
+          "nu": r"(?:ν|\bnu\b|Poisson[’']?s ratio)"}
+
+
+def stated_in_paper(name, v, full_text):
+    """26 Nov: E or nu stated next to its name anywhere in the paper ('ν = 1/3', 'Young's modulus
+    E = 210 GPa'), for a value the modeler took from outside the selected passage."""
+    import re
+    if not full_text or name not in _NAMED:
+        return False
+    num = r"([-+]?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?(?:\s*/\s*\d+)?)"
+    for m in re.finditer(_NAMED[name] + r"\s*(?:=|:|of|is)?\s*" + num, full_text):
+        t = m.group(1).replace(" ", "")
+        try:
+            x = (float(t.split("/")[0]) / float(t.split("/")[1])) if "/" in t else float(t)
+        except (ValueError, ZeroDivisionError):
+            continue
+        if abs(x - v) <= 1e-9 * max(1.0, abs(v)):
+            return True
+    return False
+
+
+def trace_numbers(desc, text, assumptions, full_text=None):
     """Every physical number of the description must be found in the source text (relative
     1e-9), be 0, or be declared as an assumption.
     POST HOC (24 Nov, after the pre-registered autonomy test): the cell size is a meshing
@@ -225,6 +247,8 @@ def trace_numbers(desc, text, assumptions):
             continue
         if name.startswith("vertex") and v in std_nums:
             continue
+        if stated_in_paper(name, v, full_text):
+            continue        # E / nu stated next to its name elsewhere in the paper (26 Nov)
         if (name.startswith("vertex") or name.startswith("hole")) and any(
                 found(v * k) for k in (2, 4)):
             continue        # half or quarter of a stated dimension (symmetry models)
@@ -265,7 +289,7 @@ def to_pipeline(desc):
 NU_MAX = 0.49
 
 
-def define(backend, text, log, retries=2):
+def define(backend, text, log, retries=2, full_text=None):
     from omar_pfem.verification_agent import llm_roles
     from omar_pfem.verification_agent.pipeline2d import validate as validate_le
     from omar_pfem.verification_agent.pipeline2d_nh import validate as validate_nh
@@ -300,7 +324,13 @@ def define(backend, text, log, retries=2):
             log.step("D", "code", "unsupported", why, description=desc)
             return None, dict(m, supported=False, unsupported_reason=why)
         errs = validate(desc)
-        unsup, flagged = trace_numbers(desc, text, m["assumptions"])
+        unsup, flagged = trace_numbers(desc, text, m["assumptions"], full_text)
+        outside = [k for k in ("E", "nu") if k in desc and not any(
+            abs(float(desc[k]) - x) <= 1e-9 * max(1.0, abs(x)) for x in numbers_in(text))
+            and stated_in_paper(k, float(desc[k]), full_text)]
+        if outside:
+            log.step("D", "code", "note", f"{', '.join(outside)} found next to its name in the "
+                     "paper outside the selected passage (traced by code, 26 Nov)")
         log.step("D", "code", "checked", f"attempt {attempt + 1}: validation "
                  f"{errs or 'ok'}; untraced numbers {unsup or 'none'}; assumptions {flagged or 'none'}",
                  description=desc)
@@ -523,7 +553,11 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
         log.step("L", "person", "input", "description written by a person (steps L, D skipped)")
     # D
     if desc is None:
-        desc, m = define(backend, problem_text, log)
+        full = None
+        if pdf:
+            from omar_pfem.verification_agent.literature_agent import extract_text
+            full = extract_text(pdf)
+        desc, m = define(backend, problem_text, log, full_text=full)
         result["modeler"] = m
         if desc is None:
             log.save(result)

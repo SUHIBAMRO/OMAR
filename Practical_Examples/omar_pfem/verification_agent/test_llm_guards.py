@@ -1482,3 +1482,17 @@ def test_standard_geometry_only_when_named_and_exact():
     assert any("44" in u for u in trace_numbers(d, named.replace("Cook's membrane", "panel"), [])[0])
     d2 = {**d, "domain": {"outer": [[0, 0], [48, 44], [48, 61], [0, 44]], "holes": []}}
     assert trace_numbers(d2, named, [])[0] != []
+
+
+def test_material_constant_stated_elsewhere_in_paper_is_traced():
+    """26 Nov: nu = 1/3 stated next to its name outside the selected passage is traced by code;
+    a bare number elsewhere in the paper is not."""
+    from omar_pfem.verification_agent.autonomous import stated_in_paper, trace_numbers
+    full = "Case 1: Young's modulus E = 1 and Poisson ratio ν = 1/3. Table 3 lists 0.3 and 210."
+    assert stated_in_paper("nu", 1 / 3, full) and stated_in_paper("E", 1.0, full)
+    assert not stated_in_paper("nu", 0.3, full) and not stated_in_paper("E", 210.0, full)
+    d = {"E": 1.0, "nu": 1 / 3, "bcs": [], "domain": {"outer": [[0, 0], [2, 0], [2, 1], [0, 1]],
+                                                      "holes": []}}
+    passage = "a 2 by 1 panel with E = 1"
+    assert any(u.startswith("nu") for u in trace_numbers(d, passage, [])[0])
+    assert trace_numbers(d, passage, [], full)[0] == []
