@@ -26338,3 +26338,9 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   advisor_feedback/figures_2026-11-26/; claims 113/113 by progress_report_claims.py, in CI; the superseded
   local Cook 3D numbers are listed there). Email draft points to this report's sections (9, 10, 11, 12).
   ATTACH ONLY THIS REPORT. Still NOT SENT. The combined/part PDFs are kept as records, not to be sent.
+- 2026-11-26 23:12 (cluster time): ladder_nh_plate_hole_3d_pe_Q216_P216 SUBMITTED by Omar as LSF job 3356483
+  (BatchGPU, 120000 MB, -W 24:00; bundle md5 fe2bb7d61563bc4ed9507b1631653290 verified on the cluster).
+  When done: Omar pastes md5sum + cat of
+  ~/OMAR/Practical_Examples/omar_pfem/verification_agent/cluster_jobs/ladder_nh_plate_hole_3d_pe_Q216_P216_result.json;
+  rebuild it byte-exactly (no trailing newline), `cluster_ladder import <file> <md5>`, then
+  `campaign run omar_pfem/verification_agent/problems3d/nh_plate_hole_3d_pe.json`.
