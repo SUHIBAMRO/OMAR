@@ -146,6 +146,21 @@ def _cost_model(rows):
     return lambda dof: math.exp(logc) * dof ** alpha / 60.0
 
 
+def _level_cost(rows, n, grow, cm):
+    """(dof, minutes) of level n. FIX (26 Nov, after the plate's P2 n = 32 row came back from
+    the cluster): a level already in the cache costs nothing, and the next level's size is
+    grown from the finest level BELOW n (it was grown from the finest stored level, so a
+    cached n = 32 row made the n = 32 experiment look like an n = 64 one and exceed the
+    budget)."""
+    hit = [r for r in rows if r["n"] == n]
+    if hit:
+        return hit[0]["n_dof"], 0.0
+    below = [r for r in rows if r["n"] < n] or rows
+    base = max(below, key=lambda r: r["n"])
+    dof = base["n_dof"] * grow ** max(1, round(math.log2(n / base["n"])))
+    return dof, cm(dof)
+
+
 # ------------------------------------------------------------------ actions (2D) ----------
 def candidates(state):
     """state: {"prob", "verdicts" (uniform), "graded" (or None), "levels", "ladders"}.
@@ -158,8 +173,8 @@ def candidates(state):
     cm_q2, cm_p2 = _cost_model(uni), _cost_model(p2)
     n_next = 2 * max(state["levels"])
     grow = 2 ** getattr(state["prob"], "dim", 2)       # DOF per level: 4 in 2D, 8 in 3D
-    dof_next = grow * max(r["n_dof"] for r in uni)
-    dof_next_p2 = grow * max(r["n_dof"] for r in p2)
+    dof_next, min_q2 = _level_cost(uni, n_next, grow, cm_q2)
+    dof_next_p2, min_p2 = _level_cost(p2, n_next, grow, cm_p2)
     out, conclusions = [], []
     done = set(state.get("certified_any", ()))
     diag = state.get("diagnosis", {})
@@ -179,10 +194,11 @@ def candidates(state):
     graded = state.get("graded") is not None
     if graded:
         gq = state["ladders"].cache.get("Q2 graded", [])
-        dof_next = grow * max(r["n_dof"] for r in gq)
-        dof_next_p2 = grow * max(r["n_dof"] for r in state["ladders"].cache.get("P2 graded", gq))
+        gp = state["ladders"].cache.get("P2 graded", gq)
+        dof_next, min_q2 = _level_cost(gq, n_next, grow, _cost_model(gq))
+        dof_next_p2, min_p2 = _level_cost(gp, n_next, grow, _cost_model(gp))
     if pre and n_next <= state.get("max_n", 128):
-        minutes = cm_q2(dof_next) + cm_p2(dof_next_p2)
+        minutes = min_q2 + min_p2
         fam = "graded" if graded else "uniform"
         why = lambda q: (situation(open_q[q]) + (" + diagnosis D4 (pre-asymptotic)" if "D4" in
                          diag.get(q, {}).get("supported", []) else ""))
@@ -219,6 +235,7 @@ def candidates(state):
     ind = [q for q, r in V.items() if r.get("crosscheck") == "independent_unconverged"]
     n_next_p2 = 2 * max(state.get("p2_levels") or state["levels"])
     if ind and n_next_p2 <= state.get("max_n", 128):
+        dof_ind, min_ind = _level_cost(p2, n_next_p2, grow, cm_p2)
         out.append({"action": "finer_independent_level", "quantities": ind,
                     "situation": "any:independent_unconverged",
                     "justification": f"{ind} are rate-certified but their independent P2 "
@@ -228,7 +245,7 @@ def candidates(state):
                     "prediction": {"text": "at least one listed quantity becomes cross-checked",
                                    "criterion": "any_crosschecked"},
                     "run": {"kind": "p2_level", "n": n_next_p2},
-                    "cost": {"dof": dof_next_p2, "minutes": cm_p2(dof_next_p2)}})
+                    "cost": {"dof": dof_ind, "minutes": min_ind}})
     # A4 (2026-11-25) finite-strain corner check: a neo-Hookean problem whose global quantities
     # converge more slowly than the linearized corner theory while min det F falls with refinement
     if getattr(prob, "material", "") == "neo_hookean" and prob.corners \

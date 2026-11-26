@@ -1,0 +1,386 @@
+{
+ "steps": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "description written by a person (steps L, D skipped)"
+  },
+  {
+   "stage": "M",
+   "actor": "code",
+   "status": "note",
+   "detail": "3D extruded domain (thickness 1, layers n/2 x 1); Q2 = 27-node hexahedra, P2 = 10-node tetrahedra; singular edges: extruded-edge approximation (vertex singularities not analysed); face edges [('z0', 'clamped', 0.69), ('z1', 'clamped', 0.69)]"
+  },
+  {
+   "stage": "M",
+   "actor": "code",
+   "status": "note",
+   "detail": "general domain meshed by gmsh (quadratic triangles and independent quadratic quadrilaterals, curved edges on circles); corners from the real boundary after the holes are cut"
+  },
+  {
+   "stage": "M",
+   "actor": "code",
+   "status": "done",
+   "detail": "rate-limiting corners (x, y, smallest exponent) [(0.0, 0.0, 1.1309), (48.0, 44.0, 1.3584), (0.0, 44.0, 0.6244)]"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "decided",
+   "detail": "Q2: needed (no passing check on record for 676df723c16cb30d|Q2|plane_3d|clamped+free+traction+general_domain); P2: needed (no passing check on record for 676df723c16cb30d|P2|plane_3d|clamped+free+traction+general_domain)"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "INCONCLUSIVE",
+   "detail": "Q2 INCONCLUSIVE (L2 3.41, H1 2.14, levels [2, 4, 8, 16]); P2 INCONCLUSIVE (L2 2.73, H1 2.31, levels [2, 4, 8, 16])"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "FAIL",
+   "detail": "post hoc rule R2: production check INCONCLUSIVE for ['Q2', 'P2']; reference domain [[0, 0], [48, 0], [48, 60], [0, 60]] with the same condition types: Q2 INCONCLUSIVE (L2 3.59, H1 2.55); P2 INCONCLUSIVE (L2 2.98, H1 2.48)"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "stop",
+   "detail": "production check INCONCLUSIVE and the reference check did not pass (reference INCONCLUSIVE): no solution verification"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "cluster_job",
+   "detail": "code-verification levels up to 32 prepared as cluster job mms_cook_3d_Q2_P2_n32 (bundle md5 1e7e76a7a94812bc471a37af36a89878; instructions ../../../transfer/mms_cook_3d_Q2_P2_n32.md)",
+   "job": {
+    "name": "mms_cook_3d_Q2_P2_n32",
+    "kind": "mms",
+    "spec": "cluster_jobs/mms_cook_3d_Q2_P2_n32_spec.json",
+    "keys": [
+     {
+      "Q2": "676df723c16cb30d|Q2|plane_3d|clamped+free+traction+general_domain",
+      "P2": "676df723c16cb30d|P2|plane_3d|clamped+free+traction+general_domain"
+     },
+     {
+      "Q2": "676df723c16cb30d|Q2|plane_3d|clamped+free+traction+general_domain|reference_domain",
+      "P2": "676df723c16cb30d|P2|plane_3d|clamped+free+traction+general_domain|reference_domain"
+     }
+    ],
+    "bundle_md5": "1e7e76a7a94812bc471a37af36a89878",
+    "instructions": "../../../transfer/mms_cook_3d_Q2_P2_n32.md",
+    "levels": [
+     2,
+     4,
+     8,
+     16,
+     32
+    ],
+    "uncommitted_code": []
+   }
+  },
+  {
+   "stage": "V",
+   "actor": "person",
+   "status": "needs_person",
+   "detail": "submit cluster job mms_cook_3d_Q2_P2_n32 by hand and paste the result; then the run is repeated"
+  }
+ ],
+ "human_points": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "description written by a person (steps L, D skipped)"
+  },
+  {
+   "stage": "V",
+   "actor": "person",
+   "status": "needs_person",
+   "detail": "submit cluster job mms_cook_3d_Q2_P2_n32 by hand and paste the result; then the run is repeated"
+  }
+ ],
+ "wall_clock_s": 177.91822004318237,
+ "source": {
+  "pdf": null,
+  "text": null,
+  "description_given": true
+ },
+ "mms": {
+  "Q2": {
+   "verdict": "INCONCLUSIVE",
+   "gate_verdict": "FAIL",
+   "rule": "R1 (post hoc, round Q)",
+   "rates": {
+    "L2": {
+     "observed": 3.4051817326826836,
+     "expected": 3.0,
+     "pass": false
+    },
+    "H1": {
+     "observed": 2.1402880166181775,
+     "expected": 2.0,
+     "pass": true
+    }
+   },
+   "levels": [
+    2,
+    4,
+    8,
+    16
+   ],
+   "levels_added": [],
+   "errors": {
+    "L2": [
+     0.026766616864282382,
+     0.005755681450238867,
+     0.0014486848444325061,
+     0.0001198206093932164
+    ],
+    "H1": [
+     0.0074134909098194654,
+     0.002393827834111285,
+     0.0006948127270850052,
+     0.00020477389104337545
+    ]
+   },
+   "field": {
+    "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)*cos(0.0270833333333333*pi*z + 1/2)",
+    "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)*cos(0.0270833333333333*pi*z + 7/10)",
+    "uz": "0.06*sin(0.0270833333333333*pi*x + 1/5)*sin(0.0216666666666667*pi*y + 3/5)*sin(0.0270833333333333*pi*z + 1/10)"
+   },
+   "problem": "cook_3d",
+   "reason": "no passing check on record for 676df723c16cb30d|Q2|plane_3d|clamped+free+traction+general_domain"
+  },
+  "P2": {
+   "verdict": "INCONCLUSIVE",
+   "gate_verdict": "FAIL",
+   "rule": "R1 (post hoc, round Q)",
+   "rates": {
+    "L2": {
+     "observed": 2.730645659206739,
+     "expected": 3.0,
+     "pass": false
+    },
+    "H1": {
+     "observed": 2.312512148762493,
+     "expected": 2.0,
+     "pass": false
+    }
+   },
+   "levels": [
+    2,
+    4,
+    8,
+    16
+   ],
+   "levels_added": [],
+   "errors": {
+    "L2": [
+     0.2981236068435246,
+     0.21838675683908187,
+     0.04805331812414022,
+     0.0065417072100447385
+    ],
+    "H1": [
+     0.061619603922181396,
+     0.018831784934633965,
+     0.0046856716264349445,
+     0.000964482518573759
+    ]
+   },
+   "field": {
+    "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)*cos(0.0270833333333333*pi*z + 1/2)",
+    "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)*cos(0.0270833333333333*pi*z + 7/10)",
+    "uz": "0.06*sin(0.0270833333333333*pi*x + 1/5)*sin(0.0216666666666667*pi*y + 3/5)*sin(0.0270833333333333*pi*z + 1/10)"
+   },
+   "problem": "cook_3d",
+   "reason": "no passing check on record for 676df723c16cb30d|P2|plane_3d|clamped+free+traction+general_domain"
+  }
+ },
+ "mms_reference_domain": {
+  "description": {
+   "dim": 3,
+   "thickness": 1.0,
+   "E": 1.0,
+   "nu": 0.3333333333333333,
+   "name": "cook_3d_reference_domain",
+   "domain": {
+    "outer": [
+     [
+      0,
+      0
+     ],
+     [
+      48,
+      0
+     ],
+     [
+      48,
+      60
+     ],
+     [
+      0,
+      60
+     ]
+    ],
+    "holes": []
+   },
+   "bcs": [
+    {
+     "segment": [
+      [
+       0,
+       0
+      ],
+      [
+       0,
+       60
+      ]
+     ],
+     "type": "clamped"
+    },
+    {
+     "segment": [
+      [
+       48,
+       0
+      ],
+      [
+       48,
+       60
+      ]
+     ],
+     "type": "traction",
+     "t": [
+      0.0,
+      0.0625,
+      0.0
+     ]
+    }
+   ],
+   "points": {}
+  },
+  "checks": {
+   "Q2": {
+    "verdict": "INCONCLUSIVE",
+    "gate_verdict": "FAIL",
+    "rule": "R1 (post hoc, round Q)",
+    "rates": {
+     "L2": {
+      "observed": 3.5879659734868254,
+      "expected": 3.0,
+      "pass": false
+     },
+     "H1": {
+      "observed": 2.5474913940438912,
+      "expected": 2.0,
+      "pass": false
+     }
+    },
+    "levels": [
+     2,
+     4,
+     8,
+     16
+    ],
+    "levels_added": [],
+    "errors": {
+     "L2": [
+      0.028989369336834665,
+      0.010193213751819544,
+      0.001000338268043183,
+      8.274043687304696e-05
+     ],
+     "H1": [
+      0.008787985771528155,
+      0.006003669846906671,
+      0.0011786523505470077,
+      0.0001968684067008328
+     ]
+    },
+    "field": {
+     "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)*cos(0.0270833333333333*pi*z + 1/2)",
+     "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)*cos(0.0270833333333333*pi*z + 7/10)",
+     "uz": "0.06*sin(0.0270833333333333*pi*x + 1/5)*sin(0.0216666666666667*pi*y + 3/5)*sin(0.0270833333333333*pi*z + 1/10)"
+    },
+    "problem": "cook_3d_reference_domain",
+    "reason": "no passing check on record for 676df723c16cb30d|Q2|plane_3d|clamped+free+traction+general_domain|reference_domain"
+   },
+   "P2": {
+    "verdict": "INCONCLUSIVE",
+    "gate_verdict": "FAIL",
+    "rule": "R1 (post hoc, round Q)",
+    "rates": {
+     "L2": {
+      "observed": 2.9767631865285185,
+      "expected": 3.0,
+      "pass": true
+     },
+     "H1": {
+      "observed": 2.4761997730538896,
+      "expected": 2.0,
+      "pass": false
+     }
+    },
+    "levels": [
+     2,
+     4,
+     8,
+     16
+    ],
+    "levels_added": [
+     "n=32: refused (level n = 32 (P2) needs about 26.8 GB > 13 GB: too large for this machine (prepare a cluster job))"
+    ],
+    "errors": {
+     "L2": [
+      3.361610755228807,
+      0.24185881785875382,
+      0.041167196259594,
+      0.005528495419061667
+     ],
+     "H1": [
+      0.23331703662948197,
+      0.0317894080030947,
+      0.0071195185972703565,
+      0.001370645519860243
+     ]
+    },
+    "field": {
+     "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)*cos(0.0270833333333333*pi*z + 1/2)",
+     "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)*cos(0.0270833333333333*pi*z + 7/10)",
+     "uz": "0.06*sin(0.0270833333333333*pi*x + 1/5)*sin(0.0216666666666667*pi*y + 3/5)*sin(0.0270833333333333*pi*z + 1/10)"
+    },
+    "problem": "cook_3d_reference_domain",
+    "reason": "no passing check on record for 676df723c16cb30d|P2|plane_3d|clamped+free+traction+general_domain|reference_domain"
+   }
+  }
+ },
+ "cluster_jobs": [
+  {
+   "name": "mms_cook_3d_Q2_P2_n32",
+   "kind": "mms",
+   "spec": "cluster_jobs/mms_cook_3d_Q2_P2_n32_spec.json",
+   "keys": [
+    {
+     "Q2": "676df723c16cb30d|Q2|plane_3d|clamped+free+traction+general_domain",
+     "P2": "676df723c16cb30d|P2|plane_3d|clamped+free+traction+general_domain"
+    },
+    {
+     "Q2": "676df723c16cb30d|Q2|plane_3d|clamped+free+traction+general_domain|reference_domain",
+     "P2": "676df723c16cb30d|P2|plane_3d|clamped+free+traction+general_domain|reference_domain"
+    }
+   ],
+   "bundle_md5": "1e7e76a7a94812bc471a37af36a89878",
+   "instructions": "../../../transfer/mms_cook_3d_Q2_P2_n32.md",
+   "levels": [
+    2,
+    4,
+    8,
+    16,
+    32
+   ],
+   "uncommitted_code": []
+  }
+ ]
+}

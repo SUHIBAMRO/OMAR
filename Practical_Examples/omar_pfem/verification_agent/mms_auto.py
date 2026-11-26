@@ -63,6 +63,10 @@ def _record():
 REF = "|reference_domain"
 
 
+def from_cluster(r):
+    return "computed on the cluster" in r.get("levels_added", [])
+
+
 def needed(prob, suffix=""):
     """(needed?, reason) for each element. A check INCONCLUSIVE on the production domain with
     a PASS on the reference domain (post hoc rule R2, round Q) is not repeated either."""
@@ -75,6 +79,12 @@ def needed(prob, suffix=""):
                 rec.get(k + REF, {}).get("verdict") == "PASS":
             out[el] = (False, f"INCONCLUSIVE on the production domain and PASS on the reference "
                               f"domain on record for {k} (post hoc rule R2)")
+        elif k in rec and from_cluster(rec[k]):
+            # FIX (26 Nov, after job 3322812): a check whose levels were computed on the
+            # cluster is complete; repeating it locally can only reach fewer levels (it used
+            # to overwrite the cluster result and prepare the same cluster job again)
+            out[el] = (False, f"{rec[k]['verdict']} check computed on the cluster on record for "
+                              f"{k} (levels {rec[k]['levels']}); not repeated locally")
         else:
             out[el] = (True, f"no passing check on record for {k}")
     return out
@@ -125,6 +135,17 @@ class Manufactured:
         return [sxx * nx + sxy * ny, sxy * nx + syy * ny]
 
 
+def _store(rec, k, res):
+    """A record is never replaced by one that reached fewer levels (e.g. a local re-run of a
+    check that the cluster extended); a PASS is never replaced by a non-PASS."""
+    old = rec.get(k)
+    if old and (len(old.get("levels", [])) > len(res.get("levels", []))
+                or (old.get("verdict") == "PASS" and res.get("verdict") != "PASS")):
+        return
+    rec[k] = res
+    json.dump(rec, open(RECORD, "w"), indent=1)
+
+
 def classify(gate_verdict, errors):
     """POST HOC rule R1 (round Q, pending Professor Rabczuk): PASS as the gate says; otherwise
     INCONCLUSIVE when every error falls at every level (rates not settled), else FAIL."""
@@ -144,7 +165,9 @@ def run(prob, force=False, log=print, suffix="", elements=("Q2", "P2")):
     for el in elements:
         if not need[el][0] and not force:
             k = key(prob, el) + suffix
-            out[el] = {"skipped": True, "reason": need[el][1],
+            # the stored check (rates, levels, errors) travels with the skip, so reports and
+            # the R2 branch see what the decision rests on
+            out[el] = {**rec.get(k, {}), "skipped": True, "reason": need[el][1],
                        "verdict": rec.get(k, {}).get("verdict", "PASS"),
                        "reference_pass": "reference domain" in need[el][1]}
             log(f"[mms] {el}: skipped ({need[el][1]})")
@@ -163,8 +186,7 @@ def run(prob, force=False, log=print, suffix="", elements=("Q2", "P2")):
                    "errors": {k: [r[k] for r in rows] for k in EXPECTED}, "field": mms.field,
                    "problem": prob.name, "reason": need[el][1] + "; fewer than 3 levels fit"}
             out[el] = res
-            rec[key(prob, el) + suffix] = res
-            json.dump(rec, open(RECORD, "w"), indent=1)
+            _store(rec, key(prob, el) + suffix, res)
             continue
         while True:
             hs = [r["h"] for r in rows]
@@ -199,8 +221,7 @@ def run(prob, force=False, log=print, suffix="", elements=("Q2", "P2")):
                "errors": {k: [r[k] for r in rows] for k in EXPECTED}, "field": mms.field,
                "problem": prob.name, "reason": need[el][1]}
         out[el] = res
-        rec[key(prob, el) + suffix] = res
-        json.dump(rec, open(RECORD, "w"), indent=1)
+        _store(rec, key(prob, el) + suffix, res)
         log(f"[mms] {el}: {verdict} L2 rate {g['rates']['L2']['observed']:.2f} "
             f"H1 rate {g['rates']['H1']['observed']:.2f}")
     return out

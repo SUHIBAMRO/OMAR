@@ -1357,3 +1357,36 @@ def test_cluster_mms_import_only_under_local_keys(tmp_path, monkeypatch):
     assert json.load(open(tmp_path / "rec.json"))[k]["verdict"] == "PASS"
     with pytest.raises(SystemExit):
         C._import_mms({"name": "m", "results": {"x|Q2": good}})
+
+
+def test_cluster_mms_record_not_repeated_or_overwritten(tmp_path, monkeypatch):
+    """26 Nov (after job 3322812): a re-run must not replace the cluster's n = 32 check by a
+    local n <= 16 one, nor ask for the same cluster job again."""
+    import json
+    from omar_pfem.verification_agent import mms_auto
+    from omar_pfem.verification_agent.geometry2d import make
+    monkeypatch.setattr(mms_auto, "RECORD", str(tmp_path / "rec.json"))
+    prob = make(_load3("cook_3d.json"))
+    k = mms_auto.key(prob, "Q2")
+    cl = {"verdict": "INCONCLUSIVE", "levels": [2, 4, 8, 16, 32], "rates": {"L2": {"observed": 3.79}},
+          "levels_added": ["computed on the cluster"], "problem": "cook_3d"}
+    json.dump({k: cl}, open(tmp_path / "rec.json", "w"))
+    need = mms_auto.needed(prob)
+    assert need["Q2"][0] is False and "cluster" in need["Q2"][1] and need["P2"][0] is True
+    out = mms_auto.run(prob, elements=("Q2",), log=lambda s: None)
+    assert out["Q2"]["skipped"] and out["Q2"]["levels"] == cl["levels"]
+    assert not any("refused" in s for s in out["Q2"]["levels_added"])   # -> no new cluster job
+    rec = json.load(open(tmp_path / "rec.json"))
+    mms_auto._store(rec, k, {"verdict": "INCONCLUSIVE", "levels": [2, 4, 8, 16]})
+    assert json.load(open(tmp_path / "rec.json"))[k]["levels"] == cl["levels"]
+
+
+def test_cached_cluster_level_costs_nothing():
+    """26 Nov: a level already in the cache (returned from the cluster) costs 0 minutes; an
+    absent level is grown from the finest level below it, not from the finest stored one."""
+    from omar_pfem.verification_agent.experiment import _level_cost
+    rows = [{"n": n, "n_dof": 10 * 8 ** i, "wall_clock_s": 1.0} for i, n in enumerate((2, 4, 8, 16, 32))]
+    cm = lambda dof: dof / 1e3
+    assert _level_cost(rows, 32, 8, cm) == (rows[-1]["n_dof"], 0.0)
+    assert _level_cost(rows[:4], 32, 8, cm)[0] == 8 * rows[3]["n_dof"]
+    assert _level_cost(rows, 64, 8, cm)[0] == 8 * rows[-1]["n_dof"]

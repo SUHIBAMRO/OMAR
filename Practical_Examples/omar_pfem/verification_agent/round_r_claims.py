@@ -19,8 +19,14 @@ def _j(*p):
     return json.load(open(os.path.join(HERE, *p)))
 
 
+# the 3D runs were repeated after cluster job 3322812 (26 Nov); the PDF reports them as they
+# were when it was written, frozen in run_as_in_pdf_2026-11-26.json
+_PDF_SNAPSHOT = ("cook_3d", "nh_plate_hole_3d_pe", "plate_hole_quarter_3d_pe")
+
+
 def _run(n):
-    return _j("autonomous_runs", n, "run.json")
+    return _j("autonomous_runs", n, "run_as_in_pdf_2026-11-26.json" if n in _PDF_SNAPSHOT
+              else "run.json")
 
 
 def _e(x, d=2):
