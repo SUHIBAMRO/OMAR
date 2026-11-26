@@ -608,3 +608,30 @@ become cluster jobs, manual submission).
 - Fixes: the experiment executor refines only the family the experiment is about; reports and index handle
   runs that stop early (description stored at the start); report shows the reference-domain label and
   pending cluster jobs. Tests 112 pass.
+
+## 2026-11-26 — results of cluster job 3322812 and the loop re-run
+
+- Imported the three outputs (md5 equal to the cluster's, same code fingerprint / record key).
+- Cook 3D: the code check to n = 32 stays INCONCLUSIVE on the production and on the reference domain
+  (Q2 3.79 / 1.99, P2 3.24 / 2.27; reference Q2 3.52 / 2.42, P2 3.12 / 2.29). The loop stops; question 3.
+- 3D neo-Hookean plate: Q2 code check PASS (3.17 / 2.13, n = 2 to 16). The solution check's levels
+  n = 2, 4, 8 are pre-asymptotic; n = 16 needs 16.6 GB, so one more cluster job is prepared (not submitted).
+- 3D plate: the P2 n = 32 level was used. The frozen prediction (v_hole_top becomes cross-checked) is
+  refuted: P2 -0.97460, -0.97318, -0.97267 at n = 8, 16, 32 still has no agreeing rate. 2 of 4 certified.
+- Four errors in the loop's bookkeeping, found by re-running it on the imported results and fixed before
+  any of the numbers above were produced:
+  1. a level already returned from the cluster was costed as the next level up, exceeded the budget and
+     was skipped (`experiment._level_cost`);
+  2. a code check computed on the cluster was repeated locally (n <= 16), overwrote the n = 32 record and
+     the same cluster job was prepared again (`mms_auto.needed`, `_store`);
+  3. an experiment refused by the memory guard was remembered as a refuted prediction, lowering the prior
+     of its action; now remembered with confirmed = None. POST HOC correction of two existing entries in
+     experience.json (plate_hole_quarter_3d_pe finer_independent_level; nh_plate_hole_3d_pe
+     finer_uniform_level), each labelled `posthoc_correction`;
+  4. the S and N stages each built the same cluster bundle, so the S-stage md5 in the log was stale.
+  Three tests added (115 pass). No acceptance criterion was changed.
+- Part-2 PDF: Section 5 gained "Results of job 3322812"; the summary line, question 3 and the test count
+  were corrected. The claims check covers the new numbers (50 / 50) and reads the 3D runs as they were when
+  the PDF was first written (run_as_in_pdf_2026-11-26.json).
+- Email draft: three factual corrections only (second PDF 8 pages; the combined job has run; the cluster
+  results are back).

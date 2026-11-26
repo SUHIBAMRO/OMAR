@@ -1,0 +1,124 @@
+{
+ "name": "ladder_nh_plate_hole_3d_pe_Q216_P216",
+ "description": {
+  "name": "nh_plate_hole_3d_pe",
+  "dim": 3,
+  "domain": {
+   "outer": [
+    [
+     0,
+     0
+    ],
+    [
+     10,
+     0
+    ],
+    [
+     10,
+     10
+    ],
+    [
+     0,
+     10
+    ]
+   ],
+   "holes": [
+    {
+     "circle": [
+      0,
+      0,
+      1
+     ]
+    }
+   ]
+  },
+  "thickness": 1.0,
+  "E": 50.0,
+  "nu": 0.3,
+  "bcs": [
+   {
+    "segment": [
+     [
+      1,
+      0
+     ],
+     [
+      10,
+      0
+     ]
+    ],
+    "type": "symmetry"
+   },
+   {
+    "segment": [
+     [
+      0,
+      1
+     ],
+     [
+      0,
+      10
+     ]
+    ],
+    "type": "symmetry"
+   },
+   {
+    "segment": [
+     [
+      10,
+      0
+     ],
+     [
+      10,
+      10
+     ]
+    ],
+    "type": "traction",
+    "t": [
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "face": "z0",
+    "type": "symmetry"
+   },
+   {
+    "face": "z1",
+    "type": "symmetry"
+   }
+  ],
+  "points": {
+   "u_right": [
+    10,
+    0,
+    0.0,
+    "x"
+   ],
+   "v_hole_top": [
+    0,
+    1,
+    0.0,
+    "y"
+   ]
+  },
+  "material": "neo_hookean"
+ },
+ "levels": [
+  [
+   "Q2 uniform",
+   16,
+   "Q2"
+  ],
+  [
+   "P2 uniform",
+   16,
+   "P2"
+  ]
+ ],
+ "fingerprint": "4c5643a9f9e32ee8f30555bfb345fa4c201556de6eec1228d8b175b8201322c7",
+ "max_dof": 4000000,
+ "mem_mb": 120000,
+ "output": "cluster_jobs/ladder_nh_plate_hole_3d_pe_Q216_P216_result.json",
+ "note": "prepared automatically after the local memory guard refused these levels"
+}

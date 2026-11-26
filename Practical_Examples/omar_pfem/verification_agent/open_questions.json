@@ -23,10 +23,5 @@
   "id": "job-ladder_nh_plate_hole_3d_pe_Q216_P216",
   "question": "Submit cluster job ladder_nh_plate_hole_3d_pe_Q216_P216 (manual) - the levels this machine refused for nh_plate_hole_3d_pe.",
   "evidence": "cluster_jobs/ladder_nh_plate_hole_3d_pe_Q216_P216_job.json"
- },
- {
-  "id": "job-ladder_nh_plate_hole_3d_pe_Q216_P216",
-  "question": "Submit cluster job ladder_nh_plate_hole_3d_pe_Q216_P216 (manual) - the levels this machine refused for nh_plate_hole_3d_pe.",
-  "evidence": "cluster_jobs/ladder_nh_plate_hole_3d_pe_Q216_P216_job.json"
  }
 ]

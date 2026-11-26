@@ -26307,3 +26307,24 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   and a combined email draft advisor_feedback/2026-11-26_email_to_Rabczuk_DRAFT_round_R.txt (attach BOTH PDFs:
   2026-11-24_Autonomous_Workflow_New_Results.pdf and the part2 PDF). It replaces the unsent round O draft
   (kept unchanged). NOT SENT - Omar sends it; check the C&S status line before sending.
+- 2026-11-26 DONE: cluster job 3322812 results imported (all three md5 verified; Run time 6953 s, max memory
+  60.5 GB). Loop re-run on the three 3D problems:
+  - Cook 3D: code check to n = 32 still INCONCLUSIVE on production and reference domain (Q2 3.79/1.99,
+    P2 3.24/2.27; ref Q2 3.52/2.42, P2 3.12/2.29) -> stops; waits for advisor question 3 (R1-R3).
+  - NH 3D plate: Q2 code check PASS (3.17/2.13, n = 2..16) -> solution check runs; n = 16 needs 16.6 GB
+    -> NEW cluster job transfer/ladder_nh_plate_hole_3d_pe_Q216_P216.tar.gz (md5
+    fe2bb7d61563bc4ed9507b1631653290, instructions transfer/ladder_nh_plate_hole_3d_pe_Q216_P216.md,
+    120 GB, 24 h). NOT SUBMITTED - waiting for Omar. After return: import, then `campaign run` on
+    problems3d/nh_plate_hole_3d_pe.json.
+  - 3D plate: P2 n = 32 used; frozen prediction (v_hole_top cross-checked) REFUTED (P2 -0.97460,
+    -0.97318, -0.97267 at n = 8/16/32); 2/4 certified, unchanged.
+  - Four loop bugs found and fixed while re-running (commits da52308, 8b6df8f): cached cluster level costed
+    as the next level up; cluster MMS record overwritten by a local re-run + duplicate job; memory-guard
+    refusal remembered as refuted (2 entries corrected, labelled post hoc); bundle built twice (stale md5).
+    Tests 115 pass. The container restart had removed the Python packages and shallow-cloned the repo:
+    reinstall with `pip install -r omar_pfem/verification_agent/requirements-ci.txt`, apt libglu1-mesa
+    libxcursor1 libxinerama1 libxft2 poppler-utils, and `git fetch --unshallow`.
+  - Part-2 PDF updated (8 pages; Section 5 "Results of job 3322812", summary line, question 3, test count);
+    claims 50/50 (round_r_claims.py; the PDF-time 3D runs frozen as autonomous_runs/*/run_as_in_pdf_2026-11-26.json).
+    Email draft: three factual corrections only (page count, "job running", "when results are back").
+    STILL NOT SENT - Omar sends it with BOTH PDFs; check the C&S status line first.

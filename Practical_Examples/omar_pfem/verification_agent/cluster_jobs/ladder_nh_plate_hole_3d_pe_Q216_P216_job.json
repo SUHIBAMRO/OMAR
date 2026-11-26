@@ -1,0 +1,20 @@
+{
+ "name": "ladder_nh_plate_hole_3d_pe_Q216_P216",
+ "spec": "cluster_jobs/ladder_nh_plate_hole_3d_pe_Q216_P216_spec.json",
+ "fingerprint": "4c5643a9f9e32ee8f30555bfb345fa4c201556de6eec1228d8b175b8201322c7",
+ "bundle_md5": "fe2bb7d61563bc4ed9507b1631653290",
+ "instructions": "../../../transfer/ladder_nh_plate_hole_3d_pe_Q216_P216.md",
+ "levels": [
+  [
+   "Q2 uniform",
+   16,
+   "Q2"
+  ],
+  [
+   "P2 uniform",
+   16,
+   "P2"
+  ]
+ ],
+ "uncommitted_code": []
+}

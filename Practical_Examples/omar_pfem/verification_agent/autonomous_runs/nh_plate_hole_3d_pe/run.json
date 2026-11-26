@@ -34,60 +34,95 @@
    "stage": "V",
    "actor": "code",
    "status": "decided",
-   "detail": "Q2: needed (no passing check on record for 72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean); P2: needed (no passing check on record for 72d6a1e90181c881|P2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean)"
+   "detail": "Q2: not needed (passing check on record for 72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean (nh_plate_hole_3d_pe)); P2: not needed (passing check on record for 72d6a1e90181c881|P2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean (nh_plate_hole_3d_pe))"
   },
   {
    "stage": "V",
    "actor": "code",
-   "status": "INCONCLUSIVE",
-   "detail": "Q2 INCONCLUSIVE (L2 3.71, H1 2.57, levels [2, 4, 8]); P2 PASS (L2 3.08, H1 2.02, levels [2, 4, 8, 16])"
+   "status": "PASS",
+   "detail": "Q2 PASS; P2 PASS"
   },
   {
-   "stage": "V",
+   "stage": "S",
    "actor": "code",
-   "status": "FAIL",
-   "detail": "post hoc rule R2: production check INCONCLUSIVE for ['Q2']; reference domain [[0, 0], [10, 0], [10, 10], [0, 10]] with the same condition types: Q2 INCONCLUSIVE (L2 2.75, H1 1.93)"
+   "status": "note",
+   "detail": "level n = 16 refused by the memory guard (Q2 uniform n=16: the nonlinear solve failed with None load steps: ['level n = 16 (Q2) needs about 16.6 GB > 13 GB: too large for this machine (prepare a cluster); the ladders use n = [2, 4, 8]"
   },
   {
-   "stage": "V",
-   "actor": "code",
-   "status": "stop",
-   "detail": "production check INCONCLUSIVE and the reference check did not pass (reference INCONCLUSIVE): no solution verification"
-  },
-  {
-   "stage": "V",
+   "stage": "S",
    "actor": "code",
    "status": "cluster_job",
-   "detail": "code-verification levels up to 32 prepared as cluster job mms_nh_plate_hole_3d_pe_Q2_n32 (bundle md5 b1231d1f1fa70bd1bc2240364c4bb41d; instructions ../../../transfer/mms_nh_plate_hole_3d_pe_Q2_n32.md)",
+   "detail": "level n = 16 prepared as cluster job ladder_nh_plate_hole_3d_pe_Q216_P216 (bundle md5 fe2bb7d61563bc4ed9507b1631653290; instructions ../../../transfer/ladder_nh_plate_hole_3d_pe_Q216_P216.md)",
    "job": {
-    "name": "mms_nh_plate_hole_3d_pe_Q2_n32",
-    "kind": "mms",
-    "spec": "cluster_jobs/mms_nh_plate_hole_3d_pe_Q2_n32_spec.json",
-    "keys": [
-     {
-      "Q2": "72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean"
-     },
-     {
-      "Q2": "72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean|reference_domain"
-     }
-    ],
-    "bundle_md5": "b1231d1f1fa70bd1bc2240364c4bb41d",
-    "instructions": "../../../transfer/mms_nh_plate_hole_3d_pe_Q2_n32.md",
+    "name": "ladder_nh_plate_hole_3d_pe_Q216_P216",
+    "spec": "cluster_jobs/ladder_nh_plate_hole_3d_pe_Q216_P216_spec.json",
+    "fingerprint": "4c5643a9f9e32ee8f30555bfb345fa4c201556de6eec1228d8b175b8201322c7",
+    "bundle_md5": "fe2bb7d61563bc4ed9507b1631653290",
+    "instructions": "../../../transfer/ladder_nh_plate_hole_3d_pe_Q216_P216.md",
     "levels": [
-     2,
-     4,
-     8,
-     16,
-     32
+     [
+      "Q2 uniform",
+      16,
+      "Q2"
+     ],
+     [
+      "P2 uniform",
+      16,
+      "P2"
+     ]
     ],
     "uncommitted_code": []
    }
   },
   {
-   "stage": "V",
+   "stage": "S",
    "actor": "person",
    "status": "needs_person",
-   "detail": "submit cluster job mms_nh_plate_hole_3d_pe_Q2_n32 by hand and paste the result; then the run is repeated"
+   "detail": "submit cluster job ladder_nh_plate_hole_3d_pe_Q216_P216 by hand"
+  },
+  {
+   "stage": "S",
+   "actor": "code",
+   "status": "done",
+   "detail": "Q2 and P2 ladders n = [2, 4, 8]"
+  },
+  {
+   "stage": "C",
+   "actor": "code",
+   "status": "done",
+   "detail": "adopted rules: {'certified': [], 'open': ['peak_von_mises', 'strain_energy', 'u_right', 'v_hole_top']}"
+  },
+  {
+   "stage": "G",
+   "actor": "code",
+   "status": "done",
+   "detail": "strain_energy: supported []; u_right: supported []; v_hole_top: supported []; peak_von_mises: supported []"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "pre-registered",
+   "detail": "#1 finer_uniform_level on ['strain_energy', 'u_right', 'v_hole_top']: the sequences are pre-asymptotic; one finer uniform level (n = 16) lets the checks decide; prediction: at least one listed quantity becomes certified with a rate and cross-checked; prior 0.50 (n=0); est. 13.6 min",
+   "file": "experiments/nh_plate_hole_3d_pe/01_finer_uniform_level.json",
+   "sha256": "f6b1d54a478a185db0cd39786c8cdcdcadb8cac41cd6843bfcf00b29e73ed3f1"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "failed",
+   "detail": "#1 finer_uniform_level could not be run: Q2 uniform n=16: the nonlinear solve failed with None load steps: ['level n = 16 (Q2) needs about 16.6 GB > 13 GB: too large for this machine (prepare a cluster job)']; not run, so not counted as evidence for or against the prediction; not tried again in this run"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "cluster_job",
+   "detail": "levels [('Q2 uniform', 16, 'Q2'), ('P2 uniform', 16, 'P2')] are the cluster job ladder_nh_plate_hole_3d_pe_Q216_P216 prepared above (bundle md5 fe2bb7d61563bc4ed9507b1631653290); not prepared again"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "stop",
+   "detail": "no further experiment applies within the budget (0.0 of 20.0 min used)"
   }
  ],
  "human_points": [
@@ -98,53 +133,160 @@
    "detail": "description written by a person (steps L, D skipped)"
   },
   {
-   "stage": "V",
+   "stage": "S",
    "actor": "person",
    "status": "needs_person",
-   "detail": "submit cluster job mms_nh_plate_hole_3d_pe_Q2_n32 by hand and paste the result; then the run is repeated"
+   "detail": "submit cluster job ladder_nh_plate_hole_3d_pe_Q216_P216 by hand"
   }
  ],
- "wall_clock_s": 629.7337608337402,
+ "wall_clock_s": 5.955674886703491,
  "source": {
   "pdf": null,
   "text": null,
   "description_given": true
  },
+ "description": {
+  "name": "nh_plate_hole_3d_pe",
+  "dim": 3,
+  "domain": {
+   "outer": [
+    [
+     0,
+     0
+    ],
+    [
+     10,
+     0
+    ],
+    [
+     10,
+     10
+    ],
+    [
+     0,
+     10
+    ]
+   ],
+   "holes": [
+    {
+     "circle": [
+      0,
+      0,
+      1
+     ]
+    }
+   ]
+  },
+  "thickness": 1.0,
+  "E": 50.0,
+  "nu": 0.3,
+  "bcs": [
+   {
+    "segment": [
+     [
+      1,
+      0
+     ],
+     [
+      10,
+      0
+     ]
+    ],
+    "type": "symmetry"
+   },
+   {
+    "segment": [
+     [
+      0,
+      1
+     ],
+     [
+      0,
+      10
+     ]
+    ],
+    "type": "symmetry"
+   },
+   {
+    "segment": [
+     [
+      10,
+      0
+     ],
+     [
+      10,
+      10
+     ]
+    ],
+    "type": "traction",
+    "t": [
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "face": "z0",
+    "type": "symmetry"
+   },
+   {
+    "face": "z1",
+    "type": "symmetry"
+   }
+  ],
+  "points": {
+   "u_right": [
+    10,
+    0,
+    0.0,
+    "x"
+   ],
+   "v_hole_top": [
+    0,
+    1,
+    0.0,
+    "y"
+   ]
+  },
+  "material": "neo_hookean"
+ },
  "mms": {
   "Q2": {
-   "verdict": "INCONCLUSIVE",
-   "gate_verdict": "FAIL",
+   "verdict": "PASS",
+   "gate_verdict": "PASS",
    "rule": "R1 (post hoc, round Q)",
    "rates": {
     "L2": {
-     "observed": 3.7071923090648506,
+     "observed": 3.1726922728443387,
      "expected": 3.0,
-     "pass": false
+     "pass": true
     },
     "H1": {
-     "observed": 2.567833176446296,
+     "observed": 2.1340574680100555,
      "expected": 2.0,
-     "pass": false
+     "pass": true
     }
    },
    "levels": [
     2,
     4,
-    8
+    8,
+    16
    ],
    "levels_added": [
-    "n=16: refused (level n = 16 (Q2) needs about 16.6 GB > 13 GB: too large for this machine (prepare a cluster job))"
+    "computed on the cluster"
    ],
    "errors": {
     "L2": [
-     0.008195478886109261,
-     0.0010926753990352345,
-     0.0001289288476641079
+     0.008195478886109253,
+     0.0010926753990352504,
+     0.0001289288476641052,
+     1.6646720850822294e-05
     ],
     "H1": [
-     0.02961907100054563,
-     0.007039508652979874,
-     0.001661312369328914
+     0.029619071000545626,
+     0.0070395086529798714,
+     0.001661312369328912,
+     0.0004219442573157583
     ]
    },
    "field": {
@@ -155,7 +297,9 @@
     "peak_strain": 0.1
    },
    "problem": "nh_plate_hole_3d_pe",
-   "reason": "no passing check on record for 72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean"
+   "reason": "passing check on record for 72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean (nh_plate_hole_3d_pe)",
+   "skipped": true,
+   "reference_pass": false
   },
   "P2": {
    "verdict": "PASS",
@@ -202,173 +346,382 @@
     "peak_strain": 0.1
    },
    "problem": "nh_plate_hole_3d_pe",
-   "reason": "no passing check on record for 72d6a1e90181c881|P2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean"
-  }
- },
- "mms_reference_domain": {
-  "description": {
-   "dim": 3,
-   "thickness": 1.0,
-   "E": 50.0,
-   "nu": 0.3,
-   "material": "neo_hookean",
-   "name": "nh_plate_hole_3d_pe_reference_domain",
-   "domain": {
-    "outer": [
-     [
-      0,
-      0
-     ],
-     [
-      10,
-      0
-     ],
-     [
-      10,
-      10
-     ],
-     [
-      0,
-      10
-     ]
-    ],
-    "holes": [
-     {
-      "circle": [
-       5.0,
-       5.0,
-       1.5
-      ]
-     }
-    ]
-   },
-   "bcs": [
-    {
-     "segment": [
-      [
-       0,
-       0
-      ],
-      [
-       0,
-       10
-      ]
-     ],
-     "type": "symmetry"
-    },
-    {
-     "segment": [
-      [
-       0,
-       0
-      ],
-      [
-       10,
-       0
-      ]
-     ],
-     "type": "symmetry"
-    },
-    {
-     "segment": [
-      [
-       10,
-       0
-      ],
-      [
-       10,
-       10
-      ]
-     ],
-     "type": "traction",
-     "t": [
-      1.0,
-      0.0
-     ]
-    },
-    {
-     "face": "z0",
-     "type": "symmetry"
-    },
-    {
-     "face": "z1",
-     "type": "symmetry"
-    }
-   ],
-   "points": {}
-  },
-  "checks": {
-   "Q2": {
-    "verdict": "INCONCLUSIVE",
-    "gate_verdict": "FAIL",
-    "rule": "R1 (post hoc, round Q)",
-    "rates": {
-     "L2": {
-      "observed": 2.7538448477616027,
-      "expected": 3.0,
-      "pass": false
-     },
-     "H1": {
-      "observed": 1.9291782910846864,
-      "expected": 2.0,
-      "pass": true
-     }
-    },
-    "levels": [
-     2,
-     4,
-     8
-    ],
-    "levels_added": [
-     "n=16: refused (level n = 16 (Q2) has 769272 DOF > 450000: too large for this machine (prepare a cluster job))"
-    ],
-    "errors": {
-     "L2": [
-      0.0016119243341394804,
-      0.0002934017305030113,
-      6.537022059626786e-05
-     ],
-     "H1": [
-      0.009913852149868025,
-      0.0029256755023821775,
-      0.0010486727267543143
-     ]
-    },
-    "field": {
-     "ux": "a * (sin(0.13*pi*x + 3/10)*cos(0.13*pi*y + 1/5)*cos(0.13*pi*z + 1/2))",
-     "uy": "a * (sin(0.13*pi*y + 2/5)*cos(0.13*pi*x + 1/10)*cos(0.13*pi*z + 7/10))",
-     "uz": "a * (sin(0.13*pi*x + 1/5)*sin(0.13*pi*y + 3/5)*sin(0.13*pi*z + 1/10))",
-     "amplitude": 0.2313849465699297,
-     "peak_strain": 0.1
-    },
-    "problem": "nh_plate_hole_3d_pe_reference_domain",
-    "reason": "no passing check on record for 72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean|reference_domain"
-   }
+   "reason": "passing check on record for 72d6a1e90181c881|P2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean (nh_plate_hole_3d_pe)",
+   "skipped": true,
+   "reference_pass": false
   }
  },
  "cluster_jobs": [
   {
-   "name": "mms_nh_plate_hole_3d_pe_Q2_n32",
-   "kind": "mms",
-   "spec": "cluster_jobs/mms_nh_plate_hole_3d_pe_Q2_n32_spec.json",
-   "keys": [
-    {
-     "Q2": "72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean"
-    },
-    {
-     "Q2": "72d6a1e90181c881|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes|neo_hookean|reference_domain"
-    }
-   ],
-   "bundle_md5": "b1231d1f1fa70bd1bc2240364c4bb41d",
-   "instructions": "../../../transfer/mms_nh_plate_hole_3d_pe_Q2_n32.md",
+   "name": "ladder_nh_plate_hole_3d_pe_Q216_P216",
+   "spec": "cluster_jobs/ladder_nh_plate_hole_3d_pe_Q216_P216_spec.json",
+   "fingerprint": "4c5643a9f9e32ee8f30555bfb345fa4c201556de6eec1228d8b175b8201322c7",
+   "bundle_md5": "fe2bb7d61563bc4ed9507b1631653290",
+   "instructions": "../../../transfer/ladder_nh_plate_hole_3d_pe_Q216_P216.md",
    "levels": [
-    2,
-    4,
-    8,
-    16,
-    32
+    [
+     "Q2 uniform",
+     16,
+     "Q2"
+    ],
+    [
+     "P2 uniform",
+     16,
+     "P2"
+    ]
    ],
    "uncommitted_code": []
+  }
+ ],
+ "p2_levels": [
+  2,
+  4,
+  8,
+  16
+ ],
+ "certified_info": {},
+ "final": {
+  "certified": [],
+  "open": [
+   "peak_von_mises",
+   "strain_energy",
+   "u_right",
+   "v_hole_top"
+  ]
+ },
+ "verdicts": {
+  "strain_energy": {
+   "verdict": "INCONCLUSIVE",
+   "evidence": "rate",
+   "class": "global",
+   "finest": 0.9514965341248302,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=4.60, GCI_fine=0.00% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "INCONCLUSIVE",
+     "reason": "multilevel test needs >= 4 levels, have 3",
+     "label": null,
+     "evidence": "none"
+    }
+   }
+  },
+  "u_right": {
+   "verdict": "INCONCLUSIVE",
+   "evidence": "rate",
+   "class": "displacement",
+   "finest": 0.19409399009543118,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=3.82, GCI_fine=0.00% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "INCONCLUSIVE",
+     "reason": "multilevel test needs >= 4 levels, have 3",
+     "label": null,
+     "evidence": "none"
+    }
+   }
+  },
+  "v_hole_top": {
+   "verdict": "INCONCLUSIVE",
+   "evidence": "rate",
+   "class": "displacement",
+   "finest": -0.018722369290626758,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=4.94, GCI_fine=0.01% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "INCONCLUSIVE",
+     "reason": "multilevel test needs >= 4 levels, have 3",
+     "label": null,
+     "evidence": "none"
+    }
+   }
+  },
+  "peak_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "none",
+   "class": "pointwise_peak",
+   "finest": 2.598908461443204,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "FAIL",
+     "reason": "divergent: successive differences do not decrease",
+     "label": null,
+     "evidence": "none"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "INCONCLUSIVE",
+     "reason": "multilevel test needs >= 4 levels, have 3",
+     "label": null,
+     "evidence": "none"
+    }
+   }
+  }
+ },
+ "graded": null,
+ "diagnosis": {
+  "strain_energy": {
+   "supported": [],
+   "diagnosis": [],
+   "open": [
+    "D4",
+    "S1",
+    "S2"
+   ],
+   "tests": [
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "refuted",
+     "evidence": "min det F >= 0.989 on every level: moderate deformation, within the range of the neo_hookean model; no sign that a different model or scale is needed",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "needs data",
+     "evidence": "fewer than five levels",
+     "next_action": "add a finer level",
+     "cost": "see the adaptive controller's cost model",
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    }
+   ]
+  },
+  "u_right": {
+   "supported": [],
+   "diagnosis": [],
+   "open": [
+    "D4",
+    "S1",
+    "S2"
+   ],
+   "tests": [
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "refuted",
+     "evidence": "min det F >= 0.989 on every level: moderate deformation, within the range of the neo_hookean model; no sign that a different model or scale is needed",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "needs data",
+     "evidence": "fewer than five levels",
+     "next_action": "add a finer level",
+     "cost": "see the adaptive controller's cost model",
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    }
+   ]
+  },
+  "v_hole_top": {
+   "supported": [],
+   "diagnosis": [],
+   "open": [
+    "D4",
+    "S1",
+    "S2"
+   ],
+   "tests": [
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "refuted",
+     "evidence": "min det F >= 0.989 on every level: moderate deformation, within the range of the neo_hookean model; no sign that a different model or scale is needed",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "needs data",
+     "evidence": "fewer than five levels",
+     "next_action": "add a finer level",
+     "cost": "see the adaptive controller's cost model",
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    }
+   ]
+  },
+  "peak_von_mises": {
+   "supported": [],
+   "diagnosis": [],
+   "open": [
+    "D4",
+    "S1",
+    "S2"
+   ],
+   "tests": [
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "refuted",
+     "evidence": "min det F >= 0.989 on every level: moderate deformation, within the range of the neo_hookean model; no sign that a different model or scale is needed",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D3",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "nu = 0.3: far from incompressibility",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "needs data",
+     "evidence": "fewer than five levels",
+     "next_action": "add a finer level",
+     "cost": "see the adaptive controller's cost model",
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "Q3",
+     "class": "QoI/post-processing",
+     "status": "refuted",
+     "evidence": "order None, monotone rise True, degree 2: no sign of a Gauss-location limit",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    }
+   ]
+  }
+ },
+ "experiments": [
+  {
+   "k": 1,
+   "action": "finer_uniform_level",
+   "confirmed": false,
+   "failed": true
   }
  ]
 }

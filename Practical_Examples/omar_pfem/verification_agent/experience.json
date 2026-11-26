@@ -345,5 +345,20 @@
   "predicted_minutes": 4.575645371730399,
   "observed_minutes": 2.781917218367259,
   "file": "experiments/nh_plate_hole_pe/02_finer_uniform_level.json"
+ },
+ {
+  "problem": "nh_plate_hole_3d_pe",
+  "action": "finer_uniform_level",
+  "situation": "global:inconclusive",
+  "quantities": [
+   "strain_energy",
+   "u_right",
+   "v_hole_top"
+  ],
+  "confirmed": null,
+  "not_run": "refused by the local memory guard (cluster job)",
+  "predicted_minutes": 13.590947965978215,
+  "observed_minutes": 0.027508656183878582,
+  "file": "experiments/nh_plate_hole_3d_pe/01_finer_uniform_level.json"
  }
 ]

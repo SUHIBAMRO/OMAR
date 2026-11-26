@@ -1,0 +1,37 @@
+{
+ "preregistration": {
+  "action": "finer_uniform_level",
+  "quantities": [
+   "strain_energy",
+   "u_right",
+   "v_hole_top"
+  ],
+  "situation": "global:inconclusive",
+  "justification": "strain_energy: global:inconclusive; u_right: displacement:inconclusive; v_hole_top: displacement:inconclusive",
+  "hypothesis": "the sequences are pre-asymptotic; one finer uniform level (n = 16) lets the checks decide",
+  "prediction": {
+   "text": "at least one listed quantity becomes certified with a rate and cross-checked",
+   "criterion": "any_certified"
+  },
+  "run": {
+   "kind": "uniform_level",
+   "n": 16
+  },
+  "cost": {
+   "dof": 512568,
+   "minutes": 13.590947965978215
+  },
+  "prior": 0.5,
+  "prior_n": 0,
+  "score": 0.10280346441489321,
+  "problem": "nh_plate_hole_3d_pe",
+  "git_head": "8b6df8f3e9f3b008d664b18024cafb335fa2f260",
+  "frozen_utc": "2026-11-26T10:11:59.772309+00:00",
+  "sha256": "f6b1d54a478a185db0cd39786c8cdcdcadb8cac41cd6843bfcf00b29e73ed3f1"
+ },
+ "outcome": {
+  "confirmed": false,
+  "failed": "RuntimeError(\"Q2 uniform n=16: the nonlinear solve failed with None load steps: ['level n = 16 (Q2) needs about 16.6 GB > 13 GB: too large for this machine (prepare a cluster job)']\")",
+  "observed_minutes": 0.027508656183878582
+ }
+}

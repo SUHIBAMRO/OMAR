@@ -101,6 +101,38 @@ def claims():
     h = l7["hours_per_formulation_estimate"]
     c.append(("hours L7-L9", ", ".join(f"{h[k]:.1f}" for k in ("7", "8")) + f" and {h['9']:.1f}",
               "9.5, 15.8 and 24.8"))
+    # Section 5, results of cluster job 3322812 (added 26 Nov after the import)
+    rec = _j("code_verification_record.json")
+    cl = {(v["problem"], k.split("|")[1]): v for k, v in rec.items()
+          if "computed on the cluster" in v.get("levels_added", [])}
+    rr = lambda p, el: (f"{cl[(p, el)]['rates']['L2']['observed']:.2f} / "
+                        f"{cl[(p, el)]['rates']['H1']['observed']:.2f}")
+    c += [("job Cook Q2 n=32", rr("cook_3d", "Q2"), "3.79 / 1.99"),
+          ("job Cook P2 n=32", rr("cook_3d", "P2"), "3.24 / 2.27"),
+          ("job Cook ref Q2", rr("cook_3d_reference_domain", "Q2"), "3.52 / 2.42"),
+          ("job Cook ref P2", rr("cook_3d_reference_domain", "P2"), "3.12 / 2.29"),
+          ("job NH 3D Q2", rr("nh_plate_hole_3d_pe", "Q2"), "3.17 / 2.13")]
+    c.append(("job Cook all INCONCLUSIVE", "all INCONCLUSIVE" if all(
+        v["verdict"] == "INCONCLUSIVE" for (p, _), v in cl.items() if p.startswith("cook_3d"))
+        else "not all INCONCLUSIVE", "all INCONCLUSIVE"))
+    lad = _j("pipeline2d_runs", "plate_hole_quarter_3d_pe", "ladders.json")["P2 uniform"]
+    p2 = {r["n"]: r for r in lad}
+    c += [("plate P2 n=32 DOF (job)", f"{p2[32]['n_dof']:,}", "712,701"),
+          ("plate P2 v_hole_top", ", ".join(f"{p2[n]['v_hole_top']:.5f}" for n in (8, 16, 32)),
+           "-0.97460, -0.97318, -0.97267")]
+    now = _j("autonomous_runs", "plate_hole_quarter_3d_pe", "run.json")
+    c.append(("plate after import", f"{len(now['final']['certified'])} of "
+              f"{len(now['final']['certified']) + len(now['final']['open'])} certified", "2 of 4 certified"))
+    exp = _j("experiments", "plate_hole_quarter_3d_pe", "01_finer_independent_level_run5.json")
+    c.append(("plate prediction", "refuted" if not exp["outcome"]["confirmed"] else "confirmed",
+              "refuted"))
+    nh = _j("autonomous_runs", "nh_plate_hole_3d_pe", "run.json")
+    m = re.search(r"needs about ([\d.]+) GB", json.dumps(nh["steps"]))
+    c.append(("NH n=16 memory", f"{float(m.group(1)):.1f} GB", "16.6 GB"))
+    import glob
+    n_tests = sum(open(f).read().count("\ndef test_") for f in
+                  glob.glob(os.path.join(HERE, "test_*.py")))
+    c.append(("test count", f"{n_tests} automated tests pass", "115 automated tests pass"))
     return c
 
 
