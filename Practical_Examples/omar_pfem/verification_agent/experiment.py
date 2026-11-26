@@ -104,8 +104,14 @@ def complete(path, outcome):
     data = json.load(open(path))
     data["outcome"] = outcome
     json.dump(data, open(path, "w"), indent=1, default=float)
+    # FIX (26 Nov, bookkeeping): an experiment the local memory guard refused never ran, so it
+    # is no evidence about its prediction; it is remembered with confirmed = None (the prior
+    # counts only confirmed True / False). It used to count as refuted.
+    machine = "too large for this machine" in str(outcome.get("failed", ""))
     remember({"problem": rec["problem"], "action": rec["action"], "situation": rec["situation"],
-              "quantities": rec["quantities"], "confirmed": outcome["confirmed"],
+              "quantities": rec["quantities"],
+              "confirmed": None if machine else outcome["confirmed"],
+              **({"not_run": "refused by the local memory guard (cluster job)"} if machine else {}),
               "predicted_minutes": rec["cost"]["minutes"],
               "observed_minutes": outcome.get("observed_minutes"),
               "file": os.path.relpath(path, HERE)})

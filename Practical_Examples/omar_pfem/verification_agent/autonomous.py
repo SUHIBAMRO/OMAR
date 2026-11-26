@@ -600,7 +600,8 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
                                              log=lambda s: None)
                 result.setdefault("cluster_jobs", []).append(job)
                 log.step("S", "code", "cluster_job", f"level n = {drop} prepared as cluster job "
-                         f"{job['name']} (bundle md5 {job['bundle_md5']})", job=job)
+                         f"{job['name']} (bundle md5 {job['bundle_md5']}; instructions "
+                         f"{job['instructions']})", job=job)
                 log.step("S", "person", "needs_person", f"submit cluster job {job['name']} by hand")
             except Exception as e2:
                 log.step("S", "code", "failed", f"cluster job not prepared: {e2!s:.200}")
@@ -667,7 +668,9 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
             X.complete(path, {"confirmed": False, "failed": repr(e)[:300],
                               "observed_minutes": minutes})
             log.step("N", "code", "failed", f"#{k} {c['action']} could not be run: {e!s:.200}; "
-                     "recorded as refuted, not tried again on this problem")
+                     + ("not run, so not counted as evidence for or against the prediction; "
+                        "not tried again in this run" if "too large for this machine" in str(e)
+                        else "recorded as refuted, not tried again in this run"))
             # rule R3 (round Q): a level refused by the memory guard becomes a cluster job,
             # prepared here and submitted by a person
             if "too large for this machine" in str(e) and c["run"]["kind"] in ("p2_level", "uniform_level"):
@@ -675,6 +678,16 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
                 n = c["run"]["n"]
                 lv_ = ([("P2 uniform", n, "P2")] if c["run"]["kind"] == "p2_level"
                        else [("Q2 uniform", n, "Q2"), ("P2 uniform", n, "P2")])
+                # FIX (26 Nov): the S stage may have prepared the same levels already; building
+                # the bundle again gave a second md5, so the S-stage log line was stale
+                same = [j for j in result.get("cluster_jobs", [])
+                        if j.get("levels") == [list(l) for l in lv_]]
+                if same:
+                    log.step("N", "code", "cluster_job", f"levels {lv_} are the cluster job "
+                             f"{same[0]['name']} prepared above (bundle md5 "
+                             f"{same[0]['bundle_md5']}); not prepared again")
+                    history.append({"k": k, "action": c["action"], "confirmed": False, "failed": True})
+                    continue
                 try:
                     job = cluster_ladder.prepare(desc, lv_, log=lambda s: None)
                     result.setdefault("cluster_jobs", []).append(job)

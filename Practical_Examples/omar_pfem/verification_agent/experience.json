@@ -315,10 +315,12 @@
   "quantities": [
    "v_hole_top"
   ],
-  "confirmed": false,
+  "confirmed": null,
   "predicted_minutes": 3.5818388158160754,
   "observed_minutes": 0.04404048124949137,
-  "file": "experiments/plate_hole_quarter_3d_pe/01_finer_independent_level.json"
+  "file": "experiments/plate_hole_quarter_3d_pe/01_finer_independent_level.json",
+  "not_run": "refused by the local memory guard (cluster job)",
+  "posthoc_correction": "26 Nov: was recorded as refuted although the experiment never ran"
  },
  {
   "problem": "nh_plate_hole_pe",

@@ -1390,3 +1390,21 @@ def test_cached_cluster_level_costs_nothing():
     assert _level_cost(rows, 32, 8, cm) == (rows[-1]["n_dof"], 0.0)
     assert _level_cost(rows[:4], 32, 8, cm)[0] == 8 * rows[3]["n_dof"]
     assert _level_cost(rows, 64, 8, cm)[0] == 8 * rows[-1]["n_dof"]
+
+
+def test_machine_refused_experiment_is_not_evidence(tmp_path, monkeypatch):
+    """26 Nov: an experiment refused by the local memory guard never ran; it must not lower the
+    prior of its action (it used to be remembered as refuted)."""
+    import json
+    from omar_pfem.verification_agent import experiment as X
+    monkeypatch.setattr(X, "MEMORY", str(tmp_path / "mem.json"))
+    f = tmp_path / "e.json"
+    rec = {"problem": "p", "action": "a", "situation": "s", "quantities": ["q"],
+           "cost": {"minutes": 1.0}}
+    json.dump(rec, open(f, "w"))
+    monkeypatch.setattr(X, "_verify_frozen", lambda path: rec)
+    X.complete(str(f), {"confirmed": False, "failed": "level n = 16 needs about 16.6 GB > 13 GB: "
+                                                      "too large for this machine"})
+    assert X.prior("a", "s") == (0.5, 0)
+    X.complete(str(f), {"confirmed": False, "failed": "J<=0"})
+    assert X.prior("a", "s") == (1 / 3, 1)

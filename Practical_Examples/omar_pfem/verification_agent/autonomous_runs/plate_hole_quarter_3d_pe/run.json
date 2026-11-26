@@ -28,13 +28,13 @@
    "stage": "V",
    "actor": "code",
    "status": "decided",
-   "detail": "Q2: needed (no passing check on record for 676df723c16cb30d|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes); P2: needed (no passing check on record for 676df723c16cb30d|P2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes)"
+   "detail": "Q2: not needed (passing check on record for 676df723c16cb30d|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes (plate_hole_quarter_3d_pe)); P2: not needed (passing check on record for 676df723c16cb30d|P2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes (plate_hole_quarter_3d_pe))"
   },
   {
    "stage": "V",
    "actor": "code",
    "status": "PASS",
-   "detail": "Q2 PASS (L2 3.17, H1 2.13, levels [2, 4, 8, 16]); P2 PASS (L2 3.08, H1 2.02, levels [2, 4, 8, 16])"
+   "detail": "Q2 PASS; P2 PASS"
   },
   {
    "stage": "S",
@@ -58,42 +58,15 @@
    "stage": "N",
    "actor": "code",
    "status": "pre-registered",
-   "detail": "#1 finer_independent_level on ['v_hole_top']: the independent sequence is pre-asymptotic; one more level gives it a rate that agrees; prediction: at least one listed quantity becomes cross-checked; prior 0.38 (n=6); est. 3.1 min",
-   "file": "experiments/plate_hole_quarter_3d_pe/01_finer_independent_level_run4.json",
-   "sha256": "051c69e6bed009d4946847f4c2ac8fe48364ef61892848970e0c7fce3a0dda6b"
+   "detail": "#1 finer_independent_level on ['v_hole_top']: the independent sequence is pre-asymptotic; one more level gives it a rate that agrees; prediction: at least one listed quantity becomes cross-checked; prior 0.38 (n=6); est. 0.0 min",
+   "file": "experiments/plate_hole_quarter_3d_pe/01_finer_independent_level_run5.json",
+   "sha256": "8a28c26fea8286c167623d196c4657db4b1c717a1be43d9fd7b0cd8003c2c0fd"
   },
   {
    "stage": "N",
    "actor": "code",
-   "status": "failed",
-   "detail": "#1 finer_independent_level could not be run: P2 uniform n=32: the nonlinear solve failed with None load steps: ['level n = 32 (P2) has 712701 DOF > 450000: too large for this machine (prepare a cluster job)']; recorded as refuted, not tried again on this problem"
-  },
-  {
-   "stage": "N",
-   "actor": "code",
-   "status": "cluster_job",
-   "detail": "levels [('P2 uniform', 32, 'P2')] prepared as cluster job ladder_plate_hole_quarter_3d_pe_P232 (bundle md5 1570ddddf27d672b3a3517b479b03feb; instructions ../../../transfer/ladder_plate_hole_quarter_3d_pe_P232.md); the run can be repeated after the import",
-   "job": {
-    "name": "ladder_plate_hole_quarter_3d_pe_P232",
-    "spec": "cluster_jobs/ladder_plate_hole_quarter_3d_pe_P232_spec.json",
-    "fingerprint": "b912bd8d9a7a76eb514f3554817225ae552064a27be4c70fe4697fc40a01972d",
-    "bundle_md5": "1570ddddf27d672b3a3517b479b03feb",
-    "instructions": "../../../transfer/ladder_plate_hole_quarter_3d_pe_P232.md",
-    "levels": [
-     [
-      "P2 uniform",
-      32,
-      "P2"
-     ]
-    ],
-    "uncommitted_code": []
-   }
-  },
-  {
-   "stage": "N",
-   "actor": "person",
-   "status": "needs_person",
-   "detail": "submit cluster job ladder_plate_hole_quarter_3d_pe_P232 by hand (no agent connects to the cluster) and paste the result"
+   "status": "refuted",
+   "detail": "#1 finer_independent_level: prediction refuted (0.0 min); certified so far ['strain_energy', 'u_right']"
   },
   {
    "stage": "N",
@@ -108,19 +81,116 @@
    "actor": "person",
    "status": "input",
    "detail": "description written by a person (steps L, D skipped)"
-  },
-  {
-   "stage": "N",
-   "actor": "person",
-   "status": "needs_person",
-   "detail": "submit cluster job ladder_plate_hole_quarter_3d_pe_P232 by hand (no agent connects to the cluster) and paste the result"
   }
  ],
- "wall_clock_s": 411.5549898147583,
+ "wall_clock_s": 2.4193644523620605,
  "source": {
   "pdf": null,
   "text": null,
   "description_given": true
+ },
+ "description": {
+  "name": "plate_hole_quarter_3d_pe",
+  "dim": 3,
+  "domain": {
+   "outer": [
+    [
+     0,
+     0
+    ],
+    [
+     10,
+     0
+    ],
+    [
+     10,
+     10
+    ],
+    [
+     0,
+     10
+    ]
+   ],
+   "holes": [
+    {
+     "circle": [
+      0,
+      0,
+      1
+     ]
+    }
+   ]
+  },
+  "thickness": 1.0,
+  "E": 1.0,
+  "nu": 0.3,
+  "bcs": [
+   {
+    "segment": [
+     [
+      1,
+      0
+     ],
+     [
+      10,
+      0
+     ]
+    ],
+    "type": "symmetry"
+   },
+   {
+    "segment": [
+     [
+      0,
+      1
+     ],
+     [
+      0,
+      10
+     ]
+    ],
+    "type": "symmetry"
+   },
+   {
+    "segment": [
+     [
+      10,
+      0
+     ],
+     [
+      10,
+      10
+     ]
+    ],
+    "type": "traction",
+    "t": [
+     1.0,
+     0.0
+    ]
+   },
+   {
+    "face": "z0",
+    "type": "symmetry"
+   },
+   {
+    "face": "z1",
+    "type": "symmetry"
+   }
+  ],
+  "points": {
+   "u_right": [
+    10,
+    0,
+    0.0,
+    "x"
+   ],
+   "v_hole_top": [
+    0,
+    1,
+    0.0,
+    "y"
+   ]
+  }
  },
  "mms": {
   "Q2": {
@@ -166,7 +236,9 @@
     "uz": "0.01*sin(0.13*pi*x + 1/5)*sin(0.13*pi*y + 3/5)*sin(0.13*pi*z + 1/10)"
    },
    "problem": "plate_hole_quarter_3d_pe",
-   "reason": "no passing check on record for 676df723c16cb30d|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes"
+   "reason": "passing check on record for 676df723c16cb30d|Q2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes (plate_hole_quarter_3d_pe)",
+   "skipped": true,
+   "reference_pass": false
   },
   "P2": {
    "verdict": "PASS",
@@ -211,7 +283,9 @@
     "uz": "0.01*sin(0.13*pi*x + 1/5)*sin(0.13*pi*y + 3/5)*sin(0.13*pi*z + 1/10)"
    },
    "problem": "plate_hole_quarter_3d_pe",
-   "reason": "no passing check on record for 676df723c16cb30d|P2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes"
+   "reason": "passing check on record for 676df723c16cb30d|P2|plane_3d|face_symmetry+free+symmetry+traction+general_domain_holes (plate_hole_quarter_3d_pe)",
+   "skipped": true,
+   "reference_pass": false
   }
  },
  "p2_levels": [
@@ -220,23 +294,6 @@
   8,
   16,
   32
- ],
- "cluster_jobs": [
-  {
-   "name": "ladder_plate_hole_quarter_3d_pe_P232",
-   "spec": "cluster_jobs/ladder_plate_hole_quarter_3d_pe_P232_spec.json",
-   "fingerprint": "b912bd8d9a7a76eb514f3554817225ae552064a27be4c70fe4697fc40a01972d",
-   "bundle_md5": "1570ddddf27d672b3a3517b479b03feb",
-   "instructions": "../../../transfer/ladder_plate_hole_quarter_3d_pe_P232.md",
-   "levels": [
-    [
-     "P2 uniform",
-     32,
-     "P2"
-    ]
-   ],
-   "uncommitted_code": []
-  }
  ],
  "certified_info": {
   "strain_energy": {
@@ -287,7 +344,7 @@
    "limit": 46.60307686403348,
    "U": 1.5939579602809403e-07,
    "crosscheck": "cross_checked",
-   "gap_rel": 2.782591173314963e-07,
+   "gap_rel": 2.5525966503107973e-07,
    "final": "CERTIFIED"
   },
   "u_right": {
@@ -312,7 +369,7 @@
    "limit": 9.570923628133027,
    "U": 1.0686451951323681e-06,
    "crosscheck": "cross_checked",
-   "gap_rel": 5.110395218326095e-06,
+   "gap_rel": 3.167493714727925e-06,
    "final": "CERTIFIED"
   },
   "v_hole_top": {
@@ -447,111 +504,7 @@
   {
    "k": 1,
    "action": "finer_independent_level",
-   "confirmed": false,
-   "failed": true
+   "confirmed": false
   }
- ],
- "description": {
-  "name": "plate_hole_quarter_3d_pe",
-  "dim": 3,
-  "domain": {
-   "outer": [
-    [
-     0,
-     0
-    ],
-    [
-     10,
-     0
-    ],
-    [
-     10,
-     10
-    ],
-    [
-     0,
-     10
-    ]
-   ],
-   "holes": [
-    {
-     "circle": [
-      0,
-      0,
-      1
-     ]
-    }
-   ]
-  },
-  "thickness": 1.0,
-  "E": 1.0,
-  "nu": 0.3,
-  "bcs": [
-   {
-    "segment": [
-     [
-      1,
-      0
-     ],
-     [
-      10,
-      0
-     ]
-    ],
-    "type": "symmetry"
-   },
-   {
-    "segment": [
-     [
-      0,
-      1
-     ],
-     [
-      0,
-      10
-     ]
-    ],
-    "type": "symmetry"
-   },
-   {
-    "segment": [
-     [
-      10,
-      0
-     ],
-     [
-      10,
-      10
-     ]
-    ],
-    "type": "traction",
-    "t": [
-     1.0,
-     0.0
-    ]
-   },
-   {
-    "face": "z0",
-    "type": "symmetry"
-   },
-   {
-    "face": "z1",
-    "type": "symmetry"
-   }
-  ],
-  "points": {
-   "u_right": [
-    10,
-    0,
-    0.0,
-    "x"
-   ],
-   "v_hole_top": [
-    0,
-    1,
-    0.0,
-    "y"
-   ]
-  }
- }
+ ]
 }
