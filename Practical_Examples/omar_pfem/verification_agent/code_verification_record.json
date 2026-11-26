@@ -2286,5 +2286,98 @@
   },
   "problem": "nh_plate_hole_3d_pe_reference_domain",
   "reason": "cluster job mms_nh_plate_hole_3d_pe_Q2_n32"
+ },
+ "464e0a1256c93451|Q2|plane_strain|clamped+free+traction+general_domain": {
+  "verdict": "PASS",
+  "gate_verdict": "PASS",
+  "rule": "R1 (post hoc, round Q)",
+  "rates": {
+   "L2": {
+    "observed": 3.103810821047486,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 2.0439787433258823,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16,
+   32
+  ],
+  "levels_added": [
+   "n=32: rates outside tolerance but moving toward theory"
+  ],
+  "errors": {
+   "L2": [
+    0.009214865749513461,
+    0.0031454824683169722,
+    0.0004314410186386863,
+    6.611769263752073e-05,
+    8.429670480918122e-06
+   ],
+   "H1": [
+    0.005889953451033013,
+    0.0027206043522352307,
+    0.0007794336587580862,
+    0.00022694420682665026,
+    5.838259363255137e-05
+   ]
+  },
+  "field": {
+   "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)",
+   "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)"
+  },
+  "problem": "cooks_membrane_linear_elastic_case1_E1_nu1over3",
+  "reason": "no passing check on record for 464e0a1256c93451|Q2|plane_strain|clamped+free+traction+general_domain"
+ },
+ "464e0a1256c93451|P2|plane_strain|clamped+free+traction+general_domain": {
+  "verdict": "PASS",
+  "gate_verdict": "PASS",
+  "rule": "R1 (post hoc, round Q)",
+  "rates": {
+   "L2": {
+    "observed": 3.090446254045795,
+    "expected": 3.0,
+    "pass": true
+   },
+   "H1": {
+    "observed": 2.030595764005301,
+    "expected": 2.0,
+    "pass": true
+   }
+  },
+  "levels": [
+   2,
+   4,
+   8,
+   16
+  ],
+  "levels_added": [],
+  "errors": {
+   "L2": [
+    0.07153717339877787,
+    0.01682809166983621,
+    0.0028434473884317167,
+    0.0003708466464623983
+   ],
+   "H1": [
+    0.022060995951450713,
+    0.009723117436462479,
+    0.002994821772452619,
+    0.0007927226411584283
+   ]
+  },
+  "field": {
+   "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)",
+   "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)"
+  },
+  "problem": "cooks_membrane_linear_elastic_case1_E1_nu1over3",
+  "reason": "no passing check on record for 464e0a1256c93451|P2|plane_strain|clamped+free+traction+general_domain"
  }
 }

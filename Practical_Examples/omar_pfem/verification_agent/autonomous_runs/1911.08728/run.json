@@ -4,31 +4,31 @@
    "stage": "L",
    "actor": "LLM",
    "status": "done",
-   "detail": "card from passage at character 67660 (score 158.2); quotes found 100%",
+   "detail": "card from passage at character 67660 (score 158.2); quotes found 91%",
    "card": {
     "pdf": "1911.08728.pdf",
     "section_used": "passage at character 67660 (score 158.2)",
     "card": {
-     "title": "Cook's membrane (linear elasticity, compressible and nearly incompressible), SWG method on polygonal meshes",
+     "title": "Cook's membrane (2D linear elasticity, compressible and nearly incompressible), SWG/weak Galerkin scheme on polygonal meshes",
      "geometry": {
-      "value": "A 2D tapered plate (Cook's membrane), shown in Fig. 10.4. The text gives no vertex coordinates. It gives only the evaluation point Q = (48, 52), the midpoint of the right end. No thickness or plane-strain/plane-stress assumption is stated.",
-      "quote": "The problem consists of a tapered plate clamped on one end and subject to a shear load, taken as g = (0, 1/16) in our numerical experiments, on the opposite end, as illustrated in Figure 10.4."
+      "value": "Tapered plate (classical Cook's membrane), 2D. The text gives dimensions only through Figure 10.4. The one coordinate stated is the midpoint of the right end, Q = (48, 52). The full vertex coordinates are not given in the text.",
+      "quote": "The problem consists of a tapered plate clamped on one end and subject to a shear load"
      },
      "material": {
-      "value": "Linear isotropic elasticity, not hyperelastic. Case 1: E = 1, nu = 1/3. Case 2 (nearly incompressible): E = 1.12499998125, nu = 0.499999975. The reference value applies to case 2 only.",
-      "quote": "the second case is concerned with a nearly incompressible material with Young\u2019s modulus E = 1.12499998125 and Poisson ratio \u03bd = 0.499999975"
+      "value": "Linear isotropic elasticity, not hyperelastic. Case 1: E = 1, \u03bd = 1/3. Case 2 (nearly incompressible): E = 1.12499998125, \u03bd = 0.499999975. The section does not say whether this is plane strain or plane stress.",
+      "quote": "The first case involves a material with Young\u2019s modulus E = 1 and Poisson ratio \u03bd = 1/3, and the second case is concerned with a nearly incompressible material with Young\u2019s modulus E = 1.12499998125 and Poisson ratio \u03bd = 0.499999975"
      },
      "boundary_conditions": {
-      "value": "Clamped on one end (the left end, by inference from Q being on the right end). A shear traction acts on the opposite end. The remaining edges are presumably traction-free, but the text does not say so.",
-      "quote": "a tapered plate clamped on one end"
+      "value": "One end (the left end) is clamped. A shear traction is applied on the opposite end. The remaining edges are presumably traction-free, but the text does not say so explicitly.",
+      "quote": "The problem consists of a tapered plate clamped on one end and subject to a shear load"
      },
      "loading": {
-      "value": "Shear traction g = (0, 1/16) on the end opposite the clamp. The text does not say whether it is distributed uniformly or is a resultant.",
-      "quote": "subject to a shear load, taken as g = (0, 1/16) in our numerical experiments"
+      "value": "Shear traction g = (0, 1/16) applied on the end opposite the clamp (the right end). The section does not say whether this is a distributed traction or a total force.",
+      "quote": "subject to a shear load, taken as g = (0, 1/16) in our numerical experiments, on the opposite end"
      },
      "discretisation": {
-      "value": "The reference value 16.442 is taken from [2, 22]. Its mesh, element type and element count are not stated in this section. (The paper's own SWG runs use triangle, quadrilateral, hexagonal and octagonal partitions, e.g. h = 1/16. Those are the method under test, not the reference.)",
-      "quote": "compared against the reference values reported in [2, 22], given by 16.442 for the second test case."
+      "value": "Reference solution: taken from literature values in [2, 22]. Their mesh, element type and element count are not stated. (The SWG computations under test used triangle, quadrilateral, hexagonal and octagonal partitions, with h = 1/16 in the figures. For example, the triangular mesh had 8,192 elements and 12,416 DOF at the fifth refinement. These describe the tested method, not the reference.)",
+      "quote": "is compared against the reference values reported in [2, 22], given by 16.442 for the second test case"
      },
      "reference": {
       "type": "unspecified",
@@ -37,51 +37,52 @@
      },
      "qois": [
       {
-       "name": "Vertical displacement at Q",
+       "name": "Vertical displacement u2 at Q = (48,52), case 2 (nearly incompressible)",
        "kind": "displacement",
-       "definition": "Vertical displacement u2 at Q = (48, 52), the midpoint of the right end. Case 2 (nu = 0.499999975).",
-       "reported_value": "Reference 16.442 (from [2, 22]). The SWG triangular-mesh value is within 1% of it at the fifth refinement (12,416 DOF, 8,192 elements). The exact SWG value is shown only in Fig. 10.8, not stated as a number.",
-       "quote": "convergence occurs in the fifth refinement for the triangular mesh, with 12, 416 degree of freedom (i.e. 8, 192 triangular elements)"
+       "definition": "Vertical displacement at the midpoint of the right end of the plate, Q = (48, 52), for E = 1.12499998125, \u03bd = 0.499999975",
+       "reported_value": "Reference value 16.442 (from [2, 22]). SWG result is within 1% of it on the triangular mesh at the fifth refinement (12,416 DOF, 8,192 elements).",
+       "quote": "The computed displacement at the mid point of the right end of the plate is within a 1% difference with respect to the results reported in [2, 22]."
       },
       {
-       "name": "Relative error of tip displacement vs reference, all mesh types",
+       "name": "Vertical displacement at Q vs. total DOF (convergence curve)",
        "kind": "displacement",
-       "definition": "Relative difference between the computed u2(Q) and 16.442, as a function of total DOF for each polygonal mesh type",
-       "reported_value": "Below 5% with fewer than 18,000 DOF for all mesh types",
-       "quote": "we need less than 18, 000 degree of freedoms to achieve an error less than 5% with respect to the reference value for all type of meshes."
+       "definition": "How the tip displacement at Q changes with the number of DOF, for triangle, quadrilateral, hexagonal and octagonal partitions, case 2",
+       "reported_value": "Error below 5% relative to the reference with fewer than 18,000 DOF for all mesh types. Curve values are shown only in Fig. 10.8.",
+       "quote": "In general, we need less than 18, 000 degree of freedoms to achieve an error less than 5% with respect to the reference value for all type of meshes."
       },
       {
-       "name": "Displacement and pseudo-pressure fields",
+       "name": "Deformation, pseudo-pressure and displacement contour fields",
        "kind": "other",
-       "definition": "Contour plots of the deformed shape coloured by pseudo-pressure (kappa = 1), and contour plots of u1 and u2 for kappa = 1 and kappa = 0 on the quadrilateral mesh with h = 1/16",
-       "reported_value": "Qualitative only: the kappa = 0 results are very close to the kappa = 1 results",
-       "quote": "the approximate solution obtained from the SWG scheme with \u03ba = 0 are very close to those obtained with \u03ba = 1 for both cases"
+       "definition": "Qualitative contour plots of the deformation coloured by pseudo-pressure, and of u1 and u2, for \u03ba = 1 and \u03ba = 0, h = 1/16",
+       "reported_value": "Qualitative only; no numbers given",
+       "quote": "Figure 10.6 illustrates the deformation of the material colored by the pseudo pressure field for the case of E = 1.12499998125 and Poisson ratio \u03bd = 0.499999975."
       }
      ],
      "singular_features": [
       {
-       "description": "The corners where the clamped end meets the traction-free top and bottom edges give a corner singularity in the continuum stress. This is made more severe by near-incompressibility.",
+       "description": "Corners where the clamped left edge meets the traction-free top and bottom edges. Linear elasticity has a stress singularity here; for near-incompressibility the pressure is also singular. Peak stress or pressure at these corners will not converge under refinement.",
        "singular": true,
        "inferred": true,
-       "quote": "The problem consists of a tapered plate clamped on one end"
+       "quote": "The problem consists of a tapered plate clamped on one end and subject to a shear load"
       },
       {
-       "description": "The corners where the end carrying the shear traction meets the free edges. With a smooth traction distribution, these give no strong singularity. The load distribution is not stated.",
+       "description": "Corners where the loaded right edge meets the free top and bottom edges. Uniform traction meets a free edge at a convex corner, giving a stress concentration that may be weak, not a strong singularity. The section does not discuss it.",
        "singular": false,
        "inferred": true,
        "quote": "subject to a shear load, taken as g = (0, 1/16) in our numerical experiments, on the opposite end"
       }
      ],
      "not_stated": [
-      "Vertex coordinates and dimensions of the tapered plate (only Q = (48, 52) is given; the figure is not reproduced in the text)",
-      "Plane strain vs plane stress assumption and thickness",
-      "Whether the traction g is uniformly distributed or a total resultant",
+      "Plate dimensions or vertex coordinates (shown only in Figure 10.4; only Q = (48, 52) appears in the text)",
+      "Plane strain vs. plane stress assumption and thickness",
+      "Whether g = (0, 1/16) is a traction per unit length or a total force, and how it is distributed",
       "Explicit statement that the top and bottom edges are traction-free",
-      "Reference value for case 1 (E = 1, nu = 1/3)",
-      "Mesh, element type, element count and convergence evidence behind the reference value 16.442 from [2, 22]",
-      "Numerical values of the SWG tip displacement for each mesh (shown only graphically in Fig. 10.8)",
-      "Mesh sizes and DOF counts for each refinement level of the non-triangular partitions",
-      "The problem is linear elasticity, not hyperelasticity; no nonlinear constitutive model is given"
+      "Reference solution method, mesh size, element type and element count (taken from refs [2, 22])",
+      "Convergence evidence for the reference value 16.442",
+      "Reference value for case 1 (E = 1, \u03bd = 1/3)",
+      "Numerical tip-displacement values computed by SWG (shown only graphically in Fig. 10.8)",
+      "Mesh sizes of the refinement levels other than h = 1/16 for each partition type",
+      "Constitutive law is linear elasticity; no hyperelastic model is used"
      ]
     },
     "quotes_found": {
@@ -91,26 +92,26 @@
      "loading": true,
      "discretisation": true,
      "reference": true,
-     "qois[0]": true,
+     "qois[0]": false,
      "qois[1]": true,
      "qois[2]": true,
      "singular_features[0]": true,
      "singular_features[1]": true
     },
-    "quote_rate": 1.0,
+    "quote_rate": 0.9090909090909091,
     "qoi_classes": [
      {
-      "name": "Vertical displacement at Q",
+      "name": "Vertical displacement u2 at Q = (48,52), case 2 (nearly incompressible)",
       "kind": "displacement",
       "class": "displacement"
      },
      {
-      "name": "Relative error of tip displacement vs reference, all mesh types",
+      "name": "Vertical displacement at Q vs. total DOF (convergence curve)",
       "kind": "displacement",
       "class": "displacement"
      },
      {
-      "name": "Displacement and pseudo-pressure fields",
+      "name": "Deformation, pseudo-pressure and displacement contour fields",
       "kind": "other",
       "class": "out_of_scope"
      }
@@ -120,9 +121,10 @@
      "reference not verified: a refinement family (and strategies) is needed before its values can be used to measure surrogate errors",
      "no independent code: cross-check with a second solver",
      "singular features present: run the singular-order check; pointwise peaks there have no finite limit",
-     "missing inputs must be fixed (and declared) before solving: Vertex coordinates and dimensions of the tapered plate (only Q = (48, 52) is given; the figure is not reproduced in the text); Plane strain vs plane stress assumption and thickness; Whether the traction g is uniformly distributed or a total resultant; Explicit statement that the top and bottom edges are traction-free; Reference value for case 1 (E = 1, nu = 1/3); Mesh, element type, element count and convergence evidence behind the reference value 16.442 from [2, 22]; Numerical values of the SWG tip displacement for each mesh (shown only graphically in Fig. 10.8); Mesh sizes and DOF counts for each refinement level of the non-triangular partitions; The problem is linear elasticity, not hyperelasticity; no nonlinear constitutive model is given"
+     "missing inputs must be fixed (and declared) before solving: Plate dimensions or vertex coordinates (shown only in Figure 10.4; only Q = (48, 52) appears in the text); Plane strain vs. plane stress assumption and thickness; Whether g = (0, 1/16) is a traction per unit length or a total force, and how it is distributed; Explicit statement that the top and bottom edges are traction-free; Reference solution method, mesh size, element type and element count (taken from refs [2, 22]); Convergence evidence for the reference value 16.442; Reference value for case 1 (E = 1, \u03bd = 1/3); Numerical tip-displacement values computed by SWG (shown only graphically in Fig. 10.8); Mesh sizes of the refinement levels other than h = 1/16 for each partition type; Constitutive law is linear elasticity; no hyperelastic model is used",
+     "unsupported fields (quote not found in the paper), not used: qois[0]"
     ],
-    "problem_text": "Cook's membrane (linear elasticity, compressible and nearly incompressible), SWG method on polygonal meshes.\nGeometry: A 2D tapered plate (Cook's membrane), shown in Fig. 10.4. The text gives no vertex coordinates. It gives only the evaluation point Q = (48, 52), the midpoint of the right end. No thickness or plane-strain/plane-stress assumption is stated.\nMaterial: Linear isotropic elasticity, not hyperelastic. Case 1: E = 1, nu = 1/3. Case 2 (nearly incompressible): E = 1.12499998125, nu = 0.499999975. The reference value applies to case 2 only.\nBoundary conditions: Clamped on one end (the left end, by inference from Q being on the right end). A shear traction acts on the opposite end. The remaining edges are presumably traction-free, but the text does not say so.\nLoading: Shear traction g = (0, 1/16) on the end opposite the clamp. The text does not say whether it is distributed uniformly or is a resultant.\nDiscretisation in the paper: The reference value 16.442 is taken from [2, 22]. Its mesh, element type and element count are not stated in this section. (The paper's own SWG runs use triangle, quadrilateral, hexagonal and octagonal partitions, e.g. h = 1/16. Those are the method under test, not the reference.)\nFeatures: The corners where the clamped end meets the traction-free top and bottom edges give a corner singularity in the continuum stress. This is made more severe by near-incompressibility.; The corners where the end carrying the shear traction meets the free edges. With a smooth traction distribution, these give no strong singularity. The load distribution is not stated..\nQuestion: which of these quantities can serve as trustworthy reference values: Vertical displacement at Q (Vertical displacement u2 at Q = (48, 52), the midpoint of the right end. Case 2 (nu = 0.499999975).); Relative error of tip displacement vs reference, all mesh types (Relative difference between the computed u2(Q) and 16.442, as a function of total DOF for each polygonal mesh type); Displacement and pseudo-pressure fields (Contour plots of the deformed shape coloured by pseudo-pressure (kappa = 1), and contour plots of u1 and u2 for kappa = 1 and kappa = 0 on the quadrilateral mesh with h = 1/16)?"
+    "problem_text": "Cook's membrane (2D linear elasticity, compressible and nearly incompressible), SWG/weak Galerkin scheme on polygonal meshes.\nGeometry: Tapered plate (classical Cook's membrane), 2D. The text gives dimensions only through Figure 10.4. The one coordinate stated is the midpoint of the right end, Q = (48, 52). The full vertex coordinates are not given in the text.\nMaterial: Linear isotropic elasticity, not hyperelastic. Case 1: E = 1, \u03bd = 1/3. Case 2 (nearly incompressible): E = 1.12499998125, \u03bd = 0.499999975. The section does not say whether this is plane strain or plane stress.\nBoundary conditions: One end (the left end) is clamped. A shear traction is applied on the opposite end. The remaining edges are presumably traction-free, but the text does not say so explicitly.\nLoading: Shear traction g = (0, 1/16) applied on the end opposite the clamp (the right end). The section does not say whether this is a distributed traction or a total force.\nDiscretisation in the paper: Reference solution: taken from literature values in [2, 22]. Their mesh, element type and element count are not stated. (The SWG computations under test used triangle, quadrilateral, hexagonal and octagonal partitions, with h = 1/16 in the figures. For example, the triangular mesh had 8,192 elements and 12,416 DOF at the fifth refinement. These describe the tested method, not the reference.)\nFeatures: Corners where the clamped left edge meets the traction-free top and bottom edges. Linear elasticity has a stress singularity here; for near-incompressibility the pressure is also singular. Peak stress or pressure at these corners will not converge under refinement.; Corners where the loaded right edge meets the free top and bottom edges. Uniform traction meets a free edge at a convex corner, giving a stress concentration that may be weak, not a strong singularity. The section does not discuss it..\nQuestion: which of these quantities can serve as trustworthy reference values: Vertical displacement at Q vs. total DOF (convergence curve) (How the tip displacement at Q changes with the number of DOF, for triangle, quadrilateral, hexagonal and octagonal partitions, case 2); Deformation, pseudo-pressure and displacement contour fields (Qualitative contour plots of the deformation coloured by pseudo-pressure, and of u1 and u2, for \u03ba = 1 and \u03ba = 0, h = 1/16)?"
    }
   },
   {
@@ -133,9 +135,9 @@
   },
   {
    "stage": "L",
-   "actor": "code",
-   "status": "done",
-   "detail": "paper and hint chosen by the literature search (code + scout) (\"Cook's membrane (case 1, E=1, nu=1/3)\")"
+   "actor": "person",
+   "status": "input",
+   "detail": "paper and hint chosen by a person (\"Cook's membrane, case 1 (E = 1, nu = 1/3)\")"
   },
   {
    "stage": "D",
@@ -143,50 +145,50 @@
    "status": "done",
    "detail": "formalizer specification; code check: no problems",
    "spec": {
-    "name": "Cook's membrane, linear elasticity (compressible nu=1/3 and nearly incompressible nu=0.499999975), SWG method on polygonal meshes: tip vertical displacement u2(Q) compared with the literature reference 16.442",
-    "geometry": "2D tapered plate (Cook's membrane, paper Fig. 10.4). The text gives no vertex coordinates. The only coordinate given is the evaluation point Q = (48, 52), stated to be the midpoint of the right end, so the right end is the vertical segment x = 48 centred at y = 52. The left end is clamped (inferred). The top and bottom edges are inclined and presumably traction-free. Thickness and the plane-strain/plane-stress assumption are not stated.",
+    "name": "Cook's membrane: 2D linear elasticity, compressible and nearly incompressible, SWG (weak Galerkin) on polygonal meshes",
+    "geometry": "The classical Cook's membrane: a tapered quadrilateral plate in 2D. The text defines it only through Figure 10.4. The one stated coordinate is Q = (48, 52), the midpoint of the right (loaded) end. The full vertex coordinates are not given in the text. The classical Cook's geometry would place Q at that point, but it has to be confirmed from the figure before it is used.",
     "dim": 2,
-    "material": "Linear isotropic elasticity (small strain), not hyperelastic. Case 1: E = 1, nu = 1/3 (compressible). Case 2: E = 1.12499998125, nu = 0.499999975 (nearly incompressible, so lambda/mu is very large and low-order displacement elements can lock). The reference value 16.442 applies to case 2 only. The paper uses a pseudo-pressure variable and a parameter kappa in {0, 1}. What kappa means (formulation variant or stabilisation) is not defined in the excerpt.",
-    "loading": "Shear traction g = (0, 1/16) on the right end x = 48. The edge opposite the clamp is the right end by inference. The text does not say whether g is a uniform traction density or whether it stands for a total resultant. The left end is fully clamped (u = 0). The top and bottom edges are presumably traction-free (not stated). No body force is mentioned. The load is static and linear, so there are no limit points or load-level issues.",
+    "material": "Linear isotropic elasticity, not hyperelastic, so this is outside the pipeline's usual hyperelastic scope.\n- Case 1 (compressible): E = 1, \u03bd = 1/3.\n- Case 2 (nearly incompressible): E = 1.12499998125, \u03bd = 0.499999975.\nThe two parameter sets appear chosen to give the same shear modulus, with the bulk/Lam\u00e9 modulus becoming very large in case 2. The section does not say whether this is plane strain or plane stress. The figure parameter \u03ba (\u03ba = 1 and \u03ba = 0) is not defined in the text given.",
+    "loading": "A shear traction g = (0, 1/16) is applied on the right end, opposite the clamped left end. It is not stated whether g is a distributed traction (force per unit length) or a total resultant force. The top and bottom edges are presumably traction-free, but this is not stated explicitly. Because the problem is linear elasticity, there are no limit points or load-level effects.",
     "regularity": "clamped_free_corner",
     "element": "Q4",
     "reference": "mesh_refinement_family",
     "qois": [
-     "u2(Q): vertical displacement at Q = (48, 52), the midpoint of the right end, for case 2 (nu = 0.499999975), compared with the reference 16.442 from [2, 22]. This is a pointwise displacement far from the clamped-corner singularities. For a locking-free discretisation it converges under refinement (for a uniform load it is the midpoint of a smooth edge). It is a usable QoI, but the reference can only be trusted if [2, 22] report a converged refinement study under the same BCs, load distribution and plane assumption.",
-     "Relative error |u2_h(Q) - 16.442| / 16.442 against total DOF for each polygonal mesh type (triangle, quadrilateral, hexagonal, octagonal). This is a derived quantity. It can only resolve errors larger than the error of the reference itself, so the curves will level off at about the reference's own accuracy (unknown: 16.442 is given to 5 significant figures, i.e. about 1e-4 relative at best). Rates read from it are not trustworthy beyond that point. Because of the corner singularities, the observed rates will be below the smooth-solution rates.",
-     "Displacement fields u1 and u2 and the pseudo-pressure field (deformed shape coloured by pseudo-pressure for kappa = 1, plus u1 and u2 contours for kappa = 1 and kappa = 0) on the quadrilateral mesh with h = 1/16. These are qualitative only. The displacement contours can be checked for smoothness and for the absence of locking or checkerboarding. The pseudo-pressure, like the stress, is singular at the clamped-free corners, so its peak values do not converge and cannot be a reference. Away from the corners it could be compared through region averages, but the paper gives no reference field values."
+     "Vertical displacement u2 at Q = (48, 52) plotted against total DOF (convergence curve), for triangle, quadrilateral, hexagonal and octagonal partitions, case 2 (nearly incompressible). This is a candidate trustworthy reference QoI: it is a point displacement away from the singular corners, and displacements converge under refinement even with the clamped-free corner singularities, provided the scheme is free of locking.",
+     "Deformation contours coloured by pseudo-pressure, and u1 and u2 contour fields, for \u03ba = 1 and \u03ba = 0 at h = 1/16. These are qualitative plots only and are not trustworthy reference values. The u1 and u2 fields are smooth enough to compare visually. The pseudo-pressure is singular at the clamped corners in the nearly incompressible case, so its peak values (and the colour-scale extremes) will not converge under refinement."
     ],
     "well_posedness": [
-     "Dirichlet condition: the left end is fully clamped (u = 0). This removes rigid-body modes, so the linear elastic problem has a unique solution as long as the clamp has positive length.",
-     "Material stability: the linear isotropic material with E > 0 and -1 < nu < 0.5 is strongly elliptic and coercive in both cases. For case 2, nu = 0.499999975 is very close to 0.5, so the problem is nearly incompressible. Only locking-free or mixed discretisations (the SWG pseudo-pressure formulation is meant to be one) converge uniformly in lambda. For a locking discretisation, u2(Q) will be far too small on practical meshes.",
-     "Loading: linear static problem with no geometric or material nonlinearity, so there are no limit points or bifurcations, and the solution scales linearly with g.",
-     "Singular features: where the clamped left end meets the traction-free top and bottom edges, the stress and pressure are singular (near-incompressibility makes it worse). So the peak stress or peak pseudo-pressure at those corners does not converge. Energy, displacements (including u2(Q)) and region averages away from the corners do converge, at reduced rates set by the corner singularity exponent.",
-     "Corners at the loaded end: for a uniform traction no strong singularity is expected, but the traction distribution is not stated. A non-smooth or point-like load would add a singularity near Q.",
-     "Reference consistency: 16.442 is only valid if [2, 22] used the same geometry, the same plane assumption (plane strain vs plane stress gives different results for the nu = 0.4999 case), the same traction distribution and the same thickness. None of these are confirmed in the text.",
-     "Case 1 (nu = 1/3) has no reference value given. It can only be checked through a self-convergence (mesh refinement) study."
+     "The clamped left edge removes rigid-body motions, so the linear elasticity problem has a unique solution as long as the remaining edges are traction-free (presumed, not stated).",
+     "Material stability: case 1 (\u03bd = 1/3) is clearly elliptic. Case 2 (\u03bd \u2192 0.5) stays well-posed but approaches the incompressible limit, so convergence that holds uniformly in \u03bd needs a locking-free discretisation. Locking would make the tip displacement converge slowly or to the wrong value at practical DOF counts.",
+     "Plane strain versus plane stress decides whether \u03bd = 0.499999975 actually produces near-incompressibility. In plane stress the effective in-plane bulk modulus stays bounded and the problem is not nearly incompressible. This must be resolved before case 2 can be interpreted.",
+     "Load level: the problem is linear, so there are no limit points, bifurcation or load-step dependence. Displacements scale linearly with g.",
+     "Singular features: where the clamped left edge meets the free top and bottom edges, the stresses are singular. In case 2 the pressure is also singular. Peak stress and pressure there will not converge, and stress or pressure convergence in L2 is degraded. Energy, displacements (including u2 at Q) and region averages away from the corners still converge.",
+     "The convex corners where the loaded right edge meets the free edges carry a uniform traction against a free edge, which can produce a weak stress concentration. Pointwise stress near these corners should be treated cautiously. Displacement at Q (the edge midpoint) is not directly affected.",
+     "Reference value: it is taken from the literature [2, 22] with no stated mesh, element or DOF count, so its own discretisation error cannot be assessed from this text."
     ],
     "open_questions": [
-     "Vertex coordinates of the membrane are not given. The usual Cook geometry is consistent with Q = (48, 52), but the text does not state it.",
-     "Plane strain or plane stress? Thickness? The text states neither, and both change u2(Q) for the nearly incompressible case.",
-     "Is g = (0, 1/16) a uniform traction density on the right end, or a total shear force (resultant) spread in some other way?",
+     "What are the full vertex coordinates of the membrane? Only Q = (48, 52) is given in the text; confirm against Figure 10.4.",
+     "Is the problem plane strain or plane stress? This decides whether case 2 is actually nearly incompressible.",
+     "Is g = (0, 1/16) a distributed traction per unit length or a total shear force on the right edge?",
      "Are the top and bottom edges traction-free? This is presumed but not stated.",
-     "Is the clamped end the left end (x = 0 side)? This is inferred only from Q being on the right end.",
-     "How was the reference 16.442 from [2, 22] obtained: element type, mesh family, number of DOF, whether it was extrapolated, and its estimated error? The element enum value 'Q4' and reference type 'mesh_refinement_family' are placeholders. The SWG polygonal method under test is not in the element enum, and the excerpt does not specify the reference discretisation.",
-     "What is the parameter kappa (0 vs 1)? How is the pseudo-pressure defined (e.g. -lambda div u, or a scaled variant)?",
-     "Is there any reference value for case 1 (nu = 1/3)? Only case 2 is covered by 16.442.",
-     "Is u2(Q) evaluated at the node at Q, or interpolated? The SWG approximation may be discontinuous, so it may matter which element trace is used."
+     "What does \u03ba mean in the contour figures (\u03ba = 1, \u03ba = 0)? It is not defined in the provided text. Is it a scheme or stabilisation parameter, a Kolosov-type constant, or a case label?",
+     "What is the reference value for u2 at Q in [2, 22], and what mesh, element type and DOF count was it obtained with? Without this, how large the reference error is relative to the SWG error cannot be judged.",
+     "Element enum mismatch: the tested SWG/weak Galerkin method uses triangle, quadrilateral, hexagonal and octagonal polygonal partitions, and none of these fits the allowed element list. Q4 was picked only as a placeholder. The method's polynomial degree and its expected convergence order are not stated.",
+     "Reference enum mismatch: the actual reference is a set of literature values. 'mesh_refinement_family' was chosen on the assumption that those values are converged fine-mesh results. Is that assumption correct?",
+     "The material is linear elastic, not hyperelastic. Confirm that this problem is in scope for the hyperelasticity verification pipeline.",
+     "Are the h = 1/16 contour plots meant only as qualitative evidence? If any quantitative contour values (for example pressure extremes) are claimed, they are not trustworthy because of the corner singularities."
     ]
    }
   },
   {
    "stage": "D",
    "actor": "code",
-   "status": "unsupported",
-   "detail": "nu = 0.499999975 > 0.49: nearly incompressible; the pipeline's displacement-only elements lock (no mixed formulation yet)",
+   "status": "checked",
+   "detail": "attempt 1: validation ok; untraced numbers none; assumptions ['nu = 0.333333 (declared assumption)']",
    "description": {
-    "name": "cooks_membrane_linear_nearly_incompressible",
-    "E": 1.12499998125,
-    "nu": 0.499999975,
+    "name": "cooks_membrane_linear_elastic_case1_E1_nu1over3",
+    "E": 1,
+    "nu": 0.3333333333333333,
     "plane": "strain",
     "domain": {
      "outer": [
@@ -248,22 +250,164 @@
       52,
       "y"
      ]
-    }
+    },
+    "geometry_source": {
+     "table": "cook_membrane",
+     "citation": "R.D. Cook, Improved two-dimensional finite element, J. Struct. Div. ASCE 100 (1974) 1851-1863: tapered panel with vertices (0,0), (48,44), (48,60), (0,44)"
+    },
+    "assumed": [
+     "nu"
+    ]
    }
+  },
+  {
+   "stage": "D",
+   "actor": "code",
+   "status": "note",
+   "detail": "outer geometry taken from the standard-benchmark table (post hoc rule, 26 Nov): cook_membrane: R.D. Cook, Improved two-dimensional finite element, J. Struct. Div. ASCE 100 (1974) 1851-1863: tapered panel with vertices (0,0), (48,44), (48,60), (0,44)"
+  },
+  {
+   "stage": "D",
+   "actor": "code",
+   "status": "deferred",
+   "detail": "assumed inputs, checked by sensitivity after certification: nu = 0.333333 (declared assumption)"
+  },
+  {
+   "stage": "M",
+   "actor": "code",
+   "status": "note",
+   "detail": "general domain meshed by gmsh (quadratic triangles and independent quadratic quadrilaterals, curved edges on circles); corners from the real boundary after the holes are cut"
+  },
+  {
+   "stage": "M",
+   "actor": "code",
+   "status": "done",
+   "detail": "rate-limiting corners (x, y, smallest exponent) [(0.0, 0.0, 1.1309), (48.0, 44.0, 1.9164), (0.0, 44.0, 0.6244)]"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "decided",
+   "detail": "Q2: needed (no passing check on record for 464e0a1256c93451|Q2|plane_strain|clamped+free+traction+general_domain); P2: needed (no passing check on record for 464e0a1256c93451|P2|plane_strain|clamped+free+traction+general_domain)"
+  },
+  {
+   "stage": "V",
+   "actor": "code",
+   "status": "PASS",
+   "detail": "Q2 PASS (L2 3.10, H1 2.04, levels [2, 4, 8, 16, 32]); P2 PASS (L2 3.09, H1 2.03, levels [2, 4, 8, 16])"
+  },
+  {
+   "stage": "S",
+   "actor": "code",
+   "status": "done",
+   "detail": "Q2 and P2 ladders n = [2, 4, 8, 16, 32]"
+  },
+  {
+   "stage": "C",
+   "actor": "code",
+   "status": "done",
+   "detail": "adopted rules: {'certified': ['v_q'], 'open': ['corner0_gk_avg_von_mises', 'corner1_gk_avg_von_mises', 'corner2_gk_avg_von_mises', 'peak_von_mises', 'strain_energy']}"
+  },
+  {
+   "stage": "G",
+   "actor": "code",
+   "status": "done",
+   "detail": "strain_energy: supported ['D4']; corner1_gk_avg_von_mises: supported ['D4']; corner2_gk_avg_von_mises: supported ['D4']; peak_von_mises: supported ['M1']"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "concluded",
+   "detail": "peak_von_mises: not verifiable (a corner exponent 0.6244 < 1: the stress is unbounded (r^(lam-1)), the peak grows with refinement; no experiment can certify it)"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "pre-registered",
+   "detail": "#1 graded_meshes on ['corner0_gk_avg_von_mises', 'corner1_gk_avg_von_mises', 'corner2_gk_avg_von_mises', 'strain_energy']: the corner singularities limit the rate; grading toward the corners with the largest local-energy change restores it; prediction: more quantities are certified (and cross-checked) on the graded ladders than on the uniform ones, or the strain-energy U falls at least 3 times; prior 0.50 (n=6); est. 0.1 min",
+   "file": "experiments/cooks_membrane_linear_elastic_case1_E1_nu1over3/01_graded_meshes.json",
+   "sha256": "649f1602c0adaead2ad3b8a27d60c5d396565d89654324a31be4a2ec8e381fdc"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "refuted",
+   "detail": "#1 graded_meshes: prediction refuted (0.1 min); certified so far ['strain_energy', 'v_q']"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "pre-registered",
+   "detail": "#2 finer_graded_level on ['corner0_gk_avg_von_mises', 'corner1_gk_avg_von_mises', 'corner2_gk_avg_von_mises']: the sequences are pre-asymptotic; one finer graded level (n = 64) lets the checks decide; prediction: at least one listed quantity becomes certified with a rate and cross-checked; prior 0.33 (n=10); est. 1.1 min",
+   "file": "experiments/cooks_membrane_linear_elastic_case1_E1_nu1over3/02_finer_graded_level.json",
+   "sha256": "2ad9a2532b1cf38f64d9d32a90c3582a20610d7c768a8fadd9bc12e990ba9af2"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "refuted",
+   "detail": "#2 finer_graded_level: prediction refuted (0.1 min); certified so far ['strain_energy', 'v_q']"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "pre-registered",
+   "detail": "#3 finer_graded_level on ['corner0_gk_avg_von_mises', 'corner1_gk_avg_von_mises', 'corner2_gk_avg_von_mises']: the sequences are pre-asymptotic; one finer graded level (n = 128) lets the checks decide; prediction: at least one listed quantity becomes certified with a rate and cross-checked; prior 0.31 (n=11); est. 0.7 min",
+   "file": "experiments/cooks_membrane_linear_elastic_case1_E1_nu1over3/03_finer_graded_level.json",
+   "sha256": "5db12fda53dbafc4795095583156c62a2e2cd4b83751a39452b5fd6b08807dd4"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "refuted",
+   "detail": "#3 finer_graded_level: prediction refuted (0.3 min); certified so far ['strain_energy', 'v_q']"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "pre-registered",
+   "detail": "#4 finer_independent_level on ['corner0_gk_avg_von_mises']: the independent sequence is pre-asymptotic; one more level gives it a rate that agrees; prediction: at least one listed quantity becomes cross-checked; prior 0.43 (n=5); est. 0.2 min",
+   "file": "experiments/cooks_membrane_linear_elastic_case1_E1_nu1over3/04_finer_independent_level.json",
+   "sha256": "227e3beeb16b11444a8dee249adc00a4d81c6d9fb683bead47bb523e07a843da"
+  },
+  {
+   "stage": "N",
+   "actor": "code",
+   "status": "confirmed",
+   "detail": "#4 finer_independent_level: prediction confirmed (0.1 min); certified so far ['corner0_gk_avg_von_mises', 'strain_energy', 'v_q']"
+  },
+  {
+   "stage": "A",
+   "actor": "person",
+   "status": "needs_person",
+   "detail": "assumed nu: changes corner0_gk_avg_von_mises by 0.0408 (numerical U 0.00057), strain_energy by 0.0349 (numerical U 8.1e-05), v_q by 0.0348 (numerical U 0.00062) [post hoc proposal: person needed only for ['strain_energy', 'v_q']]; a person must confirm this input"
   }
  ],
- "human_points": [],
- "wall_clock_s": 80.97142171859741,
+ "human_points": [
+  {
+   "stage": "L",
+   "actor": "person",
+   "status": "input",
+   "detail": "paper and hint chosen by a person (\"Cook's membrane, case 1 (E = 1, nu = 1/3)\")"
+  },
+  {
+   "stage": "A",
+   "actor": "person",
+   "status": "needs_person",
+   "detail": "assumed nu: changes corner0_gk_avg_von_mises by 0.0408 (numerical U 0.00057), strain_energy by 0.0349 (numerical U 8.1e-05), v_q by 0.0348 (numerical U 0.00062) [post hoc proposal: person needed only for ['strain_energy', 'v_q']]; a person must confirm this input"
+  }
+ ],
+ "wall_clock_s": 118.74110245704651,
  "source": {
-  "pdf": "/home/user/OMAR/Practical_Examples/omar_pfem/verification_agent/literature_search_runs/papers/1911.08728.pdf",
+  "pdf": "omar_pfem/verification_agent/literature_search_runs/papers/1911.08728.pdf",
   "text": null,
   "description_given": false
  },
  "modeler": {
-  "supported": false,
-  "unsupported_reason": "nu = 0.499999975 > 0.49: nearly incompressible; the pipeline's displacement-only elements lock (no mixed formulation yet)",
+  "supported": true,
+  "unsupported_reason": "",
   "description": {
-   "name": "cooks_membrane_linear_nearly_incompressible",
+   "name": "cooks_membrane_linear_elastic_case1_E1_nu1over3",
    "material": "linear_elastic",
    "geometry_kind": "polygon",
    "cell_size": 1,
@@ -287,8 +431,8 @@
     ]
    ],
    "holes": [],
-   "E": 1.12499998125,
-   "nu": 0.499999975,
+   "E": 1,
+   "nu": 0.3333333333333333,
    "plane": "strain",
    "bcs": [
     {
@@ -340,36 +484,942 @@
   },
   "sources": [
    {
-    "item": "evaluation point Q",
+    "item": "benchmark identity / geometry",
+    "value": "Cook's membrane standard geometry (rule 4)",
+    "quote": "Cook's membrane (2D linear elasticity, compressible and nearly incompressible)"
+   },
+   {
+    "item": "point of interest Q",
     "value": "(48, 52)",
-    "quote": "It gives only the evaluation point Q = (48, 52), the midpoint of the right end."
+    "quote": "Q = (48, 52)"
    },
    {
-    "item": "Young's modulus and Poisson ratio (case 2)",
-    "value": "E = 1.12499998125, nu = 0.499999975",
-    "quote": "Case 2 (nearly incompressible): E = 1.12499998125, nu = 0.499999975."
+    "item": "Young's modulus and Poisson ratio (case 1)",
+    "value": "E = 1, nu = 1/3",
+    "quote": "Case 1: E = 1, \u03bd = 1/3"
    },
    {
-    "item": "shear traction",
-    "value": "(0, 1/16) = (0, 0.0625)",
-    "quote": "Shear traction g = (0, 1/16) on the end opposite the clamp."
+    "item": "traction on right end",
+    "value": "t = (0, 1/16)",
+    "quote": "Shear traction g = (0, 1/16) applied on the end opposite the clamp (the right end)"
    },
    {
-    "item": "reference value",
-    "value": "16.442",
-    "quote": "The reference value 16.442 is taken from [2, 22]."
+    "item": "left end clamped",
+    "value": "clamped at x = 0",
+    "quote": "One end (the left end) is clamped."
    }
   ],
   "assumptions": [
-   "The vertex coordinates aren't stated. I used the standard Cook's membrane geometry (0,0), (48,44), (48,60), (0,44). This fits the given Q = (48,52), which is the midpoint of the right edge x=48 between y=44 and y=60. That edge has length 16, which also fits g = 1/16 giving a unit total shear force. If the paper's Fig. 10.4 is different, this model is wrong.",
-   "The text names no plane condition. I chose plane strain, because nu -> 0.5 near-incompressibility is a plane-strain (or 3D) concept and plane stress would remove the volumetric constraint. Thickness is taken as 1.",
-   "I applied g = (0, 1/16) as a uniform traction per unit length on the right edge, not as a resultant. This matches the standard Cook's membrane setup and the reference 16.442. The text doesn't say so explicitly.",
-   "The clamp is on the left edge x=0, inferred from Q lying on the right end.",
-   "The top and bottom inclined edges are traction-free. The text says 'presumably' but does not confirm it.",
-   "Only case 2 is modelled (E = 1.12499998125, nu = 0.499999975), because the reference value applies to case 2 only. Case 1 (E = 1, nu = 1/3) would be the same description with those constants.",
-   "Trustworthiness: u2(Q) is a displacement, a global quantity. It converges under refinement despite the singularities at the clamped corners (0,0) and (0,44), so it can serve as a reference value if a locking-free discretisation is refined to convergence. At nu = 0.499999975, standard displacement-based Q4/Q9 elements will lock and underestimate u2(Q) badly, so the pipeline must use a mixed or locking-free formulation or a strongly refined higher-order mesh. The quoted 16.442 comes from [2, 22] with an unstated mesh and element. It is a literature value to compare against, not independently verified.",
-   "The relative-error-vs-DOF curves are derived from u2(Q) and 16.442. They are only as trustworthy as that reference: the 16.442 has 5 significant figures, so relative errors below about 1e-4 to 1e-5 can't be resolved. They show the method's convergence; they are not reference data in their own right.",
-   "The contour plots of u1 and u2 (displacement fields) are smooth and converge, but they are qualitative only. The pseudo-pressure field is singular at the clamped corners (0,0) and (0,44), and near-incompressibility makes this worse. Its peak values there don't converge under refinement, so pointwise or peak pressure from these plots can't serve as a trustworthy reference. Pressure away from the corners or averaged over regions can."
+   "I modelled Case 1 (E = 1, nu = 1/3). Case 2 has nu = 0.499999975, which is above the pipeline limit of 0.49, so I could not model it. The DOF convergence curve the user asked about is for case 2, so this model can only check the setup in the compressible regime. It does not check the case 2 values.",
+   "The text does not give the vertex coordinates (they are only in Figure 10.4), so I used the standard Cook's membrane geometry [[0,0],[48,44],[48,60],[0,44]]. This matches the stated Q = (48, 52), the midpoint of the right end.",
+   "The section does not say whether it is plane strain or plane stress. I chose plane strain because that is the usual setting for the near-incompressibility version of Cook's membrane. Under the other choice the displacement values would differ.",
+   "I took g = (0, 1/16) as a uniform distributed traction per unit length on the right edge (length 16), so the total vertical force is 1. The text does not say whether g is a traction or a total force.",
+   "I assumed the top and bottom edges are traction-free. The text only says this is 'presumably' so.",
+   "Trustworthiness: the vertical displacement at Q is a global, smooth quantity. It should converge under refinement even with the singularities at the clamped corners, so it can serve as a reference value. The literature reference values [2, 22] were not checked here, and the case 2 curve is not covered by this model. The contour fields (deformation, pseudo-pressure, u1, u2) are only qualitative. Near the clamped corners the pseudo-pressure is singular and its peak values will not converge, so they cannot serve as quantitative reference values."
   ]
- }
+ },
+ "description": {
+  "name": "cooks_membrane_linear_elastic_case1_E1_nu1over3",
+  "E": 1,
+  "nu": 0.3333333333333333,
+  "plane": "strain",
+  "domain": {
+   "outer": [
+    [
+     0,
+     0
+    ],
+    [
+     48,
+     44
+    ],
+    [
+     48,
+     60
+    ],
+    [
+     0,
+     44
+    ]
+   ],
+   "holes": []
+  },
+  "material": "linear_elastic",
+  "bcs": [
+   {
+    "segment": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      44
+     ]
+    ],
+    "type": "clamped"
+   },
+   {
+    "segment": [
+     [
+      48,
+      44
+     ],
+     [
+      48,
+      60
+     ]
+    ],
+    "type": "traction",
+    "t": [
+     0,
+     0.0625
+    ]
+   }
+  ],
+  "points": {
+   "v_q": [
+    48,
+    52,
+    "y"
+   ]
+  },
+  "geometry_source": {
+   "table": "cook_membrane",
+   "citation": "R.D. Cook, Improved two-dimensional finite element, J. Struct. Div. ASCE 100 (1974) 1851-1863: tapered panel with vertices (0,0), (48,44), (48,60), (0,44)"
+  },
+  "assumed": [
+   "nu"
+  ]
+ },
+ "mms": {
+  "Q2": {
+   "verdict": "PASS",
+   "gate_verdict": "PASS",
+   "rule": "R1 (post hoc, round Q)",
+   "rates": {
+    "L2": {
+     "observed": 3.103810821047486,
+     "expected": 3.0,
+     "pass": true
+    },
+    "H1": {
+     "observed": 2.0439787433258823,
+     "expected": 2.0,
+     "pass": true
+    }
+   },
+   "levels": [
+    2,
+    4,
+    8,
+    16,
+    32
+   ],
+   "levels_added": [
+    "n=32: rates outside tolerance but moving toward theory"
+   ],
+   "errors": {
+    "L2": [
+     0.009214865749513461,
+     0.0031454824683169722,
+     0.0004314410186386863,
+     6.611769263752073e-05,
+     8.429670480918122e-06
+    ],
+    "H1": [
+     0.005889953451033013,
+     0.0027206043522352307,
+     0.0007794336587580862,
+     0.00022694420682665026,
+     5.838259363255137e-05
+    ]
+   },
+   "field": {
+    "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)",
+    "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)"
+   },
+   "problem": "cooks_membrane_linear_elastic_case1_E1_nu1over3",
+   "reason": "no passing check on record for 464e0a1256c93451|Q2|plane_strain|clamped+free+traction+general_domain"
+  },
+  "P2": {
+   "verdict": "PASS",
+   "gate_verdict": "PASS",
+   "rule": "R1 (post hoc, round Q)",
+   "rates": {
+    "L2": {
+     "observed": 3.090446254045795,
+     "expected": 3.0,
+     "pass": true
+    },
+    "H1": {
+     "observed": 2.030595764005301,
+     "expected": 2.0,
+     "pass": true
+    }
+   },
+   "levels": [
+    2,
+    4,
+    8,
+    16
+   ],
+   "levels_added": [],
+   "errors": {
+    "L2": [
+     0.07153717339877787,
+     0.01682809166983621,
+     0.0028434473884317167,
+     0.0003708466464623983
+    ],
+    "H1": [
+     0.022060995951450713,
+     0.009723117436462479,
+     0.002994821772452619,
+     0.0007927226411584283
+    ]
+   },
+   "field": {
+    "ux": "0.06*sin(0.0270833333333333*pi*x + 3/10)*cos(0.0216666666666667*pi*y + 1/5)",
+    "uy": "0.06*sin(0.0216666666666667*pi*y + 2/5)*cos(0.0270833333333333*pi*x + 1/10)"
+   },
+   "problem": "cooks_membrane_linear_elastic_case1_E1_nu1over3",
+   "reason": "no passing check on record for 464e0a1256c93451|P2|plane_strain|clamped+free+traction+general_domain"
+  }
+ },
+ "graded_plan": {
+  "x": {
+   "0.0": 3.3,
+   "0.8": 1.1
+  },
+  "y": {
+   "0.0": 1.8,
+   "0.7333333333333333": 3.3
+  }
+ },
+ "p2_levels": [
+  2,
+  4,
+  8,
+  16,
+  32,
+  64
+ ],
+ "certified_info": {
+  "v_q": {
+   "U": 0.0006182110089293059,
+   "U_rel": 0.0006182110089293059,
+   "U_abs": 0.013300254152621267,
+   "limit": 21.51410110870767,
+   "finest": 21.517345099389708
+  },
+  "strain_energy": {
+   "U": 8.13961116386523e-05,
+   "U_rel": 8.13961116386523e-05,
+   "U_abs": 0.0008786991574618788,
+   "limit": 10.795345622438969,
+   "finest": 10.79498418321326
+  },
+  "corner0_gk_avg_von_mises": {
+   "U": 0.0005664458967796785,
+   "U_rel": 0.0005664458967796785,
+   "U_abs": 4.664792023217189e-05,
+   "limit": 0.08235194304940971,
+   "finest": 0.08234845360936949
+  }
+ },
+ "sensitivity": {
+  "problem": "cooks_membrane_linear_elastic_case1_E1_nu1over3",
+  "rule": "sensitivity_preregistration.json",
+  "range": {
+   "relative": 0.1,
+   "nu_absolute": 0.05
+  },
+  "params": {
+   "nu": {
+    "value": 0.3333333333333333,
+    "levels": [
+     8,
+     16
+    ],
+    "quantities": {
+     "corner0_gk_avg_von_mises": {
+      "Q0": 0.08225549274401195,
+      "Q+": 0.08561359245472817,
+      "Q-": 0.07938610864764421,
+      "S": 0.25236344302925234,
+      "S_log_posthoc": 0.24983605990661212,
+      "change_rel": 0.040825233655422836,
+      "asymmetry": 0.0784772196103601,
+      "S_previous_level": 0.24766877991506395,
+      "settled": true,
+      "U_rel": 0.0005664458967796785,
+      "ratio_to_U": 72.072609030306,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.05,
+      "posthoc_person_needed": false
+     },
+     "strain_energy": {
+      "Q0": 10.786137017751695,
+      "Q+": 10.410077655046791,
+      "Q-": 11.094821217419042,
+      "S": -0.2116122331363269,
+      "S_log_posthoc": -0.2107447282555378,
+      "change_rel": 0.03486506448842529,
+      "asymmetry": 0.09839473744614692,
+      "S_previous_level": -0.21407242963561024,
+      "settled": true,
+      "U_rel": 8.13961116386523e-05,
+      "ratio_to_U": 428.3382066603416,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.01,
+      "posthoc_person_needed": true
+     },
+     "v_q": {
+      "Q0": 21.507600490523316,
+      "Q+": 20.758158925525674,
+      "Q-": 22.12268773900366,
+      "S": -0.21148009422362493,
+      "S_log_posthoc": -0.21061308128094686,
+      "change_rel": 0.034845428960234855,
+      "asymmetry": 0.09846205898345962,
+      "S_previous_level": -0.21390502053164306,
+      "settled": true,
+      "U_rel": 0.0006182110089293059,
+      "ratio_to_U": 56.36494409988665,
+      "decision": "matters",
+      "posthoc_numerics_adequate": true,
+      "posthoc_target": 0.01,
+      "posthoc_person_needed": true
+     }
+    },
+    "posthoc_person_needed_for": [
+     "strain_energy",
+     "v_q"
+    ],
+    "matters_for": [
+     "corner0_gk_avg_von_mises",
+     "strain_energy",
+     "v_q"
+    ],
+    "needs_person": true
+   }
+  },
+  "minutes": 0.07025437752405803
+ },
+ "final": {
+  "certified": [
+   "corner0_gk_avg_von_mises",
+   "strain_energy",
+   "v_q"
+  ],
+  "open": [
+   "corner1_gk_avg_von_mises",
+   "corner2_gk_avg_von_mises",
+   "peak_von_mises"
+  ]
+ },
+ "verdicts": {
+  "strain_energy": {
+   "verdict": "INCONCLUSIVE",
+   "evidence": "rate",
+   "class": "global",
+   "finest": 10.79135960864343,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.37, GCI_fine=0.04% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=3.01 (leave-one-out 1.91-3.26), U_fine=0.08% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "singular_order": {
+     "verdict": "INCONCLUSIVE",
+     "reason": "fitted order 3.008 vs theory = 1.249 (lam = 0.6244, tol 0.15); above 2 lam but within the element optimum 4: pre-asymptotic, a finer level is needed (post hoc rule)",
+     "label": "pre-asymptotic (post hoc rule)",
+     "evidence": null
+    }
+   }
+  },
+  "v_q": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "class": "displacement",
+   "finest": 21.517345099389708,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.33, GCI_fine=0.04% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=2.71 (leave-one-out 1.80-2.95), U_fine=0.06% vs tol 1.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 2.708 vs theory >= 1.249 (lam = 0.6244, tol 0.15)",
+     "label": null,
+     "evidence": null
+    }
+   },
+   "limit": 21.51410110870767,
+   "U": 0.0006182110089293059,
+   "crosscheck": "cross_checked",
+   "gap_rel": 0.0005881203827229996,
+   "final": "CERTIFIED"
+  },
+  "corner0_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "class": "region_average",
+   "finest": 0.08234845360936949,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.13, GCI_fine=0.13% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=1.95 (leave-one-out 1.56-2.14), U_fine=0.06% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 1.954 vs theory >= 1.249 (lam = 0.6244, tol 0.15)",
+     "label": null,
+     "evidence": null
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.362% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    },
+    "anchored_robustness": {
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 0.421% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    }
+   },
+   "limit": 0.08235194304940971,
+   "U": 0.0005664458967796785,
+   "crosscheck": "cross_checked",
+   "gap_rel": 5.884678226884458e-06,
+   "final": "CERTIFIED"
+  },
+  "corner1_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "band",
+   "class": "region_average",
+   "finest": 0.14030238052197005,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=2.42, GCI_fine=0.00% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "finest three within 1.00% band (spread 0.020%); no rate from 5 levels (failed: monotone, order_window, leave_one_out; fitted p=10.62)",
+     "label": null,
+     "evidence": "band"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 10.623 vs theory >= 1.249 (lam = 0.6244, tol 0.15)",
+     "label": null,
+     "evidence": null
+    },
+    "strategy_robustness": {
+     "verdict": "PASS",
+     "reason": "spread across strategies 0.021% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    },
+    "anchored_robustness": {
+     "verdict": "PASS",
+     "reason": "max deviation from Richardson extrapolate 0.021% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    }
+   }
+  },
+  "corner2_gk_avg_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "rate",
+   "class": "region_average",
+   "finest": 0.15210596696541362,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "PASS",
+     "reason": "monotone, p=1.17, GCI_fine=0.66% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "PASS",
+     "reason": "5 levels monotone, fitted p=2.42 (leave-one-out 1.98-2.60), U_fine=0.49% vs tol 2.00%",
+     "label": null,
+     "evidence": "rate"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "fitted order 2.423 vs theory >= 1.249 (lam = 0.6244, tol 0.15)",
+     "label": null,
+     "evidence": null
+    },
+    "strategy_robustness": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 2.057% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    },
+    "anchored_robustness": {
+     "verdict": "FAIL",
+     "reason": "max deviation from Richardson extrapolate 2.318% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    }
+   }
+  },
+  "peak_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "none",
+   "class": "pointwise_peak",
+   "finest": 0.476637652305462,
+   "checks": {
+    "qoi_convergence": {
+     "verdict": "FAIL",
+     "reason": "divergent: successive differences do not decrease",
+     "label": null,
+     "evidence": "none"
+    },
+    "qoi_convergence_multilevel": {
+     "verdict": "FAIL",
+     "reason": "no rate from 5 levels (failed: order_window, leave_one_out; fitted p=0.05) and finest-three spread 37.654% exceeds 1.00%",
+     "label": null,
+     "evidence": "none"
+    },
+    "singular_order": {
+     "verdict": "PASS",
+     "reason": "log-log slope of the peak -0.389 vs theory = -0.376 (lam = 0.6244, tol 0.15)",
+     "label": null,
+     "evidence": null
+    },
+    "strategy_robustness": {
+     "verdict": "FAIL",
+     "reason": "spread across strategies 72.400% vs tol 2.00%",
+     "label": null,
+     "evidence": null
+    },
+    "anchored_robustness": {
+     "verdict": "INCONCLUSIVE",
+     "reason": "refinement family not converged (3-level: FAIL, 5-level: FAIL), so there is no limit to anchor the strategies to; uninformative",
+     "label": null,
+     "evidence": null
+    }
+   }
+  }
+ },
+ "graded": {
+  "strain_energy": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "finest": 10.795107013931798,
+   "fit_order": 2.9599777192262153,
+   "limit": 10.795090523024136,
+   "U": 6.071139443582686e-06,
+   "class": "global",
+   "checks": {},
+   "crosscheck": "cross_checked",
+   "gap_rel": 6.228328402603571e-06,
+   "final": "CERTIFIED"
+  },
+  "v_q": {
+   "verdict": "PASS",
+   "evidence": "band",
+   "finest": 21.52457362814716,
+   "fit_order": 15.052887468257211,
+   "class": "displacement",
+   "checks": {}
+  },
+  "corner0_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "rate",
+   "finest": 0.0824181363095879,
+   "fit_order": 4.771218145315014,
+   "limit": 0.08241813642315923,
+   "U": 6.830449786366164e-09,
+   "class": "region_average",
+   "checks": {},
+   "crosscheck": "independent_unconverged",
+   "gap_rel": null,
+   "final": "INCONCLUSIVE"
+  },
+  "corner1_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "band",
+   "finest": 0.14030547198060564,
+   "fit_order": 15.052887468257211,
+   "class": "region_average",
+   "checks": {}
+  },
+  "corner2_gk_avg_von_mises": {
+   "verdict": "PASS",
+   "evidence": "band",
+   "finest": 0.15284364486072377,
+   "fit_order": 5.001948991337682,
+   "class": "region_average",
+   "checks": {}
+  },
+  "peak_von_mises": {
+   "verdict": "FAIL",
+   "evidence": "none",
+   "finest": 22.377242766556336,
+   "fit_order": 0.05134568028057073,
+   "class": "pointwise_peak",
+   "checks": {}
+  }
+ },
+ "diagnosis": {
+  "strain_energy": {
+   "supported": [
+    "D4"
+   ],
+   "diagnosis": [
+    "numerical discretization"
+   ],
+   "open": [
+    "P1",
+    "S1",
+    "S2"
+   ],
+   "tests": [
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "needs data",
+     "evidence": "no deformation measures stored",
+     "next_action": "record min det F and the largest principal stretch",
+     "cost": "seconds per level",
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "supported",
+     "evidence": "pairwise orders 3.69, 2.15, 1.37: still drifting (falling by 2.33); the asymptotic order is not yet reached",
+     "next_action": "add a finer level",
+     "cost": "see the adaptive controller",
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    }
+   ]
+  },
+  "corner1_gk_avg_von_mises": {
+   "supported": [
+    "D4"
+   ],
+   "diagnosis": [
+    "numerical discretization"
+   ],
+   "open": [
+    "P1",
+    "S1",
+    "S2",
+    "Q2"
+   ],
+   "tests": [
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "needs data",
+     "evidence": "no deformation measures stored",
+     "next_action": "record min det F and the largest principal stretch",
+     "cost": "seconds per level",
+     "remedy": null
+    },
+    {
+     "id": "D3",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "nu = 0.3333333333333333: far from incompressibility",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "supported",
+     "evidence": "increments over the finest five levels shrink (0.000503 -> 5.41e-06) with 1 sign change(s): the sequence may still enter the asymptotic range",
+     "next_action": "add a finer level",
+     "cost": "see the adaptive controller",
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "Q2",
+     "class": "QoI/post-processing",
+     "status": "needs data",
+     "evidence": "no signed components of the same region evaluated",
+     "next_action": "evaluate the signed stress components over the same region",
+     "cost": "seconds",
+     "remedy": null
+    }
+   ]
+  },
+  "corner2_gk_avg_von_mises": {
+   "supported": [
+    "D4"
+   ],
+   "diagnosis": [
+    "numerical discretization"
+   ],
+   "open": [
+    "P1",
+    "S1",
+    "S2",
+    "Q2"
+   ],
+   "tests": [
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "needs data",
+     "evidence": "no deformation measures stored",
+     "next_action": "record min det F and the largest principal stretch",
+     "cost": "seconds per level",
+     "remedy": null
+    },
+    {
+     "id": "D3",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "nu = 0.3333333333333333: far from incompressibility",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "supported",
+     "evidence": "pairwise orders 2.72, 2.35, 1.17: still drifting (falling by 1.55); the asymptotic order is not yet reached",
+     "next_action": "add a finer level",
+     "cost": "see the adaptive controller",
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "Q2",
+     "class": "QoI/post-processing",
+     "status": "needs data",
+     "evidence": "no signed components of the same region evaluated",
+     "next_action": "evaluate the signed stress components over the same region",
+     "cost": "seconds",
+     "remedy": null
+    }
+   ]
+  },
+  "peak_von_mises": {
+   "supported": [
+    "M1"
+   ],
+   "diagnosis": [
+    "mathematical/physical"
+   ],
+   "open": [
+    "P1",
+    "S1",
+    "S2"
+   ],
+   "tests": [
+    {
+     "id": "M1",
+     "class": "mathematical/physical",
+     "status": "supported",
+     "evidence": "peak grows like h^-0.389; theory h^(lambda-1) = h^-0.376 (lambda = 0.6244)",
+     "next_action": null,
+     "cost": null,
+     "remedy": "not a usable reference value: no finite limit exists; use energy, displacements or region averages, or a singular-field quantity (stress-intensity factor)"
+    },
+    {
+     "id": "P1",
+     "class": "mathematical/physical",
+     "status": "needs data",
+     "evidence": "no deformation measures stored",
+     "next_action": "record min det F and the largest principal stretch",
+     "cost": "seconds per level",
+     "remedy": null
+    },
+    {
+     "id": "D3",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "nu = 0.3333333333333333: far from incompressibility",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "D4",
+     "class": "numerical discretization",
+     "status": "refuted",
+     "evidence": "increments over the finest five levels do not settle (0 sign changes, last/first 3.67)",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    },
+    {
+     "id": "S1",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "direct sparse solver; no tolerance to vary",
+     "next_action": "re-solve one level at a 100x tighter Newton tolerance and compare",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S2",
+     "class": "solver/implementation",
+     "status": "needs data",
+     "evidence": "PARDISO direct not cross-checked",
+     "next_action": "re-solve one level with a direct solver",
+     "cost": "minutes",
+     "remedy": null
+    },
+    {
+     "id": "S3",
+     "class": "solver/implementation",
+     "status": "refuted",
+     "evidence": "automatic MMS (mms_auto): Q2 PASS, P2 PASS",
+     "next_action": null,
+     "cost": null,
+     "remedy": null
+    }
+   ]
+  }
+ },
+ "experiments": [
+  {
+   "quantity": "peak_von_mises",
+   "conclusion": "not verifiable",
+   "justification": "a corner exponent 0.6244 < 1: the stress is unbounded (r^(lam-1)), the peak grows with refinement; no experiment can certify it"
+  },
+  {
+   "k": 1,
+   "action": "graded_meshes",
+   "confirmed": false
+  },
+  {
+   "k": 2,
+   "action": "finer_graded_level",
+   "confirmed": false
+  },
+  {
+   "k": 3,
+   "action": "finer_graded_level",
+   "confirmed": false
+  },
+  {
+   "k": 4,
+   "action": "finer_independent_level",
+   "confirmed": true
+  }
+ ]
 }

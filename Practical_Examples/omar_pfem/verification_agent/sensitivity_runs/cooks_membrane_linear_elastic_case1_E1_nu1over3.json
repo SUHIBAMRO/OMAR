@@ -1,0 +1,81 @@
+{
+ "problem": "cooks_membrane_linear_elastic_case1_E1_nu1over3",
+ "rule": "sensitivity_preregistration.json",
+ "range": {
+  "relative": 0.1,
+  "nu_absolute": 0.05
+ },
+ "params": {
+  "nu": {
+   "value": 0.3333333333333333,
+   "levels": [
+    8,
+    16
+   ],
+   "quantities": {
+    "corner0_gk_avg_von_mises": {
+     "Q0": 0.08225549274401195,
+     "Q+": 0.08561359245472817,
+     "Q-": 0.07938610864764421,
+     "S": 0.25236344302925234,
+     "S_log_posthoc": 0.24983605990661212,
+     "change_rel": 0.040825233655422836,
+     "asymmetry": 0.0784772196103601,
+     "S_previous_level": 0.24766877991506395,
+     "settled": true,
+     "U_rel": 0.0005664458967796785,
+     "ratio_to_U": 72.072609030306,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": 0.05,
+     "posthoc_person_needed": false
+    },
+    "strain_energy": {
+     "Q0": 10.786137017751695,
+     "Q+": 10.410077655046791,
+     "Q-": 11.094821217419042,
+     "S": -0.2116122331363269,
+     "S_log_posthoc": -0.2107447282555378,
+     "change_rel": 0.03486506448842529,
+     "asymmetry": 0.09839473744614692,
+     "S_previous_level": -0.21407242963561024,
+     "settled": true,
+     "U_rel": 8.13961116386523e-05,
+     "ratio_to_U": 428.3382066603416,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": 0.01,
+     "posthoc_person_needed": true
+    },
+    "v_q": {
+     "Q0": 21.507600490523316,
+     "Q+": 20.758158925525674,
+     "Q-": 22.12268773900366,
+     "S": -0.21148009422362493,
+     "S_log_posthoc": -0.21061308128094686,
+     "change_rel": 0.034845428960234855,
+     "asymmetry": 0.09846205898345962,
+     "S_previous_level": -0.21390502053164306,
+     "settled": true,
+     "U_rel": 0.0006182110089293059,
+     "ratio_to_U": 56.36494409988665,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": 0.01,
+     "posthoc_person_needed": true
+    }
+   },
+   "posthoc_person_needed_for": [
+    "strain_energy",
+    "v_q"
+   ],
+   "matters_for": [
+    "corner0_gk_avg_von_mises",
+    "strain_energy",
+    "v_q"
+   ],
+   "needs_person": true
+  }
+ },
+ "minutes": 0.07025437752405803
+}

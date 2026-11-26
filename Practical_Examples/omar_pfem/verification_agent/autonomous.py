@@ -148,9 +148,13 @@ class Log:
     def human_points(self):
         return [s for s in self.steps if s["actor"] == "person" or s["status"] == "needs_person"]
 
+    backend = None                     # set by run(); its LLM cost is saved with the run (26 Nov)
+
     def save(self, result):
+        cost = getattr(self.backend, "cost_usd", None)
         json.dump({"steps": self.steps, "human_points": self.human_points(),
-                   "wall_clock_s": time.time() - self.t0, **result},
+                   "wall_clock_s": time.time() - self.t0,
+                   **({"llm_cost_usd": cost} if cost is not None else {}), **result},
                   open(os.path.join(self.dir, "run.json"), "w"), indent=1, default=float)
 
 
@@ -491,6 +495,7 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
     backend = llm_roles.make_backend(backend_name, replay) if (text or pdf) else None
     name = (desc or {}).get("name") or os.path.splitext(os.path.basename(pdf or text or "x"))[0]
     log = Log(name)
+    log.backend = backend
     result = {"source": {"pdf": pdf, "text": text, "description_given": desc is not None}}
     # L
     if pdf:

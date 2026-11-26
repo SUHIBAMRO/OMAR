@@ -1,0 +1,46 @@
+{
+ "preregistration": {
+  "action": "finer_independent_level",
+  "quantities": [
+   "corner0_gk_avg_von_mises"
+  ],
+  "situation": "any:independent_unconverged",
+  "justification": "['corner0_gk_avg_von_mises'] are rate-certified but their independent P2 sequence has no rate yet",
+  "hypothesis": "the independent sequence is pre-asymptotic; one more level gives it a rate that agrees",
+  "prediction": {
+   "text": "at least one listed quantity becomes cross-checked",
+   "criterion": "any_crosschecked"
+  },
+  "run": {
+   "kind": "p2_level",
+   "n": 64
+  },
+  "cost": {
+   "dof": 16584,
+   "minutes": 0.1536407220827374
+  },
+  "prior": 0.42857142857142855,
+  "prior_n": 5,
+  "score": 0.37149471266730477,
+  "problem": "cooks_membrane_linear_elastic_case1_E1_nu1over3",
+  "git_head": "9d8250ecb5affc2f034ace4ca1a373aaea27caea",
+  "frozen_utc": "2026-11-26T23:47:35.834381+00:00",
+  "sha256": "227e3beeb16b11444a8dee249adc00a4d81c6d9fb683bead47bb523e07a843da"
+ },
+ "outcome": {
+  "confirmed": true,
+  "observed_minutes": 0.08075002034505209,
+  "after": {
+   "certified": [
+    "corner0_gk_avg_von_mises",
+    "v_q"
+   ],
+   "open": [
+    "corner1_gk_avg_von_mises",
+    "corner2_gk_avg_von_mises",
+    "peak_von_mises",
+    "strain_energy"
+   ]
+  }
+ }
+}

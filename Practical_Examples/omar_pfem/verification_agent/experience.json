@@ -360,5 +360,46 @@
   "predicted_minutes": 13.590947965978215,
   "observed_minutes": 0.027508656183878582,
   "file": "experiments/nh_plate_hole_3d_pe/01_finer_uniform_level.json"
+ },
+ {
+  "problem": "cooks_membrane_linear_elastic_case1_E1_nu1over3",
+  "action": "graded_meshes",
+  "situation": "corner_limited",
+  "quantities": [
+   "corner0_gk_avg_von_mises",
+   "corner1_gk_avg_von_mises",
+   "corner2_gk_avg_von_mises",
+   "strain_energy"
+  ],
+  "confirmed": false,
+  "predicted_minutes": 0.13499771101364919,
+  "observed_minutes": 0.0711953361829122,
+  "file": "experiments/cooks_membrane_linear_elastic_case1_E1_nu1over3/01_graded_meshes.json"
+ },
+ {
+  "problem": "cooks_membrane_linear_elastic_case1_E1_nu1over3",
+  "action": "finer_graded_level",
+  "situation": "region_average:band_only",
+  "quantities": [
+   "corner0_gk_avg_von_mises",
+   "corner1_gk_avg_von_mises",
+   "corner2_gk_avg_von_mises"
+  ],
+  "confirmed": false,
+  "predicted_minutes": 1.054696187770824,
+  "observed_minutes": 0.10455596446990967,
+  "file": "experiments/cooks_membrane_linear_elastic_case1_E1_nu1over3/02_finer_graded_level.json"
+ },
+ {
+  "problem": "cooks_membrane_linear_elastic_case1_E1_nu1over3",
+  "action": "finer_independent_level",
+  "situation": "any:independent_unconverged",
+  "quantities": [
+   "corner0_gk_avg_von_mises"
+  ],
+  "confirmed": true,
+  "predicted_minutes": 0.1536407220827374,
+  "observed_minutes": 0.08075002034505209,
+  "file": "experiments/cooks_membrane_linear_elastic_case1_E1_nu1over3/04_finer_independent_level.json"
  }
 ]
