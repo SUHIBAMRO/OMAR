@@ -223,11 +223,15 @@ def build(name, pdf=True):
     if mms:
         w("<li>Code verification (manufactured solution): " + esc(", ".join(
             f"{k} {r['verdict']}" for k, r in mms.items())) + ".</li>")
-    w(f"<li>Steps by code {by_actor['code']}, by LLM {by_actor['LLM']}; "
-      f"points needing a person: <b>{len(persons)}</b>.</li>")
+    from omar_pfem.verification_agent.autonomous import KINDS, step_kind
+    kinds = {k: sum(step_kind(s["stage"], s["actor"], s["status"]) == k for s in steps)
+             for k in KINDS}
+    w(f"<li>Steps (27 Nov classification): autonomous decisions {kinds['autonomous decision']}, "
+      f"predefined procedures {kinds['predefined procedure']}, human interventions "
+      f"<b>{kinds['human intervention']}</b> (by code {by_actor['code']}, by LLM "
+      f"{by_actor['LLM']}).</li>")
     if run.get("code_verification"):
-        w(f"<li class=warn><b>Code verification on the reference domain</b>: "
-          f"{esc(run['code_verification'])}. Every result of this run carries this label.</li>")
+        w(f"<li class=warn><b>Code verification</b>: {esc(run['code_verification'])}.</li>")
     for job in run.get("cluster_jobs", []):
         w(f"<li class=warn>Cluster job prepared (manual submission): {esc(job['name'])}, levels "
           f"{esc(job['levels'])}, bundle md5 <code>{esc(job['bundle_md5'])}</code>, instructions "
@@ -274,7 +278,7 @@ def build(name, pdf=True):
         w("<div class=row>" + fig_domain(desc, prob) + fig_mesh(prob) + "</div>")
     # code verification
     refc = run.get("mms_reference_domain")
-    w("<h2>3. Code verification</h2>")
+    w("<h2>3. Code verification (manufactured solution, MMS): is the solver correct?</h2>")
     if refc:
         w("<p>Production domain INCONCLUSIVE (post hoc rule R1); the same check on the reference "
           f"domain {esc(refc['description']['domain'])} (post hoc rule R2): "
@@ -294,7 +298,7 @@ def build(name, pdf=True):
               f"<td>{esc('; '.join(r.get('levels_added', [])) or '')}</td></tr>")
     w("</table>")
     # results
-    w("<h2>4. Results</h2><table><tr><th>quantity</th><th>status</th><th>verified limit "
+    w("<h2>4. Solution verification: convergence of the problem itself</h2><table><tr><th>quantity</th><th>status</th><th>verified limit "
       "&plusmn; U</th><th>U (relative)</th><th>finest value</th><th>evidence / reason</th></tr>")
     later = []
     for q in prob.qois:
