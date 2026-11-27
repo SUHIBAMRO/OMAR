@@ -26,22 +26,9 @@ RUNS = os.path.join(HERE, "autonomous_runs")
 QUESTIONS = os.path.join(HERE, "open_questions.json")
 ADVISOR = os.path.abspath(os.path.join(HERE, "..", "..", "..", "advisor_feedback"))
 # questions raised by the work itself (not by a single run); each with its evidence
-STANDING = [
-    {"id": "Q-sensitivity-threshold",
-     "question": "When should the agent ask a person to confirm an assumed input? The "
-                 "pre-registered rule (the input changes a certified quantity by more than its "
-                 "numerical uncertainty) asks for every input on smooth problems; the post hoc "
-                 "proposal asks only when the change exceeds the adopted accuracy target.",
-     "evidence": "sensitivity_runs/*.json, sensitivity_preregistration.json"},
-    {"id": "Q-earlier-certificate",
-     "question": "Should a quantity certified at an earlier stage of a run keep its certificate "
-                 "when a later state (more levels) no longer certifies it? Today the loop keeps it.",
-     "evidence": "autonomous_runs/plate_hole_quarter/report.pdf (u_right)"},
-    {"id": "Q-reference-domain",
-     "question": "May code verification on a reference domain (same code paths, regular meshes) "
-                 "replace an INCONCLUSIVE check on the production domain (rules R1/R2, post hoc)?",
-     "evidence": "round_q_preregistration.json; autonomous_runs/cook_3d/report.pdf"},
-]
+# 27 Nov: the three standing questions were answered by Professor Rabczuk
+# (advisor_decisions_2026-11-27.json); none is open
+STANDING = []
 
 
 def _j(p):
@@ -124,7 +111,7 @@ def index(pdf=True):
          f"<p class=meta>built {datetime.date.today()} from autonomous_runs/*/run.json; "
          f"{len(rows)} runs</p>",
          "<table><tr><th>run</th><th>status</th><th>dim</th><th>material</th><th>code verification</th>"
-         "<th>certified</th><th>open</th><th>person points</th><th>stopped / jobs</th></tr>"]
+         "<th>numerically verified</th><th>open</th><th>person points</th><th>stopped / jobs</th></tr>"]
     for r in rows:
         link = f"<a href='{e(r['name'])}/report.pdf'>{e(r['name'])}</a>" if r["report"] else e(r["name"])
         t.append(f"<tr><td>{link}</td><td>{e(r['status'])}</td><td>{r['dim']}D</td><td>{e(r['material'])}</td>"
@@ -161,7 +148,7 @@ def draft(names=None):
     qs = _j(QUESTIONS) if os.path.exists(QUESTIONS) else collect_questions(rows)
     out = [f"# New results - DRAFT ({datetime.date.today()}), generated from the stored runs",
            "", "Not sent. Every line below is written by campaign.py from autonomous_runs/*/run.json.",
-           "", "| run | status | dim | material | code verification | certified | open | person points |",
+           "", "| run | status | dim | material | code verification | numerically verified | open | person points |",
            "|---|---|---|---|---|---|---|---|"]
     for r in rows:
         out.append(f"| {r['name']} | {r['status']} | {r['dim']}D | {r['material']} | {r['code_verification']} | "

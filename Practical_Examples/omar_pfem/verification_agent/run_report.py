@@ -154,9 +154,9 @@ def fig_convergence(ladders, q, info):
     if info and info.get("limit"):
         ua = _u_abs(info)
         ax[0].axhspan(info["limit"] - ua, info["limit"] + ua, color="#27ae60", alpha=0.25,
-                      label="certified limit +- U")
+                      label="verified limit +- U (numerical verification error)")
         ax[1].axhline(_u_rel(info), color="#27ae60", ls=":", label="U (relative)")
-        ax[1].set_title("|value - certified limit| / |limit|", fontsize=9)
+        ax[1].set_title("|value - verified limit| / |limit|", fontsize=9)
     else:
         ax[1].set_visible(False)
     ax[0].set_title(q, fontsize=9)
@@ -215,7 +215,7 @@ def build(name, pdf=True):
     # summary
     n_q = len(final["certified"]) + len(final["open"])
     w("<h2>1. Summary</h2><ul>")
-    w(f"<li><b>{len(final['certified'])} of {n_q}</b> quantities certified: "
+    w(f"<li><b>{len(final['certified'])} of {n_q}</b> quantities numerically verified: "
       f"{esc(', '.join(final['certified']) or 'none')}.</li>")
     if final["open"]:
         w(f"<li>Open: {esc(', '.join(final['open']))} (reasons in Section 4).</li>")
@@ -294,7 +294,7 @@ def build(name, pdf=True):
               f"<td>{esc('; '.join(r.get('levels_added', [])) or '')}</td></tr>")
     w("</table>")
     # results
-    w("<h2>4. Results</h2><table><tr><th>quantity</th><th>status</th><th>certified limit "
+    w("<h2>4. Results</h2><table><tr><th>quantity</th><th>status</th><th>verified limit "
       "&plusmn; U</th><th>U (relative)</th><th>finest value</th><th>evidence / reason</th></tr>")
     later = []
     for q in prob.qois:
@@ -308,7 +308,7 @@ def build(name, pdf=True):
                 # the loop keeps a quantity certified at an earlier stage (certified_any); the
                 # report shows that the latest state no longer certifies it
                 st = V.get(q, {})
-                ev = (f"certified at an earlier stage of this run; LATEST STATE {st.get('final', '-')}"
+                ev = (f"numerically verified at an earlier stage of this run; LATEST STATE {st.get('final', '-')}"
                       f" ({st.get('evidence', '-')}; cross-check {st.get('crosscheck', '-')}) "
                       "- see the log")
                 later.append(q)
@@ -327,9 +327,9 @@ def build(name, pdf=True):
               f"<td>-</td><td>{fmt(st.get('finest'))}</td><td>{esc(why)}</td></tr>")
     w("</table>")
     if later:
-        w(f"<p class=warn>Note: {esc(', '.join(later))} were certified at an earlier stage, but the "
-          "latest state after the agent's experiments does not certify them. The loop's rule keeps "
-          "an earlier certificate; a later 'contradicted' cross-check would NOT remove it either "
+        w(f"<p class=warn>Note: {esc(', '.join(later))} were numerically verified at an earlier stage, but the "
+          "latest state after the agent's experiments does not verify them. By the decision of 27 Nov the loop keeps "
+          "an earlier estimate only without contradictory evidence and records the limitation "
           "(open question, see the change log).</p>")
     for q in prob.qois:
         w(fig_convergence(ladders, q, cert.get(q)))
@@ -360,11 +360,12 @@ def build(name, pdf=True):
     else:
         w(f"<p>Range: E, loads, prescribed displacement, hole radius &plusmn;"
           f"{pct(sens['range']['relative'])}; &nu; &plusmn;{fmt(sens['range']['nu_absolute'])}. "
-          "Pre-registered rule: a person is needed where the change exceeds the certified "
-          "numerical uncertainty U. The post hoc proposal (not used by the loop) asks a person "
-          "only where the change exceeds the adopted accuracy target.</p>")
+          "Rule in force (decision of 27 Nov, QoI-dependent tolerances): a person is needed "
+          "only where the change exceeds the adopted accuracy target of the quantity. The "
+          "pre-registered rule (change above the numerical verification error U) is shown for "
+          "comparison.</p>")
         w("<table><tr><th>input</th><th>quantity</th><th>change over range</th><th>U / |limit|"
-          "</th><th>S</th><th>decision (rule in force)</th><th>post hoc proposal</th></tr>")
+          "</th><th>S</th><th>pre-registered rule</th><th>rule in force (27 Nov)</th></tr>")
         for name_, r in sens["params"].items():
             if "quantities" not in r:
                 w(f"<tr><td>{esc(name_)}</td><td colspan=6>{esc(r.get('status'))}: person</td></tr>")

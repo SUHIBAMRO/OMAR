@@ -1,0 +1,13 @@
+(Reply of Professor Rabczuk to the email of 26 November, received 27 November 2026; pasted by Omar. Verbatim.)
+
+Dear Omar,
+
+Excellent progress. First some terminology. Certified means guaranteed bounds, which do not fit here. We could use something like numerical verification error. I suppose the agent can identify a-priori convergence results from the literature, including their assumptions and the solution's regularity. It should predict convergence rates for the selected elements, norms and QoIs, account for singularities and compare these predictions with observed rates. We should also distinguish  between MMS code verification and convergence of the problem. A particularly interesting test would be a re-entrant-corner problem comparing uniform and graded h-refinement and, if feasible, p- or hp-refinement but ideally the agent should identify these as relevant benchmark problems for a new code itself.
+
+Regarding your four questions: I agree with QoI-dependent tolerances. Earlier convergence estimates can be retained if subsequent refinements encounter round-off, provided no contradictory evidence appears and the limitations are recorded. R1 and R3 are fine. R2 could be useful, but it is problem and goal dependent. For instance, for NOs geometry generalization is key; so here this is certainly not enough. Let us forego the groove spline levels 7–9 for now reporting the peak as numerically unverified.
+
+Next, let the agent independently find an established benchmark in the literature and carry it through the problem formulation, meshing, simulation, verification and diagnosis. We can challenge it with a more complex three-dimensional hyperelastic problem involving curved geometry or stress concentrations as well, preferably requiring substantially more DOFs. The agent should determine whether it can handle the problem and, if not, identify the missing capabilities rather than automatically implementing them. We need to distinguish between autonomous decisions and predefined procedures and human interventions.
+
+To the CAS paper: I thought that it was in the decision stage and you asked me if you should contact the editor. Maybe I am hallucinating :).
+
+Best regards,

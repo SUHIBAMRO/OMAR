@@ -1,0 +1,32 @@
+{
+ "source": "advisor_feedback/2026-11-27_reply_from_Rabczuk.txt",
+ "date": "2026-11-27",
+ "terminology": {
+  "decision": "'certified' means guaranteed bounds and does not fit; use 'numerically verified' with a 'numerical verification error' (estimate U)",
+  "implementation": "user-facing text of logs, run reports, index and new reports; internal keys (final == 'CERTIFIED', certified_info) are kept for reproducibility and mean 'numerically verified'"
+ },
+ "Q1_assumed_inputs": {
+  "decision": "QoI-dependent tolerances: a person is asked only when an assumed input changes a numerically verified quantity by more than the adopted accuracy target of that QoI class",
+  "implementation": "autonomous step A uses sensitivity's accuracy-target decision (was the post hoc proposal)"
+ },
+ "Q2_earlier_estimates": {
+  "decision": "retained if later refinements meet round-off, provided no contradictory evidence appears and the limitations are recorded",
+  "implementation": "a later state that no longer verifies a quantity keeps the earlier estimate only if its cross-check is not contradicted and its value lies within the combined uncertainty of the earlier estimate; the limitation is recorded; otherwise the earlier estimate is withdrawn"
+ },
+ "Q3_rules": {
+  "R1": "adopted",
+  "R3": "adopted",
+  "R2": "not adopted as a general rule (problem and goal dependent; e.g. for neural operators geometry generalization is key): a passing reference-domain check is recorded as supporting evidence only and does not replace the production check"
+ },
+ "Q4_groove": {
+  "decision": "levels 7-9 not computed; the groove peak is reported as numerically unverified"
+ },
+ "next": [
+  "a-priori convergence predictions (elements, norms, QoIs, regularity, singularities) compared with observed rates",
+  "distinguish MMS code verification from convergence of the problem (solution verification)",
+  "re-entrant-corner benchmark: uniform vs graded h-refinement, p/hp if feasible; ideally identified by the agent as relevant for a new code",
+  "the agent finds an established benchmark itself and carries it through; challenge: 3D hyperelastic, curved geometry or stress concentration, many DOFs; it decides whether it can handle it and otherwise lists missing capabilities WITHOUT implementing them",
+  "distinguish autonomous decisions, predefined procedures and human interventions"
+ ],
+ "no_stored_result_relied_on_R2": true
+}

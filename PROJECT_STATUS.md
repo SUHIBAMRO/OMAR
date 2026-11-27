@@ -26381,3 +26381,15 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   none representable. Score 3/5 (literature_round4_score.json). Tracer now reads bare powers of ten (the R4a
   load person point; re-evaluation clears it). Open: plane strain/stress assumption is not yet an assumed input
   for the sensitivity check; arXiv queries yield few representable papers. Total LLM spend 26-27 Nov ~ USD 3.6.
+- 2026-11-27: PROFESSOR RABCZUK REPLIED (advisor_feedback/2026-11-27_reply_from_Rabczuk.txt; decisions in
+  Practical_Examples/omar_pfem/verification_agent/advisor_decisions_2026-11-27.json). IMPLEMENTED:
+  terminology "numerically verified" / "numerical verification error" in user-facing text (internal keys kept);
+  Q1 accuracy-target rule for assumed inputs; Q2 earlier estimate kept only without contradictory evidence,
+  limitation recorded, else withdrawn; R1+R3 adopted, R2 demoted to supporting evidence (no stored result relied
+  on it); groove levels 7-9 dropped, peak numerically unverified; every log step now classified as autonomous
+  decision / predefined procedure / human intervention. Standing questions cleared. Tests 123 pass.
+  NEXT (his list): (1) a-priori convergence predictions vs observed rates; (2) MMS code verification vs problem
+  convergence wording; (3) re-entrant corner: uniform vs graded h (+p/hp if feasible), ideally chosen by the
+  agent; (4) agent finds an established benchmark itself; 3D hyperelastic curved / stress-concentration
+  challenge with many DOFs: agent decides feasibility and lists missing capabilities WITHOUT implementing them.
+  CAS: he thought the paper is in the decision stage; Omar must check the C&S status and clarify (draft prepared).

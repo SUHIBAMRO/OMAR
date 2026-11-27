@@ -1514,3 +1514,12 @@ def test_bare_power_of_ten_is_traced():
     from omar_pfem.verification_agent.autonomous import numbers_in
     got = numbers_in("g = (0, 10^-3) and 10^{-2}, 10−4")
     assert all(any(abs(g - v) < 1e-15 for g in got) for v in (1e-3, 1e-2, 1e-4))
+
+
+def test_step_kinds_follow_the_27_nov_distinction():
+    from omar_pfem.verification_agent.autonomous import step_kind
+    assert step_kind("D", "LLM", "done") == "autonomous decision"
+    assert step_kind("N", "code", "pre-registered") == "autonomous decision"
+    assert step_kind("S", "code", "done") == "predefined procedure"
+    assert step_kind("V", "code", "cluster_job") == "predefined procedure"
+    assert step_kind("A", "person", "needs_person") == "human intervention"

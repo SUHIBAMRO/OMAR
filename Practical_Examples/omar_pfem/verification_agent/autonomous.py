@@ -134,6 +134,23 @@ MODELER_PROMPT = (
 
 
 # ------------------------------------------------------------------ autonomy log ----------
+KINDS = ("autonomous decision", "predefined procedure", "human intervention")
+
+
+def step_kind(stage, actor, status):
+    """27 Nov (Professor Rabczuk: distinguish autonomous decisions, predefined procedures and
+    human interventions). Autonomous decision: a judgement of the LLM (reading, formalising,
+    modelling, screening) or the agent's own choice of the next experiment among candidates
+    (scored by its priors). Predefined procedure: code that follows a fixed rule (meshing,
+    solving, gates, the adopted verification rules, cluster-job preparation, conclusions that a
+    rule implies). Human intervention: a person acts or must act."""
+    if actor == "person" or status == "needs_person":
+        return "human intervention"
+    if actor == "LLM" or (stage == "N" and status == "pre-registered"):
+        return "autonomous decision"
+    return "predefined procedure"
+
+
 class Log:
     def __init__(self, name):
         self.name, self.steps, self.t0 = name, [], time.time()
@@ -142,7 +159,7 @@ class Log:
 
     def step(self, stage, actor, status, detail, **extra):
         self.steps.append({"stage": stage, "actor": actor, "status": status,
-                           "detail": detail, **extra})
+                           "kind": step_kind(stage, actor, status), "detail": detail, **extra})
         print(f"[{stage}] ({actor}) {status}: {detail}", flush=True)
 
     def human_points(self):
@@ -625,10 +642,15 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
                 log.step("V", "code", "PASS", "post hoc rule R2: production check INCONCLUSIVE, "
                          "reference-domain check PASS on record")
         if ok:
-            result["code_verification"] = ("reference domain (post hoc rule R2, pending Professor "
-                                           "Rabczuk): production check INCONCLUSIVE for " + ", ".join(inc))
-            mms = {el: (dict(r, verdict="PASS") if el in inc else r) for el, r in mms.items()}
-        else:
+            # DECISION 27 Nov (Q3): R2 is problem and goal dependent and not a general rule: a
+            # passing reference-domain check is supporting evidence only; the loop stops
+            log.step("V", "code", "note", "reference-domain check PASS recorded as supporting "
+                     "evidence only: by the decision of 27 Nov it does not replace the production "
+                     "check (R2 is problem and goal dependent)")
+            result["code_verification"] = ("production check INCONCLUSIVE for " + ", ".join(inc)
+                                           + "; reference domain PASS (supporting evidence only)")
+            ok = False
+        if not ok:
             refused = any("refused" in s for r in list(mms.values()) + list(
                 (result.get("mms_reference_domain") or {}).get("checks", {}).values())
                 for s in r.get("levels_added", []))
@@ -783,6 +805,29 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
         minutes = (time.time() - t0) / 60
         spent += minutes
         old = {q: ({**old[q], "final": "CERTIFIED"} if q in certified_any else old[q]) for q in old}
+        # DECISION 27 Nov (Q2): an earlier estimate is retained when a later state no longer
+        # verifies the quantity only if there is no contradictory evidence; the limitation is
+        # recorded; otherwise it is withdrawn
+        for q in sorted(certified_any):
+            nq = new.get(q, {})
+            if q.startswith("_") or nq.get("final") == "CERTIFIED" or q not in cert_info:
+                continue
+            e = cert_info[q]
+            val = nq.get("limit", nq.get("finest"))
+            tol = abs(e.get("U_abs") or 0) + abs((nq.get("U") or 0) * (val or 0))
+            contradicted = nq.get("crosscheck") == "contradicted" or (
+                val is not None and e.get("limit") is not None and abs(val - e["limit"]) > tol)
+            if contradicted:
+                certified_any.discard(q)
+                cert_info.pop(q, None)
+                log.step("N", "code", "withdrawn", f"{q}: the earlier numerical verification is "
+                         f"withdrawn: the later state contradicts it (value {val}, earlier "
+                         f"{e.get('limit')} +- {e.get('U_abs')}) - decision of 27 Nov")
+            else:
+                e["limitation"] = (f"retained from an earlier state; the latest state is "
+                                   f"{nq.get('final', '-')} ({nq.get('crosscheck', '-')}) without "
+                                   "contradicting it (decision of 27 Nov)")
+                log.step("N", "code", "retained", f"{q}: {e['limitation']}")
         ok = X.evaluate(c, old, new)
         certified_any |= set(summary({q: r for q, r in new.items() if not q.startswith("_")})["certified"])
         note_certified({q: r for q, r in new.items() if not q.startswith("_")})
@@ -792,7 +837,7 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
                              if "_small_load_order" in new else {})})
         log.step("N", "code", "confirmed" if ok else "refuted",
                  f"#{k} {c['action']}: prediction {'confirmed' if ok else 'refuted'} "
-                 f"({minutes:.1f} min); certified so far {sorted(certified_any)}")
+                 f"({minutes:.1f} min); numerically verified so far {sorted(certified_any)}")
         history.append({"k": k, "action": c["action"], "confirmed": ok})
     final = {"certified": sorted(certified_any),
              "open": sorted(q for q in prob.qois if q not in certified_any)}
@@ -805,18 +850,23 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
                          log=lambda s: None)
         result["sensitivity"] = rec
         for pname, r in rec["params"].items():
-            if r.get("needs_person"):
+            # DECISION 27 Nov (Professor Rabczuk, Q1): QoI-dependent tolerances: a person only where
+            # the change exceeds the adopted accuracy target (the former post hoc proposal)
+            if "status" in r:
+                r["needs_person_27nov"] = True
+            else:
+                r["needs_person_27nov"] = bool(r.get("posthoc_person_needed_for"))
+            if r["needs_person_27nov"]:
                 why = (r["status"] if "status" in r else "changes " + ", ".join(
                     f"{q} by {r['quantities'][q]['change_rel']:.3g} (numerical U "
                     f"{r['quantities'][q]['U_rel']:.2g})" for q in r["matters_for"])
-                    + f" [post hoc proposal: person needed only for "
-                    f"{r['posthoc_person_needed_for'] or 'none'}]")
+                    + f" [above the accuracy target for {r['posthoc_person_needed_for']}]")
                 log.step("A", "person", "needs_person", f"assumed {pname}: {why}; a person "
                          "must confirm this input")
             else:
-                log.step("A", "code", "negligible", f"assumed {pname}: changes every certified "
-                         "quantity by less than its numerical uncertainty over the range; "
-                         "no person needed")
+                log.step("A", "code", "negligible", f"assumed {pname}: changes every numerically "
+                         "verified quantity by less than its accuracy target over the input range "
+                         "(decision of 27 Nov); no person needed")
     elif assumed:
         log.step("A", "person", "needs_person", f"assumed inputs {assumed}: nothing certified, "
                  "their effect cannot be judged; a person must confirm them")
@@ -824,8 +874,8 @@ def run(desc=None, text=None, pdf=None, hint=None, section=None, backend_name="r
                   description=desc)
     log.save(result)
     _report(log, result)
-    auto = [s for s in log.steps if s["actor"] in ("code", "LLM")]
-    print(f"steps by code or LLM: {len(auto)}; points needing a person: {len(log.human_points())}")
+    n = {k: sum(s.get("kind") == k for s in log.steps) for k in KINDS}
+    print("steps: " + ", ".join(f"{k} {v}" for k, v in n.items()))
     return result
 
 

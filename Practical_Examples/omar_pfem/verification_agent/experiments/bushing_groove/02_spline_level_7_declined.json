@@ -23,5 +23,6 @@
   "git_head": "ed3fe89c6a0aa7e7e3db2c045ff328593fa89544",
   "frozen_utc": "2026-11-25T10:45:18.169487+00:00",
   "sha256": "8496e5476c32de04c00221408273dd8e37887f6fa47c359fef67204033139526"
- }
+ },
+ "advisor_decision_2026_11_27": "levels 7-9 not computed; the groove peak is reported as numerically unverified"
 }
