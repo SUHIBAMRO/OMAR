@@ -1,0 +1,1330 @@
+{
+ "note": "POST HOC v2 table (27 Nov), not scored",
+ "rows": [
+  {
+   "run": "1911.08728",
+   "quantity": "strain_energy",
+   "ladder": "Q2 uniform",
+   "predicted": 1.2488377921809577,
+   "observed": 1.1393114319963522,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "1911.08728",
+   "quantity": "strain_energy",
+   "ladder": "Q2 graded",
+   "predicted": 1.2488377921809577,
+   "observed": 2.002499689578581,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)"
+   ]
+  },
+  {
+   "run": "1911.08728",
+   "quantity": "v_q",
+   "ladder": "Q2 uniform",
+   "predicted": 1.2488377921809577,
+   "observed": 1.1087068661724915,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "1911.08728",
+   "quantity": "v_q",
+   "ladder": "Q2 graded",
+   "predicted": 1.2488377921809577,
+   "observed": 3.2927317274086305,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)"
+   ]
+  },
+  {
+   "run": "1911.08728",
+   "quantity": "corner0_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.6244188960904788,
+   "observed": 0.9170328325074408,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "1911.08728",
+   "quantity": "corner0_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.6244188960904788,
+   "observed": 4.120048970812439,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "1911.08728",
+   "quantity": "corner1_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.6244188960904788,
+   "observed": 2.121257946557426,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "1911.08728",
+   "quantity": "corner1_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.6244188960904788,
+   "observed": 0.330995127034295,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "1911.08728",
+   "quantity": "corner2_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.6244188960904788,
+   "observed": 0.9541554331054913,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "1911.08728",
+   "quantity": "corner2_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.6244188960904788,
+   "observed": 4.139704223868235,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "1911.08728",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": -0.37558110390952115,
+   "observed": -0.3727084424333206,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "1911.08728",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 graded",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "divergent peak on graded meshes: the measure needs the corner element size, which the ladder does not record (G2)"
+   ]
+  },
+  {
+   "run": "2206.14610",
+   "quantity": "strain_energy",
+   "ladder": "Q2 uniform",
+   "predicted": 1.2884161428959555,
+   "observed": 1.138976503823618,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "2206.14610",
+   "quantity": "strain_energy",
+   "ladder": "Q2 graded",
+   "predicted": 1.2884161428959555,
+   "observed": 1.9283670862249873,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)"
+   ]
+  },
+  {
+   "run": "2206.14610",
+   "quantity": "v_top_right_corner",
+   "ladder": "Q2 uniform",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "point evaluation AT a boundary corner: not a smooth functional (G5)"
+   ]
+  },
+  {
+   "run": "2206.14610",
+   "quantity": "v_top_right_corner",
+   "ladder": "Q2 graded",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "point evaluation AT a boundary corner: not a smooth functional (G5)"
+   ]
+  },
+  {
+   "run": "2206.14610",
+   "quantity": "u_top_right_corner",
+   "ladder": "Q2 uniform",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "point evaluation AT a boundary corner: not a smooth functional (G5)"
+   ]
+  },
+  {
+   "run": "2206.14610",
+   "quantity": "u_top_right_corner",
+   "ladder": "Q2 graded",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "point evaluation AT a boundary corner: not a smooth functional (G5)"
+   ]
+  },
+  {
+   "run": "2206.14610",
+   "quantity": "corner0_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.6442080714479778,
+   "observed": 0.9291752984087406,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "2206.14610",
+   "quantity": "corner0_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.6442080714479778,
+   "observed": 4.829761187509837,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "2206.14610",
+   "quantity": "corner1_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.6442080714479778,
+   "observed": 1.0330510948984362,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "2206.14610",
+   "quantity": "corner1_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.6442080714479778,
+   "observed": -0.19728666359015065,
+   "outcome": "slower than predicted: CONTRADICTION",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "2206.14610",
+   "quantity": "corner2_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.6442080714479778,
+   "observed": 0.9614564672310778,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "2206.14610",
+   "quantity": "corner2_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.6442080714479778,
+   "observed": 4.0005289458688456,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "2206.14610",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": -0.35579192855202224,
+   "observed": -0.3492334845946709,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "2206.14610",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 graded",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "divergent peak on graded meshes: the measure needs the corner element size, which the ladder does not record (G2)"
+   ]
+  },
+  {
+   "run": "cook_linear",
+   "quantity": "strain_energy",
+   "ladder": "Q2 uniform",
+   "predicted": 1.3543281710618706,
+   "observed": 1.2908892005699244,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "cook_linear",
+   "quantity": "strain_energy",
+   "ladder": "Q2 graded",
+   "predicted": 1.3543281710618706,
+   "observed": 2.0004452538089668,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)"
+   ]
+  },
+  {
+   "run": "cook_linear",
+   "quantity": "v_C",
+   "ladder": "Q2 uniform",
+   "predicted": 1.3543281710618706,
+   "observed": 1.2673489655303904,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "cook_linear",
+   "quantity": "v_C",
+   "ladder": "Q2 graded",
+   "predicted": 1.3543281710618706,
+   "observed": 4.142287295414233,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)"
+   ]
+  },
+  {
+   "run": "cook_linear",
+   "quantity": "corner0_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.6771640855309353,
+   "observed": 1.158724060056019,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "cook_linear",
+   "quantity": "corner0_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.6771640855309353,
+   "observed": 2.9760312859593583,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "cook_linear",
+   "quantity": "corner1_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.6771640855309353,
+   "observed": 2.0746394867879516,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "cook_linear",
+   "quantity": "corner1_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.6771640855309353,
+   "observed": 2.7681262422737105,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "cook_linear",
+   "quantity": "corner2_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.6771640855309353,
+   "observed": 1.1151008511032676,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "cook_linear",
+   "quantity": "corner2_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.6771640855309353,
+   "observed": 3.6094808129850224,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "cook_linear",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": -0.3228359144690647,
+   "observed": -0.3163485553204789,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "cook_linear",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 graded",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "divergent peak on graded meshes: the measure needs the corner element size, which the ladder does not record (G2)"
+   ]
+  },
+  {
+   "run": "nh_l_bracket_demo",
+   "quantity": "strain_energy",
+   "ladder": "Q2 uniform",
+   "predicted": 1.088967473564928,
+   "observed": 0.7116691922703976,
+   "outcome": "slower than the linearized hypothesis (finite strain, G6)",
+   "notes": [
+    "finite strain: linearized prediction is a hypothesis (G6)"
+   ]
+  },
+  {
+   "run": "nh_l_bracket_demo",
+   "quantity": "strain_energy",
+   "ladder": "Q2 graded",
+   "predicted": 1.088967473564928,
+   "observed": null,
+   "outcome": "no measurable order",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "finite strain: linearized prediction is a hypothesis (G6)"
+   ]
+  },
+  {
+   "run": "nh_l_bracket_demo",
+   "quantity": "u_top_left",
+   "ladder": "Q2 uniform",
+   "predicted": 1.088967473564928,
+   "observed": 0.7066226265899583,
+   "outcome": "slower than the linearized hypothesis (finite strain, G6)",
+   "notes": [
+    "finite strain: linearized prediction is a hypothesis (G6)"
+   ]
+  },
+  {
+   "run": "nh_l_bracket_demo",
+   "quantity": "u_top_left",
+   "ladder": "Q2 graded",
+   "predicted": 1.088967473564928,
+   "observed": null,
+   "outcome": "no measurable order",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "finite strain: linearized prediction is a hypothesis (G6)"
+   ]
+  },
+  {
+   "run": "nh_l_bracket_demo",
+   "quantity": "v_right_top",
+   "ladder": "Q2 uniform",
+   "predicted": 1.088967473564928,
+   "observed": 0.5911761417332777,
+   "outcome": "slower than the linearized hypothesis (finite strain, G6)",
+   "notes": [
+    "finite strain: linearized prediction is a hypothesis (G6)"
+   ]
+  },
+  {
+   "run": "nh_l_bracket_demo",
+   "quantity": "v_right_top",
+   "ladder": "Q2 graded",
+   "predicted": 1.088967473564928,
+   "observed": null,
+   "outcome": "no measurable order",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "finite strain: linearized prediction is a hypothesis (G6)"
+   ]
+  },
+  {
+   "run": "nh_l_bracket_demo",
+   "quantity": "corner0_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.544483736782464,
+   "observed": 1.0807870430072017,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)",
+    "finite strain: linearized prediction is a hypothesis (G6)"
+   ]
+  },
+  {
+   "run": "nh_l_bracket_demo",
+   "quantity": "corner0_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.544483736782464,
+   "observed": null,
+   "outcome": "no measurable order",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)",
+    "finite strain: linearized prediction is a hypothesis (G6)"
+   ]
+  },
+  {
+   "run": "nh_l_bracket_demo",
+   "quantity": "corner1_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.544483736782464,
+   "observed": null,
+   "outcome": "no measurable order",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)",
+    "finite strain: linearized prediction is a hypothesis (G6)"
+   ]
+  },
+  {
+   "run": "nh_l_bracket_demo",
+   "quantity": "corner1_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.544483736782464,
+   "observed": null,
+   "outcome": "no measurable order",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)",
+    "finite strain: linearized prediction is a hypothesis (G6)"
+   ]
+  },
+  {
+   "run": "nh_l_bracket_demo",
+   "quantity": "corner2_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.544483736782464,
+   "observed": 1.859841879102911,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)",
+    "finite strain: linearized prediction is a hypothesis (G6)"
+   ]
+  },
+  {
+   "run": "nh_l_bracket_demo",
+   "quantity": "corner2_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.544483736782464,
+   "observed": null,
+   "outcome": "no measurable order",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)",
+    "finite strain: linearized prediction is a hypothesis (G6)"
+   ]
+  },
+  {
+   "run": "nh_l_bracket_demo",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": -0.455516263217536,
+   "observed": -0.6057790491842426,
+   "outcome": "agrees",
+   "notes": [
+    "finite strain: linearized prediction is a hypothesis (G6)"
+   ]
+  },
+  {
+   "run": "nh_l_bracket_demo",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 graded",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "divergent peak on graded meshes: the measure needs the corner element size, which the ladder does not record (G2)"
+   ]
+  },
+  {
+   "run": "nh_plate_hole_3d_pe",
+   "quantity": "strain_energy",
+   "ladder": "Q2 uniform",
+   "predicted": 4,
+   "observed": 3.024268151587752,
+   "outcome": "slower than the linearized hypothesis (finite strain, G6)",
+   "notes": [
+    "finite strain: linearized prediction is a hypothesis (G6)"
+   ]
+  },
+  {
+   "run": "nh_plate_hole_3d_pe",
+   "quantity": "u_right",
+   "ladder": "Q2 uniform",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "point evaluation AT a boundary corner: not a smooth functional (G5)"
+   ]
+  },
+  {
+   "run": "nh_plate_hole_3d_pe",
+   "quantity": "v_hole_top",
+   "ladder": "Q2 uniform",
+   "predicted": 3.0,
+   "observed": 3.275203415298087,
+   "outcome": "agrees",
+   "notes": [
+    "curved boundary: geometry error O(h^(p+1)) caps functionals (G3)",
+    "finite strain: linearized prediction is a hypothesis (G6)"
+   ]
+  },
+  {
+   "run": "nh_plate_hole_3d_pe",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 uniform",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "bounded peak on a curved boundary: sampling of the maximum (G7, open)"
+   ]
+  },
+  {
+   "run": "nh_plate_hole_pe",
+   "quantity": "strain_energy",
+   "ladder": "Q2 uniform",
+   "predicted": 4,
+   "observed": 3.8081255952865307,
+   "outcome": "agrees",
+   "notes": [
+    "finite strain: linearized prediction is a hypothesis (G6)"
+   ]
+  },
+  {
+   "run": "nh_plate_hole_pe",
+   "quantity": "u_right",
+   "ladder": "Q2 uniform",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "point evaluation AT a boundary corner: not a smooth functional (G5)"
+   ]
+  },
+  {
+   "run": "nh_plate_hole_pe",
+   "quantity": "v_hole_top",
+   "ladder": "Q2 uniform",
+   "predicted": 3.0,
+   "observed": 2.6771706984156194,
+   "outcome": "slower than the linearized hypothesis (finite strain, G6)",
+   "notes": [
+    "curved boundary: geometry error O(h^(p+1)) caps functionals (G3)",
+    "finite strain: linearized prediction is a hypothesis (G6)"
+   ]
+  },
+  {
+   "run": "nh_plate_hole_pe",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 uniform",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "bounded peak on a curved boundary: sampling of the maximum (G7, open)"
+   ]
+  },
+  {
+   "run": "plate_hole_quarter",
+   "quantity": "strain_energy",
+   "ladder": "Q2 uniform",
+   "predicted": 4,
+   "observed": 3.940800897363783,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "plate_hole_quarter",
+   "quantity": "u_right",
+   "ladder": "Q2 uniform",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "point evaluation AT a boundary corner: not a smooth functional (G5)"
+   ]
+  },
+  {
+   "run": "plate_hole_quarter",
+   "quantity": "v_hole_top",
+   "ladder": "Q2 uniform",
+   "predicted": 3.0,
+   "observed": 3.123355433789777,
+   "outcome": "agrees",
+   "notes": [
+    "curved boundary: geometry error O(h^(p+1)) caps functionals (G3)"
+   ]
+  },
+  {
+   "run": "plate_hole_quarter",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 uniform",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "bounded peak on a curved boundary: sampling of the maximum (G7, open)"
+   ]
+  },
+  {
+   "run": "plate_hole_quarter_3d_pe",
+   "quantity": "strain_energy",
+   "ladder": "Q2 uniform",
+   "predicted": 4,
+   "observed": 4.209810618524894,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "plate_hole_quarter_3d_pe",
+   "quantity": "u_right",
+   "ladder": "Q2 uniform",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "point evaluation AT a boundary corner: not a smooth functional (G5)"
+   ]
+  },
+  {
+   "run": "plate_hole_quarter_3d_pe",
+   "quantity": "v_hole_top",
+   "ladder": "Q2 uniform",
+   "predicted": 3.0,
+   "observed": 3.970678299168641,
+   "outcome": "agrees",
+   "notes": [
+    "curved boundary: geometry error O(h^(p+1)) caps functionals (G3)"
+   ]
+  },
+  {
+   "run": "plate_hole_quarter_3d_pe",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 uniform",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "bounded peak on a curved boundary: sampling of the maximum (G7, open)"
+   ]
+  },
+  {
+   "run": "plate_hole_quarter_pe",
+   "quantity": "strain_energy",
+   "ladder": "Q2 uniform",
+   "predicted": 4,
+   "observed": 3.934646571492376,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "plate_hole_quarter_pe",
+   "quantity": "u_right",
+   "ladder": "Q2 uniform",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "point evaluation AT a boundary corner: not a smooth functional (G5)"
+   ]
+  },
+  {
+   "run": "plate_hole_quarter_pe",
+   "quantity": "v_hole_top",
+   "ladder": "Q2 uniform",
+   "predicted": 3.0,
+   "observed": 3.09393214212167,
+   "outcome": "agrees",
+   "notes": [
+    "curved boundary: geometry error O(h^(p+1)) caps functionals (G3)"
+   ]
+  },
+  {
+   "run": "plate_hole_quarter_pe",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 uniform",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "bounded peak on a curved boundary: sampling of the maximum (G7, open)"
+   ]
+  },
+  {
+   "run": "t4_step_plate",
+   "quantity": "strain_energy",
+   "ladder": "Q2 uniform",
+   "predicted": 1.088967473564928,
+   "observed": 1.113344937514764,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "t4_step_plate",
+   "quantity": "strain_energy",
+   "ladder": "Q2 graded",
+   "predicted": 1.088967473564928,
+   "observed": 1.9385013980035648,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)"
+   ]
+  },
+  {
+   "run": "t4_step_plate",
+   "quantity": "u_tip_top",
+   "ladder": "Q2 uniform",
+   "predicted": 1.088967473564928,
+   "observed": 1.1046564587470038,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "t4_step_plate",
+   "quantity": "u_tip_top",
+   "ladder": "Q2 graded",
+   "predicted": 1.088967473564928,
+   "observed": 1.39738895418747,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)"
+   ]
+  },
+  {
+   "run": "t4_step_plate",
+   "quantity": "v_tip_bottom",
+   "ladder": "Q2 uniform",
+   "predicted": 1.088967473564928,
+   "observed": 1.1059001958672465,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "t4_step_plate",
+   "quantity": "v_tip_bottom",
+   "ladder": "Q2 graded",
+   "predicted": 1.088967473564928,
+   "observed": 1.2552238087042378,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)"
+   ]
+  },
+  {
+   "run": "t4_step_plate",
+   "quantity": "corner0_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.544483736782464,
+   "observed": 1.496228361844373,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t4_step_plate",
+   "quantity": "corner0_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.544483736782464,
+   "observed": 2.758468361415443,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t4_step_plate",
+   "quantity": "corner1_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.544483736782464,
+   "observed": 1.1139532796350564,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t4_step_plate",
+   "quantity": "corner1_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.544483736782464,
+   "observed": 1.7854453585582124,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t4_step_plate",
+   "quantity": "corner2_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.544483736782464,
+   "observed": 1.1930252944526831,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t4_step_plate",
+   "quantity": "corner2_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.544483736782464,
+   "observed": 2.018203525599748,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t4_step_plate",
+   "quantity": "corner3_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.544483736782464,
+   "observed": 1.32648051353868,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t4_step_plate",
+   "quantity": "corner3_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.544483736782464,
+   "observed": 3.120194590632784,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t4_step_plate",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": -0.455516263217536,
+   "observed": -0.42791463762171933,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "t4_step_plate",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 graded",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "divergent peak on graded meshes: the measure needs the corner element size, which the ladder does not record (G2)"
+   ]
+  },
+  {
+   "run": "t5_quarter_cutout",
+   "quantity": "strain_energy",
+   "ladder": "Q2 uniform",
+   "predicted": 1.088967473564928,
+   "observed": 1.1570576453102588,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "t5_quarter_cutout",
+   "quantity": "strain_energy",
+   "ladder": "Q2 graded",
+   "predicted": 1.088967473564928,
+   "observed": 3.725758404383968,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)"
+   ]
+  },
+  {
+   "run": "t5_quarter_cutout",
+   "quantity": "u_right_bottom",
+   "ladder": "Q2 uniform",
+   "predicted": 1.088967473564928,
+   "observed": 1.147774923952575,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "t5_quarter_cutout",
+   "quantity": "u_right_bottom",
+   "ladder": "Q2 graded",
+   "predicted": 1.088967473564928,
+   "observed": 3.6837723045480333,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)"
+   ]
+  },
+  {
+   "run": "t5_quarter_cutout",
+   "quantity": "v_right_top",
+   "ladder": "Q2 uniform",
+   "predicted": 1.088967473564928,
+   "observed": 1.1936643981112558,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "t5_quarter_cutout",
+   "quantity": "v_right_top",
+   "ladder": "Q2 graded",
+   "predicted": 1.088967473564928,
+   "observed": 3.8106890706487757,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)"
+   ]
+  },
+  {
+   "run": "t5_quarter_cutout",
+   "quantity": "corner0_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.544483736782464,
+   "observed": 0.07361847880135255,
+   "outcome": "slower than predicted: CONTRADICTION",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t5_quarter_cutout",
+   "quantity": "corner0_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.544483736782464,
+   "observed": 4.234064780604744,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t5_quarter_cutout",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": -0.455516263217536,
+   "observed": -0.3552534994844744,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "t5_quarter_cutout",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 graded",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "divergent peak on graded meshes: the measure needs the corner element size, which the ladder does not record (G2)"
+   ]
+  },
+  {
+   "run": "t7_missing_modulus",
+   "quantity": "strain_energy",
+   "ladder": "Q2 uniform",
+   "predicted": 1.088967473564928,
+   "observed": 1.2441697924857973,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "t7_missing_modulus",
+   "quantity": "strain_energy",
+   "ladder": "Q2 graded",
+   "predicted": 1.088967473564928,
+   "observed": 3.6578610308605692,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)"
+   ]
+  },
+  {
+   "run": "t7_missing_modulus",
+   "quantity": "v_top_left",
+   "ladder": "Q2 uniform",
+   "predicted": 1.088967473564928,
+   "observed": 1.0552884814022814,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "t7_missing_modulus",
+   "quantity": "v_top_left",
+   "ladder": "Q2 graded",
+   "predicted": 1.088967473564928,
+   "observed": 3.9294294221266863,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)"
+   ]
+  },
+  {
+   "run": "t7_missing_modulus",
+   "quantity": "corner0_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.544483736782464,
+   "observed": 1.2533149881861245,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t7_missing_modulus",
+   "quantity": "corner0_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.544483736782464,
+   "observed": 3.480790308636209,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t7_missing_modulus",
+   "quantity": "corner1_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.544483736782464,
+   "observed": 1.6066337626498393,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t7_missing_modulus",
+   "quantity": "corner1_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.544483736782464,
+   "observed": 1.1216072538645165,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t7_missing_modulus",
+   "quantity": "corner2_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.544483736782464,
+   "observed": null,
+   "outcome": "no measurable order",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t7_missing_modulus",
+   "quantity": "corner2_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.544483736782464,
+   "observed": null,
+   "outcome": "no measurable order",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t7_missing_modulus",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": -0.455516263217536,
+   "observed": -0.24820492376093017,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "t7_missing_modulus",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 graded",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "divergent peak on graded meshes: the measure needs the corner element size, which the ladder does not record (G2)"
+   ]
+  },
+  {
+   "run": "t_bracket",
+   "quantity": "strain_energy",
+   "ladder": "Q2 uniform",
+   "predicted": 1.088967473564928,
+   "observed": 1.098407184653856,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "t_bracket",
+   "quantity": "strain_energy",
+   "ladder": "Q2 graded",
+   "predicted": 1.088967473564928,
+   "observed": 3.5056124527400754,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)"
+   ]
+  },
+  {
+   "run": "t_bracket",
+   "quantity": "v_left_tip",
+   "ladder": "Q2 uniform",
+   "predicted": 1.088967473564928,
+   "observed": 1.0896347014332575,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "t_bracket",
+   "quantity": "v_left_tip",
+   "ladder": "Q2 graded",
+   "predicted": 1.088967473564928,
+   "observed": 3.6165960631215164,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)"
+   ]
+  },
+  {
+   "run": "t_bracket",
+   "quantity": "u_left_top",
+   "ladder": "Q2 uniform",
+   "predicted": 1.088967473564928,
+   "observed": 1.0709341237161951,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "t_bracket",
+   "quantity": "u_left_top",
+   "ladder": "Q2 graded",
+   "predicted": 1.088967473564928,
+   "observed": 3.70026024405559,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)"
+   ]
+  },
+  {
+   "run": "t_bracket",
+   "quantity": "corner0_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.544483736782464,
+   "observed": 1.2456759858466513,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t_bracket",
+   "quantity": "corner0_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.544483736782464,
+   "observed": 3.687117535633847,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t_bracket",
+   "quantity": "corner1_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.544483736782464,
+   "observed": 1.2352937538227633,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t_bracket",
+   "quantity": "corner1_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.544483736782464,
+   "observed": 3.7066285088908035,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t_bracket",
+   "quantity": "corner2_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.544483736782464,
+   "observed": 1.2352937535974347,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t_bracket",
+   "quantity": "corner2_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.544483736782464,
+   "observed": 3.764008340051801,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t_bracket",
+   "quantity": "corner3_gk_avg_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": 0.544483736782464,
+   "observed": 1.2456759852343966,
+   "outcome": "agrees",
+   "notes": [
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t_bracket",
+   "quantity": "corner3_gk_avg_von_mises",
+   "ladder": "Q2 graded",
+   "predicted": 0.544483736782464,
+   "observed": 3.6949168684906275,
+   "outcome": "agrees",
+   "notes": [
+    "graded, strength not recorded: lower bound = the uniform prediction (G1)",
+    "von Mises average is nonlinear: energy-norm order min(p, lam) (G4)"
+   ]
+  },
+  {
+   "run": "t_bracket",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 uniform",
+   "predicted": -0.455516263217536,
+   "observed": -0.4454194674409395,
+   "outcome": "agrees",
+   "notes": []
+  },
+  {
+   "run": "t_bracket",
+   "quantity": "peak_von_mises",
+   "ladder": "Q2 graded",
+   "outcome": "no a-priori prediction",
+   "notes": [
+    "divergent peak on graded meshes: the measure needs the corner element size, which the ladder does not record (G2)"
+   ]
+  }
+ ]
+}

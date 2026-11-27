@@ -165,3 +165,82 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# ------------------------------------------------------------------ v2 (POST HOC, 27 Nov) --
+def predict_v2(q, qclass, p, lam, graded, desc):
+    """The v1 table plus the assumptions the comparison exposed (apriori_score.json, G1-G7).
+    POST HOC: written after seeing the v1 comparison; reported separately, never scored."""
+    pr = predict(qclass, p, lam, graded)
+    notes = []
+    holes = any("circle" in h for h in (desc.get("domain") or {}).get("holes", []))
+    if graded and qclass != "pointwise_peak":
+        # G1: the grading strength of the agent's meshes is not recorded; the re-entrant study
+        # shows that a weak grading restores only part of the order -> lower bound = uniform
+        pr = dict(predict(qclass, p, lam, False), mode="lower_bound")
+        notes.append("graded, strength not recorded: lower bound = the uniform prediction (G1)")
+    if graded and qclass == "pointwise_peak":
+        return None, ["divergent peak on graded meshes: the measure needs the corner element "
+                      "size, which the ladder does not record (G2)"]
+    if holes and qclass in ("displacement", "region_average") and pr["order"] > p + 1:
+        pr = dict(pr, order=float(p + 1))
+        notes.append("curved boundary: geometry error O(h^(p+1)) caps functionals (G3)")
+    if qclass == "region_average" and "von_mises" in q:
+        m = p if (lam is None or lam >= p) else lam
+        pr = dict(pr, order=float(min(pr["order"], m)), mode="lower_bound")
+        notes.append("von Mises average is nonlinear: energy-norm order min(p, lam) (G4)")
+    pts = desc.get("points", {})
+    if q in pts and "domain" in desc:
+        x, y = pts[q][0], pts[q][1]
+        if any(abs(x - a) < 1e-9 and abs(y - b) < 1e-9 for a, b in desc["domain"]["outer"]):
+            return None, ["point evaluation AT a boundary corner: not a smooth functional (G5)"]
+    if qclass == "pointwise_peak" and pr["mode"] == "lower_bound" and holes:
+        return None, ["bounded peak on a curved boundary: sampling of the maximum (G7, open)"]
+    if desc.get("material") == "neo_hookean":
+        notes.append("finite strain: linearized prediction is a hypothesis (G6)")
+    return pr, notes
+
+
+def main_v2():
+    import warnings
+    warnings.filterwarnings("ignore")
+    from collections import Counter
+    from omar_pfem.verification_agent.geometry2d import make
+    rows = []
+    for name in sorted(os.listdir(RUNS)):
+        f = os.path.join(RUNS, name, "run.json")
+        if not os.path.exists(f) or name.endswith("_posthoc"):
+            continue
+        run = json.load(open(f))
+        desc = run.get("description") or {}
+        lf = os.path.join(LADDERS, desc.get("name", name), "ladders.json")
+        if not desc or not os.path.exists(lf) or not run.get("verdicts"):
+            continue
+        prob = make({k: v for k, v in desc.items() if k not in ("assumed", "geometry_source")})
+        lad = json.load(open(lf))
+        for q, v in run["verdicts"].items():
+            if q.startswith("_") or "class" not in v:
+                continue
+            for key, graded in (("Q2 uniform", False), ("Q2 graded", True)):
+                if key not in lad:
+                    continue
+                pr, notes = predict_v2(q, v["class"], 2, prob.lam_min, graded, desc)
+                if pr is None:
+                    rows.append({"run": name, "quantity": q, "ladder": key,
+                                 "outcome": "no a-priori prediction", "notes": notes})
+                    continue
+                ob, _ = observed(lad[key], q, v["class"], diverging=pr["order"] < 0)
+                out = classify(pr, ob)
+                if "CONTRADICTION" in out and desc.get("material") == "neo_hookean":
+                    out = "slower than the linearized hypothesis (finite strain, G6)"
+                rows.append({"run": name, "quantity": q, "ladder": key, "predicted": pr["order"],
+                             "observed": ob, "outcome": out, "notes": notes})
+    json.dump({"note": "POST HOC v2 table (27 Nov), not scored", "rows": rows},
+              open(os.path.join(HERE, "apriori_comparison_v2_posthoc.json"), "w"), indent=1,
+              default=float)
+    c = Counter(r["outcome"] for r in rows)
+    for k, v in c.most_common():
+        print(f"{v:3d}  {k}")
+    for r in rows:
+        if "CONTRADICTION" in r["outcome"]:
+            print("   ", r["run"], r["quantity"], r["ladder"], r.get("predicted"), r.get("observed"))
