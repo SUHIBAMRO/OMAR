@@ -321,11 +321,38 @@ def fig_plate_crosscheck():
     return _save(fig, "fig8_plate_crosscheck.png")
 
 
+# ---------------------------------------------------------------- 9 re-entrant corner ---
+def fig_reentrant():
+    plt = _style()
+    res = _j("reentrant_result.json")
+    pre = _j("reentrant_preregistration.json")["predictions"]
+    sty = {"U1": (C1, "o", "--", "uniform h, Q1"), "U2": (C1, "s", "-", "uniform h, Q2"),
+           "G1_2": (C3, "o", "--", "graded g = 2, Q1"), "G2_1.5": (C4, "s", "-", "graded g = 1.5, Q2"),
+           "G2_4": (C3, "s", "-", "graded g = 4, Q2"), "P": (C2, "^", "--", "p-version (n = 2), p = 1..8"),
+           "HP": (C2, "D", "-", "hp, geometric mesh, p = m = 1..6")}
+    fig, ax = plt.subplots(figsize=(7.2, 4.4))
+    for k, (c, m, ls, lab) in sty.items():
+        rows = sorted(res[k], key=lambda r: r["n_dof"])
+        ax.loglog([r["n_dof"] for r in rows], [r["energy_error_rel"] for r in rows], ls, color=c,
+                  marker=m, ms=5, label=lab)
+    ext = sorted(res.get("HP_posthoc_extension", []), key=lambda r: r["n_dof"])
+    if ext:
+        last = max(res["HP"], key=lambda r: r["n_dof"])
+        ax.loglog([last["n_dof"]] + [r["n_dof"] for r in ext],
+                  [last["energy_error_rel"]] + [r["energy_error_rel"] for r in ext], ":",
+                  color=C2, marker="D", mfc="white", ms=5, label="hp, p = 7, 8 (added after scoring)")
+    ax.set_xlabel("degrees of freedom N")
+    ax.set_ylabel("relative energy-norm error")
+    ax.legend(fontsize=7, loc="lower left", ncol=2)
+    ax.text(2.2e4, 9e-2, f"uniform: N^-{pre['R1_uniform']['U1']:.3f} (lam/2)", fontsize=7, color=INK2)
+    return _save(fig, "fig9_reentrant.png")
+
+
 def main():
     import warnings
     warnings.filterwarnings("ignore")
     for f in (fig_workflow, fig_meshes, fig_cook, fig_sensitivity, fig_mesh3d, fig_mms,
-              fig_groove, fig_plate_crosscheck):
+              fig_groove, fig_plate_crosscheck, fig_reentrant):
         try:
             print("ok  ", f())
         except Exception as e:

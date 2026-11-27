@@ -1,0 +1,430 @@
+{
+ "U1": [
+  {
+   "n_dof": 130,
+   "n_elem": 48,
+   "p": 1,
+   "energy_error_rel": 0.2283408023698717,
+   "strain_energy": 2810.8262577762425,
+   "strain_energy_error_rel": 0.056018014239491314,
+   "seconds": 6.240702390670776,
+   "level": 4
+  },
+  {
+   "n_dof": 450,
+   "n_elem": 192,
+   "p": 1,
+   "energy_error_rel": 0.1577124640530141,
+   "strain_energy": 2732.172866386304,
+   "strain_energy_error_rel": 0.026468198430343478,
+   "seconds": 0.017337799072265625,
+   "level": 8
+  },
+  {
+   "n_dof": 1666,
+   "n_elem": 768,
+   "p": 1,
+   "energy_error_rel": 0.1086028038795583,
+   "strain_energy": 2694.9462537439026,
+   "strain_energy_error_rel": 0.012482284697421096,
+   "seconds": 0.05375504493713379,
+   "level": 16
+  },
+  {
+   "n_dof": 6402,
+   "n_elem": 3072,
+   "p": 1,
+   "energy_error_rel": 0.07464872357219776,
+   "strain_energy": 2677.3730269282682,
+   "strain_energy_error_rel": 0.005880082218955534,
+   "seconds": 0.2279965877532959,
+   "level": 32
+  },
+  {
+   "n_dof": 25090,
+   "n_elem": 12288,
+   "p": 1,
+   "energy_error_rel": 0.051254956851752166,
+   "strain_energy": 2669.0889230493603,
+   "strain_energy_error_rel": 0.002767772127303335,
+   "seconds": 0.9354453086853027,
+   "level": 64
+  }
+ ],
+ "U2": [
+  {
+   "n_dof": 450,
+   "n_elem": 48,
+   "p": 2,
+   "energy_error_rel": 0.11777119079508001,
+   "strain_energy": 2705.203889195378,
+   "strain_energy_error_rel": 0.01633604399339034,
+   "seconds": 0.04442310333251953,
+   "level": 4
+  },
+  {
+   "n_dof": 1666,
+   "n_elem": 192,
+   "p": 2,
+   "energy_error_rel": 0.08055354553667092,
+   "strain_energy": 2681.9365325599438,
+   "strain_energy_error_rel": 0.007594576005898219,
+   "seconds": 0.08125877380371094,
+   "level": 8
+  },
+  {
+   "n_dof": 6402,
+   "n_elem": 768,
+   "p": 2,
+   "energy_error_rel": 0.05516673620158095,
+   "strain_energy": 2671.1939769843934,
+   "strain_energy_error_rel": 0.003558633842854316,
+   "seconds": 0.2571897506713867,
+   "level": 16
+  },
+  {
+   "n_dof": 25090,
+   "n_elem": 3072,
+   "p": 2,
+   "energy_error_rel": 0.03780348806570661,
+   "strain_energy": 2666.1690086462013,
+   "strain_energy_error_rel": 0.0016707700620768695,
+   "seconds": 1.1650230884552002,
+   "level": 32
+  },
+  {
+   "n_dof": 99330,
+   "n_elem": 12288,
+   "p": 2,
+   "energy_error_rel": 0.025912633207919835,
+   "strain_energy": 2663.811293796296,
+   "strain_energy_error_rel": 0.0007849844867315956,
+   "seconds": 5.739355802536011,
+   "level": 64
+  }
+ ],
+ "G2_1.5": [
+  {
+   "n_dof": 450,
+   "n_elem": 48,
+   "p": 2,
+   "energy_error_rel": 0.08195011347958266,
+   "strain_energy": 2683.404168991234,
+   "strain_energy_error_rel": 0.008145962099403338,
+   "seconds": 0.05504751205444336,
+   "level": 4
+  },
+  {
+   "n_dof": 1666,
+   "n_elem": 192,
+   "p": 2,
+   "energy_error_rel": 0.04649168973104546,
+   "strain_energy": 2668.494989449652,
+   "strain_energy_error_rel": 0.0025446332624166263,
+   "seconds": 0.07353353500366211,
+   "level": 8
+  },
+  {
+   "n_dof": 6402,
+   "n_elem": 768,
+   "p": 2,
+   "energy_error_rel": 0.026386110817033386,
+   "strain_energy": 2663.8850669554863,
+   "strain_energy_error_rel": 0.0008127008156426341,
+   "seconds": 0.23798656463623047,
+   "level": 16
+  },
+  {
+   "n_dof": 25090,
+   "n_elem": 3072,
+   "p": 2,
+   "energy_error_rel": 0.014978184339015327,
+   "strain_energy": 2662.4171654432585,
+   "strain_energy_error_rel": 0.0002612151321168315,
+   "seconds": 1.1852951049804688,
+   "level": 32
+  },
+  {
+   "n_dof": 99330,
+   "n_elem": 12288,
+   "p": 2,
+   "energy_error_rel": 0.00850312704130639,
+   "strain_energy": 2661.9457743708617,
+   "strain_energy_error_rel": 8.411508446164704e-05,
+   "seconds": 5.538751125335693,
+   "level": 64
+  }
+ ],
+ "G1_2": [
+  {
+   "n_dof": 130,
+   "n_elem": 48,
+   "p": 1,
+   "energy_error_rel": 0.16090548411631422,
+   "strain_energy": 2740.4947933718363,
+   "strain_energy_error_rel": 0.029594718536520494,
+   "seconds": 0.025267601013183594,
+   "level": 4
+  },
+  {
+   "n_dof": 450,
+   "n_elem": 192,
+   "p": 1,
+   "energy_error_rel": 0.08953684221570261,
+   "strain_energy": 2685.9279668047543,
+   "strain_energy_error_rel": 0.009094144488123443,
+   "seconds": 0.023277997970581055,
+   "level": 8
+  },
+  {
+   "n_dof": 1666,
+   "n_elem": 768,
+   "p": 1,
+   "energy_error_rel": 0.04858457714797859,
+   "strain_energy": 2668.761367543319,
+   "strain_energy_error_rel": 0.00264471062035817,
+   "seconds": 0.07064199447631836,
+   "level": 16
+  },
+  {
+   "n_dof": 6402,
+   "n_elem": 3072,
+   "p": 1,
+   "energy_error_rel": 0.025887944908141905,
+   "strain_energy": 2663.6988499265144,
+   "strain_energy_error_rel": 0.0007427397013231542,
+   "seconds": 0.19246172904968262,
+   "level": 32
+  },
+  {
+   "n_dof": 25090,
+   "n_elem": 12288,
+   "p": 1,
+   "energy_error_rel": 0.013614529495404988,
+   "strain_energy": 2662.2638109822988,
+   "strain_energy_error_rel": 0.00020360037457378048,
+   "seconds": 0.9379854202270508,
+   "level": 64
+  }
+ ],
+ "G2_4": [
+  {
+   "n_dof": 450,
+   "n_elem": 48,
+   "p": 2,
+   "energy_error_rel": 0.05484567702926192,
+   "strain_energy": 2679.0393446523126,
+   "strain_energy_error_rel": 0.006506112208951971,
+   "seconds": 0.028928279876708984,
+   "level": 4
+  },
+  {
+   "n_dof": 1666,
+   "n_elem": 192,
+   "p": 2,
+   "energy_error_rel": 0.016798788385025697,
+   "strain_energy": 2663.828139278145,
+   "strain_energy_error_rel": 0.0007913132778626403,
+   "seconds": 0.09432291984558105,
+   "level": 8
+  },
+  {
+   "n_dof": 6402,
+   "n_elem": 768,
+   "p": 2,
+   "energy_error_rel": 0.004784450796958617,
+   "strain_energy": 2661.9451938801017,
+   "strain_energy_error_rel": 8.389699602660962e-05,
+   "seconds": 0.24650073051452637,
+   "level": 16
+  },
+  {
+   "n_dof": 25090,
+   "n_elem": 3072,
+   "p": 2,
+   "energy_error_rel": 0.0013056357030843254,
+   "strain_energy": 2661.744800149175,
+   "strain_energy_error_rel": 8.609742247057779e-06,
+   "seconds": 1.2882096767425537,
+   "level": 32
+  },
+  {
+   "n_dof": 99330,
+   "n_elem": 12288,
+   "p": 2,
+   "energy_error_rel": 0.00034682020425081956,
+   "strain_energy": 2661.724331898722,
+   "strain_energy_error_rel": 9.198890808428104e-07,
+   "seconds": 5.591748237609863,
+   "level": 64
+  }
+ ],
+ "P": [
+  {
+   "n_dof": 42,
+   "n_elem": 12,
+   "p": 1,
+   "energy_error_rel": 0.32954447785906665,
+   "strain_energy": 2976.9219524908017,
+   "strain_energy_error_rel": 0.11841961064586741,
+   "seconds": 0.03531813621520996,
+   "level": 1
+  },
+  {
+   "n_dof": 130,
+   "n_elem": 12,
+   "p": 2,
+   "energy_error_rel": 0.17280663990645667,
+   "strain_energy": 2758.972213550395,
+   "strain_energy_error_rel": 0.03653662343414558,
+   "seconds": 0.030854225158691406,
+   "level": 2
+  },
+  {
+   "n_dof": 266,
+   "n_elem": 12,
+   "p": 3,
+   "energy_error_rel": 0.11416741614048012,
+   "strain_energy": 2706.1768564150016,
+   "strain_energy_error_rel": 0.016701584520253027,
+   "seconds": 0.06049489974975586,
+   "level": 3
+  },
+  {
+   "n_dof": 450,
+   "n_elem": 12,
+   "p": 4,
+   "energy_error_rel": 0.08373236300034047,
+   "strain_energy": 2687.9063780288225,
+   "strain_energy_error_rel": 0.009837426961171942,
+   "seconds": 0.11854004859924316,
+   "level": 4
+  },
+  {
+   "n_dof": 682,
+   "n_elem": 12,
+   "p": 5,
+   "energy_error_rel": 0.0654004048704027,
+   "strain_energy": 2678.8031750461982,
+   "strain_energy_error_rel": 0.006417384078644157,
+   "seconds": 0.2538738250732422,
+   "level": 5
+  },
+  {
+   "n_dof": 962,
+   "n_elem": 12,
+   "p": 6,
+   "energy_error_rel": 0.05332374878805187,
+   "strain_energy": 2673.7195512724643,
+   "strain_energy_error_rel": 0.0045074836471154,
+   "seconds": 0.48650431632995605,
+   "level": 6
+  },
+  {
+   "n_dof": 1290,
+   "n_elem": 12,
+   "p": 7,
+   "energy_error_rel": 0.04485974406415211,
+   "strain_energy": 2670.585398166195,
+   "strain_energy_error_rel": 0.0033299928184137985,
+   "seconds": 0.8695178031921387,
+   "level": 7
+  },
+  {
+   "n_dof": 1666,
+   "n_elem": 12,
+   "p": 8,
+   "energy_error_rel": 0.03864612418447613,
+   "strain_energy": 2668.5221137754515,
+   "strain_energy_error_rel": 0.0025548237808056587,
+   "seconds": 1.572979211807251,
+   "level": 8
+  }
+ ],
+ "HP": [
+  {
+   "n_dof": 42,
+   "n_elem": 12,
+   "p": 1,
+   "energy_error_rel": 0.2914238174849276,
+   "strain_energy": 2880.246956808504,
+   "strain_energy_error_rel": 0.08209913844144186,
+   "seconds": 0.0057926177978515625,
+   "level": 1
+  },
+  {
+   "n_dof": 266,
+   "n_elem": 27,
+   "p": 2,
+   "energy_error_rel": 0.09017769933399747,
+   "strain_energy": 2706.6583291825477,
+   "strain_energy_error_rel": 0.016882472227021765,
+   "seconds": 0.018291950225830078,
+   "level": 2
+  },
+  {
+   "n_dof": 962,
+   "n_elem": 48,
+   "p": 3,
+   "energy_error_rel": 0.03295082220020451,
+   "strain_energy": 2659.2932593516157,
+   "strain_energy_error_rel": 0.000912425927497126,
+   "seconds": 0.08151817321777344,
+   "level": 3
+  },
+  {
+   "n_dof": 2562,
+   "n_elem": 75,
+   "p": 4,
+   "energy_error_rel": 0.012552313647670135,
+   "strain_energy": 2663.077857040692,
+   "strain_energy_error_rel": 0.0005094347532393375,
+   "seconds": 0.3060126304626465,
+   "level": 4
+  },
+  {
+   "n_dof": 5642,
+   "n_elem": 108,
+   "p": 5,
+   "energy_error_rel": 0.004957770180530354,
+   "strain_energy": 2661.6442995804464,
+   "strain_energy_error_rel": 2.9147984942558967e-05,
+   "seconds": 0.9145071506500244,
+   "level": 5
+  },
+  {
+   "n_dof": 10922,
+   "n_elem": 147,
+   "p": 6,
+   "energy_error_rel": 0.0020104088177,
+   "strain_energy": 2661.759730245543,
+   "strain_energy_error_rel": 1.4218929465722146e-05,
+   "seconds": 2.7410879135131836,
+   "level": 6
+  }
+ ],
+ "HP_posthoc_extension": [
+  {
+   "n_dof": 19266,
+   "n_elem": 192,
+   "p": 7,
+   "energy_error_rel": 0.0008273747069783011,
+   "strain_energy": 2661.716989496335,
+   "strain_energy_error_rel": 1.8386269132326488e-06,
+   "seconds": 14.860873699188232,
+   "level": 7,
+   "note": "POST HOC extension after scoring (not part of R4/R5)"
+  },
+  {
+   "n_dof": 31682,
+   "n_elem": 243,
+   "p": 8,
+   "energy_error_rel": 0.00034422083033641514,
+   "strain_energy": 2661.724216704407,
+   "strain_energy_error_rel": 8.766109623048239e-07,
+   "seconds": 24.3897225856781,
+   "level": 8,
+   "note": "POST HOC extension after scoring (not part of R4/R5)"
+  }
+ ]
+}

@@ -26400,3 +26400,9 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   curved-boundary geometry error (functionals ~p+1), von Mises averages nonlinear, point at a singular point,
   finite strain (confirms earlier diagnosis), smooth peak on curved boundary (open). Two implementation bugs
   fixed before scoring.
+- 2026-11-27 DONE: re-entrant corner study (reentrant_study.py; pre-registered reentrant_preregistration.json;
+  exact L-shape, energy-norm error vs N): score 3/5 (reentrant_score.json). Uniform Q1/Q2 beta 0.277/0.276
+  (pred 0.272); graded g = 1.5 Q2 0.41, g = 2 Q1 0.47, g = 4 Q2 0.96 (pred 1.0; g >= p/lam needed); p-version
+  0.59 (pred 0.544); hp exponential (R^2 0.9993) but the finest hp error (11k DOF) was not below graded g = 4 at
+  99k DOF (prediction badly phrased: no equal-DOF comparison). POST HOC hp p = 7, 8: 3.4e-4 at 31.7k DOF = graded
+  g = 4 at 99k. Figure fig9_reentrant.png.
