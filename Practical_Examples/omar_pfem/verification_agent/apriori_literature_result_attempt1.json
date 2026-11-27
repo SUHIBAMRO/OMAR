@@ -1,0 +1,59 @@
+{
+ "candidates": 17,
+ "read": [
+  {
+   "id": "2607.07327",
+   "title": "Iterative finite element approximation of non-monotone semilinear diffusion-reaction equations",
+   "passage_at": "passage at character 66745 (score 171.0)",
+   "results": [
+    {
+     "statement": "Experiment 1 (general case): for the non-monotone semilinear problem with the re-entrant corner solution (6.3), the iterative linearized Galerkin solutions u_N on graded meshes are expected, by Rmk. 7 / estimate (5.6), to converge (up to a subsequence) at the optimal rate (4.1). The H1/energy-type error is observed to decay like dim(V_N)^(-1/2).",
+     "refinement": "other",
+     "norm": "H1 / energy norm (norm (2.1) with \u03bb = 1, the global error against the exact solution)",
+     "rate_formula": "||u - u_N|| ~ dim(V_N)^(-1/2), i.e. the optimal rate (4.1), for a subsequence",
+     "assumptions": "Scalar semilinear elliptic problem -\u0394u = f(x,u) + g with homogeneous Dirichlet data on a 2D domain with a re-entrant corner at c1 = (0,0). f satisfies Asm. 2.1 (uniformly bounded derivative f_u), and in the general case f_u must be continuous in u (Thm. 4.10). The time step satisfies Asm. 3.1. The IMEX iteration (3.7) runs until the slope between two meshes is < -0.49, or up to the iteration cap (6.2) with \u03b3 = 1. Meshes are graded toward the corner through RGB refinement with grading parameter \u03b2 = 0.4 > 1/3 (defined in \u00a74.1, which is not in the passage), with h from 0.25 down to 0.0019. The polynomial degree is not stated in the passage; the rate dim(V_N)^(-1/2) suggests P1 (linear) elements. Exp. 3 shows the optimal rate fails when f_u is discontinuous and \u03c1 > 1/C_P.",
+     "regularity": "u \u2208 H^1_0 (a weak solution) with a re-entrant corner singularity at (0,0). The exact regularity class and singular exponent of (6.3) are not in the passage. Grading is used to restore the optimal rate.",
+     "quote": "By Rmk. 7 (see, in particular, the estimate (5.6)), we expect the sequence {uN }N \u22650 to converge (up to a subsequence) at optimal rate (4.1).",
+     "beta_for_case": [],
+     "quote_found": true
+    },
+    {
+     "statement": "Experiment 2 (special, contractive case): when \u03b1 < \u03c1 \u2264 1/C_P, the reduced scheme (3.8) with \u0394t = \u221e produces the whole sequence u_N, which reaches the optimal convergence rate on the same graded meshes. Continuity of f_u is not needed here.",
+     "refinement": "other",
+     "norm": "H1 norm (norm (2.1) with \u03bb = 1)",
+     "rate_formula": "optimal rate (4.1), observed as the same rate as Exp. 6.1, dim(V_N)^(-1/2)",
+     "assumptions": "Same domain, exact solution (6.3) and graded meshes (\u03b2 = 0.4) as Exp. 1. f satisfies Asm. 2.1 with \u03c1 \u2264 1/C_P (special case, contraction), and f_u may be discontinuous. Asm. 3.1 holds automatically. Uses scheme (3.8), \u03b1 = 9.6 and \u03b3 = 1. The degree is not stated (P1 is implied by the rate).",
+     "regularity": "Same corner-singular weak solution as Exp. 1. The reaction term f is Lipschitz with a discontinuous derivative.",
+     "quote": "As a result, Rmk. 7(ii) ensures {uN }N \u22650 reaches the optimal rate of convergence.",
+     "beta_for_case": [],
+     "quote_found": true
+    },
+    {
+     "statement": "General qualitative a-priori result (Conclusions): the Galerkin limits converge weakly to a weak solution of (1.1), and a subsequence converges strongly. In the contractive special case the whole sequence converges. No rate is given.",
+     "refinement": "other",
+     "norm": "weak convergence and strong convergence in V (H1-type norm)",
+     "rate_formula": "no rate: convergence only (weak convergence; strong convergence for a subsequence; full sequence in the contractive case)",
+     "assumptions": "Semilinear elliptic problems (1.1) with non-monotone reaction terms whose derivative is uniformly bounded, solved with the IMEX-FEM iterative linearized Galerkin scheme. The mesh and polynomial-degree conditions are not stated in the passage.",
+     "regularity": "Only a weak solution in V (H^1_0) is required.",
+     "quote": "we have demonstrated weak convergence of the Galerkin limits to a weak solution of (1.1), and we have established strong convergence for a subsequence.",
+     "beta_for_case": [],
+     "quote_found": true
+    }
+   ]
+  },
+  {
+   "id": "1206.4379",
+   "title": "Axisymmetric Stokes equations in polygonal domains: regularity and finite element approximations",
+   "passage_at": "passage at character 61514 (score 29.0)",
+   "results": []
+  },
+  {
+   "id": "2609.28995",
+   "title": "HDG methods in finite element exterior calculus",
+   "passage_at": "passage at character 104021 (score 30.0)",
+   "results": []
+  }
+ ],
+ "llm_cost_usd": 0.1910592,
+ "comparison": []
+}

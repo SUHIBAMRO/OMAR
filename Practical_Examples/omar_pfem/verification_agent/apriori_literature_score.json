@@ -1,0 +1,20 @@
+{
+ "preregistration": "apriori_literature_preregistration.json",
+ "attempt1": {
+  "cost_usd": 0.1910592,
+  "read": [
+   "2607.07327",
+   "1206.4379",
+   "2609.28995"
+  ],
+  "predictions": {
+   "L1_found": false,
+   "L2_quotes": true,
+   "L3_agree": null,
+   "L4_grading_condition": false,
+   "L5_cost": true
+  },
+  "score": "2 of 5 (L3 not tested)",
+  "diagnosis": "the abstract ranking picked papers on semilinear diffusion, axisymmetric Stokes and HDG exterior calculus; none states a corner-singularity rate for elasticity"
+ }
+}

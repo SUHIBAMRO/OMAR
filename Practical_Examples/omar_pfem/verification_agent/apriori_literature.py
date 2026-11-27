@@ -15,6 +15,11 @@ import re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "apriori_literature_result.json")
+QUERIES_V2 = [  # POST HOC attempt 2 (after attempt 1 read unrelated papers)
+    'abs:"graded meshes" AND abs:"optimal convergence" AND abs:corner',
+    'abs:"L-shaped" AND abs:"graded" AND abs:"finite element"',
+    'abs:"corner singularities" AND abs:elasticity AND abs:"finite element"',
+    'abs:"mesh grading" AND abs:"singular"']
 QUERIES = ['abs:"corner singularity" AND abs:"finite element" AND abs:"convergence"',
            'abs:"graded mesh" AND abs:"singularity" AND abs:"finite element"',
            'abs:"re-entrant corner" AND abs:"error estimate"',
@@ -55,13 +60,13 @@ def prompt(passage):
             "law in rate_formula).\n\nPASSAGE:\n" + passage)
 
 
-def run(backend_name="claude-cli", budget_usd=1.2, per_query=8, read=3):
+def run(backend_name="claude-cli", budget_usd=1.2, per_query=8, read=3, queries=None, strict=False):
     from omar_pfem.verification_agent import literature_search as LS, llm_roles
     from omar_pfem.verification_agent.literature_agent import extract_text
     from omar_pfem.verification_agent.literature_select import select_passage
     b = llm_roles.make_backend(backend_name)
     seen, cands = set(), []
-    for q in QUERIES:
+    for q in (queries or QUERIES):
         try:
             for c in LS.arxiv(q, per_query):
                 if c["id"] not in seen:
@@ -74,6 +79,10 @@ def run(backend_name="claude-cli", budget_usd=1.2, per_query=8, read=3):
         t = (c["title"] + " " + c["abstract"]).lower()
         s = sum(k in t for k in ("a priori", "error estimate", "convergence rate", "graded",
                                  "corner", "singular", "hp", "elasticity", "regularity"))
+        if strict:   # POST HOC: the paper must be about corner singularities AND mesh/convergence
+            must = (("corner" in t or "singular" in t) and
+                    any(k in t for k in ("graded", "grading", "convergence rate", "error estimate", "hp")))
+            s = s if must else -1
         scored.append((s, c))
     scored.sort(key=lambda x: -x[0])
     out = {"candidates": len(cands), "read": []}
