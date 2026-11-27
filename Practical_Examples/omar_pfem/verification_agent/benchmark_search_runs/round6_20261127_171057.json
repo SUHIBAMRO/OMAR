@@ -1,0 +1,1039 @@
+{
+ "round": 6,
+ "source": "OpenAlex",
+ "started": "20261127_171057",
+ "candidates": [
+  {
+   "group": "2D established",
+   "id": "OA_W2991184399",
+   "title": "A locking-free P0 finite element method for linear elasticity equations on polytopal partitions",
+   "doi": "https://doi.org/10.1093/imanum/drab057",
+   "requirements": {
+    "example": "Cook's membrane",
+    "cases": [
+     {
+      "name": "Cook's membrane, case 1: E = 1, nu = 1/3 (compressible linear elastic)",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges",
+        "inclined edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "constant traction (dead)"
+       ],
+       "boundary": [
+        "clamped"
+       ],
+       "analysis": [
+        "static"
+       ],
+       "outputs": [
+        "point displacement"
+       ]
+      },
+      "unlisted_needs": [],
+      "missing_information": [
+       "Vertex coordinates of the tapered plate are given only in Figure 10.4; the text gives only Q = (48, 52), the midpoint of the right end",
+       "The text does not say whether the problem is plane strain or plane stress",
+       "Thickness is not stated",
+       "The text does not say whether g = (0, 1/16) is a traction per unit length or a total force on the right end",
+       "No reference value for the vertical displacement at Q is given for case 1"
+      ],
+      "reference_values": []
+     },
+     {
+      "name": "Cook's membrane, case 2: E = 1.12499998125, nu = 0.499999975 (nearly incompressible)",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges",
+        "inclined edges"
+       ],
+       "material": [
+        "linear elastic, isotropic",
+        "nearly incompressible (nu > 0.49)"
+       ],
+       "loading": [
+        "constant traction (dead)"
+       ],
+       "boundary": [
+        "clamped"
+       ],
+       "analysis": [
+        "static"
+       ],
+       "outputs": [
+        "point displacement"
+       ]
+      },
+      "unlisted_needs": [],
+      "missing_information": [
+       "Vertex coordinates of the tapered plate are given only in Figure 10.4; the text gives only Q = (48, 52), the midpoint of the right end",
+       "The text does not say whether the problem is plane strain or plane stress",
+       "Thickness is not stated",
+       "The text does not say whether g = (0, 1/16) is a traction per unit length or a total force on the right end"
+      ],
+      "reference_values": [
+       "Vertical displacement at Q = (48, 52): 16.442 (from refs [2, 22])"
+      ]
+     }
+    ],
+    "size": {
+     "dimension": 2,
+     "dofs_in_paper": 12416,
+     "elements_in_paper": 8192
+    },
+    "quotes": [
+     "The problem consists of a tapered plate clamped on one end and subject to a shear load, taken as g = (0, 1/16) in our numerical experiments, on the opposite end",
+     "The first case involves a material with Young's modulus E = 1 and Poisson ratio \u03bd = 1/3, and the second case is concerned with a nearly incompressible material with Young's modulus E = 1.12499998125 and Poisson ratio \u03bd = 0.499999975",
+     "the vertical displacement at the mid point of the right end of the plate, Q = (48, 52), is compared against the reference values reported in [2, 22], given by 16.442 for the second test case",
+     "convergence occurs in the fifth refinement for the triangular mesh, with 12, 416 degree of freedom (i.e. 8, 192 triangular elements)"
+    ]
+   },
+   "assessment": {
+    "feasible": true,
+    "feasible_cases": [
+     "Cook's membrane, case 1: E = 1, nu = 1/3 (compressible linear elastic)"
+    ],
+    "cases": [
+     {
+      "case": "Cook's membrane, case 1: E = 1, nu = 1/3 (compressible linear elastic)",
+      "feasible": true,
+      "missing": [],
+      "size": {
+       "finest_dofs_in_paper": 12416,
+       "ladder_dofs_estimate": 16554.666666666668,
+       "where": "local machine"
+      },
+      "decision": "can be carried through",
+      "missing_information": [
+       "Vertex coordinates of the tapered plate are given only in Figure 10.4; the text gives only Q = (48, 52), the midpoint of the right end",
+       "The text does not say whether the problem is plane strain or plane stress",
+       "Thickness is not stated",
+       "The text does not say whether g = (0, 1/16) is a traction per unit length or a total force on the right end",
+       "No reference value for the vertical displacement at Q is given for case 1"
+      ],
+      "note": "feasible only with assumptions or a standard geometry for: Vertex coordinates of the tapered plate are given only in Figure 10.4; the text gives only Q = (48, 52), the midpoint of the right end; The text does not say whether the problem is plane strain or plane stress; Thickness is not stated; The text does not say whether g = (0, 1/16) is a traction per unit length or a total force on the right end; No reference value for the vertical displacement at Q is given for case 1"
+     },
+     {
+      "case": "Cook's membrane, case 2: E = 1.12499998125, nu = 0.499999975 (nearly incompressible)",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "material",
+        "need": "nearly incompressible (nu > 0.49)",
+        "would_require": "a mixed u-p (or F-bar / enhanced-strain) formulation with its own code verification; displacement elements lock"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 12416,
+       "ladder_dofs_estimate": 16554.666666666668,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 1 missing capability (listed, not implemented)",
+      "missing_information": [
+       "Vertex coordinates of the tapered plate are given only in Figure 10.4; the text gives only Q = (48, 52), the midpoint of the right end",
+       "The text does not say whether the problem is plane strain or plane stress",
+       "Thickness is not stated",
+       "The text does not say whether g = (0, 1/16) is a traction per unit length or a total force on the right end"
+      ],
+      "note": ""
+     }
+    ],
+    "decision": "can be carried through: Cook's membrane, case 1: E = 1, nu = 1/3 (compressible linear elastic)"
+   }
+  },
+  {
+   "group": "2D established",
+   "id": "OA_W4388289322",
+   "title": "Uniform preconditioners for high order finite element approximations of planar linear elasticity",
+   "doi": "https://doi.org/10.1090/mcom/3926",
+   "requirements": {
+    "example": "Cook's membrane (linear elasticity, mu = 1, lambda in {1e1, 1e3, 1e5, 1e7}) and Moffatt eddy problem (SCIP / divergence-free subspace), from Ainsworth & Parker, \"Uniform preconditioners for linear elasticity\"",
+    "cases": [
+     {
+      "name": "Cook's membrane, mu=1, lambda=1e1",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges",
+        "inclined edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "constant traction (dead)"
+       ],
+       "boundary": [
+        "clamped"
+       ],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "von Mises stress field over the domain (only shown as a plot); the text names a stress singularity at (0,44)",
+       "traction (1,0) is horizontal (normal to the loaded edge), not the usual vertical shear load of Cook's membrane"
+      ],
+      "missing_information": [
+       "the full corner coordinates are not given in this passage (only the clamped edge {0}x(0,44) and the loaded edge {48}x(44,60); the rest refers to section 1)",
+       "plane strain or plane stress is not stated (Lam\u00e9 parameters are given directly)",
+       "no numerical reference values for displacement, stress or energy"
+      ],
+      "reference_values": []
+     },
+     {
+      "name": "Cook's membrane, mu=1, lambda=1e3",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges",
+        "inclined edges"
+       ],
+       "material": [
+        "linear elastic, isotropic",
+        "nearly incompressible (nu > 0.49)"
+       ],
+       "loading": [
+        "constant traction (dead)"
+       ],
+       "boundary": [
+        "clamped"
+       ],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "von Mises stress field over the domain (only shown as a plot); the text names a stress singularity at (0,44)",
+       "traction (1,0) is horizontal (normal to the loaded edge), not the usual vertical shear load of Cook's membrane"
+      ],
+      "missing_information": [
+       "the full corner coordinates are not given in this passage",
+       "plane strain or plane stress is not stated",
+       "no numerical reference values"
+      ],
+      "reference_values": []
+     },
+     {
+      "name": "Cook's membrane, mu=1, lambda=1e5",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges",
+        "inclined edges"
+       ],
+       "material": [
+        "linear elastic, isotropic",
+        "nearly incompressible (nu > 0.49)"
+       ],
+       "loading": [
+        "constant traction (dead)"
+       ],
+       "boundary": [
+        "clamped"
+       ],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "von Mises stress field over the domain (log plot in Fig. 2b); the text names a stress singularity at (0,44)",
+       "traction (1,0) is horizontal (normal to the loaded edge), not the usual vertical shear load of Cook's membrane"
+      ],
+      "missing_information": [
+       "the full corner coordinates are not given in this passage",
+       "plane strain or plane stress is not stated",
+       "no numerical reference values; the von Mises result is given only as a figure"
+      ],
+      "reference_values": []
+     },
+     {
+      "name": "Cook's membrane, mu=1, lambda=1e7",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges",
+        "inclined edges"
+       ],
+       "material": [
+        "linear elastic, isotropic",
+        "nearly incompressible (nu > 0.49)"
+       ],
+       "loading": [
+        "constant traction (dead)"
+       ],
+       "boundary": [
+        "clamped"
+       ],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "von Mises stress field over the domain; the text names a stress singularity at (0,44)",
+       "traction (1,0) is horizontal (normal to the loaded edge), not the usual vertical shear load of Cook's membrane"
+      ],
+      "missing_information": [
+       "the full corner coordinates are not given in this passage",
+       "plane strain or plane stress is not stated",
+       "no numerical reference values"
+      ],
+      "reference_values": []
+     },
+     {
+      "name": "Moffatt eddy problem (SCIP divergence-free subspace), lambda in {1e1,1e3,1e5,1e7}",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic",
+        "nearly incompressible (nu > 0.49)"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [
+        "clamped"
+       ],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "solution restricted to the divergence-free / SCIP boundary space (incompressible Stokes-type flow), not standard compressible elasticity",
+       "non-uniform (parabolic) prescribed boundary displacement u(x,0) = (1 - x^2, 0) on -1 < x < 1",
+       "resolving the multi-scale corner eddies (Moffatt eddies)"
+      ],
+      "missing_information": [
+       "the domain geometry is shown only in Fig. 4a (about x in [-1,1], y in [-3,0]); its exact shape is not given in the text",
+       "mu is not stated explicitly for this problem (presumably the same as Cook's, mu = 1)",
+       "the lambda values are only implied by the figure captions",
+       "plane strain or stress is not applicable/stated",
+       "no quantitative solution reference values"
+      ],
+      "reference_values": []
+     }
+    ],
+    "size": {
+     "dimension": 2,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 0
+    },
+    "quotes": [
+     "u = 0, on {0} \u00d7 (0, 44), \u03c3(u)n = (1, 0)^T on {48} \u00d7 (44, 60), \u03c3(u)n = 0 on the remainder of \u0393",
+     "with \u00b5 = 1 and \u03bb \u2208 {10^1, 10^3, 10^5, 10^7}",
+     "the p = 16 solution is able to capture both the singularity at (0, 44) and the smooth profile of \u03c3v away from the singularity",
+     "u(x, 0) = (1 \u2212 x^2, 0)^T, \u22121 < x < 1, and u = 0 on the remainder of \u0393",
+     "The geometry of the problem and the computational mesh are displayed in Figure 4a"
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "feasible_cases": [],
+    "cases": [
+     {
+      "case": "Cook's membrane, mu=1, lambda=1e1",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "von Mises stress field over the domain (only shown as a plot); the text names a stress singularity at (0,44)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "traction (1,0) is horizontal (normal to the loaded edge), not the usual vertical shear load of Cook's membrane",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 2 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "the full corner coordinates are not given in this passage (only the clamped edge {0}x(0,44) and the loaded edge {48}x(44,60); the rest refers to section 1)",
+       "plane strain or plane stress is not stated (Lam\u00e9 parameters are given directly)",
+       "no numerical reference values for displacement, stress or energy"
+      ],
+      "note": ""
+     },
+     {
+      "case": "Cook's membrane, mu=1, lambda=1e3",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "material",
+        "need": "nearly incompressible (nu > 0.49)",
+        "would_require": "a mixed u-p (or F-bar / enhanced-strain) formulation with its own code verification; displacement elements lock"
+       },
+       {
+        "category": "unlisted",
+        "need": "von Mises stress field over the domain (only shown as a plot); the text names a stress singularity at (0,44)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "traction (1,0) is horizontal (normal to the loaded edge), not the usual vertical shear load of Cook's membrane",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "the full corner coordinates are not given in this passage",
+       "plane strain or plane stress is not stated",
+       "no numerical reference values"
+      ],
+      "note": ""
+     },
+     {
+      "case": "Cook's membrane, mu=1, lambda=1e5",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "material",
+        "need": "nearly incompressible (nu > 0.49)",
+        "would_require": "a mixed u-p (or F-bar / enhanced-strain) formulation with its own code verification; displacement elements lock"
+       },
+       {
+        "category": "unlisted",
+        "need": "von Mises stress field over the domain (log plot in Fig. 2b); the text names a stress singularity at (0,44)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "traction (1,0) is horizontal (normal to the loaded edge), not the usual vertical shear load of Cook's membrane",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "the full corner coordinates are not given in this passage",
+       "plane strain or plane stress is not stated",
+       "no numerical reference values; the von Mises result is given only as a figure"
+      ],
+      "note": ""
+     },
+     {
+      "case": "Cook's membrane, mu=1, lambda=1e7",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "material",
+        "need": "nearly incompressible (nu > 0.49)",
+        "would_require": "a mixed u-p (or F-bar / enhanced-strain) formulation with its own code verification; displacement elements lock"
+       },
+       {
+        "category": "unlisted",
+        "need": "von Mises stress field over the domain; the text names a stress singularity at (0,44)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "traction (1,0) is horizontal (normal to the loaded edge), not the usual vertical shear load of Cook's membrane",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "the full corner coordinates are not given in this passage",
+       "plane strain or plane stress is not stated",
+       "no numerical reference values"
+      ],
+      "note": ""
+     },
+     {
+      "case": "Moffatt eddy problem (SCIP divergence-free subspace), lambda in {1e1,1e3,1e5,1e7}",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "material",
+        "need": "nearly incompressible (nu > 0.49)",
+        "would_require": "a mixed u-p (or F-bar / enhanced-strain) formulation with its own code verification; displacement elements lock"
+       },
+       {
+        "category": "unlisted",
+        "need": "solution restricted to the divergence-free / SCIP boundary space (incompressible Stokes-type flow), not standard compressible elasticity",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "non-uniform (parabolic) prescribed boundary displacement u(x,0) = (1 - x^2, 0) on -1 < x < 1",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "resolving the multi-scale corner eddies (Moffatt eddies)",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 4 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "the domain geometry is shown only in Fig. 4a (about x in [-1,1], y in [-3,0]); its exact shape is not given in the text",
+       "mu is not stated explicitly for this problem (presumably the same as Cook's, mu = 1)",
+       "the lambda values are only implied by the figure captions",
+       "plane strain or stress is not applicable/stated",
+       "no quantitative solution reference values"
+      ],
+      "note": ""
+     }
+    ],
+    "decision": "cannot be carried through: every case misses a capability (listed, not implemented)"
+   }
+  },
+  {
+   "group": "2D established",
+   "id": "OA_W1629631213",
+   "title": "A hybrid T-Trefftz polygonal finite element for linear elasticity",
+   "doi": "https://doi.org/10.48550/arxiv.1405.5028",
+   "requirements": {
+    "example": "plate circular hole tension",
+    "cases": [
+     {
+      "name": "Infinite plate with traction-free circular hole under uniaxial tension sigma=1 along x (quarter model, exact Kirsch tractions applied on outer boundary)",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges",
+        "circular holes"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "non-constant distributed load"
+       ],
+       "boundary": [
+        "symmetry / roller"
+       ],
+       "analysis": [
+        "static"
+       ],
+       "outputs": [
+        "strain energy",
+        "point displacement"
+       ]
+      },
+      "unlisted_needs": [
+       "Exact analytical (Kirsch) traction field prescribed on the truncated outer boundary",
+       "Global error norms against the analytical solution: relative L2 displacement-norm error and convergence to the exact strain energy"
+      ],
+      "missing_information": [
+       "Hole radius a not given numerically (mesh plots in Fig. 9 suggest a=1 on a 4x4 quarter domain, but this comes only from the figure)",
+       "Quarter-domain size L not given in the text (Fig. 9 axes suggest L=4)",
+       "Plane strain or plane stress not stated",
+       "Exact strain energy value not stated numerically",
+       "Exact displacement field not given (only stresses); the displacement norm needs the displacement solution and a rigid-body reference"
+      ],
+      "reference_values": [
+       "Applied far-field stress sigma = 1 along x",
+       "E = 1e5, nu = 0.3",
+       "Exact stresses: Kirsch solution, Eq. (17), in terms of a, r, theta"
+      ]
+     }
+    ],
+    "size": {
+     "dimension": 2,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 800
+    },
+    "quotes": [
+     "consider an infinite plate with a traction free hole under uniaxial tension (\u03c3 =1) along x\u2212axis",
+     "Owing to symmetry, only one quarter of the plate is modeled.",
+     "The material properties are: Young\u2019s modulus E = 105 and Poisson\u2019s ratio \u03bd = 0.3.",
+     "analytical tractions are applied on the boundary",
+     "All the techniques converge to exact energy with mesh refinement."
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "feasible_cases": [],
+    "cases": [
+     {
+      "case": "Infinite plate with traction-free circular hole under uniaxial tension sigma=1 along x (quarter model, exact Kirsch tractions applied on outer boundary)",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "loading",
+        "need": "non-constant distributed load",
+        "would_require": "load functions in the description"
+       },
+       {
+        "category": "unlisted",
+        "need": "Exact analytical (Kirsch) traction field prescribed on the truncated outer boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Global error norms against the analytical solution: relative L2 displacement-norm error and convergence to the exact strain energy",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "Hole radius a not given numerically (mesh plots in Fig. 9 suggest a=1 on a 4x4 quarter domain, but this comes only from the figure)",
+       "Quarter-domain size L not given in the text (Fig. 9 axes suggest L=4)",
+       "Plane strain or plane stress not stated",
+       "Exact strain energy value not stated numerically",
+       "Exact displacement field not given (only stresses); the displacement norm needs the displacement solution and a rigid-body reference"
+      ],
+      "note": ""
+     }
+    ],
+    "decision": "cannot be carried through: every case misses a capability (listed, not implemented)"
+   }
+  },
+  {
+   "group": "2D established",
+   "id": "OA_W4414322420",
+   "title": "Isogeometric Finite Volume Method for Linear Elasticity",
+   "doi": "https://doi.org/10.31224/5418",
+   "requirements": {
+    "example": "plate circular hole tension",
+    "cases": [
+     {
+      "name": "Infinite plate with circular hole under remote uniaxial tension Tx = 10 (quarter model, 4 x 4, hole radius 1, E = 1, nu = 0.3)",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "circular holes",
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "non-constant distributed load"
+       ],
+       "boundary": [
+        "symmetry / roller"
+       ],
+       "analysis": [
+        "static"
+       ],
+       "outputs": [
+        "stress at a given point",
+        "peak stress"
+       ]
+      },
+      "unlisted_needs": [
+       "Analytical (exact infinite-plate) tractions applied on the outer edges of the truncated quarter domain",
+       "sigma_xx distribution along the circular hole boundary",
+       "Global L2-norm of the sigma_xx error against the analytical solution over the domain"
+      ],
+      "missing_information": [
+       "Plane stress or plane strain is not stated",
+       "Plate thickness is not given",
+       "Explicit formula for the analytical tractions (Eq. 20 / Gould and Feng 1994) is not included in the passage",
+       "Exact placement of the quarter domain (which edges are symmetry edges vs. traction edges) is shown only in Figure 6",
+       "Closed-form analytical stress field is cited, not written out in the passage"
+      ],
+      "reference_values": [
+       "Remote stress Tx = 10",
+       "E = 1, nu = 0.3",
+       "Quarter domain 4 x 4 units, hole radius 1 unit",
+       "Analytical solution referenced from Gould and Feng, 1994"
+      ]
+     }
+    ],
+    "size": {
+     "dimension": 2,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 0
+    },
+    "quotes": [
+     "infinite plate with a circular hole subjected to uniform in-plane tension at infinity",
+     "representing a finite plate of size 4 \u00d7 4 units with a circular hole of radius 1 unit",
+     "symmetric conditions are applied along the two axes of symmetry, while the remaining edges are subjected to analytical tractions corresponding to a remote stress of \ud835\udc47\ud835\udc65 = 10",
+     "The material properties are defined by Poisson\u2019s ratio \ud835\udf08 = 0.3 and Young\u2019s modulus \ud835\udc38 = 1."
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "feasible_cases": [],
+    "cases": [
+     {
+      "case": "Infinite plate with circular hole under remote uniaxial tension Tx = 10 (quarter model, 4 x 4, hole radius 1, E = 1, nu = 0.3)",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "loading",
+        "need": "non-constant distributed load",
+        "would_require": "load functions in the description"
+       },
+       {
+        "category": "outputs",
+        "need": "stress at a given point",
+        "would_require": "pointwise stress recovery at a requested point"
+       },
+       {
+        "category": "unlisted",
+        "need": "Analytical (exact infinite-plate) tractions applied on the outer edges of the truncated quarter domain",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "sigma_xx distribution along the circular hole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Global L2-norm of the sigma_xx error against the analytical solution over the domain",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 5 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "Plane stress or plane strain is not stated",
+       "Plate thickness is not given",
+       "Explicit formula for the analytical tractions (Eq. 20 / Gould and Feng 1994) is not included in the passage",
+       "Exact placement of the quarter domain (which edges are symmetry edges vs. traction edges) is shown only in Figure 6",
+       "Closed-form analytical stress field is cited, not written out in the passage"
+      ],
+      "note": ""
+     }
+    ],
+    "decision": "cannot be carried through: every case misses a capability (listed, not implemented)"
+   }
+  },
+  {
+   "group": "2D established",
+   "id": "OA_W2338842808",
+   "title": "Mixed finite element methods for linear elasticity and the Stokes equations based on the Helmholtz decomposition",
+   "doi": "https://doi.org/10.1051/m2an/2016024",
+   "requirements": {
+    "example": "L-shaped domain re-entrant corner",
+    "cases": [
+     {
+      "name": "Stokes flow on L-shaped domain with exact singular solution (Section 9.3)",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "Stokes equations (incompressible viscous flow, velocity\u2013pressure), not a solid material model",
+       "re-entrant corner with interior angle 3\u03c0/2 at the origin (singular solution, exponent \u03b1 = 0.54448373)",
+       "non-homogeneous Dirichlet data on the whole boundary taken from the exact solution u(r,\u03d1)",
+       "zero volume force f = 0",
+       "outputs: L2 errors of stress/pseudostress \u03c3 \u2212 \u03c3h and of pressure p \u2212 ph against the exact solution, as functions of ndof (convergence rates)"
+      ],
+      "missing_information": [
+       "Angle parameter \u03c9 in w(\u03d1) is not defined in the passage (presumably 3\u03c0/2, the interior angle)",
+       "The exact pressure p belonging to the exact velocity u is not given in the passage",
+       "Viscosity value is not stated (presumably 1)",
+       "Where the polar angle \u03d1 = 0 lies relative to the L-shape is not stated",
+       "The passage has only plots, no numerical error values"
+      ],
+      "reference_values": [
+       "\u03b1 = 0.54448373",
+       "Expected uniform-refinement rate h^{1/2} \u2248 ndof^{1/4}"
+      ]
+     },
+     {
+      "name": "Linear elasticity on L-shaped domain, \u03bd = 0.4 (Section 9.2, referenced only)",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "re-entrant corner (L-shaped domain)"
+      ],
+      "missing_information": [
+       "The problem statement for Section 9.2 is not in the passage; only the Figure 5 caption mentions \u03bd = 0.4",
+       "Geometry dimensions, loads, boundary conditions, Young's modulus, plane strain vs plane stress and target quantities are all missing"
+      ],
+      "reference_values": []
+     },
+     {
+      "name": "Linear elasticity on L-shaped domain, \u03bd = 0.4999 (Section 9.2, referenced only)",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic",
+        "nearly incompressible (nu > 0.49)"
+       ],
+       "loading": [],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "re-entrant corner (L-shaped domain)"
+      ],
+      "missing_information": [
+       "The problem statement for Section 9.2 is not in the passage; only the Figure 5 caption mentions \u03bd = 0.4999",
+       "Geometry dimensions, loads, boundary conditions, Young's modulus, plane strain vs plane stress and target quantities are all missing"
+      ],
+      "reference_values": []
+     }
+    ],
+    "size": {
+     "dimension": 2,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 0
+    },
+    "quotes": [
+     "the Stokes problem (7.4) on the L-shaped domain \u03a9 = ((\u22121, 1) \u00d7 (\u22121, 1)) \\ ([0, 1] \u00d7 [\u22121, 0])",
+     "The exact solution for the right-hand side f = 0 and corresponding Dirichlet boundary conditions reads",
+     "in polar coordinates with \u03b1 = 0.54448373",
+     "For uniform re\ufb01nement, the errors and error estimators show a convergence rate of h1/2 \u2248 ndof1/4",
+     "Adaptively re\ufb01ned triangulations for \u03bd = 0.4 and \u03bd = 0.4999 for the experiment on the L-shaped domain from Section 9.2."
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "feasible_cases": [],
+    "cases": [
+     {
+      "case": "Stokes flow on L-shaped domain with exact singular solution (Section 9.3)",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "Stokes equations (incompressible viscous flow, velocity\u2013pressure), not a solid material model",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "re-entrant corner with interior angle 3\u03c0/2 at the origin (singular solution, exponent \u03b1 = 0.54448373)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "non-homogeneous Dirichlet data on the whole boundary taken from the exact solution u(r,\u03d1)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "zero volume force f = 0",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "outputs: L2 errors of stress/pseudostress \u03c3 \u2212 \u03c3h and of pressure p \u2212 ph against the exact solution, as functions of ndof (convergence rates)",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 5 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "Angle parameter \u03c9 in w(\u03d1) is not defined in the passage (presumably 3\u03c0/2, the interior angle)",
+       "The exact pressure p belonging to the exact velocity u is not given in the passage",
+       "Viscosity value is not stated (presumably 1)",
+       "Where the polar angle \u03d1 = 0 lies relative to the L-shape is not stated",
+       "The passage has only plots, no numerical error values"
+      ],
+      "note": ""
+     },
+     {
+      "case": "Linear elasticity on L-shaped domain, \u03bd = 0.4 (Section 9.2, referenced only)",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "re-entrant corner (L-shaped domain)",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 1 missing capability (listed, not implemented)",
+      "missing_information": [
+       "The problem statement for Section 9.2 is not in the passage; only the Figure 5 caption mentions \u03bd = 0.4",
+       "Geometry dimensions, loads, boundary conditions, Young's modulus, plane strain vs plane stress and target quantities are all missing"
+      ],
+      "note": ""
+     },
+     {
+      "case": "Linear elasticity on L-shaped domain, \u03bd = 0.4999 (Section 9.2, referenced only)",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "material",
+        "need": "nearly incompressible (nu > 0.49)",
+        "would_require": "a mixed u-p (or F-bar / enhanced-strain) formulation with its own code verification; displacement elements lock"
+       },
+       {
+        "category": "unlisted",
+        "need": "re-entrant corner (L-shaped domain)",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 2 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "The problem statement for Section 9.2 is not in the passage; only the Figure 5 caption mentions \u03bd = 0.4999",
+       "Geometry dimensions, loads, boundary conditions, Young's modulus, plane strain vs plane stress and target quantities are all missing"
+      ],
+      "note": ""
+     }
+    ],
+    "decision": "cannot be carried through: every case misses a capability (listed, not implemented)"
+   }
+  }
+ ],
+ "carried": [
+  {
+   "id": "OA_W2991184399",
+   "case": "Cook's membrane, case 1: E = 1, nu = 1/3 (compressible linear elastic)",
+   "final": {
+    "certified": [
+     "corner0_gk_avg_von_mises",
+     "v_q"
+    ],
+    "open": [
+     "corner1_gk_avg_von_mises",
+     "corner2_gk_avg_von_mises",
+     "peak_von_mises",
+     "strain_energy"
+    ]
+   },
+   "refused": null
+  }
+ ],
+ "unreadable": [
+  {
+   "id": "OA_W3087343349",
+   "reason": "not a PDF (publisher page or access wall)"
+  },
+  {
+   "id": "OA_W2887403096",
+   "reason": "HTTP Error 403: Forbidden"
+  },
+  {
+   "id": "OA_W2128805329",
+   "reason": "HTTP Error 403: Forbidden"
+  },
+  {
+   "id": "OA_W2618866991",
+   "reason": "not a PDF (publisher page or access wall)"
+  },
+  {
+   "id": "OA_W3186846444",
+   "reason": "HTTP Error 403: Forbidden"
+  },
+  {
+   "id": "OA_W2562275974",
+   "reason": "not a PDF (publisher page or access wall)"
+  },
+  {
+   "id": "OA_W3195181451",
+   "reason": "HTTP Error 403: Forbidden"
+  },
+  {
+   "id": "OA_W2971471202",
+   "reason": "HTTP Error 403: Forbidden"
+  },
+  {
+   "id": "OA_W2772238806",
+   "reason": "<urlopen error [Errno 104] Connection reset by peer>"
+  }
+ ],
+ "llm_cost_usd": 0.7144432000000001
+}

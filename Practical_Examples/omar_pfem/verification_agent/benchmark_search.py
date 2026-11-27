@@ -177,6 +177,26 @@ QUERIES_R5 = [
 ]
 
 
+def norm_title(t):
+    return re.sub(r"[^a-z0-9]+", " ", (t or "").lower().replace("$", "")).strip()[:80]
+
+
+def previously_seen_titles():
+    """27 Nov (after round 6 read the journal version of arXiv 1911.08728 under an OpenAlex id):
+    duplicates are also recognised by their normalised title."""
+    out = set()
+    for d in (os.path.join(HERE, "literature_search_runs"), OUT):
+        if os.path.isdir(d):
+            for g in os.listdir(d):
+                if g.endswith(".json") and g != "seen.json":
+                    r = json.load(open(os.path.join(d, g)))
+                    for key in ("candidates", "read"):
+                        for c in r.get(key, []):
+                            if isinstance(c, dict) and c.get("title"):
+                                out.add(norm_title(c["title"]))
+    return out
+
+
 def previously_seen():
     ids = set()
     f = os.path.join(HERE, "literature_search_runs", "seen.json")
@@ -299,7 +319,9 @@ def run_r6(backend_name="claude-cli", budget_usd=1.5, per_query=10, assess_top=2
             except Exception as e:
                 log(f"[r6] query failed {q!r}: {e!s:.100}")
                 continue
-            new = [c for c in found if c["id"] not in seen and LS.code_screen(c)[0]]
+            titles = previously_seen_titles()
+            new = [c for c in found if c["id"] not in seen and norm_title(c["title"]) not in titles
+                   and LS.code_screen(c)[0]]
             log(f"[r6] {q!r}: {len(found)} with a PDF link, {len(new)} new and pass the abstract screen")
             ranked = []
             for c in new:

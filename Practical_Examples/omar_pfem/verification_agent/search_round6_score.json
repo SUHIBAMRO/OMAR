@@ -1,0 +1,29 @@
+{
+ "preregistration": "search_round6_preregistration.json",
+ "run": "benchmark_search_runs/round6_20261127_171057.json",
+ "cost_usd": 0.7144432000000001,
+ "predictions": {
+  "J1_readable": {
+   "confirmed": true,
+   "evidence": "19 new candidates, 9 not downloadable (publisher pages), 10 read"
+  },
+  "J2_assessed": {
+   "confirmed": false,
+   "evidence": "5 assessed"
+  },
+  "J3_feasible": {
+   "confirmed": false,
+   "evidence": "the one feasible candidate (OA_W2991184399) is the journal version of arXiv 1911.08728, read before: not unseen (duplicate missed by id-only matching; now also matched by title)"
+  },
+  "J4_end_to_end": {
+   "confirmed": false,
+   "evidence": "carried through, but not independent (same paper)"
+  },
+  "J5_cost": {
+   "confirmed": true,
+   "evidence": "USD 0.71"
+  }
+ },
+ "score": "2 of 5",
+ "notable": "the duplicate run is the first with ZERO human interventions from the search (OpenAlex) to a numerically verified quantity: v_Q = 21.5141 +- 0.0133, identical to round 3 (reproducible); strain energy not verified this time (different experiment sequence)"
+}
