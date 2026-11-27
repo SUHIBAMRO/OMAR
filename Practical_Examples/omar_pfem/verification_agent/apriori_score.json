@@ -31,7 +31,8 @@
   "G4_von_mises_is_nonlinear": "corner averages of von Mises stress are not linear functionals, so the duality bound 2 min(p, lam) does not apply; observed about 0.9-1.0 (near the energy-norm order)",
   "G5_point_at_a_singular_point": "2206.14610: displacements AT the corner (48, 60) where the traction jumps: not a smooth functional; slower (0.6-0.7)",
   "G6_finite_strain": "nh_l_bracket_demo: 0.6-0.7 vs the linearized 1.09, consistent with the earlier small-load experiment (finite-strain effect at the corner)",
-  "G7_smooth_peak_on_curved_boundary": "plate with a hole: peak von Mises order about 1.0 instead of >= 2 (sampling of the maximum on a curved boundary; to be diagnosed)"
+  "G7_smooth_peak_on_curved_boundary": "plate with a hole: peak von Mises order about 1.0 instead of >= 2 (sampling of the maximum on a curved boundary; to be diagnosed)",
+  "G1_detail": "two causes, from the stored ladders: (a) the intensity remedy grades only corners with a large share of the local-energy change; on the finest levels the ungraded singular corners dominate (stepped plate: graded energy order 2.8, 3.1, 2.7, 1.9 from level to level); (b) on general (gmsh) domains some corner lines receive a weak exponent (Cook: g = 1.1 and 1.7, below p / lam). The re-entrant study shows g >= p / lam on EVERY singular corner is needed for the order 2p with Q2. Candidate improvement (not implemented, needs a decision): grade all rate-limiting corners when the asymptotic order is the goal."
  },
  "lesson": "the predictions are only as good as their assumptions; the comparison exposed seven missing assumptions. Professor Rabczuk's point stands: the agent must state the assumptions of each a-priori result and check that the problem meets them."
 }
