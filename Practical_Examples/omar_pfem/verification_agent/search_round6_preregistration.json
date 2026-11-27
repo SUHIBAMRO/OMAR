@@ -1,0 +1,13 @@
+{
+ "name": "search round 6: OpenAlex open-access literature, unseen papers only",
+ "frozen_utc": "2026-11-27T17:10:55.477728",
+ "why": "round 5 showed arXiv is exhausted for established benchmarks of this class",
+ "predictions": {
+  "J1_readable": "at least 5 new open-access PDFs are downloaded and read",
+  "J2_assessed": "at least 6 unseen candidates are assessed",
+  "J3_feasible": "at least one unseen candidate is declared feasible",
+  "J4_end_to_end": "at least one unseen candidate reaches verdicts with a numerically verified quantity (independent evidence)",
+  "J5_cost": "LLM cost at most USD 1.5"
+ },
+ "budget_usd": 1.5
+}

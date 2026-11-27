@@ -245,3 +245,39 @@ if __name__ == "__main__":
     ap.add_argument("--budget-usd", type=float, default=5.0)
     a = ap.parse_args()
     search(a.backend, a.max_read, budget_usd=a.budget_usd)
+
+
+# ------------------------------------------------------------------ OpenAlex (27 Nov) ------
+OPENALEX = "https://api.openalex.org/works"
+
+
+def openalex(query, n=10):
+    """Open-access works with a PDF link (journals and repositories, not only arXiv). The id is
+    the OpenAlex work id; the abstract is rebuilt from its inverted index."""
+    url = (f"{OPENALEX}?search={urllib.parse.quote(query)}&filter=open_access.is_oa:true,"
+           f"has_abstract:true&per-page={n}")
+    d = json.load(urllib.request.urlopen(urllib.request.Request(
+        url, headers={"User-Agent": "verification-agent/0.1"}), timeout=60))
+    out = []
+    for w in d["results"]:
+        pdf = (w.get("best_oa_location") or {}).get("pdf_url")
+        if not pdf:
+            continue
+        inv = w.get("abstract_inverted_index") or {}
+        words = sorted((i, k) for k, v in inv.items() for i in v)
+        out.append({"id": "OA_" + w["id"].rsplit("/", 1)[-1], "title": w.get("title") or "",
+                    "abstract": " ".join(k for _, k in words), "pdf_url": pdf, "query": query,
+                    "doi": w.get("doi")})
+    return out
+
+
+def download_url(cid, url, folder):
+    os.makedirs(folder, exist_ok=True)
+    path = os.path.join(folder, f"{cid}.pdf")
+    if not os.path.exists(path):
+        data = urllib.request.urlopen(urllib.request.Request(
+            url, headers={"User-Agent": "Mozilla/5.0 (verification-agent)"}), timeout=120).read()
+        if not data.startswith(b"%PDF"):
+            raise ValueError("not a PDF (publisher page or access wall)")
+        open(path, "wb").write(data)
+    return path

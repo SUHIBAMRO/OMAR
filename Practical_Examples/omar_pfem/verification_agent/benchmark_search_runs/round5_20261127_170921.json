@@ -1,0 +1,1173 @@
+{
+ "round": 5,
+ "started": "20261127_170921",
+ "excluded_previously_seen": 83,
+ "candidates": [
+  {
+   "group": "3D hyperelastic",
+   "id": "2508.04855",
+   "title": "Push and Pull: Elastic Interaction Between Pressurized Spherical Cavities in Nonlinear Elastic Media",
+   "requirements": {
+    "example": "neo-Hookean three-dimensional block hole: two equal-sized pressurised spherical cavities in an infinite hyperelastic matrix (interaction energy and driving force vs. separation \u03b7/R)",
+    "cases": [
+     {
+      "name": "neo-Hookean, equal positive pressures P1=P2=P",
+      "needs": {
+       "dimension": [
+        "3D general"
+       ],
+       "geometry": [
+        "spherical or revolved surfaces"
+       ],
+       "material": [
+        "compressible neo-Hookean"
+       ],
+       "loading": [
+        "follower pressure (finite strain)"
+       ],
+       "boundary": [
+        "symmetry / roller"
+       ],
+       "analysis": [
+        "load stepping (finite strain)"
+       ],
+       "outputs": [
+        "strain energy"
+       ]
+      },
+      "unlisted_needs": [
+       "infinite (unbounded) matrix / far-field condition",
+       "parametric sweep over cavity separation \u03b7/R (about 2.2 to 20) and pressure P/\u00b5",
+       "driving force = derivative of potential energy with respect to separation",
+       "critical separation (\u03b7/R)critical where interaction switches from attractive to repulsive",
+       "potential energy including the work of the cavity pressure"
+      ],
+      "missing_information": [
+       "outer domain size used to approximate the infinite matrix",
+       "bulk modulus / compressibility (only \u00b5 = 20 given)",
+       "exact pressure range and load steps",
+       "normalisation of potential energy and driving force",
+       "numerical potential-energy and driving-force values (available only as plots)",
+       "whether the boundary is modelled using symmetry or axisymmetry"
+      ],
+      "reference_values": [
+       "\u00b5 = 20",
+       "Deformed shape shown for \u03b7/R = 2.8, P/\u00b5 = 1.0",
+       "Interaction attractive for P/\u00b5 \u2272 1.0; can become repulsive above a critical \u03b7/R for P/\u00b5 \u2273 1.0"
+      ]
+     },
+     {
+      "name": "Mooney-Rivlin (\u03b1=0.5), equal positive pressures P1=P2=P",
+      "needs": {
+       "dimension": [
+        "3D general"
+       ],
+       "geometry": [
+        "spherical or revolved surfaces"
+       ],
+       "material": [
+        "Mooney-Rivlin"
+       ],
+       "loading": [
+        "follower pressure (finite strain)"
+       ],
+       "boundary": [
+        "symmetry / roller"
+       ],
+       "analysis": [
+        "load stepping (finite strain)"
+       ],
+       "outputs": [
+        "strain energy"
+       ]
+      },
+      "unlisted_needs": [
+       "infinite matrix / far-field condition",
+       "sweep over \u03b7/R and P/\u00b5",
+       "driving force (d\u03a0/d\u03b7)",
+       "critical separation (\u03b7/R)critical"
+      ],
+      "missing_information": [
+       "definition of \u03b1 in terms of C10/C01 (\u03b1=1 gives neo-Hookean)",
+       "outer domain size",
+       "bulk modulus",
+       "normalisation of energy and force",
+       "numerical values (plots only)"
+      ],
+      "reference_values": [
+       "\u00b5 = 20",
+       "\u03b1 = 0.5",
+       "Deformed shape shown for \u03b7/R = 2.8, P/\u00b5 = 1.0"
+      ]
+     },
+     {
+      "name": "Arruda-Boyce (\u03bbm=2), equal positive pressures P1=P2=P",
+      "needs": {
+       "dimension": [
+        "3D general"
+       ],
+       "geometry": [
+        "spherical or revolved surfaces"
+       ],
+       "material": [],
+       "loading": [
+        "follower pressure (finite strain)"
+       ],
+       "boundary": [
+        "symmetry / roller"
+       ],
+       "analysis": [
+        "load stepping (finite strain)"
+       ],
+       "outputs": [
+        "strain energy"
+       ]
+      },
+      "unlisted_needs": [
+       "Arruda-Boyce hyperelastic material model",
+       "infinite matrix / far-field condition",
+       "sweep over \u03b7/R and P/\u00b5",
+       "driving force (d\u03a0/d\u03b7)",
+       "critical separation (\u03b7/R)critical"
+      ],
+      "missing_information": [
+       "outer domain size",
+       "bulk modulus",
+       "normalisation of energy and force",
+       "numerical values (plots only)"
+      ],
+      "reference_values": [
+       "\u00b5 = 20",
+       "\u03bbm = 2",
+       "Deformed shape shown for \u03b7/R = 2.8, P/\u00b5 = 1.0"
+      ]
+     },
+     {
+      "name": "neo-Hookean, equal negative pressures P1=P2=-P",
+      "needs": {
+       "dimension": [
+        "3D general"
+       ],
+       "geometry": [
+        "spherical or revolved surfaces"
+       ],
+       "material": [
+        "compressible neo-Hookean"
+       ],
+       "loading": [
+        "follower pressure (finite strain)"
+       ],
+       "boundary": [
+        "symmetry / roller"
+       ],
+       "analysis": [
+        "load stepping (finite strain)"
+       ],
+       "outputs": [
+        "strain energy"
+       ]
+      },
+      "unlisted_needs": [
+       "infinite matrix / far-field condition",
+       "sweep over \u03b7/R and P/\u00b5",
+       "driving force (d\u03a0/d\u03b7)"
+      ],
+      "missing_information": [
+       "outer domain size",
+       "bulk modulus",
+       "pressure range",
+       "numerical values (plots only)"
+      ],
+      "reference_values": [
+       "\u00b5 = 20",
+       "Driving force always negative (attractive) for equal negative pressures",
+       "Deformed shape shown for \u03b7/R = 2.8, P/\u00b5 = 1.0"
+      ]
+     },
+     {
+      "name": "Mooney-Rivlin (\u03b1=0.5), equal negative pressures P1=P2=-P",
+      "needs": {
+       "dimension": [
+        "3D general"
+       ],
+       "geometry": [
+        "spherical or revolved surfaces"
+       ],
+       "material": [
+        "Mooney-Rivlin"
+       ],
+       "loading": [
+        "follower pressure (finite strain)"
+       ],
+       "boundary": [
+        "symmetry / roller"
+       ],
+       "analysis": [
+        "load stepping (finite strain)"
+       ],
+       "outputs": [
+        "strain energy"
+       ]
+      },
+      "unlisted_needs": [
+       "infinite matrix / far-field condition",
+       "sweep over \u03b7/R and P/\u00b5",
+       "driving force (d\u03a0/d\u03b7)"
+      ],
+      "missing_information": [
+       "definition of \u03b1",
+       "outer domain size",
+       "bulk modulus",
+       "numerical values (plots only)"
+      ],
+      "reference_values": [
+       "\u00b5 = 20",
+       "\u03b1 = 0.5",
+       "Interaction attractive"
+      ]
+     },
+     {
+      "name": "Arruda-Boyce (\u03bbm=2), equal negative pressures P1=P2=-P",
+      "needs": {
+       "dimension": [
+        "3D general"
+       ],
+       "geometry": [
+        "spherical or revolved surfaces"
+       ],
+       "material": [],
+       "loading": [
+        "follower pressure (finite strain)"
+       ],
+       "boundary": [
+        "symmetry / roller"
+       ],
+       "analysis": [
+        "load stepping (finite strain)"
+       ],
+       "outputs": [
+        "strain energy"
+       ]
+      },
+      "unlisted_needs": [
+       "Arruda-Boyce hyperelastic material model",
+       "infinite matrix / far-field condition",
+       "sweep over \u03b7/R and P/\u00b5",
+       "driving force (d\u03a0/d\u03b7)"
+      ],
+      "missing_information": [
+       "outer domain size",
+       "bulk modulus",
+       "numerical values (plots only)"
+      ],
+      "reference_values": [
+       "\u00b5 = 20",
+       "\u03bbm = 2",
+       "Interaction attractive"
+      ]
+     },
+     {
+      "name": "Strain-stiffening sweep (Mooney-Rivlin \u03b1, Arruda-Boyce \u03bbm) at P/\u00b5 = 1.5, equal positive pressures",
+      "needs": {
+       "dimension": [
+        "3D general"
+       ],
+       "geometry": [
+        "spherical or revolved surfaces"
+       ],
+       "material": [
+        "Mooney-Rivlin"
+       ],
+       "loading": [
+        "follower pressure (finite strain)"
+       ],
+       "boundary": [
+        "symmetry / roller"
+       ],
+       "analysis": [
+        "load stepping (finite strain)"
+       ],
+       "outputs": [
+        "strain energy"
+       ]
+      },
+      "unlisted_needs": [
+       "Arruda-Boyce hyperelastic material model",
+       "parametric sweep over \u03b1 and \u03bbm",
+       "critical separation (\u03b7/R)critical as a function of the stiffening parameter",
+       "driving force (d\u03a0/d\u03b7)",
+       "infinite matrix / far-field condition"
+      ],
+      "missing_information": [
+       "range and values of \u03b1 and \u03bbm swept",
+       "outer domain size",
+       "bulk modulus",
+       "numerical values (plots only)"
+      ],
+      "reference_values": [
+       "P/\u00b5 = 1.5",
+       "(\u03b7/R)critical inversely proportional to \u03b1 (Mooney-Rivlin)",
+       "(\u03b7/R)critical directly but weakly proportional to \u03bbm (Arruda-Boyce)"
+      ]
+     },
+     {
+      "name": "Linear elastic, unequal pressures P1=P, P2=0.8P",
+      "needs": {
+       "dimension": [
+        "3D general"
+       ],
+       "geometry": [
+        "spherical or revolved surfaces"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "pressure (linear)"
+       ],
+       "boundary": [
+        "symmetry / roller"
+       ],
+       "analysis": [
+        "static"
+       ],
+       "outputs": [
+        "strain energy"
+       ]
+      },
+      "unlisted_needs": [
+       "infinite matrix / far-field condition",
+       "sweep over \u03b7/R",
+       "driving force (d\u03a0/d\u03b7)"
+      ],
+      "missing_information": [
+       "Poisson ratio / bulk modulus",
+       "outer domain size",
+       "numerical values (plots only)"
+      ],
+      "reference_values": [
+       "P2 = 0.8 P1",
+       "Interaction always attractive"
+      ]
+     },
+     {
+      "name": "neo-Hookean, unequal pressures P1=P, P2=0.8P",
+      "needs": {
+       "dimension": [
+        "3D general"
+       ],
+       "geometry": [
+        "spherical or revolved surfaces"
+       ],
+       "material": [
+        "compressible neo-Hookean"
+       ],
+       "loading": [
+        "follower pressure (finite strain)"
+       ],
+       "boundary": [],
+       "analysis": [
+        "load stepping (finite strain)"
+       ],
+       "outputs": [
+        "strain energy"
+       ]
+      },
+      "unlisted_needs": [
+       "infinite matrix / far-field condition",
+       "no mirror symmetry between cavities (only axisymmetry possible)",
+       "sweep over \u03b7/R and P/\u00b5",
+       "driving force (d\u03a0/d\u03b7)",
+       "critical separation (\u03b7/R)critical"
+      ],
+      "missing_information": [
+       "outer domain size",
+       "bulk modulus",
+       "numerical values (plots only)"
+      ],
+      "reference_values": [
+       "\u00b5 = 20",
+       "P2 = 0.8 P1",
+       "Deformed shape shown for \u03b7/R = 2.8, P/\u00b5 = 1.0",
+       "Critical \u03b7/R exists where interaction turns from attractive to repulsive"
+      ]
+     },
+     {
+      "name": "Mooney-Rivlin (\u03b1=0.5), unequal pressures P1=P, P2=0.8P",
+      "needs": {
+       "dimension": [
+        "3D general"
+       ],
+       "geometry": [
+        "spherical or revolved surfaces"
+       ],
+       "material": [
+        "Mooney-Rivlin"
+       ],
+       "loading": [
+        "follower pressure (finite strain)"
+       ],
+       "boundary": [],
+       "analysis": [
+        "load stepping (finite strain)"
+       ],
+       "outputs": [
+        "strain energy"
+       ]
+      },
+      "unlisted_needs": [
+       "infinite matrix / far-field condition",
+       "sweep over \u03b7/R and P/\u00b5",
+       "driving force (d\u03a0/d\u03b7)",
+       "critical separation (\u03b7/R)critical"
+      ],
+      "missing_information": [
+       "definition of \u03b1",
+       "outer domain size",
+       "bulk modulus",
+       "numerical values (plots only)"
+      ],
+      "reference_values": [
+       "\u00b5 = 20",
+       "\u03b1 = 0.5",
+       "P2 = 0.8 P1"
+      ]
+     },
+     {
+      "name": "Arruda-Boyce (\u03bbm=2), unequal pressures P1=P, P2=0.8P",
+      "needs": {
+       "dimension": [
+        "3D general"
+       ],
+       "geometry": [
+        "spherical or revolved surfaces"
+       ],
+       "material": [],
+       "loading": [
+        "follower pressure (finite strain)"
+       ],
+       "boundary": [],
+       "analysis": [
+        "load stepping (finite strain)"
+       ],
+       "outputs": [
+        "strain energy"
+       ]
+      },
+      "unlisted_needs": [
+       "Arruda-Boyce hyperelastic material model",
+       "infinite matrix / far-field condition",
+       "sweep over \u03b7/R and P/\u00b5",
+       "driving force (d\u03a0/d\u03b7)",
+       "critical separation (\u03b7/R)critical"
+      ],
+      "missing_information": [
+       "outer domain size",
+       "bulk modulus",
+       "numerical values (plots only)"
+      ],
+      "reference_values": [
+       "\u00b5 = 20",
+       "\u03bbm = 2",
+       "P2 = 0.8 P1"
+      ]
+     }
+    ],
+    "size": {
+     "dimension": 3,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 0
+    },
+    "quotes": [
+     "For all models, a value of \u00b5 = 20 was chosen for ABAQUS simulations. For Mooney-Rivlin, \u03b1 = 0.5, and for Arruda-Boyce, \u03bbm = 2, were chosen as the constitutive model parameters.",
+     "we carry out simulations for two unequal pressures P1 \u0338= P2 , choosing P1 = P and P2 = 0.8P",
+     "Representative deformed shapes of cavities for both equal positive and equal negative pressures are shown in Figure 7 for \u03b7/R=2.8 and pressure of P/\u00b5=1.0.",
+     "Figure 8 shows the variation of potential energy, driving force, and (\u03b7/R)critical as a function of strain-stiffening parameters for a representative pressure of P/\u00b5 = 1.5.",
+     "the elastic interaction between two equi-sized pressurized spherical cavities in an infinite elastic matrix is always attractive at low pressures (P/\u00b5 \u2272 1.0)"
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "feasible_cases": [],
+    "cases": [
+     {
+      "case": "neo-Hookean, equal positive pressures P1=P2=P",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "dimension",
+        "need": "3D general",
+        "would_require": "a 3D geometry kernel and tetrahedral meshing of arbitrary solids (gmsh OCC import, revolved or CAD bodies), 3D corner/edge/vertex singularity analysis"
+       },
+       {
+        "category": "geometry",
+        "need": "spherical or revolved surfaces",
+        "would_require": "general 3D geometry (see dimension)"
+       },
+       {
+        "category": "loading",
+        "need": "follower pressure (finite strain)",
+        "would_require": "configuration-dependent load and its tangent"
+       },
+       {
+        "category": "unlisted",
+        "need": "infinite (unbounded) matrix / far-field condition",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "parametric sweep over cavity separation \u03b7/R (about 2.2 to 20) and pressure P/\u00b5",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "driving force = derivative of potential energy with respect to separation",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "critical separation (\u03b7/R)critical where interaction switches from attractive to repulsive",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "potential energy including the work of the cavity pressure",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 9 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "outer domain size used to approximate the infinite matrix",
+       "bulk modulus / compressibility (only \u00b5 = 20 given)",
+       "exact pressure range and load steps",
+       "normalisation of potential energy and driving force",
+       "numerical potential-energy and driving-force values (available only as plots)",
+       "whether the boundary is modelled using symmetry or axisymmetry"
+      ],
+      "note": ""
+     },
+     {
+      "case": "Mooney-Rivlin (\u03b1=0.5), equal positive pressures P1=P2=P",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "dimension",
+        "need": "3D general",
+        "would_require": "a 3D geometry kernel and tetrahedral meshing of arbitrary solids (gmsh OCC import, revolved or CAD bodies), 3D corner/edge/vertex singularity analysis"
+       },
+       {
+        "category": "geometry",
+        "need": "spherical or revolved surfaces",
+        "would_require": "general 3D geometry (see dimension)"
+       },
+       {
+        "category": "material",
+        "need": "Mooney-Rivlin",
+        "would_require": "the strain-energy function, its stress and tangent, MMS body force"
+       },
+       {
+        "category": "loading",
+        "need": "follower pressure (finite strain)",
+        "would_require": "configuration-dependent load and its tangent"
+       },
+       {
+        "category": "unlisted",
+        "need": "infinite matrix / far-field condition",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "sweep over \u03b7/R and P/\u00b5",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "driving force (d\u03a0/d\u03b7)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "critical separation (\u03b7/R)critical",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 9 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "definition of \u03b1 in terms of C10/C01 (\u03b1=1 gives neo-Hookean)",
+       "outer domain size",
+       "bulk modulus",
+       "normalisation of energy and force",
+       "numerical values (plots only)"
+      ],
+      "note": ""
+     },
+     {
+      "case": "Arruda-Boyce (\u03bbm=2), equal positive pressures P1=P2=P",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "dimension",
+        "need": "3D general",
+        "would_require": "a 3D geometry kernel and tetrahedral meshing of arbitrary solids (gmsh OCC import, revolved or CAD bodies), 3D corner/edge/vertex singularity analysis"
+       },
+       {
+        "category": "geometry",
+        "need": "spherical or revolved surfaces",
+        "would_require": "general 3D geometry (see dimension)"
+       },
+       {
+        "category": "loading",
+        "need": "follower pressure (finite strain)",
+        "would_require": "configuration-dependent load and its tangent"
+       },
+       {
+        "category": "unlisted",
+        "need": "Arruda-Boyce hyperelastic material model",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "infinite matrix / far-field condition",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "sweep over \u03b7/R and P/\u00b5",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "driving force (d\u03a0/d\u03b7)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "critical separation (\u03b7/R)critical",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 9 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "outer domain size",
+       "bulk modulus",
+       "normalisation of energy and force",
+       "numerical values (plots only)"
+      ],
+      "note": ""
+     },
+     {
+      "case": "neo-Hookean, equal negative pressures P1=P2=-P",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "dimension",
+        "need": "3D general",
+        "would_require": "a 3D geometry kernel and tetrahedral meshing of arbitrary solids (gmsh OCC import, revolved or CAD bodies), 3D corner/edge/vertex singularity analysis"
+       },
+       {
+        "category": "geometry",
+        "need": "spherical or revolved surfaces",
+        "would_require": "general 3D geometry (see dimension)"
+       },
+       {
+        "category": "loading",
+        "need": "follower pressure (finite strain)",
+        "would_require": "configuration-dependent load and its tangent"
+       },
+       {
+        "category": "unlisted",
+        "need": "infinite matrix / far-field condition",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "sweep over \u03b7/R and P/\u00b5",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "driving force (d\u03a0/d\u03b7)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 7 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "outer domain size",
+       "bulk modulus",
+       "pressure range",
+       "numerical values (plots only)"
+      ],
+      "note": ""
+     },
+     {
+      "case": "Mooney-Rivlin (\u03b1=0.5), equal negative pressures P1=P2=-P",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "dimension",
+        "need": "3D general",
+        "would_require": "a 3D geometry kernel and tetrahedral meshing of arbitrary solids (gmsh OCC import, revolved or CAD bodies), 3D corner/edge/vertex singularity analysis"
+       },
+       {
+        "category": "geometry",
+        "need": "spherical or revolved surfaces",
+        "would_require": "general 3D geometry (see dimension)"
+       },
+       {
+        "category": "material",
+        "need": "Mooney-Rivlin",
+        "would_require": "the strain-energy function, its stress and tangent, MMS body force"
+       },
+       {
+        "category": "loading",
+        "need": "follower pressure (finite strain)",
+        "would_require": "configuration-dependent load and its tangent"
+       },
+       {
+        "category": "unlisted",
+        "need": "infinite matrix / far-field condition",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "sweep over \u03b7/R and P/\u00b5",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "driving force (d\u03a0/d\u03b7)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 8 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "definition of \u03b1",
+       "outer domain size",
+       "bulk modulus",
+       "numerical values (plots only)"
+      ],
+      "note": ""
+     },
+     {
+      "case": "Arruda-Boyce (\u03bbm=2), equal negative pressures P1=P2=-P",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "dimension",
+        "need": "3D general",
+        "would_require": "a 3D geometry kernel and tetrahedral meshing of arbitrary solids (gmsh OCC import, revolved or CAD bodies), 3D corner/edge/vertex singularity analysis"
+       },
+       {
+        "category": "geometry",
+        "need": "spherical or revolved surfaces",
+        "would_require": "general 3D geometry (see dimension)"
+       },
+       {
+        "category": "loading",
+        "need": "follower pressure (finite strain)",
+        "would_require": "configuration-dependent load and its tangent"
+       },
+       {
+        "category": "unlisted",
+        "need": "Arruda-Boyce hyperelastic material model",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "infinite matrix / far-field condition",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "sweep over \u03b7/R and P/\u00b5",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "driving force (d\u03a0/d\u03b7)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 8 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "outer domain size",
+       "bulk modulus",
+       "numerical values (plots only)"
+      ],
+      "note": ""
+     },
+     {
+      "case": "Strain-stiffening sweep (Mooney-Rivlin \u03b1, Arruda-Boyce \u03bbm) at P/\u00b5 = 1.5, equal positive pressures",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "dimension",
+        "need": "3D general",
+        "would_require": "a 3D geometry kernel and tetrahedral meshing of arbitrary solids (gmsh OCC import, revolved or CAD bodies), 3D corner/edge/vertex singularity analysis"
+       },
+       {
+        "category": "geometry",
+        "need": "spherical or revolved surfaces",
+        "would_require": "general 3D geometry (see dimension)"
+       },
+       {
+        "category": "material",
+        "need": "Mooney-Rivlin",
+        "would_require": "the strain-energy function, its stress and tangent, MMS body force"
+       },
+       {
+        "category": "loading",
+        "need": "follower pressure (finite strain)",
+        "would_require": "configuration-dependent load and its tangent"
+       },
+       {
+        "category": "unlisted",
+        "need": "Arruda-Boyce hyperelastic material model",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "parametric sweep over \u03b1 and \u03bbm",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "critical separation (\u03b7/R)critical as a function of the stiffening parameter",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "driving force (d\u03a0/d\u03b7)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "infinite matrix / far-field condition",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 10 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "range and values of \u03b1 and \u03bbm swept",
+       "outer domain size",
+       "bulk modulus",
+       "numerical values (plots only)"
+      ],
+      "note": ""
+     },
+     {
+      "case": "Linear elastic, unequal pressures P1=P, P2=0.8P",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "dimension",
+        "need": "3D general",
+        "would_require": "a 3D geometry kernel and tetrahedral meshing of arbitrary solids (gmsh OCC import, revolved or CAD bodies), 3D corner/edge/vertex singularity analysis"
+       },
+       {
+        "category": "geometry",
+        "need": "spherical or revolved surfaces",
+        "would_require": "general 3D geometry (see dimension)"
+       },
+       {
+        "category": "unlisted",
+        "need": "infinite matrix / far-field condition",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "sweep over \u03b7/R",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "driving force (d\u03a0/d\u03b7)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 6 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "Poisson ratio / bulk modulus",
+       "outer domain size",
+       "numerical values (plots only)"
+      ],
+      "note": ""
+     },
+     {
+      "case": "neo-Hookean, unequal pressures P1=P, P2=0.8P",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "dimension",
+        "need": "3D general",
+        "would_require": "a 3D geometry kernel and tetrahedral meshing of arbitrary solids (gmsh OCC import, revolved or CAD bodies), 3D corner/edge/vertex singularity analysis"
+       },
+       {
+        "category": "geometry",
+        "need": "spherical or revolved surfaces",
+        "would_require": "general 3D geometry (see dimension)"
+       },
+       {
+        "category": "loading",
+        "need": "follower pressure (finite strain)",
+        "would_require": "configuration-dependent load and its tangent"
+       },
+       {
+        "category": "unlisted",
+        "need": "infinite matrix / far-field condition",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "no mirror symmetry between cavities (only axisymmetry possible)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "sweep over \u03b7/R and P/\u00b5",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "driving force (d\u03a0/d\u03b7)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "critical separation (\u03b7/R)critical",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 9 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "outer domain size",
+       "bulk modulus",
+       "numerical values (plots only)"
+      ],
+      "note": ""
+     },
+     {
+      "case": "Mooney-Rivlin (\u03b1=0.5), unequal pressures P1=P, P2=0.8P",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "dimension",
+        "need": "3D general",
+        "would_require": "a 3D geometry kernel and tetrahedral meshing of arbitrary solids (gmsh OCC import, revolved or CAD bodies), 3D corner/edge/vertex singularity analysis"
+       },
+       {
+        "category": "geometry",
+        "need": "spherical or revolved surfaces",
+        "would_require": "general 3D geometry (see dimension)"
+       },
+       {
+        "category": "material",
+        "need": "Mooney-Rivlin",
+        "would_require": "the strain-energy function, its stress and tangent, MMS body force"
+       },
+       {
+        "category": "loading",
+        "need": "follower pressure (finite strain)",
+        "would_require": "configuration-dependent load and its tangent"
+       },
+       {
+        "category": "unlisted",
+        "need": "infinite matrix / far-field condition",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "sweep over \u03b7/R and P/\u00b5",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "driving force (d\u03a0/d\u03b7)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "critical separation (\u03b7/R)critical",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 9 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "definition of \u03b1",
+       "outer domain size",
+       "bulk modulus",
+       "numerical values (plots only)"
+      ],
+      "note": ""
+     },
+     {
+      "case": "Arruda-Boyce (\u03bbm=2), unequal pressures P1=P, P2=0.8P",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "dimension",
+        "need": "3D general",
+        "would_require": "a 3D geometry kernel and tetrahedral meshing of arbitrary solids (gmsh OCC import, revolved or CAD bodies), 3D corner/edge/vertex singularity analysis"
+       },
+       {
+        "category": "geometry",
+        "need": "spherical or revolved surfaces",
+        "would_require": "general 3D geometry (see dimension)"
+       },
+       {
+        "category": "loading",
+        "need": "follower pressure (finite strain)",
+        "would_require": "configuration-dependent load and its tangent"
+       },
+       {
+        "category": "unlisted",
+        "need": "Arruda-Boyce hyperelastic material model",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "infinite matrix / far-field condition",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "sweep over \u03b7/R and P/\u00b5",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "driving force (d\u03a0/d\u03b7)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "critical separation (\u03b7/R)critical",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 9 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "outer domain size",
+       "bulk modulus",
+       "numerical values (plots only)"
+      ],
+      "note": ""
+     }
+    ],
+    "decision": "cannot be carried through: every case misses a capability (listed, not implemented)"
+   }
+  }
+ ],
+ "carried": [],
+ "llm_cost_usd": 0.16088799999999998
+}

@@ -1,0 +1,29 @@
+{
+ "preregistration": "search_round5_preregistration.json",
+ "run": "benchmark_search_runs/round5_20261127_170921.json",
+ "cost_usd": 0.16088799999999998,
+ "predictions": {
+  "I1_assessed": {
+   "confirmed": false,
+   "evidence": "1 unseen candidate (83 papers excluded as seen; the arXiv queries returned 0-4 hits each)"
+  },
+  "I2_feasible": {
+   "confirmed": false,
+   "evidence": "2508.04855 (two pressurised cavities, 3D, follower pressure, several materials) not feasible"
+  },
+  "I3_end_to_end": {
+   "confirmed": false,
+   "evidence": "none carried"
+  },
+  "I4_consistency": {
+   "confirmed": null,
+   "evidence": "not tested"
+  },
+  "I5_cost": {
+   "confirmed": true,
+   "evidence": "USD 0.16"
+  }
+ },
+ "score": "1 of 5",
+ "finding": "arXiv is exhausted for established benchmarks of this class; they are published in journals. OpenAlex (open-access works with PDF links) is reachable and is added as a source."
+}
