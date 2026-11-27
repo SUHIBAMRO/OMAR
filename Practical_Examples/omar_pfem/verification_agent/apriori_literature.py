@@ -120,6 +120,10 @@ def compare(out):
     rows = []
     for paper in out["read"]:
         for r in paper["results"]:
+            # FIX (27 Nov, after attempt 2): the observed betas are ENERGY-norm rates; an L2 or
+            # functional result must not be compared with them
+            if not re.search(r"energy|triple|h1|\|\|\|", r["norm"].lower()):
+                continue
             for x in r["beta_for_case"]:
                 g = x["g"] if r["refinement"].startswith("graded") else 0
                 deg = 0 if r["refinement"].startswith("p-version") else x["degree"]

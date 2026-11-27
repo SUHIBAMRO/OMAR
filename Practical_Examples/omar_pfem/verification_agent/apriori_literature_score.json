@@ -16,5 +16,19 @@
   },
   "score": "2 of 5 (L3 not tested)",
   "diagnosis": "the abstract ranking picked papers on semilinear diffusion, axisymmetric Stokes and HDG exterior calculus; none states a corner-singularity rate for elasticity"
+ },
+ "attempt2_POST_HOC": {
+  "cost_usd": 0.2843308,
+  "queries": "QUERIES_V2 with a strict ranking (corner/singular AND grading/rate)",
+  "read": [
+   "2402.16589",
+   "2607.02334",
+   "2401.16156"
+  ],
+  "relevant": "2607.02334 (CutFEM, finite-strain elasticity, corner singularity with mesh grading)",
+  "quotes_found": "7 of 7",
+  "energy_norm_predictions_agree": "5 of 5 (U1, U2, G2_1.5, G1_2, G2_4)",
+  "comparison_bug": "the first comparison also mapped two L2-norm results onto the energy-norm families (both 'disagreed'); fixed, energy norm only",
+  "not_scored": true
  }
 }

@@ -1,0 +1,289 @@
+{
+ "candidates": 10,
+ "read": [
+  {
+   "id": "2402.16589",
+   "title": "Isogeometric analysis of the Laplace eigenvalue problem on circular sectors: Regularity properties, graded meshes & variational crimes",
+   "passage_at": "passage at character 101448 (score 58.2)",
+   "results": []
+  },
+  {
+   "id": "2607.02334",
+   "title": "A Unified CutFEM Formulation for Finite-Strain Elasticity: Energy Minimisation and Corner Singularities",
+   "passage_at": "passage at character 86259 (score 138.0)",
+   "results": [
+    {
+     "statement": "Main transfer result (Section 6 / linear part of Theorem 3, referenced): the CutFEM solution on a locally refined background mesh has the same energy-norm rate R(h) as the matching (body-fitted) mesh with the same local refinement. The constants do not depend on how the boundary cuts the mesh. The linear case follows from quasi-optimality in the local-size norm |||\u00b7|||_g plus Assumption 3.",
+     "refinement": "graded h with nodes s^g",
+     "norm": "local-size mesh-dependent energy norm |||\u00b7|||_g (bulk gradient + Nitsche boundary term sum_T ||h_T^{-1/2} v||^2_{\u2202\u03a9\u2229T} + ghost-penalty seminorm with local face size h_F)",
+     "rate_formula": "|||u - u_h|||_g <= C R(h), where R(h) is the matching-mesh interpolation rate in (57). The passage does not give R(h) explicitly; it is imported from [67,68]. Radial grading (56): h_T \u2243 h^{1/\u00b5} on the core patch, h_T \u2243 h r_T^{1-\u00b5} elsewhere. #T_h = O(h^{-2}) for every \u00b5, so the rate in h equals the rate per DOF: beta = (rate in h)/2. Classical value (imported, not stated in the passage): R(h) = h^{min(p, \u03bb/\u00b5)} (with a log factor at equality). Nodes s^g correspond to \u00b5 = 1/g, so beta = min(p, \u03bb g)/2.",
+     "assumptions": "Domain: unfitted (CutFEM) domain with a corner/junction x0 where the solution has the singular mode r^\u03bb \u03a6. Background family {T_h} with radial grading parameter \u00b5 \u2208 (0,1] toward x0, uniform shape regularity, bounded neighbour-size ratio and bounded active-layer width. Assumption 2: local-size cut trace inequality, ghost-penalty extension, Nitsche coercivity (penalty \u03b3/h_T) and local interpolation estimates hold with constants independent of the cut and of the refinement level (proof deferred to Appendix A, Prop. 3). Assumption 3: a stable extension Eu \u2208 H^1(\u03a9_T)^d exists and the conforming interpolant satisfies (57). Polynomial degree p is not fixed in the passage. Nonlinear (finite-strain) version is conditional: it also needs the local-size differentiability and Jacobian-defect hypotheses of Theorem 3, which are not in the passage.",
+     "regularity": "u = regular part + r^\u03bb \u03a6, with |D^k (r^\u03bb \u03a6)| ~ r^{\u03bb-k}. Not in H^{p+1}. Weighted-space regularity on the core patch, elementwise H^{p+1} away from x0. Analytic continuation of the singular mode into the fictitious sector.",
+     "quote": "the rate a matching mesh achieves with a given local refinement, the CutFEM discretisation on the same background refinement inherits, with constants independent of how \u2202\u03a9 cuts the mesh",
+     "beta_for_case": [
+      {
+       "degree": 1,
+       "g": 1.5,
+       "beta": 0.4084
+      },
+      {
+       "degree": 1,
+       "g": 2,
+       "beta": 0.5
+      },
+      {
+       "degree": 1,
+       "g": 4,
+       "beta": 0.5
+      },
+      {
+       "degree": 2,
+       "g": 1.5,
+       "beta": 0.4084
+      },
+      {
+       "degree": 2,
+       "g": 2,
+       "beta": 0.5445
+      },
+      {
+       "degree": 2,
+       "g": 4,
+       "beta": 1
+      }
+     ],
+     "quote_found": true
+    },
+    {
+     "statement": "L2 counterpart in Assumption 3: the interpolation error satisfies ||e_h||_{L2(\u03a9_T)} <= C h R(h). The assumed dual approximability (|||E\u03c6_g - I_h E\u03c6_g|||_g <= C h ||g||) is the Aubin\u2013Nitsche ingredient for an L2 estimate of the FE error of the same order h R(h).",
+     "refinement": "graded h with nodes s^g",
+     "norm": "L2(\u03a9_T) (interpolation error); implied L2(\u03a9) FE error via duality",
+     "rate_formula": "||e_h||_{L2} <= C h R(h). For the FE error via duality: ||u - u_h||_{L2} <~ h R(h). With the classical R(h) = h^{min(p, \u03bb g)} and #T_h = O(h^{-2}): beta = (1 + min(p, \u03bb g))/2. This only holds when the dual bound with factor h holds, which needs \u03bb g >= 1 (\u00b5 <= \u03bb).",
+     "assumptions": "Everything in Assumptions 2 and 3, plus: for every g \u2208 L2(\u03a9)^d, the linearised adjoint solution \u03c6_g has a stable extension with |||E\u03c6_g - I_h E\u03c6_g|||_g <= C h ||g||_{L2(\u03a9)}, with C independent of h. The dual problem has the same corner singularity, so this needs grading strong enough that the dual error is O(h): \u03bb/\u00b5 >= 1. With \u03bb = 0.5445 this means g >= 1/\u03bb \u2248 1.84. For g = 1.5 the dual assumption fails (dual rate h^{0.817}), so no beta is given for g = 1.5.",
+     "regularity": "Same as the energy result. The dual solution has the same r^\u03bb singularity.",
+     "quote": "||| eh |||g \u2264 C R(h), \u2225eh \u2225L2 (\u03a9T ) \u2264 C h R(h)",
+     "beta_for_case": [
+      {
+       "degree": 1,
+       "g": 2,
+       "beta": 1
+      },
+      {
+       "degree": 1,
+       "g": 4,
+       "beta": 1
+      },
+      {
+       "degree": 2,
+       "g": 2,
+       "beta": 1.0445
+      },
+      {
+       "degree": 2,
+       "g": 4,
+       "beta": 1.5
+      }
+     ],
+     "quote_found": true
+    },
+    {
+     "statement": "Quasi-uniform special case: when \u00b5 = 1, h_T ~ h_F ~ h, |||\u00b7|||_g reduces to the global triple norm (26), and Section 3 is the special case of uniform refinement. With a corner singularity, the uniform-mesh energy rate is limited by \u03bb.",
+     "refinement": "uniform h",
+     "norm": "global triple (energy) norm (26)",
+     "rate_formula": "|||u - u_h||| <= C R(h). On uniform meshes the classical rate (imported, not stated in the passage) is R(h) = h^{min(p, \u03bb)}, so beta = min(p, \u03bb)/2, independent of p once p >= 1 > \u03bb.",
+     "assumptions": "Quasi-uniform background mesh (\u00b5 = 1), Section 3 stability (Proposition 1, Corollary 2), extension/approximability as in Assumption 3.",
+     "regularity": "u \u2208 H^{1+\u03bb-\u03b5} near the corner.",
+     "quote": "On a quasi-uniform mesh hT \u223c hF \u223c h, so ||| \u00b7 |||g reduces to the global triple norm (26) and Section 3 is the special case of uniform refinement.",
+     "beta_for_case": [
+      {
+       "degree": 1,
+       "g": 0,
+       "beta": 0.27225
+      },
+      {
+       "degree": 2,
+       "g": 0,
+       "beta": 0.27225
+      }
+     ],
+     "quote_found": true
+    },
+    {
+     "statement": "Classical body-fitted theory, cited: with the correct grading, the optimal rates are known, and adaptive refinement reaches the same rate per degree of freedom without knowing the singular exponent in advance.",
+     "refinement": "other",
+     "norm": "energy norm (body-fitted; rate per DOF)",
+     "rate_formula": "Optimal rate per DOF, i.e. the smooth-solution rate: energy error ~ N^{-p/2} in 2D. The passage states this qualitatively and does not give a formula.",
+     "assumptions": "Body-fitted discretisation; a priori grading with the correct parameter [67,68,43], or adaptive (a posteriori) refinement. Exponent \u03bb need not be known for adaptivity. Degree p is not specified.",
+     "regularity": "Corner singularity r^\u03bb \u03a6 with known or unknown \u03bb.",
+     "quote": "the singular exponents, the correct grading parameter, and the resulting optimal rates are all known [67, 68, 43], and adaptive refinement attains the same rate per degree of freedom without prior knowledge of the exponent",
+     "beta_for_case": [
+      {
+       "degree": 1,
+       "g": 0,
+       "beta": 0.5
+      },
+      {
+       "degree": 2,
+       "g": 0,
+       "beta": 1
+      }
+     ],
+     "quote_found": true
+    }
+   ]
+  },
+  {
+   "id": "2401.16156",
+   "title": "A fitted scheme for a Caputo initial-boundary value problem",
+   "passage_at": "passage at character 39506 (score 233.4)",
+   "results": [
+    {
+     "statement": "Standard L1 scheme for a time-fractional (Caputo, order \u03b1) reaction-diffusion problem on a graded temporal mesh (cited as [18, Theorem 5.3]): the maximum nodal error is bounded by C(h^2 + N^{-min{2-\u03b1, r\u03b1}}). Consequences stated: r = 1 (uniform mesh) gives temporal order \u03b1; r \u2265 (2-\u03b1)/\u03b1 gives temporal order 2-\u03b1. Tables 1-2 are said to agree with this. NOT a finite-element result: it is a finite-difference/L1 time-stepping estimate in the discrete maximum norm, not in the energy norm, L2 norm or a functional.",
+     "refinement": "graded h with nodes s^g",
+     "norm": "discrete maximum nodal error max_{(x_m,t_n) in Q\u0304} |u(x_m,t_n) - u_m^n| (discrete L\u221e; not energy, L2 or a functional)",
+     "rate_formula": "max |u(x_m,t_n) - u_m^n| \u2264 C (h^2 + N^{-min{2-\u03b1, r\u03b1}}); r = 1 gives order \u03b1 in time, r \u2265 (2-\u03b1)/\u03b1 gives order 2-\u03b1 in time",
+     "assumptions": "Time-fractional problem with a Caputo derivative D_t^\u03b1, 0<\u03b1<1 (\u03b1 = 0.2, 0.4, 0.6, 0.8 tested), on Q = space interval \u00d7 (0,T]. Spatial mesh is uniform with mesh size h (M intervals) and second-order spatial discretisation. Temporal mesh is graded with grading exponent r: t_n = T(n/N)^r is implied by the later Example 2 definition t_n = (n/(2N))^r; this formula is not stated explicitly for (5.1). The solution has the typical weak singularity at t = 0 (see [18]). The constant C is generic and its dependence on T is not stated for this scheme. The full hypotheses of [18, Thm 5.3] are not reproduced in the passage. No finite-element degree is involved.",
+     "regularity": "Weak initial-layer singularity in time at t = 0 (as for typical solutions of time-fractional problems, e.g. derivatives behaving like t^{\u03b1-k}); the exact regularity class is given in [18] and is not stated in the passage.",
+     "quote": "In [18, Theorem 5.3] it is established that the standard L1 scheme on a graded mesh satisfies the error estimate",
+     "beta_for_case": [],
+     "quote_found": true
+    },
+    {
+     "statement": "Fitted scheme (3.5) on a uniform temporal mesh (r = 1): Theorem 4 gives a temporal order of convergence of min{2\u03b1, 2-\u03b1} for the maximum nodal error. Table 3 is said to agree with this. NOT a finite-element energy/L2 result.",
+     "refinement": "uniform h",
+     "norm": "discrete maximum nodal error (discrete L\u221e)",
+     "rate_formula": "error = O(N^{-min{2\u03b1, 2-\u03b1}}) in time for r = 1 (spatial part presumably O(h^2), not stated explicitly here)",
+     "assumptions": "Fitted scheme (3.5) for a Caputo time-fractional problem, 0<\u03b1<1. Uniform spatial mesh with M intervals and uniform temporal mesh (r = 1). Weak singularity at t = 0. The full statement and hypotheses of Theorem 4 are not reproduced in the passage. The numerical growth rates indicate that the constant depends on the final time T approximately as O(T^{2\u03b1}).",
+     "regularity": "Weak singularity at t = 0; the precise regularity class is not stated in the passage.",
+     "quote": "Note that when r = 1, Theorem 4 indicates that the order is min{2\u03b1, 2 \u2212 \u03b1}",
+     "beta_for_case": [],
+     "quote_found": true
+    },
+    {
+     "statement": "Fitted scheme (3.5) on a graded temporal mesh with optimal grading r = max{1, (2-\u03b1)/(2\u03b1)}: by Remark 5 the temporal order of convergence is 2-\u03b1. Tables 4-5 are said to agree with this. The T-dependence of the error is approximately O(T^{2-\u03b1}) if \u03b1 < 2/3 and O(T^{2\u03b1}) if \u03b1 \u2265 2/3 (Remark 5). Remark 6 covers the uniform-mesh T-dependence for \u03b1 < 2/3. NOT a finite-element energy/L2 result.",
+     "refinement": "graded h with nodes s^g",
+     "norm": "discrete maximum nodal error (discrete L\u221e)",
+     "rate_formula": "error = O(N^{-(2-\u03b1)}) in time with r = max{1, (2-\u03b1)/(2\u03b1)}; the constant grows like T^{2-\u03b1} (\u03b1 < 2/3) or T^{2\u03b1} (\u03b1 \u2265 2/3)",
+     "assumptions": "Fitted scheme (3.5) for a Caputo time-fractional problem, 0<\u03b1<1. Uniform spatial mesh. Graded temporal mesh t_n \u221d (n/N)^r with r = max{1, (2-\u03b1)/(2\u03b1)}. Weak singularity at t = 0. The full statements of Theorem 4, Remark 5 and Remark 6 are not reproduced in the passage.",
+     "regularity": "Weak singularity at t = 0; the precise regularity class is not stated in the passage.",
+     "quote": "by Remark 5 the order is 2 \u2212 \u03b1 if the optimal grading is used",
+     "beta_for_case": [],
+     "quote_found": true
+    }
+   ]
+  }
+ ],
+ "llm_cost_usd": 0.2843308,
+ "comparison": [
+  {
+   "paper": "2607.02334",
+   "family": "G1_2",
+   "predicted_beta": 0.5,
+   "observed_beta": 0.469084588639033,
+   "agrees_0.1": true,
+   "quote_found": true,
+   "assumptions": "Domain: unfitted (CutFEM) domain with a corner/junction x0 where the solution has the singular mode r^\u03bb \u03a6. Background family {T_h} with radial grading parameter \u00b5 \u2208 (0,1] toward x0, uniform shape regularity, bounded neighbour-size ratio and bounded active-layer width. Assumption 2: local-size cut tr"
+  },
+  {
+   "paper": "2607.02334",
+   "family": "G2_1.5",
+   "predicted_beta": 0.4084,
+   "observed_beta": 0.4130072131944836,
+   "agrees_0.1": true,
+   "quote_found": true,
+   "assumptions": "Domain: unfitted (CutFEM) domain with a corner/junction x0 where the solution has the singular mode r^\u03bb \u03a6. Background family {T_h} with radial grading parameter \u00b5 \u2208 (0,1] toward x0, uniform shape regularity, bounded neighbour-size ratio and bounded active-layer width. Assumption 2: local-size cut tr"
+  },
+  {
+   "paper": "2607.02334",
+   "family": "G2_4",
+   "predicted_beta": 1,
+   "observed_beta": 0.9571470067284424,
+   "agrees_0.1": true,
+   "quote_found": true,
+   "assumptions": "Domain: unfitted (CutFEM) domain with a corner/junction x0 where the solution has the singular mode r^\u03bb \u03a6. Background family {T_h} with radial grading parameter \u00b5 \u2208 (0,1] toward x0, uniform shape regularity, bounded neighbour-size ratio and bounded active-layer width. Assumption 2: local-size cut tr"
+  },
+  {
+   "paper": "2607.02334",
+   "family": "G1_2",
+   "predicted_beta": 1,
+   "observed_beta": 0.469084588639033,
+   "agrees_0.1": false,
+   "quote_found": true,
+   "assumptions": "Everything in Assumptions 2 and 3, plus: for every g \u2208 L2(\u03a9)^d, the linearised adjoint solution \u03c6_g has a stable extension with |||E\u03c6_g - I_h E\u03c6_g|||_g <= C h ||g||_{L2(\u03a9)}, with C independent of h. The dual problem has the same corner singularity, so this needs grading strong enough that the dual e"
+  },
+  {
+   "paper": "2607.02334",
+   "family": "G2_4",
+   "predicted_beta": 1.5,
+   "observed_beta": 0.9571470067284424,
+   "agrees_0.1": false,
+   "quote_found": true,
+   "assumptions": "Everything in Assumptions 2 and 3, plus: for every g \u2208 L2(\u03a9)^d, the linearised adjoint solution \u03c6_g has a stable extension with |||E\u03c6_g - I_h E\u03c6_g|||_g <= C h ||g||_{L2(\u03a9)}, with C independent of h. The dual problem has the same corner singularity, so this needs grading strong enough that the dual e"
+  },
+  {
+   "paper": "2607.02334",
+   "family": "U1",
+   "predicted_beta": 0.27225,
+   "observed_beta": 0.27686659115488826,
+   "agrees_0.1": true,
+   "quote_found": true,
+   "assumptions": "Quasi-uniform background mesh (\u00b5 = 1), Section 3 stability (Proposition 1, Corollary 2), extension/approximability as in Assumption 3."
+  },
+  {
+   "paper": "2607.02334",
+   "family": "U2",
+   "predicted_beta": 0.27225,
+   "observed_beta": 0.27559103920499717,
+   "agrees_0.1": true,
+   "quote_found": true,
+   "assumptions": "Quasi-uniform background mesh (\u00b5 = 1), Section 3 stability (Proposition 1, Corollary 2), extension/approximability as in Assumption 3."
+  }
+ ],
+ "comparison_energy_norm_only": [
+  {
+   "paper": "2607.02334",
+   "family": "G1_2",
+   "predicted_beta": 0.5,
+   "observed_beta": 0.469084588639033,
+   "agrees_0.1": true,
+   "quote_found": true,
+   "assumptions": "Domain: unfitted (CutFEM) domain with a corner/junction x0 where the solution has the singular mode r^\u03bb \u03a6. Background family {T_h} with radial grading parameter \u00b5 \u2208 (0,1] toward x0, uniform shape regularity, bounded neighbour-size ratio and bounded active-layer width. Assumption 2: local-size cut tr"
+  },
+  {
+   "paper": "2607.02334",
+   "family": "G2_1.5",
+   "predicted_beta": 0.4084,
+   "observed_beta": 0.4130072131944836,
+   "agrees_0.1": true,
+   "quote_found": true,
+   "assumptions": "Domain: unfitted (CutFEM) domain with a corner/junction x0 where the solution has the singular mode r^\u03bb \u03a6. Background family {T_h} with radial grading parameter \u00b5 \u2208 (0,1] toward x0, uniform shape regularity, bounded neighbour-size ratio and bounded active-layer width. Assumption 2: local-size cut tr"
+  },
+  {
+   "paper": "2607.02334",
+   "family": "G2_4",
+   "predicted_beta": 1,
+   "observed_beta": 0.9571470067284424,
+   "agrees_0.1": true,
+   "quote_found": true,
+   "assumptions": "Domain: unfitted (CutFEM) domain with a corner/junction x0 where the solution has the singular mode r^\u03bb \u03a6. Background family {T_h} with radial grading parameter \u00b5 \u2208 (0,1] toward x0, uniform shape regularity, bounded neighbour-size ratio and bounded active-layer width. Assumption 2: local-size cut tr"
+  },
+  {
+   "paper": "2607.02334",
+   "family": "U1",
+   "predicted_beta": 0.27225,
+   "observed_beta": 0.27686659115488826,
+   "agrees_0.1": true,
+   "quote_found": true,
+   "assumptions": "Quasi-uniform background mesh (\u00b5 = 1), Section 3 stability (Proposition 1, Corollary 2), extension/approximability as in Assumption 3."
+  },
+  {
+   "paper": "2607.02334",
+   "family": "U2",
+   "predicted_beta": 0.27225,
+   "observed_beta": 0.27559103920499717,
+   "agrees_0.1": true,
+   "quote_found": true,
+   "assumptions": "Quasi-uniform background mesh (\u00b5 = 1), Section 3 stability (Proposition 1, Corollary 2), extension/approximability as in Assumption 3."
+  }
+ ]
+}
