@@ -42,3 +42,5 @@ jobs:
 
       - name: Claims check of the combined progress report
         run: python -m omar_pfem.verification_agent.progress_report_claims
+      - name: Claims check of the 27 November progress report
+        run: python -m omar_pfem.verification_agent.report27_claims

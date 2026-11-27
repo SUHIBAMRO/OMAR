@@ -26414,3 +26414,7 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   curved outer boundary 3, 3D general geometry 2, nearly incompressible 2, Mooney-Rivlin 1, anisotropy 1,
   reaction force 1. LLM spend 27 Nov: USD 0.61 + 0.77 (+ round 4 0.94).
   Report wording: MMS code verification vs solution verification (convergence of the problem); step kinds.
+- 2026-11-27 DONE: progress report for Professor Rabczuk (9 pages): advisor_feedback/2026-11-27_Autonomous_Workflow_Progress_Report.pdf
+  (Claude Doc https://claude.ai/artifact/SHzG8eeXHEGBzcfPusnqPi; claims 20/20 by report27_claims.py, in CI).
+  Email draft advisor_feedback/2026-11-27_email_to_Rabczuk_DRAFT_CAS_and_next.txt (NOT SENT; Omar fills the CAS
+  status first). Tests 124 pass. Waiting: cluster job 3356483; Omar's CAS status check; advisor's reply.

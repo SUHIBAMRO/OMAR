@@ -1,5 +1,5 @@
 (DRAFT, not sent. Omar: check the current status in the C&S Editorial Manager first and fill in [STATUS].
-Replace both bracketed parts; delete the alternative that does not apply.)
+Attach: 2026-11-27_Autonomous_Workflow_Progress_Report.pdf (9 pages).)
 
 Subject: Re: Autonomous verification workflow: progress report
 
@@ -7,11 +7,16 @@ Dear Professor Rabczuk,
 
 Thank you very much for your detailed feedback and the clear decisions.
 
-Regarding CAS: I checked the submission today. The status is [STATUS, e.g. "Under Review" / "Required Reviews Completed" / "Decision in Process"]. [IF "Decision in Process" or "Required Reviews Completed": So it is indeed in the decision stage. / IF "Under Review": Two reviews have been completed, but no decision has been made yet.] In an earlier draft I had considered asking whether I should inform the editor now about the stress-conversion correction (the stored stresses had been converted to Cauchy twice; the corrected values are already in the manuscript source). Would you prefer that I write to the editor now, or that I include the correction in the revision once the decision arrives?
+Regarding CAS: I checked the submission today; the status is [STATUS, e.g. "Under Review" / "Required Reviews Completed" / "Decision in Process"]. The stress-conversion correction (stresses had been converted to Cauchy twice; the corrected values are already in the manuscript source) is still open. Would you prefer that I inform the editor now, or that I include it in the revision once the decision arrives?
 
-I have implemented your decisions: the term "numerically verified" with a "numerical verification error" replaces "certified"; QoI-dependent tolerances decide when an assumed input needs confirmation; an earlier convergence estimate is kept only without contradictory evidence and with the limitation recorded; R1 and R3 are adopted, while the reference-domain check (R2) is now recorded only as supporting evidence; and the groove peak is reported as numerically unverified. Every step of the workflow is now classified as an autonomous decision, a predefined procedure or a human intervention.
+The attached short report (9 pages) documents what followed your decisions:
+- Your decisions are implemented: "numerically verified" with a "numerical verification error"; QoI-dependent tolerances for assumed inputs; earlier estimates kept only without contradictory evidence and with the limitation recorded; R1 and R3 adopted, R2 recorded as supporting evidence only; the groove peak reported as numerically unverified. Every step of the workflow is now classified as an autonomous decision, a predefined procedure or a human intervention.
+- A-priori convergence predictions (element, norm, QoI, corner exponent) are compared with the observed rates. MMS code verification agrees in all 76 cases; the convergence of the problems exposed seven assumptions missing from the prediction table, among them that the agent's mesh grading is not strong enough for quadratic elements.
+- The re-entrant corner study against the exact solution confirms the theory: uniform refinement gives the same rate for Q1 and Q2, grading with g >= p/lambda restores the optimal order, the p-version doubles the rate, and hp converges exponentially.
+- The agent carried two papers from the text to numerically verified results (Cook's membrane), though neither is independent evidence yet.
+- For nine further benchmarks, including five 3D hyperelastic problems, the agent stated that it cannot handle them and listed the missing capabilities without implementing them: mainly a 3D problem definition, curved outer boundaries, general 3D geometry and a nearly incompressible formulation.
 
-Next I will work on your list: a-priori convergence predictions compared with the observed rates, a clear separation of MMS code verification and convergence of the problem, the re-entrant-corner comparison of uniform and graded refinement, and an established benchmark found by the agent itself, including a 3D hyperelastic challenge for which the agent should state whether it can handle it and which capabilities are missing.
+One decision would help: should the agent grade every singular corner with g >= p/lambda when the asymptotic order is the goal, and which of the missing capabilities should come first?
 
 Best regards,
 Omar
