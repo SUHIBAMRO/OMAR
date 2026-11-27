@@ -1,0 +1,32 @@
+{
+ "preregistration": "benchmark_search_preregistration.json",
+ "run": "benchmark_search_runs/20261127_161359.json",
+ "predictions": {
+  "B1_3d_declared": {
+   "confirmed": true,
+   "evidence": "all five 3D candidates declared not feasible, each with listed missing capabilities (3D general geometry in 4 of 5)"
+  },
+  "B2_top_gap": {
+   "confirmed": true,
+   "evidence": "[['3D problem definition from a paper', 5], ['3D general', 4], ['curved outer boundary', 3]]"
+  },
+  "B3_carried_through": {
+   "confirmed": false,
+   "evidence": "no candidate declared feasible (9 assessed)"
+  },
+  "B4_consistency": {
+   "confirmed": null,
+   "evidence": "not tested: no feasible candidate"
+  },
+  "B5_cost": {
+   "confirmed": true,
+   "evidence": "USD 0.61"
+  }
+ },
+ "score": "3 of 5 (B4 not tested)",
+ "diagnosis_POST_HOC": [
+  "the requirements step listed the paper's own method (polygonal meshes, locking-free scheme) as needs",
+  "several cases were merged: Cook's membrane (1911.08728) was declared infeasible although its case nu = 1/3 was carried through on 26 Nov",
+  "fix: capabilities v2 (problem vs method, one entry per case, outputs category); re-assessment labelled post hoc"
+ ]
+}

@@ -1,0 +1,1350 @@
+{
+ "started": "20261127_161359",
+ "candidates": [
+  {
+   "group": "3D hyperelastic",
+   "id": "2611.34310",
+   "title": "Interpretable identification of constitutive parameter field for three-dimensional heterogeneous and graded hyperelastic materials from full-field displacements",
+   "passage_at": "passage at character 2238 (score 61.0)",
+   "requirements": {
+    "example": "three-dimensional hyperelastic benchmark hole cylinder torsion",
+    "needs": {
+     "dimension": [
+      "3D general"
+     ],
+     "geometry": [
+      "curved outer boundary",
+      "cylindrical hole through the thickness"
+     ],
+     "material": [
+      "anisotropic / fibre-reinforced",
+      "compressible neo-Hookean",
+      "Mooney-Rivlin"
+     ],
+     "loading": [
+      "prescribed displacement"
+     ],
+     "boundary": [
+      "clamped"
+     ],
+     "analysis": [
+      "static",
+      "load stepping (finite strain)"
+     ]
+    },
+    "unlisted_needs": [
+     "inverse problem: identify constitutive parameters from full-field displacements (EUCLID-like), not a forward solve",
+     "spatially graded / heterogeneous material parameters (functionally graded, no sharp interfaces)",
+     "library of a-priori constitutive terms (e.g. C10) with per-element parameters",
+     "torsional loading (rotation prescribed on end face); geometry and torsion details not described in the passage",
+     "reaction forces on fixed DOFs used as data",
+     "Green-Lagrange strain fields computed from nodal displacements",
+     "synthetic data from a forward FE solve, possibly with added noise"
+    ],
+    "size": {
+     "dimension": 3,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 0
+    },
+    "reference_values": [],
+    "quotes": [
+     "we validate our framework on 3D synthetic and 2D experimental benchmarks involving heterogeneous, graded, and anisotropic hyperelastic materials",
+     "Unknown three-dimensional graded hyperelastic specimen",
+     "Combination of biaxial and uniaxial loading conditions applied to the specimen",
+     "Total reaction force residual on fixed degrees of freedom",
+     "Nodal force residual on free degrees of freedom",
+     "Full-field displacements and corresponding Green\u2013Lagrange strain components"
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "missing": [
+     {
+      "category": "dimension",
+      "need": "3D general",
+      "would_require": "a 3D geometry kernel and tetrahedral meshing of arbitrary solids (gmsh OCC import, revolved or CAD bodies), 3D corner/edge/vertex singularity analysis"
+     },
+     {
+      "category": "geometry",
+      "need": "curved outer boundary",
+      "would_require": "arcs/splines on the outer boundary in the description, the mesher and the corner analysis"
+     },
+     {
+      "category": "material",
+      "need": "anisotropic / fibre-reinforced",
+      "would_require": "anisotropic invariants, fibre fields"
+     },
+     {
+      "category": "material",
+      "need": "Mooney-Rivlin",
+      "would_require": "the strain-energy function, its stress and tangent, MMS body force"
+     },
+     {
+      "category": "unlisted",
+      "need": "inverse problem: identify constitutive parameters from full-field displacements (EUCLID-like), not a forward solve",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "spatially graded / heterogeneous material parameters (functionally graded, no sharp interfaces)",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "library of a-priori constitutive terms (e.g. C10) with per-element parameters",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "torsional loading (rotation prescribed on end face); geometry and torsion details not described in the passage",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "reaction forces on fixed DOFs used as data",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "Green-Lagrange strain fields computed from nodal displacements",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "synthetic data from a forward FE solve, possibly with added noise",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "automation",
+      "need": "3D problem definition from a paper",
+      "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+     }
+    ],
+    "size": {
+     "finest_dofs_in_paper": 0,
+     "ladder_dofs_estimate": 0,
+     "where": "unknown (no size in the paper)"
+    },
+    "decision": "cannot be carried through: 12 missing capabilities (listed, not implemented)"
+   }
+  },
+  {
+   "group": "3D hyperelastic",
+   "id": "2403.00125",
+   "title": "Penalty-free discontinuous Galerkin method",
+   "passage_at": "passage at character 57952 (score 31.0)",
+   "requirements": {
+    "example": "three-dimensional hyperelastic benchmark hole cylinder torsion",
+    "needs": {
+     "dimension": [
+      "3D general"
+     ],
+     "geometry": [],
+     "material": [],
+     "loading": [
+      "body force (gravity)"
+     ],
+     "boundary": [],
+     "analysis": [
+      "static"
+     ]
+    },
+    "unlisted_needs": [
+     "manufactured exact solution with randomly chosen positive parameters a, b, c and random points (xi, yi, zi); matching source term and Dirichlet data must be derived from it",
+     "Dirichlet boundary data taken from the exact solution (not plain clamping)",
+     "high-order hexahedral elements p = 3, 4, 6, 10 (p-convergence study)",
+     "L2-norm error against exact solution as the convergence metric",
+     "penalty-free DG discretisation (PF-DG) with least-squares continuity constraints, if the method itself is to be reproduced",
+     "excerpt does not give the domain geometry; the title's 'hole', 'cylinder' and 'torsion' are not described in the passage",
+     "excerpt does not give the constitutive law or its parameters; the title says hyperelastic but no model is named",
+     "excerpt does not state whether load stepping is used for this example; the conclusions mention an incremental iterative procedure for nonlinear problems in general",
+     "definition of the exact solution field (equation preceding the passage) is cut off"
+    ],
+    "size": {
+     "dimension": 3,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 0
+    },
+    "reference_values": [
+     "No numerical reference values are given in the excerpt. Only qualitative claim: optimal L2 convergence rates for p = 3, 4, 6, 10 (Fig. 21), with errors measured against a manufactured exact solution"
+    ],
+    "quotes": [
+     "where the positive values of the parameters a, b and c are chosen randomly and the points (xi , yi , zi ) are randomly generated in the domain.",
+     "This benchmark problem is the three-dimensional extension of the one presented in Section 6.2.",
+     "The calculations are performed using structured hexahedral meshes for p = 3, 4, 6, 10.",
+     "Convergence curves in the L2 norm for different p are presented in Fig. 21.",
+     "analyzed in 2D and for one problem in 3D",
+     "It is shown that the method works well for standard elliptic problems, such as the Poisson equation or linear and nonlinear elasticity."
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "missing": [
+     {
+      "category": "dimension",
+      "need": "3D general",
+      "would_require": "a 3D geometry kernel and tetrahedral meshing of arbitrary solids (gmsh OCC import, revolved or CAD bodies), 3D corner/edge/vertex singularity analysis"
+     },
+     {
+      "category": "loading",
+      "need": "body force (gravity)",
+      "would_require": "body loads in the description (MMS body forces exist internally)"
+     },
+     {
+      "category": "unlisted",
+      "need": "manufactured exact solution with randomly chosen positive parameters a, b, c and random points (xi, yi, zi); matching source term and Dirichlet data must be derived from it",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "Dirichlet boundary data taken from the exact solution (not plain clamping)",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "high-order hexahedral elements p = 3, 4, 6, 10 (p-convergence study)",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "L2-norm error against exact solution as the convergence metric",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "penalty-free DG discretisation (PF-DG) with least-squares continuity constraints, if the method itself is to be reproduced",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "excerpt does not give the domain geometry; the title's 'hole', 'cylinder' and 'torsion' are not described in the passage",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "excerpt does not give the constitutive law or its parameters; the title says hyperelastic but no model is named",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "excerpt does not state whether load stepping is used for this example; the conclusions mention an incremental iterative procedure for nonlinear problems in general",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "definition of the exact solution field (equation preceding the passage) is cut off",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "automation",
+      "need": "3D problem definition from a paper",
+      "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+     }
+    ],
+    "size": {
+     "finest_dofs_in_paper": 0,
+     "ladder_dofs_estimate": 0,
+     "where": "unknown (no size in the paper)"
+    },
+    "decision": "cannot be carried through: 12 missing capabilities (listed, not implemented)"
+   }
+  },
+  {
+   "group": "3D hyperelastic",
+   "id": "2312.07124",
+   "title": "A robust finite strain isogeometric solid-beam element",
+   "passage_at": "passage at character 43377 (score 65.0)",
+   "requirements": {
+    "example": "Three-dimensional hyperelastic benchmark labelled 'hole cylinder torsion'. The passage actually describes a different problem: the Bathe\u2013Bolourchi 45\u00b0 circular-arc cantilever (R = 100, unit square cross-section) under an out-of-plane tip load F (bending\u2013torsion). It has two material cases: St. Venant\u2013Kirchhoff with E=1e7, \u03bd=0, and compressible neo-Hookean with E=1e7, \u03bd=0.3. The passage says nothing about a hole or a cylinder.",
+    "needs": {
+     "dimension": [
+      "3D general"
+     ],
+     "geometry": [
+      "curved outer boundary",
+      "straight edges"
+     ],
+     "material": [
+      "compressible neo-Hookean"
+     ],
+     "loading": [
+      "point load",
+      "constant traction (dead)"
+     ],
+     "boundary": [
+      "clamped"
+     ],
+     "analysis": [
+      "static",
+      "load stepping (finite strain)"
+     ]
+    },
+    "unlisted_needs": [
+     "St. Venant-Kirchhoff material (E=1e7, nu=0), large-rotation case",
+     "beam-like slender solid swept along a 45\u00b0 circular arc with R=100 and a 1x1 square cross-section",
+     "tip displacement measured at the centre of the free-end cross-section",
+     "large rotations and displacements of a slender solid (bending plus torsion)",
+     "mitigation of Poisson thickness locking (EAS/ANS) or enough elements through the cross-section",
+     "the title ('hole cylinder torsion') does not match the passage content; the source should be checked"
+    ],
+    "size": {
+     "dimension": 3,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 1024
+    },
+    "reference_values": [
+     "SVK, F=300, ISB2 tip displacements (centre of free end): u=40.02, v=-11.81, w=7.08 (Simo & Vu-Quoc: 40.08, -11.87, 6.96; Bathe & Bolourchi: 39.50, -11.50, 6.80)",
+     "SVK, F=600, ISB2 tip displacements: u=53.14, v=-23.26, w=13.67 (Simo & Vu-Quoc: 53.37, -23.48, 13.50; Bathe & Bolourchi: 53.40, -23.50, 13.40)",
+     "Q1STb [56]: F=300 gives u=40.06, v=-11.71, w=7.27; F=600 gives u=53.50, v=-23.38, w=14.11",
+     "NH case: the reference is the IGA555 solid with 512x1x1 elements (Fig. 10 / Table 3). The numerical values are not in the passage.",
+     "Load parameter k = F R^2 / (E I). Response curves plot u/R, -v/R and w/R against k (0 to about 7)."
+    ],
+    "quotes": [
+     "45\u25e6 circular arc cantilever beam with unit square cross-section subjected to an out-of-plane conservative load F",
+     "R = 100",
+     "the linearly elastic St. Venant-Kirchhoff (SVK) material without Poisson effect (E = 107 , \u03bd = 0) and the compressible Neo-Hooke (NH) material with Poisson effect (E = 107 , \u03bd = 0.3)",
+     "The load is also applied in two different levels, F = 300 and 600 units.",
+     "the load is applied in 10 equidistant load steps in both material cases",
+     "normalized displacements evaluated at the center of free end",
+     "Tip displacements of the highly refined reference solid element IGA555 with 512\u00d71\u00d71 elements",
+     "IGA5 element with degree q = 1 in the cross-section and 1024 \u00d7 1 \u00d7 1 elements"
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "missing": [
+     {
+      "category": "dimension",
+      "need": "3D general",
+      "would_require": "a 3D geometry kernel and tetrahedral meshing of arbitrary solids (gmsh OCC import, revolved or CAD bodies), 3D corner/edge/vertex singularity analysis"
+     },
+     {
+      "category": "geometry",
+      "need": "curved outer boundary",
+      "would_require": "arcs/splines on the outer boundary in the description, the mesher and the corner analysis"
+     },
+     {
+      "category": "loading",
+      "need": "point load",
+      "would_require": "singular by nature; a regularised load or a quantity away from it"
+     },
+     {
+      "category": "unlisted",
+      "need": "St. Venant-Kirchhoff material (E=1e7, nu=0), large-rotation case",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "beam-like slender solid swept along a 45\u00b0 circular arc with R=100 and a 1x1 square cross-section",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "tip displacement measured at the centre of the free-end cross-section",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "large rotations and displacements of a slender solid (bending plus torsion)",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "mitigation of Poisson thickness locking (EAS/ANS) or enough elements through the cross-section",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "the title ('hole cylinder torsion') does not match the passage content; the source should be checked",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "automation",
+      "need": "3D problem definition from a paper",
+      "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+     }
+    ],
+    "size": {
+     "finest_dofs_in_paper": 0,
+     "ladder_dofs_estimate": 0,
+     "where": "unknown (no size in the paper)"
+    },
+    "decision": "cannot be carried through: 10 missing capabilities (listed, not implemented)"
+   }
+  },
+  {
+   "group": "3D hyperelastic",
+   "id": "2607.20378",
+   "title": "PG-KINN: A Physics-Informed Petrov-Galerkin Kolmogorov-Arnold Network for Solving Forward and Inverse PDEs",
+   "passage_at": "passage at character 40656 (score 25.0)",
+   "requirements": {
+    "example": "neo-Hookean stress concentration hole notch three-dimensional",
+    "needs": {
+     "dimension": [
+      "3D general"
+     ],
+     "geometry": [
+      "circular holes",
+      "notch with a small root radius"
+     ],
+     "material": [
+      "compressible neo-Hookean"
+     ],
+     "loading": [],
+     "boundary": [],
+     "analysis": [
+      "static"
+     ]
+    },
+    "unlisted_needs": [
+     "The passage does not describe this example; it only names it in the conclusion's benchmark list",
+     "Hole and notch geometry and 3D setting come only from the example title; the hole shape, notch radius and dimensions are not given",
+     "Whether the neo-Hookean model is compressible and its material constants are not stated",
+     "Loading, boundary conditions and load stepping are not stated",
+     "Comparison against a PIKAN/MLP physics-informed baseline instead of an FE reference, with an unspecified error metric"
+    ],
+    "size": {
+     "dimension": 3,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 0
+    },
+    "reference_values": [
+     "None for this example in the passage. The only numbers given are for an unrelated Laplace problem on a Koch snowflake: PG-KINN error e = 9.5e-3 vs PIKAN_CPINNs 0.01188."
+    ],
+    "quotes": [
+     "Across a benchmark suite spanning crack singularities, stress concentration, Neo-Hookean hyperelasticity, highly heterogeneous inverse identification, and complex geometries",
+     "PG-KINN was consistently more accurate than legacy MLP baselines and state-of-the-art KAN-based strong/energy/inverse formulations (PIKAN)."
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "missing": [
+     {
+      "category": "dimension",
+      "need": "3D general",
+      "would_require": "a 3D geometry kernel and tetrahedral meshing of arbitrary solids (gmsh OCC import, revolved or CAD bodies), 3D corner/edge/vertex singularity analysis"
+     },
+     {
+      "category": "unlisted",
+      "need": "The passage does not describe this example; it only names it in the conclusion's benchmark list",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "Hole and notch geometry and 3D setting come only from the example title; the hole shape, notch radius and dimensions are not given",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "Whether the neo-Hookean model is compressible and its material constants are not stated",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "Loading, boundary conditions and load stepping are not stated",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "Comparison against a PIKAN/MLP physics-informed baseline instead of an FE reference, with an unspecified error metric",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "automation",
+      "need": "3D problem definition from a paper",
+      "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+     }
+    ],
+    "size": {
+     "finest_dofs_in_paper": 0,
+     "ladder_dofs_estimate": 0,
+     "where": "unknown (no size in the paper)"
+    },
+    "decision": "cannot be carried through: 7 missing capabilities (listed, not implemented)"
+   }
+  },
+  {
+   "group": "3D hyperelastic",
+   "id": "2506.19982",
+   "title": "Micromechanics of Nanoporous Alloying Electrodes",
+   "passage_at": "passage at character 36510 (score 95.0)",
+   "requirements": {
+    "example": "neo-Hookean stress concentration hole notch three-dimensional (chemo-mechanical phase-field model of Li2Sb\u2192Li3Sb alloying electrode with pores/cracks, MOOSE)",
+    "needs": {
+     "dimension": [
+      "2D"
+     ],
+     "geometry": [
+      "straight edges",
+      "polygonal holes",
+      "notch with a small root radius"
+     ],
+     "material": [
+      "compressible neo-Hookean"
+     ],
+     "loading": [
+      "prescribed displacement"
+     ],
+     "boundary": [],
+     "analysis": [
+      "load stepping (finite strain)"
+     ]
+    },
+    "unlisted_needs": [
+     "coupled Cahn-Hilliard/Allen-Cahn phase-field chemo-mechanics (mixed formulation in mu, eta, c)",
+     "transient diffusion with constant Li flux on outer and defect surfaces",
+     "multiplicative decomposition F = F_bar F0(eta) with phase-dependent stress-free eigenstrain (~24% volume change)",
+     "loading is internal swelling eigenstrain, not a listed external load; 'prescribed displacement' is only a placeholder",
+     "defects created by trimming elements (cracks, pores, sharp corners)",
+     "crack propagation / material failure",
+     "geometric instability (bending) of slender walls",
+     "mechanical boundary conditions not stated in passage",
+     "material constants in Table A.2 (not in passage)"
+    ],
+    "size": {
+     "dimension": 2,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 0
+    },
+    "reference_values": [
+     "Volume change of alloying electrode ~24% (Li2Sb -> Li3Sb)",
+     "Domain size 5 \u00b5m x 5 \u00b5m primary particle",
+     "Li flux applied to defect surfaces with > 3% surface area",
+     "No numerical stress/displacement reference values given in passage"
+    ],
+    "quotes": [
+     "J0 [ 1/2 G(I1 \u2212 3) + 1/2 \u03bb(lnI3)^2 \u2212 GlnI3 ]",
+     "We assume a neo-Hookean material law and describe the non-linear stress-strain behavior of the alloying electrode undergoing large deformations",
+     "These deformation gradients are related to the net deformation of the electrode via a multiplicative decomposition F = F\u0304F0",
+     "we assume plane-strain conditions and model a 2D domain representing a primary particle of size 5 \u00b5m \u00d7 5 \u00b5m, subject to a constant flux on the surface",
+     "We introduce defects by selectively trimming elements and apply the Li flux to the surfaces of defects with > 3% surface area",
+     "phase boundaries, sharp corners, and slender walls generate significant internal stresses",
+     "adopt the mixed formulation in which \u00b5, \u03b7 as well as c are regarded as primary unknowns"
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "missing": [
+     {
+      "category": "unlisted",
+      "need": "coupled Cahn-Hilliard/Allen-Cahn phase-field chemo-mechanics (mixed formulation in mu, eta, c)",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "transient diffusion with constant Li flux on outer and defect surfaces",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "multiplicative decomposition F = F_bar F0(eta) with phase-dependent stress-free eigenstrain (~24% volume change)",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "loading is internal swelling eigenstrain, not a listed external load; 'prescribed displacement' is only a placeholder",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "defects created by trimming elements (cracks, pores, sharp corners)",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "crack propagation / material failure",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "geometric instability (bending) of slender walls",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "mechanical boundary conditions not stated in passage",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "material constants in Table A.2 (not in passage)",
+      "would_require": "not in the registry: a person must judge"
+     }
+    ],
+    "size": {
+     "finest_dofs_in_paper": 0,
+     "ladder_dofs_estimate": 0,
+     "where": "unknown (no size in the paper)"
+    },
+    "decision": "cannot be carried through: 9 missing capabilities (listed, not implemented)"
+   }
+  },
+  {
+   "group": "2D established",
+   "id": "2402.00480",
+   "title": "Symmetric unisolvent equations for linear elasticity purely in stresses",
+   "passage_at": "passage at character 57144 (score 108.0)",
+   "requirements": {
+    "example": "Section 7 planar pure-stress formulation: (7.1) characterisation of the stabilisation parameter psi = k*chi with manufactured solutions (shear u_s, bi-axial u_b, sinusoidal u_p) on A = [-3,3]x[-1,1], plane stress and plane strain, E = 200, nu in {0,...,0.5}; (7.2) operator spectrum on [-1,1]^2 with full Neumann boundary",
+    "needs": {
+     "dimension": [
+      "2D"
+     ],
+     "geometry": [
+      "straight edges"
+     ],
+     "material": [
+      "linear elastic, isotropic",
+      "nearly incompressible (nu > 0.49)"
+     ],
+     "loading": [
+      "non-constant distributed load"
+     ],
+     "boundary": [],
+     "analysis": [
+      "static"
+     ]
+    },
+    "unlisted_needs": [
+     "pure-stress (stress-only) mixed/second-order formulation with stress as primary unknown, not a displacement formulation",
+     "Dirichlet BC prescribing the stress tensor on the whole boundary (sD = dA), not a displacement clamp",
+     "manufactured analytical solutions with body force f = -Div sigma derived from them (sinh, sin terms)",
+     "plane stress and plane strain variants (chi = 1/(1+nu) or 1-nu)",
+     "high-order (cubic, p=3) quadrilateral elements",
+     "sweep over stabilisation parameter psi = k*chi, k from 1e-3 to 1e3",
+     "relative L2 stress error against an exact solution",
+     "operator eigenvalue/spectrum analysis (counting zero eigenvalues) with full Neumann (traction) boundary",
+     "direct sparse solvers (Cholesky, PARDISO, UMFPACK in NGSolve)"
+    ],
+    "size": {
+     "dimension": 2,
+     "dofs_in_paper": 33123,
+     "elements_in_paper": 1200
+    },
+    "reference_values": [
+     "Relative L2 stress error ||sigma~ - sigma_h||/||sigma~|| in Fig. 7.2 lies roughly between 1e-7 and 1e-5 (plot axes only; no exact values in the text) and is practically constant for psi <= chi; slightly worse for psi = 1",
+     "Solver fails for psi = 0",
+     "Spectrum study ([-1,1]^2, 9 cubic quads, 300 dofs, full Neumann): always 9 zero eigenvalues and no negative eigenvalues for plane stress and plane strain, for any nu and psi > 0 (positive semi-definite operator); 3 zero eigenvalues would be expected from the displacement formulation",
+     "Recommended choice: psi = chi",
+     "Sec. 6 3D comparison (Fig. 6.4): stabilised form with omega = 1.01 chi converges robustly with a reference slope of O(h^4) for p in {1,2,3}; the non-stabilised form fluctuates unless nu = 0.499 (curves only, no numbers)"
+    ],
+    "quotes": [
+     "we examine plane stress and plane strain with varying Poisson ratios and Young's modulus set to E = 200",
+     "The domain is defined as A = [\u22123, 3]\u00d7[\u22121, 1] with a complete Dirichlet boundary sD = \u2202A",
+     "a structured mesh with 1200 uniform quadrilateral elements of cubic polynomial order, yielding 33123 degrees of freedom",
+     "We retrieve the stresses and forces via the constitutive equation \u03c3~ = C sym Du~ and static equilibrium f = \u2212 Div \u03c3~. We use \u03c3~ to enforce the Dirichlet boundary conditions",
+     "In the case of plane strain we use \u03bd = 0.499 \u2248 0.5 to derive the analytical solution for a quasi-incompressible material",
+     "the domain A = [\u22121, 1]^2 with a complete Neumann boundary sN = \u2202A. The finite element mesh is given by 3^2 = 9-quadrilateral elements of cubic polynomial order, yielding 300-degrees of freedom",
+     "we always retrieve 9-zero eigenvalues and no negative eigenvalues for both plane stress and plane strain"
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "missing": [
+     {
+      "category": "material",
+      "need": "nearly incompressible (nu > 0.49)",
+      "would_require": "a mixed u-p (or F-bar / enhanced-strain) formulation with its own code verification; displacement elements lock"
+     },
+     {
+      "category": "loading",
+      "need": "non-constant distributed load",
+      "would_require": "load functions in the description"
+     },
+     {
+      "category": "unlisted",
+      "need": "pure-stress (stress-only) mixed/second-order formulation with stress as primary unknown, not a displacement formulation",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "Dirichlet BC prescribing the stress tensor on the whole boundary (sD = dA), not a displacement clamp",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "manufactured analytical solutions with body force f = -Div sigma derived from them (sinh, sin terms)",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "plane stress and plane strain variants (chi = 1/(1+nu) or 1-nu)",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "high-order (cubic, p=3) quadrilateral elements",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "sweep over stabilisation parameter psi = k*chi, k from 1e-3 to 1e3",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "relative L2 stress error against an exact solution",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "operator eigenvalue/spectrum analysis (counting zero eigenvalues) with full Neumann (traction) boundary",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "direct sparse solvers (Cholesky, PARDISO, UMFPACK in NGSolve)",
+      "would_require": "not in the registry: a person must judge"
+     }
+    ],
+    "size": {
+     "finest_dofs_in_paper": 33123,
+     "ladder_dofs_estimate": 44164.0,
+     "where": "local machine"
+    },
+    "decision": "cannot be carried through: 11 missing capabilities (listed, not implemented)"
+   }
+  },
+  {
+   "group": "2D established",
+   "id": "2405.04970",
+   "title": "Numerical analysis of small-strain elasto-plastic deformation using local Radial Basis Function approximation with Picard iteration",
+   "passage_at": "passage at character 54375 (score 28.0)",
+   "requirements": {
+    "example": "Elasto-plastic benchmarks (plane strain plate with a hole, Cook's membrane, L-shaped domain) solved with strong-form RBF-FD on scattered nodes",
+    "needs": {
+     "dimension": [
+      "2D"
+     ],
+     "geometry": [
+      "straight edges",
+      "circular holes",
+      "inclined edges"
+     ],
+     "material": [
+      "linear elastic, isotropic",
+      "plasticity or damage"
+     ],
+     "loading": [],
+     "boundary": [],
+     "analysis": [
+      "static"
+     ]
+    },
+    "unlisted_needs": [
+     "small-strain elasto-plasticity with a hardening model (return mapping); the passage does not name the yield criterion or hardening law",
+     "plane strain state",
+     "incremental (load-stepped) loading history for small-strain plasticity",
+     "Picard (fixed-point) nonlinear iteration instead of Newton-Raphson with a consistent tangent",
+     "strong-form Navier-Cauchy collocation with RBF-FD (polyharmonic RBF + polynomial augmentation) on scattered nodes, not FEM",
+     "L-shaped domain: re-entrant corner (singular stress)",
+     "geometry dimensions, loads and boundary conditions are not stated in this passage; they must come from the earlier sections of the paper"
+    ],
+    "size": {
+     "dimension": 2,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 0
+    },
+    "reference_values": [],
+    "quotes": [
+     "a recent RBF-FD analysis of elasto-plastic benchmark problems [29]",
+     "a direct RBF-FD on pure scattered nodes can be used with the help of Picard iteration",
+     "the Navier-Cauchy equation is solved in a strong form using a direct RBF-FD approximation on pure scattered nodes",
+     "Future work could focus on extending this method to three-dimensional problems and investigating the effects of dynamic loading conditions in more complex hardening models",
+     "improve the performance of elasto-plastic deformation simulation"
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "missing": [
+     {
+      "category": "material",
+      "need": "plasticity or damage",
+      "would_require": "history variables, return mapping, incremental verification"
+     },
+     {
+      "category": "unlisted",
+      "need": "small-strain elasto-plasticity with a hardening model (return mapping); the passage does not name the yield criterion or hardening law",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "plane strain state",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "incremental (load-stepped) loading history for small-strain plasticity",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "Picard (fixed-point) nonlinear iteration instead of Newton-Raphson with a consistent tangent",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "strong-form Navier-Cauchy collocation with RBF-FD (polyharmonic RBF + polynomial augmentation) on scattered nodes, not FEM",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "L-shaped domain: re-entrant corner (singular stress)",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "geometry dimensions, loads and boundary conditions are not stated in this passage; they must come from the earlier sections of the paper",
+      "would_require": "not in the registry: a person must judge"
+     }
+    ],
+    "size": {
+     "finest_dofs_in_paper": 0,
+     "ladder_dofs_estimate": 0,
+     "where": "unknown (no size in the paper)"
+    },
+    "decision": "cannot be carried through: 8 missing capabilities (listed, not implemented)"
+   }
+  },
+  {
+   "group": "2D established",
+   "id": "2206.14699",
+   "title": "Validation and results of an approximate model for the stress of a Tokamak toroidal field coil at the inboard midplane",
+   "passage_at": "passage at character 17804 (score 43.6)",
+   "requirements": {
+    "example": "Thick cylindrical shell (TF-coil inner-leg model) verified against Ansys FEA: (1) a uniform isotropic steel shell (r1=0.25 m, r2=0.5 m) under a radially varying Lorentz body force density with zero axial strain (\u03b5z=0); (2) two nested shells (r=0.33/0.67/1.0 m), an isotropic inner layer and a transversely isotropic outer layer, under external pressure Pext=200 MPa with \u03b5z=0. Quarter-azimuth 3D static model, 1 m long, with symmetry planes and axially fixed end faces.",
+    "needs": {
+     "dimension": [
+      "3D extruded section",
+      "2D"
+     ],
+     "geometry": [
+      "cylindrical hole through the thickness",
+      "curved outer boundary",
+      "straight edges"
+     ],
+     "material": [
+      "linear elastic, isotropic",
+      "orthotropic linear elastic",
+      "anisotropic / fibre-reinforced"
+     ],
+     "loading": [
+      "body force (gravity)",
+      "pressure (linear)"
+     ],
+     "boundary": [
+      "symmetry / roller"
+     ],
+     "analysis": [
+      "static"
+     ]
+    },
+    "unlisted_needs": [
+     "radially varying (non-gravity) body force f(r) = a\u00b7r \u2212 b/r imposed per element",
+     "transversely isotropic material in cylindrical coordinates (axis along z)",
+     "multi-layer / bimaterial perfectly bonded interface",
+     "generalized plane strain (\u03b5z = 0) via fixed axial end faces",
+     "transverse-transverse Poisson ratio \u03bd\u22a5 = 0.5 in the outer layer",
+     "comparison of \u03c3r, \u03c3\u03b8, \u03c3z radial profiles against the semi-analytic Lam\u00e9-type model"
+    ],
+    "size": {
+     "dimension": 3,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 0
+    },
+    "reference_values": [
+     "Lam\u00e9 thick cylinder under external pressure: \u03c3\u03b8(r1) = \u22122 Pext / (1 \u2212 r1\u00b2/r2\u00b2)",
+     "Case 1: jz = 95.1 MA/m\u00b2, giving B = 22.4 T and Pmag = 200 MPa",
+     "Case 1: body force density f(r) \u2248 5.69 GN/m\u00b3 \u00d7 (r/1 m) \u2212 0.356 GN/m\u00b3 \u00d7 (1 m/r)",
+     "Case 1: model and Ansys \u03c3r, \u03c3\u03b8, \u03c3z profiles agree to within 0.7% (Fig. 6; \u03c3 ranges roughly from \u2212700 to +100 MPa)",
+     "Case 1: \u03b5z = 0 gives axial compression Fz < 0 (value not given)",
+     "Case 2: Pext = 200 MPa; inner E = 200 GPa, \u03bd = 0.3; outer Ez = 200 GPa, E\u22a5 = 100 GPa, \u03bdz\u22a5 = 0.3, \u03bd\u22a5 = 0.5 (case 2 results cut off in the passage)",
+     "Design limits (not FEA targets): Pmag = 660 MPa gives B \u2248 40.7 T for a solid bore; with a bore the allowable Pmag is 330 MPa and B < 28.8 T"
+    ],
+    "quotes": [
+     "The geometry is a uniform cylindrical shell with inner radius r1 = 0.25 m, outer radius r2 = 0.5 m.",
+     "The material has an isotropic Young's modulus E = 200 GPa and an isotropic Poisson's ratio \u03bd = 0.3",
+     "The FEA was a static 3D structural analysis, with the body force density externally evaluated and imposed on each volume element.",
+     "One quarter of the azimuthal extent was simulated, with fourfold radial symmetry and axially fixed boundary conditions. The shell was 1 m long, and the upper and lower faces were fixed corresponding to z = 0.",
+     "The outer layer material is transverse-isotropic, and is less stiff in the transverse direction only.",
+     "transverse Young's modulus E\u22a5 = 100 GPa, axial-transverse Poisson's ratio \u03bdz,\u22a5 = 0.3, and transverse-transverse Poisson's ratio \u03bd\u22a5 = 0.5",
+     "The exterior is subjected to a pressure Pext = 200 MPa.",
+     "The model results agree with the Ansys results to within 0.7%, presumably due to the finite resolution of the Ansys FEA computational domain."
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "missing": [
+     {
+      "category": "geometry",
+      "need": "curved outer boundary",
+      "would_require": "arcs/splines on the outer boundary in the description, the mesher and the corner analysis"
+     },
+     {
+      "category": "material",
+      "need": "orthotropic linear elastic",
+      "would_require": "anisotropic elasticity tensor"
+     },
+     {
+      "category": "material",
+      "need": "anisotropic / fibre-reinforced",
+      "would_require": "anisotropic invariants, fibre fields"
+     },
+     {
+      "category": "loading",
+      "need": "body force (gravity)",
+      "would_require": "body loads in the description (MMS body forces exist internally)"
+     },
+     {
+      "category": "unlisted",
+      "need": "radially varying (non-gravity) body force f(r) = a\u00b7r \u2212 b/r imposed per element",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "transversely isotropic material in cylindrical coordinates (axis along z)",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "multi-layer / bimaterial perfectly bonded interface",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "generalized plane strain (\u03b5z = 0) via fixed axial end faces",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "transverse-transverse Poisson ratio \u03bd\u22a5 = 0.5 in the outer layer",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "comparison of \u03c3r, \u03c3\u03b8, \u03c3z radial profiles against the semi-analytic Lam\u00e9-type model",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "automation",
+      "need": "3D problem definition from a paper",
+      "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+     }
+    ],
+    "size": {
+     "finest_dofs_in_paper": 0,
+     "ladder_dofs_estimate": 0,
+     "where": "unknown (no size in the paper)"
+    },
+    "decision": "cannot be carried through: 11 missing capabilities (listed, not implemented)"
+   }
+  },
+  {
+   "group": "2D established",
+   "id": "1911.08728",
+   "title": "A Locking-Free $P_0$ Finite Element Method for Linear Elasticity Equations on Polytopal Partitions",
+   "passage_at": "passage at character 69333 (score 97.4)",
+   "requirements": {
+    "example": "Cook's membrane (2D, linear elasticity, compressible and nearly incompressible cases)",
+    "needs": {
+     "dimension": [
+      "2D"
+     ],
+     "geometry": [
+      "straight edges",
+      "inclined edges"
+     ],
+     "material": [
+      "linear elastic, isotropic",
+      "nearly incompressible (nu > 0.49)"
+     ],
+     "loading": [
+      "constant traction (dead)"
+     ],
+     "boundary": [
+      "clamped"
+     ],
+     "analysis": [
+      "static"
+     ]
+    },
+    "unlisted_needs": [
+     "polygonal meshes (triangle, quad, hexagon, octagon partitions)",
+     "locking-free discretization for nu = 0.499999975 (paper uses stabilized weak Galerkin / SWG)",
+     "pseudo-pressure field output",
+     "point displacement extraction at Q = (48, 52)",
+     "tapered-plate vertex coordinates are only in Fig. 10.4, not in the text (only Q = (48,52) is given)",
+     "convergence study vs. total DOFs"
+    ],
+    "size": {
+     "dimension": 2,
+     "dofs_in_paper": 12416,
+     "elements_in_paper": 8192
+    },
+    "reference_values": [
+     "Vertical displacement at Q = (48, 52) (midpoint of right end) = 16.442 for case 2 (E = 1.12499998125, nu = 0.499999975), taken from refs [2, 22]",
+     "Triangular mesh converges at the 5th refinement (12,416 DOFs, 8,192 triangles), with a result within 1% of 16.442",
+     "Fewer than 18,000 DOFs give less than 5% error vs. the reference for all mesh types",
+     "No reference value is reported for case 1 (E = 1, nu = 1/3)"
+    ],
+    "quotes": [
+     "The problem consists of a tapered plate clamped on one end and subject to a shear load, taken as g = (0, 1/16) in our numerical experiments, on the opposite end",
+     "The first case involves a material with Young's modulus E = 1 and Poisson ratio \u03bd = 1/3, and the second case is concerned with a nearly incompressible material with Young's modulus E = 1.12499998125 and Poisson ratio \u03bd = 0.499999975.",
+     "the vertical displacement at the mid point of the right end of the plate, Q = (48, 52), is compared against the reference values reported in [2, 22], given by 16.442 for the second test case.",
+     "convergence occurs in the fifth refinement for the triangular mesh, with 12, 416 degree of freedom (i.e. 8, 192 triangular elements)",
+     "classical bending dominated test case employed to validate the susceptibility of linear elastic solvers to volumetric locking"
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "missing": [
+     {
+      "category": "material",
+      "need": "nearly incompressible (nu > 0.49)",
+      "would_require": "a mixed u-p (or F-bar / enhanced-strain) formulation with its own code verification; displacement elements lock"
+     },
+     {
+      "category": "unlisted",
+      "need": "polygonal meshes (triangle, quad, hexagon, octagon partitions)",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "locking-free discretization for nu = 0.499999975 (paper uses stabilized weak Galerkin / SWG)",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "pseudo-pressure field output",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "point displacement extraction at Q = (48, 52)",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "tapered-plate vertex coordinates are only in Fig. 10.4, not in the text (only Q = (48,52) is given)",
+      "would_require": "not in the registry: a person must judge"
+     },
+     {
+      "category": "unlisted",
+      "need": "convergence study vs. total DOFs",
+      "would_require": "not in the registry: a person must judge"
+     }
+    ],
+    "size": {
+     "finest_dofs_in_paper": 12416,
+     "ladder_dofs_estimate": 16554.666666666668,
+     "where": "local machine"
+    },
+    "decision": "cannot be carried through: 7 missing capabilities (listed, not implemented)"
+   }
+  }
+ ],
+ "carried": [],
+ "missing_capabilities_ranked": [
+  [
+   "3D problem definition from a paper",
+   5
+  ],
+  [
+   "3D general",
+   4
+  ],
+  [
+   "curved outer boundary",
+   3
+  ],
+  [
+   "anisotropic / fibre-reinforced",
+   2
+  ],
+  [
+   "body force (gravity)",
+   2
+  ],
+  [
+   "nearly incompressible (nu > 0.49)",
+   2
+  ],
+  [
+   "Mooney-Rivlin",
+   1
+  ],
+  [
+   "inverse problem: identify constitutive parameters from full-field displacements (EUCLID-like), not a forward solve",
+   1
+  ],
+  [
+   "spatially graded / heterogeneous material parameters (functionally graded, no sharp interfaces)",
+   1
+  ],
+  [
+   "library of a-priori constitutive terms (e.g. C10) with per-element parameters",
+   1
+  ],
+  [
+   "torsional loading (rotation prescribed on end face); geometry and torsion details not described in the passage",
+   1
+  ],
+  [
+   "reaction forces on fixed DOFs used as data",
+   1
+  ],
+  [
+   "Green-Lagrange strain fields computed from nodal displacements",
+   1
+  ],
+  [
+   "synthetic data from a forward FE solve, possibly with added noise",
+   1
+  ],
+  [
+   "manufactured exact solution with randomly chosen positive parameters a, b, c and random points (xi, yi, zi); matching source term and Dirichlet data must be derived from it",
+   1
+  ],
+  [
+   "Dirichlet boundary data taken from the exact solution (not plain clamping)",
+   1
+  ],
+  [
+   "high-order hexahedral elements p = 3, 4, 6, 10 (p-convergence study)",
+   1
+  ],
+  [
+   "L2-norm error against exact solution as the convergence metric",
+   1
+  ],
+  [
+   "penalty-free DG discretisation (PF-DG) with least-squares continuity constraints, if the method itself is to be reproduced",
+   1
+  ],
+  [
+   "excerpt does not give the domain geometry; the title's 'hole', 'cylinder' and 'torsion' are not described in the passage",
+   1
+  ],
+  [
+   "excerpt does not give the constitutive law or its parameters; the title says hyperelastic but no model is named",
+   1
+  ],
+  [
+   "excerpt does not state whether load stepping is used for this example; the conclusions mention an incremental iterative procedure for nonlinear problems in general",
+   1
+  ],
+  [
+   "definition of the exact solution field (equation preceding the passage) is cut off",
+   1
+  ],
+  [
+   "point load",
+   1
+  ],
+  [
+   "St. Venant-Kirchhoff material (E=1e7, nu=0), large-rotation case",
+   1
+  ],
+  [
+   "beam-like slender solid swept along a 45\u00b0 circular arc with R=100 and a 1x1 square cross-section",
+   1
+  ],
+  [
+   "tip displacement measured at the centre of the free-end cross-section",
+   1
+  ],
+  [
+   "large rotations and displacements of a slender solid (bending plus torsion)",
+   1
+  ],
+  [
+   "mitigation of Poisson thickness locking (EAS/ANS) or enough elements through the cross-section",
+   1
+  ],
+  [
+   "the title ('hole cylinder torsion') does not match the passage content; the source should be checked",
+   1
+  ],
+  [
+   "The passage does not describe this example; it only names it in the conclusion's benchmark list",
+   1
+  ],
+  [
+   "Hole and notch geometry and 3D setting come only from the example title; the hole shape, notch radius and dimensions are not given",
+   1
+  ],
+  [
+   "Whether the neo-Hookean model is compressible and its material constants are not stated",
+   1
+  ],
+  [
+   "Loading, boundary conditions and load stepping are not stated",
+   1
+  ],
+  [
+   "Comparison against a PIKAN/MLP physics-informed baseline instead of an FE reference, with an unspecified error metric",
+   1
+  ],
+  [
+   "coupled Cahn-Hilliard/Allen-Cahn phase-field chemo-mechanics (mixed formulation in mu, eta, c)",
+   1
+  ],
+  [
+   "transient diffusion with constant Li flux on outer and defect surfaces",
+   1
+  ],
+  [
+   "multiplicative decomposition F = F_bar F0(eta) with phase-dependent stress-free eigenstrain (~24% volume change)",
+   1
+  ],
+  [
+   "loading is internal swelling eigenstrain, not a listed external load; 'prescribed displacement' is only a placeholder",
+   1
+  ],
+  [
+   "defects created by trimming elements (cracks, pores, sharp corners)",
+   1
+  ],
+  [
+   "crack propagation / material failure",
+   1
+  ],
+  [
+   "geometric instability (bending) of slender walls",
+   1
+  ],
+  [
+   "mechanical boundary conditions not stated in passage",
+   1
+  ],
+  [
+   "material constants in Table A.2 (not in passage)",
+   1
+  ],
+  [
+   "non-constant distributed load",
+   1
+  ],
+  [
+   "pure-stress (stress-only) mixed/second-order formulation with stress as primary unknown, not a displacement formulation",
+   1
+  ],
+  [
+   "Dirichlet BC prescribing the stress tensor on the whole boundary (sD = dA), not a displacement clamp",
+   1
+  ],
+  [
+   "manufactured analytical solutions with body force f = -Div sigma derived from them (sinh, sin terms)",
+   1
+  ],
+  [
+   "plane stress and plane strain variants (chi = 1/(1+nu) or 1-nu)",
+   1
+  ],
+  [
+   "high-order (cubic, p=3) quadrilateral elements",
+   1
+  ],
+  [
+   "sweep over stabilisation parameter psi = k*chi, k from 1e-3 to 1e3",
+   1
+  ],
+  [
+   "relative L2 stress error against an exact solution",
+   1
+  ],
+  [
+   "operator eigenvalue/spectrum analysis (counting zero eigenvalues) with full Neumann (traction) boundary",
+   1
+  ],
+  [
+   "direct sparse solvers (Cholesky, PARDISO, UMFPACK in NGSolve)",
+   1
+  ],
+  [
+   "plasticity or damage",
+   1
+  ],
+  [
+   "small-strain elasto-plasticity with a hardening model (return mapping); the passage does not name the yield criterion or hardening law",
+   1
+  ],
+  [
+   "plane strain state",
+   1
+  ],
+  [
+   "incremental (load-stepped) loading history for small-strain plasticity",
+   1
+  ],
+  [
+   "Picard (fixed-point) nonlinear iteration instead of Newton-Raphson with a consistent tangent",
+   1
+  ],
+  [
+   "strong-form Navier-Cauchy collocation with RBF-FD (polyharmonic RBF + polynomial augmentation) on scattered nodes, not FEM",
+   1
+  ],
+  [
+   "L-shaped domain: re-entrant corner (singular stress)",
+   1
+  ],
+  [
+   "geometry dimensions, loads and boundary conditions are not stated in this passage; they must come from the earlier sections of the paper",
+   1
+  ],
+  [
+   "orthotropic linear elastic",
+   1
+  ],
+  [
+   "radially varying (non-gravity) body force f(r) = a\u00b7r \u2212 b/r imposed per element",
+   1
+  ],
+  [
+   "transversely isotropic material in cylindrical coordinates (axis along z)",
+   1
+  ],
+  [
+   "multi-layer / bimaterial perfectly bonded interface",
+   1
+  ],
+  [
+   "generalized plane strain (\u03b5z = 0) via fixed axial end faces",
+   1
+  ],
+  [
+   "transverse-transverse Poisson ratio \u03bd\u22a5 = 0.5 in the outer layer",
+   1
+  ],
+  [
+   "comparison of \u03c3r, \u03c3\u03b8, \u03c3z radial profiles against the semi-analytic Lam\u00e9-type model",
+   1
+  ],
+  [
+   "polygonal meshes (triangle, quad, hexagon, octagon partitions)",
+   1
+  ],
+  [
+   "locking-free discretization for nu = 0.499999975 (paper uses stabilized weak Galerkin / SWG)",
+   1
+  ],
+  [
+   "pseudo-pressure field output",
+   1
+  ],
+  [
+   "point displacement extraction at Q = (48, 52)",
+   1
+  ],
+  [
+   "tapered-plate vertex coordinates are only in Fig. 10.4, not in the text (only Q = (48,52) is given)",
+   1
+  ],
+  [
+   "convergence study vs. total DOFs",
+   1
+  ]
+ ],
+ "llm_cost_usd": 0.6073272000000001
+}

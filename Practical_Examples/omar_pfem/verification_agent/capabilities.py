@@ -63,6 +63,14 @@ REGISTRY = {
         "buckling / limit points": (False, "arc-length continuation, stability analysis"),
     },
 }
+REGISTRY["outputs"] = {
+    "point displacement": (True, "points of interest in the description"),
+    "strain energy": (True, "all solvers"),
+    "region-averaged stress": (True, "Gaussian-kernel corner averages"),
+    "peak stress": (True, "reported; concluded unbounded at singular corners"),
+    "reaction force": (False, "boundary reaction integration"),
+    "stress at a given point": (False, "pointwise stress recovery at a requested point"),
+}
 LOCAL_DOF = 450_000          # experiment.VERIF_MAX_DOF default
 LOCAL_GB = 13.0
 CLUSTER_GB = 120.0
@@ -132,3 +140,48 @@ def assess(req):
             "decision": ("can be carried through" if not missing else
                          f"cannot be carried through: {len(missing)} missing capabilit"
                          f"{'y' if len(missing) == 1 else 'ies'} (listed, not implemented)")}
+
+
+# ------------------------------------------------------------------ v2 (POST HOC, 27 Nov) --
+# After the first benchmark search: the LLM listed the paper's METHOD (polygonal meshes, its
+# locking-free scheme) as requirements, and merged several cases, so a feasible case (Cook,
+# nu = 1/3) was declared infeasible. v2 separates problem from method and assesses each case.
+def requirements_schema_v2():
+    one = requirements_schema()["properties"]
+    case = {"type": "object", "additionalProperties": False,
+            "required": ["name", "needs", "unlisted_needs", "reference_values"],
+            "properties": {"name": {"type": "string"}, "needs": one["needs"],
+                           "unlisted_needs": one["unlisted_needs"],
+                           "reference_values": one["reference_values"]}}
+    return {"type": "object", "additionalProperties": False,
+            "required": ["example", "cases", "size", "quotes"],
+            "properties": {"example": {"type": "string"},
+                           "cases": {"type": "array", "items": case},
+                           "size": one["size"], "quotes": one["quotes"]}}
+
+
+REQ_PROMPT_V2 = (
+    "You assess a published benchmark for a verification agent. Describe the PROBLEM only: "
+    "geometry, material, loads, supports and the quantities to compute. The paper's own "
+    "numerical METHOD (its elements, meshes, stabilisation, solver, outputs of its method) is "
+    "NOT a requirement and must not be listed. If the passage states several cases (e.g. "
+    "different Poisson ratios or loads), give one entry per case. Use the listed values only; "
+    "a problem need that is not in a list goes to unlisted_needs. Give the dofs of the paper's "
+    "finest mesh if stated (0 if not) and short verbatim quotes. Do not judge feasibility.\n\n")
+
+
+def requirements_v2(backend, passage, hint):
+    return backend.ask("requirements", REQ_PROMPT_V2 + f"EXAMPLE: {hint}\n\nPASSAGE:\n{passage}",
+                       requirements_schema_v2())
+
+
+def assess_v2(req):
+    cases = []
+    for c in req["cases"]:
+        a = assess({"needs": c["needs"], "unlisted_needs": c["unlisted_needs"], "size": req["size"]})
+        cases.append({"case": c["name"], **a})
+    ok = [c for c in cases if c["feasible"]]
+    return {"feasible": bool(ok), "feasible_cases": [c["case"] for c in ok], "cases": cases,
+            "decision": (f"can be carried through: {ok[0]['case']}" if ok else
+                         "cannot be carried through: every case misses a capability (listed, "
+                         "not implemented)")}

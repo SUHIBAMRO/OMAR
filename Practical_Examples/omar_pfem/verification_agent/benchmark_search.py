@@ -110,3 +110,57 @@ if __name__ == "__main__":
     ap.add_argument("--budget-usd", type=float, default=2.5)
     a = ap.parse_args()
     run(a.backend, a.budget_usd)
+
+
+def reassess(run_file, backend_name="claude-cli", budget_usd=1.9, max_carry=2, log=print):
+    """POST HOC v2 assessment of the same candidates (same passages), then carry the feasible
+    2D cases through. Labelled post hoc; the first run's score stands."""
+    from omar_pfem.verification_agent import autonomous, capabilities as CAP, llm_roles
+    from omar_pfem.verification_agent import literature_search as LS
+    from omar_pfem.verification_agent.literature_agent import extract_text
+    from omar_pfem.verification_agent.literature_select import select_passage
+    first = json.load(open(run_file))
+    made = []
+    orig = llm_roles.make_backend
+
+    def capture(*a, **k):
+        b = orig(*a, **k)
+        made.append(b)
+        return b
+    llm_roles.make_backend = capture
+    cost = lambda: sum(getattr(b, "cost_usd", 0.0) for b in made)
+    backend = llm_roles.make_backend(backend_name)
+    hints = {g: h for g, _, h in QUERIES}
+    rec = {"post_hoc": True, "first_run": os.path.basename(run_file), "candidates": [], "carried": []}
+    try:
+        for c in first["candidates"]:
+            if cost() >= budget_usd:
+                break
+            pdf = LS.download(c["id"], os.path.join(HERE, "literature_search_runs", "papers"))
+            hint = next(h for g, _, h in QUERIES if g == c["group"] and
+                        select_passage(extract_text(pdf), h)[1] == c["passage_at"]) \
+                if any(g == c["group"] for g, _, _ in QUERIES) else hints[c["group"]]
+            passage, _ = select_passage(extract_text(pdf), hint)
+            req = CAP.requirements_v2(backend, passage, hint)
+            a = CAP.assess_v2(req)
+            rec["candidates"].append({"id": c["id"], "group": c["group"], "requirements": req,
+                                      "assessment": a})
+            log(f"[bench v2] {c['id']}: {a['decision']}")
+            dim = req["size"].get("dimension") or 2
+            if a["feasible"] and dim == 2 and len(rec["carried"]) < max_carry and cost() < budget_usd:
+                res = autonomous.run(pdf=pdf, hint=a["feasible_cases"][0], backend_name=backend_name,
+                                     budget_minutes=20.0, max_experiments=4,
+                                     chosen_by="the benchmark search v2 (code + LLM requirements)")
+                rec["carried"].append({"id": c["id"], "case": a["feasible_cases"][0],
+                                       "final": res.get("final")})
+                log(f"[bench v2] carried {c['id']}: final {res.get('final')}")
+    finally:
+        llm_roles.make_backend = orig
+        gaps = collections.Counter(m["need"] for r in rec["candidates"] for cs in r["assessment"]["cases"]
+                                   for m in cs["missing"])
+        rec["missing_capabilities_ranked"] = gaps.most_common()
+        rec["llm_cost_usd"] = cost()
+        json.dump(rec, open(run_file.replace(".json", "_v2_posthoc.json"), "w"), indent=1, default=str)
+        log(f"[bench v2] {len(rec['candidates'])} reassessed, {len(rec['carried'])} carried; gaps "
+            f"{gaps.most_common(6)}; LLM cost USD {cost():.2f}")
+    return rec
