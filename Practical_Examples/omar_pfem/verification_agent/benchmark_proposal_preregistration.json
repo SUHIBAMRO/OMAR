@@ -1,0 +1,14 @@
+{
+ "name": "benchmarks proposed by the agent for a new code",
+ "frozen_utc": "2026-11-27T17:03:18.378475",
+ "design": "the prompt gives only the code's features (capabilities.REGISTRY) and element types; it names no benchmark, singularity or refinement strategy",
+ "predictions": {
+  "P1_singular_corner": "the suite contains a problem with a corner singularity (re-entrant corner, L-shape, crack or notch)",
+  "P2_uniform_vs_graded": "for such a problem it proposes uniform AND graded (or adaptive/geometric) refinement",
+  "P3_p_or_hp": "it proposes p- or hp-refinement somewhere",
+  "P4_mms_separate": "it proposes a manufactured-solution check",
+  "P5_reference_from_literature": "it proposes a benchmark with a literature reference value (Cook's membrane or the plate with a hole / Kirsch)"
+ },
+ "scoring": "code, by the keyword rules in benchmark_proposal.checks (fixed before the run)",
+ "budget_usd": 0.5
+}
