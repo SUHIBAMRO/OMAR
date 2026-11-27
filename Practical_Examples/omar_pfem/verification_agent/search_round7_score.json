@@ -1,0 +1,43 @@
+{
+ "preregistration": "search_round7_preregistration.json",
+ "run": "benchmark_search_runs/round6_20261127_171521.json",
+ "cost_usd": 0.7063912,
+ "predictions": {
+  "K1_assessed": {
+   "confirmed": false,
+   "evidence": "4 assessed (9 PDFs behind publisher pages)"
+  },
+  "K2_feasible": {
+   "confirmed": true,
+   "evidence": "OA_W4353007016 (isoparametric tangled FEM, finite-strain Cook's membrane), never seen before, declared feasible"
+  },
+  "K3_end_to_end": {
+   "confirmed": false,
+   "evidence": "refused by the definition step: the excerpt gives no material, supports or loads for the Cook case (correct)"
+  },
+  "K4_no_person": {
+   "confirmed": false,
+   "evidence": "no carried candidate reached verdicts"
+  },
+  "K5_cost": {
+   "confirmed": true,
+   "evidence": "USD 0.71"
+  }
+ },
+ "score": "2 of 5",
+ "missing_information_reported_by_the_assessment": [
+  [
+   "Geometry: vertex coordinates are only in Fig. 1a (not in the passage); the standard Cook dimensions (48/44/16) are not stated",
+   "Material model and parameters for Cook's membrane are not given in the passage (presumably hyperelastic, given the load stepping, but not stated)",
+   "Load magnitude, distribution and direction (shear traction on the right edge) are not stated; it is not stated whether the load is dead or follower",
+   "Supports are not stated explicitly (presumably clamped left edge, per reference [35])",
+   "Plane strain or plane stress is not stated",
+   "Thickness is not stated",
+   "Number of load steps is shown only in Fig. 10 (10 steps)"
+  ],
+  [
+   "The passage only mentions this case; geometry, material parameters, loading, supports and outputs are not given"
+  ]
+ ],
+ "change_after": "a feasible case whose missing information concerns material, loads or supports is no longer carried (it is refused at definition anyway)"
+}

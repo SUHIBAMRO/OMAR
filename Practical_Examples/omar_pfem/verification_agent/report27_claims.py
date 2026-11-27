@@ -58,6 +58,20 @@ def claims():
     first = j(bs["run"])
     c.append(("bench cost", f"USD {first['llm_cost_usd']:.2f}", "USD 0.61"))
     c.append(("bench v2 cost", f"USD {bs['v2_posthoc']['cost_usd']:.2f}", "USD 0.77"))
+    # Section 6 (added 27 Nov evening)
+    bp = j("benchmark_proposal_result.json")
+    c.append(("proposal score", "Four of five predictions held", "Four of five predictions held") if sum(bp['checks'].values()) == 4 else ("proposal score", "?", "Four of five predictions held"))
+    al = j("apriori_literature_result_attempt2_posthoc.json")
+    res = [x for p in al["read"] for x in p["results"]]
+    c.append(("quotes", "all " + {5: "five", 7: "seven"}.get(sum(x['quote_found'] for x in res), "?") + " quotes", "all seven quotes"))
+    rows = al["comparison_energy_norm_only"]
+    c.append(("lit agree", "its " + {5: "five", 7: "seven"}.get(sum(x['agrees_0.1'] for x in rows), "?") + " energy-norm predictions", "its five energy-norm predictions"))
+    oa = j("autonomous_runs", "OA_W2991184399", "run.json")["certified_info"]["v_q"]
+    c.append(("v_Q reproduced", f"reproduced v_Q = {oa['limit']:.4f} \u00b1 {oa['U_abs']:.4f}", "reproduced v_Q = 21.5141 \u00b1 0.0133"))
+    cost = (bp["llm_cost_usd"] + j("apriori_literature_score.json")["attempt1"]["cost_usd"] + al["llm_cost_usd"]
+            + j("search_round5_score.json")["cost_usd"] + j("search_round6_score.json")["cost_usd"]
+            + j("search_round7_score.json")["cost_usd"])
+    c.append(("section 6 cost", f"USD {cost:.2f}", "USD 2.33"))
     return c
 
 

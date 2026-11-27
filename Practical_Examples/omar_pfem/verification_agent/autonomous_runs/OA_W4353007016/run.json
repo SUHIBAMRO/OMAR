@@ -1,0 +1,429 @@
+{
+ "steps": [
+  {
+   "stage": "L",
+   "actor": "LLM",
+   "status": "done",
+   "kind": "autonomous decision",
+   "detail": "card from passage at character 19889 (score 263.2); quotes found 100%",
+   "card": {
+    "pdf": "OA_W4353007016.pdf",
+    "section_used": "passage at character 19889 (score 263.2)",
+    "card": {
+     "title": "2D Cook's membrane, finite-strain load stepping: vertical tip displacement at corner A, regular-mesh FEM vs tangled-mesh i-TFEM",
+     "geometry": {
+      "value": "2D Cook's membrane (tapered panel). Point A is the top right corner (Fig. 1a). This excerpt gives no dimensions; they are defined in Section 4.1 / Fig. 1a, which are not included.",
+      "quote": "The vertical displacement at the top right corner point A (see Fig. 1a) for every load"
+     },
+     "material": {
+      "value": "Not stated in this excerpt. It is presumably defined in Section 4.1/4.2. The generalized neo-Hookean model with mu=500, K=1700 belongs to the punch problem (Sec. 4.3), not to Cook's membrane.",
+      "quote": "Vertical displacement versus the load step for Cook\u2019s membrane problem."
+     },
+     "boundary_conditions": {
+      "value": "Not stated in this excerpt. The standard Cook's membrane has a clamped left edge and a loaded right edge, but the paper's own statement (Sec. 4.1 / Fig. 1a) is not included.",
+      "quote": "Figure 12: Convergence study for Cook\u2019s membrane problem."
+     },
+     "loading": {
+      "value": "Finite-strain incremental load stepping, with tip displacement reported at every load step (Fig. 10). The load type, magnitude and number of steps are not stated in the text.",
+      "quote": "Vertical displacement versus the load step for Cook\u2019s membrane problem."
+     },
+     "discretisation": {
+      "value": "Regular structured mesh with 2^N x 2^N elements, controlled by mesh index N. The study uses N = 2 to 6, and the reference uses N = 7 (128 x 128 elements). The element type (and polynomial order) is not stated in this excerpt.",
+      "quote": "elements in the regular mesh is 2N \u00d7 2N"
+     },
+     "reference": {
+      "type": "single_mesh",
+      "convergence_evidence": "mesh_study",
+      "quote": "where u is the reference solution from a fine mesh with N = 7, and uh is the solution under consideration."
+     },
+     "qois": [
+      {
+       "name": "Vertical tip displacement u_y at corner A vs load step",
+       "kind": "displacement",
+       "definition": "Vertical displacement of top right corner point A at each load step, comparing a regular mesh (FEM) with a tangled mesh (i-TFEM) (Fig. 10).",
+       "reported_value": "Plotted only; the text gives no number. The text says the two agree closely.",
+       "quote": "One can observe a close agreement between the two."
+      },
+      {
+       "name": "Maximum vertical displacement in the deformed configuration (final load step)",
+       "kind": "displacement",
+       "definition": "Upper end of the vertical-displacement contour legend after the last load step (Fig. 11a regular mesh, Fig. 11b tangled mesh with i-TFEM). It is not explicitly identified as the value at A.",
+       "reported_value": "9.523 (regular mesh); 9.681 (tangled mesh, i-TFEM)",
+       "quote": "9.681"
+      },
+      {
+       "name": "Convergence of u_y at A vs mesh index N",
+       "kind": "displacement",
+       "definition": "Vertical displacement at A for N = 2 to 6, for regular-mesh FEM, tangled-mesh FEM and tangled-mesh i-TFEM (Fig. 12).",
+       "reported_value": "Plotted only. Regular-mesh FEM and tangled-mesh i-TFEM converge to the same value; tangled-mesh FEM is erroneous.",
+       "quote": "Observe that FEM over a"
+      },
+      {
+       "name": "H1 seminorm of the displacement error",
+       "kind": "field_error_norm",
+       "definition": "e_h = ||grad u - grad u_h|| in L2 over Omega, with u the N = 7 fine-mesh reference (Eq. 24). Plotted against h on a log-log scale (Fig. 13a).",
+       "reported_value": "Rate 0.98 for the regular mesh (Fig. 13a legend); 1.01 is the reference slope label. The text calls the i-TFEM rate near-optimal but gives no number.",
+       "quote": "One can observe a near-optimal convergence rate for i-TFEM."
+      },
+      {
+       "name": "Condition number of the system matrix (Eq. 21) vs mesh size",
+       "kind": "other",
+       "definition": "log10 of the condition number against log10(h) (Fig. 13b).",
+       "reported_value": "Rates from the Fig. 13b legend: 2.10 regular mesh, 2.20 tangled mesh i-TFEM, 2.24 tangled mesh FEM",
+       "quote": "Fig. 13b shows"
+      }
+     ],
+     "singular_features": [
+      {
+       "description": "Corners where the clamped left edge meets the traction-free top and bottom edges. This is assumed from the standard Cook's membrane setup, since the boundary conditions are not stated in this excerpt. Pointwise stress there is singular, but the tip displacement at A and e_h remain convergent.",
+       "singular": true,
+       "inferred": true,
+       "quote": "Figure 12: Convergence study for Cook\u2019s membrane problem."
+      },
+      {
+       "description": "Point A is the top right corner of the loaded free edge, where the QoI is measured. Its displacement is finite and well-defined; no singularity is expected there.",
+       "singular": false,
+       "inferred": true,
+       "quote": "The vertical displacement at the top right corner point A (see Fig. 1a) for every load"
+      }
+     ],
+     "not_stated": [
+      "Geometry dimensions (in Sec. 4.1 / Fig. 1a, not in this excerpt)",
+      "Constitutive model and material constants for Cook's membrane",
+      "Boundary conditions (clamped edge, loaded edge)",
+      "Load type, magnitude and number of load steps",
+      "Element type / interpolation order",
+      "Number of Newton iterations per load step for Cook's membrane",
+      "Numeric tip displacement at A for each N or at convergence (shown only in plots)",
+      "Numeric H1 convergence rate for the i-TFEM and FEM tangled meshes",
+      "Construction of the tangled mesh (Fig. 9b)"
+     ]
+    },
+    "quotes_found": {
+     "geometry": true,
+     "material": true,
+     "boundary_conditions": true,
+     "loading": true,
+     "discretisation": true,
+     "reference": true,
+     "qois[0]": true,
+     "qois[1]": true,
+     "qois[2]": true,
+     "qois[3]": true,
+     "qois[4]": true,
+     "singular_features[0]": true,
+     "singular_features[1]": true
+    },
+    "quote_rate": 1.0,
+    "qoi_classes": [
+     {
+      "name": "Vertical tip displacement u_y at corner A vs load step",
+      "kind": "displacement",
+      "class": "displacement"
+     },
+     {
+      "name": "Maximum vertical displacement in the deformed configuration (final load step)",
+      "kind": "displacement",
+      "class": "displacement"
+     },
+     {
+      "name": "Convergence of u_y at A vs mesh index N",
+      "kind": "displacement",
+      "class": "displacement"
+     },
+     {
+      "name": "H1 seminorm of the displacement error",
+      "kind": "field_error_norm",
+      "class": "error_norm"
+     },
+     {
+      "name": "Condition number of the system matrix (Eq. 21) vs mesh size",
+      "kind": "other",
+      "class": "out_of_scope"
+     }
+    ],
+    "vocabulary_gaps": [],
+    "needs": [
+     "reference not verified: a refinement family (and strategies) is needed before its values can be used to measure surrogate errors",
+     "no independent code: cross-check with a second solver",
+     "singular features present: run the singular-order check; pointwise peaks there have no finite limit",
+     "missing inputs must be fixed (and declared) before solving: Geometry dimensions (in Sec. 4.1 / Fig. 1a, not in this excerpt); Constitutive model and material constants for Cook's membrane; Boundary conditions (clamped edge, loaded edge); Load type, magnitude and number of load steps; Element type / interpolation order; Number of Newton iterations per load step for Cook's membrane; Numeric tip displacement at A for each N or at convergence (shown only in plots); Numeric H1 convergence rate for the i-TFEM and FEM tangled meshes; Construction of the tangled mesh (Fig. 9b)"
+    ],
+    "problem_text": "2D Cook's membrane, finite-strain load stepping: vertical tip displacement at corner A, regular-mesh FEM vs tangled-mesh i-TFEM.\nGeometry: 2D Cook's membrane (tapered panel). Point A is the top right corner (Fig. 1a). This excerpt gives no dimensions; they are defined in Section 4.1 / Fig. 1a, which are not included.\nMaterial: Not stated in this excerpt. It is presumably defined in Section 4.1/4.2. The generalized neo-Hookean model with mu=500, K=1700 belongs to the punch problem (Sec. 4.3), not to Cook's membrane.\nBoundary conditions: Not stated in this excerpt. The standard Cook's membrane has a clamped left edge and a loaded right edge, but the paper's own statement (Sec. 4.1 / Fig. 1a) is not included.\nLoading: Finite-strain incremental load stepping, with tip displacement reported at every load step (Fig. 10). The load type, magnitude and number of steps are not stated in the text.\nDiscretisation in the paper: Regular structured mesh with 2^N x 2^N elements, controlled by mesh index N. The study uses N = 2 to 6, and the reference uses N = 7 (128 x 128 elements). The element type (and polynomial order) is not stated in this excerpt.\nFeatures: Corners where the clamped left edge meets the traction-free top and bottom edges. This is assumed from the standard Cook's membrane setup, since the boundary conditions are not stated in this excerpt. Pointwise stress there is singular, but the tip displacement at A and e_h remain convergent.; Point A is the top right corner of the loaded free edge, where the QoI is measured. Its displacement is finite and well-defined; no singularity is expected there..\nQuestion: which of these quantities can serve as trustworthy reference values: Vertical tip displacement u_y at corner A vs load step (Vertical displacement of top right corner point A at each load step, comparing a regular mesh (FEM) with a tangled mesh (i-TFEM) (Fig. 10).); Maximum vertical displacement in the deformed configuration (final load step) (Upper end of the vertical-displacement contour legend after the last load step (Fig. 11a regular mesh, Fig. 11b tangled mesh with i-TFEM). It is not explicitly identified as the value at A.); Convergence of u_y at A vs mesh index N (Vertical displacement at A for N = 2 to 6, for regular-mesh FEM, tangled-mesh FEM and tangled-mesh i-TFEM (Fig. 12).); H1 seminorm of the displacement error (e_h = ||grad u - grad u_h|| in L2 over Omega, with u the N = 7 fine-mesh reference (Eq. 24). Plotted against h on a log-log scale (Fig. 13a).); Condition number of the system matrix (Eq. 21) vs mesh size (log10 of the condition number against log10(h) (Fig. 13b).)?"
+   }
+  },
+  {
+   "stage": "L",
+   "actor": "code",
+   "status": "done",
+   "kind": "predefined procedure",
+   "detail": "section chosen by code from the hint"
+  },
+  {
+   "stage": "L",
+   "actor": "code",
+   "status": "done",
+   "kind": "predefined procedure",
+   "detail": "paper and hint chosen by search round 6 (OpenAlex, code + LLM requirements) (\"2D Cook's membrane (Sections 4.1 and 4.2; finite-strain load stepping, tip displacement at corner A)\")"
+  },
+  {
+   "stage": "D",
+   "actor": "LLM",
+   "status": "done",
+   "kind": "autonomous decision",
+   "detail": "formalizer specification; code check: no problems",
+   "spec": {
+    "name": "Cook's membrane, finite strain: regular-mesh FEM vs tangled-mesh i-TFEM; tip displacement u_y at corner A, H1 error and condition number vs mesh index N",
+    "geometry": "2D Cook's membrane (tapered quadrilateral panel). Point A is the top right corner of the right edge. Dimensions are defined in Sec. 4.1 / Fig. 1a, which are not provided. The mesh is a structured 2^N x 2^N family with N = 2 to 6, and the fine-mesh reference is N = 7 (128 x 128). There are three discretisations: regular-mesh FEM, tangled-mesh FEM and tangled-mesh i-TFEM.",
+    "dim": 2,
+    "material": "Not stated in this excerpt. It is presumably hyperelastic (finite strain) and defined in Sec. 4.1/4.2. The neo-Hookean parameters mu=500, K=1700 belong to the punch problem (Sec. 4.3) and must NOT be assumed for Cook's membrane. The compressibility level (K/mu) is unknown, so volumetric locking cannot be assessed.",
+    "loading": "Incremental finite-strain load stepping, with u_y at A reported at every step (Fig. 10). The load type is assumed to be the standard shear traction on the right edge, but this is not confirmed. The magnitude, number of steps and Newton tolerance are not stated. Boundary conditions are assumed to be the standard ones (left edge clamped, top and bottom edges traction-free, right edge loaded), but the paper's statement is not available.",
+    "regularity": "clamped_free_corner",
+    "element": "Q4",
+    "reference": "mesh_refinement_family",
+    "qois": [
+     "u_y at corner A vs load step (Fig. 10). This is a global, displacement-type QoI. It should converge under refinement because A is away from the clamped-free corners. It is a usable reference value only if the load level, BCs, material and solver tolerances are known and each load step is converged. Comparing FEM with i-TFEM at a single mesh is a consistency check, not a convergence check.",
+     "Maximum vertical displacement in the final deformed configuration (Figs. 11a/b, top of the contour legend). It is NOT trustworthy as a reference: its location is not identified (not stated to be A), the value is read from a colour-legend bound rather than reported, and contour post-processing (nodal extrapolation or smoothing) may affect it. At most, use it as a qualitative cross-check against u_y(A) at the final step.",
+     "u_y at A vs mesh index N = 2..6 for regular FEM, tangled FEM and tangled i-TFEM (Fig. 12). This is the best candidate for a trustworthy reference. Use the regular-mesh FEM sequence to check monotone, asymptotic convergence (e.g. Richardson extrapolation or observed order from 3+ consecutive N). Expected: it converges, though possibly with a reduced rate because of the corner singularities. Tangled FEM is expected to be wrong or non-convergent; that is what the paper wants to show and it is not a reference.",
+     "H1 seminorm error e_h = ||grad u - grad u_h||_L2 vs h (Eq. 24, Fig. 13a). The 'reference' is the N = 7 discrete solution, not an exact solution, so this is a self-convergence measure. The N = 6 point is only one level from the reference, so its error is underestimated and the apparent rate is biased (usually steepening artificially at the finest level). Exclude the last point or use a reference at least 2 levels finer. The clamped-free corner singularities cap the H1 rate below the smooth-case O(h) for Q4. An observed rate of about 1 or more should be explained, not taken as evidence. Also unclear: how grad u is transferred between the N = 7 mesh and the tangled meshes, and in which configuration the gradient is taken.",
+     "Condition number of the system matrix (Eq. 21) vs h (Fig. 13b). This is a solver or stability diagnostic, NOT an accuracy QoI, so it cannot serve as a reference value for the solution. For a regular mesh the expected scaling is about O(h^-2), i.e. a slope of about -2 in log10 vs log10(h). It is a meaningful check of whether i-TFEM restores well-conditioning on tangled meshes. Unknown: which matrix it is (tangent stiffness at which load step, or linearised at the reference configuration?), how it is computed (2-norm, estimate) and whether constrained DOFs are eliminated."
+    ],
+    "well_posedness": [
+     "Dirichlet BCs: a clamped left edge (assumed) removes rigid-body modes, so the equilibrium problem is well-posed for each load step if the material is polyconvex or stable. This needs confirmation from Sec. 4.1.",
+     "Material stability: the hyperelastic model and parameters are unknown. Ellipticity or polyconvexity at the strains reached must be confirmed. If the material is nearly incompressible (large K/mu), standard Q4 locks and u_y(A) converges slowly or not at all toward the true value.",
+     "Load level vs limit points: Cook's membrane under shear loading normally has no limit point at moderate load. However, the load magnitude is not given, so absence of buckling or snap-through and uniqueness of the load-path solution cannot be verified. Each load step must reach Newton convergence for Fig. 10 to be a valid reference.",
+     "Singular features: the clamped-edge / traction-free-edge corners (top-left and bottom-left) make pointwise stress and strain singular. Peak stress does not converge, and the H1 error rate is reduced below O(h). The displacement at A, energy and region averages remain convergent. A itself (a free convex corner of the loaded edge) has no singularity in displacement.",
+     "Tangled-mesh FEM: elements with inverted or overlapping Jacobians make standard FEM inconsistent, so its results are not a reference. Only regular FEM, and i-TFEM if shown to agree with it, are candidates.",
+     "Reference adequacy: N = 7 is only one refinement level beyond the finest test mesh (N = 6). It is adequate for N = 2 to 5 but biases e_h and the convergence assessment at N = 6."
+    ],
+    "open_questions": [
+     "Element type and polynomial order (Q4 is assumed only as a placeholder; it could be T3, Q8/Q9 or another type). This decides the expected convergence rates.",
+     "Geometry dimensions of Cook's membrane (standard 48/44/16?), defined in Sec. 4.1 / Fig. 1a, which are not provided.",
+     "Boundary conditions as stated by the paper (clamped left edge? traction on the right edge? traction-free top and bottom edges?).",
+     "Material model and parameters for Cook's membrane (the punch-problem mu=500, K=1700 must not be reused), including the degree of compressibility.",
+     "Load type (shear traction vs prescribed displacement), total magnitude, number of load steps and Newton convergence tolerance.",
+     "How the N = 7 reference gradient is evaluated against tangled-mesh solutions in Eq. 24 (projection or interpolation operator, quadrature, reference vs current configuration).",
+     "Whether the Fig. 11 maximum vertical displacement occurs at A, and its numeric value (only a contour-legend bound is available).",
+     "Which matrix is used in the condition number (Eq. 21): the linear stiffness or the tangent at a specified load step; the norm used; and the treatment of Dirichlet DOFs.",
+     "Numerical values of u_y(A) for each N and each method (Fig. 12), and e_h values (Fig. 13a). They are only shown graphically, so digitised values would be needed for a deterministic check.",
+     "How the tangled meshes are generated, and whether the tangling level is fixed across N (this affects whether the i-TFEM convergence rate is comparable to regular FEM)."
+    ]
+   }
+  },
+  {
+   "stage": "D",
+   "actor": "LLM",
+   "status": "unsupported",
+   "kind": "autonomous decision",
+   "detail": "The excerpt does not state the material model or its parameters, the boundary conditions, or the load type, size and stepping for the Cook's membrane case. It says the only material data given (generalized neo-Hookean, mu=500, K=1700) belong to the punch problem. The QoI (u_y at A over load steps at finite strain) depends entirely on these missing settings, so any model would be invented rather than formalized. No reference numbers are given in the text either, since all values are in figures. Only the geometry can be filled in (standard Cook's membrane, rule 4). The description below is a tentative template, not a faithful model.",
+   "modeler": {
+    "supported": false,
+    "unsupported_reason": "The excerpt does not state the material model or its parameters, the boundary conditions, or the load type, size and stepping for the Cook's membrane case. It says the only material data given (generalized neo-Hookean, mu=500, K=1700) belong to the punch problem. The QoI (u_y at A over load steps at finite strain) depends entirely on these missing settings, so any model would be invented rather than formalized. No reference numbers are given in the text either, since all values are in figures. Only the geometry can be filled in (standard Cook's membrane, rule 4). The description below is a tentative template, not a faithful model.",
+    "description": {
+     "name": "cooks_membrane_finite_strain_tip_displacement_TEMPLATE_material_and_load_unknown",
+     "material": "neo_hookean",
+     "geometry_kind": "polygon",
+     "cell_size": 1,
+     "cells": [],
+     "outer": [
+      [
+       0,
+       0
+      ],
+      [
+       48,
+       44
+      ],
+      [
+       48,
+       60
+      ],
+      [
+       0,
+       44
+      ]
+     ],
+     "holes": [],
+     "E": 1,
+     "nu": 0.3,
+     "plane": "strain",
+     "bcs": [
+      {
+       "segment": [
+        [
+         0,
+         0
+        ],
+        [
+         0,
+         44
+        ]
+       ],
+       "hole": -1,
+       "type": "clamped",
+       "t": [],
+       "p": 0,
+       "u": []
+      },
+      {
+       "segment": [
+        [
+         48,
+         44
+        ],
+        [
+         48,
+         60
+        ]
+       ],
+       "hole": -1,
+       "type": "traction",
+       "t": [
+        0,
+        0
+       ],
+       "p": 0,
+       "u": []
+      }
+     ],
+     "points": [
+      {
+       "name": "v_A",
+       "x": 48,
+       "y": 60,
+       "component": "y"
+      }
+     ]
+    },
+    "sources": [
+     {
+      "item": "geometry",
+      "value": "standard Cook's membrane outer [[0,0],[48,44],[48,60],[0,44]]",
+      "quote": "2D Cook's membrane (tapered panel). Point A is the top right corner (Fig. 1a)."
+     },
+     {
+      "item": "QoI location",
+      "value": "top right corner A = (48, 60)",
+      "quote": "Point A is the top right corner (Fig. 1a)."
+     }
+    ],
+    "assumptions": [
+     "Geometry is the standard Cook's membrane (rule 4); the excerpt names the benchmark but gives no dimensions.",
+     "Clamped left edge x=0 and loaded right edge x=48 follow the standard setup; the excerpt explicitly says the paper's own boundary conditions are not included.",
+     "material=neo_hookean is a placeholder only because the problem is finite-strain; the paper's Cook's membrane material model is not stated and might not be a supported model.",
+     "E=1 and nu=0.3 are placeholders with no basis in the text; the mu=500, K=1700 values belong to the punch problem and were deliberately not used.",
+     "Traction t=[0,0] is a placeholder; the load type, magnitude and number of load steps are not stated, so a value of zero marks it as unknown rather than guessing one.",
+     "Trustworthiness of the QoIs: u_y at A is the right kind of quantity (converges; corner singularities only at the clamped corners) but has no stated numbers; the max vertical displacement from the Fig. 11 legend is not identified as the value at A and depends on how the plot was drawn; the convergence against N and e_h against the self-generated N=7 solution are convergence studies, not independent reference values; the condition number is a solver property, not a solution QoI."
+    ]
+   }
+  }
+ ],
+ "human_points": [],
+ "wall_clock_s": 115.94105792045593,
+ "llm_cost_usd": 0.3573798,
+ "source": {
+  "pdf": "/home/user/OMAR/Practical_Examples/omar_pfem/verification_agent/literature_search_runs/papers/OA_W4353007016.pdf",
+  "text": null,
+  "description_given": false
+ },
+ "modeler": {
+  "supported": false,
+  "unsupported_reason": "The excerpt does not state the material model or its parameters, the boundary conditions, or the load type, size and stepping for the Cook's membrane case. It says the only material data given (generalized neo-Hookean, mu=500, K=1700) belong to the punch problem. The QoI (u_y at A over load steps at finite strain) depends entirely on these missing settings, so any model would be invented rather than formalized. No reference numbers are given in the text either, since all values are in figures. Only the geometry can be filled in (standard Cook's membrane, rule 4). The description below is a tentative template, not a faithful model.",
+  "description": {
+   "name": "cooks_membrane_finite_strain_tip_displacement_TEMPLATE_material_and_load_unknown",
+   "material": "neo_hookean",
+   "geometry_kind": "polygon",
+   "cell_size": 1,
+   "cells": [],
+   "outer": [
+    [
+     0,
+     0
+    ],
+    [
+     48,
+     44
+    ],
+    [
+     48,
+     60
+    ],
+    [
+     0,
+     44
+    ]
+   ],
+   "holes": [],
+   "E": 1,
+   "nu": 0.3,
+   "plane": "strain",
+   "bcs": [
+    {
+     "segment": [
+      [
+       0,
+       0
+      ],
+      [
+       0,
+       44
+      ]
+     ],
+     "hole": -1,
+     "type": "clamped",
+     "t": [],
+     "p": 0,
+     "u": []
+    },
+    {
+     "segment": [
+      [
+       48,
+       44
+      ],
+      [
+       48,
+       60
+      ]
+     ],
+     "hole": -1,
+     "type": "traction",
+     "t": [
+      0,
+      0
+     ],
+     "p": 0,
+     "u": []
+    }
+   ],
+   "points": [
+    {
+     "name": "v_A",
+     "x": 48,
+     "y": 60,
+     "component": "y"
+    }
+   ]
+  },
+  "sources": [
+   {
+    "item": "geometry",
+    "value": "standard Cook's membrane outer [[0,0],[48,44],[48,60],[0,44]]",
+    "quote": "2D Cook's membrane (tapered panel). Point A is the top right corner (Fig. 1a)."
+   },
+   {
+    "item": "QoI location",
+    "value": "top right corner A = (48, 60)",
+    "quote": "Point A is the top right corner (Fig. 1a)."
+   }
+  ],
+  "assumptions": [
+   "Geometry is the standard Cook's membrane (rule 4); the excerpt names the benchmark but gives no dimensions.",
+   "Clamped left edge x=0 and loaded right edge x=48 follow the standard setup; the excerpt explicitly says the paper's own boundary conditions are not included.",
+   "material=neo_hookean is a placeholder only because the problem is finite-strain; the paper's Cook's membrane material model is not stated and might not be a supported model.",
+   "E=1 and nu=0.3 are placeholders with no basis in the text; the mu=500, K=1700 values belong to the punch problem and were deliberately not used.",
+   "Traction t=[0,0] is a placeholder; the load type, magnitude and number of load steps are not stated, so a value of zero marks it as unknown rather than guessing one.",
+   "Trustworthiness of the QoIs: u_y at A is the right kind of quantity (converges; corner singularities only at the clamped corners) but has no stated numbers; the max vertical displacement from the Fig. 11 legend is not identified as the value at A and depends on how the plot was drawn; the convergence against N and e_h against the self-generated N=7 solution are convergence studies, not independent reference values; the condition number is a solver property, not a solution QoI."
+  ]
+ }
+}

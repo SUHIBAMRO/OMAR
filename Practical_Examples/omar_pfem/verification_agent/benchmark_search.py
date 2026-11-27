@@ -344,7 +344,17 @@ def run_r6(backend_name="claude-cli", budget_usd=1.5, per_query=10, assess_top=2
                                           "doi": c.get("doi"), "requirements": req, "assessment": a})
                 log(f"[r6] {c['id']} {c['title'][:60]!r}: {a['decision']}")
                 dim = req["size"].get("dimension") or 2
-                if a["feasible"] and dim == 2 and len(rec["carried"]) < max_carry and cost() < budget_usd:
+                # 27 Nov (after round 7): a case whose missing information concerns the material,
+                # the loads or the supports is refused by the definition step anyway; not carried
+                case = next((x for x in a["cases"] if x["case"] == (a["feasible_cases"] or [None])[0]), {})
+                blocking = [m for m in case.get("missing_information", [])
+                            if re.search(r"material|modulus|poisson|load|traction|pressure|support|"
+                                         r"boundary condition|clamp", m.lower())]
+                if blocking:
+                    log(f"[r6] {c['id']}: feasible but not carried: missing {blocking[:2]}")
+                    rec.setdefault("not_carried_missing_information", []).append(
+                        {"id": c["id"], "missing": blocking})
+                elif a["feasible"] and dim == 2 and len(rec["carried"]) < max_carry and cost() < budget_usd:
                     res = autonomous.run(pdf=pdf, hint=a["feasible_cases"][0], backend_name=backend_name,
                                          budget_minutes=20.0, max_experiments=4,
                                          chosen_by="search round 6 (OpenAlex, code + LLM requirements)")

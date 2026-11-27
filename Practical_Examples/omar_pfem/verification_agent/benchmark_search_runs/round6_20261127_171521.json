@@ -1,0 +1,703 @@
+{
+ "round": 6,
+ "source": "OpenAlex",
+ "started": "20261127_171521",
+ "candidates": [
+  {
+   "group": "2D established",
+   "id": "OA_W7155054518",
+   "title": "A Coupling Method of Mixed and Lagrange Finite Elements for Linear Elasticity Problem",
+   "doi": "https://doi.org/10.48550/arxiv.2604.17908",
+   "requirements": {
+    "example": "Cook's membrane (bimaterial, Section 4.3)",
+    "cases": [
+     {
+      "name": "Bimaterial Cook's membrane: stiff compressible triangular inclusion (E=250, nu=0.35) in a nearly incompressible matrix (E=80, nu=0.499999), shear load F=100",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges",
+        "inclined edges"
+       ],
+       "material": [
+        "linear elastic, isotropic",
+        "nearly incompressible (nu > 0.49)"
+       ],
+       "loading": [
+        "constant traction (dead)"
+       ],
+       "boundary": [
+        "clamped"
+       ],
+       "analysis": [
+        "static"
+       ],
+       "outputs": [
+        "point displacement"
+       ]
+      },
+      "unlisted_needs": [
+       "Two-material domain with a material interface: a triangular subdomain with vertices (12,20.25), (36,38.75), (36,50.25) has different properties from the rest of the plate",
+       "The interface corners and the traction-inconsistent corners at the top-right and bottom-right give reduced solution regularity, so pointwise stress there is singular"
+      ],
+      "missing_information": [
+       "Whether the problem is plane strain or plane stress is not stated",
+       "Thickness of the plate is not stated",
+       "How the shear force F=100 is spread over the right edge is not stated (a uniform shear traction with total resultant 100 is assumed but not confirmed)",
+       "Units are not given",
+       "Whether the interface is perfectly bonded is only implied",
+       "The reference value of the top-right-corner vertical displacement appears only in a plot (axis range about 16 to 21.1); no number is stated in the text"
+      ],
+      "reference_values": [
+       "The vertical displacement at the top-right corner (48,60) comes from the P3 Hu-Zhang FEM on the fourth-level refined mesh, but its value is shown only graphically in Fig. 6"
+      ]
+     }
+    ],
+    "size": {
+     "dimension": 2,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 0
+    },
+    "quotes": [
+     "the convex hull of four vertices (0, 0), (48, 44), (48, 60) and (0, 44)",
+     "which is the convex hull of vertices (12, 20.25), (36, 38.75), (36, 50.25), is occupied by one material",
+     "consists of a compressible and stiff material with E = 250 and \u03bd = 0.35, whereas the nearly incompressible region \u03a9\u2212h with E = 80 and \u03bd = 0.499999",
+     "The plate is clamped at x = 0 and loaded by a shear force F = 100 on the right boundary, while the remaining boundaries are traction-free",
+     "The inconsistent traction boundary conditions at the top-right and bottom-right corners lead to reduced solution regularity",
+     "the solution by the P3 Hu\u2013Zhang finite element method on the fourth-level mesh is taken as the reference solution"
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "feasible_cases": [],
+    "cases": [
+     {
+      "case": "Bimaterial Cook's membrane: stiff compressible triangular inclusion (E=250, nu=0.35) in a nearly incompressible matrix (E=80, nu=0.499999), shear load F=100",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "material",
+        "need": "nearly incompressible (nu > 0.49)",
+        "would_require": "a mixed u-p (or F-bar / enhanced-strain) formulation with its own code verification; displacement elements lock"
+       },
+       {
+        "category": "unlisted",
+        "need": "Two-material domain with a material interface: a triangular subdomain with vertices (12,20.25), (36,38.75), (36,50.25) has different properties from the rest of the plate",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "The interface corners and the traction-inconsistent corners at the top-right and bottom-right give reduced solution regularity, so pointwise stress there is singular",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "Whether the problem is plane strain or plane stress is not stated",
+       "Thickness of the plate is not stated",
+       "How the shear force F=100 is spread over the right edge is not stated (a uniform shear traction with total resultant 100 is assumed but not confirmed)",
+       "Units are not given",
+       "Whether the interface is perfectly bonded is only implied",
+       "The reference value of the top-right-corner vertical displacement appears only in a plot (axis range about 16 to 21.1); no number is stated in the text"
+      ],
+      "note": ""
+     }
+    ],
+    "decision": "cannot be carried through: every case misses a capability (listed, not implemented)"
+   }
+  },
+  {
+   "group": "2D established",
+   "id": "OA_W4353007016",
+   "title": "Isoparametric Tangled Finite Element Method for Nonlinear Elasticity",
+   "doi": "https://doi.org/10.48550/arxiv.2303.10799",
+   "requirements": {
+    "example": "Cook's membrane (with punch-problem and other cases from the same paper on tangled-mesh i-TFEM)",
+    "cases": [
+     {
+      "name": "2D Cook's membrane (Sections 4.1 and 4.2; finite-strain load stepping, tip displacement at corner A)",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges",
+        "inclined edges"
+       ],
+       "material": [],
+       "loading": [
+        "constant traction (dead)"
+       ],
+       "boundary": [
+        "clamped"
+       ],
+       "analysis": [
+        "load stepping (finite strain)",
+        "static"
+       ],
+       "outputs": [
+        "point displacement"
+       ]
+      },
+      "unlisted_needs": [],
+      "missing_information": [
+       "Geometry: vertex coordinates are only in Fig. 1a (not in the passage); the standard Cook dimensions (48/44/16) are not stated",
+       "Material model and parameters for Cook's membrane are not given in the passage (presumably hyperelastic, given the load stepping, but not stated)",
+       "Load magnitude, distribution and direction (shear traction on the right edge) are not stated; it is not stated whether the load is dead or follower",
+       "Supports are not stated explicitly (presumably clamped left edge, per reference [35])",
+       "Plane strain or plane stress is not stated",
+       "Thickness is not stated",
+       "Number of load steps is shown only in Fig. 10 (10 steps)"
+      ],
+      "reference_values": [
+       "Vertical displacement at top-right corner A after the last load step: legend maximum 9.523 (regular mesh, Fig. 11a) and 9.681 (tangled mesh with i-TFEM, Fig. 11b)",
+       "Fig. 12: uy at A converges toward roughly 9.5-10 as mesh index N goes from 2 to 6 (read from the plot only)",
+       "Reference solution for the error study: fine mesh with N = 7 (2N x 2N elements)"
+      ]
+     },
+     {
+      "name": "Punch problem, compressible generalized neo-Hookean (Section 4.3)",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "compressible neo-Hookean"
+       ],
+       "loading": [
+        "constant traction (dead)"
+       ],
+       "boundary": [
+        "symmetry / roller"
+       ],
+       "analysis": [
+        "load stepping (finite strain)",
+        "static"
+       ],
+       "outputs": [
+        "point displacement"
+       ]
+      },
+      "unlisted_needs": [
+       "Load applied over only part of an edge (the top-left half of the top surface)",
+       "The top edge is fixed horizontally (a roller on the loaded surface) as well as the left edge"
+      ],
+      "missing_information": [
+       "Block width is shown only in Fig. 14 (it appears to be 2H by H, with H = 1); not stated in the text",
+       "Plane strain or plane stress is not stated",
+       "It is not stated whether p stays vertical (dead) or follows the deformed surface",
+       "Number of load steps is shown only in Fig. 15 (10 steps)"
+      ],
+      "reference_values": [
+       "mu = 500, K = 1700, p = 1000 (per unit length), H = 1",
+       "Fig. 15: final vertical displacement at top-left corner A lies on an axis from 0 to -0.5; the exact value is not given in the text"
+      ]
+     },
+     {
+      "name": "Punch problem, near-incompressible case (overview only)",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "compressible neo-Hookean",
+        "nearly incompressible (nu > 0.49)"
+       ],
+       "loading": [
+        "constant traction (dead)"
+       ],
+       "boundary": [
+        "symmetry / roller"
+       ],
+       "analysis": [
+        "load stepping (finite strain)",
+        "static"
+       ],
+       "outputs": [
+        "point displacement"
+       ]
+      },
+      "unlisted_needs": [],
+      "missing_information": [
+       "The passage is cut off before this section; the near-incompressible material parameters (K/mu) are not given",
+       "Outputs and reference values are not given in the passage",
+       "Plane strain or plane stress is not stated"
+      ],
+      "reference_values": []
+     },
+     {
+      "name": "Thin beam, bending-dominated, neo-Hookean (overview only)",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "compressible neo-Hookean"
+       ],
+       "loading": [],
+       "boundary": [],
+       "analysis": [
+        "load stepping (finite strain)"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [],
+      "missing_information": [
+       "The passage only mentions this case; geometry, material parameters, loading, supports and outputs are not given"
+      ],
+      "reference_values": []
+     }
+    ],
+    "size": {
+     "dimension": 2,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 16384
+    },
+    "quotes": [
+     "The vertical displacement at the top right corner point A (see Fig. 1a) for every load step is reported in Fig. 10.",
+     "the number of elements in the regular mesh is 2N \u00d7 2N",
+     "where u is the reference solution from a fine mesh with N = 7",
+     "\u00b5 = 500 and K = 1700 are the material parameters (equivalent to shear and bulk moduli respectively in the small strain limit)",
+     "A rectangular block is subject to a vertical load p (per unit length) uniformly distributed over the top left half of the block where p = 1000 and H = 1",
+     "The top and left sides of the block are fixed in the horizontal direction, while the bottom is fixed in the vertical direction.",
+     "For the punch problem [37], a mesh with multiple overlaps is considered for compressible and near-incompressible cases.",
+     "The performance of i-TFEM in bending dominated response is evaluated with neo-Hookean material model."
+    ]
+   },
+   "assessment": {
+    "feasible": true,
+    "feasible_cases": [
+     "2D Cook's membrane (Sections 4.1 and 4.2; finite-strain load stepping, tip displacement at corner A)",
+     "Thin beam, bending-dominated, neo-Hookean (overview only)"
+    ],
+    "cases": [
+     {
+      "case": "2D Cook's membrane (Sections 4.1 and 4.2; finite-strain load stepping, tip displacement at corner A)",
+      "feasible": true,
+      "missing": [],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "can be carried through",
+      "missing_information": [
+       "Geometry: vertex coordinates are only in Fig. 1a (not in the passage); the standard Cook dimensions (48/44/16) are not stated",
+       "Material model and parameters for Cook's membrane are not given in the passage (presumably hyperelastic, given the load stepping, but not stated)",
+       "Load magnitude, distribution and direction (shear traction on the right edge) are not stated; it is not stated whether the load is dead or follower",
+       "Supports are not stated explicitly (presumably clamped left edge, per reference [35])",
+       "Plane strain or plane stress is not stated",
+       "Thickness is not stated",
+       "Number of load steps is shown only in Fig. 10 (10 steps)"
+      ],
+      "note": "feasible only with assumptions or a standard geometry for: Geometry: vertex coordinates are only in Fig. 1a (not in the passage); the standard Cook dimensions (48/44/16) are not stated; Material model and parameters for Cook's membrane are not given in the passage (presumably hyperelastic, given the load stepping, but not stated); Load magnitude, distribution and direction (shear traction on the right edge) are not stated; it is not stated whether the load is dead or follower; Supports are not stated explicitly (presumably clamped left edge, per reference [35]); Plane strain or plane stress is not stated; Thickness is not stated; Number of load steps is shown only in Fig. 10 (10 steps)"
+     },
+     {
+      "case": "Punch problem, compressible generalized neo-Hookean (Section 4.3)",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "Load applied over only part of an edge (the top-left half of the top surface)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "The top edge is fixed horizontally (a roller on the loaded surface) as well as the left edge",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 2 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "Block width is shown only in Fig. 14 (it appears to be 2H by H, with H = 1); not stated in the text",
+       "Plane strain or plane stress is not stated",
+       "It is not stated whether p stays vertical (dead) or follows the deformed surface",
+       "Number of load steps is shown only in Fig. 15 (10 steps)"
+      ],
+      "note": ""
+     },
+     {
+      "case": "Punch problem, near-incompressible case (overview only)",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "material",
+        "need": "nearly incompressible (nu > 0.49)",
+        "would_require": "a mixed u-p (or F-bar / enhanced-strain) formulation with its own code verification; displacement elements lock"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 1 missing capability (listed, not implemented)",
+      "missing_information": [
+       "The passage is cut off before this section; the near-incompressible material parameters (K/mu) are not given",
+       "Outputs and reference values are not given in the passage",
+       "Plane strain or plane stress is not stated"
+      ],
+      "note": ""
+     },
+     {
+      "case": "Thin beam, bending-dominated, neo-Hookean (overview only)",
+      "feasible": true,
+      "missing": [],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "can be carried through",
+      "missing_information": [
+       "The passage only mentions this case; geometry, material parameters, loading, supports and outputs are not given"
+      ],
+      "note": "feasible only with assumptions or a standard geometry for: The passage only mentions this case; geometry, material parameters, loading, supports and outputs are not given"
+     }
+    ],
+    "decision": "can be carried through: 2D Cook's membrane (Sections 4.1 and 4.2; finite-strain load stepping, tip displacement at corner A)"
+   }
+  },
+  {
+   "group": "2D established",
+   "id": "OA_W7203653013",
+   "title": "An adaptive superconvergent mixed finite element method for exactly symmetric linear elasticity based on local residual minimization",
+   "doi": "https://doi.org/10.48550/arxiv.2608.13701",
+   "requirements": {
+    "example": "Cook's membrane (C\u00e1ceres & Vega, Section 5.3, minimum-residual error indicator for symmetric mixed FEM in linear elasticity)",
+    "cases": [
+     {
+      "name": "Cook's membrane, linear elasticity, E = 1, nu = 0.4999 (nearly incompressible)",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges",
+        "inclined edges"
+       ],
+       "material": [
+        "linear elastic, isotropic",
+        "nearly incompressible (nu > 0.49)"
+       ],
+       "loading": [
+        "constant traction (dead)"
+       ],
+       "boundary": [
+        "clamped"
+       ],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [],
+      "missing_information": [
+       "Plane strain or plane stress is not stated",
+       "No physical quantity of interest is given (for example tip displacement at (48,60), strain energy or stress). The paper reports only its own error-estimator convergence, which is part of its method.",
+       "No reference values are given: the reference solution is only described as a uniformly refined computation and its numbers are not reported",
+       "Units are not given (the problem is nondimensional: E = 1, traction (0, 1))",
+       "Thickness is not given (needed only if the 2D model is interpreted as plane stress)"
+      ],
+      "reference_values": []
+     }
+    ],
+    "size": {
+     "dimension": 2,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 0
+    },
+    "quotes": [
+     "The domain is the trapezoid with vertices (0, 0), (48, 44), (48, 60), (0, 44)",
+     "clamped on \u0393D = conv{(0, 0), (0, 44)}, subject to a shear traction g = (0, 1) on conv{(48, 44), (48, 60)} and traction-free elsewhere, and f = (0, 0)",
+     "We take E = 1 and \u03bd = 0.4999, so that the material is close to the incompressible limit",
+     "owing to the incompatible traction data at the corners (48, 44) and (48, 60)",
+     "with the reference solution taken on a uniformly refined mesh"
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "feasible_cases": [],
+    "cases": [
+     {
+      "case": "Cook's membrane, linear elasticity, E = 1, nu = 0.4999 (nearly incompressible)",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "material",
+        "need": "nearly incompressible (nu > 0.49)",
+        "would_require": "a mixed u-p (or F-bar / enhanced-strain) formulation with its own code verification; displacement elements lock"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 1 missing capability (listed, not implemented)",
+      "missing_information": [
+       "Plane strain or plane stress is not stated",
+       "No physical quantity of interest is given (for example tip displacement at (48,60), strain energy or stress). The paper reports only its own error-estimator convergence, which is part of its method.",
+       "No reference values are given: the reference solution is only described as a uniformly refined computation and its numbers are not reported",
+       "Units are not given (the problem is nondimensional: E = 1, traction (0, 1))",
+       "Thickness is not given (needed only if the 2D model is interpreted as plane stress)"
+      ],
+      "note": ""
+     }
+    ],
+    "decision": "cannot be carried through: every case misses a capability (listed, not implemented)"
+   }
+  },
+  {
+   "group": "2D established",
+   "id": "OA_W2242376737",
+   "title": "A finite element implementation of surface elasticity at finite strains using the deal.II library",
+   "doi": "https://doi.org/10.48550/arxiv.1506.01361",
+   "requirements": {
+    "example": "Cook's membrane (3D) with neo-Hookean energetic surface (surface elasticity)",
+    "cases": [
+     {
+      "name": "Cook's membrane, no surface energy (lambda_hat/lambda = 0)",
+      "needs": {
+       "dimension": [
+        "3D extruded section"
+       ],
+       "geometry": [
+        "straight edges",
+        "inclined edges"
+       ],
+       "material": [
+        "compressible neo-Hookean"
+       ],
+       "loading": [
+        "constant traction (dead)"
+       ],
+       "boundary": [
+        "clamped"
+       ],
+       "analysis": [
+        "load stepping (finite strain)",
+        "static"
+       ],
+       "outputs": [
+        "point displacement"
+       ]
+      },
+      "unlisted_needs": [
+       "volume norm (integral over B0 of [F:P]^2 dV)^(1/2) as an output quantity"
+      ],
+      "missing_information": [
+       "out-of-plane thickness of the membrane is not stated in the text (figure label '4' may be the thickness but this is ambiguous)",
+       "exact form of the neo-Hookean strain energy (given only in 'Summary 2', which is not in the passage)",
+       "whether the traction [0,750,0] is per unit reference area (dead load) is implied by the notation b0 but not stated explicitly",
+       "units are not stated"
+      ],
+      "reference_values": [
+       "lambda = 12e3, mu = 8e3",
+       "traction on right face b0 = [0, 750, 0], applied in 10 equal steps",
+       "geometry: 48 wide, left edge height 44, right edge height 16, top-right corner 44 above the left top (standard Cook's membrane, from figure labels)",
+       "|uA| = 13.6392 (10x10x1), 14.3084 (20x20x2), 14.5326 (40x40x4), 14.6100 (80x80x8), 14.6382 (160x160x16)",
+       "volume norm (int [F:P]^2 dV)^(1/2) = 1.04019e+05, 9.91750e+04, 9.71923e+04, 9.64376e+04, 9.61404e+04 for refinement levels 0-4"
+      ]
+     },
+     {
+      "name": "Cook's membrane with neo-Hookean energetic surface (lambda_hat/lambda = 1)",
+      "needs": {
+       "dimension": [
+        "3D extruded section"
+       ],
+       "geometry": [
+        "straight edges",
+        "inclined edges"
+       ],
+       "material": [
+        "compressible neo-Hookean"
+       ],
+       "loading": [
+        "constant traction (dead)"
+       ],
+       "boundary": [
+        "clamped"
+       ],
+       "analysis": [
+        "load stepping (finite strain)",
+        "static"
+       ],
+       "outputs": [
+        "point displacement"
+       ]
+      },
+      "unlisted_needs": [
+       "surface elasticity: neo-Hookean energetic surface potential on the front/back and top/bottom faces (surface Lame parameters lambda_hat, mu_hat)",
+       "volume norm (int [F:P]^2 dV)^(1/2) and surface norm (int [F_hat:P_hat]^2 dA)^(1/2) as output quantities"
+      ],
+      "missing_information": [
+       "out-of-plane thickness of the membrane is not stated in the text",
+       "exact form of the surface and volume neo-Hookean energies (in 'Summary 2', not in the passage)",
+       "surface Lame parameter values are only implied (lambda_hat/lambda = 1 and lambda_hat/mu_hat = 1.5 give lambda_hat = 12e3, mu_hat = 8e3); their units (per length) are not stated",
+       "whether the traction is a dead load is implied but not stated explicitly"
+      ],
+      "reference_values": [
+       "lambda = 12e3, mu = 8e3; lambda_hat/mu_hat = 1.5, lambda_hat/lambda = 1",
+       "traction b0 = [0, 750, 0] on right face, 10 equal steps",
+       "|uA| = 8.54514 (10x10x1), 8.99501 (20x20x2), 9.13706 (40x40x4), 9.18937 (80x80x8); level 4 aborted",
+       "volume norm = 5.91255e+04, 5.57675e+04, 5.45158e+04, 5.40838e+04 for levels 0-3",
+       "surface norm = 5.97436e+04, 5.95120e+04, 5.92104e+04, 5.90174e+04 for levels 0-3"
+      ]
+     }
+    ],
+    "size": {
+     "dimension": 3,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 409600
+    },
+    "quotes": [
+     "The left face is fully fixed and a uniform traction applied to the right face. All of the remaining faces possess a surface energy (i.e. the back and front, and top and bottom faces).",
+     "The Neumann traction is applied in ten equal step.",
+     "The material properties of the energetic surface are varied while maintaining the ratio \u03bb/\u00b5 = \u03bb\u0302/\u00b5\u0302 = 1.5.",
+     "the magnitude of the displacement of the point midway between the front and back faces on the edge common to the right and top faces, labelled A",
+     "Note that for \u03bb/\u03bb\u0302 = 1 and a refinement level of 4, the simulation aborted.",
+     "the presence of an extremely high stress concentration in the cells along the upper left edge of the domain limits the convergence rate."
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "feasible_cases": [],
+    "cases": [
+     {
+      "case": "Cook's membrane, no surface energy (lambda_hat/lambda = 0)",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "volume norm (integral over B0 of [F:P]^2 dV)^(1/2) as an output quantity",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 2 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "out-of-plane thickness of the membrane is not stated in the text (figure label '4' may be the thickness but this is ambiguous)",
+       "exact form of the neo-Hookean strain energy (given only in 'Summary 2', which is not in the passage)",
+       "whether the traction [0,750,0] is per unit reference area (dead load) is implied by the notation b0 but not stated explicitly",
+       "units are not stated"
+      ],
+      "note": ""
+     },
+     {
+      "case": "Cook's membrane with neo-Hookean energetic surface (lambda_hat/lambda = 1)",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "surface elasticity: neo-Hookean energetic surface potential on the front/back and top/bottom faces (surface Lame parameters lambda_hat, mu_hat)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "volume norm (int [F:P]^2 dV)^(1/2) and surface norm (int [F_hat:P_hat]^2 dA)^(1/2) as output quantities",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)",
+      "missing_information": [
+       "out-of-plane thickness of the membrane is not stated in the text",
+       "exact form of the surface and volume neo-Hookean energies (in 'Summary 2', not in the passage)",
+       "surface Lame parameter values are only implied (lambda_hat/lambda = 1 and lambda_hat/mu_hat = 1.5 give lambda_hat = 12e3, mu_hat = 8e3); their units (per length) are not stated",
+       "whether the traction is a dead load is implied but not stated explicitly"
+      ],
+      "note": ""
+     }
+    ],
+    "decision": "cannot be carried through: every case misses a capability (listed, not implemented)"
+   }
+  }
+ ],
+ "carried": [
+  {
+   "id": "OA_W4353007016",
+   "case": "2D Cook's membrane (Sections 4.1 and 4.2; finite-strain load stepping, tip displacement at corner A)",
+   "final": null,
+   "refused": "The excerpt does not state the material model or its parameters, the boundary conditions, or the load type, size and stepping for the Cook's membrane case. It says the only material data given (generalized neo-Hookean, mu=500, K=1700) belong to the punch problem. The QoI (u_y at A over load steps at finite strain) depends entirely on these missing settings, so any model would be invented rather than formalized. No reference numbers are given in the text either, since all values are in figures. Only the geometry can be filled in (standard Cook's membrane, rule 4). The description below is a tentative template, not a faithful model."
+  }
+ ],
+ "unreadable": [
+  {
+   "id": "OA_W3087343349",
+   "reason": "not a PDF (publisher page or access wall)"
+  },
+  {
+   "id": "OA_W2887403096",
+   "reason": "HTTP Error 403: Forbidden"
+  },
+  {
+   "id": "OA_W2128805329",
+   "reason": "HTTP Error 403: Forbidden"
+  },
+  {
+   "id": "OA_W2618866991",
+   "reason": "not a PDF (publisher page or access wall)"
+  },
+  {
+   "id": "OA_W3186846444",
+   "reason": "HTTP Error 403: Forbidden"
+  },
+  {
+   "id": "OA_W2562275974",
+   "reason": "not a PDF (publisher page or access wall)"
+  },
+  {
+   "id": "OA_W3195181451",
+   "reason": "HTTP Error 403: Forbidden"
+  },
+  {
+   "id": "OA_W2971471202",
+   "reason": "HTTP Error 403: Forbidden"
+  },
+  {
+   "id": "OA_W2772238806",
+   "reason": "<urlopen error [Errno 104] Connection reset by peer>"
+  }
+ ],
+ "llm_cost_usd": 0.7063912
+}

@@ -26423,3 +26423,10 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   had been force-added) -> now `git add -f`; (2) the part-2 claims check compared the PDF's test count (115)
   with the growing current count -> fixed. RULE for later sessions: new advisor PDFs and figures need
   `git add -f`, and check the CI result after each push.
+- 2026-11-27 (evening, Omar: "continue everything"): benchmark proposal by the agent 4/5 (it chose the re-entrant
+  corner, uniform vs graded, p/hp itself); a-priori results from the literature: attempt 1 2/5 (unrelated papers),
+  post hoc attempt 2: CutFEM paper 2607.02334, quotes 7/7, energy-norm predictions agree 5/5; independent search
+  rounds 5 (arXiv exhausted, 1/5), 6 (OpenAlex added; the carried paper was the journal version of 1911.08728 ->
+  duplicate check by title; FIRST run with zero human interventions, v_Q reproduced; 2/5) and 7 (a new feasible
+  paper refused at definition for missing material/loads, correct; 2/5). LLM USD 2.33. Report updated to 10 pages
+  (new Section 6; claims 25/25); email draft updated. Still NOT SENT (CAS status first).
