@@ -173,6 +173,9 @@ def numbers_in(text):
     for m in re.finditer(r"(\d+(?:\.\d+)?)\s*[x*]?\s*10\^\{?([-+]?\d+)\}?", text):
         out.append(float(m.group(1)) * 10 ** int(m.group(2)) if "x" in m.group(0) or "*" in
                    m.group(0) else 10 ** int(m.group(2)))
+    # 27 Nov: a bare power of ten ("g = (0, 10^-3)", "10^{-3}", "10−3" after the minus fix)
+    for m in re.finditer(r"(?<![\d.x*])10\s*\^\s*\{?\s*([-+]?\d+)\s*\}?", text.replace("−", "-")):
+        out.append(10.0 ** int(m.group(1)))
     # 26 Nov: simple fractions as written in papers ("nu = 1/3", "g = (0, 1/16)")
     for m in re.finditer(r"(?<![\d.])(\d+)\s*/\s*(\d+)(?![\d.])", text):
         if int(m.group(2)):

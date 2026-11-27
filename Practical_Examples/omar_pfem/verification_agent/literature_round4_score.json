@@ -1,0 +1,40 @@
+{
+ "preregistration": "literature_round4_preregistration.json",
+ "runs": {
+  "R4a": {
+   "paper": "2206.14610",
+   "cost_usd": 0.4
+  },
+  "R4b": {
+   "cost_usd": 0.54
+  }
+ },
+ "total_cost_usd": 0.94,
+ "predictions": {
+  "S1_passage": {
+   "confirmed": true,
+   "evidence": "the passage starts at '7.2. Cook's membrane'; the card describes Cook's membrane (E = 1, nu = 0.3, g = (0, 10^-3))"
+  },
+  "S2_r4a_outcome": {
+   "confirmed": true,
+   "evidence": "reached verdicts: code check PASS (on record), 5 quantities certified (both top-right corner displacements, strain energy, two corner averages); peak concluded unbounded. One person point: the load 10^-3 was not traced (tracer gap, fixed on 27 Nov after the run; re-evaluated on the stored output, not independent)"
+  },
+  "S3_new_read": {
+   "confirmed": false,
+   "evidence": "12 new candidates scouted, none rated representable (reasons checked: plasticity, growth, nearly incompressible, heterogeneous material, theory only)"
+  },
+  "S4_new_end_to_end": {
+   "confirmed": false,
+   "evidence": "no new paper read"
+  },
+  "S5_cost": {
+   "confirmed": true,
+   "evidence": "USD 0.94 below USD 2"
+  }
+ },
+ "summary": "3 of 5 confirmed. The passage fix works on the failed paper (second paper end to end, not independent); the new search found no representable paper.",
+ "open_points": [
+  "plane strain vs plane stress is often not stated; the modeler assumes it and notes it, but code does not yet treat it as an assumed input to be checked by sensitivity",
+  "the arXiv queries run out of new representable papers: most hits are plasticity, growth, nearly incompressible or heterogeneous problems"
+ ]
+}

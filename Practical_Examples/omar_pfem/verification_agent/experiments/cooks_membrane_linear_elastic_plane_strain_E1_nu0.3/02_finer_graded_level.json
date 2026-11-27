@@ -1,0 +1,47 @@
+{
+ "preregistration": {
+  "action": "finer_graded_level",
+  "quantities": [
+   "corner1_gk_avg_von_mises"
+  ],
+  "situation": "region_average:band_only",
+  "justification": "corner1_gk_avg_von_mises: region_average:band_only + diagnosis D4 (pre-asymptotic)",
+  "hypothesis": "the sequences are pre-asymptotic; one finer graded level (n = 64) lets the checks decide",
+  "prediction": {
+   "text": "at least one listed quantity becomes certified with a rate and cross-checked",
+   "criterion": "any_certified"
+  },
+  "run": {
+   "kind": "graded_level",
+   "n": 64
+  },
+  "cost": {
+   "dof": 152288,
+   "minutes": 1.4776299300701874
+  },
+  "prior": 0.3076923076923077,
+  "prior_n": 11,
+  "score": 0.12418816222630603,
+  "problem": "cooks_membrane_linear_elastic_plane_strain_E1_nu0.3",
+  "git_head": "fb7917ec29b2d02bb07d7c291e3d74d3d5f1adfa",
+  "frozen_utc": "2026-11-27T09:40:00.202584+00:00",
+  "sha256": "49eb28861ad06a42250044fda3a652f047ec328e6c3ea4a7d4a02086df15b5c1"
+ },
+ "outcome": {
+  "confirmed": false,
+  "observed_minutes": 0.1228192408879598,
+  "after": {
+   "certified": [
+    "strain_energy",
+    "u_top_right_corner",
+    "v_top_right_corner"
+   ],
+   "open": [
+    "corner0_gk_avg_von_mises",
+    "corner1_gk_avg_von_mises",
+    "corner2_gk_avg_von_mises",
+    "peak_von_mises"
+   ]
+  }
+ }
+}

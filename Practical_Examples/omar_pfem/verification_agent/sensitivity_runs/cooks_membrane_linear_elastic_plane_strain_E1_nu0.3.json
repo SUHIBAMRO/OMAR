@@ -1,0 +1,123 @@
+{
+ "problem": "cooks_membrane_linear_elastic_plane_strain_E1_nu0.3",
+ "rule": "sensitivity_preregistration.json",
+ "range": {
+  "relative": 0.1,
+  "nu_absolute": 0.05
+ },
+ "params": {
+  "bcs[1].t": {
+   "value": [
+    0,
+    0.001
+   ],
+   "levels": [
+    8,
+    16
+   ],
+   "quantities": {
+    "corner0_gk_avg_von_mises": {
+     "Q0": 0.0012846996238432247,
+     "Q+": 0.0014131695862272182,
+     "Q-": 0.0011562296614585999,
+     "S": 0.9999999999998963,
+     "S_log_posthoc": 1.000000000000143,
+     "change_rel": 0.10000000000023539,
+     "asymmetry": 2.4575368963160815e-12,
+     "S_previous_level": 0.9999999999987184,
+     "settled": true,
+     "U_rel": 0.0006590900232608151,
+     "ratio_to_U": 151.72434185164929,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": 0.05,
+     "posthoc_person_needed": true
+    },
+    "corner2_gk_avg_von_mises": {
+     "Q0": 0.002486777697521187,
+     "Q+": 0.0027354554672725886,
+     "Q-": 0.0022380999277683295,
+     "S": 1.0000000000000435,
+     "S_log_posthoc": 1.0000000000003386,
+     "change_rel": 0.10000000000029709,
+     "asymmetry": 2.9272151641553558e-12,
+     "S_previous_level": 0.9999999999987963,
+     "settled": true,
+     "U_rel": 0.0067325388852618705,
+     "ratio_to_U": 14.853237642519382,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": 0.05,
+     "posthoc_person_needed": true
+    },
+    "strain_energy": {
+     "Q0": 0.0028157720772827534,
+     "Q+": 0.0034070842135117594,
+     "Q-": 0.0022807753825979603,
+     "S": 2.0000000000012386,
+     "S_log_posthoc": 2.0000000000017923,
+     "change_rel": 0.20999999999986782,
+     "asymmetry": 0.049999999998688684,
+     "S_previous_level": 1.9999999999969331,
+     "settled": true,
+     "U_rel": 0.00016241424776940235,
+     "ratio_to_U": 1292.9900109381308,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": 0.01,
+     "posthoc_person_needed": true
+    },
+    "u_top_right_corner": {
+     "Q0": -0.2743574087648162,
+     "Q+": -0.3017931496412437,
+     "Q-": -0.24692166788827546,
+     "S": 1.0000000000000913,
+     "S_log_posthoc": 1.0000000000002986,
+     "change_rel": 0.1000000000002154,
+     "asymmetry": 2.0627698349773815e-12,
+     "S_previous_level": 0.9999999999989776,
+     "settled": true,
+     "U_rel": 0.0018457435454645728,
+     "ratio_to_U": 54.178707679048365,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": 0.01,
+     "posthoc_person_needed": true
+    },
+    "v_top_right_corner": {
+     "Q0": 0.3678744661095835,
+     "Q+": 0.40466191272046764,
+     "Q-": 0.3310870194985493,
+     "S": 1.0000000000000224,
+     "S_log_posthoc": 1.0000000000002272,
+     "change_rel": 0.10000000000020624,
+     "asymmetry": 2.0401273635094445e-12,
+     "S_previous_level": 0.9999999999989151,
+     "settled": true,
+     "U_rel": 0.0020609069063257756,
+     "ratio_to_U": 48.522327570093,
+     "decision": "matters",
+     "posthoc_numerics_adequate": true,
+     "posthoc_target": 0.01,
+     "posthoc_person_needed": true
+    }
+   },
+   "posthoc_person_needed_for": [
+    "corner0_gk_avg_von_mises",
+    "corner2_gk_avg_von_mises",
+    "strain_energy",
+    "u_top_right_corner",
+    "v_top_right_corner"
+   ],
+   "matters_for": [
+    "corner0_gk_avg_von_mises",
+    "corner2_gk_avg_von_mises",
+    "strain_energy",
+    "u_top_right_corner",
+    "v_top_right_corner"
+   ],
+   "needs_person": true
+  }
+ },
+ "minutes": 0.05775713125864665
+}

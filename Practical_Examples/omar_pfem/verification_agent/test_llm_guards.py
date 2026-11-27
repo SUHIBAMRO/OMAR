@@ -1507,3 +1507,10 @@ def test_passage_is_anchored_on_the_hinted_example():
             "The tapered panel is clamped on the left. " + filler)
     p, _ = select_passage(text, "Cook's membrane", width=3000)
     assert p.lstrip().startswith("7.2 Cook's membrane")
+
+
+def test_bare_power_of_ten_is_traced():
+    """27 Nov (round 4: 'g = (0, 10^-3)' was not traced and the load went to a person)."""
+    from omar_pfem.verification_agent.autonomous import numbers_in
+    got = numbers_in("g = (0, 10^-3) and 10^{-2}, 10−4")
+    assert all(any(abs(g - v) < 1e-15 for g in got) for v in (1e-3, 1e-2, 1e-4))

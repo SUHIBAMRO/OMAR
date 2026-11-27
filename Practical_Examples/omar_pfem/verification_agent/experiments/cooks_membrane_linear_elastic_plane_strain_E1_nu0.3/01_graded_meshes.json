@@ -1,0 +1,50 @@
+{
+ "preregistration": {
+  "action": "graded_meshes",
+  "quantities": [
+   "corner1_gk_avg_von_mises",
+   "corner2_gk_avg_von_mises",
+   "strain_energy",
+   "u_top_right_corner",
+   "v_top_right_corner"
+  ],
+  "situation": "corner_limited",
+  "justification": "rate-limiting corners [(0.0, 0.0, 1.1669), (0.8, 0.7333333333333333, 1.9164), (0.0, 0.7333333333333333, 0.6442)]; 5 quantities uncertified or with U above a tenth of the class tolerance",
+  "hypothesis": "the corner singularities limit the rate; grading toward the corners with the largest local-energy change restores it",
+  "prediction": {
+   "text": "more quantities are certified (and cross-checked) on the graded ladders than on the uniform ones, or the strain-energy U falls at least 3 times",
+   "criterion": "graded_better"
+  },
+  "run": {
+   "kind": "graded"
+  },
+  "cost": {
+   "dof": 41540,
+   "minutes": 0.09045842800600411
+  },
+  "prior": 0.4444444444444444,
+  "prior_n": 7,
+  "score": 2.0378789004233244,
+  "problem": "cooks_membrane_linear_elastic_plane_strain_E1_nu0.3",
+  "git_head": "fb7917ec29b2d02bb07d7c291e3d74d3d5f1adfa",
+  "frozen_utc": "2026-11-27T09:39:55.837743+00:00",
+  "sha256": "3d330ed9b173231da6396015bc05237922d40ab2edd28b419474074ec44da7ac"
+ },
+ "outcome": {
+  "confirmed": false,
+  "observed_minutes": 0.07265294392903646,
+  "after": {
+   "certified": [
+    "corner0_gk_avg_von_mises",
+    "strain_energy"
+   ],
+   "open": [
+    "corner1_gk_avg_von_mises",
+    "corner2_gk_avg_von_mises",
+    "peak_von_mises",
+    "u_top_right_corner",
+    "v_top_right_corner"
+   ]
+  }
+ }
+}

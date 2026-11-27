@@ -26375,3 +26375,9 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   R3b: new paper 2206.14610 read, wrong example selected (L-shape MMS), refused correctly. Score 4/5
   (literature_round3_score.json). Spent: round 2 USD 1.09, round 3 USD 0.82 + R3a (not recorded, <= ~0.7).
   Next automation candidate: passage selection when a paper has several examples.
+- 2026-11-27 DONE: Literature round 4 (Omar approved, USD 0.94): passage anchored on the hinted
+  example + librarian told which example; R4a paper 2206.14610 (Cook, E = 1, nu = 0.3, g = 1e-3, plane strain
+  assumed) END TO END: 5 quantities certified (not independent: known paper). R4b: 12 new candidates scouted,
+  none representable. Score 3/5 (literature_round4_score.json). Tracer now reads bare powers of ten (the R4a
+  load person point; re-evaluation clears it). Open: plane strain/stress assumption is not yet an assumed input
+  for the sensitivity check; arXiv queries yield few representable papers. Total LLM spend 26-27 Nov ~ USD 3.6.
