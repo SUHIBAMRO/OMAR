@@ -26418,3 +26418,8 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   (Claude Doc https://claude.ai/artifact/SHzG8eeXHEGBzcfPusnqPi; claims 20/20 by report27_claims.py, in CI).
   Email draft advisor_feedback/2026-11-27_email_to_Rabczuk_DRAFT_CAS_and_next.txt (NOT SENT; Omar fills the CAS
   status first). Tests 124 pass. Waiting: cluster job 3356483; Omar's CAS status check; advisor's reply.
+- 2026-11-27 FIX: CI had failed since 26 Nov 20:46 (24 runs) without being noticed: (1) the progress-report
+  PDFs, the combined PDF and the figures were never committed (.gitignore ignores *.pdf and *.png; earlier PDFs
+  had been force-added) -> now `git add -f`; (2) the part-2 claims check compared the PDF's test count (115)
+  with the growing current count -> fixed. RULE for later sessions: new advisor PDFs and figures need
+  `git add -f`, and check the CI result after each push.
