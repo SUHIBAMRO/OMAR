@@ -1,0 +1,36 @@
+{
+ "name": "a-priori convergence predictions vs observed rates (Professor Rabczuk, 27 Nov)",
+ "frozen_utc": "2026-11-27T12:55:59.972488",
+ "status": "rules and expectations frozen BEFORE any comparison was computed",
+ "theory": {
+  "MMS (smooth manufactured solution), degree p": "L2 error O(h^(p+1)), H1 error O(h^p) [Ciarlet 1978, Thm 3.2.2]",
+  "energy-norm error, uniform h, corner exponent lam": "O(h^min(p, lam)) [Strang & Fix 1973 Ch. 8; Babuska & Kellogg 1979]",
+  "strain energy (global)": "error = energy-norm error squared: order 2 min(p, lam); 'equal' prediction",
+  "linear functional (point displacement, smooth-kernel average)": "duality: order >= 2 min(p, lam) (primal x dual; faster if the singular coefficients are small); 'lower bound'",
+  "pointwise stress at a corner with lam < 1": "unbounded: peak ~ h^(lam - 1) (diverges); 'equal' for the log-log slope",
+  "pointwise stress without a singular corner": "order >= p; 'lower bound'",
+  "graded meshes (beta-graded toward the corners)": "the smooth orders are restored: energy 2p, functionals >= 2p [Babuska, Kellogg, Pitkaranta 1979; Apel 1999]",
+  "no rate-limiting corner": "lam = infinity: the smooth orders apply"
+ },
+ "assumptions_recorded_per_prediction": [
+  "element degree p (Q2, P2: p = 2)",
+  "lam = smallest rate-limiting corner/edge exponent from the meshed boundary (singularity.py)",
+  "linear elasticity; for neo-Hookean the linearized exponents are a HYPOTHESIS",
+  "3D extruded sections: edge exponents only, vertex singularities not analysed (hypothesis)",
+  "h = measured element size of the ladder",
+  "observed order: least squares over the finest three levels of the uniform Q2 ladder (Richardson for three levels)"
+ ],
+ "comparison_rule": {
+  "equal": "agrees if |observed - predicted| <= 0.3",
+  "lower_bound": "agrees if observed >= predicted - 0.3",
+  "above prediction (equal mode)": "classified 'faster than predicted: pre-asymptotic or small singular coefficient' (not a contradiction)",
+  "below prediction by more than 0.3": "classified 'slower than predicted: CONTRADICTION, to be diagnosed'",
+  "sequence not monotone or differences below 1e-10 relative": "classified 'no measurable order'"
+ },
+ "expectations": {
+  "E1": "no stored linear-elastic run has a QoI that is slower than predicted (contradiction)",
+  "E2": "global strain energy on corner-limited uniform ladders is 'faster than predicted' more often than 'agrees' (the singular coefficient is small at practical resolution, as seen in the singular-order gate)",
+  "E3": "on graded ladders no QoI is slower than the restored order 2p - 0.3 ... except where the grading is limited (records it)",
+  "E4": "the MMS code checks on record agree with p+1 / p within the gate tolerance (0.2) for every PASS"
+ }
+}
