@@ -1,0 +1,17 @@
+{
+ "preregistration": "benchmark_proposal_preregistration.json",
+ "checks": {
+  "P1_singular_corner": true,
+  "P2_uniform_vs_graded": true,
+  "P3_p_or_hp": true,
+  "P4_mms_separate": false,
+  "P5_reference_from_literature": true
+ },
+ "score": "4 of 5",
+ "cost_usd": 0.27300800000000003,
+ "note": "P4 missed: the agent proposed patch tests (constant and quadratic fields) but no manufactured-solution check by name",
+ "capability_gaps_in_the_agents_own_suite": [
+  "B3/B4 thick-walled cylinder (Lame): curved outer boundary; B4 needs follower pressure at finite strain",
+  "B8 elliptical hole: elliptical/spline holes"
+ ]
+}

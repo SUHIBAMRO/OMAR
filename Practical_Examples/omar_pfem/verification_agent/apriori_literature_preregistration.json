@@ -1,0 +1,13 @@
+{
+ "name": "a-priori convergence results extracted from the literature",
+ "frozen_utc": "2026-11-27T17:06:00.498460",
+ "procedure": "apriori_literature.py: arXiv (4 queries), 3 papers read, LLM extracts results + assumptions + evaluation for the re-entrant case; code checks quotes and compares with reentrant_score.json",
+ "predictions": {
+  "L1_found": "at least one paper yields a result for uniform or graded h-refinement with its regularity assumption",
+  "L2_quotes": "at least 80% of the extracted results carry a quote found verbatim (first 60 characters) in the paper",
+  "L3_agree": "at least 75% of the extracted predictions that map to a measured family agree with the observed beta within 0.1",
+  "L4_grading_condition": "at least one extracted graded-mesh result states a grading condition equivalent to g >= p / lambda (or beta-grading with beta <= lambda / p)",
+  "L5_cost": "LLM cost at most USD 1.2"
+ },
+ "budget_usd": 1.2
+}
