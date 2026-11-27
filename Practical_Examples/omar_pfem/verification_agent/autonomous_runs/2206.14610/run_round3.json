@@ -1,0 +1,354 @@
+{
+ "steps": [
+  {
+   "stage": "L",
+   "actor": "LLM",
+   "status": "done",
+   "detail": "card from passage at character 38034 (score 49.8); quotes found 100%",
+   "card": {
+    "pdf": "2206.14610.pdf",
+    "section_used": "passage at character 38034 (score 49.8)",
+    "card": {
+     "title": "L-shape example (Lederer & Stenberg, weakly symmetric mixed elements, Sec. 7.1): adaptive mixed FEM against an exact corner-singular solution, \u03bd = 0.3 and \u03bd = 0.4999",
+     "geometry": {
+      "value": "2D L-shaped domain (a rotated square with a smaller rotated square removed), \u03a9 = {|x|+|y| \u2264 2^{1/2} l} \\ {|x \u2212 2^{\u22121/2} l| + |y| \u2264 2^{\u22121/2} l}, with l = 1. The re-entrant corner is at the origin.",
+      "quote": "\u03a9 = {(x, y) : |x| + |y| \u2264 21/2 l} \\ {(x, y) : |x \u2212 2\u22121/2 l| + |y| \u2264 2\u22121/2 l}."
+     },
+     "material": {
+      "value": "Linear isotropic elasticity (not hyperelastic) under plane strain. E = 1, with \u03bd = 0.3 (moderate case) or \u03bd = 0.4999 (nearly incompressible case). Lam\u00e9 parameters come from the standard formulas \u03bb = E\u03bd/((1+\u03bd)(1\u22122\u03bd)) and \u00b5 = E/(2(1+\u03bd)).",
+      "quote": "We choose l = 1, E = 1 and \u03bd = 0.3 or \u03bd = 0.4999."
+     },
+     "boundary_conditions": {
+      "value": "Not stated explicitly. The problem is taken from Section 10.3.2 of [36], and the boundary data presumably come from the exact solution given there. The displacement is fixed only up to rigid-body motions.",
+      "quote": "We solve the L-shape example from Section 10.3.2 of [36]"
+     },
+     "loading": {
+      "value": "Manufactured/exact singular solution: u_x and u_y vary as r^\u03b1 trigonometric forms, with \u03b1 = 0.544483737 and Q = 0.543075579. Body force and boundary data are not given explicitly; they follow from the exact solution in [36].",
+      "quote": "up to rigid-body displacements and rotations, is given by"
+     },
+     "discretisation": {
+      "value": "Adaptive refinement of a triangular mesh (SOLVE\u2192ESTIMATE\u2192MARK\u2192REFINE). An element is marked if its local estimator is \u2265 1/4 of the maximum. Four weakly symmetric mixed elements are used: SGG2 and SGG3 (Stenberg/Gopalakrishnan\u2013Guzm\u00e1n, k = 2, 3), AFW (Arnold\u2013Falk\u2013Winther, k = 2) and RAFW (method (3.22), k = 2). A uniform refinement is also run as a comparison. The initial mesh, element counts and DOF counts are not stated.",
+      "quote": "After that, the mesh refinement algorithm refines the marked elements"
+     },
+     "reference": {
+      "type": "analytical",
+      "convergence_evidence": "none_stated",
+      "quote": "where \u03b1 = 0.544483737 and Q = 0.543075579 are fixed constants."
+     },
+     "qois": [
+      {
+       "name": "e_\u03c3C (stress error)",
+       "kind": "field_error_norm",
+       "definition": "Error of the discrete stress against the exact stress, in the paper's C-weighted norm. Reported as a convergence curve against N for \u03bd = 0.3 and \u03bd = 0.4999.",
+       "reported_value": "Converges at optimal order under adaptive refinement (expected rates in Table 1: N^-3/2 for SGG2, N^-4/2 for SGG3, N^-2/2 for AFW and RAFW, with d = 2). Shown in plots only, no numerical values. Not affected by \u03bd.",
+       "quote": "see that all errors converge with optimal order. To demonstrate the drastic decrease"
+      },
+      {
+       "name": "e_uC (displacement error)",
+       "kind": "field_error_norm",
+       "definition": "Error of the discrete displacement in the paper's C-type norm.",
+       "reported_value": "Optimal order for \u03bd = 0.3 (plots only). The paper says it deteriorates as \u03bd approaches 1/2.",
+       "quote": "see that all errors converge with optimal order. To demonstrate the drastic decrease"
+      },
+      {
+       "name": "e^mean_C",
+       "kind": "field_error_norm",
+       "definition": "Mean-type error measure; its precise definition is not in this section.",
+       "reported_value": "Optimal order for \u03bd = 0.3 (plots only). Deteriorates for \u03bd near 1/2 and is not plotted for \u03bd = 0.4999.",
+       "quote": "see that all errors converge with optimal order. To demonstrate the drastic decrease"
+      },
+      {
+       "name": "\u03b7 (a posteriori estimator, Theorem 7), adaptive and uniform",
+       "kind": "other",
+       "definition": "Global error estimator under adaptive and under uniform refinement.",
+       "reported_value": "Optimal under adaptive refinement. Under uniform refinement the rate is only O(h^0.54), i.e. O(N^-0.27), because u \u2208 H^s with s < 1.54.",
+       "quote": "a uniform mesh only yields a convergence rate of O(h0.54 ), i.e."
+      },
+      {
+       "name": "e_\u03c3inc, e_uinc, \u03b7_inc (incompressible-robust errors and estimator, Theorem 8)",
+       "kind": "field_error_norm",
+       "definition": "Errors in \u03bd-robust norms and the relative estimator for the incompressible setting, at \u03bd = 0.4999.",
+       "reported_value": "Not affected by \u03bd and much smaller than the non-robust measures (plots only).",
+       "quote": "On the other hand, e\u03c3C , e\u03c3inc and euinc as well as \u03b7 inc are not affected by the choice of"
+      }
+     ],
+     "singular_features": [
+      {
+       "description": "Re-entrant corner of the L-shaped domain at the origin. The exact stress behaves like r^(\u03b1\u22121) with \u03b1 = 0.5445 < 1, so it is unbounded at the corner, and the solution has only H^s regularity with s < 1.54.",
+       "singular": true,
+       "inferred": true,
+       "quote": "\u03c3xx = \u03b1r\u03b1\u22121 ((2 \u2212 Q(\u03b1 + 1)) cos((\u03b1 \u2212 1)\u03b8) \u2212 (\u03b1 \u2212 1) cos((\u03b1 \u2212 3)\u03b8)),"
+      }
+     ],
+     "not_stated": [
+      "Explicit boundary condition types and data (deferred to Section 10.3.2 of [36])",
+      "Body force (presumably zero, from the exact solution; not stated)",
+      "Definition of \u03ba in the exact displacement (presumably 3\u22124\u03bd for plane strain; not stated)",
+      "Initial mesh, element counts and final number of degrees of freedom N",
+      "Numerical values of the errors and the estimator (given in Figures 1\u20134 only)",
+      "Definitions of the norms e_\u03c3C, e_uC, e^mean_C, e_\u03c3inc and e_uinc (given earlier in the paper)",
+      "This is linear elasticity, not hyperelasticity, so the nonlinear material constants do not apply",
+      "The section also describes Cook's membrane (Sec. 7.2: clamped left edge, traction g = (0, 10^-3) on the right edge, E = 1, \u03bd = 0.3, corner singularities, estimator \u03b7 only, no reference solution; dimensions 48/44/16 appear only in the figure) and the clamped Fichera corner (Sec. 7.3: \u03a9 = (\u22121,1)^3 \\ (0,1)^3, clamped at x = \u22121, traction (0, 0, \u221210^-3) at x = 1, edge and vertex singularities, estimator \u03b7 only). Neither is carded here."
+     ]
+    },
+    "quotes_found": {
+     "geometry": true,
+     "material": true,
+     "boundary_conditions": true,
+     "loading": true,
+     "discretisation": true,
+     "reference": true,
+     "qois[0]": true,
+     "qois[1]": true,
+     "qois[2]": true,
+     "qois[3]": true,
+     "qois[4]": true,
+     "singular_features[0]": true
+    },
+    "quote_rate": 1.0,
+    "qoi_classes": [
+     {
+      "name": "e_\u03c3C (stress error)",
+      "kind": "field_error_norm",
+      "class": "error_norm"
+     },
+     {
+      "name": "e_uC (displacement error)",
+      "kind": "field_error_norm",
+      "class": "error_norm"
+     },
+     {
+      "name": "e^mean_C",
+      "kind": "field_error_norm",
+      "class": "error_norm"
+     },
+     {
+      "name": "\u03b7 (a posteriori estimator, Theorem 7), adaptive and uniform",
+      "kind": "other",
+      "class": "out_of_scope"
+     },
+     {
+      "name": "e_\u03c3inc, e_uinc, \u03b7_inc (incompressible-robust errors and estimator, Theorem 8)",
+      "kind": "field_error_norm",
+      "class": "error_norm"
+     }
+    ],
+    "vocabulary_gaps": [],
+    "needs": [
+     "analytical reference: check that the closed form solves the problem as stated (no refinement family needed)",
+     "singular features present: run the singular-order check; pointwise peaks there have no finite limit",
+     "missing inputs must be fixed (and declared) before solving: Explicit boundary condition types and data (deferred to Section 10.3.2 of [36]); Body force (presumably zero, from the exact solution; not stated); Definition of \u03ba in the exact displacement (presumably 3\u22124\u03bd for plane strain; not stated); Initial mesh, element counts and final number of degrees of freedom N; Numerical values of the errors and the estimator (given in Figures 1\u20134 only); Definitions of the norms e_\u03c3C, e_uC, e^mean_C, e_\u03c3inc and e_uinc (given earlier in the paper); This is linear elasticity, not hyperelasticity, so the nonlinear material constants do not apply; The section also describes Cook's membrane (Sec. 7.2: clamped left edge, traction g = (0, 10^-3) on the right edge, E = 1, \u03bd = 0.3, corner singularities, estimator \u03b7 only, no reference solution; dimensions 48/44/16 appear only in the figure) and the clamped Fichera corner (Sec. 7.3: \u03a9 = (\u22121,1)^3 \\ (0,1)^3, clamped at x = \u22121, traction (0, 0, \u221210^-3) at x = 1, edge and vertex singularities, estimator \u03b7 only). Neither is carded here."
+    ],
+    "problem_text": "L-shape example (Lederer & Stenberg, weakly symmetric mixed elements, Sec. 7.1): adaptive mixed FEM against an exact corner-singular solution, \u03bd = 0.3 and \u03bd = 0.4999.\nGeometry: 2D L-shaped domain (a rotated square with a smaller rotated square removed), \u03a9 = {|x|+|y| \u2264 2^{1/2} l} \\ {|x \u2212 2^{\u22121/2} l| + |y| \u2264 2^{\u22121/2} l}, with l = 1. The re-entrant corner is at the origin.\nMaterial: Linear isotropic elasticity (not hyperelastic) under plane strain. E = 1, with \u03bd = 0.3 (moderate case) or \u03bd = 0.4999 (nearly incompressible case). Lam\u00e9 parameters come from the standard formulas \u03bb = E\u03bd/((1+\u03bd)(1\u22122\u03bd)) and \u00b5 = E/(2(1+\u03bd)).\nBoundary conditions: Not stated explicitly. The problem is taken from Section 10.3.2 of [36], and the boundary data presumably come from the exact solution given there. The displacement is fixed only up to rigid-body motions.\nLoading: Manufactured/exact singular solution: u_x and u_y vary as r^\u03b1 trigonometric forms, with \u03b1 = 0.544483737 and Q = 0.543075579. Body force and boundary data are not given explicitly; they follow from the exact solution in [36].\nDiscretisation in the paper: Adaptive refinement of a triangular mesh (SOLVE\u2192ESTIMATE\u2192MARK\u2192REFINE). An element is marked if its local estimator is \u2265 1/4 of the maximum. Four weakly symmetric mixed elements are used: SGG2 and SGG3 (Stenberg/Gopalakrishnan\u2013Guzm\u00e1n, k = 2, 3), AFW (Arnold\u2013Falk\u2013Winther, k = 2) and RAFW (method (3.22), k = 2). A uniform refinement is also run as a comparison. The initial mesh, element counts and DOF counts are not stated.\nFeatures: Re-entrant corner of the L-shaped domain at the origin. The exact stress behaves like r^(\u03b1\u22121) with \u03b1 = 0.5445 < 1, so it is unbounded at the corner, and the solution has only H^s regularity with s < 1.54..\nQuestion: which of these quantities can serve as trustworthy reference values: e_\u03c3C (stress error) (Error of the discrete stress against the exact stress, in the paper's C-weighted norm. Reported as a convergence curve against N for \u03bd = 0.3 and \u03bd = 0.4999.); e_uC (displacement error) (Error of the discrete displacement in the paper's C-type norm.); e^mean_C (Mean-type error measure; its precise definition is not in this section.); \u03b7 (a posteriori estimator, Theorem 7), adaptive and uniform (Global error estimator under adaptive and under uniform refinement.); e_\u03c3inc, e_uinc, \u03b7_inc (incompressible-robust errors and estimator, Theorem 8) (Errors in \u03bd-robust norms and the relative estimator for the incompressible setting, at \u03bd = 0.4999.)?"
+   }
+  },
+  {
+   "stage": "L",
+   "actor": "code",
+   "status": "done",
+   "detail": "section chosen by code from the hint"
+  },
+  {
+   "stage": "L",
+   "actor": "code",
+   "status": "done",
+   "detail": "paper and hint chosen by the literature search (code + scout) (\"Cook's membrane\")"
+  },
+  {
+   "stage": "D",
+   "actor": "LLM",
+   "status": "checked",
+   "detail": "formalizer specification; code check: ['manufactured reference requires a smooth solution']",
+   "spec": {
+    "name": "Lederer\u2013Stenberg Sec. 7.1: L-shaped domain, adaptive weakly symmetric mixed FEM vs. exact corner-singular solution (\u03bd = 0.3 and \u03bd = 0.4999)",
+    "geometry": "2D L-shaped domain \u03a9 = {|x|+|y| \u2264 \u221a2\u00b7l} \\ {|x \u2212 l/\u221a2| + |y| \u2264 l/\u221a2}, l = 1 (a rotated square with a smaller rotated square removed). There is one re-entrant corner at the origin, and its interior angle is presumably 3\u03c0/2. The paper discretises it with triangular meshes refined adaptively (SOLVE\u2192ESTIMATE\u2192MARK\u2192REFINE, with maximum marking at \u03b8 = 1/4) and also with uniform refinement for comparison.",
+    "dim": 2,
+    "material": "Linear isotropic elasticity under plane strain. This is not hyperelastic and is outside the pipeline's usual nonlinear scope. E = 1 and \u03bd \u2208 {0.3, 0.4999}. \u03bb = E\u03bd/((1+\u03bd)(1\u22122\u03bd)) and \u00b5 = E/(2(1+\u03bd)). At \u03bd = 0.4999, \u03bb/\u00b5 \u2248 5\u00b710^3 (nearly incompressible), so the problem needs locking-free, \u03bd-robust norms and estimators.",
+    "loading": "Manufactured exact singular solution from Sec. 10.3.2 of ref. [36]. Displacement components are r^\u03b1 times trigonometric functions of \u03b8, with \u03b1 = 0.544483737 and Q = 0.543075579. Body force and boundary data (Dirichlet and/or traction) are implied by the exact solution but not given in this section. The statement 'displacement fixed only up to rigid-body motions' suggests a pure-traction (Neumann) problem, which would need load compatibility and handling of rigid-body modes.",
+    "regularity": "reentrant_corner",
+    "element": "T6",
+    "reference": "exact_manufactured",
+    "qois": [
+     "e_\u03c3C: global C-weighted norm of the stress error against the exact stress. TRUSTWORTHY as a reference quantity. It is an integral norm, finite because \u03c3 \u2208 L2 (|\u03c3|\u00b2 ~ r^{2\u03b1\u22122} is integrable in 2D). The exact solution allows it to be evaluated without a reference mesh. Expected rate: under uniform refinement about N^{\u2212\u03b1/2} \u2248 N^{\u22120.27}, limited by the singularity, not the element order. Under adaptive refinement, recovery of the optimal N^{\u2212k/2} rate. Caveat: quadrature near r = 0 must resolve the integrable singularity. Pointwise or peak stress at the corner is NOT a valid QoI (unbounded, ~r^{\u03b1\u22121}).",
+     "e_uC: displacement error in the C-type norm. TRUSTWORTHY: u \u2208 H^{1+\u03b1\u2212\u03b5}, and the error is a global norm computed from the exact solution. It converges at least as fast as the stress error. It needs the rigid-body modes fixed consistently between the discrete and exact solutions; if they are not, the error is not well defined.",
+     "e^mean_C: mean-type error measure. NOT ASSESSABLE as stated: its definition is not given in this section. If it is a mean-value or region-average error it would converge, but this cannot be confirmed.",
+     "\u03b7 (Theorem 7 estimator), adaptive and uniform: NOT a reference value. It is a computed upper bound. It is meaningful for checking reliability and efficiency through the efficiency index \u03b7/e against the exact error, and for comparing adaptive and uniform rates. Its trustworthiness depends on the Theorem 7 constants, which may depend on \u03bb, so it may not be robust at \u03bd = 0.4999.",
+     "e_\u03c3inc, e_uinc, \u03b7_inc (Theorem 8, \u03bd-robust norms/estimator) at \u03bd = 0.4999: TRUSTWORTHY as global error norms against the exact solution, with the same singular-rate behaviour as above. \u03b7_inc is to be judged through its efficiency index, which Theorem 8 claims is uniform in \u03bb."
+    ],
+    "well_posedness": [
+     "The boundary conditions are not stated. With pure traction, the problem is well posed only if the loads are compatible (zero net force and moment) and the rigid-body modes are fixed, e.g. by a constraint or by orthogonality to them. With Dirichlet data taken from the exact solution, it is well posed without extra constraints.",
+     "Material stability: linear isotropic with \u00b5 > 0 and \u03bb > 0. Stable for both \u03bd values. At \u03bd = 0.4999 the \u03bb-dependence of the constants matters, so only \u03bd-robust norms and estimators (Theorem 8) give \u03bb-uniform statements.",
+     "No limit points or load-level issues: the problem is linear, so the solution depends linearly on the data.",
+     "Singular feature: the re-entrant corner at the origin, with \u03c3 ~ r^{\u03b1\u22121}, \u03b1 \u2248 0.5445 < 1. \u03c3 is unbounded but in L2, and u \u2208 H^{1+s} with s < \u03b1. Global energy-type norms (e_\u03c3C, e_uC, e_inc) converge. Pointwise or peak corner stress does not converge and must not be used as a QoI.",
+     "Under uniform refinement, rates are capped by the singularity (about N^{\u2212\u03b1/2}) regardless of k. Optimal rates can only be recovered with adaptive, corner-graded meshes.",
+     "Exact-error evaluation requires quadrature that resolves the r^{\u03b1\u22121} integrand near the corner. Otherwise the 'exact' reference errors themselves are polluted."
+    ],
+    "open_questions": [
+     "What are the exact boundary conditions? Is it pure traction (traction-free at the re-entrant edges?) or Dirichlet from the exact solution? How are rigid-body motions removed?",
+     "What are the full expressions for u_x and u_y from ref. [36] Sec. 10.3.2, including any amplitude constants and the body force (zero?)?",
+     "Do \u03b1 = 0.544483737 and Q = 0.543075579 apply unchanged to both \u03bd = 0.3 and \u03bd = 0.4999? The traction-free corner eigenvalue does not depend on \u03bd, but Q or the other coefficients might. This needs checking against [36].",
+     "What is the definition of e^mean_C?",
+     "What exactly are the C-weighted norms and the \u03bd-robust (inc) norms, and are the reported errors absolute or relative?",
+     "What were the initial mesh, element/DOF counts N, and the stopping criterion?",
+     "Element enum mismatch: the elements are weakly symmetric mixed triangles (SGG2/SGG3, AFW k=2, RAFW k=2). None is in the catalogue. T6 was chosen as the closest stand-in (quadratic triangle), but the k = 3 SGG3 element and the mixed stress/displacement/rotation spaces are not represented.",
+     "Out of scope: the problem is linear elastic, not hyperelastic. Should hyperelasticity-specific checks be disabled?",
+     "What quadrature rule was used near the singular corner to evaluate the exact errors?"
+    ]
+   }
+  },
+  {
+   "stage": "D",
+   "actor": "LLM",
+   "status": "unsupported",
+   "detail": "The geometry can be drawn as a polygon: the L-shape has vertices (-\u221a2,0), (0,-\u221a2), (\u221a2/2,-\u221a2/2), (0,0), (\u221a2/2,\u221a2/2), (0,\u221a2), with l = 1. The loading cannot be represented. This is a manufactured-solution test. The boundary data come from an exact corner-singular field whose displacement varies as r^\u03b1 with trigonometric terms, \u03b1 = 0.544483737. Applied on any boundary edge, that data is non-constant, and the needed body force is not given. The pipeline accepts only constant tractions, pressures and constant prescribed displacements on straight segments, with no body force. The problem says outright that boundary conditions, body force and boundary data are not stated and must come from [36]. Using constant data would solve a different problem and quietly change it. Also, every quantity asked about measures error against the exact solution in the paper's norms, or is an a posteriori estimator. None of them is a physical response, such as a displacement at a point, that this pipeline could reproduce and compare against a reference. The estimators \u03b7 and \u03b7_inc and the measure e^mean_C also depend on the method (SGG2/3, AFW, RAFW mixed elements), and e^mean_C is not even defined in the section. The nearly incompressible case (\u03bd = 0.4999) is also above the pipeline's limit of \u03bd \u2264 0.49. So none of the listed quantities can serve as a reference value in this pipeline.",
+   "modeler": {
+    "supported": false,
+    "unsupported_reason": "The geometry can be drawn as a polygon: the L-shape has vertices (-\u221a2,0), (0,-\u221a2), (\u221a2/2,-\u221a2/2), (0,0), (\u221a2/2,\u221a2/2), (0,\u221a2), with l = 1. The loading cannot be represented. This is a manufactured-solution test. The boundary data come from an exact corner-singular field whose displacement varies as r^\u03b1 with trigonometric terms, \u03b1 = 0.544483737. Applied on any boundary edge, that data is non-constant, and the needed body force is not given. The pipeline accepts only constant tractions, pressures and constant prescribed displacements on straight segments, with no body force. The problem says outright that boundary conditions, body force and boundary data are not stated and must come from [36]. Using constant data would solve a different problem and quietly change it. Also, every quantity asked about measures error against the exact solution in the paper's norms, or is an a posteriori estimator. None of them is a physical response, such as a displacement at a point, that this pipeline could reproduce and compare against a reference. The estimators \u03b7 and \u03b7_inc and the measure e^mean_C also depend on the method (SGG2/3, AFW, RAFW mixed elements), and e^mean_C is not even defined in the section. The nearly incompressible case (\u03bd = 0.4999) is also above the pipeline's limit of \u03bd \u2264 0.49. So none of the listed quantities can serve as a reference value in this pipeline.",
+    "description": {
+     "name": "lederer_stenberg_L_shape_nu0p3_unsupported",
+     "material": "linear_elastic",
+     "geometry_kind": "polygon",
+     "cell_size": 1,
+     "cells": [],
+     "outer": [
+      [
+       -1.41421356,
+       0
+      ],
+      [
+       0,
+       -1.41421356
+      ],
+      [
+       0.70710678,
+       -0.70710678
+      ],
+      [
+       0,
+       0
+      ],
+      [
+       0.70710678,
+       0.70710678
+      ],
+      [
+       0,
+       1.41421356
+      ]
+     ],
+     "holes": [],
+     "E": 1,
+     "nu": 0.3,
+     "plane": "strain",
+     "bcs": [],
+     "points": []
+    },
+    "sources": [
+     {
+      "item": "domain size",
+      "value": "l = 1",
+      "quote": "\u03a9 = {|x|+|y| \u2264 2^{1/2} l} \\ {|x \u2212 2^{\u22121/2} l| + |y| \u2264 2^{\u22121/2} l}, with l = 1"
+     },
+     {
+      "item": "Young's modulus",
+      "value": "1",
+      "quote": "E = 1, with \u03bd = 0.3 (moderate case) or \u03bd = 0.4999 (nearly incompressible case)"
+     },
+     {
+      "item": "Poisson ratio (chosen case)",
+      "value": "0.3",
+      "quote": "\u03bd = 0.3 (moderate case)"
+     },
+     {
+      "item": "singular exponent",
+      "value": "0.544483737",
+      "quote": "with \u03b1 = 0.544483737 and Q = 0.543075579"
+     }
+    ],
+    "assumptions": [
+     "I chose the \u03bd = 0.3 case because \u03bd = 0.4999 is above the pipeline's limit of 0.49.",
+     "The outer vertices are the set difference of the two rotated squares with l = 1, rounded to 8 decimals. The removed square shares its two edges at (\u221a2,0) with the outer square, which leaves a 270\u00b0 re-entrant corner at the origin.",
+     "I left the boundary conditions empty on purpose: the problem does not state them, and the data from the exact solution would be non-constant, which the pipeline cannot represent."
+    ]
+   }
+  }
+ ],
+ "human_points": [],
+ "wall_clock_s": 90.68163442611694,
+ "llm_cost_usd": 0.2836096,
+ "source": {
+  "pdf": "/home/user/OMAR/Practical_Examples/omar_pfem/verification_agent/literature_search_runs/papers/2206.14610.pdf",
+  "text": null,
+  "description_given": false
+ },
+ "modeler": {
+  "supported": false,
+  "unsupported_reason": "The geometry can be drawn as a polygon: the L-shape has vertices (-\u221a2,0), (0,-\u221a2), (\u221a2/2,-\u221a2/2), (0,0), (\u221a2/2,\u221a2/2), (0,\u221a2), with l = 1. The loading cannot be represented. This is a manufactured-solution test. The boundary data come from an exact corner-singular field whose displacement varies as r^\u03b1 with trigonometric terms, \u03b1 = 0.544483737. Applied on any boundary edge, that data is non-constant, and the needed body force is not given. The pipeline accepts only constant tractions, pressures and constant prescribed displacements on straight segments, with no body force. The problem says outright that boundary conditions, body force and boundary data are not stated and must come from [36]. Using constant data would solve a different problem and quietly change it. Also, every quantity asked about measures error against the exact solution in the paper's norms, or is an a posteriori estimator. None of them is a physical response, such as a displacement at a point, that this pipeline could reproduce and compare against a reference. The estimators \u03b7 and \u03b7_inc and the measure e^mean_C also depend on the method (SGG2/3, AFW, RAFW mixed elements), and e^mean_C is not even defined in the section. The nearly incompressible case (\u03bd = 0.4999) is also above the pipeline's limit of \u03bd \u2264 0.49. So none of the listed quantities can serve as a reference value in this pipeline.",
+  "description": {
+   "name": "lederer_stenberg_L_shape_nu0p3_unsupported",
+   "material": "linear_elastic",
+   "geometry_kind": "polygon",
+   "cell_size": 1,
+   "cells": [],
+   "outer": [
+    [
+     -1.41421356,
+     0
+    ],
+    [
+     0,
+     -1.41421356
+    ],
+    [
+     0.70710678,
+     -0.70710678
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0.70710678,
+     0.70710678
+    ],
+    [
+     0,
+     1.41421356
+    ]
+   ],
+   "holes": [],
+   "E": 1,
+   "nu": 0.3,
+   "plane": "strain",
+   "bcs": [],
+   "points": []
+  },
+  "sources": [
+   {
+    "item": "domain size",
+    "value": "l = 1",
+    "quote": "\u03a9 = {|x|+|y| \u2264 2^{1/2} l} \\ {|x \u2212 2^{\u22121/2} l| + |y| \u2264 2^{\u22121/2} l}, with l = 1"
+   },
+   {
+    "item": "Young's modulus",
+    "value": "1",
+    "quote": "E = 1, with \u03bd = 0.3 (moderate case) or \u03bd = 0.4999 (nearly incompressible case)"
+   },
+   {
+    "item": "Poisson ratio (chosen case)",
+    "value": "0.3",
+    "quote": "\u03bd = 0.3 (moderate case)"
+   },
+   {
+    "item": "singular exponent",
+    "value": "0.544483737",
+    "quote": "with \u03b1 = 0.544483737 and Q = 0.543075579"
+   }
+  ],
+  "assumptions": [
+   "I chose the \u03bd = 0.3 case because \u03bd = 0.4999 is above the pipeline's limit of 0.49.",
+   "The outer vertices are the set difference of the two rotated squares with l = 1, rounded to 8 decimals. The removed square shares its two edges at (\u221a2,0) with the outer square, which leaves a 270\u00b0 re-entrant corner at the origin.",
+   "I left the boundary conditions empty on purpose: the problem does not state them, and the data from the exact solution would be non-constant, which the pipeline cannot represent."
+  ]
+ }
+}

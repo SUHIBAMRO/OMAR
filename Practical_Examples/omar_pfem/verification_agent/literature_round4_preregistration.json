@@ -1,0 +1,21 @@
+{
+ "name": "literature round 4",
+ "frozen_utc": "2026-11-27T09:38:03.501122",
+ "post_hoc_changes": [
+  "passage anchored at the line naming the hint's most distinctive word (literature_select.anchors)",
+  "the librarian is told which example to extract when the passage holds several"
+ ],
+ "not_changed": "gates, tolerances, acceptance criteria, code verification unchanged",
+ "runs": {
+  "R4a": "autonomous.run on 2206.14610 (round-3 failure) with hint \"Cook's membrane\"; not independent",
+  "R4b": "literature_search --max-read 3 on papers not read before (independent of the fixes' development)"
+ },
+ "budget_usd": 2.0,
+ "predictions": {
+  "S1_passage": "R4a: the card describes Cook's membrane, not the L-shape",
+  "S2_r4a_outcome": "R4a: the run reaches verdicts, or stops with a reason that is true for the paper (human judgement, labelled)",
+  "S3_new_read": "R4b: at least one new paper is read",
+  "S4_new_end_to_end": "R4b: at least one new paper reaches verdicts (code verification not FAIL and at least one quantity certified)",
+  "S5_cost": "R4a + R4b cost at most USD 2 (now recorded per run)"
+ }
+}

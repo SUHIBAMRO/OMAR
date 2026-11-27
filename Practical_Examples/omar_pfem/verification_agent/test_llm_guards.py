@@ -1496,3 +1496,14 @@ def test_material_constant_stated_elsewhere_in_paper_is_traced():
     passage = "a 2 by 1 panel with E = 1"
     assert any(u.startswith("nu") for u in trace_numbers(d, passage, [])[0])
     assert trace_numbers(d, passage, [], full)[0] == []
+
+
+def test_passage_is_anchored_on_the_hinted_example():
+    """26 Nov: with several examples, the passage starts at the line naming the hinted one."""
+    from omar_pfem.verification_agent.literature_select import select_passage
+    filler = ("The Young modulus and Poisson ratio, clamped boundary, traction load, mesh of "
+              "elements, displacement. ") * 60
+    text = ("7. Numerical examples\n7.1 L-shaped domain\n" + filler + "\n7.2 Cook's membrane\n"
+            "The tapered panel is clamped on the left. " + filler)
+    p, _ = select_passage(text, "Cook's membrane", width=3000)
+    assert p.lstrip().startswith("7.2 Cook's membrane")
