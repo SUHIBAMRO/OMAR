@@ -13,6 +13,7 @@ import collections
 import datetime
 import json
 import os
+import re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "benchmark_search_runs")
@@ -163,4 +164,100 @@ def reassess(run_file, backend_name="claude-cli", budget_usd=1.9, max_carry=2, l
         json.dump(rec, open(run_file.replace(".json", "_v2_posthoc.json"), "w"), indent=1, default=str)
         log(f"[bench v2] {len(rec['candidates'])} reassessed, {len(rec['carried'])} carried; gaps "
             f"{gaps.most_common(6)}; LLM cost USD {cost():.2f}")
+    return rec
+
+
+QUERIES_R5 = [
+    ("2D established", 'abs:"plate with a hole" AND abs:elasticity', "plate circular hole tension Kirsch"),
+    ("2D established", 'abs:"Cook\'s membrane" AND abs:"linear elastic"', "Cook's membrane"),
+    ("2D established", 'abs:"L-shaped domain" AND abs:"linear elasticity"', "L-shaped domain"),
+    ("2D established", 'abs:"cantilever" AND abs:"plane stress" AND abs:"finite element"', "cantilever beam plane stress"),
+    ("3D hyperelastic", 'abs:"neo-Hookean" AND abs:"finite element" AND abs:"three-dimensional"',
+     "neo-Hookean three-dimensional block hole"),
+]
+
+
+def previously_seen():
+    ids = set()
+    f = os.path.join(HERE, "literature_search_runs", "seen.json")
+    if os.path.exists(f):
+        ids |= set(json.load(open(f)))
+    for d in (os.path.join(HERE, "literature_search_runs"), OUT):
+        if os.path.isdir(d):
+            for g in os.listdir(d):
+                if g.endswith(".json") and g != "seen.json":
+                    r = json.load(open(os.path.join(d, g)))
+                    ids |= {c["id"] for c in r.get("candidates", []) if isinstance(c, dict) and "id" in c}
+                    ids |= {c["id"] for c in r.get("read", []) if isinstance(c, dict) and "id" in c}
+    ids |= {d for d in os.listdir(os.path.join(HERE, "autonomous_runs")) if re.match(r"\d{4}\.\d{4,5}$", d)}
+    return ids
+
+
+def run_r5(backend_name="claude-cli", budget_usd=2.0, per_query=10, assess_top=3, max_carry=2,
+           log=print):
+    """Round 5 (pre-registered): only papers never seen before count; v2 assessment."""
+    from omar_pfem.verification_agent import autonomous, capabilities as CAP, llm_roles
+    from omar_pfem.verification_agent import literature_search as LS
+    from omar_pfem.verification_agent.literature_agent import extract_text
+    from omar_pfem.verification_agent.literature_select import select_passage
+    made, orig = [], llm_roles.make_backend
+
+    def capture(*a, **k):
+        b = orig(*a, **k)
+        made.append(b)
+        return b
+    llm_roles.make_backend = capture
+    cost = lambda: sum(getattr(b, "cost_usd", 0.0) for b in made)
+    backend = llm_roles.make_backend(backend_name)
+    seen = previously_seen()
+    stamp = datetime.datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    rec = {"round": 5, "started": stamp, "excluded_previously_seen": len(seen), "candidates": [],
+           "carried": []}
+    try:
+        for group, q, hint in QUERIES_R5:
+            try:
+                found = LS.arxiv(q, per_query)
+            except Exception as e:
+                log(f"[r5] query failed {q!r}: {e!s:.100}")
+                continue
+            new = [c for c in found if c["id"] not in seen and LS.code_screen(c)[0]]
+            log(f"[r5] {q!r}: {len(found)} found, {len(new)} new and pass the abstract screen")
+            ranked = []
+            for c in new:
+                seen.add(c["id"])
+                try:
+                    pdf = LS.download(c["id"], os.path.join(HERE, "literature_search_runs", "papers"))
+                    passage, where = select_passage(extract_text(pdf), hint)
+                    ranked.append((sum(w.lower() in passage.lower() for w in hint.split()), c, pdf,
+                                   passage, where))
+                except Exception as e:
+                    log(f"[r5] {c['id']}: not readable ({e!s:.80})")
+            ranked.sort(key=lambda t: -t[0])
+            for _, c, pdf, passage, where in ranked[:assess_top]:
+                if cost() >= budget_usd:
+                    break
+                req = CAP.requirements_v2(backend, passage, hint)
+                a = CAP.assess_v2(req)
+                rec["candidates"].append({"group": group, "id": c["id"], "title": c["title"],
+                                          "requirements": req, "assessment": a})
+                log(f"[r5] {c['id']}: {a['decision']}")
+                dim = req["size"].get("dimension") or 2
+                if a["feasible"] and dim == 2 and len(rec["carried"]) < max_carry and cost() < budget_usd:
+                    res = autonomous.run(pdf=pdf, hint=a["feasible_cases"][0], backend_name=backend_name,
+                                         budget_minutes=20.0, max_experiments=4,
+                                         chosen_by="search round 5 (code + LLM requirements)")
+                    refused = next((s["detail"] for s in json.load(open(os.path.join(
+                        HERE, "autonomous_runs", c["id"], "run.json")))["steps"]
+                        if s["status"] == "unsupported"), None) if os.path.exists(os.path.join(
+                            HERE, "autonomous_runs", c["id"], "run.json")) else None
+                    rec["carried"].append({"id": c["id"], "case": a["feasible_cases"][0],
+                                           "final": res.get("final"), "refused": refused})
+                    log(f"[r5] carried {c['id']}: final {res.get('final')} refused {refused}")
+    finally:
+        llm_roles.make_backend = orig
+        rec["llm_cost_usd"] = cost()
+        os.makedirs(OUT, exist_ok=True)
+        json.dump(rec, open(os.path.join(OUT, f"round5_{stamp}.json"), "w"), indent=1, default=str)
+        log(f"[r5] {len(rec['candidates'])} assessed, {len(rec['carried'])} carried; "
+            f"LLM cost USD {cost():.2f}")
     return rec

@@ -1,0 +1,14 @@
+{
+ "name": "search round 5: independent evidence",
+ "frozen_utc": "2026-11-27T17:09:14.779132",
+ "rule": "only papers never seen before (seen.json, every earlier search/assessment record, every autonomous run named by an arXiv id) are assessed",
+ "procedure": "benchmark_search.run_r5: 5 queries, v2 requirements per case with missing information separated, code assessment, feasible 2D cases carried through",
+ "predictions": {
+  "I1_assessed": "at least 6 unseen candidates are assessed",
+  "I2_feasible": "at least one unseen candidate is declared feasible",
+  "I3_end_to_end": "at least one unseen candidate reaches verdicts with a numerically verified quantity (independent evidence)",
+  "I4_consistency": "no carried candidate is refused by the definition step for a capability the registry lists as missing",
+  "I5_cost": "LLM cost at most USD 2.0"
+ },
+ "budget_usd": 2.0
+}
