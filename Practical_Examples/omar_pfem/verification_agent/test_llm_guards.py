@@ -1523,3 +1523,25 @@ def test_step_kinds_follow_the_27_nov_distinction():
     assert step_kind("S", "code", "done") == "predefined procedure"
     assert step_kind("V", "code", "cluster_job") == "predefined procedure"
     assert step_kind("A", "person", "needs_person") == "human intervention"
+
+
+def test_capability_assessment_lists_missing_without_implementing():
+    """27 Nov: the agent states what it cannot do instead of implementing it."""
+    from omar_pfem.verification_agent import capabilities as C
+    req = {"example": "twisted hyperelastic cylinder", "unlisted_needs": [], "reference_values": [],
+           "quotes": [], "size": {"dimension": 3, "dofs_in_paper": 2.0e6, "elements_in_paper": 0},
+           "needs": {"dimension": ["3D general"], "geometry": ["spherical or revolved surfaces"],
+                     "material": ["nearly incompressible (nu > 0.49)"], "loading": [],
+                     "boundary": ["clamped"], "analysis": ["static"]}}
+    a = C.assess(req)
+    needs = {m["need"] for m in a["missing"]}
+    assert not a["feasible"] and {"3D general", "nearly incompressible (nu > 0.49)",
+                                  "3D problem definition from a paper"} <= needs
+    assert a["size"]["where"].startswith("cluster")
+    ok = dict(req, size={"dimension": 2, "dofs_in_paper": 0, "elements_in_paper": 0},
+              needs={"dimension": ["2D"], "geometry": ["inclined edges"],
+                     "material": ["linear elastic, isotropic"], "loading": ["constant traction (dead)"],
+                     "boundary": ["clamped"], "analysis": ["static"]})
+    assert C.assess(ok)["feasible"]
+    s = C.requirements_schema()
+    assert set(s["properties"]["needs"]["required"]) == set(C.REGISTRY)

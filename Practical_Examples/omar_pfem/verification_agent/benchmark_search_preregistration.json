@@ -1,0 +1,19 @@
+{
+ "name": "benchmark search with capability assessment (Professor Rabczuk, 27 Nov)",
+ "frozen_utc": "2026-11-27T16:13:22.748495",
+ "approval": "Omar, 27 Nov: 'continue everything without stopping'; budget USD 2.5",
+ "procedure": [
+  "code: arXiv queries for established benchmarks, 3D hyperelastic with curved geometry or stress concentration first, then 2D",
+  "code: abstract screen, download, passage selection",
+  "LLM (autonomous decision): requirements of the example, from a fixed vocabulary (capabilities.REGISTRY)",
+  "code (predefined procedure): assessment -> feasible or the list of missing capabilities (NOT implemented); size estimate local / cluster",
+  "feasible 2D candidates: carried through by autonomous.run (definition, meshing, MMS, simulation, verification, diagnosis)"
+ ],
+ "predictions": {
+  "B1_3d_declared": "every 3D hyperelastic candidate with curved geometry is declared not feasible, with at least one listed missing capability",
+  "B2_top_gap": "the most frequent missing capability is one of: 3D general geometry, nearly incompressible material, 3D problem definition from a paper",
+  "B3_carried_through": "at least one candidate is declared feasible and reaches verdicts (numerically verified quantity)",
+  "B4_consistency": "no candidate declared feasible is refused by the definition step for a capability that the registry lists as missing",
+  "B5_cost": "LLM cost at most USD 2.5"
+ }
+}
