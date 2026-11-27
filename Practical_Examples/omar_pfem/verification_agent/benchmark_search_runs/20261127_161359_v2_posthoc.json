@@ -1,0 +1,3512 @@
+{
+ "post_hoc": true,
+ "first_run": "20261127_161359.json",
+ "candidates": [
+  {
+   "id": "2611.34310",
+   "group": "3D hyperelastic",
+   "requirements": {
+    "example": "Three-dimensional graded hyperelastic benchmark (inverse identification of spatially varying constitutive parameters from full-field displacements and reaction forces); the passage is cut off before any geometry, hole, cylinder or torsion details are given",
+    "cases": [
+     {
+      "name": "3D synthetic graded / anisotropic hyperelastic specimen under combined biaxial and uniaxial loading",
+      "needs": {
+       "dimension": [
+        "3D general"
+       ],
+       "geometry": [],
+       "material": [
+        "anisotropic / fibre-reinforced",
+        "Mooney-Rivlin"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [
+        "clamped"
+       ],
+       "analysis": [
+        "load stepping (finite strain)"
+       ],
+       "outputs": [
+        "reaction force",
+        "point displacement"
+       ]
+      },
+      "unlisted_needs": [
+       "Spatially varying (functionally graded) material parameters, e.g. a graded C10 field; the passage does not give the grading law",
+       "Inverse problem: identify the constitutive parameters from measured nodal displacements and the total reaction force on fixed DOFs (a forward FE solve only produces the synthetic data)",
+       "Full-field Green-Lagrange strain components E11..E33 are needed as data",
+       "The constitutive model library is not given in the passage; C10 (a Mooney-Rivlin/neo-Hookean-type term) and fibre anisotropy are only mentioned",
+       "The specimen geometry, its dimensions and the load magnitudes are not stated in the passage (the hole, cylinder and torsion in the title do not appear)",
+       "Several load cases (biaxial plus uniaxial) are combined"
+      ],
+      "reference_values": []
+     },
+     {
+      "name": "2D experimental benchmark (DIC-based)",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [],
+       "material": [
+        "anisotropic / fibre-reinforced"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "load stepping (finite strain)"
+       ],
+       "outputs": [
+        "reaction force"
+       ]
+      },
+      "unlisted_needs": [
+       "Experimental digital image correlation (DIC) displacement data; the passage gives no geometry, material or load details",
+       "Inverse identification of heterogeneous hyperelastic parameters"
+      ],
+      "reference_values": []
+     }
+    ],
+    "size": {
+     "dimension": 3,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 0
+    },
+    "quotes": [
+     "we validate our framework on 3D synthetic and 2D experimental benchmarks involving heterogeneous, graded, and anisotropic hyperelastic materials",
+     "a, Unknown three-dimensional graded hyperelastic specimen. b, Combination of biaxial and uniaxial loading conditions applied to the specimen.",
+     "Total reaction force residual on fixed degrees of freedom",
+     "d and e, Full-field displacements and corresponding Green\u2013Lagrange strain components, respectively."
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "feasible_cases": [],
+    "cases": [
+     {
+      "case": "3D synthetic graded / anisotropic hyperelastic specimen under combined biaxial and uniaxial loading",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "dimension",
+        "need": "3D general",
+        "would_require": "a 3D geometry kernel and tetrahedral meshing of arbitrary solids (gmsh OCC import, revolved or CAD bodies), 3D corner/edge/vertex singularity analysis"
+       },
+       {
+        "category": "material",
+        "need": "anisotropic / fibre-reinforced",
+        "would_require": "anisotropic invariants, fibre fields"
+       },
+       {
+        "category": "material",
+        "need": "Mooney-Rivlin",
+        "would_require": "the strain-energy function, its stress and tangent, MMS body force"
+       },
+       {
+        "category": "outputs",
+        "need": "reaction force",
+        "would_require": "boundary reaction integration"
+       },
+       {
+        "category": "unlisted",
+        "need": "Spatially varying (functionally graded) material parameters, e.g. a graded C10 field; the passage does not give the grading law",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Inverse problem: identify the constitutive parameters from measured nodal displacements and the total reaction force on fixed DOFs (a forward FE solve only produces the synthetic data)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Full-field Green-Lagrange strain components E11..E33 are needed as data",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "The constitutive model library is not given in the passage; C10 (a Mooney-Rivlin/neo-Hookean-type term) and fibre anisotropy are only mentioned",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "The specimen geometry, its dimensions and the load magnitudes are not stated in the passage (the hole, cylinder and torsion in the title do not appear)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Several load cases (biaxial plus uniaxial) are combined",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 11 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "2D experimental benchmark (DIC-based)",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "material",
+        "need": "anisotropic / fibre-reinforced",
+        "would_require": "anisotropic invariants, fibre fields"
+       },
+       {
+        "category": "outputs",
+        "need": "reaction force",
+        "would_require": "boundary reaction integration"
+       },
+       {
+        "category": "unlisted",
+        "need": "Experimental digital image correlation (DIC) displacement data; the passage gives no geometry, material or load details",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Inverse identification of heterogeneous hyperelastic parameters",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 5 missing capabilities (listed, not implemented)"
+     }
+    ],
+    "decision": "cannot be carried through: every case misses a capability (listed, not implemented)"
+   }
+  },
+  {
+   "id": "2403.00125",
+   "group": "3D hyperelastic",
+   "requirements": {
+    "example": "three-dimensional hyperelastic benchmark hole cylinder torsion",
+    "cases": [
+     {
+      "name": "3D extension of the Section 6.2 benchmark (manufactured/randomised-parameter problem)",
+      "needs": {
+       "dimension": [
+        "3D general"
+       ],
+       "geometry": [],
+       "material": [],
+       "loading": [],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "Geometry not given in the passage. The title mentions a hollow cylinder (hole cylinder), but the passage only refers back to Section 6.2 and does not give dimensions.",
+       "Hyperelastic constitutive model and its parameters are not stated in the passage (the title says 'hyperelastic'; the model, e.g. neo-Hookean or Mooney-Rivlin, is unknown).",
+       "Problem is defined by a function with random positive parameters a, b, c and randomly generated points (x_i, y_i, z_i). This looks like a manufactured/exact solution. Its form and the body force and boundary data it implies are not given.",
+       "The title mentions torsion loading, but the passage gives no magnitude or how the torsion is applied.",
+       "Boundary conditions not stated (probably Dirichlet data taken from the exact solution, but this is not confirmed).",
+       "Required output is the L2-norm error against the exact solution under refinement (not in the output list)."
+      ],
+      "reference_values": []
+     }
+    ],
+    "size": {
+     "dimension": 3,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 0
+    },
+    "quotes": [
+     "where the positive values of the parameters a, b and c are chosen randomly and the points (xi , yi , zi ) are randomly generated in the domain.",
+     "This benchmark problem is the three-dimensional extension of the one presented in Section 6.2.",
+     "Convergence curves in the L2 norm for different p are presented in Fig. 21."
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "feasible_cases": [],
+    "cases": [
+     {
+      "case": "3D extension of the Section 6.2 benchmark (manufactured/randomised-parameter problem)",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "dimension",
+        "need": "3D general",
+        "would_require": "a 3D geometry kernel and tetrahedral meshing of arbitrary solids (gmsh OCC import, revolved or CAD bodies), 3D corner/edge/vertex singularity analysis"
+       },
+       {
+        "category": "unlisted",
+        "need": "Geometry not given in the passage. The title mentions a hollow cylinder (hole cylinder), but the passage only refers back to Section 6.2 and does not give dimensions.",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Hyperelastic constitutive model and its parameters are not stated in the passage (the title says 'hyperelastic'; the model, e.g. neo-Hookean or Mooney-Rivlin, is unknown).",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Problem is defined by a function with random positive parameters a, b, c and randomly generated points (x_i, y_i, z_i). This looks like a manufactured/exact solution. Its form and the body force and boundary data it implies are not given.",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "The title mentions torsion loading, but the passage gives no magnitude or how the torsion is applied.",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Boundary conditions not stated (probably Dirichlet data taken from the exact solution, but this is not confirmed).",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Required output is the L2-norm error against the exact solution under refinement (not in the output list).",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 8 missing capabilities (listed, not implemented)"
+     }
+    ],
+    "decision": "cannot be carried through: every case misses a capability (listed, not implemented)"
+   }
+  },
+  {
+   "id": "2312.07124",
+   "group": "3D hyperelastic",
+   "requirements": {
+    "example": "45\u00b0 circular-arc cantilever beam (Bathe\u2013Bolourchi bending-torsion benchmark), unit square cross-section, R = 100, out-of-plane tip load. Note: the supplied example title (\"hole cylinder torsion\") does not match the passage, which describes this arc cantilever.",
+    "cases": [
+     {
+      "name": "Case 1a: St. Venant-Kirchhoff, E=1e7, nu=0, F=300",
+      "needs": {
+       "dimension": [
+        "3D extruded section"
+       ],
+       "geometry": [
+        "curved outer boundary",
+        "straight edges"
+       ],
+       "material": [],
+       "loading": [
+        "point load",
+        "constant traction (dead)"
+       ],
+       "boundary": [
+        "clamped"
+       ],
+       "analysis": [
+        "load stepping (finite strain)"
+       ],
+       "outputs": [
+        "point displacement"
+       ]
+      },
+      "unlisted_needs": [
+       "St. Venant-Kirchhoff hyperelastic material (E = 1e7, nu = 0)",
+       "geometry swept along a 45 deg circular arc of radius R = 100 with a unit square cross-section",
+       "out-of-plane conservative tip force applied at the centre of the free end",
+       "tip displacement measured at the centre of the free end"
+      ],
+      "reference_values": [
+       "Simo and Vu-Quoc [10], F=300: v=-11.87, w=6.96, u=40.08",
+       "Bathe and Bolourchi [9], F=300: v=-11.50, w=6.80, u=39.50",
+       "Q1STb [56], F=300: v=-11.71, w=7.27, u=40.06",
+       "Cardona and Geradin [69], F=300: v=-12.07, w=7.15, u=40.35",
+       "Crisfield [68], F=300: v=-12.18, w=7.13, u=40.53",
+       "Rhim and Lee [67], F=300: v=-12.03, w=7.13, u=40.31"
+      ]
+     },
+     {
+      "name": "Case 1b: St. Venant-Kirchhoff, E=1e7, nu=0, F=600",
+      "needs": {
+       "dimension": [
+        "3D extruded section"
+       ],
+       "geometry": [
+        "curved outer boundary",
+        "straight edges"
+       ],
+       "material": [],
+       "loading": [
+        "point load",
+        "constant traction (dead)"
+       ],
+       "boundary": [
+        "clamped"
+       ],
+       "analysis": [
+        "load stepping (finite strain)"
+       ],
+       "outputs": [
+        "point displacement"
+       ]
+      },
+      "unlisted_needs": [
+       "St. Venant-Kirchhoff hyperelastic material (E = 1e7, nu = 0)",
+       "geometry swept along a 45 deg circular arc of radius R = 100 with a unit square cross-section",
+       "out-of-plane conservative tip force applied at the centre of the free end",
+       "tip displacement measured at the centre of the free end"
+      ],
+      "reference_values": [
+       "Simo and Vu-Quoc [10], F=600: v=-23.48, w=13.50, u=53.37",
+       "Bathe and Bolourchi [9], F=600: v=-23.50, w=13.40, u=53.40",
+       "Q1STb [56], F=600: v=-23.38, w=14.11, u=53.50",
+       "Choi et al. [59], F=600: v=-23.56, w=13.60, u=53.48",
+       "Cardona and Geradin [69], F=600: v=-23.67, w=13.74, u=53.50",
+       "Dvorkin et al. [70], F=600: v=-23.50, w=13.60, u=53.30",
+       "Rhim and Lee [67], F=600: v=-23.64, w=13.70, u=53.46",
+       "Crisfield [68], F=600: v=-23.87, w=13.69, u=53.71"
+      ]
+     },
+     {
+      "name": "Case 2: compressible neo-Hookean, E=1e7, nu=0.3 (load levels F=300/600 as in Case 1)",
+      "needs": {
+       "dimension": [
+        "3D extruded section"
+       ],
+       "geometry": [
+        "curved outer boundary",
+        "straight edges"
+       ],
+       "material": [
+        "compressible neo-Hookean"
+       ],
+       "loading": [
+        "point load",
+        "constant traction (dead)"
+       ],
+       "boundary": [
+        "clamped"
+       ],
+       "analysis": [
+        "load stepping (finite strain)"
+       ],
+       "outputs": [
+        "point displacement"
+       ]
+      },
+      "unlisted_needs": [
+       "geometry swept along a 45 deg circular arc of radius R = 100 with a unit square cross-section",
+       "out-of-plane conservative tip force applied at the centre of the free end",
+       "tip displacement measured at the centre of the free end",
+       "the passage does not give the exact load levels for this case; F=300 and 600 are assumed from the shared setup"
+      ],
+      "reference_values": [
+       "No numerical values are given in the passage. Table 3 (IGA555 reference with 512x1x1 elements) is cut off."
+      ]
+     }
+    ],
+    "size": {
+     "dimension": 3,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 1024
+    },
+    "quotes": [
+     "the 45\u25e6 circular arc cantilever beam with unit square cross-section subjected to an out-of-plane conservative load F",
+     "the linearly elastic St. Venant-Kirchhoff (SVK) material without Poisson effect (E = 107 , \u03bd = 0) and the compressible Neo-Hooke (NH) material with Poisson effect (E = 107 , \u03bd = 0.3)",
+     "The load is also applied in two different levels, F = 300 and 600 units.",
+     "R = 100",
+     "the normalized displacements evaluated at the center of free end",
+     "Tip displacements of the highly refined reference solid element IGA555 with 512\u00d71\u00d71 elements"
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "feasible_cases": [],
+    "cases": [
+     {
+      "case": "Case 1a: St. Venant-Kirchhoff, E=1e7, nu=0, F=300",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "geometry",
+        "need": "curved outer boundary",
+        "would_require": "arcs/splines on the outer boundary in the description, the mesher and the corner analysis"
+       },
+       {
+        "category": "loading",
+        "need": "point load",
+        "would_require": "singular by nature; a regularised load or a quantity away from it"
+       },
+       {
+        "category": "unlisted",
+        "need": "St. Venant-Kirchhoff hyperelastic material (E = 1e7, nu = 0)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "geometry swept along a 45 deg circular arc of radius R = 100 with a unit square cross-section",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "out-of-plane conservative tip force applied at the centre of the free end",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "tip displacement measured at the centre of the free end",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 7 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Case 1b: St. Venant-Kirchhoff, E=1e7, nu=0, F=600",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "geometry",
+        "need": "curved outer boundary",
+        "would_require": "arcs/splines on the outer boundary in the description, the mesher and the corner analysis"
+       },
+       {
+        "category": "loading",
+        "need": "point load",
+        "would_require": "singular by nature; a regularised load or a quantity away from it"
+       },
+       {
+        "category": "unlisted",
+        "need": "St. Venant-Kirchhoff hyperelastic material (E = 1e7, nu = 0)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "geometry swept along a 45 deg circular arc of radius R = 100 with a unit square cross-section",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "out-of-plane conservative tip force applied at the centre of the free end",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "tip displacement measured at the centre of the free end",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 7 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Case 2: compressible neo-Hookean, E=1e7, nu=0.3 (load levels F=300/600 as in Case 1)",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "geometry",
+        "need": "curved outer boundary",
+        "would_require": "arcs/splines on the outer boundary in the description, the mesher and the corner analysis"
+       },
+       {
+        "category": "loading",
+        "need": "point load",
+        "would_require": "singular by nature; a regularised load or a quantity away from it"
+       },
+       {
+        "category": "unlisted",
+        "need": "geometry swept along a 45 deg circular arc of radius R = 100 with a unit square cross-section",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "out-of-plane conservative tip force applied at the centre of the free end",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "tip displacement measured at the centre of the free end",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "the passage does not give the exact load levels for this case; F=300 and 600 are assumed from the shared setup",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 7 missing capabilities (listed, not implemented)"
+     }
+    ],
+    "decision": "cannot be carried through: every case misses a capability (listed, not implemented)"
+   }
+  },
+  {
+   "id": "2607.20378",
+   "group": "3D hyperelastic",
+   "requirements": {
+    "example": "neo-Hookean stress concentration hole notch three-dimensional \u2014 NOTE: the passage does not describe this benchmark. The only problem stated in the passage (Sec. 5.4) is a scalar 2D Laplace equation with Dirichlet data on a Koch snowflake and a flower-shaped domain. The neo-Hookean, stress-concentration and crack benchmarks are only named in the Conclusion; their geometry, material, loads and supports are not given here.",
+    "cases": [
+     {
+      "name": "Laplace equation on Koch snowflake domain (Dirichlet, manufactured exact solution)",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges",
+        "inclined edges"
+       ],
+       "material": [],
+       "loading": [],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "scalar Laplace (potential) problem, not solid mechanics: \u0394u = 0 in \u03a9",
+       "fractal Koch snowflake outer boundary (many re-entrant corners); the passage does not give the iteration level or size",
+       "non-homogeneous Dirichlet boundary condition u = sin(x) sinh(y) + cos(x) cosh(y) on the whole boundary",
+       "output: relative global error e against the exact solution (norm not stated in the passage)"
+      ],
+      "reference_values": [
+       "exact solution u = sin(x) sinh(y) + cos(x) cosh(y)"
+      ]
+     },
+     {
+      "name": "Laplace equation on flower-shaped domain (Dirichlet, manufactured exact solution)",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "curved outer boundary"
+       ],
+       "material": [],
+       "loading": [],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "scalar Laplace (potential) problem, not solid mechanics: \u0394u = 0 in \u03a9",
+       "flower-shaped domain; the passage does not give the parametrisation (number of petals, radii)",
+       "non-homogeneous Dirichlet boundary condition u = sin(x) sinh(y) + cos(x) cosh(y) on the whole boundary",
+       "output: relative global error e against the exact solution (norm not stated in the passage)"
+      ],
+      "reference_values": [
+       "exact solution u = sin(x) sinh(y) + cos(x) cosh(y)"
+      ]
+     }
+    ],
+    "size": {
+     "dimension": 2,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 0
+    },
+    "quotes": [
+     "\u2206u = 0, x \u2208 \u03a9, u = sin(x) sinh(y) + cos(x) cosh(y), x \u2208 \u2202\u03a9",
+     "on a Koch snowflake and a flower-shaped domain",
+     "Across a benchmark suite spanning crack singularities, stress concentration, Neo-Hookean hyperelasticity, highly heterogeneous inverse identification, and complex geometries"
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "feasible_cases": [],
+    "cases": [
+     {
+      "case": "Laplace equation on Koch snowflake domain (Dirichlet, manufactured exact solution)",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "scalar Laplace (potential) problem, not solid mechanics: \u0394u = 0 in \u03a9",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "fractal Koch snowflake outer boundary (many re-entrant corners); the passage does not give the iteration level or size",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "non-homogeneous Dirichlet boundary condition u = sin(x) sinh(y) + cos(x) cosh(y) on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "output: relative global error e against the exact solution (norm not stated in the passage)",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 4 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Laplace equation on flower-shaped domain (Dirichlet, manufactured exact solution)",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "geometry",
+        "need": "curved outer boundary",
+        "would_require": "arcs/splines on the outer boundary in the description, the mesher and the corner analysis"
+       },
+       {
+        "category": "unlisted",
+        "need": "scalar Laplace (potential) problem, not solid mechanics: \u0394u = 0 in \u03a9",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "flower-shaped domain; the passage does not give the parametrisation (number of petals, radii)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "non-homogeneous Dirichlet boundary condition u = sin(x) sinh(y) + cos(x) cosh(y) on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "output: relative global error e against the exact solution (norm not stated in the passage)",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 5 missing capabilities (listed, not implemented)"
+     }
+    ],
+    "decision": "cannot be carried through: every case misses a capability (listed, not implemented)"
+   }
+  },
+  {
+   "id": "2506.19982",
+   "group": "3D hyperelastic",
+   "requirements": {
+    "example": "neo-Hookean stress concentration hole notch three-dimensional",
+    "cases": [
+     {
+      "name": "Li2Sb -> Li3Sb alloying electrode particle (5 um x 5 um, plane strain) with defects (pores/cracks), chemo-mechanical phase-field with neo-Hookean elasticity",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges",
+        "polygonal holes",
+        "notch with a small root radius"
+       ],
+       "material": [
+        "compressible neo-Hookean"
+       ],
+       "loading": [],
+       "boundary": [],
+       "analysis": [
+        "load stepping (finite strain)",
+        "buckling / limit points"
+       ],
+       "outputs": [
+        "peak stress"
+       ]
+      },
+      "unlisted_needs": [
+       "Coupled multiphysics: Cahn-Hilliard-type diffusion of Li (concentration c, chemical potential mu) plus Allen-Cahn-type reaction order parameter eta with double-well energy and gradient energy kappa|grad eta|^2",
+       "Loading is an eigenstrain: multiplicative decomposition F = F_bar F0(eta) with affine stress-free transformation deformation (~24% volume change) driven by the phase change, not by mechanical loads",
+       "Chemical boundary condition: constant Li flux on outer surface and on surfaces of defects with > 3% surface area",
+       "Transient (time-dependent) diffusion/phase evolution rather than quasi-static load steps",
+       "Neo-Hookean form specific: psi = J0[G/2 (I1-3) + lambda/2 (ln I3)^2 - G ln I3] with I3 defined as sqrt(det C_bar)",
+       "Defects (pores, cracks) introduced by trimming elements: geometry of defects (sizes, positions, sharp corners, slender walls) not specified in passage",
+       "Mechanical support conditions of the particle not stated in passage",
+       "Material constants (G, lambda, Ea, mu_eta, mu_alpha, c_max, kappa) are in Table A.2, not in passage",
+       "Outputs of interest: internal stress fields (Cauchy, second Piola-Kirchhoff on intermediate configuration, Mandel stress), stress accumulation at crack tips, crack propagation/failure criterion",
+       "Geometric instability (bending) of slender walls used to accommodate deformation"
+      ],
+      "reference_values": []
+     }
+    ],
+    "size": {
+     "dimension": 2,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 0
+    },
+    "quotes": [
+     "we assume plane-strain conditions and model a 2D domain representing a primary particle of size 5 \u00b5m \u00d7 5 \u00b5m, subject to a constant flux on the surface",
+     "We introduce defects by selectively trimming elements and apply the Li flux to the surfaces of defects with > 3% surface area",
+     "We assume a neo-Hookean material law and describe the non-linear stress-strain behavior of the alloying electrode undergoing large deformations",
+     "These deformation gradients are related to the net deformation of the electrode via a multiplicative decomposition F = F\u0304F0",
+     "The large volume changes (\u223c 24%) of the alloying electrode can be accommodated in pores, however, phase boundaries, sharp corners, and slender walls generate significant internal stresses"
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "feasible_cases": [],
+    "cases": [
+     {
+      "case": "Li2Sb -> Li3Sb alloying electrode particle (5 um x 5 um, plane strain) with defects (pores/cracks), chemo-mechanical phase-field with neo-Hookean elasticity",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "analysis",
+        "need": "buckling / limit points",
+        "would_require": "arc-length continuation, stability analysis"
+       },
+       {
+        "category": "unlisted",
+        "need": "Coupled multiphysics: Cahn-Hilliard-type diffusion of Li (concentration c, chemical potential mu) plus Allen-Cahn-type reaction order parameter eta with double-well energy and gradient energy kappa|grad eta|^2",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Loading is an eigenstrain: multiplicative decomposition F = F_bar F0(eta) with affine stress-free transformation deformation (~24% volume change) driven by the phase change, not by mechanical loads",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Chemical boundary condition: constant Li flux on outer surface and on surfaces of defects with > 3% surface area",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Transient (time-dependent) diffusion/phase evolution rather than quasi-static load steps",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Neo-Hookean form specific: psi = J0[G/2 (I1-3) + lambda/2 (ln I3)^2 - G ln I3] with I3 defined as sqrt(det C_bar)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Defects (pores, cracks) introduced by trimming elements: geometry of defects (sizes, positions, sharp corners, slender walls) not specified in passage",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Mechanical support conditions of the particle not stated in passage",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Material constants (G, lambda, Ea, mu_eta, mu_alpha, c_max, kappa) are in Table A.2, not in passage",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Outputs of interest: internal stress fields (Cauchy, second Piola-Kirchhoff on intermediate configuration, Mandel stress), stress accumulation at crack tips, crack propagation/failure criterion",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Geometric instability (bending) of slender walls used to accommodate deformation",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 11 missing capabilities (listed, not implemented)"
+     }
+    ],
+    "decision": "cannot be carried through: every case misses a capability (listed, not implemented)"
+   }
+  },
+  {
+   "id": "2402.00480",
+   "group": "2D established",
+   "requirements": {
+    "example": "Section 7.1 of a pure-stress planar elasticity formulation paper: characterising \u03c8 with manufactured solutions on A = [-3,3]\u00d7[-1,1]. There is no plate-with-hole, Cook membrane or L-shaped benchmark in this passage. It is linear isotropic elasticity with E = 200, in plane stress and plane strain. There are three manufactured displacement fields: shear u_s = (1/10) sinh(x) e2, bi-axial u_b = (1/10)[sin(x) e1 + sin(y) e2], and periodic u_p = (1/10)(sin[\u03c0(x+y)] e1 + sin[\u03c0(x+y)] e2). Plane stress uses \u03bd \u2208 {0, 0.125, 0.25, 0.375, 0.5}. Plane strain uses the same values except 0.5, which is replaced by \u03bd = 0.499. Dirichlet conditions are applied on the whole boundary, and the matching body force is f = -Div \u03c3\u0303. The quantity reported is the relative L2 stress error. Section 7.2 adds a spectrum study of the operator on [-1,1]^2 with Neumann conditions on the whole boundary. The convergence study for \u03bd \u2208 {0, 0.25, 0.5} refers back to the 3D benchmark of Section 6.1, which this passage does not define, so it is not encoded here.",
+    "cases": [
+     {
+      "name": "Plane stress, shear field u_s, nu=0",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303 (not gravity)",
+       "Dirichlet data = exact stress \u03c3\u0303 on the whole boundary (pure-stress formulation)",
+       "output: relative L2 stress error ||\u03c3\u0303-\u03c3h||/||\u03c3\u0303|| against the analytical solution"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_s = (1/10) sinh(x) e2",
+       "domain [-3,3]x[-1,1]"
+      ]
+     },
+     {
+      "name": "Plane stress, shear field u_s, nu=0.125",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_s = (1/10) sinh(x) e2"
+      ]
+     },
+     {
+      "name": "Plane stress, shear field u_s, nu=0.25",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_s = (1/10) sinh(x) e2"
+      ]
+     },
+     {
+      "name": "Plane stress, shear field u_s, nu=0.375",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_s = (1/10) sinh(x) e2"
+      ]
+     },
+     {
+      "name": "Plane stress, shear field u_s, nu=0.5",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_s = (1/10) sinh(x) e2"
+      ]
+     },
+     {
+      "name": "Plane stress, bi-axial field u_b, nu=0",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_b = (1/10)[sin(x) e1 + sin(y) e2]"
+      ]
+     },
+     {
+      "name": "Plane stress, bi-axial field u_b, nu=0.125",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_b = (1/10)[sin(x) e1 + sin(y) e2]"
+      ]
+     },
+     {
+      "name": "Plane stress, bi-axial field u_b, nu=0.25",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_b = (1/10)[sin(x) e1 + sin(y) e2]"
+      ]
+     },
+     {
+      "name": "Plane stress, bi-axial field u_b, nu=0.375",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_b = (1/10)[sin(x) e1 + sin(y) e2]"
+      ]
+     },
+     {
+      "name": "Plane stress, bi-axial field u_b, nu=0.5",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_b = (1/10)[sin(x) e1 + sin(y) e2]"
+      ]
+     },
+     {
+      "name": "Plane stress, periodic field u_p, nu=0",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary (the field is periodic but the boundary conditions are not)",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_p = (1/10)(sin[\u03c0(x+y)] e1 + sin[\u03c0(x+y)] e2)"
+      ]
+     },
+     {
+      "name": "Plane stress, periodic field u_p, nu=0.125",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_p = (1/10)(sin[\u03c0(x+y)] e1 + sin[\u03c0(x+y)] e2)"
+      ]
+     },
+     {
+      "name": "Plane stress, periodic field u_p, nu=0.25",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_p = (1/10)(sin[\u03c0(x+y)] e1 + sin[\u03c0(x+y)] e2)"
+      ]
+     },
+     {
+      "name": "Plane stress, periodic field u_p, nu=0.375",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_p = (1/10)(sin[\u03c0(x+y)] e1 + sin[\u03c0(x+y)] e2)"
+      ]
+     },
+     {
+      "name": "Plane stress, periodic field u_p, nu=0.5",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_p = (1/10)(sin[\u03c0(x+y)] e1 + sin[\u03c0(x+y)] e2)"
+      ]
+     },
+     {
+      "name": "Plane strain, shear field u_s, nu=0",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_s = (1/10) sinh(x) e2"
+      ]
+     },
+     {
+      "name": "Plane strain, shear field u_s, nu=0.125",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_s = (1/10) sinh(x) e2"
+      ]
+     },
+     {
+      "name": "Plane strain, shear field u_s, nu=0.25",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_s = (1/10) sinh(x) e2"
+      ]
+     },
+     {
+      "name": "Plane strain, shear field u_s, nu=0.375",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_s = (1/10) sinh(x) e2"
+      ]
+     },
+     {
+      "name": "Plane strain, shear field u_s, nu=0.499",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic",
+        "nearly incompressible (nu > 0.49)"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "nu = 0.499",
+       "u_s = (1/10) sinh(x) e2"
+      ]
+     },
+     {
+      "name": "Plane strain, bi-axial field u_b, nu=0",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_b = (1/10)[sin(x) e1 + sin(y) e2]"
+      ]
+     },
+     {
+      "name": "Plane strain, bi-axial field u_b, nu=0.125",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_b = (1/10)[sin(x) e1 + sin(y) e2]"
+      ]
+     },
+     {
+      "name": "Plane strain, bi-axial field u_b, nu=0.25",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_b = (1/10)[sin(x) e1 + sin(y) e2]"
+      ]
+     },
+     {
+      "name": "Plane strain, bi-axial field u_b, nu=0.375",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_b = (1/10)[sin(x) e1 + sin(y) e2]"
+      ]
+     },
+     {
+      "name": "Plane strain, bi-axial field u_b, nu=0.499",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic",
+        "nearly incompressible (nu > 0.49)"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "nu = 0.499",
+       "u_b = (1/10)[sin(x) e1 + sin(y) e2]"
+      ]
+     },
+     {
+      "name": "Plane strain, periodic field u_p, nu=0",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_p = (1/10)(sin[\u03c0(x+y)] e1 + sin[\u03c0(x+y)] e2)"
+      ]
+     },
+     {
+      "name": "Plane strain, periodic field u_p, nu=0.125",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_p = (1/10)(sin[\u03c0(x+y)] e1 + sin[\u03c0(x+y)] e2)"
+      ]
+     },
+     {
+      "name": "Plane strain, periodic field u_p, nu=0.25",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_p = (1/10)(sin[\u03c0(x+y)] e1 + sin[\u03c0(x+y)] e2)"
+      ]
+     },
+     {
+      "name": "Plane strain, periodic field u_p, nu=0.375",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "u_p = (1/10)(sin[\u03c0(x+y)] e1 + sin[\u03c0(x+y)] e2)"
+      ]
+     },
+     {
+      "name": "Plane strain, periodic field u_p, nu=0.499",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic",
+        "nearly incompressible (nu > 0.49)"
+       ],
+       "loading": [
+        "prescribed displacement"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "manufactured non-constant body force f = -Div \u03c3\u0303",
+       "Dirichlet stress data on the whole boundary",
+       "relative L2 stress error"
+      ],
+      "reference_values": [
+       "E = 200",
+       "nu = 0.499",
+       "u_p = (1/10)(sin[\u03c0(x+y)] e1 + sin[\u03c0(x+y)] e2)"
+      ]
+     },
+     {
+      "name": "Operator spectrum, [-1,1]^2, Neumann on the whole boundary (plane stress and plane strain)",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [],
+       "boundary": [],
+       "analysis": [],
+       "outputs": []
+      },
+      "unlisted_needs": [
+       "eigenvalue analysis of the discrete stiffness operator (count of zero and negative eigenvalues)",
+       "traction-free (pure Neumann) boundary on the whole boundary",
+       "the passage states no specific Poisson ratio; it reports results for any \u03bd"
+      ],
+      "reference_values": [
+       "paper reports 9 zero eigenvalues and no negative eigenvalues; 3 zero eigenvalues (rigid-body modes) expected from the displacement formulation"
+      ]
+     }
+    ],
+    "size": {
+     "dimension": 2,
+     "dofs_in_paper": 33123,
+     "elements_in_paper": 1200
+    },
+    "quotes": [
+     "we examine plane stress and plane strain with varying Poisson ratios and Young's modulus set to E = 200",
+     "A = [\u22123, 3]\u00d7[\u22121, 1] with a complete Dirichlet boundary sD = \u2202A",
+     "1200 uniform quadrilateral elements of cubic polynomial order, yielding 33123 degrees of freedom",
+     "the Poisson ration is varied as \u03bd \u2208 {0, 0.125, 0.25, 0.375, 0.5}",
+     "In the case of plane strain we use \u03bd = 0.499 \u2248 0.5",
+     "static equilibrium f = \u2212 Div \u03c3",
+     "the domain A = [\u22121, 1]2 with a complete Neumann boundary sN = \u2202A",
+     "we always retrieve 9-zero eigenvalues and no negative eigenvalues"
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "feasible_cases": [],
+    "cases": [
+     {
+      "case": "Plane stress, shear field u_s, nu=0",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303 (not gravity)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet data = exact stress \u03c3\u0303 on the whole boundary (pure-stress formulation)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "output: relative L2 stress error ||\u03c3\u0303-\u03c3h||/||\u03c3\u0303|| against the analytical solution",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane stress, shear field u_s, nu=0.125",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane stress, shear field u_s, nu=0.25",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane stress, shear field u_s, nu=0.375",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane stress, shear field u_s, nu=0.5",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane stress, bi-axial field u_b, nu=0",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane stress, bi-axial field u_b, nu=0.125",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane stress, bi-axial field u_b, nu=0.25",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane stress, bi-axial field u_b, nu=0.375",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane stress, bi-axial field u_b, nu=0.5",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane stress, periodic field u_p, nu=0",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary (the field is periodic but the boundary conditions are not)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane stress, periodic field u_p, nu=0.125",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane stress, periodic field u_p, nu=0.25",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane stress, periodic field u_p, nu=0.375",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane stress, periodic field u_p, nu=0.5",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane strain, shear field u_s, nu=0",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane strain, shear field u_s, nu=0.125",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane strain, shear field u_s, nu=0.25",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane strain, shear field u_s, nu=0.375",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane strain, shear field u_s, nu=0.499",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "material",
+        "need": "nearly incompressible (nu > 0.49)",
+        "would_require": "a mixed u-p (or F-bar / enhanced-strain) formulation with its own code verification; displacement elements lock"
+       },
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 4 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane strain, bi-axial field u_b, nu=0",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane strain, bi-axial field u_b, nu=0.125",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane strain, bi-axial field u_b, nu=0.25",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane strain, bi-axial field u_b, nu=0.375",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane strain, bi-axial field u_b, nu=0.499",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "material",
+        "need": "nearly incompressible (nu > 0.49)",
+        "would_require": "a mixed u-p (or F-bar / enhanced-strain) formulation with its own code verification; displacement elements lock"
+       },
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 4 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane strain, periodic field u_p, nu=0",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane strain, periodic field u_p, nu=0.125",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane strain, periodic field u_p, nu=0.25",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane strain, periodic field u_p, nu=0.375",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Plane strain, periodic field u_p, nu=0.499",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "material",
+        "need": "nearly incompressible (nu > 0.49)",
+        "would_require": "a mixed u-p (or F-bar / enhanced-strain) formulation with its own code verification; displacement elements lock"
+       },
+       {
+        "category": "unlisted",
+        "need": "manufactured non-constant body force f = -Div \u03c3\u0303",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Dirichlet stress data on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "relative L2 stress error",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 4 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Operator spectrum, [-1,1]^2, Neumann on the whole boundary (plane stress and plane strain)",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "eigenvalue analysis of the discrete stiffness operator (count of zero and negative eigenvalues)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "traction-free (pure Neumann) boundary on the whole boundary",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "the passage states no specific Poisson ratio; it reports results for any \u03bd",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 33123,
+       "ladder_dofs_estimate": 44164.0,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     }
+    ],
+    "decision": "cannot be carried through: every case misses a capability (listed, not implemented)"
+   }
+  },
+  {
+   "id": "2405.04970",
+   "group": "2D established",
+   "requirements": {
+    "example": "benchmark plane strain plate hole Cook membrane L-shaped",
+    "cases": [],
+    "size": {
+     "dimension": 2,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 0
+    },
+    "quotes": [
+     "Here, the Navier-Cauchy equation is solved in a strong form using a direct RBF-FD approximation on pure scattered nodes",
+     "This was also reported in a recent RBF-FD analysis of elasto-plastic benchmark problems [29]",
+     "Future work could focus on extending this method to three-dimensional problems"
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "feasible_cases": [],
+    "cases": [],
+    "decision": "cannot be carried through: every case misses a capability (listed, not implemented)"
+   }
+  },
+  {
+   "id": "2206.14699",
+   "group": "2D established",
+   "requirements": {
+    "example": "benchmark plane strain plate hole Cook membrane L-shaped",
+    "cases": [
+     {
+      "name": "Verification 1: isotropic thick cylindrical shell under radial Lorentz body force density, axial strain fixed (eps_z = 0)",
+      "needs": {
+       "dimension": [
+        "2D",
+        "3D extruded section"
+       ],
+       "geometry": [
+        "curved outer boundary",
+        "circular holes"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "non-constant distributed load"
+       ],
+       "boundary": [
+        "symmetry / roller"
+       ],
+       "analysis": [
+        "static"
+       ],
+       "outputs": [
+        "stress at a given point"
+       ]
+      },
+      "unlisted_needs": [
+       "Axisymmetric / generalized plane strain cylinder with eps_z = 0; ends axially fixed on a 1 m long shell; quarter azimuthal extent with symmetry planes",
+       "Radially varying body force density f(r) \u2248 5.69 GN/m^3\u00b7(r/1m) \u2212 0.356 GN/m^3\u00b7(1m/r), from uniform axial current density jz = 95.1 MA/m^2 (Amp\u00e8re + Lorentz)",
+       "Output is full radial profiles \u03c3r(r), \u03c3\u03b8(r), \u03c3z(r) across r in [0.25, 0.5] m, and the resulting axial force Fz (< 0)",
+       "Cases with axial tension (eps_z > 0, Fz > 0) were run but not reported"
+      ],
+      "reference_values": [
+       "r1 = 0.25 m, r2 = 0.5 m, shell length 1 m",
+       "E = 200 GPa, nu = 0.3",
+       "jz = 95.1 MA/m^2, B = 22.4 T, Pmag = 200 MPa",
+       "Model and Ansys stress profiles agree to within 0.7%"
+      ]
+     },
+     {
+      "name": "Verification 2: two nested cylindrical shells (inner isotropic, outer transversely isotropic) under external pressure, eps_z = 0",
+      "needs": {
+       "dimension": [
+        "2D",
+        "3D extruded section"
+       ],
+       "geometry": [
+        "curved outer boundary",
+        "circular holes"
+       ],
+       "material": [
+        "linear elastic, isotropic",
+        "orthotropic linear elastic"
+       ],
+       "loading": [
+        "pressure (linear)"
+       ],
+       "boundary": [
+        "symmetry / roller"
+       ],
+       "analysis": [
+        "static"
+       ],
+       "outputs": [
+        "stress at a given point"
+       ]
+      },
+      "unlisted_needs": [
+       "Bonded two-layer (multi-material) radial interface at r2 = 0.67 m",
+       "Transversely isotropic outer layer (axis = z); transverse-transverse Poisson ratio 0.5",
+       "Generalized plane strain with eps_z = 0, producing a finite axial compression Fz",
+       "Output is radial stress profiles \u03c3r, \u03c3\u03b8, \u03c3z(r); the passage is cut off before results or tolerances are given"
+      ],
+      "reference_values": [
+       "Inner layer: r1 = 0.33 m to r2 = 0.67 m, E = 200 GPa, nu = 0.3",
+       "Outer layer: r2 = 0.67 m to r3 = 1.0 m, Ez = 200 GPa, E_perp = 100 GPa, nu_z,perp = 0.3, nu_perp = 0.5",
+       "Pext = 200 MPa"
+      ]
+     },
+     {
+      "name": "Analytic case: uniform cylindrical shell with finite bore under external pressure (Lam\u00e9)",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "curved outer boundary",
+        "circular holes"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "pressure (linear)"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": [
+        "stress at a given point"
+       ]
+      },
+      "unlisted_needs": [
+       "No geometry, material or load values are given; the check is the closed-form inner-edge hoop stress"
+      ],
+      "reference_values": [
+       "\u03c3\u03b8(r1) = \u22122 Pext / (1 \u2212 r1^2/r2^2)",
+       "Any bore makes the allowable Pmag for steel half its value: 660 MPa \u2192 330 MPa (B limit 40.7 T \u2192 28.8 T)"
+      ]
+     },
+     {
+      "name": "Analytic case: 3-layer coil (soft/stiff/soft) under external pressure",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "curved outer boundary",
+        "circular holes"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "pressure (linear)"
+       ],
+       "boundary": [],
+       "analysis": [
+        "static"
+       ],
+       "outputs": [
+        "stress at a given point"
+       ]
+      },
+      "unlisted_needs": [
+       "Three bonded layers with different Young's moduli; the passage gives no numerical values",
+       "The expected result is qualitative: \u03c3z and \u03c3\u03b8 are concentrated in the stiff middle layer, with \u03c3r = 0 at the inner edge and \u2212Pext at the outer edge"
+      ],
+      "reference_values": []
+     }
+    ],
+    "size": {
+     "dimension": 3,
+     "dofs_in_paper": 0,
+     "elements_in_paper": 0
+    },
+    "quotes": [
+     "The geometry is a uniform cylindrical shell with inner radius r1 = 0.25 m, outer radius r2 = 0.5 m.",
+     "The material has an isotropic Young's modulus E = 200 GPa and an isotropic Poisson's ratio \u03bd = 0.3",
+     "The axial strain is fixed to be z = 0, though due to Poisson effects this results in a finite axial compression Fz < 0.",
+     "One quarter of the azimuthal extent was simulated, with fourfold radial symmetry and axially fixed boundary conditions.",
+     "The model results agree with the Ansys results to within 0.7%",
+     "It has axial isotropic Young's modulus Ez = 200 GPa, transverse Young's modulus E\u22a5 = 100 GPa, axial-transverse Poisson's ratio \u03bdz,\u22a5 = 0.3, and transverse-transverse Poisson's ratio \u03bd\u22a5 = 0.5.",
+     "The exterior is subjected to a pressure Pext = 200 MPa."
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "feasible_cases": [],
+    "cases": [
+     {
+      "case": "Verification 1: isotropic thick cylindrical shell under radial Lorentz body force density, axial strain fixed (eps_z = 0)",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "geometry",
+        "need": "curved outer boundary",
+        "would_require": "arcs/splines on the outer boundary in the description, the mesher and the corner analysis"
+       },
+       {
+        "category": "loading",
+        "need": "non-constant distributed load",
+        "would_require": "load functions in the description"
+       },
+       {
+        "category": "outputs",
+        "need": "stress at a given point",
+        "would_require": "pointwise stress recovery at a requested point"
+       },
+       {
+        "category": "unlisted",
+        "need": "Axisymmetric / generalized plane strain cylinder with eps_z = 0; ends axially fixed on a 1 m long shell; quarter azimuthal extent with symmetry planes",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Radially varying body force density f(r) \u2248 5.69 GN/m^3\u00b7(r/1m) \u2212 0.356 GN/m^3\u00b7(1m/r), from uniform axial current density jz = 95.1 MA/m^2 (Amp\u00e8re + Lorentz)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Output is full radial profiles \u03c3r(r), \u03c3\u03b8(r), \u03c3z(r) across r in [0.25, 0.5] m, and the resulting axial force Fz (< 0)",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Cases with axial tension (eps_z > 0, Fz > 0) were run but not reported",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 8 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Verification 2: two nested cylindrical shells (inner isotropic, outer transversely isotropic) under external pressure, eps_z = 0",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "geometry",
+        "need": "curved outer boundary",
+        "would_require": "arcs/splines on the outer boundary in the description, the mesher and the corner analysis"
+       },
+       {
+        "category": "material",
+        "need": "orthotropic linear elastic",
+        "would_require": "anisotropic elasticity tensor"
+       },
+       {
+        "category": "outputs",
+        "need": "stress at a given point",
+        "would_require": "pointwise stress recovery at a requested point"
+       },
+       {
+        "category": "unlisted",
+        "need": "Bonded two-layer (multi-material) radial interface at r2 = 0.67 m",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Transversely isotropic outer layer (axis = z); transverse-transverse Poisson ratio 0.5",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Generalized plane strain with eps_z = 0, producing a finite axial compression Fz",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Output is radial stress profiles \u03c3r, \u03c3\u03b8, \u03c3z(r); the passage is cut off before results or tolerances are given",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 8 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Analytic case: uniform cylindrical shell with finite bore under external pressure (Lam\u00e9)",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "geometry",
+        "need": "curved outer boundary",
+        "would_require": "arcs/splines on the outer boundary in the description, the mesher and the corner analysis"
+       },
+       {
+        "category": "outputs",
+        "need": "stress at a given point",
+        "would_require": "pointwise stress recovery at a requested point"
+       },
+       {
+        "category": "unlisted",
+        "need": "No geometry, material or load values are given; the check is the closed-form inner-edge hoop stress",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 4 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Analytic case: 3-layer coil (soft/stiff/soft) under external pressure",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "geometry",
+        "need": "curved outer boundary",
+        "would_require": "arcs/splines on the outer boundary in the description, the mesher and the corner analysis"
+       },
+       {
+        "category": "outputs",
+        "need": "stress at a given point",
+        "would_require": "pointwise stress recovery at a requested point"
+       },
+       {
+        "category": "unlisted",
+        "need": "Three bonded layers with different Young's moduli; the passage gives no numerical values",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "The expected result is qualitative: \u03c3z and \u03c3\u03b8 are concentrated in the stiff middle layer, with \u03c3r = 0 at the inner edge and \u2212Pext at the outer edge",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "automation",
+        "need": "3D problem definition from a paper",
+        "would_require": "a 3D description schema for the modeler (extrusion thickness, face conditions) with its code checks"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 0,
+       "ladder_dofs_estimate": 0,
+       "where": "unknown (no size in the paper)"
+      },
+      "decision": "cannot be carried through: 5 missing capabilities (listed, not implemented)"
+     }
+    ],
+    "decision": "cannot be carried through: every case misses a capability (listed, not implemented)"
+   }
+  },
+  {
+   "id": "1911.08728",
+   "group": "2D established",
+   "requirements": {
+    "example": "Cook's membrane",
+    "cases": [
+     {
+      "name": "Case 1: compressible, E = 1, nu = 1/3",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges",
+        "inclined edges"
+       ],
+       "material": [
+        "linear elastic, isotropic"
+       ],
+       "loading": [
+        "constant traction (dead)"
+       ],
+       "boundary": [
+        "clamped"
+       ],
+       "analysis": [
+        "static"
+       ],
+       "outputs": [
+        "point displacement"
+       ]
+      },
+      "unlisted_needs": [
+       "Plate vertex coordinates appear only in Fig. 10.4, not in the text; only Q = (48, 52) is given",
+       "Plane strain or plane stress is not stated"
+      ],
+      "reference_values": []
+     },
+     {
+      "name": "Case 2: nearly incompressible, E = 1.12499998125, nu = 0.499999975",
+      "needs": {
+       "dimension": [
+        "2D"
+       ],
+       "geometry": [
+        "straight edges",
+        "inclined edges"
+       ],
+       "material": [
+        "linear elastic, isotropic",
+        "nearly incompressible (nu > 0.49)"
+       ],
+       "loading": [
+        "constant traction (dead)"
+       ],
+       "boundary": [
+        "clamped"
+       ],
+       "analysis": [
+        "static"
+       ],
+       "outputs": [
+        "point displacement"
+       ]
+      },
+      "unlisted_needs": [
+       "Plate vertex coordinates appear only in Fig. 10.4, not in the text; only Q = (48, 52) is given",
+       "Plane strain or plane stress is not stated"
+      ],
+      "reference_values": [
+       "Vertical displacement at Q = (48, 52) (midpoint of right end): 16.442 (from refs [2, 22])"
+      ]
+     }
+    ],
+    "size": {
+     "dimension": 2,
+     "dofs_in_paper": 12416,
+     "elements_in_paper": 8192
+    },
+    "quotes": [
+     "The problem consists of a tapered plate clamped on one end and subject to a shear load, taken as g = (0, 1/16) in our numerical experiments, on the opposite end",
+     "The first case involves a material with Young's modulus E = 1 and Poisson ratio \u03bd = 1/3, and the second case is concerned with a nearly incompressible material with Young's modulus E = 1.12499998125 and Poisson ratio \u03bd = 0.499999975.",
+     "the vertical displacement at the mid point of the right end of the plate, Q = (48, 52), is compared against the reference values reported in [2, 22], given by 16.442 for the second test case.",
+     "convergence occurs in the fifth refinement for the triangular mesh, with 12, 416 degree of freedom (i.e. 8, 192 triangular elements)"
+    ]
+   },
+   "assessment": {
+    "feasible": false,
+    "feasible_cases": [],
+    "cases": [
+     {
+      "case": "Case 1: compressible, E = 1, nu = 1/3",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "unlisted",
+        "need": "Plate vertex coordinates appear only in Fig. 10.4, not in the text; only Q = (48, 52) is given",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Plane strain or plane stress is not stated",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 12416,
+       "ladder_dofs_estimate": 16554.666666666668,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 2 missing capabilities (listed, not implemented)"
+     },
+     {
+      "case": "Case 2: nearly incompressible, E = 1.12499998125, nu = 0.499999975",
+      "feasible": false,
+      "missing": [
+       {
+        "category": "material",
+        "need": "nearly incompressible (nu > 0.49)",
+        "would_require": "a mixed u-p (or F-bar / enhanced-strain) formulation with its own code verification; displacement elements lock"
+       },
+       {
+        "category": "unlisted",
+        "need": "Plate vertex coordinates appear only in Fig. 10.4, not in the text; only Q = (48, 52) is given",
+        "would_require": "not in the registry: a person must judge"
+       },
+       {
+        "category": "unlisted",
+        "need": "Plane strain or plane stress is not stated",
+        "would_require": "not in the registry: a person must judge"
+       }
+      ],
+      "size": {
+       "finest_dofs_in_paper": 12416,
+       "ladder_dofs_estimate": 16554.666666666668,
+       "where": "local machine"
+      },
+      "decision": "cannot be carried through: 3 missing capabilities (listed, not implemented)"
+     }
+    ],
+    "decision": "cannot be carried through: every case misses a capability (listed, not implemented)"
+   }
+  }
+ ],
+ "carried": [],
+ "missing_capabilities_ranked": [
+  [
+   "manufactured non-constant body force f = -Div \u03c3\u0303",
+   29
+  ],
+  [
+   "relative L2 stress error",
+   29
+  ],
+  [
+   "Dirichlet stress data on the whole boundary",
+   28
+  ],
+  [
+   "3D problem definition from a paper",
+   10
+  ],
+  [
+   "curved outer boundary",
+   8
+  ],
+  [
+   "nearly incompressible (nu > 0.49)",
+   4
+  ],
+  [
+   "stress at a given point",
+   4
+  ],
+  [
+   "point load",
+   3
+  ],
+  [
+   "geometry swept along a 45 deg circular arc of radius R = 100 with a unit square cross-section",
+   3
+  ],
+  [
+   "out-of-plane conservative tip force applied at the centre of the free end",
+   3
+  ],
+  [
+   "tip displacement measured at the centre of the free end",
+   3
+  ],
+  [
+   "3D general",
+   2
+  ],
+  [
+   "anisotropic / fibre-reinforced",
+   2
+  ],
+  [
+   "reaction force",
+   2
+  ],
+  [
+   "St. Venant-Kirchhoff hyperelastic material (E = 1e7, nu = 0)",
+   2
+  ],
+  [
+   "scalar Laplace (potential) problem, not solid mechanics: \u0394u = 0 in \u03a9",
+   2
+  ],
+  [
+   "non-homogeneous Dirichlet boundary condition u = sin(x) sinh(y) + cos(x) cosh(y) on the whole boundary",
+   2
+  ],
+  [
+   "output: relative global error e against the exact solution (norm not stated in the passage)",
+   2
+  ],
+  [
+   "Plate vertex coordinates appear only in Fig. 10.4, not in the text; only Q = (48, 52) is given",
+   2
+  ],
+  [
+   "Plane strain or plane stress is not stated",
+   2
+  ],
+  [
+   "Mooney-Rivlin",
+   1
+  ],
+  [
+   "Spatially varying (functionally graded) material parameters, e.g. a graded C10 field; the passage does not give the grading law",
+   1
+  ],
+  [
+   "Inverse problem: identify the constitutive parameters from measured nodal displacements and the total reaction force on fixed DOFs (a forward FE solve only produces the synthetic data)",
+   1
+  ],
+  [
+   "Full-field Green-Lagrange strain components E11..E33 are needed as data",
+   1
+  ],
+  [
+   "The constitutive model library is not given in the passage; C10 (a Mooney-Rivlin/neo-Hookean-type term) and fibre anisotropy are only mentioned",
+   1
+  ],
+  [
+   "The specimen geometry, its dimensions and the load magnitudes are not stated in the passage (the hole, cylinder and torsion in the title do not appear)",
+   1
+  ],
+  [
+   "Several load cases (biaxial plus uniaxial) are combined",
+   1
+  ],
+  [
+   "Experimental digital image correlation (DIC) displacement data; the passage gives no geometry, material or load details",
+   1
+  ],
+  [
+   "Inverse identification of heterogeneous hyperelastic parameters",
+   1
+  ],
+  [
+   "Geometry not given in the passage. The title mentions a hollow cylinder (hole cylinder), but the passage only refers back to Section 6.2 and does not give dimensions.",
+   1
+  ],
+  [
+   "Hyperelastic constitutive model and its parameters are not stated in the passage (the title says 'hyperelastic'; the model, e.g. neo-Hookean or Mooney-Rivlin, is unknown).",
+   1
+  ],
+  [
+   "Problem is defined by a function with random positive parameters a, b, c and randomly generated points (x_i, y_i, z_i). This looks like a manufactured/exact solution. Its form and the body force and boundary data it implies are not given.",
+   1
+  ],
+  [
+   "The title mentions torsion loading, but the passage gives no magnitude or how the torsion is applied.",
+   1
+  ],
+  [
+   "Boundary conditions not stated (probably Dirichlet data taken from the exact solution, but this is not confirmed).",
+   1
+  ],
+  [
+   "Required output is the L2-norm error against the exact solution under refinement (not in the output list).",
+   1
+  ],
+  [
+   "the passage does not give the exact load levels for this case; F=300 and 600 are assumed from the shared setup",
+   1
+  ],
+  [
+   "fractal Koch snowflake outer boundary (many re-entrant corners); the passage does not give the iteration level or size",
+   1
+  ],
+  [
+   "flower-shaped domain; the passage does not give the parametrisation (number of petals, radii)",
+   1
+  ],
+  [
+   "buckling / limit points",
+   1
+  ],
+  [
+   "Coupled multiphysics: Cahn-Hilliard-type diffusion of Li (concentration c, chemical potential mu) plus Allen-Cahn-type reaction order parameter eta with double-well energy and gradient energy kappa|grad eta|^2",
+   1
+  ],
+  [
+   "Loading is an eigenstrain: multiplicative decomposition F = F_bar F0(eta) with affine stress-free transformation deformation (~24% volume change) driven by the phase change, not by mechanical loads",
+   1
+  ],
+  [
+   "Chemical boundary condition: constant Li flux on outer surface and on surfaces of defects with > 3% surface area",
+   1
+  ],
+  [
+   "Transient (time-dependent) diffusion/phase evolution rather than quasi-static load steps",
+   1
+  ],
+  [
+   "Neo-Hookean form specific: psi = J0[G/2 (I1-3) + lambda/2 (ln I3)^2 - G ln I3] with I3 defined as sqrt(det C_bar)",
+   1
+  ],
+  [
+   "Defects (pores, cracks) introduced by trimming elements: geometry of defects (sizes, positions, sharp corners, slender walls) not specified in passage",
+   1
+  ],
+  [
+   "Mechanical support conditions of the particle not stated in passage",
+   1
+  ],
+  [
+   "Material constants (G, lambda, Ea, mu_eta, mu_alpha, c_max, kappa) are in Table A.2, not in passage",
+   1
+  ],
+  [
+   "Outputs of interest: internal stress fields (Cauchy, second Piola-Kirchhoff on intermediate configuration, Mandel stress), stress accumulation at crack tips, crack propagation/failure criterion",
+   1
+  ],
+  [
+   "Geometric instability (bending) of slender walls used to accommodate deformation",
+   1
+  ],
+  [
+   "manufactured non-constant body force f = -Div \u03c3\u0303 (not gravity)",
+   1
+  ],
+  [
+   "Dirichlet data = exact stress \u03c3\u0303 on the whole boundary (pure-stress formulation)",
+   1
+  ],
+  [
+   "output: relative L2 stress error ||\u03c3\u0303-\u03c3h||/||\u03c3\u0303|| against the analytical solution",
+   1
+  ],
+  [
+   "Dirichlet stress data on the whole boundary (the field is periodic but the boundary conditions are not)",
+   1
+  ],
+  [
+   "eigenvalue analysis of the discrete stiffness operator (count of zero and negative eigenvalues)",
+   1
+  ],
+  [
+   "traction-free (pure Neumann) boundary on the whole boundary",
+   1
+  ],
+  [
+   "the passage states no specific Poisson ratio; it reports results for any \u03bd",
+   1
+  ],
+  [
+   "non-constant distributed load",
+   1
+  ],
+  [
+   "Axisymmetric / generalized plane strain cylinder with eps_z = 0; ends axially fixed on a 1 m long shell; quarter azimuthal extent with symmetry planes",
+   1
+  ],
+  [
+   "Radially varying body force density f(r) \u2248 5.69 GN/m^3\u00b7(r/1m) \u2212 0.356 GN/m^3\u00b7(1m/r), from uniform axial current density jz = 95.1 MA/m^2 (Amp\u00e8re + Lorentz)",
+   1
+  ],
+  [
+   "Output is full radial profiles \u03c3r(r), \u03c3\u03b8(r), \u03c3z(r) across r in [0.25, 0.5] m, and the resulting axial force Fz (< 0)",
+   1
+  ],
+  [
+   "Cases with axial tension (eps_z > 0, Fz > 0) were run but not reported",
+   1
+  ],
+  [
+   "orthotropic linear elastic",
+   1
+  ],
+  [
+   "Bonded two-layer (multi-material) radial interface at r2 = 0.67 m",
+   1
+  ],
+  [
+   "Transversely isotropic outer layer (axis = z); transverse-transverse Poisson ratio 0.5",
+   1
+  ],
+  [
+   "Generalized plane strain with eps_z = 0, producing a finite axial compression Fz",
+   1
+  ],
+  [
+   "Output is radial stress profiles \u03c3r, \u03c3\u03b8, \u03c3z(r); the passage is cut off before results or tolerances are given",
+   1
+  ],
+  [
+   "No geometry, material or load values are given; the check is the closed-form inner-edge hoop stress",
+   1
+  ],
+  [
+   "Three bonded layers with different Young's moduli; the passage gives no numerical values",
+   1
+  ],
+  [
+   "The expected result is qualitative: \u03c3z and \u03c3\u03b8 are concentrated in the stiff middle layer, with \u03c3r = 0 at the inner edge and \u2212Pext at the outer edge",
+   1
+  ]
+ ],
+ "llm_cost_usd": 0.7681200000000001
+}

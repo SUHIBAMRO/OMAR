@@ -28,5 +28,61 @@
   "the requirements step listed the paper's own method (polygonal meshes, locking-free scheme) as needs",
   "several cases were merged: Cook's membrane (1911.08728) was declared infeasible although its case nu = 1/3 was carried through on 26 Nov",
   "fix: capabilities v2 (problem vs method, one entry per case, outputs category); re-assessment labelled post hoc"
- ]
+ ],
+ "v2_posthoc": {
+  "run": "benchmark_search_runs/20261127_161359_v2_posthoc.json",
+  "cost_usd": 0.7681200000000001,
+  "carried": 0,
+  "finding": "Cook's membrane case 1 (1911.08728) is blocked only by missing INFORMATION (vertices in a figure; plane strain/stress unstated), which the definition step handles (standard geometry table, declared assumption); the schema now separates missing information from missing capabilities (not re-run, to limit cost)",
+  "missing_capabilities_by_paper": [
+   [
+    "3D problem definition from a paper",
+    4
+   ],
+   [
+    "curved outer boundary",
+    3
+   ],
+   [
+    "3D general",
+    2
+   ],
+   [
+    "nearly incompressible (nu > 0.49)",
+    2
+   ],
+   [
+    "reaction force",
+    1
+   ],
+   [
+    "Mooney-Rivlin",
+    1
+   ],
+   [
+    "Inverse problem: identify the constitutive parameters from measured nodal displacements and the total reaction force on fixed DOFs (a forward FE solve only produces the synthetic data)",
+    1
+   ],
+   [
+    "anisotropic / fibre-reinforced",
+    1
+   ],
+   [
+    "Spatially varying (functionally graded) material parameters, e.g. a graded C10 field; the passage does not give the grading law",
+    1
+   ],
+   [
+    "Full-field Green-Lagrange strain components E11..E33 are needed as data",
+    1
+   ],
+   [
+    "The constitutive model library is not given in the passage; C10 (a Mooney-Rivlin/neo-Hookean-type term) and fibre anisotropy are only mentioned",
+    1
+   ],
+   [
+    "The specimen geometry, its dimensions and the load magnitudes are not stated in the passage (the hole, cylinder and torsion in the title do not appear)",
+    1
+   ]
+  ]
+ }
 }

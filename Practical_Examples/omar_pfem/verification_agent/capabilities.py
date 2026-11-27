@@ -149,9 +149,13 @@ def assess(req):
 def requirements_schema_v2():
     one = requirements_schema()["properties"]
     case = {"type": "object", "additionalProperties": False,
-            "required": ["name", "needs", "unlisted_needs", "reference_values"],
+            "required": ["name", "needs", "unlisted_needs", "missing_information",
+                         "reference_values"],
             "properties": {"name": {"type": "string"}, "needs": one["needs"],
                            "unlisted_needs": one["unlisted_needs"],
+                           # 27 Nov (after the v2 run): data the TEXT does not give (coordinates in
+                           # a figure, plane strain or stress unstated) is not a missing capability
+                           "missing_information": {"type": "array", "items": {"type": "string"}},
                            "reference_values": one["reference_values"]}}
     return {"type": "object", "additionalProperties": False,
             "required": ["example", "cases", "size", "quotes"],
@@ -166,7 +170,9 @@ REQ_PROMPT_V2 = (
     "numerical METHOD (its elements, meshes, stabilisation, solver, outputs of its method) is "
     "NOT a requirement and must not be listed. If the passage states several cases (e.g. "
     "different Poisson ratios or loads), give one entry per case. Use the listed values only; "
-    "a problem need that is not in a list goes to unlisted_needs. Give the dofs of the paper's "
+    "a problem need that is not in a list goes to unlisted_needs; data the text does not give "
+    "(coordinates only in a figure, plane strain or stress not stated, a missing modulus) goes to "
+    "missing_information, NOT to unlisted_needs. Give the dofs of the paper's "
     "finest mesh if stated (0 if not) and short verbatim quotes. Do not judge feasibility.\n\n")
 
 
@@ -179,6 +185,10 @@ def assess_v2(req):
     cases = []
     for c in req["cases"]:
         a = assess({"needs": c["needs"], "unlisted_needs": c["unlisted_needs"], "size": req["size"]})
+        a["missing_information"] = c.get("missing_information", [])
+        if a["missing_information"]:
+            a["note"] = ("feasible only with assumptions or a standard geometry for: "
+                         + "; ".join(a["missing_information"]) if a["feasible"] else a.get("note", ""))
         cases.append({"case": c["name"], **a})
     ok = [c for c in cases if c["feasible"]]
     return {"feasible": bool(ok), "feasible_cases": [c["case"] for c in ok], "cases": cases,

@@ -26406,3 +26406,11 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   0.59 (pred 0.544); hp exponential (R^2 0.9993) but the finest hp error (11k DOF) was not below graded g = 4 at
   99k DOF (prediction badly phrased: no equal-DOF comparison). POST HOC hp p = 7, 8: 3.4e-4 at 31.7k DOF = graded
   g = 4 at 99k. Figure fig9_reentrant.png.
+- 2026-11-27 DONE: capability assessment (capabilities.py: registry from the code; LLM states requirements,
+  code assesses; missing capabilities LISTED, NOT implemented) and benchmark search (benchmark_search.py,
+  pre-registered): 9 papers assessed (5 3D hyperelastic), 0 carried; score 3/5 (benchmark_search_score.json).
+  Post hoc v2 (problem vs method, per case; USD 0.77): Cook case 1 blocked only by missing information;
+  schema now separates missing information (not re-run). Gaps by paper: 3D problem definition from a paper 4,
+  curved outer boundary 3, 3D general geometry 2, nearly incompressible 2, Mooney-Rivlin 1, anisotropy 1,
+  reaction force 1. LLM spend 27 Nov: USD 0.61 + 0.77 (+ round 4 0.94).
+  Report wording: MMS code verification vs solution verification (convergence of the problem); step kinds.
