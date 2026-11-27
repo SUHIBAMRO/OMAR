@@ -1,0 +1,37 @@
+{
+ "preregistration": "apriori_preregistration.json",
+ "comparison": "apriori_comparison.json",
+ "implementation_fixes_before_scoring": [
+  "graded peaks at a singular corner: the code predicted a bounded peak; the pre-registered theory restores only energy and functionals (fixed)",
+  "bounded peaks: the code took the slope of the value itself; it is the error order (fixed)"
+ ],
+ "expectations": {
+  "E1": {
+   "confirmed": false,
+   "evidence": "contradictions (observed slower than predicted by more than 0.3) occur in linear-elastic runs; see the categories below"
+  },
+  "E2": {
+   "confirmed": false,
+   "evidence": "uniform global strain energy: 11 agree with 2 lam, 2 slower, none faster"
+  },
+  "E3": {
+   "confirmed": false,
+   "evidence": "graded ladders: strain energy order about 2 (Cook, both papers, step plate) instead of the restored 4"
+  },
+  "E4": {
+   "confirmed": true,
+   "evidence": "76 of 76 PASS MMS rows within 0.2 of p+1 (L2) and p (H1)"
+  }
+ },
+ "score": "1 of 4",
+ "diagnosis_POST_HOC": {
+  "G1_grading_not_beta_optimal_for_p2": "graded strain energy converges with order about 2.0 (= the linear-element optimum) instead of 2p = 4: the intensity grading restores the rate of linear elements but is not strong enough for quadratic elements (beta-grading for p = 2 needs corner element sizes ~ h^(p/lam)); a real finding for the re-entrant-corner study",
+  "G2_peak_measure_on_graded_meshes": "on graded meshes the corner element size shrinks faster than the measured h; the divergent peak must be measured against the corner element size (slopes -1.68 vs -0.46)",
+  "G3_curved_boundary_geometry_error": "smooth problems with a circular hole: functionals converge with order about 3.1-3.3 = p + 1, not 2p = 4: the quadratic boundary approximation (geometry error O(h^(p+1))) limits them; assumption missing from the table",
+  "G4_von_mises_is_nonlinear": "corner averages of von Mises stress are not linear functionals, so the duality bound 2 min(p, lam) does not apply; observed about 0.9-1.0 (near the energy-norm order)",
+  "G5_point_at_a_singular_point": "2206.14610: displacements AT the corner (48, 60) where the traction jumps: not a smooth functional; slower (0.6-0.7)",
+  "G6_finite_strain": "nh_l_bracket_demo: 0.6-0.7 vs the linearized 1.09, consistent with the earlier small-load experiment (finite-strain effect at the corner)",
+  "G7_smooth_peak_on_curved_boundary": "plate with a hole: peak von Mises order about 1.0 instead of >= 2 (sampling of the maximum on a curved boundary; to be diagnosed)"
+ },
+ "lesson": "the predictions are only as good as their assumptions; the comparison exposed seven missing assumptions. Professor Rabczuk's point stands: the agent must state the assumptions of each a-priori result and check that the problem meets them."
+}

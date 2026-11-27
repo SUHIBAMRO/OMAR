@@ -1,0 +1,2603 @@
+{
+ "preregistration": "apriori_preregistration.json",
+ "runs": [
+  {
+   "run": "1911.08728",
+   "lam": 0.6244188960904788,
+   "assumptions": [
+    "element degree p = 2 (Q2 and P2)",
+    "lam from the meshed boundary (singularity.py): smallest rate-limiting exponent",
+    "h = measured element size; observed order from the finest three levels"
+   ],
+   "rows": [
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 uniform",
+     "predicted": 1.2488377921809577,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 1.249",
+     "citation": "Strang & Fix 1973 Ch. 8; Babuska & Kellogg 1979",
+     "observed": 1.1393114319963522,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 4.000 (graded: restored)",
+     "citation": "Babuska, Kellogg & Pitkaranta 1979; Apel 1999",
+     "observed": 2.002499689578581,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "v_q",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 1.2488377921809577,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.249 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.1087068661724915,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "v_q",
+     "class": "displacement",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.2927317274086305,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "corner0_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.2488377921809577,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.249 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 0.9170328325074408,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "corner0_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 4.120048970812439,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner1_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.2488377921809577,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.249 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 2.121257946557426,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner1_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 0.330995127034295,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "corner2_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.2488377921809577,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.249 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 0.9541554331054913,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner2_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 4.139704223868235,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 uniform",
+     "predicted": -0.37558110390952115,
+     "mode": "equal",
+     "basis": "stress unbounded at the corner: peak ~ h^(lam - 1), slope -0.376",
+     "citation": "Williams 1952 corner fields; stress ~ r^(lam-1)",
+     "observed": -0.3727084424333206,
+     "how": "log-log slope",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 graded",
+     "predicted": -0.37558110390952115,
+     "mode": "equal",
+     "basis": "stress unbounded at the corner: peak ~ h^(lam - 1), slope -0.376",
+     "citation": "Williams 1952 corner fields; stress ~ r^(lam-1)",
+     "observed": -0.6931617310918518,
+     "how": "log-log slope",
+     "outcome": "slower than predicted: CONTRADICTION"
+    }
+   ]
+  },
+  {
+   "run": "2206.14610",
+   "lam": 0.6442080714479778,
+   "assumptions": [
+    "element degree p = 2 (Q2 and P2)",
+    "lam from the meshed boundary (singularity.py): smallest rate-limiting exponent",
+    "h = measured element size; observed order from the finest three levels"
+   ],
+   "rows": [
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 uniform",
+     "predicted": 1.2884161428959555,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 1.288",
+     "citation": "Strang & Fix 1973 Ch. 8; Babuska & Kellogg 1979",
+     "observed": 1.138976503823618,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 4.000 (graded: restored)",
+     "citation": "Babuska, Kellogg & Pitkaranta 1979; Apel 1999",
+     "observed": 1.9283670862249873,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "v_top_right_corner",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 1.2884161428959555,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.288 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 0.7107450960639045,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "v_top_right_corner",
+     "class": "displacement",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 0.9413600371670362,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "u_top_right_corner",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 1.2884161428959555,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.288 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 0.6168953680412566,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "u_top_right_corner",
+     "class": "displacement",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 0.9352955644805429,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "corner0_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.2884161428959555,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.288 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 0.9291752984087406,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "corner0_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 4.829761187509837,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner1_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.2884161428959555,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.288 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.0330510948984362,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner1_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": -0.19728666359015065,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "corner2_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.2884161428959555,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.288 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 0.9614564672310778,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "corner2_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 4.0005289458688456,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 uniform",
+     "predicted": -0.35579192855202224,
+     "mode": "equal",
+     "basis": "stress unbounded at the corner: peak ~ h^(lam - 1), slope -0.356",
+     "citation": "Williams 1952 corner fields; stress ~ r^(lam-1)",
+     "observed": -0.3492334845946709,
+     "how": "log-log slope",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 graded",
+     "predicted": -0.35579192855202224,
+     "mode": "equal",
+     "basis": "stress unbounded at the corner: peak ~ h^(lam - 1), slope -0.356",
+     "citation": "Williams 1952 corner fields; stress ~ r^(lam-1)",
+     "observed": -0.7397748020735894,
+     "how": "log-log slope",
+     "outcome": "slower than predicted: CONTRADICTION"
+    }
+   ]
+  },
+  {
+   "run": "cook_linear",
+   "lam": 0.6771640855309353,
+   "assumptions": [
+    "element degree p = 2 (Q2 and P2)",
+    "lam from the meshed boundary (singularity.py): smallest rate-limiting exponent",
+    "h = measured element size; observed order from the finest three levels"
+   ],
+   "rows": [
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 uniform",
+     "predicted": 1.3543281710618706,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 1.354",
+     "citation": "Strang & Fix 1973 Ch. 8; Babuska & Kellogg 1979",
+     "observed": 1.2908892005699244,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 4.000 (graded: restored)",
+     "citation": "Babuska, Kellogg & Pitkaranta 1979; Apel 1999",
+     "observed": 2.0004452538089668,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "v_C",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 1.3543281710618706,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.354 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.2673489655303904,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "v_C",
+     "class": "displacement",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 4.142287295414233,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner0_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.3543281710618706,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.354 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.158724060056019,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner0_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 2.9760312859593583,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "corner1_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.3543281710618706,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.354 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 2.0746394867879516,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner1_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 2.7681262422737105,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "corner2_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.3543281710618706,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.354 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.1151008511032676,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner2_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.6094808129850224,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 uniform",
+     "predicted": -0.3228359144690647,
+     "mode": "equal",
+     "basis": "stress unbounded at the corner: peak ~ h^(lam - 1), slope -0.323",
+     "citation": "Williams 1952 corner fields; stress ~ r^(lam-1)",
+     "observed": -0.3163485553204789,
+     "how": "log-log slope",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 graded",
+     "predicted": -0.3228359144690647,
+     "mode": "equal",
+     "basis": "stress unbounded at the corner: peak ~ h^(lam - 1), slope -0.323",
+     "citation": "Williams 1952 corner fields; stress ~ r^(lam-1)",
+     "observed": -0.8001844143631915,
+     "how": "log-log slope",
+     "outcome": "slower than predicted: CONTRADICTION"
+    }
+   ]
+  },
+  {
+   "run": "nh_l_bracket_demo",
+   "lam": 0.544483736782464,
+   "assumptions": [
+    "element degree p = 2 (Q2 and P2)",
+    "lam from the meshed boundary (singularity.py): smallest rate-limiting exponent",
+    "h = measured element size; observed order from the finest three levels",
+    "neo-Hookean: linearized corner exponents (hypothesis)"
+   ],
+   "rows": [
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 1.089",
+     "citation": "Strang & Fix 1973 Ch. 8; Babuska & Kellogg 1979",
+     "observed": 0.7116691922703976,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 4.000 (graded: restored)",
+     "citation": "Babuska, Kellogg & Pitkaranta 1979; Apel 1999",
+     "observed": null,
+     "how": "fewer than 3 levels",
+     "outcome": "no measurable order"
+    },
+    {
+     "quantity": "u_top_left",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 0.7066226265899583,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "u_top_left",
+     "class": "displacement",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": null,
+     "how": "fewer than 3 levels",
+     "outcome": "no measurable order"
+    },
+    {
+     "quantity": "v_right_top",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 0.5911761417332777,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "v_right_top",
+     "class": "displacement",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": null,
+     "how": "fewer than 3 levels",
+     "outcome": "no measurable order"
+    },
+    {
+     "quantity": "corner0_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.0807870430072017,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner0_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": null,
+     "how": "fewer than 3 levels",
+     "outcome": "no measurable order"
+    },
+    {
+     "quantity": "corner1_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": null,
+     "how": "no measurable order (converged to round-off or not monotone)",
+     "outcome": "no measurable order"
+    },
+    {
+     "quantity": "corner1_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": null,
+     "how": "fewer than 3 levels",
+     "outcome": "no measurable order"
+    },
+    {
+     "quantity": "corner2_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.859841879102911,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner2_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": null,
+     "how": "fewer than 3 levels",
+     "outcome": "no measurable order"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 uniform",
+     "predicted": -0.455516263217536,
+     "mode": "equal",
+     "basis": "stress unbounded at the corner: peak ~ h^(lam - 1), slope -0.456",
+     "citation": "Williams 1952 corner fields; stress ~ r^(lam-1)",
+     "observed": -0.6057790491842426,
+     "how": "log-log slope",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 graded",
+     "predicted": -0.455516263217536,
+     "mode": "equal",
+     "basis": "stress unbounded at the corner: peak ~ h^(lam - 1), slope -0.456",
+     "citation": "Williams 1952 corner fields; stress ~ r^(lam-1)",
+     "observed": null,
+     "how": "fewer than 3 levels",
+     "outcome": "no measurable order"
+    }
+   ]
+  },
+  {
+   "run": "nh_plate_hole_3d_pe",
+   "lam": null,
+   "assumptions": [
+    "element degree p = 2 (Q2 and P2)",
+    "lam from the meshed boundary (singularity.py): smallest rate-limiting exponent",
+    "h = measured element size; observed order from the finest three levels",
+    "neo-Hookean: linearized corner exponents (hypothesis)",
+    "3D extruded: edge exponents only, vertex singularities not analysed (hypothesis)"
+   ],
+   "rows": [
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 uniform",
+     "predicted": 4,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 4.000",
+     "citation": "Strang & Fix 1973 Ch. 8; Babuska & Kellogg 1979",
+     "observed": 3.024268151587752,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "u_right",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 2.4494939123478123,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "v_hole_top",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.275203415298087,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 uniform",
+     "predicted": 2.0,
+     "mode": "lower_bound",
+     "basis": "pointwise stress, no singular corner (or graded): order >= p = 2",
+     "citation": "Strang & Fix 1973 Ch. 8; Babuska & Kellogg 1979",
+     "observed": -1.3651786933209211,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    }
+   ]
+  },
+  {
+   "run": "nh_plate_hole_pe",
+   "lam": null,
+   "assumptions": [
+    "element degree p = 2 (Q2 and P2)",
+    "lam from the meshed boundary (singularity.py): smallest rate-limiting exponent",
+    "h = measured element size; observed order from the finest three levels",
+    "neo-Hookean: linearized corner exponents (hypothesis)"
+   ],
+   "rows": [
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 uniform",
+     "predicted": 4,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 4.000",
+     "citation": "Strang & Fix 1973 Ch. 8; Babuska & Kellogg 1979",
+     "observed": 3.8081255952865307,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "u_right",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.3055528027009435,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "v_hole_top",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 2.6771706984156194,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 uniform",
+     "predicted": 2.0,
+     "mode": "lower_bound",
+     "basis": "pointwise stress, no singular corner (or graded): order >= p = 2",
+     "citation": "Strang & Fix 1973 Ch. 8; Babuska & Kellogg 1979",
+     "observed": 0.975403278651685,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    }
+   ]
+  },
+  {
+   "run": "plate_hole_quarter",
+   "lam": null,
+   "assumptions": [
+    "element degree p = 2 (Q2 and P2)",
+    "lam from the meshed boundary (singularity.py): smallest rate-limiting exponent",
+    "h = measured element size; observed order from the finest three levels"
+   ],
+   "rows": [
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 uniform",
+     "predicted": 4,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 4.000",
+     "citation": "Strang & Fix 1973 Ch. 8; Babuska & Kellogg 1979",
+     "observed": 3.940800897363783,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "u_right",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.3434834128689315,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "v_hole_top",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.123355433789777,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 uniform",
+     "predicted": 2.0,
+     "mode": "lower_bound",
+     "basis": "pointwise stress, no singular corner (or graded): order >= p = 2",
+     "citation": "Strang & Fix 1973 Ch. 8; Babuska & Kellogg 1979",
+     "observed": 1.0281429782788412,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    }
+   ]
+  },
+  {
+   "run": "plate_hole_quarter_3d_pe",
+   "lam": null,
+   "assumptions": [
+    "element degree p = 2 (Q2 and P2)",
+    "lam from the meshed boundary (singularity.py): smallest rate-limiting exponent",
+    "h = measured element size; observed order from the finest three levels",
+    "3D extruded: edge exponents only, vertex singularities not analysed (hypothesis)"
+   ],
+   "rows": [
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 uniform",
+     "predicted": 4,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 4.000",
+     "citation": "Strang & Fix 1973 Ch. 8; Babuska & Kellogg 1979",
+     "observed": 4.209810618524894,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "u_right",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.944625033792205,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "v_hole_top",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.970678299168641,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 uniform",
+     "predicted": 2.0,
+     "mode": "lower_bound",
+     "basis": "pointwise stress, no singular corner (or graded): order >= p = 2",
+     "citation": "Strang & Fix 1973 Ch. 8; Babuska & Kellogg 1979",
+     "observed": 1.5322373111948488,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    }
+   ]
+  },
+  {
+   "run": "plate_hole_quarter_pe",
+   "lam": null,
+   "assumptions": [
+    "element degree p = 2 (Q2 and P2)",
+    "lam from the meshed boundary (singularity.py): smallest rate-limiting exponent",
+    "h = measured element size; observed order from the finest three levels"
+   ],
+   "rows": [
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 uniform",
+     "predicted": 4,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 4.000",
+     "citation": "Strang & Fix 1973 Ch. 8; Babuska & Kellogg 1979",
+     "observed": 3.934646571492376,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "u_right",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.2783259044533746,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "v_hole_top",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.09393214212167,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 uniform",
+     "predicted": 2.0,
+     "mode": "lower_bound",
+     "basis": "pointwise stress, no singular corner (or graded): order >= p = 2",
+     "citation": "Strang & Fix 1973 Ch. 8; Babuska & Kellogg 1979",
+     "observed": 1.0400287730485749,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    }
+   ]
+  },
+  {
+   "run": "t4_step_plate",
+   "lam": 0.544483736782464,
+   "assumptions": [
+    "element degree p = 2 (Q2 and P2)",
+    "lam from the meshed boundary (singularity.py): smallest rate-limiting exponent",
+    "h = measured element size; observed order from the finest three levels"
+   ],
+   "rows": [
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 1.089",
+     "citation": "Strang & Fix 1973 Ch. 8; Babuska & Kellogg 1979",
+     "observed": 1.113344937514764,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 4.000 (graded: restored)",
+     "citation": "Babuska, Kellogg & Pitkaranta 1979; Apel 1999",
+     "observed": 1.9385013980035648,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "u_tip_top",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.1046564587470038,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "u_tip_top",
+     "class": "displacement",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.39738895418747,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "v_tip_bottom",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.1059001958672465,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "v_tip_bottom",
+     "class": "displacement",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.2552238087042378,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "corner0_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.496228361844373,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner0_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 2.758468361415443,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "corner1_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.1139532796350564,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner1_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.7854453585582124,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "corner2_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.1930252944526831,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner2_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 2.018203525599748,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "corner3_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.32648051353868,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner3_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.120194590632784,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 uniform",
+     "predicted": -0.455516263217536,
+     "mode": "equal",
+     "basis": "stress unbounded at the corner: peak ~ h^(lam - 1), slope -0.456",
+     "citation": "Williams 1952 corner fields; stress ~ r^(lam-1)",
+     "observed": -0.42791463762171933,
+     "how": "log-log slope",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 graded",
+     "predicted": -0.455516263217536,
+     "mode": "equal",
+     "basis": "stress unbounded at the corner: peak ~ h^(lam - 1), slope -0.456",
+     "citation": "Williams 1952 corner fields; stress ~ r^(lam-1)",
+     "observed": -1.683053902956497,
+     "how": "log-log slope",
+     "outcome": "slower than predicted: CONTRADICTION"
+    }
+   ]
+  },
+  {
+   "run": "t5_quarter_cutout",
+   "lam": 0.544483736782464,
+   "assumptions": [
+    "element degree p = 2 (Q2 and P2)",
+    "lam from the meshed boundary (singularity.py): smallest rate-limiting exponent",
+    "h = measured element size; observed order from the finest three levels"
+   ],
+   "rows": [
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 1.089",
+     "citation": "Strang & Fix 1973 Ch. 8; Babuska & Kellogg 1979",
+     "observed": 1.1570576453102588,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 4.000 (graded: restored)",
+     "citation": "Babuska, Kellogg & Pitkaranta 1979; Apel 1999",
+     "observed": 3.725758404383968,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "u_right_bottom",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.147774923952575,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "u_right_bottom",
+     "class": "displacement",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.6837723045480333,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "v_right_top",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.1936643981112558,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "v_right_top",
+     "class": "displacement",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.8106890706487757,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner0_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 0.07361847880135255,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "corner0_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 4.234064780604744,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 uniform",
+     "predicted": -0.455516263217536,
+     "mode": "equal",
+     "basis": "stress unbounded at the corner: peak ~ h^(lam - 1), slope -0.456",
+     "citation": "Williams 1952 corner fields; stress ~ r^(lam-1)",
+     "observed": -0.3552534994844744,
+     "how": "log-log slope",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 graded",
+     "predicted": -0.455516263217536,
+     "mode": "equal",
+     "basis": "stress unbounded at the corner: peak ~ h^(lam - 1), slope -0.456",
+     "citation": "Williams 1952 corner fields; stress ~ r^(lam-1)",
+     "observed": -1.6797311865755284,
+     "how": "log-log slope",
+     "outcome": "slower than predicted: CONTRADICTION"
+    }
+   ]
+  },
+  {
+   "run": "t7_missing_modulus",
+   "lam": 0.544483736782464,
+   "assumptions": [
+    "element degree p = 2 (Q2 and P2)",
+    "lam from the meshed boundary (singularity.py): smallest rate-limiting exponent",
+    "h = measured element size; observed order from the finest three levels"
+   ],
+   "rows": [
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 1.089",
+     "citation": "Strang & Fix 1973 Ch. 8; Babuska & Kellogg 1979",
+     "observed": 1.2441697924857973,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 4.000 (graded: restored)",
+     "citation": "Babuska, Kellogg & Pitkaranta 1979; Apel 1999",
+     "observed": 3.6578610308605692,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "v_top_left",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.0552884814022814,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "v_top_left",
+     "class": "displacement",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.9294294221266863,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner0_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.2533149881861245,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner0_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.480790308636209,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "corner1_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.6066337626498393,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner1_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.1216072538645165,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "corner2_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": null,
+     "how": "no measurable order (converged to round-off or not monotone)",
+     "outcome": "no measurable order"
+    },
+    {
+     "quantity": "corner2_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": null,
+     "how": "no measurable order (converged to round-off or not monotone)",
+     "outcome": "no measurable order"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 uniform",
+     "predicted": -0.455516263217536,
+     "mode": "equal",
+     "basis": "stress unbounded at the corner: peak ~ h^(lam - 1), slope -0.456",
+     "citation": "Williams 1952 corner fields; stress ~ r^(lam-1)",
+     "observed": -0.24820492376093017,
+     "how": "log-log slope",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 graded",
+     "predicted": -0.455516263217536,
+     "mode": "equal",
+     "basis": "stress unbounded at the corner: peak ~ h^(lam - 1), slope -0.456",
+     "citation": "Williams 1952 corner fields; stress ~ r^(lam-1)",
+     "observed": -1.6773250633784968,
+     "how": "log-log slope",
+     "outcome": "slower than predicted: CONTRADICTION"
+    }
+   ]
+  },
+  {
+   "run": "t_bracket",
+   "lam": 0.544483736782464,
+   "assumptions": [
+    "element degree p = 2 (Q2 and P2)",
+    "lam from the meshed boundary (singularity.py): smallest rate-limiting exponent",
+    "h = measured element size; observed order from the finest three levels"
+   ],
+   "rows": [
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 1.089",
+     "citation": "Strang & Fix 1973 Ch. 8; Babuska & Kellogg 1979",
+     "observed": 1.098407184653856,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "strain_energy",
+     "class": "global",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "equal",
+     "basis": "strain-energy error = energy-norm error^2, order 2 min(p, lam) = 4.000 (graded: restored)",
+     "citation": "Babuska, Kellogg & Pitkaranta 1979; Apel 1999",
+     "observed": 3.5056124527400754,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "v_left_tip",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.0896347014332575,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "v_left_tip",
+     "class": "displacement",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.6165960631215164,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "u_left_top",
+     "class": "displacement",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.0709341237161951,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "u_left_top",
+     "class": "displacement",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.70026024405559,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner0_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.2456759858466513,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner0_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.687117535633847,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "corner1_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.2352937538227633,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner1_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.7066285088908035,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner2_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.2352937535974347,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner2_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.764008340051801,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner3_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 uniform",
+     "predicted": 1.088967473564928,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 1.089 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 1.2456759852343966,
+     "how": "three-level",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "corner3_gk_avg_von_mises",
+     "class": "region_average",
+     "ladder": "Q2 graded",
+     "predicted": 4,
+     "mode": "lower_bound",
+     "basis": "linear functional: order >= 2 min(p, lam) = 4.000 (duality)",
+     "citation": "duality argument (Aubin-Nitsche type), e.g. Brenner & Scott 2008 Ch. 0/5",
+     "observed": 3.6949168684906275,
+     "how": "three-level",
+     "outcome": "slower than predicted: CONTRADICTION"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 uniform",
+     "predicted": -0.455516263217536,
+     "mode": "equal",
+     "basis": "stress unbounded at the corner: peak ~ h^(lam - 1), slope -0.456",
+     "citation": "Williams 1952 corner fields; stress ~ r^(lam-1)",
+     "observed": -0.4454194674409395,
+     "how": "log-log slope",
+     "outcome": "agrees"
+    },
+    {
+     "quantity": "peak_von_mises",
+     "class": "pointwise_peak",
+     "ladder": "Q2 graded",
+     "predicted": -0.455516263217536,
+     "mode": "equal",
+     "basis": "stress unbounded at the corner: peak ~ h^(lam - 1), slope -0.456",
+     "citation": "Williams 1952 corner fields; stress ~ r^(lam-1)",
+     "observed": -1.6844775781284589,
+     "how": "log-log slope",
+     "outcome": "slower than predicted: CONTRADICTION"
+    }
+   ]
+  }
+ ],
+ "mms": [
+  {
+   "problem": "t_bracket",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.049608169603916,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "t_bracket",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.0024241083208802,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "t_bracket",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.137932838157111,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "t_bracket",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 1.9957427873737346,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "t_bracket",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.049608171025963,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "t_bracket",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.0024241083212466,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "t_bracket",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.1379328480468573,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "t_bracket",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 1.9957427873742188,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "stepped_plate_tension",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.149470138127262,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "stepped_plate_tension",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 1.9998282839824848,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "stepped_plate_tension",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.1537034222011426,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "stepped_plate_tension",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 1.9962390550135942,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_square_cutout_quarter",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.00678611307812,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_square_cutout_quarter",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.00352742949419,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_square_cutout_quarter",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.02466687120628,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_square_cutout_quarter",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 1.989907330941292,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "l_shaped_bracket_top_pressure",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.009951174918626,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "l_shaped_bracket_top_pressure",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.002787981000743,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "l_shaped_bracket_top_pressure",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.0247949427233283,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "l_shaped_bracket_top_pressure",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 1.9732267483490484,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "nh_test",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.0463079978518905,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "nh_test",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.005973156667618,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "nh_test",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.1956690859557515,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "nh_test",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 1.9897322304292142,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "nh_l_bracket_demo",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.046307997851797,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "nh_l_bracket_demo",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.005973156667607,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "nh_l_bracket_demo",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.1956690858394206,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "nh_l_bracket_demo",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 1.9897322304291865,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "nh_l_bracket_demo",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.0463079978508336,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "nh_l_bracket_demo",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.0059731566676193,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "nh_l_bracket_demo",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.1956690859496604,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "nh_l_bracket_demo",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 1.9897322304292182,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.124385938937823,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.0821338362407165,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.180379445546396,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.132182026266214,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cook_linear",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.098249073596168,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cook_linear",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.0407137471002414,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cook_linear",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.082097754760966,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cook_linear",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.028779279669934,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.124385938947604,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.082133836240743,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.1803794455463827,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.1321820262662086,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cook_linear",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.098249074039749,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cook_linear",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.040713747100261,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cook_linear",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.082097754760966,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cook_linear",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.028779279669934,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter_pe",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.126717691962747,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter_pe",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.083731100802724,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter_pe",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.1894979949169726,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter_pe",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.136840544941577,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter_3d_pe",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.1661502385357823,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter_3d_pe",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.134233714886136,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter_3d_pe",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.0676155228649034,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter_3d_pe",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.0230962345910695,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cook_3d",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.298191952179851,
+   "verdict": "FAIL",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "cook_3d",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.139058523611811,
+   "verdict": "FAIL",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cook_3d",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 2.736019125337105,
+   "verdict": "FAIL",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "cook_3d",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.3147063958319563,
+   "verdict": "FAIL",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "nh_plate_hole_pe",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.126144973779063,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "nh_plate_hole_pe",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.0833645414969757,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "nh_plate_hole_pe",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.1883601902517213,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "nh_plate_hole_pe",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.1354732637400082,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cook_3d",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.2981878644449507,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "cook_3d",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.13905852173099,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cook_3d",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 2.736019125337105,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "cook_3d",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.3147063958319563,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "cook_3d_reference_domain",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.69590687993627,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "cook_3d_reference_domain",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.552383758743392,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "cook_3d",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.405181749900396,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "cook_3d",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.140288016801749,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cook_3d",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 2.7306457374377313,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "cook_3d",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.312512155439926,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "cook_3d_reference_domain",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.587964793403406,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "cook_3d_reference_domain",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.5474913918989524,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "cook_3d_reference_domain",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 2.9767630212633422,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cook_3d_reference_domain",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.4761997622923446,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "plate_hole_quarter_3d_pe",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.170395804415212,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter_3d_pe",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.1330718525805445,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter_3d_pe",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.0798821085557244,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter_3d_pe",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.0227840732985425,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cook_3d",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.786168792604369,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "cook_3d",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 1.9857617374619736,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cook_3d",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.243888331515971,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "cook_3d",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.267062823811794,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "cook_3d_reference_domain",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.5221707312088224,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "cook_3d_reference_domain",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.421016936175815,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "cook_3d_reference_domain",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.117113249754753,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cook_3d_reference_domain",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.2925921552365294,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "plate_hole_quarter_3d_pe",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.170395804416827,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter_3d_pe",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.1330718525805428,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter_3d_pe",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.0798821085557297,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "plate_hole_quarter_3d_pe",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.0227840732985425,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "nh_plate_hole_3d_pe",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.1726922728443387,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "nh_plate_hole_3d_pe",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.1340574680100555,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "nh_plate_hole_3d_pe",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.084860662173986,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "nh_plate_hole_3d_pe",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.0225067783140194,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "nh_plate_hole_3d_pe_reference_domain",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 2.6735595147555498,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": false
+  },
+  {
+   "problem": "nh_plate_hole_3d_pe_reference_domain",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 1.823091013193453,
+   "verdict": "INCONCLUSIVE",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cooks_membrane_linear_elastic_case1_E1_nu1over3",
+   "element": "Q2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.103810821047486,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cooks_membrane_linear_elastic_case1_E1_nu1over3",
+   "element": "Q2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.0439787433258823,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cooks_membrane_linear_elastic_case1_E1_nu1over3",
+   "element": "P2",
+   "norm": "L2",
+   "predicted": 3,
+   "observed": 3.090446254045795,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  },
+  {
+   "problem": "cooks_membrane_linear_elastic_case1_E1_nu1over3",
+   "element": "P2",
+   "norm": "H1",
+   "predicted": 2,
+   "observed": 2.030595764005301,
+   "verdict": "PASS",
+   "within_gate_tol_0.2": true
+  }
+ ]
+}

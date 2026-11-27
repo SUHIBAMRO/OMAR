@@ -26393,3 +26393,10 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   agent; (4) agent finds an established benchmark itself; 3D hyperelastic curved / stress-concentration
   challenge with many DOFs: agent decides feasibility and lists missing capabilities WITHOUT implementing them.
   CAS: he thought the paper is in the decision stage; Omar must check the C&S status and clarify (draft prepared).
+- 2026-11-27 DONE: a-priori convergence predictions (apriori.py; theory table with citations; pre-registered
+  apriori_preregistration.json; comparison apriori_comparison.json). Score 1/4 (apriori_score.json): MMS 76/76
+  agree; problem convergence shows 7 assumption gaps (post hoc diagnosis): grading not beta-optimal for p = 2
+  (graded energy order ~2 not 4: REAL finding for the re-entrant-corner study), peak measure on graded meshes,
+  curved-boundary geometry error (functionals ~p+1), von Mises averages nonlinear, point at a singular point,
+  finite strain (confirms earlier diagnosis), smooth peak on curved boundary (open). Two implementation bugs
+  fixed before scoring.
