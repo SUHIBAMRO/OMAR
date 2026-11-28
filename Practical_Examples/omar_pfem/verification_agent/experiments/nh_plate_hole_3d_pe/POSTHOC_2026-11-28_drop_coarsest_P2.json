@@ -1,0 +1,18 @@
+{
+ "label": "POST HOC (28 Nov 2026, written after seeing the result of cluster job 3422051). Does NOT change the verdict.",
+ "official_result": "v_hole_top INCONCLUSIVE (independent_unconverged): the pre-registered rule assesses the whole P2 sequence n = 2..32; with n = 2 it is not monotone (-0.017429, -0.018807, -0.018758, -0.018734, -0.018726), so it gives band evidence only. Prediction #1 (run2) refuted.",
+ "posthoc_question": "Would the cross-check pass if the coarsest P2 level (n = 2, 729 dofs) were left out?",
+ "posthoc_answer": {
+  "P2 levels used": [4, 8, 16, 32],
+  "P2 assessment": "4 levels monotone, fitted p = 1.29, limit -0.0187181, U_fine 0.059%",
+  "Q2 certified": "limit -0.0187236, U 0.0069%",
+  "gap_rel": 0.000292,
+  "allowed": "U + U_ind = 0.066%",
+  "status_if_adopted": "cross_checked"
+ },
+ "caveats": [
+  "Choosing which levels to drop after seeing the values is a rule change after the result; it is reported, not adopted.",
+  "The fitted P2 order 1.29 is low for quadratic tetrahedra; the reason (unstructured, non-nested gmsh meshes near the curved hole) is a hypothesis, not tested."
+ ],
+ "would_need_to_adopt": "a rule fixed in advance for excluding pre-asymptotic coarse levels from the independent sequence, applied to every problem, and approval by Professor Rabczuk"
+}

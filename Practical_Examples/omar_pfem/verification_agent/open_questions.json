@@ -3,10 +3,5 @@
   "id": "stop-cook_3d",
   "question": "(status) cook_3d stopped: production check INCONCLUSIVE and the reference check did not pass (reference INCONCLUSIVE): no solution verification",
   "evidence": "autonomous_runs/cook_3d/report.pdf"
- },
- {
-  "id": "job-ladder_nh_plate_hole_3d_pe_P232",
-  "question": "Submit cluster job ladder_nh_plate_hole_3d_pe_P232 (manual) - the levels this machine refused for nh_plate_hole_3d_pe.",
-  "evidence": "cluster_jobs/ladder_nh_plate_hole_3d_pe_P232_job.json"
  }
 ]

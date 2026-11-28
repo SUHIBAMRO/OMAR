@@ -75,45 +75,16 @@
    "actor": "code",
    "status": "pre-registered",
    "kind": "autonomous decision",
-   "detail": "#1 finer_independent_level on ['v_hole_top']: the independent sequence is pre-asymptotic; one more level gives it a rate that agrees; prediction: at least one listed quantity becomes cross-checked; prior 0.56 (n=7); est. 13.9 min",
-   "file": "experiments/nh_plate_hole_3d_pe/01_finer_independent_level.json",
-   "sha256": "38e4b8efefb446bedbf9f2446183fbe930c05fe4cfc500a2a8d9f1cfd17ba257"
+   "detail": "#1 finer_independent_level on ['v_hole_top']: the independent sequence is pre-asymptotic; one more level gives it a rate that agrees; prediction: at least one listed quantity becomes cross-checked; prior 0.56 (n=7); est. 0.0 min",
+   "file": "experiments/nh_plate_hole_3d_pe/01_finer_independent_level_run2.json",
+   "sha256": "23143078d60167975aee41d62393213d340551da49d1f37b212322124396ce66"
   },
   {
    "stage": "N",
    "actor": "code",
-   "status": "failed",
+   "status": "refuted",
    "kind": "predefined procedure",
-   "detail": "#1 finer_independent_level could not be run: P2 uniform n=32: the nonlinear solve failed with None load steps: ['level n = 32 (P2) has 712701 DOF > 450000: too large for this machine (prepare a cluster job)']; not run, so not counted as evidence for or against the prediction; not tried again in this run"
-  },
-  {
-   "stage": "N",
-   "actor": "code",
-   "status": "cluster_job",
-   "kind": "predefined procedure",
-   "detail": "levels [('P2 uniform', 32, 'P2')] prepared as cluster job ladder_nh_plate_hole_3d_pe_P232 (bundle md5 7ed0fa16b5cb84af7cf54dddc92fbcb7; instructions ../../../transfer/ladder_nh_plate_hole_3d_pe_P232.md); the run can be repeated after the import",
-   "job": {
-    "name": "ladder_nh_plate_hole_3d_pe_P232",
-    "spec": "cluster_jobs/ladder_nh_plate_hole_3d_pe_P232_spec.json",
-    "fingerprint": "4c5643a9f9e32ee8f30555bfb345fa4c201556de6eec1228d8b175b8201322c7",
-    "bundle_md5": "7ed0fa16b5cb84af7cf54dddc92fbcb7",
-    "instructions": "../../../transfer/ladder_nh_plate_hole_3d_pe_P232.md",
-    "levels": [
-     [
-      "P2 uniform",
-      32,
-      "P2"
-     ]
-    ],
-    "uncommitted_code": []
-   }
-  },
-  {
-   "stage": "N",
-   "actor": "person",
-   "status": "needs_person",
-   "kind": "human intervention",
-   "detail": "submit cluster job ladder_nh_plate_hole_3d_pe_P232 by hand (no agent connects to the cluster) and paste the result"
+   "detail": "#1 finer_independent_level: prediction refuted (0.0 min); numerically verified so far ['strain_energy', 'u_right']"
   },
   {
    "stage": "N",
@@ -130,16 +101,9 @@
    "status": "input",
    "kind": "human intervention",
    "detail": "description written by a person (steps L, D skipped)"
-  },
-  {
-   "stage": "N",
-   "actor": "person",
-   "status": "needs_person",
-   "kind": "human intervention",
-   "detail": "submit cluster job ladder_nh_plate_hole_3d_pe_P232 by hand (no agent connects to the cluster) and paste the result"
   }
  ],
- "wall_clock_s": 7.734644412994385,
+ "wall_clock_s": 3.118121862411499,
  "source": {
   "pdf": null,
   "text": null,
@@ -358,23 +322,6 @@
   16,
   32
  ],
- "cluster_jobs": [
-  {
-   "name": "ladder_nh_plate_hole_3d_pe_P232",
-   "spec": "cluster_jobs/ladder_nh_plate_hole_3d_pe_P232_spec.json",
-   "fingerprint": "4c5643a9f9e32ee8f30555bfb345fa4c201556de6eec1228d8b175b8201322c7",
-   "bundle_md5": "7ed0fa16b5cb84af7cf54dddc92fbcb7",
-   "instructions": "../../../transfer/ladder_nh_plate_hole_3d_pe_P232.md",
-   "levels": [
-    [
-     "P2 uniform",
-     32,
-     "P2"
-    ]
-   ],
-   "uncommitted_code": []
-  }
- ],
  "certified_info": {
   "strain_energy": {
    "U": 2.2499587291664222e-07,
@@ -424,7 +371,7 @@
    "limit": 0.9514971590215203,
    "U": 2.2499587291664222e-07,
    "crosscheck": "cross_checked",
-   "gap_rel": 4.6862262609586045e-08,
+   "gap_rel": 5.748184466054128e-08,
    "final": "CERTIFIED"
   },
   "u_right": {
@@ -449,7 +396,7 @@
    "limit": 0.19409459663788634,
    "U": 6.780575871972103e-07,
    "crosscheck": "cross_checked",
-   "gap_rel": 4.250557995540293e-06,
+   "gap_rel": 2.685287552091985e-06,
    "final": "CERTIFIED"
   },
   "v_hole_top": {
@@ -583,8 +530,7 @@
   {
    "k": 1,
    "action": "finer_independent_level",
-   "confirmed": false,
-   "failed": true
+   "confirmed": false
   }
  ]
 }

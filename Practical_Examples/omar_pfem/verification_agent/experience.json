@@ -483,5 +483,17 @@
   "predicted_minutes": 13.854021219928436,
   "observed_minutes": 0.039557266235351565,
   "file": "experiments/nh_plate_hole_3d_pe/01_finer_independent_level.json"
+ },
+ {
+  "problem": "nh_plate_hole_3d_pe",
+  "action": "finer_independent_level",
+  "situation": "any:independent_unconverged",
+  "quantities": [
+   "v_hole_top"
+  ],
+  "confirmed": false,
+  "predicted_minutes": 0.0,
+  "observed_minutes": 0.02498695453008016,
+  "file": "experiments/nh_plate_hole_3d_pe/01_finer_independent_level_run2.json"
  }
 ]

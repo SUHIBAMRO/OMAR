@@ -65,5 +65,18 @@
    ],
    "problem": "nh_plate_hole_3d_pe"
   }
+ },
+ "6493ba66158d340bcb49003ed7b5785c": {
+  "file": "ladder_nh_plate_hole_3d_pe_P232_result.json",
+  "utc": "2026-11-28T16:06:39.569521",
+  "result": {
+   "added": [
+    [
+     "P2 uniform",
+     32
+    ]
+   ],
+   "problem": "nh_plate_hole_3d_pe"
+  }
  }
 }
