@@ -26430,3 +26430,8 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   duplicate check by title; FIRST run with zero human interventions, v_Q reproduced; 2/5) and 7 (a new feasible
   paper refused at definition for missing material/loads, correct; 2/5). LLM USD 2.33. Report updated to 10 pages
   (new Section 6; claims 25/25); email draft updated. Still NOT SENT (CAS status first).
+- 2026-11-28 DONE: cluster job 3356483 (NH 3D plate, Q2/P2 n = 16) returned; ingested with ONE command
+  (`cluster_ladder ingest`, md5 aaa9f68637cb1b9c4fd32aca9b1d7cf6 verified) and the loop re-ran automatically:
+  code check PASS; strain energy 0.951497 (U_rel 2.2e-7) and u_right 0.194095 (U_rel 6.8e-7) numerically verified
+  (2 of 4, as for the linear 3D plate); v_hole_top needs P2 n = 32 (712,701 DOF): NEW cluster job prepared,
+  transfer/ladder_nh_plate_hole_3d_pe_P232.tar.gz (md5 7ed0fa16b5cb84af7cf54dddc92fbcb7), NOT submitted (optional).

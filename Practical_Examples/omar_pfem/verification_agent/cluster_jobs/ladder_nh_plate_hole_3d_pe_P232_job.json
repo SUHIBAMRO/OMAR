@@ -1,0 +1,15 @@
+{
+ "name": "ladder_nh_plate_hole_3d_pe_P232",
+ "spec": "cluster_jobs/ladder_nh_plate_hole_3d_pe_P232_spec.json",
+ "fingerprint": "4c5643a9f9e32ee8f30555bfb345fa4c201556de6eec1228d8b175b8201322c7",
+ "bundle_md5": "7ed0fa16b5cb84af7cf54dddc92fbcb7",
+ "instructions": "../../../transfer/ladder_nh_plate_hole_3d_pe_P232.md",
+ "levels": [
+  [
+   "P2 uniform",
+   32,
+   "P2"
+  ]
+ ],
+ "uncommitted_code": []
+}

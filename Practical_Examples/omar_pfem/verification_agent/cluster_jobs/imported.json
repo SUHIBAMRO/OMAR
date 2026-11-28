@@ -48,5 +48,22 @@
    ],
    "refused": []
   }
+ },
+ "aaa9f68637cb1b9c4fd32aca9b1d7cf6": {
+  "file": "ladder_nh_plate_hole_3d_pe_Q216_P216_result.json",
+  "utc": "2026-11-28T13:24:04.597796",
+  "result": {
+   "added": [
+    [
+     "Q2 uniform",
+     16
+    ],
+    [
+     "P2 uniform",
+     16
+    ]
+   ],
+   "problem": "nh_plate_hole_3d_pe"
+  }
  }
 }

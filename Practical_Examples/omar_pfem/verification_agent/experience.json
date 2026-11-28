@@ -470,5 +470,18 @@
   "predicted_minutes": 0.22887479241770048,
   "observed_minutes": 0.07839450836181641,
   "file": "experiments/cooks_membrane_case1_linear_elastic_E1_nu1over3/04_finer_independent_level.json"
+ },
+ {
+  "problem": "nh_plate_hole_3d_pe",
+  "action": "finer_independent_level",
+  "situation": "any:independent_unconverged",
+  "quantities": [
+   "v_hole_top"
+  ],
+  "confirmed": null,
+  "not_run": "refused by the local memory guard (cluster job)",
+  "predicted_minutes": 13.854021219928436,
+  "observed_minutes": 0.039557266235351565,
+  "file": "experiments/nh_plate_hole_3d_pe/01_finer_independent_level.json"
  }
 ]
