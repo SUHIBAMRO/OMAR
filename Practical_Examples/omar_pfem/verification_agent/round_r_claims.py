@@ -126,8 +126,8 @@ def claims():
     exp = _j("experiments", "plate_hole_quarter_3d_pe", "01_finer_independent_level_run5.json")
     c.append(("plate prediction", "refuted" if not exp["outcome"]["confirmed"] else "confirmed",
               "refuted"))
-    nh = _j("autonomous_runs", "nh_plate_hole_3d_pe", "run.json")
-    m = re.search(r"needs about ([\d.]+) GB", json.dumps(nh["steps"]))
+    nh = _run("nh_plate_hole_3d_pe")      # FIX (28 Nov): the PDF-time snapshot, as the others
+    m = re.search(r"needs about ([\d.]+) GB", json.dumps(nh))
     c.append(("NH n=16 memory", f"{float(m.group(1)):.1f} GB", "16.6 GB"))
     import glob
     n_tests = sum(open(f).read().count("\ndef test_") for f in
