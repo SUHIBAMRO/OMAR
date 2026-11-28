@@ -26435,3 +26435,10 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   code check PASS; strain energy 0.951497 (U_rel 2.2e-7) and u_right 0.194095 (U_rel 6.8e-7) numerically verified
   (2 of 4, as for the linear 3D plate); v_hole_top needs P2 n = 32 (712,701 DOF): NEW cluster job prepared,
   transfer/ladder_nh_plate_hole_3d_pe_P232.tar.gz (md5 7ed0fa16b5cb84af7cf54dddc92fbcb7), SUBMITTED 2026-11-28 14:36 as job 3422051 (BatchGPU, 120 GB, 24 h); on return: print command (step 4 of transfer/ladder_nh_plate_hole_3d_pe_P232.md), then `cluster_ladder ingest`. Report 27 Nov (unsent) corrected: "submitted on 28 November (job 3422051), result pending"; PDF re-exported (10 pages), claims 25/25.
+
+## 2026-11-28: plan agreed with Omar
+- Wait for cluster job 3422051 (P2 n = 32, NH 3D plate v_hole_top). On return: ingest
+  (`cluster_ladder ingest`), then update the 27 Nov report (Doc SHzG8eeXHEGBzcfPusnqPi) and the
+  email draft with the result, re-export the PDF, run all claims checks.
+- Only after that does Omar fill [STATUS] (CAS) and send report + email to Professor Rabczuk himself.
+  The email and report are NOT sent yet. Do not contact Professor Rabczuk.
