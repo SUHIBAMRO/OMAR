@@ -72,6 +72,14 @@ def claims():
             + j("search_round5_score.json")["cost_usd"] + j("search_round6_score.json")["cost_usd"]
             + j("search_round7_score.json")["cost_usd"])
     c.append(("section 6 cost", f"USD {cost:.2f}", "USD 2.33"))
+    # 28 Nov: cluster job 3422051 (P2 n = 32) and the post hoc note
+    ph = json.load(open(os.path.join(HERE, "experiments", "nh_plate_hole_3d_pe",
+                                     "POSTHOC_2026-11-28_drop_coarsest_P2.json")))
+    c.append(("NH v_hole_top post hoc gap", f"gap {100 * ph['posthoc_answer']['gap_rel']:.2f}%", "gap 0.03%"))
+    nh = json.load(open(os.path.join(HERE, "autonomous_runs", "nh_plate_hole_3d_pe", "run.json")))
+    c.append(("NH v_hole_top unverified", "remains numerically unverified after job 3422051"
+              if "v_hole_top" in nh["final"]["open"] and 32 in nh["p2_levels"] else "?",
+              "remains numerically unverified after job 3422051"))
     return c
 
 

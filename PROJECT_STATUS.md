@@ -26442,3 +26442,10 @@ NEXT IDEA (not started): share-weighted grading (trade each corner's grading aga
   email draft with the result, re-export the PDF, run all claims checks.
 - Only after that does Omar fill [STATUS] (CAS) and send report + email to Professor Rabczuk himself.
   The email and report are NOT sent yet. Do not contact Professor Rabczuk.
+- 2026-11-28 17:06: job 3422051 RETURNED (41 min on the cluster) and was ingested (md5 6493ba66...).
+  NH 3D plate stays 2 of 4: v_hole_top INCONCLUSIVE (independent P2 sequence n = 2..32 not
+  monotone because of n = 2; pre-registered prediction refuted). POST HOC note (not adopted):
+  without n = 2 the cross-check would pass, gap 0.03% <= 0.066%
+  (experiments/nh_plate_hole_3d_pe/POSTHOC_2026-11-28_drop_coarsest_P2.json).
+  Report 27 Nov updated with this (Doc rev 20), PDF re-exported (10 pages), claims 27/27; the
+  email draft needed no change. Remaining before sending: Omar fills [STATUS] (CAS) and sends.
